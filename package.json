@@ -81,7 +81,7 @@
     "@types/uuid": "8.3.1",
     "@typescript-eslint/eslint-plugin": "4.28.3",
     "@typescript-eslint/parser": "4.28.3",
-    "css-loader": "5.2.6",
+    "css-loader": "6.2.0",
     "env-cmd": "10.1.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-jest": "24.3.6",
