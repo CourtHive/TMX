@@ -28,7 +28,7 @@
     "date-fns": "2.22.1",
     "dexie": "3.0.3",
     "esri-leaflet": "3.0.2",
-    "i18next": "20.3.3",
+    "i18next": "20.3.4",
     "immer": "9.0.5",
     "json": "11.0.0",
     "jwt-decode": "3.1.2",
