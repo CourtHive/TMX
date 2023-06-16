@@ -1,0 +1,74 @@
+import { competitionEngine, utilities } from 'tods-competition-factory';
+import { controlBar } from 'components/controlBar/controlBar';
+import { isFunction } from 'functions/typeOf';
+import dayjs from 'dayjs';
+
+import { LEFT, NONE, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
+
+export function scheduleGridControl({
+  toggleUnscheduled,
+  schedulingActive,
+  controlAnchor,
+  scheduledDate,
+  courtsCount,
+  setDate
+} = {}) {
+  if (!controlAnchor) return;
+
+  let elements; // for internal manipulation
+
+  const formatDate = (dateString) => dayjs(dateString).format('dddd MMM D');
+  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
+  const dateRange = utilities.dateRange(startDate, endDate);
+  const dateOptions = dateRange.map((dateString) => ({
+    onClick: () => isFunction(setDate) && setDate(dateString),
+    isActive: dateString === scheduledDate,
+    label: formatDate(dateString),
+    value: dateString,
+    close: true
+  }));
+
+  const items = [
+    {
+      // onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateHighlights(''),
+      // onChange: (e) => updateHighlights(e.target.value),
+      // onKeyUp: (e) => updateHighlights(e.target.value),
+      placeholder: 'Search participants',
+      id: 'searchParticipants',
+      visible: !!courtsCount,
+      location: LEFT,
+      search: true
+    },
+    {
+      options: [{ label: 'Team ', onClick: () => console.log('team clicked') }],
+      label: 'Highlight team',
+      id: 'highlightTeam',
+      visible: !!courtsCount,
+      location: LEFT,
+      align: LEFT
+    },
+    {
+      onClick: toggleUnscheduled,
+      label: 'Schedule matches',
+      id: 'scheduleMatchUps',
+      intent: 'is-primary',
+      visible: !!courtsCount,
+      location: RIGHT
+    },
+    {
+      label: formatDate(scheduledDate || startDate),
+      value: scheduledDate || startDate,
+      id: SCHEDULED_DATE_FILTER,
+      options: dateOptions,
+      location: RIGHT,
+      intent: 'is-info',
+      modifyLabel: true,
+      align: RIGHT
+    }
+  ];
+
+  elements = controlBar({ target: controlAnchor, items }).elements;
+  elements.scheduleMatchUps.style.display = schedulingActive || !courtsCount ? NONE : '';
+
+  return { elements };
+}

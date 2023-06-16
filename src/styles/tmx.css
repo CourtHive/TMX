@@ -1,0 +1,307 @@
+html,
+body {
+  font-family: 'Poppins', sans-serif;
+  font-size: 62.5%;
+  font-weight: 500;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.4rem;
+  color: var(--white-color);
+  height: 100vh;
+}
+
+.springboard {
+  background-color: #edecf0;
+  width: 100%;
+}
+
+.event-pill {
+  font-size: 1rem !important;
+  margin-right: 2px;
+}
+.font-medium {
+  font-size: 15px;
+}
+
+#tournaments .tabulator-row table tr td:first-of-type {
+  width: 60px;
+}
+
+.main {
+  width: 100%;
+  min-height: 50vh;
+}
+
+.navbar {
+  border-bottom: 1px solid #d9d9d9;
+  position: fixed;
+  top: 0;
+}
+
+.tab_section {
+  margin-top: 3em;
+}
+
+.tableClass {
+  background-color: white;
+}
+
+/* prevent scrollbar on hover in Tabulator tables */
+.tabulator-tableholder {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.tabulator-tableholder::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}
+
+/* minimum height prevents jumpy rendering */
+.section {
+  margin-left: 3rem;
+  min-height: 1000px;
+  padding-right: 2rem !important;
+}
+
+.tmxLogo {
+  width: 120px;
+}
+
+.toggleCaret {
+  font-size: larger;
+  color: rgb(76, 76, 242);  
+}
+
+
+.main,
+#tc-draws {
+  background-color: white;
+}
+
+#unscheduledVisibility {
+  margin-bottom: 2em;
+}
+
+.panel_container {
+  width: 100%;
+}
+
+.controlBar,
+.foreground {
+  background-color: white;
+}
+
+
+.panelHeader {
+  background-color: rgb(192 193 211);
+  -webkit-align-items: center;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  align-content: center;
+  align-items: center;
+
+  display: flex;
+  padding: 1em;
+  height: 3em;
+  width: 100%;
+
+  flex-grow: 1;
+}
+.draw_buttons,
+.buttonBar {
+  padding: 1em;
+}
+
+.draw_buttons,
+.buttonBar,
+.options_left {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  -webkit-flex-direction: row;
+  -webkit-align-content: center;
+}
+.draw_options,
+.buttonBar {
+  flex-direction: row;
+  width: 100%;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.options_left {
+  flex-direction: row;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.options_center,
+.options_right {
+  -webkit-align-content: center;
+  align-content: center;
+  display: flex;
+}
+.options_center {
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.options_right {
+  flex-grow: 1;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: flex-end;
+  justify-content: flex-end;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.options_overlay {
+  flex-grow: 1;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  display: none;
+}
+
+/* from index styles */
+.tournament_container {
+  width: 100%;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  display: flex;
+}
+
+.flexrow,
+.flexrow-wrap {
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  display: flex;
+}
+.flexrow {
+  flex-direction: row;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+.flexrow-wrap {
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.flexnowrap {
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.flexcol {
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+.flexcenter {
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.flexjustifystart {
+  display: flex;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+.flexjustifyend {
+  display: flex;
+  -webkit-justify-content: flex-end;
+  justify-content: flex-end;
+}
+.location_detail_body {
+  padding: 0.3em;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+}
+
+.ellipsis {
+  overflow: hidden;
+}
+.ellipsis,
+.truncate {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.btn,
+.ellipsis,
+.nowrap,
+.truncate {
+  white-space: nowrap;
+}
+html {
+  touch-action: manipulation;
+}
+* {
+  box-sizing: border-box;
+}
+.noselect {
+  cursor: default;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -o-user-select: none;
+}
+#content {
+  width: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  align-items: center;
+  -webkit-align-items: center;
+}
+@media (max-width: 767px) {
+  #content {
+    padding: 0;
+  }
+  body {
+    margin: 2px;
+  }
+}
+.header {
+  margin-bottom: 0.5em;
+}
+.container {
+  width: 100%;
+  min-height: 15em;
+  font-size: 1em;
+}

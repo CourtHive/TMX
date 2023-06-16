@@ -1,0 +1,249 @@
+.scoreboard .info,
+.scoreboard .last-name,
+.scoreboard .state {
+  text-transform: uppercase;
+}
+.scoreboard .info button,
+.scoreboard .time {
+  float: right;
+}
+body {
+  --sb-panel-background: #222;
+  --sb-opponent-background: #2f2f2f;
+  --sb-info-color: #aaa;
+  --sb-options: #333;
+  --sb-options-hover: #444;
+  --sb-winner-color: #486149;
+}
+.flexgrow {
+  flex-grow: 1;
+}
+.scoreboard .sb_flexrow {
+  display: flex;
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  flex-wrap: wrap;
+}
+.completed_icon {
+  width: 1.5em;
+  height: 1.5em;
+}
+.sbcolumn,
+.scoreboard {
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+.lastcol {
+  margin-right: 0.5em;
+}
+.scoring_icon {
+  height: 1em;
+  width: 1em;
+}
+.scoreboard .info-text {
+  margin-right: 5px;
+}
+.scoreboard .info {
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  min-height: 14px;
+  padding: 5px;
+  font-size: 10px;
+  color: var(--sb-info-color);
+  background-color: var(--sb-panel-background);
+}
+.scoreboard .info span {
+  padding-top: 3px;
+}
+.scoreboard .info .court,
+.scoreboard .info .round_name {
+  margin-left: 0.5em;
+}
+.scoreboard .info div {
+  float: right;
+  width: 1.5em;
+  margin-left: 2px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  color: var(--sb-info-color);
+  border-style: none;
+  outline: 0;
+}
+.scoreboard .info .options {
+  background-color: var(--sb-options);
+}
+.scoreboard .info .options:hover {
+  background-color: var(--sb-options-hover);
+}
+html.can-touch .scoreboard .info .options:hover {
+  background-color: none;
+}
+.scoreboard .expanded,
+.scoreboard .opponent,
+.scoreboard .sbox {
+  background-color: var(--sb-opponent-background);
+  display: flex;
+}
+.scoreboard .sbox {
+  width: 100%;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+}
+.scoreboard .expanded {
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  margin: 10px 5px;
+}
+.scoreboard .opponent {
+  height: 50%;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  align-content: center;
+  color: #fff;
+}
+.scoreboard .victor {
+  background-color: var(--sb-winner-color);
+}
+.scoreboard .scoreboard-action,
+.scoreboard .scoreboard-action .edit,
+.scoreboard .scoreboard-action .frame,
+.scoreboard .state {
+  background-color: var(--sb-panel-background);
+}
+.scoreboard .opponent0 {
+  border-bottom: 2px solid var(--sb-panel-background);
+}
+.scoreboard .opponent-name {
+  padding: 0.5em 0.6em 0.6em;
+  min-width: 200px;
+}
+.scoreboard .opponent-name .pad {
+  padding-right: 0.4em;
+}
+.scoreboard .opponent-scores {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  -webkit-justify-content: flex-end;
+  align-content: center;
+}
+.scoreboard .opponent .score-action .options {
+  color: green;
+}
+.scoreboard .opponent .score-action .active {
+  color: #7fff00;
+}
+.scoreboard .opponent .opponent-scores .score {
+  display: flex;
+  min-width: 2em;
+  text-align: right;
+  padding-right: 0em;
+}
+.scoreboard .opponent .opponent-scores .setscore {
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: stretch;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.scoreboard .opponent .opponent-scores .score .setscore {
+  display: flex;
+  padding-left: 0.5em;
+  text-align: right;
+}
+.scoreboard .set_number {
+  width: auto;
+}
+.scoreboard .opponent .opponent-scores .score .tbscore {
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: stretch;
+  -webkit-align-items: center;
+  align-items: center;
+  font-size: 0.8em;
+  padding-left: 0.1em;
+  padding-bottom: 1.3em;
+  text-align: left;
+}
+.scoreboard .tbinput input {
+  border: 0;
+  width: 2em;
+  height: 100%;
+  display: none;
+  font-size: 1em;
+  text-align: center;
+}
+.scoreboard .team_player {
+  display: flex;
+  flex-wrap: wrap;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  align-items: center;
+  -webkit-align-items: center;
+}
+.scoreboard .name-detail {
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+.scoreboard .scoreboard-action {
+  overflow: hidden;
+  width: 100%;
+}
+.scoreboard .scoreboard-action .frame {
+  padding: 0.5em;
+  height: 100%;
+}
+.scoreboard .scoreboard-action .configure_frame {
+  padding: 0.1em;
+  background-color: var(--sb-panel-background);
+  height: 100%;
+}
+.scoreboard .scoreboard-action .edit {
+  display: none;
+  color: #fff;
+  width: 100%;
+  height: 100%;
+}
+.scoreboard .scoreboard-action .configure {
+  padding-bottom: 0.6em;
+}
+.scoreboard .scoreboard-actions {
+  display: flex;
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  justify-content: space-around;
+  -webkit-justify-content: space-around;
+}
+.scoreboard .state {
+  height: 14px;
+  padding: 5px 5px 2px;
+  font-size: 10px;
+  color: var(--sb-info-color);
+}
+.scoreboard button {
+  margin: 0.2em;
+  padding: 0.5em;
+  background: gray;
+  outline: 0;
+  width: 10em;
+}
+.scoreboard .accept,
+.scoreboard .dismiss {
+  background: var(--sb-actions-background);
+  color: var(--sb-actions-text);
+}

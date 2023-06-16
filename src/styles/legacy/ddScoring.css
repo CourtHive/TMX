@@ -1,0 +1,169 @@
+/* Drop Down */
+.dd .dd_state,
+.dd span,
+.dd ul {
+  height: 100%;
+}
+body {
+  --dd-active: gray;
+  --dd-active-color: #000;
+  --dd-notactive-color: #fff;
+  --dd-span-background: #ebebeb;
+  --dd-span-hover: #cecece;
+  --dd-li-background: #fff;
+  --dd-label-color: #000;
+  --dd-hasvalue: #2f2f2f;
+  --dd-novalue: #fff;
+}
+.dd {
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+}
+.dd .options span,
+.dd div.options {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  -webkit-justify-content: center;
+  -webkit-align-content: center;
+}
+.dd .hasvalue {
+  background: var(--dd-hasvalue);
+}
+.dd .novalue {
+  background: var(--dd-novalue);
+}
+.dd ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dd div.options {
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+}
+.dd .options span {
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.dd div.dd-label {
+  padding: 2px 3px 2px 0;
+  color: var(--dd-label-color);
+}
+.dd span {
+  min-width: 3em;
+  text-align: center;
+  border: none;
+}
+.dd ul li {
+  display: block;
+  position: relative;
+  float: right;
+  background: var(--dd-li-background);
+}
+.dd .floatleft {
+  right: 1px;
+}
+.dd ul li span {
+  display: block;
+  background: var(--dd-span-background);
+  padding: 2px 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--dd-active-color);
+}
+.dd .selections {
+  max-height: 100px;
+  overflow-y: auto;
+}
+.dd .selected,
+.dd div.dd-label {
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.dd li li {
+  float: none;
+}
+.dd li ul {
+  z-index: 1000;
+  display: none;
+}
+.dd li:hover li span:hover {
+  background: var(--dd-span-hover);
+}
+.dd li.active ul {
+  display: block;
+  position: absolute;
+  background: var(--dd-active);
+}
+.dd li ul li {
+  width: auto;
+  text-align: center;
+}
+/* END dropdown */
+
+.btn {
+  color: #000;
+  cursor: pointer;
+  background: 0;
+  box-shadow: none;
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  border-radius: 4px;
+  border: 1px solid #000;
+  font-weight: 400;
+  text-align: center;
+  text-transform: uppercase;
+  vertical-align: middle;
+  line-height: 1.3333333;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  transition: background ease-out 0.5s;
+  -webkit-transition: background ease-out 0.5s;
+  -moz-transition: background ease-out 0.5s;
+  -o-transition: background ease-out 0.5s;
+}
+.btn-small {
+  padding: 5px 8px;
+  font-size: 12px;
+}
+.btn-medium {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.btn-large {
+  padding: 10px 12px;
+  font-size: 18px;
+}
+
+button.undo:hover {
+  background: violet;
+}
+button.accept:hover,
+button.add:hover {
+  background: #68ff33;
+}
+button.ignore:hover {
+  background: #0ff;
+}
+
+button.dismiss:hover,
+button.edit-cancel:hover {
+  background: #ff0;
+}

@@ -1,0 +1,89 @@
+import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
+import { controlBar } from 'components/controlBar/controlBar';
+import { tournamentEngine } from 'tods-competition-factory';
+
+import { LEFT, MATCHUPS_CONTROL } from 'constants/tmxConstants';
+
+export function renderMatchUpTab() {
+  let eventIdFilter, teamIdFilter;
+
+  const { table } = createMatchUpsTable();
+
+  // FILTER: events
+  const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
+  const updateEventFilter = (eventId) => {
+    if (eventIdFilter) table.removeFilter(eventFilter);
+    eventIdFilter = eventId;
+    if (eventId) table.addFilter(eventFilter);
+  };
+  const events = tournamentEngine.getEvents().events || [];
+  const allEvents = { label: 'All events', onClick: updateEventFilter, close: true };
+  const eventOptions = [allEvents].concat(
+    events.map((event) => ({
+      onClick: () => updateEventFilter(event.eventId),
+      label: event.eventName,
+      close: true
+    }))
+  );
+
+  // SEARCH filter
+  let searchText;
+  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
+  const updateSearchFilter = (value) => {
+    if (!value) table.removeFilter(searchFilter);
+    searchText = value;
+    if (value) table.addFilter(searchFilter);
+  };
+
+  // FILTER: teams
+  const teamParticipants =
+    tournamentEngine.getParticipants({ participantFilters: { participantTypes: ['TEAM'] } }).participants || [];
+  const teamMap = Object.assign(
+    {},
+    ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds }))
+  );
+  const teamFilter = (rowData) => rowData.individualParticipantIds.some((id) => teamMap[teamIdFilter]?.includes(id));
+  const updateTeamFilter = (teamId) => {
+    if (teamIdFilter) table.removeFilter(teamFilter);
+    teamIdFilter = teamId;
+    if (teamId) table.addFilter(teamFilter);
+  };
+  const allTeams = { label: 'All teams', onClick: updateTeamFilter, close: true };
+  const teamOptions = [allTeams].concat(
+    teamParticipants.map((team) => ({
+      onClick: () => updateTeamFilter(team.participantId),
+      label: team.participantName,
+      close: true
+    }))
+  );
+
+  const items = [
+    {
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
+      onChange: (e) => updateSearchFilter(e.target.value),
+      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      placeholder: 'Search matches',
+      location: LEFT,
+      search: true
+    },
+    {
+      hide: eventOptions.length < 3,
+      options: eventOptions,
+      label: 'All events',
+      modifyLabel: true,
+      location: LEFT,
+      selection: true
+    },
+    {
+      hide: teamOptions.length < 3,
+      options: teamOptions,
+      label: 'All teams',
+      location: LEFT,
+      modifyLabel: true,
+      selection: true
+    }
+  ];
+
+  const target = document.getElementById(MATCHUPS_CONTROL);
+  controlBar({ target, items });
+}
