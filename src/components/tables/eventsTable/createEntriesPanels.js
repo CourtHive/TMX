@@ -171,6 +171,7 @@ export function createEntriesPanels({ eventId, drawId }) {
       },
       {
         onClick: () => addDraw({ eventId, callback: drawAdded }),
+        intent: 'is-info',
         label: 'Add draw',
         location: RIGHT,
         hide: drawOptions || drawId
