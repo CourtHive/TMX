@@ -17,10 +17,9 @@ import {
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
-  const routerRoot =
-    window.location.host.indexOf('localhost:') === 0 ? '/' : process.env.REACT_APP_ROUTER_BASENAME || '/';
+  const routerRoot = window.location.host.indexOf('localhost:3333') === 0 ? '/' : process.env.PUBLIC_URL || '/';
 
-  const router = new Navigo(`/${routerRoot}`);
+  const router = new Navigo(`/${routerRoot}`, { hash: true });
   context.router = router;
 
   const displayRoute = ({ selectedTab, renderDraw, data }) => {
