@@ -1,6 +1,6 @@
 # TMX
 
-Tournament Management exTreme, or, because it works with data standards (TODS) and an ethos of collaborative development: ethodseXtensible Tournament Manager.
+Tournament Management exTreme, or, because it works with data standards (TODS) and an ethos of collaborative development: eXtensible Tournament Manager.
 
 ## Origin
 
