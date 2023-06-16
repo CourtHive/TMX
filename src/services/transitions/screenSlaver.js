@@ -1,12 +1,17 @@
-import { showNav, hideNav } from '../../components/buttons/tmxNav';
-import { context } from 'services/context';
+import { showNav, hideNav } from "../../components/buttons/tmxNav";
+import { context } from "services/context";
 
-import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import {
+  NONE,
+  SPLASH,
+  TMX_CONTENT,
+  TMX_TOURNAMENTS,
+} from "constants/tmxConstants";
 
 let content;
 
 function displayTournaments() {
-  context.router.navigate('/tournaments');
+  context.router.navigate("/tournaments");
 }
 
 function selectDisplay(which) {
@@ -14,9 +19,11 @@ function selectDisplay(which) {
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
 
-  const sideNav = document.getElementById('sideNav');
+  const sideNav = document.getElementById("sideNav");
+  const navBar = document.getElementById("navbar");
   if (which === TMX_CONTENT) {
-    sideNav.style.display = '';
+    sideNav.style.display = "";
+    navBar.style.display = "";
   } else {
     sideNav.style.display = NONE;
   }
@@ -29,12 +36,12 @@ function selectDisplay(which) {
 }
 function isActive(id) {
   const docnode = document.getElementById(id);
-  return docnode && docnode.style.display === 'flex';
+  return docnode && docnode.style.display === "flex";
 }
 function setState(id, which) {
   const display = id === which;
   const docnode = document.getElementById(id);
-  if (docnode) docnode.style.display = display ? 'flex' : 'none';
+  if (docnode) docnode.style.display = display ? "flex" : "none";
 }
 
 export const contentEquals = (what) => {
