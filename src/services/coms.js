@@ -133,12 +133,8 @@ export const coms = (function () {
   };
   fx.connectSocket = () => {
     let msgMon = (x) => console.log(x);
-    const chcsRootURL =
-      window.location.host.indexOf('localhost:3') === 0
-        ? 'http://localhost:8383'
-        : process.env.REACT_APP_CHCS_ROOT_URL || window.location.host;
+    const chcsRootURL = process.env.REACT_APP_CHCS_ROOT_URL || window.location.host;
 
-    console.log({ chcsRootURL });
     const chcsServerPath = process.env.REACT_APP_CHCS_SERVER_PATH || '';
     const socketIoPath = env.socketIo.tmx || '';
 
