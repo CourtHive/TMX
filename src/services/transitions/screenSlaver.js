@@ -1,7 +1,7 @@
 import { showNav, hideNav } from '../../components/buttons/tmxNav';
 import { context } from 'services/context';
 
-import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { NAVBAR, NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 let content;
 
@@ -45,7 +45,7 @@ export const showSplash = () => {
   selectDisplay(SPLASH);
 };
 export const showContent = (what) => {
-  const navbar = document.getElementById('navbar');
+  const navbar = document.getElementById(NAVBAR);
   navbar.style.display = '';
   content = what;
   selectDisplay(TMX_CONTENT);
