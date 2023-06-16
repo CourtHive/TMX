@@ -1,0 +1,154 @@
+/* CELL colors */
+body {
+  --sch-neutral: white;
+  --sch-error: #c01a1a;
+  --sch-issue: #faa774;
+  --sch-conflict: #f5a9a9;
+  --sch-warning: lightyellow;
+  --sch-complete: #e0ecf8;
+  --sch-inprogress: #cef6ce;
+  --sch-abandoned: #f7be81;
+}
+
+#unscheduledMatchUps .tabulator-header,
+#unscheduledMatchUps .tabulator-row {
+  font-size: 0.7em;
+  padding: 0.1em;
+}
+#tournamentSchedule .tabulator-cell {
+  border-right: 1px solid #dbdbdb;
+  padding: 0.1em;
+}
+
+.matchup-error {
+  background: var(--sch-error) !important;
+}
+.matchup-complete {
+  background: var(--sch-complete);
+}
+.matchup-conflict {
+  background: var(--sch-conflict) !important;
+}
+.matchup-warning {
+  background: var(--sch-warning) !important;
+}
+.matchup-issue {
+  background: var(--sch-issue) !important;
+}
+.matchup-inprogress {
+  background: var(--sch-inprogress);
+}
+.schedule-cell .complete,
+.schedule-cell .match_status {
+  font-weight: 700;
+}
+.schedule-cell .match_score,
+.schedule-cell .match_status,
+.schedule-cell .match_umpire {
+  margin-top: 0.1em;
+  font-style: italic;
+}
+
+.schedule-cell {
+  height: 11em;
+  width: 14em;
+}
+.court_header,
+.oop_round,
+.schedule-cell {
+  font-size: 12px;
+  padding: 0.5em;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.schedule-cell .header {
+  margin-bottom: 0.2em;
+}
+.schedule-cell .catround {
+  width: 100%;
+  font-size: 0.8em;
+  font-style: italic;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+.schedule-cell .catround div {
+  width: auto;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+.schedule-cell .round {
+  margin-right: 2px;
+}
+.schedule-cell .scheduled_teams {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.schedule-cell .match_umpire {
+  color: red;
+}
+.schedule-cell .match_score,
+.schedule-cell .match_umpire,
+.schedule-cell .scheduled_team {
+  display: flex;
+  width: 100%;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+.schedule-cell .divider {
+  font-size: 0.7em;
+}
+
+.schedule-cell .potential {
+  white-space: nowrap;
+  color: gray;
+  font-style: italic;
+}
+
+.schedule-cell .nowrap {
+  white-space: nowrap;
+}
+
+.oop_round {
+  height: 11em;
+  width: 6em;
+}
+.oop_round_header {
+  height: 2em;
+  width: 6em;
+  font-size: 12px;
+  padding: 0.2em;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.court_header {
+  height: 2em;
+  background: #fff;
+  width: 14em;
+}

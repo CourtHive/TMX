@@ -1,0 +1,11 @@
+{
+  "extends": ["config:base", ":semanticCommits"],
+  "enabledManagers": ["npm"],
+  "packageRules": [
+    {
+      "packagePatterns": ["*"],
+      "excludePackagePatterns": ["tods-*"],
+      "enabled": false
+    }
+  ]
+}
