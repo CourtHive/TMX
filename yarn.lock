@@ -10420,7 +10420,7 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-tmx-classic-converter@^2.11.0:
+tods-tmx-classic-converter@^2.10.8:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.11.0.tgz#89645519973644f1df62b6c89da28f5b9fdccb6b"
   integrity sha512-Aiii32pD944jOTG3phj0SXBhEIVeqvoxojikYuzPVJyjzCnKS8NOXpVERoyZ/U/fvO+zo+NDLQ/YSuF4Y4WFtA==

@@ -39,7 +39,7 @@
     "tippy.js": "^6.3.7",
     "tods-competition-factory": "^1.0.0",
     "tods-react-draws": "^0.2.1",
-    "tods-tmx-classic-converter": "^2.11.0",
+    "tods-tmx-classic-converter": "^2.10.8",
     "typescript": "^4.9.3"
   },
   "scripts": {
