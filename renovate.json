@@ -1,6 +1,9 @@
 {
-  "extends": ["config:base", ":semanticCommits"],
-  "enabledManagers": ["npm"],
+  "extends": ["config:base", ":semanticCommits", ":dependencyDashboard"],
+  "enabledManagers": ["npm", "yarn"],
+  "major": {
+    "dependencyDashboardApproval": true
+  },
   "packageRules": [
     {
       "packagePatterns": ["*"],
