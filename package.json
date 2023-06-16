@@ -46,7 +46,7 @@
     "lint": "eslint src --fix --cache",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
     "format": "prettier --write src",
-    "start": "react-app-rewired start",
+    "start": "PORT=3333 react-app-rewired start",
     "build": "react-app-rewired build",
     "postbuild": "./addVersion $npm_package_version",
     "test": "react-app-rewired test",
