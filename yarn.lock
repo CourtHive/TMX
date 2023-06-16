@@ -10404,10 +10404,10 @@ tods-competition-factory@^0.501.0:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-0.501.0.tgz#4e57ca7bc0f1561df66ac64852b8c568c118084d"
   integrity sha512-CMT2JBMotx7jqO+kCGmnxK6uLFudOOOYhhrm/wjYsEbJ64srUIUMfTl9tS2I2Uv6CiVExcGLXhi7PnoOSg6JLg==
 
-tods-competition-factory@^0.512.7:
-  version "0.512.8"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-0.512.8.tgz#243e2de39016e96b051d9c8e793a4a8288c3ba83"
-  integrity sha512-hnlUa8kInIIR6od28CjVr5TWWE+a2+sCgCzq82Cwsv/kcPfUGBaCjtkIvLVr9R0j3pEDSdxwX36/Ku1BsBnE1Q==
+tods-competition-factory@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.0.tgz#db222d11d9bfc00a5f1e06523c95dc0134f4df7d"
+  integrity sha512-ksF5J7xgCPaIsa46ZCpbx81Z4zsX74BdiKxgyRlLNxnD8bB/Ncw+Cgj9bNW23nvFC1Wim55vlgyEfTMawrhbzw==
 
 tods-react-draws@^0.2.1:
   version "0.2.1"
@@ -10420,15 +10420,15 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-tmx-classic-converter@^2.10.8:
-  version "2.10.8"
-  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.10.8.tgz#0ef797d0507203018950558780f5fde76f963c5c"
-  integrity sha512-oGws6WH6NO2SaIfPe82LCoA5FNB84wMm9ErssqfJ4Db1iuLbVAm350ajeymztQvlABv7iWBMUC9dUe3BnqtCTQ==
+tods-tmx-classic-converter@^2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.11.0.tgz#89645519973644f1df62b6c89da28f5b9fdccb6b"
+  integrity sha512-Aiii32pD944jOTG3phj0SXBhEIVeqvoxojikYuzPVJyjzCnKS8NOXpVERoyZ/U/fvO+zo+NDLQ/YSuF4Y4WFtA==
   dependencies:
     cli-progress "^3.9.0"
     d3 "5.16.0"
     date-fns "^2.19.0"
-    tods-competition-factory "^0.512.7"
+    tods-competition-factory "^1.0.0"
 
 toidentifier@1.0.1:
   version "1.0.1"
