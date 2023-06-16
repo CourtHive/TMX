@@ -11,7 +11,7 @@ if (window.attachEvent) {
 } else {
   if (window.onload) {
     const curronload = window.onload;
-    const newonload = function (evt) {
+    const newonload = (evt) => {
       curronload(evt);
       setupTMX();
     };
