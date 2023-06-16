@@ -16,6 +16,7 @@
 .eslintcache
 
 # production
+.env.production
 /build
 
 # misc
