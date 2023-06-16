@@ -16,6 +16,7 @@ import {
   EVENTS_CONTROL,
   ENTRIES_VIEW,
   TOURNAMENT_EVENTS,
+  NAVBAR,
   EVENTS_TABLE,
   ACCEPTED_PANEL,
   ALTERNATES_PANEL,
@@ -85,7 +86,7 @@ const navbar = (
     className="navbar is-transparent"
     aria-label="main navigation"
     role="navigation"
-    id="navbar"
+    id={NAVBAR}
   >
     <div className="navbar-brand">
       <div className="navbar-item" id="tournamentName">
@@ -105,7 +106,7 @@ const navbar = (
       </a>
     </div>
 
-    <div id="navBar" className="navbar-menu">
+    <div id="navbar-menu" className="navbar-menu">
       <div className="navbar-end">
         <div className="navbar-item">
           <figure className="image">
