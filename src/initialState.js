@@ -17,6 +17,7 @@ import { env } from 'settings/env';
 
 import { CLIENT_ERROR } from 'constants/comsConstants';
 
+import 'vanillajs-datepicker/css/datepicker-bulma.css';
 import 'styles/legacy/scoreboard.css';
 import 'styles/legacy/ddScoring.css';
 

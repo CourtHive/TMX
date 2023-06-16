@@ -10,33 +10,42 @@ import { RIGHT } from 'constants/tmxConstants';
 
 export function addTournament({ table }) {
   let inputs;
+  const items = [
+    {
+      error: 'Please enter a name of at least 5 characters',
+      placeholder: 'Tournament name',
+      validator: nameValidator(5),
+      label: 'Tournament name',
+      field: 'tournamentName'
+    },
+    {
+      placeholder: 'YYYY-MM-DD',
+      label: 'Start date',
+      field: 'startDate'
+    },
+    {
+      placeholder: 'YYYY-MM-DD',
+      label: 'End date',
+      field: 'endDate'
+    }
+  ];
+
+  const relationships = [
+    {
+      fields: ['startDate', 'endDate'],
+      dateRange: true
+    }
+  ];
+
   const content = (elem) => {
-    inputs = renderForm(elem, [
-      {
-        placeholder: 'Tournament name',
-        label: 'Tournament name',
-        field: 'tournamentName',
-        error: 'Please enter a name of at least 5 characters',
-        validator: nameValidator(5)
-      },
-      {
-        placeholder: 'YYYY-MM-DD',
-        label: 'Start date',
-        field: 'startDate'
-      },
-      {
-        placeholder: 'YYYY-MM-DD',
-        label: 'End date',
-        field: 'endDate'
-      }
-    ]);
+    inputs = renderForm(elem, items, relationships);
   };
 
   const isValid = () => nameValidator(5)(inputs.drawName.value);
   const submit = () => {
     const tournamentName = inputs.tournamentName.value;
     const startDate = inputs.startDate.value;
-    const endDate = inputs.startDate.value;
+    const endDate = inputs.endDate.value;
 
     const result = tournamentEngine.newTournamentRecord({ tournamentName, startDate, endDate });
     if (result.success) {
@@ -52,5 +61,5 @@ export function addTournament({ table }) {
   const title = `New tournament`;
 
   const footer = (elem, close) => renderButtons(elem, buttons, close);
-  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: 400 });
+  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: '280px' });
 }

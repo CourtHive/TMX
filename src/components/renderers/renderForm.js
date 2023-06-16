@@ -1,6 +1,7 @@
+import { DateRangePicker } from 'vanillajs-datepicker';
 import { renderField } from './renderField';
 
-export function renderForm(elem, items) {
+export function renderForm(elem, items, relationships) {
   const div = document.createElement('div');
   div.style = 'display: flex; width: 100%;';
   div.classList.add('flexcol');
@@ -22,12 +23,30 @@ export function renderForm(elem, items) {
     if ((!item.label && !item.field) || item.hide) continue;
 
     if (item.field) {
-      const { field, inputElement } = renderField(item);
+      const { field, inputElement, datepicker } = renderField(item);
+      if (datepicker) inputs[`${item.field}.date`] = datepicker;
       inputs[item.field] = inputElement;
       div.appendChild(field);
     }
   }
+
   elem.appendChild(div);
+
+  if (relationships?.length) {
+    for (const relationship of relationships) {
+      if (relationship.dateRange && Array.isArray(relationship.fields)) {
+        const [field1, field2] = relationship.fields;
+
+        const datepicker = new DateRangePicker(inputs[field1], {
+          inputs: [inputs[field1], inputs[field2]],
+          format: 'yyyy-mm-dd',
+          autohide: true
+        });
+
+        inputs[`${field1}.date`] = datepicker;
+      }
+    }
+  }
 
   return inputs;
 }
