@@ -97,7 +97,7 @@ export const drawer = () => {
   const setWidth = (width) => {
     const target = document.getElementById(drawerId);
     const wrapper = target.querySelector('.drawer__wrapper');
-    wrapper.style = `width: ${width}`;
+    wrapper.style.width = width;
   };
 
   const openDrawer = (target, callback) => {
