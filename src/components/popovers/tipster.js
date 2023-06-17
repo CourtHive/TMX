@@ -1,22 +1,26 @@
 import { renderMenu } from 'components/renderers/renderMenu';
 import tippy from 'tippy.js';
 
+let tip;
+
 /*
  *   e.g. config: { placement: 'bottom' }
  */
 export function tipster({ title, options, items, target, coords, callback, config }) {
   if (!options?.length && !items?.length) return;
 
-  let tip;
-
   const destroy = () => {
-    tip?.destroy(true);
-    tip = undefined;
+    if (tip) {
+      tip?.destroy(true);
+      tip = undefined;
+    }
   };
 
-  const content = () => {
-    const tippyMenu = document.createElement('div');
+  destroy();
 
+  const tippyMenu = document.createElement('div');
+
+  const content = () => {
     items =
       items
         ?.filter((i) => !i.hide && !i.disabled)
