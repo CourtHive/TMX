@@ -24,29 +24,31 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
   listPicker({ options, callback, isOpen: true });
   */
 
-  const timeSelected = ({ time }) => {
-    const militaryTime = true;
-    const scheduledTime = utilities.dateTime.convertTime(time, militaryTime);
+  const setSchedule = (schedule) => {
     const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
     const matchUpIds = matchUps.map(({ matchUpId }) => matchUpId);
 
     const methods = [
       {
-        method: BULK_SCHEDULE_MATCHUPS,
-        params: {
-          schedule: { scheduledTime },
-          matchUpIds
-        }
+        params: { matchUpIds, schedule },
+        method: BULK_SCHEDULE_MATCHUPS
       }
     ];
 
     const postMutation = (result) => {
       if (result.success) {
-        isFunction(callback && callback(scheduledTime));
+        isFunction(callback && callback(schedule.scheduledTime));
       }
     };
 
     mutationRequest({ methods, callback: postMutation });
+  };
+
+  const clearTimeSettings = () => setSchedule({ scheduledTime: '' });
+  const timeSelected = ({ time }) => {
+    const militaryTime = true;
+    const scheduledTime = utilities.dateTime.convertTime(time, militaryTime);
+    setSchedule({ scheduledTime });
   };
 
   const setMatchUpTimes = () => {
@@ -55,10 +57,14 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
     let rowEncountered;
 
     const previousRowScheduledTimes = tableData
-      .flatMap((row) => {
-        if (rowEncountered || row.rowId === rowData.rowId) {
-          rowEncountered = true;
-          return;
+      .flatMap((row, i) => {
+        if (rowEncountered) return;
+        if (row.rowId === rowData.rowId) {
+          rowEncountered = i + 1;
+          if (i) {
+            console.log({ i });
+            return;
+          }
         }
         return Object.values(row).flatMap((c) => c?.schedule?.scheduledTime);
       })
@@ -66,15 +72,19 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
       .map(timeStringToSeconds);
     const maxSeconds = Math.max(...previousRowScheduledTimes, 0); // zero prevents -Infinity
 
-    const nextHour = true;
+    const nextHour = rowEncountered > 1;
     const time = (maxSeconds && secondsToTimeString(maxSeconds, nextHour)) || '8:00 AM';
-    timePicker({ time, callback: timeSelected, options: { disabledTime: { hours: [11, 12] } } });
+    timePicker({ time, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
   };
 
   const options = [
     {
       option: `Set match times`,
       onClick: setMatchUpTimes
+    },
+    {
+      option: `Clear time settings`,
+      onClick: clearTimeSettings
     }
   ];
 

@@ -1,11 +1,11 @@
 import { utilities } from 'tods-competition-factory';
 
-export function timeFormat(time) {
-  return time ? utilities.dateTime.convertTime(time) : '';
+export function timeFormat(time, militaryTime) {
+  return time ? utilities.dateTime.convertTime(time, militaryTime) : '';
 }
 
 export function timeStringToSeconds(timeString) {
-  const a = timeString.split(':');
+  const a = timeFormat(timeString, true).split(':');
   return +a[0] * 60 * 60 + +a[1] * 60 + (+a[2] || 0);
 }
 

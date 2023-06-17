@@ -16,12 +16,16 @@ export function setDev() {
     window.dev = {};
   }
 
+  const help = () => console.log('set window.socketURL for messaging');
+
   addDev({
     getTournament: () => factory.tournamentEngine.getState()?.tournamentRecord,
+    socketURL: process.env.REACT_APP_CHCS_ROOT_URL || window.location.host,
     tournamentEngine: factory.tournamentEngine,
     context: factory.setDevContext,
     modifyTournament,
-    factory
+    factory,
+    help
   });
   addDev({ tmx2db, load, coms, getLoginState });
   addDev({ env, tournamentContext: context });
