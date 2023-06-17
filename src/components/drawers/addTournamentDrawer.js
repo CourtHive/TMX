@@ -61,5 +61,5 @@ export function addTournament({ table }) {
   const title = `New tournament`;
 
   const footer = (elem, close) => renderButtons(elem, buttons, close);
-  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: '280px' });
+  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: '300px' });
 }
