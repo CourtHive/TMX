@@ -65,8 +65,9 @@ export function editParticipant({ participant, view, refresh }) {
         placeholder: 'Birthday',
         value: values.birthDate || '',
         label: 'Date of birth',
+        onChange: valueChange,
         field: 'birthday',
-        onChange: valueChange
+        date: true
       },
       {
         typeAhead: { list, callback: nationalityCodeValue },
