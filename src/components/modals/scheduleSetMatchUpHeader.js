@@ -50,7 +50,7 @@ export function scheduleSetMatchUpHeader({ e, rowData, callback } = {}) {
 
   const setMatchUpTimes = () => {
     const time = '8:00 AM';
-    timePicker({ time, callback: timeSelected });
+    timePicker({ time, callback: timeSelected, options: { disabledTime: { hours: [11, 12] } } });
   };
 
   const options = [

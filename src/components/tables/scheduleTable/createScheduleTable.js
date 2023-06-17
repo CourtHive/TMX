@@ -9,6 +9,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { editNotes } from 'components/modals/scheduleNotes';
 import { updateConflicts } from './updateConflicts';
+import { timeFormat } from 'functions/timeFormat';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS, TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
 
@@ -27,7 +28,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
           const table = cell.getTable();
           const targetRow = table.getData().find((row) => row.rowId === rowData.rowId);
           Object.values(targetRow).forEach((c) => {
-            if (c.matchUpId) c.schedule.scheduledTime = scheduledTime;
+            if (c.matchUpId) c.schedule.scheduledTime = timeFormat(scheduledTime);
           });
           table.updateData([targetRow]);
         }
