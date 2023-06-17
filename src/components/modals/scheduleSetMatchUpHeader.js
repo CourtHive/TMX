@@ -1,7 +1,13 @@
-import { lang } from 'services/translator';
-import { listPicker } from './listPicker';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tipster } from 'components/popovers/tipster';
+import { utilities } from 'tods-competition-factory';
+import { isFunction } from 'functions/typeOf';
+import { timePicker } from './timePicker';
 
-export function scheduleSetMatchUpHeader({ callback } = {}) {
+import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+
+export function scheduleSetMatchUpHeader({ e, rowData, callback } = {}) {
+  /*
   let options = [
     { label: lang.tr('schedule.matchestime'), value: 'matchestime' },
     { label: lang.tr('schedule.notbefore'), value: 'notbefore' },
@@ -14,4 +20,45 @@ export function scheduleSetMatchUpHeader({ callback } = {}) {
   ];
 
   listPicker({ options, callback, isOpen: true });
+  */
+
+  const timeSelected = ({ time }) => {
+    const militaryTime = true;
+    const scheduledTime = utilities.dateTime.convertTime(time, militaryTime);
+    const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
+    const matchUpIds = matchUps.map(({ matchUpId }) => matchUpId);
+
+    const methods = [
+      {
+        method: BULK_SCHEDULE_MATCHUPS,
+        params: {
+          schedule: { scheduledTime },
+          matchUpIds
+        }
+      }
+    ];
+
+    const postMutation = (result) => {
+      if (result.success) {
+        isFunction(callback && callback(scheduledTime));
+      }
+    };
+
+    mutationRequest({ methods, callback: postMutation });
+  };
+
+  const setMatchUpTimes = () => {
+    const time = '8:00 PM';
+    timePicker({ time, callback: timeSelected });
+  };
+
+  const options = [
+    {
+      option: `Set match times`,
+      onClick: setMatchUpTimes
+    }
+  ];
+
+  const target = e.target;
+  tipster({ options, target });
 }
