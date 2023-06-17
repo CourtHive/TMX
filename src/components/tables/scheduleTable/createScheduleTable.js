@@ -10,6 +10,7 @@ import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { editNotes } from 'components/modals/scheduleNotes';
 import { timeFormat } from 'functions/timeStrings';
 import { updateConflicts } from './updateConflicts';
+import { isObject } from 'functions/typeOf';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS, TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
 
@@ -23,12 +24,12 @@ export function createScheduleTable({ scheduledDate } = {}) {
     if (rowData.issues?.length) console.log({ issues: rowData.issues });
 
     if (matchUps.length) {
-      const callback = (scheduledTime) => {
-        if (scheduledTime) {
+      const callback = (schedule) => {
+        if (isObject(schedule)) {
           const table = cell.getTable();
           const targetRow = table.getData().find((row) => row.rowId === rowData.rowId);
           Object.values(targetRow).forEach((c) => {
-            if (c.matchUpId) c.schedule.scheduledTime = timeFormat(scheduledTime);
+            if (c.matchUpId) c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
           });
           table.updateData([targetRow]);
         }

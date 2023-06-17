@@ -37,7 +37,7 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
 
     const postMutation = (result) => {
       if (result.success) {
-        isFunction(callback && callback(schedule.scheduledTime));
+        isFunction(callback && callback(schedule));
       }
     };
 
@@ -61,10 +61,7 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
         if (rowEncountered) return;
         if (row.rowId === rowData.rowId) {
           rowEncountered = i + 1;
-          if (i) {
-            console.log({ i });
-            return;
-          }
+          if (i) return;
         }
         return Object.values(row).flatMap((c) => c?.schedule?.scheduledTime);
       })
