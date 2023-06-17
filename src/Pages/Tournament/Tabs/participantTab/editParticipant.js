@@ -95,7 +95,7 @@ export function editParticipant({ participant, view, refresh }) {
     title: `<b style='larger'>New participant</b>`,
     callback: () => console.log('drawer callback'),
     context: 'tournament',
-    width: '500px',
+    width: '300px',
     side: RIGHT,
     content,
     footer
