@@ -5,6 +5,7 @@ import { competitionEngine, utilities } from 'tods-competition-factory';
 import { addVenue } from 'Pages/Tournament/Tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { editNotes } from 'components/modals/scheduleNotes';
 import { updateConflicts } from './updateConflicts';
@@ -171,6 +172,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
     columns
   });
 
+  table.on('scrollVertical', destroyTipster);
   table.on('tableBuilt', () => {
     updateConflicts(table);
     ready = true;

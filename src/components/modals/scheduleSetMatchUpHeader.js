@@ -5,6 +5,7 @@ import { isFunction } from 'functions/typeOf';
 import { timePicker } from './timePicker';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import { RIGHT } from 'constants/tmxConstants';
 
 export function scheduleSetMatchUpHeader({ e, rowData, callback } = {}) {
   /*
@@ -60,5 +61,5 @@ export function scheduleSetMatchUpHeader({ e, rowData, callback } = {}) {
   ];
 
   const target = e.target;
-  tipster({ options, target });
+  tipster({ options, target, config: { placement: RIGHT } });
 }

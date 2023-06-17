@@ -6,6 +6,7 @@ import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
@@ -189,6 +190,7 @@ export function createParticipantsTable({ view } = {}) {
       */
     });
 
+    table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));
   };
 

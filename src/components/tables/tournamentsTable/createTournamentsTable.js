@@ -4,6 +4,7 @@ import { actionFormatter } from '../common/formatters/tableActionFormatter';
 import { calendarControls } from 'Pages/Tournaments/tournamentsControls';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
@@ -84,6 +85,7 @@ export function createTournamentsTable() {
       ]
     });
 
+    table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => {
       calendarControls(table);
       ready = true;
