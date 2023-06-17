@@ -169,7 +169,7 @@ export function editEvent({ event, participants, callback } = {}) {
     title: `<b style='larger'>${title}</b>`,
     context: 'tournament',
     onClose: callback,
-    width: '500px',
+    width: '300px',
     side: RIGHT,
     content,
     footer
