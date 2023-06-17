@@ -1,7 +1,7 @@
 {
   "name": "tmx",
   "homepage": "tmx",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "dependencies": {
     "animate.css": "^4.1.1",
     "awesomplete": "1.1.5",
