@@ -63,12 +63,8 @@ export function createTournamentsTable() {
           field: 'tournament',
           headerSort: false,
           resizable: true,
-          minWidth: 250
-        },
-        {
-          vertAlign: 'middle',
-          headerSort: false,
-          field: 'category'
+          minWidth: 250,
+          widthGrow: 3
         },
         {
           title: 'Open',

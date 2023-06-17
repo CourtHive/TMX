@@ -1,5 +1,0 @@
-#!/bin/bash
-cp src/indices/index.pwa.js src/index.js
-GENERATE_SOURCEMAP=false yarn build
-
-

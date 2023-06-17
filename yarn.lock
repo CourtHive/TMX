@@ -10214,10 +10214,10 @@ tabbable@^6.1.1:
   resolved "https://registry.yarnpkg.com/tabbable/-/tabbable-6.1.1.tgz#40cfead5ed11be49043f04436ef924c8890186a0"
   integrity sha512-4kl5w+nCB44EVRdO0g/UGoOp3vlwgycUVtkk/7DPyeLZUCuNFFKCFG6/t/DgHLrUPHjrZg6s5tNm+56Q2B0xyg==
 
-tabulator-tables@^5.4.4:
-  version "5.4.4"
-  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.4.4.tgz#799f93f96af0fa06db4900f0cd2f48ac425b1d07"
-  integrity sha512-WqPWLRwrD8UMISUjQqZyj6y9k3ajQBs7eJtRosbt9q8RRkZlYCJYGxLt3L44jEXaQCE5q5EJFbGeDUEDJa1a3w==
+tabulator-tables@^5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.5.0.tgz#37934f12d7e195a0e49ae75f63b50fbbc070749e"
+  integrity sha512-UVe26QIaGqFfaP5wfN51zF4Vy23MNTWyvM95bF7EWGsDRQm6b2MV0wiBzakVGFj28YAgz5PvEyfqLZF415PWxw==
 
 tailwindcss@^3.0.2:
   version "3.3.2"
