@@ -8,7 +8,6 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { editNotes } from 'components/modals/scheduleNotes';
 import { updateConflicts } from './updateConflicts';
-import { isObject } from 'functions/typeOf';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS, TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
 
@@ -18,12 +17,21 @@ export function createScheduleTable({ scheduledDate } = {}) {
 
   const rowActions = (e, cell) => {
     const rowData = cell.getRow().getData();
-    const matchUps = Object.values(rowData).filter(isObject);
-    console.log(rowData.issues);
+    const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
+    if (rowData.issues?.length) console.log({ issues: rowData.issues });
 
     if (matchUps.length) {
-      const callback = ({ selection }) => console.log({ selection, rowData });
-      scheduleSetMatchUpHeader({ callback });
+      const callback = (scheduledTime) => {
+        if (scheduledTime) {
+          const table = cell.getTable();
+          const targetRow = table.getData().find((row) => row.rowId === rowData.rowId);
+          Object.values(targetRow).forEach((c) => {
+            if (c.matchUpId) c.schedule.scheduledTime = scheduledTime;
+          });
+          table.updateData([targetRow]);
+        }
+      };
+      scheduleSetMatchUpHeader({ e, rowData, callback });
     }
   };
 
