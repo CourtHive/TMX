@@ -3,7 +3,7 @@ import { matchUpDrop } from 'components/tables/scheduleTable/matchUpDrop';
 import { factoryConstants } from 'tods-competition-factory';
 
 import { SCHEDULE_ISSUE } from 'constants/tmxConstants';
-import { timeFormat } from 'functions/timeFormat';
+import { timeFormat } from 'functions/timeStrings';
 
 const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT } = factoryConstants.scheduleConstants;
 

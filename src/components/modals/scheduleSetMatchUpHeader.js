@@ -1,4 +1,5 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { tipster } from 'components/popovers/tipster';
 import { utilities } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
@@ -7,7 +8,7 @@ import { timePicker } from './timePicker';
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
-export function scheduleSetMatchUpHeader({ e, rowData, callback } = {}) {
+export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
   /*
   let options = [
     { label: lang.tr('schedule.matchestime'), value: 'matchestime' },
@@ -49,7 +50,24 @@ export function scheduleSetMatchUpHeader({ e, rowData, callback } = {}) {
   };
 
   const setMatchUpTimes = () => {
-    const time = '8:00 AM';
+    const table = cell.getTable();
+    const tableData = table.getData();
+    let rowEncountered;
+
+    const previousRowScheduledTimes = tableData
+      .flatMap((row) => {
+        if (rowEncountered || row.rowId === rowData.rowId) {
+          rowEncountered = true;
+          return;
+        }
+        return Object.values(row).flatMap((c) => c?.schedule?.scheduledTime);
+      })
+      .filter(Boolean)
+      .map(timeStringToSeconds);
+    const maxSeconds = Math.max(...previousRowScheduledTimes, 0); // zero prevents -Infinity
+
+    const nextHour = true;
+    const time = (maxSeconds && secondsToTimeString(maxSeconds, nextHour)) || '8:00 AM';
     timePicker({ time, callback: timeSelected, options: { disabledTime: { hours: [11, 12] } } });
   };
 

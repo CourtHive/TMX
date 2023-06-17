@@ -8,8 +8,8 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { editNotes } from 'components/modals/scheduleNotes';
+import { timeFormat } from 'functions/timeStrings';
 import { updateConflicts } from './updateConflicts';
-import { timeFormat } from 'functions/timeFormat';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS, TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
 
@@ -33,7 +33,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
           table.updateData([targetRow]);
         }
       };
-      scheduleSetMatchUpHeader({ e, rowData, callback });
+      scheduleSetMatchUpHeader({ e, cell, rowData, callback });
     }
   };
 
