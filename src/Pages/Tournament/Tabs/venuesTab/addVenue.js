@@ -3,12 +3,12 @@ import { tournamentEngine, utilities } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 import { ADD_COURTS, ADD_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
-import { tmxToast } from 'services/notifications/tmxToast';
 
 const saveVenue = (callback) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
@@ -53,9 +53,8 @@ export function addVenue(callback) {
 
   context.drawer.open({
     title: `<b style='larger'>Add venue</b>`,
-    // callback: () => {},
     context: 'tournament',
-    width: '500px',
+    width: '300px',
     side: RIGHT,
     content,
     footer

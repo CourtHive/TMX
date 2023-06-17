@@ -3,8 +3,8 @@ import { competitionEngine } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { tipster } from 'components/popovers/tipster';
 
-import { BOTTOM } from 'constants/tmxConstants';
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import { BOTTOM } from 'constants/tmxConstants';
 
 export function clearSchedule({ scheduledDate, target, callback }) {
   const result = competitionEngine.competitionScheduleMatchUps({ courtCompletedMatchUps: true });
