@@ -11,8 +11,12 @@ import { env } from 'settings/env';
 import { TOURNAMENT } from 'constants/tmxConstants';
 
 export function setDev() {
-  console.log('%c dev initialized', 'color: yellow');
-  window.dev = {};
+  if (!window.dev) {
+    console.log('%c dev initialized', 'color: yellow');
+    window.dev = {};
+  } else {
+    return;
+  }
 
   const help = () => console.log('set window.socketURL for messaging');
 
