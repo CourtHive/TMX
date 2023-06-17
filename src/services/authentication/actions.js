@@ -17,7 +17,7 @@ export function validateToken(token) {
     return undefined;
   }
 
-  if (decodedToken?.permissions?.includes('devMode')) setDev();
+  if (decodedToken?.profile?.permissions?.includes('devMode')) setDev();
 
   return decodedToken;
 }
