@@ -3,11 +3,10 @@ import { loadTournament } from 'Pages/Tournament/tournamentDisplay';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
+import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
 import { coms } from 'services/coms';
 import { env } from 'settings/env';
-
-import { db } from './storage/db';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
 
@@ -24,11 +23,13 @@ export function setDev() {
     modifyTournament,
     factory
   });
-  addDev({ env, tournamentContext: context, db });
   addDev({ tmx2db, load, coms, getLoginState });
+  addDev({ env, tournamentContext: context });
 }
 
 function addDev(variable) {
+  if (!isObject(window.dev)) return;
+
   try {
     Object.keys(variable).forEach((key) => (window.dev[key] = variable[key]));
   } catch (err) {

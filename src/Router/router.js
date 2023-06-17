@@ -19,7 +19,10 @@ import {
 export function routeTMX() {
   const routerRoot = window.location.host.indexOf('localhost:3333') === 0 ? '/' : process.env.PUBLIC_URL || '/';
 
-  const router = new Navigo(`/${routerRoot}`, { hash: true });
+  const useHash = true;
+  const router = new Navigo(useHash ? '/' : `/${routerRoot}`, { hash: useHash });
+
+  // make accessible
   context.router = router;
 
   const displayRoute = ({ selectedTab, renderDraw, data }) => {
