@@ -21,6 +21,11 @@ body {
   font-size: 70%;
 }
 
+.subTable {
+  padding-bottom: 1em;
+  background-color: #e7e6e7;
+}
+
 .event-pill {
   font-size: 1rem !important;
   margin-right: 2px;
