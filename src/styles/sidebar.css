@@ -15,6 +15,12 @@
   box-sizing: border-box;
 }
 
+img {
+  max-width: 200%; /* override minireset */
+}
+.nav-image {
+  width: 1.5em;
+}
 .nav-icon {
   width: 2em;
 }
@@ -120,7 +126,6 @@
   position: absolute;
   left: -1.2rem;
   height: 100%;
-  /* border-left: 3px solid var(--white-color); */
   border-left: 3px solid blue;
   border-radius: 2px;
   opacity: 0;
