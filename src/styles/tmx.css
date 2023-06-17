@@ -17,6 +17,10 @@ body {
   width: 100%;
 }
 
+#drawsView {
+  font-size: 70%;
+}
+
 .event-pill {
   font-size: 1rem !important;
   margin-right: 2px;
@@ -36,6 +40,7 @@ body {
 
 .navbar {
   border-bottom: 1px solid #d9d9d9;
+  font-size: 60%;
   position: fixed;
   top: 0;
 }
