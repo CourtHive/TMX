@@ -126,7 +126,8 @@ export const coms = (() => {
 
     if (!oi.socket) {
       // let URL = `${chcsRootURL}${socketIoPath}?token=${token}`;
-      let URL = `${chcsRootURL}${socketIoPath}`;
+      let URL = window.socketPath || `${chcsRootURL}${socketIoPath}`;
+      if (window.dev) console.log({ URL });
       let connectionOptions = {
         'force new connection': true,
         reconnectionDelay: 1000,

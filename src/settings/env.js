@@ -2,7 +2,7 @@ import { version } from '../config/version';
 
 export const env = {
   dev: undefined,
-  socketIo: { tmx: '/match' }, // should be set as part of authenticated connection
+  socketIo: { tmx: '/tmx' }, // should be set as part of authenticated connection
 
   first_time_user: false,
 
