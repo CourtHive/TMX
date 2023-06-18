@@ -13,9 +13,6 @@ export const env = {
 
   ioc: 'gbr',
   orientation: undefined,
-  assets: {
-    flags: '/media/flags/'
-  },
   locations: {
     geolocate: true,
     geoposition: undefined,

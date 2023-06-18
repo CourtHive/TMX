@@ -5,10 +5,11 @@ import * as factory from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
-import { coms } from 'services/coms';
 import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
+
+import { connectSocket, disconnectSocket } from './messaging/socketInit';
 
 export function setDev() {
   if (!window.dev) {
@@ -22,14 +23,13 @@ export function setDev() {
 
   addDev({
     getTournament: () => factory.tournamentEngine.getState()?.tournamentRecord,
-    socketURL: process.env.REACT_APP_CHCS_ROOT_URL || window.location.host,
     tournamentEngine: factory.tournamentEngine,
     context: factory.setDevContext,
     modifyTournament,
     factory,
     help
   });
-  addDev({ tmx2db, load, coms, getLoginState });
+  addDev({ tmx2db, load, getLoginState, connectSocket, disconnectSocket });
   addDev({ env, tournamentContext: context });
 }
 
