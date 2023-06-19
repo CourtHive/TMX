@@ -24,8 +24,8 @@ const routeMap = {
 };
 
 const tips = {
-  't-route': 'Tournaments',
-  'i-route': 'Overview',
+  't-route': 'Overview',
+  // 'i-route': 'Overview',
   'p-route': 'Participants',
   'e-route': 'Events',
   'm-route': 'MatchUps',
@@ -50,12 +50,8 @@ export function tmxNavigation() {
         <i class="nav-icon fa-solid fa-trophy" style="font-size: larger">
           <span class="status"></span>
         </i>
-          <span class="features-item-text">Tournaments</span>
+          <span class="features-item-text">Overview</span>
           <span class="item-count">99</span>
-      </li>
-      <li id='i-route' class="features-item info">
-        <i class="nav-icon fa-solid fa-circle-info" style="font-size: larger"></i>
-        <span class="features-item-text">Overview</span>
       </li>
       <li id='p-route' class="features-item participants">
         <i class="nav-icon fa-solid fa-user-group" style="font-size: larger"></i>
@@ -98,7 +94,7 @@ export function tmxNavigation() {
   const tRoute = document.getElementById('t-route');
   tRoute.onclick = () => {
     toggleSideBar(false);
-    context.router.navigate('/tournaments');
+    console.log('tournament information');
   };
 
   tippy(tRoute, {
@@ -109,6 +105,7 @@ export function tmxNavigation() {
     arrow: false
   });
 
+  /*
   const iRoute = document.getElementById('i-route');
   iRoute.onclick = () => {
     toggleSideBar(false);
@@ -122,6 +119,7 @@ export function tmxNavigation() {
     placement: RIGHT,
     arrow: false
   });
+  */
 
   ids.forEach((id) => {
     const element = document.getElementById(id);

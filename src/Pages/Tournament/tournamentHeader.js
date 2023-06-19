@@ -7,6 +7,8 @@ import { context } from 'services/context';
 
 import { LEFT, RIGHT } from 'constants/tmxConstants';
 import { dropDownButton } from 'components/buttons/dropDownButton';
+import { tipster } from 'components/popovers/tipster';
+import { removeAllChildNodes } from 'services/dom/transformers';
 
 export function tournamentHeader() {
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
@@ -35,14 +37,28 @@ export function tournamentHeader() {
 
   const tournamentElement = document.getElementById('tournamentName');
   if (tournamentElement) {
+    removeAllChildNodes(tournamentElement);
+
+    const onClick = (e) => {
+      const target = e.target;
+      const items = [
+        {
+          text: 'Select Tournament',
+          onClick: () => {
+            context.router.navigate('/tournaments');
+          }
+        }
+      ];
+      tipster({ target, items, config: { arrow: false } });
+    };
+
     const label = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
     dropDownButton({
       target: tournamentElement,
       field: 'tournamentName',
-      onClick: () => console.log('boo'),
       button: {
         align: LEFT,
-        options: [],
+        onClick,
         label
       }
     });
