@@ -13,7 +13,6 @@ import { authorizeUser } from 'components/menus/auth/authorizeUser';
 
 export function displayAuthOptions({ tournamentId, target } = {}) {
   const state = getLoginState();
-  console.log({ state });
   const admin = state?.profile?.roles?.includes(SUPER_ADMIN);
 
   const items = [
@@ -21,7 +20,7 @@ export function displayAuthOptions({ tournamentId, target } = {}) {
       text: lang.tr('phrases.generatekey'),
       hide: !admin,
       onClick: authorizeUser,
-      intent: 'id-success'
+      intent: 'i-success'
     },
     {
       text: 'Delegation Official',
@@ -37,7 +36,7 @@ export function displayAuthOptions({ tournamentId, target } = {}) {
       text: lang.tr('revoke'),
       hide: !admin,
       onClick: revokeAuthorization,
-      intent: 'id-warning'
+      intent: 'is-warning'
     }
   ];
 

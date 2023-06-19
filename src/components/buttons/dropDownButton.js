@@ -12,9 +12,7 @@ export function dropDownButton({ target, button, stateChange }) {
   elem.classList.add('dropdown');
 
   elem.style = 'margin-right: 1em;';
-  if (button.align === RIGHT) {
-    elem.classList.add('is-right');
-  }
+  if (button.align === RIGHT) elem.classList.add('is-right');
   const isActive = (e) => e.classList.contains('is-active');
   const closeDropDown = () => {
     if (isActive(elem)) {
@@ -41,10 +39,12 @@ export function dropDownButton({ target, button, stateChange }) {
   if (button.id) ddButton.id = button.id;
   ddButton.setAttribute('aria-haspopup', 'true');
   const label = document.createElement('span');
+  if (isFunction(button.onClick)) label.onclick = button.onClick;
   label.style = `margin-right: 1em`;
   label.innerHTML = button.label;
   ddButton.appendChild(label);
   const icon = document.createElement('span');
+  if (isFunction(button.onClick)) icon.onclick = button.onClick;
   icon.innerHTML = `
       <span class="icon is-small font-medium">
         <i class="fas fa-angle-down font-medium" aria-hidden="true"></i>
@@ -116,7 +116,7 @@ export function dropDownButton({ target, button, stateChange }) {
     }
   }
 
-  menu.appendChild(content);
+  if (button.options?.length) menu.appendChild(content);
   elem.appendChild(menu);
 
   if (target) target.appendChild(elem);

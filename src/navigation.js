@@ -24,8 +24,7 @@ const routeMap = {
 };
 
 const tips = {
-  't-route': 'Tournaments',
-  'i-route': 'Overview',
+  't-route': 'Overview',
   'p-route': 'Participants',
   'e-route': 'Events',
   'm-route': 'MatchUps',
@@ -35,6 +34,9 @@ const tips = {
 
 export function tmxNavigation() {
   const match = imageClass.dragMatch().props.src;
+
+  // TODO: add after any features item
+  // <span class="item-count">${participantsCount}</span>
 
   const html = `
   <div class="side-bar collapse">
@@ -47,15 +49,8 @@ export function tmxNavigation() {
     </div>
     <ul class="features-list">
       <li id='t-route' class="features-item tournaments">
-        <i class="nav-icon fa-solid fa-trophy" style="font-size: larger">
-          <span class="status"></span>
-        </i>
-          <span class="features-item-text">Tournaments</span>
-          <span class="item-count">99</span>
-      </li>
-      <li id='i-route' class="features-item info">
-        <i class="nav-icon fa-solid fa-circle-info" style="font-size: larger"></i>
-        <span class="features-item-text">Overview</span>
+        <i class="nav-icon fa-solid fa-trophy" style="font-size: larger"> <span class="status"></span> </i>
+          <span class="features-item-text">Overview</span>
       </li>
       <li id='p-route' class="features-item participants">
         <i class="nav-icon fa-solid fa-user-group" style="font-size: larger"></i>
@@ -98,25 +93,11 @@ export function tmxNavigation() {
   const tRoute = document.getElementById('t-route');
   tRoute.onclick = () => {
     toggleSideBar(false);
-    context.router.navigate('/tournaments');
+    console.log('tournament information');
   };
 
   tippy(tRoute, {
     dynContent: () => tippyContent(tips['t-route']),
-    onShow: (options) => !!options.props.content,
-    plugins: [enhancedContentFunction],
-    placement: RIGHT,
-    arrow: false
-  });
-
-  const iRoute = document.getElementById('i-route');
-  iRoute.onclick = () => {
-    toggleSideBar(false);
-    // context.router.navigate('/tournaments');
-  };
-
-  tippy(iRoute, {
-    dynContent: () => tippyContent(tips['i-route']),
     onShow: (options) => !!options.props.content,
     plugins: [enhancedContentFunction],
     placement: RIGHT,
