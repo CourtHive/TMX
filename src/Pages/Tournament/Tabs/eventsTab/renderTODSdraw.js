@@ -50,7 +50,10 @@ export function renderTODSdraw({ eventId, drawId, structureId }) {
         label: event.eventName,
         close: true
       }))
-      .concat([{ divider: true }, { label: 'All events', onClick: displayAllEvents, close: true }]);
+      .concat([
+        { divider: true },
+        { label: `<div style='font-weight: bold'>All events</div>`, onClick: displayAllEvents, close: true }
+      ]);
 
     const drawsOptions = eventData.drawsData
       .map((draw) => ({

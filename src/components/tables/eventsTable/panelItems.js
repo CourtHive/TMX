@@ -3,10 +3,13 @@ import { findParentByClassName } from 'services/dom/findParentByClass';
 
 import { BUTTON_BAR, EMPTY_STRING, HEADER, NONE, TMX_PANEL, TMX_TABLE } from 'constants/tmxConstants';
 
-export const panelHeader = (heading) => ({
-  location: HEADER,
-  text: heading
-});
+export const panelHeader = (heading, count = 0) => {
+  const text = `${heading} ${count}`;
+  return {
+    location: HEADER,
+    text
+  };
+};
 
 export const togglePanel = (target) => {
   const element = target?.className.includes('panelHeader') ? target?.getElementsByClassName('toggle')[0] : target;
@@ -35,4 +38,4 @@ export const panelCollapse = () => {
   };
 };
 
-export const panelItems = (heading) => [panelHeader(heading), panelCollapse];
+export const panelItems = ({ heading, count }) => [panelHeader(heading, count), panelCollapse];
