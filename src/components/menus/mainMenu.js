@@ -16,6 +16,8 @@ import { TMX_TOURNAMENTS, HOME } from 'constants/tmxConstants';
 
 // TODO: REMOVE!!
 import { registrationModal } from 'components/modals/registrationModal';
+import { connectSocket, disconnectSocket } from 'services/messaging/socketIo';
+import { requestTournamentRecord } from 'services/messaging/requestTournamentRecord';
 
 function displayVersion() {
   context.modal.open({
@@ -41,11 +43,6 @@ function tournamentLink() {
 function qrCode() {
   const url = `${origin}/t/${context.tournamentId}`;
   displayQRdialogue(url);
-}
-
-// TODO: get tournamentId from tournamentEngine and update URL for new server
-function requestTournamentRecord() {
-  coms.requestTournament(context.tournamentId);
 }
 
 export const mainMenu = (elem, close, menuContext) => {
@@ -85,8 +82,8 @@ export const mainMenu = (elem, close, menuContext) => {
     {
       text: 'Server connection',
       items: [
-        { hide: coms.connected(), text: 'Connect', onClick: coms.connectSocket },
-        { hide: !coms.connected(), text: 'Disconnect', onClick: coms.disconnectSocket },
+        { hide: coms.connected(), text: 'Connect', onClick: connectSocket },
+        { hide: !coms.connected(), text: 'Disconnect', onClick: disconnectSocket },
         { hide: loggedIn, text: 'Log in', onClick: loginModal },
         { hide: !loggedIn, text: 'Log out', onClick: logOut },
         { hide: loggedIn, text: 'Register', onClick: registrationModal }
