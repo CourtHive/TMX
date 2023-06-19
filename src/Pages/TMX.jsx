@@ -15,6 +15,7 @@ import {
   TOURNAMENT_CONTAINER,
   EVENTS_CONTROL,
   ENTRIES_VIEW,
+  TOURNAMENTS_CALENDAR,
   TOURNAMENT_EVENTS,
   NAVBAR,
   EVENTS_TABLE,
@@ -209,6 +210,12 @@ const TMX = () => (
           id={TOURNAMENTS_TABLE}
           className="flexcol flexgrow flexcenter box"
         ></div>
+      </div>
+      <div
+        id={TOURNAMENTS_CALENDAR}
+        className="flexcol flexgrow"
+        style={{ display: NONE, height: '90%', width: '100%' }}
+      >
       </div>
     </div>
   </div>

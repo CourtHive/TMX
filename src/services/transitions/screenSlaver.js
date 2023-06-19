@@ -1,7 +1,7 @@
 import { showNav, hideNav } from '../../components/buttons/tmxNav';
 import { context } from 'services/context';
 
-import { NAVBAR, NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { NAVBAR, NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR } from 'constants/tmxConstants';
 
 let content;
 
@@ -13,6 +13,7 @@ function selectDisplay(which) {
   setState(TMX_CONTENT, which);
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
+  setState(TOURNAMENTS_CALENDAR, which);
 
   const sideNav = document.getElementById('sideNav');
   if (which === TMX_CONTENT) {
@@ -52,6 +53,10 @@ export const showContent = (what) => {
 };
 export const showTMXtournaments = () => {
   content = TMX_TOURNAMENTS;
+  selectDisplay(content);
+};
+export const showTMXcalendar = () => {
+  content = TOURNAMENTS_CALENDAR;
   selectDisplay(content);
 };
 export const splashActive = () => isActive(SPLASH);
