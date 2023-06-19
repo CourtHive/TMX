@@ -9,7 +9,7 @@ import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
 
-import { connectSocket, disconnectSocket } from './messaging/socketIo';
+import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 
 export function setDev() {
   if (!window.dev) {
@@ -26,11 +26,14 @@ export function setDev() {
     tournamentEngine: factory.tournamentEngine,
     context: factory.setDevContext,
     modifyTournament,
+    getLoginState,
     factory,
     help
   });
-  addDev({ tmx2db, load, getLoginState, connectSocket, disconnectSocket });
+
+  addDev({ connectSocket, disconnectSocket, emitTmx });
   addDev({ env, tournamentContext: context });
+  addDev({ tmx2db, load });
 }
 
 function addDev(variable) {
