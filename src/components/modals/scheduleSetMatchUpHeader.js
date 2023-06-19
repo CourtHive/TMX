@@ -37,7 +37,7 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
 
     const postMutation = (result) => {
       if (result.success) {
-        isFunction(callback && callback(schedule));
+        isFunction(callback) && callback(schedule);
       }
     };
 
