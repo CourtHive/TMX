@@ -82,7 +82,6 @@ export function render(data) {
 }
 
 function openTournament({ event }) {
-  console.log(event);
   if (event.id) {
     calendar.destroy();
     const tournamentId = event.id;
@@ -94,7 +93,7 @@ function openTournament({ event }) {
 function createEvents(data) {
   const extractDate = (dateTime) => dateTime.split('T')[0];
 
-  const events = data.map((tournament) => ({
+  return data.map((tournament) => ({
     title: extractDate(tournament.tournamentName),
     start: extractDate(tournament.startDate),
     end: extractDate(tournament.endDate),
@@ -103,8 +102,6 @@ function createEvents(data) {
     id: tournament.tournamentId,
     color: '#FE6B64'
   }));
-  console.log({ events });
-  return events;
 }
 
 function eventHover({ event, jsEvent }) {
