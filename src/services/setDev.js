@@ -9,7 +9,7 @@ import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
 
-import { connectSocket, disconnectSocket } from './messaging/socketInit';
+import { connectSocket, disconnectSocket } from './messaging/socketIo';
 
 export function setDev() {
   if (!window.dev) {
