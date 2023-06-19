@@ -15,6 +15,12 @@
   box-sizing: border-box;
 }
 
+img {
+  max-width: 200%; /* override minireset */
+}
+.nav-image {
+  width: 1.5em;
+}
 .nav-icon {
   width: 2em;
 }
@@ -30,22 +36,23 @@
 }
 
 .side-bar {
-  z-index: 7777;
-  width: 23.2rem;
+  z-index: 4444;
+  font-size: 65%;
+  width: 16rem;
   height: 100%;
   padding: 2.1rem 1.2rem;
   background-color: var(--background-color);
   position: fixed;
   transition: all 0.5s ease;
   border-right: 1px solid #d9d9d9;
-  top: 3em;
+  top: 3.3rem;
 }
 
 .logo-name-wrapper {
   position: relative;
   margin-bottom: 2.1rem;
   display: flex;
-  font-size: 1.2rem;
+  font-size: 60%;
 }
 
 .logo-name {
@@ -61,14 +68,14 @@
   position: absolute;
   top: 50%;
   right: 0;
-  font-size: 1.8rem;
+  font-size: 1rem;
   transform: translateY(-50%);
   background-color: transparent;
   border: none;
   cursor: pointer;
 }
 .logo-name__icon {
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   color: var(--item-color);
 }
 
@@ -108,7 +115,7 @@
   align-items: center;
   position: relative;
   padding: 0.5rem 0rem;
-  margin-bottom: 1.1rem;
+  /* margin-bottom: 1.1rem; */
   color: var(--item-color);
   cursor: pointer;
   transition: 0.5s ease;
@@ -119,7 +126,6 @@
   position: absolute;
   left: -1.2rem;
   height: 100%;
-  /* border-left: 3px solid var(--white-color); */
   border-left: 3px solid blue;
   border-radius: 2px;
   opacity: 0;
@@ -368,7 +374,7 @@
 */
 
 .side-bar.collapse {
-  width: 4.4rem;
+  width: 3.3rem;
 }
 
 .side-bar.collapse .tooltip {

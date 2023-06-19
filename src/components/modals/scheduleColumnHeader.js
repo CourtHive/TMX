@@ -7,7 +7,7 @@ export function setScheduleColumnHeader(e, cell, courtInfo) {
 
   const options = [
     {
-      option: `${addremove} ${lang.tr('settings.courtidentifiers')}`,
+      option: `${addremove} court identifiers`,
       onClick: toggleCourtIdentifiers
     },
     {

@@ -1,7 +1,7 @@
 import { removeAllChildNodes } from 'services/dom/transformers';
-
-import { TMX_NAV } from 'constants/tmxConstants';
 import { isFunction } from 'functions/typeOf';
+
+import { NONE, TMX_NAV } from 'constants/tmxConstants';
 
 export function showNav(onClick) {
   const anchor = getAnchor();
@@ -12,6 +12,7 @@ export function showNav(onClick) {
   };
 
   const displayNav = () => {
+    anchor.style.display = 'block';
     const button = document.createElement('button');
     button.className = 'button fa-solid fa-bars is-rounded';
     button.style.position = 'absolute';
@@ -27,7 +28,10 @@ export function showNav(onClick) {
 
 export function hideNav() {
   const anchor = document.getElementById(TMX_NAV);
-  removeAllChildNodes(anchor);
+  if (anchor) {
+    anchor.style.display = NONE;
+    removeAllChildNodes(anchor);
+  }
 }
 
 function getAnchor() {

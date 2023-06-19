@@ -1,29 +1,34 @@
 import { renderMenu } from 'components/renderers/renderMenu';
 import tippy from 'tippy.js';
 
+let tip;
+
+// useful when tip appears on table row that could scroll out of view
+export function destroyTipster() {
+  if (tip) {
+    tip?.destroy(true);
+    tip = undefined;
+  }
+}
+
 /*
  *   e.g. config: { placement: 'bottom' }
  */
 export function tipster({ title, options, items, target, coords, callback, config }) {
   if (!options?.length && !items?.length) return;
 
-  let tip;
+  destroyTipster();
 
-  const destroy = () => {
-    tip?.destroy(true);
-    tip = undefined;
-  };
+  const tippyMenu = document.createElement('div');
 
   const content = () => {
-    const tippyMenu = document.createElement('div');
-
     items =
       items
         ?.filter((i) => !i.hide && !i.disabled)
         .map((i) => ({
           ...i,
           onClick: () => {
-            destroy();
+            destroyTipster();
             if (typeof i.onClick === 'function') i.onClick();
           }
         })) ||
@@ -35,10 +40,10 @@ export function tipster({ title, options, items, target, coords, callback, confi
             if (o.subMenu) {
               tip.setContent('IMPLEMENT SUB MENU');
             } else if (typeof o.onClick === 'function') {
-              destroy();
+              destroyTipster();
               o.onClick();
             } else if (typeof callback === 'function') {
-              destroy();
+              destroyTipster();
               if (typeof o === 'object') {
                 callback({ ...o, coords });
               } else {

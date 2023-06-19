@@ -9,7 +9,7 @@ export function updateConflicts(table) {
   const rowItems = data.flatMap((row) => Object.values(row).filter(isObject));
   const { courtIssues, rowIssues } = competitionEngine.proConflicts({ matchUps: rowItems });
 
-  if (Object.keys(courtIssues).length || rowIssues) {
+  if ((courtIssues && Object.keys(courtIssues)?.length) || rowIssues) {
     // TODO: upper left corner alert icon; clicking on it scrolls and pans to issues
     // <i class="fa-solid fa-triangle-exclamation"></i> or <i class="fa-solid fa-triangle-exclamation" style="color: #f5220a;"></i>
   }

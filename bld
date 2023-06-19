@@ -1,4 +1,0 @@
-#!/bin/bash
-cp src/indices/index.plus.js src/index.js
-yarn build
-

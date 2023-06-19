@@ -66,7 +66,7 @@ export function tmxNavigation() {
         <span class="features-item-text">Events</span>
       </li>
       <li id='m-route' class="features-item matches">
-        <img src="${match}" class='nav-icon' srcset=""/>
+        <img src="${match}" class='nav-image' srcset=""/>
         <span class="features-item-text">Matches</span>
       </li>
       <li id='s-route' class="features-item schedule">

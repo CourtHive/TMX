@@ -4,6 +4,7 @@ import { actionFormatter } from '../common/formatters/tableActionFormatter';
 import { calendarControls } from 'Pages/Tournaments/tournamentsControls';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
@@ -63,12 +64,8 @@ export function createTournamentsTable() {
           field: 'tournament',
           headerSort: false,
           resizable: true,
-          minWidth: 250
-        },
-        {
-          vertAlign: 'middle',
-          headerSort: false,
-          field: 'category'
+          minWidth: 250,
+          widthGrow: 3
         },
         {
           title: 'Open',
@@ -88,6 +85,7 @@ export function createTournamentsTable() {
       ]
     });
 
+    table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => {
       calendarControls(table);
       ready = true;
@@ -98,7 +96,7 @@ export function createTournamentsTable() {
     data.sort((a, b) => new Date(b.startDate || b.start) - new Date(a.startDate || a.start));
     renderTable(data.map(mapTournamentRecord));
   };
-  const renderCalendar = (calendar) => {
+  const renderCalendarTable = (calendar) => {
     calendar.sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate));
     renderTable(calendar);
   };
@@ -108,7 +106,7 @@ export function createTournamentsTable() {
   if (providerId) {
     const showResults = (result) => {
       if (result?.calendar) {
-        renderCalendar(result.calendar);
+        renderCalendarTable(result.calendar);
       } else {
         tmx2db.findAllTournaments().then(render, handleError);
       }

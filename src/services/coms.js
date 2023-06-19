@@ -1,11 +1,3 @@
-/*
- *  tournament is only used to access the tuid of currently open tournament...
- *  this could be set in context and remove tournament requirement
- */
-
-// only used in connection event
-// all we need here is tuid which could be part of state rather than requiring tournament object
-
 import { getLoginState } from 'services/authentication/loginState';
 import { utilities } from 'tods-competition-factory';
 import * as safeJSON from 'utilities/safeJSON';
@@ -29,7 +21,7 @@ import {
   TMX_MESSAGE
 } from 'constants/comsConstants';
 
-export const coms = (function () {
+export const coms = (() => {
   let fx = {};
 
   let keyQueue = [];
@@ -72,12 +64,8 @@ export const coms = (function () {
   };
 
   // keyQueue is used for keys that can't be sent/submitted until the env is set up with user uuid
-  fx.queueKey = (key) => {
-    keyQueue.push(key);
-  };
-  fx.sendKey = (key) => {
-    fx.emitTmx({ data: { action: SEND_KEY, payload: { key } } });
-  };
+  fx.queueKey = (key) => keyQueue.push(key);
+  fx.sendKey = (key) => fx.emitTmx({ data: { action: SEND_KEY, payload: { key } } });
   fx.sendQueuedKeys = () => {
     keyQueue.forEach(fx.sendKey);
     keyQueue = [];
@@ -123,9 +111,7 @@ export const coms = (function () {
   function comsError(err) {
     console.log('comsError', { err });
   }
-  fx.connectAction = () => {
-    fx.sendQueuedKeys();
-  };
+  fx.connectAction = () => fx.sendQueuedKeys();
 
   fx.disconnectSocket = () => {
     oi.socket.disconnect();
@@ -133,14 +119,15 @@ export const coms = (function () {
   };
   fx.connectSocket = () => {
     let msgMon = (x) => console.log(x);
-    const chcsRootURL = process.env.REACT_APP_CHCS_ROOT_URL || window.location.host;
+    const chcsRootURL = window.socketURL || process.env.REACT_APP_CHCS_ROOT_URL || window.location.host;
 
     const chcsServerPath = process.env.REACT_APP_CHCS_SERVER_PATH || '';
     const socketIoPath = env.socketIo.tmx || '';
 
     if (!oi.socket) {
       // let URL = `${chcsRootURL}${socketIoPath}?token=${token}`;
-      let URL = `${chcsRootURL}${socketIoPath}`;
+      let URL = window.socketPath || `${chcsRootURL}${socketIoPath}`;
+      if (window.dev) console.log({ URL });
       let connectionOptions = {
         'force new connection': true,
         reconnectionDelay: 1000,
@@ -275,23 +262,6 @@ export const coms = (function () {
       });
     }
   }
-
-  fx.requestTournament = (tuid) => {
-    if (connected) {
-      let data = {
-        tuid,
-        timestamp: new Date().getTime(),
-        uuuid: context.uuuid || undefined
-      };
-      fx.emitTmx({ data: { tournamentRequest: data } });
-    } else {
-      let message = `Offline: must be connected to internet`;
-      context.modal.open({
-        title: lang.tr('phrases.noconnection'),
-        content: message
-      });
-    }
-  };
 
   fx.emitTmx = emitTmx;
   function emitTmx({ data, ackCallback }) {

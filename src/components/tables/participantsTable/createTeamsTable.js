@@ -6,6 +6,7 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { controlBar } from 'components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
@@ -94,6 +95,7 @@ export function createTeamsTable({ view } = {}) {
         { title: 'Gender', field: 'person.sex', width: 100 }
       ]
     });
+    ipTable.on('scrollVertical', destroyTipster);
 
     controlBar({ table: ipTable, target: controlEl, items });
   };
@@ -223,6 +225,7 @@ export function createTeamsTable({ view } = {}) {
       columns
     });
 
+    table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));
   };
 

@@ -5,6 +5,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEvent } from 'Pages/Tournament/Tabs/eventsTab/mapEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -107,6 +108,7 @@ export function createEventsTable() {
       columns,
       data
     });
+    drawsTable.on('scrollVertical', destroyTipster);
 
     const eventId = row.getData().eventId;
 
@@ -331,6 +333,7 @@ export function createEventsTable() {
       columns,
       data
     });
+    table.on('scrollVertical', destroyTipster);
   };
 
   render(getTableData());

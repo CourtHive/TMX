@@ -9,13 +9,14 @@ import { displayKeyActions } from './keyActions';
 import { save } from 'services/storage/save';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
-import { coms } from 'services/coms';
 import { env } from 'settings/env';
 
 import { TMX_TOURNAMENTS, HOME } from 'constants/tmxConstants';
 
 // TODO: REMOVE!!
 import { registrationModal } from 'components/modals/registrationModal';
+import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
+import { requestTournamentRecord } from 'services/messaging/requestTournamentRecord';
 
 function displayVersion() {
   context.modal.open({
@@ -43,11 +44,6 @@ function qrCode() {
   displayQRdialogue(url);
 }
 
-// TODO: get tournamentId from tournamentEngine and update URL for new server
-function requestTournamentRecord() {
-  coms.requestTournament(context.tournamentId);
-}
-
 export const mainMenu = (elem, close, menuContext) => {
   const mobile = !env.device.isMobile && !env.device.isIpad && !env.device.isTablet;
   const noExport = !mobile && context.state.authorized;
@@ -62,6 +58,8 @@ export const mainMenu = (elem, close, menuContext) => {
     let url = `${location.origin}/Live/${loggedIn.profile.provider}`;
     window.open(url, '_blank');
   };
+
+  const socketConnected = connected();
 
   const menu = [
     {
@@ -85,8 +83,8 @@ export const mainMenu = (elem, close, menuContext) => {
     {
       text: 'Server connection',
       items: [
-        { hide: coms.connected(), text: 'Connect', onClick: coms.connectSocket },
-        { hide: !coms.connected(), text: 'Disconnect', onClick: coms.disconnectSocket },
+        { hide: socketConnected, text: 'Connect', onClick: connectSocket },
+        { hide: !socketConnected, text: 'Disconnect', onClick: disconnectSocket },
         { hide: loggedIn, text: 'Log in', onClick: loginModal },
         { hide: !loggedIn, text: 'Log out', onClick: logOut },
         { hide: loggedIn, text: 'Register', onClick: registrationModal }

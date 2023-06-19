@@ -1,5 +1,8 @@
 export function mapTournamentRecord(tournamentRecord) {
   const searchText = tournamentRecord.tournamentName?.toLowerCase() || 'Error';
+  const tournamentImageURL = tournamentRecord.onlineResources?.find(
+    ({ name, resourceType }) => name === 'tournamentImage' && resourceType === 'URL'
+  )?.identifier;
 
   return {
     tournamentId: tournamentRecord.tournamentId,
@@ -8,8 +11,8 @@ export function mapTournamentRecord(tournamentRecord) {
     tournament: {
       startDate: new Date(tournamentRecord.startDate).toISOString()?.split('T')[0],
       endDate: new Date(tournamentRecord.endDate).toISOString()?.split('T')[0],
-      // media: tournament.publishing?.logo,
-      tournamentName: tournamentRecord.tournamentName
+      tournamentName: tournamentRecord.tournamentName,
+      tournamentImageURL
     }
   };
 }

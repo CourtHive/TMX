@@ -7,16 +7,16 @@ import { renderEventsTab } from 'Pages/Tournament/Tabs/eventsTab/eventsTab';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
 import { tournamentEngine } from 'tods-competition-factory';
+import { displayTab } from './Container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getTournament } from 'services/apis/servicesApi';
 import { tournamentHeader } from './tournamentHeader';
-import { displayTab } from './Container/tournamentContent';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
+import { highlightTab } from 'navigation';
 
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 import { MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, TOURNAMENT, VENUES_TAB, EVENTS_TAB } from 'constants/tmxConstants';
-import { highlightTab } from 'navigation';
 
 export function displayTournament({ config } = {}) {
   const { tournamentRecord } = tournamentEngine.getState();

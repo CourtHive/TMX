@@ -101,7 +101,7 @@ export function dropDownButton({ target, button, stateChange }) {
   for (const option of button.options || []) {
     if (option.heading) {
       const heading = document.createElement('div');
-      heading.style = 'font-weight: bold; font-size: larger';
+      heading.style = 'font-weight: bold';
       heading.classList.add('dropdown-item');
       heading.classList.add(FONT_MEDIUM);
       heading.innerHTML = option.heading;

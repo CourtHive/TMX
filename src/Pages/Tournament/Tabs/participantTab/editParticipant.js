@@ -65,8 +65,9 @@ export function editParticipant({ participant, view, refresh }) {
         placeholder: 'Birthday',
         value: values.birthDate || '',
         label: 'Date of birth',
+        onChange: valueChange,
         field: 'birthday',
-        onChange: valueChange
+        date: true
       },
       {
         typeAhead: { list, callback: nationalityCodeValue },
@@ -94,7 +95,7 @@ export function editParticipant({ participant, view, refresh }) {
     title: `<b style='larger'>New participant</b>`,
     callback: () => console.log('drawer callback'),
     context: 'tournament',
-    width: '500px',
+    width: '300px',
     side: RIGHT,
     content,
     footer

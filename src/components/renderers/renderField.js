@@ -1,4 +1,5 @@
 import { createTypeAhead } from 'services/dom/createTypeAhead';
+import { Datepicker } from 'vanillajs-datepicker';
 import { isFunction } from 'functions/typeOf';
 
 export function renderField(item) {
@@ -13,7 +14,7 @@ export function renderField(item) {
     field.appendChild(label);
   }
 
-  let inputElement;
+  let inputElement, datepicker;
 
   const control = document.createElement('div');
   control.className = 'control font-medium';
@@ -76,7 +77,13 @@ export function renderField(item) {
     if (item.validator) {
       input.addEventListener('input', (e) => validator(item, e, input, help, item.validator));
     }
-    if (item.typeAhead) {
+    if (item.date) {
+      datepicker = new Datepicker(inputElement, {
+        // ...options
+        format: 'yyyy-mm-dd',
+        autohide: true
+      });
+    } else if (item.typeAhead) {
       createTypeAhead({ ...item.typeAhead, element: input });
     } else {
       if (isFunction(item.onKeyDown)) input.addEventListener('keydown', (e) => item.onKeyDown(e, item));
@@ -88,7 +95,7 @@ export function renderField(item) {
 
   field.appendChild(control);
 
-  return { field, inputElement };
+  return { field, inputElement, datepicker };
 }
 
 function validator(item, e, input, help, fx) {

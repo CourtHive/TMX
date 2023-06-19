@@ -1,3 +1,4 @@
+import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -9,7 +10,6 @@ import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function renderTODSdraw({ eventId, drawId, structureId }) {
   let eventData = tournamentEngine.getEventData({ eventId }).eventData;
-  // let events = tournamentEngine.getEvents().events?.filter((event) => event.drawDefinitions?.length);
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
@@ -26,7 +26,6 @@ export function renderTODSdraw({ eventId, drawId, structureId }) {
   };
 
   let args = {
-    // nameFilter: undefined,
     // dictionary: {},
     eventHandlers,
     structureId,
@@ -36,38 +35,47 @@ export function renderTODSdraw({ eventId, drawId, structureId }) {
 
   const updateDrawDisplay = (args) => render(<DrawStructure {...args} />, document.getElementById(DRAWS_VIEW));
   const updateControlBar = () => {
-    const eventOptions = events.map((event) => ({
-      onClick: () => {
-        const result = tournamentEngine.getEventData({ eventId: event.eventId });
-        if (!result.eventData?.drawsData?.length) {
-          navigateToEvent({ eventId: event.eventId });
-        } else {
-          eventData = result.eventData;
-          drawId = eventData.drawsData?.[0]?.drawId;
-          navigateToEvent({ eventId: eventData.eventInfo.eventId, drawId, renderDraw: true });
-        }
-      },
-      label: event.eventName,
-      close: true
-    }));
+    const eventOptions = events
+      .map((event) => ({
+        onClick: () => {
+          const result = tournamentEngine.getEventData({ eventId: event.eventId });
+          if (!result.eventData?.drawsData?.length) {
+            navigateToEvent({ eventId: event.eventId });
+          } else {
+            eventData = result.eventData;
+            drawId = eventData.drawsData?.[0]?.drawId;
+            navigateToEvent({ eventId: eventData.eventInfo.eventId, drawId, renderDraw: true });
+          }
+        },
+        label: event.eventName,
+        close: true
+      }))
+      .concat([{ divider: true }, { label: 'All events', onClick: displayAllEvents, close: true }]);
 
-    const drawsOptions = eventData.drawsData.map((draw) => ({
-      onClick: () => {
-        const drawId = draw.drawId;
-        const structureId = draw.structures?.[0]?.structureId;
-        navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
-      },
-      label: draw.drawName,
-      close: true
-    }));
+    const drawsOptions = eventData.drawsData
+      .map((draw) => ({
+        onClick: () => {
+          const drawId = draw.drawId;
+          const structureId = draw.structures?.[0]?.structureId;
+          navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
+        },
+        label: draw.drawName,
+        close: true
+      }))
+      .concat([{ divider: true }, { heading: 'Add flight', onClick: () => console.log('Add new flight') }]);
 
-    const structureOptions = drawData.structures.map((structure) => ({
-      onClick: () => {
-        navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
-      },
-      label: structure.structureName,
-      close: true
-    }));
+    const structureOptions = drawData.structures
+      .map((structure) => ({
+        onClick: () => {
+          navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
+        },
+        label: structure.structureName,
+        close: true
+      }))
+      .concat([
+        { divider: true },
+        { heading: 'Add structure(s)', onClick: () => console.log('option to add structure(s)') }
+      ]);
 
     // PARTICIPANT filter
     const updateParticipantFilter = (value) => {
