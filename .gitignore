@@ -1,0 +1,34 @@
+# dependencies
+/scratch
+/node_modules
+
+# testing
+/coverage
+
+# sandbox
+/scratch
+
+# tarballs
+*.gz
+
+# development
+*.code-workspace
+.eslintcache
+
+# production
+.env.production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.*un~
+.vscode
+
+# logs, errors
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
