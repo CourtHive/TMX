@@ -91,15 +91,15 @@ function openTournament({ event }) {
   }
 }
 function createEvents(data) {
-  const extractDate = (dateTime) => dateTime.split('T')[0];
+  const extractDate = (dateTime) => dateTime?.split('T')[0];
 
-  return data.map((tournament) => ({
-    title: extractDate(tournament.tournamentName),
-    start: extractDate(tournament.startDate),
-    end: extractDate(tournament.endDate),
-    extendedProps: { tournamentId: tournament.tournamentId },
-    resourceIds: [tournament.tournamentId],
-    id: tournament.tournamentId,
+  return data.map((record) => ({
+    title: record.tournament.tournamentName,
+    start: extractDate(record.tournament.startDate),
+    end: extractDate(record.tournament.endDate),
+    extendedProps: { tournamentId: record.tournamentId },
+    resourceIds: [record.tournamentId],
+    id: record.tournamentId,
     color: '#FE6B64'
   }));
 }

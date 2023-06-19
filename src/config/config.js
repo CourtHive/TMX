@@ -9,7 +9,6 @@ import { isDev } from 'functions/isDev';
 import { env } from 'settings/env';
 
 import { changeIdiom } from '../services/idiomFx';
-// import { coms } from 'services/coms';
 
 import { PROCESS_DIRECTIVE } from 'constants/comsConstants';
 
@@ -17,9 +16,7 @@ export function initConfig() {
   return new Promise((resolve, reject) => {
     initListeners();
 
-    const initWithDB = () => {
-      // coms.init();
-    };
+    const initWithDB = () => {};
 
     const DBready = () => {
       initWithDB();
