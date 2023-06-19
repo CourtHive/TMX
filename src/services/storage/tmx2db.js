@@ -4,18 +4,18 @@ export const tmx2db = (function () {
   const idb = {};
 
   idb.initDB = () => {
-    try {
-      return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      try {
         idb.dex = new Dexie('TMX', { autoOpen: true });
         const tournaments = '&tournamentId, tournamentName, startDate, endDate';
         const providers = '&providerId, settings, calendar';
         const idioms = 'ioc';
         idb.dex.version(2).stores({ tournaments, providers, idioms });
         resolve();
-      });
-    } catch (err) {
-      return new Promise.reject(err);
-    }
+      } catch (err) {
+        return reject(err);
+      }
+    });
   };
 
   idb.resetDB = (callback) => {
@@ -55,9 +55,9 @@ export const tmx2db = (function () {
       .then(() => console.log('done'));
 
   idb.findUnique = (tbl, attr, val) =>
-    new Promise((resolve, reject) =>
+    new Promise((resolve, reject) => {
       idb.findWhere(tbl, attr, val).then((d) => resolve(d?.length ? d[0] : undefined), reject)
-    );
+    });
   idb.findProvider = (providerId) => idb.findUnique('providers', 'providerId', providerId);
   idb.findIdiom = (ioc) => idb.findUnique('idioms', 'ioc', ioc);
   idb.findTournament = (tournamentId) => idb.findUnique('tournaments', 'tournamentId', tournamentId);
@@ -98,25 +98,7 @@ export const tmx2db = (function () {
   idb.addTournament = (tournamentRecord) => {
     return idb.modifyOrAddUnique('tournaments', 'tournamentId', tournamentRecord.tournamentId, tournamentRecord);
   };
-  idb.addProvider = (provider) => idb.replaceOrAddUnique('providers', 'providerId', provider.providerId, provider);
-
-  idb.replaceOrAddUnique = (tbl, attr, val, item) =>
-    new Promise((resolve, reject) => {
-      idb.dex[tbl]
-        .where(attr)
-        .equals(val)
-        .delete()
-        .then(
-          () => {
-            idb.addItem(tbl, item).then(resolve, reject);
-          },
-          (err) => {
-            console.log(err);
-            reject(err);
-          }
-        );
-    });
-
+  idb.addProvider = (provider) => idb.modifyOrAddUnique('providers', 'providerId', provider.providerId, provider);
   idb.modify = (tbl, attr, val, fx, params) =>
     new Promise((resolve, reject) => {
       idb.dex[tbl]
