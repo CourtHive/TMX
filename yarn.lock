@@ -1259,6 +1259,54 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.41.0.tgz#080321c3b68253522f7646b55b577dd99d2950b3"
   integrity sha512-LxcyMGxwmTh2lY9FwHPGWOHmYFCZvbrFCBZL4FzSSsxsRPuhrYUg/49/0KDfW8tnIEaEHtfmn6+NPN+1DqaNmA==
 
+"@event-calendar/core@^1.5.0", "@event-calendar/core@~1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@event-calendar/core/-/core-1.5.0.tgz#029af44046e62e7965d35af42593fcef9b1a345b"
+  integrity sha512-XuUqACmyyd7hQltmqA02xMoHUX/5CyOX/1M1ImfqKtFkBztR8xQef2wg2Vgp7FTsS8W8/uhhZj/BUvESox1ZHw==
+  dependencies:
+    svelte "^3.59.1"
+
+"@event-calendar/day-grid@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@event-calendar/day-grid/-/day-grid-1.5.0.tgz#30a4ba63767e78133a209130ad65e3a0dfdebe2c"
+  integrity sha512-9m9jwZcPOzbRBdVTtAuxIUk25dhD6G+oqd8fs/rOeXv++HoPajY4kmMHV4P1Eiv03sJuk5SQ+KIqd6Kj+cCk+g==
+  dependencies:
+    "@event-calendar/core" "~1.5.0"
+    svelte "^3.59.1"
+
+"@event-calendar/interaction@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@event-calendar/interaction/-/interaction-1.5.0.tgz#d7575827d95ec4db2ebe05bf92616fb6575a07ec"
+  integrity sha512-yAB57NPsW1pVvE6MZ6LcnBigfnm4iU2xlknDNbENHhBsHRq8gSu5vf8XJRLmzXc0n3c//PZvO2C7s3bzCUAv3A==
+  dependencies:
+    "@event-calendar/core" "~1.5.0"
+    svelte "^3.59.1"
+
+"@event-calendar/list@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@event-calendar/list/-/list-1.5.0.tgz#2d427b4584107509cbb64cfea1ade8beed307f88"
+  integrity sha512-5Oc4eVuW3Nu/Lnez//6Gs2dvhuE1aXJOLjDdEnxmZwrMdXIGPf8xcavI1C8cfRTrWnCgjWvgwfLafgnE1gKN7w==
+  dependencies:
+    "@event-calendar/core" "~1.5.0"
+    svelte "^3.59.1"
+
+"@event-calendar/resource-time-grid@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@event-calendar/resource-time-grid/-/resource-time-grid-1.5.0.tgz#34dbb73a207132ae08a018ad9872421a62216091"
+  integrity sha512-2uILGFDdtL+DQQigD6kz3vs4xdhd28Yt7jkPZzb+RK/JNIhohXVLwnA0jJocTjU3J+ADeI9s3JFs6DjpGXhCdQ==
+  dependencies:
+    "@event-calendar/core" "~1.5.0"
+    "@event-calendar/time-grid" "~1.5.0"
+    svelte "^3.59.1"
+
+"@event-calendar/time-grid@^1.5.0", "@event-calendar/time-grid@~1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@event-calendar/time-grid/-/time-grid-1.5.0.tgz#bab952754695f6599478e081d682f0d48ade5d53"
+  integrity sha512-ZOhuBPpnyoPoIRq69JUtl3D/uo0G2tar8eMuHUpulrEn/so/9TZLfHbCtDjjHERUCKhQCGARPr882m5130IksA==
+  dependencies:
+    "@event-calendar/core" "~1.5.0"
+    svelte "^3.59.1"
+
 "@foliojs-fork/fontkit@^1.9.1":
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/@foliojs-fork/fontkit/-/fontkit-1.9.1.tgz#8124649168eb5273f580f66697a139fb5041296b"
@@ -10158,6 +10206,11 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
+svelte@^3.59.1:
+  version "3.59.1"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.59.1.tgz#3de3d56b9165748f32f3131589b8d183cabe7449"
+  integrity sha512-pKj8fEBmqf6mq3/NfrB9SLtcJcUvjYSWyePlfCqN9gujLB25RitWK8PvFzlwim6hD/We35KbPlRteuA6rnPGcQ==
+
 svg-parser@^2.0.2:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/svg-parser/-/svg-parser-2.0.4.tgz#fdc2e29e13951736140b76cb122c8ee6630eb6b5"
@@ -10393,10 +10446,10 @@ tods-competition-factory@^0.501.0:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-0.501.0.tgz#4e57ca7bc0f1561df66ac64852b8c568c118084d"
   integrity sha512-CMT2JBMotx7jqO+kCGmnxK6uLFudOOOYhhrm/wjYsEbJ64srUIUMfTl9tS2I2Uv6CiVExcGLXhi7PnoOSg6JLg==
 
-tods-competition-factory@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.0.tgz#db222d11d9bfc00a5f1e06523c95dc0134f4df7d"
-  integrity sha512-ksF5J7xgCPaIsa46ZCpbx81Z4zsX74BdiKxgyRlLNxnD8bB/Ncw+Cgj9bNW23nvFC1Wim55vlgyEfTMawrhbzw==
+tods-competition-factory@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.2.tgz#2601d8bf4dfa73088c4998b0fa9316e3845f6084"
+  integrity sha512-U8/cFHkU5BNLlIjf9Wjn9kU5dBkugI/Oohwc9PT+HkqlqV0E6oaDYaV298jqcdkD7RgTnGIAanFht8qMc29vYA==
 
 tods-react-draws@^0.2.1:
   version "0.2.1"
@@ -10409,15 +10462,15 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-tmx-classic-converter@^2.11.0:
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.11.0.tgz#89645519973644f1df62b6c89da28f5b9fdccb6b"
-  integrity sha512-Aiii32pD944jOTG3phj0SXBhEIVeqvoxojikYuzPVJyjzCnKS8NOXpVERoyZ/U/fvO+zo+NDLQ/YSuF4Y4WFtA==
+tods-tmx-classic-converter@^2.12.0:
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.12.0.tgz#4102ca844653f3aaff0e21975a866185aabb2a8d"
+  integrity sha512-OI0PgUVj2p9pE2wrBGUinYGw3zBFZcWTVZphhNuqVe50Eh9/PSEWR4UZTjND6z6nJTNBU0gX9SnvF4gpBIFckQ==
   dependencies:
     cli-progress "^3.9.0"
     d3 "5.16.0"
     date-fns "^2.19.0"
-    tods-competition-factory "^1.0.0"
+    tods-competition-factory "^1.0.2"
 
 toidentifier@1.0.1:
   version "1.0.1"
