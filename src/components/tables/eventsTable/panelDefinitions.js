@@ -42,37 +42,44 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
   const { createPairButton, createPairVisibility } = createPair(event);
   const excludeColumns = !hasFlights ? ['flights'] : [];
 
+  // group entries
+  const acceptedEntries = filterEntries(acceptedEntryStatuses);
+  const qualifyingEntries = filterEntries([`${QUALIFYING}.${DIRECT_ACCEPTANCE}`]);
+  const alternateEntries = filterEntries([`${MAIN}.${ALTERNATE}`]);
+  const ungroupedEntries = filterEntries([`${MAIN}.${UNGROUPED}`]);
+  const withdrawnEntries = filterEntries([`${MAIN}.${WITHDRAWN}`]);
+
   // NOTE: QUALIFYING.ALTERNATE and e.g. QUALIFYING.WILDCARD are not yet supported by the UI
   return [
     {
-      entries: filterEntries(acceptedEntryStatuses),
       placeholder: 'No accepted participants',
       items: [
         moveSelected(moves[ACCEPTED], eventId, drawId),
         changeEntryStatus(acceptedEntryStatuses),
         addToDraw(event),
-        ...panelItems('Accepted'),
+        ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
         seedingSelector
         // searchField(),
         // searchField(OVERLAY, 'participantId')
       ],
       actions: moves[ACCEPTED],
       anchorId: ACCEPTED_PANEL,
+      entries: acceptedEntries,
       group: ACCEPTED,
       excludeColumns
     },
     {
-      entries: filterEntries([`${QUALIFYING}.${DIRECT_ACCEPTANCE}`]),
       placeholder: 'No qualifying participants',
       items: [
+        ...panelItems({ heading: 'Qualifying', count: qualifyingEntries.length }),
+        moveSelected(moves[QUALIFYING], eventId, drawId),
+        seedingSelector
         // searchField(),
         // searchField(OVERLAY, 'participantId'),
-        seedingSelector,
-        ...panelItems('Qualifying'),
-        moveSelected(moves[QUALIFYING], eventId, drawId)
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
       anchorId: QUALIFYING_PANEL,
+      entries: qualifyingEntries,
       group: QUALIFYING,
       excludeColumns
     },
@@ -80,43 +87,43 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         // searchField(),
         // searchField(OVERLAY, 'participantId'),
-        ...panelItems('Alternates'),
+        ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
         moveSelected(moves[ALTERNATE], eventId, drawId)
       ],
-      entries: filterEntries([`${MAIN}.${ALTERNATE}`]),
       actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
       excludeColumns: ['seedNumber', 'flights'],
       placeholder: 'No alternates',
       anchorId: ALTERNATES_PANEL,
+      entries: alternateEntries,
       hide: drawDefinition,
       group: ALTERNATE
     },
     {
       hide: [SINGLES].includes(event?.eventType) || drawDefinition,
       items: [
+        ...panelItems({ heading: 'Ungrouped', count: ungroupedEntries.length }),
         searchField(LEFT, 'participantId'),
         searchField(OVERLAY, 'participantId'),
-        ...panelItems('Ungrouped'),
         createPairButton
       ],
-      entries: filterEntries([`${MAIN}.${UNGROUPED}`]),
       placeholder: 'No ungrouped participants',
       excludeColumns: ['seedNumber', 'flights'],
       onSelection: createPairVisibility,
       anchorId: UNGROUPED_PANEL,
+      entries: ungroupedEntries,
       group: UNGROUPED
     },
     {
       items: [
         // searchField(),
         // searchField(OVERLAY, 'participantId'),
-        ...panelItems('Withdrawn'),
+        ...panelItems({ heading: 'Withdrawn', count: withdrawnEntries.length }),
         moveSelected(moves[WITHDRAWN], eventId, drawId)
       ],
-      entries: filterEntries([`${MAIN}.${WITHDRAWN}`]),
       placeholder: 'No withdrawn participants',
       excludeColumns: ['seedNumber', 'flights'],
       anchorId: WITHDRAWN_PANEL,
+      entries: withdrawnEntries,
       hide: drawDefinition,
       actions: [ALTERNATE],
       group: WITHDRAWN,
