@@ -3,6 +3,8 @@ import { utilities } from 'tods-competition-factory';
 import { version } from 'config/version';
 import { io } from 'socket.io-client';
 
+import { TMX_MESSAGE } from 'constants/comsConstants';
+
 const oi = {
   socket: undefined,
   connectionOptions: {
@@ -16,16 +18,8 @@ const oi = {
 const ackRequests = {};
 const socketQueue = [];
 
-function connectionEvent() {
-  const state = getLoginState();
-  const providerId = state?.profile?.provider?.providerId;
-
-  console.log('connected:', { providerId });
-
-  while (socketQueue.length) {
-    let message = socketQueue.pop();
-    socketEmit(message.header, message.data);
-  }
+function tmxMessage(data) {
+  console.log('tmxMessage:', { data });
 }
 
 export function connectSocket() {
@@ -34,11 +28,8 @@ export function connectSocket() {
     // TODO: move to .env file
     const socketPath = local ? 'http://localhost:8383/tmx' : 'https://courthive.net/tmx';
     oi.socket = io.connect(socketPath);
-
-    oi.socket.on('ack', (ack) => {
-      console.log({ ack });
-    });
-
+    oi.socket.on('ack', receiveAcknowledgement);
+    oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on('connect', connectionEvent);
     oi.socket.on('disconnect', () => console.log('disconnect'));
     oi.socket.on('connect_error', (data) => {
@@ -102,7 +93,30 @@ function socketEmit(msg, data) {
   oi.socket.emit(msg, data);
 }
 
+function connectionEvent() {
+  const state = getLoginState();
+  const providerId = state?.profile?.provider?.providerId;
+
+  console.log('connected:', { providerId });
+
+  while (socketQueue.length) {
+    let message = socketQueue.pop();
+    socketEmit(message.header, message.data);
+  }
+}
+
 function requestAcknowledgement({ ackId, uuid, callback }) {
   if (ackId) ackRequests[ackId] = callback;
   if (uuid) ackRequests[uuid] = callback;
+}
+
+function receiveAcknowledgement(ack) {
+  if (ack.ackId && ackRequests[ack.ackId]) {
+    ackRequests[ack.ackId](ack);
+    delete ackRequests[ack.ackId];
+  }
+  if (ack.uuid && ackRequests[ack.uuid]) {
+    ackRequests[ack.uuid](ack);
+    delete ackRequests[ack.uuid];
+  }
 }
