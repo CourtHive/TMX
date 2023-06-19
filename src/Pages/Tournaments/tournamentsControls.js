@@ -5,6 +5,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { legacyImport } from 'services/storage/legacyImport';
 import { serverSync } from 'services/storage/serverSync';
 import { mainMenu } from 'components/menus/mainMenu';
+import { mockTournaments } from './mockTournaments';
 import { context } from 'services/context';
 
 import { LEFT, RIGHT, TMX_TOURNAMENTS, TOURNAMENTS_CONTROL } from 'constants/tmxConstants';
@@ -12,20 +13,14 @@ import { LEFT, RIGHT, TMX_TOURNAMENTS, TOURNAMENTS_CONTROL } from 'constants/tmx
 export function calendarControls(table) {
   const state = getLoginState();
 
-  /*
-  const categoryOptions = ['All', '18U', '16U'].map((category) => ({
-    onClick: () => console.log(category),
-    label: category,
-    close: true
-  }));
-  */
-
   const newOptions = [
     { label: 'Create new tournament', onClick: () => addTournament({ table }) },
     { label: 'Import tournament', onClick: () => importTournaments(table) },
     { divider: true },
     { label: 'Sync with Server', onClick: serverSync, close: true },
-    { label: 'Import legacy', onClick: () => legacyImport(table), close: true }
+    { label: 'Import legacy', onClick: () => legacyImport(table), close: true },
+    { divider: true },
+    { label: 'Example Tournaments', onClick: () => mockTournaments(table), close: true }
   ];
 
   // SEARCH filter
@@ -57,16 +52,6 @@ export function calendarControls(table) {
       placeholder: 'Search tournaments',
       location: LEFT,
       search: true
-      /*
-    },
-    {
-      options: categoryOptions,
-      modifyLabel: true,
-      label: 'Category',
-      selection: true,
-      location: LEFT,
-      append: true
-      */
     }
   ];
 
