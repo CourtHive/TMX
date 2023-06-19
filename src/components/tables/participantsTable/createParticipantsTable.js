@@ -77,6 +77,7 @@ export function createParticipantsTable({ view } = {}) {
       responsive: false,
       resizable: false,
       minWidth: 200,
+      widthGrow: 2,
       title: 'Name'
     },
     {
@@ -140,11 +141,12 @@ export function createParticipantsTable({ view } = {}) {
     {
       sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
-      hozAlign: LEFT,
-      field: 'events',
       title: 'Events',
+      field: 'events',
+      hozAlign: LEFT,
       minWidth: 300,
-      editor: false
+      editor: false,
+      widthGrow: 2
     },
     {
       title: 'City/State',
