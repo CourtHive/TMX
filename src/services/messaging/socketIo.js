@@ -1,9 +1,11 @@
 import { getLoginState } from 'services/authentication/loginState';
+import { processDirective } from 'services/processDirective';
 import { utilities } from 'tods-competition-factory';
+import { isFunction } from 'functions/typeOf';
 import { version } from 'config/version';
 import { io } from 'socket.io-client';
 
-import { TMX_MESSAGE } from 'constants/comsConstants';
+import { TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
 
 const oi = {
   socket: undefined,
@@ -22,7 +24,7 @@ function tmxMessage(data) {
   console.log('tmxMessage:', { data });
 }
 
-export function connectSocket() {
+export function connectSocket(callback) {
   if (!oi.socket) {
     const local = window.location.host.includes('localhost');
     // TODO: move to .env file
@@ -30,7 +32,8 @@ export function connectSocket() {
     oi.socket = io.connect(socketPath);
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
-    oi.socket.on('connect', connectionEvent);
+    oi.socket.on(TMX_DIRECTIVE, processDirective);
+    oi.socket.on('connect', () => connectionEvent(callback));
     oi.socket.on('disconnect', () => console.log('disconnect'));
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
@@ -56,7 +59,7 @@ export function emitTmx({ data, ackCallback }) {
 
   const { providerId } = profile?.provider || {};
 
-  if (oi.socket) {
+  const action = () => {
     if (ackCallback && typeof ackCallback === 'function') {
       let ackId = utilities.UUID();
       if (data.payload) Object.assign(data.payload, { ackId });
@@ -83,8 +86,16 @@ export function emitTmx({ data, ackCallback }) {
     socketEmit(messageType, data);
 
     if (messageType !== 'tmx-one') console.log({ messageType, data });
+  };
+
+  if (oi.socket) {
+    action();
   } else {
-    socketQueue.push({ header: messageType, data, ackCallback });
+    try {
+      connectSocket(action);
+    } catch (err) {
+      socketQueue.push({ header: messageType, data, ackCallback });
+    }
   }
 }
 
@@ -93,16 +104,13 @@ function socketEmit(msg, data) {
   oi.socket.emit(msg, data);
 }
 
-function connectionEvent() {
-  const state = getLoginState();
-  const providerId = state?.profile?.provider?.providerId;
-
-  console.log('connected:', { providerId });
-
+function connectionEvent(callback) {
   while (socketQueue.length) {
     let message = socketQueue.pop();
     socketEmit(message.header, message.data);
   }
+
+  isFunction(callback) && callback();
 }
 
 function requestAcknowledgement({ ackId, uuid, callback }) {

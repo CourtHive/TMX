@@ -12,8 +12,6 @@ export function processDirective(data) {
   const result = safeJSON.parse({ data });
   const { directive, content } = result || {};
 
-  console.log({ data, directive });
-
   if (directive) {
     if (directive === PROVIDER_CALENDAR && content.calendar) {
       tmxToast({
@@ -42,13 +40,6 @@ export function processDirective(data) {
 function loadCalendar({ providerId, calendar }) {
   const done = () => createTournamentsTable();
   if (providerId && calendar) {
-    const updateProvider = (result) => {
-      if (result) {
-        done();
-      } else {
-        tmx2db.addProvider({ providerId, calendar }).then(done);
-      }
-    };
-    tmx2db.findProvider(providerId).then(updateProvider, (err) => console.log(err));
+    tmx2db.addProvider({ providerId, calendar }).then(done);
   }
 }
