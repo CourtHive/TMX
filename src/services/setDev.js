@@ -3,32 +3,43 @@ import { loadTournament } from 'Pages/Tournament/tournamentDisplay';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
+import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
-import { coms } from 'services/coms';
 import { env } from 'settings/env';
-
-import { db } from './storage/db';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
 
+import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
+import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
+
 export function setDev() {
-  if (!window.dev && window.location.host.indexOf('localhost:3') === 0) {
+  if (!window.dev) {
     console.log('%c dev initialized', 'color: yellow');
     window.dev = {};
+  } else {
+    return;
   }
+
+  const help = () => console.log('set window.socketURL for messaging');
 
   addDev({
     getTournament: () => factory.tournamentEngine.getState()?.tournamentRecord,
     tournamentEngine: factory.tournamentEngine,
     context: factory.setDevContext,
     modifyTournament,
-    factory
+    getLoginState,
+    factory,
+    help
   });
-  addDev({ env, tournamentContext: context, db });
-  addDev({ tmx2db, load, coms, getLoginState });
+
+  addDev({ connectSocket, disconnectSocket, emitTmx });
+  addDev({ tmx2db, load, exportTournamentRecord });
+  addDev({ env, tournamentContext: context });
 }
 
 function addDev(variable) {
+  if (!isObject(window.dev)) return;
+
   try {
     Object.keys(variable).forEach((key) => (window.dev[key] = variable[key]));
   } catch (err) {

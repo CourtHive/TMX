@@ -1,13 +1,14 @@
 import { isFunction } from 'functions/typeOf';
 import { TimepickerUI } from 'timepicker-ui';
 
-export function timePicker({ time, callback } = {}) {
+export function timePicker({ time, options, callback } = {}) {
   const timepicker = document.getElementById('timepicker');
   const timeValue = document.getElementById('timevalue');
   timeValue.value = regularTime(time);
   const tpu = new TimepickerUI(document.getElementById('timepicker'), {
     switchToMinutesAfterSelectHour: true,
-    clockType: '12h'
+    clockType: '12h',
+    ...options
   });
   tpu.create();
   tpu.open();

@@ -159,5 +159,5 @@ export function addDraw({ eventId, callback }) {
   const title = `Configure draw`;
 
   const footer = (elem, close) => renderButtons(elem, buttons, close);
-  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: 400 });
+  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: '300px' });
 }

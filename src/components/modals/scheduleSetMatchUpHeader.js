@@ -1,7 +1,15 @@
-import { lang } from 'services/translator';
-import { listPicker } from './listPicker';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { tipster } from 'components/popovers/tipster';
+import { utilities } from 'tods-competition-factory';
+import { isFunction } from 'functions/typeOf';
+import { timePicker } from './timePicker';
 
-export function scheduleSetMatchUpHeader({ callback } = {}) {
+import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import { RIGHT } from 'constants/tmxConstants';
+
+export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
+  /*
   let options = [
     { label: lang.tr('schedule.matchestime'), value: 'matchestime' },
     { label: lang.tr('schedule.notbefore'), value: 'notbefore' },
@@ -14,4 +22,69 @@ export function scheduleSetMatchUpHeader({ callback } = {}) {
   ];
 
   listPicker({ options, callback, isOpen: true });
+  */
+
+  const setSchedule = (schedule) => {
+    const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
+    const matchUpIds = matchUps.map(({ matchUpId }) => matchUpId);
+
+    const methods = [
+      {
+        params: { matchUpIds, schedule },
+        method: BULK_SCHEDULE_MATCHUPS
+      }
+    ];
+
+    const postMutation = (result) => {
+      if (result.success) {
+        isFunction(callback) && callback(schedule);
+      }
+    };
+
+    mutationRequest({ methods, callback: postMutation });
+  };
+
+  const clearTimeSettings = () => setSchedule({ scheduledTime: '' });
+  const timeSelected = ({ time }) => {
+    const militaryTime = true;
+    const scheduledTime = utilities.dateTime.convertTime(time, militaryTime);
+    setSchedule({ scheduledTime });
+  };
+
+  const setMatchUpTimes = () => {
+    const table = cell.getTable();
+    const tableData = table.getData();
+    let rowEncountered;
+
+    const previousRowScheduledTimes = tableData
+      .flatMap((row, i) => {
+        if (rowEncountered) return;
+        if (row.rowId === rowData.rowId) {
+          rowEncountered = i + 1;
+          if (i) return;
+        }
+        return Object.values(row).flatMap((c) => c?.schedule?.scheduledTime);
+      })
+      .filter(Boolean)
+      .map(timeStringToSeconds);
+    const maxSeconds = Math.max(...previousRowScheduledTimes, 0); // zero prevents -Infinity
+
+    const nextHour = rowEncountered > 1;
+    const time = (maxSeconds && secondsToTimeString(maxSeconds, nextHour)) || '8:00 AM';
+    timePicker({ time, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
+  };
+
+  const options = [
+    {
+      option: `Set match times`,
+      onClick: setMatchUpTimes
+    },
+    {
+      option: `Clear time settings`,
+      onClick: clearTimeSettings
+    }
+  ];
+
+  const target = e.target;
+  tipster({ options, target, config: { placement: RIGHT } });
 }

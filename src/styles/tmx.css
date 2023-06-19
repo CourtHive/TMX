@@ -1,7 +1,7 @@
 html,
 body {
   font-family: 'Poppins', sans-serif;
-  font-size: 62.5%;
+  /* font-size: 62.5%; */
   font-weight: 500;
 }
 
@@ -17,8 +17,17 @@ body {
   width: 100%;
 }
 
+#drawsView {
+  font-size: 70%;
+}
+
+.subTable {
+  padding-bottom: 1em;
+  background-color: #e7e6e7;
+}
+
 .event-pill {
-  font-size: 1rem !important;
+  font-size: .8rem !important;
   margin-right: 2px;
 }
 .font-medium {
@@ -36,6 +45,7 @@ body {
 
 .navbar {
   border-bottom: 1px solid #d9d9d9;
+  font-size: 60%;
   position: fixed;
   top: 0;
 }

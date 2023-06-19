@@ -5,6 +5,7 @@ import { mapVenue } from 'Pages/Tournament/Tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { competitionEngine } from 'tods-competition-factory';
+import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { threeDots } from '../common/formatters/threeDots';
 import { getLatLong } from 'components/modals/getLatLong';
@@ -120,6 +121,7 @@ export function createVenuesTable({ table } = {}) {
 
     controlBar({ table: courtsTable, target: controlEl, items });
 
+    courtsTable.on('scrollVertical', destroyTipster);
     courtsTable.on('cellEdited', (cell) => {
       const def = cell.getColumn().getDefinition();
       const row = cell.getRow().getData();
@@ -307,6 +309,7 @@ export function createVenuesTable({ table } = {}) {
       data
     });
 
+    table.on('scrollVertical', destroyTipster);
     table.on('cellEdited', (cell) => {
       const def = cell.getColumn().getDefinition();
       const row = cell.getRow().getData();

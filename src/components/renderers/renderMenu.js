@@ -50,10 +50,12 @@ export function renderMenu(elem, menu, close) {
   for (const item of menu || []) {
     if (item.hide) continue;
     if (item.items) {
-      const menuLabel = document.createElement('p');
-      menuLabel.className = 'menu-label font-medium';
-      if (item.text) menuLabel.innerHTML = item.text;
-      aside.appendChild(menuLabel);
+      if (item.text) {
+        const menuLabel = document.createElement('p');
+        menuLabel.className = 'menu-label font-medium';
+        menuLabel.innerHTML = item.text;
+        aside.appendChild(menuLabel);
+      }
 
       const menuList = document.createElement('ul');
       menuList.className = 'menu-list';

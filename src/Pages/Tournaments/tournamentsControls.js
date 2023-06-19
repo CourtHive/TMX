@@ -19,7 +19,7 @@ export function calendarControls(table) {
   }));
 
   const newOptions = [
-    { label: 'Create New Tournament', onClick: () => addTournament({ table }) },
+    { label: 'Create new tournament', onClick: () => addTournament({ table }) },
     { label: 'Import tournament', onClick: () => importTournaments(table) },
     { divider: true },
     { label: 'Sync with Server', onClick: serverSync, close: true },

@@ -11,17 +11,8 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { getColumns } from './getColumns';
 
-import {
-  CONTROL_BAR,
-  EMPTY_STRING,
-  EVENT_CONTROL,
-  LEFT,
-  NONE,
-  RIGHT,
-  TMX_TABLE,
-  TOURNAMENT,
-  EVENTS_TAB
-} from 'constants/tmxConstants';
+import { CONTROL_BAR, EMPTY_STRING, EVENT_CONTROL, LEFT, NONE, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
+import { displayAllEvents } from './displayAllEvents';
 
 export function createEntriesPanels({ eventId, drawId }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
@@ -105,26 +96,21 @@ export function createEntriesPanels({ eventId, drawId }) {
     const ALL_ENTRIES = 'All entries';
     const eventControlElement = document.getElementById(EVENT_CONTROL);
     const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
-    const entriesOptions = [eventEntries].concat(
-      (result.event.drawDefinitions || []).map((drawDefinition) => ({
+    const entriesOptions = (result.event.drawDefinitions || [])
+      .map((drawDefinition) => ({
         onClick: () => navigateToEvent({ eventId, drawId: drawDefinition.drawId }),
         label: drawDefinition.drawName,
         close: true
       }))
-    );
-    const displayAllEvents = () => {
-      const tournamentId = tournamentEngine.getState().tournamentRecord.tournamentId;
-      const eventsRoute = `/${TOURNAMENT}/${tournamentId}/${EVENTS_TAB}`;
-      context.router.navigate(eventsRoute);
-    };
+      .concat([{ divider: true }, eventEntries]);
     const allEvents = { label: 'All events', onClick: displayAllEvents, close: true };
-    const eventOptions = [allEvents].concat(
-      result.events.map((e) => ({
+    const eventOptions = result.events
+      .map((e) => ({
         onClick: () => navigateToEvent({ eventId: e.eventId }),
         label: e.eventName,
         close: true
       }))
-    );
+      .concat([{ divider: true }, allEvents]);
 
     const drawAdded = (result) => {
       if (result.success) {
