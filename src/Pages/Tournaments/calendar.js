@@ -7,6 +7,7 @@ import { tmx2db } from 'services/storage/tmx2db';
 import DayGrid from '@event-calendar/day-grid';
 import Calendar from '@event-calendar/core';
 import { context } from 'services/context';
+import tippy from 'tippy.js';
 
 // import ResourceTimeGrid from '@event-calendar/resource-time-grid';
 // import TimeGrid from '@event-calendar/time-grid';
@@ -65,6 +66,7 @@ export function render(data) {
         scrollTime: '09:00:00',
         events: createEvents(data),
         eventClick: openTournament,
+        eventMouseEnter: eventHover,
         views: {
           // timeGridWeek: { pointer: true },
           // resourceTimeGridWeek: { pointer: true }
@@ -95,12 +97,20 @@ function createEvents(data) {
   const events = data.map((tournament) => ({
     title: extractDate(tournament.tournamentName),
     start: extractDate(tournament.startDate),
+    end: extractDate(tournament.endDate),
     extendedProps: { tournamentId: tournament.tournamentId },
     resourceIds: [tournament.tournamentId],
     id: tournament.tournamentId,
-    end: tournament.endDate,
     color: '#FE6B64'
   }));
   console.log({ events });
   return events;
+}
+
+function eventHover({ event, jsEvent }) {
+  tippy(jsEvent.target, {
+    content: event.title,
+    showOnCreate: true,
+    arrow: true
+  });
 }
