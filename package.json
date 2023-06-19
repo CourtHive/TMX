@@ -1,7 +1,7 @@
 {
   "name": "tmx",
   "homepage": "tmx3",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "license": "MIT",
   "dependencies": {
     "animate.css": "^4.1.1",
