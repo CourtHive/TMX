@@ -1,19 +1,22 @@
 import { getLoginState } from 'services/authentication/loginState';
-import { displayAuthOptions } from 'components/menus/authOptions';
+// import { displayAuthOptions } from 'components/menus/authOptions';
 import { tournamentEngine } from 'tods-competition-factory';
 import { mainMenu } from 'components/menus/mainMenu';
-import { authDisplay, keyIcon } from './authDisplay';
+import { authDisplay /*, keyIcon*/ } from './authDisplay';
 import { context } from 'services/context';
 
-import { RIGHT } from 'constants/tmxConstants';
+import { LEFT, RIGHT } from 'constants/tmxConstants';
+import { dropDownButton } from 'components/buttons/dropDownButton';
 
 export function tournamentHeader() {
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
   const state = getLoginState();
 
+  /*
   const authorizeActions = (e) => {
     displayAuthOptions({ tournamentId: tournamentInfo.tournamentId, target: e.target });
   };
+  */
 
   const menuButton = document.getElementById('mainMenu');
   if (menuButton) {
@@ -31,13 +34,27 @@ export function tournamentHeader() {
   }
 
   const tournamentElement = document.getElementById('tournamentName');
-  if (tournamentElement) tournamentElement.innerHTML = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
+  if (tournamentElement) {
+    const label = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
+    dropDownButton({
+      target: tournamentElement,
+      field: 'tournamentName',
+      onClick: () => console.log('boo'),
+      button: {
+        align: LEFT,
+        options: [],
+        label
+      }
+    });
+  }
 
+  /*
   const authElement = document.getElementById('authorizeActions');
   if (authElement) {
     authElement.onclick = authorizeActions;
     authElement.innerHTML = keyIcon;
   }
+  */
 
   authDisplay();
 }

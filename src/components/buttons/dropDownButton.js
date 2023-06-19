@@ -116,7 +116,7 @@ export function dropDownButton({ target, button, stateChange }) {
     }
   }
 
-  menu.appendChild(content);
+  if (button.options?.length) menu.appendChild(content);
   elem.appendChild(menu);
 
   if (target) target.appendChild(elem);

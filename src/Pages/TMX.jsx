@@ -90,9 +90,7 @@ const navbar = (
     id={NAVBAR}
   >
     <div className="navbar-brand">
-      <div className="navbar-item" id="tournamentName">
-        Tournament Name
-      </div>
+      <div className="navbar-item" id="tournamentName"></div>
       <div className="navbar-item" id="authorizeActions"></div>
       <a
         data-target="navbarBasicExample"
