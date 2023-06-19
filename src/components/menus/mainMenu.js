@@ -9,14 +9,13 @@ import { displayKeyActions } from './keyActions';
 import { save } from 'services/storage/save';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
-import { coms } from 'services/coms';
 import { env } from 'settings/env';
 
 import { TMX_TOURNAMENTS, HOME } from 'constants/tmxConstants';
 
 // TODO: REMOVE!!
 import { registrationModal } from 'components/modals/registrationModal';
-import { connectSocket, disconnectSocket } from 'services/messaging/socketIo';
+import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { requestTournamentRecord } from 'services/messaging/requestTournamentRecord';
 
 function displayVersion() {
@@ -60,6 +59,8 @@ export const mainMenu = (elem, close, menuContext) => {
     window.open(url, '_blank');
   };
 
+  const socketConnected = connected();
+
   const menu = [
     {
       text: 'Main Menu',
@@ -82,8 +83,8 @@ export const mainMenu = (elem, close, menuContext) => {
     {
       text: 'Server connection',
       items: [
-        { hide: coms.connected(), text: 'Connect', onClick: connectSocket },
-        { hide: !coms.connected(), text: 'Disconnect', onClick: disconnectSocket },
+        { hide: socketConnected, text: 'Connect', onClick: connectSocket },
+        { hide: !socketConnected, text: 'Disconnect', onClick: disconnectSocket },
         { hide: loggedIn, text: 'Log in', onClick: loginModal },
         { hide: !loggedIn, text: 'Log out', onClick: logOut },
         { hide: loggedIn, text: 'Register', onClick: registrationModal }
