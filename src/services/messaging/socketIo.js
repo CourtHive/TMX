@@ -16,9 +16,22 @@ const oi = {
 const ackRequests = {};
 const socketQueue = [];
 
+function connectionEvent() {
+  const state = getLoginState();
+  const providerId = state?.profile?.provider?.providerId;
+
+  console.log('connected:', { providerId });
+
+  while (socketQueue.length) {
+    let message = socketQueue.pop();
+    socketEmit(message.header, message.data);
+  }
+}
+
 export function connectSocket() {
   if (!oi.socket) {
     const local = window.location.host.includes('localhost');
+    // TODO: move to .env file
     const socketPath = local ? 'http://localhost:8383/tmx' : 'https://courthive.net/tmx';
     oi.socket = io.connect(socketPath);
 
@@ -26,12 +39,7 @@ export function connectSocket() {
       console.log({ ack });
     });
 
-    oi.socket.on('connect', () => {
-      const state = getLoginState();
-      const providerId = state?.profile?.provider?.providerId;
-
-      console.log('connected:', { providerId });
-    });
+    oi.socket.on('connect', connectionEvent);
     oi.socket.on('disconnect', () => console.log('disconnect'));
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
