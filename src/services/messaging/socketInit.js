@@ -14,7 +14,9 @@ const oi = {
 export function connectSocket() {
   if (!oi.socket) {
     const local = window.location.host.includes('localhost');
-    const socketPath = local ? 'http://localhost:8383/tmx' : '/tmx';
+    const socketPath = local
+      ? 'http://localhost:8383/tmx'
+      : (window.socketPath !== undefined && window.socketPath) || '/tmx';
     oi.socket = io.connect(socketPath);
 
     oi.socket.on('ack', (ack) => {
@@ -37,6 +39,6 @@ export function connectSocket() {
 }
 
 export function disconnectSocket() {
-  oi.socket.disconnect();
+  oi?.socket && oi.socket.disconnect();
   setTimeout(() => delete oi.socket, 1000);
 }
