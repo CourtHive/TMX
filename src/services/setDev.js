@@ -10,6 +10,7 @@ import { env } from 'settings/env';
 import { TOURNAMENT } from 'constants/tmxConstants';
 
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
+import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 
 export function setDev() {
   if (!window.dev) {
@@ -32,8 +33,8 @@ export function setDev() {
   });
 
   addDev({ connectSocket, disconnectSocket, emitTmx });
+  addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
-  addDev({ tmx2db, load });
 }
 
 function addDev(variable) {
