@@ -25,7 +25,6 @@ const routeMap = {
 
 const tips = {
   't-route': 'Overview',
-  // 'i-route': 'Overview',
   'p-route': 'Participants',
   'e-route': 'Events',
   'm-route': 'MatchUps',
@@ -35,6 +34,9 @@ const tips = {
 
 export function tmxNavigation() {
   const match = imageClass.dragMatch().props.src;
+
+  // TODO: add after any features item
+  // <span class="item-count">${participantsCount}</span>
 
   const html = `
   <div class="side-bar collapse">
@@ -47,11 +49,8 @@ export function tmxNavigation() {
     </div>
     <ul class="features-list">
       <li id='t-route' class="features-item tournaments">
-        <i class="nav-icon fa-solid fa-trophy" style="font-size: larger">
-          <span class="status"></span>
-        </i>
+        <i class="nav-icon fa-solid fa-trophy" style="font-size: larger"> <span class="status"></span> </i>
           <span class="features-item-text">Overview</span>
-          <span class="item-count">99</span>
       </li>
       <li id='p-route' class="features-item participants">
         <i class="nav-icon fa-solid fa-user-group" style="font-size: larger"></i>
@@ -104,22 +103,6 @@ export function tmxNavigation() {
     placement: RIGHT,
     arrow: false
   });
-
-  /*
-  const iRoute = document.getElementById('i-route');
-  iRoute.onclick = () => {
-    toggleSideBar(false);
-    // context.router.navigate('/tournaments');
-  };
-
-  tippy(iRoute, {
-    dynContent: () => tippyContent(tips['i-route']),
-    onShow: (options) => !!options.props.content,
-    plugins: [enhancedContentFunction],
-    placement: RIGHT,
-    arrow: false
-  });
-  */
 
   ids.forEach((id) => {
     const element = document.getElementById(id);
