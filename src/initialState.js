@@ -12,12 +12,14 @@ import { drawer } from 'components/drawer';
 import { routeTMX } from 'Router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
+import { version } from 'config/version';
 import { isDev } from 'functions/isDev';
 import { env } from 'settings/env';
 
 import { CLIENT_ERROR } from 'constants/comsConstants';
 
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
+import '@event-calendar/core/index.css';
 import 'styles/legacy/scoreboard.css';
 import 'styles/legacy/ddScoring.css';
 
@@ -115,7 +117,7 @@ function setEnv() {
   env.device = getDevice();
   env.version_check = new Date().getTime();
   const cfv = tournamentEngine.version();
-  console.log(`%cversion: ${env.version}`, 'color: lightblue');
+  console.log(`%cversion: ${version}`, 'color: lightblue');
   console.log(`%cfactory: ${cfv}`, 'color: lightblue');
 
   eventListeners();

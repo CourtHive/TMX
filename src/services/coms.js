@@ -263,23 +263,6 @@ export const coms = (() => {
     }
   }
 
-  fx.requestTournament = (tuid) => {
-    if (connected) {
-      let data = {
-        tuid,
-        timestamp: new Date().getTime(),
-        uuuid: context.uuuid || undefined
-      };
-      fx.emitTmx({ data: { tournamentRequest: data } });
-    } else {
-      let message = `Offline: must be connected to internet`;
-      context.modal.open({
-        title: lang.tr('phrases.noconnection'),
-        content: message
-      });
-    }
-  };
-
   fx.emitTmx = emitTmx;
   function emitTmx({ data, ackCallback }) {
     const state = getLoginState(); // TODO: return token from getLoginState();

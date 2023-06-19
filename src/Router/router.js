@@ -1,6 +1,7 @@
 import { displayTournament } from 'Pages/Tournament/tournamentDisplay';
 import { tmxTournaments } from 'Pages/Tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
+import { renderCalendar } from 'Pages/Tournaments/calendar';
 import { context } from 'services/context';
 import { coms } from 'services/coms';
 import Navigo from 'navigo';
@@ -54,6 +55,8 @@ export function routeTMX() {
   // adding a unique identifer to the URL will force refresh
   router.on(`/${TMX_TOURNAMENTS}/:uuid`, tmxTournaments);
   router.on(`/${TMX_TOURNAMENTS}`, tmxTournaments);
+
+  router.on(`/calendar`, renderCalendar);
 
   router.on(`/actionKey/:key`, ({ data }) => {
     const key = data.key;
