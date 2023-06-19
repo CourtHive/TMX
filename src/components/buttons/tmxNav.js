@@ -28,8 +28,10 @@ export function showNav(onClick) {
 
 export function hideNav() {
   const anchor = document.getElementById(TMX_NAV);
-  removeAllChildNodes(anchor);
-  anchor.style.display = NONE;
+  if (anchor) {
+    anchor.style.display = NONE;
+    removeAllChildNodes(anchor);
+  }
 }
 
 function getAnchor() {
