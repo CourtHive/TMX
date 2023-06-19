@@ -18,7 +18,7 @@ import {
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
-  const routerRoot = window.location.host.indexOf('localhost:3333') === 0 ? '/' : process.env.PUBLIC_URL || '/';
+  const routerRoot = window.location.host.startsWith('localhost:3333') ? '/' : process.env.PUBLIC_URL || '/';
 
   const useHash = true;
   const router = new Navigo(useHash ? '/' : `/${routerRoot}`, { hash: useHash });
