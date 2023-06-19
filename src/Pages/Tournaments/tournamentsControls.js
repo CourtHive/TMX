@@ -12,11 +12,13 @@ import { LEFT, RIGHT, TMX_TOURNAMENTS, TOURNAMENTS_CONTROL } from 'constants/tmx
 export function calendarControls(table) {
   const state = getLoginState();
 
+  /*
   const categoryOptions = ['All', '18U', '16U'].map((category) => ({
     onClick: () => console.log(category),
     label: category,
     close: true
   }));
+  */
 
   const newOptions = [
     { label: 'Create new tournament', onClick: () => addTournament({ table }) },
@@ -55,6 +57,7 @@ export function calendarControls(table) {
       placeholder: 'Search tournaments',
       location: LEFT,
       search: true
+      /*
     },
     {
       options: categoryOptions,
@@ -63,6 +66,7 @@ export function calendarControls(table) {
       selection: true,
       location: LEFT,
       append: true
+      */
     }
   ];
 
