@@ -98,7 +98,7 @@ body.gmodal-open {
 .gmodal__body,
 .gmodal__footer {
   position: relative;
-  padding: 15px;
+  /* padding: 15px; */
 }
 .gmodal__header {
   display: flex;
