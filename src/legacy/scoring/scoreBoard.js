@@ -86,7 +86,6 @@ export const scoreBoard = (function () {
     lock,
     match,
     teams,
-    flags,
     grouped,
     callback,
     round_name,
@@ -116,7 +115,7 @@ export const scoreBoard = (function () {
     let set_scores;
     let action_drawer;
 
-    let sobj = floatingScoring.display({ muid, teams, flags });
+    let sobj = floatingScoring.display({ muid, teams });
     sobj.details.element.style.display = 'none';
 
     if (round_name) sobj.round_name.element.innerHTML = round_name;

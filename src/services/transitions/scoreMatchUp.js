@@ -38,7 +38,6 @@ export function enterMatchUpScore({ matchUpId, callback }) {
   const teams = matchUp.sides.map((side) => side.participant);
   const existing_scores = matchUp.score?.sets || [];
   scoreBoard.setMatchScore({
-    flags: env.scoring.flags && env.assets.flags,
     delegation: env.scoring.delegation,
     round_name: matchUp.roundName || '',
     matchFormat: matchUp.matchUpFormat,

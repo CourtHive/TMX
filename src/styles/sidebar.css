@@ -137,8 +137,8 @@ img {
   transition: 0.5s ease;
 }
 
-.features-item.active::before,
-.features-item:hover::before {
+/* .features-item:hover::before, */
+.features-item.active::before {
   opacity: 1;
   visibility: unset;
 }
