@@ -39,8 +39,7 @@ export const env = {
   },
   scoring: {
     delegationOfficial: false,
-    delegation: true,
-    flags: true
+    delegation: true
   },
   scoreboard: {
     matchFormats: {
