@@ -17,6 +17,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   let drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
   const eventControlElement = document.getElementById(EVENT_CONTROL);
   const eventHandlers = {
+    matchUpClick: (props) => console.log('MatchUp', props),
+    participantClick: (props) => console.log('Participant', props),
     onScheduleClick: (props) => console.log('Schedule', props),
     onRoundNameClick: (props) => console.log('Round Name', props),
     onScoreClick: (props) => console.log('Scoring', props),
@@ -29,7 +31,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
-  const composition = compositions?.[compositionName] || compositions['ITF'];
+  const composition = compositions?.[compositionName] || compositions[window.sg || 'French'];
   const className = composition.theme;
 
   const args = {
