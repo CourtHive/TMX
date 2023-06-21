@@ -46,6 +46,7 @@ export const DRAW = 'draw';
 
 // tabs
 export const TOURNAMENT_EVENTS = 'tournamentEvents';
+export const TOURNAMENT_OVERVIEW = 'overview';
 export const PARTICIPANTS = 'participants';
 export const SCHEDULE_TAB = 'schedule';
 export const MATCHUPS_TAB = 'matchUps';

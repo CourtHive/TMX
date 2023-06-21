@@ -30,10 +30,12 @@ import {
   TOURNAMENT_VENUES,
   NONE,
   SUCCESS,
-  EVENTS_TAB
+  EVENTS_TAB,
+  TOURNAMENT_OVERVIEW
 } from 'constants/tmxConstants';
 
 const refMap = {
+  [TOURNAMENT_OVERVIEW]: 'o-tab',
   [PARTICIPANTS]: 'p-tab',
   [EVENTS_TAB]: 'e-tab',
   [MATCHUPS_TAB]: 'm-tab',

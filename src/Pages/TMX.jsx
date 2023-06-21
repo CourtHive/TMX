@@ -28,6 +28,7 @@ import {
   EVENT_INFO,
   EVENT_CONTROL,
   TMX_PANEL,
+  TOURNAMENT_OVERVIEW,
 } from "constants/tmxConstants";
 
 const TMXlogo = (
@@ -39,6 +40,16 @@ const TMXlogo = (
 );
 
 const tmxPanelBlock = `tableClass block ${TMX_PANEL}`;
+const tournamentInfo = (
+  <div id="o-tab" className="is-marginless" style={{ width: "inherit" }}>
+    <div className="tab_section events_tab">
+      <div className="section" style={{ paddingTop: "1em" }}>
+        <div id={TOURNAMENT_OVERVIEW} className="box tournament-information">
+        </div>
+      </div>
+    </div>
+  </div>
+);
 const eventsTab = (
   <div id="e-tab" className="is-marginless" style={{ width: "inherit" }}>
     <div className="tab_section events_tab">
@@ -192,6 +203,7 @@ const TMX = () => (
           className="flexcol flexcenter tournament_container"
         >
           {navbar}
+          {tournamentInfo}
           {eventsTab}
         </div>
       </div>
