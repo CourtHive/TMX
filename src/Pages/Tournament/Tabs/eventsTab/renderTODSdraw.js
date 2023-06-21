@@ -3,13 +3,13 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getValidActions } from 'functions/drawActions';
+import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
-import { ScoreGrid } from 'tods-score-grid';
 import { render } from 'react-dom';
 
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function renderTODSdraw({ eventId, drawId, structureId }) {
+export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
   let eventData = tournamentEngine.getEventData({ eventId }).eventData;
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
@@ -26,7 +26,13 @@ export function renderTODSdraw({ eventId, drawId, structureId }) {
       getValidActions({ ...params, callback: () => renderTODSdraw({ eventId, drawId, structureId }) })
   };
 
-  let args = {
+  const structures = drawData?.structures || [];
+  structureId = structureId || structures?.[0]?.structureId;
+
+  const composition = compositions?.[compositionName] || compositions['ITF'];
+  const className = composition.theme;
+
+  const args = {
     // dictionary: {},
     eventHandlers,
     structureId,
@@ -36,7 +42,18 @@ export function renderTODSdraw({ eventId, drawId, structureId }) {
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   const updateDrawDisplay = (args) =>
-    window.sg ? render(<ScoreGrid {...args} />, drawsView) : render(<DrawStructure {...args} />, drawsView);
+    window.sg
+      ? render(
+          <Draw
+            structureId={structureId}
+            eventHandlers={eventHandlers}
+            composition={composition}
+            structures={structures}
+            className={className}
+          />,
+          drawsView
+        )
+      : render(<DrawStructure {...args} />, drawsView);
   const updateControlBar = () => {
     const eventOptions = events
       .map((event) => ({
