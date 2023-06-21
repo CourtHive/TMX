@@ -1,8 +1,8 @@
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
+import { barButton } from 'components/buttons/barButton';
 import { isFunction, isObject } from 'functions/typeOf';
 import { toggleOverlay } from './toggleOverlay';
-import tippy from 'tippy.js';
 
 import { CENTER, HEADER, EMPTY_STRING, LEFT, NONE, OVERLAY, RIGHT, BUTTON_BAR } from 'constants/tmxConstants';
 
@@ -14,10 +14,8 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
   let overlayCount = 0;
   let headerCount = 0;
 
-  const toolTips = {};
   const elements = {};
 
-  // if (buildElement && !target.childElementCount) {
   if (buildElement) {
     removeAllChildNodes(target);
     const result = createControlElement();
@@ -25,8 +23,6 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
     target.appendChild(result.anchor);
   }
 
-  let i = 0;
-  const genericItem = () => (i += 1 && `Item${i}`);
   const locations = Object.assign(
     {},
     ...[OVERLAY, LEFT, CENTER, RIGHT, HEADER]
@@ -40,7 +36,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
 
   const stateChange = toggleOverlay(target);
 
-  const onClick = (e, itemConfig, table) => {
+  const onClick = (e, itemConfig) => {
     if (!isFunction(itemConfig.onClick)) return;
     e.stopPropagation();
     !itemConfig.disabled && itemConfig.onClick(e, table);
@@ -110,7 +106,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
         elem.id = itemConfig.id;
       }
       elem.innerHTML = itemConfig.text;
-      elem.onclick = (e) => onClick(e, itemConfig, table);
+      elem.onclick = (e) => onClick(e, itemConfig);
       location?.appendChild(elem);
       continue;
     }
@@ -123,25 +119,10 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       if (itemConfig.visible === false) elem.style.display = NONE;
       if (itemConfig.id) elements[itemConfig.id] = elem;
     } else {
-      const elem = document.createElement('button');
-      elem.className = 'button font-medium';
-      if (itemConfig.id) {
-        elements[itemConfig.id] = elem;
-        elem.id = itemConfig.id;
-      }
-      elem.style = 'margin-right: .5em;';
-      if (itemConfig.visible === false) elem.style.display = NONE;
-      if (itemConfig.intent) elem.classList.add(itemConfig.intent);
-      elem.innerHTML = itemConfig.label || genericItem();
-      elem.onclick = (e) => onClick(e, itemConfig, table);
+      const elem = barButton(itemConfig);
+      elem.onclick = (e) => onClick(e, itemConfig);
+      if (itemConfig.id) elements[itemConfig.id] = elem;
       location?.appendChild(elem);
-
-      if (itemConfig.toolTip?.content) {
-        const instance = tippy(elem, itemConfig.toolTip);
-        if (itemConfig.id) {
-          toolTips[itemConfig.id] = instance;
-        }
-      }
     }
 
     if (!itemConfig?.label || itemConfig.hide) {
@@ -161,7 +142,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
 
   stateChange();
 
-  return { toolTips, elements };
+  return { elements };
 }
 
 function createControlElement() {
