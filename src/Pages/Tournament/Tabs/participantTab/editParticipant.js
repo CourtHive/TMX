@@ -1,8 +1,7 @@
-import { participantConstants, participantRoles } from 'tods-competition-factory';
+import { participantConstants, participantRoles, fixtures } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
-import { countries, countryToFlag } from 'assets/countryData';
 import { renderForm } from 'components/renderers/renderForm';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -14,8 +13,8 @@ const { COMPETITOR, OFFICIAL } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
 
 export function editParticipant({ participant, view, refresh }) {
-  const list = countries.map((country) => ({
-    label: countryToFlag(country.iso || '') + ' ' + country.label,
+  const list = fixtures.countries.map((country) => ({
+    label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
     value: country.ioc
   }));
 

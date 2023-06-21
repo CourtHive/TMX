@@ -1233,8 +1233,9 @@ export const scoreBoard = (function () {
 })();
 
 function setScore({ setnum, score = { games: 0 } }) {
-  let tiebreak = (score.tiebreak !== undefined && score.tiebreak) || score.spacer !== undefined ? score.spacer : '';
+  let tiebreak = score.tiebreak !== undefined ? score.tiebreak : score.spacer !== undefined ? score.spacer : '';
   let setscore = score.supertiebreak !== undefined ? score.supertiebreak : score.games;
+
   return `
       <div class="set score set_number setClick" setnum="${setnum !== undefined ? setnum : ''}">
          <div class="setscore setClick">${setscore}</div>

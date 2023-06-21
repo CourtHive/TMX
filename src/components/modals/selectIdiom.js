@@ -1,6 +1,6 @@
-import { countries, countryToFlag } from 'assets/countryData';
 import { renderForm } from 'components/renderers/renderForm';
 import { getIdioms } from 'services/apis/servicesApi';
+import { fixtures } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { env } from 'settings/env';
@@ -15,9 +15,10 @@ export function selectIdiom() {
   const valid_iocs = validOptions.reduce((p, c) => (c.ioc && p.indexOf(c.ioc) < 0 ? p.concat(c.ioc) : p), []);
   const valid_isos = validOptions.reduce((p, c) => (c.iso && p.indexOf(c.iso) < 0 ? p.concat(c.iso) : p), []);
   const filteredCountries =
-    validOptions.length && countries.filter((c) => valid_iocs.indexOf(c.ioc) >= 0 || valid_isos.indexOf(c.iso) >= 0);
+    validOptions.length &&
+    fixtures.countries.filter((c) => valid_iocs.indexOf(c.ioc) >= 0 || valid_isos.indexOf(c.iso) >= 0);
   const list = (filteredCountries || []).map((country) => ({
-    label: countryToFlag(country.iso || '') + ' ' + country.label,
+    label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
     value: country.ioc
   }));
 
