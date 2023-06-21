@@ -26,6 +26,7 @@ export function setDev() {
     getTournament: () => factory.tournamentEngine.getState()?.tournamentRecord,
     tournamentEngine: factory.tournamentEngine,
     context: factory.setDevContext,
+    generateMockTournament,
     modifyTournament,
     getLoginState,
     factory,
@@ -51,10 +52,7 @@ function load(json) {
   if (typeof json === 'object') {
     const tournamentRecord = json.tournamentRecord || json;
     const tournamentId = tournamentRecord?.tournamentId;
-    if (tournamentId) {
-      const displayTournament = () => context.router.navigate(`/${TOURNAMENT}/${tournamentId}`);
-      addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
-    }
+    tournamentId && addAndDisplay(tournamentRecord);
   }
 }
 
@@ -70,4 +68,19 @@ function modifyTournament(methods) {
       }
     }
   }
+}
+
+function generateMockTournament(params) {
+  const { tournamentRecord, error } = factory.mocksEngine.generateTournamentRecord(params);
+  if (error) {
+    console.log({ error });
+  } else {
+    addAndDisplay(tournamentRecord);
+  }
+}
+
+function addAndDisplay(tournamentRecord) {
+  const tournamentId = tournamentRecord?.tournamentId;
+  const displayTournament = () => context.router.navigate(`/${TOURNAMENT}/${tournamentId}`);
+  addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
 }
