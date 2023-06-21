@@ -4,6 +4,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getValidActions } from 'functions/drawActions';
 import { DrawStructure } from 'tods-react-draws';
+import { ScoreGrid } from 'tods-score-grid';
 import { render } from 'react-dom';
 
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
@@ -33,7 +34,9 @@ export function renderTODSdraw({ eventId, drawId, structureId }) {
     drawId
   };
 
-  const updateDrawDisplay = (args) => render(<DrawStructure {...args} />, document.getElementById(DRAWS_VIEW));
+  const drawsView = document.getElementById(DRAWS_VIEW);
+  const updateDrawDisplay = (args) =>
+    window.sg ? render(<ScoreGrid {...args} />, drawsView) : render(<DrawStructure {...args} />, drawsView);
   const updateControlBar = () => {
     const eventOptions = events
       .map((event) => ({
