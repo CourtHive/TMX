@@ -11,6 +11,9 @@ const {
   WILDCARD
 } = entryStatusConstants;
 
+// selectors
+export const ALL_EVENTS = 'All events';
+
 // extensions
 export const REGISTRATION = 'REGISTRATION';
 

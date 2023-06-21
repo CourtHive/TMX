@@ -209,7 +209,7 @@ export function createTeamsTable({ view } = {}) {
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
       minHeight: window.innerHeight * 0.81,
-      // height: // NOTE: setting a height causes scrolling issue
+      height: window.innerHeight * 0.86,
       placeholder: 'No team participants',
       rowFormatter: subTableFormatter,
       responsiveLayout: 'collapse',
