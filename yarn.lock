@@ -10885,10 +10885,10 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-score-grid@^0.13.1:
-  version "0.13.1"
-  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.1.tgz#3e26eaace4962c7515c03a6dddd96691ec767e6d"
-  integrity sha512-AWJTntEn8KmitSzcbpNHHrWkCSKmYeIt77ZLQwUSdi/4l4fBPqFAiazuw6oCSk4rTuKE9Z4VfBLYgUZglRFs1w==
+tods-score-grid@^0.13.2:
+  version "0.13.2"
+  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.2.tgz#950a441f37e45f5e8e55df4ebbf3a2251e45770e"
+  integrity sha512-A2KcXceuDd7HErc/oSElgnQqLYZcGPrOzVJgNrSjGXPhDSxDJOXAEvnAnLin5pFXaPBuKkBxNPsg0luXLnUECw==
   dependencies:
     "@radix-ui/colors" "^0.1.7"
     "@radix-ui/react-dropdown-menu" "^1.0.0"

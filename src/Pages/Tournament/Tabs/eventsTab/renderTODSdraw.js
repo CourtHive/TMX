@@ -25,7 +25,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     headerClick: (props) => console.log('Header', props),
     scoreClick: (props) => {
       getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
-      console.log('Score', props);
     },
     sideClick: (props) => console.log('Side', props),
     onScheduleClick: (props) => console.log('Schedule', props),
@@ -42,7 +41,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
-  const composition = compositions?.[compositionName] || compositions[window.sg || 'French'];
+  const composition = compositions?.[compositionName] || compositions[window.sg] || 'Basic';
   const className = composition.theme;
 
   const args = {
@@ -55,8 +54,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   const updateDrawDisplay = (args) =>
-    window.sg
-      ? render(
+    window.reactDraws
+      ? render(<DrawStructure {...args} />, drawsView)
+      : render(
           <Draw
             structureId={structureId}
             eventHandlers={eventHandlers}
@@ -65,8 +65,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
             className={className}
           />,
           drawsView
-        )
-      : render(<DrawStructure {...args} />, drawsView);
+        );
   const updateControlBar = () => {
     const eventOptions = events
       .map((event) => ({
