@@ -17,15 +17,26 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   let drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
   const eventControlElement = document.getElementById(EVENT_CONTROL);
   const eventHandlers = {
-    matchUpClick: (props) => console.log('MatchUp', props),
+    matchUpClick: (props) => {
+      getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
+      console.log('MatchUp', props);
+    },
     participantClick: (props) => console.log('Participant', props),
+    headerClick: (props) => console.log('Header', props),
+    scoreClick: (props) => {
+      getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
+      console.log('Score', props);
+    },
+    sideClick: (props) => console.log('Side', props),
     onScheduleClick: (props) => console.log('Schedule', props),
     onRoundNameClick: (props) => console.log('Round Name', props),
     onScoreClick: (props) => console.log('Scoring', props),
     onHeaderClick: (props) => console.log('header', props),
     onStatsClick: (props) => console.log('stats', props),
-    onParticipantClick: (params) =>
-      getValidActions({ ...params, callback: () => renderTODSdraw({ eventId, drawId, structureId }) })
+    onParticipantClick: (params) => {
+      console.log({ params });
+      getValidActions({ ...params, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
+    }
   };
 
   const structures = drawData?.structures || [];
