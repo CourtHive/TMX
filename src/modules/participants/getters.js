@@ -1,4 +1,4 @@
-import { countries } from 'assets/countryData';
+import { fixtures } from 'tods-competition-factory';
 
 const getGroup = (participant, role) => {
   return participant.groups?.find((group) => group.participantRoleResponsibilities.includes(role))?.participantName;
@@ -14,4 +14,4 @@ export const getEvents = (participant, derivedEventInfo) => {
 };
 
 export const getCountry = (nationalityCode) =>
-  countries.find((country) => country.ioc === nationalityCode || country.iso === nationalityCode)?.label || '';
+  fixtures.countries.find((country) => country.ioc === nationalityCode || country.iso === nationalityCode)?.label || '';
