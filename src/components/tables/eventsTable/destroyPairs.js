@@ -1,10 +1,12 @@
 import { tournamentEngine, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
+import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 
 import { DESTROY_PAIR_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
+import { toggleOverlay } from 'components/controlBar/toggleOverlay';
 
 const { UNGROUPED } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
@@ -16,6 +18,12 @@ export const destroySelected = (eventId, drawId) => (table) => {
     const postMutation = (result) => {
       if (!result?.error) {
         table.deleteRow(participantIds);
+
+        const tableClass = getParent(table.element, 'tableClass');
+        const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
+        // timeout is necessary to allow table event to trigger
+        if (controlBar) setTimeout(() => toggleOverlay(controlBar)(), 100);
+
         const individualParticipantIds = selected.flatMap(({ participant }) => participant?.individualParticipantIds);
         const { participants } = tournamentEngine.getParticipants({
           participantFilters: { participantIds: individualParticipantIds }
