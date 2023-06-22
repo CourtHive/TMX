@@ -1,9 +1,10 @@
 import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
+import { isFunction } from 'functions/typeOf';
 
 import { LEFT } from 'constants/tmxConstants';
 
 export const searchField =
-  (location, selected) =>
+  (location, selected, onEnter) =>
   (table, placeholder = 'Search participants') => {
     let searchText;
     let selectedValues;
@@ -31,7 +32,13 @@ export const searchField =
     };
 
     return {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
+      onKeyDown: (e) => {
+        e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter('');
+        if (e.keyCode === 13 && isFunction(onEnter)) {
+          const clear = onEnter(table);
+          if (clear) updateSearchFilter('');
+        }
+      },
       onChange: (e) => updateSearchFilter(e.target.value),
       onKeyUp: (e) => updateSearchFilter(e.target.value),
       location: location || LEFT,

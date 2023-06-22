@@ -1,4 +1,4 @@
-import { countryToFlag } from 'assets/countryData';
+import { fixtures } from 'tods-competition-factory';
 import { lang } from 'services/translator';
 import { context } from 'services/context';
 import { idObj } from 'services/dom/idObj';
@@ -222,7 +222,7 @@ export const floatingScoring = (function () {
   function scoreboardTeam({ team, index = 0 }) {
     if (index === 1) return '';
     const ioc = team.person?.nationalityCode;
-    const iocFlag = ioc ? countryToFlag(ioc)?.slice(0, 4) : '';
+    const iocFlag = ioc ? fixtures.countryToFlag(ioc)?.slice(0, 4) : '';
     return `
          <div class="team_player">
             <span class="pad">${iocFlag}</span>

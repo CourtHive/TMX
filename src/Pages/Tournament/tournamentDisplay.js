@@ -4,6 +4,7 @@ import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab
 import { renderMatchUpTab } from 'Pages/Tournament/Tabs/matchUpsTab/matchUpsTab';
 import { renderVenueTab } from 'Pages/Tournament/Tabs/scheduleTab/venuesTab';
 import { renderEventsTab } from 'Pages/Tournament/Tabs/eventsTab/eventsTab';
+import { renderOverview } from './Tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -16,7 +17,15 @@ import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
-import { MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, TOURNAMENT, VENUES_TAB, EVENTS_TAB } from 'constants/tmxConstants';
+import {
+  MATCHUPS_TAB,
+  PARTICIPANTS,
+  SCHEDULE_TAB,
+  TOURNAMENT,
+  VENUES_TAB,
+  EVENTS_TAB,
+  TOURNAMENT_OVERVIEW
+} from 'constants/tmxConstants';
 
 export function displayTournament({ config } = {}) {
   const { tournamentRecord } = tournamentEngine.getState();
@@ -31,13 +40,14 @@ export function displayTournament({ config } = {}) {
 function renderTournament({ config }) {
   showContent(TOURNAMENT);
   tournamentHeader();
-  highlightTab();
+  highlightTab(config.selectedTab);
   routeTo(config);
 }
 
 export function routeTo(config) {
   const { participantView, selectedTab = PARTICIPANTS, structureId, renderDraw, eventId, drawId } = config;
   if (displayTab(selectedTab)) {
+    if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
     if (selectedTab === PARTICIPANTS) renderParticipantTab({ participantView });
     if (selectedTab === EVENTS_TAB) renderEventsTab({ renderDraw, eventId, drawId, structureId });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab();

@@ -11,6 +11,9 @@ const {
   WILDCARD
 } = entryStatusConstants;
 
+// selectors
+export const ALL_EVENTS = 'All events';
+
 // extensions
 export const REGISTRATION = 'REGISTRATION';
 
@@ -43,6 +46,7 @@ export const DRAW = 'draw';
 
 // tabs
 export const TOURNAMENT_EVENTS = 'tournamentEvents';
+export const TOURNAMENT_OVERVIEW = 'overview';
 export const PARTICIPANTS = 'participants';
 export const SCHEDULE_TAB = 'schedule';
 export const MATCHUPS_TAB = 'matchUps';
@@ -82,6 +86,7 @@ export const TOURNAMENT_SCHEDULE = 'tournamentSchedule';
 export const TOURNAMENTS_TABLE = 'tournamentsTable';
 export const TOURNAMENT_TEAMS = 'tournamentTeams';
 export const TOURNAMENT_VENUES = 'venuesTable';
+export const ENTRIES_COUNT = 'entriesCount';
 export const EVENTS_TABLE = 'eventsTable';
 
 // entries
