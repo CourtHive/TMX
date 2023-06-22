@@ -51,7 +51,6 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       return true;
     } else if (active.length === 2) {
       table.selectRow(participantIds);
-      createPairFromSelected(active);
     }
   };
 

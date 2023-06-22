@@ -6,6 +6,7 @@ export const ADD_COURTS = 'addCourts';
 export const ADD_DRAW_DEFINITION = 'addDrawDefinition';
 export const ADD_EVENT = 'addEvent';
 export const ADD_EVENT_ENTRIES = 'addEventEntries';
+export const ADD_EVENT_ENTRY_PAIRS = 'addEventEntryPairs';
 export const ADD_MATCHUP_SCHEDULE_ITEMS = 'addMatchUpScheduleItems';
 export const ADD_PARTICIPANTS = 'addParticipants';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
