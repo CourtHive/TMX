@@ -10,6 +10,7 @@ import {
   tournamentEngine
 } from 'tods-competition-factory';
 
+import { ADD_EVENT_ENTRY_PAIRS } from 'constants/mutationConstants';
 import { NONE, OVERLAY } from 'constants/tmxConstants';
 
 const { ALTERNATE, UNGROUPED } = entryStatusConstants;
@@ -21,12 +22,13 @@ export const createPair = (event, addOnPairing = true) => {
 
   const addNewPair = (e, table) => {
     const selectedParticipantids = table.getSelectedData().map((r) => r.participantId);
+    if (selectedParticipantids.length !== 2) return;
+
     const methods = [
       {
-        method: 'addEventEntryPairs',
+        method: ADD_EVENT_ENTRY_PAIRS,
         params: {
           participantIdPairs: [selectedParticipantids],
-          allowDuplicateParticipantIdPairs: true,
           entryStatus: ALTERNATE,
           entryStage: MAIN,
           eventId
@@ -52,17 +54,22 @@ export const createPair = (event, addOnPairing = true) => {
         const {
           participants: [participant]
         } = tournamentEngine.getParticipants({ participantFilters: { participantIds } });
-        const newEntry = mapEntry({
-          entry: { participantId: participant.participantId, entryStatus: ALTERNATE },
-          eventType: DOUBLES,
-          participant
-        });
-        context.tables[ALTERNATE].updateOrAddData([newEntry]);
-        createPairVisibility();
-        const tableClass = getParent(e.target, 'tableClass');
-        const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
-        // timeout is necessary to allow table event to trigger
-        if (controlBar) setTimeout(() => toggleOverlay(controlBar)(), 100);
+
+        if (participant) {
+          const newEntry = mapEntry({
+            entry: { participantId: participant.participantId, entryStatus: ALTERNATE },
+            eventType: DOUBLES,
+            participant
+          });
+          context.tables[ALTERNATE].updateOrAddData([newEntry]);
+          createPairFromSelected();
+          const tableClass = getParent(e.target, 'tableClass');
+          const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
+          // timeout is necessary to allow table event to trigger
+          if (controlBar) setTimeout(() => toggleOverlay(controlBar)(), 100);
+        } else {
+          console.log('participant not found', { participantIds, methods, result });
+        }
       } else {
         console.log({ methods, result });
       }
@@ -80,16 +87,16 @@ export const createPair = (event, addOnPairing = true) => {
     visible: false
   };
 
-  const createPairVisibility = (selectedRows) => {
+  const createPairFromSelected = (selectedRows) => {
     const pairSelected = selectedRows?.length === 2;
     if (pairSelected && addOnPairing) {
       const ungroupedTable = context.tables[UNGROUPED];
       addNewPair({ target: ungroupedTable.element }, ungroupedTable);
     } else {
       const createPairButton = document.getElementById('create-pair');
-      createPairButton.style.display = pairSelected ? '' : NONE;
+      if (createPairButton) createPairButton.style.display = pairSelected ? '' : NONE;
     }
   };
 
-  return { createPairButton, createPairVisibility };
+  return { createPairButton, createPairFromSelected };
 };

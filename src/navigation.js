@@ -12,10 +12,12 @@ import {
   RIGHT,
   SCHEDULE_TAB,
   TOURNAMENT,
+  TOURNAMENT_OVERVIEW,
   VENUES_TAB
 } from 'constants/tmxConstants';
 
 const routeMap = {
+  'o-route': TOURNAMENT_OVERVIEW,
   'p-route': PARTICIPANTS,
   'e-route': EVENTS_TAB,
   'm-route': MATCHUPS_TAB,
@@ -24,7 +26,7 @@ const routeMap = {
 };
 
 const tips = {
-  't-route': 'Overview',
+  'o-route': 'Overview',
   'p-route': 'Participants',
   'e-route': 'Events',
   'm-route': 'MatchUps',
@@ -48,7 +50,7 @@ export function tmxNavigation() {
       </button>
     </div>
     <ul class="features-list">
-      <li id='t-route' class="features-item tournaments">
+      <li id='o-route' class="features-item tournaments">
         <i class="nav-icon fa-solid fa-trophy" style="font-size: larger"> <span class="status"></span> </i>
           <span class="features-item-text">Overview</span>
       </li>
@@ -90,14 +92,14 @@ export function tmxNavigation() {
     return sideBar.classList.contains('collapse') ? text : '';
   };
 
-  const tRoute = document.getElementById('t-route');
+  const tRoute = document.getElementById('o-route');
   tRoute.onclick = () => {
     toggleSideBar(false);
     console.log('tournament information');
   };
 
   tippy(tRoute, {
-    dynContent: () => tippyContent(tips['t-route']),
+    dynContent: () => tippyContent(tips['o-route']),
     onShow: (options) => !!options.props.content,
     plugins: [enhancedContentFunction],
     placement: RIGHT,

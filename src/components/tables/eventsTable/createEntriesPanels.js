@@ -5,14 +5,24 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { panelDefinitions } from './panelDefinitions';
+import { getParent } from 'services/dom/parentAndChild';
+import { displayAllEvents } from './displayAllEvents';
 import { addDraw } from 'components/drawers/addDraw';
+import { panelDefinitions } from './panelDefinitions';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { getColumns } from './getColumns';
 
-import { CONTROL_BAR, EMPTY_STRING, EVENT_CONTROL, LEFT, NONE, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
-import { displayAllEvents } from './displayAllEvents';
+import {
+  CONTROL_BAR,
+  EMPTY_STRING,
+  ENTRIES_COUNT,
+  EVENT_CONTROL,
+  LEFT,
+  NONE,
+  RIGHT,
+  TMX_TABLE
+} from 'constants/tmxConstants';
 
 export function createEntriesPanels({ eventId, drawId }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
@@ -85,6 +95,13 @@ export function createEntriesPanels({ eventId, drawId }) {
         table.on('tableBuilt', () => {
           const items = panelDef.items?.map((item) => (isFunction(item) ? item(table) : item));
           controlBar({ target: controlElement, table, items, onSelection: panelDef.onSelection });
+        });
+        table.on('dataChanged', () => {
+          const tableClass = getParent(table.element, 'tableClass');
+          const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
+          const entriesCount = controlBar.getElementsByClassName(ENTRIES_COUNT)?.[0];
+          const itemCount = table.getData().length;
+          if (entriesCount) entriesCount.innerHTML = itemCount || 0;
         });
       }
     }
