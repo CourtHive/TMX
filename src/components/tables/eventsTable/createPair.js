@@ -10,6 +10,7 @@ import {
   tournamentEngine
 } from 'tods-competition-factory';
 
+import { ADD_EVENT_ENTRY_PAIRS } from 'constants/mutationConstants';
 import { NONE, OVERLAY } from 'constants/tmxConstants';
 
 const { ALTERNATE, UNGROUPED } = entryStatusConstants;
@@ -21,14 +22,11 @@ export const createPair = (event, addOnPairing = true) => {
 
   const addNewPair = (e, table) => {
     const selectedParticipantids = table.getSelectedData().map((r) => r.participantId);
-    if (selectedParticipantids.length !== 2) {
-      console.log('error: not two players selected');
-      return;
-    }
+    if (selectedParticipantids.length !== 2) return;
 
     const methods = [
       {
-        method: 'addEventEntryPairs',
+        method: ADD_EVENT_ENTRY_PAIRS,
         params: {
           participantIdPairs: [selectedParticipantids],
           entryStatus: ALTERNATE,
