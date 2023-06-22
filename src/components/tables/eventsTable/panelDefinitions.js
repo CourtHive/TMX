@@ -2,6 +2,7 @@ import { drawDefinitionConstants, eventConstants, entryStatusConstants } from 't
 import { changeEntryStatus } from './changeEntryStatus';
 import { seedingSelector } from './seedingSelector';
 import { searchField } from '../common/tableSearch'; // if searchFields are preferred on each table
+import { destroySelected } from './destroyPairs';
 import { moveSelected } from './moveSelected';
 import { panelItems } from './panelItems';
 import { createPair } from './createPair';
@@ -12,7 +13,6 @@ import {
   ACCEPTED_PANEL,
   ALTERNATES_PANEL,
   LEFT,
-  OVERLAY,
   QUALIFYING_PANEL,
   UNGROUPED_PANEL,
   WITHDRAWN_PANEL,
@@ -21,7 +21,7 @@ import {
 
 const { DIRECT_ACCEPTANCE, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
-const { SINGLES } = eventConstants;
+const { SINGLES, DOUBLES } = eventConstants;
 
 export function panelDefinitions({ drawDefinition, event, entryData, hasFlights }) {
   const filterEntries = (groupings) =>
@@ -39,8 +39,21 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
     [WITHDRAWN]: [ALTERNATE]
   };
 
-  const { createPairButton, createPairVisibility } = createPair(event);
+  // NOTE: auto-pair can be turned off and createPairButton enabled
+  const { /*createPairButton,*/ createPairFromSelected } = createPair(event);
   const excludeColumns = !hasFlights ? ['flights'] : [];
+
+  const selectWithEnter = (table) => {
+    const active = table.getData('active');
+    const participantIds = active.map(({ participantId }) => participantId);
+    if (active.length === 1) {
+      table.selectRow(participantIds);
+      return true;
+    } else if (active.length === 2) {
+      table.selectRow(participantIds);
+      createPairFromSelected(active);
+    }
+  };
 
   // group entries
   const acceptedEntries = filterEntries(acceptedEntryStatuses);
@@ -88,7 +101,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         // searchField(),
         // searchField(OVERLAY, 'participantId'),
         ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
-        moveSelected(moves[ALTERNATE], eventId, drawId)
+        moveSelected(moves[ALTERNATE], eventId, drawId),
+        event?.eventType === DOUBLES && destroySelected(eventId, drawId)
       ],
       actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
       excludeColumns: ['seedNumber', 'flights'],
@@ -102,13 +116,13 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       hide: [SINGLES].includes(event?.eventType) || drawDefinition,
       items: [
         ...panelItems({ heading: 'Ungrouped', count: ungroupedEntries.length }),
-        searchField(LEFT, 'participantId'),
-        searchField(OVERLAY, 'participantId'),
-        createPairButton
+        searchField(LEFT, 'participantId', selectWithEnter)
+        // searchField(OVERLAY, 'participantId'),
+        // createPairButton
       ],
       placeholder: 'No ungrouped participants',
       excludeColumns: ['seedNumber', 'flights'],
-      onSelection: createPairVisibility,
+      onSelection: createPairFromSelected,
       anchorId: UNGROUPED_PANEL,
       entries: ungroupedEntries,
       group: UNGROUPED

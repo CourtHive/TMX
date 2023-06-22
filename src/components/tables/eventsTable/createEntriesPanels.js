@@ -5,14 +5,14 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { panelDefinitions } from './panelDefinitions';
+import { displayAllEvents } from './displayAllEvents';
 import { addDraw } from 'components/drawers/addDraw';
+import { panelDefinitions } from './panelDefinitions';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { getColumns } from './getColumns';
 
 import { CONTROL_BAR, EMPTY_STRING, EVENT_CONTROL, LEFT, NONE, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
-import { displayAllEvents } from './displayAllEvents';
 
 export function createEntriesPanels({ eventId, drawId }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');

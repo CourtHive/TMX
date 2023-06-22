@@ -15,6 +15,7 @@ export const DELETE_DRAW_DEFINITIONS = 'deleteDrawDefinitions';
 export const DELETE_EVENTS = 'deleteEvents';
 export const DELETE_PARTICIPANTS = 'deleteParticipants';
 export const DELETE_VENUES = 'deleteVenues';
+export const DESTROY_PAIR_ENTRIES = 'destroyPairEntries';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
 export const MODIFY_SIGN_IN_STATUS = 'modifyParticipantsSignInStatus';
 export const MODIFY_VENUE = 'modifyVenue';
