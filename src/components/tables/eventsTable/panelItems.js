@@ -1,10 +1,10 @@
 import { closedFilled, openedFilled } from 'assets/specialCharacters/openClose';
 import { findParentByClassName } from 'services/dom/findParentByClass';
 
-import { BUTTON_BAR, EMPTY_STRING, HEADER, NONE, TMX_PANEL, TMX_TABLE } from 'constants/tmxConstants';
+import { BUTTON_BAR, EMPTY_STRING, ENTRIES_COUNT, HEADER, NONE, TMX_PANEL, TMX_TABLE } from 'constants/tmxConstants';
 
 export const panelHeader = (heading, count = 0) => {
-  const text = `${heading} ${count}`;
+  const text = `${heading} <span class='${ENTRIES_COUNT}'>${count}</span>`;
   return {
     location: HEADER,
     text
