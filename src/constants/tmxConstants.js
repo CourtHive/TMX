@@ -41,6 +41,7 @@ export const TMX_TOURNAMENTS = 'tournaments';
 export const DRAW_ENTRIES = 'drawEntries';
 export const TOURNAMENT = 'tournament';
 export const STRUCTURE = 'structure';
+export const INVITE = 'invite';
 export const EVENT = 'event';
 export const DRAW = 'draw';
 

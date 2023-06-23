@@ -7,11 +7,10 @@ export async function systemLogin(email, password) {
   });
 }
 
-export async function systemRegister(preferredFamilyName, preferredGivenName, providerId, inviteKey, email, password) {
+export async function systemRegister(preferredFamilyName, preferredGivenName, inviteKey, email, password) {
   return baseApi.post('/auth/register', {
     preferredFamilyName,
     preferredGivenName,
-    providerId,
     inviteKey,
     password,
     email
