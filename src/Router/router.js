@@ -1,3 +1,4 @@
+import { registrationModal } from 'components/modals/registrationModal';
 import { displayTournament } from 'Pages/Tournament/tournamentDisplay';
 import { tmxTournaments } from 'Pages/Tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
@@ -14,7 +15,8 @@ import {
   PARTICIPANTS,
   STRUCTURE,
   TOURNAMENT,
-  EVENTS_TAB
+  EVENTS_TAB,
+  INVITE
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
@@ -55,6 +57,8 @@ export function routeTMX() {
   // adding a unique identifer to the URL will force refresh
   router.on(`/${TMX_TOURNAMENTS}/:uuid`, tmxTournaments);
   router.on(`/${TMX_TOURNAMENTS}`, tmxTournaments);
+
+  router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
   router.on(`/calendar`, renderCalendar);
 

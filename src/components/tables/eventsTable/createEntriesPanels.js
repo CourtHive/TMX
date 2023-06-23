@@ -1,4 +1,5 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { findParentByClassName } from 'services/dom/findParentByClass';
 import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -21,6 +22,7 @@ import {
   LEFT,
   NONE,
   RIGHT,
+  TMX_PANEL,
   TMX_TABLE
 } from 'constants/tmxConstants';
 
@@ -60,7 +62,7 @@ export function createEntriesPanels({ eventId, drawId }) {
 
   const render = (data) => {
     for (const panelDef of data) {
-      const { entries: data, group, anchorId, placeholder, excludeColumns: exclude, actions } = panelDef;
+      const { entries, group, anchorId, placeholder, excludeColumns: exclude, actions } = panelDef;
       const panelElement = document.getElementById(anchorId);
       if (panelElement) {
         panelElement.style.display = panelDef.hide ? NONE : EMPTY_STRING;
@@ -87,20 +89,30 @@ export function createEntriesPanels({ eventId, drawId }) {
           index: 'participantId',
           layout: 'fitColumns',
           reactiveData: true,
-          placeholder,
-          data
+          height: '400px',
+          data: entries,
+          placeholder
         });
         context.tables[group] = table;
 
+        const tmxPanel = findParentByClassName(panelElement, TMX_PANEL);
         table.on('tableBuilt', () => {
           const items = panelDef.items?.map((item) => (isFunction(item) ? item(table) : item));
           controlBar({ target: controlElement, table, items, onSelection: panelDef.onSelection });
+          if (!entries.length && panelDef.togglePanel) {
+            panelDef.togglePanel({ target: tmxPanel, table, close: true });
+          }
         });
         table.on('dataChanged', () => {
           const tableClass = getParent(table.element, 'tableClass');
           const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
           const entriesCount = controlBar.getElementsByClassName(ENTRIES_COUNT)?.[0];
           const itemCount = table.getData().length;
+
+          if (panelDef.togglePanel && !itemCount) {
+            panelDef.togglePanel({ target: tmxPanel, table, close: true });
+          }
+
           if (entriesCount) entriesCount.innerHTML = itemCount || 0;
         });
       }

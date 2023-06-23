@@ -120,10 +120,10 @@ export function editEvent({ event, participants, callback } = {}) {
         divider: true
       },
       {
+        text: 'Add participants to events by selecting them in the participants table',
         hide: event || participants,
         label: 'Participants',
-        field: 'text',
-        text: 'Add participants to events by selecting them in the participants table'
+        field: 'text'
       }
     ]);
 
@@ -134,7 +134,8 @@ export function editEvent({ event, participants, callback } = {}) {
 
     const postMutation = (result) => {
       if (result.success) {
-        if (isFunction(callback)) callback(result);
+        const event = result?.results[0]?.event;
+        if (isFunction(callback)) callback({ event, result });
       } else {
         console.log({ result });
       }
@@ -168,7 +169,6 @@ export function editEvent({ event, participants, callback } = {}) {
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
     context: 'tournament',
-    onClose: callback,
     width: '300px',
     side: RIGHT,
     content,

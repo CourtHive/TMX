@@ -1,9 +1,11 @@
 import { systemRegister } from 'services/authentication/authApi';
 import { renderForm } from 'components/renderers/renderForm';
-import { logIn } from 'services/authentication/loginState';
 import { context } from 'services/context';
+import { loginModal } from './loginModal';
+import { tmxToast } from 'services/notifications/tmxToast';
 
-export function registrationModal({ providerId } = {}) {
+export function registrationModal({ data } = {}) {
+  const inviteKey = data?.inviteKey;
   let inputs;
 
   const content = (elem) =>
@@ -45,13 +47,13 @@ export function registrationModal({ providerId } = {}) {
     const password = inputs.password.value;
     const email = inputs.email.value;
 
-    const inviteKey = 'foo'; // generate UUID and create key
-    providerId = 'fe04375c6-405d-4526-8ed0-6a87a061aa71';
-
-    const response = (res) => res?.status === 200 && logIn(res);
-    systemRegister(preferredFamilyName, preferredGivenName, providerId, inviteKey, email, password).then(
-      response,
-      (err) => console.log({ err })
+    const success = () => {
+      tmxToast({ message: 'Success', intent: 'is-success ' });
+      loginModal();
+    };
+    const response = (res) => res?.status === 200 && res?.data?.success && success();
+    systemRegister(preferredFamilyName, preferredGivenName, inviteKey, email, password).then(response, (err) =>
+      console.log({ err })
     );
   };
 

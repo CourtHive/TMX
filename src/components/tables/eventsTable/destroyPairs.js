@@ -22,7 +22,7 @@ export const destroySelected = (eventId, drawId) => (table) => {
         const tableClass = getParent(table.element, 'tableClass');
         const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
         // timeout is necessary to allow table event to trigger
-        if (controlBar) setTimeout(() => toggleOverlay(controlBar)(), 100);
+        if (controlBar) setTimeout(() => toggleOverlay({ table, target: controlBar })(), 100);
 
         const individualParticipantIds = selected.flatMap(({ participant }) => participant?.individualParticipantIds);
         const { participants } = tournamentEngine.getParticipants({

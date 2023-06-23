@@ -2,7 +2,7 @@ import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatch
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 
-import { LEFT, MATCHUPS_CONTROL } from 'constants/tmxConstants';
+import { ALL_EVENTS, ALL_TEAMS, LEFT, MATCHUPS_CONTROL } from 'constants/tmxConstants';
 
 export function renderMatchUpTab() {
   let eventIdFilter, teamIdFilter;
@@ -12,13 +12,17 @@ export function renderMatchUpTab() {
   // FILTER: events
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
-    if (eventIdFilter) table.removeFilter(eventFilter);
+    if (eventIdFilter) table?.removeFilter(eventFilter);
     eventIdFilter = eventId;
-    if (eventId) table.addFilter(eventFilter);
+    if (eventId) table?.addFilter(eventFilter);
   };
   const events = tournamentEngine.getEvents().events || [];
-  const allEvents = { label: 'All events', onClick: updateEventFilter, close: true };
-  const eventOptions = [allEvents].concat(
+  const allEvents = {
+    label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
+    onClick: updateEventFilter,
+    close: true
+  };
+  const eventOptions = [allEvents, { divider: true }].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
@@ -30,9 +34,9 @@ export function renderMatchUpTab() {
   let searchText;
   const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
   const updateSearchFilter = (value) => {
-    if (!value) table.removeFilter(searchFilter);
+    if (!value) table?.removeFilter(searchFilter);
     searchText = value;
-    if (value) table.addFilter(searchFilter);
+    if (value) table?.addFilter(searchFilter);
   };
 
   // FILTER: teams
@@ -44,12 +48,16 @@ export function renderMatchUpTab() {
   );
   const teamFilter = (rowData) => rowData.individualParticipantIds.some((id) => teamMap[teamIdFilter]?.includes(id));
   const updateTeamFilter = (teamId) => {
-    if (teamIdFilter) table.removeFilter(teamFilter);
+    if (teamIdFilter) table?.removeFilter(teamFilter);
     teamIdFilter = teamId;
-    if (teamId) table.addFilter(teamFilter);
+    if (teamId) table?.addFilter(teamFilter);
   };
-  const allTeams = { label: 'All teams', onClick: updateTeamFilter, close: true };
-  const teamOptions = [allTeams].concat(
+  const allTeams = {
+    label: `<span style='font-weight: bold'>${ALL_TEAMS}</span>`,
+    onClick: updateTeamFilter,
+    close: true
+  };
+  const teamOptions = [allTeams, { divider: true }].concat(
     teamParticipants.map((team) => ({
       onClick: () => updateTeamFilter(team.participantId),
       label: team.participantName,
@@ -69,7 +77,7 @@ export function renderMatchUpTab() {
     {
       hide: eventOptions.length < 3,
       options: eventOptions,
-      label: 'All events',
+      label: ALL_EVENTS,
       modifyLabel: true,
       location: LEFT,
       selection: true
@@ -77,7 +85,7 @@ export function renderMatchUpTab() {
     {
       hide: teamOptions.length < 3,
       options: teamOptions,
-      label: 'All teams',
+      label: ALL_TEAMS,
       location: LEFT,
       modifyLabel: true,
       selection: true
