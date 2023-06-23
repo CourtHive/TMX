@@ -11,31 +11,34 @@ export const panelHeader = (heading, count = 0) => {
   };
 };
 
-export const togglePanel = (target) => {
-  const element = target?.className.includes('panelHeader') ? target?.getElementsByClassName('toggle')[0] : target;
-  if (!element) return;
+export const togglePanel = ({ target, table, close }) => {
+  if (!target) return;
 
   const tmxPanel = findParentByClassName(target, TMX_PANEL);
+  const toggle = tmxPanel.getElementsByClassName('toggle')?.[0];
   const buttonBar = tmxPanel.getElementsByClassName(BUTTON_BAR)?.[0];
   const tmxTable = tmxPanel.getElementsByClassName(TMX_TABLE)?.[0];
-  if (element) {
-    const open = element.innerHTML.charCodeAt(0) === 9660;
+  if (toggle) {
+    const open = close || toggle.innerHTML.charCodeAt(0) === 9660;
     buttonBar.style.display = open ? NONE : EMPTY_STRING;
     tmxTable.style.display = open ? NONE : EMPTY_STRING;
-    element.parentNode.innerHTML = `<span class='toggle' style='color: white'>${
+    toggle.parentNode.innerHTML = `<span class='toggle' style='color: white'>${
       open ? closedFilled : openedFilled
     }</span>`;
+
+    // ensure data display
+    if (!open) table.redraw(true);
   }
 };
 
-export const panelCollapse = () => {
-  const onClick = (e) => togglePanel(e.target);
+export const panelCollapse = (table) => {
+  const onClick = (e) => togglePanel({ target: e.target, table });
   return {
-    onClick,
     headerClick: onClick,
     text: `<span class='toggle' style='color: white'>${openedFilled}</span>`,
-    location: HEADER
+    location: HEADER,
+    onClick
   };
 };
 
-export const panelItems = ({ heading, count }) => [panelHeader(heading, count), panelCollapse];
+export const panelItems = ({ heading, count }) => [panelHeader(heading, count), (table) => panelCollapse(table)];

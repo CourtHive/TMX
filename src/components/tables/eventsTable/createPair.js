@@ -66,7 +66,7 @@ export const createPair = (event, addOnPairing = true) => {
           const tableClass = getParent(e.target, 'tableClass');
           const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
           // timeout is necessary to allow table event to trigger
-          if (controlBar) setTimeout(() => toggleOverlay(controlBar)(), 100);
+          if (controlBar) setTimeout(() => toggleOverlay({ table, target: controlBar })(), 100);
         } else {
           console.log('participant not found', { participantIds, methods, result });
         }
