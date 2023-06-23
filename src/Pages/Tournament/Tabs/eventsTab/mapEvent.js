@@ -10,8 +10,6 @@ export function mapEvent(event) {
 
   const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
 
-  acceptedEntryStatuses;
-
   const drawsCount = drawDefinitions.length;
   const entriesCount =
     entries.filter(({ entryStage = MAIN, entryStatus }) =>
