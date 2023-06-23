@@ -1,10 +1,10 @@
 import { drawDefinitionConstants, eventConstants, entryStatusConstants } from 'tods-competition-factory';
 import { changeEntryStatus } from './changeEntryStatus';
+import { panelItems, togglePanel } from './panelItems';
 import { seedingSelector } from './seedingSelector';
 import { searchField } from '../common/tableSearch'; // if searchFields are preferred on each table
 import { destroySelected } from './destroyPairs';
 import { moveSelected } from './moveSelected';
-import { panelItems } from './panelItems';
 import { createPair } from './createPair';
 import { addToDraw } from './addToDraw';
 
@@ -78,7 +78,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       anchorId: ACCEPTED_PANEL,
       entries: acceptedEntries,
       group: ACCEPTED,
-      excludeColumns
+      excludeColumns,
+      togglePanel
     },
     {
       placeholder: 'No qualifying participants',
@@ -93,7 +94,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       anchorId: QUALIFYING_PANEL,
       entries: qualifyingEntries,
       group: QUALIFYING,
-      excludeColumns
+      excludeColumns,
+      togglePanel
     },
     {
       items: [
@@ -109,7 +111,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       anchorId: ALTERNATES_PANEL,
       entries: alternateEntries,
       hide: drawDefinition,
-      group: ALTERNATE
+      group: ALTERNATE,
+      togglePanel
     },
     {
       hide: [SINGLES].includes(event?.eventType) || drawDefinition,
@@ -124,7 +127,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       onSelection: createPairFromSelected,
       anchorId: UNGROUPED_PANEL,
       entries: ungroupedEntries,
-      group: UNGROUPED
+      group: UNGROUPED,
+      togglePanel
     },
     {
       items: [
@@ -140,7 +144,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       hide: drawDefinition,
       actions: [ALTERNATE],
       group: WITHDRAWN,
-      collapsed: true
+      collapsed: true,
+      togglePanel
     }
   ];
 }
