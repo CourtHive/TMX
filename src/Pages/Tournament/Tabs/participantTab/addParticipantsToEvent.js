@@ -4,7 +4,7 @@ import { isFunction } from 'functions/typeOf';
 
 import { ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 
-export function addParticipantsToEvent({ event, table, callback }) {
+export function addParticipantsToEvent({ event, participantType, table, callback }) {
   const selected = table.getSelectedData();
   const { eventId, eventName, eventType } = event;
   const participantIds = selected
@@ -21,5 +21,5 @@ export function addParticipantsToEvent({ event, table, callback }) {
     const postMutation = (result) => result.success && isFunction(callback) && callback();
     mutationRequest({ methods, callback: postMutation });
   };
-  addToEvent({ callback: postAdd, eventName, eventType, participantIds });
+  addToEvent({ callback: postAdd, eventName, participantType, eventType, participantIds });
 }

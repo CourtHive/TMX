@@ -124,7 +124,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       ],
       placeholder: 'No ungrouped participants',
       excludeColumns: ['seedNumber', 'flights'],
-      onSelection: createPairFromSelected,
+      onSelection: event?.eventType === DOUBLES && createPairFromSelected,
       anchorId: UNGROUPED_PANEL,
       entries: ungroupedEntries,
       group: UNGROUPED,

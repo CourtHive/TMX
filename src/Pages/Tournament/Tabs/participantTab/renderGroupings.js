@@ -21,10 +21,10 @@ export function renderGroupings({ view }) {
   const updateSearchFilter = (value) => {
     if (!value) {
       console.log('removing search filter');
-      table.removeFilter(searchFilter);
+      table?.removeFilter(searchFilter);
     }
     searchText = value;
-    if (value) table.addFilter(searchFilter);
+    if (value) table?.addFilter(searchFilter);
   };
 
   const { eventOptions, events } = getEventFilter(table);
@@ -36,11 +36,12 @@ export function renderGroupings({ view }) {
     { label: 'Create team', onClick: () => createTeamsFromAttribute({ callback: refresh }) }
   ];
 
-  const addToEventOptions = [{ label: 'Create new event', close: true }].concat(
+  const createNewEvent = { label: `<span style='font-weight: bold'>Create new event</span>`, close: true };
+  const addToEventOptions = [createNewEvent, { divider: true }].concat(
     events
       .filter(({ eventType }) => eventType === TEAM)
       .map((event) => ({
-        onClick: () => addParticipantsToEvent({ event, table, callback: replaceTableData }),
+        onClick: () => addParticipantsToEvent({ event, participantType: TEAM, table, callback: replaceTableData }),
         label: event.eventName,
         close: true
       }))

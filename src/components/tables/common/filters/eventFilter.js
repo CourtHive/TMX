@@ -12,8 +12,12 @@ export function getEventFilter(table) {
     if (eventId) table.addFilter(eventFilter);
   };
   const events = tournamentEngine.getEvents().events || [];
-  const allEvents = { label: ALL_EVENTS, onClick: updateEventFilter, close: true };
-  const eventOptions = [allEvents].concat(
+  const allEvents = {
+    label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
+    onClick: updateEventFilter,
+    close: true
+  };
+  const eventOptions = [allEvents, { divider: true }].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
