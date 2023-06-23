@@ -123,7 +123,7 @@ export function renderIndividuals({ view }) {
 
   const addToEventOptions = events
     .map((event) => ({
-      onClick: () => addParticipantsToEvent({ event, table, callback: replaceTableData }),
+      onClick: () => addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: replaceTableData }),
       label: event.eventName,
       close: true
     }))

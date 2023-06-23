@@ -34,7 +34,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       .filter(Boolean)
   );
 
-  const stateChange = toggleOverlay(target);
+  const stateChange = toggleOverlay({ table, target });
 
   const onClick = (e, itemConfig) => {
     if (!isFunction(itemConfig.onClick)) return;

@@ -1,17 +1,23 @@
-import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import {
+  drawDefinitionConstants,
+  entryStatusConstants,
+  eventConstants,
+  participantConstants
+} from 'tods-competition-factory';
 
 import { NONE } from 'constants/tmxConstants';
 
+const { INDIVIDUAL } = participantConstants;
 const { ALTERNATE, WILDCARD, DIRECT_ACCEPTANCE, UNGROUPED } = entryStatusConstants;
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
-const { SINGLES } = eventConstants;
+const { TEAM, DOUBLES } = eventConstants;
 
-export function addToEvent({ callback, teams, eventName, eventType, participantIds } = {}) {
-  const ungroupedOnly = teams === false && eventType !== SINGLES;
+export function addToEvent({ callback, eventName, eventType, participantType, participantIds } = {}) {
+  const ungroupedOnly = [TEAM, DOUBLES].includes(eventType) && participantType === INDIVIDUAL;
 
   if (!participantIds?.length) {
     tmxToast({ message: 'Nothing to do', intent: 'is-info' });
@@ -27,7 +33,7 @@ export function addToEvent({ callback, teams, eventName, eventType, participantI
     { hide: ungroupedOnly, label: 'Direct Acceptance', value: DIRECT_ACCEPTANCE, selected: true },
     { hide: ungroupedOnly, label: 'Alternate', value: ALTERNATE },
     { hide: ungroupedOnly, label: 'Wildcard', value: WILDCARD },
-    { label: 'Ungrouped', value: UNGROUPED, selected: ungroupedOnly }
+    { hide: participantType === TEAM, label: 'Ungrouped', value: UNGROUPED, selected: ungroupedOnly }
   ];
 
   let inputs;

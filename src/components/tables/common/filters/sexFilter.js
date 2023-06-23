@@ -1,5 +1,7 @@
 import { genderConstants } from 'tods-competition-factory';
 
+import { ALL_GENDERS } from 'constants/tmxConstants';
+
 const { FEMALE, MALE, MIXED } = genderConstants;
 
 export function getSexFilter(table) {
@@ -12,9 +14,13 @@ export function getSexFilter(table) {
     if (sex) table.addFilter(sexFilter);
   };
   const sexes = [MALE, FEMALE];
-  const genders = { [MALE]: 'Male', [FEMALE]: 'Female', [MIXED]: 'All genders' };
-  const allSexes = { label: genders[MIXED], onClick: updateSexFilter, close: true };
-  const sexOptions = [allSexes].concat(
+  const genders = { [MALE]: 'Male', [FEMALE]: 'Female', [MIXED]: ALL_GENDERS };
+  const allSexes = {
+    label: `<span style='font-weight: bold'>${genders[MIXED]}</span>`,
+    onClick: updateSexFilter,
+    close: true
+  };
+  const sexOptions = [allSexes, { divider: true }].concat(
     sexes.map((sex) => ({
       onClick: () => updateSexFilter(sex),
       label: genders[sex],

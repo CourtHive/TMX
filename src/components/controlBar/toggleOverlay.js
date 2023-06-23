@@ -1,7 +1,7 @@
 import { CENTER, EMPTY_STRING, FLEX, LEFT, NONE, OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 export const toggleOverlay =
-  (target) =>
+  ({ target }) =>
   (rows = []) => {
     target.style.backgroundColor = rows?.length ? 'lightgray' : EMPTY_STRING;
     const toggleOption = (option, hasRows, noRows) => {

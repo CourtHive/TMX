@@ -14,7 +14,6 @@ import { env } from 'settings/env';
 import { TMX_TOURNAMENTS, HOME } from 'constants/tmxConstants';
 
 // TODO: REMOVE!!
-import { registrationModal } from 'components/modals/registrationModal';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { requestTournamentRecord } from 'services/messaging/requestTournamentRecord';
 
@@ -86,8 +85,7 @@ export const mainMenu = (elem, close, menuContext) => {
         { hide: socketConnected, text: 'Connect', onClick: connectSocket },
         { hide: !socketConnected, text: 'Disconnect', onClick: disconnectSocket },
         { hide: loggedIn, text: 'Log in', onClick: loginModal },
-        { hide: !loggedIn, text: 'Log out', onClick: logOut },
-        { hide: loggedIn, text: 'Register', onClick: registrationModal }
+        { hide: !loggedIn, text: 'Log out', onClick: logOut }
       ]
     },
     {

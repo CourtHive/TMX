@@ -1,5 +1,6 @@
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { mapEvent } from 'Pages/Tournament/Tabs/eventsTab/mapEvent';
 import { controlBar } from 'components/controlBar/controlBar';
 import { editEvent } from './editEvent';
 
@@ -7,25 +8,28 @@ import { EVENTS_CONTROL, LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';
 import { DELETE_EVENTS } from 'constants/mutationConstants';
 
 export function eventsView() {
-  const { table, replaceTableData } = createEventsTable();
+  const { table } = createEventsTable();
 
-  const refresh = () => {
-    replaceTableData();
+  const eventAdded = (result) => {
+    if (result?.event) {
+      const tableRow = mapEvent(result.event);
+      table?.updateOrAddData([tableRow]);
+    }
   };
 
   // SEARCH filter
   let searchText;
   const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
   const updateSearchFilter = (value) => {
-    if (!value) table.removeFilter(searchFilter);
+    if (!value) table?.removeFilter(searchFilter);
     searchText = value;
-    if (value) table.addFilter(searchFilter);
+    if (value) table?.addFilter(searchFilter);
   };
 
   const deleteEvents = () => {
-    const eventIds = table.getSelectedData().map(({ eventId }) => eventId);
+    const eventIds = table?.getSelectedData().map(({ eventId }) => eventId);
 
-    const callback = (result) => result.success && table.deleteRow(eventIds);
+    const callback = (result) => result.success && table?.deleteRow(eventIds);
     mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
   };
 
@@ -47,7 +51,7 @@ export function eventsView() {
     },
     {
       label: 'Add event',
-      onClick: () => editEvent({ callback: refresh }),
+      onClick: () => editEvent({ callback: eventAdded }),
       location: RIGHT
     }
   ];
