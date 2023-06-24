@@ -4036,7 +4036,7 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
-circular-json@0.5.9:
+circular-json@0.5.9, circular-json@^0.5.9:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/circular-json/-/circular-json-0.5.9.tgz#932763ae88f4f7dead7a0d09c8a51a4743a53b1d"
   integrity sha512-4ivwqHpIFJZBuhN3g/pEcdbnGUywkBblloGbkglyloVjjR3uT6tieI89MVOfbP2tHX5sgb01FuLgAOzebNlJNQ==
@@ -10869,15 +10869,15 @@ tods-competition-factory@^0.501.0:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-0.501.6.tgz#cc29831b3fb83bdec6012ce5d62ef3d9652d65e7"
   integrity sha512-qla7rIs/6JHe1qKxKRLf9ZJaJJCEkkVzlW/2GGrbiNO0eS7ZaAz1NAjE3/9ctBvihlXdMzEWkwItjPsnAS4v1g==
 
-tods-competition-factory@^1.0.2, tods-competition-factory@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.6.tgz#d4a7bf0504d247af0d327434b76e956728aedf2c"
-  integrity sha512-y7YqlUKNIOK2Exk4hF22n38GlnF5xx7/1G9R+X0hkpimOs5c2y02mBB/XTmt6NapxL0vbLHpawPU52DP77VKNg==
-
 tods-competition-factory@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.3.tgz#9884ef599df32fd0aca33b7ed02c0cdd7069de9b"
   integrity sha512-RIhJjSiZ/p61i2Ag0SEDcYBYkKtrIsnzgGJs0gb2ApHOzF/WsaZv9RV2CoxYB9BjgRmE0I88L4tSs5mQC8ZNLw==
+
+tods-competition-factory@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.8.tgz#63a9c98740e27c7f93a545a91f09c51f816238fe"
+  integrity sha512-dFNCbe5koB1Sa6solqorz5XER9RymJB71iJOsfClyVV8ev4LedzaNQ7J83UL6bv3lbFJpvB3Yjtf5qXNIvE13Q==
 
 tods-react-draws@^0.2.1:
   version "0.2.1"
@@ -10906,15 +10906,16 @@ tods-score-grid@^0.13.2:
     react-country-flag "^3.1.0"
     tods-competition-factory "^1.0.3"
 
-tods-tmx-classic-converter@^2.12.0:
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.12.0.tgz#4102ca844653f3aaff0e21975a866185aabb2a8d"
-  integrity sha512-OI0PgUVj2p9pE2wrBGUinYGw3zBFZcWTVZphhNuqVe50Eh9/PSEWR4UZTjND6z6nJTNBU0gX9SnvF4gpBIFckQ==
+tods-tmx-classic-converter@^2.12.1:
+  version "2.12.1"
+  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.12.1.tgz#1b1d0c5035000d7e4337ec2c5aea69baa3199b89"
+  integrity sha512-BNcYLmHUadTJROeMtzJGOiKcDn0Cc/d6sj1yMG5txO0j1CWXfzI6FD/h69dE134noYm7RmtE+3Fmm8olYNouVg==
   dependencies:
+    circular-json "^0.5.9"
     cli-progress "^3.9.0"
     d3 "5.16.0"
     date-fns "^2.19.0"
-    tods-competition-factory "^1.0.2"
+    tods-competition-factory "^1.0.8"
 
 toidentifier@1.0.1:
   version "1.0.1"
