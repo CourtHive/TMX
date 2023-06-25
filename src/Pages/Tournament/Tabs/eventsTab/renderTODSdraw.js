@@ -2,7 +2,7 @@ import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
-import { getValidActions } from 'functions/drawActions';
+import { getEventHandlers } from './getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
 import { render } from 'react-dom';
@@ -15,39 +15,14 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   if (!events?.length) return;
 
   let drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
-  const eventControlElement = document.getElementById(EVENT_CONTROL);
-  const eventHandlers = {
-    matchUpClick: (props) => {
-      getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
-      console.log('MatchUp', props);
-    },
-    participantClick: (props) => {
-      getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
-      console.log('Participant', props);
-    },
-    headerClick: (props) => console.log('Header', props),
-    scoreClick: (props) => {
-      getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
-    },
-    sideClick: (props) => console.log('Side', props),
-    onScheduleClick: (props) => console.log('Schedule', props),
-    onRoundNameClick: (props) => console.log('Round Name', props),
-    onScoreClick: (props) => console.log('Scoring', props),
-    onHeaderClick: (props) => console.log('header', props),
-    onStatsClick: (props) => console.log('stats', props),
-    onParticipantClick: (params) => {
-      getValidActions({ ...params, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
-    }
-  };
-
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
+  const eventHandlers = getEventHandlers({ callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
   const composition = compositions?.[compositionName] || compositions[window.sg] || compositions['National'];
   const className = composition.theme;
 
   const args = {
-    // dictionary: {},
     eventHandlers,
     structureId,
     eventData,
@@ -69,6 +44,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           />,
           drawsView
         );
+
+  const eventControlElement = document.getElementById(EVENT_CONTROL);
   const updateControlBar = () => {
     const eventOptions = events
       .map((event) => ({
