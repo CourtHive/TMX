@@ -1,6 +1,6 @@
-import { scheduleSetMatchUpHeader } from 'components/modals/scheduleSetMatchUpHeader';
+import { scheduleSetMatchUpHeader } from 'components/popovers/scheduleSetMatchUpHeader';
 import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab';
-import { setScheduleColumnHeader } from 'components/modals/scheduleColumnHeader';
+import { setScheduleColumnHeader } from 'components/popovers/scheduleColumnHeader';
 import { competitionEngine, utilities } from 'tods-competition-factory';
 import { addVenue } from 'Pages/Tournament/Tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';

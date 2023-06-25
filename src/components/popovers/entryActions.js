@@ -1,5 +1,5 @@
 import { tournamentEngine, drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
-import { modifyEntriesStatus } from './modifyEntriesStatus';
+import { modifyEntriesStatus } from '../tables/eventsTable/modifyEntriesStatus';
 import { tipster } from 'components/popovers/tipster';
 import { context } from 'services/context';
 
