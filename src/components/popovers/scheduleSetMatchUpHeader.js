@@ -3,7 +3,7 @@ import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings'
 import { tipster } from 'components/popovers/tipster';
 import { utilities } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
-import { timePicker } from './timePicker';
+import { timePicker } from '../modals/timePicker';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';

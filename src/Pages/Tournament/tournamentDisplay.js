@@ -11,7 +11,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './Container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getTournament } from 'services/apis/servicesApi';
-import { tournamentHeader } from './tournamentHeader';
+import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
