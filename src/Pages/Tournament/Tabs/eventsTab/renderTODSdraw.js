@@ -21,7 +21,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
       console.log('MatchUp', props);
     },
-    participantClick: (props) => console.log('Participant', props),
+    participantClick: (props) => {
+      getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
+      console.log('Participant', props);
+    },
     headerClick: (props) => console.log('Header', props),
     scoreClick: (props) => {
       getValidActions({ ...props, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
@@ -33,7 +36,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     onHeaderClick: (props) => console.log('header', props),
     onStatsClick: (props) => console.log('stats', props),
     onParticipantClick: (params) => {
-      console.log({ params });
       getValidActions({ ...params, callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
     }
   };
@@ -41,7 +43,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
-  const composition = compositions?.[compositionName] || compositions[window.sg] || 'Basic';
+  const composition = compositions?.[compositionName] || compositions[window.sg] || compositions['National'];
   const className = composition.theme;
 
   const args = {
@@ -58,11 +60,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       ? render(<DrawStructure {...args} />, drawsView)
       : render(
           <Draw
-            structureId={structureId}
             eventHandlers={eventHandlers}
+            structureId={structureId}
             composition={composition}
             structures={structures}
             className={className}
+            disableFlags={true}
           />,
           drawsView
         );

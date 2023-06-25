@@ -2,17 +2,16 @@ import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { tournamentEngine } from 'tods-competition-factory';
 
 export function getValidActions(params) {
-  const { matchUp = {}, sideIndex, drawPosition, callback } = params;
+  const { matchUp = {}, sideIndex, side, callback } = params;
 
-  const sideNumber = sideIndex + 1;
   const { validActions: positionActions } =
     (matchUp.drawId &&
       tournamentEngine.positionActions({
         structureId: matchUp?.structureId,
+        drawPosition: side?.drawPosition,
         matchUpId: matchUp?.matchUpId,
-        drawId: matchUp?.drawId,
-        drawPosition,
-        sideNumber
+        sideNumber: side?.sideNumber,
+        drawId: matchUp?.drawId
         /*
       policyDefinitions: {
         ...POLICY_POSITION_ACTIONS_UNRESTRICTED,
@@ -23,6 +22,7 @@ export function getValidActions(params) {
       })) ||
     {};
 
+  const sideNumber = sideIndex + 1;
   const { validActions: matchUpActions } =
     tournamentEngine.matchUpActions({
       sideNumber: 3 - sideNumber,
@@ -37,10 +37,14 @@ export function getValidActions(params) {
     }
     */
     }) || {};
-  console.log({ params, positionActions, matchUpActions });
+  console.log({ matchUp, positionActions, matchUpActions });
 
   const readyToScore = matchUpActions?.find(({ type }) => type === 'SCORE');
   if (readyToScore) {
-    enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
+    if (matchUp.matchUpType === 'TEAM') {
+      console.log('team scorecard');
+    } else {
+      enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
+    }
   }
 }
