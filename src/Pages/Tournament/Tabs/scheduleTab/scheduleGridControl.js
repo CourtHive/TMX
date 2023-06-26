@@ -3,7 +3,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { isFunction } from 'functions/typeOf';
 import dayjs from 'dayjs';
 
-import { LEFT, NONE, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
+import { LEFT, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
 
 export function scheduleGridControl({
   toggleUnscheduled,
@@ -52,7 +52,7 @@ export function scheduleGridControl({
       label: 'Schedule matches',
       id: 'scheduleMatchUps',
       intent: 'is-primary',
-      visible: !!courtsCount,
+      visible: !!courtsCount && schedulingActive,
       location: RIGHT
     },
     {
@@ -68,7 +68,7 @@ export function scheduleGridControl({
   ];
 
   elements = controlBar({ target: controlAnchor, items }).elements;
-  elements.scheduleMatchUps.style.display = schedulingActive || !courtsCount ? NONE : '';
+  // elements.scheduleMatchUps.style.display = schedulingActive || !courtsCount ? NONE : '';
 
   return { elements };
 }
