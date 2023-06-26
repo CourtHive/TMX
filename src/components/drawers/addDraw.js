@@ -1,4 +1,4 @@
-import { tournamentEngine, drawDefinitionConstants, utilities } from 'tods-competition-factory';
+import { tournamentEngine, drawDefinitionConstants, entryStatusConstants, utilities } from 'tods-competition-factory';
 import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
@@ -9,6 +9,8 @@ import { context } from 'services/context';
 
 import { RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
+
+const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 
 const {
   AD_HOC,
@@ -119,11 +121,14 @@ export function addDraw({ eventId, callback }) {
       const drawSizeValue = inputs.drawSize.value;
       const drawSizeInteger = utilities.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
       const drawSize = (drawType === FEED_IN && drawSizeInteger) || utilities.nextPowerOf2(drawSizeInteger);
+      const drawEntries = event.entries.filter(
+        ({ entryStage, entryStatus }) => entryStage === MAIN && DIRECT_ENTRY_STATUSES.includes(entryStatus)
+      );
 
       if (drawSizeInteger) {
         const result = tournamentEngine.generateDrawDefinition({
-          drawEntries: event.entries,
           matchUpFormat,
+          drawEntries,
           automated,
           drawType,
           drawName,
