@@ -6,7 +6,10 @@ const FONT_MEDIUM = 'font-medium';
 
 export function dropDownButton({ target, button, stateChange }) {
   let i = 0;
-  const genericItem = () => (i += 1 && `Item${i}`);
+  const genericItem = () => {
+    i += 1;
+    return `Item${i}`;
+  };
 
   const elem = document.createElement('div');
   elem.classList.add('dropdown');
