@@ -3,7 +3,7 @@ import { matchUpDrop } from 'components/tables/scheduleTable/matchUpDrop';
 import { factoryConstants } from 'tods-competition-factory';
 import { timeFormat } from 'functions/timeStrings';
 
-import { SCHEDULE_ISSUE } from 'constants/tmxConstants';
+import { SCHEDULE_ISSUE, timeModifierDisplay } from 'constants/tmxConstants';
 
 const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT } = factoryConstants.scheduleConstants;
 
@@ -29,7 +29,7 @@ export function scheduleCell(cell) {
     sides
   } = value || {};
 
-  const { courtOrder = '', scheduledTime = '', courtId = '', venueId = '' } = schedule;
+  const { courtOrder = '', scheduledTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
   content.setAttribute('courtOrder', courtOrder);
   content.setAttribute('courtId', courtId);
   content.setAttribute('venueId', venueId);
@@ -93,7 +93,8 @@ export function scheduleCell(cell) {
 
   const timeDetail = document.createElement('div');
   timeDetail.className = 'header flexrow';
-  timeDetail.innerHTML = timeFormat(scheduledTime);
+  timeDetail.innerHTML =
+    ((timeModifiers?.[0] && timeModifierDisplay[timeModifiers[0]] + '&nbsp;') || '') + timeFormat(scheduledTime);
   content.appendChild(timeDetail);
 
   const roundDetail = document.createElement('div');
