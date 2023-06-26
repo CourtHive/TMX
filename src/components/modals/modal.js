@@ -23,12 +23,9 @@ export const baseModal = () => {
     setTitle(title, noPadding);
     setContent(content, noPadding);
     footerButtons(buttons, noPadding);
-    disableScroll();
     modal.open();
   };
   const close = () => {
-    enableScroll();
-
     // NOTE: modal.close() method causes Tabulator tables to scroll
     document.getElementById(modalId).classList.remove('is-shown');
     document.body.classList.remove('gmodal-open');
@@ -157,15 +154,3 @@ export const baseModal = () => {
     modal
   };
 };
-
-function disableScroll() {
-  // Get the current page scroll position
-  const scrollTop = window.scrollY || document.documentElement.scrollTop;
-  const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-  // if any scroll is attempted, set this to the previous value
-  window.onscroll = () => window.scrollTo(scrollLeft, scrollTop);
-}
-
-function enableScroll() {
-  window.onscroll = function () {};
-}
