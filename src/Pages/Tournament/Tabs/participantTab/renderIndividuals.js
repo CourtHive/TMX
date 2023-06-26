@@ -114,7 +114,7 @@ export function renderIndividuals({ view }) {
     const postEventCreation = (result) => {
       table.deselectRow();
       if (result?.success) {
-        const eventId = result.results?.[0]?.event?.eventId;
+        const eventId = result?.event?.eventId;
         if (eventId) navigateToEvent({ eventId });
       }
     };

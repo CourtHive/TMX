@@ -5,7 +5,7 @@ import { ALL_EVENTS } from 'constants/tmxConstants';
 export function getEventFilter(table) {
   let filterValue;
 
-  const eventFilter = (rowData) => rowData.eventIds.includes(filterValue);
+  const eventFilter = (rowData) => rowData?.eventIds?.includes(filterValue);
   const updateEventFilter = (eventId) => {
     if (filterValue) table.removeFilter(eventFilter);
     filterValue = eventId;

@@ -12,7 +12,7 @@ import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { addDraw } from 'components/drawers/addDraw';
 import { headerMenu } from '../common/headerMenu';
-import { eventActions } from './eventActions';
+import { eventActions } from '../../popovers/eventActions';
 
 import { CENTER, LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 import { DELETE_DRAW_DEFINITIONS } from 'constants/mutationConstants';

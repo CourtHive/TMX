@@ -1,7 +1,7 @@
 import { genderedText } from '../common/formatters/genderedText';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
-import { entryActions } from './entryActions';
+import { entryActions } from '../../popovers/entryActions';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 

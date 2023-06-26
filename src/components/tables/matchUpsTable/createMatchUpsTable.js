@@ -1,4 +1,4 @@
-import { matchUpActions } from 'components/tables/matchUpsTable/matchUpActions';
+import { matchUpActions } from 'components/popovers/matchUpActions';
 import { tournamentEngine, genderConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -8,7 +8,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
-import { participantActions } from './participantActions';
+import { participantActions } from '../../popovers/participantMatchUpActions';
 import { headerMenu } from '../common/headerMenu';
 import { scoreMatchUp } from './scoreMatchUp';
 import { isObject } from 'functions/typeOf';
