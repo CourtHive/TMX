@@ -1,17 +1,20 @@
+import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { tournamentEngine } from 'tods-competition-factory';
 
 export function getEventHandlers({ callback }) {
   const sideClick = (props) => {
-    const { matchUp = {}, side } = props;
+    const { matchUp = {}, sideNumber } = props;
 
-    const { validActions: positionActions } =
+    const side = props.side || matchUp.sides?.find((side) => side.sideNumber === sideNumber);
+
+    const { validActions: actions } =
       (matchUp.drawId &&
         tournamentEngine.positionActions({
+          sideNumber: sideNumber || side?.sideNumber,
           structureId: matchUp?.structureId,
           drawPosition: side?.drawPosition,
           matchUpId: matchUp?.matchUpId,
-          sideNumber: side?.sideNumber,
           drawId: matchUp?.drawId
           /*
             policyDefinitions: {
@@ -23,7 +26,7 @@ export function getEventHandlers({ callback }) {
         })) ||
       {};
 
-    console.log({ positionActions, matchUp });
+    selectPositionAction({ ...props, actions, callback });
   };
   return {
     /*

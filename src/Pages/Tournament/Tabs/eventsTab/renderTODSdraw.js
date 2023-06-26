@@ -10,11 +10,11 @@ import { render } from 'react-dom';
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
-  let eventData = tournamentEngine.getEventData({ eventId }).eventData;
+  const eventData = tournamentEngine.getEventData({ eventId }).eventData;
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
-  let drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
+  const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
@@ -54,9 +54,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           if (!result.eventData?.drawsData?.length) {
             navigateToEvent({ eventId: event.eventId });
           } else {
-            eventData = result.eventData;
-            drawId = eventData.drawsData?.[0]?.drawId;
-            navigateToEvent({ eventId: eventData.eventInfo.eventId, drawId, renderDraw: true });
+            drawId = result.eventData.drawsData?.[0]?.drawId;
+            navigateToEvent({ eventId: result.eventData.eventInfo.eventId, drawId, renderDraw: true });
           }
         },
         label: event.eventName,
