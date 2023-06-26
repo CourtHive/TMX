@@ -1,12 +1,14 @@
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { timeItemConstants, utilities } from 'tods-competition-factory';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
-import { utilities } from 'tods-competition-factory';
-import { isFunction } from 'functions/typeOf';
 import { timePicker } from '../modals/timePicker';
+import { isFunction } from 'functions/typeOf';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
+
+const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE } = timeItemConstants;
 
 export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
   /*
@@ -74,10 +76,31 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
     timePicker({ time, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
   };
 
+  const modifyTime = (modifier) => {
+    const row = cell.getRow().getData();
+    console.log({ modifier, row });
+  };
+
   const options = [
     {
       option: `Set match times`,
       onClick: setMatchUpTimes
+    },
+    {
+      option: `Followed by`,
+      onClick: () => modifyTime(FOLLOWED_BY)
+    },
+    {
+      option: `Next available`,
+      onClick: () => modifyTime(NEXT_AVAILABLE)
+    },
+    {
+      option: `Not before`,
+      onClick: () => modifyTime(NOT_BEFORE)
+    },
+    {
+      option: `After rest`,
+      onClick: () => modifyTime(AFTER_REST)
     },
     {
       option: `Clear time settings`,
