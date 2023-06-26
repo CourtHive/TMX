@@ -29,7 +29,21 @@ export function createScheduleTable({ scheduledDate } = {}) {
           const table = cell.getTable();
           const targetRow = table.getData().find((row) => row.rowId === rowData.rowId);
           Object.values(targetRow).forEach((c) => {
-            if (c.matchUpId) c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
+            if (c.matchUpId) {
+              if (schedule.scheduledTime) {
+                c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
+                if (c.schedule.timeModifiers?.[0] !== 'NOT_BEFORE') {
+                  c.schedule.timeModifiers = '';
+                }
+              }
+
+              if (schedule.timeModifiers) {
+                if (c.schedule.scheduledTime && schedule.timeModifiers[0] !== 'NOT_BEFORE') {
+                  c.schedule.scheduledTime = '';
+                }
+                c.schedule.timeModifiers = schedule.timeModifiers;
+              }
+            }
           });
           table.updateData([targetRow]);
         }
