@@ -2,7 +2,7 @@ import { getLoginState } from 'services/authentication/loginState';
 // import { displayAuthOptions } from 'components/menus/authOptions';
 import { tournamentEngine } from 'tods-competition-factory';
 import { mainMenu } from 'components/menus/mainMenu';
-import { authDisplay /*, keyIcon*/ } from './authDisplay';
+import { authDisplay /*, keyIcon*/ } from '../../Pages/Tournament/authDisplay';
 import { context } from 'services/context';
 
 import { LEFT, RIGHT } from 'constants/tmxConstants';

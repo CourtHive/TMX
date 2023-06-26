@@ -10,7 +10,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
-import { participantActions } from './participantActions';
+import { participantActions } from '../../popovers/participantActions';
 import { toggleSignInStatus } from './toggleSignInStatus';
 import { headerMenu } from '../common/headerMenu';
 

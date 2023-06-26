@@ -135,7 +135,7 @@ export function editEvent({ event, participants, callback } = {}) {
     const postMutation = (result) => {
       if (result.success) {
         const event = result?.results[0]?.event;
-        if (isFunction(callback)) callback({ event, result });
+        if (isFunction(callback)) callback({ ...result, event });
       } else {
         console.log({ result });
       }
