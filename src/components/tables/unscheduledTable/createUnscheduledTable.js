@@ -1,4 +1,4 @@
-import { competitionEngine, factoryConstants, genderConstants } from 'tods-competition-factory';
+import { competitionEngine, factoryConstants, genderConstants, eventConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { matchUpDragStart } from '../scheduleTable/matchUpDragStart';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -7,6 +7,8 @@ import { matchUpReturn } from './matchUpReturn';
 import { isObject } from 'functions/typeOf';
 
 import { CENTER, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
+
+const { SINGLES, DOUBLES } = eventConstants;
 const { MALE, FEMALE } = genderConstants;
 
 export function createUnscheduledTable() {
@@ -41,7 +43,10 @@ export function createUnscheduledTable() {
     unscheduledMatchUps =
       competitionEngine
         .allCompetitionMatchUps({
-          matchUpFilters: { matchUpStatuses: factoryConstants.upcomingMatchUpStatuses },
+          matchUpFilters: {
+            matchUpStatuses: factoryConstants.upcomingMatchUpStatuses,
+            matchUpTypes: [SINGLES, DOUBLES]
+          },
           nextMatchUps: true
         })
         .matchUps?.filter((m) => !m.schedule?.courtId && !m.sides?.some(({ bye }) => bye)) || [];
