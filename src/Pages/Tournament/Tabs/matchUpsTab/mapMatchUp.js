@@ -1,7 +1,8 @@
 import { normalizeDiacritics } from 'normalize-text';
 
 export const mapMatchUp = (matchUp) => {
-  const { matchUpId, eventName, eventId, roundName, schedule, sides, potentialParticipants, ...rest } = matchUp;
+  const { matchUpId, eventName, matchUpType, eventId, roundName, schedule, sides, potentialParticipants, ...rest } =
+    matchUp;
   const { scheduledDate, scheduleTime, courtName } = schedule || {};
 
   const getPotentialName = (participant) => participant.person?.standardFamilyName || participant.participantName;
@@ -37,6 +38,7 @@ export const mapMatchUp = (matchUp) => {
 
   return {
     individualParticipantIds,
+    eventType: matchUpType,
     scheduledDate,
     readyToScore,
     scheduleTime,
