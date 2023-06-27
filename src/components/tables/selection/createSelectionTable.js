@@ -11,6 +11,8 @@ export function createSelectionTable({ anchorId, actionType, data = [], onSelect
     data = data.map(({ participant, ...rest }) => ({ ...rest, participantName: 'BYE', ...participant }));
   }
 
+  data.forEach((row) => (row.searchText = row.participantName.toLowerCase()));
+
   const columns = [
     {
       visible: drawPositions,
@@ -37,11 +39,13 @@ export function createSelectionTable({ anchorId, actionType, data = [], onSelect
     placeholder: 'No participants',
     layout: 'fitColumns',
     reactiveData: true,
-    maxHeight: 400,
+    maxHeight: 350,
     selectable: 1,
     columns,
     data
   });
 
   table.on('rowSelected', (row) => onSelected(row.getData()));
+
+  return { table };
 }
