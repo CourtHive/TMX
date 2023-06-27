@@ -15,7 +15,7 @@ import { headerMenu } from '../common/headerMenu';
 import { eventActions } from '../../popovers/eventActions';
 
 import { CENTER, LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
-import { DELETE_DRAW_DEFINITIONS } from 'constants/mutationConstants';
+import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 
 export function createEventsTable() {
   let table;
@@ -117,7 +117,8 @@ export function createEventsTable() {
     const deleteSelectedDraws = () => {
       const selectedDraws = drawsTable.getSelectedData();
       const drawIds = selectedDraws.map(({ drawId }) => drawId);
-      const methods = [{ method: DELETE_DRAW_DEFINITIONS, params: { eventId, drawIds } }];
+      // const methods = [{ method: DELETE_DRAW_DEFINITIONS, params: { eventId, drawIds } }];
+      const methods = drawIds.map((drawId) => ({ method: DELETE_FLIGHT_AND_DRAW, params: { eventId, drawId } }));
       const callback = (result) => {
         result.success && drawsTable.deleteRow(drawIds);
         const eventRow = row?.getData();
