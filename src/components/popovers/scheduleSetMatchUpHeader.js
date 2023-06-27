@@ -1,12 +1,15 @@
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { timeItemConstants, utilities } from 'tods-competition-factory';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
-import { utilities } from 'tods-competition-factory';
-import { isFunction } from 'functions/typeOf';
 import { timePicker } from '../modals/timePicker';
+import { isFunction } from 'functions/typeOf';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import { timeModifierText } from 'constants/tmxConstants';
 import { RIGHT } from 'constants/tmxConstants';
+
+const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
 export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
   /*
@@ -44,7 +47,7 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
     mutationRequest({ methods, callback: postMutation });
   };
 
-  const clearTimeSettings = () => setSchedule({ scheduledTime: '' });
+  const clearTimeSettings = () => setSchedule({ scheduledTime: '', timeModifiers: [] });
   const timeSelected = ({ time }) => {
     const militaryTime = true;
     const scheduledTime = utilities.dateTime.convertTime(time, militaryTime);
@@ -74,10 +77,32 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
     timePicker({ time, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
   };
 
+  const modifyTime = (modifier) => setSchedule({ timeModifiers: [modifier] });
+
   const options = [
     {
       option: `Set match times`,
       onClick: setMatchUpTimes
+    },
+    {
+      option: timeModifierText[FOLLOWED_BY],
+      onClick: () => modifyTime(FOLLOWED_BY)
+    },
+    {
+      option: timeModifierText[NEXT_AVAILABLE],
+      onClick: () => modifyTime(NEXT_AVAILABLE)
+    },
+    {
+      option: timeModifierText[NOT_BEFORE],
+      onClick: () => modifyTime(NOT_BEFORE)
+    },
+    {
+      option: timeModifierText[AFTER_REST],
+      onClick: () => modifyTime(AFTER_REST)
+    },
+    {
+      option: timeModifierText[TO_BE_ANNOUNCED],
+      onClick: () => modifyTime(TO_BE_ANNOUNCED)
     },
     {
       option: `Clear time settings`,

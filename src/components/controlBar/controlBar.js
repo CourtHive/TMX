@@ -98,6 +98,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       location?.appendChild(elem);
       continue;
     }
+
     if (!itemConfig.hide && itemConfig.text) {
       const elem = document.createElement('div');
       elem.className = 'font-medium';
@@ -110,6 +111,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       location?.appendChild(elem);
       continue;
     }
+
     if (!itemConfig.id && (!itemConfig?.label || itemConfig.hide)) {
       continue;
     }

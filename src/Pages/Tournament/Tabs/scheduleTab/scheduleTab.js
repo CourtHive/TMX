@@ -59,6 +59,7 @@ export function renderScheduleTab() {
   };
   gridControlElements = scheduleGridControl({
     table: scheduleTable,
+    unscheduledMatchUps,
     updateScheduleTable,
     toggleUnscheduled,
     schedulingActive,

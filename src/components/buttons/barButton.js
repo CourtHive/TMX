@@ -29,10 +29,13 @@ export function barButton(itemConfig) {
   elem.className = 'button font-medium';
   if (itemConfig.id) elem.id = itemConfig.id;
   elem.style = 'margin-right: .5em;';
-  if (itemConfig.visible === false) elem.style.display = NONE;
   if (itemConfig.intent) elem.classList.add(itemConfig.intent);
   if (itemConfig.toolTip?.content) tippy(elem, itemConfig.toolTip);
   elem.innerHTML = itemConfig.label;
+
+  if (itemConfig.visible === false) {
+    elem.style.display = NONE;
+  }
 
   return elem;
 }

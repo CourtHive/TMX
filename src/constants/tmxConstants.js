@@ -1,5 +1,6 @@
 import { drawDefinitionConstants, entryStatusConstants, factoryConstants } from 'tods-competition-factory';
 
+const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = factoryConstants.timeItemConstants;
 const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING } =factoryConstants.scheduleConstants;
 
 const { MAIN } = drawDefinitionConstants;
@@ -154,3 +155,19 @@ export const acceptedEntryStatuses = [
   `${MAIN}.${JUNIOR_EXEMPT}`,
   `${MAIN}.${WILDCARD}`
 ];
+
+export const timeModifierText = {
+ [AFTER_REST]: 'After rest',
+ [FOLLOWED_BY]: 'Followed by',
+ [TO_BE_ANNOUNCED]: 'To be announced',
+ [NEXT_AVAILABLE]: 'Next available',
+ [NOT_BEFORE]: 'Not before',
+}
+
+export const timeModifierDisplay = {
+ [AFTER_REST]: 'After rest',
+ [FOLLOWED_BY]: 'Followed by',
+ [TO_BE_ANNOUNCED]: 'TBA',
+ [NEXT_AVAILABLE]: 'Next available',
+ [NOT_BEFORE]: 'NB',
+}
