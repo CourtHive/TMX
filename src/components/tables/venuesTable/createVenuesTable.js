@@ -86,6 +86,7 @@ export function createVenuesTable({ table } = {}) {
           titleFormatter: 'rowSelection',
           formatter: 'rowSelection',
           headerSort: false,
+          responsive: false,
           hozAlign: LEFT,
           width: 5
         },
@@ -195,6 +196,7 @@ export function createVenuesTable({ table } = {}) {
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,
+      responsive: false,
       hozAlign: LEFT,
       width: 5
     },

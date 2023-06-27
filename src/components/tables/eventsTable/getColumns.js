@@ -14,6 +14,7 @@ export function getColumns({ exclude = [], eventId, drawId, actions = [] } = {})
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,
+      responsive: false,
       hozAlign: LEFT,
       width: 5
     },
