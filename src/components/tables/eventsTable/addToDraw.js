@@ -1,21 +1,32 @@
+import { mutationRequest } from 'services/mutation/mutationRequest';
+
+import { ADD_DRAW_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
 
 const addTo = (table, eventId, drawId) => {
   const selected = table.getSelectedData();
   const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
 
-  /*
-  const callback = (result) => {
-    if (result?.success) {
-      const data = table.getData();
-      const targetRows = data.filter(({ participantId }) => participantIds.includes(participantId));
-      table.deleteRow(participantIds);
-    } else {
+  const methods = [
+    {
+      method: ADD_DRAW_ENTRIES,
+      params: {
+        participantIds,
+        entryStatus: 'DIRECT_ACCEPTANCE',
+        entryStage: 'MAIN',
+        eventId,
+        drawId
+      }
+    }
+  ];
+  const postMutation = (result) => {
+    if (result.success) {
       table.deselectRow();
+    } else {
+      console.log(result.error);
     }
   };
-  */
-  console.log('add', { participantIds }, 'to', { eventId, drawId });
+  mutationRequest({ methods, callback: postMutation });
 };
 
 export const addToDraw = (event) => (table) => {

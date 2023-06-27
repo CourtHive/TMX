@@ -9,20 +9,31 @@ import 'styles/modal.css';
 export const baseModal = () => {
   const modalId = TMX_MODAL;
   const attributes = {};
+  let scrollTop;
   let closeFx;
-  const closeAction = () => isFunction(closeFx) && closeFx() && (closeFx = undefined);
+
+  const closeAction = () => {
+    if (isFunction(closeFx)) {
+      closeFx();
+      closeFx = undefined;
+    }
+    window.scrollTo({ top: scrollTop }); // deal with bad actors
+    enableScroll();
+  };
 
   const elem = document.getElementById(modalId);
   const modal = new Gmodal(elem);
   elem.addEventListener('gmodal:close', closeAction);
 
   const open = ({ title, content, buttons, onClose } = {}) => {
+    disableScroll();
     closeFx = onClose;
     const noPadding = !title && !buttons;
     setTitle(title, noPadding);
     setContent(content, noPadding);
     footerButtons(buttons, noPadding);
     modal.open();
+    setTimeout(() => window.scrollTo({ top: scrollTop }), 100);
   };
   const close = () => {
     // NOTE: modal.close() method causes Tabulator tables to scroll
@@ -153,4 +164,16 @@ export const baseModal = () => {
     g: Gmodal,
     modal
   };
+
+  function disableScroll() {
+    // Get the current page scroll position
+    scrollTop = window.scrollY || document.documentElement.scrollTop;
+    // if any scroll is attempted, set this to the previous value
+    window.onscroll = () => window.scrollTo({ top: scrollTop });
+  }
+
+  function enableScroll() {
+    window.onscroll = function () {};
+    return true;
+  }
 };

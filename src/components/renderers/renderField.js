@@ -2,6 +2,20 @@ import { createTypeAhead } from 'services/dom/createTypeAhead';
 import { Datepicker } from 'vanillajs-datepicker';
 import { isFunction } from 'functions/typeOf';
 
+import { NONE } from 'constants/tmxConstants';
+
+export function renderOptions(select, item) {
+  for (const option of item.options) {
+    if (option.hide) continue;
+    const opt = document.createElement('option');
+    opt.className = 'font-medium';
+    if (option.value) opt.setAttribute('value', option.value);
+    if (option.selected || item.value === option.value) opt.setAttribute('selected', 'true');
+    opt.innerHTML = option.label;
+    select.appendChild(opt);
+  }
+}
+
 export function renderField(item) {
   const field = document.createElement('div');
   field.className = 'field font-medium';
@@ -30,15 +44,7 @@ export function renderField(item) {
     div.style = 'width: 100%';
     const select = document.createElement('select');
     select.style = 'width: 100%';
-    for (const option of item.options) {
-      if (option.hide) continue;
-      const opt = document.createElement('option');
-      opt.className = 'font-medium';
-      if (option.value) opt.setAttribute('value', option.value);
-      if (option.selected) opt.setAttribute('selected', 'true');
-      opt.innerHTML = option.label;
-      select.appendChild(opt);
-    }
+    renderOptions(select, item);
     div.appendChild(select);
     control.appendChild(div);
     inputElement = select;
@@ -94,6 +100,9 @@ export function renderField(item) {
   }
 
   field.appendChild(control);
+  if (item.visible === false) {
+    field.style.display = NONE;
+  }
 
   return { field, inputElement, datepicker };
 }

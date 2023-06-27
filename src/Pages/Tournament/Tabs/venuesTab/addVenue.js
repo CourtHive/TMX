@@ -24,7 +24,7 @@ const saveVenue = (callback) => {
       params: { venue: { venueName, venueAbbreviation, venueId }, returnDetails: true },
       method: ADD_VENUE
     },
-    { params: { courtsCount: parseInt(courtsCount), venueId }, method: ADD_COURTS }
+    { params: { courtsCount: parseInt(courtsCount), venueId, venueAbbreviationRoot: true }, method: ADD_COURTS }
   ];
 
   const postMutation = (result) => {

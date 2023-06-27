@@ -6,6 +6,14 @@ export function getEventHandlers({ callback }) {
   const sideClick = (props) => {
     const { matchUp = {}, sideNumber } = props;
 
+    /*
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const restore = (params) => {
+      setTimeout(() => window.scrollTo({ top: scrollTop }), 100);
+      callback(params);
+    };
+    */
+
     const side = props.side || matchUp.sides?.find((side) => side.sideNumber === sideNumber);
 
     const { validActions: actions } =

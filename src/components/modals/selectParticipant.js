@@ -1,4 +1,6 @@
+import { controlBar } from 'components/controlBar/controlBar';
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
+import { LEFT } from 'constants/tmxConstants';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { context } from 'services/context';
 
@@ -37,17 +39,44 @@ export function selectParticipant({ action, onSelection }) {
     }
   };
 
+  const controlId = 'selectionControl';
   const anchorId = 'selectionTable';
   const buttons = [
     { label: 'Cancel', intent: 'is-none', close: true },
     { label: 'Select', intent: 'is-info', onClick, close: true }
   ];
   const onClose = () => destroyTable({ anchorId });
-  const content = `<div id='${anchorId}'></div>`;
+  const content = `
+    <div style='min-height: 420px'>
+      <div id='${controlId}'></div>
+      <div id='${anchorId}'></div>
+    </div>
+  `;
 
   context.modal.open({ title: 'Select participant', content, buttons, onClose });
 
   const onSelected = (value) => (selected = value);
   const data = action[actionType.selections];
-  createSelectionTable({ anchorId, actionType, data, onSelected });
+  const { table } = createSelectionTable({ anchorId, actionType, data, onSelected });
+
+  let searchText;
+  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
+  const updateSearchFilter = (value) => {
+    if (!value) table.removeFilter(searchFilter);
+    searchText = value?.toLowerCase();
+    if (value) table.addFilter(searchFilter);
+  };
+
+  const target = document.getElementById(controlId);
+  const items = [
+    {
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
+      onChange: (e) => updateSearchFilter(e.target.value),
+      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      placeholder: 'Search entries',
+      location: LEFT,
+      search: true
+    }
+  ];
+  controlBar({ table, target, items });
 }

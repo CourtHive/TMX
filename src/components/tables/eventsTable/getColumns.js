@@ -4,6 +4,8 @@ import { headerMenu } from '../common/headerMenu';
 import { entryActions } from '../../popovers/entryActions';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { flightsFormatter } from '../common/formatters/flightsFormatter';
+import { navigateToEvent } from '../common/navigateToEvent';
 
 export function getColumns({ exclude = [], eventId, drawId, actions = [] } = {}) {
   return [
@@ -36,7 +38,7 @@ export function getColumns({ exclude = [], eventId, drawId, actions = [] } = {})
       responsive: false,
       resizable: false,
       minWidth: 200,
-      widthGrow: 2,
+      widthGrow: 1,
       title: 'Name'
     },
     {
@@ -66,16 +68,18 @@ export function getColumns({ exclude = [], eventId, drawId, actions = [] } = {})
       maxWidth: 70
     },
     {
+      formatter: flightsFormatter(navigateToEvent),
       title: 'Flights',
-      field: 'flights',
       responsive: true,
-      minWidth: 100
+      field: 'flights',
+      minWidth: 100,
+      widthGrow: 1
     },
     {
-      title: 'Status',
-      field: 'status',
       responsive: false,
       resizable: false,
+      title: 'Status',
+      field: 'status',
       maxWidth: 80
     },
     {
