@@ -1,25 +1,31 @@
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
+import { tournamentEngine, eventConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { controlBar } from 'components/controlBar/controlBar';
-import { tournamentEngine } from 'tods-competition-factory';
 import { getEventHandlers } from './getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
 import { render } from 'react-dom';
 
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
+const { DOUBLES } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
   const eventData = tournamentEngine.getEventData({ eventId }).eventData;
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
+  const eventType = eventData?.eventInfo?.eventType;
+
   const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
   const eventHandlers = getEventHandlers({ callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
-  const composition = compositions?.[compositionName] || compositions[window.sg] || compositions['National'];
+  const composition =
+    compositions?.[compositionName] ||
+    compositions[window.sg] ||
+    compositions[eventType === DOUBLES ? 'Australian' : 'National']; // National malformed for DOUBLES
   const className = composition.theme;
 
   const args = {
