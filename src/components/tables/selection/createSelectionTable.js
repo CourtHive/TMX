@@ -6,16 +6,20 @@ export function createSelectionTable({ anchorId, actionType, data = [], onSelect
   const participants = data.some((item) => item.participant);
 
   // spread participant object
-  if (participants) data = data.map(({ participant, ...rest }) => ({ ...rest, ...participant }));
+  if (participants) {
+    // default participantName to BYE for swaps
+    data = data.map(({ participant, ...rest }) => ({ ...rest, participantName: 'BYE', ...participant }));
+  }
 
   const columns = [
     {
       visible: drawPositions,
       field: 'drawPosition',
       title: 'Position',
+      headerSort: false,
       responsive: false,
       editor: false,
-      minWidth: 70
+      maxWidth: 100
     },
     {
       formatter: genderedText,
