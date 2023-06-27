@@ -10,12 +10,11 @@ export const baseModal = () => {
   const modalId = TMX_MODAL;
   const attributes = {};
   let closeFx;
+  const closeAction = () => isFunction(closeFx) && closeFx() && (closeFx = undefined);
 
   const elem = document.getElementById(modalId);
   const modal = new Gmodal(elem);
-  elem.addEventListener('gmodal:close', () => {
-    isFunction(closeFx) && closeFx();
-  });
+  elem.addEventListener('gmodal:close', closeAction);
 
   const open = ({ title, content, buttons, onClose } = {}) => {
     closeFx = onClose;
@@ -33,6 +32,7 @@ export const baseModal = () => {
     modal._isOpen = false;
     modal._hideBackdrop();
     Gmodal.modals.pop();
+    closeAction();
     // --------------------
   };
 
