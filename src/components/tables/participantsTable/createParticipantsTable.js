@@ -49,6 +49,7 @@ export function createParticipantsTable({ view } = {}) {
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,
+      responsive: false,
       hozAlign: LEFT,
       width: 5
     },
@@ -116,7 +117,6 @@ export function createParticipantsTable({ view } = {}) {
       formatter: 'tickCross',
       field: 'signedIn',
       hozAlign: LEFT,
-      responsive: false,
       tooltip: false,
       width: 40
     },

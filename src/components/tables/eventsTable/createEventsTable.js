@@ -74,6 +74,7 @@ export function createEventsTable() {
         titleFormatter: 'rowSelection',
         formatter: 'rowSelection',
         headerSort: false,
+        responsive: false,
         hozAlign: LEFT,
         width: 5
       },
