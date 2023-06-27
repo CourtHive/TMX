@@ -1,7 +1,7 @@
+import { competitionEngine, utilities, timeItemConstants } from 'tods-competition-factory';
 import { scheduleSetMatchUpHeader } from 'components/popovers/scheduleSetMatchUpHeader';
 import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab';
 import { setScheduleColumnHeader } from 'components/popovers/scheduleColumnHeader';
-import { competitionEngine, utilities } from 'tods-competition-factory';
 import { addVenue } from 'Pages/Tournament/Tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -13,6 +13,8 @@ import { updateConflicts } from './updateConflicts';
 import { isObject } from 'functions/typeOf';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS, TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
+
+const { NOT_BEFORE } = timeItemConstants;
 
 export function createScheduleTable({ scheduledDate } = {}) {
   let ready, table, awaitingUpdate;
@@ -29,7 +31,21 @@ export function createScheduleTable({ scheduledDate } = {}) {
           const table = cell.getTable();
           const targetRow = table.getData().find((row) => row.rowId === rowData.rowId);
           Object.values(targetRow).forEach((c) => {
-            if (c.matchUpId) c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
+            if (c.matchUpId) {
+              if (schedule.scheduledTime) {
+                c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
+                if (c.schedule.timeModifiers?.[0] !== NOT_BEFORE) {
+                  c.schedule.timeModifiers = '';
+                }
+              }
+
+              if (schedule.timeModifiers) {
+                if (c.schedule.scheduledTime && schedule.timeModifiers[0] !== NOT_BEFORE) {
+                  c.schedule.scheduledTime = '';
+                }
+                c.schedule.timeModifiers = schedule.timeModifiers;
+              }
+            }
           });
           table.updateData([targetRow]);
         }
