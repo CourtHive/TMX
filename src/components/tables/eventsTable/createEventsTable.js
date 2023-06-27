@@ -43,6 +43,7 @@ export function createEventsTable() {
 
     const borderStyle = '1px solid #333';
     const tableEl = document.createElement('div');
+    tableEl.style.display = data.length ? '' : NONE;
     tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
     tableEl.style.border = borderStyle;
     tableEl.style.width = '99%';
@@ -108,6 +109,7 @@ export function createEventsTable() {
       columns,
       data
     });
+
     drawsTable.on('scrollVertical', destroyTipster);
 
     const eventId = row.getData().eventId;
@@ -127,6 +129,10 @@ export function createEventsTable() {
           eventRow.matchUpsCount = matchUps?.length || 0; // table data is reactive!
           eventRow.drawsCount -= 1; // table data is reactive!
         }
+
+        if (!drawsTable.getData().length) {
+          tableEl.style.display = NONE;
+        }
       };
       mutationRequest({ methods, callback });
     };
@@ -135,6 +141,7 @@ export function createEventsTable() {
       if (result.success) {
         drawsTable?.addRow(mapDrawDefinition(eventId)(result.drawDefinition));
         const eventRow = row?.getData();
+        tableEl.style.display = '';
 
         if (eventRow) {
           if (!eventRow.matchUpsCount) {

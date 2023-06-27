@@ -1,6 +1,9 @@
+import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
+import { renderOptions } from 'components/renderers/renderField';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
@@ -15,9 +18,6 @@ import {
 
 import { NONE, RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
-import { numericValidator } from 'components/validators/numericValidator';
-import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderOptions } from 'components/renderers/renderField';
 
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 
