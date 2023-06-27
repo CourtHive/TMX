@@ -30,6 +30,7 @@ export const headerMenu = (displayTitles) => (_, column) => {
 
           //toggle current column visibility
           column.toggle();
+          table.redraw();
 
           //change menu item icon
           if (column.isVisible()) {
