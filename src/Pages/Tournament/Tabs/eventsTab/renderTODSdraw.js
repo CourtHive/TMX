@@ -1,6 +1,7 @@
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
 import { tournamentEngine, eventConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'components/controlBar/controlBar';
 import { getEventHandlers } from './getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
@@ -8,6 +9,8 @@ import { DrawStructure } from 'tods-react-draws';
 import { render } from 'react-dom';
 
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
+import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
+
 const { DOUBLES } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
@@ -103,6 +106,23 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       updateDrawDisplay(args);
     };
 
+    const deleteDraw = () => {
+      const methods = [{ method: DELETE_FLIGHT_AND_DRAW, params: { eventId, drawId } }];
+      const postMutation = (result) => result.success && navigateToEvent({ eventId });
+      mutationRequest({ methods, callback: postMutation });
+    };
+
+    const actionOptions = [
+      {
+        onClick: () => navigateToEvent({ eventId, drawId }),
+        label: 'View entries'
+      },
+      {
+        onClick: deleteDraw,
+        label: 'Delete draw'
+      }
+    ];
+
     const items = [
       {
         onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
@@ -130,10 +150,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         location: LEFT
       },
       {
-        onClick: () => navigateToEvent({ eventId, drawId }),
-        label: 'View entries',
+        options: actionOptions,
         intent: 'is-info',
-        location: RIGHT
+        label: 'Actions',
+        location: RIGHT,
+        align: RIGHT
       }
     ];
 
