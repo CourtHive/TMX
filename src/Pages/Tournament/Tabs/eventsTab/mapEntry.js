@@ -10,8 +10,11 @@ const statusMapping = {
   [WILDCARD]: 'WC'
 };
 
-export function mapEntry({ entry, participants, participant, eventType }) {
+export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, eventId }) {
   participant = participant || participants.find((p) => p.participantId === entry.participantId);
+  const flights = participant.draws
+    ?.filter((flight) => flight.eventId === eventId)
+    .map((flight) => ({ ...flight, drawName: derivedDrawInfo[flight.drawId].drawName }));
   const address = participant?.person?.addresses?.[0];
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
@@ -26,6 +29,7 @@ export function mapEntry({ entry, participants, participant, eventType }) {
     cityState,
     ...entry,
     ratings,
+    flights,
     status
   };
 }
