@@ -1,13 +1,22 @@
-import { tournamentEngine, drawDefinitionConstants, entryStatusConstants, utilities } from 'tods-competition-factory';
+import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
+import { renderOptions } from 'components/renderers/renderField';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import {
+  tournamentEngine,
+  drawDefinitionConstants,
+  entryStatusConstants,
+  drawEngine,
+  utilities
+} from 'tods-competition-factory';
 
-import { RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
+import { NONE, RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
@@ -53,59 +62,100 @@ export function addDraw({ eventId, callback }) {
 
   const scoreFormatOptions = [{ label: 'Best of 3 Sets', value: 'SET3-S:6/TB7', selected: true }];
 
-  let inputs;
+  let inputs,
+    drawType = SINGLE_ELIMINATION;
+
+  const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
+  const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
+
+  const items = [
+    {
+      placeholder: 'Display name of the draw',
+      value: `Draw ${drawsCount + 1}`,
+      label: 'Draw name',
+      field: 'drawName',
+      error: 'Please enter a name of at least 5 characters',
+      validator: nameValidator(5)
+    },
+    {
+      value: drawType,
+      label: 'Draw Type',
+      field: 'drawType',
+      options: [
+        { label: 'Single elimination', value: SINGLE_ELIMINATION },
+        { label: 'Feed in championship', value: FEED_IN_CHAMPIONSHIP },
+        { label: 'Feed in championship to SF', value: FEED_IN_CHAMPIONSHIP_TO_SF },
+        { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION },
+        { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION },
+        { label: 'Compass', value: COMPASS },
+        { label: 'Olympic', value: OLYMPIC },
+        { label: 'Curtis consolation', value: CURTIS },
+        { label: 'Round robin', value: ROUND_ROBIN },
+        { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
+        { label: 'Double elimination', value: DOUBLE_ELIMINATION },
+        { label: 'Feed in', value: FEED_IN },
+        { label: 'Playoff', value: PLAY_OFF },
+        { label: 'Ad-hoc', value: AD_HOC }
+      ]
+    },
+    {
+      value: acceptedEntriesCount(event),
+      validator: numericValidator,
+      label: 'Draw size',
+      field: 'drawSize'
+    },
+    {
+      visible: [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
+      options: roundRobinOptions,
+      label: 'Group size',
+      field: 'groupSize',
+      value: 4
+    },
+    {
+      value: '',
+      label: 'Creation',
+      field: 'automated',
+      options: [
+        { label: AUTOMATED, value: AUTOMATED, selected: true },
+        { label: MANUAL, value: false }
+      ]
+    },
+    {
+      value: '',
+      label: 'Score format',
+      field: 'matchUpFormat',
+      options: scoreFormatOptions
+    }
+  ];
+
+  const drawTypeChange = ({ e, fields }) => {
+    const visible = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(e.target.value);
+    fields['groupSize'].style.display = visible ? '' : NONE;
+  };
+
+  const drawSizeChange = ({ inputs }) => {
+    const drawSize = inputs['drawSize'].value;
+    const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
+    const options = validGroupSizes.map((size) => ({ label: size, value: size }));
+    const groupSizeSelect = inputs['groupSize'];
+    const value = validGroupSizes.includes(4) ? 4 : validGroupSizes[0];
+    removeAllChildNodes(groupSizeSelect);
+    renderOptions(groupSizeSelect, { options, value });
+  };
+
+  const relationships = [
+    {
+      onChange: drawTypeChange,
+      control: 'drawType'
+    },
+    {
+      onChange: drawSizeChange,
+      control: 'drawSize'
+    }
+  ];
+
   const content = (elem) => {
-    inputs = renderForm(elem, [
-      {
-        placeholder: 'Display name of the draw',
-        value: `Draw ${drawsCount + 1}`,
-        label: 'Draw name',
-        field: 'drawName',
-        error: 'Please enter a name of at least 5 characters',
-        validator: nameValidator(5)
-      },
-      {
-        value: '',
-        label: 'Draw Type',
-        field: 'drawType',
-        options: [
-          { label: 'Single elimination', value: SINGLE_ELIMINATION },
-          { label: 'Feed in championship', value: FEED_IN_CHAMPIONSHIP },
-          { label: 'Feed in championship to SF', value: FEED_IN_CHAMPIONSHIP_TO_SF },
-          { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION },
-          { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION },
-          { label: 'Compass', value: COMPASS },
-          { label: 'Olympic', value: OLYMPIC },
-          { label: 'Curtis consolation', value: CURTIS },
-          { label: 'Round robin', value: ROUND_ROBIN },
-          { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
-          { label: 'Double elimination', value: DOUBLE_ELIMINATION },
-          { label: 'Feed in', value: FEED_IN },
-          { label: 'Playoff', value: PLAY_OFF },
-          { label: 'Ad-hoc', value: AD_HOC }
-        ]
-      },
-      {
-        value: acceptedEntriesCount(event),
-        label: 'Draw size',
-        field: 'drawSize'
-      },
-      {
-        value: '',
-        label: 'Creation',
-        field: 'automated',
-        options: [
-          { label: AUTOMATED, value: AUTOMATED, selected: true },
-          { label: MANUAL, value: false }
-        ]
-      },
-      {
-        value: '',
-        label: 'Score format',
-        field: 'matchUpFormat',
-        options: scoreFormatOptions
-      }
-    ]);
+    inputs = renderForm(elem, items, relationships);
   };
 
   const isValid = () => nameValidator(5)(inputs.drawName.value);
@@ -119,22 +169,28 @@ export function addDraw({ eventId, callback }) {
       const drawName = inputs.drawName.value;
 
       const drawSizeValue = inputs.drawSize.value;
+      const groupSize = parseInt(inputs.groupSize.value);
       const drawSizeInteger = utilities.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
       const drawSize = (drawType === FEED_IN && drawSizeInteger) || utilities.nextPowerOf2(drawSizeInteger);
       const drawEntries = event.entries.filter(
         ({ entryStage, entryStatus }) => entryStage === MAIN && DIRECT_ENTRY_STATUSES.includes(entryStatus)
       );
 
+      const drawOptions = {
+        matchUpFormat,
+        drawEntries,
+        automated,
+        drawType,
+        drawName,
+        drawSize,
+        eventId
+      };
+      if ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) {
+        drawOptions.structureOptions = { groupSize };
+      }
+
       if (drawSizeInteger) {
-        const result = tournamentEngine.generateDrawDefinition({
-          matchUpFormat,
-          drawEntries,
-          automated,
-          drawType,
-          drawName,
-          drawSize,
-          eventId
-        });
+        const result = tournamentEngine.generateDrawDefinition(drawOptions);
 
         if (result.success) {
           const drawDefinition = result.drawDefinition;

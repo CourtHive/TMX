@@ -6,16 +6,22 @@ export function createSelectionTable({ anchorId, actionType, data = [], onSelect
   const participants = data.some((item) => item.participant);
 
   // spread participant object
-  if (participants) data = data.map(({ participant, ...rest }) => ({ ...rest, ...participant }));
+  if (participants) {
+    // default participantName to BYE for swaps
+    data = data.map(({ participant, ...rest }) => ({ ...rest, participantName: 'BYE', ...participant }));
+  }
+
+  data.forEach((row) => (row.searchText = row.participantName.toLowerCase()));
 
   const columns = [
     {
       visible: drawPositions,
       field: 'drawPosition',
       title: 'Position',
+      headerSort: false,
       responsive: false,
       editor: false,
-      minWidth: 70
+      maxWidth: 100
     },
     {
       formatter: genderedText,
@@ -33,11 +39,13 @@ export function createSelectionTable({ anchorId, actionType, data = [], onSelect
     placeholder: 'No participants',
     layout: 'fitColumns',
     reactiveData: true,
-    maxHeight: 400,
+    maxHeight: 350,
     selectable: 1,
     columns,
     data
   });
 
   table.on('rowSelected', (row) => onSelected(row.getData()));
+
+  return { table };
 }

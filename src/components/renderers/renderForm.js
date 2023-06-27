@@ -1,4 +1,5 @@
 import { DateRangePicker } from 'vanillajs-datepicker';
+import { isFunction } from 'functions/typeOf';
 import { renderField } from './renderField';
 
 export function renderForm(elem, items, relationships) {
@@ -6,7 +7,8 @@ export function renderForm(elem, items, relationships) {
   div.style = 'display: flex; width: 100%;';
   div.classList.add('flexcol');
 
-  const inputs = {};
+  const inputs = {},
+    fields = {};
 
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
@@ -26,6 +28,7 @@ export function renderForm(elem, items, relationships) {
       const { field, inputElement, datepicker } = renderField(item);
       if (datepicker) inputs[`${item.field}.date`] = datepicker;
       inputs[item.field] = inputElement;
+      fields[item.field] = field;
       div.appendChild(field);
     }
   }
@@ -44,6 +47,9 @@ export function renderForm(elem, items, relationships) {
         });
 
         inputs[`${field1}.date`] = datepicker;
+      }
+      if (relationship.control && isFunction(relationship.onChange)) {
+        inputs[relationship.control].addEventListener('change', (e) => relationship.onChange({ e, inputs, fields }));
       }
     }
   }

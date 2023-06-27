@@ -43,7 +43,7 @@ export function createEntriesPanels({ eventId, drawId }) {
 
     if (!event) return { error: 'EVENT_NOT_FOUND' };
 
-    const { participants } = tournamentEngine.getParticipants({
+    const { participants, derivedDrawInfo } = tournamentEngine.getParticipants({
       participantFilters: { eventIds: [eventId] },
       withIndividualParticipants: true,
       withScaleValues: true,
@@ -53,7 +53,7 @@ export function createEntriesPanels({ eventId, drawId }) {
     const hasFlights = event?.drawDefinitions?.length > 1;
 
     const entryData = (drawDefinition?.entries || event?.entries || []).map((entry) =>
-      mapEntry({ entry, participants, eventType: event.eventType })
+      mapEntry({ entry, derivedDrawInfo, participants, eventType: event.eventType, eventId })
     );
 
     const { events } = tournamentEngine.getEvents();

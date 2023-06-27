@@ -15,7 +15,7 @@ import { headerMenu } from '../common/headerMenu';
 import { eventActions } from '../../popovers/eventActions';
 
 import { CENTER, LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
-import { DELETE_DRAW_DEFINITIONS } from 'constants/mutationConstants';
+import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 
 export function createEventsTable() {
   let table;
@@ -43,6 +43,7 @@ export function createEventsTable() {
 
     const borderStyle = '1px solid #333';
     const tableEl = document.createElement('div');
+    tableEl.style.display = data.length ? '' : NONE;
     tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
     tableEl.style.border = borderStyle;
     tableEl.style.width = '99%';
@@ -108,6 +109,7 @@ export function createEventsTable() {
       columns,
       data
     });
+
     drawsTable.on('scrollVertical', destroyTipster);
 
     const eventId = row.getData().eventId;
@@ -115,7 +117,8 @@ export function createEventsTable() {
     const deleteSelectedDraws = () => {
       const selectedDraws = drawsTable.getSelectedData();
       const drawIds = selectedDraws.map(({ drawId }) => drawId);
-      const methods = [{ method: DELETE_DRAW_DEFINITIONS, params: { eventId, drawIds } }];
+      // const methods = [{ method: DELETE_DRAW_DEFINITIONS, params: { eventId, drawIds } }];
+      const methods = drawIds.map((drawId) => ({ method: DELETE_FLIGHT_AND_DRAW, params: { eventId, drawId } }));
       const callback = (result) => {
         result.success && drawsTable.deleteRow(drawIds);
         const eventRow = row?.getData();
@@ -127,6 +130,10 @@ export function createEventsTable() {
           eventRow.matchUpsCount = matchUps?.length || 0; // table data is reactive!
           eventRow.drawsCount -= 1; // table data is reactive!
         }
+
+        if (!drawsTable.getData().length) {
+          tableEl.style.display = NONE;
+        }
       };
       mutationRequest({ methods, callback });
     };
@@ -135,6 +142,7 @@ export function createEventsTable() {
       if (result.success) {
         drawsTable?.addRow(mapDrawDefinition(eventId)(result.drawDefinition));
         const eventRow = row?.getData();
+        tableEl.style.display = '';
 
         if (eventRow) {
           if (!eventRow.matchUpsCount) {
