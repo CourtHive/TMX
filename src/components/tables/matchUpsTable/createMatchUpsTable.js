@@ -1,47 +1,28 @@
-import { matchUpActions } from 'components/popovers/matchUpActions';
-import { tournamentEngine, genderConstants } from 'tods-competition-factory';
+import { participantActions } from '../../popovers/participantMatchUpActions';
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
+import { matchUpActions } from 'components/popovers/matchUpActions';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { highlightWinningSide } from './highlightWinningSide';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
-import { participantActions } from '../../popovers/participantMatchUpActions';
 import { headerMenu } from '../common/headerMenu';
 import { scoreMatchUp } from './scoreMatchUp';
-import { isObject } from 'functions/typeOf';
 
 import { CENTER, LEFT, RIGHT, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
-const { MALE, FEMALE } = genderConstants;
-
 export function createMatchUpsTable() {
-  let table, ready;
+  let table;
 
   // EXAMPLE: renders same as default
   function titleFormatter(cell) {
     const elem = document.createElement('div');
     elem.style = 'font-weight: bold';
     elem.innerHTML = cell.getValue();
-    return elem;
-  }
-
-  function highlightWinningSide(cell) {
-    const def = cell.getColumn().getDefinition();
-    const elem = document.createElement('div');
-    const data = cell.getRow().getData();
-    const hasWinner = data.winningSide;
-    const value = cell.getValue();
-    if (hasWinner) {
-      const winningSide = def.field === data.winningSide;
-      elem.style = winningSide ? 'color: green' : 'color: red';
-    } else {
-      const color = (isObject(value) && value?.sex === MALE && '#2E86C1') || (value?.sex === FEMALE && '#AA336A') || '';
-      elem.style.color = color;
-    }
-    elem.innerHTML = (isObject(value) ? value.participantName : value) || '';
     return elem;
   }
 
@@ -53,13 +34,9 @@ export function createMatchUpsTable() {
   };
 
   const replaceTableData = () => {
-    const refresh = () => {
-      // TODO: add competitiveness column and/or highlight scores based on competitiveness
-      // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
-      table.replaceData(getTableData());
-    };
-
-    setTimeout(refresh, ready ? 0 : 1000);
+    // TODO: add competitiveness column and/or highlight scores based on competitiveness
+    // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
+    table.replaceData(getTableData());
   };
 
   const columns = [
@@ -196,8 +173,6 @@ export function createMatchUpsTable() {
       columns,
       data
     });
-
-    table.on('tableBuilt', () => (ready = true));
   };
 
   render(getTableData());

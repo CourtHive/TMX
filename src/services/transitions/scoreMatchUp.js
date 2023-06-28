@@ -28,9 +28,8 @@ export function enterMatchUpScore({ matchUpId, callback }) {
       }
     ];
     const mutationCallback = (result) => {
-      console.log({ outcome, result });
       context.modal.close();
-      isFunction(callback) && callback(result);
+      isFunction(callback) && callback({ ...result, outcome });
     };
     mutationRequest({ methods, callback: mutationCallback });
   };
