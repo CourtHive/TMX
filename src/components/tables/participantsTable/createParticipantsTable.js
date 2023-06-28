@@ -182,8 +182,8 @@ export function createParticipantsTable({ view } = {}) {
       height: window.innerHeight * 0.86,
       placeholder: 'No participants',
       responsiveLayout: 'collapse',
-      layout: 'fitColumns',
       index: 'participantId',
+      layout: 'fitColumns',
       reactiveData: true,
       columns,
       data

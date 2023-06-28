@@ -8,7 +8,6 @@ import {
   TMX_CONTENT,
   TMX_TOURNAMENTS,
   TMX_DRAWER,
-  TMX_MODAL,
   TIMEPICKER,
   TIMEVALUE,
   NONE,
@@ -146,7 +145,9 @@ const footer = (
   </footer>
 );
 
-!!footer;
+if (footer) {
+  //
+}
 
 const TMX = () => (
   <div>
@@ -155,22 +156,6 @@ const TMX = () => (
       <a className="closebtn">&times;</a>
       <div id={OVERLAY_CONTENT} className="overlay-content"></div>
     </div>
-    <section
-      aria-labelledby="Modal"
-      className="gmodal"
-      id={TMX_MODAL}
-      role="dialog"
-    >
-      <div className="gmodal__container has-center">
-        <div className="gmodal__dialog">
-          <div className="gmodal__header">
-            <div className="gmodal__title"></div>
-          </div>
-          <div className="gmodal__body"></div>
-          <div className="gmodal__footer"></div>
-        </div>
-      </div>
-    </section>
     <section id={TMX_DRAWER} className="drawer drawer--left" data-drawer-target>
       <div className="drawer__overlay" data-drawer-close tabIndex="-1"></div>
       <div className="drawer__wrapper">
