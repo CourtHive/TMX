@@ -1,5 +1,6 @@
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
 import { closeOverlay, openOverlay } from './overlay';
+import { context } from 'services/context';
 
 export function openScorecard({ eventData, matchUp }) {
   const title = eventData?.eventInfo?.eventName;
@@ -32,7 +33,8 @@ export function renderScorecard({ matchUp }) {
     const tableElement = document.createElement('div');
     collection.appendChild(tableElement);
 
-    createCollectionTable({ matchUp, tableElement, collectionMatchUps });
+    const { table } = createCollectionTable({ matchUp, tableElement, collectionMatchUps });
+    context.tables[collectionDefinition.collectionId] = table;
 
     contentContaner.appendChild(collection);
   }
