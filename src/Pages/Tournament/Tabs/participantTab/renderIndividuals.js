@@ -2,18 +2,17 @@ import { tournamentEngine, participantConstants, genderConstants, participantRol
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
+import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
 import { editParticipant } from './editParticipant';
-import { editEvent } from '../eventsTab/editEvent';
 
-import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
+import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 import { MODIFY_SIGN_IN_STATUS } from 'constants/mutationConstants';
 
 const { INDIVIDUAL, SIGNED_IN, SIGNED_OUT } = participantConstants;
@@ -106,21 +105,6 @@ export function renderIndividuals({ view }) {
     mutationRequest({ methods, callback: postMutation });
   };
 
-  const eventFromParticipants = () => {
-    const selected = table.getSelectedData();
-    const active = table.getData('active').map((a) => a.participantId);
-    const participants = selected.filter((s) => active.includes(s.participantId));
-
-    const postEventCreation = (result) => {
-      table.deselectRow();
-      if (result?.success) {
-        const eventId = result?.event?.eventId;
-        if (eventId) navigateToEvent({ eventId });
-      }
-    };
-    editEvent({ callback: postEventCreation, participants });
-  };
-
   const addToEventOptions = events
     .map((event) => ({
       onClick: () => addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: replaceTableData }),
@@ -129,7 +113,11 @@ export function renderIndividuals({ view }) {
     }))
     .concat([
       { divider: true },
-      { label: '<p style="font-weight: bold">Create new event</p>', onClick: eventFromParticipants, close: true }
+      {
+        label: '<p style="font-weight: bold">Create new event</p>',
+        onClick: () => eventFromParticipants(table),
+        close: true
+      }
     ]);
 
   const items = [
@@ -149,7 +137,7 @@ export function renderIndividuals({ view }) {
       location: OVERLAY
     },
     {
-      onClick: eventFromParticipants,
+      onClick: () => eventFromParticipants(table),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
@@ -179,7 +167,7 @@ export function renderIndividuals({ view }) {
     {
       hide: eventOptions.length < 2,
       options: eventOptions,
-      label: 'All events',
+      label: ALL_EVENTS,
       modifyLabel: true,
       location: LEFT,
       selection: true
