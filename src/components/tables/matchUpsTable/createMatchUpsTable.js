@@ -106,6 +106,12 @@ export function createMatchUpsTable() {
       minWidth: 100
     },
     {
+      field: 'matchUpType',
+      titleFormatter,
+      title: 'Type',
+      minWidth: 90
+    },
+    {
       field: 'roundName',
       title: 'Round',
       titleFormatter,
