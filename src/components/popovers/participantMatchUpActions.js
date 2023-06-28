@@ -10,7 +10,8 @@ export function participantActions(e, cell) {
   }
   const data = cell.getRow().getData();
   const def = cell.getColumn().getDefinition();
-  const participantPresent = (data.side1 && def.field === 'side1') || (data.side2 && def.field === 'side2');
+  const participantPresent =
+    (data.side1?.participantName && def.field === 'side1') || (data.side2?.participantName && def.field === 'side2');
   if (participantPresent) {
     const callback = (data) => console.log(data);
     const items = [

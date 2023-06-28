@@ -26,6 +26,7 @@ export function createParticipantsTable({ view } = {}) {
     view === OFFICIAL
       ? { participantRoles: [OFFICIAL] }
       : { participantTypes: [INDIVIDUAL], participantRoles: [COMPETITOR] };
+
   const getTableData = () => {
     const result = tournamentEngine.getParticipants({
       withSignInStatus: true,
@@ -49,6 +50,7 @@ export function createParticipantsTable({ view } = {}) {
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,
+      responsive: false,
       hozAlign: LEFT,
       width: 5
     },
@@ -114,9 +116,9 @@ export function createParticipantsTable({ view } = {}) {
       title: `<div class='fa-solid fa-check' style='color: green' />`,
       cellClick: toggleSignInStatus,
       formatter: 'tickCross',
+      resizable: false,
       field: 'signedIn',
       hozAlign: LEFT,
-      responsive: false,
       tooltip: false,
       width: 40
     },
@@ -151,7 +153,7 @@ export function createParticipantsTable({ view } = {}) {
     {
       title: 'City/State',
       field: 'cityState',
-      minWidth: 100
+      minWidth: 110
     },
     {
       title: 'WTN',
@@ -180,8 +182,8 @@ export function createParticipantsTable({ view } = {}) {
       height: window.innerHeight * 0.86,
       placeholder: 'No participants',
       responsiveLayout: 'collapse',
-      layout: 'fitColumns',
       index: 'participantId',
+      layout: 'fitColumns',
       reactiveData: true,
       columns,
       data

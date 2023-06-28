@@ -201,7 +201,7 @@ html.can-touch .scoreboard .info .options:hover {
   justify-content: space-between;
 }
 .scoreboard .scoreboard-action {
-  overflow: hidden;
+  overflow: auto;
   width: 100%;
 }
 .scoreboard .scoreboard-action .frame {

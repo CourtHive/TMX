@@ -1,0 +1,163 @@
+.overlay {
+  position: fixed;
+  z-index: 9900;
+  padding: 0;
+  inset: 0;
+}
+
+.overlay-center-align {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  height: 100%;
+}
+
+.overlay-content {
+  margin-right: 2em;
+  margin-left: 2em;
+  overflow-y: auto;
+  flex-basis: auto;
+  flex-shrink: 1;
+  height: 100%;
+  flex-grow: 1;
+  padding: 0;
+}
+
+.collection {
+  background: white;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.overlay-root {
+  background-color: rgb(243, 241, 245);
+  flex-direction: column;
+  position: relative;
+  max-height: none;
+  overflow-y: auto;
+  max-width: 100%;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.button-spacer {
+  margin-left: 1em;
+}
+
+.overlay-header {
+  background-color: white;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: 1rem;
+  flex-basis: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-grow: 0;
+  margin: 0;
+}
+
+.overlay-footer {
+  background-color: white;
+  justify-content: center;
+  padding: 0.5rem 1.5rem;
+  align-items: center;
+  flex-basis: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-grow: 0;
+}
+
+.overlay-footer-wrap {
+  justify-content: flex-end;
+  box-sizing: border-box;
+  flex-flow: row wrap;
+  display: flex;
+  width: 100%;
+}
+
+.overlay-header-content {
+  justify-content: space-around;
+  box-sizing: border-box;
+  flex-flow: row wrap;
+  display: flex;
+  width: 100%;
+}
+
+.overlay-title {
+  font-weight: bold;
+  font-size: 1.5em;
+  margin: 0;
+}
+.overlay-content-container {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.overlay-content-overview {
+  background-color: white;
+  padding: 1rem 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.overlay-content-header {
+  padding: 0.5rem 0;
+  font-weight: bold;
+}
+
+.overlay-content-body {
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+.matchup-side {
+  align-items: center;
+  padding: 0.5rem 0;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  display: flex;
+  flex-grow: 1;
+  gap: 0.5rem;
+}
+
+.side-score {
+  font-size: 2.4rem;
+  font-weight: bold;
+  padding: 0.5rem;
+}
+
+.side-name {
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 2rem;
+}
+.score-box {
+  padding: 0;
+}
+
+.score-vs {
+  justify-content: center;
+  place-self: center;
+  font-size: 1.2rem;
+}
+
+.score-flex {
+  display: flex;
+}

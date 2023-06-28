@@ -1,8 +1,9 @@
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { openScorecard } from 'components/overlays/scorecard';
 import { tournamentEngine } from 'tods-competition-factory';
 
-export function getEventHandlers({ callback }) {
+export function getEventHandlers({ eventData, callback }) {
   const sideClick = (props) => {
     const { matchUp = {}, sideNumber } = props;
 
@@ -36,6 +37,7 @@ export function getEventHandlers({ callback }) {
 
     selectPositionAction({ ...props, actions, callback });
   };
+
   return {
     /*
     // TODS-REACT-DRAWS
@@ -72,7 +74,7 @@ export function getEventHandlers({ callback }) {
 
       if (readyToScore) {
         if (matchUp.matchUpType === 'TEAM') {
-          console.log('team scorecard');
+          openScorecard({ eventData, matchUp });
         } else {
           enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
         }

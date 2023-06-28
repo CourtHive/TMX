@@ -42,6 +42,7 @@ export const mapMatchUp = (matchUp) => {
     scheduledDate,
     readyToScore,
     scheduleTime,
+    matchUpType,
     winningSide,
     searchText,
     courtName,

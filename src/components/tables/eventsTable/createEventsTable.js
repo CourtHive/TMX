@@ -74,6 +74,7 @@ export function createEventsTable() {
         titleFormatter: 'rowSelection',
         formatter: 'rowSelection',
         headerSort: false,
+        responsive: false,
         hozAlign: LEFT,
         width: 5
       },
@@ -331,7 +332,8 @@ export function createEventsTable() {
       ]),
       responsiveLayoutCollapseStartOpen: false,
       rowFormatter: subTableFormatter,
-      minHeight: window.innerHeight * 0.8,
+      // minHeight: window.innerHeight * 0.8,
+      height: window.innerHeight * 0.8,
       // height: // NOTE: setting a height causes scrolling issue
       responsiveLayout: 'collapse',
       placeholder: 'No events',

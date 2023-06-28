@@ -1,9 +1,10 @@
 import { updateReady, popupsBlocked } from 'services/notifications/statusMessages';
 import { tournamentContent } from 'Pages/Tournament/Container/tournamentContent';
+import { initializeModal } from 'components/modals/tmxModal/initializeModal';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
-import { baseModal } from 'components/modals/modal';
+import { baseModal } from 'components/modals/tmxModal/modal';
 import { imageClass } from './assets/imageClass';
 import { isObject } from 'functions/typeOf';
 import { tmxNavigation } from 'navigation';
@@ -36,6 +37,7 @@ import 'tippy.js/dist/tippy.css';
 import 'styles/tournamentContainer.css';
 import 'styles/tournamentSchedule.css';
 import 'styles/tabulator.css';
+import 'styles/overlay.css';
 import 'styles/sidebar.css';
 import 'styles/leaflet.css';
 import 'styles/fa.min.css';
@@ -46,6 +48,7 @@ export function setupTMX() {
   setWindow();
   setContext();
   tournamentContent();
+  initializeModal();
 
   // add TMX Modal
   // order is important
@@ -61,7 +64,7 @@ export function setupTMX() {
 
 function tmxReady() {
   console.log('%c TMX ready', 'color: lightgreen');
-  if (window.location.host.indexOf('localhost:') === 0) setDev();
+  if (window.location.host.startsWith('localhost:')) setDev();
 
   routeTMX();
   tmxNavigation();

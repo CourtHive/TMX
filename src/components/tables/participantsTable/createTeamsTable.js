@@ -88,6 +88,7 @@ export function createTeamsTable({ view } = {}) {
           titleFormatter: 'rowSelection',
           formatter: 'rowSelection',
           headerSort: false,
+          responsive: false,
           hozAlign: LEFT,
           width: 5
         },
@@ -105,6 +106,7 @@ export function createTeamsTable({ view } = {}) {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
+      responsive: false,
       headerSort: false,
       hozAlign: LEFT,
       width: 5

@@ -2,16 +2,19 @@ import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents
 import { tournamentEngine, eventConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { renderScorecard } from 'components/overlays/scorecard';
 import { controlBar } from 'components/controlBar/controlBar';
+import { render, unmountComponentAtNode } from 'react-dom';
 import { getEventHandlers } from './getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
-import { render } from 'react-dom';
 
-import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
+import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
+import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { removeAllChildNodes } from 'services/dom/transformers';
 
-const { DOUBLES } = eventConstants;
+const { DOUBLES, TEAM } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
   const eventData = tournamentEngine.getEventData({ eventId }).eventData;
@@ -24,11 +27,15 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
-  const eventHandlers = getEventHandlers({ callback: () => renderTODSdraw({ eventId, drawId, structureId }) });
+  const structure = drawData.structures?.find((s) => s.structureId === structureId);
+
+  const eventHandlers = getEventHandlers({
+    callback: () => renderTODSdraw({ eventId, drawId, structureId }),
+    eventData
+  });
   const composition =
     compositions?.[compositionName] ||
-    compositions[window.sg] ||
-    compositions[eventType === DOUBLES ? 'Australian' : 'National']; // National malformed for DOUBLES
+    compositions[(eventType === DOUBLES && 'Australian') || (eventType === TEAM && 'French') || 'National']; // National malformed for DOUBLES
   const className = composition.theme;
 
   const args = {
@@ -39,6 +46,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   };
 
   const drawsView = document.getElementById(DRAWS_VIEW);
+  destroyTable({ anchorId: DRAWS_VIEW });
+  unmountComponentAtNode(drawsView);
+  removeAllChildNodes(drawsView);
+
   const updateDrawDisplay = (args) =>
     window.reactDraws
       ? render(<DrawStructure {...args} />, drawsView)
@@ -72,7 +83,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }))
       .concat([
         { divider: true },
-        { label: `<div style='font-weight: bold'>All events</div>`, onClick: displayAllEvents, close: true }
+        { label: `<div style='font-weight: bold'>${ALL_EVENTS}</div>`, onClick: displayAllEvents, close: true }
       ]);
 
     const drawsOptions = eventData.drawsData
@@ -172,8 +183,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     return;
   }
 
-  const structure = drawData.structures?.find((s) => s.structureId === structureId);
-
-  updateDrawDisplay(args);
+  const matchUps = Object.values(structure?.roundMatchUps || {}).flat();
+  if (matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM) {
+    const scorecard = renderScorecard({ matchUp: matchUps[0] });
+    drawsView.appendChild(scorecard);
+  } else {
+    updateDrawDisplay(args);
+  }
   updateControlBar();
 }
