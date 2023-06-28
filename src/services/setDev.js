@@ -11,7 +11,6 @@ import { TOURNAMENT } from 'constants/tmxConstants';
 
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
-import { openOverlay, closeOverlay } from 'components/overlays/overlay';
 
 export function setDev() {
   if (!window.dev) {
@@ -37,7 +36,6 @@ export function setDev() {
   addDev({ connectSocket, disconnectSocket, emitTmx });
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
-  addDev({ openOverlay, closeOverlay });
 }
 
 function addDev(variable) {
