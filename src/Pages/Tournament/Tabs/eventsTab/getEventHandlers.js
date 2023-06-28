@@ -1,3 +1,4 @@
+import { openOverlay } from 'components/overlays/overlay';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -72,7 +73,7 @@ export function getEventHandlers({ callback }) {
 
       if (readyToScore) {
         if (matchUp.matchUpType === 'TEAM') {
-          console.log('team scorecard');
+          openOverlay();
         } else {
           enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
         }
