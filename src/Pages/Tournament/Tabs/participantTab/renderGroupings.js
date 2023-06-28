@@ -3,6 +3,7 @@ import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttrib
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
+import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
@@ -29,14 +30,16 @@ export function renderGroupings({ view }) {
 
   const { eventOptions, events } = getEventFilter(table);
 
-  const refresh = () => replaceTableData();
-
   const actionOptions = [
-    { label: 'New team', onClick: () => addTeam({ callback: refresh }) },
-    { label: 'Create team', onClick: () => createTeamsFromAttribute({ callback: refresh }) }
+    { label: 'New team', onClick: () => addTeam({ callback: replaceTableData }) },
+    { label: 'Create team', onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) }
   ];
 
-  const createNewEvent = { label: `<span style='font-weight: bold'>Create new event</span>`, close: true };
+  const createNewEvent = {
+    label: '<p style="font-weight: bold">Create new event</p>',
+    onClick: () => eventFromParticipants(table),
+    close: true
+  };
   const addToEventOptions = [createNewEvent, { divider: true }].concat(
     events
       .filter(({ eventType }) => eventType === TEAM)
@@ -58,10 +61,17 @@ export function renderGroupings({ view }) {
       search: true
     },
     {
-      hide: !addToEventOptions.length,
       options: addToEventOptions,
       label: 'Add to event',
+      hide: !events.length,
       intent: 'is-none',
+      location: OVERLAY
+    },
+    {
+      onClick: () => eventFromParticipants(table),
+      label: 'Create event',
+      hide: events.length,
+      intent: 'is-info',
       location: OVERLAY
     },
     {

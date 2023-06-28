@@ -14,8 +14,8 @@ export function destroyTipster() {
 /*
  *   e.g. config: { placement: 'bottom' }
  */
-export function tipster({ title, options, items, target, coords, callback, config }) {
-  if (!options?.length && !items?.length) return;
+export function tipster({ title, options, items, menuItems = [], target, coords, callback, config }) {
+  if (!options?.length && !items?.length && !menuItems) return;
 
   destroyTipster();
 
@@ -53,8 +53,10 @@ export function tipster({ title, options, items, target, coords, callback, confi
           }
         }));
 
-    const menu = [{ text: title, items }];
-    renderMenu(tippyMenu, menu);
+    const menu = [{ text: title, items }, ...menuItems];
+    const { focusElement } = renderMenu(tippyMenu, menu);
+    if (focusElement) focusElement.focus();
+
     return tippyMenu;
   };
 
@@ -65,4 +67,6 @@ export function tipster({ title, options, items, target, coords, callback, confi
     // must be programmatic after show() event
     tip.setProps({ interactive: true });
   }
+
+  return tip;
 }

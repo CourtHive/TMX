@@ -15,6 +15,7 @@ import { context } from 'services/context';
 import { getColumns } from './getColumns';
 
 import {
+  ALL_EVENTS,
   CONTROL_BAR,
   EMPTY_STRING,
   ENTRIES_COUNT,
@@ -132,7 +133,7 @@ export function createEntriesPanels({ eventId, drawId }) {
         close: true
       }))
       .concat([{ divider: true }, eventEntries]);
-    const allEvents = { label: 'All events', onClick: displayAllEvents, close: true };
+    const allEvents = { label: ALL_EVENTS, onClick: displayAllEvents, close: true };
     const eventOptions = result.events
       .map((e) => ({
         onClick: () => navigateToEvent({ eventId: e.eventId }),

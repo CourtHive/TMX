@@ -12,8 +12,9 @@ export function mapTeamParticipant(participant, derivedEventInfo) {
   const membersCount = individualParticipantIds?.length || 0;
 
   return {
-    searchText: participantName.toLowerCase(),
     events: getEvents(participant, derivedEventInfo),
+    eventIds: participant.events.map(({ eventId }) => eventId),
+    searchText: participantName.toLowerCase(),
     representing: getCountry(representing),
     individualParticipants,
     participantName,

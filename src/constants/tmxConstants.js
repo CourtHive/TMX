@@ -89,9 +89,11 @@ export const TOURNAMENT_MATCHUPS = 'tournamentMatchUps';
 export const TOURNAMENT_SCHEDULE = 'tournamentSchedule';
 export const TOURNAMENTS_TABLE = 'tournamentsTable';
 export const TOURNAMENT_TEAMS = 'tournamentTeams';
+export const OVERLAY_CONTENT = 'overlayContent';
 export const TOURNAMENT_VENUES = 'venuesTable';
 export const ENTRIES_COUNT = 'entriesCount';
 export const EVENTS_TABLE = 'eventsTable';
+export const TMX_OVERLAY = 'tmxOverlay';
 
 // entries
 export const ENTRIES_VIEW = 'entriesView';
