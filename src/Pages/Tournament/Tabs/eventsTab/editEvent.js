@@ -33,10 +33,10 @@ export function editEvent({ event, participants, callback } = {}) {
 
   let eventTypeOptions, genderOptions;
 
+  const participantType = participants?.[0].participantType;
   if (participants?.length) {
-    const participantType = participants[0].participantType;
     values.eventType = (participantType === INDIVIDUAL && SINGLES) || (participantType === PAIR && DOUBLES) || TEAM;
-    if (participantType === INDIVIDUAL) eventTypeOptions = [SINGLES, DOUBLES];
+    if (participantType === INDIVIDUAL) eventTypeOptions = [SINGLES, DOUBLES, TEAM];
     if (participantType === PAIR) eventTypeOptions = [DOUBLES];
     if (participantType === TEAM) eventTypeOptions = [TEAM];
 
@@ -145,7 +145,8 @@ export function editEvent({ event, participants, callback } = {}) {
     const methods = [{ method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
     if (participants?.length) {
       const participantIds = participants.map(({ participantId }) => participantId);
-      const entryStatus = eventType === DOUBLES ? UNGROUPED : DIRECT_ACCEPTANCE;
+      const entryStatus =
+        participantType === INDIVIDUAL && [DOUBLES, TEAM].includes(eventType) ? UNGROUPED : DIRECT_ACCEPTANCE;
       const method = {
         params: { eventId, participantIds, entryStatus, entryStage: MAIN },
         method: ADD_EVENT_ENTRIES
@@ -169,6 +170,7 @@ export function editEvent({ event, participants, callback } = {}) {
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
     context: 'tournament',
+    onClose: callback,
     width: '300px',
     side: RIGHT,
     content,

@@ -8,7 +8,7 @@ import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
 import { render } from 'react-dom';
 
-import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
+import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 
 const { DOUBLES } = eventConstants;
@@ -72,7 +72,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }))
       .concat([
         { divider: true },
-        { label: `<div style='font-weight: bold'>All events</div>`, onClick: displayAllEvents, close: true }
+        { label: `<div style='font-weight: bold'>${ALL_EVENTS}</div>`, onClick: displayAllEvents, close: true }
       ]);
 
     const drawsOptions = eventData.drawsData
