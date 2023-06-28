@@ -33,7 +33,7 @@ export const mapMatchUp = (matchUp) => {
     .join(' ')
     .toLowerCase();
   const searchText = normalizeDiacritics(
-    [firstLast, side1Participant?.participantName, side1Participant?.participantName].filter(Boolean).join(' ')
+    [firstLast, side1Participant?.participantName, side2Participant?.participantName].filter(Boolean).join(' ')
   ).toLowerCase();
 
   return {

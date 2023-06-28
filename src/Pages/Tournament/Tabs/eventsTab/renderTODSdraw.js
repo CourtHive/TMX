@@ -1,18 +1,19 @@
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
-import { tournamentEngine, eventConstants } from 'tods-competition-factory';
+import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderScorecard } from 'components/overlays/scorecard';
 import { controlBar } from 'components/controlBar/controlBar';
+import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { render, unmountComponentAtNode } from 'react-dom';
 import { getEventHandlers } from './getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
+import { context } from 'services/context';
 
 import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
-import { removeAllChildNodes } from 'services/dom/transformers';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -21,13 +22,19 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
+  let participantFilter;
+
   const eventType = eventData?.eventInfo?.eventType;
 
   const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
 
-  const structure = drawData.structures?.find((s) => s.structureId === structureId);
+  const { structureName, roundMatchUps } = utilities.makeDeepCopy(
+    drawData.structures?.find((s) => s.structureId === structureId) || {}
+  );
+  const matchUps = Object.values(roundMatchUps || {}).flat();
+  const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
 
   const eventHandlers = getEventHandlers({
     callback: () => renderTODSdraw({ eventId, drawId, structureId }),
@@ -46,15 +53,27 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   };
 
   const drawsView = document.getElementById(DRAWS_VIEW);
-  destroyTable({ anchorId: DRAWS_VIEW });
+  destroyTables();
   unmountComponentAtNode(drawsView);
   removeAllChildNodes(drawsView);
 
-  const updateDrawDisplay = (args) =>
+  const updateDrawDisplay = (args) => {
+    if (dual) return;
+    for (const structure of structures) {
+      for (const key of Object.keys(structure.roundMatchUps)) {
+        structure.roundMatchUps[key] = roundMatchUps[key].filter(
+          ({ sides }) =>
+            sides.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
+            !participantFilter
+        );
+      }
+    }
+
     window.reactDraws
       ? render(<DrawStructure {...args} />, drawsView)
       : render(
           <Draw
+            searchActive={participantFilter}
             eventHandlers={eventHandlers}
             structureId={structureId}
             composition={composition}
@@ -64,6 +83,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           />,
           drawsView
         );
+  };
 
   const eventControlElement = document.getElementById(EVENT_CONTROL);
   const updateControlBar = () => {
@@ -103,7 +123,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         onClick: () => {
           navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
         },
-        label: structure.structureName,
+        label: structureName,
         close: true
       }))
       .concat([
@@ -112,8 +132,21 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       ]);
 
     // PARTICIPANT filter
+    const searchFilter = (rowData) => rowData.searchText?.includes(participantFilter);
     const updateParticipantFilter = (value) => {
-      args.nameFilter = value;
+      if (!value) {
+        Object.values(context.tables)
+          .filter(Boolean)
+          // .forEach((table) => table.removeFilter(searchFilter));
+          .forEach((table) => table.clearFilter());
+      }
+      participantFilter = value?.toLowerCase();
+      if (value) {
+        Object.values(context.tables)
+          .filter(Boolean)
+          .forEach((table) => table.addFilter(searchFilter));
+      }
+      args.nameFilter = value; // tods-react-draws
       updateDrawDisplay(args);
     };
 
@@ -156,7 +189,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       },
       {
         options: structureOptions.length > 1 ? structureOptions : undefined,
-        label: structure.structureName,
+        label: structureName,
         modifyLabel: true,
         location: LEFT
       },
@@ -183,10 +216,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     return;
   }
 
-  const matchUps = Object.values(structure?.roundMatchUps || {}).flat();
-  if (matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM) {
-    const scorecard = renderScorecard({ matchUp: matchUps[0] });
-    drawsView.appendChild(scorecard);
+  if (dual) {
+    const scorecard = renderScorecard({ matchUp: matchUps[0], participantFilter });
+    if (scorecard) drawsView.appendChild(scorecard);
   } else {
     updateDrawDisplay(args);
   }
