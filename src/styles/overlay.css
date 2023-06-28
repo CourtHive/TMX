@@ -1,18 +1,17 @@
 .overlay {
-  background-color: rgba(0, 0, 0, 0.9);
-  position: fixed;
+  background-color: white;
+  position: absolute;
   display: none;
   height: 100%;
   width: 100%;
-  z-index: 1;
+  z-index: 9999;
   left: 0;
   top: 0;
 }
 
 .overlay a {
-  padding: 8px;
+  padding: 4px;
   text-decoration: none;
-  font-size: 36px;
   color: #818181;
   display: block;
   transition: 0.3s;
@@ -20,12 +19,12 @@
 
 .overlay a:hover,
 .overlay a:focus {
-  color: #f1f1f1;
+  color: #f03a3a;
 }
 
 .overlay .closebtn {
   position: absolute;
-  top: 20px;
-  right: 45px;
-  font-size: 60px;
+  top: 10px;
+  right: 35px;
+  font-size: 40px;
 }
