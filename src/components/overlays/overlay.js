@@ -12,10 +12,7 @@ export function openOverlay({ content } = {}) {
   const tmxOverlay = document.getElementById(TMX_OVERLAY);
   tmxOverlay.style.display = 'block';
   const closeButton = tmxOverlay.getElementsByClassName('closebtn')?.[0];
-  if (closeButton) {
-    console.log({ closeButton });
-    closeButton.onclick = () => closeOverlay();
-  }
+  if (closeButton) closeButton.onclick = () => closeOverlay();
 }
 
 export function closeOverlay() {
