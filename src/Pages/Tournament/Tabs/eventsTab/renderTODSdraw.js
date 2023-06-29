@@ -31,7 +31,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   structureId = structureId || structures?.[0]?.structureId;
 
   const { structureName, roundMatchUps } = utilities.makeDeepCopy(
-    drawData.structures?.find((s) => s.structureId === structureId) || {}
+    drawData?.structures?.find((s) => s.structureId === structureId) || {}
   );
   const matchUps = Object.values(roundMatchUps || {}).flat();
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
@@ -61,7 +61,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     if (dual) return;
     for (const structure of structures) {
       for (const key of Object.keys(structure.roundMatchUps)) {
-        structure.roundMatchUps[key] = roundMatchUps[key].filter(
+        structure.roundMatchUps[key] = roundMatchUps[key]?.filter(
           ({ sides }) =>
             sides.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
             !participantFilter
