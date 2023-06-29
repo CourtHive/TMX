@@ -9,10 +9,18 @@ export function createCollectionTable({ matchUp, tableElement, collectionMatchUp
   const data = collectionMatchUps.map(mapMatchUp);
 
   const scoreHandler = (e, cell) => {
-    const data = cell.getRow().getData();
+    const row = cell.getRow();
+    const data = row.getData();
     const { matchUpId, readyToScore } = data;
     const callback = (result) => {
-      console.log({ result }, 'update tie score & row score');
+      if (result.success) {
+        const { matchUpStatus, sets, matchUpFormat, score, winningSide } = result.outcome;
+        Object.assign(data, { matchUpStatus, sets, matchUpFormat, score });
+        data.winningSide = winningSide && `side${winningSide}`;
+        row.update(data);
+        table.redraw(e);
+        console.log('update dual matchUp score');
+      }
     };
     if (readyToScore) enterMatchUpScore({ matchUpId, callback });
   };
