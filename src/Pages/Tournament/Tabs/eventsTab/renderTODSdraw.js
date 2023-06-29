@@ -43,7 +43,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const composition =
     compositions?.[compositionName] ||
     compositions[(eventType === DOUBLES && 'Australian') || (eventType === TEAM && 'French') || 'National']; // National malformed for DOUBLES
+
   const className = composition.theme;
+  composition.configuration.allDrawPositions = true;
+  composition.configuration.drawPositions = true;
 
   const args = {
     eventHandlers,
@@ -123,7 +126,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         onClick: () => {
           navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
         },
-        label: structureName,
+        label: structure.structureName,
         close: true
       }))
       .concat([
