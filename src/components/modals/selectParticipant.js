@@ -1,8 +1,12 @@
-import { controlBar } from 'components/controlBar/controlBar';
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
-import { LEFT } from 'constants/tmxConstants';
+import { positionActionConstants } from 'tods-competition-factory';
+import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { context } from 'services/context';
+
+import { LEFT } from 'constants/tmxConstants';
+
+const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
 const actionTypes = {
   ALTERNATE: {
@@ -11,7 +15,11 @@ const actionTypes = {
     param: 'alternateParticipantId',
     title: 'Assign alternate'
   },
-  ASSIGN: { title: 'Select participant', targetAttribute: 'participantId', selections: 'participantsAvailable' },
+  [ASSIGN_PARTICIPANT]: {
+    title: 'Select participant',
+    targetAttribute: 'participantId',
+    selections: 'participantsAvailable'
+  },
   SWAP: {
     selections: 'availableAssignments',
     targetAttribute: 'drawPosition',
