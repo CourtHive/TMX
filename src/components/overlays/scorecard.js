@@ -1,13 +1,18 @@
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
 import { closeOverlay, openOverlay } from './overlay';
+import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-export function openScorecard({ eventData, matchUp }) {
+const WIN_INDICATOR = 'has-text-success';
+const TIE_SIDE_1 = 'tieSide1';
+const TIE_SIDE_2 = 'tieSide2';
+
+export function openScorecard({ eventData, matchUp, onClose }) {
   const title = eventData?.eventInfo?.eventName;
 
   if (!title || !Array.isArray(matchUp?.tieFormat?.collectionDefinitions)) return;
   const content = renderScorecard({ matchUp });
-  const footer = getFooter();
+  const footer = getFooter({ onClose });
 
   return openOverlay({ title, content, footer });
 }
@@ -42,6 +47,21 @@ export function renderScorecard({ matchUp }) {
   return contentContaner;
 }
 
+export function setTieScore(result) {
+  const set = result?.score?.sets?.[0];
+  if (!set) return;
+
+  const side1Score = document.getElementById(TIE_SIDE_1);
+  const side2Score = document.getElementById(TIE_SIDE_2);
+  side1Score.classList.remove(WIN_INDICATOR);
+  side2Score.classList.remove(WIN_INDICATOR);
+  side1Score.innerHTML = set.side1Score;
+  side2Score.innerHTML = set.side2Score;
+
+  if (result.winningSide === 1) side1Score.classList.add(WIN_INDICATOR);
+  if (result.winningSide === 2) side2Score.classList.add(WIN_INDICATOR);
+}
+
 function getOverview({ matchUp }) {
   const overview = document.createElement('div');
   overview.className = 'overlay-content-overview';
@@ -67,8 +87,8 @@ function getScore({ matchUp }) {
   const scoreFlex = document.createElement('div');
   scoreFlex.className = 'score-flex';
 
-  const side1Score = getSideScore({ matchUp, sideNumber: 1 });
-  const side2Score = getSideScore({ matchUp, sideNumber: 2 });
+  const side1Score = getSideScore({ matchUp, sideNumber: 1, id: TIE_SIDE_1 });
+  const side2Score = getSideScore({ matchUp, sideNumber: 2, id: TIE_SIDE_2 });
   const vs = document.createElement('div');
   vs.className = 'score-vs';
   vs.innerHTML = 'vs';
@@ -82,7 +102,7 @@ function getScore({ matchUp }) {
   return scoreBox;
 }
 
-function getSideScore({ matchUp, sideNumber }) {
+function getSideScore({ matchUp, sideNumber, id }) {
   const sideString = `side${sideNumber}Score`;
   const score = matchUp.score?.sets?.[0]?.[sideString] || 0;
 
@@ -99,6 +119,7 @@ function getSideScore({ matchUp, sideNumber }) {
   if (winningSide) sideScore.classList.add('has-text-success');
 
   sideScore.innerHTML = score;
+  sideScore.id = id;
 
   return sideScore;
 }
@@ -113,7 +134,7 @@ function getSide({ matchUp, sideNumber, justify = 'start' }) {
   return side;
 }
 
-function getFooter() {
+function getFooter({ onClose }) {
   const reset = document.createElement('button');
   reset.className = 'button is-warning is-light';
   reset.onclick = () => console.log('reset');
@@ -126,7 +147,12 @@ function getFooter() {
 
   const close = document.createElement('button');
   close.className = 'button is-info button-spacer';
-  close.onclick = closeOverlay;
+  close.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeOverlay();
+    isFunction(onClose) && onClose();
+  };
   close.innerHTML = 'Done';
 
   const footer = document.createElement('div');

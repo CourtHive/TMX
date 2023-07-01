@@ -37,6 +37,7 @@ export const mapMatchUp = (matchUp) => {
   ).toLowerCase();
 
   return {
+    matchUpStatus: matchUp.matchUpStatus,
     individualParticipantIds,
     eventType: matchUpType,
     scheduledDate,

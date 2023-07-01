@@ -74,7 +74,8 @@ export function getEventHandlers({ eventData, callback }) {
 
       if (readyToScore) {
         if (matchUp.matchUpType === 'TEAM') {
-          openScorecard({ eventData, matchUp });
+          const onClose = () => callback();
+          openScorecard({ eventData, matchUp, onClose });
         } else {
           enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
         }
