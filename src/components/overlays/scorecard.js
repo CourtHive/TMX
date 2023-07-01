@@ -7,9 +7,7 @@ const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
 const TIE_SIDE_2 = 'tieSide2';
 
-export function openScorecard({ eventData, matchUp, onClose }) {
-  const title = eventData?.eventInfo?.eventName;
-
+export function openScorecard({ title, matchUp, onClose }) {
   if (!title || !Array.isArray(matchUp?.tieFormat?.collectionDefinitions)) return;
   const content = renderScorecard({ matchUp });
   const footer = getFooter({ onClose });

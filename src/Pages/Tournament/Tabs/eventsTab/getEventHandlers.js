@@ -1,7 +1,9 @@
+import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { openScorecard } from 'components/overlays/scorecard';
-import { tournamentEngine } from 'tods-competition-factory';
+
+const { TEAM } = participantConstants;
 
 export function getEventHandlers({ eventData, callback }) {
   const sideClick = (props) => {
@@ -73,9 +75,10 @@ export function getEventHandlers({ eventData, callback }) {
       const readyToScore = matchUpActions?.find(({ type }) => type === 'SCORE');
 
       if (readyToScore) {
-        if (matchUp.matchUpType === 'TEAM') {
+        if (matchUp.matchUpType === TEAM) {
           const onClose = () => callback();
-          openScorecard({ eventData, matchUp, onClose });
+          const title = eventData?.eventInfo?.eventName;
+          openScorecard({ title, matchUp, onClose });
         } else {
           enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
         }
