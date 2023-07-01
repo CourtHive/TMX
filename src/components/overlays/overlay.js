@@ -66,6 +66,15 @@ export function closeOverlay() {
   const root = document.getElementById('root');
   root.style.display = 'inline';
   window.scrollTo({ top: scrollTop });
-  const tmxOverlay = document.getElementById(TMX_OVERLAY);
-  tmxOverlay.remove();
+
+  let tmxOverlay = document.getElementById(TMX_OVERLAY);
+  let iterations = 0;
+
+  while (iterations < 5 && tmxOverlay) {
+    tmxOverlay.remove();
+    iterations += 1;
+    tmxOverlay = document.getElementById(TMX_OVERLAY);
+  }
+
+  if (iterations > 1) console.log({ iterations });
 }

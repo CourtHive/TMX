@@ -4,6 +4,9 @@ import { participantActions } from 'components/popovers/participantMatchUpAction
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { setTieScore } from 'components/overlays/scorecard';
+
+import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 export function createCollectionTable({ matchUp, tableElement, collectionMatchUps }) {
   const data = collectionMatchUps.map(mapMatchUp);
@@ -19,7 +22,11 @@ export function createCollectionTable({ matchUp, tableElement, collectionMatchUp
         data.winningSide = winningSide && `side${winningSide}`;
         row.update(data);
         table.redraw(e);
-        console.log('update dual matchUp score');
+
+        const tieResult = result.results.find(({ methodName }) => methodName === SET_MATCHUP_STATUS)?.tieMatchUpResult;
+        setTieScore(tieResult);
+      } else {
+        console.log({ result });
       }
     };
     if (readyToScore) enterMatchUpScore({ matchUpId, callback });
