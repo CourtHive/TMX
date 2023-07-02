@@ -10670,15 +10670,10 @@ tods-competition-factory@^0.501.0:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-0.501.6.tgz#cc29831b3fb83bdec6012ce5d62ef3d9652d65e7"
   integrity sha512-qla7rIs/6JHe1qKxKRLf9ZJaJJCEkkVzlW/2GGrbiNO0eS7ZaAz1NAjE3/9ctBvihlXdMzEWkwItjPsnAS4v1g==
 
-tods-competition-factory@^1.0.17:
-  version "1.0.17"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.17.tgz#ce6880da2d84cfa002ebadc65bfbc9e91ad9bc42"
-  integrity sha512-Krxt75/Dn2vjqno0wrkTeaVTQKb7P7yiW926p16UHm2wg1ZW0XrewK9AC0yw4AZS6q6Omhilv4TlOrObUAHyOQ==
-
-tods-competition-factory@^1.0.18:
-  version "1.0.18"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.18.tgz#4fb1a37a703386e125545540977a44fd8ca9691f"
-  integrity sha512-kKIbfxfD039Xv4ceOhXCLGGUsXwBWieegRnshOkZNEV8+hNe0ncjkKn9qTNeZ/1MP50jTdWHg9bJaY+beI8muQ==
+tods-competition-factory@^1.0.19:
+  version "1.0.19"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.19.tgz#531cb7073d6b36755a82190ccf90943557d67217"
+  integrity sha512-yCf62N3ecM9twVy0mdaTdsJylFwdfJyrI0YJr49QymBWFonfx5mdJEputDBNTwN3ApRNjy5/ZbhH7Zrod2ekJA==
 
 tods-competition-factory@^1.0.8:
   version "1.0.13"
@@ -10696,10 +10691,10 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-score-grid@^0.13.6:
-  version "0.13.6"
-  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.6.tgz#8aeceb57c58e7ec4d3ed36db39ee0a5da48c0e1c"
-  integrity sha512-Glw+Yn3DWK8BHdPwcauHLDwg/voBXLA2QDcf/KZITXgfsOgAgR91scc/KXI0H6M2tmCk9psBYD87xPHVvMJnmg==
+tods-score-grid@^0.13.7:
+  version "0.13.7"
+  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.7.tgz#235db9f0cb87b1593e7cb8c2b82785d8f9b14ae9"
+  integrity sha512-veNOWpIQ98hKYJHXSh4k9bZ3L8iFzX8XXiQ864VCKXGg5IX15D2M7+S2qxTPl51+omYW4NzNAQRHAylDDlhc7w==
   dependencies:
     "@radix-ui/colors" "^1.0.0"
     "@radix-ui/react-dropdown-menu" "^2.0.0"
@@ -10710,7 +10705,7 @@ tods-score-grid@^0.13.6:
     dayjs "^1.10.7"
     flag-icons "^6.7.0"
     react-country-flag "^3.1.0"
-    tods-competition-factory "^1.0.17"
+    tods-competition-factory "^1.0.19"
 
 tods-tmx-classic-converter@^2.12.1:
   version "2.12.1"
