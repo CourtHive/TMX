@@ -1,4 +1,4 @@
-import { eventConstants, positionActionConstants } from 'tods-competition-factory';
+import { eventConstants, positionActionConstants, utilities } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -8,7 +8,9 @@ import { ASSIGN_TIE_MATCHUP_PARTICIPANT_ID } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
-const { TEAM } = eventConstants;
+const { TEAM, DOUBLES } = eventConstants;
+
+const xa = utilities.extractAttributes;
 
 export function participantActions(e, cell, callback) {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
@@ -43,21 +45,33 @@ export function participantActions(e, cell, callback) {
 
 function assign({ def, data, callback }) {
   const sideNumber = def.field === 'side2' ? 2 : 1;
-  const participantsAvailable = data.matchUp.dualMatchUp.sides.find((side) => side.sideNumber === sideNumber)
-    ?.participant?.individualParticipants;
+  const participantsAvailable = data.matchUp.dualMatchUp.sides
+    .find((side) => side.sideNumber === sideNumber)
+    ?.participant?.individualParticipants?.map((p) => ({
+      participantName: p.participantName,
+      participantId: p.participantId
+    }));
+  const matchUpType = data.matchUp.matchUpType;
 
+  const side = data.matchUp.sides.find((side) => sideNumber === side.sideNumber);
+  const existingParticipantIds = side?.participant?.individualParticipantIds;
+
+  const selectionLimit = matchUpType === DOUBLES ? 2 : 1;
   const onSelection = (result) => {
     if (result.participantId) {
-      const participantId = participantsAvailable.find(
-        (participant) => participant.participantId === result.participantId
-      )?.participantId;
-      const { drawId, matchUpId: tieMatchUpId } = data.matchUp;
-      const methods = [
-        {
+      const methods = [];
+      const participantIds = (
+        result.selected ? result.selected.map(xa('participantId')) : [result.participantId]
+      ).filter(Boolean);
+
+      participantIds.forEach((participantId) => {
+        const { drawId, matchUpId: tieMatchUpId } = data.matchUp;
+        methods.push({
           params: { participantId, sideNumber, drawId, tieMatchUpId },
           method: ASSIGN_TIE_MATCHUP_PARTICIPANT_ID
-        }
-      ];
+        });
+      });
+
       const postMutation = (result) => {
         isFunction(callback) && callback(result);
       };
@@ -70,5 +84,5 @@ function assign({ def, data, callback }) {
     participantsAvailable
   };
 
-  selectParticipant({ action, onSelection });
+  selectParticipant({ action, selectionLimit, onSelection, selectedParticipantIds: existingParticipantIds });
 }

@@ -7,10 +7,15 @@ export function destroyTable({ anchorId }) {
 }
 
 export function destroyTables() {
-  if (context?.tables) {
+  if (context.tables) {
     for (const key of Object.keys(context.tables)) {
       context.tables[key]?.destroy();
       delete context.tables[key];
     }
+  }
+
+  while ((context.collectionTables || []).length) {
+    const table = context.collectionTables.pop();
+    table.destroy();
   }
 }

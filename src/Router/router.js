@@ -2,6 +2,7 @@ import { registrationModal } from 'components/modals/registrationModal';
 import { displayTournament } from 'Pages/Tournament/tournamentDisplay';
 import { tmxTournaments } from 'Pages/Tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
+import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { renderCalendar } from 'Pages/Tournaments/calendar';
 import { context } from 'services/context';
 import { coms } from 'services/coms';
@@ -29,6 +30,7 @@ export function routeTMX() {
   context.router = router;
 
   const displayRoute = ({ selectedTab, renderDraw, data }) => {
+    destroyTables();
     displayTournament({ config: { selectedTab, renderDraw, ...data } }); // ...data must come last
   };
 
