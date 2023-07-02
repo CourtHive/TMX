@@ -384,7 +384,7 @@ export const lang = (function () {
       incidentals: 'Incidentals',
       remove: 'Remove',
       changestatus: 'Change Status',
-      penalty: 'Assess Penalty',
+      penalty: 'Assess penalty',
       umpire: 'Select Referee',
       matchumpire: 'Match Referee',
       matchtime: 'Match Time',

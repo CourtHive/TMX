@@ -1,18 +1,25 @@
-import { controlBar } from 'components/controlBar/controlBar';
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
-import { LEFT } from 'constants/tmxConstants';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { positionActionConstants } from 'tods-competition-factory';
+import { controlBar } from 'components/controlBar/controlBar';
 import { context } from 'services/context';
 
+import { LEFT } from 'constants/tmxConstants';
+
+const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, SWAP_PARTICIPANTS } = positionActionConstants;
+
 const actionTypes = {
-  ALTERNATE: {
+  [ALTERNATE_PARTICIPANT]: {
     selections: 'availableAlternates',
     targetAttribute: 'participantId',
     param: 'alternateParticipantId',
     title: 'Assign alternate'
   },
-  ASSIGN: { title: 'Select participant', targetAttribute: 'participantId', selections: 'participantsAvailable' },
-  SWAP: {
+  [ASSIGN_PARTICIPANT]: {
+    title: 'Select participant',
+    targetAttribute: 'participantId',
+    selections: 'participantsAvailable'
+  },
+  [SWAP_PARTICIPANTS]: {
     selections: 'availableAssignments',
     targetAttribute: 'drawPosition',
     title: 'Swap draw positions',
@@ -20,21 +27,24 @@ const actionTypes = {
   }
 };
 
-export function selectParticipant({ action, onSelection }) {
+export function selectParticipant({ action, onSelection, selectionLimit, selectedParticipantIds }) {
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
   let selected;
 
+  !!selectionLimit;
+  !!selectedParticipantIds;
+
   const onClick = () => {
     const attribute = actionType.targetAttribute;
     const param = actionType.param || actionType.targetAttribute;
-    const value = selected?.[attribute];
+    const value = Array.isArray(selected) ? selected[0]?.[attribute] : selected?.[attribute];
     if (value) {
       if (action.type === 'SWAP') {
         action.payload.drawPositions.push(value);
         onSelection({ [param]: action.payload.drawPositions });
       } else {
-        onSelection({ [param]: value });
+        onSelection({ [param]: value, selected });
       }
     }
   };
@@ -45,7 +55,12 @@ export function selectParticipant({ action, onSelection }) {
     { label: 'Cancel', intent: 'is-none', close: true },
     { label: 'Select', intent: 'is-info', onClick, close: true }
   ];
-  const onClose = () => destroyTable({ anchorId });
+  const onClose = () => {
+    const table = context.tables['selectionTable'];
+    table?.destroy();
+
+    delete context.tables['selectionTable'];
+  };
   const content = `
     <div style='min-height: 420px'>
       <div id='${controlId}'></div>
@@ -57,7 +72,14 @@ export function selectParticipant({ action, onSelection }) {
 
   const onSelected = (value) => (selected = value);
   const data = action[actionType.selections];
-  const { table } = createSelectionTable({ anchorId, actionType, data, onSelected });
+  const { table } = createSelectionTable({
+    selectedParticipantIds, // already selected
+    selectionLimit,
+    onSelected,
+    actionType,
+    anchorId,
+    data
+  });
 
   let searchText;
   const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
