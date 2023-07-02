@@ -15,6 +15,7 @@ import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, IS_OPEN, LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE, TOURNAMENT_TEAMS } from 'constants/tmxConstants';
+import { renderParticipant } from '../matchUpsTable/renderParticipant';
 
 const { TEAM } = participantConstants;
 
@@ -78,7 +79,18 @@ export function createTeamsTable({ view } = {}) {
     row.getElement().appendChild(holderEl);
 
     const participant = row.getData();
-    const data = participant.individualParticipants.map((p, i) => ({ ...p, order: i + 1 }));
+
+    const getData = (individualParticipants) => {
+      const genderCounts = {};
+      return individualParticipants.map((p) => {
+        const sex = p.person?.sex || 'OTHER';
+        if (!genderCounts[sex]) genderCounts[sex] = 0;
+        genderCounts[sex] += 1;
+        return { ...p, order: genderCounts[sex] };
+      });
+    };
+
+    const data = getData(participant.individualParticipants);
 
     const ipTable = new Tabulator(tableEl, {
       placeholder: 'No individual participants',
@@ -98,7 +110,7 @@ export function createTeamsTable({ view } = {}) {
           width: 5
         },
         { title: 'Order', headerSort: false, field: 'order', width: 70 },
-        { title: 'Name', field: 'participantName' },
+        { title: 'Name', field: 'participantName', formatter: renderParticipant },
         { title: 'Gender', field: 'person.sex', width: 100 }
       ]
     });
@@ -116,11 +128,9 @@ export function createTeamsTable({ view } = {}) {
       const postMutation = (result) => {
         if (result.success) {
           const rows = table.getRows();
-          rows.forEach((r, i) => {
-            const rowData = r.getData();
-            rowData.order = i + 1;
-            r.update(rowData);
-          });
+          const individualParticipants = rows.map((r) => r.getData());
+          const data = getData(individualParticipants);
+          rows.forEach((r, i) => r.update(data[i]));
         }
       };
       mutationRequest({ methods, callback: postMutation });
