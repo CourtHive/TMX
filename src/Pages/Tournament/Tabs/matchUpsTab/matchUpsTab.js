@@ -1,8 +1,10 @@
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
+import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
-import { tournamentEngine } from 'tods-competition-factory';
 
 import { ALL_EVENTS, ALL_TEAMS, LEFT, MATCHUPS_CONTROL } from 'constants/tmxConstants';
+
+const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
   let eventIdFilter, teamIdFilter;
@@ -41,7 +43,7 @@ export function renderMatchUpTab() {
 
   // FILTER: teams
   const teamParticipants =
-    tournamentEngine.getParticipants({ participantFilters: { participantTypes: ['TEAM'] } }).participants || [];
+    tournamentEngine.getParticipants({ participantFilters: { participantTypes: [TEAM] } }).participants || [];
   const teamMap = Object.assign(
     {},
     ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds }))

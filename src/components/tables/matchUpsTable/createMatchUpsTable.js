@@ -1,19 +1,22 @@
+import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { participantActions } from '../../popovers/participantMatchUpActions';
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { highlightWinningSide } from './highlightWinningSide';
+import { openScorecard } from 'components/overlays/scorecard';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
-import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
-import { scoreMatchUp } from './scoreMatchUp';
 
 import { CENTER, LEFT, RIGHT, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
+
+const { TEAM } = participantConstants;
 
 export function createMatchUpsTable() {
   let table;
@@ -30,6 +33,9 @@ export function createMatchUpsTable() {
     const matchUps = (
       tournamentEngine.allTournamentMatchUps({ contextProfile: { withCompetitiveness: true } }).matchUps || []
     ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
+
+    // TODO: sort matchUps 1st: scoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
+
     return matchUps.map(mapMatchUp);
   };
 
@@ -37,6 +43,19 @@ export function createMatchUpsTable() {
     // TODO: add competitiveness column and/or highlight scores based on competitiveness
     // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
     table.replaceData(getTableData());
+  };
+
+  const handleScoreClick = (e, cell) => {
+    const data = cell.getRow().getData();
+    const { matchUpId, readyToScore, matchUpType } = data.matchUp;
+    if (matchUpType === TEAM) {
+      const onClose = () => replaceTableData();
+      openScorecard({ title: 'eventName', matchUp: data.matchUp, onClose });
+    } else {
+      // TODO: replace scoreStringSide1 with utilities.scoreHasValue
+      if (readyToScore || data.matchUp.score?.scoreStringSide1)
+        enterMatchUpScore({ matchUpId, callback: replaceTableData });
+    }
   };
 
   const columns = [
@@ -128,7 +147,7 @@ export function createMatchUpsTable() {
       field: 'side2'
     },
     {
-      cellClick: scoreMatchUp(replaceTableData),
+      cellClick: handleScoreClick,
       formatter: scoreFormatter,
       responsive: false,
       title: 'Score',

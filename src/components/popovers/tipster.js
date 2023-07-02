@@ -4,11 +4,12 @@ import tippy from 'tippy.js';
 let tip;
 
 // useful when tip appears on table row that could scroll out of view
-export function destroyTipster() {
+export function destroyTipster(target) {
   if (tip) {
     tip?.destroy(true);
     tip = undefined;
   }
+  if (target) target.remove();
 }
 
 /*
@@ -18,7 +19,6 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
   if (!options?.length && !items?.length && !menuItems) return;
 
   destroyTipster();
-
   const tippyMenu = document.createElement('div');
 
   const content = () => {
@@ -28,7 +28,7 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
         .map((i) => ({
           ...i,
           onClick: () => {
-            destroyTipster();
+            destroyTipster(tippyMenu);
             if (typeof i.onClick === 'function') i.onClick();
           }
         })) ||
@@ -40,10 +40,10 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
             if (o.subMenu) {
               tip.setContent('IMPLEMENT SUB MENU');
             } else if (typeof o.onClick === 'function') {
-              destroyTipster();
+              destroyTipster(tippyMenu);
               o.onClick();
             } else if (typeof callback === 'function') {
-              destroyTipster();
+              destroyTipster(tippyMenu);
               if (typeof o === 'object') {
                 callback({ ...o, coords });
               } else {

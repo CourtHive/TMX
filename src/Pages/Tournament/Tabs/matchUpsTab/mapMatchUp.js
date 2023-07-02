@@ -1,4 +1,7 @@
+import { eventConstants } from 'tods-competition-factory';
 import { normalizeDiacritics } from 'normalize-text';
+
+const { TEAM } = eventConstants;
 
 export const mapMatchUp = (matchUp) => {
   const { matchUpId, eventName, matchUpType, eventId, roundName, schedule, sides, potentialParticipants, ...rest } =
@@ -33,12 +36,14 @@ export const mapMatchUp = (matchUp) => {
     .join(' ')
     .toLowerCase();
   const searchText = normalizeDiacritics(
-    [firstLast, side1Participant?.participantName, side1Participant?.participantName].filter(Boolean).join(' ')
+    [firstLast, side1Participant?.participantName, side2Participant?.participantName].filter(Boolean).join(' ')
   ).toLowerCase();
 
+  const eventType = matchUp.collectionId ? TEAM : matchUpType;
+
   return {
+    matchUpStatus: matchUp.matchUpStatus,
     individualParticipantIds,
-    eventType: matchUpType,
     scheduledDate,
     readyToScore,
     scheduleTime,
@@ -47,6 +52,7 @@ export const mapMatchUp = (matchUp) => {
     searchText,
     courtName,
     eventName,
+    eventType,
     matchUpId,
     roundName,
     complete,
