@@ -16,7 +16,7 @@ export const mapMatchUp = (matchUp) => {
   const side1Participant = sides?.[0]?.participant || potentials.shift();
   const side2Participant = sides?.[1]?.participant || potentials.shift();
   const side1 = { participantName: side1Participant?.participantName, sex: side1Participant?.person?.sex };
-  const side2 = { participantName: side2Participant?.participantName, sex: side1Participant?.person?.sex };
+  const side2 = { participantName: side2Participant?.participantName, sex: side2Participant?.person?.sex };
   const individualParticipantIds = sides
     .flatMap((side) => side.participant?.individualParticipantIds || side.participant?.participantId)
     .filter(Boolean);
