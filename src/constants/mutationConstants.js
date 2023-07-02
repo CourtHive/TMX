@@ -21,6 +21,7 @@ export const DELETE_PARTICIPANTS = 'deleteParticipants';
 export const DELETE_VENUES = 'deleteVenues';
 export const DESTROY_PAIR_ENTRIES = 'destroyPairEntries';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
+export const MODIFY_PARTICIPANT = 'modifyParticipant';
 export const MODIFY_SIGN_IN_STATUS = 'modifyParticipantsSignInStatus';
 export const MODIFY_VENUE = 'modifyVenue';
 export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';

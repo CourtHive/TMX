@@ -5,6 +5,7 @@ import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
+import { renderParticipant } from '../matchUpsTable/renderParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -15,7 +16,7 @@ import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, IS_OPEN, LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE, TOURNAMENT_TEAMS } from 'constants/tmxConstants';
-import { renderParticipant } from '../matchUpsTable/renderParticipant';
+import { MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 
 const { TEAM } = participantConstants;
 
@@ -121,8 +122,8 @@ export function createTeamsTable({ view } = {}) {
       const individualParticipantIds = tableData.map(({ participantId }) => participantId);
       const methods = [
         {
-          method: 'modifyParticipant',
-          params: { participant: { participantId: participant.participantId, individualParticipantIds } }
+          params: { participant: { participantId: participant.participantId, individualParticipantIds } },
+          method: MODIFY_PARTICIPANT
         }
       ];
       const postMutation = (result) => {
