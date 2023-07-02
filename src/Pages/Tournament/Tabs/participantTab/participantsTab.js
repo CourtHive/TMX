@@ -6,7 +6,7 @@ import { NONE } from 'constants/tmxConstants';
 
 const { INDIVIDUAL, TEAM, GROUP } = participantConstants;
 
-export function renderParticipantTab({ participantView = INDIVIDUAL } = {}) {
+export function formatParticipantTab({ participantView = INDIVIDUAL } = {}) {
   const view = participantView.toUpperCase();
   const teams = [TEAM, GROUP].includes(view);
 

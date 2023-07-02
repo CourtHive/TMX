@@ -7,7 +7,7 @@ import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { renderParticipant } from './renderParticipant';
+import { formatParticipant } from '../common/formatters/participantFormatter';
 import { openScorecard } from 'components/overlays/scorecard';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -131,7 +131,7 @@ export function createMatchUpsTable() {
       width: 70
     },
     {
-      formatter: renderParticipant,
+      formatter: formatParticipant,
       cellClick: participantActions,
       responsive: false,
       title: 'Side 1',
@@ -139,7 +139,7 @@ export function createMatchUpsTable() {
       field: 'side1'
     },
     {
-      formatter: renderParticipant,
+      formatter: formatParticipant,
       cellClick: participantActions,
       responsive: false,
       title: 'Side 2',

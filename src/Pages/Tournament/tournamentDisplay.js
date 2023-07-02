@@ -1,4 +1,4 @@
-import { renderParticipantTab } from 'Pages/Tournament/Tabs/participantTab/participantsTab';
+import { formatParticipantTab } from 'Pages/Tournament/Tabs/participantTab/participantsTab';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'Pages/Tournament/Tabs/matchUpsTab/matchUpsTab';
@@ -48,7 +48,7 @@ export function routeTo(config) {
   const { participantView, selectedTab = PARTICIPANTS, structureId, renderDraw, eventId, drawId } = config;
   if (displayTab(selectedTab)) {
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
-    if (selectedTab === PARTICIPANTS) renderParticipantTab({ participantView });
+    if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView });
     if (selectedTab === EVENTS_TAB) renderEventsTab({ renderDraw, eventId, drawId, structureId });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab();
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();

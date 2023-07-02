@@ -1,4 +1,4 @@
-import { renderParticipant } from 'components/tables/matchUpsTable/renderParticipant';
+import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
 import { scoreFormatter } from 'components/tables/common/formatters/scoreFormatter';
 import { participantActions } from 'components/popovers/participantMatchUpActions';
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
@@ -39,7 +39,7 @@ export function createCollectionTable({ matchUp, tableElement, collectionMatchUp
 
   const participantHandler = (cell) => {
     const value = cell.getValue();
-    if (value.participantName) return renderParticipant(cell);
+    if (value.participantName) return formatParticipant(cell);
     const elem = document.createElement('div');
     elem.className = 'has-text-warning-dark';
     elem.innerHTML = 'Select participant';

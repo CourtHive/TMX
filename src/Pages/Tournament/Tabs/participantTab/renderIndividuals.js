@@ -1,5 +1,6 @@
 import { tournamentEngine, participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
@@ -22,14 +23,7 @@ const { MIXED } = genderConstants;
 export function renderIndividuals({ view }) {
   const { table, replaceTableData, teamParticipants } = createParticipantsTable({ view });
 
-  // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) table.removeFilter(searchFilter);
-    searchText = value;
-    if (value) table.addFilter(searchFilter);
-  };
+  const setSearchFilter = createSearchFilter(table);
 
   const { eventOptions, events } = getEventFilter(table);
   const { sexOptions, genders } = getSexFilter(table);
@@ -159,11 +153,11 @@ export function renderIndividuals({ view }) {
   const items = [
     {
       onKeyDown: (e) => {
-        e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter('');
+        e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
         selectOnEnter(e);
       },
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search participants',
       location: OVERLAY,
       search: true
@@ -204,11 +198,11 @@ export function renderIndividuals({ view }) {
     },
     {
       onKeyDown: (e) => {
-        e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter('');
+        e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
         selectOnEnter(e);
       },
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search participants',
       location: LEFT,
       search: true

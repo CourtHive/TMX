@@ -5,7 +5,7 @@ import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
-import { renderParticipant } from '../matchUpsTable/renderParticipant';
+import { formatParticipant } from '../common/formatters/participantFormatter';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -111,7 +111,7 @@ export function createTeamsTable({ view } = {}) {
           width: 5
         },
         { title: 'Order', headerSort: false, field: 'order', width: 70 },
-        { title: 'Name', field: 'participantName', formatter: renderParticipant },
+        { title: 'Name', field: 'participantName', formatter: formatParticipant },
         { title: 'Gender', field: 'person.sex', width: 100 }
       ]
     });

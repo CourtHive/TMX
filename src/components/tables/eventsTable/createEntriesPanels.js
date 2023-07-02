@@ -30,13 +30,18 @@ import {
 export function createEntriesPanels({ eventId, drawId }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
 
-  let searchText;
   // global search across all tables
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) Object.values(context.tables).forEach((table) => table.removeFilter(searchFilter));
-    searchText = value?.toLowerCase();
-    if (value) Object.values(context.tables).forEach((table) => table.addFilter(searchFilter));
+  // NOTE: cannot use createSearchFilter because context.tables is a dynamic object
+  let searchFilter;
+  const setSearchFilter = (value) => {
+    if (searchFilter) Object.values(context.tables).forEach((table) => table.removeFilter(searchFilter));
+    const searchText = value?.toLowerCase();
+    searchFilter = (rowData) => rowData.searchText?.includes(searchText);
+    if (value) {
+      Object.values(context.tables).forEach((table) => table.addFilter(searchFilter));
+    } else {
+      searchFilter = undefined;
+    }
   };
 
   const getTableData = () => {
@@ -162,9 +167,9 @@ export function createEntriesPanels({ eventId, drawId }) {
     const drawName = result.event?.drawDefinitions?.find((d) => d.drawId === drawId)?.drawName;
     const items = [
       {
-        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-        onChange: (e) => updateSearchFilter(e.target.value),
-        onKeyUp: (e) => updateSearchFilter(e.target.value),
+        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('', context.tables),
+        onChange: (e) => setSearchFilter(e.target.value, context.tables),
+        onKeyUp: (e) => setSearchFilter(e.target.value, context.tables),
         placeholder: 'Search entries',
         location: LEFT,
         search: true
