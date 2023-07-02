@@ -21,6 +21,8 @@ export function renderScorecard({ matchUp }) {
   const overview = getOverview({ matchUp });
   contentContaner.appendChild(overview);
 
+  if (!context.collectionTables) context.collectionTables = [];
+
   const collectionDefinitions = matchUp.tieFormat.collectionDefinitions;
   for (const collectionDefinition of collectionDefinitions) {
     const collectionMatchUps = matchUp.tieMatchUps.filter(
@@ -37,7 +39,7 @@ export function renderScorecard({ matchUp }) {
     collection.appendChild(tableElement);
 
     const { table } = createCollectionTable({ matchUp, tableElement, collectionMatchUps });
-    context.tables[collectionDefinition.collectionId] = table;
+    context.collectionTables.push(table);
 
     contentContaner.appendChild(collection);
   }
@@ -148,6 +150,10 @@ function getFooter({ onClose }) {
   close.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    while (context.collectionTables.length) {
+      const table = context.collectionTables.pop();
+      table.destroy();
+    }
     closeOverlay();
     isFunction(onClose) && onClose();
   };

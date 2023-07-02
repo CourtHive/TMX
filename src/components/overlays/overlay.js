@@ -1,3 +1,5 @@
+import { removeAllChildNodes } from 'services/dom/transformers';
+
 import { NONE, TMX_OVERLAY } from 'constants/tmxConstants';
 
 let scrollTop;
@@ -68,6 +70,7 @@ export function closeOverlay() {
   window.scrollTo({ top: scrollTop });
 
   let tmxOverlay = document.getElementById(TMX_OVERLAY);
+  removeAllChildNodes();
   let iterations = 0;
 
   while (iterations < 5 && tmxOverlay) {
