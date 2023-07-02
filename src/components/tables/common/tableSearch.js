@@ -34,7 +34,7 @@ export const searchField =
     return {
       onKeyDown: (e) => {
         e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter('');
-        if (e.keyCode === 13 && isFunction(onEnter)) {
+        if ((e.key === 'Enter' || e.keyCode === 13) && isFunction(onEnter)) {
           const clear = onEnter(table);
           if (clear) updateSearchFilter('');
         }
