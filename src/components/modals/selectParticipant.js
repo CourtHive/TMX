@@ -1,4 +1,5 @@
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { positionActionConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 import { context } from 'services/context';
@@ -81,24 +82,18 @@ export function selectParticipant({ action, onSelection, selectionLimit, selecte
     data
   });
 
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) table.removeFilter(searchFilter);
-    searchText = value?.toLowerCase();
-    if (value) table.addFilter(searchFilter);
-  };
-
-  const target = document.getElementById(controlId);
+  const setSearchFilter = createSearchFilter(table);
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search entries',
       location: LEFT,
       search: true
     }
   ];
+
+  const target = document.getElementById(controlId);
   controlBar({ table, target, items });
 }

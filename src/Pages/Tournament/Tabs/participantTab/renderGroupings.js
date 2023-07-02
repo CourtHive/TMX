@@ -1,3 +1,4 @@
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createTeamsTable } from 'components/tables/participantsTable/createTeamsTable';
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
@@ -16,17 +17,7 @@ const { TEAM } = participantConstants;
 export function renderGroupings({ view }) {
   const { table, replaceTableData } = createTeamsTable({ view });
 
-  // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) {
-      console.log('removing search filter');
-      table?.removeFilter(searchFilter);
-    }
-    searchText = value;
-    if (value) table?.addFilter(searchFilter);
-  };
+  const setSearchFilter = createSearchFilter(table);
 
   const { eventOptions, events } = getEventFilter(table);
 
@@ -53,9 +44,9 @@ export function renderGroupings({ view }) {
   const participantLabel = view === 'GROUP' ? 'Groups' : 'Teams';
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search teams',
       location: OVERLAY,
       search: true
@@ -82,9 +73,9 @@ export function renderGroupings({ view }) {
       location: OVERLAY
     },
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search teams',
       location: LEFT,
       search: true

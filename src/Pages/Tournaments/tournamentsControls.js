@@ -1,3 +1,4 @@
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { importTournaments } from '../../services/storage/importTournaments';
 import { addTournament } from 'components/drawers/addTournamentDrawer';
 import { getLoginState } from 'services/authentication/loginState';
@@ -23,14 +24,7 @@ export function calendarControls(table) {
     { label: 'Example Tournaments', onClick: () => mockTournaments(table), close: true }
   ];
 
-  // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) table.removeFilter(searchFilter);
-    searchText = value;
-    if (value) table.addFilter(searchFilter);
-  };
+  const setSearchFilter = createSearchFilter(table);
 
   const items = [
     { label: 'New', options: newOptions, align: RIGHT },
@@ -46,9 +40,9 @@ export function calendarControls(table) {
         })
     },
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search tournaments',
       location: LEFT,
       search: true

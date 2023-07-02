@@ -3,7 +3,7 @@ import { isObject } from 'functions/typeOf';
 
 const { MALE, FEMALE } = genderConstants;
 
-export function renderParticipant(cell) {
+export function formatParticipant(cell) {
   const def = cell.getColumn().getDefinition();
   const elem = document.createElement('div');
   const data = cell.getRow().getData();

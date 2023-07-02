@@ -1,3 +1,4 @@
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { tournamentEngine, utilities } from 'tods-competition-factory';
 import { autoScheduleMatchUps } from './autoScheduleMatchUps';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -54,23 +55,15 @@ export function unscheduledGridControl({
   const updateTables = () => updateUnscheduledTable() && updateScheduleTable();
   const scheduleClear = (e) => clearSchedule({ scheduledDate, target: e?.target, callback: updateTables });
 
-  // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) table.removeFilter(searchFilter);
-    searchText = value;
-    if (value) table.addFilter(searchFilter);
-  };
-
+  const setSearchFilter = createSearchFilter(table);
   const autoScheduler = () =>
     autoScheduleMatchUps({ scheduledDate, table, updateScheduleTable, updateUnscheduledTable });
 
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search participants',
       location: LEFT,
       search: true
