@@ -1,15 +1,14 @@
-import { competitionEngine, factoryConstants, genderConstants, eventConstants } from 'tods-competition-factory';
+import { competitionEngine, factoryConstants, eventConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { matchUpDragStart } from '../scheduleTable/matchUpDragStart';
+import { getUnscheduledColumns } from './getUnscheduledColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { matchUpReturn } from './matchUpReturn';
-import { isObject } from 'functions/typeOf';
 
-import { CENTER, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
+import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 
 const { SINGLES, DOUBLES } = eventConstants;
-const { MALE, FEMALE } = genderConstants;
 
 export function createUnscheduledTable() {
   let unscheduledMatchUps;
@@ -22,21 +21,6 @@ export function createUnscheduledTable() {
     element.id = matchUpId;
     element.addEventListener('dragstart', (e) => matchUpDragStart(e, true));
     element.draggable = true;
-  }
-
-  function genderedParticipant(cell) {
-    const elem = document.createElement('div');
-    const value = cell.getValue();
-    const color = (isObject(value) && value?.sex === MALE && '#2E86C1') || (value?.sex === FEMALE && '#AA336A') || '';
-    elem.style.color = color;
-    elem.innerHTML = (isObject(value) ? value.participantName : value) || '';
-    return elem;
-  }
-
-  function formatCell(cell) {
-    const element = document.createElement('div');
-    element.innerHTML = cell.getValue();
-    return element;
   }
 
   function getTableData() {
@@ -68,73 +52,7 @@ export function createUnscheduledTable() {
     return { unscheduledMatchUps };
   }
 
-  function titleFormatter(cell) {
-    const elem = cell.getElement();
-    elem.classList.add('tag');
-    elem.classList.add('is-info');
-    elem.classList.add('is-light');
-    return unscheduledMatchUps.length;
-  }
-
-  const columns = [
-    {
-      titleFormatter,
-      formatter: 'rownum', // format this to show open/close caret
-      headerSort: false,
-      hozAlign: CENTER,
-      frozen: true,
-      width: 55
-    },
-    {
-      formatter: formatCell,
-      field: 'eventName',
-      resizable: false,
-      title: 'Event',
-      visible: true,
-      minWidth: 250
-    },
-    {
-      formatter: formatCell,
-      field: 'roundName',
-      resizable: false,
-      title: 'Round',
-      minWidth: 90
-    },
-    {
-      formatter: genderedParticipant,
-      responsive: false,
-      resizable: false,
-      title: 'Side 1',
-      minWidth: 120,
-      field: 'side1'
-    },
-    {
-      formatter: genderedParticipant,
-      responsive: false,
-      resizable: false,
-      title: 'Side 2',
-      minWidth: 120,
-      field: 'side2'
-    },
-    {
-      field: 'matchUp.matchUpFormat',
-      title: 'Scoring Format',
-      formatter: formatCell,
-      responsive: false,
-      resizable: false,
-      minWidth: 100
-      /*
-    },
-    {
-      // field: 'matchUp.matchUpFormat',
-      title: 'Average Time',
-      formatter: formatCell,
-      responsive: false,
-      resizable: false,
-      minWidth: 100
-    */
-    }
-  ];
+  const columns = getUnscheduledColumns(unscheduledMatchUps);
 
   destroyTable({ anchorId: UNSCHEDULED_MATCHUPS });
   const unscheduledAnchor = document.getElementById(UNSCHEDULED_MATCHUPS);

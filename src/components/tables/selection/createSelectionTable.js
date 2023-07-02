@@ -1,5 +1,5 @@
-import { genderedText } from '../common/formatters/genderedText';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { getSelectionColumns } from './getSelectionColumns';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -11,7 +11,6 @@ export function createSelectionTable({
   data = [],
   anchorId
 }) {
-  const drawPositions = data.some((item) => item.drawPosition);
   const participants = data.some((item) => item.participant);
 
   // spread participant object
@@ -22,26 +21,7 @@ export function createSelectionTable({
 
   data.forEach((row) => (row.searchText = row.participantName.toLowerCase()));
 
-  const columns = [
-    {
-      visible: drawPositions,
-      field: 'drawPosition',
-      title: 'Position',
-      headerSort: false,
-      responsive: false,
-      editor: false,
-      maxWidth: 100
-    },
-    {
-      formatter: genderedText,
-      field: 'participantName',
-      title: 'Participant',
-      responsive: false,
-      minWidth: 200,
-      widthGrow: 2
-    }
-  ];
-
+  const columns = getSelectionColumns(data);
   const element = document.getElementById(anchorId);
 
   const table = new Tabulator(element, {
