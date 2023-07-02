@@ -17,15 +17,12 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, LEFT, RIGHT, TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 
 const { OFFICIAL, COMPETITOR } = participantRoles;
-const { INDIVIDUAL } = participantConstants;
+const { INDIVIDUAL, TEAM } = participantConstants;
 
 export function createParticipantsTable({ view } = {}) {
-  let table, participants, derivedEventInfo, ready;
+  let table, participants, derivedEventInfo, ready, teamParticipants;
 
-  const participantFilters =
-    view === OFFICIAL
-      ? { participantRoles: [OFFICIAL] }
-      : { participantTypes: [INDIVIDUAL], participantRoles: [COMPETITOR] };
+  const participantFilters = { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
 
   const getTableData = () => {
     const result = tournamentEngine.getParticipants({
@@ -36,7 +33,10 @@ export function createParticipantsTable({ view } = {}) {
     });
     ({ participants, derivedEventInfo } = result);
 
-    return participants?.map((p) => mapParticipant(p, derivedEventInfo)) || [];
+    const individualParticipants = participants.filter(({ participantType }) => participantType === INDIVIDUAL);
+    teamParticipants = participants.filter(({ participantType }) => participantType === TEAM);
+
+    return individualParticipants?.map((p) => mapParticipant(p, derivedEventInfo)) || [];
   };
 
   const replaceTableData = () => {
@@ -200,5 +200,5 @@ export function createParticipantsTable({ view } = {}) {
 
   render(getTableData());
 
-  return { table, replaceTableData };
+  return { table, replaceTableData, teamParticipants };
 }
