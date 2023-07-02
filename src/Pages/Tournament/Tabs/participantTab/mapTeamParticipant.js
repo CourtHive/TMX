@@ -9,6 +9,7 @@ export function mapTeamParticipant(participant, derivedEventInfo) {
     participantId,
     representing
   } = participant;
+
   const membersCount = individualParticipantIds?.length || 0;
 
   return {
