@@ -4,13 +4,14 @@ import { tournamentEngine, participantConstants } from 'tods-competition-factory
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
+import { participantActions } from '../../popovers/participantActions';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'components/controlBar/controlBar';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
-import { participantActions } from '../../popovers/participantActions';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, IS_OPEN, LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE, TOURNAMENT_TEAMS } from 'constants/tmxConstants';
@@ -76,12 +77,16 @@ export function createTeamsTable({ view } = {}) {
 
     row.getElement().appendChild(holderEl);
 
+    const participant = row.getData();
+    const data = participant.individualParticipants.map((p, i) => ({ ...p, order: i + 1 }));
+
     const ipTable = new Tabulator(tableEl, {
-      data: row.getData().individualParticipants,
       placeholder: 'No individual participants',
       index: 'participantId',
       layout: 'fitColumns',
+      movableRows: true,
       maxHeight: 400,
+      data,
       columns: [
         {
           cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -92,11 +97,34 @@ export function createTeamsTable({ view } = {}) {
           hozAlign: LEFT,
           width: 5
         },
+        { title: 'Order', headerSort: false, field: 'order', width: 70 },
         { title: 'Name', field: 'participantName' },
         { title: 'Gender', field: 'person.sex', width: 100 }
       ]
     });
     ipTable.on('scrollVertical', destroyTipster);
+    ipTable.on('rowMoved', (row) => {
+      const table = row.getTable();
+      const tableData = table.getData().map((p, i) => ({ ...p, order: i + 1 }));
+      const individualParticipantIds = tableData.map(({ participantId }) => participantId);
+      const methods = [
+        {
+          method: 'modifyParticipant',
+          params: { participant: { participantId: participant.participantId, individualParticipantIds } }
+        }
+      ];
+      const postMutation = (result) => {
+        if (result.success) {
+          const rows = table.getRows();
+          rows.forEach((r, i) => {
+            const rowData = r.getData();
+            rowData.order = i + 1;
+            r.update(rowData);
+          });
+        }
+      };
+      mutationRequest({ methods, callback: postMutation });
+    });
 
     controlBar({ table: ipTable, target: controlEl, items });
   };
