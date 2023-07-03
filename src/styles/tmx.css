@@ -147,6 +147,7 @@ body {
 }
 .options_left {
   flex-direction: row;
+  flex-flow: row wrap;
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   align-content: center;
