@@ -51,7 +51,7 @@ export const teamRowFormatter = (row) => {
 
   const getData = (individualParticipants) => {
     const genderCounts = {};
-    return individualParticipants.map((p) => {
+    return individualParticipants?.map((p) => {
       const sex = p.person?.sex || 'OTHER';
       if (!genderCounts[sex]) genderCounts[sex] = 0;
       genderCounts[sex] += 1;
