@@ -1,13 +1,13 @@
+import { flightsFormatter } from '../common/formatters/flightsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
+import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
-import { headerMenu } from '../common/headerMenu';
 import { entryActions } from '../../popovers/entryActions';
+import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
-import { flightsFormatter } from '../common/formatters/flightsFormatter';
-import { navigateToEvent } from '../common/navigateToEvent';
 
-export function getColumns({ exclude = [], eventId, drawId, actions = [] } = {}) {
+export function getEntriesColumns({ exclude = [], eventId, drawId, actions = [] } = {}) {
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),

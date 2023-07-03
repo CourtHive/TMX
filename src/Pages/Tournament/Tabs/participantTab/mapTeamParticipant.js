@@ -1,4 +1,4 @@
-import { getCountry, getEvents } from 'modules/participants/getters';
+import { getCountry, getEvents } from 'Pages/Tournament/Tabs/participantTab/getters';
 
 export function mapTeamParticipant(participant, derivedEventInfo) {
   const {

@@ -6,13 +6,13 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { getEntriesColumns } from './getEntriesColumns';
 import { getParent } from 'services/dom/parentAndChild';
 import { displayAllEvents } from './displayAllEvents';
 import { addDraw } from 'components/drawers/addDraw';
 import { panelDefinitions } from './panelDefinitions';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { getColumns } from './getColumns';
 
 import {
   ALL_EVENTS,
@@ -90,7 +90,7 @@ export function createEntriesPanels({ eventId, drawId }) {
             'status',
             'flights'
           ]),
-          columns: getColumns({ actions, exclude, eventId, drawId }),
+          columns: getEntriesColumns({ actions, exclude, eventId, drawId }),
           responsiveLayout: 'collapse',
           index: 'participantId',
           layout: 'fitColumns',
@@ -167,9 +167,9 @@ export function createEntriesPanels({ eventId, drawId }) {
     const drawName = result.event?.drawDefinitions?.find((d) => d.drawId === drawId)?.drawName;
     const items = [
       {
-        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('', context.tables),
-        onChange: (e) => setSearchFilter(e.target.value, context.tables),
-        onKeyUp: (e) => setSearchFilter(e.target.value, context.tables),
+        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+        onChange: (e) => setSearchFilter(e.target.value),
+        onKeyUp: (e) => setSearchFilter(e.target.value),
         placeholder: 'Search entries',
         location: LEFT,
         search: true

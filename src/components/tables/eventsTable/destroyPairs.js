@@ -1,12 +1,12 @@
 import { tournamentEngine, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { toggleOverlay } from 'components/controlBar/toggleOverlay';
 import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 
 import { DESTROY_PAIR_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
-import { toggleOverlay } from 'components/controlBar/toggleOverlay';
 
 const { UNGROUPED } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
