@@ -9,7 +9,7 @@ export function destroyTipster(target) {
     tip?.destroy(true);
     tip = undefined;
   }
-  if (target) target.remove();
+  if (target?.remove) target.remove();
 }
 
 /*

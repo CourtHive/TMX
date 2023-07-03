@@ -1,4 +1,4 @@
-import { getClub, getCountry, getEvents } from 'modules/participants/getters';
+import { getClub, getCountry, getEvents } from 'Pages/Tournament/Tabs/participantTab/getters';
 import { eventConstants } from 'tods-competition-factory';
 import camelcase from 'camelcase';
 

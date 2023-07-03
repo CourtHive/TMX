@@ -1,77 +1,15 @@
-import { competitionEngine, utilities, timeItemConstants } from 'tods-competition-factory';
-import { scheduleSetMatchUpHeader } from 'components/popovers/scheduleSetMatchUpHeader';
-import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab';
-import { setScheduleColumnHeader } from 'components/popovers/scheduleColumnHeader';
-import { addVenue } from 'Pages/Tournament/Tabs/venuesTab/addVenue';
-import { scheduleCell } from '../common/formatters/scheduleCell';
+import { competitionEngine, utilities } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
-import { editNotes } from 'components/modals/scheduleNotes';
-import { timeFormat } from 'functions/timeStrings';
 import { updateConflicts } from './updateConflicts';
-import { isObject } from 'functions/typeOf';
 
-import { CENTER, MINIMUM_SCHEDULE_COLUMNS, TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
-
-const { NOT_BEFORE } = timeItemConstants;
+import { TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
+import { getScheduleColumns } from './getScheduleColumns';
 
 export function createScheduleTable({ scheduledDate } = {}) {
   let ready, table, awaitingUpdate;
   let existingCourtIds = [];
-
-  const rowActions = (e, cell) => {
-    const rowData = cell.getRow().getData();
-    const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
-    if (rowData.issues?.length) console.log({ issues: rowData.issues });
-
-    if (matchUps.length) {
-      const callback = (schedule) => {
-        if (isObject(schedule)) {
-          const table = cell.getTable();
-          const targetRow = table.getData().find((row) => row.rowId === rowData.rowId);
-          Object.values(targetRow).forEach((c) => {
-            if (c.matchUpId) {
-              if (schedule.scheduledTime) {
-                c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
-                if (c.schedule.timeModifiers?.[0] !== NOT_BEFORE) {
-                  c.schedule.timeModifiers = '';
-                }
-              }
-
-              if (schedule.timeModifiers) {
-                if (c.schedule.scheduledTime && schedule.timeModifiers[0] !== NOT_BEFORE) {
-                  c.schedule.scheduledTime = '';
-                }
-                c.schedule.timeModifiers = schedule.timeModifiers;
-              }
-            }
-          });
-          table.updateData([targetRow]);
-        }
-      };
-      scheduleSetMatchUpHeader({ e, cell, rowData, callback });
-    }
-  };
-
-  const scheduleCellActions = (e, cell) => {
-    console.log(cell.getData()[cell.getColumn().getDefinition().field]);
-  };
-
-  const controlHeader = () => {
-    editNotes({ notes: '', notice: '', callback: submitDetails });
-
-    function submitDetails(result) {
-      console.log({ result }); // what is the appropriate place for storage in TODS?
-    }
-  };
-
-  function controlColumnFormatter(cell) {
-    const content = document.createElement('span');
-    const data = cell.getRow().getData();
-    content.innerHTML = data.rowNumber;
-    return content;
-  }
 
   const getTableData = ({ scheduledDate }) => {
     const matchUpFilters = { localPerspective: true, scheduledDate };
@@ -85,69 +23,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
     const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows } = result;
     const matchUps = dateMatchUps.concat(...completedMatchUps);
 
-    function titleFormatter(cell) {
-      const elem = cell.getElement();
-      elem.classList.add('tag');
-      elem.classList.add('is-info');
-      elem.classList.add('is-light');
-      return `<i class="fa-regular fa-note-sticky"></i>`;
-    }
-
-    const controlColumn = {
-      titleFormatter,
-      formatter: controlColumnFormatter,
-      headerClick: controlHeader,
-      cellClick: rowActions,
-      headerSort: false,
-      resizable: false,
-      hozAlign: CENTER,
-      frozen: true,
-      width: 55
-    };
-
-    const columnsCalc = MINIMUM_SCHEDULE_COLUMNS - courtsData.length;
-    const emptyColumnsCount = columnsCalc <= 0 ? 1 : columnsCalc;
-    const emptyColumnHeaderClick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      addVenue(renderScheduleTab);
-    };
-    const emptyColumnHeader = (index) => {
-      if (index) return;
-
-      return courtsData.length
-        ? `<p style='font-weight: normal; color: lightblue'>Add venue</p>`
-        : `<button class='button is-danger'>Add venue</button>`;
-    };
-
-    const generateEmptyColumns = (num) =>
-      num > 0
-        ? utilities.generateRange(0, num).map((index) => ({
-            headerClick: emptyColumnHeaderClick,
-            title: emptyColumnHeader(index),
-            headerHozAlign: CENTER,
-            formatter: scheduleCell,
-            headerSort: false,
-            resizable: false,
-            minWidth: 150
-          }))
-        : [];
-
-    const columns = [controlColumn].concat(
-      courtsData.map((courtInfo, index) => ({
-        headerClick: (e, cell) => setScheduleColumnHeader(e, cell, courtInfo),
-        cellClick: scheduleCellActions,
-        field: `${courtPrefix}${index}`,
-        title: courtInfo.courtName,
-        headerHozAlign: CENTER,
-        formatter: scheduleCell,
-        headerSort: false,
-        resizable: false,
-        hozAlign: CENTER,
-        minWidth: 150
-      })),
-      generateEmptyColumns(emptyColumnsCount)
-    );
+    const columns = getScheduleColumns({ courtsData, courtPrefix });
 
     rows.forEach((row, i) => {
       row.rowId = `rowId-${i + 1}`;

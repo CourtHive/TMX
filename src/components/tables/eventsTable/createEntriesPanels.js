@@ -6,13 +6,13 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { getEntriesColumns } from './getEntriesColumns';
 import { getParent } from 'services/dom/parentAndChild';
 import { displayAllEvents } from './displayAllEvents';
 import { addDraw } from 'components/drawers/addDraw';
 import { panelDefinitions } from './panelDefinitions';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { getColumns } from './getColumns';
 
 import {
   ALL_EVENTS,
@@ -30,13 +30,18 @@ import {
 export function createEntriesPanels({ eventId, drawId }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
 
-  let searchText;
   // global search across all tables
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) Object.values(context.tables).forEach((table) => table.removeFilter(searchFilter));
-    searchText = value?.toLowerCase();
-    if (value) Object.values(context.tables).forEach((table) => table.addFilter(searchFilter));
+  // NOTE: cannot use createSearchFilter because context.tables is a dynamic object
+  let searchFilter;
+  const setSearchFilter = (value) => {
+    if (searchFilter) Object.values(context.tables).forEach((table) => table.removeFilter(searchFilter));
+    const searchText = value?.toLowerCase();
+    searchFilter = (rowData) => rowData.searchText?.includes(searchText);
+    if (value) {
+      Object.values(context.tables).forEach((table) => table.addFilter(searchFilter));
+    } else {
+      searchFilter = undefined;
+    }
   };
 
   const getTableData = () => {
@@ -85,7 +90,7 @@ export function createEntriesPanels({ eventId, drawId }) {
             'status',
             'flights'
           ]),
-          columns: getColumns({ actions, exclude, eventId, drawId }),
+          columns: getEntriesColumns({ actions, exclude, eventId, drawId }),
           responsiveLayout: 'collapse',
           index: 'participantId',
           layout: 'fitColumns',
@@ -162,9 +167,9 @@ export function createEntriesPanels({ eventId, drawId }) {
     const drawName = result.event?.drawDefinitions?.find((d) => d.drawId === drawId)?.drawName;
     const items = [
       {
-        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-        onChange: (e) => updateSearchFilter(e.target.value),
-        onKeyUp: (e) => updateSearchFilter(e.target.value),
+        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+        onChange: (e) => setSearchFilter(e.target.value),
+        onKeyUp: (e) => setSearchFilter(e.target.value),
         placeholder: 'Search entries',
         location: LEFT,
         search: true
