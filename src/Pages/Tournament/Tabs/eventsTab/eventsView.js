@@ -1,3 +1,4 @@
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEvent } from 'Pages/Tournament/Tabs/eventsTab/mapEvent';
@@ -17,15 +18,7 @@ export function eventsView() {
     }
   };
 
-  // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) table?.removeFilter(searchFilter);
-    searchText = value;
-    if (value) table?.addFilter(searchFilter);
-  };
-
+  const setSearchFilter = createSearchFilter(table);
   const deleteEvents = () => {
     const eventIds = table?.getSelectedData().map(({ eventId }) => eventId);
 
@@ -42,9 +35,9 @@ export function eventsView() {
       location: OVERLAY
     },
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search events',
       location: LEFT,
       search: true

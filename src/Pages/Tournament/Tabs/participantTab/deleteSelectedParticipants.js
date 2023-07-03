@@ -1,4 +1,4 @@
-import { deleteParticipants } from 'modules/participants/deleteParticipants';
+import { deleteParticipants } from 'Pages/Tournament/Tabs/participantTab/deleteParticipants';
 import { context } from 'services/context';
 
 export const deleteSelectedParticipants = (table) => {

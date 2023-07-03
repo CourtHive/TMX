@@ -6,11 +6,8 @@ import { LEFT } from 'constants/tmxConstants';
 export const searchField =
   (location, selected, onEnter) =>
   (table, placeholder = 'Search participants') => {
-    let searchText;
     let selectedValues;
-    const searchFilter = (rowData) =>
-      rowData.searchText?.includes(searchText) ||
-      (selectedValues?.length && selectedValues.includes(rowData[selected]));
+    let searchFilter;
 
     const updateSearchFilter = (value) => {
       // IF: selected is being used...
@@ -26,15 +23,17 @@ export const searchField =
       }
 
       selectedValues = selected && table.getSelectedData().map((r) => r[selected]);
-      table.clearFilter();
-      searchText = value?.toLowerCase();
+      table.removeFilter(searchFilter);
+      searchFilter = (rowData) =>
+        rowData.searchText?.includes(value?.toLowerCase()) ||
+        (selectedValues?.length && selectedValues.includes(rowData[selected]));
       if (value) table.addFilter(searchFilter);
     };
 
     return {
       onKeyDown: (e) => {
         e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter('');
-        if (e.keyCode === 13 && isFunction(onEnter)) {
+        if ((e.key === 'Enter' || e.keyCode === 13) && isFunction(onEnter)) {
           const clear = onEnter(table);
           if (clear) updateSearchFilter('');
         }

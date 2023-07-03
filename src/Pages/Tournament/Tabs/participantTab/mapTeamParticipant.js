@@ -1,4 +1,4 @@
-import { getCountry, getEvents } from 'modules/participants/getters';
+import { getCountry, getEvents } from 'Pages/Tournament/Tabs/participantTab/getters';
 
 export function mapTeamParticipant(participant, derivedEventInfo) {
   const {
@@ -9,6 +9,7 @@ export function mapTeamParticipant(participant, derivedEventInfo) {
     participantId,
     representing
   } = participant;
+
   const membersCount = individualParticipantIds?.length || 0;
 
   return {

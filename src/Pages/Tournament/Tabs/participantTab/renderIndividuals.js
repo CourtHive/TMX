@@ -1,5 +1,6 @@
 import { tournamentEngine, participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
@@ -20,18 +21,9 @@ const { OFFICIAL } = participantRoles;
 const { MIXED } = genderConstants;
 
 export function renderIndividuals({ view }) {
-  const { table, replaceTableData } = createParticipantsTable({ view });
-  // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
-  const updateSearchFilter = (value) => {
-    if (!value) {
-      console.log('removing search filter');
-      table.removeFilter(searchFilter);
-    }
-    searchText = value;
-    if (value) table.addFilter(searchFilter);
-  };
+  const { table, replaceTableData, teamParticipants } = createParticipantsTable({ view });
+
+  const setSearchFilter = createSearchFilter(table);
 
   const { eventOptions, events } = getEventFilter(table);
   const { sexOptions, genders } = getSexFilter(table);
@@ -85,6 +77,21 @@ export function renderIndividuals({ view }) {
     }
   ];
 
+  const selectOnEnter = (e) => {
+    if (e.key === 'Enter') {
+      const selected = table.getSelectedData();
+      const selectedParticipantIds = selected.map(({ participantId }) => participantId);
+      const active = table.getData('active');
+      const activeParticipantIds = active.map(({ participantId }) => participantId);
+      const activeNotSelected = activeParticipantIds.filter((a) => !selectedParticipantIds.includes(a));
+      if (activeNotSelected.length === 1) {
+        table.selectRow(activeNotSelected);
+        e.target.value = '';
+        table.clearFilter();
+      }
+    }
+  };
+
   const signInParticipants = () => {
     const selected = table.getSelectedData();
     const participantIds = selected.map(({ participantId }) => participantId);
@@ -120,11 +127,37 @@ export function renderIndividuals({ view }) {
       }
     ]);
 
+  /*
+  const addToTeamOptions = teamParticipants
+    .map((team) => ({
+      onClick: () => {
+        console.log('add participants to team');
+        // addParticipantsToTeam({ team, table, callback: replaceTableData });
+      },
+      label: team.participantName,
+      close: true
+    }))
+    .concat([
+      { divider: true },
+      {
+        label: '<p style="font-weight: bold">Create new team</p>',
+        onClick: () => {
+          console.log('creat team from participants');
+          // teamFromParticipants(table);
+        },
+        close: true
+      }
+    ]);
+    */
+
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => {
+        e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
+        selectOnEnter(e);
+      },
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search participants',
       location: OVERLAY,
       search: true
@@ -133,6 +166,13 @@ export function renderIndividuals({ view }) {
       options: addToEventOptions,
       label: 'Add to event',
       hide: !events.length,
+      intent: 'is-none',
+      location: OVERLAY
+    },
+    {
+      // options: addToTeamOptions,
+      hide: !teamParticipants.length,
+      label: 'Add to team',
       intent: 'is-none',
       location: OVERLAY
     },
@@ -157,9 +197,12 @@ export function renderIndividuals({ view }) {
       location: OVERLAY
     },
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e) => {
+        e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
+        selectOnEnter(e);
+      },
+      onChange: (e) => setSearchFilter(e.target.value),
+      onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search participants',
       location: LEFT,
       search: true

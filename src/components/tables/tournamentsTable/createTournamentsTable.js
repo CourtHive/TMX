@@ -1,16 +1,13 @@
-import { tournamentFormatter } from '../common/formatters/tournamentFormatter';
 import { mapTournamentRecord } from 'Pages/Tournaments/mapTournamentRecord';
-import { actionFormatter } from '../common/formatters/tableActionFormatter';
 import { calendarControls } from 'Pages/Tournaments/tournamentsControls';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { getTournamentColumns } from './getTournamentColumn';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
-import { tournamentEngine } from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
-import { context } from 'services/context';
 
-import { TOURNAMENTS_TABLE, CENTER, TOURNAMENT, RIGHT } from 'constants/tmxConstants';
+import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
 export function createTournamentsTable() {
   const handleError = (error) => console.log('db Error', { error });
@@ -25,15 +22,7 @@ export function createTournamentsTable() {
     setTimeout(refresh, ready ? 0 : 1000);
   };
 
-  const openTournament = (_, cell) => {
-    const tournamentId = cell.getRow().getData().tournamentId;
-
-    if (tournamentId) {
-      tournamentEngine.reset(); // ensure no tournament is in state
-      const tournamentUrl = `/${TOURNAMENT}/${tournamentId}`;
-      context.router.navigate(tournamentUrl);
-    }
-  };
+  const columns = getTournamentColumns();
 
   const renderTable = (tableData) => {
     destroyTable({ anchorId: TOURNAMENTS_TABLE });
@@ -49,40 +38,7 @@ export function createTournamentsTable() {
       headerVisible: false,
       reactiveData: true,
       data: tableData,
-      columns: [
-        {
-          formatter: 'responsiveCollapse',
-          hozAlign: CENTER,
-          headerSort: false,
-          resizable: false,
-          minWidth: 50,
-          width: 50
-        },
-        {
-          formatter: tournamentFormatter,
-          cellClick: openTournament,
-          field: 'tournament',
-          headerSort: false,
-          resizable: true,
-          minWidth: 250,
-          widthGrow: 3
-        },
-        {
-          title: 'Open',
-          vertAlign: 'middle',
-          formatter: () => `<div class="button font-medium">Open</div>`,
-          cellClick: openTournament,
-          width: 90
-        },
-        {
-          formatter: actionFormatter,
-          field: 'tournamentId',
-          vertAlign: 'middle',
-          headerSort: false,
-          hozAlign: RIGHT,
-          width: 10
-        }
-      ]
+      columns
     });
 
     table.on('scrollVertical', destroyTipster);

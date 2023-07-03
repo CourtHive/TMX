@@ -3,7 +3,7 @@ import { isObject } from 'functions/typeOf';
 
 const { MALE, FEMALE } = genderConstants;
 
-export function highlightWinningSide(cell) {
+export function formatParticipant(cell) {
   const def = cell.getColumn().getDefinition();
   const elem = document.createElement('div');
   const data = cell.getRow().getData();
@@ -13,7 +13,8 @@ export function highlightWinningSide(cell) {
     const winningSide = def.field === data.winningSide;
     elem.style = winningSide ? 'color: green' : 'color: red';
   } else {
-    const color = (isObject(value) && value?.sex === MALE && '#2E86C1') || (value?.sex === FEMALE && '#AA336A') || '';
+    const sex = value?.sex || data?.person?.sex;
+    const color = (sex === MALE && '#2E86C1') || (sex === FEMALE && '#AA336A') || '';
     elem.style.color = color;
   }
   elem.innerHTML = (isObject(value) ? value.participantName : value) || '';
