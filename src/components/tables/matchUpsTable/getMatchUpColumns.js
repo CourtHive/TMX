@@ -12,6 +12,12 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function getMatchUpColumns(replaceTableData) {
+  const participantSorter = (a, b) => {
+    if (a.participantName && !b.participantName) return 1;
+    if (b.participantName && !a.participantName) return 1;
+    if (!a?.participantName && !b?.participantName) return 1;
+    return a?.participantName?.localeCompare(b?.participantName);
+  };
   return [
     {
       cellClick: (e, cell) => cell.getRow().toggleSelect(),
@@ -85,16 +91,18 @@ export function getMatchUpColumns(replaceTableData) {
       width: 70
     },
     {
-      formatter: formatParticipant,
       cellClick: participantActions,
+      formatter: formatParticipant,
+      sorter: participantSorter,
       responsive: false,
       title: 'Side 1',
       minWidth: 100,
       field: 'side1'
     },
     {
-      formatter: formatParticipant,
       cellClick: participantActions,
+      formatter: formatParticipant,
+      sorter: participantSorter,
       responsive: false,
       title: 'Side 2',
       minWidth: 100,
