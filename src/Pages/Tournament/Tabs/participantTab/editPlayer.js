@@ -1,5 +1,5 @@
 import { tournamentEngine } from 'tods-competition-factory';
-import { editParticipant } from './editParticipant';
+import { editIndividualParticipant } from './editIndividualParticipant';
 
 export function editPlayer({ participantId }) {
   const participant = tournamentEngine.getParticipants({
@@ -7,5 +7,5 @@ export function editPlayer({ participantId }) {
     inContext: false
   }).participants?.[0];
 
-  if (participant) return editParticipant({ participant });
+  if (participant) return editIndividualParticipant({ participant });
 }

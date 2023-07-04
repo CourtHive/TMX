@@ -6,7 +6,8 @@ import { context } from 'services/context';
 export function createSelectionTable({
   selectedParticipantIds, // already selected
   selectionLimit = 1,
-  actionType,
+  targetAttribute,
+  placeholder,
   onSelected,
   data = [],
   anchorId
@@ -18,15 +19,14 @@ export function createSelectionTable({
     // default participantName to BYE for swaps
     data = data.map(({ participant, ...rest }) => ({ ...rest, participantName: 'BYE', ...participant }));
   }
-
-  data.forEach((row) => (row.searchText = row.participantName.toLowerCase()));
+  data.forEach((row) => (row.searchText = row.participantName?.toLowerCase()));
 
   const columns = getSelectionColumns(data);
   const element = document.getElementById(anchorId);
 
   const table = new Tabulator(element, {
-    index: actionType.targetAttribute,
-    placeholder: 'No participants',
+    placeholder: placeholder || 'No options',
+    index: targetAttribute,
     selectable: selectionLimit,
     layout: 'fitColumns',
     reactiveData: true,

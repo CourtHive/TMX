@@ -1,10 +1,21 @@
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
+import { selectItem } from 'components/modals/selectItem';
 import { barButton } from 'components/buttons/barButton';
 import { isFunction, isObject } from 'functions/typeOf';
 import { toggleOverlay } from './toggleOverlay';
 
-import { CENTER, HEADER, EMPTY_STRING, LEFT, NONE, OVERLAY, RIGHT, BUTTON_BAR } from 'constants/tmxConstants';
+import { CENTER, HEADER, EMPTY_STRING, LEFT, NONE, OVERLAY, RIGHT, BUTTON_BAR, TOP } from 'constants/tmxConstants';
+
+/* controlBar can generate a search field, buttons an dropDownButtons
+ * There are three locations: standard (LEFT, CENTER, RIGHT), OVERLAY, and HEADER
+ * when { hide: true } an element is not generated
+ * when { visible: false } an element is generated with { display: NONE }
+ * { input: true } or { placeholder: true } will create an input field
+ * { search: true } will create an input field and add a search icon
+ * { options: [] } will create a dropDownButton
+ * { selection: { options: [], actions: [], threshold }} will create either a dropDownButton or a selection modal, depending on threshold
+ */
 
 export function controlBar({ table, target, targetClassName, items = [], onSelection }) {
   const buildElement = !!target;
@@ -63,7 +74,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       headerCount += 1;
     }
 
-    if (!itemConfig.hide && (itemConfig.input || itemConfig.placeholder)) {
+    if (!itemConfig.hide && (itemConfig.input || itemConfig.placeholder || itemConfig.search)) {
       const elem = document.createElement('p');
       elem.style = 'margin-right: 1em';
       elem.className = `control ${itemConfig.search ? 'has-icons-left' : ''}`;
@@ -72,10 +83,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       input.setAttribute('type', 'text');
       input.setAttribute('autocomplete', 'cc-number');
       input.setAttribute('placeholder', item.placeholder || EMPTY_STRING);
-      if (itemConfig.id) {
-        input.setAttribute('id', itemConfig.id);
-        input.id = itemConfig.id;
-      }
+      if (itemConfig.id) input.setAttribute('id', itemConfig.id);
       if (itemConfig.onKeyDown) input.addEventListener('keydown', (e) => itemConfig.onKeyDown(e, itemConfig));
       if (itemConfig.onChange) input.addEventListener('change', (e) => itemConfig.onChange(e, itemConfig));
       if (itemConfig.onKeyUp) input.addEventListener('keyup', (e) => itemConfig.onKeyUp(e, itemConfig));
@@ -120,6 +128,34 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       const elem = dropDownButton({ target: location, button: itemConfig, stateChange });
       if (itemConfig.visible === false) elem.style.display = NONE;
       if (itemConfig.id) elements[itemConfig.id] = elem;
+    } else if (isObject(itemConfig.selection)) {
+      const {
+        selection: { options, actions },
+        actionPlacement,
+        threshold = 8, // default threshold value
+        ...rest
+      } = itemConfig;
+      if (options?.length < threshold) {
+        if (options.length)
+          actionPlacement === TOP ? options.unshift({ divider: true }) : options.push({ divider: true });
+        actions.forEach((action) => {
+          const { label: text, ...attribs } = action;
+          const option = { ...attribs, label: `<p style="font-weight: bold">${text}</p>` };
+          actionPlacement === TOP ? options.unshift(option) : options.push(option);
+        });
+        const buttonConfig = { ...rest, options };
+        const elem = dropDownButton({ target: location, button: buttonConfig, stateChange });
+        if (buttonConfig.visible === false) elem.style.display = NONE;
+        if (buttonConfig.id) elements[itemConfig.id] = elem;
+      } else {
+        const elem = barButton(itemConfig);
+        elem.onclick = (e) => {
+          e.stopPropagation();
+          selectItem({ title: 'Select team', options });
+        };
+        if (itemConfig.id) elements[itemConfig.id] = elem;
+        location?.appendChild(elem);
+      }
     } else {
       const elem = barButton(itemConfig);
       elem.onclick = (e) => onClick(e, itemConfig);

@@ -1,3 +1,4 @@
+import { removeFromTeam } from 'Pages/Tournament/Tabs/participantTab/controlBar/removeFromTeam';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -13,20 +14,6 @@ export const teamRowFormatter = (row) => {
   const controlEl = document.createElement('div');
   controlEl.className = 'tableControl';
   controlEl.style.marginBottom = '1em';
-
-  const items = [
-    {
-      label: 'Delete selected',
-      intent: 'is-danger',
-      stateChange: true,
-      location: OVERLAY
-    },
-    {
-      label: 'Add players',
-      intent: 'is-primary',
-      location: RIGHT
-    }
-  ];
 
   holderEl.appendChild(controlEl);
 
@@ -51,7 +38,7 @@ export const teamRowFormatter = (row) => {
 
   const getData = (individualParticipants) => {
     const genderCounts = {};
-    return individualParticipants.map((p) => {
+    return individualParticipants?.map((p) => {
       const sex = p.person?.sex || 'OTHER';
       if (!genderCounts[sex]) genderCounts[sex] = 0;
       genderCounts[sex] += 1;
@@ -104,6 +91,21 @@ export const teamRowFormatter = (row) => {
     };
     mutationRequest({ methods, callback: postMutation });
   });
+
+  const items = [
+    {
+      onClick: () => removeFromTeam({ table: ipTable, team: participant }),
+      label: 'Delete selected',
+      intent: 'is-danger',
+      stateChange: true,
+      location: OVERLAY
+    },
+    {
+      label: 'Add players',
+      intent: 'is-primary',
+      location: RIGHT
+    }
+  ];
 
   controlBar({ table: ipTable, target: controlEl, items });
 };

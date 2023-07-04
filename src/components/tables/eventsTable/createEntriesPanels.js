@@ -184,18 +184,19 @@ export function createEntriesPanels({ eventId, drawId }) {
         hide: !drawId
       },
       {
-        options: drawOptions?.length > 1 && drawOptions,
-        hide: !drawOptions || drawId,
+        options: drawOptions?.length > 2 && drawOptions,
+        hide: drawOptions?.length < 3 || drawId,
         intent: 'is-info',
         location: RIGHT,
-        label: 'Draws'
+        label: 'Draws',
+        align: RIGHT
       },
       {
         onClick: () => addDraw({ eventId, callback: drawAdded }),
+        hide: drawOptions?.length > 2 || drawId,
         intent: 'is-info',
         label: 'Add draw',
-        location: RIGHT,
-        hide: drawOptions || drawId
+        location: RIGHT
       }
     ];
     controlBar({ target: eventControlElement, items });
