@@ -14,7 +14,7 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
-import { editParticipant } from './editParticipant';
+import { editIndividualParticipant } from './editIndividualParticipant';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
@@ -52,7 +52,7 @@ export function renderIndividuals({ view }) {
     { label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
     { label: 'Import from Google sheet', onClick: editRegistrationLink, close: true },
     {
-      onClick: () => editParticipant({ refresh: replaceTableData, view }),
+      onClick: () => editIndividualParticipant({ refresh: replaceTableData, view }),
       label: 'New participant',
       close: true
     }

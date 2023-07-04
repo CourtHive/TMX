@@ -12,7 +12,7 @@ import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 const { COMPETITOR, OFFICIAL } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
 
-export function editParticipant({ participant, view, refresh }) {
+export function editIndividualParticipant({ participant, view, refresh }) {
   const list = fixtures.countries.map((country) => ({
     label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
     value: country.ioc
