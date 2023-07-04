@@ -12,6 +12,7 @@ import {
   tournamentEngine,
   drawDefinitionConstants,
   entryStatusConstants,
+  eventConstants,
   drawEngine,
   utilities
 } from 'tods-competition-factory';
@@ -20,6 +21,7 @@ import { NONE, RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
+const { TEAM } = eventConstants;
 
 const {
   AD_HOC,
@@ -61,6 +63,7 @@ export function addDraw({ eventId, callback }) {
   const MANUAL = 'Manual';
 
   const scoreFormatOptions = [{ label: 'Best of 3 Sets', value: 'SET3-S:6/TB7', selected: true }];
+  const tieFormatOptions = [{ label: 'Dominant Duo', value: 'DOMINANT_DUO', selected: true }];
 
   let inputs,
     drawType = SINGLE_ELIMINATION;
@@ -121,10 +124,18 @@ export function addDraw({ eventId, callback }) {
       ]
     },
     {
-      value: '',
-      label: 'Score format',
+      hide: event.eventType === TEAM,
+      options: scoreFormatOptions,
       field: 'matchUpFormat',
-      options: scoreFormatOptions
+      label: 'Score format',
+      value: ''
+    },
+    {
+      hide: event.eventType !== TEAM,
+      options: tieFormatOptions,
+      field: 'tieFormatName',
+      label: 'Tie format',
+      value: ''
     }
   ];
 
@@ -165,7 +176,8 @@ export function addDraw({ eventId, callback }) {
     } else {
       const drawType = inputs.drawType.options[inputs.drawType.selectedIndex].getAttribute('value');
       const automated = inputs.automated.value === AUTOMATED;
-      const matchUpFormat = inputs.matchUpFormat.value;
+      const tieFormatName = inputs.tieFormatName?.value;
+      const matchUpFormat = inputs.matchUpFormat?.value;
       const drawName = inputs.drawName.value;
 
       const drawSizeValue = inputs.drawSize.value;
@@ -177,6 +189,7 @@ export function addDraw({ eventId, callback }) {
       );
 
       const drawOptions = {
+        tieFormatName,
         matchUpFormat,
         drawEntries,
         automated,
