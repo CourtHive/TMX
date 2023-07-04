@@ -33,9 +33,6 @@ export function selectParticipant({ action, onSelection, selectionLimit, selecte
   if (!actionType?.targetAttribute) return;
   let selected;
 
-  !!selectionLimit;
-  !!selectedParticipantIds;
-
   const onClick = () => {
     const attribute = actionType.targetAttribute;
     const param = actionType.param || actionType.targetAttribute;
@@ -75,9 +72,9 @@ export function selectParticipant({ action, onSelection, selectionLimit, selecte
   const data = action[actionType.selections];
   const { table } = createSelectionTable({
     selectedParticipantIds, // already selected
+    targetAttribute: actionType.targetAttribute,
     selectionLimit,
     onSelected,
-    actionType,
     anchorId,
     data
   });

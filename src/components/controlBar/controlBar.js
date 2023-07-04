@@ -1,5 +1,6 @@
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
+import { selectItem } from 'components/modals/selectItem';
 import { barButton } from 'components/buttons/barButton';
 import { isFunction, isObject } from 'functions/typeOf';
 import { toggleOverlay } from './toggleOverlay';
@@ -146,6 +147,14 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
         const elem = dropDownButton({ target: location, button: buttonConfig, stateChange });
         if (buttonConfig.visible === false) elem.style.display = NONE;
         if (buttonConfig.id) elements[itemConfig.id] = elem;
+      } else {
+        const elem = barButton(itemConfig);
+        elem.onclick = (e) => {
+          e.stopPropagation();
+          selectItem({ title: 'Select team', options });
+        };
+        if (itemConfig.id) elements[itemConfig.id] = elem;
+        location?.appendChild(elem);
       }
     } else {
       const elem = barButton(itemConfig);

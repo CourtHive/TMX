@@ -35,6 +35,7 @@ export function getAddToTeamSelection({ teamParticipants, table, replaceTableDat
     options: teamParticipants.map((team) => ({
       onClick: () => addToTeam({ team }),
       label: team.participantName,
+      participant: team,
       close: true
     })),
     actions: [
