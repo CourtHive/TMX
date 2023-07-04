@@ -1,11 +1,14 @@
-import { tournamentEngine, participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
+import { participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
+import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
+import { getAddToTeamSelection } from './controlBar/getAddToTeamSelection';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { getSexFilter } from 'components/tables/common/filters/sexFilter';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { signInParticipants } from './controlBar/signInParticipants';
+import { signOutUnapproved } from './controlBar/signOutUnapproved';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
@@ -14,9 +17,8 @@ import { participantOptions } from './participantOptions';
 import { editParticipant } from './editParticipant';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
-import { MODIFY_SIGN_IN_STATUS } from 'constants/mutationConstants';
 
-const { INDIVIDUAL, SIGNED_IN, SIGNED_OUT } = participantConstants;
+const { INDIVIDUAL } = participantConstants;
 const { OFFICIAL } = participantRoles;
 const { MIXED } = genderConstants;
 
@@ -37,35 +39,14 @@ export function renderIndividuals({ view }) {
     });
   };
 
-  const signOutUnapproved = () => {
-    const signedInNoEvents = tournamentEngine
-      .getParticipants({
-        participantFilters: { participantTypes: [INDIVIDUAL] },
-        withSignInStatus: true,
-        withEvents: true
-      })
-      .participants.filter((p) => p.signedIn && !p.events.length);
-
-    const participantIds = signedInNoEvents.map((p) => p.participantId);
-
-    const methods = [
-      {
-        params: { signInState: SIGNED_OUT, participantIds },
-        method: MODIFY_SIGN_IN_STATUS
-      }
-    ];
-    const postMutation = (result) => {
-      if (result.success) {
-        replaceTableData();
-      }
-    };
-    mutationRequest({ methods, callback: postMutation });
-  };
-
   const participantLabel = view === OFFICIAL ? 'Officials' : 'Individuals';
 
   const actionOptions = [
-    { label: 'Sign out players not approved for events', onClick: signOutUnapproved, close: true },
+    {
+      onClick: () => signOutUnapproved(replaceTableData),
+      label: 'Sign out players not approved for events',
+      close: true
+    },
     { divider: true },
     { heading: 'Add participants' },
     { label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
@@ -77,40 +58,7 @@ export function renderIndividuals({ view }) {
     }
   ];
 
-  const selectOnEnter = (e) => {
-    if (e.key === 'Enter') {
-      const selected = table.getSelectedData();
-      const selectedParticipantIds = selected.map(({ participantId }) => participantId);
-      const active = table.getData('active');
-      const activeParticipantIds = active.map(({ participantId }) => participantId);
-      const activeNotSelected = activeParticipantIds.filter((a) => !selectedParticipantIds.includes(a));
-      if (activeNotSelected.length === 1) {
-        table.selectRow(activeNotSelected);
-        e.target.value = '';
-        table.clearFilter();
-      }
-    }
-  };
-
-  const signInParticipants = () => {
-    const selected = table.getSelectedData();
-    const participantIds = selected.map(({ participantId }) => participantId);
-
-    const methods = [
-      {
-        params: { signInState: SIGNED_IN, participantIds },
-        method: MODIFY_SIGN_IN_STATUS
-      }
-    ];
-    const postMutation = (result) => {
-      if (result.success) {
-        selected.forEach((participant) => (participant.signedIn = true));
-        table.updateData(selected);
-        table.deselectRow(); // necessary after data update, not after replaceTableData
-      }
-    };
-    mutationRequest({ methods, callback: postMutation });
-  };
+  const selectOnEnter = createSelectOnEnter(table);
 
   const addToEventOptions = events
     .map((event) => ({
@@ -127,28 +75,7 @@ export function renderIndividuals({ view }) {
       }
     ]);
 
-  /*
-  const addToTeamOptions = teamParticipants
-    .map((team) => ({
-      onClick: () => {
-        console.log('add participants to team');
-        // addParticipantsToTeam({ team, table, callback: replaceTableData });
-      },
-      label: team.participantName,
-      close: true
-    }))
-    .concat([
-      { divider: true },
-      {
-        label: '<p style="font-weight: bold">Create new team</p>',
-        onClick: () => {
-          console.log('creat team from participants');
-          // teamFromParticipants(table);
-        },
-        close: true
-      }
-    ]);
-    */
+  const addToTeam = getAddToTeamSelection({ teamParticipants, table, replaceTableData });
 
   const items = [
     {
@@ -170,8 +97,7 @@ export function renderIndividuals({ view }) {
       location: OVERLAY
     },
     {
-      // options: addToTeamOptions,
-      hide: !teamParticipants.length,
+      selection: addToTeam,
       label: 'Add to team',
       intent: 'is-none',
       location: OVERLAY
@@ -184,7 +110,7 @@ export function renderIndividuals({ view }) {
       location: OVERLAY
     },
     {
-      onClick: signInParticipants,
+      onClick: () => signInParticipants(table),
       intent: 'is-primary',
       location: OVERLAY,
       label: 'Sign in'
