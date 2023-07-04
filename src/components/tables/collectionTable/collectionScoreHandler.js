@@ -1,5 +1,5 @@
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { setTieScore } from 'components/overlays/scorecard';
+import { setTieScore } from 'components/overlays/scorecard/scorecard';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 

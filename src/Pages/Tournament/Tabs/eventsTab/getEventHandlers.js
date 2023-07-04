@@ -1,7 +1,7 @@
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { openScorecard } from 'components/overlays/scorecard';
+import { openScorecard } from 'components/overlays/scorecard/scorecard';
 
 const { TEAM } = participantConstants;
 

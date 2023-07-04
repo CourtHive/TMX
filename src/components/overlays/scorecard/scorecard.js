@@ -1,5 +1,5 @@
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
-import { closeOverlay, openOverlay } from './overlay';
+import { closeOverlay, openOverlay } from '../overlay';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
