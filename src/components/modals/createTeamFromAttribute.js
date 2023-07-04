@@ -22,10 +22,10 @@ export function createTeamsFromAttribute({ callback } = {}) {
   const content = (elem) =>
     renderForm(elem, [
       {
-        value: '',
+        options: [{ label: 'Select attribute', value: NO_SELECTION }, ...options],
         label: 'Attribute',
         field: 'selection',
-        options: [{ label: 'Select attribute', value: NO_SELECTION }, ...options]
+        value: ''
       }
     ]);
 
@@ -53,6 +53,6 @@ export function createTeamsFromAttribute({ callback } = {}) {
       { label: 'Cancel', intent: 'none', close: true },
       { label: 'Create', intent: 'is-primary', onClick: createTeam, close: true }
     ],
-    onClose: () => console.log('update teams')
+    onClose: () => {}
   });
 }

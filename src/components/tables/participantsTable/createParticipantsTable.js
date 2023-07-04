@@ -44,7 +44,14 @@ export function createParticipantsTable({ view } = {}) {
     const element = document.getElementById(TOURNAMENT_PARTICIPANTS);
 
     table = new Tabulator(element, {
-      headerSortElement: headerSortElement(['sex', 'signedIn', 'events', 'cityState', 'ratings.wtn.wtnRating']),
+      headerSortElement: headerSortElement([
+        'sex',
+        'signedIn',
+        'events',
+        'teams',
+        'cityState',
+        'ratings.wtn.wtnRating'
+      ]),
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.86,
@@ -55,11 +62,6 @@ export function createParticipantsTable({ view } = {}) {
       reactiveData: true,
       columns,
       data
-      /*
-      // NOTE: persistence causes removeFilter warnings in console
-      persistence: { filter: true, sort: true },
-      persistenceID: 'trnyPtcpt',
-      */
     });
 
     table.on('scrollVertical', destroyTipster);
