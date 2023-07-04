@@ -19,6 +19,7 @@ import {
 
 import { NONE, RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
+import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { TEAM } = eventConstants;
@@ -63,7 +64,10 @@ export function addDraw({ eventId, callback }) {
   const MANUAL = 'Manual';
 
   const scoreFormatOptions = [{ label: 'Best of 3 Sets', value: 'SET3-S:6/TB7', selected: true }];
-  const tieFormatOptions = [{ label: 'Dominant Duo', value: 'DOMINANT_DUO', selected: true }];
+  const tieFormatOptions = [
+    { label: 'Dominant Duo', value: 'DOMINANT_DUO', selected: true },
+    { label: 'Custom', value: 'CUSTOM' }
+  ];
 
   let inputs,
     drawType = SINGLE_ELIMINATION;
@@ -134,7 +138,7 @@ export function addDraw({ eventId, callback }) {
       hide: event.eventType !== TEAM,
       options: tieFormatOptions,
       field: 'tieFormatName',
-      label: 'Tie format',
+      label: 'Scorecard',
       value: ''
     }
   ];
@@ -189,7 +193,6 @@ export function addDraw({ eventId, callback }) {
       );
 
       const drawOptions = {
-        tieFormatName,
         matchUpFormat,
         drawEntries,
         automated,
@@ -198,11 +201,12 @@ export function addDraw({ eventId, callback }) {
         drawSize,
         eventId
       };
+
       if ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) {
         drawOptions.structureOptions = { groupSize };
       }
 
-      if (drawSizeInteger) {
+      const generateDraw = () => {
         const result = tournamentEngine.generateDrawDefinition(drawOptions);
 
         if (result.success) {
@@ -216,6 +220,21 @@ export function addDraw({ eventId, callback }) {
             intent: 'is-warning',
             pauseOnHover: true
           });
+        }
+      };
+
+      if (drawSizeInteger) {
+        if (tieFormatName === 'CUSTOM') {
+          const updateTieFormat = (tieFormat) => {
+            if (tieFormat) {
+              drawOptions.tieFormat = tieFormat;
+              generateDraw();
+            }
+          };
+          editTieFormat({ title: 'Custom scorecard', onClose: updateTieFormat });
+        } else {
+          drawOptions.tieFormatName = tieFormatName;
+          generateDraw();
         }
       } else {
         tmxToast({
