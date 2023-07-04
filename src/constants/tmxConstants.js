@@ -136,6 +136,9 @@ export const HEADER = 'header';
 export const RIGHT = 'right';
 export const LEFT = 'left';
 
+export const BOTTOM = 'bottom';
+export const TOP = 'top';
+
 // classes
 export const SUB_TABLE = 'subTable';
 
@@ -146,9 +149,6 @@ export const NONE = 'none';
 
 // table attributes
 export const IS_OPEN = 'isOpen';
-
-// tipster config
-export const BOTTOM = 'bottom';
 
 export const acceptedEntryStatuses = [
   `${MAIN}.${DIRECT_ACCEPTANCE}`,
