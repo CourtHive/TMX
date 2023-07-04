@@ -8,9 +8,10 @@ import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
-import { addTeam } from 'components/modals/addTeam';
+// import { addTeam } from 'components/modals/addTeam';
 
 import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
+import { editTeamParticipant } from './editTeamParticipant';
 
 const { TEAM } = participantConstants;
 
@@ -22,7 +23,7 @@ export function renderGroupings({ view }) {
   const { eventOptions, events } = getEventFilter(table);
 
   const actionOptions = [
-    { label: 'New team', onClick: () => addTeam({ callback: replaceTableData }) },
+    { label: 'New team', onClick: () => editTeamParticipant({ title: 'New team', refresh: replaceTableData }) },
     { label: 'Create team', onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) }
   ];
 

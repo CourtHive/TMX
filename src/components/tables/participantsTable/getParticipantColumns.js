@@ -1,6 +1,7 @@
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
+import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
@@ -107,12 +108,24 @@ export function getParticipantColumns() {
       visible: false
     },
     {
-      sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
+      sorter: (a, b) => a && b,
       formatter: eventsFormatter(navigateToEvent),
       title: 'Events',
       field: 'events',
       hozAlign: LEFT,
-      minWidth: 300,
+      minWidth: 200,
+      editor: false,
+      widthGrow: 2
+    },
+    {
+      sorter: (a, b) => a && b,
+      formatter: teamsFormatter(() => {
+        console.log('boo');
+      }),
+      title: 'Teams',
+      field: 'teams',
+      hozAlign: LEFT,
+      minWidth: 200,
       editor: false,
       widthGrow: 2
     },

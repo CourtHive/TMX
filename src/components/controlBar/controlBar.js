@@ -135,7 +135,8 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
         ...rest
       } = itemConfig;
       if (options?.length < threshold) {
-        actionPlacement === TOP ? options.unshift({ divider: true }) : options.push({ divider: true });
+        if (options.length)
+          actionPlacement === TOP ? options.unshift({ divider: true }) : options.push({ divider: true });
         actions.forEach((action) => {
           const { label: text, ...attribs } = action;
           const option = { ...attribs, label: `<p style="font-weight: bold">${text}</p>` };

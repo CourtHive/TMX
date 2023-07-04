@@ -11,7 +11,8 @@ export const eventsFormatter = (eventClick) => (cell) => {
   const events = cell.getValue();
   const rowData = cell.getRow().getData();
   const { participantId } = rowData;
-  events.forEach((event) => {
+  const eventSorter = (a, b) => a?.eventName?.localeCompare(b?.eventName);
+  events.sort(eventSorter).forEach((event) => {
     const pill = createPill({ def, participantId, event, eventClick });
     content.appendChild(pill);
   });

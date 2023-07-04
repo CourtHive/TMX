@@ -7,6 +7,7 @@ import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
 import { getAddToTeamSelection } from './controlBar/getAddToTeamSelection';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { getSexFilter } from 'components/tables/common/filters/sexFilter';
+import { editIndividualParticipant } from './editIndividualParticipant';
 import { signInParticipants } from './controlBar/signInParticipants';
 import { signOutUnapproved } from './controlBar/signOutUnapproved';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
@@ -14,7 +15,6 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
-import { editIndividualParticipant } from './editIndividualParticipant';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 

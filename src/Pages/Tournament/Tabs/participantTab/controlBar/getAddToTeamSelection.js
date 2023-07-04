@@ -1,4 +1,5 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { editTeamParticipant } from '../editTeamParticipant';
 
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS } from 'constants/mutationConstants';
 
@@ -23,6 +24,13 @@ export function getAddToTeamSelection({ teamParticipants, table, replaceTableDat
     mutationRequest({ methods, callback: postMutation });
   };
 
+  const createNewTeam = () => {
+    const selected = table.getSelectedData();
+    const individualParticipantIds = selected.map(({ participantId }) => participantId);
+    table.deselectRow();
+    editTeamParticipant({ title: 'New team', individualParticipantIds, refresh: replaceTableData });
+  };
+
   return {
     options: teamParticipants.map((team) => ({
       onClick: () => addToTeam({ team }),
@@ -32,11 +40,7 @@ export function getAddToTeamSelection({ teamParticipants, table, replaceTableDat
     actions: [
       {
         label: 'Create new team',
-        onClick: () => {
-          table.deselectRow();
-          console.log('creat team from participants');
-          // teamFromParticipants(table);
-        },
+        onClick: () => createNewTeam(),
         close: true
       }
     ]
