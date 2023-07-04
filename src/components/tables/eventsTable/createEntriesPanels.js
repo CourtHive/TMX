@@ -185,7 +185,7 @@ export function createEntriesPanels({ eventId, drawId }) {
       },
       {
         options: drawOptions?.length > 2 && drawOptions,
-        hide: drawOptions?.length < 3 || drawId,
+        hide: (drawOptions?.length || 0) < 3 || drawId,
         intent: 'is-info',
         location: RIGHT,
         label: 'Draws',
@@ -199,6 +199,7 @@ export function createEntriesPanels({ eventId, drawId }) {
         location: RIGHT
       }
     ];
+
     controlBar({ target: eventControlElement, items });
     render(result.tableData);
   }

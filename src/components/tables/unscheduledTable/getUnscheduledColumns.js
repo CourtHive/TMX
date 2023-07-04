@@ -29,6 +29,13 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
     return unscheduledMatchUps?.length || 0;
   }
 
+  const participantSorter = (a, b) => {
+    if (a.participantName && !b.participantName) return 1;
+    if (b.participantName && !a.participantName) return 1;
+    if (!a?.participantName && !b?.participantName) return 1;
+    return a?.participantName?.localeCompare(b?.participantName);
+  };
+
   return [
     {
       titleFormatter,
@@ -55,6 +62,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
     },
     {
       formatter: genderedParticipant,
+      sorter: participantSorter,
       responsive: false,
       resizable: false,
       title: 'Side 1',
@@ -63,6 +71,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
     },
     {
       formatter: genderedParticipant,
+      sorter: participantSorter,
       responsive: false,
       resizable: false,
       title: 'Side 2',
