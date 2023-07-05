@@ -46,7 +46,7 @@
     "tods-competition-factory": "^1.2.0",
     "tods-react-draws": "^0.2.1",
     "tods-score-grid": "^0.13.10",
-    "tods-tmx-classic-converter": "^2.12.1",
+    "tods-tmx-classic-converter": "^2.13.1",
     "typescript": "^4.9.3",
     "vanillajs-datepicker": "^1.3.3"
   },
