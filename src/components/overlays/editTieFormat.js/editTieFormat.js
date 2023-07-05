@@ -5,29 +5,29 @@ import { closeOverlay, openOverlay } from '../overlay';
 import { utilities } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 
-import { LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';
+import { COLLECTION_VALUE, LEFT, MATCH_VALUE, OVERLAY, RIGHT, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
-function winCriteriaText(value) {
+function getWinCriteriaText(tieFormat) {
+  const valueGoal = tieFormat?.winCriteria?.valueGoal;
+  const aggregateValue = tieFormat?.collectionDefinitions?.length
+    ? tieFormat?.winCriteria?.aggregateValue && 'Aggregate value'
+    : 'none';
+  const value = valueGoal || aggregateValue;
   return `<div style="font-weight: bold">Win criteria: <span class="has-text-success">${value}</span></div>`;
 }
 
 export function editTieFormat({ title, tieFormat, onClose }) {
   const { content, inputs, elements, table } = renderEditor({ tieFormat });
 
-  window.elements = elements;
-  if (tieFormat?.winCriteria) {
-    console.log(elements['winCriteria']);
-  }
-
   const constructTieFormat = (rows) => {
     const tieFormatName = inputs['tieFormatName'].value;
 
     const collectionDefinitions = rows.map((row) =>
       utilities.definedAttributes({
-        collectionValue: row.awardType === 'Collection value' ? row.awardValue : undefined,
-        matchUpValue: row.awardType === 'Match value' ? row.awardValue : undefined,
-        scoreValue: row.awardType === 'Score value' ? row.awardValue : undefined,
-        setValue: row.awardType === 'Set value' ? row.awardValue : undefined,
+        collectionValue: row.awardType === COLLECTION_VALUE ? row.awardValue : undefined,
+        matchUpValue: row.awardType === MATCH_VALUE ? row.awardValue : undefined,
+        scoreValue: row.awardType === SCORE_VALUE ? row.awardValue : undefined,
+        setValue: row.awardType === SET_VALUE ? row.awardValue : undefined,
 
         matchUpType: row.matchUpType.toUpperCase(),
         collectionName: row.collectionName,
@@ -49,11 +49,7 @@ export function editTieFormat({ title, tieFormat, onClose }) {
 
   table.on('dataChanged', () => {
     const tieFormat = constructTieFormat(table.getData());
-    const valueGoal = tieFormat.winCriteria.valueGoal;
-    const aggregateValue = tieFormat.collectionDefinitions?.length
-      ? tieFormat.winCriteria.aggregateValue && 'Aggregate value'
-      : 'none';
-    elements['winCriteria'].innerHTML = winCriteriaText(valueGoal || aggregateValue);
+    elements['winCriteria'].innerHTML = getWinCriteriaText(tieFormat);
   });
 
   const prepareExit = (rows) => {
@@ -97,7 +93,7 @@ function renderEditor({ tieFormat }) {
       location: LEFT
     },
     {
-      text: winCriteriaText('none'),
+      text: getWinCriteriaText(tieFormat),
       id: 'winCriteria',
       location: LEFT
     },
