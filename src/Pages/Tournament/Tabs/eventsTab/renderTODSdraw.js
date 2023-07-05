@@ -3,7 +3,7 @@ import { tournamentEngine, eventConstants, utilities } from 'tods-competition-fa
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderScorecard } from 'components/overlays/scorecard';
+import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { render, unmountComponentAtNode } from 'react-dom';

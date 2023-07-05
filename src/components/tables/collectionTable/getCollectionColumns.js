@@ -9,10 +9,12 @@ export function getCollectionColumns({ matchUp }) {
   const side2Participant =
     matchUp.sides?.find((side) => side.sideNumber === 2)?.participant?.participantName || 'Side 2';
 
+  const participantSorter = (a, b) => a?.participantName?.localeCompare(b?.participantName);
   return [
     {
       formatter: collectionParticipantFormatter,
       cellClick: handleSideClick(matchUp),
+      sorter: participantSorter,
       title: side1Participant,
       responsive: false,
       minWidth: 100,
@@ -22,6 +24,7 @@ export function getCollectionColumns({ matchUp }) {
     {
       formatter: collectionParticipantFormatter,
       cellClick: handleSideClick(matchUp),
+      sorter: participantSorter,
       title: side2Participant,
       responsive: false,
       minWidth: 100,

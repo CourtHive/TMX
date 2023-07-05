@@ -1,6 +1,6 @@
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'tods-competition-factory';
-import { toggleSideBar } from 'services/dom/toggleSidebar';
+// import { toggleSideBar } from 'services/dom/toggleSidebar';
 import { imageClass } from 'assets/imageClass';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
@@ -40,15 +40,16 @@ export function tmxNavigation() {
   // TODO: add after any features item
   // <span class="item-count">${participantsCount}</span>
 
+  //   <div class="logo-name-wrapper">
+  //     <div class="logo-name">
+  //     </div>
+  //     <button class="logo-name__button">
+  //       <i class="fa-solid fa-expand logo-name__icon collapse" id="logo-name__icon"></i>
+  //     </button>
+  // . </div>
+
   const html = `
   <div class="side-bar collapse">
-    <div class="logo-name-wrapper">
-      <div class="logo-name">
-      </div>
-      <button class="logo-name__button">
-        <i class="fa-solid fa-expand logo-name__icon collapse" id="logo-name__icon"></i>
-      </button>
-    </div>
     <ul class="features-list">
       <li id='o-route' class="features-item tournaments">
         <i class="nav-icon fa-solid fa-trophy" style="font-size: larger"> <span class="status"></span> </i>
@@ -59,7 +60,7 @@ export function tmxNavigation() {
         <span class="features-item-text">Participants</span>
       </li>
       <li id='e-route' class="features-item events">
-        <i class="nav-icon fa-regular fa-calendar" style='font-size: larger'></i>
+        <i class="nav-icon fa-solid fa-diagram-project" style='font-size: larger'></i>
         <span class="features-item-text">Events</span>
       </li>
       <li id='m-route' class="features-item matches">
@@ -80,8 +81,10 @@ export function tmxNavigation() {
 
   const element = document.getElementById('sideNav');
   element.innerHTML = html;
+  /*
   const arrowCollapse = document.querySelector('#logo-name__icon');
   arrowCollapse.onclick = toggleSideBar;
+  */
 
   const ids = Object.keys(routeMap);
 
@@ -94,7 +97,7 @@ export function tmxNavigation() {
 
   const tRoute = document.getElementById('o-route');
   tRoute.onclick = () => {
-    toggleSideBar(false);
+    // toggleSideBar(false);
     console.log('tournament information');
   };
 
@@ -123,7 +126,7 @@ export function tmxNavigation() {
     element.onclick = () => {
       document.querySelectorAll('.features-item').forEach((i) => i.classList.remove('active'));
       element.classList.add('active');
-      toggleSideBar(false);
+      // toggleSideBar(false);
 
       const tournamentId = tournamentEngine.getState()?.tournamentRecord.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;

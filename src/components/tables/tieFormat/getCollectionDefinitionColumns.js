@@ -1,0 +1,94 @@
+import { CENTER, LEFT } from 'constants/tmxConstants';
+
+export function getCollectionDefinitionColumns() {
+  return [
+    { rowHandle: true, formatter: 'handle', width: 30, minWidth: 30 },
+    {
+      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      titleFormatter: 'rowSelection',
+      formatter: 'rowSelection',
+      responsive: false,
+      hozAlign: LEFT,
+      width: 5
+    },
+    {
+      formatter: 'responsiveCollapse',
+      responsive: false,
+      resizable: false,
+      hozAlign: CENTER,
+      width: 50
+    },
+    {
+      editorParams: { selectContents: true },
+      field: 'collectionName',
+      minWidth: 200,
+      title: 'Name',
+      editor: true
+    },
+    {
+      field: 'matchUpCount',
+      editor: 'number',
+      title: '#',
+      width: 70,
+
+      editorParams: {
+        elementAttributes: { maxlength: 2 },
+        selectContents: true,
+        mask: '99',
+        step: 1,
+        max: 20,
+        min: 0
+      }
+    },
+    {
+      field: 'matchUpType',
+      editor: 'list',
+      title: 'Type',
+      width: 100,
+
+      editorParams: { values: ['Singles', 'Doubles'] }
+    },
+    /*
+    // TODO: create a TODS Category code constructor similar to matchUpFormatCode constructor
+    {
+      title: 'Category', 
+      field: 'category'
+    },
+    */
+    {
+      title: 'Gender',
+      field: 'gender',
+      editor: 'list',
+      width: 100,
+
+      editorParams: { values: ['Male', 'Female', 'Mixed'] }
+    },
+    {
+      title: 'Score format',
+      field: 'matchUpFormat',
+      minWidth: 150
+    },
+    {
+      title: 'Award type',
+      field: 'awardType',
+      editor: 'list',
+      width: 150,
+
+      editorParams: { values: ['Collection value', 'Match value', 'Set value', 'Score value'] }
+    },
+    {
+      field: 'awardValue',
+      editor: 'number',
+      title: 'Value',
+      width: 70,
+      editorParams: {
+        elementAttributes: { maxlength: 2 },
+        selectContents: true,
+        mask: '99',
+        step: 1,
+        max: 99,
+        min: 0
+      }
+    }
+  ];
+}

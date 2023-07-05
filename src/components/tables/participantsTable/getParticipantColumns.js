@@ -6,9 +6,12 @@ import { genderedText } from '../common/formatters/genderedText';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
+import { genderConstants } from 'tods-competition-factory';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+
+const { FEMALE, MALE } = genderConstants;
 
 export function getParticipantColumns() {
   return [
@@ -72,8 +75,8 @@ export function getParticipantColumns() {
       editorParams: {
         itemFormatter: (_, value) => value,
         values: {
-          Male: 'MALE',
-          Female: 'FEMALE',
+          Male: MALE,
+          Female: FEMALE,
           '': 'Unknown'
         }
       }

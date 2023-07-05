@@ -58,7 +58,6 @@ export function eventRowFormatter(row) {
   const deleteSelectedDraws = () => {
     const selectedDraws = drawsTable.getSelectedData();
     const drawIds = selectedDraws.map(({ drawId }) => drawId);
-    // const methods = [{ method: DELETE_DRAW_DEFINITIONS, params: { eventId, drawIds } }];
     const methods = drawIds.map((drawId) => ({ method: DELETE_FLIGHT_AND_DRAW, params: { eventId, drawId } }));
     const callback = (result) => {
       result.success && drawsTable.deleteRow(drawIds);
@@ -68,6 +67,7 @@ export function eventRowFormatter(row) {
           inContext: false,
           eventId
         }).matchUps;
+        eventRow.drawDefs = eventRow.drawDefs.filter((drawDef) => !drawIds.includes(drawDef.drawId));
         eventRow.matchUpsCount = matchUps?.length || 0; // table data is reactive!
         eventRow.drawsCount -= 1; // table data is reactive!
       }
