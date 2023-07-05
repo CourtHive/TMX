@@ -38,7 +38,7 @@ export function createMatchUpsTable() {
       height: window.innerHeight * 0.85,
       responsiveLayout: 'collapse',
       placeholder: 'No matches',
-      layout: 'fitDataStretch',
+      layout: 'fitColumns',
       reactiveData: true,
       index: 'matchUpId',
       columns,
