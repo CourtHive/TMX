@@ -1,3 +1,4 @@
+import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -9,9 +10,10 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import {
-  tournamentEngine,
   drawDefinitionConstants,
   entryStatusConstants,
+  tournamentEngine,
+  policyConstants,
   eventConstants,
   drawEngine,
   utilities
@@ -19,7 +21,9 @@ import {
 
 import { NONE, RIGHT, acceptedEntryStatuses } from 'constants/tmxConstants';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
-import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
+import POLICY_SCORING from 'assets/policies/scoringPolicy';
+
+const { POLICY_TYPE_SCORING } = policyConstants;
 
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { TEAM } = eventConstants;
@@ -63,7 +67,14 @@ export function addDraw({ eventId, callback }) {
   const AUTOMATED = 'Automated';
   const MANUAL = 'Manual';
 
-  const scoreFormatOptions = [{ label: 'Best of 3 Sets', value: 'SET3-S:6/TB7', selected: true }];
+  const scoreFormatOptions = POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(
+    ({ matchUpFormat, description: label }) => ({
+      selected: matchUpFormat === 'SET3-S:6/TB7',
+      matchUpFormat,
+      label
+    })
+  );
+
   const tieFormatOptions = [
     { label: 'Dominant Duo', value: 'DOMINANT_DUO', selected: true },
     { label: 'Custom', value: 'CUSTOM' }
