@@ -1,3 +1,4 @@
+import { validator } from 'components/renderers/renderValidator';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
 import { selectItem } from 'components/modals/selectItem';
@@ -26,6 +27,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
   let headerCount = 0;
 
   const elements = {};
+  const inputs = {};
 
   if (buildElement) {
     removeAllChildNodes(target);
@@ -83,13 +85,14 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       input.setAttribute('type', 'text');
       input.setAttribute('autocomplete', 'cc-number');
       input.setAttribute('placeholder', item.placeholder || EMPTY_STRING);
+      if (itemConfig.id) inputs[itemConfig.id] = input;
       if (itemConfig.id) input.setAttribute('id', itemConfig.id);
       if (itemConfig.onKeyDown) input.addEventListener('keydown', (e) => itemConfig.onKeyDown(e, itemConfig));
       if (itemConfig.onChange) input.addEventListener('change', (e) => itemConfig.onChange(e, itemConfig));
       if (itemConfig.onKeyUp) input.addEventListener('keyup', (e) => itemConfig.onKeyUp(e, itemConfig));
       if (itemConfig.class) input.classList.add(itemConfig.class);
       if (itemConfig.visible === false) elem.style.display = NONE;
-
+      if (itemConfig.value) input.value = itemConfig.value;
       elem.appendChild(input);
 
       if (itemConfig.search) {
@@ -99,11 +102,20 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
         elem.appendChild(span);
       }
 
+      if (item.validator) {
+        const help = document.createElement('p');
+        help.className = 'help font-medium';
+        elem.appendChild(help);
+        input.addEventListener('input', (e) => validator(item, e, input, help, item.validator));
+      }
+
       if (itemConfig.id) {
         elements[itemConfig.id] = elem;
         elem.id = itemConfig.id;
       }
+
       location?.appendChild(elem);
+
       continue;
     }
 
@@ -180,7 +192,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
 
   stateChange();
 
-  return { elements };
+  return { elements, inputs };
 }
 
 function createControlElement() {

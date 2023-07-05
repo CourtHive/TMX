@@ -215,6 +215,7 @@ export function addDraw({ eventId, callback }) {
           const postMutation = (result) => isFunction(callback) && callback({ drawDefinition, ...result });
           mutationRequest({ methods, callback: postMutation });
         } else if (result.error) {
+          console.log({ result });
           tmxToast({
             message: result.error?.message,
             intent: 'is-warning',

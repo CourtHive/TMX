@@ -1,63 +1,94 @@
-import { eventConstants } from 'tods-competition-factory';
-
-import { LEFT } from 'constants/tmxConstants';
-
-const { SINGLES, DOUBLES } = eventConstants;
+import { CENTER, LEFT } from 'constants/tmxConstants';
 
 export function getCollectionDefinitionColumns() {
   return [
+    { rowHandle: true, formatter: 'handle', width: 30, minWidth: 30 },
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
-      headerSort: false,
       responsive: false,
       hozAlign: LEFT,
       width: 5
     },
     {
+      formatter: 'responsiveCollapse',
+      responsive: false,
+      resizable: false,
+      hozAlign: CENTER,
+      width: 50
+    },
+    {
+      editorParams: { selectContents: true },
       field: 'collectionName',
+      minWidth: 200,
       title: 'Name',
       editor: true
     },
     {
       field: 'matchUpCount',
-      headerSort: false,
+      editor: 'number',
       title: '#',
-      width: 70
+      width: 70,
+
+      editorParams: {
+        elementAttributes: { maxlength: 2 },
+        selectContents: true,
+        mask: '99',
+        step: 1,
+        max: 20,
+        min: 0
+      }
     },
     {
       field: 'matchUpType',
       editor: 'list',
       title: 'Type',
+      width: 100,
 
-      editorParams: {
-        itemFormatter: (_, value) => value[0].toUpperCase() + value.substring(1).toLowerCase(),
-        values: {
-          SINGLES: SINGLES,
-          DOUBLES: DOUBLES
-        }
-      }
+      editorParams: { values: ['Singles', 'Doubles'] }
     },
+    /*
+    // TODO: create a TODS Category code constructor similar to matchUpFormatCode constructor
     {
-      title: 'Category',
+      title: 'Category', 
       field: 'category'
     },
+    */
     {
       title: 'Gender',
-      field: 'gender'
+      field: 'gender',
+      editor: 'list',
+      width: 100,
+
+      editorParams: { values: ['Male', 'Female', 'Mixed'] }
     },
     {
       title: 'Score format',
-      field: 'matchUpFormat'
+      field: 'matchUpFormat',
+      minWidth: 150
     },
     {
       title: 'Award type',
-      field: 'awardType'
+      field: 'awardType',
+      editor: 'list',
+      width: 150,
+
+      editorParams: { values: ['Collection value', 'Match value', 'Set value', 'Score value'] }
     },
     {
-      title: 'Award value',
-      field: 'awardValue'
+      field: 'awardValue',
+      editor: 'number',
+      title: 'Value',
+      width: 70,
+      editorParams: {
+        elementAttributes: { maxlength: 2 },
+        selectContents: true,
+        mask: '99',
+        step: 1,
+        max: 99,
+        min: 0
+      }
     }
   ];
 }

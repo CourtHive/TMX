@@ -78,6 +78,4 @@ export function closeOverlay() {
     iterations += 1;
     tmxOverlay = document.getElementById(TMX_OVERLAY);
   }
-
-  if (iterations > 1) console.log({ iterations });
 }
