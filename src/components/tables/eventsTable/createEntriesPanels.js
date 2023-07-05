@@ -165,6 +165,7 @@ export function createEntriesPanels({ eventId, drawId }) {
       }))
       .concat([{ divider: true }, addDrawOption]);
     const drawName = result.event?.drawDefinitions?.find((d) => d.drawId === drawId)?.drawName;
+
     const items = [
       {
         onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
