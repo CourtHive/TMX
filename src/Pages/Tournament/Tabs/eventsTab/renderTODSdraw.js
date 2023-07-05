@@ -14,6 +14,7 @@ import { context } from 'services/context';
 
 import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
+import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -160,6 +161,22 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     };
 
     const actionOptions = [
+      {
+        hide: eventData.eventInfo.eventType !== TEAM,
+        onClick: () => {
+          const { tieFormat } = tournamentEngine.getTieFormat({
+            structureId,
+            eventId,
+            drawId
+          });
+          const updateTieFormat = (updatedTieFormat) => {
+            console.log({ updatedTieFormat });
+          };
+          editTieFormat({ title: 'Custom scorecard', tieFormat, onClose: updateTieFormat });
+        },
+        label: 'Edit scorecard',
+        close: true
+      },
       {
         onClick: () => navigateToEvent({ eventId, drawId }),
         label: 'View entries'

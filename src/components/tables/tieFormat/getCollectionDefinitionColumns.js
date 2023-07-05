@@ -1,4 +1,4 @@
-import { CENTER, LEFT } from 'constants/tmxConstants';
+import { CENTER, COLLECTION_VALUE, LEFT, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
 export function getCollectionDefinitionColumns() {
   return [
@@ -74,7 +74,7 @@ export function getCollectionDefinitionColumns() {
       editor: 'list',
       width: 150,
 
-      editorParams: { values: ['Collection value', 'Match value', 'Set value', 'Score value'] }
+      editorParams: { values: [COLLECTION_VALUE, MATCH_VALUE, SET_VALUE, SCORE_VALUE] }
     },
     {
       field: 'awardValue',
