@@ -1,9 +1,10 @@
-import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
 import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
+import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
+import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { render, unmountComponentAtNode } from 'react-dom';
@@ -14,7 +15,6 @@ import { context } from 'services/context';
 
 import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
-import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 
 const { DOUBLES, TEAM } = eventConstants;
 
