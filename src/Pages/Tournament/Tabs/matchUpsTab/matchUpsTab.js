@@ -2,7 +2,7 @@ import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatch
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 
-import { ALL_EVENTS, ALL_TEAMS, LEFT, MATCHUPS_CONTROL } from 'constants/tmxConstants';
+import { ALL_EVENTS, ALL_TEAMS, LEFT, MATCHUPS_CONTROL, OVERLAY } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
@@ -69,6 +69,14 @@ export function renderMatchUpTab() {
 
   const items = [
     {
+      onClick: () => {
+        table.deselectRow();
+      },
+      label: 'Schedule',
+      stateChange: true,
+      location: OVERLAY
+    },
+    {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
       onChange: (e) => updateSearchFilter(e.target.value),
       onKeyUp: (e) => updateSearchFilter(e.target.value),
@@ -95,5 +103,5 @@ export function renderMatchUpTab() {
   ];
 
   const target = document.getElementById(MATCHUPS_CONTROL);
-  controlBar({ target, items });
+  controlBar({ table, target, items });
 }
