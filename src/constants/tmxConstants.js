@@ -150,6 +150,12 @@ export const NONE = 'none';
 // table attributes
 export const IS_OPEN = 'isOpen';
 
+// scorecard
+export const COLLECTION_VALUE = 'Collection value';
+export const MATCH_VALUE = 'Match value';
+export const SCORE_VALUE = 'Score value';
+export const SET_VALUE = 'Set value';
+
 export const acceptedEntryStatuses = [
   `${MAIN}.${DIRECT_ACCEPTANCE}`,
   `${MAIN}.${ORGANISER_ACCEPTANCE}`,

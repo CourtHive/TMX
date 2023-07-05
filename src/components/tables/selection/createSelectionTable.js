@@ -34,7 +34,8 @@ export function createSelectionTable({
     columns,
     data
   });
-  context.tables['selectionTable'] = table;
+  if (!context.tables) context.tables = {};
+  context.tables.selectionTable = table;
 
   table.on('tableBuilt', () => {
     if (selectedParticipantIds?.length) table.selectRow(selectedParticipantIds);
