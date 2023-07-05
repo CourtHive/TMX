@@ -1124,10 +1124,17 @@
   resolved "https://registry.yarnpkg.com/@babel/regjsgen/-/regjsgen-0.8.0.tgz#f0ba69b075e1f05fb2825b7fad991e7adbb18310"
   integrity sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==
 
-"@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.16.3", "@babel/runtime@^7.20.7", "@babel/runtime@^7.21.0", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7":
+"@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.16.3", "@babel/runtime@^7.20.7", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7":
   version "7.22.5"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.5.tgz#8564dd588182ce0047d55d7a75e93921107b57ec"
   integrity sha512-ecjvYlnAaZ/KVneE/OdKYBYfgXV3Ptu6zQWmgEF7vwKhQnvVS6bjMD2XYgj+SNvQ1GfK/pjgokfPkC/2CO8CuA==
+  dependencies:
+    regenerator-runtime "^0.13.11"
+
+"@babel/runtime@^7.21.0":
+  version "7.22.6"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.6.tgz#57d64b9ae3cff1d67eb067ae117dac087f5bd438"
+  integrity sha512-wDb5pWm4WDdF6LFUde3Jl8WzPA+3ZbxYqkC6xAXuD3irdEHN1k0NfTRrJD8ZD378SJ61miMLCqIOXYhd8x+AJQ==
   dependencies:
     regenerator-runtime "^0.13.11"
 
@@ -10675,11 +10682,6 @@ tods-competition-factory@^1.0.19:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.19.tgz#531cb7073d6b36755a82190ccf90943557d67217"
   integrity sha512-yCf62N3ecM9twVy0mdaTdsJylFwdfJyrI0YJr49QymBWFonfx5mdJEputDBNTwN3ApRNjy5/ZbhH7Zrod2ekJA==
 
-tods-competition-factory@^1.0.8:
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.0.13.tgz#d0a77856dadbdd36342b334d9591f621e8b0afa7"
-  integrity sha512-Xlo/HHcjRr/btvXltkx/Op7BExROAm+fqtp8kVc5Eq0jPoeyj/vaqLqd+cM5kOZr0RzZplUIg0deNkzpquE21w==
-
 tods-competition-factory@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.0.tgz#2621502ee9276632c8603e55a883f0c4e9611f62"
@@ -10713,15 +10715,15 @@ tods-score-grid@^0.13.10:
     tods-competition-factory "^1.0.19"
 
 tods-tmx-classic-converter@^2.12.1:
-  version "2.12.1"
-  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.12.1.tgz#1b1d0c5035000d7e4337ec2c5aea69baa3199b89"
-  integrity sha512-BNcYLmHUadTJROeMtzJGOiKcDn0Cc/d6sj1yMG5txO0j1CWXfzI6FD/h69dE134noYm7RmtE+3Fmm8olYNouVg==
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.13.1.tgz#7c616ee54ed985389e537d891b622a1107975dd4"
+  integrity sha512-Zd6Xrb68kMf8pmFSk1ZN30K53KhfDQUqSbPj6Pj+p4ATZXu465I6TSty/hw+zQpPDXzm/HI5p3+PYCARs2pexw==
   dependencies:
     circular-json "^0.5.9"
     cli-progress "^3.9.0"
     d3 "5.16.0"
     date-fns "^2.19.0"
-    tods-competition-factory "^1.0.8"
+    tods-competition-factory "^1.2.0"
 
 toidentifier@1.0.1:
   version "1.0.1"
