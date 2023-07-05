@@ -183,12 +183,10 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
   const panelHeader = target.getElementsByClassName('panelHeader')[0];
   if (panelHeader) panelHeader.style.display = headerCount ? EMPTY_STRING : NONE;
 
-  if (table) {
-    table.on('rowSelectionChanged', (data, rows) => {
-      isFunction(onSelection) && onSelection(rows);
-      overlayCount && stateChange(rows);
-    });
-  }
+  table?.on('rowSelectionChanged', (data, rows) => {
+    isFunction(onSelection) && onSelection(rows);
+    overlayCount && stateChange(rows);
+  });
 
   stateChange();
 

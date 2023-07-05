@@ -44,7 +44,7 @@ export function getMatchUpColumns(replaceTableData) {
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
-      minWidth: 55
+      width: 55
     },
     {
       title: `<div class='fa-solid fa-check' style='color: green' />`,
@@ -59,7 +59,8 @@ export function getMatchUpColumns(replaceTableData) {
       field: 'eventId',
       title: 'Event',
       visible: true,
-      minWidth: 100
+      minWidth: 200,
+      widthGrow: 1
     },
     {
       field: 'matchUpType',
@@ -96,8 +97,9 @@ export function getMatchUpColumns(replaceTableData) {
       sorter: participantSorter,
       responsive: false,
       title: 'Side 1',
-      minWidth: 100,
-      field: 'side1'
+      minWidth: 180,
+      field: 'side1',
+      widthGrow: 1
     },
     {
       cellClick: participantActions,
@@ -105,8 +107,9 @@ export function getMatchUpColumns(replaceTableData) {
       sorter: participantSorter,
       responsive: false,
       title: 'Side 2',
-      minWidth: 100,
-      field: 'side2'
+      minWidth: 180,
+      field: 'side2',
+      widthGrow: 1
     },
     {
       cellClick: handleScoreClick(replaceTableData),
@@ -134,6 +137,7 @@ export function getMatchUpColumns(replaceTableData) {
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
+      widthGrow: 0,
       width: 50
     }
   ];
