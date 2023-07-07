@@ -1,4 +1,5 @@
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
+import { tournamentEngine } from 'tods-competition-factory';
 import { closeOverlay, openOverlay } from '../overlay';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -7,7 +8,12 @@ const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
 const TIE_SIDE_2 = 'tieSide2';
 
-export function openScorecard({ title, matchUp, onClose }) {
+export function openScorecard({ title, drawId, matchUpId, onClose }) {
+  const result = tournamentEngine.findMatchUp({ drawId, matchUpId });
+  const matchUp = result.matchUp;
+
+  if (!matchUp || result.error) return;
+
   if (!title || !Array.isArray(matchUp?.tieFormat?.collectionDefinitions)) return;
   const content = renderScorecard({ matchUp });
   const footer = getFooter({ onClose });
@@ -137,12 +143,32 @@ function getSide({ matchUp, sideNumber, justify = 'start' }) {
 function getFooter({ onClose }) {
   const reset = document.createElement('button');
   reset.className = 'button is-warning is-light';
-  reset.onclick = () => console.log('reset');
+  reset.onclick = () => {
+    // NOTE: this will reset a tieFormat to the next inherited tieFormat matchUp => structure => drawDefinition
+    /*
+    tournamentEngine.resetTieFormat({
+      matchUpId, // must be a TEAM matchUp
+      drawId, // required
+      uuids // optional - in client/server scenarios generated matchUps must have equivalent matchUpIds
+    });
+    */
+    console.log('reset');
+  };
   reset.innerHTML = 'Reset';
 
   const clear = document.createElement('button');
   clear.className = 'button is-info is-light button-spacer';
-  clear.onclick = () => console.log('clear');
+  clear.onclick = () => {
+    /*
+    // NOTE: this will clear all collectionMatchUp results (and optionally reset tiebrea)
+    tournamentEngine.resetScorecard({
+      tiebreakReset, // optional boolean - check for tiebreak scenarios and reset tieFormat
+      matchUpId,
+      drawId
+    });
+    */
+    console.log('clear');
+  };
   clear.innerHTML = 'Clear';
 
   const close = document.createElement('button');

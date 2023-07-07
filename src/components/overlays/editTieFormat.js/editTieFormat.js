@@ -87,7 +87,7 @@ function renderEditor({ tieFormat }) {
       error: 'Please enter a name of at least 5 characters',
       placeholder: 'Scorecard name',
       validator: nameValidator(5),
-      value: 'Custom scorecard',
+      value: tieFormat?.tieFormatName || 'Custom scorecard',
       field: 'tieFormatName',
       id: 'tieFormatName',
       location: LEFT

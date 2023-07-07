@@ -2,15 +2,18 @@ import { getCollectionDefinitionColumns } from './getCollectionDefinitionColumns
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 
 import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
+import { toTitleCase } from 'functions/toTitleCase';
 
 export function createTieFormatTable({ tableElement, tieFormat }) {
   const data = (tieFormat?.collectionDefinitions || []).map((collectionDefinition) => {
-    const { collectionValue, matchUpValue, scoreValue, setValue } = collectionDefinition;
+    const { collectionValue, matchUpValue, scoreValue, setValue, matchUpType, gender } = collectionDefinition;
     const awardType =
       (collectionValue && COLLECTION_VALUE) || (scoreValue && SCORE_VALUE) || (setValue && SET_VALUE) || MATCH_VALUE;
     return {
       ...collectionDefinition,
       awardValue: collectionValue || matchUpValue || scoreValue || setValue,
+      matchUpType: toTitleCase(matchUpType),
+      gender: toTitleCase(gender),
       awardType
     };
   });
