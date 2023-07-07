@@ -11,16 +11,11 @@ export function updateTieFormat({ structureId, eventId, drawId }) {
   });
   const updateTieFormat = (modifiedTieFormat) => {
     if (modifiedTieFormat) {
-      const modifiedTieFormatCollectionNames = modifiedTieFormat.collectionDefinitions
-        .map(({ collectionName }) => collectionName)
-        .join('|');
-      const tieFormatCollectionNames = tieFormat.collectionDefinitions
-        .map(({ collectionName }) => collectionName)
-        .join('|');
-
-      const different =
-        utilities.compareTieFormats({ ancestor: tieFormat, descendant: modifiedTieFormat })?.different ||
-        modifiedTieFormatCollectionNames !== tieFormatCollectionNames;
+      const different = utilities.compareTieFormats({
+        considerations: { collectionName: true, collectionOrder: true },
+        descendant: modifiedTieFormat,
+        ancestor: tieFormat
+      })?.different;
 
       if (!different) {
         tmxToast({ intent: 'is-info', message: 'No changes' });
@@ -39,7 +34,6 @@ export function updateTieFormat({ structureId, eventId, drawId }) {
       ];
 
       const postMutation = (result) => {
-        console.log({ result });
         if (result.success) {
           tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
         } else {
