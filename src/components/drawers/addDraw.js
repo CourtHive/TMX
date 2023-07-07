@@ -70,7 +70,7 @@ export function addDraw({ eventId, callback }) {
   const scoreFormatOptions = POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(
     ({ matchUpFormat, description: label }) => ({
       selected: matchUpFormat === 'SET3-S:6/TB7',
-      matchUpFormat,
+      value: matchUpFormat,
       label
     })
   );

@@ -125,5 +125,6 @@ export function dropDownButton({ target, button, stateChange }) {
   elem.appendChild(menu);
 
   if (target) target.appendChild(elem);
+
   return elem;
 }
