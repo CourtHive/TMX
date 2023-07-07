@@ -236,13 +236,13 @@ export function addDraw({ eventId, callback }) {
 
       if (drawSizeInteger) {
         if (tieFormatName === 'CUSTOM') {
-          const updateTieFormat = (tieFormat) => {
+          const setTieFormat = (tieFormat) => {
             if (tieFormat) {
               drawOptions.tieFormat = tieFormat;
               generateDraw();
             }
           };
-          editTieFormat({ title: 'Custom scorecard', onClose: updateTieFormat });
+          editTieFormat({ title: 'Custom scorecard', onClose: setTieFormat });
         } else {
           drawOptions.tieFormatName = tieFormatName;
           generateDraw();
