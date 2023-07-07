@@ -1,5 +1,5 @@
 import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
-import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
+import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
@@ -141,6 +141,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       if (!value) {
         Object.values(context.tables)
           .filter(Boolean)
+          // TODO: update this search logic!
           // .forEach((table) => table.removeFilter(searchFilter));
           .forEach((table) => table.clearFilter());
       }
@@ -163,17 +164,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     const actionOptions = [
       {
         hide: eventData.eventInfo.eventType !== TEAM,
-        onClick: () => {
-          const { tieFormat } = tournamentEngine.getTieFormat({
-            structureId,
-            eventId,
-            drawId
-          });
-          const updateTieFormat = (updatedTieFormat) => {
-            console.log({ updatedTieFormat });
-          };
-          editTieFormat({ title: 'Custom scorecard', tieFormat, onClose: updateTieFormat });
-        },
+        onClick: () => updateTieFormat({ structureId, eventId, drawId }),
         label: 'Edit scorecard',
         close: true
       },
