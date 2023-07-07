@@ -206,6 +206,7 @@ export const dd = (function () {
     let selected_option = selected !== undefined && options[selected] ? options[selected].key : '';
     let options_style = border ? "style='border: 1px solid #000;'" : '';
     let options_html = options.map((option) => optionHTML(option, style)).join('');
+
     return `
          <div class='dd-label'>${label}</div>
          <div class='options' ${options_style}>
