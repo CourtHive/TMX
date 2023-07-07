@@ -10681,9 +10681,9 @@ tods-competition-factory@^1.2.0:
   integrity sha512-n10QWNaR2KF/w/bQQZmY4y4hZqWGqFgzs232uDV09TIbcUKogKMRANave+XoM5ru5IW787RIeWDbbTrrqkiBJw==
 
 tods-competition-factory@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.1.tgz#b0c0d30f0547e9dedb6b86cdfe5bcc4e3ee14e8b"
-  integrity sha512-qF+AlwrkHQkwvn1wm6rQDtvVHfQTUCDibF1mYtiF2b4JmTEdLFgHh4q8M7fO6vQeYiPByGlLc6Fa50XVu9jeOQ==
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.4.tgz#247733c2839354545fbadab23cd9278a55b15756"
+  integrity sha512-uyprmruvDB9U1lhsdleFAsVLChtvLAi53LXrdxrk+wZLriR0IM6kxT8MBg6g61zwtmje7Q9AYyvkCLXGIjfV+w==
 
 tods-react-draws@^0.2.1:
   version "0.2.1"
