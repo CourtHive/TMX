@@ -11,6 +11,8 @@ export function updateTieFormat({ structureId, eventId, drawId }) {
   });
   const updateTieFormat = (modifiedTieFormat) => {
     if (modifiedTieFormat) {
+      modifiedTieFormat.collectionDefinitions?.forEach((def, i) => (def.collectionOrder = i + 1));
+
       const different = utilities.compareTieFormats({
         considerations: { collectionName: true, collectionOrder: true },
         descendant: modifiedTieFormat,
