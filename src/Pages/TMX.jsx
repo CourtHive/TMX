@@ -11,7 +11,6 @@ import {
   TIMEPICKER,
   TIMEVALUE,
   NONE,
-  OVERLAY_CONTENT,
   TOURNAMENT_CONTAINER,
   EVENTS_CONTROL,
   ENTRIES_VIEW,
@@ -27,7 +26,6 @@ import {
   DRAWS_VIEW,
   EVENT_INFO,
   EVENT_CONTROL,
-  TMX_OVERLAY,
   TMX_PANEL,
   TOURNAMENT_OVERVIEW,
 } from "constants/tmxConstants";
@@ -152,10 +150,6 @@ if (footer) {
 const TMX = () => (
   <div>
     <div id={TIMEPICKER} style={{ display: NONE }}> <input id={TIMEVALUE} type="text" className="timepicker-ui-input" /> </div>
-    <div id={TMX_OVERLAY} className="overlay" style={{ display: NONE}}>
-      <a className="closebtn">&times;</a>
-      <div id={OVERLAY_CONTENT} className="overlay-content"></div>
-    </div>
     <section id={TMX_DRAWER} className="drawer drawer--left" data-drawer-target>
       <div className="drawer__overlay" data-drawer-close tabIndex="-1"></div>
       <div className="drawer__wrapper">
