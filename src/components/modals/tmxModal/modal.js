@@ -66,6 +66,8 @@ export const baseModal = () => {
       removeAllChildNodes(elem);
       if (isFunction(content)) {
         attributes.content = content(elem);
+      } else if (isObject(content)) {
+        elem.appendChild(content);
       } else {
         elem.innerHTML = content;
       }
