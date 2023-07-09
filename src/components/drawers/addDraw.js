@@ -42,7 +42,7 @@ const {
   FEED_IN,
   FIRST_MATCH_LOSER_CONSOLATION,
   FIRST_ROUND_LOSER_CONSOLATION,
-  // LUCKY_DRAW,
+  LUCKY_DRAW,
   // MODIFIED_FEED_IN_CHAMPIONSHIP,
   OLYMPIC,
   PLAY_OFF,
@@ -100,20 +100,21 @@ export function addDraw({ eventId, callback }) {
       label: 'Draw Type',
       field: 'drawType',
       options: [
-        { label: 'Single elimination', value: SINGLE_ELIMINATION },
-        { label: 'Feed in championship', value: FEED_IN_CHAMPIONSHIP },
+        { label: 'Ad-hoc', value: AD_HOC },
+        { label: 'Compass', value: COMPASS },
+        { label: 'Curtis consolation', value: CURTIS },
+        { label: 'Double elimination', value: DOUBLE_ELIMINATION },
         { label: 'Feed in championship to SF', value: FEED_IN_CHAMPIONSHIP_TO_SF },
+        { label: 'Feed in championship', value: FEED_IN_CHAMPIONSHIP },
+        { label: 'Feed in', value: FEED_IN },
         { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION },
         { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION },
-        { label: 'Compass', value: COMPASS },
+        { label: 'Lucky', value: LUCKY_DRAW },
         { label: 'Olympic', value: OLYMPIC },
-        { label: 'Curtis consolation', value: CURTIS },
-        { label: 'Round robin', value: ROUND_ROBIN },
-        { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
-        { label: 'Double elimination', value: DOUBLE_ELIMINATION },
-        { label: 'Feed in', value: FEED_IN },
         { label: 'Playoff', value: PLAY_OFF },
-        { label: 'Ad-hoc', value: AD_HOC }
+        { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
+        { label: 'Round robin', value: ROUND_ROBIN },
+        { label: 'Single elimination', value: SINGLE_ELIMINATION }
       ]
     },
     {
@@ -198,7 +199,8 @@ export function addDraw({ eventId, callback }) {
       const drawSizeValue = inputs.drawSize.value;
       const groupSize = parseInt(inputs.groupSize.value);
       const drawSizeInteger = utilities.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
-      const drawSize = (drawType === FEED_IN && drawSizeInteger) || utilities.nextPowerOf2(drawSizeInteger);
+      const drawSize =
+        ([LUCKY_DRAW, FEED_IN].includes(drawType) && drawSizeInteger) || utilities.nextPowerOf2(drawSizeInteger);
       const drawEntries = event.entries.filter(
         ({ entryStage, entryStatus }) => entryStage === MAIN && DIRECT_ENTRY_STATUSES.includes(entryStatus)
       );
