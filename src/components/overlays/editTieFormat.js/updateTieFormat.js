@@ -2,14 +2,17 @@ import { tournamentEngine, utilities } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { editTieFormat } from './editTieFormat';
+import { isFunction } from 'functions/typeOf';
 
-export function updateTieFormat({ structureId, eventId, drawId }) {
+export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callback }) {
   const { tieFormat } = tournamentEngine.getTieFormat({
     structureId,
+    matchUpId,
     eventId,
     drawId
   });
-  const updateTieFormat = (modifiedTieFormat) => {
+
+  const updateFormat = (modifiedTieFormat) => {
     if (modifiedTieFormat) {
       modifiedTieFormat.collectionDefinitions?.forEach((def, i) => (def.collectionOrder = i + 1));
 
@@ -30,6 +33,7 @@ export function updateTieFormat({ structureId, eventId, drawId }) {
           params: {
             modifiedTieFormat,
             structureId,
+            matchUpId,
             drawId
           }
         }
@@ -38,6 +42,7 @@ export function updateTieFormat({ structureId, eventId, drawId }) {
       const postMutation = (result) => {
         if (result.success) {
           tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
+          isFunction(callback) && callback();
         } else {
           tmxToast({ intent: 'is-danger', message: result.error });
         }
@@ -46,5 +51,5 @@ export function updateTieFormat({ structureId, eventId, drawId }) {
     }
   };
 
-  editTieFormat({ title: 'Edit scorecard', tieFormat, onClose: updateTieFormat });
+  editTieFormat({ title: 'Edit scorecard', tieFormat, onClose: updateFormat });
 }

@@ -1,8 +1,12 @@
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
+import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
+import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
-import { closeOverlay, openOverlay } from '../overlay';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+
+import { RESET_SCORECARD } from 'constants/mutationConstants';
 
 const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
@@ -16,7 +20,9 @@ export function openScorecard({ title, drawId, matchUpId, onClose }) {
 
   if (!title || !Array.isArray(matchUp?.tieFormat?.collectionDefinitions)) return;
   const content = renderScorecard({ matchUp });
-  const footer = getFooter({ onClose });
+
+  // title is passed into footer for re-creating scorecard after mutations
+  const footer = getFooter({ title, drawId, matchUpId, onClose });
 
   return openOverlay({ title, content, footer });
 }
@@ -140,10 +146,10 @@ function getSide({ matchUp, sideNumber, justify = 'start' }) {
   return side;
 }
 
-function getFooter({ onClose }) {
-  const reset = document.createElement('button');
-  reset.className = 'button is-warning is-light';
-  reset.onclick = () => {
+function getFooter({ title, drawId, matchUpId, onClose }) {
+  const edit = document.createElement('button');
+  edit.className = 'button is-warning is-light';
+  edit.onclick = () => {
     // NOTE: this will reset a tieFormat to the next inherited tieFormat matchUp => structure => drawDefinition
     /*
     tournamentEngine.resetTieFormat({
@@ -152,24 +158,48 @@ function getFooter({ onClose }) {
       uuids // optional - in client/server scenarios generated matchUps must have equivalent matchUpIds
     });
     */
+    const callback = () => {
+      openScorecard({ title, drawId, matchUpId });
+    };
+    updateTieFormat({ matchUpId, drawId, callback });
+  };
+  edit.innerHTML = 'Edit scorecard';
+
+  /*
+  const reset = document.createElement('button');
+  reset.className = 'button is-warning is-light';
+  reset.onclick = () => {
+    // NOTE: this will reset a tieFormat to the next inherited tieFormat matchUp => structure => drawDefinition
+    // tournamentEngine.resetTieFormat({
+    //   matchUpId, // must be a TEAM matchUp
+    //   drawId, // required
+    //   uuids // optional - in client/server scenarios generated matchUps must have equivalent matchUpIds
+    // });
     console.log('reset');
   };
   reset.innerHTML = 'Reset';
+  */
 
   const clear = document.createElement('button');
   clear.className = 'button is-info is-light button-spacer';
+  clear.innerHTML = 'Clear results';
+
   clear.onclick = () => {
-    /*
-    // NOTE: this will clear all collectionMatchUp results (and optionally reset tiebrea)
-    tournamentEngine.resetScorecard({
-      tiebreakReset, // optional boolean - check for tiebreak scenarios and reset tieFormat
-      matchUpId,
-      drawId
-    });
-    */
-    console.log('clear');
+    const methods = [
+      {
+        params: { drawId, matchUpId },
+        method: RESET_SCORECARD
+      }
+    ];
+    const postMutation = (result) => {
+      if (result.success) {
+        const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
+        const content = renderScorecard({ matchUp });
+        setOverlayContent({ content });
+      }
+    };
+    mutationRequest({ methods, callback: postMutation });
   };
-  clear.innerHTML = 'Clear';
 
   const close = document.createElement('button');
   close.className = 'button is-info button-spacer';
@@ -187,7 +217,7 @@ function getFooter({ onClose }) {
 
   const footer = document.createElement('div');
   footer.className = 'overlay-footer-wrap';
-  footer.appendChild(reset);
+  footer.appendChild(edit);
   footer.appendChild(clear);
   footer.appendChild(close);
 
