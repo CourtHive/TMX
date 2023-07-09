@@ -28,7 +28,13 @@ const actionTypes = {
   }
 };
 
-export function selectParticipant({ action, onSelection, selectionLimit, selectedParticipantIds }) {
+export function selectParticipant({
+  title = 'Select participant',
+  selectedParticipantIds,
+  selectionLimit,
+  onSelection,
+  action
+}) {
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
   let selected;
@@ -66,7 +72,7 @@ export function selectParticipant({ action, onSelection, selectionLimit, selecte
     </div>
   `;
 
-  context.modal.open({ title: 'Select participant', content, buttons, onClose });
+  context.modal.open({ title, content, buttons, onClose });
 
   const onSelected = (value) => (selected = value);
   const data = action[actionType.selections];
