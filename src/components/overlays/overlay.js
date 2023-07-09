@@ -7,6 +7,9 @@ let scrollTop;
 export function openOverlay({ title, content, footer } = {}) {
   if (!content || !footer) return;
 
+  const tmxOverlay = document.getElementById(TMX_OVERLAY);
+  tmxOverlay && removeAllChildNodes(tmxOverlay);
+
   const overlay = document.createElement('div');
   overlay.className = 'overlay noselect';
   overlay.id = TMX_OVERLAY;
@@ -47,10 +50,20 @@ export function openOverlay({ title, content, footer } = {}) {
   document.body.appendChild(overlay);
 
   scrollTop = window.scrollY || document.documentElement.scrollTop;
-  // const close = document.getElementById('closeOverlay');
-  // close.onclick = closeOverlay;
   const root = document.getElementById('root');
   root.style.display = NONE;
+}
+
+export function setOverlayContent({ content }) {
+  const contentElement = document.getElementById(TMX_OVERLAY)?.getElementsByClassName('overlay-content')?.[0];
+  if (contentElement) {
+    removeAllChildNodes(contentElement);
+    if (typeof content === 'string') {
+      contentElement.innerHTML = content;
+    } else if (content) {
+      contentElement.appendChild(content);
+    }
+  }
 }
 
 function overlayHeader({ title }) {
@@ -70,7 +83,7 @@ export function closeOverlay() {
   window.scrollTo({ top: scrollTop });
 
   let tmxOverlay = document.getElementById(TMX_OVERLAY);
-  removeAllChildNodes();
+  removeAllChildNodes(tmxOverlay);
   let iterations = 0;
 
   while (iterations < 5 && tmxOverlay) {
