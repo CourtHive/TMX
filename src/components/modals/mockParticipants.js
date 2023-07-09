@@ -18,7 +18,7 @@ export function mockParticipants({ callback } = {}) {
 
     const { participants } = mocksEngine.generateParticipants({
       category: { ratingType: 'WTN', ratingMin: 14, ratingMax: 19.99 },
-      scaledParticipantsCount: parseInt(count),
+      participantsCount: parseInt(count),
       scaleAllParticipants: true,
       sex
     });
