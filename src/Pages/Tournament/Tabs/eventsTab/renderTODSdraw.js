@@ -67,26 +67,31 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       for (const key of Object.keys(structure.roundMatchUps)) {
         structure.roundMatchUps[key] = roundMatchUps[key]?.filter(
           ({ sides }) =>
-            sides.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
+            sides?.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
             !participantFilter
         );
       }
     }
 
-    window.reactDraws
-      ? render(<DrawStructure {...args} />, drawsView)
-      : render(
-          <Draw
-            searchActive={participantFilter}
-            eventHandlers={eventHandlers}
-            structureId={structureId}
-            composition={composition}
-            structures={structures}
-            className={className}
-            disableFlags={true}
-          />,
-          drawsView
-        );
+    // if (!matchUps.length && utilities.isAdHoc({ structure: structures.find((s) => s.structureId === structureId) })) {
+    if (!matchUps.length) {
+      console.log('AD_HOC', { structureId, structures, drawData });
+    } else {
+      window.reactDraws
+        ? render(<DrawStructure {...args} />, drawsView)
+        : render(
+            <Draw
+              searchActive={participantFilter}
+              eventHandlers={eventHandlers}
+              structureId={structureId}
+              composition={composition}
+              structures={structures}
+              className={className}
+              disableFlags={true}
+            />,
+            drawsView
+          );
+    }
   };
 
   const eventControlElement = document.getElementById(EVENT_CONTROL);
