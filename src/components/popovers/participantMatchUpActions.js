@@ -21,6 +21,10 @@ export function participantActions(e, cell, callback) {
   const row = cell.getRow();
   const data = row.getData();
   const def = cell.getColumn().getDefinition();
+
+  const isDoubles = data.matchUpType === DOUBLES;
+  const isTeam = data.eventType === TEAM;
+
   const participantPresent =
     (data.side1?.participantName && def.field === 'side1') || (data.side2?.participantName && def.field === 'side2');
   if (participantPresent) {
@@ -30,20 +34,20 @@ export function participantActions(e, cell, callback) {
         onClick: () => console.log(data)
       }
     ];
-    if (data.eventType === TEAM) {
+    if (isTeam) {
       items.push({
         text: 'Assign participant',
-        onClick: () => assign({ def, data, callback })
+        onClick: () => assign({ def, data, callback, isTeam, isDoubles })
       });
     }
 
     tipster({ items, target: e.target, config: { placement: BOTTOM } });
-  } else if (data.eventType === TEAM) {
-    assign({ def, data, callback });
+  } else if (isTeam) {
+    assign({ def, data, callback, isTeam, isDoubles });
   }
 }
 
-function assign({ def, data, callback }) {
+function assign({ def, data, callback, isTeam, isDoubles }) {
   const sideNumber = def.field === 'side2' ? 2 : 1;
   const participantsAvailable = data.matchUp.dualMatchUp.sides
     .find((side) => side.sideNumber === sideNumber)
@@ -84,5 +88,7 @@ function assign({ def, data, callback }) {
     participantsAvailable
   };
 
-  selectParticipant({ action, selectionLimit, onSelection, selectedParticipantIds: existingParticipantIds });
+  const title = isTeam && isDoubles ? 'Doubles: Select participants' : undefined;
+
+  selectParticipant({ title, action, selectionLimit, onSelection, selectedParticipantIds: existingParticipantIds });
 }
