@@ -1,8 +1,8 @@
 import { getCollectionDefinitionColumns } from './getCollectionDefinitionColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { toTitleCase } from 'functions/toTitleCase';
 
 import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
-import { toTitleCase } from 'functions/toTitleCase';
 
 export function createTieFormatTable({ tableElement, tieFormat }) {
   const data = (tieFormat?.collectionDefinitions || []).map((collectionDefinition) => {
@@ -32,11 +32,6 @@ export function createTieFormatTable({ tableElement, tieFormat }) {
     minHeight: 200,
     columns,
     data
-  });
-
-  table.on('rowMoved', () => {
-    const rows = table.getRows();
-    rows.forEach((r, i) => r.update({ ...data[i], collectionOrder: i + 1 }));
   });
 
   return { table };

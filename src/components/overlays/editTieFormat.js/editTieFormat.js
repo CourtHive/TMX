@@ -108,17 +108,18 @@ function renderEditor({ tieFormat }) {
       onClick: () => {
         const rowCount = table.getData().length;
 
-        table.addRow({
+        const newRow = {
           collectionName: `Collection ${rowCount + 1}`,
           collectionId: utilities.UUID(),
           awardType: 'Match value', // collection value, set value, score value
           matchUpFormat: 'SET3-S:6/TB7',
-          collectionOrder: rowCount + 1,
           matchUpType: 'Singles',
           matchUpCount: 1,
           gender: 'Mixed',
           awardValue: 1
-        });
+        };
+
+        table.addRow(newRow);
       },
       label: 'Add collection',
       intent: 'is-info',
