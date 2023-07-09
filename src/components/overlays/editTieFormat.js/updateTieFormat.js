@@ -33,6 +33,7 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
           params: {
             modifiedTieFormat,
             structureId,
+            matchUpId,
             drawId
           }
         }
