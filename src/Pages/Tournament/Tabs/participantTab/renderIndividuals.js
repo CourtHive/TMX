@@ -134,7 +134,7 @@ export function renderIndividuals({ view }) {
       search: true
     },
     {
-      hide: eventOptions.length < 2,
+      hide: (events || []).length < 1,
       options: eventOptions,
       label: ALL_EVENTS,
       modifyLabel: true,
