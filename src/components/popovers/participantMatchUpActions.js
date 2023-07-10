@@ -90,5 +90,12 @@ function assign({ def, data, callback, isTeam, isDoubles }) {
 
   const title = isTeam && isDoubles ? 'Doubles: Select participants' : undefined;
 
-  selectParticipant({ title, action, selectionLimit, onSelection, selectedParticipantIds: existingParticipantIds });
+  selectParticipant({
+    selectedParticipantIds: existingParticipantIds,
+    selectOnEnter: true,
+    selectionLimit,
+    onSelection,
+    action,
+    title
+  });
 }
