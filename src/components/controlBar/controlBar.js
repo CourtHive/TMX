@@ -28,6 +28,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
 
   const elements = {};
   const inputs = {};
+  let focus;
 
   if (buildElement) {
     removeAllChildNodes(target);
@@ -79,8 +80,9 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
     if (!itemConfig.hide && (itemConfig.input || itemConfig.placeholder || itemConfig.search)) {
       const elem = document.createElement('p');
       elem.style = 'margin-right: 1em';
-      elem.className = `control ${itemConfig.search ? 'has-icons-left' : ''}`;
+      elem.className = `control ${itemConfig.search ? 'has-icons-left has-icons-right' : ''}`;
       const input = document.createElement('input');
+      if (itemConfig.focus) focus = input;
       input.className = 'input font-medium';
       input.setAttribute('type', 'text');
       input.setAttribute('autocomplete', 'cc-number');
@@ -100,6 +102,19 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
         span.className = 'icon is-small is-left font-medium';
         span.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i>`;
         elem.appendChild(span);
+
+        if (isFunction(itemConfig.clearSearch)) {
+          const clear = document.createElement('span');
+          clear.className = 'icon is-small is-right font-medium';
+          // NOTE: "pointer-events: all" necessary to capture the onclick event
+          clear.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color: #dddada; pointer-events: all; cursor: pointer"></i>`;
+          clear.onclick = (e) => {
+            e.stopPropagation();
+            itemConfig.clearSearch();
+            input.value = '';
+          };
+          elem.appendChild(clear);
+        }
       }
 
       if (item.validator) {
@@ -189,6 +204,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
   });
 
   stateChange();
+  if (focus) setTimeout(() => focus.focus(), 200);
 
   return { elements, inputs };
 }

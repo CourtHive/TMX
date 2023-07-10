@@ -15,7 +15,7 @@ export function scoreHandler(e, cell) {
       row.update(data);
 
       const table = cell.getTable();
-      table.redraw(e);
+      table.redraw(true);
 
       const tieResult = result.results.find(({ methodName }) => methodName === SET_MATCHUP_STATUS)?.tieMatchUpResult;
       setTieScore(tieResult);

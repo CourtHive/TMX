@@ -1,12 +1,17 @@
+import { positionActionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
 import { removeFromTeam } from 'Pages/Tournament/Tabs/participantTab/controlBar/removeFromTeam';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTipster } from 'components/popovers/tipster';
 
 import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
-import { MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+
+const { ASSIGN_PARTICIPANT } = positionActionConstants;
+const xa = utilities.extractAttributes;
 
 export const teamRowFormatter = (row) => {
   const holderEl = document.createElement('div');
@@ -92,6 +97,70 @@ export const teamRowFormatter = (row) => {
     mutationRequest({ methods, callback: postMutation });
   });
 
+  const addIndividualParticipants = () => {
+    const onSelection = (result) => {
+      if (result.participantId) {
+        const individualParticipants = result.selected;
+        const individualParticipantIds = (
+          result.selected ? result.selected.map(xa('participantId')) : [result.participantId]
+        ).filter(Boolean);
+        const newParticipantIds = participant.individualParticipants
+          .map(xa('participantId'))
+          .concat(individualParticipantIds);
+
+        if (individualParticipantIds?.length) {
+          const methods = [
+            {
+              method: ADD_INDIVIDUAL_PARTICIPANT_IDS,
+              params: {
+                groupingParticipantId: participant.participantId,
+                individualParticipantIds
+              }
+            },
+            {
+              params: {
+                participant: { participantId: participant.participantId, individualParticipantIds: newParticipantIds }
+              },
+              method: MODIFY_PARTICIPANT
+            }
+          ];
+          const postMutation = (result) => {
+            if (result.success) {
+              participant.individualParticipants = participant.individualParticipants.concat(individualParticipants);
+              participant.membersCount = participant.individualParticipants.length;
+              row.update(participant);
+              const table = row.getTable();
+              table.redraw(true);
+            }
+          };
+          mutationRequest({ methods, callback: postMutation });
+        }
+      }
+    };
+
+    const existingParticipantIds = participant.individualParticipants?.map(xa('participantId')) || [];
+    const { participants } = tournamentEngine.getParticipants({
+      participantFilters: { participantTypes: ['INDIVIDUAL'] }
+    });
+
+    const participantsAvailable = participants.filter(
+      ({ participantId }) => !existingParticipantIds.includes(participantId)
+    );
+
+    const action = {
+      type: ASSIGN_PARTICIPANT,
+      participantsAvailable
+    };
+
+    selectParticipant({
+      title: 'Select players to add',
+      activeOnEnter: true,
+      selectionLimit: 99,
+      onSelection,
+      action
+    });
+  };
+
   const items = [
     {
       onClick: () => removeFromTeam({ table: ipTable, team: participant }),
@@ -101,6 +170,7 @@ export const teamRowFormatter = (row) => {
       location: OVERLAY
     },
     {
+      onClick: addIndividualParticipants,
       label: 'Add players',
       intent: 'is-primary',
       location: RIGHT

@@ -25,6 +25,11 @@ const actionTypes = {
     targetAttribute: 'drawPosition',
     title: 'Swap draw positions',
     param: 'drawPositions'
+  },
+  selectParticipants: {
+    title: 'Select participants',
+    targetAttribute: 'participantId',
+    selections: 'participantsAvailable'
   }
 };
 
@@ -32,12 +37,14 @@ export function selectParticipant({
   title = 'Select participant',
   selectedParticipantIds,
   selectionLimit,
+  activeOnEnter,
+  selectOnEnter,
   onSelection,
   action
 }) {
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
-  let selected;
+  let selected, controlInputs;
 
   const onClick = () => {
     const attribute = actionType.targetAttribute;
@@ -86,17 +93,48 @@ export function selectParticipant({
   });
 
   const setSearchFilter = createSearchFilter(table);
+  const checkSelection = () => {
+    const active = table.getData('active');
+    if (active.length === 1) {
+      if (selectOnEnter) {
+        selected = active[0];
+        context.modal.close();
+        onClick();
+      } else if (activeOnEnter) {
+        const selectedIds = selected?.map((s) => s.participantId) || [];
+        const activeId = active[0].participantId;
+        if (!selectedIds.includes(activeId)) {
+          if (Array.isArray(selected)) {
+            selected.push(active[0]);
+          } else {
+            selected = active;
+          }
+          table.selectRow([activeId]);
+          controlInputs['participantSearch'].value = '';
+        }
+      }
+    }
+  };
+
+  const onSearchKeyDown = (e) => {
+    e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
+    e.key === 'Enter' && checkSelection();
+  };
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onKeyDown: onSearchKeyDown,
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search entries',
+      id: 'participantSearch',
       location: LEFT,
-      search: true
+      search: true,
+      focus: true
     }
   ];
 
   const target = document.getElementById(controlId);
-  controlBar({ table, target, items });
+
+  controlInputs = controlBar({ table, target, items }).inputs;
 }
