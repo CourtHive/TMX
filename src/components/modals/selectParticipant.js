@@ -86,14 +86,28 @@ export function selectParticipant({
   });
 
   const setSearchFilter = createSearchFilter(table);
+  const checkSelection = () => {
+    const active = table.getData('active');
+    if (active.length === 1) {
+      selected = active[0];
+      context.modal.close();
+      onClick();
+    }
+  };
+
+  const onSearchKeyDown = (e) => {
+    e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
+    e.key === 'Enter' && checkSelection();
+  };
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onKeyDown: onSearchKeyDown,
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
       placeholder: 'Search entries',
       location: LEFT,
-      search: true
+      search: true,
+      focus: true
     }
   ];
 
