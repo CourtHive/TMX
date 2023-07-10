@@ -28,6 +28,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
 
   const elements = {};
   const inputs = {};
+  let focus;
 
   if (buildElement) {
     removeAllChildNodes(target);
@@ -81,6 +82,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       elem.style = 'margin-right: 1em';
       elem.className = `control ${itemConfig.search ? 'has-icons-left' : ''}`;
       const input = document.createElement('input');
+      if (itemConfig.focus) focus = input;
       input.className = 'input font-medium';
       input.setAttribute('type', 'text');
       input.setAttribute('autocomplete', 'cc-number');
@@ -189,6 +191,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
   });
 
   stateChange();
+  if (focus) setTimeout(() => focus.focus(), 200);
 
   return { elements, inputs };
 }
