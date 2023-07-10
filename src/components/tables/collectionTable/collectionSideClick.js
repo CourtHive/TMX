@@ -15,7 +15,7 @@ export const handleSideClick = (matchUp) => (e, cell) => {
       );
       const table = cell.getTable();
       table.updateData(data);
-      table.redraw(e);
+      table.redraw(true);
     }
   };
   participantActions(e, cell, callback);
