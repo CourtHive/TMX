@@ -58,8 +58,6 @@ export function renderIndividuals({ view }) {
     }
   ];
 
-  const selectOnEnter = createSelectOnEnter(table);
-
   const addToEventOptions = events
     .map((event) => ({
       onClick: () => addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: replaceTableData }),
@@ -76,6 +74,7 @@ export function renderIndividuals({ view }) {
     ]);
 
   const addToTeam = getAddToTeamSelection({ teamParticipants, table, replaceTableData });
+  const selectOnEnter = createSelectOnEnter(table);
 
   const items = [
     {
@@ -85,6 +84,7 @@ export function renderIndividuals({ view }) {
       },
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: OVERLAY,
       search: true
@@ -129,6 +129,7 @@ export function renderIndividuals({ view }) {
       },
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: LEFT,
       search: true
