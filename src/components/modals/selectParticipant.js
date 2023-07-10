@@ -125,6 +125,7 @@ export function selectParticipant({
       onKeyDown: onSearchKeyDown,
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search entries',
       id: 'participantSearch',
       location: LEFT,

@@ -80,6 +80,7 @@ export function renderMatchUpTab() {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
       onChange: (e) => updateSearchFilter(e.target.value),
       onKeyUp: (e) => updateSearchFilter(e.target.value),
+      clearSearch: () => updateSearchFilter(''),
       placeholder: 'Search matches',
       location: LEFT,
       search: true

@@ -64,6 +64,7 @@ export function unscheduledGridControl({
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: LEFT,
       search: true
