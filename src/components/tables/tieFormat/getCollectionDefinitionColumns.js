@@ -1,4 +1,5 @@
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
+
 import { CENTER, COLLECTION_VALUE, LEFT, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
 export function getCollectionDefinitionColumns() {
