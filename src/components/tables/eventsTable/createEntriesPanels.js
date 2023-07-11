@@ -9,7 +9,7 @@ import { navigateToEvent } from '../common/navigateToEvent';
 import { getEntriesColumns } from './getEntriesColumns';
 import { getParent } from 'services/dom/parentAndChild';
 import { displayAllEvents } from './displayAllEvents';
-import { addDraw } from 'components/drawers/addDraw';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { panelDefinitions } from './panelDefinitions';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
