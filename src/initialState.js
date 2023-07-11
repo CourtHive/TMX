@@ -24,11 +24,12 @@ import '@event-calendar/core/index.css';
 import 'styles/legacy/scoreboard.css';
 import 'styles/legacy/ddScoring.css';
 
-import 'bulma/css/bulma.css';
+import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'awesomplete/awesomplete.css';
 import 'animate.css/animate.min.css';
-import 'pikaday/css/pikaday.css';
 import 'quill/dist/quill.snow.css';
+import 'pikaday/css/pikaday.css';
+import 'bulma/css/bulma.css';
 
 import 'tippy.js/themes/light-border.css';
 import 'tippy.js/themes/light.css';

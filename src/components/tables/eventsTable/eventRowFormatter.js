@@ -4,9 +4,9 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTipster } from 'components/popovers/tipster';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { addDraw } from 'components/drawers/addDraw';
 import { getDrawsColumns } from './getDrawsColumns';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';

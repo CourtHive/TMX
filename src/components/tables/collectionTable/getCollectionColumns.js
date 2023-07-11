@@ -32,8 +32,8 @@ export function getCollectionColumns({ matchUp }) {
       widthGrow: 2
     },
     {
-      cellClick: scoreHandler,
       formatter: scoreFormatter,
+      cellClick: scoreHandler,
       responsive: false,
       title: 'Score',
       field: 'score',

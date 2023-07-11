@@ -72,6 +72,10 @@ export const CONFLICT_MATCHUP_ORDER = 'matchUpConflict';
 export const SCHEDULE_ISSUE_IDS = 'ISSUE_IDS';
 export const SCHEDULE_ISSUE = 'ISSUE';
 
+// forms
+export const AUTOMATED = 'Automated';
+export const MANUAL = 'Manual';
+
 // in order of concern
 export const scheduleClass = {
   [SCHEDULE_ERROR]: 'matchup-error',

@@ -62,10 +62,10 @@ function assign({ def, data, callback, isTeam, isDoubles }) {
 
   const selectionLimit = matchUpType === DOUBLES ? 2 : 1;
   const onSelection = (result) => {
-    if (result.participantId) {
+    if (result.participantId || result.selected) {
       const methods = [];
       const participantIds = (
-        result.selected ? result.selected.map(xa('participantId')) : [result.participantId]
+        Array.isArray(result.selected) ? result.selected.map(xa('participantId')) : [result.participantId]
       ).filter(Boolean);
 
       participantIds.forEach((participantId) => {
