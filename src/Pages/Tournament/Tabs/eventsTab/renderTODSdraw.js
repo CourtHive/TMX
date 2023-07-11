@@ -1,6 +1,7 @@
 import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
+import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -8,13 +9,14 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { render, unmountComponentAtNode } from 'react-dom';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { getEventHandlers } from './getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
 import { context } from 'services/context';
 
 import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
-import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
+import { DELETE_FLIGHT_AND_DRAW, SET_MATCHUP_FORMAT } from 'constants/mutationConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -166,11 +168,33 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       mutationRequest({ methods, callback: postMutation });
     };
 
+    const editMatchUpFormat = ({ structureId, drawId }) => {
+      const callback = (matchUpFormat) => {
+        if (matchUpFormat) {
+          const methods = [
+            {
+              params: { matchUpFormat, structureId, drawId },
+              method: SET_MATCHUP_FORMAT
+            }
+          ];
+          const postMutation = (result) => result.success && tmxToast({ message: 'Scoring changed' });
+          mutationRequest({ methods, callback: postMutation });
+        }
+      };
+      getMatchUpFormat({ callback });
+    };
+
     const actionOptions = [
       {
         hide: eventData.eventInfo.eventType !== TEAM,
         onClick: () => updateTieFormat({ structureId, eventId, drawId }),
         label: 'Edit scorecard',
+        close: true
+      },
+      {
+        hide: eventData.eventInfo.eventType === TEAM,
+        onClick: () => editMatchUpFormat({ structureId, eventId, drawId }),
+        label: `Edit ${structureName} scoring`,
         close: true
       },
       {

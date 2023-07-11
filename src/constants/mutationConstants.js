@@ -29,4 +29,5 @@ export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';
 export const REMOVE_INDIVIDUAL_PARTICIPANT_IDS = 'removeIndividualParticipantIds';
 export const REMOVE_TIE_MATCHUP_PARTICIPANT_ID = 'removeTieMatchUpParticipantId';
 export const RESET_SCORECARD = 'resetScorecard';
+export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
