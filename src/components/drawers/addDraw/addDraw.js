@@ -1,5 +1,5 @@
+import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 import { nameValidator } from 'components/validators/nameValidator';
-import { getMatchUpFormat } from 'components/modals/matchUpFormat';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderForm } from 'components/renderers/renderForm';
