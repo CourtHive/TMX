@@ -1,4 +1,5 @@
 import { nameValidator } from 'components/validators/nameValidator';
+import { getMatchUpFormat } from 'components/modals/matchUpFormat';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { tournamentEngine } from 'tods-competition-factory';
 import { renderForm } from 'components/renderers/renderForm';
@@ -28,7 +29,14 @@ export function addDraw({ eventId, callback }) {
     if (!isValid()) {
       tmxToast({ message: 'Missing Draw name', intent: 'is-danger' });
     } else if (inputs.matchUpFormat?.value === 'CUSTOM') {
-      console.log('custom');
+      const setMatchUpFormat = (matchUpFormat) => {
+        if (matchUpFormat) {
+          submitParams({ event, inputs, callback, matchUpFormat });
+        } else {
+          console.log('ERROR');
+        }
+      };
+      getMatchUpFormat({ callback: setMatchUpFormat });
     } else {
       submitParams({ event, inputs, callback });
     }

@@ -102,6 +102,17 @@ body {
   background-color: white;
 }
 
+.mfcButton {
+  transition: all .2s ease-in-out;
+  background-color: inherit;
+  border: none;
+  color: inherit;
+  padding: .3em;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1em;
+}
 
 .panelHeader {
   background-color: rgb(192 193 211);
