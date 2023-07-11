@@ -8,11 +8,11 @@ import { AUTOMATED } from 'constants/tmxConstants';
 const { FEED_IN, LUCKY_DRAW, MAIN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 
-export function submitParams({ event, inputs, callback }) {
+export function submitParams({ event, inputs, callback, matchUpFormat }) {
   const drawType = inputs.drawType.options[inputs.drawType.selectedIndex].getAttribute('value');
+  matchUpFormat = matchUpFormat || inputs.matchUpFormat?.value;
   const automated = inputs.automated.value === AUTOMATED;
   const tieFormatName = inputs.tieFormatName?.value;
-  const matchUpFormat = inputs.matchUpFormat?.value;
   const drawName = inputs.drawName.value;
 
   const drawSizeValue = inputs.drawSize.value;
