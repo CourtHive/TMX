@@ -33,3 +33,4 @@ export const REMOVE_TIE_MATCHUP_PARTICIPANT_ID = 'removeTieMatchUpParticipantId'
 export const RESET_SCORECARD = 'resetScorecard';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
+export const SET_PARTICIPANT_SCALE_ITEMS = 'setParticipantScaleItems';
