@@ -10,9 +10,10 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { render, unmountComponentAtNode } from 'react-dom';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { getEventHandlers } from './getEventHandlers';
+import { getEventHandlers } from '../getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
+import { addStructures } from './addStructures';
 import { context } from 'services/context';
 
 import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
@@ -21,17 +22,20 @@ import { DELETE_FLIGHT_AND_DRAW, SET_MATCHUP_FORMAT } from 'constants/mutationCo
 const { DOUBLES, TEAM } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
-  const eventData = tournamentEngine.getEventData({ eventId }).eventData;
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
-  let participantFilter;
+  let participantFilter, eventData, eventType, drawData, structures;
 
-  const eventType = eventData?.eventInfo?.eventType;
+  const getData = () => {
+    eventData = tournamentEngine.getEventData({ eventId }).eventData;
+    eventType = eventData?.eventInfo?.eventType;
+    drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
+    structures = drawData?.structures || [];
+    structureId = structureId || structures?.[0]?.structureId;
+  };
 
-  const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
-  const structures = drawData?.structures || [];
-  structureId = structureId || structures?.[0]?.structureId;
+  getData();
 
   const { structureName, roundMatchUps } = utilities.makeDeepCopy(
     drawData?.structures?.find((s) => s.structureId === structureId) || {}
@@ -97,7 +101,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   };
 
   const eventControlElement = document.getElementById(EVENT_CONTROL);
-  const updateControlBar = () => {
+  const updateControlBar = (refresh) => {
+    if (refresh) getData();
+
     const eventOptions = events
       .map((event) => ({
         onClick: () => {
@@ -139,7 +145,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }))
       .concat([
         { divider: true },
-        { heading: 'Add structure(s)', onClick: () => console.log('option to add structure(s)') }
+        {
+          onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
+          label: 'Add structure(s)',
+          modifyLabel: false,
+          close: true
+        }
       ]);
 
     // PARTICIPANT filter
@@ -262,5 +273,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   } else {
     updateDrawDisplay(args);
   }
+
   updateControlBar();
 }
