@@ -92,7 +92,7 @@ export function dropDownButton({ target, button, stateChange }) {
       clearActive();
       if (!active) {
         if (button.selection) activeState(anchor);
-        if (button.modifyLabel) {
+        if (button.modifyLabel && option.modifyLabel !== false) {
           label.innerHTML = `${button.append ? button.label + ': ' : ''}${option?.label || genericItem()}`;
         }
       } else {
