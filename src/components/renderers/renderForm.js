@@ -25,11 +25,25 @@ export function renderForm(elem, items, relationships) {
     if ((!item.label && !item.field) || item.hide) continue;
 
     if (item.field) {
+      const container = item.fieldPair && document.createElement('div');
+      if (container) container.className = 'flexrow';
+
       const { field, inputElement, datepicker } = renderField(item);
       if (datepicker) inputs[`${item.field}.date`] = datepicker;
       inputs[item.field] = inputElement;
       fields[item.field] = field;
-      div.appendChild(field);
+
+      if (container) {
+        container.appendChild(field);
+        const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
+        if (datepicker) inputs[`${item.field}.date`] = datepicker;
+        inputs[item.fieldPair.field] = inputElement;
+        fields[item.fieldPair.field] = pair;
+        container.appendChild(pair);
+        div.appendChild(container);
+      } else {
+        div.appendChild(field);
+      }
     }
   }
 
