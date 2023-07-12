@@ -1,15 +1,14 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { findParentByClassName } from 'services/dom/findParentByClass';
+import { findAncestor, getParent } from 'services/dom/parentAndChild';
 import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { getEntriesColumns } from './getEntriesColumns';
-import { getParent } from 'services/dom/parentAndChild';
 import { displayAllEvents } from './displayAllEvents';
-import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { panelDefinitions } from './panelDefinitions';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -90,7 +89,7 @@ export function createEntriesPanels({ eventId, drawId }) {
             'status',
             'flights'
           ]),
-          columns: getEntriesColumns({ actions, exclude, eventId, drawId }),
+          columns: getEntriesColumns({ actions, exclude, entries, eventId, drawId }),
           responsiveLayout: 'collapse',
           index: 'participantId',
           layout: 'fitColumns',
@@ -101,7 +100,7 @@ export function createEntriesPanels({ eventId, drawId }) {
         });
         context.tables[group] = table;
 
-        const tmxPanel = findParentByClassName(panelElement, TMX_PANEL);
+        const tmxPanel = findAncestor(panelElement, TMX_PANEL);
         table.on('tableBuilt', () => {
           const items = panelDef.items?.map((item) => (isFunction(item) ? item(table) : item));
           controlBar({ target: controlElement, table, items, onSelection: panelDef.onSelection });

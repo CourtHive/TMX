@@ -2,7 +2,7 @@ export function getParent(elem, className) {
   return Array.from(elem.classList).indexOf(className) >= 0 ? elem : findAncestor(elem, className);
 }
 
-function findAncestor(el, className) {
+export function findAncestor(el, className) {
   if (!el) return null;
   if (el.classList && Array.from(el.classList).indexOf(className) >= 0) return el;
   while (el.parentNode) {
