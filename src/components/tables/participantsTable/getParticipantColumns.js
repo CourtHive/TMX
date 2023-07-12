@@ -138,10 +138,12 @@ export function getParticipantColumns() {
       minWidth: 110
     },
     {
-      title: 'WTN',
+      sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.wtn.wtnRating',
       responsive: true,
       resizable: false,
+      sorter: 'number',
+      title: 'WTN',
       width: 70
     },
     {
