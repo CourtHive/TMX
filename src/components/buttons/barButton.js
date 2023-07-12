@@ -25,8 +25,8 @@ import { NONE } from 'constants/tmxConstants';
 
 export function barButton(itemConfig) {
   const elem = document.createElement('button');
-  // elem.className = button({ intent: 'primary' });
   elem.className = 'button font-medium';
+  if (itemConfig.class) elem.classList.add(itemConfig.class);
   if (itemConfig.id) elem.id = itemConfig.id;
   elem.style = 'margin-right: .5em;';
   if (itemConfig.intent) elem.classList.add(itemConfig.intent);

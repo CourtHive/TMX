@@ -17,15 +17,21 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
     .map((flight) => ({ ...flight, drawName: derivedDrawInfo[flight.drawId].drawName }));
   const address = participant?.person?.addresses?.[0];
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
+
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
   const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === 'WTN')?.scaleValue;
   const ratings = { wtn };
+
+  const seedNumber = participant?.seedings?.[eventType]?.find(
+    (scaleItem) => scaleItem.scaleName === eventId
+  )?.scaleValue;
 
   const status = statusMapping[entry.entryStatus];
 
   return {
     searchText: participant?.participantName.toLowerCase(),
     participant,
+    seedNumber,
     cityState,
     ...entry,
     ratings,

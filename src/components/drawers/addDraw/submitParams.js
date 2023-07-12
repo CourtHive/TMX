@@ -1,9 +1,10 @@
+import { drawDefinitionConstants, entryStatusConstants, tournamentEngine, utilities } from 'tods-competition-factory';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { generateDraw } from './generateDraw';
-import { drawDefinitionConstants, entryStatusConstants, utilities } from 'tods-competition-factory';
 
 import { AUTOMATED } from 'constants/tmxConstants';
+import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 
 const { FEED_IN, LUCKY_DRAW, MAIN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
@@ -24,10 +25,18 @@ export function submitParams({ event, inputs, callback, matchUpFormat }) {
     ({ entryStage, entryStatus }) => entryStage === MAIN && DIRECT_ENTRY_STATUSES.includes(entryStatus)
   );
 
+  const seedsCount = tournamentEngine.getSeedsCount({
+    participantCount: drawEntries?.length,
+    policyDefinitions: POLICY_SEEDING,
+    drawSizeProgression: true
+  })?.seedsCount;
+
   const eventId = event.eventId;
   const drawOptions = {
+    seedingScaleName: eventId,
     matchUpFormat,
     drawEntries,
+    seedsCount,
     automated,
     drawType,
     drawName,
