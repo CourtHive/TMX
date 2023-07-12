@@ -120,7 +120,7 @@ export function eventRowFormatter(row) {
       location: RIGHT
     },
     {
-      onClick: () => addDraw({ eventsTableRow: row, drawsTable, eventId, callback: drawAdded }),
+      onClick: () => addDraw({ eventId, callback: drawAdded }),
       intent: 'is-primary',
       label: 'Add draw',
       location: RIGHT

@@ -7,7 +7,34 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getEntriesColumns({ exclude = [], eventId, drawId, actions = [] } = {}) {
+export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [] } = {}) {
+  const seedMax = entries.length || 0;
+  const seedEditor = (cell, onRendered, success) => {
+    const editor = document.createElement('input');
+    editor.style.backgroundColor = 'lightyellow';
+    editor.style.boxSizing = 'border-box';
+    editor.style.textAlign = 'center';
+    editor.style.padding = '3px';
+    editor.style.height = '100%';
+    editor.style.width = '100%';
+    editor.value = cell.getValue() || '';
+
+    onRendered(() => editor.focus());
+
+    function successFunc() {
+      success(editor.value);
+    }
+
+    editor.addEventListener('keyup', (e) => {
+      const allNumeric = parseInt(e.target.value.replace(/[^0-9]/g, '') || 0) || '';
+      e.target.value = allNumeric > seedMax ? '' : allNumeric;
+    });
+    editor.addEventListener('change', successFunc);
+    editor.addEventListener('blur', successFunc);
+
+    return editor;
+  };
+
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -27,9 +54,9 @@ export function getEntriesColumns({ exclude = [], eventId, drawId, actions = [] 
     },
     {
       formatter: 'responsiveCollapse',
-      hozAlign: CENTER,
       responsive: false,
       headerSort: false,
+      hozAlign: CENTER,
       resizable: false,
       width: 50
     },
@@ -43,15 +70,19 @@ export function getEntriesColumns({ exclude = [], eventId, drawId, actions = [] 
       title: 'Name'
     },
     {
-      title: 'Rank',
-      field: 'ranking',
+      sorterParams: { alignEmptyValues: 'bottom' },
       resizable: false,
+      sorter: 'number',
+      field: 'ranking',
+      title: 'Rank',
       width: 70
     },
     {
-      title: 'WTN',
+      sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.wtn.wtnRating',
       resizable: false,
+      sorter: 'number',
+      title: 'WTN',
       width: 70
     },
     {
@@ -62,10 +93,14 @@ export function getEntriesColumns({ exclude = [], eventId, drawId, actions = [] 
       minWidth: 100
     },
     {
-      title: 'Seed',
+      sorterParams: { alignEmptyValues: 'bottom' },
+      editor: seedEditor,
       field: 'seedNumber',
+      hozAlign: CENTER,
       resizable: false,
-      editor: true,
+      sorter: 'number',
+      editable: false,
+      title: 'Seed',
       maxWidth: 70
     },
     {

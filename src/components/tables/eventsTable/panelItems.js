@@ -1,5 +1,5 @@
 import { closedFilled, openedFilled } from 'assets/specialCharacters/openClose';
-import { findParentByClassName } from 'services/dom/findParentByClass';
+import { findAncestor } from 'services/dom/parentAndChild';
 
 import { BUTTON_BAR, EMPTY_STRING, ENTRIES_COUNT, HEADER, NONE, TMX_PANEL, TMX_TABLE } from 'constants/tmxConstants';
 
@@ -14,7 +14,7 @@ export const panelHeader = (heading, count = 0) => {
 export const togglePanel = ({ target, table, close }) => {
   if (!target) return;
 
-  const tmxPanel = findParentByClassName(target, TMX_PANEL);
+  const tmxPanel = findAncestor(target, TMX_PANEL);
   const toggle = tmxPanel.getElementsByClassName('toggle')?.[0];
   const buttonBar = tmxPanel.getElementsByClassName(BUTTON_BAR)?.[0];
   const tmxTable = tmxPanel.getElementsByClassName(TMX_TABLE)?.[0];
