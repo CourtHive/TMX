@@ -1,6 +1,7 @@
 import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
+import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -8,28 +9,33 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { render, unmountComponentAtNode } from 'react-dom';
-import { getEventHandlers } from './getEventHandlers';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { getEventHandlers } from '../getEventHandlers';
 import { Draw, compositions } from 'tods-score-grid';
 import { DrawStructure } from 'tods-react-draws';
+import { addStructures } from './addStructures';
 import { context } from 'services/context';
 
 import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
-import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
+import { DELETE_FLIGHT_AND_DRAW, SET_MATCHUP_FORMAT } from 'constants/mutationConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
-  const eventData = tournamentEngine.getEventData({ eventId }).eventData;
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
-  let participantFilter;
+  let participantFilter, eventData, eventType, drawData, structures;
 
-  const eventType = eventData?.eventInfo?.eventType;
+  const getData = () => {
+    eventData = tournamentEngine.getEventData({ eventId }).eventData;
+    eventType = eventData?.eventInfo?.eventType;
+    drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
+    structures = drawData?.structures || [];
+    structureId = structureId || structures?.[0]?.structureId;
+  };
 
-  const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
-  const structures = drawData?.structures || [];
-  structureId = structureId || structures?.[0]?.structureId;
+  getData();
 
   const { structureName, roundMatchUps } = utilities.makeDeepCopy(
     drawData?.structures?.find((s) => s.structureId === structureId) || {}
@@ -95,7 +101,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   };
 
   const eventControlElement = document.getElementById(EVENT_CONTROL);
-  const updateControlBar = () => {
+  const updateControlBar = (refresh) => {
+    if (refresh) getData();
+
     const eventOptions = events
       .map((event) => ({
         onClick: () => {
@@ -137,7 +145,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }))
       .concat([
         { divider: true },
-        { heading: 'Add structure(s)', onClick: () => console.log('option to add structure(s)') }
+        {
+          onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
+          label: 'Add structure(s)',
+          modifyLabel: false,
+          close: true
+        }
       ]);
 
     // PARTICIPANT filter
@@ -166,11 +179,33 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       mutationRequest({ methods, callback: postMutation });
     };
 
+    const editMatchUpFormat = ({ structureId, drawId }) => {
+      const callback = (matchUpFormat) => {
+        if (matchUpFormat) {
+          const methods = [
+            {
+              params: { matchUpFormat, structureId, drawId },
+              method: SET_MATCHUP_FORMAT
+            }
+          ];
+          const postMutation = (result) => result.success && tmxToast({ message: 'Scoring changed' });
+          mutationRequest({ methods, callback: postMutation });
+        }
+      };
+      getMatchUpFormat({ callback });
+    };
+
     const actionOptions = [
       {
         hide: eventData.eventInfo.eventType !== TEAM,
         onClick: () => updateTieFormat({ structureId, eventId, drawId }),
         label: 'Edit scorecard',
+        close: true
+      },
+      {
+        hide: eventData.eventInfo.eventType === TEAM,
+        onClick: () => editMatchUpFormat({ structureId, eventId, drawId }),
+        label: `Edit ${structureName} scoring`,
         close: true
       },
       {
@@ -238,5 +273,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   } else {
     updateDrawDisplay(args);
   }
+
   updateControlBar();
 }
