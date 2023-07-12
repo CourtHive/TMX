@@ -20,9 +20,14 @@ export function renderOptions(select, item) {
 export function renderField(item) {
   const field = document.createElement('div');
   field.className = 'field font-medium';
-  field.style = 'flex-grow: 1';
 
-  if (item.label) {
+  if (item.width) {
+    field.style = `width: ${item.width}`;
+  } else {
+    field.style = 'flex-grow: 1';
+  }
+
+  if (item.label && !item.checkbox) {
     const label = document.createElement('label');
     label.style = 'font-weight: bold; font-size: larger;';
     label.innerHTML = item.label;
@@ -50,6 +55,20 @@ export function renderField(item) {
     control.appendChild(div);
     inputElement = select;
     if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
+  } else if (item.checkbox) {
+    const div = document.createElement('div');
+    div.className = 'field';
+    const input = document.createElement('input');
+    inputElement = input;
+    input.className = 'is-checkradio is-success';
+    input.type = 'checkbox';
+    input.id = item.id;
+    div.appendChild(input);
+    const label = document.createElement('label');
+    label.setAttribute('for', item.id);
+    label.innerHTML = item.label;
+    div.appendChild(label);
+    control.appendChild(div);
   } else {
     const input = document.createElement('input');
     input.className = 'input font-medium';

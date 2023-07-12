@@ -2,7 +2,7 @@ import { createEntriesPanels } from 'components/tables/eventsTable/createEntries
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { renderDrawPanel } from './renderDrawPanel';
-import { renderTODSdraw } from './renderTODSdraw';
+import { renderTODSdraw } from './renderDraws/renderTODSdraw';
 import { eventsView } from './eventsView';
 
 export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {}) {
