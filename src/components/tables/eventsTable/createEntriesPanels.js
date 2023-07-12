@@ -62,7 +62,11 @@ export function createEntriesPanels({ eventId, drawId }) {
     );
 
     const { events } = tournamentEngine.getEvents();
-    return { events, event, tableData: panelDefinitions({ event, drawDefinition, entryData, hasFlights }) };
+    return {
+      tableData: panelDefinitions({ event, drawDefinition, participants, entryData, hasFlights }),
+      events,
+      event
+    };
   };
 
   const render = (data) => {

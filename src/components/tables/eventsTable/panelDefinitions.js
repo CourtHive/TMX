@@ -70,9 +70,9 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         changeEntryStatus(acceptedEntryStatuses),
         addToDraw(event),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
-        seedingSelector,
-        cancelSeeding,
-        saveSeeding
+        seedingSelector(event),
+        cancelSeeding(event),
+        saveSeeding(event)
       ],
       actions: moves[ACCEPTED],
       anchorId: ACCEPTED_PANEL,
@@ -86,7 +86,9 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         ...panelItems({ heading: 'Qualifying', count: qualifyingEntries.length }),
         moveSelected(moves[QUALIFYING], eventId, drawId),
-        seedingSelector
+        seedingSelector(event),
+        cancelSeeding(event),
+        saveSeeding(event)
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
       anchorId: QUALIFYING_PANEL,

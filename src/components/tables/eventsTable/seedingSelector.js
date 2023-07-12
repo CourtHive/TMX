@@ -1,7 +1,13 @@
 import { findAncestor, getChildrenByClassName } from 'services/dom/parentAndChild';
 import { cellBorder } from '../common/formatters/cellBorder';
+import { scaleConstants } from 'tods-competition-factory';
 
+import { SET_PARTICIPANT_SCALE_ITEMS } from 'constants/mutationConstants';
 import { NONE, RIGHT } from 'constants/tmxConstants';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { isFunction } from 'functions/typeOf';
+
+const { SEEDING, MANUAL } = scaleConstants;
 
 function hideSaveSeeding(e, table) {
   const optionsRight = findAncestor(e.target, 'options_right');
@@ -16,11 +22,13 @@ function hideSaveSeeding(e, table) {
   table.updateColumnDefinition('seedNumber', { formatter: undefined, editable: false });
 }
 
-export const cancelSeeding = (table) => {
+export const cancelSeeding = (event) => (table) => {
   const onClick = (e) => {
     hideSaveSeeding(e, table);
-    // TODO: reset seeding column values to previous values
+    removeSeeding(table);
   };
+
+  !!event;
 
   return {
     class: 'cancelSeeding',
@@ -32,39 +40,48 @@ export const cancelSeeding = (table) => {
   };
 };
 
-export function saveSeedingValues({ entries, eventId, eventType }) {
-  const scaleItemsWithParticipantIds = entries.map(({ participantId, seedNumber }) => ({
+export function saveSeedingValues({ event, rows, callback }) {
+  const { eventId, eventType } = event;
+  const scaleItemsWithParticipantIds = rows.map(({ participantId, seedNumber }) => ({
     participantId,
     scaleItems: [
       {
         scaleValue: seedNumber,
-        scaleType: 'SEEDING',
+        scaleType: SEEDING,
         scaleName: eventId,
         eventType
       }
     ]
   }));
+
   const methods = [
     {
-      method: 'setParticipantScaleItems',
+      method: SET_PARTICIPANT_SCALE_ITEMS,
       params: {
         scaleItemsWithParticipantIds,
+        removePriorValues: true,
         context: {
-          scaleAttributes: { scaleType: 'SEEDING' },
-          scaleBasis: { scaleType: 'MANUAL' },
-          eventId: 'E0B3E1F0-event-2'
+          scaleAttributes: { scaleType: SEEDING },
+          scaleBasis: { scaleType: MANUAL },
+          eventId
         }
       }
     }
   ];
-  console.log({ methods });
+
+  const postMutation = (result) => {
+    if (result.success) {
+      isFunction(callback) && callback();
+    }
+  };
+  mutationRequest({ methods, callback: postMutation });
 }
 
-export const saveSeeding = (table) => {
+export const saveSeeding = (event) => (table) => {
   const onClick = (e) => {
     hideSaveSeeding(e, table);
-    const tableData = table.getData();
-    console.log({ tableData });
+    const rows = table.getData();
+    saveSeedingValues({ event, rows });
   };
 
   return {
@@ -77,7 +94,23 @@ export const saveSeeding = (table) => {
   };
 };
 
-export const seedingSelector = (table) => {
+function removeSeeding({ event, table }) {
+  const rows = table.getRows();
+  for (const row of rows) {
+    const data = row.getData();
+    data.seedNumber = undefined;
+    row.update(data);
+  }
+  !!event;
+}
+
+function clearSeeding({ event, table }) {
+  removeSeeding({ event, table });
+  const rows = table.getData();
+  saveSeedingValues({ event, rows });
+}
+
+export const seedingSelector = (event) => (table) => {
   const labelMap = {
     ranking: 'Seed by ranking',
     'ratings.wtn.wtnRating': 'Seed by WTN'
@@ -88,7 +121,7 @@ export const seedingSelector = (table) => {
     .map((col) => col.getDefinition())
     .filter((def) => ['ranking', 'ratings.wtn.wtnRating'].includes(def.field));
 
-  const updateSeedColumnDefinition = (e) => {
+  const enableManualSeeding = (e) => {
     const optionsRight = findAncestor(e.target, 'options_right');
     const saveSeeding = getChildrenByClassName(optionsRight, 'saveSeeding')?.[0];
     const cancelSeeding = getChildrenByClassName(optionsRight, 'cancelSeeding')?.[0];
@@ -101,7 +134,10 @@ export const seedingSelector = (table) => {
     table.updateColumnDefinition('seedNumber', { formatter: cellBorder, editable: true });
   };
 
-  const options = [{ label: 'Manual seeding', onClick: updateSeedColumnDefinition, close: true }].concat(
+  const options = [
+    { label: 'Manual seeding', onClick: enableManualSeeding, close: true },
+    { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true }
+  ].concat(
     ...seedingColumns.map((column) => ({
       onClick: () => console.log(`Seed by ${column.field}`),
       label: labelMap[column.field],
@@ -119,3 +155,23 @@ export const seedingSelector = (table) => {
     options
   };
 };
+
+export function generateSeedingScaleItems() {
+  // getScaledEntries...
+  return {
+    method: 'generateSeedingScaleItems',
+    params: {
+      scaledEntries: [
+        // { participantId: 'pid', value: '33', order: 1 },
+      ],
+      seedsCount: 8,
+      scaleAttributes: {
+        // scaleName: eventId, scaleType: 'RANKING', eventType: 'SINGLES'
+      },
+      scaleName: 'eventId',
+      stageEntries: [
+        // { participantId: 'pid', entryStatus, entryStage, entryPosition }
+      ]
+    }
+  };
+}

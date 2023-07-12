@@ -11,12 +11,12 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
   const seedMax = entries.length || 0;
   const seedEditor = (cell, onRendered, success) => {
     const editor = document.createElement('input');
-    // editor.type = 'number';
+    editor.style.backgroundColor = 'lightyellow';
+    editor.style.boxSizing = 'border-box';
+    editor.style.textAlign = 'center';
     editor.style.padding = '3px';
     editor.style.height = '100%';
     editor.style.width = '100%';
-    editor.style.boxSizing = 'border-box';
-    editor.style.backgroundColor = 'lightyellow';
     editor.value = cell.getValue() || '';
 
     onRendered(() => editor.focus());
@@ -34,6 +34,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
 
     return editor;
   };
+
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -53,9 +54,9 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     },
     {
       formatter: 'responsiveCollapse',
-      hozAlign: CENTER,
       responsive: false,
       headerSort: false,
+      hozAlign: CENTER,
       resizable: false,
       width: 50
     },
@@ -90,6 +91,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     {
       editor: seedEditor,
       field: 'seedNumber',
+      hozAlign: CENTER,
       resizable: false,
       editable: false,
       title: 'Seed',
