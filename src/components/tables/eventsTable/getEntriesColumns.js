@@ -70,15 +70,19 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       title: 'Name'
     },
     {
-      title: 'Rank',
-      field: 'ranking',
+      sorterParams: { alignEmptyValues: 'bottom' },
       resizable: false,
+      sorter: 'number',
+      field: 'ranking',
+      title: 'Rank',
       width: 70
     },
     {
-      title: 'WTN',
+      sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.wtn.wtnRating',
       resizable: false,
+      sorter: 'number',
+      title: 'WTN',
       width: 70
     },
     {
@@ -89,10 +93,12 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       minWidth: 100
     },
     {
+      sorterParams: { alignEmptyValues: 'bottom' },
       editor: seedEditor,
       field: 'seedNumber',
       hozAlign: CENTER,
       resizable: false,
+      sorter: 'number',
       editable: false,
       title: 'Seed',
       maxWidth: 70
