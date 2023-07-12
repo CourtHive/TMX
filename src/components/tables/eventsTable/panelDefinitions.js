@@ -1,7 +1,7 @@
 import { drawDefinitionConstants, eventConstants, entryStatusConstants } from 'tods-competition-factory';
+import { cancelSeeding, saveSeeding, seedingSelector } from './seedingSelector';
 import { changeEntryStatus } from './changeEntryStatus';
 import { panelItems, togglePanel } from './panelItems';
-import { seedingSelector } from './seedingSelector';
 import { searchField } from '../common/tableSearch'; // if searchFields are preferred on each table
 import { destroySelected } from './destroyPairs';
 import { moveSelected } from './moveSelected';
@@ -70,9 +70,9 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         changeEntryStatus(acceptedEntryStatuses),
         addToDraw(event),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
-        seedingSelector
-        // searchField(),
-        // searchField(OVERLAY, 'participantId')
+        seedingSelector,
+        cancelSeeding,
+        saveSeeding
       ],
       actions: moves[ACCEPTED],
       anchorId: ACCEPTED_PANEL,
@@ -87,8 +87,6 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         ...panelItems({ heading: 'Qualifying', count: qualifyingEntries.length }),
         moveSelected(moves[QUALIFYING], eventId, drawId),
         seedingSelector
-        // searchField(),
-        // searchField(OVERLAY, 'participantId'),
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
       anchorId: QUALIFYING_PANEL,
@@ -99,8 +97,6 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
     },
     {
       items: [
-        // searchField(),
-        // searchField(OVERLAY, 'participantId'),
         ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
         moveSelected(moves[ALTERNATE], eventId, drawId),
         event?.eventType === DOUBLES && destroySelected(eventId, drawId)
@@ -119,7 +115,6 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         ...panelItems({ heading: 'Ungrouped', count: ungroupedEntries.length }),
         searchField(LEFT, 'participantId', selectWithEnter)
-        // searchField(OVERLAY, 'participantId'),
         // createPairButton
       ],
       placeholder: 'No ungrouped participants',
@@ -132,8 +127,6 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
     },
     {
       items: [
-        // searchField(),
-        // searchField(OVERLAY, 'participantId'),
         ...panelItems({ heading: 'Withdrawn', count: withdrawnEntries.length }),
         moveSelected(moves[WITHDRAWN], eventId, drawId)
       ],

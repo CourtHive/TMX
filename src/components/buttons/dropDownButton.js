@@ -12,6 +12,7 @@ export function dropDownButton({ target, button, stateChange }) {
   };
 
   const elem = document.createElement('div');
+  if (button.class) elem.classList.add(button.class);
   elem.classList.add('dropdown');
 
   elem.style = 'margin-right: 1em;';
@@ -85,7 +86,7 @@ export function dropDownButton({ target, button, stateChange }) {
       e.stopPropagation();
       if (isFunction(option.onClick)) {
         if (isFunction(stateChange)) stateChange();
-        option.onClick();
+        option.onClick(e);
       }
       if (option.close) closeDropDown();
       const active = isActive(anchor);
