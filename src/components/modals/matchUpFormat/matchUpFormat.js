@@ -1,11 +1,10 @@
+import { downCaret as clickable } from 'assets/specialCharacters/openClose';
 import { scoreGovernor } from 'tods-competition-factory';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 import { NONE } from 'constants/tmxConstants';
-
-const clickable = `&#8964;`;
 
 const TIMED_SETS = 'Timed set';
 const TIEBREAKS = 'Tiebreak';
@@ -93,29 +92,29 @@ function setMatchUpFormatString() {
 }
 
 const setComponents = [
-  { label: 'Best of&#8964;', finalSet: false, id: 'descriptor', options: ['Best of', 'Exactly'] },
-  { label: '3&#8964;', finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize' },
-  { label: 'Ad&#8964;', whats: [SETS], id: 'advantage', options: [AD, NOAD] },
+  { label: `Best of${clickable}`, finalSet: false, id: 'descriptor', options: ['Best of', 'Exactly'] },
+  { label: `3${clickable}`, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize' },
+  { label: `Ad${clickable}`, whats: [SETS], id: 'advantage', options: [AD, NOAD] },
   {
     options: [SETS, TIEBREAKS, TIMED_SETS],
-    finalSetLabel: 'Set&#8964;',
+    finalSetLabel: `Set${clickable}`,
     onChange: 'changeWhat',
-    label: 'Sets&#8964;',
+    label: `Sets${clickable}`,
     pluralize: true,
     id: 'what'
   },
   {
     options: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    label: `to 6${clickable}`,
     onChange: 'changeCount',
-    label: 'to 6&#8964;',
     whats: [SETS],
     prefix: 'to ',
     id: 'setTo'
   },
   {
     whats: [SETS, TIEBREAKS],
+    label: `TB to 6${clickable}`,
     options: [5, 7, 9, 10, 12],
-    label: 'TB to 6&#8964;',
     id: 'tiebreakTo',
     prefix: 'TB to ',
     tbSet: true,
@@ -126,7 +125,7 @@ const setComponents = [
       const setTo = format[index ? 'finalSetFormat' : 'setFormat'].setTo;
       return setTo > 1 ? [setTo - 1, setTo] : [];
     },
-    label: '@6&#8964;',
+    label: `@6${clickable}`,
     id: 'tiebreakAt',
     whats: [SETS],
     prefix: '@',
@@ -134,7 +133,7 @@ const setComponents = [
   },
   {
     whats: [SETS, TIEBREAKS],
-    label: 'Win by 2&#8964;',
+    label: `Win by 2${clickable}`,
     prefix: 'Win by ',
     options: [1, 2],
     tbSet: true,
@@ -143,7 +142,7 @@ const setComponents = [
   },
   {
     options: [10, 15, 20, 25, 30, 45, 60, 90],
-    label: '10 Minutes&#8964;',
+    label: `10 Minutes${clickable}`,
     initiallyHidden: true,
     whats: [TIMED_SETS],
     suffix: ' Minutes',
