@@ -1,16 +1,18 @@
+import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
+import { numericEditor } from '../common/editors/numericEditor';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
-import { genderConstants } from 'tods-competition-factory';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
+const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
 
 export function getParticipantColumns() {
@@ -98,8 +100,8 @@ export function getParticipantColumns() {
       title: 'Penalties',
       field: 'penalties',
       hozAlign: LEFT,
-      width: 130,
-      visible: false
+      visible: false,
+      width: 130
     },
     {
       headerFilter: 'input',
@@ -138,12 +140,26 @@ export function getParticipantColumns() {
       minWidth: 110
     },
     {
+      editor: numericEditor({ maxValue: 40, decimals: true, field: 'ratings.wtn.wtnRating' }),
       sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.wtn.wtnRating',
       responsive: true,
       resizable: false,
+      editable: false,
       sorter: 'number',
-      title: 'WTN',
+      title: WTN,
+      width: 70
+    },
+    {
+      editor: numericEditor({ maxValue: 16, decimals: true, field: 'ratings.utr.utrRating' }),
+      sorterParams: { alignEmptyValues: 'bottom' },
+      field: 'ratings.utr.utrRating',
+      responsive: true,
+      resizable: false,
+      editable: false,
+      sorter: 'number',
+      visible: false,
+      title: UTR,
       width: 70
     },
     {
@@ -151,7 +167,8 @@ export function getParticipantColumns() {
       formatter: threeDots,
       responsive: false,
       headerSort: false,
-      hozAlign: RIGHT
+      hozAlign: RIGHT,
+      maxWidth: 40
     }
   ];
 }

@@ -1,9 +1,10 @@
+import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
-import { genderConstants } from 'tods-competition-factory';
 import { mocksEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
+const { WTN } = factoryConstants.ratingConstants;
 const { FEMALE, MALE, MIXED } = genderConstants;
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
@@ -17,7 +18,7 @@ export function mockParticipants({ callback } = {}) {
     const sex = gender === MIXED ? undefined : gender;
 
     const { participants } = mocksEngine.generateParticipants({
-      category: { ratingType: 'WTN', ratingMin: 14, ratingMax: 19.99 },
+      category: { ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
       participantsCount: parseInt(count),
       scaleAllParticipants: true,
       sex

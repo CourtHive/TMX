@@ -1,7 +1,8 @@
-import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants, factoryConstants } from 'tods-competition-factory';
 const { ALTERNATE, WILDCARD, DIRECT_ACCEPTANCE } = entryStatusConstants;
+const { TEAM } = factoryConstants.eventConstants;
+const { WTN } = factoryConstants.ratingConstants;
 const { QUALIFYING } = drawDefinitionConstants;
-const { TEAM } = eventConstants;
 
 const statusMapping = {
   [DIRECT_ACCEPTANCE]: 'DA',
@@ -19,7 +20,7 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
 
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
-  const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === 'WTN')?.scaleValue;
+  const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === WTN)?.scaleValue;
   const ratings = { wtn };
 
   const scaleName = entry.entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
