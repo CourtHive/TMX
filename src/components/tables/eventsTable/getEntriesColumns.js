@@ -49,11 +49,11 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 5
     },
     {
+      headerMenu: headerMenu(),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
-      width: 55,
-      headerMenu
+      width: 55
     },
     {
       formatter: 'responsiveCollapse',
