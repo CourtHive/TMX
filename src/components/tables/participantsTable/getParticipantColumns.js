@@ -98,8 +98,8 @@ export function getParticipantColumns() {
       title: 'Penalties',
       field: 'penalties',
       hozAlign: LEFT,
-      width: 130,
-      visible: false
+      visible: false,
+      width: 130
     },
     {
       headerFilter: 'input',
@@ -144,6 +144,16 @@ export function getParticipantColumns() {
       resizable: false,
       sorter: 'number',
       title: 'WTN',
+      width: 70
+    },
+    {
+      sorterParams: { alignEmptyValues: 'bottom' },
+      field: 'ratings.utr.utrRating',
+      responsive: true,
+      resizable: false,
+      sorter: 'number',
+      visible: false,
+      title: 'UTR',
       width: 70
     },
     {

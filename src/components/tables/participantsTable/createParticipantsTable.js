@@ -50,7 +50,8 @@ export function createParticipantsTable({ view } = {}) {
         'events',
         'teams',
         'cityState',
-        'ratings.wtn.wtnRating'
+        'ratings.wtn.wtnRating',
+        'ratings.utr.utrRating'
       ]),
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
