@@ -22,8 +22,9 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
   const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === 'WTN')?.scaleValue;
   const ratings = { wtn };
 
+  const scaleName = entry.entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const seedNumber = participant?.seedings?.[eventType]?.find(
-    (scaleItem) => scaleItem.scaleName === eventId
+    (scaleItem) => scaleItem.scaleName === scaleName
   )?.scaleValue;
 
   const status = statusMapping[entry.entryStatus];
