@@ -19,7 +19,10 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     editor.style.width = '100%';
     editor.value = cell.getValue() || '';
 
-    onRendered(() => editor.focus());
+    onRendered(() => {
+      editor.focus();
+      editor.select();
+    });
 
     function successFunc() {
       success(editor.value);
@@ -46,11 +49,11 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 5
     },
     {
+      headerMenu: headerMenu(),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
-      width: 55,
-      headerMenu
+      width: 55
     },
     {
       formatter: 'responsiveCollapse',

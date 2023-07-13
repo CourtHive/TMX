@@ -1,8 +1,10 @@
 import { drawDefinitionConstants, eventConstants, entryStatusConstants } from 'tods-competition-factory';
-import { cancelSeeding, saveSeeding, seedingSelector } from './seedingSelector';
+import { cancelManualSeeding } from './seeding/canceManuallSeeding';
+import { seedingSelector } from './seeding/seedingSelector';
 import { changeEntryStatus } from './changeEntryStatus';
 import { panelItems, togglePanel } from './panelItems';
 import { searchField } from '../common/tableSearch'; // if searchFields are preferred on each table
+import { saveSeeding } from './seeding/saveSeeding';
 import { destroySelected } from './destroyPairs';
 import { moveSelected } from './moveSelected';
 import { createPair } from './createPair';
@@ -70,8 +72,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         changeEntryStatus(acceptedEntryStatuses),
         addToDraw(event),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
-        seedingSelector(event),
-        cancelSeeding(event),
+        seedingSelector(event, ACCEPTED),
+        cancelManualSeeding(event),
         saveSeeding(event)
       ],
       actions: moves[ACCEPTED],
@@ -86,8 +88,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         ...panelItems({ heading: 'Qualifying', count: qualifyingEntries.length }),
         moveSelected(moves[QUALIFYING], eventId, drawId),
-        seedingSelector(event),
-        cancelSeeding(event),
+        seedingSelector(event, QUALIFYING),
+        cancelManualSeeding(event),
         saveSeeding(event)
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],

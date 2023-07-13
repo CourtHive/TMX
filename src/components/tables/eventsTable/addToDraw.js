@@ -1,7 +1,11 @@
+import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 
 import { ADD_DRAW_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
+
+const { DIRECT_ACCEPTANCE } = entryStatusConstants;
+const { MAIN } = drawDefinitionConstants;
 
 const addTo = (table, eventId, drawId) => {
   const selected = table.getSelectedData();
@@ -12,8 +16,8 @@ const addTo = (table, eventId, drawId) => {
       method: ADD_DRAW_ENTRIES,
       params: {
         participantIds,
-        entryStatus: 'DIRECT_ACCEPTANCE',
-        entryStage: 'MAIN',
+        entryStatus: DIRECT_ACCEPTANCE,
+        entryStage: MAIN,
         eventId,
         drawId
       }

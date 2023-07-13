@@ -11,9 +11,9 @@ import {
 
 import { NONE } from 'constants/tmxConstants';
 
-const { INDIVIDUAL } = participantConstants;
 const { ALTERNATE, WILDCARD, DIRECT_ACCEPTANCE, UNGROUPED } = entryStatusConstants;
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
+const { INDIVIDUAL } = participantConstants;
 const { TEAM, DOUBLES } = eventConstants;
 
 export function addToEvent({ callback, eventName, eventType, participantType, participantIds } = {}) {
