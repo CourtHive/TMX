@@ -3,9 +3,13 @@ import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { renderDrawPanel } from './renderDrawPanel';
 import { renderTODSdraw } from './renderDraws/renderTODSdraw';
+import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
+import { EVENTS_TAB } from 'constants/tmxConstants';
+
 export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {}) {
+  highlightTab(EVENTS_TAB);
   destroyTables();
 
   if (eventId || drawId) {

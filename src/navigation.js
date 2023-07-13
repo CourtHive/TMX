@@ -1,6 +1,5 @@
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'tods-competition-factory';
-// import { toggleSideBar } from 'services/dom/toggleSidebar';
 import { imageClass } from 'assets/imageClass';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
@@ -37,17 +36,6 @@ const tips = {
 export function tmxNavigation() {
   const match = imageClass.dragMatch().props.src;
 
-  // TODO: add after any features item
-  // <span class="item-count">${participantsCount}</span>
-
-  //   <div class="logo-name-wrapper">
-  //     <div class="logo-name">
-  //     </div>
-  //     <button class="logo-name__button">
-  //       <i class="fa-solid fa-expand logo-name__icon collapse" id="logo-name__icon"></i>
-  //     </button>
-  // . </div>
-
   const html = `
   <div class="side-bar collapse">
     <ul class="features-list">
@@ -81,10 +69,6 @@ export function tmxNavigation() {
 
   const element = document.getElementById('sideNav');
   element.innerHTML = html;
-  /*
-  const arrowCollapse = document.querySelector('#logo-name__icon');
-  arrowCollapse.onclick = toggleSideBar;
-  */
 
   const ids = Object.keys(routeMap);
 

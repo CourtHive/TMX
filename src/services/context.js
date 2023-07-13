@@ -40,12 +40,6 @@ export const context = {
     }
   },
 
-  player_views: {
-    section_scroll: undefined,
-    doubles_rankings: false,
-    dynamic_ratings: false
-  },
-
   schedule_filters: {
     event: '',
     round: '',
