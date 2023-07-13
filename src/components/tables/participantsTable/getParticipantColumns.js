@@ -5,6 +5,7 @@ import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
 import { numericEditor } from '../common/editors/numericEditor';
+import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
@@ -14,6 +15,9 @@ import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
+
+const FIELD_UTR = 'ratings.utr.utrRating';
+const FIELD_WTN = 'ratings.wtn.wtnRating';
 
 export function getParticipantColumns() {
   return [
@@ -113,8 +117,9 @@ export function getParticipantColumns() {
       visible: false
     },
     {
-      sorter: (a, b) => a && b,
       formatter: eventsFormatter(navigateToEvent),
+      visible: columnIsVisible('events'),
+      sorter: (a, b) => a && b,
       title: 'Events',
       field: 'events',
       hozAlign: LEFT,
@@ -123,10 +128,9 @@ export function getParticipantColumns() {
       widthGrow: 2
     },
     {
+      formatter: teamsFormatter(() => console.log('boo')),
+      visible: columnIsVisible('teams'),
       sorter: (a, b) => a && b,
-      formatter: teamsFormatter(() => {
-        console.log('boo');
-      }),
       title: 'Teams',
       field: 'teams',
       hozAlign: LEFT,
@@ -140,9 +144,10 @@ export function getParticipantColumns() {
       minWidth: 110
     },
     {
-      editor: numericEditor({ maxValue: 40, decimals: true, field: 'ratings.wtn.wtnRating' }),
+      editor: numericEditor({ maxValue: 40, decimals: true, field: FIELD_WTN }),
       sorterParams: { alignEmptyValues: 'bottom' },
-      field: 'ratings.wtn.wtnRating',
+      visible: columnIsVisible(FIELD_WTN),
+      field: FIELD_WTN,
       responsive: true,
       resizable: false,
       editable: false,
@@ -151,14 +156,14 @@ export function getParticipantColumns() {
       width: 70
     },
     {
-      editor: numericEditor({ maxValue: 16, decimals: true, field: 'ratings.utr.utrRating' }),
+      editor: numericEditor({ maxValue: 16, decimals: true, field: FIELD_UTR }),
       sorterParams: { alignEmptyValues: 'bottom' },
-      field: 'ratings.utr.utrRating',
+      visible: columnIsVisible(FIELD_UTR),
+      field: FIELD_UTR,
       responsive: true,
       resizable: false,
       editable: false,
       sorter: 'number',
-      visible: false,
       title: UTR,
       width: 70
     },
