@@ -1,8 +1,8 @@
 import { tournamentEngine, drawDefinitionConstants, scaleConstants } from 'tods-competition-factory';
+import { setParticipantScaleItems } from './setParticipantScaleItems';
 import { isFunction } from 'functions/typeOf';
 
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
-import { setParticipantScaleItems } from './setParticipantScaleItems';
 
 const { QUALIFYING, MAIN } = drawDefinitionConstants;
 const { SEEDING, RATING } = scaleConstants;
@@ -21,8 +21,12 @@ export function generateSeedValues({ event, group, table, field }) {
   const sortMethod = field === 'ratings.wtn.wtnRating' && wtnSort;
   const data = table.getData();
   const bandedParticipants = { high: [], medium: [], low: [] };
+
+  let ratedParticipants = 0;
   for (const participant of data) {
     const wtn = getWtn(participant);
+    if (wtn.wtnRating) ratedParticipants += 1;
+
     if (wtn.confidence >= bands.high[0]) {
       bandedParticipants.high.push(participant);
     } else if (wtn.confidence >= bands.medium[0] && wtn.confidence < bands.medium[1]) {
@@ -40,7 +44,7 @@ export function generateSeedValues({ event, group, table, field }) {
       bandedParticipants.low.sort(sortMethod)
     );
 
-  const scaledEntries = sortedBy.slice(0, seedsCount);
+  const scaledEntries = sortedBy.slice(0, Math.min(ratedParticipants, seedsCount));
 
   const scaleName = group === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const scaleAttributes = {
