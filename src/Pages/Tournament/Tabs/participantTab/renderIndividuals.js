@@ -15,6 +15,7 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
+import { editRatings } from './editRatings/editRatings';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
@@ -45,6 +46,11 @@ export function renderIndividuals({ view }) {
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: 'Sign out players not approved for events',
+      close: true
+    },
+    {
+      label: 'Edit ratings',
+      onClick: editRatings,
       close: true
     },
     { divider: true },
