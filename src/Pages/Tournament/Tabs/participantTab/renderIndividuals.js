@@ -15,7 +15,7 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
-import { editRatings } from './editRatings/editRatings';
+import { editRatings } from '../../../../components/tables/participantsTable/editRatings/editRatings';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
