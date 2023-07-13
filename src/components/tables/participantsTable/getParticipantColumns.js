@@ -3,10 +3,11 @@ import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
+import { numericEditor } from '../common/editors/numericEditor';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { genderConstants } from 'tods-competition-factory';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
-import { genderConstants } from 'tods-competition-factory';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
@@ -139,18 +140,22 @@ export function getParticipantColumns() {
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
+      editor: numericEditor(40, /^\d*\.?\d*$/),
       field: 'ratings.wtn.wtnRating',
       responsive: true,
       resizable: false,
+      editable: false,
       sorter: 'number',
       title: 'WTN',
       width: 70
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
+      editor: numericEditor(16, /^\d*\.?\d*$/),
       field: 'ratings.utr.utrRating',
       responsive: true,
       resizable: false,
+      editable: false,
       sorter: 'number',
       visible: false,
       title: 'UTR',
