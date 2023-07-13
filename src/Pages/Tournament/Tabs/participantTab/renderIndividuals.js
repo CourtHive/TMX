@@ -1,5 +1,6 @@
-import { participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
+import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
+import { participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
@@ -15,7 +16,6 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
-import { editRatings } from '../../../../components/tables/participantsTable/editRatings/editRatings';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
@@ -50,7 +50,7 @@ export function renderIndividuals({ view }) {
     },
     {
       label: 'Edit ratings',
-      onClick: editRatings,
+      onClick: (e) => enableManualRatings(e, table),
       close: true
     },
     { divider: true },
@@ -170,6 +170,13 @@ export function renderIndividuals({ view }) {
       selection: false,
       location: RIGHT,
       align: RIGHT
+    },
+    {
+      label: 'Save ratings',
+      intent: 'is-primary',
+      class: 'saveRatings',
+      location: RIGHT,
+      visible: false
     }
   ];
 

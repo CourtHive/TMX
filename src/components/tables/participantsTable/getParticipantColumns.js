@@ -1,3 +1,4 @@
+import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
@@ -5,13 +6,13 @@ import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
 import { numericEditor } from '../common/editors/numericEditor';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { genderConstants } from 'tods-competition-factory';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
+const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
 
 export function getParticipantColumns() {
@@ -146,7 +147,7 @@ export function getParticipantColumns() {
       resizable: false,
       editable: false,
       sorter: 'number',
-      title: 'WTN',
+      title: WTN,
       width: 70
     },
     {
@@ -158,7 +159,7 @@ export function getParticipantColumns() {
       editable: false,
       sorter: 'number',
       visible: false,
-      title: 'UTR',
+      title: UTR,
       width: 70
     },
     {
