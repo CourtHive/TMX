@@ -11,6 +11,7 @@ export const ADD_EVENT_ENTRY_PAIRS = 'addEventEntryPairs';
 export const ADD_INDIVIDUAL_PARTICIPANT_IDS = 'addIndividualParticipantIds';
 export const ADD_MATCHUP_SCHEDULE_ITEMS = 'addMatchUpScheduleItems';
 export const ADD_PARTICIPANTS = 'addParticipants';
+export const ADD_PARTICIPANT_TIME_ITEM = 'addParticipantTimeItem';
 export const ADD_PLAYOFF_STRUCTURES = 'addPlayoffStructures';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
 export const ADD_VENUE = 'addVenue';

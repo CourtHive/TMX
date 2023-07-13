@@ -1,6 +1,7 @@
 import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
 import { participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
+import { saveRatings } from 'components/tables/participantsTable/editRatings/saveRatings';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
@@ -172,6 +173,7 @@ export function renderIndividuals({ view }) {
       align: RIGHT
     },
     {
+      onClick: (e) => saveRatings(e, table),
       label: 'Save ratings',
       intent: 'is-primary',
       class: 'saveRatings',
