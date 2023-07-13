@@ -1,11 +1,12 @@
-import { eventConstants, drawDefinitionConstants, genderConstants, mocksEngine } from 'tods-competition-factory';
+import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { addTournament } from 'services/storage/importTournaments';
 
 import { SUCCESS } from 'constants/tmxConstants';
 
 const { FIRST_MATCH_LOSER_CONSOLATION, COMPASS, ROUND_ROBIN } = drawDefinitionConstants;
-const { MALE, FEMALE } = genderConstants;
-const { DOUBLES } = eventConstants;
+const { MALE, FEMALE } = factoryConstants.genderConstants;
+const { DOUBLES } = factoryConstants.eventConstants;
+const { WTN } = factoryConstants.ratingConstants;
 
 export function mockTournaments(table) {
   const tournamentIds = table.getData().map((t) => t.tournamentId);
@@ -50,14 +51,14 @@ function generateTournamentRecords() {
           drawSize: 32
         },
         {
-          category: { ratingType: 'WTN', ratingMin: 18, ratingMax: 24.99 },
+          category: { ratingType: WTN, ratingMin: 18, ratingMax: 24.99 },
           eventName: `WTN 18-25 SINGLES`,
           scaledParticipantsCount: 32,
           seedsCount: 8,
           drawSize: 32
         },
         {
-          category: { ratingType: 'WTN', ratingMin: 18, ratingMax: 24.99 },
+          category: { ratingType: WTN, ratingMin: 18, ratingMax: 24.99 },
           eventName: `WTN 18-25 DOUBLES`,
           scaledParticipantsCount: 32,
           eventType: DOUBLES,
@@ -73,7 +74,7 @@ function generateTournamentRecords() {
       drawProfiles: [
         {
           eventName: `WTN 14-19 SINGLES`,
-          category: { ratingType: 'WTN', ratingMin: 14, ratingMax: 19.99 },
+          category: { ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
           scaledParticipantsCount: 32,
           drawType: COMPASS,
           seedsCount: 8,
@@ -81,7 +82,7 @@ function generateTournamentRecords() {
         },
         {
           eventName: `WTN 20-26 SINGLES`,
-          category: { ratingType: 'WTN', ratingMin: 20, ratingMax: 25.99 },
+          category: { ratingType: WTN, ratingMin: 20, ratingMax: 25.99 },
           scaledParticipantsCount: 16,
           drawType: ROUND_ROBIN,
           seedsCount: 4,
