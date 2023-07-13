@@ -140,8 +140,8 @@ export function getParticipantColumns() {
       minWidth: 110
     },
     {
+      editor: numericEditor({ maxValue: 40, decimals: true, field: 'ratings.wtn.wtnRating' }),
       sorterParams: { alignEmptyValues: 'bottom' },
-      editor: numericEditor(40, /^\d*\.?\d*$/),
       field: 'ratings.wtn.wtnRating',
       responsive: true,
       resizable: false,
@@ -151,8 +151,8 @@ export function getParticipantColumns() {
       width: 70
     },
     {
+      editor: numericEditor({ maxValue: 16, decimals: true, field: 'ratings.utr.utrRating' }),
       sorterParams: { alignEmptyValues: 'bottom' },
-      editor: numericEditor(16, /^\d*\.?\d*$/),
       field: 'ratings.utr.utrRating',
       responsive: true,
       resizable: false,
@@ -167,7 +167,8 @@ export function getParticipantColumns() {
       formatter: threeDots,
       responsive: false,
       headerSort: false,
-      hozAlign: RIGHT
+      hozAlign: RIGHT,
+      maxWidth: 40
     }
   ];
 }

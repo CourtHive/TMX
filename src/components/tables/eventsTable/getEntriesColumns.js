@@ -80,7 +80,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
-      editor: numericEditor(entries?.length || 0),
+      editor: numericEditor({ maxValue: entries?.length || 0, field: 'seedNumber' }),
       field: 'seedNumber',
       hozAlign: CENTER,
       resizable: false,
