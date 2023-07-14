@@ -2,6 +2,7 @@ import { flightsFormatter } from '../common/formatters/flightsFormatter';
 import { genderedText } from '../common/formatters/genderedText';
 import { numericEditor } from '../common/editors/numericEditor';
 import { factoryConstants } from 'tods-competition-factory';
+import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { entryActions } from '../../popovers/entryActions';
@@ -55,6 +56,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 70
     },
     {
+      visible: columnIsVisible('ratings.wtn.wtnRating'),
       sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.wtn.wtnRating',
       resizable: false,
@@ -63,11 +65,11 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 70
     },
     {
+      visible: columnIsVisible('ratings.utr.utrRating'),
       sorterParams: { alignEmptyValues: 'bottom' },
-      field: 'ratings.wtn.wtnRating',
+      field: 'ratings.utr.utrRating',
       resizable: false,
       sorter: 'number',
-      visible: false,
       title: UTR,
       width: 70
     },

@@ -1,15 +1,15 @@
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
-import { tournamentEngine } from 'tods-competition-factory';
 import { renderForm } from 'components/renderers/renderForm';
+import { tournamentEngine } from 'tods-competition-factory';
 import { getFormRelationships } from './formRelationships';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getFormItems } from './getFormItems';
 import { submitParams } from './submitParams';
 import { context } from 'services/context';
 
-import { RIGHT } from 'constants/tmxConstants';
+import { CUSTOM, NONE, RIGHT } from 'constants/tmxConstants';
 
 export function addDraw({ eventId, callback }) {
   const event = tournamentEngine.getEvent({ eventId }).event;
@@ -28,12 +28,10 @@ export function addDraw({ eventId, callback }) {
   const checkParams = () => {
     if (!isValid()) {
       tmxToast({ message: 'Missing Draw name', intent: 'is-danger' });
-    } else if (inputs.matchUpFormat?.value === 'CUSTOM') {
+    } else if (inputs.matchUpFormat?.value === CUSTOM) {
       const setMatchUpFormat = (matchUpFormat) => {
         if (matchUpFormat) {
           submitParams({ event, inputs, callback, matchUpFormat });
-        } else {
-          console.log('ERROR');
         }
       };
       getMatchUpFormat({ callback: setMatchUpFormat });
@@ -43,7 +41,7 @@ export function addDraw({ eventId, callback }) {
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
+    { label: 'Cancel', intent: NONE, close: true },
     { label: 'Generate', intent: 'is-primary', onClick: checkParams, close: isValid }
   ];
   const title = `Configure draw`;

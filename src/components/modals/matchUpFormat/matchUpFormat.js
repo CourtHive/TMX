@@ -183,9 +183,19 @@ const onClicks = {
 };
 
 export function getMatchUpFormat({ callback } = {}) {
+  const onSelect = () => {
+    const matchUpFormat = generateMatchUpFormat();
+    isFunction(callback) && callback(matchUpFormat);
+  };
+
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Select', intent: 'is-info', close: true }
+    {
+      label: 'Cancel',
+      intent: 'none',
+      close: true,
+      onClick: callback
+    },
+    { label: 'Select', intent: 'is-info', close: true, onClick: onSelect }
   ];
 
   const tiebreakSwitch = 'switch is-rounded is-danger';
@@ -297,12 +307,7 @@ export function getMatchUpFormat({ callback } = {}) {
 
   content.appendChild(finalSetConfig);
 
-  const onClose = () => {
-    const matchUpFormat = generateMatchUpFormat();
-    isFunction(callback) && callback(matchUpFormat);
-  };
-
-  context.modal.open({ title: 'Score format', content, buttons, onClose });
+  context.modal.open({ title: 'Score format', content, buttons });
 }
 
 function createButton(params) {
