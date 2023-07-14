@@ -1,3 +1,5 @@
+import { numericValidator } from 'components/validators/numericValidator';
+import { nameValidator } from 'components/validators/nameValidator';
 import {
   drawEngine,
   factoryConstants,
@@ -5,16 +7,17 @@ import {
   eventConstants,
   policyConstants
 } from 'tods-competition-factory';
-import { numericValidator } from 'components/validators/numericValidator';
-import { nameValidator } from 'components/validators/nameValidator';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
   CUSTOM,
+  DRAW_SIZE,
   GROUP_REMAINING,
+  GROUP_SIZE,
   MANUAL,
+  PLAYOFF_TYPE,
   POSITIONS,
   TOP_FINISHERS,
   WINNERS,
@@ -124,20 +127,20 @@ export function getFormItems({ event }) {
       value: acceptedEntriesCount(event),
       validator: numericValidator,
       label: 'Draw size',
-      field: 'drawSize'
+      field: DRAW_SIZE
     },
     {
       visible: [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
       options: roundRobinOptions,
       label: 'Group size',
-      field: 'groupSize',
+      field: GROUP_SIZE,
       value: 4
     },
     {
       visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
       options: playoffOptions,
       label: 'Playoff Type',
-      field: 'playoffType'
+      field: PLAYOFF_TYPE
     },
     {
       label: 'Advance per group',

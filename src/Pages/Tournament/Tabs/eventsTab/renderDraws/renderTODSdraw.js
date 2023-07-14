@@ -147,7 +147,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         { divider: true },
         {
           onClick: () => console.log('edit structure names'),
-          label: 'Edit strcture names',
+          label: 'Edit structure names',
           modifyLabel: false,
           close: true
         },
