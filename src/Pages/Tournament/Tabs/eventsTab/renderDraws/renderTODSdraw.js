@@ -146,6 +146,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       .concat([
         { divider: true },
         {
+          onClick: () => console.log('edit structure names'),
+          label: 'Edit strcture names',
+          modifyLabel: false,
+          close: true
+        },
+        {
           onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
           label: 'Add structure(s)',
           modifyLabel: false,

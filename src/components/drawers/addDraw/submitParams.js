@@ -3,7 +3,7 @@ import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieForma
 import { tmxToast } from 'services/notifications/tmxToast';
 import { generateDraw } from './generateDraw';
 
-import { AUTOMATED } from 'constants/tmxConstants';
+import { AUTOMATED, CUSTOM, GROUP_REMAINING, PLAYOFF_TYPE, POSITIONS, TOP_FINISHERS } from 'constants/tmxConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 
 const { FEED_IN, LUCKY_DRAW, MAIN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
@@ -44,12 +44,45 @@ export function submitParams({ event, inputs, callback, matchUpFormat }) {
     eventId
   };
 
-  if ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) {
+  // ROUND_ROBIN_WITH_PLAYOFFS
+  const advancePerGroup = parseInt(inputs.advancePerGroup?.value || 0);
+  const groupRemaining = inputs[GROUP_REMAINING]?.checked;
+  const playoffType = inputs[PLAYOFF_TYPE]?.value;
+
+  if (drawType === ROUND_ROBIN_WITH_PLAYOFF) {
+    const playoffGroups = [];
+    if (playoffType === TOP_FINISHERS) {
+      const groups = [utilities.generateRange(1, advancePerGroup + 1)];
+      if (groupRemaining) {
+        const group = utilities.generateRange(advancePerGroup + 1, groupSize + 1);
+        if (group.length) groups.push(group);
+      }
+      groups.forEach((finishingPositions, i) => {
+        playoffGroups.push({
+          structureName: `Playoff ${i + 1}`,
+          finishingPositions
+        });
+      });
+    } else if (playoffType === POSITIONS) {
+      utilities.generateRange(1, groupSize + 1).forEach((c) => {
+        playoffGroups.push({
+          structureName: `Playoff ${c}`,
+          finishingPositions: [c]
+        });
+      });
+    }
+
+    drawOptions.structureOptions = { groupSize };
+    if (playoffGroups.length) {
+      // NOTE: if no playoffGroups are specified, defaults to placing "winners" of each group in playoff
+      drawOptions.structureOptions.playoffGroups = playoffGroups;
+    }
+  } else if (drawType === ROUND_ROBIN) {
     drawOptions.structureOptions = { groupSize };
   }
 
   if (drawSizeInteger) {
-    if (tieFormatName === 'CUSTOM') {
+    if (tieFormatName === CUSTOM) {
       const setTieFormat = (tieFormat) => {
         if (tieFormat) {
           drawOptions.tieFormat = tieFormat;
