@@ -182,3 +182,16 @@ export const timeModifierDisplay = {
  [NEXT_AVAILABLE]: 'Next available',
  [NOT_BEFORE]: 'NB',
 }
+
+// draws
+export const DRAW_SIZE = 'drawSize';
+export const CUSTOM = 'CUSTOM';
+
+// Round Robin
+export const ADVANCE_PER_GROUP = 'advancePerGroup';
+export const GROUP_REMAINING = 'groupRemaining';
+export const PLAYOFF_TYPE = 'playoffType';
+export const GROUP_SIZE = 'groupSize';
+export const POSITIONS = 'positions';
+export const TOP_FINISHERS = 'top';
+export const WINNERS = 'winners';

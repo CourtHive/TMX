@@ -1,29 +1,46 @@
-import { drawEngine, drawDefinitionConstants, eventConstants, policyConstants } from 'tods-competition-factory';
+import {
+  drawEngine,
+  factoryConstants,
+  drawDefinitionConstants,
+  eventConstants,
+  policyConstants
+} from 'tods-competition-factory';
 import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 
-import { AUTOMATED, MANUAL, acceptedEntryStatuses } from 'constants/tmxConstants';
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
+import {
+  ADVANCE_PER_GROUP,
+  AUTOMATED,
+  CUSTOM,
+  GROUP_REMAINING,
+  MANUAL,
+  POSITIONS,
+  TOP_FINISHERS,
+  WINNERS,
+  acceptedEntryStatuses
+} from 'constants/tmxConstants';
 
-const { TEAM } = eventConstants;
-
+const { DOMINANT_DUO } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
+const { TEAM } = eventConstants;
 const {
   AD_HOC,
   COMPASS,
   CURTIS,
   DOUBLE_ELIMINATION,
   /*
+  // TODO: add configueration for FIC to achieve the following
   FEED_IN_CHAMPIONSHIP_TO_QF,
   FEED_IN_CHAMPIONSHIP_TO_R16,
-  */
   FEED_IN_CHAMPIONSHIP_TO_SF,
+  MODIFIED_FEED_IN_CHAMPIONSHIP,
+  */
   FEED_IN_CHAMPIONSHIP,
   FEED_IN,
   FIRST_MATCH_LOSER_CONSOLATION,
   FIRST_ROUND_LOSER_CONSOLATION,
   LUCKY_DRAW,
-  // MODIFIED_FEED_IN_CHAMPIONSHIP,
   OLYMPIC,
   PLAY_OFF,
   MAIN,
@@ -45,7 +62,7 @@ export function getFormItems({ event }) {
   const scoreFormatOptions = [
     {
       label: 'Custom',
-      value: 'CUSTOM'
+      value: CUSTOM
     }
   ].concat(
     POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(({ matchUpFormat, description: label }) => ({
@@ -56,12 +73,22 @@ export function getFormItems({ event }) {
   );
 
   const tieFormatOptions = [
-    { label: 'Dominant Duo', value: 'DOMINANT_DUO', selected: true },
-    { label: 'Custom', value: 'CUSTOM' }
+    { label: 'Dominant Duo', value: DOMINANT_DUO, selected: true },
+    { label: 'Custom', value: CUSTOM }
   ];
 
   const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
+  const playoffOptions = [
+    { label: 'Group winners', value: WINNERS },
+    { label: 'Group positions', value: POSITIONS },
+    { label: 'Top finishers', value: TOP_FINISHERS }
+  ];
+  const advanceOptions = [
+    { label: '2', value: 2 },
+    { label: '3', value: 3 },
+    { label: '4', value: 4 }
+  ];
 
   return [
     {
@@ -81,9 +108,7 @@ export function getFormItems({ event }) {
         { label: 'Compass', value: COMPASS },
         { label: 'Curtis consolation', value: CURTIS },
         { label: 'Double elimination', value: DOUBLE_ELIMINATION },
-        { label: 'Feed in championship to SF', value: FEED_IN_CHAMPIONSHIP_TO_SF },
-        { label: 'Feed in championship', value: FEED_IN_CHAMPIONSHIP },
-        { label: 'Feed in', value: FEED_IN },
+        { label: 'Elimination: fed consolation', value: FEED_IN_CHAMPIONSHIP },
         { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION },
         { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION },
         { label: 'Lucky', value: LUCKY_DRAW },
@@ -91,7 +116,8 @@ export function getFormItems({ event }) {
         { label: 'Playoff', value: PLAY_OFF },
         { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
         { label: 'Round robin', value: ROUND_ROBIN },
-        { label: 'Single elimination', value: SINGLE_ELIMINATION }
+        { label: 'Single elimination', value: SINGLE_ELIMINATION },
+        { label: 'Staggered Entry', value: FEED_IN }
       ]
     },
     {
@@ -106,6 +132,24 @@ export function getFormItems({ event }) {
       label: 'Group size',
       field: 'groupSize',
       value: 4
+    },
+    {
+      visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
+      options: playoffOptions,
+      label: 'Playoff Type',
+      field: 'playoffType'
+    },
+    {
+      label: 'Advance per group',
+      options: advanceOptions,
+      field: ADVANCE_PER_GROUP,
+      visible: false
+    },
+    {
+      label: '2nd playoff from remaining',
+      field: GROUP_REMAINING,
+      checkbox: true,
+      visible: false
     },
     {
       value: '',

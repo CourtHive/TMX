@@ -1,3 +1,5 @@
+import { context } from 'services/context';
+
 const CHECKBOX = 'fa-check-square';
 
 export const headerMenu = (displayTitles) => (_, column) => {
@@ -30,6 +32,7 @@ export const headerMenu = (displayTitles) => (_, column) => {
 
           //toggle current column visibility
           column.toggle();
+          context.columns[column.getField()] = column.isVisible();
           table.redraw();
 
           //change menu item icon
