@@ -14,8 +14,13 @@ export function addStructures({ drawId, structureId, callback }) {
   const result = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
   const sum = (p) => p.finishingPositions.reduce((a, b) => (a || 0) + (b || 0));
 
+  if (!result.playoffRoundsRanges && result.finishingPositionsAvailable?.length) {
+    tmxToast({ message: 'Not implemented', intent: 'is-info' });
+    return;
+  }
+
   const fields = result.playoffRoundsRanges
-    .sort((a, b) => sum(a) - sum(b))
+    ?.sort((a, b) => sum(a) - sum(b))
     .map(({ finishingPositionRange }) => ({
       label: finishingPositionRange,
       field: finishingPositionRange,
@@ -28,6 +33,11 @@ export function addStructures({ drawId, structureId, callback }) {
         width: '350px'
       }
     }));
+
+  if (!fields || fields.length < 2) {
+    tmxToast({ message: 'No playoff positions available', intent: 'is-danger' });
+    return;
+  }
 
   const modifyPlaceholders = (value) => {
     fields.forEach(({ label, fieldPair }) => {
