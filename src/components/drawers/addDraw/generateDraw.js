@@ -15,7 +15,7 @@ export function generateDraw({ eventId, drawOptions, callback }) {
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {
     tmxToast({
-      message: result.error?.message,
+      message: result.error?.message || 'Error',
       intent: 'is-warning',
       pauseOnHover: true
     });
