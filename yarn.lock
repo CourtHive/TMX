@@ -10700,9 +10700,9 @@ tods-competition-factory@^1.2.0:
   integrity sha512-n10QWNaR2KF/w/bQQZmY4y4hZqWGqFgzs232uDV09TIbcUKogKMRANave+XoM5ru5IW787RIeWDbbTrrqkiBJw==
 
 tods-competition-factory@^1.2.12:
-  version "1.2.13"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.13.tgz#447b0455e13026c941f5d948dc1f173599d7b4a1"
-  integrity sha512-ldYMpKS8cmXu3F3Empwl7RUUFoA5HlW+LrwPZ5hrKPRDhA90MaOntmxYBm7l9VmpMjTOuNZ+Fxf35p2RG9xdlA==
+  version "1.2.17"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.17.tgz#54fe7311154ee958a2e874a17aa674348ce357b5"
+  integrity sha512-awDo0R2EfTA2TJGUFP/QxyPIjcRPHbDcklWcM2AmeX4rSUzY6y2zS+XTmYWtY+sPOMJ77FjgROIcg2+Y1Bp6tg==
 
 tods-competition-factory@^1.2.7:
   version "1.2.11"
