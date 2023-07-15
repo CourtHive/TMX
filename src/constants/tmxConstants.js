@@ -195,6 +195,7 @@ export const entryStatusMapping = {
 };
 
 // draws
+export const PLAYOFF_NAME_BASE = 'Playoff';
 export const DRAW_SIZE = 'drawSize';
 export const CUSTOM = 'CUSTOM';
 

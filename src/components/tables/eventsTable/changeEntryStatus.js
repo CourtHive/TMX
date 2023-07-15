@@ -1,7 +1,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 
-import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 import { OVERLAY, entryStatusMapping } from 'constants/tmxConstants';
+import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
 const modifyStatus = (table, group, eventId, drawId) => {
   const selected = table.getSelectedData();
