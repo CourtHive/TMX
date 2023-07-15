@@ -1,15 +1,9 @@
-import { drawDefinitionConstants, entryStatusConstants, factoryConstants } from 'tods-competition-factory';
-const { ALTERNATE, WILDCARD, DIRECT_ACCEPTANCE } = entryStatusConstants;
+import { drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
+import { entryStatusMapping } from 'constants/tmxConstants';
+
 const { TEAM } = factoryConstants.eventConstants;
 const { WTN } = factoryConstants.ratingConstants;
 const { QUALIFYING } = drawDefinitionConstants;
-
-const statusMapping = {
-  [DIRECT_ACCEPTANCE]: 'DA',
-  [QUALIFYING]: 'QUAL',
-  [ALTERNATE]: 'ALT',
-  [WILDCARD]: 'WC'
-};
 
 export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, eventId }) {
   participant = participant || participants.find((p) => p.participantId === entry.participantId);
@@ -28,7 +22,7 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
     (scaleItem) => scaleItem.scaleName === scaleName
   )?.scaleValue;
 
-  const status = statusMapping[entry.entryStatus];
+  const status = entryStatusMapping[entry.entryStatus];
 
   return {
     searchText: participant?.participantName.toLowerCase(),

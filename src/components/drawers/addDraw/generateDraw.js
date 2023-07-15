@@ -6,7 +6,7 @@ import { isFunction } from 'functions/typeOf';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 export function generateDraw({ eventId, drawOptions, callback }) {
-  const result = tournamentEngine.generateDrawDefinition(drawOptions);
+  const result = tournamentEngine.generateDrawDefinition({ ...drawOptions, ignoreStageSpace: true });
 
   if (result.success) {
     const drawDefinition = result.drawDefinition;
