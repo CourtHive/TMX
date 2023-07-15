@@ -9,6 +9,7 @@ const {
   DIRECT_ACCEPTANCE,
   SPECIAL_EXEMPT,
   JUNIOR_EXEMPT,
+  ALTERNATE,
   WILDCARD
 } = entryStatusConstants;
 
@@ -182,6 +183,16 @@ export const timeModifierDisplay = {
  [NEXT_AVAILABLE]: 'Next available',
  [NOT_BEFORE]: 'NB',
 }
+
+export const entryStatusMapping = {
+  [ORGANISER_ACCEPTANCE]: 'OA',
+  [DIRECT_ACCEPTANCE]: 'DA',
+  [SPECIAL_EXEMPT]: 'SE',
+  [JUNIOR_EXEMPT]: 'JE',
+  [QUALIFYING]: 'QUAL',
+  [ALTERNATE]: 'ALT',
+  [WILDCARD]: 'WC'
+};
 
 // draws
 export const DRAW_SIZE = 'drawSize';
