@@ -8,20 +8,18 @@ import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 
 export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingPositionRanges }) {
-  const fields = playoffFinishingPositionRanges
-    // ?.sort((a, b) => sum(a) - sum(b))
-    .map(({ finishingPositionRange }) => ({
-      label: finishingPositionRange,
-      field: finishingPositionRange,
-      id: finishingPositionRange,
-      checkbox: true,
-      fieldPair: {
-        field: `${finishingPositionRange}-name`,
-        placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
-        id: `${finishingPositionRange}-name`,
-        width: '350px'
-      }
-    }));
+  const fields = playoffFinishingPositionRanges.map(({ finishingPositionRange }) => ({
+    label: finishingPositionRange,
+    field: finishingPositionRange,
+    id: finishingPositionRange,
+    checkbox: true,
+    fieldPair: {
+      field: `${finishingPositionRange}-name`,
+      placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
+      id: `${finishingPositionRange}-name`,
+      width: '350px'
+    }
+  }));
 
   if (!fields || fields.length < 2) {
     tmxToast({ message: 'No playoff positions available', intent: 'is-danger' });
@@ -65,13 +63,14 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
 
     const methods = [
       {
-        params: { drawId, structureId, playoffFinishingPositionRanges, playoffGroups, playoffStructureNameBase },
+        params: { drawId, structureId, playoffGroups, playoffStructureNameBase },
         method: ADD_PLAYOFF_STRUCTURES
       }
     ];
 
     const postMutation = (result) => {
       if (result.success) {
+        tmxToast({ message: 'Structures added', intent: 'is-success' });
         isFunction(callback) && callback();
       } else {
         console.log({ result });
