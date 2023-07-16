@@ -77,6 +77,7 @@ export function addStructures({ drawId, structureId, callback }) {
     ];
     const postMutation = (result) => {
       if (result.success) {
+        tmxToast({ message: 'Structures added', intent: 'is-success' });
         isFunction(callback) && callback();
       } else {
         tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
