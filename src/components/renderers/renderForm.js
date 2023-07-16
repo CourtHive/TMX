@@ -10,6 +10,8 @@ export function renderForm(elem, items, relationships) {
   const inputs = {},
     fields = {};
 
+  let focus;
+
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
       const text = document.createElement('div');
@@ -30,6 +32,7 @@ export function renderForm(elem, items, relationships) {
 
       const { field, inputElement, datepicker } = renderField(item);
       if (datepicker) inputs[`${item.field}.date`] = datepicker;
+      if (item.focus) focus = inputElement;
       inputs[item.field] = inputElement;
       fields[item.field] = field;
 
@@ -46,6 +49,7 @@ export function renderForm(elem, items, relationships) {
       }
     }
   }
+  if (focus) setTimeout(() => focus.focus(), 200);
 
   elem.appendChild(div);
 
@@ -62,8 +66,13 @@ export function renderForm(elem, items, relationships) {
 
         inputs[`${field1}.date`] = datepicker;
       }
-      if (relationship.control && isFunction(relationship.onChange)) {
-        inputs[relationship.control].addEventListener('change', (e) => relationship.onChange({ e, inputs, fields }));
+      if (relationship.control) {
+        if (isFunction(relationship.onChange)) {
+          inputs[relationship.control].addEventListener('change', (e) => relationship.onChange({ e, inputs, fields }));
+        }
+        if (isFunction(relationship.onInput)) {
+          inputs[relationship.control].addEventListener('input', (e) => relationship.onInput({ e, inputs, fields }));
+        }
       }
     }
   }
