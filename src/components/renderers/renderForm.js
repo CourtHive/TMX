@@ -40,7 +40,7 @@ export function renderForm(elem, items, relationships) {
         container.appendChild(field);
         const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
         if (datepicker) inputs[`${item.field}.date`] = datepicker;
-        inputs[item.fieldPair.field] = inputElement;
+        if (inputElement) inputs[item.fieldPair.field] = inputElement;
         fields[item.fieldPair.field] = pair;
         container.appendChild(pair);
         div.appendChild(container);

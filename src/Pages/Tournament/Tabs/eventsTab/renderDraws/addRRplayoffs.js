@@ -8,16 +8,14 @@ import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 
 export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingPositionRanges }) {
-  const fields = playoffFinishingPositionRanges.map(({ finishingPositionRange }) => ({
-    label: finishingPositionRange,
-    field: finishingPositionRange,
-    id: finishingPositionRange,
+  const fields = playoffFinishingPositionRanges.map(({ finishingPosition, finishingPositionRange }) => ({
+    field: `finishingPosition-${finishingPosition}`,
+    id: `finishingPosition-${finishingPosition}`,
+    label: finishingPosition,
     checkbox: true,
     fieldPair: {
-      field: `${finishingPositionRange}-name`,
-      placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
-      id: `${finishingPositionRange}-name`,
-      width: '350px'
+      text: `Creates playoff for positions ${finishingPositionRange}`,
+      width: '400px'
     }
   }));
 
@@ -26,51 +24,45 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     return;
   }
 
-  const nameBase = {
-    onChange: (e) => modifyPlaceholders(e.target.value),
-    onKeyDown: (e) => e.key === 'Tab' && modifyPlaceholders(e.target.value),
+  const playoffStructureName = {
     value: PLAYOFF_NAME_BASE,
-    label: 'Name base',
-    field: 'nameBase',
-    id: 'nameBase'
+    label: 'Playoff Name',
+    field: 'structureName',
+    id: 'structureName'
+  };
+  const admonition = {
+    text: 'Select group finishing positions. Selections must be sequential'
   };
 
-  const modifyPlaceholders = (value) => {
-    fields.forEach(({ label, fieldPair }) => {
-      const elem = document.getElementById(fieldPair.id);
-      if (elem) elem.placeholder = `${value} ${label}`;
-    });
-  };
-
-  const options = [nameBase].concat(fields);
+  const options = [playoffStructureName, admonition].concat(fields);
 
   let inputs;
 
   const onClick = () => {
-    const playoffStructureNameBase = inputs.nameBase.value;
-    const checkedRanges = playoffFinishingPositionRanges.filter(
-      (range) => inputs[range.finishingPositionRange]?.checked
-    );
-    const playoffGroups = checkedRanges.map(({ finishingPosition, finishingPositionRange }) => {
-      const input = inputs[`${finishingPositionRange}-name`];
-      const structureName = input?.value || input?.placeholder || PLAYOFF_NAME_BASE;
-      return {
-        finishingPositions: [finishingPosition],
-        drawType: 'SINGLE_ELIMINATION',
-        structureName
-      };
+    const structureName = inputs.structureName.value;
+    const checkedRanges = playoffFinishingPositionRanges.filter(({ finishingPosition }) => {
+      const id = `finishingPosition-${finishingPosition}`;
+      return inputs[id]?.checked;
     });
+    const finishingPositions = checkedRanges.map(({ finishingPosition }) => finishingPosition);
+    const playoffGroups = [
+      {
+        drawType: 'SINGLE_ELIMINATION',
+        finishingPositions,
+        structureName
+      }
+    ];
 
     const methods = [
       {
-        params: { drawId, structureId, playoffGroups, playoffStructureNameBase },
+        params: { drawId, structureId, playoffGroups, playoffStructureNameBase: PLAYOFF_NAME_BASE },
         method: ADD_PLAYOFF_STRUCTURES
       }
     ];
 
     const postMutation = (result) => {
       if (result.success) {
-        tmxToast({ message: 'Structures added', intent: 'is-success' });
+        tmxToast({ message: 'Structure added', intent: 'is-success' });
         isFunction(callback) && callback();
       } else {
         console.log({ result });
@@ -84,7 +76,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
   const content = (elem) => (inputs = renderForm(elem, options));
 
   context.modal.open({
-    title: `Add playoff structures`,
+    title: `Add playoff structure`,
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
