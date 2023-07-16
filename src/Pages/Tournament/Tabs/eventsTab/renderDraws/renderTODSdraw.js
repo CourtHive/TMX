@@ -1,23 +1,19 @@
 import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
-import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
-import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
-import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
+import { getStructureOptions } from './getStructureOptions';
 import { render, unmountComponentAtNode } from 'react-dom';
-import { tmxToast } from 'services/notifications/tmxToast';
 import { getEventHandlers } from '../getEventHandlers';
+import { getActionOptions } from './getActionOptions';
 import { Draw, compositions } from 'tods-score-grid';
+import { getEventOptions } from './getEventOptions';
+import { getDrawsOptions } from './getDrawsOptions';
 import { DrawStructure } from 'tods-react-draws';
-import { addStructures } from './addStructures';
 import { context } from 'services/context';
 
-import { ALL_EVENTS, DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
-import { DELETE_FLIGHT_AND_DRAW, SET_MATCHUP_FORMAT } from 'constants/mutationConstants';
+import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -104,60 +100,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const updateControlBar = (refresh) => {
     if (refresh) getData();
 
-    const eventOptions = events
-      .map((event) => ({
-        onClick: () => {
-          const result = tournamentEngine.getEventData({ eventId: event.eventId });
-          if (!result.eventData?.drawsData?.length) {
-            navigateToEvent({ eventId: event.eventId });
-          } else {
-            drawId = result.eventData.drawsData?.[0]?.drawId;
-            navigateToEvent({ eventId: result.eventData.eventInfo.eventId, drawId, renderDraw: true });
-          }
-        },
-        label: event.eventName,
-        close: true
-      }))
-      .concat([
-        { divider: true },
-        { label: `<div style='font-weight: bold'>${ALL_EVENTS}</div>`, onClick: displayAllEvents, close: true }
-      ]);
-
-    const drawsOptions = eventData.drawsData
-      .map((draw) => ({
-        onClick: () => {
-          const drawId = draw.drawId;
-          const structureId = draw.structures?.[0]?.structureId;
-          navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
-        },
-        label: draw.drawName,
-        close: true
-      }))
-      .concat([{ divider: true }, { heading: 'Add flight', onClick: () => console.log('Add new flight') }]);
-
-    const structureOptions = drawData.structures
-      .map((structure) => ({
-        onClick: () => {
-          navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
-        },
-        label: structure.structureName,
-        close: true
-      }))
-      .concat([
-        { divider: true },
-        {
-          onClick: () => console.log('edit structure names'),
-          label: 'Edit structure names',
-          modifyLabel: false,
-          close: true
-        },
-        {
-          onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
-          label: 'Add structure(s)',
-          modifyLabel: false,
-          close: true
-        }
-      ]);
+    const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
+    const actionOptions = getActionOptions({ eventData, drawId, structureId, structureName });
+    const drawsOptions = getDrawsOptions({ eventData });
+    const eventOptions = getEventOptions({ events });
 
     // PARTICIPANT filter
     const searchFilter = (rowData) => rowData.searchText?.includes(participantFilter);
@@ -178,56 +124,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       args.nameFilter = value; // tods-react-draws
       updateDrawDisplay(args);
     };
-
-    const deleteDraw = () => {
-      const methods = [{ method: DELETE_FLIGHT_AND_DRAW, params: { eventId, drawId } }];
-      const postMutation = (result) => result.success && navigateToEvent({ eventId });
-      mutationRequest({ methods, callback: postMutation });
-    };
-
-    const editMatchUpFormat = ({ structureId, drawId }) => {
-      const existingMatchUpFormat = tournamentEngine.getMatchUpFormat({ drawId, structureId }).matchUpFormat;
-      const callback = (matchUpFormat) => {
-        if (matchUpFormat) {
-          if (matchUpFormat === existingMatchUpFormat) {
-            tmxToast({ message: 'No changes', intent: 'is-warning' });
-          } else {
-            const methods = [
-              {
-                params: { matchUpFormat, structureId, drawId },
-                method: SET_MATCHUP_FORMAT
-              }
-            ];
-            const postMutation = (result) => result.success && tmxToast({ message: 'Scoring changed' });
-            mutationRequest({ methods, callback: postMutation });
-          }
-        }
-      };
-      getMatchUpFormat({ callback });
-    };
-
-    const actionOptions = [
-      {
-        hide: eventData.eventInfo.eventType !== TEAM,
-        onClick: () => updateTieFormat({ structureId, eventId, drawId }),
-        label: 'Edit scorecard',
-        close: true
-      },
-      {
-        hide: eventData.eventInfo.eventType === TEAM,
-        onClick: () => editMatchUpFormat({ structureId, eventId, drawId }),
-        label: `Edit ${structureName} scoring`,
-        close: true
-      },
-      {
-        onClick: () => navigateToEvent({ eventId, drawId }),
-        label: 'View entries'
-      },
-      {
-        onClick: deleteDraw,
-        label: 'Delete draw'
-      }
-    ];
 
     const items = [
       {
