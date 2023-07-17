@@ -93,7 +93,6 @@ export function editIndividualParticipant({ participant, view, refresh }) {
   context.drawer.open({
     title: `<b style='larger'>New participant</b>`,
     callback: () => console.log('drawer callback'),
-    context: 'tournament',
     width: '300px',
     side: RIGHT,
     content,

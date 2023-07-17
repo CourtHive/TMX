@@ -86,6 +86,7 @@ export function renderField(item) {
     input.setAttribute('type', item.type || 'text');
     input.setAttribute('autocomplete', item.autocomplete || 'cc-number');
     input.setAttribute('placeholder', item.placeholder || '');
+    if (item.disabled) input.setAttribute('disabled', true);
     if (item.id) input.setAttribute('id', item.id);
     control.appendChild(input);
     if (item.iconLeft) {
@@ -127,6 +128,9 @@ export function renderField(item) {
       if (isFunction(item.onInput)) input.addEventListener('input', (e) => item.onInput(e, item));
       if (isFunction(item.onKeyUp)) input.addEventListener('keyup', (e) => item.onKeyUp(e, item));
       if (item.value !== undefined) input.value = item.value;
+    }
+    if (item.selectOnFocus) {
+      input.addEventListener('focus', () => input.select());
     }
   }
 

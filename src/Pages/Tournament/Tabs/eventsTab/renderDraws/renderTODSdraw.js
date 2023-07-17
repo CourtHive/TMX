@@ -1,10 +1,10 @@
-import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
+import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { getStructureOptions } from './getStructureOptions';
-import { render, unmountComponentAtNode } from 'react-dom';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
 import { Draw, compositions } from 'tods-score-grid';
@@ -13,8 +13,11 @@ import { getDrawsOptions } from './getDrawsOptions';
 import { DrawStructure } from 'tods-react-draws';
 import { context } from 'services/context';
 
-import { DRAWS_VIEW, EVENT_CONTROL, LEFT, RIGHT } from 'constants/tmxConstants';
+import { render, unmountComponentAtNode } from 'react-dom';
 
+import { DRAWS_VIEW, EVENT_CONTROL, LEFT, QUALIFYING, RIGHT } from 'constants/tmxConstants';
+
+const { AD_HOC } = drawDefinitionConstants;
 const { DOUBLES, TEAM } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
@@ -33,7 +36,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   getData();
 
-  const { roundMatchUps } = utilities.makeDeepCopy(
+  const { roundMatchUps, stage } = utilities.makeDeepCopy(
     drawData?.structures?.find((s) => s.structureId === structureId) || {}
   );
   const matchUps = Object.values(roundMatchUps || {}).flat();
@@ -67,7 +70,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     if (dual) return;
     for (const structure of structures) {
       for (const key of Object.keys(structure.roundMatchUps)) {
-        structure.roundMatchUps[key] = roundMatchUps[key]?.filter(
+        structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(
           ({ sides }) =>
             sides?.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
             !participantFilter
@@ -75,9 +78,22 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }
     }
 
-    // if (!matchUps.length && utilities.isAdHoc({ structure: structures.find((s) => s.structureId === structureId) })) {
     if (!matchUps.length) {
-      console.log('AD_HOC', { structureId, structures, drawData });
+      if (stage === QUALIFYING) {
+        const button = document.createElement('button');
+        button.onclick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const drawName = drawData.drawName;
+          const callback = (result) => console.log({ result });
+          addDraw({ eventId, drawId, drawName, isQualifying: true, callback });
+        };
+        button.className = 'button is-info';
+        button.innerHTML = 'Generate qualifying';
+        drawsView.appendChild(button);
+      } else {
+        console.log(AD_HOC, { structureId, structures, drawData });
+      }
     } else {
       window.reactDraws
         ? render(<DrawStructure {...args} />, drawsView)
@@ -103,7 +119,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
     const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
     const actionOptions = getActionOptions({ eventData, drawId, structureId, structureName });
-    const drawsOptions = getDrawsOptions({ eventData });
+    const drawsOptions = getDrawsOptions({ eventData, drawId });
     const eventOptions = getEventOptions({ events });
 
     // PARTICIPANT filter

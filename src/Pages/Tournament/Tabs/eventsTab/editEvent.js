@@ -56,13 +56,13 @@ export function editEvent({ event, participants, callback } = {}) {
   const content = (elem) =>
     renderForm(elem, [
       {
+        error: 'minimum of 5 characters',
+        validator: nameValidator(5),
         placeholder: 'Event name',
         value: values.eventName,
+        onChange: valueChange,
         label: 'Event name',
-        field: 'eventName',
-        error: 'Please enter a name of at least 5 characters',
-        validator: nameValidator(5),
-        onChange: valueChange
+        field: 'eventName'
       },
       {
         value: values.eventType,
@@ -169,7 +169,6 @@ export function editEvent({ event, participants, callback } = {}) {
   const title = event?.eventId ? 'Edit event' : 'Add event';
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
-    context: 'tournament',
     onClose: callback,
     width: '300px',
     side: RIGHT,

@@ -1,7 +1,6 @@
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { mapDrawDefinition } from './mapDrawDefinition';
-
-import { acceptedEntryStatuses } from 'constants/tmxConstants';
 
 const { MAIN } = drawDefinitionConstants;
 
@@ -13,7 +12,7 @@ export function mapEvent(event) {
   const drawsCount = drawDefinitions.length;
   const entriesCount =
     entries.filter(({ entryStage = MAIN, entryStatus }) =>
-      acceptedEntryStatuses.includes(`${entryStage}.${entryStatus}`)
+      acceptedEntryStatuses(MAIN).includes(`${entryStage}.${entryStatus}`)
     )?.length || 0;
   const matchUpsCount = matchUps?.length || 0;
   const scheduledMatchUpsCount =

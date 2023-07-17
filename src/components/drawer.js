@@ -81,13 +81,13 @@ export const drawer = () => {
     }
   };
 
-  const setContent = (content, context) => {
+  const setContent = (content) => {
     const target = document.getElementById(drawerId);
     const contentElement = target.querySelector('.drawer__content');
     if (contentElement) {
       removeAllChildNodes(contentElement);
       if (isFunction(content)) {
-        attributes.content = content(contentElement, close, context);
+        attributes.content = content(contentElement, close);
       } else {
         contentElement.innerHTML = content;
       }
@@ -114,8 +114,8 @@ export const drawer = () => {
     }, settings.speedOpen);
   };
 
-  const open = ({ title, content, side, width, footer, context, callback, onClose } = {}) => {
-    if (content) setContent(content, context);
+  const open = ({ title, content, side, width, footer, callback, onClose } = {}) => {
+    if (content) setContent(content);
     if (onClose) setOnClose(onClose);
     if (footer) setFooter(footer);
     if (title) setTitle(title);

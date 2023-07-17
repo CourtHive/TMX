@@ -5,7 +5,7 @@ import { renderOptions } from 'components/renderers/renderField';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 
-const { FEED_IN, LUCKY_DRAW, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+const { FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
@@ -20,14 +20,15 @@ import {
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
-export function getFormRelationships({ event }) {
+export function getFormRelationships({ event, isQualifying }) {
+  const stage = isQualifying ? QUALIFYING : MAIN;
   const checkCreationMethod = ({ fields, inputs }) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
-    const entriesCount = acceptedEntriesCount(event);
+    const entriesCount = acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
-    const manualOnly = drawSize < entriesCount + qualifiersCount;
+    const manualOnly = isQualifying ? drawSize < entriesCount : drawSize < entriesCount + qualifiersCount;
     if (manualOnly) {
       inputs[AUTOMATED].value = MANUAL;
     }
@@ -41,10 +42,10 @@ export function getFormRelationships({ event }) {
   };
 
   const updateDrawSize = ({ drawType, fields, inputs }) => {
-    const entriesCount = acceptedEntriesCount(event);
+    const entriesCount = acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
-    const drawSizeInteger = entriesCount + qualifiersCount;
+    const drawSizeInteger = isQualifying ? entriesCount : entriesCount + qualifiersCount;
     const drawSize =
       ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
       utilities.nextPowerOf2(drawSizeInteger);
@@ -62,7 +63,7 @@ export function getFormRelationships({ event }) {
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const drawType = e.target.value;
 
-    updateDrawSize({ drawType, inputs });
+    updateDrawSize({ drawType, fields, inputs });
     checkCreationMethod({ fields, inputs });
 
     fields[ADVANCE_PER_GROUP].style.display =

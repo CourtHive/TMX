@@ -51,7 +51,6 @@ export function editTeamParticipant({ title = 'Edit team', individualParticipant
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
     callback: () => console.log('drawer callback'),
-    context: 'tournament',
     width: '300px',
     side: RIGHT,
     content,
