@@ -14,16 +14,37 @@ export function renderForm(elem, items, relationships) {
 
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
+      const container = item.fieldPair && document.createElement('div');
+      if (container) container.className = 'flexrow';
+
       const text = document.createElement('div');
-      if (item.id) text.id = item.id;
-      text.className = 'content';
-      text.innerHTML = item.text;
-      div.appendChild(text);
+      text.className = 'flexcol flexcenter';
+      text.style = 'height: 2.5em; padding-right: 1em;';
+      const content = document.createElement('div');
+      if (item.id) content.id = item.id;
+      content.className = 'content';
+      content.innerHTML = item.text;
+      text.appendChild(content);
+
+      if (container) {
+        container.appendChild(text);
+        const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
+        if (datepicker) inputs[`${item.field}.date`] = datepicker;
+        if (inputElement) inputs[item.fieldPair.field] = inputElement;
+        fields[item.fieldPair.field] = pair;
+        container.appendChild(pair);
+        div.appendChild(container);
+      } else {
+        div.appendChild(text);
+      }
+
+      continue;
     }
     if (item.divider) {
       const item = document.createElement('hr');
       item.classList.add('dropdown-divider');
       div.appendChild(item);
+      continue;
     }
     if ((!item.label && !item.field) || item.hide) continue;
 

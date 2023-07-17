@@ -1,10 +1,15 @@
+import { utilities, drawDefinitionConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { editStructureNames } from './editStructureNames';
 import { addStructures } from './addStructures';
+
+const { FINISHING_POSITIONS } = drawDefinitionConstants;
 
 export function getStructureOptions({ drawData, eventId, structureId, updateControlBar }) {
   const drawId = drawData.drawId;
 
   return drawData.structures
+    .sort((a, b) => utilities.structureSort(a, b, { mode: FINISHING_POSITIONS }))
     .map((structure) => ({
       onClick: () => {
         navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
@@ -15,7 +20,7 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
     .concat([
       { divider: true },
       {
-        onClick: () => console.log('edit structure names'),
+        onClick: () => editStructureNames({ drawId, callback: () => updateControlBar(true) }),
         label: 'Edit structure names',
         modifyLabel: false,
         close: true
