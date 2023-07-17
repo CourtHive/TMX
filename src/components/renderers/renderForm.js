@@ -18,7 +18,7 @@ export function renderForm(elem, items, relationships) {
       if (container) container.className = 'flexrow';
 
       const text = document.createElement('div');
-      text.className = 'flexcol flexcenter';
+      text.className = 'flexaligncenter';
       text.style = 'height: 2.5em; padding-right: 1em;';
       const content = document.createElement('div');
       if (item.id) content.id = item.id;
