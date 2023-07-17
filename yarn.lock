@@ -10704,11 +10704,6 @@ tods-competition-factory@^1.2.17:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.17.tgz#54fe7311154ee958a2e874a17aa674348ce357b5"
   integrity sha512-awDo0R2EfTA2TJGUFP/QxyPIjcRPHbDcklWcM2AmeX4rSUzY6y2zS+XTmYWtY+sPOMJ77FjgROIcg2+Y1Bp6tg==
 
-tods-competition-factory@^1.2.7:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.11.tgz#06c39dc3cffb51390bffb6f9b9611d1212027357"
-  integrity sha512-sC8gSWNzjOEN5VqI4/SV4mDbkt0ukg1g+G7s+BIx71emoLgXtCA9Jiy1Zu5zh4Z9WY4fLPDOeGRMjTX5ffo4Eg==
-
 tods-react-draws@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/tods-react-draws/-/tods-react-draws-0.2.1.tgz#9434dc0922844d957a303a48ab93a67f6e89ee50"
@@ -10720,10 +10715,10 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-score-grid@^0.13.12:
-  version "0.13.12"
-  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.12.tgz#f9ffcbecbe788d134e45736bdac648da3273a4f0"
-  integrity sha512-My55KoAmp3hq8UYIAIb6GZmGAA1D8xi+Am3TZvBWQ3EQDWJGv+2e+dsOdYs9afyRMmlqX8p1dl+/fiz+WPNxfA==
+tods-score-grid@^0.13.13:
+  version "0.13.13"
+  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.13.tgz#97c63ceb9318fc98177094c4a9218ccd99666429"
+  integrity sha512-7zuxG0DpVPTKHixnNDy6piKZ1EpEuK0hvkrmu1lITIKBw8iDEhALS7An9uJLbTUgjiiZF8ll4S/1KqGvodPKOw==
   dependencies:
     "@radix-ui/colors" "^1.0.0"
     "@radix-ui/react-dropdown-menu" "^2.0.0"
@@ -10734,7 +10729,7 @@ tods-score-grid@^0.13.12:
     dayjs "^1.10.7"
     flag-icons "^6.7.0"
     react-country-flag "^3.1.0"
-    tods-competition-factory "^1.2.7"
+    tods-competition-factory "^1.2.17"
 
 tods-tmx-classic-converter@^2.13.1:
   version "2.13.1"
