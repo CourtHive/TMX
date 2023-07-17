@@ -201,9 +201,13 @@ export const CUSTOM = 'CUSTOM';
 
 // Round Robin
 export const ADVANCE_PER_GROUP = 'advancePerGroup';
+export const QUALIFIERS_COUNT = 'qualifiersCount';
 export const GROUP_REMAINING = 'groupRemaining';
+export const MATCHUP_FORMAT = 'matchUpFormat';
 export const PLAYOFF_TYPE = 'playoffType';
 export const GROUP_SIZE = 'groupSize';
 export const POSITIONS = 'positions';
+export const DRAW_NAME = 'drawName';
+export const DRAW_TYPE = 'drawType';
 export const TOP_FINISHERS = 'top';
 export const WINNERS = 'winners';

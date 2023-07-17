@@ -1,11 +1,13 @@
 import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
+import { acceptedEntriesCount } from './acceptedEntriesCount';
 import {
   drawEngine,
   factoryConstants,
   drawDefinitionConstants,
   eventConstants,
-  policyConstants
+  policyConstants,
+  utilities
 } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
@@ -13,16 +15,19 @@ import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
   CUSTOM,
+  DRAW_NAME,
   DRAW_SIZE,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
+  MATCHUP_FORMAT,
   PLAYOFF_TYPE,
   POSITIONS,
+  QUALIFIERS_COUNT,
   TOP_FINISHERS,
-  WINNERS,
-  acceptedEntryStatuses
+  WINNERS
 } from 'constants/tmxConstants';
+import { numericRange } from 'components/validators/numericRange';
 
 const { DOMINANT_DUO } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
@@ -46,21 +51,16 @@ const {
   LUCKY_DRAW,
   OLYMPIC,
   PLAY_OFF,
-  MAIN,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
   SINGLE_ELIMINATION
 } = drawDefinitionConstants;
 
-function acceptedEntriesCount(event) {
-  return event.entries.filter(({ entryStage = MAIN, entryStatus }) =>
-    acceptedEntryStatuses.includes(`${entryStage}.${entryStatus}`)
-  ).length;
-}
-
 export function getFormItems({ event }) {
   const drawsCount = event.drawDefinitions?.length || 0;
   let drawType = SINGLE_ELIMINATION;
+
+  const drawSize = utilities.nextPowerOf2(acceptedEntriesCount(event));
 
   const scoreFormatOptions = [
     {
@@ -98,7 +98,7 @@ export function getFormItems({ event }) {
       placeholder: 'Display name of the draw',
       value: `Draw ${drawsCount + 1}`,
       label: 'Draw name',
-      field: 'drawName',
+      field: DRAW_NAME,
       error: 'Please enter a name of at least 5 characters',
       validator: nameValidator(5)
     },
@@ -124,9 +124,10 @@ export function getFormItems({ event }) {
       ]
     },
     {
-      value: acceptedEntriesCount(event),
-      validator: numericValidator,
+      error: 'Must be in range 2-128',
+      validator: numericRange(2, 128),
       label: 'Draw size',
+      value: drawSize,
       field: DRAW_SIZE
     },
     {
@@ -155,9 +156,10 @@ export function getFormItems({ event }) {
       visible: false
     },
     {
-      value: '',
+      help: { text: 'Automation disabled', visible: false },
       label: 'Creation',
-      field: 'automated',
+      field: AUTOMATED,
+      value: '',
       options: [
         { label: AUTOMATED, value: AUTOMATED, selected: true },
         { label: MANUAL, value: false }
@@ -166,7 +168,7 @@ export function getFormItems({ event }) {
     {
       hide: event.eventType === TEAM,
       options: scoreFormatOptions,
-      field: 'matchUpFormat',
+      field: MATCHUP_FORMAT,
       label: 'Score format',
       value: ''
     },
@@ -176,6 +178,12 @@ export function getFormItems({ event }) {
       field: 'tieFormatName',
       label: 'Scorecard',
       value: ''
+    },
+    {
+      validator: numericValidator,
+      field: QUALIFIERS_COUNT,
+      label: 'Qualifiers',
+      value: 0
     }
   ];
 }

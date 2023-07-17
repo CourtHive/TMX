@@ -3,27 +3,41 @@ import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieForma
 import { tmxToast } from 'services/notifications/tmxToast';
 import { generateDraw } from './generateDraw';
 
-import { AUTOMATED, CUSTOM, GROUP_REMAINING, PLAYOFF_TYPE, POSITIONS, TOP_FINISHERS } from 'constants/tmxConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
+import {
+  AUTOMATED,
+  CUSTOM,
+  DRAW_SIZE,
+  DRAW_TYPE,
+  GROUP_REMAINING,
+  GROUP_SIZE,
+  MATCHUP_FORMAT,
+  PLAYOFF_TYPE,
+  POSITIONS,
+  TOP_FINISHERS
+} from 'constants/tmxConstants';
 
 const { FEED_IN, LUCKY_DRAW, MAIN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 
 export function submitParams({ event, inputs, callback, matchUpFormat }) {
-  const drawType = inputs.drawType.options[inputs.drawType.selectedIndex].getAttribute('value');
-  matchUpFormat = matchUpFormat || inputs.matchUpFormat?.value;
-  const automated = inputs.automated.value === AUTOMATED;
+  const drawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
+  matchUpFormat = matchUpFormat || inputs[MATCHUP_FORMAT]?.value;
   const tieFormatName = inputs.tieFormatName?.value;
   const drawName = inputs.drawName.value;
 
-  const drawSizeValue = inputs.drawSize.value;
-  const groupSize = parseInt(inputs.groupSize.value);
+  const drawSizeValue = inputs[DRAW_SIZE].value || 0;
+  const groupSize = parseInt(inputs[GROUP_SIZE].value);
   const drawSizeInteger = utilities.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
   const drawSize =
-    ([LUCKY_DRAW, FEED_IN].includes(drawType) && drawSizeInteger) || utilities.nextPowerOf2(drawSizeInteger);
+    ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
+    utilities.nextPowerOf2(drawSizeInteger);
   const drawEntries = event.entries.filter(
     ({ entryStage, entryStatus }) => entryStage === MAIN && DIRECT_ENTRY_STATUSES.includes(entryStatus)
   );
+
+  // default to Manual if the drawSize is less than the number of entries
+  const automated = drawSize < drawEntries.length ? false : inputs[AUTOMATED].value === AUTOMATED;
 
   const seedsCount = tournamentEngine.getSeedsCount({
     participantCount: drawEntries?.length,

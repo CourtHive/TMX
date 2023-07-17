@@ -15,7 +15,7 @@ export function addDraw({ eventId, callback }) {
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
-  const relationships = getFormRelationships();
+  const relationships = getFormRelationships({ event });
   const items = getFormItems({ event });
 
   let inputs;
