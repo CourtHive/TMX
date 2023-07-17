@@ -32,7 +32,7 @@ export function addStructures({ drawId, structureId, callback }) {
       }
     }));
 
-  if (!fields || fields.length < 2) {
+  if (!fields || fields.length < 1) {
     tmxToast({ message: 'No playoff positions available', intent: 'is-danger' });
     return;
   }
