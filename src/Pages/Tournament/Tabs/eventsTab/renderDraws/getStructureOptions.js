@@ -22,7 +22,7 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
       },
       {
         onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
-        label: 'Add structure(s)',
+        label: 'Add playoffs',
         modifyLabel: false,
         close: true
       }
