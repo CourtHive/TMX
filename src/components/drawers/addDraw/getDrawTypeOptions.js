@@ -26,7 +26,7 @@ const {
 
 export function getDrawTypeOptions({ isPlayoff } = {}) {
   return [
-    { label: 'Ad-hoc', value: AD_HOC, hide: isPlayoff },
+    { label: 'Ad-hoc', value: AD_HOC },
     { label: 'Compass', value: COMPASS },
     { label: 'Curtis consolation', value: CURTIS },
     { label: 'Double elimination', value: DOUBLE_ELIMINATION, hide: isPlayoff },
@@ -37,7 +37,7 @@ export function getDrawTypeOptions({ isPlayoff } = {}) {
     { label: 'Olympic', value: OLYMPIC },
     { label: 'Playoff', value: PLAY_OFF },
     { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF, hide: isPlayoff },
-    { label: 'Round robin', value: ROUND_ROBIN, hide: isPlayoff },
+    { label: 'Round robin', value: ROUND_ROBIN },
     { label: 'Single elimination', value: SINGLE_ELIMINATION },
     { label: 'Staggered Entry', value: FEED_IN, hide: isPlayoff }
   ];
