@@ -85,14 +85,24 @@ export function addStructures({ drawId, structureId, callback }) {
     };
     mutationRequest({ methods, callback: postMutation });
   };
-  const content = (elem) => (inputs = renderForm(elem, options));
+
+  const checkValid = () => {
+    const checkedRanges = result.playoffRoundsRanges.filter((range) => inputs[range.finishingPositionRange]?.checked);
+    const addButton = document.getElementById('addStructure');
+    if (addButton) addButton.disabled = !checkedRanges.length;
+  };
+  const relationships = result.playoffRoundsRanges.map(({ finishingPositionRange }) => ({
+    control: finishingPositionRange,
+    onChange: checkValid
+  }));
+  const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
   context.modal.open({
     title: `Add playoff structures`,
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', intent: 'is-info', close: true, onClick }
+      { label: 'Add', id: 'addStructure', disabled: true, intent: 'is-info', close: true, onClick }
     ]
   });
 }
