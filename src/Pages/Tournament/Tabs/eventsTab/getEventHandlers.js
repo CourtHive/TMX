@@ -37,7 +37,6 @@ export function getEventHandlers({ eventData, callback }) {
         })) ||
       {};
 
-    console.log({ actions });
     selectPositionAction({ ...props, actions, callback });
   };
 
