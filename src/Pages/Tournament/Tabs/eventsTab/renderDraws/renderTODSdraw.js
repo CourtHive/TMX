@@ -33,7 +33,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   getData();
 
-  const { structureName, roundMatchUps } = utilities.makeDeepCopy(
+  const { roundMatchUps } = utilities.makeDeepCopy(
     drawData?.structures?.find((s) => s.structureId === structureId) || {}
   );
   const matchUps = Object.values(roundMatchUps || {}).flat();
@@ -100,6 +100,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const updateControlBar = (refresh) => {
     if (refresh) getData();
 
+    const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
     const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
     const actionOptions = getActionOptions({ eventData, drawId, structureId, structureName });
     const drawsOptions = getDrawsOptions({ eventData });
