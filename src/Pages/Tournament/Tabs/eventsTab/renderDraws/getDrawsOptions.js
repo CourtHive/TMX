@@ -43,6 +43,11 @@ export function getDrawsOptions({ eventData, drawId }) {
       label: draw.drawName,
       close: true
     }))
-    .concat([{ divider: true }, viewEntries, deleteOption, { label: 'Add flight', onClick: addFlight }])
+    .concat([
+      { divider: true },
+      viewEntries,
+      deleteOption,
+      { label: 'Add flight', modifyLabel: false, onClick: addFlight }
+    ])
     .filter(Boolean);
 }
