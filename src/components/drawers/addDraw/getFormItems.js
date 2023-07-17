@@ -2,6 +2,7 @@ import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 import { numericRange } from 'components/validators/numericRange';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { getDrawTypeOptions } from './getDrawTypeOptions';
 import {
   drawEngine,
   factoryConstants,
@@ -18,6 +19,7 @@ import {
   CUSTOM,
   DRAW_NAME,
   DRAW_SIZE,
+  DRAW_TYPE,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
@@ -30,34 +32,10 @@ import {
   WINNERS
 } from 'constants/tmxConstants';
 
+const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
 const { DOMINANT_DUO } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 const { TEAM } = eventConstants;
-const {
-  AD_HOC,
-  COMPASS,
-  CURTIS,
-  DOUBLE_ELIMINATION,
-  /*
-  // TODO: add configuration for FIC to achieve the following
-  FEED_IN_CHAMPIONSHIP_TO_QF,
-  FEED_IN_CHAMPIONSHIP_TO_R16,
-  FEED_IN_CHAMPIONSHIP_TO_SF,
-  MODIFIED_FEED_IN_CHAMPIONSHIP,
-  */
-  FEED_IN_CHAMPIONSHIP,
-  FEED_IN,
-  FIRST_MATCH_LOSER_CONSOLATION,
-  FIRST_ROUND_LOSER_CONSOLATION,
-  LUCKY_DRAW,
-  OLYMPIC,
-  PLAY_OFF,
-  ROUND_ROBIN,
-  ROUND_ROBIN_WITH_PLAYOFF,
-  SINGLE_ELIMINATION,
-  QUALIFYING,
-  MAIN
-} = drawDefinitionConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
 
@@ -126,25 +104,10 @@ export function getFormItems({ event, drawId, isQualifying }) {
       field: DRAW_NAME
     },
     {
-      value: drawType,
+      options: getDrawTypeOptions(),
       label: 'Draw Type',
-      field: 'drawType',
-      options: [
-        { label: 'Ad-hoc', value: AD_HOC },
-        { label: 'Compass', value: COMPASS },
-        { label: 'Curtis consolation', value: CURTIS },
-        { label: 'Double elimination', value: DOUBLE_ELIMINATION },
-        { label: 'Elimination: fed consolation', value: FEED_IN_CHAMPIONSHIP },
-        { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION },
-        { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION },
-        { label: 'Lucky', value: LUCKY_DRAW },
-        { label: 'Olympic', value: OLYMPIC },
-        { label: 'Playoff', value: PLAY_OFF },
-        { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
-        { label: 'Round robin', value: ROUND_ROBIN },
-        { label: 'Single elimination', value: SINGLE_ELIMINATION },
-        { label: 'Staggered Entry', value: FEED_IN }
-      ]
+      field: DRAW_TYPE,
+      value: drawType
     },
     {
       error: 'Must be in range 2-128',
