@@ -1,23 +1,70 @@
 import { drawDefinitionConstants, drawEngine, utilities } from 'tods-competition-factory';
+import { numericValidator } from 'components/validators/numericValidator';
+import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { renderOptions } from 'components/renderers/renderField';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { acceptedEntriesCount } from './acceptedEntriesCount';
 
+const { FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
+  AUTOMATED,
   DRAW_SIZE,
+  DRAW_TYPE,
   GROUP_REMAINING,
   GROUP_SIZE,
+  MANUAL,
   NONE,
   PLAYOFF_TYPE,
+  QUALIFIERS_COUNT,
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
-const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+export function getFormRelationships({ event, isQualifying }) {
+  const stage = isQualifying ? QUALIFYING : MAIN;
+  const checkCreationMethod = ({ fields, inputs }) => {
+    const drawSizeValue = inputs[DRAW_SIZE].value || 0;
+    const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
+    const entriesCount = acceptedEntriesCount(event, stage);
+    const qualifiersValue = inputs['qualifiersCount'].value || 0;
+    const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
+    const manualOnly = isQualifying ? drawSize < entriesCount : drawSize < entriesCount + qualifiersCount;
+    if (manualOnly) {
+      inputs[AUTOMATED].value = MANUAL;
+    }
+    const help = getChildrenByClassName(fields[AUTOMATED], 'help')?.[0];
+    help.style.display = manualOnly ? '' : NONE;
+    for (const option of inputs[AUTOMATED].options) {
+      if (option.label === AUTOMATED) {
+        option.disabled = manualOnly;
+      }
+    }
+  };
 
-export function getFormRelationships() {
+  const updateDrawSize = ({ drawType, fields, inputs }) => {
+    const entriesCount = acceptedEntriesCount(event, stage);
+    const qualifiersValue = inputs['qualifiersCount'].value || 0;
+    const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
+    const drawSizeInteger = isQualifying ? entriesCount : entriesCount + qualifiersCount;
+    const drawSize =
+      ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
+      utilities.nextPowerOf2(drawSizeInteger);
+    inputs[DRAW_SIZE].value = drawSize;
+
+    checkCreationMethod({ fields, inputs });
+  };
+
+  const qualifiersCountChange = ({ fields, inputs }) => {
+    const drawType = inputs[DRAW_TYPE].value;
+    updateDrawSize({ drawType, fields, inputs });
+  };
+
   const drawTypeChange = ({ e, fields, inputs }) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const drawType = e.target.value;
+
+    updateDrawSize({ drawType, fields, inputs });
+    checkCreationMethod({ fields, inputs });
 
     fields[ADVANCE_PER_GROUP].style.display =
       drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === TOP_FINISHERS ? '' : NONE;
@@ -26,14 +73,16 @@ export function getFormRelationships() {
     fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
   };
 
-  const drawSizeChange = ({ inputs }) => {
-    const drawSize = inputs[DRAW_SIZE].value;
+  const drawSizeChange = ({ fields, inputs }) => {
+    const drawSizeValue = inputs[DRAW_SIZE].value || 0;
+    const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
     const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
     const options = validGroupSizes.map((size) => ({ label: size, value: size }));
     const groupSizeSelect = inputs[GROUP_SIZE];
     const value = validGroupSizes.includes(4) ? 4 : validGroupSizes[0];
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
+    checkCreationMethod({ fields, inputs });
   };
 
   const playoffTypeChange = ({ e, fields }) => {
@@ -64,19 +113,23 @@ export function getFormRelationships() {
   return [
     {
       onChange: groupSizeChange,
-      control: 'groupSize'
+      control: GROUP_SIZE
     },
     {
       onChange: drawTypeChange,
-      control: 'drawType'
+      control: DRAW_TYPE
     },
     {
       onChange: playoffTypeChange,
       control: PLAYOFF_TYPE
     },
     {
-      onChange: drawSizeChange,
+      onInput: drawSizeChange,
       control: DRAW_SIZE
+    },
+    {
+      onInput: qualifiersCountChange,
+      control: QUALIFIERS_COUNT
     }
   ];
 }

@@ -54,6 +54,15 @@ export function renderField(item) {
     renderOptions(select, item);
     div.appendChild(select);
     control.appendChild(div);
+
+    if (item.help) {
+      const help = document.createElement('p');
+      help.className = 'help font-medium is-info';
+      help.innerHTML = item.help?.text;
+      help.style.display = item.help?.visible ? '' : NONE;
+      control.appendChild(help);
+    }
+
     inputElement = select;
     if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
   } else if (item.checkbox) {
@@ -77,6 +86,7 @@ export function renderField(item) {
     input.setAttribute('type', item.type || 'text');
     input.setAttribute('autocomplete', item.autocomplete || 'cc-number');
     input.setAttribute('placeholder', item.placeholder || '');
+    if (item.disabled) input.setAttribute('disabled', true);
     if (item.id) input.setAttribute('id', item.id);
     control.appendChild(input);
     if (item.iconLeft) {
@@ -115,8 +125,12 @@ export function renderField(item) {
     } else {
       if (isFunction(item.onKeyDown)) input.addEventListener('keydown', (e) => item.onKeyDown(e, item));
       if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
+      if (isFunction(item.onInput)) input.addEventListener('input', (e) => item.onInput(e, item));
       if (isFunction(item.onKeyUp)) input.addEventListener('keyup', (e) => item.onKeyUp(e, item));
-      if (item.value) input.value = item.value;
+      if (item.value !== undefined) input.value = item.value;
+    }
+    if (item.selectOnFocus) {
+      input.addEventListener('focus', () => input.select());
     }
   }
 

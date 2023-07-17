@@ -10715,7 +10715,7 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-score-grid@^0.13.12:
+tods-score-grid@^0.13.13:
   version "0.13.13"
   resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.13.tgz#97c63ceb9318fc98177094c4a9218ccd99666429"
   integrity sha512-7zuxG0DpVPTKHixnNDy6piKZ1EpEuK0hvkrmu1lITIKBw8iDEhALS7An9uJLbTUgjiiZF8ll4S/1KqGvodPKOw==

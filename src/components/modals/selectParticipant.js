@@ -6,7 +6,8 @@ import { context } from 'services/context';
 
 import { LEFT } from 'constants/tmxConstants';
 
-const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, SWAP_PARTICIPANTS } = positionActionConstants;
+const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, QUALIFYING_PARTICIPANT, SWAP_PARTICIPANTS } =
+  positionActionConstants;
 
 const actionTypes = {
   [ALTERNATE_PARTICIPANT]: {
@@ -16,9 +17,15 @@ const actionTypes = {
     title: 'Assign alternate'
   },
   [ASSIGN_PARTICIPANT]: {
-    title: 'Select participant',
+    selections: 'participantsAvailable',
     targetAttribute: 'participantId',
-    selections: 'participantsAvailable'
+    title: 'Select participant'
+  },
+  [QUALIFYING_PARTICIPANT]: {
+    selections: 'qualifyingParticipants',
+    targetAttribute: 'participantId',
+    param: 'qualifyingParticipantId',
+    title: 'Assign qualifier'
   },
   [SWAP_PARTICIPANTS]: {
     selections: 'availableAssignments',
@@ -27,9 +34,9 @@ const actionTypes = {
     param: 'drawPositions'
   },
   selectParticipants: {
-    title: 'Select participants',
+    selections: 'participantsAvailable',
     targetAttribute: 'participantId',
-    selections: 'participantsAvailable'
+    title: 'Select participants'
   }
 };
 
