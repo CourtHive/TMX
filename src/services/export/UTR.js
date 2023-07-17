@@ -2,6 +2,8 @@ import { tournamentEngine, utilities } from 'tods-competition-factory';
 import { normalizeName, normalizeDiacritics } from 'normalize-text';
 import { downloadText } from './download';
 
+import { DRAW_NAME, DRAW_TYPE } from 'constants/tmxConstants';
+
 export const replaceDiacritics = (text) => normalizeDiacritics(text);
 
 export const nameNormalization = (name) => {
@@ -115,8 +117,8 @@ export function downloadUTRmatches() {
       'Tournament Import Source': ['tournamentEventSource'],
       'Tournament Event Type': ['tournamentEventType'],
       'Tournament Name': ['tournamentName'],
-      'Draw Name': ['drawName'],
-      'Draw Type': ['drawType'],
+      'Draw Name': [DRAW_NAME],
+      'Draw Type': [DRAW_TYPE],
       'Match ID': ['matchUpId'],
       Score: ['winnerScore'],
       'Id Type': ['idType']

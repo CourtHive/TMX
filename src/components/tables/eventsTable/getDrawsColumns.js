@@ -2,7 +2,7 @@ import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
-import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function getDrawsColumns() {
   const drawActions = () => {
@@ -30,8 +30,8 @@ export function getDrawsColumns() {
       headerMenu: headerMenu({ entries: 'Entries' }),
       width: 55
     },
-    { title: 'Draw Name', field: 'drawName', cellClick: drawDetail },
-    { title: 'Draw Type', field: 'drawType', cellClick: drawDetail },
+    { title: 'Draw Name', field: DRAW_NAME, cellClick: drawDetail },
+    { title: 'Draw Type', field: DRAW_TYPE, cellClick: drawDetail },
     {
       title: '<div class="event_icon opponents_header" />',
       field: 'entries',

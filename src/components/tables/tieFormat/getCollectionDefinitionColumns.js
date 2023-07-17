@@ -1,6 +1,14 @@
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 
-import { CENTER, COLLECTION_VALUE, LEFT, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
+import {
+  CENTER,
+  COLLECTION_VALUE,
+  LEFT,
+  MATCHUP_FORMAT,
+  MATCH_VALUE,
+  SCORE_VALUE,
+  SET_VALUE
+} from 'constants/tmxConstants';
 
 export function getCollectionDefinitionColumns() {
   const editMatchUpFormat = (e, cell) => {
@@ -81,7 +89,7 @@ export function getCollectionDefinitionColumns() {
     {
       cellClick: editMatchUpFormat,
       title: 'Score format',
-      field: 'matchUpFormat',
+      field: MATCHUP_FORMAT,
       minWidth: 150
     },
     {
