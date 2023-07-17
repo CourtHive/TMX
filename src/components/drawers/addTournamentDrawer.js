@@ -12,7 +12,7 @@ export function addTournament({ table }) {
   let inputs;
   const items = [
     {
-      error: 'Please enter a name of at least 5 characters',
+      error: 'minimum of 5 characters',
       placeholder: 'Tournament name',
       validator: nameValidator(5),
       label: 'Tournament name',
@@ -61,5 +61,5 @@ export function addTournament({ table }) {
   const title = `New tournament`;
 
   const footer = (elem, close) => renderButtons(elem, buttons, close);
-  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: '300px' });
+  context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }

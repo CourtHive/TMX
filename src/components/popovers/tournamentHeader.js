@@ -27,7 +27,6 @@ export function tournamentHeader() {
 
       context.drawer.open({
         title: state?.provider?.providerName || 'TMX',
-        context: 'tournament',
         content: mainMenu,
         width: '200px',
         side: RIGHT

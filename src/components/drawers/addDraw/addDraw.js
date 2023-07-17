@@ -9,21 +9,22 @@ import { getFormItems } from './getFormItems';
 import { submitParams } from './submitParams';
 import { context } from 'services/context';
 
-import { CUSTOM, NONE, RIGHT } from 'constants/tmxConstants';
+import { CUSTOM, DRAW_NAME, NONE, RIGHT, STRUCTURE_NAME } from 'constants/tmxConstants';
 
-export function addDraw({ eventId, callback }) {
+export function addDraw({ eventId, callback, drawId, drawName, isQualifying }) {
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
-  const relationships = getFormRelationships();
-  const items = getFormItems({ event });
+  const relationships = getFormRelationships({ event, isQualifying });
+  const items = getFormItems({ event, drawId, isQualifying });
 
   let inputs;
   const content = (elem) => {
     inputs = renderForm(elem, items, relationships);
   };
 
-  const isValid = () => nameValidator(5)(inputs.drawName.value);
+  const isValid = () =>
+    isQualifying ? nameValidator(4)(inputs[STRUCTURE_NAME].value) : nameValidator(4)(inputs[DRAW_NAME].value);
 
   const checkParams = () => {
     if (!isValid()) {
@@ -31,12 +32,12 @@ export function addDraw({ eventId, callback }) {
     } else if (inputs.matchUpFormat?.value === CUSTOM) {
       const setMatchUpFormat = (matchUpFormat) => {
         if (matchUpFormat) {
-          submitParams({ event, inputs, callback, matchUpFormat });
+          submitParams({ event, inputs, callback, matchUpFormat, drawId, drawName, isQualifying });
         }
       };
       getMatchUpFormat({ callback: setMatchUpFormat });
     } else {
-      submitParams({ event, inputs, callback });
+      submitParams({ event, inputs, callback, drawId, drawName, isQualifying });
     }
   };
 
@@ -47,5 +48,5 @@ export function addDraw({ eventId, callback }) {
   const title = `Configure draw`;
 
   const footer = (elem, close) => renderButtons(elem, buttons, close);
-  context.drawer.open({ title, content, footer, context: 'tournament', side: RIGHT, width: '300px' });
+  context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }

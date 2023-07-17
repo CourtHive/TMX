@@ -1,11 +1,14 @@
+import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
+import { DRAW_TYPE, NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
-import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
+const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 
 export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingPositionRanges }) {
   const getId = (finishingPosition) => `finishingPosition-${finishingPosition}`;
@@ -27,10 +30,19 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
 
   const playoffStructureName = {
     value: PLAYOFF_NAME_BASE,
-    label: 'Playoff Name',
+    label: 'Playoff name',
     field: 'structureName',
     id: 'structureName'
   };
+  const drawTypeOptions = getDrawTypeOptions({ isPlayoff: true });
+  const playoffDrawType = {
+    value: SINGLE_ELIMINATION,
+    options: drawTypeOptions,
+    label: 'Draw type',
+    field: DRAW_TYPE,
+    id: DRAW_TYPE
+  };
+
   const positionsToBePlayedOff = 'Positions to be played off:';
   const selectedPlayoffRange = {
     text: `${positionsToBePlayedOff} None`,
@@ -40,21 +52,22 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     text: 'Select group finishing positions. Selections must be sequential'
   };
 
-  const options = [playoffStructureName, selectedPlayoffRange, admonition].concat(fields);
+  const options = [playoffStructureName, playoffDrawType, selectedPlayoffRange, admonition].concat(fields);
 
   let inputs;
 
   const onClick = () => {
-    const structureName = inputs.structureName.value;
     const checkedRanges = playoffFinishingPositionRanges.filter(
       ({ finishingPosition }) => inputs[getId(finishingPosition)]?.checked
     );
     const finishingPositions = checkedRanges.map(({ finishingPosition }) => finishingPosition);
+    const structureName = inputs.structureName.value;
+    const drawType = inputs[DRAW_TYPE].value;
     const playoffGroups = [
       {
-        drawType: 'SINGLE_ELIMINATION',
         finishingPositions,
-        structureName
+        structureName,
+        drawType
       }
     ];
 

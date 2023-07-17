@@ -10,6 +10,7 @@ import { moveSelected } from './moveSelected';
 import { createPair } from './createPair';
 import { addToDraw } from './addToDraw';
 
+import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import {
   ACCEPTED,
   ACCEPTED_PANEL,
@@ -17,8 +18,7 @@ import {
   LEFT,
   QUALIFYING_PANEL,
   UNGROUPED_PANEL,
-  WITHDRAWN_PANEL,
-  acceptedEntryStatuses
+  WITHDRAWN_PANEL
 } from 'constants/tmxConstants';
 
 const { DIRECT_ACCEPTANCE, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
@@ -57,7 +57,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
   };
 
   // group entries
-  const acceptedEntries = filterEntries(acceptedEntryStatuses);
+  const acceptedEntries = filterEntries(acceptedEntryStatuses(MAIN));
   const qualifyingEntries = filterEntries([`${QUALIFYING}.${DIRECT_ACCEPTANCE}`]);
   const alternateEntries = filterEntries([`${MAIN}.${ALTERNATE}`]);
   const ungroupedEntries = filterEntries([`${MAIN}.${UNGROUPED}`]);
@@ -69,7 +69,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       placeholder: 'No accepted participants',
       items: [
         moveSelected(moves[ACCEPTED], eventId, drawId),
-        changeEntryStatus(acceptedEntryStatuses, eventId, drawId),
+        changeEntryStatus(acceptedEntryStatuses(MAIN), eventId, drawId),
         addToDraw(event),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
         seedingSelector(event, ACCEPTED),

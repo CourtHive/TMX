@@ -1,9 +1,8 @@
-import { drawDefinitionConstants, entryStatusConstants, factoryConstants } from 'tods-competition-factory';
+import { entryStatusConstants, factoryConstants } from 'tods-competition-factory';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = factoryConstants.timeItemConstants;
 const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING } =factoryConstants.scheduleConstants;
 
-const { MAIN } = drawDefinitionConstants;
 const {
   ORGANISER_ACCEPTANCE,
   DIRECT_ACCEPTANCE,
@@ -160,14 +159,6 @@ export const MATCH_VALUE = 'Match value';
 export const SCORE_VALUE = 'Score value';
 export const SET_VALUE = 'Set value';
 
-export const acceptedEntryStatuses = [
-  `${MAIN}.${DIRECT_ACCEPTANCE}`,
-  `${MAIN}.${ORGANISER_ACCEPTANCE}`,
-  `${MAIN}.${SPECIAL_EXEMPT}`,
-  `${MAIN}.${JUNIOR_EXEMPT}`,
-  `${MAIN}.${WILDCARD}`
-];
-
 export const timeModifierText = {
  [AFTER_REST]: 'After rest',
  [FOLLOWED_BY]: 'Followed by',
@@ -201,9 +192,14 @@ export const CUSTOM = 'CUSTOM';
 
 // Round Robin
 export const ADVANCE_PER_GROUP = 'advancePerGroup';
+export const QUALIFIERS_COUNT = 'qualifiersCount';
 export const GROUP_REMAINING = 'groupRemaining';
+export const MATCHUP_FORMAT = 'matchUpFormat';
+export const STRUCTURE_NAME = 'structureName';
 export const PLAYOFF_TYPE = 'playoffType';
 export const GROUP_SIZE = 'groupSize';
 export const POSITIONS = 'positions';
+export const DRAW_NAME = 'drawName';
+export const DRAW_TYPE = 'drawType';
 export const TOP_FINISHERS = 'top';
 export const WINNERS = 'winners';

@@ -1,11 +1,15 @@
 import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
+import { numericRange } from 'components/validators/numericRange';
+import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { getDrawTypeOptions } from './getDrawTypeOptions';
 import {
   drawEngine,
   factoryConstants,
   drawDefinitionConstants,
   eventConstants,
-  policyConstants
+  policyConstants,
+  utilities
 } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
@@ -13,54 +17,39 @@ import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
   CUSTOM,
+  DRAW_NAME,
   DRAW_SIZE,
+  DRAW_TYPE,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
+  MATCHUP_FORMAT,
   PLAYOFF_TYPE,
   POSITIONS,
+  QUALIFIERS_COUNT,
+  STRUCTURE_NAME,
   TOP_FINISHERS,
-  WINNERS,
-  acceptedEntryStatuses
+  WINNERS
 } from 'constants/tmxConstants';
 
+const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
 const { DOMINANT_DUO } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 const { TEAM } = eventConstants;
-const {
-  AD_HOC,
-  COMPASS,
-  CURTIS,
-  DOUBLE_ELIMINATION,
-  /*
-  // TODO: add configueration for FIC to achieve the following
-  FEED_IN_CHAMPIONSHIP_TO_QF,
-  FEED_IN_CHAMPIONSHIP_TO_R16,
-  FEED_IN_CHAMPIONSHIP_TO_SF,
-  MODIFIED_FEED_IN_CHAMPIONSHIP,
-  */
-  FEED_IN_CHAMPIONSHIP,
-  FEED_IN,
-  FIRST_MATCH_LOSER_CONSOLATION,
-  FIRST_ROUND_LOSER_CONSOLATION,
-  LUCKY_DRAW,
-  OLYMPIC,
-  PLAY_OFF,
-  MAIN,
-  ROUND_ROBIN,
-  ROUND_ROBIN_WITH_PLAYOFF,
-  SINGLE_ELIMINATION
-} = drawDefinitionConstants;
 
-function acceptedEntriesCount(event) {
-  return event.entries.filter(({ entryStage = MAIN, entryStatus }) =>
-    acceptedEntryStatuses.includes(`${entryStage}.${entryStatus}`)
-  ).length;
-}
+const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
 
-export function getFormItems({ event }) {
+export function getFormItems({ event, drawId, isQualifying }) {
+  const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0;
   let drawType = SINGLE_ELIMINATION;
+
+  const drawSize = utilities.nextPowerOf2(acceptedEntriesCount(event, stage));
+
+  const drawDefinition = drawId && event.drawDefinitions?.find((def) => def.drawId === drawId);
+  const entryProfile = utilities.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension?.value;
+  const qualifiersCount = entryProfile?.[MAIN]?.qualifiersCount || 0;
+  const structureName = 'Qualifying';
 
   const scoreFormatOptions = [
     {
@@ -95,38 +84,37 @@ export function getFormItems({ event }) {
 
   return [
     {
+      error: 'minimum of 4 characters',
+      placeholder: 'Display name of the structure',
+      validator: nameValidator(4),
+      label: 'Structure name',
+      value: structureName,
+      field: STRUCTURE_NAME,
+      selectOnFocus: true,
+      hide: !isQualifying
+    },
+    {
+      error: 'minimum of 4 characters',
       placeholder: 'Display name of the draw',
       value: `Draw ${drawsCount + 1}`,
+      validator: nameValidator(4),
+      selectOnFocus: true,
+      hide: isQualifying,
       label: 'Draw name',
-      field: 'drawName',
-      error: 'Please enter a name of at least 5 characters',
-      validator: nameValidator(5)
+      field: DRAW_NAME
     },
     {
-      value: drawType,
+      options: getDrawTypeOptions(),
       label: 'Draw Type',
-      field: 'drawType',
-      options: [
-        { label: 'Ad-hoc', value: AD_HOC },
-        { label: 'Compass', value: COMPASS },
-        { label: 'Curtis consolation', value: CURTIS },
-        { label: 'Double elimination', value: DOUBLE_ELIMINATION },
-        { label: 'Elimination: fed consolation', value: FEED_IN_CHAMPIONSHIP },
-        { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION },
-        { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION },
-        { label: 'Lucky', value: LUCKY_DRAW },
-        { label: 'Olympic', value: OLYMPIC },
-        { label: 'Playoff', value: PLAY_OFF },
-        { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF },
-        { label: 'Round robin', value: ROUND_ROBIN },
-        { label: 'Single elimination', value: SINGLE_ELIMINATION },
-        { label: 'Staggered Entry', value: FEED_IN }
-      ]
+      field: DRAW_TYPE,
+      value: drawType
     },
     {
-      value: acceptedEntriesCount(event),
-      validator: numericValidator,
+      error: 'Must be in range 2-128',
+      validator: numericRange(2, 128),
+      selectOnFocus: true,
       label: 'Draw size',
+      value: drawSize,
       field: DRAW_SIZE
     },
     {
@@ -155,9 +143,10 @@ export function getFormItems({ event }) {
       visible: false
     },
     {
-      value: '',
+      help: { text: 'Automation disabled', visible: false },
       label: 'Creation',
-      field: 'automated',
+      field: AUTOMATED,
+      value: '',
       options: [
         { label: AUTOMATED, value: AUTOMATED, selected: true },
         { label: MANUAL, value: false }
@@ -166,7 +155,7 @@ export function getFormItems({ event }) {
     {
       hide: event.eventType === TEAM,
       options: scoreFormatOptions,
-      field: 'matchUpFormat',
+      field: MATCHUP_FORMAT,
       label: 'Score format',
       value: ''
     },
@@ -176,6 +165,14 @@ export function getFormItems({ event }) {
       field: 'tieFormatName',
       label: 'Scorecard',
       value: ''
+    },
+    {
+      validator: numericValidator,
+      disabled: isQualifying,
+      field: QUALIFIERS_COUNT,
+      value: qualifiersCount,
+      selectOnFocus: true,
+      label: 'Qualifiers'
     }
   ];
 }

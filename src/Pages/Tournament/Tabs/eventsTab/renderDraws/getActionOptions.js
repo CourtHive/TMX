@@ -1,5 +1,4 @@
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { eventConstants } from 'tods-competition-factory';
 import { editMatchUpFormat } from './editMatchUpFormat';
@@ -21,10 +20,6 @@ export function getActionOptions({ eventData, drawId, structureId, structureName
       onClick: () => editMatchUpFormat({ structureId, eventId, drawId }),
       label: `Edit ${structureName} scoring`,
       close: true
-    },
-    {
-      onClick: () => navigateToEvent({ eventId, drawId }),
-      label: 'View entries'
     },
     {
       onClick: () => deleteFlights({ eventData, drawIds: [drawId] }),
