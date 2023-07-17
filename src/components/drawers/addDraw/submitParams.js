@@ -105,6 +105,7 @@ export function submitParams({
 
   const eventId = event.eventId;
   const drawOptions = {
+    drawEntries,
     automated,
     eventId,
     drawId
@@ -114,7 +115,6 @@ export function submitParams({
     (numericValidator(inputs[QUALIFIERS_COUNT].value) && parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
 
   if (isQualifying) {
-    console.log({ qualifyingEntries, existingDrawName });
     drawOptions.drawName = existingDrawName;
     drawOptions.qualifyingProfiles = [
       {
@@ -124,7 +124,6 @@ export function submitParams({
             structureOptions,
             matchUpFormat,
             structureName,
-            drawEntries,
             seedsCount,
             drawSize,
             drawType
@@ -141,7 +140,6 @@ export function submitParams({
       seedingScaleName: eventId, // TODO: qualifying seeding needs to have a unique seedingScaleName
       structureOptions,
       matchUpFormat,
-      drawEntries,
       seedsCount,
       drawName,
       drawSize,
