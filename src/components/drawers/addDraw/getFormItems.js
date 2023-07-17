@@ -1,5 +1,6 @@
 import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
+import { numericRange } from 'components/validators/numericRange';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import {
   drawEngine,
@@ -24,10 +25,10 @@ import {
   PLAYOFF_TYPE,
   POSITIONS,
   QUALIFIERS_COUNT,
+  STRUCTURE_NAME,
   TOP_FINISHERS,
   WINNERS
 } from 'constants/tmxConstants';
-import { numericRange } from 'components/validators/numericRange';
 
 const { DOMINANT_DUO } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
@@ -38,7 +39,7 @@ const {
   CURTIS,
   DOUBLE_ELIMINATION,
   /*
-  // TODO: add configueration for FIC to achieve the following
+  // TODO: add configuration for FIC to achieve the following
   FEED_IN_CHAMPIONSHIP_TO_QF,
   FEED_IN_CHAMPIONSHIP_TO_R16,
   FEED_IN_CHAMPIONSHIP_TO_SF,
@@ -53,14 +54,24 @@ const {
   PLAY_OFF,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
-  SINGLE_ELIMINATION
+  SINGLE_ELIMINATION,
+  QUALIFYING,
+  MAIN
 } = drawDefinitionConstants;
 
-export function getFormItems({ event }) {
+const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
+
+export function getFormItems({ event, drawId, isQualifying }) {
+  const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0;
   let drawType = SINGLE_ELIMINATION;
 
-  const drawSize = utilities.nextPowerOf2(acceptedEntriesCount(event));
+  const drawSize = utilities.nextPowerOf2(acceptedEntriesCount(event, stage));
+
+  const drawDefinition = drawId && event.drawDefinitions?.find((def) => def.drawId === drawId);
+  const entryProfile = utilities.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension?.value;
+  const qualifiersCount = entryProfile?.[MAIN]?.qualifiersCount || 0;
+  const structureName = 'Qualifying';
 
   const scoreFormatOptions = [
     {
@@ -95,12 +106,24 @@ export function getFormItems({ event }) {
 
   return [
     {
+      error: 'minimum of 4 characters',
+      placeholder: 'Display name of the structure',
+      validator: nameValidator(4),
+      label: 'Structure name',
+      value: structureName,
+      field: STRUCTURE_NAME,
+      selectOnFocus: true,
+      hide: !isQualifying
+    },
+    {
+      error: 'minimum of 4 characters',
       placeholder: 'Display name of the draw',
       value: `Draw ${drawsCount + 1}`,
+      validator: nameValidator(4),
+      selectOnFocus: true,
+      hide: isQualifying,
       label: 'Draw name',
-      field: DRAW_NAME,
-      error: 'Please enter a name of at least 5 characters',
-      validator: nameValidator(5)
+      field: DRAW_NAME
     },
     {
       value: drawType,
@@ -126,6 +149,7 @@ export function getFormItems({ event }) {
     {
       error: 'Must be in range 2-128',
       validator: numericRange(2, 128),
+      selectOnFocus: true,
       label: 'Draw size',
       value: drawSize,
       field: DRAW_SIZE
@@ -181,9 +205,11 @@ export function getFormItems({ event }) {
     },
     {
       validator: numericValidator,
+      disabled: isQualifying,
       field: QUALIFIERS_COUNT,
-      label: 'Qualifiers',
-      value: 0
+      value: qualifiersCount,
+      selectOnFocus: true,
+      label: 'Qualifiers'
     }
   ];
 }

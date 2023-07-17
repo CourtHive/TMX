@@ -10,7 +10,7 @@ export function generateDraw({ eventId, drawOptions, callback }) {
 
   if (result.success) {
     const drawDefinition = result.drawDefinition;
-    const methods = [{ method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition } }];
+    const methods = [{ method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true } }];
     const postMutation = (result) => isFunction(callback) && callback({ drawDefinition, ...result });
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {

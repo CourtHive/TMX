@@ -53,7 +53,6 @@ export function addVenue(callback) {
 
   context.drawer.open({
     title: `<b style='larger'>Add venue</b>`,
-    context: 'tournament',
     width: '300px',
     side: RIGHT,
     content,

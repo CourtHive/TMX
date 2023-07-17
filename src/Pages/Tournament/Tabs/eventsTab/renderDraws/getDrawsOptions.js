@@ -2,7 +2,7 @@ import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFl
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 
-export function getDrawsOptions({ eventData }) {
+export function getDrawsOptions({ eventData, drawId }) {
   const addFlight = () => {
     const callback = (result) => {
       if (result.drawDefinition) {
@@ -24,6 +24,13 @@ export function getDrawsOptions({ eventData }) {
     close: true
   };
 
+  const viewEntries = eventData.drawsData.length && {
+    onClick: () => navigateToEvent({ eventId: eventData.eventInfo.eventId, drawId }),
+    label: 'View entries',
+    modifyLabel: false,
+    close: true
+  };
+
   return eventData.drawsData
     .map((draw) => ({
       onClick: () => {
@@ -36,6 +43,6 @@ export function getDrawsOptions({ eventData }) {
       label: draw.drawName,
       close: true
     }))
-    .concat([{ divider: true }, deleteOption, { label: 'Add flight', onClick: addFlight }])
+    .concat([{ divider: true }, viewEntries, deleteOption, { label: 'Add flight', onClick: addFlight }])
     .filter(Boolean);
 }
