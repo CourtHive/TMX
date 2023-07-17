@@ -244,6 +244,14 @@ body {
   -webkit-justify-content: space-between;
   justify-content: space-between;
 }
+.flexaligncenter {
+  display: flex;
+  -webkit-justify-content: start;
+  justify-content: start;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
 .flexcenter {
   display: flex;
   -webkit-justify-content: center;

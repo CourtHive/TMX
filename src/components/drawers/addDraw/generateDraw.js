@@ -6,7 +6,7 @@ import { isFunction } from 'functions/typeOf';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 export function generateDraw({ eventId, drawOptions, callback }) {
-  const result = tournamentEngine.generateDrawDefinition(drawOptions);
+  const result = tournamentEngine.generateDrawDefinition({ ...drawOptions, ignoreStageSpace: true });
 
   if (result.success) {
     const drawDefinition = result.drawDefinition;
@@ -15,7 +15,7 @@ export function generateDraw({ eventId, drawOptions, callback }) {
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {
     tmxToast({
-      message: result.error?.message,
+      message: result.error?.message || 'Error',
       intent: 'is-warning',
       pauseOnHover: true
     });

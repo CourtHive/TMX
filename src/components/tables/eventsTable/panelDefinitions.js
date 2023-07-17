@@ -69,7 +69,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       placeholder: 'No accepted participants',
       items: [
         moveSelected(moves[ACCEPTED], eventId, drawId),
-        changeEntryStatus(acceptedEntryStatuses),
+        changeEntryStatus(acceptedEntryStatuses, eventId, drawId),
         addToDraw(event),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
         seedingSelector(event, ACCEPTED),

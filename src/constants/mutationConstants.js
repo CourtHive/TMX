@@ -23,7 +23,9 @@ export const DELETE_EVENTS = 'deleteEvents';
 export const DELETE_PARTICIPANTS = 'deleteParticipants';
 export const DELETE_VENUES = 'deleteVenues';
 export const DESTROY_PAIR_ENTRIES = 'destroyPairEntries';
-export const GENERATE_POPULATE_PLAYOFF = 'generateAndPopulatePlayoffStructures';
+// export const GENERATE_POPULATE_PLAYOFF = 'generateAndPopulatePlayoffStructures';  // => ADD_PLAYOFF_STRUCTURE
+// export const GENERATE_POPULATE_RR_PLAYOFF = 'generateAndPopulateRRplayoffStructures'; // => ADD_PLAYOFF_STRUCTURE
+export const MODIFY_DRAW_NAME = 'modifyDrawName'; // TODO:
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';
 export const MODIFY_SIGN_IN_STATUS = 'modifyParticipantsSignInStatus';
@@ -31,6 +33,7 @@ export const MODIFY_VENUE = 'modifyVenue';
 export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';
 export const REMOVE_INDIVIDUAL_PARTICIPANT_IDS = 'removeIndividualParticipantIds';
 export const REMOVE_TIE_MATCHUP_PARTICIPANT_ID = 'removeTieMatchUpParticipantId';
+export const RENAME_STRUCTURES = 'renameStructures';
 export const RESET_SCORECARD = 'resetScorecard';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';

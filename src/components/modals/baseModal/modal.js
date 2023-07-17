@@ -90,6 +90,7 @@ export const baseModal = () => {
     onClick: close
   };
   const okString = lang.tr('actions.ok');
+
   const footerButtons = (buttons, noPadding) => {
     const target = document.getElementById(modalId);
     const footerElement = target.querySelector('.gmodal__footer');
@@ -102,11 +103,15 @@ export const baseModal = () => {
       const config = Object.assign({}, defaultFooterButton);
       if (isObject(button)) Object.assign(config, button);
       const elem = document.createElement('button');
+
+      if (config.disabled !== undefined) elem.disabled = config.disabled;
+      if (config.id) elem.id = config.id;
+
       elem.style = 'margin-right: .5em;';
       elem.className = 'button font-medium';
-      if (config.id) elem.id = config.id;
       elem.classList.add(config.intent);
       elem.innerHTML = config.label || config.text;
+
       elem.onclick = (e) => {
         e.stopPropagation();
         if (isFunction(config.onClick)) config.onClick();

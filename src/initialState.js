@@ -1,10 +1,10 @@
 import { updateReady, popupsBlocked } from 'services/notifications/statusMessages';
 import { tournamentContent } from 'Pages/Tournament/Container/tournamentContent';
-import { initializeModal } from 'components/modals/tmxModal/initializeModal';
+import { initializeModal } from 'components/modals/baseModal/initializeModal';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
-import { baseModal } from 'components/modals/tmxModal/modal';
+import { baseModal } from 'components/modals/baseModal/modal';
 import { imageClass } from './assets/imageClass';
 import { isObject } from 'functions/typeOf';
 import { tmxNavigation } from 'navigation';
