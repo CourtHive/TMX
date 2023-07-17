@@ -30,8 +30,8 @@ export const moveSelected = (groups, eventId, drawId) => (table) => {
   }));
 
   return {
-    location: OVERLAY,
     label: 'Move selected participants',
+    location: OVERLAY,
     options
   };
 };

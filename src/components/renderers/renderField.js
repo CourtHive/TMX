@@ -41,6 +41,7 @@ export function renderField(item) {
 
   if (item.text) {
     const div = document.createElement('div');
+    if (item.id) div.id = item.id;
     div.className = 'content';
     div.innerHTML = item.text;
     control.appendChild(div);

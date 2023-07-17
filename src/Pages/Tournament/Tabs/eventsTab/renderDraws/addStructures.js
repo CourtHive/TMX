@@ -2,21 +2,19 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { addRRplayoffs } from './addRRplayoffs';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
-import { NONE } from 'constants/tmxConstants';
-
-const playoffNameBase = 'Playoff';
+import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 
 export function addStructures({ drawId, structureId, callback }) {
   const result = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
   const sum = (p) => p.finishingPositions.reduce((a, b) => (a || 0) + (b || 0));
 
   if (!result.playoffRoundsRanges && result.finishingPositionsAvailable?.length) {
-    tmxToast({ message: 'Not implemented', intent: 'is-info' });
-    return;
+    return addRRplayoffs({ ...result, drawId, structureId, callback });
   }
 
   const fields = result.playoffRoundsRanges
@@ -28,13 +26,13 @@ export function addStructures({ drawId, structureId, callback }) {
       checkbox: true,
       fieldPair: {
         field: `${finishingPositionRange}-name`,
-        placeholder: `${playoffNameBase} ${finishingPositionRange}`,
+        placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
         id: `${finishingPositionRange}-name`,
         width: '350px'
       }
     }));
 
-  if (!fields || fields.length < 2) {
+  if (!fields || fields.length < 1) {
     tmxToast({ message: 'No playoff positions available', intent: 'is-danger' });
     return;
   }
@@ -49,7 +47,7 @@ export function addStructures({ drawId, structureId, callback }) {
   const nameBase = {
     onChange: (e) => modifyPlaceholders(e.target.value),
     onKeyDown: (e) => e.key === 'Tab' && modifyPlaceholders(e.target.value),
-    value: playoffNameBase,
+    value: PLAYOFF_NAME_BASE,
     label: 'Name base',
     field: 'nameBase',
     id: 'nameBase'
@@ -79,21 +77,32 @@ export function addStructures({ drawId, structureId, callback }) {
     ];
     const postMutation = (result) => {
       if (result.success) {
+        tmxToast({ message: 'Structure(s) added', intent: 'is-success' });
         isFunction(callback) && callback();
       } else {
-        tmxToast({ message: result.error, intent: 'is-danger' });
+        tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
       }
     };
     mutationRequest({ methods, callback: postMutation });
   };
-  const content = (elem) => (inputs = renderForm(elem, options));
+
+  const checkValid = () => {
+    const checkedRanges = result.playoffRoundsRanges.filter((range) => inputs[range.finishingPositionRange]?.checked);
+    const addButton = document.getElementById('addStructure');
+    if (addButton) addButton.disabled = !checkedRanges.length;
+  };
+  const relationships = result.playoffRoundsRanges.map(({ finishingPositionRange }) => ({
+    control: finishingPositionRange,
+    onChange: checkValid
+  }));
+  const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
   context.modal.open({
     title: `Add playoff structures`,
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', intent: 'is-info', close: true, onClick }
+      { label: 'Add', id: 'addStructure', disabled: true, intent: 'is-info', close: true, onClick }
     ]
   });
 }

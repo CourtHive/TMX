@@ -1,24 +1,45 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 
+import { OVERLAY, entryStatusMapping } from 'constants/tmxConstants';
 import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
-import { OVERLAY } from 'constants/tmxConstants';
 
-const modifyStatus = (table, group) => {
+const modifyStatus = (table, group, eventId, drawId) => {
   const selected = table.getSelectedData();
   const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
-  console.log({ group, participantIds });
+  const [entryStage, entryStatus] = group.split('.');
 
-  const params = { participantIds };
+  const params = {
+    ignoreAssignment: true,
+    participantIds,
+    entryStatus,
+    entryStage,
+    eventId,
+    drawId
+  };
+
   const callback = (result) => {
     table.deselectRow();
-    console.log({ result });
+
+    if (result.success) {
+      const rows = table.getRows();
+      for (const row of rows) {
+        const data = row.getData();
+        if (participantIds.includes(data.participantId)) {
+          data.status = entryStatusMapping[entryStatus];
+          row.update(data);
+        }
+      }
+    } else {
+      console.log(result.error);
+    }
   };
+
   mutationRequest({ methods: [{ method: MODIFY_ENTRIES_STATUS, params }], callback });
 };
 
-export const changeEntryStatus = (groups) => (table) => {
+export const changeEntryStatus = (groups, eventId, drawId) => (table) => {
   const options = groups.map((group) => ({
-    onClick: () => modifyStatus(table, group),
+    onClick: () => modifyStatus(table, group, eventId, drawId),
     label: group,
     value: group,
     close: true

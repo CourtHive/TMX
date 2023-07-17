@@ -44,7 +44,7 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
           tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
           isFunction(callback) && callback();
         } else {
-          tmxToast({ intent: 'is-danger', message: result.error });
+          tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error' });
         }
       };
       mutationRequest({ methods, callback: postMutation });
