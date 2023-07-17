@@ -15,6 +15,7 @@ export function renderForm(elem, items, relationships) {
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
       const text = document.createElement('div');
+      if (item.id) text.id = item.id;
       text.className = 'content';
       text.innerHTML = item.text;
       div.appendChild(text);
