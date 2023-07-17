@@ -1,4 +1,5 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -85,8 +86,18 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           e.stopPropagation();
           e.preventDefault();
           const drawName = drawData.drawName;
-          const callback = (result) => console.log({ result });
-          addDraw({ eventId, drawId, drawName, isQualifying: true, callback });
+          addDraw({
+            callback: (result) => {
+              const structureId = result.drawDefinition?.structures?.find(
+                ({ stage }) => stage === QUALIFYING
+              )?.structureId;
+              navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
+            },
+            isQualifying: true,
+            drawName,
+            eventId,
+            drawId
+          });
         };
         button.className = 'button is-info';
         button.innerHTML = 'Generate qualifying';
