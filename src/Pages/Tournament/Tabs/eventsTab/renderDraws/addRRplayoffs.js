@@ -1,14 +1,17 @@
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
+import { drawDefinitionConstants, drawEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { drawDefinitionConstants } from 'tods-competition-factory';
+import { renderOptions } from 'components/renderers/renderField';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { DRAW_TYPE, NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
+import { DRAW_TYPE, GROUP_SIZE, NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
-const { SINGLE_ELIMINATION } = drawDefinitionConstants;
+
+const { ROUND_ROBIN, SINGLE_ELIMINATION } = drawDefinitionConstants;
 
 export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingPositionRanges }) {
   const getId = (finishingPosition) => `finishingPosition-${finishingPosition}`;
@@ -43,6 +46,16 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     id: DRAW_TYPE
   };
 
+  const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize: 4, groupSizeLimit: 8 });
+  const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
+  const groupSizeSelector = {
+    options: roundRobinOptions,
+    label: 'Group size',
+    field: GROUP_SIZE,
+    visible: false,
+    value: 4
+  };
+
   const positionsToBePlayedOff = 'Positions to be played off:';
   const selectedPlayoffRange = {
     text: `${positionsToBePlayedOff} None`,
@@ -52,7 +65,9 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     text: 'Select group finishing positions. Selections must be sequential'
   };
 
-  const options = [playoffStructureName, playoffDrawType, selectedPlayoffRange, admonition].concat(fields);
+  const options = [playoffStructureName, playoffDrawType, groupSizeSelector, selectedPlayoffRange, admonition].concat(
+    fields
+  );
 
   let inputs;
 
@@ -63,17 +78,20 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     const finishingPositions = checkedRanges.map(({ finishingPosition }) => finishingPosition);
     const structureName = inputs.structureName.value;
     const drawType = inputs[DRAW_TYPE].value;
-    const playoffGroups = [
-      {
-        finishingPositions,
-        structureName,
-        drawType
-      }
-    ];
+    const playoffGroup = {
+      finishingPositions,
+      structureName,
+      drawType
+    };
+
+    if (drawType === ROUND_ROBIN) {
+      const groupSize = parseInt(inputs[GROUP_SIZE].value);
+      playoffGroup.structureOptions = { groupSize };
+    }
 
     const methods = [
       {
-        params: { drawId, structureId, playoffGroups, playoffStructureNameBase: PLAYOFF_NAME_BASE },
+        params: { drawId, structureId, playoffGroups: [playoffGroup], playoffStructureNameBase: PLAYOFF_NAME_BASE },
         method: ADD_PLAYOFF_STRUCTURES
       }
     ];
@@ -93,7 +111,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
 
   const getMinMax = (range) => `${Math.min(...range)}-${Math.max(...range)}`;
 
-  const checkValid = () => {
+  const checkFinishingPositions = () => {
     const finishingPositions = playoffFinishingPositionRanges
       .filter(({ finishingPosition }) => inputs[getId(finishingPosition)]?.checked)
       .map(({ finishingPositions }) => finishingPositions)
@@ -124,12 +142,36 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
       const range = valid ? getMinMax(finishingPositions) : 'None';
       selectedPlayoffRange.innerHTML = `${positionsToBePlayedOff} ${range}`;
     }
+
+    const { validGroupSizes } = drawEngine.getValidGroupSizes({
+      drawSize: finishingPositions?.length || 4,
+      groupSizeLimit: 8
+    });
+    const options = validGroupSizes.map((size) => ({ label: size, value: size }));
+    const groupSizeSelect = inputs[GROUP_SIZE];
+    const value = validGroupSizes.includes(4) ? 4 : validGroupSizes[0];
+    removeAllChildNodes(groupSizeSelect);
+    renderOptions(groupSizeSelect, { options, value });
   };
 
-  const relationships = playoffFinishingPositionRanges.map(({ finishingPosition }) => ({
-    control: getId(finishingPosition),
-    onChange: checkValid
-  }));
+  const drawTypeChange = ({ e, fields }) => {
+    const drawType = e.target.value;
+
+    const groupSizeVisible = [ROUND_ROBIN].includes(drawType);
+    fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
+  };
+
+  const relationships = playoffFinishingPositionRanges
+    .map(({ finishingPosition }) => ({
+      control: getId(finishingPosition),
+      onChange: checkFinishingPositions
+    }))
+    .concat([
+      {
+        onChange: drawTypeChange,
+        control: DRAW_TYPE
+      }
+    ]);
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
   context.modal.open({
