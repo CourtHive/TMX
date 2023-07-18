@@ -7,6 +7,7 @@ import { searchField } from '../common/tableSearch'; // if searchFields are pref
 import { saveSeeding } from './seeding/saveSeeding';
 import { destroySelected } from './destroyPairs';
 import { moveSelected } from './moveSelected';
+import { addEntries } from './addEntries';
 import { createPair } from './createPair';
 import { addToDraw } from './addToDraw';
 
@@ -74,7 +75,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
         seedingSelector(event, ACCEPTED),
         cancelManualSeeding(event),
-        saveSeeding(event)
+        saveSeeding(event),
+        addEntries(event, ACCEPTED)
       ],
       actions: moves[ACCEPTED],
       anchorId: ACCEPTED_PANEL,
@@ -90,7 +92,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         moveSelected(moves[QUALIFYING], eventId, drawId),
         seedingSelector(event, QUALIFYING),
         cancelManualSeeding(event),
-        saveSeeding(event)
+        saveSeeding(event),
+        addEntries(event, QUALIFYING)
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
       anchorId: QUALIFYING_PANEL,
@@ -103,7 +106,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
         moveSelected(moves[ALTERNATE], eventId, drawId),
-        event?.eventType === DOUBLES && destroySelected(eventId, drawId)
+        event?.eventType === DOUBLES && destroySelected(eventId, drawId),
+        addEntries(event, ALTERNATE)
       ],
       actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
       excludeColumns: ['seedNumber', 'flights'],
