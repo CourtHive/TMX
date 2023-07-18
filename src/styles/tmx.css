@@ -246,8 +246,8 @@ body {
 }
 .flexaligncenter {
   display: flex;
-  -webkit-justify-content: start;
-  justify-content: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
   align-content: center;
   -webkit-align-items: center;
   align-items: center;
