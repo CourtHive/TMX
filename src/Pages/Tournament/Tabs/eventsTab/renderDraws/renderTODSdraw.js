@@ -130,8 +130,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     if (refresh) getData();
 
     const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
+    const actionOptions = getActionOptions({ eventData, drawData, drawId, structureId, structureName });
     const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
-    const actionOptions = getActionOptions({ eventData, drawId, structureId, structureName });
     const drawsOptions = getDrawsOptions({ eventData, drawId });
     const eventOptions = getEventOptions({ events });
 
