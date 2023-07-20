@@ -10699,10 +10699,15 @@ tods-competition-factory@^1.2.0:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.0.tgz#2621502ee9276632c8603e55a883f0c4e9611f62"
   integrity sha512-n10QWNaR2KF/w/bQQZmY4y4hZqWGqFgzs232uDV09TIbcUKogKMRANave+XoM5ru5IW787RIeWDbbTrrqkiBJw==
 
-tods-competition-factory@^1.2.17, tods-competition-factory@^1.2.20:
+tods-competition-factory@^1.2.23:
   version "1.2.23"
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.23.tgz#587981958b8ed6f36a06930a2d1985987892da68"
   integrity sha512-nxHyhmEyKMo1wCSMUy+mO4gxmcXdyi/RQNhDqt4xjmkfP20Zgz2J06eWXL3PxrJucEBKjObaL9ywhTcVlp116A==
+
+tods-competition-factory@^1.2.24:
+  version "1.2.24"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.24.tgz#11ff0a7522147bae2af4c3a8aeea16696cbc1d3d"
+  integrity sha512-oX34O2/fMW0MR1iAhhPa4fOuLTtjmox3fXDFrc5whQZ3nppJrLGUm0vGr1MJfx+yk00w9vhcjHqFvUisIJUuDg==
 
 tods-react-draws@^0.2.1:
   version "0.2.1"
@@ -10715,10 +10720,10 @@ tods-react-draws@^0.2.1:
     eslint "^8.41.0"
     tods-competition-factory "^0.501.0"
 
-tods-score-grid@^0.13.13:
-  version "0.13.13"
-  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.13.tgz#97c63ceb9318fc98177094c4a9218ccd99666429"
-  integrity sha512-7zuxG0DpVPTKHixnNDy6piKZ1EpEuK0hvkrmu1lITIKBw8iDEhALS7An9uJLbTUgjiiZF8ll4S/1KqGvodPKOw==
+tods-score-grid@^0.13.14:
+  version "0.13.14"
+  resolved "https://registry.yarnpkg.com/tods-score-grid/-/tods-score-grid-0.13.14.tgz#a31f112c67ff0a03d22aeb29450d4b978b0a9922"
+  integrity sha512-C5yHdSVgR2gcT8ZD3m0XHYvmrLYa5FyAsJFz8bSvocDPyHN0nmBlrYpKTpHFsChlzfXP5ABZOO6f0Xo7J82wtg==
   dependencies:
     "@radix-ui/colors" "^1.0.0"
     "@radix-ui/react-dropdown-menu" "^2.0.0"
@@ -10729,7 +10734,7 @@ tods-score-grid@^0.13.13:
     dayjs "^1.10.7"
     flag-icons "^6.7.0"
     react-country-flag "^3.1.0"
-    tods-competition-factory "^1.2.17"
+    tods-competition-factory "^1.2.23"
 
 tods-tmx-classic-converter@^2.13.1:
   version "2.13.1"
