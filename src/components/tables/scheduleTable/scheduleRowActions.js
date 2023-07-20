@@ -20,7 +20,7 @@ export function rowActions(e, cell) {
             if (schedule.scheduledTime) {
               c.schedule.scheduledTime = timeFormat(schedule.scheduledTime);
               if (c.schedule.timeModifiers?.[0] !== NOT_BEFORE) {
-                c.schedule.timeModifiers = '';
+                c.schedule.timeModifiers = [];
               }
             }
 
