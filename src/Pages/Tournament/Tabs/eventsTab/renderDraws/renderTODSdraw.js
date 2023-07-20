@@ -15,7 +15,9 @@ import { context } from 'services/context';
 
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { DRAWS_VIEW, EVENT_CONTROL, LEFT, QUALIFYING, RIGHT } from 'constants/tmxConstants';
+import { DRAWS_VIEW, EVENT_CONTROL, LEFT, NONE, QUALIFYING, RIGHT } from 'constants/tmxConstants';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
 
 const { AD_HOC } = drawDefinitionConstants;
 const { DOUBLES, TEAM } = eventConstants;
@@ -24,24 +26,22 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
-  let participantFilter, eventData, eventType, drawData, structures;
+  let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
 
   const getData = () => {
-    eventData = tournamentEngine.getEventData({ eventId }).eventData;
+    eventData = tournamentEngine.getEventData({ eventId, includePositionAssignments: true }).eventData;
     eventType = eventData?.eventInfo?.eventType;
     drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structures = drawData?.structures || [];
     structureId = structureId || structures?.[0]?.structureId;
+    structure = structures.find((s) => s.structureId === structureId);
+    ({ roundMatchUps, stage } = utilities.makeDeepCopy(structure || {}));
+    matchUps = Object.values(roundMatchUps || {}).flat();
   };
 
   getData();
 
-  const { roundMatchUps, stage } = utilities.makeDeepCopy(
-    drawData?.structures?.find((s) => s.structureId === structureId) || {}
-  );
-  const matchUps = Object.values(roundMatchUps || {}).flat();
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
-
   const eventHandlers = getEventHandlers({
     callback: () => renderTODSdraw({ eventId, drawId, structureId }),
     eventData
@@ -61,6 +61,15 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     drawId
   };
 
+  const drawControl = document.getElementById('drawControl');
+  removeAllChildNodes(drawControl);
+
+  const { sourceStructuresComplete, hasDrawFeedProfile } = structure;
+  const isPlayoff =
+    !(structure.stage === 'MAIN' && structure.stageSequence === 1) &&
+    structure.stage !== 'QUALIFYING' &&
+    hasDrawFeedProfile;
+
   const drawsView = document.getElementById(DRAWS_VIEW);
   destroyTables();
   unmountComponentAtNode(drawsView);
@@ -68,42 +77,48 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const updateDrawDisplay = (args) => {
     if (dual) return;
-    for (const structure of structures) {
-      for (const key of Object.keys(structure.roundMatchUps)) {
-        structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(
-          ({ sides }) =>
-            sides?.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
-            !participantFilter
-        );
-      }
+
+    if (isPlayoff) {
+      const playoffPositioning = () => {
+        const method = {
+          params: { structureId: structure.sourceStructureIds[0], drawId },
+          method: AUTOMATED_PLAYOFF_POSITIONING
+        };
+        const postMutation = (result) => {
+          if (result.success) {
+            getData();
+            updateDrawDisplay(args);
+          }
+        };
+        mutationRequest({ methods: [method], callback: postMutation });
+      };
+
+      const hasAssignedPositions = structure.positionAssignments?.filter(({ participantId }) => participantId).length;
+      const drawControlItems = [
+        {
+          intent: sourceStructuresComplete ? 'is-primary' : NONE,
+          disabled: sourceStructuresComplete !== true,
+          visible: !hasAssignedPositions,
+          onClick: playoffPositioning,
+          label: 'Auto position',
+          location: RIGHT
+        }
+      ];
+      controlBar({ target: drawControl, items: drawControlItems });
+    }
+
+    // FILTER: participantFilter used to filter matchUps from all rounds in target structure
+    for (const key of Object.keys(structure.roundMatchUps)) {
+      structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(
+        ({ sides }) =>
+          sides?.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
+          !participantFilter
+      );
     }
 
     if (!matchUps.length) {
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
-        /*
-        const button = document.createElement('button');
-        button.onclick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          const drawName = drawData.drawName;
-          addDraw({
-            callback: (result) => {
-              const structureId = result.drawDefinition?.structures?.find(
-                ({ stage }) => stage === QUALIFYING
-              )?.structureId;
-              navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
-            },
-            isQualifying: true,
-            drawName,
-            eventId,
-            drawId
-          });
-        };
-        button.className = 'button is-info';
-        button.innerHTML = 'Generate qualifying';
-        drawsView.appendChild(button);
-        */
       } else {
         console.log(AD_HOC, { structureId, structures, drawData });
       }
