@@ -77,15 +77,21 @@ const eventsTab = (
           <div id={UNGROUPED_PANEL} className={tmxPanelBlock}> {" "} </div>
           <div id={WITHDRAWN_PANEL} className={tmxPanelBlock}> {" "} </div>
         </div>
-        <div
-          id={DRAWS_VIEW}
-          style={{
+        <div style={{
             backgroundColor: "white",
-            padding: "1em",
-            display: NONE,
-            overflowX: "scroll",
-          }}
-        ></div>
+            width: '100%',
+            margin: 0,
+        }}>
+          <div id="drawControl"></div>
+          <div
+            id={DRAWS_VIEW}
+            style={{
+              padding: "1em",
+              display: NONE,
+              overflowX: "scroll",
+            }}>
+          </div>
+        </div>
       </div>
     </div>
   </div>

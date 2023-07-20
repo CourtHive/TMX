@@ -15,9 +15,11 @@ export function dropDownButton({ target, button, stateChange }) {
   if (button.class) elem.classList.add(button.class);
   elem.classList.add('dropdown');
 
-  elem.style = 'margin-right: 1em;';
   if (button.align === RIGHT) {
     elem.classList.add('is-right');
+    elem.style = 'margin-left: 1em';
+  } else {
+    elem.style = 'margin-right: 1em';
   }
   const isActive = (e) => e.classList.contains('is-active');
   const closeDropDown = () => {

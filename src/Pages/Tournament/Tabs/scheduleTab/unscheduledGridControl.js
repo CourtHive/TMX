@@ -2,10 +2,10 @@ import { createSearchFilter } from 'components/tables/common/filters/createSearc
 import { tournamentEngine, utilities } from 'tods-competition-factory';
 import { autoScheduleMatchUps } from './autoScheduleMatchUps';
 import { controlBar } from 'components/controlBar/controlBar';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 
 import { LEFT, RIGHT } from 'constants/tmxConstants';
-import { findAncestor } from 'services/dom/parentAndChild';
 
 const ALL_EVENTS = 'All events';
 const ALL_ROUNDS = 'All rounds';
@@ -119,20 +119,6 @@ export function unscheduledGridControl({
       location: LEFT,
       selection: true
     },
-    /*
-    {
-      label: 'Clear',
-      onClick: scheduleClear,
-      intent: 'is-warning',
-      id: 'clearSchedule'
-    },
-    {
-      onClick: autoScheduler,
-      label: 'Auto',
-      intent: 'is-primary',
-      id: 'autoSchedule'
-    },
-    */
     {
       options: actionOptions,
       label: 'Actions',
