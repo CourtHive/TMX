@@ -2,10 +2,10 @@ import { competitionEngine, utilities } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { getScheduleColumns } from './getScheduleColumns';
 import { updateConflicts } from './updateConflicts';
 
 import { TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
-import { getScheduleColumns } from './getScheduleColumns';
 
 export function createScheduleTable({ scheduledDate } = {}) {
   let ready, table, awaitingUpdate;
