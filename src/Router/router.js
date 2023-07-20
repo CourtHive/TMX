@@ -17,6 +17,7 @@ import {
   STRUCTURE,
   TOURNAMENT,
   EVENTS_TAB,
+  SCHEDULE_TAB,
   INVITE
 } from 'constants/tmxConstants';
 
@@ -37,9 +38,6 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId`, ({ data }) => {
     displayRoute({ data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, ({ data }) => {
-    displayRoute({ data });
-  });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, data });
   });
@@ -54,6 +52,12 @@ export function routeTMX() {
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${PARTICIPANTS}/:participantView`, ({ data }) => {
     displayRoute({ selectedTab: PARTICIPANTS, data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE_TAB}/:scheduledDate`, ({ data }) => {
+    displayRoute({ selectedTab: SCHEDULE_TAB, data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, ({ data }) => {
+    displayRoute({ data });
   });
 
   // adding a unique identifer to the URL will force refresh

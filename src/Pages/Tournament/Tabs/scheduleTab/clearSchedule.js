@@ -6,7 +6,7 @@ import { tipster } from 'components/popovers/tipster';
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function clearSchedule({ scheduledDate, target, callback }) {
+export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdFilter, callback }) {
   const result = competitionEngine.competitionScheduleMatchUps({ courtCompletedMatchUps: true });
   const { dateMatchUps = [], completedMatchUps = [] } = result;
   const matchUps = dateMatchUps.concat(...completedMatchUps);
@@ -17,17 +17,17 @@ export function clearSchedule({ scheduledDate, target, callback }) {
 
   let options = [
     {
-      option: 'clear scheduled matches',
+      option: 'Clear scheduled matches',
       disabled: !selectedDateMatchUps.length,
       onClick: clearScheduleDay
     },
     {
-      option: 'clear all matches',
+      option: 'Clear all matches',
       disabled: !selectedDateMatchUps.length,
       onClick: clearCompleted
     },
     {
-      option: 'clear all days',
+      option: 'Clear all days',
       disabled: !scheduledMatchUps.length,
       onClick: resetSchedule
     }
@@ -44,22 +44,18 @@ export function clearSchedule({ scheduledDate, target, callback }) {
     clearScheduleDay({ completed: true });
   }
   function clearScheduleDay({ all, completed } = {}) {
+    let filteredMatchUps = scheduledMatchUps
+      .filter(({ schedule }) => schedule.scheduledDate === scheduledDate)
+      .filter(({ roundName }) => !roundNameFilter || roundNameFilter === roundName)
+      .filter(({ eventId }) => !eventIdFilter || eventIdFilter === eventId);
+
     if (completed) {
-      //
+      filteredMatchUps = filteredMatchUps?.filter(
+        ({ matchUpStatus, winningSide }) => matchUpStatus === 'COMPLETED' || winningSide
+      );
     }
-    const filtered_matches = scheduledMatchUps;
-    /*
-    let euid = container.event_filter.ddlb.getValue();
-    let round_filter = container.round_filter.ddlb.getValue();
 
-    // first filter for matches on selected day, and include completed if flagged
-    // additionally filter by selected event and round
-    let filtered_matches = scheduled
-      .filter((s) => s.schedule.day === context.displayed.schedule_day && (completed || s.winner === undefined))
-      .filter((m) => (!euid || euid === m.event.euid) && (!round_filter || round_filter === m.round_name));
-      */
-
-    const toBeCleared = all ? scheduledMatchUps : filtered_matches;
+    const toBeCleared = all ? scheduledMatchUps : filteredMatchUps;
     const matchUpIds = toBeCleared.map((m) => m.matchUpId);
 
     const methods = [
@@ -74,12 +70,9 @@ export function clearSchedule({ scheduledDate, target, callback }) {
 
     const postMutation = (result) => {
       if (result.success) {
-        // reset all filters
+        isFunction(callback) && callback();
       }
     };
     mutationRequest({ methods, callback: postMutation });
-
-    // TODO: if authorized send array of matches as mutation to live site
-    if (isFunction(callback)) callback();
   }
 }

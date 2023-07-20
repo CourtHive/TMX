@@ -4,7 +4,8 @@ import { autoScheduleMatchUps } from './autoScheduleMatchUps';
 import { controlBar } from 'components/controlBar/controlBar';
 import { clearSchedule } from './clearSchedule';
 
-import { LEFT } from 'constants/tmxConstants';
+import { LEFT, RIGHT } from 'constants/tmxConstants';
+import { findAncestor } from 'services/dom/parentAndChild';
 
 const ALL_EVENTS = 'All events';
 const ALL_ROUNDS = 'All rounds';
@@ -22,12 +23,12 @@ export function unscheduledGridControl({
 }) {
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
-    if (eventIdFilter) table.removeFilter(eventFilter);
+    table.removeFilter(eventFilter);
     eventIdFilter = eventId;
     if (eventId) table.addFilter(eventFilter);
   };
   const events = tournamentEngine.getEvents().events || [];
-  const allEvents = { label: ALL_EVENTS, onClick: updateEventFilter, close: true };
+  const allEvents = { label: ALL_EVENTS, onClick: () => updateEventFilter(), close: true };
   const eventOptions = [allEvents].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
@@ -39,11 +40,11 @@ export function unscheduledGridControl({
   const roundFilter = (rowData) => rowData.roundName === roundNameFilter;
   const roundNames = utilities.unique(matchUps.map((matchUp) => matchUp.roundName));
   const updateRoundFilter = (roundName) => {
-    if (roundNameFilter) table.removeFilter(roundFilter);
+    table.removeFilter(roundFilter);
     roundNameFilter = roundName;
     if (roundName) table.addFilter(roundFilter);
   };
-  const allRounds = { label: ALL_ROUNDS, onClick: updateRoundFilter, close: true };
+  const allRounds = { label: ALL_ROUNDS, onClick: () => updateRoundFilter(), close: true };
   const roundOptions = [allRounds].concat(
     roundNames.map((roundName) => ({
       onClick: () => updateRoundFilter(roundName),
@@ -52,12 +53,43 @@ export function unscheduledGridControl({
     }))
   );
 
-  const updateTables = () => updateUnscheduledTable() && updateScheduleTable();
-  const scheduleClear = (e) => clearSchedule({ scheduledDate, target: e?.target, callback: updateTables });
+  const updateTables = () => {
+    updateUnscheduledTable() && updateScheduleTable();
+    console.log('clear filters ?');
+  };
+  const scheduleClear = (e) => {
+    const result = findAncestor(e.target, 'dropdown');
+    clearSchedule({
+      target: result || e?.target,
+      callback: updateTables,
+      roundNameFilter,
+      eventIdFilter,
+      scheduledDate,
+      eventFilter,
+      roundFilter
+    });
+  };
 
   const setSearchFilter = createSearchFilter(table);
   const autoScheduler = () =>
     autoScheduleMatchUps({ scheduledDate, table, updateScheduleTable, updateUnscheduledTable });
+
+  const actionOptions = [
+    {
+      onClick: autoScheduler,
+      label: 'Auto schedule',
+      intent: 'is-primary',
+      id: 'autoSchedule',
+      close: true
+    },
+    {
+      label: 'Clear schedule',
+      onClick: scheduleClear,
+      intent: 'is-warning',
+      id: 'clearSchedule',
+      close: true
+    }
+  ];
 
   const items = [
     {
@@ -87,17 +119,26 @@ export function unscheduledGridControl({
       location: LEFT,
       selection: true
     },
+    /*
     {
-      label: 'Clear schedule',
+      label: 'Clear',
       onClick: scheduleClear,
       intent: 'is-warning',
       id: 'clearSchedule'
     },
     {
       onClick: autoScheduler,
-      label: 'Auto schedule',
+      label: 'Auto',
       intent: 'is-primary',
       id: 'autoSchedule'
+    },
+    */
+    {
+      options: actionOptions,
+      label: 'Actions',
+      selection: false,
+      location: RIGHT,
+      align: RIGHT
     },
     {
       onClick: toggleUnscheduled,

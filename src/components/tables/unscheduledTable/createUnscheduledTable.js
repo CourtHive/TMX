@@ -10,7 +10,8 @@ import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 
 const { SINGLES, DOUBLES } = eventConstants;
 
-export function createUnscheduledTable() {
+export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
+  let scheduledDate = specifiedDate;
   let unscheduledMatchUps;
   let ready, table;
 
@@ -23,8 +24,8 @@ export function createUnscheduledTable() {
     element.draggable = true;
   }
 
-  function getTableData() {
-    unscheduledMatchUps =
+  function getTableData({ scheduledDate: specifiedDate }) {
+    const matchUpsWithNoCourt =
       competitionEngine
         .allCompetitionMatchUps({
           matchUpFilters: {
@@ -35,13 +36,18 @@ export function createUnscheduledTable() {
         })
         .matchUps?.filter((m) => !m.schedule?.courtId && !m.sides?.some(({ bye }) => bye)) || [];
 
+    const filterDate = specifiedDate || scheduledDate;
+    unscheduledMatchUps = matchUpsWithNoCourt.filter(
+      (m) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === filterDate
+    );
+
     const rowMatchUps = unscheduledMatchUps.map(mapMatchUp);
     return { rowMatchUps };
   }
 
-  function replaceTableData() {
+  function replaceTableData({ scheduledDate } = {}) {
     const refresh = () => {
-      const { rowMatchUps = [] } = getTableData();
+      const { rowMatchUps = [] } = getTableData({ scheduledDate });
       if (table) {
         table.replaceData(rowMatchUps);
       }
@@ -56,7 +62,7 @@ export function createUnscheduledTable() {
 
   destroyTable({ anchorId: UNSCHEDULED_MATCHUPS });
   const unscheduledAnchor = document.getElementById(UNSCHEDULED_MATCHUPS);
-  const { rowMatchUps = [] } = getTableData();
+  const { rowMatchUps = [] } = getTableData({ scheduledDate });
 
   table = new Tabulator(unscheduledAnchor, {
     placeholder: 'No unscheduled matches',
