@@ -7,7 +7,7 @@ import { context } from 'services/context';
 
 import { NONE, SCHEDULE_CONTROL, UNSCHEDULED_CONTROL, UNSCHEDULED_VISIBILITY } from 'constants/tmxConstants';
 
-export function renderScheduleTab() {
+export function renderScheduleTab({ scheduledDate }) {
   let gridControlElements;
 
   const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY);
@@ -19,22 +19,22 @@ export function renderScheduleTab() {
   let schedulingActive = context.state.schedulingActive;
   unscheduledVisibility.style.display = schedulingActive ? '' : NONE;
 
+  scheduledDate = scheduledDate || competitionEngine.getCompetitionDateRange().startDate;
   const {
     replaceTableData: updateUnscheduledTable,
     table: unscheduledTable,
     unscheduledMatchUps
-  } = createUnscheduledTable();
+  } = createUnscheduledTable({ scheduledDate });
 
   const toggleUnscheduled = () => {
-    unscheduledVisibility.style.display = schedulingActive ? NONE : '';
     schedulingActive = !schedulingActive;
     context.state.schedulingActive = schedulingActive;
+    unscheduledVisibility.style.display = schedulingActive ? '' : NONE;
 
     if (gridControlElements?.scheduleMatchUps)
       gridControlElements.scheduleMatchUps.style.display = schedulingActive ? NONE : '';
   };
 
-  const scheduledDate = competitionEngine.getCompetitionDateRange().startDate;
   const {
     replaceTableData: updateScheduleTable,
     table: scheduleTable,
@@ -54,8 +54,9 @@ export function renderScheduleTab() {
   });
 
   const setDate = (scheduledDate) => {
-    updateScheduleTable({ scheduledDate });
     context.displayed.schedule_day = scheduledDate;
+    updateUnscheduledTable({ scheduledDate });
+    updateScheduleTable({ scheduledDate });
   };
   gridControlElements = scheduleGridControl({
     table: scheduleTable,
