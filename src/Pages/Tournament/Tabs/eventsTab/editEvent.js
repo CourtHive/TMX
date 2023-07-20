@@ -118,13 +118,16 @@ export function editEvent({ event, participants, callback } = {}) {
       {
         hide: event || participants,
         divider: true
-      },
+      }
+      /*
+      // NOTE: no longer necessary... to be deleted
       {
         text: 'Add participants to events by selecting them in the participants table',
         hide: event || participants,
         label: 'Participants',
         field: 'text'
       }
+      */
     ]);
 
   const saveEvent = () => {

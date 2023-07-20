@@ -161,8 +161,8 @@ export function renderIndividuals({ view }) {
       label: participantLabel,
       intent: 'is-info',
       modifyLabel: true,
-      selection: true,
       location: RIGHT,
+      selection: true,
       align: RIGHT
     },
     {
