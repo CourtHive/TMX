@@ -49,9 +49,9 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
       .filter(({ roundName }) => !roundNameFilter || roundNameFilter === roundName)
       .filter(({ eventId }) => !eventIdFilter || eventIdFilter === eventId);
 
-    if (completed) {
+    if (!completed) {
       filteredMatchUps = filteredMatchUps?.filter(
-        ({ matchUpStatus, winningSide }) => matchUpStatus === 'COMPLETED' || winningSide
+        ({ matchUpStatus, winningSide }) => matchUpStatus !== 'COMPLETED' && !winningSide
       );
     }
 
