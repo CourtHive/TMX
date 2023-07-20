@@ -5,11 +5,13 @@ import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { titleFormatter } from '../common/formatters/titleFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { handleScoreClick } from './handleMatchUpScoreClick';
+import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
+import { context } from 'services/context';
 
-import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getMatchUpColumns(replaceTableData) {
   const participantSorter = (a, b) => {
@@ -18,6 +20,18 @@ export function getMatchUpColumns(replaceTableData) {
     if (!a?.participantName && !b?.participantName) return 1;
     return a?.participantName?.localeCompare(b?.participantName);
   };
+
+  const matchUpScheduleClick = (e, cell) => {
+    const row = cell.getRow();
+    const data = row.getData();
+    const { courtName, scheduledDate } = data;
+    if (courtName && scheduledDate) {
+      const tournamentId = tournamentEngine.getState()?.tournamentRecord?.tournamentId;
+      const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
+      context.router.navigate(route);
+    }
+  };
+
   return [
     {
       cellClick: (e, cell) => cell.getRow().toggleSelect(),
@@ -75,16 +89,19 @@ export function getMatchUpColumns(replaceTableData) {
       minWidth: 90
     },
     {
+      cellClick: matchUpScheduleClick,
       field: 'scheduledDate',
       title: 'Date',
       width: 110
     },
     {
+      cellClick: matchUpScheduleClick,
       field: 'courtName',
       title: 'Court',
       width: 100
     },
     {
+      cellClick: matchUpScheduleClick,
       field: 'scheduleTime',
       headerSort: false,
       visible: false,

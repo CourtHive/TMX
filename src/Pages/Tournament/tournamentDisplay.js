@@ -45,12 +45,12 @@ function renderTournament({ config }) {
 }
 
 export function routeTo(config) {
-  const { participantView, selectedTab = PARTICIPANTS, structureId, renderDraw, eventId, drawId } = config;
+  const { selectedTab = PARTICIPANTS } = config;
   if (displayTab(selectedTab)) {
+    if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
+    if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
-    if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView });
-    if (selectedTab === EVENTS_TAB) renderEventsTab({ renderDraw, eventId, drawId, structureId });
-    if (selectedTab === SCHEDULE_TAB) renderScheduleTab();
+    if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
     if (selectedTab === VENUES_TAB) renderVenueTab();
   }

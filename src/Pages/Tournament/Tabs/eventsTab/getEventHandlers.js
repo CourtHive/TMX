@@ -26,7 +26,12 @@ export function getEventHandlers({ eventData, callback }) {
           structureId: matchUp?.structureId,
           drawPosition: side?.drawPosition,
           matchUpId: matchUp?.matchUpId,
-          drawId: matchUp?.drawId
+          drawId: matchUp?.drawId,
+          policyDefinitions: {
+            positionActions: {
+              // disableRoundRestrictions: true
+            }
+          }
           /*
             policyDefinitions: {
               ...POLICY_POSITION_ACTIONS_UNRESTRICTED,

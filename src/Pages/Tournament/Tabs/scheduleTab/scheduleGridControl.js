@@ -42,17 +42,17 @@ export function scheduleGridControl({
     {
       options: [{ label: 'Team ', onClick: () => console.log('team clicked') }],
       label: 'Highlight team',
-      id: 'highlightTeam',
       visible: !!courtsCount,
+      id: 'highlightTeam',
       location: LEFT,
       align: LEFT
     },
     {
+      visible: !!courtsCount && !schedulingActive,
       onClick: toggleUnscheduled,
       label: 'Schedule matches',
       id: 'scheduleMatchUps',
       intent: 'is-primary',
-      visible: !!courtsCount && schedulingActive,
       location: RIGHT
     },
     {
@@ -60,15 +60,14 @@ export function scheduleGridControl({
       value: scheduledDate || startDate,
       id: SCHEDULED_DATE_FILTER,
       options: dateOptions,
-      location: RIGHT,
-      intent: 'is-info',
       modifyLabel: true,
+      intent: 'is-info',
+      location: RIGHT,
       align: RIGHT
     }
   ];
 
   elements = controlBar({ target: controlAnchor, items }).elements;
-  // elements.scheduleMatchUps.style.display = schedulingActive || !courtsCount ? NONE : '';
 
   return { elements };
 }
