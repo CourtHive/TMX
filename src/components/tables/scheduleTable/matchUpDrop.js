@@ -62,7 +62,7 @@ export function matchUpDrop(ev, cell) {
     return sourceColumnKey;
   });
 
-  const updateSourceMatchUp = ({ scheduledTime = '', timeModifiers = '' } = {}) => {
+  const updateSourceMatchUp = ({ scheduledTime = '', timeModifiers = [] } = {}) => {
     const updatedSourceSchedule = {
       courtOrder: targetCourtOrder,
       scheduledDate: selectedDate,
