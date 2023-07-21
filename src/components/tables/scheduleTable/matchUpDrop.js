@@ -91,6 +91,7 @@ export function matchUpDrop(ev, cell) {
   };
 
   const updatedTargetSchedule = {
+    scheduledDate: sourceSchedule?.scheduledDate,
     scheduledTime: sourceSchedule?.scheduledTime,
     timeModifiers: sourceSchedule?.timeModifiers,
     courtOrder: sourceCourtOrder,
