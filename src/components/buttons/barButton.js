@@ -1,26 +1,5 @@
 import tippy from 'tippy.js';
 
-/*
-import { cva } from 'cva';
-
-const button = cva('button', {
-  variants: {
-    intent: {
-      primary: ['is-info'],
-      secondary: ['is-success']
-    },
-    size: {
-      medium: ['font-medium']
-    }
-  },
-  compoundVariants: [{ intent: 'primary', size: 'medium', class: 'uppercase' }],
-  defaultVariants: {
-    intent: 'primary',
-    size: 'medium'
-  }
-});
-*/
-
 import { NONE, RIGHT } from 'constants/tmxConstants';
 
 export function barButton(itemConfig) {
