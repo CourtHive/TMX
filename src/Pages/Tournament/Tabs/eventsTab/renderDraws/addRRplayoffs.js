@@ -119,22 +119,16 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     const checkStatus = playoffFinishingPositionRanges.map(
       ({ finishingPosition }) => inputs[getId(finishingPosition)].checked
     );
+    const selectedFinishingPositions = playoffFinishingPositionRanges
+      .map(({ finishingPosition }) => inputs[getId(finishingPosition)].checked && finishingPosition)
+      .filter(Boolean);
+    const sequential = selectedFinishingPositions
+      .map((pos, i) => (selectedFinishingPositions[i + 1] || pos) - pos)
+      .every((val) => val < 2);
     const checkCount = checkStatus.filter(Boolean).length;
-    const nonSequential = checkStatus.reduce(
-      (state, current) => {
-        if (state.nonSequential) return state;
-        if (current !== state.last) {
-          state.last = current;
-          if (current) state.checked += 1;
-        }
-        if (current && state.checked > 1) return { nonSequential: true };
-        return state;
-      },
-      { nonSequential: undefined, checked: 0, last: undefined }
-    ).nonSequential;
 
     const addButton = document.getElementById('addStructure');
-    const valid = checkCount && !nonSequential;
+    const valid = checkCount && sequential;
     if (addButton) addButton.disabled = !valid;
 
     const selectedPlayoffRange = document.getElementById('selectedPlayoffRange');
