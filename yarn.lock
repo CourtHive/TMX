@@ -2198,6 +2198,11 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
+"@stitches/core@^1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.8.tgz#dce3b8fdc764fbc6dbea30c83b73bfb52cf96173"
+  integrity sha512-Gfkvwk9o9kE9r9XNBmJRfV8zONvXThnm1tcuojL04Uy5uRyqg93DC83lDebl0rocZCfKSjUv+fWYtMQmEDJldg==
+
 "@stitches/react@^1.2.5":
   version "1.2.8"
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.8.tgz#954f8008be8d9c65c4e58efa0937f32388ce3a38"
@@ -10704,10 +10709,10 @@ tods-competition-factory@^1.2.23:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.23.tgz#587981958b8ed6f36a06930a2d1985987892da68"
   integrity sha512-nxHyhmEyKMo1wCSMUy+mO4gxmcXdyi/RQNhDqt4xjmkfP20Zgz2J06eWXL3PxrJucEBKjObaL9ywhTcVlp116A==
 
-tods-competition-factory@^1.2.28:
-  version "1.2.31"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.31.tgz#bcfb4163273f57b715a766475cf8d3c2dfdda688"
-  integrity sha512-eZLNlvz5Jo+zxqazYgGXfiF6G/EvmzkXznW7J4ouhIdowewImYr2xS8HDfSfYj4orm7suDF1OKbpps2lwyY2Eg==
+tods-competition-factory@^1.2.32:
+  version "1.2.32"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.32.tgz#068ad1e61a7fe469e8cacc7a8d8c4c278754d8ac"
+  integrity sha512-hfwWb96jKL86m/N5OmLXHRFS3b/pqFMVl7h7hqTQdC/7+xZbEM/vzg5J5u5QBPbziOdIxRYi73Po9qNxwLjvIw==
 
 tods-react-draws@^0.2.1:
   version "0.2.1"
