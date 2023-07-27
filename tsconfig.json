@@ -10,7 +10,7 @@
     "importHelpers": true,
     "jsx": "preserve",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
@@ -24,7 +24,10 @@
     "sourceMap": false,
     "strict": true,
     "strictNullChecks": false,
-    "target": "es5"
+    "target": "es5",
+    "paths": {
+      "@components": ["./src/courthive-components/src"]
+    }
   },
   "include": ["src"]
 }
