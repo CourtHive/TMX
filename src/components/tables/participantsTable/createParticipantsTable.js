@@ -22,7 +22,8 @@ export function createParticipantsTable({ view } = {}) {
       withSignInStatus: true,
       withScaleValues: true,
       participantFilters,
-      withEvents: true
+      withEvents: true,
+      withISO2: true
     });
     ({ participants, derivedEventInfo } = result);
 
