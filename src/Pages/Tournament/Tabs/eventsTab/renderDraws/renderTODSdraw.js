@@ -29,7 +29,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
 
   const getData = () => {
-    eventData = tournamentEngine.getEventData({ eventId, includePositionAssignments: true }).eventData;
+    eventData = tournamentEngine.getEventData({
+      participantsProfile: { withIOC: true, withISO2: true },
+      includePositionAssignments: true,
+      eventId
+    }).eventData;
     eventType = eventData?.eventInfo?.eventType;
     drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structures = drawData?.structures || [];

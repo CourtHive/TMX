@@ -53,7 +53,7 @@ export const createPair = (event, addOnPairing = true) => {
         const participantIds = result.results[0].newParticipantIds;
         const {
           participants: [participant]
-        } = tournamentEngine.getParticipants({ participantFilters: { participantIds } });
+        } = tournamentEngine.getParticipants({ participantFilters: { participantIds }, withISO2: true });
 
         if (participant) {
           const newEntry = mapEntry({

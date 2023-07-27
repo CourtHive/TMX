@@ -1,3 +1,4 @@
+import { renderParticipant } from 'courthive-components/src/components/renderParticipant';
 import { genderConstants } from 'tods-competition-factory';
 import { isObject } from 'functions/typeOf';
 
@@ -9,6 +10,11 @@ export function formatParticipant(cell) {
   const data = cell.getRow().getData();
   const hasWinner = data.winningSide;
   const value = cell.getValue();
+  const participant = data.participant || value.participant;
+  if (participant) {
+    console.log({ participant });
+    return renderParticipant({ participant, composition: { configuration: { flags: true } } });
+  }
   if (hasWinner) {
     const winningSide = def.field === data.winningSide;
     elem.style = winningSide ? 'color: green' : 'color: red';
