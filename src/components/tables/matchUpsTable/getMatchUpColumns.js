@@ -61,14 +61,6 @@ export function getMatchUpColumns(replaceTableData) {
       width: 55
     },
     {
-      title: `<div class='fa-solid fa-check' style='color: green' />`,
-      formatter: 'tickCross',
-      field: 'complete',
-      hozAlign: LEFT,
-      tooltip: false,
-      width: 40
-    },
-    {
       formatter: eventFormatter(navigateToEvent),
       field: 'eventId',
       title: 'Event',
@@ -135,6 +127,14 @@ export function getMatchUpColumns(replaceTableData) {
       title: 'Score',
       field: 'score',
       width: 140
+    },
+    {
+      title: `<div class='fa-solid fa-check' style='color: green' />`,
+      formatter: 'tickCross',
+      field: 'complete',
+      hozAlign: LEFT,
+      tooltip: false,
+      width: 40
     },
     {
       field: 'matchUp.matchUpStatus',
