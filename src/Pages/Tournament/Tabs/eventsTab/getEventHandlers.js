@@ -46,18 +46,11 @@ export function getEventHandlers({ eventData, callback }) {
   };
 
   return {
-    /*
-    // TODS-REACT-DRAWS
-    onScheduleClick: (props) => console.log('Schedule', props),
-    onRoundNameClick: (props) => console.log('Round Name', props),
-    onScoreClick: (props) => console.log('Scoring', props),
-    onHeaderClick: (props) => console.log('header', props),
-    onStatsClick: (props) => console.log('stats', props),
-    onParticipantClick: (params) => console.log('participant', props),
-    */
+    centerInfoClick: () => console.log('centerInfo click'),
+    scheduleClick: () => console.log('schedule click'),
+    venueClick: () => console.log('venue click'),
 
     matchUpClick: () => {},
-    headerClick: (props) => console.log('Header', props),
     scoreClick: (props) => {
       const { matchUp = {}, side, sideIndex } = props;
       const sideNumber = side?.sideNumber || sideIndex + 1;
@@ -91,7 +84,6 @@ export function getEventHandlers({ eventData, callback }) {
         }
       }
     },
-    participantClick: sideClick,
-    sideClick
+    participantClick: sideClick
   };
 }
