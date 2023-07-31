@@ -147,11 +147,11 @@ export function getParticipantColumns() {
       editor: numericEditor({ maxValue: 40, decimals: true, field: FIELD_WTN }),
       sorterParams: { alignEmptyValues: 'bottom' },
       visible: columnIsVisible(FIELD_WTN),
-      field: FIELD_WTN,
       responsive: true,
       resizable: false,
-      editable: false,
       sorter: 'number',
+      field: FIELD_WTN,
+      editable: false,
       title: WTN,
       width: 70
     },

@@ -10,7 +10,6 @@ import { getActionOptions } from './getActionOptions';
 import { Draw, compositions } from 'tods-score-grid';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
-import { DrawStructure } from 'tods-react-draws';
 import { context } from 'services/context';
 
 import { render, unmountComponentAtNode } from 'react-dom';
@@ -127,20 +126,18 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         console.log(AD_HOC, { structureId, structures, drawData });
       }
     } else {
-      window.reactDraws
-        ? render(<DrawStructure {...args} />, drawsView)
-        : render(
-            <Draw
-              searchActive={participantFilter}
-              eventHandlers={eventHandlers}
-              structureId={structureId}
-              composition={composition}
-              structures={structures}
-              className={className}
-              disableFlags={true}
-            />,
-            drawsView
-          );
+      render(
+        <Draw
+          searchActive={participantFilter}
+          eventHandlers={eventHandlers}
+          structureId={structureId}
+          composition={composition}
+          structures={structures}
+          className={className}
+          disableFlags={true}
+        />,
+        drawsView
+      );
     }
   };
 
