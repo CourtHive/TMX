@@ -56,13 +56,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
 
-  const args = {
-    eventHandlers,
-    structureId,
-    eventData,
-    drawId
-  };
-
   const drawControl = document.getElementById('drawControl');
   removeAllChildNodes(drawControl);
 
@@ -76,7 +69,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   destroyTables();
   removeAllChildNodes(drawsView);
 
-  const updateDrawDisplay = (args) => {
+  const updateDrawDisplay = () => {
     if (dual) return;
 
     if (isPlayoff) {
@@ -88,7 +81,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         const postMutation = (result) => {
           if (result.success) {
             getData();
-            updateDrawDisplay(args);
+            updateDrawDisplay();
           }
         };
         mutationRequest({ methods: [method], callback: postMutation });
@@ -125,7 +118,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }
     } else {
       removeAllChildNodes(drawsView);
-      const composition = compositions[args.composition || 'National'];
       const content = renderContainer({
         content: renderStructure({ composition, eventHandlers, matchUps, searchActive: participantFilter }),
         theme: composition.theme
@@ -160,7 +152,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           .filter(Boolean)
           .forEach((table) => table.addFilter(searchFilter));
       }
-      updateDrawDisplay(args);
+      updateDrawDisplay();
     };
 
     const items = [
@@ -216,7 +208,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     const scorecard = renderScorecard({ matchUp: matchUps[0], participantFilter });
     if (scorecard) drawsView.appendChild(scorecard);
   } else {
-    updateDrawDisplay(args);
+    updateDrawDisplay();
   }
 
   updateControlBar();
