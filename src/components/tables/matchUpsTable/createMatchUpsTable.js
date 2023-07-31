@@ -12,7 +12,10 @@ export function createMatchUpsTable() {
 
   const getTableData = () => {
     const matchUps = (
-      tournamentEngine.allTournamentMatchUps({ contextProfile: { withCompetitiveness: true } }).matchUps || []
+      tournamentEngine.allTournamentMatchUps({
+        contextProfile: { withCompetitiveness: true },
+        participantsProfile: { withISO2: true }
+      }).matchUps || []
     ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
 
     // TODO: sort matchUps 1st: scoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
