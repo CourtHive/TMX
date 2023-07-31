@@ -15,7 +15,7 @@ export const addEntries = (event, group) => (table) => {
     const participantType =
       (event.eventType === 'TEAM' && 'TEAM') || (event.eventType === 'DOUBLES' && 'PAIR') || 'INDIVIDUAL';
     const participantsAvailable = tournamentEngine
-      .getParticipants({ inContext: true, participantFilters: { participantTypes: [participantType] } })
+      .getParticipants({ inContext: true, participantFilters: { participantTypes: [participantType] }, withISO2: true })
       .participants.filter((participant) => !enteredParticipantIds.includes(participant.participantId));
 
     const onSelection = ({ selected }) => {

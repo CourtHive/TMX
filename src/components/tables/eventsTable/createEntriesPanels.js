@@ -52,7 +52,8 @@ export function createEntriesPanels({ eventId, drawId }) {
       participantFilters: { eventIds: [eventId] },
       withIndividualParticipants: true,
       withScaleValues: true,
-      withDraws: true
+      withDraws: true,
+      withISO2: true
     });
 
     const hasFlights = event?.drawDefinitions?.length > 1;

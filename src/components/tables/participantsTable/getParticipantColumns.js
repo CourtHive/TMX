@@ -1,9 +1,9 @@
+import { formatParticipant } from '../common/formatters/participantFormatter';
 import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
-import { genderedText } from '../common/formatters/genderedText';
 import { numericEditor } from '../common/editors/numericEditor';
 import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -50,7 +50,7 @@ export function getParticipantColumns() {
     },
     {
       cellClick: participantActions,
-      formatter: genderedText,
+      formatter: formatParticipant,
       field: 'participantName',
       responsive: false,
       resizable: false,
