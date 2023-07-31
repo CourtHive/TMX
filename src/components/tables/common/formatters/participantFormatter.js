@@ -10,10 +10,12 @@ export function formatParticipant(cell) {
   const data = cell.getRow().getData();
   const hasWinner = data.winningSide;
   const value = cell.getValue();
-  const participant = data.participant || value.participant;
+  const participant = data.participant || value.participant || (data.person && data);
   if (participant) {
-    console.log({ participant });
-    return renderParticipant({ participant, composition: { configuration: { flags: true } } });
+    return renderParticipant({
+      composition: { configuration: { flags: true, genderColor: true, showAddress: true } },
+      participant
+    });
   }
   if (hasWinner) {
     const winningSide = def.field === data.winningSide;

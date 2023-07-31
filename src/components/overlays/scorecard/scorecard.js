@@ -13,7 +13,8 @@ const TIE_SIDE_1 = 'tieSide1';
 const TIE_SIDE_2 = 'tieSide2';
 
 export function openScorecard({ title, drawId, matchUpId, onClose }) {
-  const result = tournamentEngine.findMatchUp({ drawId, matchUpId });
+  // NOTE: since this is opening for editing, fetch with any changes that have been made to scoring
+  const result = tournamentEngine.findMatchUp({ drawId, matchUpId, participantsProfile: { withISO2: true } });
   const matchUp = result.matchUp;
 
   if (!matchUp || result.error) return;
