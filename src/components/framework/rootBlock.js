@@ -103,6 +103,7 @@ export function rootBlock() {
   main.appendChild(tournaments);
 
   const calendar = document.createElement('div');
+  calendar.className = 'flexcol flexgrow';
   calendar.style = 'display: none; height: 90%; width: 100%;';
   calendar.id = TOURNAMENTS_CALENDAR;
 
