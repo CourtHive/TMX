@@ -65,7 +65,7 @@ export function renderMenu(elem, menu, close) {
       aside.appendChild(menuList);
     } else if (item.type === 'input') {
       const { field, inputElement } = renderField(item);
-      if (item.autoFocus) focusElement = inputElement;
+      if (item.focus) focusElement = inputElement;
       inputs[item.field] = inputElement;
       aside.appendChild(field);
     } else if (item.type === 'divider') {

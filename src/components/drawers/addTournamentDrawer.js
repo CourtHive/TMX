@@ -16,7 +16,8 @@ export function addTournament({ table }) {
       placeholder: 'Tournament name',
       validator: nameValidator(5),
       label: 'Tournament name',
-      field: 'tournamentName'
+      field: 'tournamentName',
+      focus: true
     },
     {
       placeholder: 'YYYY-MM-DD',
