@@ -5,8 +5,6 @@ import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
 import { baseModal } from 'components/modals/baseModal/modal';
-import { imageClass } from './assets/imageClass';
-// import { isObject } from 'functions/typeOf';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
@@ -17,7 +15,7 @@ import { version } from 'config/version';
 import { isDev } from 'functions/isDev';
 import { env } from 'settings/env';
 
-// import { CLIENT_ERROR } from 'constants/comsConstants';
+import dragMatch from 'assets/icons/dragmatch.png';
 
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
 import '@event-calendar/core/index.css';
@@ -74,7 +72,7 @@ function tmxReady() {
 
 function setContext() {
   context.dragMatch = new Image();
-  context.dragMatch.src = imageClass.dragMatch().props.src;
+  context.dragMatch.src = dragMatch;
   context.ee = new EventEmitter();
 }
 
