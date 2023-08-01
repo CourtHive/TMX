@@ -53,13 +53,13 @@ export const drawer = () => {
     if (!drawerId) return;
     const target = document.getElementById(drawerId);
     if (!target.classList.contains(settings.leftAlignment)) target.classList.add(settings.leftAlignment);
-    openDrawer(target, callback);
+    openDrawer(target, false, callback);
   };
 
   const openRight = (callback) => {
     const target = document.getElementById(drawerId);
     target.classList.remove(settings.leftAlignment);
-    openDrawer(target, callback);
+    openDrawer(target, false, callback);
   };
 
   const setTitle = (title) => {
@@ -76,7 +76,7 @@ export const drawer = () => {
       if (isFunction(footer)) {
         attributes.footer = footer(footerElement, close);
       } else {
-        footerElement.innerHTML = footer;
+        footerElement.innerHTML = footer || '';
       }
     }
   };
@@ -100,12 +100,14 @@ export const drawer = () => {
     wrapper.style.width = width;
   };
 
-  const openDrawer = (target, callback) => {
+  const openDrawer = (target, footer, callback) => {
     drawerIsOpen = true;
     target.classList.add(settings.activeClass);
     document.documentElement.style.overflow = 'hidden';
-    trap = focusTrap.createFocusTrap(target);
-    trap.activate();
+    if (footer) {
+      trap = focusTrap.createFocusTrap(target);
+      trap.activate();
+    }
 
     if (isFunction(callback)) callback();
 
@@ -117,9 +119,9 @@ export const drawer = () => {
   const open = ({ title, content, side, width, footer, callback, onClose } = {}) => {
     if (content) setContent(content);
     if (onClose) setOnClose(onClose);
-    if (footer) setFooter(footer);
     if (title) setTitle(title);
     if (width) setWidth(width);
+    setFooter(footer);
     if (drawerIsOpen) {
       cancelClose = { callback };
     } else {
@@ -128,7 +130,7 @@ export const drawer = () => {
         if (side === LEFT) return openLeft(callback);
       } else {
         const target = document.getElementById(drawerId);
-        openDrawer(target, callback);
+        openDrawer(target, footer, callback);
       }
     }
   };
