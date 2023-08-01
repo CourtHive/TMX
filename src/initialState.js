@@ -5,8 +5,6 @@ import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
 import { baseModal } from 'components/modals/baseModal/modal';
-import { imageClass } from './assets/imageClass';
-import { isObject } from 'functions/typeOf';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
@@ -17,7 +15,7 @@ import { version } from 'config/version';
 import { isDev } from 'functions/isDev';
 import { env } from 'settings/env';
 
-import { CLIENT_ERROR } from 'constants/comsConstants';
+import dragMatch from 'assets/icons/dragmatch.png';
 
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
 import '@event-calendar/core/index.css';
@@ -74,11 +72,12 @@ function tmxReady() {
 
 function setContext() {
   context.dragMatch = new Image();
-  context.dragMatch.src = imageClass.dragMatch().props.src;
+  context.dragMatch.src = dragMatch;
   context.ee = new EventEmitter();
 }
 
 const RESIZE_LOOP = 'ResizeObserver loop limit exceeded';
+const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered notifications.';
 function setWindow() {
   // to disable context menu on the page
   document.oncontextmenu = () => false;
@@ -90,8 +89,10 @@ function setWindow() {
     false
   );
   window.packageEntry = { updateReady };
+  /*
   window.onerror = (msg, url, lineNo, columnNo, error) => {
-    if (CLIENT_ERROR !== RESIZE_LOOP) {
+    console.log({ msg, error });
+    if (!msg.includes('ResizeObserver')) {
       const errorMessage = isObject(msg) ? JSON.stringify(msg) : msg;
       const payload = { error, stack: { lineNo, columnNo, error: errorMessage } };
       context.ee.emit('emitTmx', { data: { action: CLIENT_ERROR, payload } });
@@ -103,6 +104,7 @@ function setWindow() {
       context.ee.emit('addMessage', message);
     }
   };
+  */
   window.onunhandledrejection = (event) => {
     if (isDev()) return;
 
@@ -144,7 +146,7 @@ function eventListeners() {
     },
   */
   window.addEventListener('error', (e) => {
-    if (e.message === RESIZE_LOOP) {
+    if ([RESIZE_LOOP, RESIZE_NOTIFICATIONS].includes(e.message)) {
       const resizeObserverErrDiv = document.getElementById('webpack-dev-server-client-overlay-div');
       const resizeObserverErr = document.getElementById('webpack-dev-server-client-overlay');
       if (resizeObserverErr) {

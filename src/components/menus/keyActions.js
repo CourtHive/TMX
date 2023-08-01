@@ -24,8 +24,8 @@ export function displayKeyActions() {
           label: 'Enter new key',
           placeholder: lang.tr('phrases.submitkey'),
           id: 'keyEntryField',
-          autoFocus: true,
           type: 'input',
+          focus: true,
           field: 'key',
           onKeyDown
         },
