@@ -81,8 +81,8 @@ function assignSeed({ target, action, callback }) {
       placeholder: 'Seed number',
       field: 'seedNumber',
       id: 'seedNumber',
-      autoFocus: true,
       type: 'input',
+      focus: true,
       onKeyDown
     }
   ];
