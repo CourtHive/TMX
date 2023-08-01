@@ -94,9 +94,9 @@ function createEvents(data) {
   const extractDate = (dateTime) => dateTime?.split('T')[0];
 
   return data.map((record) => ({
-    title: record.tournament.tournamentName,
-    start: extractDate(record.tournament.startDate),
-    end: extractDate(record.tournament.endDate),
+    title: record.tournamentName,
+    start: extractDate(record.startDate),
+    end: extractDate(record.endDate),
     extendedProps: { tournamentId: record.tournamentId },
     resourceIds: [record.tournamentId],
     id: record.tournamentId,
