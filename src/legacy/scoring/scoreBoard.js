@@ -1,7 +1,7 @@
 import { matchUpFormatCode, utilities } from 'tods-competition-factory';
 import { eventManager } from 'services/dom/eventManager';
 import { getParent } from 'services/dom/parentAndChild';
-import { imageClass as ic } from 'assets/imageClass';
+import completedMatch from 'assets/icons/completed.png';
 import { floatingScoring } from './floatingScoring';
 import { keyWalk } from 'functions/keyWalk';
 import { lang } from 'services/translator';
@@ -462,7 +462,7 @@ export const scoreBoard = (function () {
         { key: 'ABD', value: 'abandoned' },
         { key: 'LIVE', value: 'live' },
         {
-          key: `<div class='link'><img src='${ic.completedMatchIcon().props.src}' class='completed_icon'></div>`,
+          key: `<div class='link'><img src='${completedMatch}' class='completed_icon'></div>`,
           value: 'winner'
         }
       ];

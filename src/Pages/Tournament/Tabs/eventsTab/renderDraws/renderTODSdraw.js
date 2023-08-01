@@ -1,5 +1,9 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
+import { renderContainer } from 'courthive-components/src/components/renderContainer';
+import { renderStructure } from 'courthive-components/src/components/renderStructure';
+import { compositions } from 'courthive-components/src/compositions/compositions';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
@@ -7,16 +11,11 @@ import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
-import { Draw, compositions } from 'tods-score-grid';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
-import { DrawStructure } from 'tods-react-draws';
 import { context } from 'services/context';
 
-import { render, unmountComponentAtNode } from 'react-dom';
-
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, NONE, QUALIFYING, RIGHT } from 'constants/tmxConstants';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
 
 const { AD_HOC } = drawDefinitionConstants;
@@ -54,16 +53,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     compositions?.[compositionName] ||
     compositions[(eventType === DOUBLES && 'Australian') || (eventType === TEAM && 'French') || 'National']; // National malformed for DOUBLES
 
-  const className = composition.theme;
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
-
-  const args = {
-    eventHandlers,
-    structureId,
-    eventData,
-    drawId
-  };
 
   const drawControl = document.getElementById('drawControl');
   removeAllChildNodes(drawControl);
@@ -76,10 +67,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   destroyTables();
-  unmountComponentAtNode(drawsView);
   removeAllChildNodes(drawsView);
 
-  const updateDrawDisplay = (args) => {
+  const updateDrawDisplay = () => {
     if (dual) return;
 
     if (isPlayoff) {
@@ -91,7 +81,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         const postMutation = (result) => {
           if (result.success) {
             getData();
-            updateDrawDisplay(args);
+            updateDrawDisplay();
           }
         };
         mutationRequest({ methods: [method], callback: postMutation });
@@ -127,20 +117,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         console.log(AD_HOC, { structureId, structures, drawData });
       }
     } else {
-      window.reactDraws
-        ? render(<DrawStructure {...args} />, drawsView)
-        : render(
-            <Draw
-              searchActive={participantFilter}
-              eventHandlers={eventHandlers}
-              structureId={structureId}
-              composition={composition}
-              structures={structures}
-              className={className}
-              disableFlags={true}
-            />,
-            drawsView
-          );
+      removeAllChildNodes(drawsView);
+      const content = renderContainer({
+        content: renderStructure({ composition, eventHandlers, matchUps, searchActive: participantFilter }),
+        theme: composition.theme
+      });
+      drawsView.appendChild(content);
     }
   };
 
@@ -170,8 +152,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           .filter(Boolean)
           .forEach((table) => table.addFilter(searchFilter));
       }
-      args.nameFilter = value; // tods-react-draws
-      updateDrawDisplay(args);
+      updateDrawDisplay();
     };
 
     const items = [
@@ -227,7 +208,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     const scorecard = renderScorecard({ matchUp: matchUps[0], participantFilter });
     if (scorecard) drawsView.appendChild(scorecard);
   } else {
-    updateDrawDisplay(args);
+    updateDrawDisplay();
   }
 
   updateControlBar();

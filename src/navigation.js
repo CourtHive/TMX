@@ -1,6 +1,6 @@
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'tods-competition-factory';
-import { imageClass } from 'assets/imageClass';
+import dragMatch from 'assets/icons/dragmatch.png';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
 
@@ -34,7 +34,7 @@ const tips = {
 };
 
 export function tmxNavigation() {
-  const match = imageClass.dragMatch().props.src;
+  const match = dragMatch;
 
   const html = `
   <div class="side-bar collapse">
