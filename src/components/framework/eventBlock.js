@@ -20,7 +20,6 @@ export function eventBlock() {
   div.style.width = 'inherit';
   div.id = 'e-tab';
 
-  const tmxPanelBlock = `tableClass block ${TMX_PANEL}`;
   div.innerHTML = `
   <div class="tab_section events_tab">
     <div class="section" style='padding-top: 1em;'}>
@@ -34,19 +33,19 @@ export function eventBlock() {
         </div>
       </div>
       <div id=${ENTRIES_VIEW} style='display: none;'}>
-        <div id=${ACCEPTED_PANEL} class=${tmxPanelBlock}>
+        <div id=${ACCEPTED_PANEL} class='tableClass block ${TMX_PANEL}'>
           {' '}
         </div>
-        <div id=${QUALIFYING_PANEL} class=${tmxPanelBlock}>
+        <div id=${QUALIFYING_PANEL} class='tableClass block ${TMX_PANEL}'>
           {' '}
         </div>
-        <div id=${ALTERNATES_PANEL} class=${tmxPanelBlock}>
+        <div id=${ALTERNATES_PANEL} class='tableClass block ${TMX_PANEL}'>
           {' '}
         </div>
-        <div id=${UNGROUPED_PANEL} class=${tmxPanelBlock}>
+        <div id=${UNGROUPED_PANEL} class='tableClass block ${TMX_PANEL}'>
           {' '}
         </div>
-        <div id=${WITHDRAWN_PANEL} class=${tmxPanelBlock}>
+        <div id=${WITHDRAWN_PANEL} class='tableClass block ${TMX_PANEL}'>
           {' '}
         </div>
       </div>
