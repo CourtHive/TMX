@@ -103,11 +103,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
     for (const key of Object.keys(structure.roundMatchUps)) {
-      structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(
-        ({ sides }) =>
-          sides?.some(({ participant }) => participant?.participantName.toLowerCase().includes(participantFilter)) ||
-          !participantFilter
-      );
+      structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }) => {
+        const hasParticipant = sides?.some(({ participant }) =>
+          participant?.participantName.toLowerCase().includes(participantFilter)
+        );
+        return hasParticipant || !participantFilter;
+      });
     }
 
     if (!matchUps.length) {
@@ -117,9 +118,15 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         console.log(AD_HOC, { structureId, structures, drawData });
       }
     } else {
+      const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
       removeAllChildNodes(drawsView);
       const content = renderContainer({
-        content: renderStructure({ composition, eventHandlers, matchUps, searchActive: participantFilter }),
+        content: renderStructure({
+          searchActive: participantFilter,
+          matchUps: filteredMatchUps,
+          eventHandlers,
+          composition
+        }),
         theme: composition.theme
       });
       drawsView.appendChild(content);
