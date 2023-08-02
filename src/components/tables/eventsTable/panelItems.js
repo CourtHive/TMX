@@ -15,19 +15,21 @@ export const togglePanel = ({ target, table, close }) => {
   if (!target) return;
 
   const tmxPanel = findAncestor(target, TMX_PANEL);
-  const toggle = tmxPanel.getElementsByClassName('toggle')?.[0];
-  const buttonBar = tmxPanel.getElementsByClassName(BUTTON_BAR)?.[0];
-  const tmxTable = tmxPanel.getElementsByClassName(TMX_TABLE)?.[0];
-  if (toggle) {
-    const open = close || toggle.innerHTML.charCodeAt(0) === 9660;
-    buttonBar.style.display = open ? NONE : EMPTY_STRING;
-    tmxTable.style.display = open ? NONE : EMPTY_STRING;
-    toggle.parentNode.innerHTML = `<span class='toggle' style='color: white'>${
-      open ? closedFilled : openedFilled
-    }</span>`;
+  if (tmxPanel) {
+    const toggle = tmxPanel.getElementsByClassName('toggle')?.[0];
+    const buttonBar = tmxPanel.getElementsByClassName(BUTTON_BAR)?.[0];
+    const tmxTable = tmxPanel.getElementsByClassName(TMX_TABLE)?.[0];
+    if (toggle) {
+      const open = close || toggle.innerHTML.charCodeAt(0) === 9660;
+      buttonBar.style.display = open ? NONE : EMPTY_STRING;
+      tmxTable.style.display = open ? NONE : EMPTY_STRING;
+      toggle.parentNode.innerHTML = `<span class='toggle' style='color: white'>${
+        open ? closedFilled : openedFilled
+      }</span>`;
 
-    // ensure data display
-    if (!open) table.redraw(true);
+      // ensure data display
+      if (!open) table.redraw(true);
+    }
   }
 };
 

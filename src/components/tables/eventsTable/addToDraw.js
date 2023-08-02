@@ -15,9 +15,9 @@ const addTo = (table, eventId, drawId) => {
     {
       method: ADD_DRAW_ENTRIES,
       params: {
-        participantIds,
         entryStatus: DIRECT_ACCEPTANCE,
         entryStage: MAIN,
+        participantIds,
         eventId,
         drawId
       }
@@ -33,7 +33,7 @@ const addTo = (table, eventId, drawId) => {
   mutationRequest({ methods, callback: postMutation });
 };
 
-export const addToDraw = (event) => (table) => {
+export const addToDraw = (event, drawId) => (table) => {
   const options = (event.drawDefinitions || []).map(({ drawName, drawId }) => ({
     onClick: () => addTo(table, event.eventId, drawId),
     stateChange: true,
@@ -43,7 +43,7 @@ export const addToDraw = (event) => (table) => {
   }));
 
   return {
-    hide: !event.drawDefinitions?.length,
+    hide: !event.drawDefinitions?.length || drawId,
     label: 'Add to draw',
     location: OVERLAY,
     options
