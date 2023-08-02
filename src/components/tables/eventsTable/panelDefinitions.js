@@ -6,6 +6,7 @@ import { panelItems, togglePanel } from './panelItems';
 import { searchField } from '../common/tableSearch'; // if searchFields are preferred on each table
 import { saveSeeding } from './seeding/saveSeeding';
 import { destroySelected } from './destroyPairs';
+import { createFlight } from './createFlight';
 import { moveSelected } from './moveSelected';
 import { addEntries } from './addEntries';
 import { createPair } from './createPair';
@@ -71,7 +72,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         moveSelected(moves[ACCEPTED], eventId, drawId),
         changeEntryStatus(acceptedEntryStatuses(MAIN), eventId, drawId),
-        addToDraw(event),
+        addToDraw(event, drawId),
+        createFlight(event, drawId),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
         seedingSelector(event, ACCEPTED),
         cancelManualSeeding(event),
