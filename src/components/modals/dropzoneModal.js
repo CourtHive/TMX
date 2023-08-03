@@ -79,7 +79,7 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
   dropzone.addEventListener(
     'drop',
     function (e) {
-      const multiple = dropzone_input.getAttribute('multiple') ? true : false;
+      const multiple = dropzone_input.getAttribute('multiple');
       this.classList.remove(DRAGGING);
       const files = e.dataTransfer.files;
       const dataTransfer = new DataTransfer();
