@@ -67,7 +67,8 @@ export function renderField(item) {
     if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
   } else if (item.checkbox) {
     const div = document.createElement('div');
-    div.className = 'field';
+    div.className = 'flexrow field nowrap';
+    div.style.display = 'inline-block';
     const input = document.createElement('input');
     inputElement = input;
     input.className = 'is-checkradio is-success';
