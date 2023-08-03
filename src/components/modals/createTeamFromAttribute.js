@@ -1,6 +1,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
+import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
 
@@ -46,7 +47,7 @@ export function createTeamsFromAttribute({ callback } = {}) {
     }
   };
 
-  context.modal.open({
+  openModal({
     title: 'Create Team',
     content,
     buttons: [

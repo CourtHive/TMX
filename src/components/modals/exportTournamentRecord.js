@@ -2,7 +2,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
 
 export function exportTournamentRecord() {
@@ -24,5 +24,5 @@ export function exportTournamentRecord() {
   ];
   const title = `${lang.tr('phrases.export')}: ${lang.tr('trn')}`;
 
-  context.modal.open({ title, content: tournamentRecord.tournamentName, buttons });
+  openModal({ title, content: tournamentRecord.tournamentName, buttons });
 }

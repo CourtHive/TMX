@@ -1,7 +1,7 @@
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -63,7 +63,7 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
       }
     ]));
 
-  context.modal.open({
+  openModal({
     title: `Add to event`,
     content,
     buttons: [

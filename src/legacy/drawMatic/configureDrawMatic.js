@@ -1,3 +1,4 @@
+import { closeModal, openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { drawMatic } from 'legacy/drawMatic/drawMatic';
 import { utilities } from 'tods-competition-factory';
@@ -11,7 +12,7 @@ export function configureDrawMatic() {
   let draw = evt?.draw;
   const hideDelete = !draw?.matches?.length;
 
-  const drawMaticComplete = () => context.modal.close();
+  const drawMaticComplete = () => closeModal();
   const generate = () => {
     // context.modal.setContent('Generating.... please be patient');
     // context.modal.footerButtons([]);
@@ -55,10 +56,11 @@ export function configureDrawMatic() {
         }
       ]);
     };
-    context.modal.setContent(content);
+    console.log('change modal content', { content });
+    // context.modal.setContent(content);
   };
 
-  context.modal.open({
+  openModal({
     title: 'DrawMatic',
     content,
     buttons: [

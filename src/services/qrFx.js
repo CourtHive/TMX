@@ -1,6 +1,6 @@
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { downloadURI } from './export/download';
 import { lang } from './translator';
-import { context } from './context';
 import George from 'qrious';
 
 /*
@@ -43,7 +43,7 @@ export function displayQRdialogue(value, downloadName) {
     },
     { label: lang.tr('tournaments.close') }
   ];
-  context.modal.open({ content, buttons });
+  openModal({ content, buttons });
 
   function downloadQRcode() {
     let filename = `${downloadName || 'tournamentQR'}.png`;

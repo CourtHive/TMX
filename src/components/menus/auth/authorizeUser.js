@@ -1,5 +1,5 @@
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { copyClick } from 'services/dom/copyClick';
-import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { coms } from 'services/coms';
 
@@ -33,7 +33,7 @@ export function authorizeUser() {
     let content = `<div>
         <h2 className="bp3-heading">${key_uuid}</h2>
       </div>`;
-    context.modal.open({ title, content, buttons });
+    openModal({ title, content, buttons });
   };
 
   coms.emitTmx({

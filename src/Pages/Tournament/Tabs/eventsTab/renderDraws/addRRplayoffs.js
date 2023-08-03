@@ -1,12 +1,12 @@
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
 import { drawDefinitionConstants, drawEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderOptions } from 'components/renderers/renderField';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
 import { DRAW_TYPE, GROUP_SIZE, NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
@@ -168,7 +168,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     ]);
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
-  context.modal.open({
+  openModal({
     title: `Add playoff structure`,
     content,
     buttons: [
