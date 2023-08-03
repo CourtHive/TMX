@@ -5744,11 +5744,6 @@ globby@^11.0.4, globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-glory-modal@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/glory-modal/-/glory-modal-2.3.2.tgz#790b0a921d4aa11b0cadd9056b9b305c8ed53d48"
-  integrity sha512-xAXokpaVCMCIPMv3axLBRFyfzOcGt2qJaaurWURnWovW1VPoNjHp3x4w2t1kdvIu+Tx9r5v2nvxluSoh6p16ow==
-
 gopd@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/gopd/-/gopd-1.0.1.tgz#29ff76de69dac7489b7c0918a5788e56477c332c"
