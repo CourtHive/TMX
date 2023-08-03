@@ -25,7 +25,6 @@
     "dexie": "^3.2.3",
     "esri-leaflet": "^3.0.10",
     "focus-trap": "^7.4.0",
-    "glory-modal": "^2.3.2",
     "https-browserify": "^1.0.0",
     "jwt-decode": "^3.1.2",
     "leaflet": "1.7.1",
