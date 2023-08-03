@@ -1,5 +1,5 @@
+import { closeModal, openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
 import 'styles/dropzone.css';
 
@@ -46,7 +46,7 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
   label.appendChild(dropzone_input);
   dropzone.appendChild(label);
 
-  context.modal.open({
+  openModal({
     buttons: [{ label: 'Cancel', intent: 'none', close: true }, { label: 'Done' }],
     title: 'Import tournament records',
     content: dropzone
@@ -93,7 +93,7 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
 
       const filesToBeAdded = dataTransfer.files;
       Array.from(filesToBeAdded).forEach(loadFile);
-      if (autoClose) context.modal.close();
+      if (autoClose) closeModal();
     },
     false
   );

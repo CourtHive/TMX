@@ -1,8 +1,8 @@
 import { downCaret as clickable } from 'assets/specialCharacters/openClose';
 import { scoreGovernor } from 'tods-competition-factory';
 import { tipster } from 'components/popovers/tipster';
+import { openModal } from '../baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
 import { NONE } from 'constants/tmxConstants';
 
@@ -307,7 +307,7 @@ export function getMatchUpFormat({ callback } = {}) {
 
   content.appendChild(finalSetConfig);
 
-  context.modal.open({ title: 'Score format', content, buttons });
+  openModal({ title: 'Score format', content, buttons });
 }
 
 function createButton(params) {

@@ -1,10 +1,10 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { addRRplayoffs } from './addRRplayoffs';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
@@ -97,7 +97,7 @@ export function addStructures({ drawId, structureId, callback }) {
   }));
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
-  context.modal.open({
+  openModal({
     title: `Add playoff structures`,
     content,
     buttons: [

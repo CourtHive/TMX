@@ -1,4 +1,5 @@
 import { renderForm } from 'components/renderers/renderForm';
+import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
 
@@ -25,7 +26,7 @@ export function removeApproved({ teams, callback }) {
     callback({ selected });
   };
 
-  context.modal.open({
+  openModal({
     title: 'Remove approved',
     content,
     buttons: [

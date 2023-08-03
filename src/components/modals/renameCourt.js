@@ -1,10 +1,11 @@
 import { renderForm } from 'components/renderers/renderForm';
+import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 import { save } from 'services/storage/save';
 
 export function renameCourt({ location, index }) {
-  let identifier = location && location.identifiers && location.identifiers.split(',')[index - 1];
-  let value = (identifier && identifier.replace(/['"]+/g, '')) || index;
+  let identifier = location?.identifiers?.split(',')[index - 1];
+  let value = identifier?.replace(/['"]+/g, '') || index;
 
   const content = (elem) =>
     renderForm(elem, [
@@ -15,7 +16,7 @@ export function renameCourt({ location, index }) {
       }
     ]);
 
-  context.modal.open({
+  openModal({
     title: 'Rename Court',
     content,
     buttons: [

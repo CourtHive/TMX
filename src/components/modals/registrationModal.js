@@ -1,8 +1,8 @@
 import { systemRegister } from 'services/authentication/authApi';
 import { renderForm } from 'components/renderers/renderForm';
-import { context } from 'services/context';
-import { loginModal } from './loginModal';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { openModal } from './baseModal/baseModal';
+import { loginModal } from './loginModal';
 
 export function registrationModal({ data } = {}) {
   const inviteKey = data?.inviteKey;
@@ -57,7 +57,7 @@ export function registrationModal({ data } = {}) {
     );
   };
 
-  context.modal.open({
+  openModal({
     title: 'New User',
     content,
     buttons: [

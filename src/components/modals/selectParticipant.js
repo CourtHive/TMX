@@ -2,6 +2,7 @@ import { createSelectionTable } from 'components/tables/selection/createSelectio
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { positionActionConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
+import { closeModal, openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 
 import { LEFT } from 'constants/tmxConstants';
@@ -86,7 +87,7 @@ export function selectParticipant({
     </div>
   `;
 
-  context.modal.open({ title, content, buttons, onClose });
+  openModal({ title, content, buttons, onClose });
 
   const onSelected = (value) => (selected = value);
   const data = action[actionType.selections];
@@ -105,7 +106,7 @@ export function selectParticipant({
     if (active.length === 1) {
       if (selectOnEnter) {
         selected = active[0];
-        context.modal.close();
+        closeModal();
         onClick();
       } else if (activeOnEnter) {
         const selectedIds = selected?.map((s) => s.participantId) || [];

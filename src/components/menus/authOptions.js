@@ -1,8 +1,8 @@
 import { getLoginState } from 'services/authentication/loginState';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { tipster } from 'components/popovers/tipster';
 import { coms } from 'services/coms';
 import { lang } from 'services/translator';
-import { context } from 'services/context';
 
 import { REVOKE_AUTH } from 'constants/comsConstants';
 import { SUPER_ADMIN } from 'constants/tmxConstants';
@@ -58,7 +58,7 @@ export function displayAuthOptions({ tournamentId, target } = {}) {
       },
       { label: lang.tr('tournaments.close'), intent: 'is-primary' }
     ];
-    context.modal.open({ title, content: '', buttons });
+    openModal({ title, content: '', buttons });
 
     function revokeIt() {
       coms.emitTmx({

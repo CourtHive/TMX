@@ -1,4 +1,5 @@
 import { renderForm } from 'components/renderers/renderForm';
+import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -18,7 +19,7 @@ export function enterLink({ title, existingValue, callback, message }) {
       }
     ]);
 
-  context.modal.open({
+  openModal({
     title,
     content,
     buttons: [

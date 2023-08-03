@@ -1,8 +1,8 @@
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { getLoginState } from 'services/authentication/loginState';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
-import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { coms } from 'services/coms';
 
@@ -41,7 +41,7 @@ export function actionFormatter(cell) {
       },
       { label: 'Cancel' }
     ];
-    context.modal.open({ title: lang.tr('actions.delete_tournament'), buttons, content });
+    openModal({ title: lang.tr('actions.delete_tournament'), buttons, content });
   };
 
   const tournamentEdit = () => {
