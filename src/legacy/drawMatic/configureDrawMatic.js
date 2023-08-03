@@ -13,14 +13,15 @@ export function configureDrawMatic() {
 
   const drawMaticComplete = () => context.modal.close();
   const generate = () => {
-    context.modal.setContent('Generating.... please be patient');
-    context.modal.footerButtons([]);
+    // context.modal.setContent('Generating.... please be patient');
+    // context.modal.footerButtons([]);
     setTimeout(() => drawMatic.genRound({ tournament: undefined, env, callback: drawMaticComplete }), 200);
   };
 
   const content = 'Modify Adhoc event';
   let inputs;
 
+  /*
   const deleteRound = () => {
     const roundNumber = inputs?.roundNumber.value;
     if (!roundNumber || roundNumber === NO_SELECTION) return;
@@ -30,12 +31,16 @@ export function configureDrawMatic() {
     const max_round = Math.max(...[0].concat(draw.matches.map((m) => m.round)));
     context.displayed.draw_event.rounds = max_round || undefined;
   };
+  */
 
   const deleteAdhocRound = () => {
+    console.log('footerButtons', { inputs });
+    /*
     context.modal.footerButtons([
       { label: 'Cancel', intent: 'none', close: true },
       { label: 'Delete', intent: 'is-danger', close: true, onClick: deleteRound }
     ]);
+    */
     const existingRounds = (
       draw.matches.reduce((p, c) => (p.indexOf(c.round) >= 0 ? p : p.concat(c.round)), []) || []
     ).sort(utilities.numericSort);

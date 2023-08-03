@@ -31,12 +31,26 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
     }
   };
 
-  context.modal.setContent(
-    `<div class='dzx-dropzone' id='tmxDropzone'><label class="dzx-inputLabel">Drag and Drop files into this zone<input class="dzx-input" type="file" accept="application/json"></label></div>`
-  );
-  const dropzone = document.getElementById('tmxDropzone');
-  const dropzone_input = dropzone.querySelector('.dzx-input');
-  const multiple = dropzone_input.getAttribute('multiple') ? true : false;
+  const dropzone = document.createElement('div');
+  dropzone.className = 'dzx-dropzone';
+  dropzone.id = 'tmxDropzone';
+
+  const label = document.createElement('label');
+  label.className = 'dzx-inputLabel';
+  label.innerHTML = 'Drag and Drop files into this zone';
+
+  const dropzone_input = document.createElement('input');
+  dropzone_input.className = 'dzx-input';
+  dropzone_input.setAttribute('type', 'file');
+  dropzone_input.setAttribute('accept', 'application/json');
+  label.appendChild(dropzone_input);
+  dropzone.appendChild(label);
+
+  context.modal.open({
+    buttons: [{ label: 'Cancel', intent: 'none', close: true }, { label: 'Done' }],
+    title: 'Import tournament records',
+    content: dropzone
+  });
 
   ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(function (event) {
     dropzone.addEventListener(event, function (e) {
@@ -65,6 +79,7 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
   dropzone.addEventListener(
     'drop',
     function (e) {
+      const multiple = dropzone_input.getAttribute('multiple') ? true : false;
       this.classList.remove(DRAGGING);
       const files = e.dataTransfer.files;
       const dataTransfer = new DataTransfer();
@@ -82,9 +97,4 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
     },
     false
   );
-
-  context.modal.open({
-    buttons: [{ label: 'Cancel', intent: 'none', close: true }, { label: 'Done' }],
-    title: 'Import tournament records'
-  });
 }
