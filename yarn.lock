@@ -10077,15 +10077,15 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+tods-competition-factory@1.3.4-beta.1:
+  version "1.3.4-beta.1"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.3.4-beta.1.tgz#01786647e79aec357479d732836abede38adc4f7"
+  integrity sha512-f+BQBsNqA2A6eTk/ekxGnh+0YGK9JMETeeHjcmdfTDkq9W7NMfseWC1t4aJZUDT9zSSzRb26lFlnwTfVGhRx2w==
+
 tods-competition-factory@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.2.0.tgz#2621502ee9276632c8603e55a883f0c4e9611f62"
   integrity sha512-n10QWNaR2KF/w/bQQZmY4y4hZqWGqFgzs232uDV09TIbcUKogKMRANave+XoM5ru5IW787RIeWDbbTrrqkiBJw==
-
-tods-competition-factory@^1.2.32:
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.3.3.tgz#973d7acd62e6725933475bc13bd877d92cfdc117"
-  integrity sha512-mD9YuDTXYnpAsDqITETEW9nLNDO0bbegLMyEP8K+/eRAOSavN03Hm4h0LLZKNhIgojDZ+exq/R9QbHInTgwlKQ==
 
 tods-tmx-classic-converter@^2.13.1:
   version "2.13.1"
