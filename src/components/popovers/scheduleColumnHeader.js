@@ -1,3 +1,4 @@
+import { renameCourt } from 'components/modals/renameCourt';
 import { tipster } from 'components/popovers/tipster';
 import { lang } from 'services/translator';
 
@@ -12,7 +13,8 @@ export function setScheduleColumnHeader(e, cell, courtInfo) {
     },
     {
       option: lang.tr('rename'),
-      onClick: () => console.log('rename court', { courtInfo })
+      // onClick: () => console.log('rename court', { courtInfo })
+      onClick: () => renameCourt({ courtInfo })
     }
   ];
 

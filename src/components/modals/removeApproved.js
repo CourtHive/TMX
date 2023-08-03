@@ -1,6 +1,5 @@
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
-import { context } from 'services/context';
 import { lang } from 'services/translator';
 
 const NO_SELECTION = '-';
@@ -21,8 +20,8 @@ export function removeApproved({ teams, callback }) {
       }
     ]);
 
-  const removeSelection = () => {
-    const selected = context.modal.attributes?.content.selection.value;
+  const removeSelection = ({ content }) => {
+    const selected = content?.selection.value;
     callback({ selected });
   };
 
