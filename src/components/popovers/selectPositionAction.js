@@ -31,7 +31,7 @@ export function selectPositionAction({ event, actions, callback }) {
       onClick: () => handleClick(action)
     }));
 
-  if (options.length) tipster({ options, target, config: { arrow: false, offset: [0, 0] } });
+  if (options?.length) tipster({ options, target, config: { arrow: false, offset: [0, 0] } });
 }
 
 function noChoiceAction({ action, callback }) {
