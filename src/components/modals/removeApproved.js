@@ -1,5 +1,5 @@
 import { renderForm } from 'components/renderers/renderForm';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
 
 const NO_SELECTION = '-';
@@ -20,12 +20,12 @@ export function removeApproved({ teams, callback }) {
       }
     ]);
 
-  const removeSelection = () => {
-    const selected = context.modal.attributes?.content.selection.value;
+  const removeSelection = ({ content }) => {
+    const selected = content?.selection.value;
     callback({ selected });
   };
 
-  context.modal.open({
+  openModal({
     title: 'Remove approved',
     content,
     buttons: [

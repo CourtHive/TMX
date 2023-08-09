@@ -1,9 +1,9 @@
 import { incomingParticipants } from 'services/data/incomingParticipants';
 import PublicGoogleSheetsParser from 'public-google-sheets-parser';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { context } from 'services/context';
 import { lang } from 'services/translator';
 
 import { REGISTRATION } from 'constants/tmxConstants';
@@ -50,5 +50,5 @@ export function editRegistrationLink({ callback }) {
     { label: 'Cancel', intent: 'is-nothing' },
     { label: 'Submit', intent: 'is-primary', onClick: submit, close: true }
   ];
-  context.modal.open({ title: 'Import participants', buttons, content });
+  openModal({ title: 'Import participants', buttons, content });
 }

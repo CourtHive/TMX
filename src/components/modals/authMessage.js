@@ -1,6 +1,7 @@
 import { contentEquals } from 'services/transitions/screenSlaver';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { eventManager } from 'services/dom/eventManager';
+import { openModal } from './baseModal/baseModal';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
 import { lang } from 'services/translator';
@@ -25,7 +26,7 @@ export function authMessage(msg) {
 
       const keepExisting = () => tournamentExists(tournament);
       const keepReceived = () => addReceivedTournament(msg.tournament);
-      context.modal.open({
+      openModal({
         title: 'Save tournament',
         content,
         buttons: [

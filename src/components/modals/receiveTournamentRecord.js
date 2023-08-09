@@ -1,7 +1,7 @@
 import { displayTournament } from 'Pages/Tournament/tournamentDisplay';
+import { openModal } from './baseModal/baseModal';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
-import { context } from 'services/context';
 import { lang } from 'services/translator';
 
 export function receiveTournamentRecord({ record }) {
@@ -23,7 +23,7 @@ export function receiveTournamentRecord({ record }) {
       },
       { label: lang.tr('tournaments.close') }
     ];
-    context.modal.open({
+    openModal({
       title: lang.tr('tournaments.received'),
       content,
       buttons

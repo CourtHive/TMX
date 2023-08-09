@@ -1,7 +1,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
@@ -29,8 +29,8 @@ export function createTeamsFromAttribute({ callback } = {}) {
       }
     ]);
 
-  const createTeam = () => {
-    const selection = context.modal.attributes?.content.selection.value;
+  const createTeam = ({ content }) => {
+    const selection = content?.selection.value;
     if (!selection || selection === NO_SELECTION) return;
 
     const config = valueKey[selection];
@@ -46,7 +46,7 @@ export function createTeamsFromAttribute({ callback } = {}) {
     }
   };
 
-  context.modal.open({
+  openModal({
     title: 'Create Team',
     content,
     buttons: [

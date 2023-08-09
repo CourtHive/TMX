@@ -1,6 +1,6 @@
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { fixtures } from 'tods-competition-factory';
 import { lang } from 'services/translator';
-import { context } from 'services/context';
 import { idObj } from 'services/dom/idObj';
 
 export const floatingScoring = (function () {
@@ -11,7 +11,7 @@ export const floatingScoring = (function () {
 
     let { ids, html } = generateScoreBoard({ muid, teams });
 
-    context.modal.open({ content: html });
+    openModal({ content: html, config: { maxWidth: 450 } });
 
     Object.assign(ids, sb_ids);
     return idObj(ids);

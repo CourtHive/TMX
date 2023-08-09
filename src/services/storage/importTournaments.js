@@ -1,15 +1,15 @@
 import { mapTournamentRecord } from 'Pages/Tournaments/mapTournamentRecord';
+import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { convertTMX2TODS } from 'tods-tmx-classic-converter';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
 export function importTournaments(table) {
   const tournamentIds = table.getData().map((t) => t.tournamentId);
 
-  context.dropModal({
+  dropzoneModal({
     callback: (data) => {
       const tournament = safeJSON.parse({ data });
       if (tournament) {

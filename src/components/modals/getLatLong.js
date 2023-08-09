@@ -3,8 +3,8 @@ import { parseGoogleLink } from 'functions/parsing/parseGoogleLink';
 import { parseBingCoords } from 'functions/parsing/parseBingCoords';
 import { parseHereWeGo } from 'functions/parsing/parseHereWeGo';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { idObj } from 'services/dom/idObj';
 import { env } from 'settings/env';
@@ -21,7 +21,7 @@ function getNavigator() {
 export function getLatLong({ coords, callback }) {
   let zoom = 16;
 
-  if (!coords || !coords.latitude || !coords.longitude) {
+  if (!coords?.latitude || !coords?.longitude) {
     coords = { latitude: 0, longitude: 0 };
     zoom = 2;
   }
@@ -82,7 +82,7 @@ export function getLatLong({ coords, callback }) {
       close: true
     }
   ];
-  context.modal.open({ content: html, buttons });
+  openModal({ content: html, buttons });
   const container = idObj(ids);
 
   const processLink = () => {
@@ -135,7 +135,7 @@ export function getLatLong({ coords, callback }) {
 
 function locationMap({ successElement, mapElementId, coords, zoom }) {
   let nav = getNavigator();
-  if (!nav || !nav.onLine) return {};
+  if (!nav?.onLine) return {};
 
   zoom = zoom === undefined ? 16 : zoom;
   if (coords.latitude !== undefined && coords.longitude !== undefined) {

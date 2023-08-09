@@ -2,7 +2,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { wordValidator } from 'components/validators/wordValidator';
 import { renderForm } from 'components/renderers/renderForm';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
@@ -51,7 +51,7 @@ export function deleteFlights({ eventData, drawIds }) {
   ];
   const content = (elem) => (inputs = renderForm(elem, items, relationships));
 
-  context.modal.open({
+  openModal({
     title: modalTitle,
     content,
     buttons: [

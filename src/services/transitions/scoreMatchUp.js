@@ -1,8 +1,8 @@
 import { tournamentEngine, mocksEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { closeModal } from 'components/modals/baseModal/baseModal';
 import { scoreBoard } from 'legacy/scoring/scoreBoard';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 import { env } from 'settings/env';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
@@ -28,7 +28,7 @@ export function enterMatchUpScore({ matchUpId, callback }) {
       }
     ];
     const mutationCallback = (result) => {
-      context.modal.close();
+      closeModal();
       isFunction(callback) && callback({ ...result, outcome });
     };
     mutationRequest({ methods, callback: mutationCallback });
