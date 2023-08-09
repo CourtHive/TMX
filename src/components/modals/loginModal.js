@@ -1,7 +1,7 @@
 import { systemLogin } from 'services/authentication/authApi';
 import { renderForm } from 'components/renderers/renderForm';
 import { logIn } from 'services/authentication/loginState';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 
 export function loginModal() {
   let inputs;
@@ -32,7 +32,7 @@ export function loginModal() {
     systemLogin(email, password).then(response, (err) => console.log({ err }));
   };
 
-  context.modal.open({
+  openModal({
     title: 'Login',
     content,
     buttons: [

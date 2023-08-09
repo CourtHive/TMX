@@ -1,8 +1,7 @@
-import { genderConstants, factoryConstants } from 'tods-competition-factory';
+import { genderConstants, factoryConstants, mocksEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
-import { mocksEngine } from 'tods-competition-factory';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 
 const { WTN } = factoryConstants.ratingConstants;
 const { FEMALE, MALE, MIXED } = genderConstants;
@@ -64,5 +63,5 @@ export function mockParticipants({ callback } = {}) {
       }
     ]));
 
-  context.modal.open({ title: 'Generate mock players', content, buttons });
+  openModal({ title: 'Generate mock players', content, buttons });
 }

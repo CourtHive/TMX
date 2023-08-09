@@ -1,6 +1,7 @@
 import { renderForm } from 'components/renderers/renderForm';
 import { getIdioms } from 'services/apis/servicesApi';
 import { fixtures } from 'tods-competition-factory';
+import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { env } from 'settings/env';
@@ -41,7 +42,7 @@ export function selectIdiom() {
       context.ee.emit('changeIdiom', { ioc: newIdiom });
     }
   };
-  context.modal.open({
+  openModal({
     title: lang.tr('phrases.selectlanguage'),
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },

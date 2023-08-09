@@ -1,6 +1,6 @@
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { renderForm } from 'components/renderers/renderForm';
-import { context } from 'services/context';
+import { openModal } from './baseModal/baseModal';
 
 import { NONE } from 'constants/tmxConstants';
 
@@ -30,7 +30,7 @@ export function selectAndDeleteEventFlights({ eventData }) {
   }));
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
-  context.modal.open({
+  openModal({
     title: `Delete flights`,
     content,
     buttons: [

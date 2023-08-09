@@ -1,5 +1,6 @@
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { getLoginState, logOut } from 'services/authentication/loginState';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderMenu } from 'components/renderers/renderMenu';
 import { selectIdiom } from 'components/modals/selectIdiom';
 import { loginModal } from 'components/modals/loginModal';
@@ -18,16 +19,16 @@ import { connectSocket, connected, disconnectSocket } from 'services/messaging/s
 import { requestTournamentRecord } from 'services/messaging/requestTournamentRecord';
 
 function displayVersion() {
-  context.modal.open({
-    title: lang.tr('version'),
-    content: tmxNotes.version()
+  openModal({
+    content: tmxNotes.version(),
+    title: lang.tr('version')
   });
 }
 
 function displaySupport() {
-  context.modal.open({
-    title: lang.tr('support'),
-    content: tmxNotes.support()
+  openModal({
+    content: tmxNotes.support(),
+    title: lang.tr('support')
   });
 }
 

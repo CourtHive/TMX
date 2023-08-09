@@ -1,5 +1,5 @@
 import { renderForm } from 'components/renderers/renderForm';
-import { context } from '../../services/context';
+import { openModal } from './baseModal/baseModal';
 
 export function editNotes({ notice, notes, callback }) {
   let inputs;
@@ -28,5 +28,5 @@ export function editNotes({ notice, notes, callback }) {
     { label: 'Cancel', intent: 'is-nothing' },
     { label: 'Save', intent: 'is-info', onClick: submit, close: true }
   ];
-  context.modal.open({ title: 'Order of play', buttons, content });
+  openModal({ title: 'Order of play', buttons, content });
 }

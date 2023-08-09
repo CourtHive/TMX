@@ -1,6 +1,7 @@
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { controlBar } from 'components/controlBar/controlBar';
+import { closeModal, openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 
 import { LEFT } from 'constants/tmxConstants';
@@ -25,12 +26,12 @@ export function selectItem({ title, placeholder, options, selectionLimit }) {
     </div>
   `;
 
-  context.modal.open({ title, content, buttons, onClose });
+  openModal({ title, content, buttons, onClose });
 
   const onSelected = (value) => {
     if (value?.[0]?.onClick) {
       value[0].onClick();
-      context.modal.close();
+      closeModal();
     }
   };
   const { table } = createSelectionTable({

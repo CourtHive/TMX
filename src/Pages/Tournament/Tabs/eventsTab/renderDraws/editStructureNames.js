@@ -1,13 +1,13 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
 import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
-import { tmxToast } from 'services/notifications/tmxToast';
 
 export function editStructureNames({ drawId, callback }) {
   const structures = tournamentEngine.getEvent({ drawId })?.drawDefinition?.structures;
@@ -58,7 +58,7 @@ export function editStructureNames({ drawId, callback }) {
     onInput: checkValid
   }));
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
-  context.modal.open({
+  openModal({
     title: `Edit structure names`,
     content,
     buttons: [
