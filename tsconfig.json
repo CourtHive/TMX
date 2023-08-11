@@ -24,10 +24,7 @@
     "sourceMap": false,
     "strict": true,
     "strictNullChecks": false,
-    "target": "es5",
-    "paths": {
-      "@components": ["./src/courthive-components/src"]
-    }
+    "target": "es5"
   },
   "include": ["src"]
 }
