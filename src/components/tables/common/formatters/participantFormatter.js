@@ -1,11 +1,12 @@
-import { renderParticipant } from 'courthive-components/src/components/renderParticipant';
 import { genderConstants } from 'tods-competition-factory';
-import { isObject } from 'functions/typeOf';
+import { renderParticipant } from 'courthive-components';
+import { isFunction, isObject } from 'functions/typeOf';
 
 const { MALE, FEMALE } = genderConstants;
 
-export function formatParticipant(cell) {
+export const formatParticipant = (onClick) => (cell) => {
   const def = cell.getColumn().getDefinition();
+  const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
   const elem = document.createElement('div');
   const data = cell.getRow().getData();
   const hasWinner = data.winningSide;
@@ -14,7 +15,10 @@ export function formatParticipant(cell) {
   if (participant) {
     return renderParticipant({
       composition: { configuration: { flags: true, genderColor: true, showAddress: true } },
-      participant
+      eventHandlers: { participantClick: (params) => isFunction(onClick) && onClick({ ...params, cell }) },
+      matchUp: data.matchUp,
+      participant,
+      sideNumber
     });
   }
   if (hasWinner) {
@@ -27,4 +31,4 @@ export function formatParticipant(cell) {
   }
   elem.innerHTML = (isObject(value) ? value.participantName : value) || '';
   return elem;
-}
+};

@@ -71,7 +71,7 @@ export const teamRowFormatter = (row) => {
         width: 5
       },
       { title: 'Order', headerSort: false, field: 'order', width: 70 },
-      { title: 'Name', field: 'participantName', formatter: formatParticipant },
+      { title: 'Name', field: 'participantName', formatter: formatParticipant() },
       { title: 'Gender', field: 'person.sex', width: 100 }
     ]
   });

@@ -1,4 +1,4 @@
-import { cModal } from 'courthive-components/src/components/modal/cmodal';
+import { cModal } from 'courthive-components';
 import { lang } from 'services/translator';
 
 import { NONE } from 'constants/tmxConstants';

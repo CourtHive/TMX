@@ -1,4 +1,4 @@
-import { participantActions } from '../../popovers/participantMatchUpActions';
+import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
@@ -31,6 +31,8 @@ export function getMatchUpColumns(replaceTableData) {
       context.router.navigate(route);
     }
   };
+
+  const participantChange = () => replaceTableData();
 
   return [
     {
@@ -101,8 +103,10 @@ export function getMatchUpColumns(replaceTableData) {
       width: 70
     },
     {
-      cellClick: participantActions,
-      formatter: formatParticipant,
+      formatter: formatParticipant(({ event, cell, ...params }) =>
+        participantMatchUpActions(event, cell, participantChange, params)
+      ),
+      cellClick: (e, cell) => participantMatchUpActions(e, cell, participantChange),
       sorter: participantSorter,
       responsive: false,
       title: 'Side 1',
@@ -111,8 +115,10 @@ export function getMatchUpColumns(replaceTableData) {
       widthGrow: 1
     },
     {
-      cellClick: participantActions,
-      formatter: formatParticipant,
+      formatter: formatParticipant(({ event, cell, ...params }) =>
+        participantMatchUpActions(event, cell, participantChange, params)
+      ),
+      cellClick: (e, cell) => participantMatchUpActions(e, cell, participantChange),
       sorter: participantSorter,
       responsive: false,
       title: 'Side 2',
