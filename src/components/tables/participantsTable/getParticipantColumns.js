@@ -49,8 +49,8 @@ export function getParticipantColumns() {
       width: 50
     },
     {
+      formatter: formatParticipant(({ event, cell, ...params }) => participantActions(event, cell, undefined, params)),
       cellClick: participantActions,
-      formatter: formatParticipant,
       field: 'participantName',
       responsive: false,
       resizable: false,

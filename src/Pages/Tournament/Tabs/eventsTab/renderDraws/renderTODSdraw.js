@@ -1,7 +1,4 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
-import { renderContainer } from 'courthive-components/src/components/renderContainer';
-import { renderStructure } from 'courthive-components/src/components/renderStructure';
-import { compositions } from 'courthive-components/src/compositions/compositions';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -11,8 +8,11 @@ import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
+import { renderContainer } from 'courthive-components';
+import { renderStructure } from 'courthive-components';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
+import { compositions } from 'courthive-components';
 import { context } from 'services/context';
 
 import { DRAWS_VIEW, EVENT_CONTROL, LEFT, NONE, QUALIFYING, RIGHT } from 'constants/tmxConstants';
