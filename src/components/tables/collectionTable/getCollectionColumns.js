@@ -12,8 +12,8 @@ export function getCollectionColumns({ matchUp }) {
   const participantSorter = (a, b) => a?.participantName?.localeCompare(b?.participantName);
   return [
     {
-      formatter: collectionParticipantFormatter,
-      cellClick: handleSideClick(matchUp),
+      formatter: collectionParticipantFormatter(handleSideClick(matchUp)),
+      cellClick: (e, cell) => handleSideClick(matchUp)({ event: e, cell }),
       sorter: participantSorter,
       title: side1Participant,
       responsive: false,
@@ -22,8 +22,8 @@ export function getCollectionColumns({ matchUp }) {
       widthGrow: 2
     },
     {
-      formatter: collectionParticipantFormatter,
-      cellClick: handleSideClick(matchUp),
+      formatter: collectionParticipantFormatter(handleSideClick(matchUp)),
+      cellClick: (e, cell) => handleSideClick(matchUp)({ event: e, cell }),
       sorter: participantSorter,
       title: side2Participant,
       responsive: false,
