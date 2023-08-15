@@ -10713,9 +10713,9 @@ tods-competition-factory@^1.2.32:
   integrity sha512-HACZTvckG6ajqyxfxzhTEmkbWHKsffH0Nh347Ib5XuT+UscNSSkFJS1hsWQ+VcjlC52rVyuqwZqf8YrcAajpnA==
 
 tods-competition-factory@^1.4.2:
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.3.tgz#5d5535fc1e095cd1095fc7030f95798794900730"
-  integrity sha512-3ZL0IYzCtda+q6r6aGOkkxXi6Cri5Hj/vbAbsSwEB641g1/SALkEm+vBqERmW2Nc5wsKD27tJhVkyGXVxueRAw==
+  version "1.4.7"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.7.tgz#3c2fa060720cc21dec0f5d81d98234be93ca844c"
+  integrity sha512-R9PECgLMekirOrp76r3f2rspJOzoJoWTV4Zq/tWSCh8d7lvwdfFjAeSlQ8bXzRhZ/qDAhY7ZbtRRj4m2gyJHcw==
 
 tods-tmx-classic-converter@^2.13.1:
   version "2.13.1"
