@@ -14,6 +14,9 @@ export function saveRatings(e, table) {
 
   const rows = table.getData();
   const methods = rows.map((row) => {
+    const wtnRating = row.ratings?.wtn?.wtnRating;
+    const confidence = wtnRating ? 50 : 0;
+    const itemValue = confidence ? { wtnRating, confidence } : undefined;
     return {
       method: ADD_PARTICIPANT_TIME_ITEM,
       params: {
@@ -21,10 +24,7 @@ export function saveRatings(e, table) {
         removePriorValues: true,
         timeItem: {
           itemType: 'SCALE.RATING.SINGLES.WTN',
-          itemValue: {
-            wtnRating: row.ratings.wtn.wtnRating,
-            confidence: 50
-          }
+          itemValue
         }
       }
     };
