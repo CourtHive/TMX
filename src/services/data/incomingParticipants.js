@@ -11,6 +11,7 @@ const modelParticipant = {
   participantName: ['full name', 'name'],
   participantId: ['id', 'participantid'],
   person: {
+    address: { city: ['city'], state: ['state'] },
     standardFamilyName: ['last', 'last name', 'last_name'],
     standardGivenName: ['first', 'First Name', 'first_name'],
     nationalityCode: ['ioc', 'country', 'nationality'],
@@ -62,6 +63,10 @@ export function incomingParticipants({ data, sheetId, callback }) {
       continue;
     }
 
+    const state = rowParser(modelParticipant.person.address.state);
+    const city = rowParser(modelParticipant.person.address.city);
+    if (city || state) participant.person.addresses = [{ city, state }];
+
     const nationalityCode = rowParser(modelParticipant.person.nationalityCode);
     if (nationalityCode && validNationalityCodes.includes(nationalityCode.toUpperCase())) {
       participant.person.nationalityCode = nationalityCode;
@@ -89,11 +94,30 @@ export function incomingParticipants({ data, sheetId, callback }) {
       }
     }
 
+    const utr = rowParser(['utr']);
+    if (utr) {
+      if (!participant.timeItems) participant.timeItems = [];
+      const timeItem = {
+        itemType: 'SCALE.RATING.SINGLES.UTR',
+        itemValue: { utrRating: utr }
+      };
+      participant.timeItems.push(timeItem);
+    }
+    const wtn = rowParser(['wtn']);
+    if (wtn) {
+      if (!participant.timeItems) participant.timeItems = [];
+      const timeItem = {
+        itemType: 'SCALE.RATING.SINGLES.WTN',
+        itemValue: { wtnRating: wtn }
+      };
+      participant.timeItems.push(timeItem);
+    }
+
     participant.participantId =
       rowParser(modelParticipant.participantId) || `XXX-${hashCode(participant.participantName)}`;
 
-    const participantExits = participantIds.includes(participant.participantId);
-    if (!participantExits) {
+    const participantExists = participantIds.includes(participant.participantId);
+    if (!participantExists) {
       participants.push(utilities.definedAttributes(participant));
     }
 
