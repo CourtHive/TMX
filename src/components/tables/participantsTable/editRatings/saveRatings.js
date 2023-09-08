@@ -13,11 +13,11 @@ export function saveRatings(e, table) {
   });
 
   const rows = table.getData();
-  const methods = rows.map((row) => {
+  const methods = rows.flatMap((row) => {
     const wtnRating = row.ratings?.wtn?.wtnRating;
-    const confidence = wtnRating ? 50 : 0;
-    const itemValue = confidence ? { wtnRating, confidence } : undefined;
-    return {
+    let confidence = wtnRating ? 50 : 0;
+    let itemValue = confidence ? { wtnRating, confidence } : undefined;
+    const wtnMethod = {
       method: ADD_PARTICIPANT_TIME_ITEM,
       params: {
         participantId: row.participantId,
@@ -28,6 +28,21 @@ export function saveRatings(e, table) {
         }
       }
     };
+    const utrRating = row.ratings?.utr?.utrRating;
+    confidence = utrRating ? 50 : 0;
+    itemValue = confidence ? { wtnRating, confidence } : undefined;
+    const utrMethod = {
+      method: ADD_PARTICIPANT_TIME_ITEM,
+      params: {
+        participantId: row.participantId,
+        removePriorValues: true,
+        timeItem: {
+          itemType: 'SCALE.RATING.SINGLES.UTR',
+          itemValue
+        }
+      }
+    };
+    return [wtnMethod, utrMethod];
   });
 
   const postMutation = (result) => {
