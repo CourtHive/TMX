@@ -14,14 +14,14 @@ export function renderMatchUpTab() {
   // FILTER: events
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
-    if (eventIdFilter) table?.removeFilter(eventFilter);
+    table?.removeFilter(eventFilter);
     eventIdFilter = eventId;
     if (eventId) table?.addFilter(eventFilter);
   };
   const events = tournamentEngine.getEvents().events || [];
   const allEvents = {
     label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
-    onClick: updateEventFilter,
+    onClick: () => updateEventFilter(),
     close: true
   };
   const eventOptions = [allEvents, { divider: true }].concat(
@@ -56,7 +56,7 @@ export function renderMatchUpTab() {
   };
   const allTeams = {
     label: `<span style='font-weight: bold'>${ALL_TEAMS}</span>`,
-    onClick: updateTeamFilter,
+    onClick: () => updateTeamFilter(),
     close: true
   };
   const teamOptions = [allTeams, { divider: true }].concat(

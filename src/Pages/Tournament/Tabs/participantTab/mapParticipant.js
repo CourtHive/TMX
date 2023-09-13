@@ -2,8 +2,8 @@ import { getClub, getCountry, getEvents } from 'Pages/Tournament/Tabs/participan
 import { factoryConstants } from 'tods-competition-factory';
 import camelcase from 'camelcase';
 
+const { WTN, UTR } = factoryConstants.ratingConstants;
 const { SINGLES } = factoryConstants.eventConstants;
-const { WTN } = factoryConstants.ratingConstants;
 
 export const mapParticipant = (participant, derivedEventInfo) => {
   const { participantId, participantName, participantType, person } = participant;
@@ -11,8 +11,9 @@ export const mapParticipant = (participant, derivedEventInfo) => {
   const address = participant.person?.addresses?.[0];
   const cityState = address?.city && address?.state ? `${address.city}, ${address.state}` : undefined;
 
+  const utr = participant.ratings?.[SINGLES]?.find((rating) => rating.scaleName === UTR)?.scaleValue;
   const wtn = participant.ratings?.[SINGLES]?.find((rating) => rating.scaleName === WTN)?.scaleValue;
-  const ratings = { wtn };
+  const ratings = { wtn, utr };
 
   return {
     searchText: `${participantName} ${standardGivenName} ${standardFamilyName}`.toLowerCase(),
