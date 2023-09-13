@@ -52,7 +52,7 @@ function assignParticipant({ action, callback }) {
     mutationRequest({ methods, callback: postMutation });
   };
 
-  selectParticipant({ action, onSelection });
+  selectParticipant({ action, onSelection, selectOnEnter: true });
 }
 
 function assignSeed({ target, action, callback }) {
