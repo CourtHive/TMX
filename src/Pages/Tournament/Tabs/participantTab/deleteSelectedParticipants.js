@@ -1,5 +1,6 @@
 import { deleteParticipants } from 'Pages/Tournament/Tabs/participantTab/deleteParticipants';
-import { context } from 'services/context';
+import { openModal } from 'components/modals/baseModal/baseModal';
+import { NONE } from 'constants/tmxConstants';
 
 export const deleteSelectedParticipants = (table) => {
   const selected = table.getSelectedData();
@@ -8,10 +9,12 @@ export const deleteSelectedParticipants = (table) => {
     const callback = (result) => result.success && table.deleteRow(participantIds);
     deleteParticipants({ participantIds, callback });
   };
-  context.modal.confirm({
-    query: `Delete ${participantIds.length} participants?`,
+  openModal({
     title: 'Delete participants',
-    okIntent: 'is-danger',
-    okAction
+    content: `Delete ${participantIds.length} participants?`,
+    buttons: [
+      { label: 'Cancel', intent: NONE, close: true },
+      { label: 'Delete', id: 'deleteDraw', intent: 'is-danger', close: true, onClick: okAction }
+    ]
   });
 };

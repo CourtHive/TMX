@@ -9,7 +9,7 @@ export function getSexFilter(table) {
 
   const sexFilter = (rowData) => rowData.participant?.person?.sex === filterValue;
   const updateSexFilter = (sex) => {
-    if (filterValue) table.removeFilter(sexFilter);
+    table.removeFilter(sexFilter);
     filterValue = sex;
     if (sex) table.addFilter(sexFilter);
   };
@@ -17,7 +17,7 @@ export function getSexFilter(table) {
   const genders = { [MALE]: 'Male', [FEMALE]: 'Female', [MIXED]: ALL_GENDERS };
   const allSexes = {
     label: `<span style='font-weight: bold'>${genders[MIXED]}</span>`,
-    onClick: updateSexFilter,
+    onClick: () => updateSexFilter(),
     close: true
   };
   const sexOptions = [allSexes, { divider: true }].concat(

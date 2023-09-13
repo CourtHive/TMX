@@ -159,11 +159,11 @@ export function getParticipantColumns() {
       editor: numericEditor({ maxValue: 16, decimals: true, field: FIELD_UTR }),
       sorterParams: { alignEmptyValues: 'bottom' },
       visible: columnIsVisible(FIELD_UTR),
-      field: FIELD_UTR,
       responsive: true,
       resizable: false,
-      editable: false,
       sorter: 'number',
+      field: FIELD_UTR,
+      editable: false,
       title: UTR,
       width: 70
     },
