@@ -10716,9 +10716,9 @@ to-regex-range@^5.0.1:
     is-number "^7.0.0"
 
 tods-competition-factory@^1.4.11, tods-competition-factory@^1.4.31:
-  version "1.4.31"
-  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.31.tgz#34d9a14c5df2497691e478abda0a0c77f2ad490c"
-  integrity sha512-hwrMMq4OUtOyC1Nx5n0sPx6EE+fneDhDcYThIi0jeYbOm0II3Raxt4D6AeQRdPMKchyD0uj+iYm4kOKtjwdjPA==
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.5.0.tgz#134cdefc7706f33c7da10d65a2bd30d587602eaf"
+  integrity sha512-v9hwexdF37n/4OXaGJuOkv9G/YjtPF3oAyyxPioPTXvGT//Fmc05iJ88FdcuD9Zk3395N8cjmK/XZV9aqYgrEg==
 
 tods-tmx-classic-converter@^2.13.2:
   version "2.13.2"
