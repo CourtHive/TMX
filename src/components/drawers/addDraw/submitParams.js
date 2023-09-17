@@ -21,7 +21,8 @@ import {
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
-const { FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
+  drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 
 export function submitParams({
@@ -59,6 +60,14 @@ export function submitParams({
   // default to Manual if the drawSize is less than the number of entries
   const automated = drawSize < drawEntries.length ? false : inputs[AUTOMATED].value === AUTOMATED;
 
+  const eventId = event.eventId;
+  const drawOptions = {
+    drawEntries,
+    automated,
+    eventId,
+    drawId
+  };
+
   // ROUND_ROBIN_WITH_PLAYOFFS
   const advancePerGroup = parseInt(inputs.advancePerGroup?.value || 0);
   const groupRemaining = inputs[GROUP_REMAINING]?.checked;
@@ -95,6 +104,8 @@ export function submitParams({
     }
   } else if (drawType === ROUND_ROBIN) {
     structureOptions = { groupSize };
+  } else if (drawType === AD_HOC) {
+    Object.assign(drawOptions, { roundsCount: 1 });
   }
 
   const seedsCount = tournamentEngine.getSeedsCount({
@@ -102,14 +113,6 @@ export function submitParams({
     policyDefinitions: POLICY_SEEDING,
     drawSizeProgression: true
   })?.seedsCount;
-
-  const eventId = event.eventId;
-  const drawOptions = {
-    drawEntries,
-    automated,
-    eventId,
-    drawId
-  };
 
   const qualifiersCount =
     (numericValidator(inputs[QUALIFIERS_COUNT].value) && parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
