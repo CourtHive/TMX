@@ -10720,6 +10720,11 @@ tods-competition-factory@^1.4.11, tods-competition-factory@^1.4.31:
   resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.31.tgz#34d9a14c5df2497691e478abda0a0c77f2ad490c"
   integrity sha512-hwrMMq4OUtOyC1Nx5n0sPx6EE+fneDhDcYThIi0jeYbOm0II3Raxt4D6AeQRdPMKchyD0uj+iYm4kOKtjwdjPA==
 
+tods-competition-factory@^1.4.33:
+  version "1.4.33"
+  resolved "https://registry.yarnpkg.com/tods-competition-factory/-/tods-competition-factory-1.4.33.tgz#010d5f70dad8dc1c9c00ac7453b51bb2fef64978"
+  integrity sha512-3/2/ue0CeH90719IhyYz9h9U5ZelQU17c3Yaq0rDoq8cCn8De0DdulUt1wZbdGFvFE1yCMnzrHFsi/7xYXPTIQ==
+
 tods-tmx-classic-converter@^2.13.2:
   version "2.13.2"
   resolved "https://registry.yarnpkg.com/tods-tmx-classic-converter/-/tods-tmx-classic-converter-2.13.2.tgz#eeaecc5ca287b2630902835b7f80e0222f4d7b0e"
