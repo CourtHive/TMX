@@ -55,7 +55,10 @@ export function setupTMX() {
 
 function tmxReady() {
   console.log('%c TMX ready', 'color: lightgreen');
-  if (window.location.host.startsWith('localhost:')) setDev();
+  // TODO: uncomment upon release
+  // if (window.location.host.startsWith('localhost:') || window.location.host.startsWith('https://courthive.github.io')) {
+  setDev();
+  // }
 
   routeTMX();
   tmxNavigation();
