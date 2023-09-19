@@ -104,7 +104,7 @@ export const teamRowFormatter = (row) => {
         const individualParticipantIds = (
           result.selected ? result.selected.map(xa('participantId')) : [result.participantId]
         ).filter(Boolean);
-        const newParticipantIds = participant.individualParticipants
+        const newParticipantIds = (participant.individualParticipants ?? [])
           .map(xa('participantId'))
           .concat(individualParticipantIds);
 
@@ -126,7 +126,9 @@ export const teamRowFormatter = (row) => {
           ];
           const postMutation = (result) => {
             if (result.success) {
-              participant.individualParticipants = participant.individualParticipants.concat(individualParticipants);
+              participant.individualParticipants = (participant.individualParticipants ?? []).concat(
+                individualParticipants
+              );
               participant.membersCount = participant.individualParticipants.length;
               row.update(participant);
               const table = row.getTable();
