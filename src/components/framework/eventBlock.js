@@ -8,6 +8,10 @@ import {
   QUALIFYING_PANEL,
   UNGROUPED_PANEL,
   WITHDRAWN_PANEL,
+  DRAW_CONTROL,
+  DRAW_FRAME,
+  DRAW_RIGHT,
+  DRAW_LEFT,
   DRAWS_VIEW,
   EVENT_INFO,
   EVENT_CONTROL,
@@ -50,11 +54,16 @@ export function eventBlock() {
         </div>
       </div>
       <div style="background-color: white; width: 100%; margin: 0">
-        <div id="drawControl"></div>
-        <div
-          id=${DRAWS_VIEW}
-	  style="overflow-x: scroll; padding: 1em; display: none;"
-        ></div>
+        <div id=${DRAW_CONTROL}></div>
+        <div id=${DRAW_FRAME} class="flexrow flexjustifystart" style="width: 100%">
+          <div id=${DRAW_LEFT} style="padding-top: 1rem">Boo</div>
+          <div
+            id=${DRAWS_VIEW}
+            style="overflow-x: scroll; padding-top: 1rem; width: 100%; display: none;"
+          >
+          </div>
+          <div id=${DRAW_RIGHT} style="padding-top: 1rem">Boo</div>
+        </div>
       </div>
     </div>
   </div>

@@ -98,7 +98,12 @@ export const ENTRIES_COUNT = 'entriesCount';
 export const EVENTS_TABLE = 'eventsTable';
 export const TMX_OVERLAY = 'tmxOverlay';
 
-// entries
+export const DRAW_CONTROL = 'drawControl';
+export const DRAW_FRAME = 'drawFrame';
+export const DRAW_RIGHT = 'drawRight';
+export const DRAW_LEFT = 'drawLeft';
+
+// views
 export const ENTRIES_VIEW = 'entriesView';
 export const DRAWS_VIEW = 'drawsView';
 
