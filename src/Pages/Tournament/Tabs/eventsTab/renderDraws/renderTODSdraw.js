@@ -13,8 +13,18 @@ import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
 import { context } from 'services/context';
 
-import { DRAWS_VIEW, EVENT_CONTROL, LEFT, NONE, QUALIFYING, RIGHT } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
+import {
+  EVENT_CONTROL,
+  DRAW_CONTROL,
+  DRAW_RIGHT,
+  DRAWS_VIEW,
+  QUALIFYING,
+  DRAW_LEFT,
+  RIGHT,
+  LEFT,
+  NONE
+} from 'constants/tmxConstants';
 
 const { AD_HOC } = drawDefinitionConstants;
 const { DOUBLES, TEAM } = eventConstants;
@@ -54,8 +64,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
 
-  const drawControl = document.getElementById('drawControl');
-  removeAllChildNodes(drawControl);
+  [DRAW_CONTROL, DRAW_RIGHT, DRAW_LEFT].forEach((elem) => {
+    const element = document.getElementById(elem);
+    if (element) removeAllChildNodes(element);
+  });
 
   const { sourceStructuresComplete, hasDrawFeedProfile } = structure;
   const isPlayoff =
@@ -63,12 +75,22 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     structure.stage !== 'QUALIFYING' &&
     hasDrawFeedProfile;
 
+  const isRoundRobin = structure.structureType === 'CONTAINER';
+
   const drawsView = document.getElementById(DRAWS_VIEW);
   destroyTables();
   removeAllChildNodes(drawsView);
 
   const updateDrawDisplay = () => {
     if (dual) return;
+
+    // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
+    // if there are playoff structures, button to populate them
+    const roundRobinStats = {
+      onClick: () => console.log('boo'),
+      label: 'View stats', // also toggle between finishing positions and matches
+      location: RIGHT
+    };
 
     if (isPlayoff) {
       const playoffPositioning = () => {
@@ -96,6 +118,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           location: RIGHT
         }
       ];
+      const drawControl = document.getElementById(DRAW_CONTROL);
+      controlBar({ target: drawControl, items: drawControlItems });
+    } else if (isRoundRobin) {
+      const drawControlItems = [roundRobinStats];
+      const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     }
 

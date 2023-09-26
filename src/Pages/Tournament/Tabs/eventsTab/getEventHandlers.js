@@ -47,6 +47,7 @@ export function getEventHandlers({ eventData, callback }) {
 
   return {
     centerInfoClick: () => console.log('centerInfo click'),
+    roundHeaderClick: () => console.log('round click'),
     scheduleClick: () => console.log('schedule click'),
     venueClick: () => console.log('venue click'),
 
