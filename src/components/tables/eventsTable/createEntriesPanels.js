@@ -48,13 +48,14 @@ export function createEntriesPanels({ eventId, drawId }) {
 
     if (!event) return { error: 'EVENT_NOT_FOUND' };
 
-    const { participants, derivedDrawInfo } = tournamentEngine.getParticipants({
-      participantFilters: { eventIds: [eventId] },
-      withIndividualParticipants: true,
-      withScaleValues: true,
-      withDraws: true,
-      withISO2: true
-    });
+    const { participants, derivedDrawInfo } =
+      tournamentEngine.getParticipants({
+        participantFilters: { eventIds: [eventId] },
+        withIndividualParticipants: true,
+        withScaleValues: true,
+        withDraws: true,
+        withISO2: true
+      }) ?? {};
 
     const hasFlights = event?.drawDefinitions?.length > 1;
 
@@ -138,7 +139,7 @@ export function createEntriesPanels({ eventId, drawId }) {
     const entriesOptions = (result.event.drawDefinitions || [])
       .map((drawDefinition) => ({
         onClick: () => navigateToEvent({ eventId, drawId: drawDefinition.drawId }),
-        label: drawDefinition.drawName,
+        label: drawDefinition?.drawName,
         close: true
       }))
       .concat([{ divider: true }, eventEntries]);
@@ -163,12 +164,12 @@ export function createEntriesPanels({ eventId, drawId }) {
     };
     const drawOptions = result.event.drawDefinitions
       ?.map((d) => ({
-        onClick: () => navigateToEvent({ eventId, drawId: d.drawId, renderDraw: true }),
-        label: d.drawName,
+        onClick: () => navigateToEvent({ eventId, drawId: d?.drawId, renderDraw: true }),
+        label: d?.drawName,
         close: true
       }))
       .concat([{ divider: true }, addDrawOption]);
-    const drawName = result.event?.drawDefinitions?.find((d) => d.drawId === drawId)?.drawName;
+    const drawName = result.event?.drawDefinitions?.find((d) => d?.drawId === drawId)?.drawName;
 
     const generateFlights = ({ eventId }) => {
       console.log('generateFlights', { eventId });
