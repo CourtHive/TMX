@@ -44,8 +44,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   destroyTables();
   getData();
 
-  console.log({ structure });
-
   // once we have data...
   const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
   const isPlayoff =
@@ -69,6 +67,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
+  composition.configuration.roundHeader = true;
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   removeAllChildNodes(drawsView);
