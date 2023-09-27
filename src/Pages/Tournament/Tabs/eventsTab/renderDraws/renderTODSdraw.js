@@ -31,7 +31,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       participantsProfile: { withIOC: true, withISO2: true },
       includePositionAssignments: true,
       eventId
-    }).eventData;
+    })?.eventData;
     eventType = eventData?.eventInfo?.eventType;
     drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structures = drawData?.structures || [];

@@ -9,7 +9,7 @@ export function getEventOptions({ events }) {
     .map((event) => ({
       onClick: () => {
         const result = tournamentEngine.getEventData({ eventId: event.eventId });
-        if (!result.eventData?.drawsData?.length) {
+        if (!result?.eventData?.drawsData?.length) {
           navigateToEvent({ eventId: event.eventId });
         } else {
           const drawId = result.eventData.drawsData?.[0]?.drawId;
