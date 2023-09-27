@@ -7,24 +7,15 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
+import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
 import { context } from 'services/context';
 
+import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
-import {
-  EVENT_CONTROL,
-  DRAW_CONTROL,
-  DRAW_RIGHT,
-  DRAWS_VIEW,
-  QUALIFYING,
-  DRAW_LEFT,
-  RIGHT,
-  LEFT,
-  NONE
-} from 'constants/tmxConstants';
 
 const { AD_HOC } = drawDefinitionConstants;
 const { DOUBLES, TEAM } = eventConstants;
@@ -50,11 +41,26 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     matchUps = Object.values(roundMatchUps || {}).flat();
   };
 
+  destroyTables();
   getData();
+
+  console.log({ structure });
+
+  // once we have data...
+  const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
+  const isPlayoff =
+    !(structure?.stage === 'MAIN' && structure?.stageSequence === 1) &&
+    structure?.stage !== 'QUALIFYING' &&
+    hasDrawFeedProfile;
+
+  const isRoundRobin = structure?.structureType === 'CONTAINER';
 
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
-    callback: () => renderTODSdraw({ eventId, drawId, structureId }),
+    callback: () => {
+      cleanupDrawPanel();
+      renderTODSdraw({ eventId, drawId, structureId });
+    },
     eventData
   });
   const composition =
@@ -64,21 +70,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
 
-  [DRAW_CONTROL, DRAW_RIGHT, DRAW_LEFT].forEach((elem) => {
-    const element = document.getElementById(elem);
-    if (element) removeAllChildNodes(element);
-  });
-
-  const { sourceStructuresComplete, hasDrawFeedProfile } = structure;
-  const isPlayoff =
-    !(structure.stage === 'MAIN' && structure.stageSequence === 1) &&
-    structure.stage !== 'QUALIFYING' &&
-    hasDrawFeedProfile;
-
-  const isRoundRobin = structure.structureType === 'CONTAINER';
-
   const drawsView = document.getElementById(DRAWS_VIEW);
-  destroyTables();
   removeAllChildNodes(drawsView);
 
   const updateDrawDisplay = () => {
