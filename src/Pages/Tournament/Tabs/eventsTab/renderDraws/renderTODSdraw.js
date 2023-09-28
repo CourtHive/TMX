@@ -28,7 +28,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
-      participantsProfile: { withIOC: true, withISO2: true },
+      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true },
       includePositionAssignments: true,
       eventId
     })?.eventData;
@@ -63,7 +63,15 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   });
   const composition =
     compositions?.[compositionName] ||
-    compositions[(eventType === DOUBLES && 'Australian') || (eventType === TEAM && 'French') || 'National']; // National malformed for DOUBLES
+    compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
+
+  // override WTN default
+  if (composition.configuration.scaleAttributes) {
+    composition.configuration.scaleAttributes.scaleName = 'UTR';
+    composition.configuration.scaleAttributes.accessor = 'utrRating';
+    composition.configuration.scaleAttributes.scaleColor = 'blue';
+    composition.configuration.scaleAttributes.fallback = true;
+  }
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
@@ -136,12 +144,23 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
       removeAllChildNodes(drawsView);
+
+      const buttonColumn = document.createElement('div');
+      buttonColumn.style = 'display: flex; place-content: flex-start; height: 100%';
+      const elem = document.createElement('button');
+      elem.className = 'button font-medium is-info';
+      elem.innerHTML = 'Generate';
+      buttonColumn.appendChild(elem);
+
+      const finalColumn = utilities.isAdHoc({ structure }) && buttonColumn;
       const content = renderContainer({
         content: renderStructure({
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
           eventHandlers,
-          composition
+          composition,
+          finalColumn,
+          structure
         }),
         theme: composition.theme
       });
@@ -154,7 +173,14 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
     if (refresh) getData();
 
     const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
-    const actionOptions = getActionOptions({ eventData, drawData, drawId, structureId, structureName });
+    const actionOptions = getActionOptions({
+      dualMatchUp: dual && matchUps[0],
+      structureName,
+      structureId,
+      eventData,
+      drawData,
+      drawId
+    });
     const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
     const drawsOptions = getDrawsOptions({ eventData, drawId });
     const eventOptions = getEventOptions({ events });
@@ -229,7 +255,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   if (dual) {
     const scorecard = renderScorecard({ matchUp: matchUps[0], participantFilter });
-    if (scorecard) drawsView.appendChild(scorecard);
+    if (scorecard) {
+      drawsView.appendChild(scorecard);
+    }
   } else {
     updateDrawDisplay();
   }
