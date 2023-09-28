@@ -4,7 +4,7 @@ import { isFunction, isObject } from 'functions/typeOf';
 
 const { MALE, FEMALE } = genderConstants;
 
-export const formatParticipant = (onClick) => (cell) => {
+export const formatParticipant = (onClick) => (cell, placeholder) => {
   const def = cell.getColumn().getDefinition();
   const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
   const elem = document.createElement('div');
@@ -18,6 +18,7 @@ export const formatParticipant = (onClick) => (cell) => {
       eventHandlers: { participantClick: (params) => isFunction(onClick) && onClick({ ...params, cell }) },
       matchUp: data.matchUp,
       participant,
+      placeholder,
       sideNumber
     });
   }
