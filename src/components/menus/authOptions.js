@@ -20,7 +20,7 @@ export function displayAuthOptions({ tournamentId, target } = {}) {
       text: lang.tr('phrases.generatekey'),
       hide: !admin,
       onClick: authorizeUser,
-      intent: 'i-success'
+      intent: 'is-success'
     },
     {
       text: 'Delegation Official',
