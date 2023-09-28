@@ -23,7 +23,7 @@ export function openScorecard({ title, drawId, matchUpId, onClose }) {
   const content = renderScorecard({ matchUp });
 
   // title is passed into footer for re-creating scorecard after mutations
-  const footer = getFooter({ title, drawId, matchUpId, onClose });
+  const footer = renderScorecardFooter({ title, drawId, matchUpId, onClose });
 
   return openOverlay({ title, content, footer });
 }
@@ -147,7 +147,7 @@ function getSide({ matchUp, sideNumber, justify = 'start' }) {
   return side;
 }
 
-function getFooter({ title, drawId, matchUpId, onClose }) {
+export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
   const edit = document.createElement('button');
   edit.className = 'button is-warning is-light';
   edit.onclick = () => {
