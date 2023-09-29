@@ -34,7 +34,7 @@ const addTo = (table, eventId, drawId) => {
 };
 
 export const addToDraw = (event, drawId) => (table) => {
-  const options = (event.drawDefinitions || []).map(({ drawName, drawId }) => ({
+  const options = (event.drawDefinitions || []).filter(Boolean).map(({ drawName, drawId }) => ({
     onClick: () => addTo(table, event.eventId, drawId),
     stateChange: true,
     label: drawName,

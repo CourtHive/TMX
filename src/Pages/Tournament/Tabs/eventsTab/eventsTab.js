@@ -1,8 +1,9 @@
 import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
-import { renderDrawPanel } from './renderDrawPanel';
 import { renderTODSdraw } from './renderDraws/renderTODSdraw';
+import { cleanupDrawPanel } from './cleanupDrawPanel';
+import { renderDrawPanel } from './renderDrawPanel';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
@@ -11,6 +12,7 @@ import { EVENTS_TAB } from 'constants/tmxConstants';
 export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {}) {
   highlightTab(EVENTS_TAB);
   destroyTables();
+  cleanupDrawPanel();
 
   if (eventId || drawId) {
     if (drawId && renderDraw) {

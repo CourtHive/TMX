@@ -14,7 +14,9 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
     return completion();
   } else {
     const result = factoryEngine.executionQueue(methods) || {};
-    if (result.error) return completion(result);
+    if (result.error) {
+      return completion(result);
+    }
 
     if (result?.success) {
       saveTournamentRecord();

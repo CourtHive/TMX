@@ -1,10 +1,11 @@
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
 
 export const collectionParticipantFormatter = (onClick) => (cell) => {
+  const placholder = document.createElement('div');
+  placholder.className = 'has-text-warning-dark';
+  placholder.innerHTML = 'Select participant';
+
   const value = cell.getValue();
-  if (value.participantName) return formatParticipant(onClick)(cell);
-  const elem = document.createElement('div');
-  elem.className = 'has-text-warning-dark';
-  elem.innerHTML = 'Select participant';
-  return elem;
+  const participantValue = value.participantName && formatParticipant(onClick)(cell, placholder);
+  return participantValue ?? placholder;
 };

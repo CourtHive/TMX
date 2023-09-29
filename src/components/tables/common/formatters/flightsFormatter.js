@@ -13,7 +13,7 @@ export const flightsFormatter = (onClick) => (cell) => {
   const flights = cell.getValue();
   const rowData = cell.getRow().getData();
   const { participantId } = rowData;
-  flights.forEach((flight) => {
+  flights?.forEach((flight) => {
     const pill = createPill({ def, participantId, flight, flightClick });
     content.appendChild(pill);
   });
