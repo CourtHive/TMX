@@ -23,7 +23,7 @@ export function openScorecard({ title, drawId, matchUpId, onClose }) {
   const content = renderScorecard({ matchUp });
 
   // title is passed into footer for re-creating scorecard after mutations
-  const footer = getFooter({ title, drawId, matchUpId, onClose });
+  const footer = renderScorecardFooter({ title, drawId, matchUpId, onClose });
 
   return openOverlay({ title, content, footer });
 }
@@ -147,7 +147,7 @@ function getSide({ matchUp, sideNumber, justify = 'start' }) {
   return side;
 }
 
-function getFooter({ title, drawId, matchUpId, onClose }) {
+export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
   const edit = document.createElement('button');
   edit.className = 'button is-warning is-light';
   edit.onclick = () => {
@@ -181,6 +181,28 @@ function getFooter({ title, drawId, matchUpId, onClose }) {
   reset.innerHTML = 'Reset';
   */
 
+  const postMutation = (result) => {
+    if (result.success) {
+      const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
+      const content = renderScorecard({ matchUp });
+      setOverlayContent({ content });
+    }
+  };
+
+  const removePlayers = document.createElement('button');
+  removePlayers.className = 'button is-warning is-light button-spacer';
+  removePlayers.innerHTML = 'Remove players';
+
+  removePlayers.onclick = () => {
+    const methods = [
+      {
+        params: { drawId, matchUpId, inheritance: false },
+        method: 'resetMatchUpLineUps'
+      }
+    ];
+    mutationRequest({ methods, callback: postMutation });
+  };
+
   const clear = document.createElement('button');
   clear.className = 'button is-info is-light button-spacer';
   clear.innerHTML = 'Clear results';
@@ -192,13 +214,6 @@ function getFooter({ title, drawId, matchUpId, onClose }) {
         method: RESET_SCORECARD
       }
     ];
-    const postMutation = (result) => {
-      if (result.success) {
-        const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
-        const content = renderScorecard({ matchUp });
-        setOverlayContent({ content });
-      }
-    };
     mutationRequest({ methods, callback: postMutation });
   };
 
@@ -219,6 +234,7 @@ function getFooter({ title, drawId, matchUpId, onClose }) {
   const footer = document.createElement('div');
   footer.className = 'overlay-footer-wrap';
   footer.appendChild(edit);
+  footer.appendChild(removePlayers);
   footer.appendChild(clear);
   footer.appendChild(close);
 

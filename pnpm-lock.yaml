@@ -54,8 +54,8 @@ dependencies:
     specifier: ^2.3.2
     version: 2.3.2
   courthive-components:
-    specifier: ^0.7.5
-    version: 0.7.5
+    specifier: ^0.7.9
+    version: 0.7.9
   d3:
     specifier: 5.16.0
     version: 5.16.0
@@ -120,11 +120,11 @@ dependencies:
     specifier: ^6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: ^1.6.0
-    version: 1.6.1
+    specifier: ^1.6.21
+    version: 1.6.21
   tods-tmx-classic-converter:
-    specifier: ^2.13.2
-    version: 2.13.2
+    specifier: ^2.13.6
+    version: 2.13.6
   typescript:
     specifier: ^4.9.3
     version: 4.9.5
@@ -4658,8 +4658,8 @@ packages:
       typescript: 4.9.5
     dev: true
 
-  /courthive-components@0.7.5:
-    resolution: {integrity: sha512-XPeFcyGRSVRVpQQ8KbtM9NJbNPN55T6di6MqFaMRNSac/it0RQ4FGU/bNCACg/NZ5kqRjzBlp9ncroc3CEVcQg==}
+  /courthive-components@0.7.9:
+    resolution: {integrity: sha512-1uksOl1jne0x+vhZt7pfQeGuQm/ZRkaLS5Jd2txhpl1vviAIkEkvxYctpvT/YuI6qHxkH8QNvlm4inDe5+ixdA==}
     engines: {node: '>=16.16.0 < 19'}
     dependencies:
       '@stitches/core': 1.2.8
@@ -4668,7 +4668,7 @@ packages:
       classnames: 2.3.2
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 1.6.1
+      tods-competition-factory: 1.6.21
     dev: false
 
   /create-ecdh@4.0.4:
@@ -11724,20 +11724,20 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@1.6.1:
-    resolution: {integrity: sha512-8yv/eVefLutmV1zOHFeNzdbsd/Cq4QfGsroROQ+4CYFaqZc9Wr/5NajrFLNH5OO/qQNaXZvexA8plon8c42sMA==}
+  /tods-competition-factory@1.6.21:
+    resolution: {integrity: sha512-5hQBjRVWqmS+2rDTdDvIXT9XMyT77r5n7lOJwlPXIBuyou0/Hmk7EoWJFakrDDJxbbcKVCvLuLVyjRj7HM261A==}
     engines: {node: '>=18.17.1 < 19'}
     dev: false
 
-  /tods-tmx-classic-converter@2.13.2:
-    resolution: {integrity: sha512-wuE2YZxD7ASSSYQz1TF+3eL43NhuVgPq5c8e33dYBSmWsOdH5z6DJvWr5EREJLsnOi+Emd2a4j03aGe9CEVl6Q==}
+  /tods-tmx-classic-converter@2.13.6:
+    resolution: {integrity: sha512-5yx3Zc2CMm9AqryGLVoFA9VZx7QcJE7kjjTBMPA7TFZ9/pUM7NhWsnqcy/zELP93PzXTFuTJZlAokX/pxMwTnQ==}
     engines: {node: '>=16.16.0 < 19'}
     dependencies:
       circular-json: 0.5.9
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 1.6.1
+      tods-competition-factory: 1.6.21
     dev: false
 
   /toidentifier@1.0.1:

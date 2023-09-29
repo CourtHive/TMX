@@ -30,7 +30,7 @@ export function saveRatings(e, table) {
     };
     const utrRating = row.ratings?.utr?.utrRating;
     confidence = utrRating ? 50 : 0;
-    itemValue = confidence ? { wtnRating, confidence } : undefined;
+    itemValue = confidence ? { utrRating, confidence } : undefined;
     const utrMethod = {
       method: ADD_PARTICIPANT_TIME_ITEM,
       params: {
