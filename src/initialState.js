@@ -57,6 +57,7 @@ function tmxReady() {
   console.log('%c TMX ready', 'color: lightgreen');
   // TODO: uncomment upon release
   // if (window.location.host.startsWith('localhost:') || window.location.host.startsWith('https://courthive.github.io')) {
+  // to re-enable also uncomment (notLocal) check in actions.js
   setDev();
   // }
 
