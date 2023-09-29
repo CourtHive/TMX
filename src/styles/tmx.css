@@ -69,9 +69,9 @@ body {
 
 /* minimum height prevents jumpy rendering */
 .section {
-  margin-left: 3rem;
+  padding-right: 1rem !important;
   min-height: 1000px;
-  padding-right: 2rem !important;
+  margin-left: 1rem;
 }
 
 .tmxLogo {
