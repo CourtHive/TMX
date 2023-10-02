@@ -1,21 +1,16 @@
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
-import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { tipster } from 'components/popovers/tipster';
+
+import { BOTTOM } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
 export function getEventHandlers({ eventData, callback }) {
   const sideClick = (props) => {
     const { matchUp = {}, sideNumber } = props;
-
-    /*
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const restore = (params) => {
-      setTimeout(() => window.scrollTo({ top: scrollTop }), 100);
-      callback(params);
-    };
-    */
 
     const side = props.side || matchUp.sides?.find((side) => side.sideNumber === sideNumber);
 
@@ -45,9 +40,29 @@ export function getEventHandlers({ eventData, callback }) {
     selectPositionAction({ ...props, actions, callback });
   };
 
+  const roundActions = [
+    {
+      onClick: () => console.log('add matchUp(s)'),
+      text: 'Add matchUp(s)'
+    },
+    {
+      onClick: () => console.log('delete matchUp(s)'),
+      text: 'Delete matchUp(s)'
+    },
+    {
+      onClick: () => console.log('delete round'),
+      text: 'Delete round'
+    }
+  ];
+
   return {
     centerInfoClick: () => console.log('centerInfo click'),
-    roundHeaderClick: (props) => console.log('round click', props),
+    roundHeaderClick: (props) => {
+      console.log('round click', props);
+      if (props?.pointerEvent) {
+        tipster({ items: roundActions, target: props.pointerEvent.target, config: { placement: BOTTOM } });
+      }
+    },
     scheduleClick: () => console.log('schedule click'),
     venueClick: () => console.log('venue click'),
 
@@ -64,8 +79,8 @@ export function getEventHandlers({ eventData, callback }) {
           /*
             policyDefinitions: {
               [POLICY_TYPE_MATCHUP_ACTIONS]: {
-                substituteWithoutScore: true,
                 substituteAfterCompleted: true
+                substituteWithoutScore: true,
               }
             }
           */
