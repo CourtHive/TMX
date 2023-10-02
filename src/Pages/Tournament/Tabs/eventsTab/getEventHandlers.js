@@ -43,15 +43,18 @@ export function getEventHandlers({ eventData, callback }) {
   const roundActions = [
     {
       onClick: () => console.log('add matchUp(s)'),
-      text: 'Add matchUp(s)'
+      text: 'Add matchUp(s)',
+      color: 'blue'
     },
     {
       onClick: () => console.log('delete matchUp(s)'),
-      text: 'Delete matchUp(s)'
+      text: 'Delete matchUp(s)',
+      color: 'red'
     },
     {
       onClick: () => console.log('delete round'),
-      text: 'Delete round'
+      text: 'Delete round',
+      color: 'red'
     }
   ];
 
