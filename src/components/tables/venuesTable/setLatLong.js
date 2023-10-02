@@ -31,7 +31,9 @@ export function setLatLong(e, cell) {
         method: MODIFY_VENUE,
         params: {
           venueId: rowData.venueId,
-          modifications: venue
+          modifications: {
+            addresses: venue.addresses
+          }
         }
       }
     ];
