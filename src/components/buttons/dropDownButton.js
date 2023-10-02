@@ -80,8 +80,14 @@ export function dropDownButton({ target, button, stateChange }) {
     anchor.className = FONT_MEDIUM;
     const opacity = option.disabled ? '0.4' : '1';
     anchor.style = `text-decoration: none; opacity: ${opacity};`;
+    if (option.color) anchor.style.color = option.color;
     anchor.classList.add('dropdown-item');
     if (option.isActive) anchor.classList.add('is-active');
+    if (option.class) {
+      console.log(option.class);
+      anchor.classList.add(option.class);
+    }
+
     anchor.onclick = (e) => {
       if (option.disabled) return;
       if (option.value) ddButton.value = option.value;
