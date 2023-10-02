@@ -52,8 +52,8 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
     content: dropzone
   });
 
-  ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(function (event) {
-    dropzone.addEventListener(event, function (e) {
+  ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach((dragEvent) => {
+    dropzone.addEventListener(dragEvent, function (e) {
       e.preventDefault();
       e.stopPropagation();
     });
