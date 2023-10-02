@@ -100,11 +100,11 @@ function setWindow() {
     }
   };
   */
-  window.onunhandledrejection = (event) => {
+  window.onunhandledrejection = (windowEvent) => {
     if (isDev()) return;
 
-    event.preventDefault();
-    let reason = event.reason;
+    windowEvent.preventDefault();
+    let reason = windowEvent.reason;
     let message = reason && (reason.stack || reason);
     if (message && message.indexOf('blocked') > 0) {
       popupsBlocked();

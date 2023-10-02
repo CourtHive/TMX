@@ -124,14 +124,12 @@ export const drawer = () => {
     setFooter(footer);
     if (drawerIsOpen) {
       cancelClose = { callback };
+    } else if (side) {
+      if (side === RIGHT) return openRight(callback);
+      if (side === LEFT) return openLeft(callback);
     } else {
-      if (side) {
-        if (side === RIGHT) return openRight(callback);
-        if (side === LEFT) return openLeft(callback);
-      } else {
-        const target = document.getElementById(drawerId);
-        openDrawer(target, footer, callback);
-      }
+      const target = document.getElementById(drawerId);
+      openDrawer(target, footer, callback);
     }
   };
 
@@ -145,15 +143,15 @@ export const drawer = () => {
     return false;
   };
 
-  const clickHandler = function (event) {
+  const clickHandler = function (pointerEvent) {
     if (!drawerId) return;
-    const target = event.target;
+    const target = pointerEvent.target;
     const parent = document.querySelector('.drawer__wrapper');
     if (!isDescendant(parent, target) || target.classList.contains('drawer__close')) close();
   };
 
-  const keydownHandler = function (event) {
-    if (event.key === 'Escape' || event.keyCode === 27) close();
+  const keydownHandler = (keyEvent) => {
+    if (keyEvent.key === 'Escape' || keyEvent.keyCode === 27) close();
   };
 
   document.addEventListener('click', clickHandler, false);

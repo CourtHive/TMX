@@ -95,7 +95,7 @@ export const scoreBoard = (function () {
   }) => {
     settings.auto_score = auto_score;
 
-    let current_state = Object.assign({}, settings);
+    let current_state = { ...settings };
     let match_format = matchUpFormatCode.parse(matchFormat || 'SET3-S:6/TB7');
     if (!match_format) return;
     let tiebreaks_at = match_format?.setFormat?.tiebreakAt;
@@ -142,7 +142,7 @@ export const scoreBoard = (function () {
     }
 
     let displayActions = (bool) => {
-      let visible = bool && !lock ? true : false;
+      let visible = bool && !lock;
       action_drawer = visible;
       visibilityToggle({
         elem: sobj.actions.element,
@@ -178,7 +178,7 @@ export const scoreBoard = (function () {
       removeWinner();
       configureScoreSelectors();
 
-      let winner = determineWinner(grouped ? false : true);
+      let winner = determineWinner(!grouped);
       set_number = winner !== undefined ? set_scores.length : Math.max(0, set_scores.length - 1);
 
       if (
@@ -358,7 +358,7 @@ export const scoreBoard = (function () {
       function toggleScoring() {
         // if (lock) return;
         // if (action_drawer) return;
-        let visible = sobj.scoring.element.innerHTML === '-' ? true : false;
+        let visible = sobj.scoring.element.innerHTML === '-';
 
         // hide overflow before toggle transition starts
         if (!visible) sobj.edit_scoring.element.style.overflow = 'hidden';
@@ -437,7 +437,7 @@ export const scoreBoard = (function () {
           let t1 = +sobj.p1tiebreak.element.value;
           let t2 = +sobj.p2tiebreak.element.value;
 
-          if (t1 !== '' || t2 !== '') {
+          if (t1 != '' || t2 != '') {
             if (supertiebreak) {
               superTiebreakSet(t1, t2, true);
             } else {
@@ -509,7 +509,7 @@ export const scoreBoard = (function () {
       let t1 = +sobj.p1tiebreak.element.value;
       let t2 = +sobj.p2tiebreak.element.value;
 
-      if ((event.which === 13 || force) && (t1 !== '' || t2 !== '')) {
+      if ((event.which === 13 || force) && (t1 != '' || t2 != '')) {
         if (supertiebreak) {
           superTiebreakSet(t1, t2, true);
         } else {
@@ -523,7 +523,7 @@ export const scoreBoard = (function () {
       let numeric = value && !isNaN(value[0]) ? parseInt(value[0].toString().slice(-2)) : undefined;
 
       let tbgoal = supertiebreak ? supertiebreak_to : tiebreak_to;
-      let complement = numeric === (undefined && '') || numeric + 2 < tbgoal ? tbgoal : numeric + 2;
+      let complement = numeric === undefined || numeric == '' || numeric + 2 < tbgoal ? tbgoal : numeric + 2;
 
       sobj[which ? 'p2tiebreak' : 'p1tiebreak'].element.value = numeric !== undefined ? numeric : '';
 
@@ -621,14 +621,12 @@ export const scoreBoard = (function () {
             replaceValue(tiebreaks_at);
           }
         }
-      } else {
-        if (which === 0 && !p2) {
-          p2 = 0;
-          sobj.p2selector.ddlb.setValue(p2);
-        } else if (which === 1 && !p1) {
-          p1 = 0;
-          sobj.p1selector.ddlb.setValue(p1);
-        }
+      } else if (which === 0 && !p2) {
+        p2 = 0;
+        sobj.p2selector.ddlb.setValue(p2);
+      } else if (which === 1 && !p1) {
+        p1 = 0;
+        sobj.p1selector.ddlb.setValue(p1);
       }
 
       // set_scores[set_number] = [{ games: p1 }, { games: p2 }];
@@ -694,7 +692,7 @@ export const scoreBoard = (function () {
     function declaredWinner() {
       let s1 = sobj.p1action.ddlb.getValue();
       let s2 = sobj.p2action.ddlb.getValue();
-      return s1 === 'winner' || s2 === 'winner' ? true : false;
+      return s1 === 'winner' || s2 === 'winner';
     }
 
     function irregularEnding() {
@@ -1233,7 +1231,7 @@ export const scoreBoard = (function () {
 })();
 
 function setScore({ setnum, score = { games: 0 } }) {
-  let tiebreak = score.tiebreak !== undefined ? score.tiebreak : score.spacer !== undefined ? score.spacer : '';
+  let tiebreak = (score.tiebreak !== undefined && score.tiebreak) || (score.spacer !== undefined && score.spacer) || '';
   let setscore = score.supertiebreak !== undefined ? score.supertiebreak : score.games;
 
   return `
