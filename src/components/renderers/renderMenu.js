@@ -35,6 +35,8 @@ export function renderMenu(elem, menu, close) {
       const anchor = document.createElement('a');
       const opacity = subItem.disabled ? '0.4' : '1';
       anchor.style = `text-decoration: none; opacity: ${opacity}; font-size: ${fontSize}`;
+      if (subItem.class) anchor.classList.add(subItem.class);
+      if (subItem.color) anchor.style.color = subItem.color;
       if (!subItem.disabled) anchor.onclick = getClickAction(subItem);
       anchor.innerHTML = genericItem(subItem);
       menuItem.appendChild(anchor);
