@@ -67,7 +67,7 @@ export function getEventHandlers({ eventData, callback }) {
       }
     },
     scheduleClick: () => console.log('schedule click'),
-    venueClick: () => console.log('venue click'),
+    venueClick: () => console.log('venue click'), // when no venueClick fall back to scheduleClick
 
     matchUpClick: () => {},
     scoreClick: (props) => {
