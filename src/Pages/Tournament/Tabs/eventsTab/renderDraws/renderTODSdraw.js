@@ -83,14 +83,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   const updateDrawDisplay = () => {
     if (dual) return;
 
-    // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
-    // if there are playoff structures, button to populate them
-    const roundRobinStats = {
-      onClick: () => console.log('boo'),
-      label: 'View stats', // also toggle between finishing positions and matches
-      location: RIGHT
-    };
-
     if (isPlayoff) {
       const playoffPositioning = () => {
         const method = {
@@ -120,7 +112,32 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     } else if (isRoundRobin) {
+      // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
+      // if there are playoff structures, button to populate them
+      const roundRobinStats = {
+        onClick: () => console.log('boo'),
+        label: 'View stats', // also toggle between finishing positions and matches
+        location: RIGHT
+      };
+
       const drawControlItems = [roundRobinStats];
+      const drawControl = document.getElementById(DRAW_CONTROL);
+      controlBar({ target: drawControl, items: drawControlItems });
+    } else if (utilities.isAdHoc({ structure })) {
+      const actionOptions = [
+        { label: 'Add matches', color: 'blue', onClick: () => console.log('add matches') },
+        { label: 'Add round', color: 'blue', onClick: () => console.log('add round') },
+        { label: 'Delete round', color: 'red', onClick: () => console.log('delete round') }
+      ];
+      const adHocActions = {
+        label: 'Round actions', // also toggle between finishing positions and matches
+        options: actionOptions,
+        selection: false,
+        location: RIGHT,
+        align: RIGHT
+      };
+
+      const drawControlItems = [adHocActions];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     }
@@ -146,11 +163,41 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       removeAllChildNodes(drawsView);
 
       const buttonColumn = document.createElement('div');
-      buttonColumn.style = 'display: flex; place-content: flex-start; height: 100%';
-      const elem = document.createElement('button');
-      elem.className = 'button font-medium is-info';
-      elem.innerHTML = 'Generate';
-      buttonColumn.appendChild(elem);
+      buttonColumn.style =
+        'display: flex; flex-direction: column; place-content: flex-start; height: 100%; margin-top: 2em;';
+
+      const addMatchUps = document.createElement('button');
+      addMatchUps.className = 'button font-medium is-info is-outlined';
+      addMatchUps.onclick = () => {
+        console.log('add matchUps');
+        addMatchUps.blur();
+      };
+      addMatchUps.style.marginBlockEnd = '.5em';
+      addMatchUps.style.width = '100%';
+      addMatchUps.innerHTML = 'Add matches';
+      buttonColumn.appendChild(addMatchUps);
+
+      const addRound = document.createElement('button');
+      addRound.className = 'button font-medium is-info is-outlined';
+      addRound.onclick = () => {
+        console.log('add round');
+        addRound.blur();
+      };
+      addRound.style.marginBlockEnd = '.5em';
+      addRound.style.width = '100%';
+      addRound.innerHTML = 'Add round';
+      buttonColumn.appendChild(addRound);
+
+      const deleteRound = document.createElement('button');
+      deleteRound.className = 'button font-medium is-danger is-outlined';
+      deleteRound.onclick = () => {
+        console.log('delete round');
+        deleteRound.blur();
+      };
+      deleteRound.style.marginBlockEnd = '.5em';
+      deleteRound.style.width = '100%';
+      deleteRound.innerHTML = 'Delete round';
+      buttonColumn.appendChild(deleteRound);
 
       const finalColumn = utilities.isAdHoc({ structure }) && buttonColumn;
       const content = renderContainer({
