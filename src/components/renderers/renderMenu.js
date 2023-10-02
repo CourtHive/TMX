@@ -26,20 +26,27 @@ export function renderMenu(elem, menu, close) {
     i += 1;
     return i;
   };
-  const genericItem = (item) => item?.text || item?.label || `Item ${getIndex()}`;
+  const genericItem = (item) => item?.heading || item?.text || item?.label || `Item ${getIndex()}`;
   const createMenuItem = (subItem) => {
     const menuItem = document.createElement('li');
     menuItem.className = 'font-medium';
     if (subItem.onClick) {
       const fontSize = subItem.fontSize || '1em';
-      const anchor = document.createElement('a');
-      const opacity = subItem.disabled ? '0.4' : '1';
-      anchor.style = `text-decoration: none; opacity: ${opacity}; font-size: ${fontSize}`;
-      if (subItem.class) anchor.classList.add(subItem.class);
-      if (subItem.color) anchor.style.color = subItem.color;
-      if (!subItem.disabled) anchor.onclick = getClickAction(subItem);
-      anchor.innerHTML = genericItem(subItem);
-      menuItem.appendChild(anchor);
+      if (subItem.divider) {
+        const item = document.createElement('hr');
+        item.classList.add('dropdown-divider');
+        menuItem.appendChild(item);
+      } else {
+        const anchor = document.createElement('a');
+        const opacity = subItem.disabled ? '0.4' : '1';
+        anchor.style = `text-decoration: none; opacity: ${opacity}; font-size: ${fontSize}`;
+        if (subItem.class) anchor.classList.add(subItem.class);
+        if (subItem.color) anchor.style.color = subItem.color;
+        if (subItem.heading) anchor.style.fontWeight = 'bold';
+        if (!subItem.disabled) anchor.onclick = getClickAction(subItem);
+        anchor.innerHTML = genericItem(subItem);
+        menuItem.appendChild(anchor);
+      }
     } else {
       menuItem.innerHTML = genericItem(subItem);
       if (!subItem.disabled) menuItem.onclick = subItem.onClick;
