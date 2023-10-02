@@ -2,14 +2,14 @@ import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function matchUpActions(e, cell) {
+export function matchUpActions({ pointerEvent, cell, matchUp }) {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
     return;
   }
-  const target = e.target.getElementsByClassName('fa-ellipsis-vertical')[0];
-  const data = cell.getRow().getData();
+  const target = cell && pointerEvent.target.getElementsByClassName('fa-ellipsis-vertical')[0];
+  const data = cell?.getRow().getData() || matchUp;
   const callback = (data) => console.log(data);
   const items = [
     {
@@ -34,5 +34,5 @@ export function matchUpActions(e, cell) {
     }
   ];
 
-  tipster({ items, target: target || e.target, config: { placement: BOTTOM } });
+  tipster({ items, target: target || pointerEvent.target, config: { placement: BOTTOM } });
 }

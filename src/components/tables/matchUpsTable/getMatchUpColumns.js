@@ -155,7 +155,7 @@ export function getMatchUpColumns(replaceTableData) {
       width: 70
     },
     {
-      cellClick: matchUpActions,
+      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, cell }),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
