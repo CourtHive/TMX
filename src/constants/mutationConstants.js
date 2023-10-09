@@ -5,6 +5,7 @@
 export const ADD_COURTS = 'addCourts';
 export const ADD_FLIGHT = 'addFlight';
 export const ADD_DRAW_DEFINITION = 'addDrawDefinition';
+export const ADD_ADHOC_MATCHUPS = 'addAdHocMatchUps';
 export const ADD_DRAW_ENTRIES = 'addDrawEntries';
 export const ADD_EVENT = 'addEvent';
 export const ADD_EVENT_ENTRIES = 'addEventEntries';

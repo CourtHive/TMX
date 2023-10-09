@@ -1,5 +1,6 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
+import { getAdHocActions, getFinalColumn } from '../actions/adHocActions';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -53,12 +54,13 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const isRoundRobin = structure?.structureType === 'CONTAINER';
 
+  const callback = () => {
+    cleanupDrawPanel();
+    renderTODSdraw({ eventId, drawId, structureId });
+  };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
-    callback: () => {
-      cleanupDrawPanel();
-      renderTODSdraw({ eventId, drawId, structureId });
-    },
+    callback,
     eventData
   });
   const composition =
@@ -124,20 +126,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     } else if (utilities.isAdHoc({ structure })) {
-      const actionOptions = [
-        { label: 'Add matches', color: 'blue', onClick: () => console.log('add matches') },
-        { label: 'Add round', color: 'blue', onClick: () => console.log('add round') },
-        { label: 'Delete round', color: 'red', onClick: () => console.log('delete round') }
-      ];
-      const adHocActions = {
-        label: 'Round actions', // also toggle between finishing positions and matches
-        options: actionOptions,
-        selection: false,
-        location: RIGHT,
-        align: RIGHT
-      };
-
-      const drawControlItems = [adHocActions];
+      const adHocActions = getAdHocActions({ structure, drawId, callback });
+      const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     }
@@ -162,46 +152,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
       removeAllChildNodes(drawsView);
 
-      const buttonColumn = document.createElement('div');
-      buttonColumn.style =
-        'display: flex; flex-direction: column; place-content: flex-start; height: 100%; margin-top: 2em;';
+      const finalColumn = getFinalColumn({ structure, drawId, callback });
 
-      const addMatchUps = document.createElement('button');
-      addMatchUps.className = 'button font-medium is-info is-outlined';
-      addMatchUps.onclick = () => {
-        console.log('add matchUps');
-        addMatchUps.blur();
-      };
-      addMatchUps.style.marginBlockEnd = '.5em';
-      addMatchUps.style.width = '100%';
-      addMatchUps.innerHTML = 'Add matches';
-      buttonColumn.appendChild(addMatchUps);
-
-      const addRound = document.createElement('button');
-      addRound.className = 'button font-medium is-info is-outlined';
-      addRound.onclick = () => {
-        console.log('add round');
-        addRound.blur();
-      };
-      addRound.style.marginBlockEnd = '.5em';
-      addRound.style.width = '100%';
-      addRound.innerHTML = 'Add round';
-      buttonColumn.appendChild(addRound);
-
-      const deleteRound = document.createElement('button');
-      deleteRound.className = 'button font-medium is-danger is-outlined';
-      deleteRound.onclick = () => {
-        console.log('delete round');
-        deleteRound.blur();
-      };
-      deleteRound.style.marginBlockEnd = '.5em';
-      deleteRound.style.width = '100%';
-      deleteRound.innerHTML = 'Delete round';
-      buttonColumn.appendChild(deleteRound);
-
-      const finalColumn = utilities.isAdHoc({ structure }) && buttonColumn;
       const content = renderContainer({
         content: renderStructure({
+          context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
           eventHandlers,
