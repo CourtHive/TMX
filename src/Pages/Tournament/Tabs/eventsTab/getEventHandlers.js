@@ -3,6 +3,7 @@ import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { matchUpActions } from 'components/popovers/matchUpActions';
+import { handleRoundHeaderClick } from './actions/adHocActions';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -41,32 +42,9 @@ export function getEventHandlers({ eventData, callback }) {
     selectPositionAction({ ...props, actions, callback });
   };
 
-  const roundActions = [
-    {
-      onClick: () => console.log('add matchUp(s)'),
-      text: 'Add matches',
-      color: 'blue'
-    },
-    {
-      onClick: () => console.log('delete matchUp(s)'),
-      text: 'Delete matches',
-      color: 'red'
-    },
-    {
-      onClick: () => console.log('delete round'),
-      text: 'Delete round',
-      color: 'red'
-    }
-  ];
-
   return {
     centerInfoClick: () => console.log('centerInfo click'),
-    roundHeaderClick: (props) => {
-      console.log('round click');
-      if (props?.pointerEvent) {
-        tipster({ items: roundActions, target: props.pointerEvent.target, config: { placement: BOTTOM } });
-      }
-    },
+    roundHeaderClick: (props) => handleRoundHeaderClick({ ...props, callback }),
     scheduleClick: (props) => {
       console.log('schedule click');
       if (props?.pointerEvent) {
