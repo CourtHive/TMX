@@ -57,8 +57,8 @@ dependencies:
     specifier: ^2.3.2
     version: 2.3.2
   courthive-components:
-    specifier: ^0.7.10
-    version: 0.7.10(@babel/core@7.23.0)
+    specifier: ^0.7.11
+    version: 0.7.11(@babel/core@7.23.0)
   d3:
     specifier: 5.16.0
     version: 5.16.0
@@ -4618,8 +4618,8 @@ packages:
       typescript: 4.9.5
     dev: true
 
-  /courthive-components@0.7.10(@babel/core@7.23.0):
-    resolution: {integrity: sha512-WWqrdH+4DTBX64hUB1FKtY7m3vqRd15hzp4reb16bQ5EPyMLJjajsOwXYjwR1iOZ3SfbS39ZW7G0151h/UigIg==}
+  /courthive-components@0.7.11(@babel/core@7.23.0):
+    resolution: {integrity: sha512-shLDFtnbboyrVGwAyn8qj596auF7heOJg67+pU7NETYcYNway0lyiBP/m/wFdNbGDjvsukyxTwMl+Drm8wyuFg==}
     engines: {node: '>=16.16.0 < 19'}
     dependencies:
       '@stitches/core': 1.2.8
