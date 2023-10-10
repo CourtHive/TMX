@@ -49,7 +49,7 @@ export function getEventHandlers({ eventData, callback }) {
       console.log('schedule click');
       if (props?.pointerEvent) {
         props.pointerEvent.stopPropagation();
-        matchUpActions({ pointerEvent: props.pointerEvent, matchUp: props.matchUp });
+        matchUpActions({ pointerEvent: props.pointerEvent, matchUp: props.matchUp, callback });
       }
     },
     venueClick: (props) => {

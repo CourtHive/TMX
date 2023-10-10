@@ -1,38 +1,73 @@
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
+import { utilities } from 'tods-competition-factory';
+import { isFunction } from 'functions/typeOf';
 
+import { DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function matchUpActions({ pointerEvent, cell, matchUp }) {
+export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
     return;
   }
+
+  const isAdHoc = !matchUp.roundPosition && !matchUp.drawPositions;
+
   const target = cell && pointerEvent.target.getElementsByClassName('fa-ellipsis-vertical')[0];
   const data = cell?.getRow().getData() || matchUp;
-  const callback = (data) => console.log(data);
+
+  const handleCallback = () => {
+    if (isFunction(callback)) callback(data);
+  };
+
   const items = [
     {
-      text: 'Schedule',
-      onClick: () => callback(data)
+      onClick: handleCallback,
+      text: 'Schedule'
     },
     {
-      text: 'Start time',
-      onClick: () => callback(data)
+      onClick: handleCallback,
+      text: 'Start time'
     },
     {
-      text: 'End Time',
-      onClick: () => callback(data)
+      onClick: handleCallback,
+      text: 'End time'
     },
     {
-      text: 'Set Referee',
-      onClick: () => callback(data)
-    },
-    {
-      text: 'Delegate',
-      onClick: () => callback(data)
+      onClick: handleCallback,
+      text: 'Set referee'
     }
   ];
 
+  if (isAdHoc && !utilities.scoreHasValue(matchUp))
+    items.push({
+      onClick: () => deleteAdHocMatchUp({ ...matchUp, callback: handleCallback }),
+      text: 'Delete match',
+      color: 'red'
+    });
+
   tipster({ items, target: target || pointerEvent.target, config: { placement: BOTTOM } });
+}
+
+export function deleteAdHocMatchUp({ drawId, structureId, matchUpId, callback }) {
+  const methods = [
+    {
+      method: DELETE_ADHOC_MATCHUPS,
+      params: {
+        matchUpIds: [matchUpId],
+        structureId,
+        drawId
+      }
+    }
+  ];
+  const postMutation = (result) => {
+    if (result.success) {
+      if (isFunction(callback)) callback();
+    } else {
+      console.log(result.error);
+    }
+  };
+  mutationRequest({ methods, callback: postMutation });
 }

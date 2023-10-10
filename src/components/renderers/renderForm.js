@@ -41,9 +41,19 @@ export function renderForm(elem, items, relationships) {
       continue;
     }
     if (item.divider) {
-      const item = document.createElement('hr');
-      item.classList.add('dropdown-divider');
-      div.appendChild(item);
+      const hr = document.createElement('hr');
+      hr.classList.add('dropdown-divider');
+      div.appendChild(hr);
+      continue;
+    }
+    if (item.spacer) {
+      const spacer = document.createElement('div');
+      const spaceValue =
+        (typeof item.spacer === 'number' && `${item.spacer}em`) ||
+        (typeof item.spacer === 'string' && item.spacer) ||
+        `1em`;
+      spacer.style.marginBlockEnd = spaceValue;
+      div.appendChild(spacer);
       continue;
     }
     if ((!item.label && !item.field) || item.hide) continue;
