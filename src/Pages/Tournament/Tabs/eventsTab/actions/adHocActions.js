@@ -1,31 +1,30 @@
-import { tournamentEngine, utilities } from 'tods-competition-factory';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
+import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
+import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tipster } from 'components/popovers/tipster';
-import { isFunction } from 'functions/typeOf';
+import { utilities } from 'tods-competition-factory';
 
 import { BOTTOM, RIGHT } from 'constants/tmxConstants';
-import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
+
+const deleteMatchUpsAction = 'Delete matches';
+const addMatchUpsAction = 'Add matches';
+const addRoundAction = 'Add round';
 
 export function handleRoundHeaderClick(props) {
   const roundActions = [
     {
       onClick: () => addAdHocMatchUps({ ...props?.context, ...props }),
-      text: 'Add match',
+      text: addMatchUpsAction,
       color: 'blue'
     },
     {
-      onClick: () => addAdHocMatchUps({ ...props?.context, ...props, roundNumber: undefined, newRound: true }),
-      text: 'Add round',
+      onClick: () => addAdHocRound({ ...props?.context, ...props, roundNumber: undefined, newRound: true }),
+      text: addRoundAction,
       color: 'blue'
     },
     {
-      onClick: () => console.log('delete matchUp(s)', { props }),
-      text: 'Delete matches',
-      color: 'red'
-    },
-    {
-      onClick: () => console.log('delete round', { props }),
-      text: 'Delete round',
+      onClick: () => deleteAdHocMatchUps({ ...props?.context, ...props }),
+      text: deleteMatchUpsAction,
       color: 'red'
     }
   ];
@@ -49,29 +48,29 @@ export function getFinalColumn({ structure, drawId, callback }) {
   };
   addMatchUps.style.marginBlockEnd = '.5em';
   addMatchUps.style.width = '100%';
-  addMatchUps.innerHTML = 'Add match';
+  addMatchUps.innerHTML = addMatchUpsAction;
   finalColumn.appendChild(addMatchUps);
 
   const addRound = document.createElement('button');
   addRound.className = 'button font-medium is-info is-outlined';
   addRound.onclick = () => {
-    console.log('add round', { drawId, structure });
+    addAdHocRound({ drawId, structure, callback, newRound: true });
     addRound.blur();
   };
   addRound.style.marginBlockEnd = '.5em';
   addRound.style.width = '100%';
-  addRound.innerHTML = 'Add round';
+  addRound.innerHTML = addRoundAction;
   finalColumn.appendChild(addRound);
 
   const deleteRound = document.createElement('button');
   deleteRound.className = 'button font-medium is-danger is-outlined';
   deleteRound.onclick = () => {
-    console.log('delete round', { drawId, structure });
+    deleteAdHocMatchUps({ drawId, structure, callback });
     deleteRound.blur();
   };
   deleteRound.style.marginBlockEnd = '.5em';
   deleteRound.style.width = '100%';
-  deleteRound.innerHTML = 'Delete round';
+  deleteRound.innerHTML = deleteMatchUpsAction;
   finalColumn.appendChild(deleteRound);
 
   return finalColumn;
@@ -83,11 +82,15 @@ export function getAdHocActions({ structure, drawId, callback }) {
   const actionOptions = [
     {
       onClick: () => addAdHocMatchUps({ drawId, structure, callback }),
-      label: 'Add match',
+      label: addMatchUpsAction,
       color: 'blue'
     },
-    { label: 'Add round', color: 'blue', onClick: () => console.log('add round', { drawId, structure }) },
-    { label: 'Delete round', color: 'red', onClick: () => console.log('delete round', { drawId, structure }) }
+    {
+      onClick: () => addAdHocRound({ drawId, structure, newRound: true, callback }),
+      label: addRoundAction,
+      color: 'blue'
+    },
+    { label: deleteMatchUpsAction, color: 'red', onClick: () => deleteAdHocMatchUps({ drawId, structure, callback }) }
   ];
   const adHocActions = {
     label: 'Round actions', // also toggle between finishing positions and matches
@@ -97,43 +100,4 @@ export function getAdHocActions({ structure, drawId, callback }) {
     align: RIGHT
   };
   return [adHocActions];
-}
-
-export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, callback, newRound } = {}) {
-  structureId = structureId || structure?.structureId;
-  if (!drawId) return;
-
-  const result = tournamentEngine.generateAdHocMatchUps({
-    addToStructure: false,
-    matchUpsCount: 1,
-    roundNumber,
-    structureId,
-    newRound,
-    drawId
-  });
-
-  const methods = [
-    {
-      method: ADD_ADHOC_MATCHUPS,
-      params: {
-        matchUps: result.matchUps,
-        drawId
-      }
-    }
-  ];
-  const postMutation = (result) => {
-    if (result.success) {
-      if (isFunction(callback)) callback();
-    } else {
-      console.log(result.error);
-    }
-  };
-  mutationRequest({ methods, callback: postMutation });
-  /*
-    result = tournamentEngine.addAdHocMatchUps({
-      drawId: drawDefinition.drawId,
-      matchUps: result.matchUps
-    });
-    */
-  console.log({ result });
 }

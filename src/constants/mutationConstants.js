@@ -20,6 +20,7 @@ export const ADD_VENUE = 'addVenue';
 export const ASSIGN_TIE_MATCHUP_PARTICIPANT_ID = 'assignTieMatchUpParticipantId';
 export const AUTOMATED_PLAYOFF_POSITIONING = 'automatedPlayoffPositioning';
 export const BULK_SCHEDULE_MATCHUPS = 'bulkScheduleMatchUps';
+export const DELETE_ADHOC_MATCHUPS = 'deleteAdHocMatchUps';
 export const DELETE_DRAW_DEFINITIONS = 'deleteDrawDefinitions';
 export const DELETE_FLIGHT_AND_DRAW = 'deleteFlightAndFlightDraw';
 export const DELETE_EVENTS = 'deleteEvents';

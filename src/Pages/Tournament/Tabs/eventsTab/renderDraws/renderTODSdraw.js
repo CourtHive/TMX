@@ -1,6 +1,5 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
-import { getAdHocActions, getFinalColumn } from '../actions/adHocActions';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -8,6 +7,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
+import { getAdHocActions } from '../actions/adHocActions';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
@@ -152,7 +152,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
       removeAllChildNodes(drawsView);
 
-      const finalColumn = getFinalColumn({ structure, drawId, callback });
+      // const finalColumn = getFinalColumn({ structure, drawId, callback });
 
       const content = renderContainer({
         content: renderStructure({
@@ -161,7 +161,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           matchUps: filteredMatchUps,
           eventHandlers,
           composition,
-          finalColumn,
+          // finalColumn,
           structure
         }),
         theme: composition.theme
