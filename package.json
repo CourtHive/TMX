@@ -21,7 +21,7 @@
     "camelcase": "^7.0.1",
     "circular-json": "0.5.9",
     "classnames": "^2.3.2",
-    "courthive-components": "^0.7.11",
+    "courthive-components": "^0.7.12",
     "d3": "5.16.0",
     "dayjs": "^1.11.7",
     "dexie": "^3.2.3",
