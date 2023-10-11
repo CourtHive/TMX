@@ -66,6 +66,7 @@ export function participantMatchUpActions(e, cell, callback, params) {
         text: item.text
       };
     });
+
   if (items.length === 1) {
     items[0].onClick();
   } else if (items.length > 0) {

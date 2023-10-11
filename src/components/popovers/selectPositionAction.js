@@ -17,8 +17,8 @@ const actionLabels = {
   WITHDRAW: 'Withdraw participant'
 };
 
-export function selectPositionAction({ event, actions, callback }) {
-  const target = event.target;
+export function selectPositionAction({ pointerEvent, actions, callback }) {
+  const target = pointerEvent.target;
   const handleClick = (action) => {
     ['WITHDRAW', 'BYE', 'REMOVE'].includes(action.type) && noChoiceAction({ action, callback });
     ['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER'].includes(action.type) && assignParticipant({ action, callback });

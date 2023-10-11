@@ -59,6 +59,7 @@ export function createEntriesPanels({ eventId, drawId }) {
 
     const hasFlights = event?.drawDefinitions?.length > 1;
 
+    // TODO: flightProfile.flight.entries ...
     const entryData = (drawDefinition?.entries || event?.entries || []).map((entry) =>
       mapEntry({ entry, derivedDrawInfo, participants, eventType: event.eventType, eventId })
     );
@@ -88,6 +89,7 @@ export function createEntriesPanels({ eventId, drawId }) {
 
         const table = new Tabulator(tableElement, {
           headerSortElement: headerSortElement([
+            'ratings.utr.utrRating',
             'ratings.wtn.wtnRating',
             'seedNumber',
             'ranking',
@@ -136,7 +138,7 @@ export function createEntriesPanels({ eventId, drawId }) {
     const ALL_ENTRIES = 'All entries';
     const eventControlElement = document.getElementById(EVENT_CONTROL);
     const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
-    const entriesOptions = (result.event.drawDefinitions || [])
+    const entriesOptions = (result.event.drawDefinitions || []) // TODO: use flightProfile.flights
       .map((drawDefinition) => ({
         onClick: () => navigateToEvent({ eventId, drawId: drawDefinition.drawId }),
         label: drawDefinition?.drawName,

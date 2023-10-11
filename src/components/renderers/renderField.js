@@ -45,6 +45,29 @@ export function renderField(item) {
     div.className = 'content';
     div.innerHTML = item.text;
     control.appendChild(div);
+  } else if (item.radio) {
+    const radioGroup = document.createElement('div');
+    radioGroup.id = item.id;
+    radioGroup.className = 'control';
+    // USAGE: const value = Array.from(document.getElementsByName(radioGroup.id)).find((i) => i.checked).value;
+    for (const option of item.options ?? []) {
+      const label = document.createElement('label');
+      label.className = 'radio';
+      const input = document.createElement('input');
+      input.name = item.id;
+      input.type = 'radio';
+      input.value = option.text;
+      if (option.checked) input.checked = true;
+      label.appendChild(input);
+      radioGroup.appendChild(label);
+      const text = document.createElement('span');
+      text.style.marginLeft = '.25em';
+      text.style.marginRight = '1em';
+      text.innerHTML = option.text;
+      radioGroup.appendChild(text);
+    }
+    control.appendChild(radioGroup);
+    inputElement = radioGroup;
   } else if (item.options) {
     const div = document.createElement('div');
     div.className = 'select font-medium';
@@ -71,12 +94,15 @@ export function renderField(item) {
     div.style.display = 'inline-block';
     const input = document.createElement('input');
     inputElement = input;
-    input.className = 'is-checkradio is-success';
+    const intent = item.intent ?? 'is-success';
+    input.className = `is-checkradio ${intent}`;
     input.type = 'checkbox';
     input.id = item.id;
+    if (item.checked) input.checked = true;
     div.appendChild(input);
     const label = document.createElement('label');
     label.setAttribute('for', item.id);
+    if (item.color) label.style.color = item.color;
     label.innerHTML = item.label;
     div.appendChild(label);
     control.appendChild(div);
