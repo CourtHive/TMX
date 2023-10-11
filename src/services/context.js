@@ -17,6 +17,6 @@ export const context = {
   },
 
   columns: {
-    'ratings.utr.utrRating': false
+    'ratings.utr.utrRating': true
   }
 };
