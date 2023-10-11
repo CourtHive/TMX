@@ -260,6 +260,9 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
     isFunction(callback) && callback(specifiedFormat);
   };
 
+  let finalSetFormat, finalSetConfig, finalSetOption;
+  let setTiebreak, finalSetTiebreak;
+
   const buttons = [
     {
       onClick: () => callback(),
@@ -295,14 +298,45 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   inputElement.onchange = (e) => {
     selectedMatchUpFormat = e.target.value;
     setMatchUpFormatString(selectedMatchUpFormat);
+    parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+
+    const finalSet = parsedMatchUpFormat.finalSetFormat;
+    finalSetFormat.style.display = finalSet ? '' : NONE;
+    finalSetConfig.style.display = finalSet ? '' : NONE;
+    finalSetOption.checked = finalSet;
+    finalSetTiebreak.checked = !!finalSet?.tiebreakFormat;
+
+    setTiebreak.checked = parsedMatchUpFormat.setFormat.tiebreakFormat;
+
     setComponents.forEach((component) => {
-      parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
       if (component.getValue) {
         const setComponentValue = component.getValue(parsedMatchUpFormat);
-        component.value = setComponentValue;
-        const finalComponentValue = component.getValue(parsedMatchUpFormat, true);
-        console.log({ setComponentValue, finalComponentValue });
-        // TODO: change the state of all selector buttons
+        const elem = document.getElementById(component.id);
+
+        if (elem && setComponentValue) {
+          const { prefix = '', suffix = '', pluralize } = component;
+          const bestOf = parsedMatchUpFormat.bestOf;
+          const plural = pluralize && bestOf > 1 ? 's' : '';
+          elem.innerHTML = `${prefix}${setComponentValue}${plural}${suffix}${clickable}`;
+          elem.style.display = '';
+        } else if (elem) {
+          elem.style.display = NONE;
+        }
+
+        if (finalSet) {
+          const finalComponentValue = component.getValue(parsedMatchUpFormat, true);
+          const elem = document.getElementById(`${component.id}-1`);
+
+          if (elem && finalComponentValue) {
+            const { prefix = '', suffix = '', pluralize } = component;
+            const bestOf = parsedMatchUpFormat.bestOf;
+            const plural = pluralize && bestOf > 1 ? 's' : '';
+            elem.innerHTML = `${prefix}${finalComponentValue}${plural}${suffix}${clickable}`;
+            elem.style.display = '';
+          } else if (elem) {
+            elem.style.display = NONE;
+          }
+        }
       }
     });
   };
@@ -323,7 +357,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   setConfig.className = 'field';
   setConfig.style.fontSize = '1em';
 
-  const setTiebreak = document.createElement('input');
+  setTiebreak = document.createElement('input');
   setTiebreak.className = tiebreakSwitch;
   setTiebreak.name = 'setTiebreak';
   setTiebreak.id = 'setTiebreak';
@@ -356,8 +390,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   tiebreakLabel.style.marginRight = '1em';
   setConfig.appendChild(tiebreakLabel);
 
-  let finalSetFormat, finalSetConfig;
-  const finalSetOption = document.createElement('input');
+  finalSetOption = document.createElement('input');
   finalSetOption.className = 'switch is-rounded is-info';
   finalSetOption.type = 'checkbox';
   finalSetOption.name = 'finalSetOption';
@@ -398,7 +431,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   finalSetConfig.className = 'field';
   finalSetConfig.style.fontSize = '1em';
 
-  const finalSetTiebreak = document.createElement('input');
+  finalSetTiebreak = document.createElement('input');
   finalSetTiebreak.className = tiebreakSwitch;
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
