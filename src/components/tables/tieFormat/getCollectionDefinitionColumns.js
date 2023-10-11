@@ -22,7 +22,7 @@ export function getCollectionDefinitionColumns() {
         table.redraw(true);
       }
     };
-    getMatchUpFormat({ callback });
+    getMatchUpFormat({ callback, existingMatchUpFormat: data.matchUpFormat });
   };
   return [
     { rowHandle: true, formatter: 'handle', width: 30, minWidth: 30 },
