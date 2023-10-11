@@ -9,6 +9,8 @@ import matchUpFormats from './matchUpFormats.json';
 
 import { NONE } from 'constants/tmxConstants';
 
+let selectedMatchUpFormat, parsedMatchUpFormat;
+
 const TIMED_SETS = 'Timed set';
 const TIEBREAKS = 'Tiebreak';
 const NOAD = 'No-Ad';
@@ -76,15 +78,22 @@ function getSetFormat(index) {
 
 function generateMatchUpFormat() {
   const setFormat = getSetFormat();
-  const matchUpFormatObject = {
+  parsedMatchUpFormat = {
     bestOf: format.setFormat.bestOf,
     setFormat
   };
 
   const hasFinalSet = document.getElementById('finalSetOption')?.checked;
-  if (hasFinalSet) matchUpFormatObject.finalSetFormat = getSetFormat(1);
+  if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
 
-  return scoreGovernor.stringifyMatchUpFormat(matchUpFormatObject);
+  const matchUpFormat = scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
+  const predefined = !!matchUpFormats.find((format) => format.format === matchUpFormat);
+  const elem = document.getElementById('matchUpFormatSelector');
+  const options = elem?.querySelectorAll('option');
+  Array.from(options).forEach((option) => {
+    option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
+  });
+  return matchUpFormat;
 }
 
 function setMatchUpFormatString(value) {
@@ -93,7 +102,11 @@ function setMatchUpFormatString(value) {
   matchUpFormatString.innerHTML = matchUpFormat;
 }
 
-const whichSetFormat = (pmf, isFinal) => pmf[isFinal ? 'finalSetFormat' : 'setFormat'];
+const whichSetFormat = (pmf, isFinal) => {
+  if (isFinal) return pmf.finalSetFormat || pmf.setFormat;
+  return pmf.setFormat;
+};
+
 const setComponents = [
   {
     getValue: (pmf) => (pmf.bestOf > 1 ? 'Best of' : 'Exactly'),
@@ -117,8 +130,9 @@ const setComponents = [
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
-      if (setFormat.timed) return TIMED_SETS;
-      if (setFormat.tiebreakSet) return TIEBREAKS;
+      if (!setFormat) console.log(pmf);
+      if (setFormat?.timed) return TIMED_SETS;
+      if (setFormat?.tiebreakSet) return TIEBREAKS;
       return SETS;
     },
     options: [SETS, TIEBREAKS, TIMED_SETS],
@@ -172,7 +186,8 @@ const setComponents = [
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
-      return (setFormat.tiebreakFormat && setFormat.tiebreakFormat?.NoAD ? 1 : 2) || undefined;
+      if (!setFormat.tiebreakFormat) return undefined;
+      return setFormat.tiebreakFormat && setFormat.tiebreakFormat?.NoAD ? 1 : 2;
     },
     whats: [SETS, TIEBREAKS],
     prefix: 'Win by ',
@@ -205,9 +220,18 @@ const onClicks = {
 
     setComponents.forEach((component) => {
       if (component.whats) {
+        const { prefix = '', suffix = '', pluralize } = component;
         const visible = component.whats.includes(opt);
         const id = index ? `${component.id}-${index}` : component.id;
         const elem = document.getElementById(id);
+
+        if (elem.style.display === NONE && visible) {
+          const bestOf = parsedMatchUpFormat.bestOf;
+          const plural = !index && pluralize && bestOf > 1 ? 's' : '';
+          const value = component.defaultValue;
+          elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
+        }
+
         elem.style.display = visible ? '' : NONE;
       }
     });
@@ -228,7 +252,8 @@ const onClicks = {
 };
 
 export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callback } = {}) {
-  const parsedMatchUpFormat = matchUpFormatCode.parse(existingMatchUpFormat);
+  selectedMatchUpFormat = existingMatchUpFormat;
+  parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   console.log({ parsedMatchUpFormat });
   const onSelect = () => {
     const specifiedFormat = generateMatchUpFormat();
@@ -250,7 +275,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   const matchUpFormatString = document.createElement('div');
   matchUpFormatString.id = 'matchUpFormatString';
-  matchUpFormatString.innerHTML = existingMatchUpFormat;
+  matchUpFormatString.innerHTML = selectedMatchUpFormat;
   matchUpFormatString.style.fontSize = '1.5em';
   matchUpFormatString.style.color = 'blue';
   matchUpFormatString.style.marginBottom = '1em';
@@ -259,18 +284,19 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   const standardFormatSelector = document.createElement('div');
   standardFormatSelector.style.marginBlockEnd = '1em';
   const formatSelector = {
+    id: 'matchUpFormatSelector',
     options: matchUpFormats.map((format) => ({
-      selected: format.format === existingMatchUpFormat,
+      selected: format.format === selectedMatchUpFormat,
       value: format.format,
       label: format.name
     }))
   };
   const { field, inputElement } = renderField(formatSelector);
   inputElement.onchange = (e) => {
-    const selectedMatchUpFormat = e.target.value;
+    selectedMatchUpFormat = e.target.value;
     setMatchUpFormatString(selectedMatchUpFormat);
     setComponents.forEach((component) => {
-      const parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+      parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
       if (component.getValue) {
         const setComponentValue = component.getValue(parsedMatchUpFormat);
         component.value = setComponentValue;
@@ -284,10 +310,12 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   content.appendChild(standardFormatSelector);
 
   const setFormat = document.createElement('div');
-  setComponents.forEach((component) => {
-    if (component.getValue) component.value = component.getValue(parsedMatchUpFormat);
-  });
-  setComponents.map(createButton).forEach((button) => setFormat.appendChild(button));
+  setComponents
+    .map((component) => {
+      const value = component.getValue(parsedMatchUpFormat);
+      return createButton({ ...component, value });
+    })
+    .forEach((button) => setFormat.appendChild(button));
   setFormat.id = 'setFormat';
   content.appendChild(setFormat);
 
@@ -300,13 +328,21 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   setTiebreak.name = 'setTiebreak';
   setTiebreak.id = 'setTiebreak';
   setTiebreak.type = 'checkbox';
-  setTiebreak.checked = true;
+  setTiebreak.checked = parsedMatchUpFormat.tiebreakFormat;
   setTiebreak.onchange = (e) => {
     const active = e.target.checked;
     setComponents
       .filter(({ tb }) => tb)
       .forEach((component) => {
         const elem = document.getElementById(component.id);
+
+        if (elem.style.display === NONE && active) {
+          const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
+          const bestOf = parsedMatchUpFormat.bestOf;
+          const plural = pluralize && bestOf > 1 ? 's' : '';
+          elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
+        }
+
         elem.style.display = active ? '' : NONE;
       });
     setMatchUpFormatString();
@@ -346,7 +382,12 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   finalSetFormat.style.display = parsedMatchUpFormat.finalSetFormat ? '' : NONE;
   finalSetFormat.id = 'finalSetFormat';
   [{ label: `<div style='font-weight: bold'>Final set</div>`, options: [] }]
-    .concat(setComponents)
+    .concat(
+      setComponents.map((component) => {
+        const value = component.getValue(parsedMatchUpFormat, true);
+        return { ...component, value };
+      })
+    )
     .filter((def) => def.finalSet !== false)
     .map((def) => createButton({ ...def, index: 1 }))
     .forEach((button) => finalSetFormat.appendChild(button));
@@ -362,13 +403,21 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   finalSetTiebreak.name = 'finalSetTiebreak';
   finalSetTiebreak.id = 'finalSetTiebreak';
   finalSetTiebreak.type = 'checkbox';
-  finalSetTiebreak.checked = true;
+  finalSetTiebreak.checked = parsedMatchUpFormat.finalSetFormat?.tiebreakFormat;
   finalSetConfig.onchange = (e) => {
     const active = e.target.checked;
     setComponents
       .filter(({ tb }) => tb)
       .forEach((component) => {
         const elem = document.getElementById(`${component.id}-1`);
+
+        if (elem.style.display === NONE && active) {
+          const { prefix = '', suffix = '', pluralize, defaultValue: value } = component;
+          const bestOf = parsedMatchUpFormat.bestOf;
+          const plural = pluralize && bestOf > 1 ? 's' : '';
+          elem.innerHTML = `${prefix}${value}${plural}${suffix}${clickable}`;
+        }
+
         elem.style.display = active ? '' : NONE;
       });
     setMatchUpFormatString();
