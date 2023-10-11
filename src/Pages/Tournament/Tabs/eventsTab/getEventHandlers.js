@@ -1,9 +1,9 @@
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
+import { handleRoundHeaderClick } from './actions/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { matchUpActions } from 'components/popovers/matchUpActions';
-import { handleRoundHeaderClick } from './actions/adHocActions';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -44,7 +44,7 @@ export function getEventHandlers({ eventData, callback }) {
 
   return {
     centerInfoClick: () => console.log('centerInfo click'),
-    roundHeaderClick: (props) => handleRoundHeaderClick({ ...props, callback }),
+    roundHeaderClick: (props) => handleRoundHeaderClick({ ...props, eventData, callback }),
     scheduleClick: (props) => {
       console.log('schedule click');
       if (props?.pointerEvent) {
