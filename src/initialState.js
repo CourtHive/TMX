@@ -57,6 +57,7 @@ function tmxReady() {
   console.log('%c TMX ready', 'color: lightgreen');
   // TODO: uncomment upon release
   // if (window.location.host.startsWith('localhost:') || window.location.host.startsWith('https://courthive.github.io')) {
+  // to re-enable also uncomment (notLocal) check in actions.js
   setDev();
   // }
 
@@ -99,11 +100,11 @@ function setWindow() {
     }
   };
   */
-  window.onunhandledrejection = (event) => {
+  window.onunhandledrejection = (windowEvent) => {
     if (isDev()) return;
 
-    event.preventDefault();
-    let reason = event.reason;
+    windowEvent.preventDefault();
+    let reason = windowEvent.reason;
     let message = reason && (reason.stack || reason);
     if (message && message.indexOf('blocked') > 0) {
       popupsBlocked();

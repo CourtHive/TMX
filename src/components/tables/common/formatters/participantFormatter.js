@@ -14,8 +14,8 @@ export const formatParticipant = (onClick) => (cell, placeholder) => {
   const participant = data.participant || value.participant || (data.person && data);
   if (participant) {
     return renderParticipant({
-      composition: { configuration: { flags: true, genderColor: true, showAddress: true } },
       eventHandlers: { participantClick: (params) => isFunction(onClick) && onClick({ ...params, cell }) },
+      composition: { configuration: { flags: true, genderColor: true, participantDetail: 'TEAM' } },
       matchUp: data.matchUp,
       participant,
       placeholder,

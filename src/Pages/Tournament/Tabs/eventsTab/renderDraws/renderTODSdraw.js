@@ -7,6 +7,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
+import { getAdHocActions } from '../actions/adHocActions';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
@@ -28,7 +29,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
-      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true },
+      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true, withGroupings: true },
       includePositionAssignments: true,
       eventId
     })?.eventData;
@@ -53,12 +54,13 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const isRoundRobin = structure?.structureType === 'CONTAINER';
 
+  const callback = () => {
+    cleanupDrawPanel();
+    renderTODSdraw({ eventId, drawId, structureId });
+  };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
-    callback: () => {
-      cleanupDrawPanel();
-      renderTODSdraw({ eventId, drawId, structureId });
-    },
+    callback,
     eventData
   });
   const composition =
@@ -67,11 +69,16 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   // override WTN default
   if (composition.configuration.scaleAttributes) {
-    composition.configuration.scaleAttributes.scaleName = 'UTR';
-    composition.configuration.scaleAttributes.accessor = 'utrRating';
+    // composition.configuration.scaleAttributes.scaleName = 'UTR';
+    // composition.configuration.scaleAttributes.accessor = 'utrRating';
+    composition.configuration.scaleAttributes.scaleName = 'WTN';
+    composition.configuration.scaleAttributes.accessor = 'wtnRating';
     composition.configuration.scaleAttributes.scaleColor = 'blue';
     composition.configuration.scaleAttributes.fallback = true;
   }
+
+  composition.configuration.showAddress = undefined;
+  composition.configuration.participantDetail = 'TEAM';
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
@@ -82,14 +89,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const updateDrawDisplay = () => {
     if (dual) return;
-
-    // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
-    // if there are playoff structures, button to populate them
-    const roundRobinStats = {
-      onClick: () => console.log('boo'),
-      label: 'View stats', // also toggle between finishing positions and matches
-      location: RIGHT
-    };
 
     if (isPlayoff) {
       const playoffPositioning = () => {
@@ -120,7 +119,20 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     } else if (isRoundRobin) {
+      // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
+      // if there are playoff structures, button to populate them
+      const roundRobinStats = {
+        onClick: () => console.log('boo'),
+        label: 'View stats', // also toggle between finishing positions and matches
+        location: RIGHT
+      };
+
       const drawControlItems = [roundRobinStats];
+      const drawControl = document.getElementById(DRAW_CONTROL);
+      controlBar({ target: drawControl, items: drawControlItems });
+    } else if (utilities.isAdHoc({ structure })) {
+      const adHocActions = getAdHocActions({ structure, drawId, callback });
+      const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     }
@@ -145,21 +157,16 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
       removeAllChildNodes(drawsView);
 
-      const buttonColumn = document.createElement('div');
-      buttonColumn.style = 'display: flex; place-content: flex-start; height: 100%';
-      const elem = document.createElement('button');
-      elem.className = 'button font-medium is-info';
-      elem.innerHTML = 'Generate';
-      buttonColumn.appendChild(elem);
+      // const finalColumn = getFinalColumn({ structure, drawId, callback });
 
-      const finalColumn = utilities.isAdHoc({ structure }) && buttonColumn;
       const content = renderContainer({
         content: renderStructure({
+          context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
           eventHandlers,
           composition,
-          finalColumn,
+          // finalColumn,
           structure
         }),
         theme: composition.theme

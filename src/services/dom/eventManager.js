@@ -38,7 +38,7 @@ export const eventManager = (function () {
   };
 
   em.call = (cls, evnt, ...args) => {
-    return registeredFunctions[evnt] && registeredFunctions[evnt][cls] && registeredFunctions[evnt][cls].fx(...args);
+    return registeredFunctions?.[evnt]?.[cls]?.fx(...args);
   };
   em.trigger = (cls, evnt, target, mouse) => registeredFunctions[evnt][cls].fx(target, mouse, evnt);
   em.list = () => console.log(registeredFunctions);
@@ -80,9 +80,9 @@ export const eventManager = (function () {
 
   document.addEventListener(
     'touchstart',
-    function (event) {
-      em.touched = event.target;
-      em.coords = [event.touches[0].clientX, event.touches[0].clientY];
+    function (pointerEvent) {
+      em.touched = pointerEvent.target;
+      em.coords = [pointerEvent.touches[0].clientX, pointerEvent.touches[0].clientY];
       if (em.touched) {
         touchTimer = setTimeout(function () {
           holdAction();
@@ -100,8 +100,8 @@ export const eventManager = (function () {
   );
   document.addEventListener(
     'touchmove',
-    function (event) {
-      if (em.touched !== event.target) touchleave();
+    function (pointerEvent) {
+      if (em.touched !== pointerEvent.target) touchleave();
     },
     false
   );

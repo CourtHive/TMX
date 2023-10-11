@@ -24,7 +24,7 @@ export function validateToken(token) {
 
 export function cleanup(reset) {
   const notLocal = window.location.host.indexOf('localhost:3') !== 0;
-  if (notLocal) delete window.dev;
+  // if (notLocal) delete window.dev;
   if (reset) {
     if (notLocal) console.log('%c dev cancelled', 'color: cyan');
     context.router.navigate('/');
