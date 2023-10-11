@@ -74,6 +74,7 @@ export function renderField(item) {
     div.className = 'select font-medium';
     div.style = 'width: 100%';
     const select = document.createElement('select');
+    if (item.id) div.id = item.id;
     select.style = 'width: 100%';
     renderOptions(select, item);
     div.appendChild(select);
