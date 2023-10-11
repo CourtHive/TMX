@@ -29,7 +29,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
-      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true },
+      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true, withGroupings: true },
       includePositionAssignments: true,
       eventId
     })?.eventData;
@@ -69,11 +69,16 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   // override WTN default
   if (composition.configuration.scaleAttributes) {
-    composition.configuration.scaleAttributes.scaleName = 'UTR';
-    composition.configuration.scaleAttributes.accessor = 'utrRating';
+    // composition.configuration.scaleAttributes.scaleName = 'UTR';
+    // composition.configuration.scaleAttributes.accessor = 'utrRating';
+    composition.configuration.scaleAttributes.scaleName = 'WTN';
+    composition.configuration.scaleAttributes.accessor = 'wtnRating';
     composition.configuration.scaleAttributes.scaleColor = 'blue';
     composition.configuration.scaleAttributes.fallback = true;
   }
+
+  composition.configuration.showAddress = undefined;
+  composition.configuration.participantDetail = 'TEAM';
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
