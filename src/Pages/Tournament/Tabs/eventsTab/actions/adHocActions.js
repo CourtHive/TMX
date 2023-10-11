@@ -1,37 +1,13 @@
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
-import { tipster } from 'components/popovers/tipster';
 import { utilities } from 'tods-competition-factory';
 
-import { BOTTOM, RIGHT } from 'constants/tmxConstants';
+import { RIGHT } from 'constants/tmxConstants';
 
-const deleteMatchUpsAction = 'Delete matches';
-const addMatchUpsAction = 'Add matches';
-const addRoundAction = 'Add round';
-
-export function handleRoundHeaderClick(props) {
-  const roundActions = [
-    {
-      onClick: () => addAdHocMatchUps({ ...props?.context, ...props }),
-      text: addMatchUpsAction,
-      color: 'blue'
-    },
-    {
-      onClick: () => addAdHocRound({ ...props?.context, ...props, roundNumber: undefined, newRound: true }),
-      text: addRoundAction,
-      color: 'blue'
-    },
-    {
-      onClick: () => deleteAdHocMatchUps({ ...props?.context, ...props }),
-      text: deleteMatchUpsAction,
-      color: 'red'
-    }
-  ];
-  if (props?.pointerEvent) {
-    tipster({ items: roundActions, target: props.pointerEvent.target, config: { placement: BOTTOM } });
-  }
-}
+export const deleteMatchUpsAction = 'Delete matches';
+export const addMatchUpsAction = 'Add matches';
+export const addRoundAction = 'Add round';
 
 export function getFinalColumn({ structure, drawId, callback }) {
   if (!utilities.isAdHoc({ structure })) return;
