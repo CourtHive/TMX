@@ -20,6 +20,7 @@ export function renderOptions(select, item) {
 export function renderField(item) {
   const field = document.createElement('div');
   field.className = 'field font-medium';
+  if (item.class) field.classList.add(item.class);
 
   if (item.width) {
     field.style = `width: ${item.width}`;
@@ -29,7 +30,7 @@ export function renderField(item) {
 
   if (item.label && !item.checkbox) {
     const label = document.createElement('label');
-    label.style = 'font-weight: bold; font-size: larger;';
+    label.style = item.labelStyle || 'font-weight: bold; font-size: larger;';
     label.innerHTML = item.label;
     field.appendChild(label);
   }
