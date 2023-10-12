@@ -32,7 +32,12 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     const matchUps = [];
 
     if (inputs[AUTOMATED].value === AUTOMATED) {
-      const result = tournamentEngine.drawMatic({ drawId, addToStructure: false });
+      const result = tournamentEngine.drawMatic({
+        scaleAccessor: 'utrRating',
+        addToStructure: false,
+        scaleName: 'UTR',
+        drawId
+      });
       if (!result.matchUps?.length) return;
       matchUps.push(...result.matchUps);
     } else {
