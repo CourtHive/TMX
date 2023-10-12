@@ -13,9 +13,16 @@ export const formatParticipant = (onClick) => (cell, placeholder) => {
   const value = cell.getValue();
   const participant = data.participant || value.participant || (data.person && data);
   if (participant) {
+    const scaleAttributes = {
+      accessor: 'utrRating',
+      scaleType: 'RATING',
+      scaleColor: 'blue',
+      scaleName: 'UTR',
+      fallback: true
+    };
     return renderParticipant({
       eventHandlers: { participantClick: (params) => isFunction(onClick) && onClick({ ...params, cell }) },
-      composition: { configuration: { flags: true, genderColor: true, participantDetail: 'TEAM' } },
+      composition: { configuration: { flag: false, genderColor: true, participantDetail: 'TEAM', scaleAttributes } },
       matchUp: data.matchUp,
       participant,
       placeholder,
