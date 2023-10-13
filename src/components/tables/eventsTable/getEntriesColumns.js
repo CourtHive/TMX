@@ -12,12 +12,13 @@ import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
-export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [] } = {}) {
+export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [], drawCreated } = {}) {
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
+      visible: !drawCreated,
       headerSort: false,
       responsive: false,
       hozAlign: LEFT,

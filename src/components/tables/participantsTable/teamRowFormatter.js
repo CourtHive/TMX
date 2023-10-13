@@ -7,8 +7,8 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTipster } from 'components/popovers/tipster';
 
-import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const xa = utilities.extractAttributes;

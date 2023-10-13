@@ -33,6 +33,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       return groupings.includes(`${entryStage}.${entryStatus}`);
     });
 
+  const drawCreated = !!drawDefinition;
   const drawId = drawDefinition?.drawId;
   const eventId = event?.eventId;
 
@@ -75,16 +76,17 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         addToDraw(event, drawId),
         createFlight(event, drawId),
         ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
-        seedingSelector(event, ACCEPTED),
+        !drawCreated && seedingSelector(event, ACCEPTED),
         cancelManualSeeding(event),
         saveSeeding(event),
-        addEntries(event, ACCEPTED)
+        !drawCreated && addEntries(event, ACCEPTED)
       ],
       actions: moves[ACCEPTED],
       anchorId: ACCEPTED_PANEL,
       entries: acceptedEntries,
       group: ACCEPTED,
       excludeColumns,
+      drawCreated,
       togglePanel
     },
     {
@@ -92,16 +94,17 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         ...panelItems({ heading: 'Qualifying', count: qualifyingEntries.length }),
         moveSelected(moves[QUALIFYING], eventId, drawId),
-        seedingSelector(event, QUALIFYING),
+        !drawCreated && seedingSelector(event, QUALIFYING),
         cancelManualSeeding(event),
         saveSeeding(event),
-        addEntries(event, QUALIFYING)
+        !drawCreated && addEntries(event, QUALIFYING)
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
       anchorId: QUALIFYING_PANEL,
       entries: qualifyingEntries,
       group: QUALIFYING,
       excludeColumns,
+      drawCreated,
       togglePanel
     },
     {
@@ -109,19 +112,19 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
         moveSelected(moves[ALTERNATE], eventId, drawId),
         event?.eventType === DOUBLES && destroySelected(eventId, drawId),
-        addEntries(event, ALTERNATE)
+        !drawCreated && addEntries(event, ALTERNATE)
       ],
       actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
       excludeColumns: ['seedNumber', 'flights'],
       placeholder: 'No alternates',
       anchorId: ALTERNATES_PANEL,
       entries: alternateEntries,
-      hide: drawDefinition,
       group: ALTERNATE,
+      drawCreated,
       togglePanel
     },
     {
-      hide: [SINGLES].includes(event?.eventType) || drawDefinition,
+      hide: !!([SINGLES].includes(event?.eventType) || drawCreated),
       items: [
         ...panelItems({ heading: 'Ungrouped', count: ungroupedEntries.length }),
         searchField(LEFT, 'participantId', selectWithEnter)
@@ -133,21 +136,23 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       anchorId: UNGROUPED_PANEL,
       entries: ungroupedEntries,
       group: UNGROUPED,
+      drawCreated,
       togglePanel
     },
     {
       items: [
         ...panelItems({ heading: 'Withdrawn', count: withdrawnEntries.length }),
-        moveSelected(moves[WITHDRAWN], eventId, drawId)
+        !drawCreated && moveSelected(moves[WITHDRAWN], eventId, drawId)
       ],
       placeholder: 'No withdrawn participants',
       excludeColumns: ['seedNumber', 'flights'],
       anchorId: WITHDRAWN_PANEL,
       entries: withdrawnEntries,
-      hide: drawDefinition,
+      hide: drawCreated,
       actions: [ALTERNATE],
       group: WITHDRAWN,
       collapsed: true,
+      drawCreated,
       togglePanel
     }
   ];

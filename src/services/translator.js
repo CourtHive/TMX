@@ -701,7 +701,7 @@ export const lang = (function () {
       delete_match: 'Delete Match',
       add_player: 'Add Player',
       add_team: 'Add Team',
-      create_team: 'Create Team',
+      create_team: 'Create team',
       generate_team: 'Generate Team',
       publish: 'Publish',
       unpublish: 'Unpublish',
@@ -712,7 +712,7 @@ export const lang = (function () {
       delete_tournament: 'Delete tournament',
       edit_tournament: 'Edit Tournament',
       copy_tournament: 'Copy Tournament',
-      createteambyattr: 'Create Team',
+      createteambyattr: 'Create team',
       add2localdb: 'Add Players to Local Database',
       signoutunapproved: 'Sign Out players not approved for Events'
     },

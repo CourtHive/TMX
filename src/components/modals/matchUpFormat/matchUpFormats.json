@@ -1,0 +1,116 @@
+[
+  { "key": "custom", "name": "Custom", "desc": "" },
+  {
+    "key": "standard",
+    "name": "Standard Advantage",
+    "format": "SET3-S:6/TB7",
+    "desc": "Best of 3 Sets to 6 with Advantage"
+  },
+  {
+    "key": "atpd",
+    "name": "Standard Doubles",
+    "format": "SET3-S:6/TB7-F:TB10",
+    "desc": "Best of 3 Sets to 6, no Ad",
+    "desc2": "Final Set Tiebreak to 10"
+  },
+  {
+    "key": "standard1",
+    "name": "One Standard Set",
+    "format": "SET1-S:6/TB7",
+    "desc": "1 Set to 6 Games, Tiebreak to 7"
+  },
+  {
+    "key": "wimbledon2018",
+    "name": "Wimbledon 2018",
+    "format": "SET5-S:6/TB7-F:6",
+    "desc": "Best of 5 tiebreak sets, final set no tiebreak"
+  },
+  {
+    "key": "wimbledon2019",
+    "name": "Wimbledon 2019",
+    "format": "SET5-S:6/TB7-F:6/TB7@12",
+    "desc": "Best of 5 tiebreak sets, final set tiebreak at 12"
+  },
+  {
+    "key": "Aus2019",
+    "name": "Australian Open 2019",
+    "format": "SET5-S:6/TB7-F:6/TB10",
+    "desc": "Best of 5 tiebreak sets, final set tiebreak at 12"
+  },
+  {
+    "key": "short",
+    "name": "Short Sets TB7@4",
+    "format": "SET3-S:4/TB7",
+    "desc": "Best of 3 Sets to 4, tiebreak to 7 at 4-4"
+  },
+  {
+    "key": "short1",
+    "name": "Fast 4",
+    "format": "SET3-S:4/TB5@3",
+    "desc": "Best of 3 Sets to 4, tiebreak to 5 at 3-3"
+  },
+  {
+    "key": "short2",
+    "name": "One Short Set TB7",
+    "format": "SET1-S:4/TB7",
+    "desc": "One Set to 4, tiebreak to 7 at 4-4"
+  },
+  {
+    "key": "short3",
+    "name": "One Short Set TB5",
+    "format": "SET1-S:4/TB5@3",
+    "desc": "One Set to 4, tiebreak to 5 at 3-3"
+  },
+  {
+    "key": "short4",
+    "name": "Short Sets w/ 3rd TB10",
+    "format": "SET3-S:4/TB7-F:TB10",
+    "desc": "Best of 3 Sets to 4 Games, tiebreak to 10",
+    "desc2": "3rd Set Tiebreak to 7"
+  },
+  {
+    "key": "short5",
+    "name": "Short Sets w/ 3rd TB7",
+    "format": "SET3-S:4/TB7-F:TB7",
+    "desc": "Best of 3 Sets to 4 Games, tiebreak to 7",
+    "desc2": "3rd Set Tiebreak to 7"
+  },
+  {
+    "key": "pro",
+    "name": "Pro Set",
+    "format": "SET1-S:8/TB7",
+    "desc": "One Set to 8 with Advantage, tiebreak at 8-8"
+  },
+  { "key": "cps", "name": "College Pro Set", "format": "SET1-S:8/TB7@7" },
+  {
+    "key": "tbsets1",
+    "name": "Best of 3 TB7",
+    "format": "SET3-S:TB7",
+    "desc": "Two tiebreak sets",
+    "desc2": "7-point match tiebreak at one set all"
+  },
+  {
+    "key": "tbsets2",
+    "name": "Best of 3 TB10",
+    "format": "SET3-S:TB10",
+    "desc": "Best of 3 tiebreaks to 10"
+  },
+  {
+    "key": "tbsets3",
+    "name": "One Tiebreak to 10",
+    "format": "SET1-S:TB10",
+    "desc": "One Match Tiebreak to 10 with Advantage"
+  },
+  {
+    "key": "tbsets4",
+    "name": "Two TB7 w/ 3rd TB10",
+    "format": "SET3-S:TB7-F:TB10",
+    "desc": "Two 7 point tiebreak sets",
+    "desc2": "10 point tiebreak at one set all"
+  },
+  {
+    "key": "timed10",
+    "name": "Timed 10 minute game - game based",
+    "format": "SET1-S:T10"
+  }
+]
