@@ -48,6 +48,7 @@ export function selectParticipant({
   activeOnEnter,
   selectOnEnter,
   onSelection,
+  update,
   action
 }) {
   const actionType = actionTypes[action.type];
@@ -87,7 +88,11 @@ export function selectParticipant({
     </div>
   `;
 
-  openModal({ title, content, buttons, onClose });
+  if (update) {
+    update({ title, content, buttons, onClose });
+  } else {
+    openModal({ title, content, buttons, onClose });
+  }
 
   const onSelected = (value) => (selected = value);
   const data = action[actionType.selections];
