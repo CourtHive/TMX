@@ -69,7 +69,7 @@ export function participantMatchUpActions(e, cell, callback, params) {
 
   if (items.length === 1) {
     items[0].onClick();
-  } else if (items.length > 0) {
+  } else if (items.length > 0 && e?.target) {
     tipster({ items, target: e.target, config: { placement: BOTTOM } });
   }
 }
