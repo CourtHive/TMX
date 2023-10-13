@@ -8,6 +8,7 @@ const actionLabels = {
   ALTERNATE: 'Assign alternate',
   ASSIGN: 'Assign participant',
   BYE: 'Assign BYE',
+  REMOVE_PARTICIPANT: 'Remove assignment',
   REMOVE: 'Remove assignment',
   QUALIFIER: 'Assign qualifier',
   // REMOVE_SEED: 'Remove seed', // TODO: implement
@@ -20,7 +21,7 @@ const actionLabels = {
 export function selectPositionAction({ pointerEvent, actions, callback }) {
   const target = pointerEvent.target;
   const handleClick = (action) => {
-    ['WITHDRAW', 'BYE', 'REMOVE'].includes(action.type) && noChoiceAction({ action, callback });
+    ['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT'].includes(action.type) && noChoiceAction({ action, callback });
     ['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER'].includes(action.type) && assignParticipant({ action, callback });
     ['SEED_VALUE'].includes(action.type) && assignSeed({ target, action, callback });
   };

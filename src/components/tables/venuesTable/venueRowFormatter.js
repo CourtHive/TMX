@@ -71,6 +71,8 @@ export function venueRowFormatter(row) {
     const def = cell.getColumn().getDefinition();
     const row = cell.getRow().getData();
     const value = cell.getValue();
+
+    // TODO: mutation to update court Name... etc?
     console.log({ cell, row, value, def });
   });
 }

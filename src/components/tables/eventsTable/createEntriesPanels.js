@@ -74,7 +74,7 @@ export function createEntriesPanels({ eventId, drawId }) {
 
   const render = (data) => {
     for (const panelDef of data) {
-      const { entries, group, anchorId, placeholder, excludeColumns: exclude, actions } = panelDef;
+      const { entries, group, anchorId, placeholder, excludeColumns: exclude, actions, drawCreated } = panelDef;
       const panelElement = document.getElementById(anchorId);
       if (panelElement) {
         panelElement.style.display = panelDef.hide ? NONE : EMPTY_STRING;
@@ -97,7 +97,7 @@ export function createEntriesPanels({ eventId, drawId }) {
             'status',
             'flights'
           ]),
-          columns: getEntriesColumns({ actions, exclude, entries, eventId, drawId }),
+          columns: getEntriesColumns({ actions, exclude, entries, eventId, drawId, drawCreated }),
           responsiveLayout: 'collapse',
           index: 'participantId',
           layout: 'fitColumns',

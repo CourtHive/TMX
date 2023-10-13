@@ -23,5 +23,5 @@ export function editMatchUpFormat({ structureId, drawId }) {
       }
     }
   };
-  getMatchUpFormat({ callback });
+  getMatchUpFormat({ callback, existingMatchUpFormat });
 }
