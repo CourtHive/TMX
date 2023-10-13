@@ -13,8 +13,8 @@ export function createMatchUpsTable() {
   const getTableData = () => {
     const matchUps = (
       tournamentEngine.allTournamentMatchUps({
-        contextProfile: { withCompetitiveness: true },
-        participantsProfile: { withISO2: true }
+        participantsProfile: { withISO2: true, withScaleValues: true },
+        contextProfile: { withCompetitiveness: true }
       }).matchUps || []
     ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
 
