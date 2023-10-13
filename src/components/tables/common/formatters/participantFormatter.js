@@ -21,7 +21,11 @@ export const formatParticipant = (onClick) => (cell, placeholder) => {
       fallback: true
     };
     return renderParticipant({
-      eventHandlers: { participantClick: (params) => isFunction(onClick) && onClick({ ...params, cell }) },
+      eventHandlers: {
+        participantClick: (params) => {
+          return isFunction(onClick) && onClick({ ...params, event: params.pointerEvent, cell });
+        }
+      },
       composition: { configuration: { flag: false, genderColor: true, participantDetail: 'TEAM', scaleAttributes } },
       matchUp: data.matchUp,
       participant,
