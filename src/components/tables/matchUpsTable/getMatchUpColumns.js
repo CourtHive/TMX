@@ -135,6 +135,14 @@ export function getMatchUpColumns(replaceTableData) {
       width: 140
     },
     {
+      // formatter: profileFormatter,
+      field: 'competitiveProfile.competitiveness',
+      responsive: false,
+      title: 'Profile',
+      visible: false,
+      width: 140
+    },
+    {
       title: `<div class='fa-solid fa-check' style='color: green' />`,
       formatter: 'tickCross',
       field: 'complete',
