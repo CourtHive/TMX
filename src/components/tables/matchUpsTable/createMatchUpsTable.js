@@ -47,6 +47,18 @@ export function createMatchUpsTable() {
       columns,
       data
     });
+    table.on('dataFiltered', (filters, rows) => {
+      const matchUps = rows.map((row) => row.getData().matchUp);
+      console.log(
+        { matchUps },
+        tournamentEngine.getPredictiveAccuracy({
+          valueAccessor: 'wtnRating',
+          scaleName: 'WTN',
+          zoneMargin: 4,
+          matchUps
+        })
+      );
+    });
   };
 
   render(getTableData());
