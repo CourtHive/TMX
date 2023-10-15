@@ -63,6 +63,8 @@ export const mapMatchUp = (matchUp) => {
     ? { competitiveness: matchUp.competitiveness }
     : matchUp.competitiveProfile;
 
+  const scoreDetail = { score, matchUpStatus: matchUp.matchUpStatus, readyToScore, complete, winningSide };
+
   return {
     matchUpStatus: matchUp.matchUpStatus,
     individualParticipantIds,
@@ -71,6 +73,7 @@ export const mapMatchUp = (matchUp) => {
     readyToScore,
     scheduleTime,
     matchUpType,
+    scoreDetail,
     winningSide,
     searchText,
     courtName,
