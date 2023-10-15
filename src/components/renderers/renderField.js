@@ -75,6 +75,7 @@ export function renderField(item) {
     div.style = 'width: 100%';
     const select = document.createElement('select');
     if (item.id) div.id = item.id;
+    if (item.disabled) select.disabled = true;
     select.style = 'width: 100%';
     renderOptions(select, item);
     div.appendChild(select);
