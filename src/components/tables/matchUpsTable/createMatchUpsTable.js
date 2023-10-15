@@ -27,8 +27,6 @@ export function createMatchUpsTable() {
     table.replaceData(getTableData());
   };
 
-  // TODO: add competitiveness column and/or highlight scores based on competitiveness
-  // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
   const columns = getMatchUpColumns(replaceTableData);
 
   const render = (data) => {
