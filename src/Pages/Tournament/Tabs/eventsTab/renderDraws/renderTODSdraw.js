@@ -3,6 +3,7 @@ import { compositions, renderContainer, renderStructure } from 'courthive-compon
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
@@ -24,6 +25,8 @@ const { DOUBLES, TEAM } = eventConstants;
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
+
+  eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
 
   const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
   console.log({ drawId, displayConfig });
@@ -63,8 +66,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
+    eventData,
     callback,
-    eventData
+    drawId
   });
   const composition =
     compositions?.[compositionName] ||
@@ -165,13 +169,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
 
-      console.log(!!eventHandlers);
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
-          // eventHandlers,
+          eventHandlers,
           composition,
           // finalColumn,
           structure
@@ -181,7 +184,38 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
       const targetNode = drawsView.firstChild;
       if (targetNode) {
-        morphdom(targetNode, content);
+        morphdom(targetNode, content, {
+          addChild: function (parentNode, childNode) {
+            if (childNode.classList) {
+              try {
+                if (
+                  childNode.getAttribute('id') !== 'undefined' &&
+                  parentNode.firstChild.getAttribute('id') !== 'undefined' &&
+                  childNode.getAttribute('id') !== parentNode.firstChild.getAttribute('id')
+                ) {
+                  // parentNode.removeChild(parentNode.firstChild);
+                } else {
+                  if (
+                    childNode.classList?.contains('tmx-p') &&
+                    parentNode.firstChild.getAttribute('id') === 'undefined'
+                  ) {
+                    parentNode.removeChild(parentNode.firstChild);
+                  }
+                  if (
+                    parentNode.firstChild?.classList?.contains('tmx-p') &&
+                    parentNode.firstChild.getAttribute('id') !== 'undefined' &&
+                    childNode.getAttribute('id') === 'undefined'
+                  ) {
+                    parentNode.removeChild(parentNode.firstChild);
+                  }
+                }
+              } catch (err) {
+                console.log({ err });
+              }
+            }
+            parentNode.appendChild(childNode);
+          }
+        });
       } else {
         drawsView.appendChild(content);
       }
