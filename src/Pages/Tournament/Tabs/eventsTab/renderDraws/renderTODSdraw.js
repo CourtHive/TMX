@@ -14,11 +14,11 @@ import { getActionOptions } from './getActionOptions';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
 import { context } from 'services/context';
+import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
 
-const { AD_HOC } = drawDefinitionConstants;
 const { DOUBLES, TEAM } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
@@ -26,7 +26,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   if (!events?.length) return;
 
   const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
-  console.log({ displayConfig });
+  console.log({ drawId, displayConfig });
 
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
 
@@ -88,7 +88,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   composition.configuration.roundHeader = true;
 
   const drawsView = document.getElementById(DRAWS_VIEW);
-  removeAllChildNodes(drawsView);
 
   const updateDrawDisplay = () => {
     if (dual) return;
@@ -157,14 +156,16 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
       } else {
-        console.log(AD_HOC, { structureId, structures, drawData });
+        console.log('no matchUps', { structureId, structures, drawData });
+        removeAllChildNodes(drawsView);
       }
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
-      removeAllChildNodes(drawsView);
+      // removeAllChildNodes(drawsView);
 
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
 
+      console.log(!!eventHandlers);
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
@@ -177,7 +178,13 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         }),
         theme: composition.theme
       });
-      drawsView.appendChild(content);
+
+      const targetNode = drawsView.firstChild;
+      if (targetNode) {
+        morphdom(targetNode, content);
+      } else {
+        drawsView.appendChild(content);
+      }
     }
   };
 
