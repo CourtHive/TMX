@@ -13,8 +13,7 @@ export function profileFormatter(cell) {
   };
 
   if (score) {
-    const { competitiveness, pctSpread } = competitiveProfile;
-    if (pctSpread) console.log({ pctSpread });
+    const { competitiveness } = competitiveProfile;
     content.style = 'font-size: smaller';
     content.style.color = colorMap[competitiveness];
     content.innerHTML = competitiveness;

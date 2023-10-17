@@ -14,10 +14,10 @@ import {
   utilities
 } from 'tods-competition-factory';
 
-import { ADD_EVENT, ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
+import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
-const { DIRECT_ACCEPTANCE, UNGROUPED } = entryStatusConstants;
+const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { DOUBLES, SINGLES, TEAM } = eventConstants;
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { FEMALE, MALE, MIXED } = genderConstants;
@@ -31,9 +31,30 @@ export function editEvent({ event, participants, callback } = {}) {
     gender: event?.gender || 'MIXED'
   };
 
+  const enteredParticipantIds = event?.entries
+    ?.filter(({ entryStatus }) => [...STRUCTURE_SELECTED_STATUSES, ALTERNATE].includes(entryStatus))
+    .map(({ participantId }) => participantId);
+
+  const enteredParticipants = enteredParticipantIds
+    ? tournamentEngine.getParticipants({
+        participantFilters: { participantIds: enteredParticipantIds },
+        withIndividualParticipants: true
+      }).participants
+    : [];
+
+  const enteredParticipantGenders = [];
+  const enteredParticipantTypes = enteredParticipants.reduce((types, participant) => {
+    const genders = participant.person?.sex
+      ? [participant.person.sex]
+      : participant.individualParticpants?.map((p) => p.person?.sex) || [];
+    enteredParticipantGenders.push(genders);
+    return !types.includes(participant.participantType) ? types.concat(participant.participantType) : types;
+  }, []);
+
   let eventTypeOptions, genderOptions;
 
   const participantType = participants?.[0].participantType;
+
   if (participants?.length) {
     values.eventType = (participantType === INDIVIDUAL && SINGLES) || (participantType === PAIR && DOUBLES) || TEAM;
     if (participantType === INDIVIDUAL) eventTypeOptions = [SINGLES, DOUBLES, TEAM];
@@ -50,9 +71,21 @@ export function editEvent({ event, participants, callback } = {}) {
     }
   }
 
+  if (enteredParticipantGenders.length) {
+    genderOptions = [MIXED];
+    if (event.gender && !event.gender === MIXED) genderOptions.push(event.gender);
+    const uniqueEnteredGenders = utilities.unique(...enteredParticipantGenders);
+    if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
+      genderOptions.push(...uniqueEnteredGenders);
+    }
+  } else if (event) {
+    genderOptions = [MALE, MIXED, FEMALE];
+  }
+
   const valueChange = (/*e, item*/) => {
     //
   };
+
   const content = (elem) =>
     renderForm(elem, [
       {
@@ -65,9 +98,10 @@ export function editEvent({ event, participants, callback } = {}) {
         field: 'eventName'
       },
       {
+        disabled: enteredParticipantTypes.length,
         value: values.eventType,
-        label: 'Format',
         field: 'eventType',
+        label: 'Format',
         options: [
           {
             hide: eventTypeOptions && !eventTypeOptions.includes(SINGLES),
@@ -144,19 +178,26 @@ export function editEvent({ event, participants, callback } = {}) {
       }
     };
 
-    const eventId = utilities.UUID();
-    const methods = [{ method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
-    if (participants?.length) {
-      const participantIds = participants.map(({ participantId }) => participantId);
-      const entryStatus =
-        participantType === INDIVIDUAL && [DOUBLES, TEAM].includes(eventType) ? UNGROUPED : DIRECT_ACCEPTANCE;
-      const method = {
-        params: { eventId, participantIds, entryStatus, entryStage: MAIN },
-        method: ADD_EVENT_ENTRIES
-      };
-      methods.push(method);
+    if (event) {
+      const eventId = event.eventId;
+      const methods = [{ method: MODIFY_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
+      mutationRequest({ methods, callback: postMutation });
+    } else {
+      const eventId = utilities.UUID();
+      const methods = [{ method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
+
+      if (participants?.length) {
+        const participantIds = participants.map(({ participantId }) => participantId);
+        const entryStatus =
+          participantType === INDIVIDUAL && [DOUBLES, TEAM].includes(eventType) ? UNGROUPED : DIRECT_ACCEPTANCE;
+        const method = {
+          params: { eventId, participantIds, entryStatus, entryStage: MAIN },
+          method: ADD_EVENT_ENTRIES
+        };
+        methods.push(method);
+      }
+      mutationRequest({ methods, callback: postMutation });
     }
-    mutationRequest({ methods, callback: postMutation });
   };
 
   const footer = (elem, close) =>
@@ -172,7 +213,6 @@ export function editEvent({ event, participants, callback } = {}) {
   const title = event?.eventId ? 'Edit event' : 'Add event';
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
-    onClose: callback,
     width: '300px',
     side: RIGHT,
     content,

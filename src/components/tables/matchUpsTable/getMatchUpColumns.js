@@ -1,4 +1,5 @@
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
+import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
@@ -132,8 +133,9 @@ export function getMatchUpColumns(replaceTableData) {
       width: 140
     },
     {
+      sorter: competitiveProfileSorter,
       formatter: profileFormatter,
-      field: 'competitiveProfile.competitiveness',
+      field: 'competitiveProfile',
       responsive: false,
       title: 'Profile',
       visible: false,
