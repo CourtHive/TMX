@@ -1,7 +1,7 @@
 import { receiveTournamentRecord } from 'components/modals/receiveTournamentRecord';
 import { processDirective } from 'services/processDirective';
 import { authMessage } from 'components/modals/authMessage';
-import { eventManager } from 'services/dom/eventManager';
+import { eventManager } from 'services/dom/events/eventManager';
 import { modalTarget } from 'services/dom/modalTarget';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';

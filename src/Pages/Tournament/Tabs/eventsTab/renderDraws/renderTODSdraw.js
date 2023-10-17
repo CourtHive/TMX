@@ -171,7 +171,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
-          eventHandlers,
+          // eventHandlers,
           composition,
           // finalColumn,
           structure

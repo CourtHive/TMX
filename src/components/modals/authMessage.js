@@ -1,6 +1,6 @@
 import { contentEquals } from 'services/transitions/screenSlaver';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { eventManager } from 'services/dom/eventManager';
+import { eventManager } from 'services/dom/events/eventManager';
 import { openModal } from './baseModal/baseModal';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
