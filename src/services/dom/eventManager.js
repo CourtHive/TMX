@@ -4,13 +4,13 @@ export const eventManager = (function () {
     elapsed: 100000,
     held: undefined,
     touched: undefined,
-    hold_time: 800,
+    holdTime: 800,
     holdAction: undefined,
     holdActions: {}
   };
-  let keys = {};
+  const keys = {};
   let registeredFunctions = {};
-  let intersection = (a, b) => a.filter((n) => b.indexOf(n) !== -1).filter((e, i, c) => c.indexOf(e) === i);
+  const intersection = (a, b) => a.filter((n) => b.indexOf(n) !== -1).filter((e, i, c) => c.indexOf(e) === i);
 
   em.reset = () => {
     registeredFunctions = {};
@@ -51,7 +51,7 @@ export const eventManager = (function () {
   document.addEventListener('mouseout', (evt) => processEvnt({ evt, evnt: 'mouseout', stopPropagation: false }));
   document.addEventListener('keyup', (evt) => processEvnt({ evt, evnt: 'keyup', stopPropagation: false }));
 
-  let last_tap = 0;
+  let lastTap = 0;
 
   function processEvnt({ evt, evnt, stopPropagation = true }) {
     if (stopPropagation) evt.stopPropagation();
@@ -61,13 +61,14 @@ export const eventManager = (function () {
       pageX: evt.pageX,
       pageY: evt.pageY
     };
-    let class_list = Array.from(evt.target.classList);
-    let cls_matches = class_list.length && keys[evnt] ? intersection(class_list, keys[evnt]) : [];
-    if (cls_matches.length) {
-      let this_tap = new Date().getTime();
-      em.elapsed = this_tap - last_tap;
-      last_tap = this_tap;
-      cls_matches.forEach((cls) => {
+    let classList = Array.from(evt.target.classList);
+    let matchedClasses = classList.length && keys[evnt] ? intersection(classList, keys[evnt]) : [];
+    if (evnt === 'click') console.log({ classList }, keys[evnt]);
+    if (matchedClasses.length) {
+      let thisTap = new Date().getTime();
+      em.elapsed = thisTap - lastTap;
+      lastTap = thisTap;
+      matchedClasses.forEach((cls) => {
         callFunction({ cls, evt, evnt, mouse });
       });
     }
@@ -78,15 +79,16 @@ export const eventManager = (function () {
     registeredFunctions[evnt][cls].fx(target, mouse, evnt, evt);
   }
 
+  console.log('boo');
   document.addEventListener(
     'touchstart',
-    function (pointerEvent) {
+    (pointerEvent) => {
       em.touched = pointerEvent.target;
       em.coords = [pointerEvent.touches[0].clientX, pointerEvent.touches[0].clientY];
       if (em.touched) {
         touchTimer = setTimeout(function () {
           holdAction();
-        }, em.hold_time);
+        }, em.holdTime);
       }
     },
     false
