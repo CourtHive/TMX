@@ -83,6 +83,9 @@ dependencies:
   leaflet:
     specifier: 1.7.1
     version: 1.7.1
+  morphdom:
+    specifier: ^2.7.1
+    version: 2.7.1
   navigo:
     specifier: ^8.11.1
     version: 8.11.1
@@ -8666,6 +8669,10 @@ packages:
     dependencies:
       minimist: 1.2.8
     dev: true
+
+  /morphdom@2.7.1:
+    resolution: {integrity: sha512-LwrrjplMolniWtOGluKF1EHZ0y78Fa4sq7f/MXCydyNkDof+POf+ruCn+k08l7H7b/JISfRo8Zd0HazuqySY9w==}
+    dev: false
 
   /ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
