@@ -19,6 +19,7 @@ import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
+import { findAncestor } from 'services/dom/parentAndChild';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -28,8 +29,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
 
-  const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
-  console.log({ drawId, displayConfig });
+  // const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
+  // console.log({ drawId, displayConfig });
 
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
 
@@ -182,32 +183,52 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         theme: composition.theme
       });
 
+      const getTMXp = (node) => {
+        if (node?.classList?.contains('tmx-p')) return node;
+        return findAncestor(node, 'tmx-p');
+      };
       const targetNode = drawsView.firstChild;
       if (targetNode) {
         morphdom(targetNode, content, {
           addChild: function (parentNode, childNode) {
             if (childNode.classList) {
+              const existing = parentNode.firstChild;
+              const incomingIdValue = childNode.getAttribute('id');
+              const incomingId = ![null, 'undefined', undefined].includes(incomingIdValue);
+              const existingIdValue = parentNode.firstChild?.getAttribute?.('id');
+              const existingId = ![null, 'undefined', undefined].includes(existingIdValue);
+
               try {
-                if (
-                  childNode.getAttribute('id') !== 'undefined' &&
-                  parentNode.firstChild.getAttribute('id') !== 'undefined' &&
-                  childNode.getAttribute('id') !== parentNode.firstChild.getAttribute('id')
+                if (!incomingId && !existingId) {
+                  console.log('condition 0');
+                  const nextSibling = getTMXp(existing)?.nextSibling;
+                  if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
+                    nextSibling.parentElement.removeChild(nextSibling);
+                  }
+                  // return false;
+                } else if (
+                  incomingId &&
+                  existingId &&
+                  incomingIdValue &&
+                  existingIdValue &&
+                  incomingIdValue !== existingIdValue
                 ) {
-                  // parentNode.removeChild(parentNode.firstChild);
+                  console.log('condition 1');
+                  parentNode.removeChild(parentNode.firstChild);
+                } else if (childNode.classList?.contains('tmx-p') && !existingId) {
+                  console.log('condition 2');
+                  parentNode.removeChild(parentNode.firstChild);
+                } else if (
+                  parentNode.firstChild?.classList?.contains('tmx-p') &&
+                  parentNode.firstChild.getAttribute('id') !== 'undefined' &&
+                  childNode.getAttribute('id') === 'undefined'
+                ) {
+                  console.log('condition 3');
+                  parentNode.removeChild(parentNode.firstChild);
+                } else if (!incomingId && existingId) {
+                  console.log('condition 4', { existingIdValue });
                 } else {
-                  if (
-                    childNode.classList?.contains('tmx-p') &&
-                    parentNode.firstChild.getAttribute('id') === 'undefined'
-                  ) {
-                    parentNode.removeChild(parentNode.firstChild);
-                  }
-                  if (
-                    parentNode.firstChild?.classList?.contains('tmx-p') &&
-                    parentNode.firstChild.getAttribute('id') !== 'undefined' &&
-                    childNode.getAttribute('id') === 'undefined'
-                  ) {
-                    parentNode.removeChild(parentNode.firstChild);
-                  }
+                  console.log({ incomingId, existingId, incomingIdValue, existingIdValue });
                 }
               } catch (err) {
                 console.log({ err });
