@@ -12,6 +12,11 @@ export function findAncestor(el, className) {
   return null;
 }
 
+export function getTargetAttribute(el, className, attribute) {
+  const ancestor = findAncestor(el, className);
+  return ancestor?.getAttribute(attribute);
+}
+
 export function getChildrenByClassName(elem, className) {
   const matches = [];
 

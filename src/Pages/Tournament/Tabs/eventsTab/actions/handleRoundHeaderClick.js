@@ -1,14 +1,14 @@
+import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocActions';
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tipster } from 'components/popovers/tipster';
 import { utilities } from 'tods-competition-factory';
 
-import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocActions';
 import { BOTTOM } from 'constants/tmxConstants';
 
 export function handleRoundHeaderClick(props) {
-  const { structureId, drawId } = props?.context ?? {};
+  const { structureId, drawId } = props?.context ?? props;
   const structure = props.eventData?.drawsData
     ?.find((drawData) => drawData.drawId === drawId)
     ?.structures?.find((s) => s.structureId === structureId);
@@ -18,17 +18,17 @@ export function handleRoundHeaderClick(props) {
   if (utilities.isAdHoc({ structure })) {
     const adHocRoundAction = [
       {
-        onClick: () => addAdHocMatchUps({ ...props?.context, ...props }),
+        onClick: () => addAdHocMatchUps({ ...props }),
         text: addMatchUpsAction,
         color: 'blue'
       },
       {
-        onClick: () => addAdHocRound({ ...props?.context, ...props, roundNumber: undefined, newRound: true }),
+        onClick: () => addAdHocRound({ ...props, roundNumber: undefined, newRound: true }),
         text: addRoundAction,
         color: 'blue'
       },
       {
-        onClick: () => deleteAdHocMatchUps({ ...props?.context, ...props }),
+        onClick: () => deleteAdHocMatchUps({ ...props }),
         text: deleteMatchUpsAction,
         color: 'red'
       }
