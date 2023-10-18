@@ -79,7 +79,6 @@ export const eventManager = (function () {
     registeredFunctions[evnt][cls].fx(target, mouse, evnt, evt);
   }
 
-  console.log('boo');
   document.addEventListener(
     'touchstart',
     (pointerEvent) => {
