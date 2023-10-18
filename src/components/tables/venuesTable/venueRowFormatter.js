@@ -1,10 +1,12 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCourtColumns } from './getCourtColumns';
 
 import { NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
+import { MODIFY_COURT } from 'constants/mutationConstants';
 
 export function venueRowFormatter(row) {
   const holderEl = document.createElement('div');
@@ -68,11 +70,21 @@ export function venueRowFormatter(row) {
 
   courtsTable.on('scrollVertical', destroyTipster);
   courtsTable.on('cellEdited', (cell) => {
-    const def = cell.getColumn().getDefinition();
     const row = cell.getRow().getData();
     const value = cell.getValue();
 
-    // TODO: mutation to update court Name... etc?
-    console.log({ cell, row, value, def });
+    if (value.length) {
+      const postMutation = (result) => {
+        if (result.success) {
+          console.log('success', { result });
+        } else {
+          console.log({ result });
+        }
+      };
+      const methods = [{ method: MODIFY_COURT, params: { courtId: row.courtId, modifications: { courtName: value } } }];
+      mutationRequest({ methods, callback: postMutation });
+    } else {
+      console.log('INVALID VALUE');
+    }
   });
 }

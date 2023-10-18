@@ -2,12 +2,12 @@ import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatch
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 
-import { ALL_EVENTS, ALL_TEAMS, LEFT, MATCHUPS_CONTROL, OVERLAY } from 'constants/tmxConstants';
+import { ALL_EVENTS, ALL_STATUSES, ALL_TEAMS, LEFT, MATCHUPS_CONTROL, OVERLAY } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
-  let eventIdFilter, teamIdFilter;
+  let eventIdFilter, teamIdFilter, matchUpStatusFilter;
 
   const { table } = createMatchUpsTable();
 
@@ -31,6 +31,35 @@ export function renderMatchUpTab() {
       close: true
     }))
   );
+
+  const statusFilter = (rowData) => {
+    if (matchUpStatusFilter === 'readyToScore') {
+      return rowData.scoreDetail.readyToScore && !rowData.scoreDetail.score && !rowData.scoreDetail.winningSide;
+    } else if (matchUpStatusFilter === 'complete') {
+      return (
+        rowData.scoreDetail.winningSide ||
+        ['DOUBLE_WALKOVER', 'DOUBLE_DEFAULT', 'CANCELLED', 'ABANDONED'].includes(rowData.scoreDetail.matchUpStatus)
+      );
+    }
+  };
+  const updateStatusFilter = (status) => {
+    table?.removeFilter(statusFilter);
+    matchUpStatusFilter = status;
+    if (matchUpStatusFilter) {
+      table?.addFilter(statusFilter);
+    }
+  };
+  const allStatuses = {
+    label: `<span style='font-weight: bold'>${ALL_STATUSES}</span>`,
+    onClick: () => updateStatusFilter(),
+    close: true
+  };
+  const scoreOptions = [
+    allStatuses,
+    { divider: true },
+    { label: 'Ready to score', close: true, onClick: () => updateStatusFilter('readyToScore') },
+    { label: 'Complete', close: true, onClick: () => updateStatusFilter('complete') }
+  ];
 
   // SEARCH filter
   let searchText;
@@ -100,6 +129,13 @@ export function renderMatchUpTab() {
       location: LEFT,
       modifyLabel: true,
       selection: true
+    },
+    {
+      options: scoreOptions,
+      label: ALL_STATUSES,
+      modifyLabel: true,
+      selection: true,
+      location: LEFT
     }
   ];
 

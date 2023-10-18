@@ -27,8 +27,6 @@ export function createMatchUpsTable() {
     table.replaceData(getTableData());
   };
 
-  // TODO: add competitiveness column and/or highlight scores based on competitiveness
-  // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
   const columns = getMatchUpColumns(replaceTableData);
 
   const render = (data) => {
@@ -46,6 +44,18 @@ export function createMatchUpsTable() {
       index: 'matchUpId',
       columns,
       data
+    });
+    table.on('dataFiltered', (filters, rows) => {
+      const matchUps = rows.map((row) => row.getData().matchUp);
+      console.log(
+        { matchUps },
+        tournamentEngine.getPredictiveAccuracy({
+          valueAccessor: 'wtnRating',
+          scaleName: 'WTN',
+          zoneMargin: 4,
+          matchUps
+        })
+      );
     });
   };
 

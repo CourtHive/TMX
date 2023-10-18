@@ -1,5 +1,8 @@
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
+import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { participantSorter } from '../common/sorters/participantSorter';
+import { profileFormatter } from '../common/formatters/profileFormatter';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { titleFormatter } from '../common/formatters/titleFormatter';
@@ -7,6 +10,7 @@ import { matchUpActions } from 'components/popovers/matchUpActions';
 import { handleScoreClick } from './handleMatchUpScoreClick';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
@@ -14,13 +18,6 @@ import { context } from 'services/context';
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getMatchUpColumns(replaceTableData) {
-  const participantSorter = (a, b) => {
-    if (a.participantName && !b.participantName) return 1;
-    if (b.participantName && !a.participantName) return 1;
-    if (!a?.participantName && !b?.participantName) return 1;
-    return a?.participantName?.localeCompare(b?.participantName);
-  };
-
   const matchUpScheduleClick = (e, cell) => {
     const row = cell.getRow();
     const data = row.getData();
@@ -129,9 +126,19 @@ export function getMatchUpColumns(replaceTableData) {
     {
       cellClick: handleScoreClick(replaceTableData),
       formatter: scoreFormatter,
+      sorter: scoreSorter,
+      field: 'scoreDetail',
       responsive: false,
       title: 'Score',
-      field: 'score',
+      width: 140
+    },
+    {
+      sorter: competitiveProfileSorter,
+      formatter: profileFormatter,
+      field: 'competitiveProfile',
+      responsive: false,
+      title: 'Profile',
+      visible: false,
       width: 140
     },
     {

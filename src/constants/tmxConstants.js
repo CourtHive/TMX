@@ -13,6 +13,7 @@ const {
 } = entryStatusConstants;
 
 // selectors
+export const ALL_STATUSES = 'All statuses';
 export const ALL_GENDERS = 'All genders';
 export const ALL_EVENTS = 'All events';
 export const ALL_TEAMS = 'All teams';

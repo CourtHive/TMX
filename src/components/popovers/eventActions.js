@@ -1,3 +1,4 @@
+import { editEvent } from 'Pages/Tournament/Tabs/eventsTab/editEvent';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -10,7 +11,9 @@ export function eventActions(e, cell) {
   }
   const target = e.target.getElementsByClassName('fa-ellipsis-vertical')[0];
   const data = cell.getRow().getData();
+
   const callback = (message, data) => console.log(message, data);
+
   const items = [
     {
       text: 'Delete',
@@ -18,7 +21,7 @@ export function eventActions(e, cell) {
     },
     {
       text: 'Edit',
-      onClick: () => callback('Edit', data)
+      onClick: () => editEvent({ event: data.event, callback })
     }
   ];
 

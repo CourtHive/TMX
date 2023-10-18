@@ -135,6 +135,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       onSelection: event?.eventType === DOUBLES && createPairFromSelected,
       anchorId: UNGROUPED_PANEL,
       entries: ungroupedEntries,
+      actions: [WITHDRAWN],
       group: UNGROUPED,
       drawCreated,
       togglePanel
@@ -148,8 +149,8 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       excludeColumns: ['seedNumber', 'flights'],
       anchorId: WITHDRAWN_PANEL,
       entries: withdrawnEntries,
-      hide: drawCreated,
       actions: [ALTERNATE],
+      hide: drawCreated,
       group: WITHDRAWN,
       collapsed: true,
       drawCreated,
