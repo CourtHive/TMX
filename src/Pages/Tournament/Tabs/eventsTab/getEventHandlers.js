@@ -4,15 +4,36 @@ import { handleRoundHeaderClick } from './actions/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { matchUpActions } from 'components/popovers/matchUpActions';
+import { getTargetAttribute } from 'services/dom/parentAndChild';
 import { tipster } from 'components/popovers/tipster';
+import { createMap } from 'functions/objects';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
-export function getEventHandlers({ eventData, callback }) {
+export function getEventHandlers({ callback, drawId, eventData }) {
+  const matchUps = eventData?.drawsData?.flatMap(({ structures }) =>
+    structures
+      .flatMap((structure) => [
+        ...[structure.structures?.flatMap((structure) => Object.values(structure.roundMatchUps || {}).flat())],
+        ...Object.values(structure.roundMatchUps || {}).flat()
+      ])
+      .filter(Boolean)
+  );
+  const matchUpsMap = createMap(matchUps, 'matchUpId');
+  const getMatchUp = (props) => {
+    const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
+    return matchUpsMap[matchUpId];
+  };
+
+  const getSideNumber = (props) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-sd', 'sideNumber'));
+  const getStructureId = (props) => getTargetAttribute(props.pointerEvent.target, 'tmx-str', 'id');
+  const getRoundNumber = (props) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-rd', 'roundNumber'));
+
   const sideClick = (props) => {
-    const { matchUp = {}, sideNumber } = props;
+    const matchUp = getMatchUp(props);
+    const sideNumber = getSideNumber(props);
 
     const side = props.side || matchUp.sides?.find((side) => side.sideNumber === sideNumber);
 
@@ -44,18 +65,30 @@ export function getEventHandlers({ eventData, callback }) {
 
   return {
     centerInfoClick: () => console.log('centerInfo click'),
-    roundHeaderClick: (props) => handleRoundHeaderClick({ ...props, eventData, callback }),
+    roundHeaderClick: (props) => {
+      const roundNumber = getRoundNumber(props);
+      const structureId = getStructureId(props);
+      return handleRoundHeaderClick({
+        pointerEvent: props.pointerEvent,
+        roundNumber,
+        structureId,
+        eventData,
+        callback,
+        drawId
+      });
+    },
     scheduleClick: (props) => {
-      console.log('schedule click');
       if (props?.pointerEvent) {
         props.pointerEvent.stopPropagation();
-        matchUpActions({ pointerEvent: props.pointerEvent, matchUp: props.matchUp, callback });
+        const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
+        const matchUp = matchUpsMap[matchUpId];
+        matchUpActions({ pointerEvent: props.pointerEvent, matchUp, callback });
       }
     },
     venueClick: (props) => {
-      console.log('venue click', props); // when no venueClick fall back to scheduleClick
-      if (props?.pointerEvent && props.matchUp?.schedule?.venueId) {
-        const venueId = props.matchUp.schedule.venueId;
+      const matchUp = getMatchUp(props);
+      if (props?.pointerEvent && matchUp?.schedule?.venueId) {
+        const venueId = matchUp.schedule.venueId;
         const address = tournamentEngine.findVenue({ venueId })?.venue?.addresses?.[0];
         const { latitude, longitude } = address || {};
         const google = `https://www.google.com/maps/@?api=1&map_action=map&center=${latitude}%2C${longitude}&zoom=18&basemap=satellite`;
@@ -82,8 +115,8 @@ export function getEventHandlers({ eventData, callback }) {
     },
     matchUpClick: (params) => console.log('matchUpClick', params),
     scoreClick: (props) => {
-      const { matchUp = {}, side, sideIndex } = props;
-      const sideNumber = side?.sideNumber || sideIndex + 1;
+      const sideNumber = getSideNumber(props);
+      const matchUp = getMatchUp(props);
 
       const { validActions: matchUpActions } =
         tournamentEngine.matchUpActions({

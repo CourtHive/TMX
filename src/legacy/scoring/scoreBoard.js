@@ -1,5 +1,5 @@
 import { matchUpFormatCode, utilities } from 'tods-competition-factory';
-import { eventManager } from 'services/dom/eventManager';
+import { eventManager } from 'services/dom/events/eventManager';
 import { getParent } from 'services/dom/parentAndChild';
 import completedMatch from 'assets/icons/completed.png';
 import { floatingScoring } from './floatingScoring';

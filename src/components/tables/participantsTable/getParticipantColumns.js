@@ -1,6 +1,7 @@
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
+import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
@@ -51,7 +52,8 @@ export function getParticipantColumns() {
     {
       formatter: formatParticipant(({ event, cell, ...params }) => participantActions(event, cell, undefined, params)),
       cellClick: participantActions,
-      field: 'participantName',
+      sorter: participantSorter,
+      field: 'participant',
       responsive: false,
       resizable: false,
       minWidth: 200,

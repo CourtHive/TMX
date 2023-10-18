@@ -1,8 +1,6 @@
 import { receiveTournamentRecord } from 'components/modals/receiveTournamentRecord';
 import { processDirective } from 'services/processDirective';
 import { authMessage } from 'components/modals/authMessage';
-import { eventManager } from 'services/dom/eventManager';
-import { modalTarget } from 'services/dom/modalTarget';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { isDev } from 'functions/isDev';
@@ -67,8 +65,6 @@ function tmxMessage(msg) {
 }
 
 function initListeners() {
-  eventManager.register('modalPeer', 'tap', modalTarget);
-
   context.ee.addListener('receiveTournamentRecord', receiveTournamentRecord);
   context.ee.addListener(PROCESS_DIRECTIVE, processDirective);
   context.ee.addListener('changeIdiom', changeIdiom);

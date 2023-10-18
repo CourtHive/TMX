@@ -3,6 +3,7 @@ import { compositions, renderContainer, renderStructure } from 'courthive-compon
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
@@ -14,19 +15,22 @@ import { getActionOptions } from './getActionOptions';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
 import { context } from 'services/context';
+import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
+import { findAncestor } from 'services/dom/parentAndChild';
 
-const { AD_HOC } = drawDefinitionConstants;
 const { DOUBLES, TEAM } = eventConstants;
 
 export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
-  const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
-  console.log({ displayConfig });
+  eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
+
+  // const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
+  // console.log({ drawId, displayConfig });
 
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
 
@@ -63,8 +67,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
+    eventData,
     callback,
-    eventData
+    drawId
   });
   const composition =
     compositions?.[compositionName] ||
@@ -88,7 +93,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   composition.configuration.roundHeader = true;
 
   const drawsView = document.getElementById(DRAWS_VIEW);
-  removeAllChildNodes(drawsView);
 
   const updateDrawDisplay = () => {
     if (dual) return;
@@ -138,6 +142,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
+    } else if (structure.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
+      console.log('voluntary controlBar with [View participants]');
+      // use modal with eligible players and selected players highlighted
     }
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
@@ -154,11 +161,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
       } else {
-        console.log(AD_HOC, { structureId, structures, drawData });
+        console.log('no matchUps', { structureId, structures, drawData });
+        removeAllChildNodes(drawsView);
       }
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
-      removeAllChildNodes(drawsView);
+      // removeAllChildNodes(drawsView);
 
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
 
@@ -174,7 +182,64 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
         }),
         theme: composition.theme
       });
-      drawsView.appendChild(content);
+
+      const getTMXp = (node) => {
+        if (node?.classList?.contains('tmx-p')) return node;
+        return findAncestor(node, 'tmx-p');
+      };
+      const targetNode = drawsView.firstChild;
+      if (targetNode) {
+        morphdom(targetNode, content, {
+          addChild: function (parentNode, childNode) {
+            if (childNode.classList) {
+              const existing = parentNode.firstChild;
+              const incomingIdValue = childNode.getAttribute('id');
+              const incomingId = ![null, 'undefined', undefined].includes(incomingIdValue);
+              const existingIdValue = parentNode.firstChild?.getAttribute?.('id');
+              const existingId = ![null, 'undefined', undefined].includes(existingIdValue);
+
+              try {
+                if (!incomingId && !existingId) {
+                  console.log('condition 0');
+                  const nextSibling = getTMXp(existing)?.nextSibling;
+                  if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
+                    nextSibling.parentElement.removeChild(nextSibling);
+                  }
+                  // return false;
+                } else if (
+                  incomingId &&
+                  existingId &&
+                  incomingIdValue &&
+                  existingIdValue &&
+                  incomingIdValue !== existingIdValue
+                ) {
+                  console.log('condition 1');
+                  parentNode.removeChild(parentNode.firstChild);
+                } else if (childNode.classList?.contains('tmx-p') && !existingId) {
+                  console.log('condition 2');
+                  parentNode.removeChild(parentNode.firstChild);
+                } else if (
+                  parentNode.firstChild?.classList?.contains('tmx-p') &&
+                  parentNode.firstChild.getAttribute('id') !== 'undefined' &&
+                  childNode.getAttribute('id') === 'undefined'
+                ) {
+                  console.log('condition 3');
+                  parentNode.removeChild(parentNode.firstChild);
+                } else if (!incomingId && existingId) {
+                  console.log('condition 4', { existingIdValue });
+                } else {
+                  console.log({ incomingId, existingId, incomingIdValue, existingIdValue });
+                }
+              } catch (err) {
+                console.log({ err });
+              }
+            }
+            parentNode.appendChild(childNode);
+          }
+        });
+      } else {
+        drawsView.appendChild(content);
+      }
     }
   };
 

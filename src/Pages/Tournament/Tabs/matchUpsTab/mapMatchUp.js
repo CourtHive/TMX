@@ -59,13 +59,21 @@ export const mapMatchUp = (matchUp) => {
 
   const eventType = matchUp.collectionId ? TEAM : matchUpType;
 
+  const competitiveProfile = matchUp.competitiveness
+    ? { competitiveness: matchUp.competitiveness }
+    : matchUp.competitiveProfile;
+
+  const scoreDetail = { score, matchUpStatus: matchUp.matchUpStatus, readyToScore, complete, winningSide };
+
   return {
     matchUpStatus: matchUp.matchUpStatus,
     individualParticipantIds,
+    competitiveProfile,
     scheduledDate,
     readyToScore,
     scheduleTime,
     matchUpType,
+    scoreDetail,
     winningSide,
     searchText,
     courtName,
