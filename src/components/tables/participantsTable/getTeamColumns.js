@@ -8,6 +8,13 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function getTeamColumns() {
+  const openCloseToggle = (e, cell) => {
+    const result = toggleOpenClose(e, cell);
+    if (result.open) {
+      // TODO: display team results
+    }
+  };
+
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -38,7 +45,7 @@ export function getTeamColumns() {
       width: 55
     },
     {
-      cellClick: toggleOpenClose,
+      cellClick: (e, cell) => openCloseToggle(e, cell),
       field: 'participantName',
       title: 'Name',
       minWidth: 200,
@@ -91,7 +98,7 @@ export function getTeamColumns() {
       minWidth: 200
     },
     {
-      cellClick: toggleOpenClose,
+      cellClick: (e, cell) => openCloseToggle(e, cell),
       formatter: openClose,
       responsive: false,
       headerSort: false,

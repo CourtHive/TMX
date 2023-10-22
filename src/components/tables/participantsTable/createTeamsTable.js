@@ -19,6 +19,7 @@ export function createTeamsTable({ view } = {}) {
     const result = tournamentEngine.getParticipants({
       participantFilters: { participantTypes: [view || TEAM] },
       withIndividualParticipants: true,
+      withScaleValues: true,
       withEvents: true,
       withISO2: true
     });
