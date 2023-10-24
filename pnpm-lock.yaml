@@ -126,8 +126,8 @@ dependencies:
     specifier: ^6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: ^1.7.18
-    version: 1.7.18(@babel/core@7.23.2)
+    specifier: ^1.8.0
+    version: 1.8.0(@babel/core@7.23.2)
   tods-tmx-classic-converter:
     specifier: ^2.13.6
     version: 2.13.6(@babel/core@7.23.2)
@@ -4631,7 +4631,7 @@ packages:
       classnames: 2.3.2
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 1.7.18(@babel/core@7.23.2)
+      tods-competition-factory: 1.8.0(@babel/core@7.23.2)
     transitivePeerDependencies:
       - '@babel/core'
     dev: false
@@ -11681,9 +11681,9 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@1.7.18(@babel/core@7.23.2):
-    resolution: {integrity: sha512-he91PWQg6rykH5PmP3J9DPp7lAqd9R0YHt3IXSyXCU66osqMT4dSkZaKRTvGw+lyxwEFkwIOgUwOKRESRYn5/g==}
-    engines: {node: '>=18.17.1 < 19'}
+  /tods-competition-factory@1.8.0(@babel/core@7.23.2):
+    resolution: {integrity: sha512-C/3KvWJX/YpzOiG3fFtoIMtH376F39bW8jtbZgwwHgvYnZb4f/AeudY4zAr/6QuV9p6Nh8bU0qrPNKimXMHDLA==}
+    engines: {node: '>=18.17.1 < 21'}
     dependencies:
       '@babel/plugin-transform-nullish-coalescing-operator': 7.22.11(@babel/core@7.23.2)
       '@babel/plugin-transform-optional-chaining': 7.23.0(@babel/core@7.23.2)
@@ -11699,7 +11699,7 @@ packages:
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 1.7.18(@babel/core@7.23.2)
+      tods-competition-factory: 1.8.0(@babel/core@7.23.2)
     transitivePeerDependencies:
       - '@babel/core'
     dev: false
