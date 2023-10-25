@@ -73,7 +73,7 @@ export function selectParticipant({
   const anchorId = 'selectionTable';
   const buttons = [
     { label: 'Cancel', intent: 'is-none', close: true },
-    { label: 'Select', intent: 'is-info', onClick, close: true }
+    { hide: selectionLimit === 1, label: 'Select', intent: 'is-info', onClick, close: true }
   ];
   const onClose = () => {
     const table = context.tables['selectionTable'];
@@ -94,7 +94,14 @@ export function selectParticipant({
     openModal({ title, content, buttons, onClose });
   }
 
-  const onSelected = (value) => (selected = value);
+  const onSelected = (value) => {
+    console.log({ value, selectionLimit });
+    selected = value;
+    if (selectionLimit && selected?.length === selectionLimit) {
+      closeModal();
+      onClick();
+    }
+  };
   const data = action[actionType.selections];
   const { table } = createSelectionTable({
     selectedParticipantIds, // already selected
