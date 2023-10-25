@@ -12,7 +12,7 @@ export function eventActions(e, cell) {
   const target = e.target.getElementsByClassName('fa-ellipsis-vertical')[0];
   const data = cell.getRow().getData();
 
-  const callback = ({ success, eventUpdates }) => {
+  const doneEditing = ({ success, eventUpdates }) => {
     if (success) {
       const row = cell.getRow();
       const eventRow = row?.getData();
@@ -23,11 +23,11 @@ export function eventActions(e, cell) {
 
   const items = [
     {
-      onClick: () => callback('Delete', data),
+      onClick: () => console.log('Delete', data),
       text: 'Delete'
     },
     {
-      onClick: () => editEvent({ event: data.event, callback }),
+      onClick: () => editEvent({ event: data.event, callback: doneEditing }),
       text: 'Edit'
     }
   ];
