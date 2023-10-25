@@ -13,7 +13,7 @@ import {
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-const { SUBSTITUTION, ASSIGN, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT } = matchUpActionConstants;
+const { SUBSTITUTION, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT } = matchUpActionConstants;
 const { POLICY_TYPE_MATCHUP_ACTIONS } = policyConstants;
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const { TEAM, DOUBLES } = eventConstants;
@@ -51,7 +51,7 @@ export function participantMatchUpActions(e, cell, callback, params) {
   const clickedParticipantId = params?.individualParticipant?.participantId;
 
   const itemMap = {
-    [ASSIGN]: {
+    [ASSIGN_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles },
       text: 'Assign participant',
       method: assignOrReplace
@@ -78,7 +78,9 @@ export function participantMatchUpActions(e, cell, callback, params) {
   };
 
   const items = validActions
-    .filter(({ type }) => [ASSIGN, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT, SUBSTITUTION].includes(type))
+    .filter(({ type }) =>
+      [ASSIGN_PARTICIPANT, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT, SUBSTITUTION].includes(type)
+    )
     .map((action) => {
       const item = itemMap[action.type];
       return {
