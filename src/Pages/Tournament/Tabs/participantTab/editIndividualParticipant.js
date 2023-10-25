@@ -38,7 +38,8 @@ export function editIndividualParticipant({ participant, view, refresh }) {
         field: 'firstName',
         error: 'Please enter a name of at least 3 characters',
         validator: nameValidator(3),
-        onChange: valueChange
+        onChange: valueChange,
+        focus: true
       },
       {
         placeholder: 'Family name',

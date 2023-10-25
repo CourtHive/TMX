@@ -73,6 +73,7 @@ export function selectParticipant({
   const anchorId = 'selectionTable';
   const buttons = [
     { label: 'Cancel', intent: 'is-none', close: true },
+    // [Select] button will be hidden if only one item is being selected
     { hide: selectionLimit === 1, label: 'Select', intent: 'is-info', onClick, close: true }
   ];
   const onClose = () => {
@@ -95,7 +96,6 @@ export function selectParticipant({
   }
 
   const onSelected = (value) => {
-    console.log({ value, selectionLimit });
     selected = value;
     if (selectionLimit && selected?.length === selectionLimit) {
       closeModal();

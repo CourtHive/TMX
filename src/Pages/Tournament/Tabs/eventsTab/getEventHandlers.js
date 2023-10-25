@@ -122,14 +122,6 @@ export function getEventHandlers({ callback, drawId, eventData }) {
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId,
           sideNumber
-          /*
-            policyDefinitions: {
-              [POLICY_TYPE_MATCHUP_ACTIONS]: {
-                substituteAfterCompleted: true
-                substituteWithoutScore: true,
-              }
-            }
-          */
         }) || {};
 
       const readyToScore = matchUpActions?.find(({ type }) => type === 'SCORE');

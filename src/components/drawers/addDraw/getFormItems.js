@@ -103,7 +103,8 @@ export function getFormItems({ event, drawId, isQualifying }) {
       selectOnFocus: true,
       hide: isQualifying,
       label: 'Draw name',
-      field: DRAW_NAME
+      field: DRAW_NAME,
+      focus: true
     },
     {
       options: getDrawTypeOptions(),
