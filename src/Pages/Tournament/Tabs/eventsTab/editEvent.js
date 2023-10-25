@@ -94,8 +94,10 @@ export function editEvent({ event, participants, callback } = {}) {
         placeholder: 'Event name',
         value: values.eventName,
         onChange: valueChange,
+        selectOnFocus: true,
         label: 'Event name',
-        field: 'eventName'
+        field: 'eventName',
+        focus: true
       },
       {
         disabled: enteredParticipantTypes.length,
@@ -168,11 +170,11 @@ export function editEvent({ event, participants, callback } = {}) {
     const eventName = context.drawer.attributes.content.eventName.value;
     const eventType = context.drawer.attributes.content.eventType.value;
     const gender = context.drawer.attributes.content.gender.value;
+    const eventUpdates = { eventName, eventType, gender };
 
     const postMutation = (result) => {
       if (result.success) {
-        const event = result?.results[0]?.event;
-        if (isFunction(callback)) callback({ ...result, event });
+        if (isFunction(callback)) callback({ ...result, eventUpdates });
       } else {
         console.log({ result });
       }
@@ -180,7 +182,7 @@ export function editEvent({ event, participants, callback } = {}) {
 
     if (event) {
       const eventId = event.eventId;
-      const methods = [{ method: MODIFY_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
+      const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
       mutationRequest({ methods, callback: postMutation });
     } else {
       const eventId = utilities.UUID();

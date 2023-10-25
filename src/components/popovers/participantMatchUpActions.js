@@ -1,11 +1,20 @@
-import { eventConstants, positionActionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
+import {
+  eventConstants,
+  positionActionConstants,
+  matchUpActionConstants,
+  tournamentEngine,
+  utilities,
+  policyConstants
+} from 'tods-competition-factory';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
+const { SUBSTITUTION, ASSIGN, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT } = matchUpActionConstants;
+const { POLICY_TYPE_MATCHUP_ACTIONS } = policyConstants;
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const { TEAM, DOUBLES } = eventConstants;
 
@@ -28,33 +37,48 @@ export function participantMatchUpActions(e, cell, callback, params) {
 
   const { matchUpId, drawId } = data;
   const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
-  const { validActions } = tournamentEngine.matchUpActions({ matchUpId, drawId, sideNumber });
+  const { validActions } = tournamentEngine.matchUpActions({
+    matchUpId,
+    drawId,
+    sideNumber,
+    policyDefinitions: {
+      [POLICY_TYPE_MATCHUP_ACTIONS]: {
+        substituteAfterCompleted: true,
+        substituteWithoutScore: true
+      }
+    }
+  });
   const clickedParticipantId = params?.individualParticipant?.participantId;
 
   const itemMap = {
-    ASSIGN: {
+    [ASSIGN]: {
       params: { data, sideNumber, callback, isTeam, isDoubles },
       text: 'Assign participant',
       method: assignOrReplace
     },
-    PENALTY: {
+    [PENALTY]: {
       onClick: () => console.log(data),
       text: 'Assess penalty'
     },
-    REMOVE_PARTICIPANT: {
+    [REMOVE_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
       text: 'Remove participant',
       method: removeParticipant
     },
-    REPLACE_PARTICIPANT: {
+    [REPLACE_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
       text: 'Replace participant',
       method: assignOrReplace
+    },
+    [SUBSTITUTION]: {
+      params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
+      method: assignOrReplace,
+      text: 'Substitution'
     }
   };
 
   const items = validActions
-    .filter(({ type }) => ['ASSIGN', 'PENALTY', 'REMOVE_PARTICIPANT', 'REPLACE_PARTICIPANT'].includes(type))
+    .filter(({ type }) => [ASSIGN, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT, SUBSTITUTION].includes(type))
     .map((action) => {
       const item = itemMap[action.type];
       return {
@@ -101,7 +125,13 @@ function assignOrReplace(params) {
 
       participantIds.forEach((participantId) => {
         methods.push({
-          params: { ...params.action.payload, participantId, existingParticipantId, newParticipantId: participantId },
+          params: {
+            ...params.action.payload,
+            substituteParticipantId: participantId,
+            newParticipantId: participantId,
+            existingParticipantId,
+            participantId
+          },
           method: params.action.method
         });
       });
