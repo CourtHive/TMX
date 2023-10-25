@@ -1,9 +1,17 @@
-import { drawDefinitionConstants, entryStatusConstants, tournamentEngine, utilities } from 'tods-competition-factory';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { numericValidator } from 'components/validators/numericValidator';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { generateDraw } from './generateDraw';
+import {
+  drawDefinitionConstants,
+  entryStatusConstants,
+  factoryConstants,
+  tournamentEngine,
+  utilities,
+  policyConstants
+} from 'tods-competition-factory';
 
+const { TIME_TENNIS_PRO_CIRCUIT } = factoryConstants.tieFormatConstants;
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
@@ -24,6 +32,7 @@ import {
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
   drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
+const { POLICY_TYPE_ROUND_NAMING } = policyConstants;
 
 export function submitParams({
   drawName: existingDrawName,
@@ -161,6 +170,18 @@ export function submitParams({
       editTieFormat({ title: 'Custom scorecard', onClose: setTieFormat });
     } else {
       drawOptions.tieFormatName = tieFormatName;
+
+      if (tieFormatName === TIME_TENNIS_PRO_CIRCUIT) {
+        const customRoundNamingPolicy = {
+          [POLICY_TYPE_ROUND_NAMING]: {
+            namingConventions: { round: 'Day' },
+            affixes: { roundNumber: 'D' },
+            policyName: 'TTPro 4 Day'
+          }
+        };
+        drawOptions.policyDefinitions = { ...customRoundNamingPolicy };
+      }
+
       generateDraw({ drawOptions, eventId, callback });
     }
   } else {
