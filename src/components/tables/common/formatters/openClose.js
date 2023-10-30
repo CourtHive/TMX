@@ -18,6 +18,7 @@ export function toggleOpenClose(e, cell) {
     const targetCell = row.getCells().find((cell) => cell.getColumn().getDefinition().field === IS_OPEN);
     const cellElement = targetCell._cell.element;
     if (cellElement) cellElement.innerHTML = visible ? openAction : closeAction;
+    return { open: !visible };
   }
 }
 

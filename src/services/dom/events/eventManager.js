@@ -63,7 +63,6 @@ export const eventManager = (function () {
     };
     let classList = Array.from(evt.target.classList);
     let matchedClasses = classList.length && keys[evnt] ? intersection(classList, keys[evnt]) : [];
-    if (evnt === 'click') console.log({ classList }, keys[evnt]);
     if (matchedClasses.length) {
       let thisTap = new Date().getTime();
       em.elapsed = thisTap - lastTap;

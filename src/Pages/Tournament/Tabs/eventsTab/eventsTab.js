@@ -18,7 +18,7 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {
     if (drawId && renderDraw) {
       const result = renderDrawPanel({ eventId, drawId });
       if (result.success) {
-        renderTODSdraw({ eventId, drawId, structureId });
+        renderTODSdraw({ eventId, drawId, structureId, redraw: true });
         setEventView({ renderDraw });
       } else {
         // if draw cannot be rendered, fall back to view of entries

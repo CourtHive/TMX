@@ -43,7 +43,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
 
     const postMutation = (result) => {
       if (result.success) {
-        if (isFunction(callback)) callback();
+        if (isFunction(callback)) callback({ refresh: true });
       } else {
         console.log(result.error);
       }

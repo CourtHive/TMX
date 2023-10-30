@@ -15,6 +15,7 @@ export function venueForm({ values, valueChange, isValid }) {
       field: 'venueName',
       error: 'Please enter a name of at least 5 characters',
       validator: nameValidator(5),
+      focus: true,
       onChange
     },
     {

@@ -2,6 +2,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
+import { isFunction } from 'functions/typeOf';
 
 import { DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 
@@ -42,8 +43,16 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       }
     ];
 
+    const postMutation = (result) => {
+      if (result.success) {
+        if (isFunction(callback)) callback({ refresh: true });
+      } else {
+        console.log(result.error);
+      }
+    };
+
     if (matchUpIds.length) {
-      mutationRequest({ methods, callback });
+      mutationRequest({ methods, callback: postMutation });
     }
   };
 

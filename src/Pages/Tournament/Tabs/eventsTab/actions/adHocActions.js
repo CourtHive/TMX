@@ -54,19 +54,24 @@ export function getFinalColumn({ structure, drawId, callback }) {
 
 export function getAdHocActions({ structure, drawId, callback }) {
   if (!utilities.isAdHoc({ structure })) return [];
+  const refreshCallback = () => callback({ refresh: true });
 
   const actionOptions = [
     {
-      onClick: () => addAdHocMatchUps({ drawId, structure, callback }),
+      onClick: () => addAdHocMatchUps({ drawId, structure, callback: refreshCallback }),
       label: addMatchUpsAction,
       color: 'blue'
     },
     {
-      onClick: () => addAdHocRound({ drawId, structure, newRound: true, callback }),
+      onClick: () => addAdHocRound({ drawId, structure, newRound: true, callback: refreshCallback }),
       label: addRoundAction,
       color: 'blue'
     },
-    { label: deleteMatchUpsAction, color: 'red', onClick: () => deleteAdHocMatchUps({ drawId, structure, callback }) }
+    {
+      label: deleteMatchUpsAction,
+      color: 'red',
+      onClick: () => deleteAdHocMatchUps({ drawId, structure, callback: refreshCallback })
+    }
   ];
   const adHocActions = {
     label: 'Round actions', // also toggle between finishing positions and matches

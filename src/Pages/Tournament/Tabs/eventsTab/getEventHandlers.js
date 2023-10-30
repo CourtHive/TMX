@@ -1,4 +1,4 @@
-import { tournamentEngine, participantConstants } from 'tods-competition-factory';
+import { tournamentEngine, participantConstants, utilities } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { handleRoundHeaderClick } from './actions/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
@@ -6,7 +6,6 @@ import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { getTargetAttribute } from 'services/dom/parentAndChild';
 import { tipster } from 'components/popovers/tipster';
-import { createMap } from 'functions/objects';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -21,7 +20,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
       ])
       .filter(Boolean)
   );
-  const matchUpsMap = createMap(matchUps, 'matchUpId');
+  const matchUpsMap = utilities.createMap(matchUps, 'matchUpId');
   const getMatchUp = (props) => {
     const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
     return matchUpsMap[matchUpId];
@@ -123,14 +122,6 @@ export function getEventHandlers({ callback, drawId, eventData }) {
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId,
           sideNumber
-          /*
-            policyDefinitions: {
-              [POLICY_TYPE_MATCHUP_ACTIONS]: {
-                substituteAfterCompleted: true
-                substituteWithoutScore: true,
-              }
-            }
-          */
         }) || {};
 
       const readyToScore = matchUpActions?.find(({ type }) => type === 'SCORE');
