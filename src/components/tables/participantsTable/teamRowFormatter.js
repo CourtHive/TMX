@@ -52,6 +52,7 @@ export const teamRowFormatter = (row) => {
   };
 
   const data = getData(participant.individualParticipants);
+  // TODO: average rating for team (considering players with target ratings)
 
   const ipTable = new Tabulator(tableEl, {
     placeholder: 'No individual participants',

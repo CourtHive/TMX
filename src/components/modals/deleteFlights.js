@@ -31,6 +31,7 @@ export function deleteFlights({ eventData, drawIds }) {
       field: 'drawDeletionReason',
       validator: wordValidator(5),
       error: 'Five word minimum',
+      autocomplete: 'on',
       focus: true
     },
     {

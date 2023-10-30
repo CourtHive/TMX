@@ -9,6 +9,7 @@ import { destroyTables } from 'Pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
 import { getAdHocActions } from '../actions/adHocActions';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
@@ -19,11 +20,10 @@ import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
-import { findAncestor } from 'services/dom/parentAndChild';
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderTODSdraw({ eventId, drawId, structureId, compositionName }) {
+export function renderTODSdraw({ eventId, drawId, structureId, compositionName, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
@@ -61,9 +61,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
 
   const isRoundRobin = structure?.structureType === 'CONTAINER';
 
-  const callback = () => {
+  const callback = ({ refresh } = {}) => {
     cleanupDrawPanel();
-    renderTODSdraw({ eventId, drawId, structureId });
+    renderTODSdraw({ eventId, drawId, structureId, redraw: refresh });
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
@@ -93,6 +93,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
   composition.configuration.roundHeader = true;
 
   const drawsView = document.getElementById(DRAWS_VIEW);
+  if (redraw) removeAllChildNodes(drawsView);
 
   const updateDrawDisplay = () => {
     if (dual) return;
@@ -166,7 +167,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
       }
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
-      // removeAllChildNodes(drawsView);
 
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
 
@@ -276,6 +276,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName }
           .filter(Boolean)
           .forEach((table) => table.addFilter(searchFilter));
       }
+      removeAllChildNodes(drawsView);
       updateDrawDisplay();
     };
 

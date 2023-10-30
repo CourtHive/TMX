@@ -55,7 +55,7 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
 
     const postMutation = (result) => {
       if (result.success) {
-        if (isFunction(callback)) callback();
+        if (isFunction(callback)) callback({ refresh: true });
       } else {
         console.log(result.error);
       }

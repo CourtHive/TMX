@@ -43,8 +43,8 @@ export function eventsView() {
       search: true
     },
     {
-      label: 'Add event',
       onClick: () => editEvent({ callback: eventAdded }),
+      label: 'Add event',
       location: RIGHT
     }
   ];

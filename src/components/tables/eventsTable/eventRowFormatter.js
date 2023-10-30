@@ -1,5 +1,6 @@
 import { mapDrawDefinition } from 'Pages/Tournament/Tabs/eventsTab/mapDrawDefinition';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { editEvent } from 'Pages/Tournament/Tabs/eventsTab/editEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -53,7 +54,8 @@ export function eventRowFormatter(row) {
 
   drawsTable.on('scrollVertical', destroyTipster);
 
-  const eventId = row.getData().eventId;
+  const event = row.getData().event;
+  const eventId = event.eventId;
 
   const deleteSelectedDraws = () => {
     const selectedDraws = drawsTable.getSelectedData();
@@ -101,6 +103,14 @@ export function eventRowFormatter(row) {
     }
   };
 
+  const callback = ({ success, eventUpdates }) => {
+    if (success) {
+      const eventRow = row?.getData();
+      Object.assign(eventRow.event, eventUpdates);
+      row.update(eventRow);
+    }
+  };
+
   const items = [
     {
       onClick: deleteSelectedDraws,
@@ -116,6 +126,7 @@ export function eventRowFormatter(row) {
       location: LEFT
     },
     {
+      onClick: () => editEvent({ event, callback }),
       label: 'Edit event',
       location: RIGHT
     },
