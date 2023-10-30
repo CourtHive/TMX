@@ -126,8 +126,8 @@ dependencies:
     specifier: ^6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: ^1.8.0
-    version: 1.8.0(@babel/core@7.23.2)
+    specifier: ^1.8.4
+    version: 1.8.4(@babel/core@7.23.2)
   tods-tmx-classic-converter:
     specifier: ^2.13.6
     version: 2.13.6(@babel/core@7.23.2)
@@ -2104,7 +2104,7 @@ packages:
     dependencies:
       '@foliojs-fork/fontkit': 1.9.1
       '@foliojs-fork/linebreak': 1.1.1
-      crypto-js: 4.1.1
+      crypto-js: 4.2.0
       png-js: 1.0.0
     dev: false
 
@@ -4054,8 +4054,9 @@ packages:
       randombytes: 2.1.0
     dev: true
 
-  /browserify-sign@4.2.1:
-    resolution: {integrity: sha512-/vrA5fguVAKKAVTNJjgSm1tRQDHUU6DbwO9IROu/0WAzC8PKhucDSh18J0RMvVeHAn5puMd+QHC2erPRNf8lmg==}
+  /browserify-sign@4.2.2:
+    resolution: {integrity: sha512-1rudGyeYY42Dk6texmv7c4VcQ0EsvVbLwZkA+AQB7SxvXxmcD93jcHie8bzecJ+ChDlmAm2Qyu0+Ccg5uhZXCg==}
+    engines: {node: '>= 4'}
     dependencies:
       bn.js: 5.2.1
       browserify-rsa: 4.1.0
@@ -4631,7 +4632,7 @@ packages:
       classnames: 2.3.2
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 1.8.0(@babel/core@7.23.2)
+      tods-competition-factory: 1.8.4(@babel/core@7.23.2)
     transitivePeerDependencies:
       - '@babel/core'
     dev: false
@@ -4681,7 +4682,7 @@ packages:
     resolution: {integrity: sha512-fz4spIh+znjO2VjL+IdhEpRJ3YN6sMzITSBijk6FK2UvTqruSQW+/cCZTSNsMiZNvUeq0CqurF+dAbyiGOY6Wg==}
     dependencies:
       browserify-cipher: 1.0.1
-      browserify-sign: 4.2.1
+      browserify-sign: 4.2.2
       create-ecdh: 4.0.4
       create-hash: 1.2.0
       create-hmac: 1.1.7
@@ -4693,8 +4694,8 @@ packages:
       randomfill: 1.0.4
     dev: true
 
-  /crypto-js@4.1.1:
-    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
+  /crypto-js@4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
     dev: false
 
   /crypto-random-string@2.0.0:
@@ -11681,8 +11682,8 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@1.8.0(@babel/core@7.23.2):
-    resolution: {integrity: sha512-C/3KvWJX/YpzOiG3fFtoIMtH376F39bW8jtbZgwwHgvYnZb4f/AeudY4zAr/6QuV9p6Nh8bU0qrPNKimXMHDLA==}
+  /tods-competition-factory@1.8.4(@babel/core@7.23.2):
+    resolution: {integrity: sha512-9n7rXBT0lq+aintXE9RdEeh4Bw00k4rD2Ivu5sbtH+RSZDyif6qwkOfJRaqSStFOJK8Qq9UobVvK5Py4r4B9VA==}
     engines: {node: '>=18.17.1 < 21'}
     dependencies:
       '@babel/plugin-transform-nullish-coalescing-operator': 7.22.11(@babel/core@7.23.2)
@@ -11699,7 +11700,7 @@ packages:
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 1.8.0(@babel/core@7.23.2)
+      tods-competition-factory: 1.8.4(@babel/core@7.23.2)
     transitivePeerDependencies:
       - '@babel/core'
     dev: false
