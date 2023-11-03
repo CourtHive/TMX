@@ -33,7 +33,6 @@ export const MODIFY_COURT = 'modifyCourt';
 export const MODIFY_EVENT = 'modifyEvent';
 
 export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition'; // TODO:
-// export const MODIFY_DRAW_NAME = 'modifyDrawName'; // TODO:
 
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';
