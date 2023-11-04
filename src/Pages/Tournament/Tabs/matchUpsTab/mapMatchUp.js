@@ -36,7 +36,9 @@ export const mapMatchUp = (matchUp) => {
     participant: side2Participant
   };
   const individualParticipantIds = sides
-    .flatMap((side) => side.participant?.individualParticipantIds || side.participant?.participantId)
+    .flatMap(({ participant }) =>
+      participant?.individualParticipantIds?.length ? participant.individualParticipantIds : participant?.participantId
+    )
     .filter(Boolean);
 
   const winningSide = (rest.winningSide === 1 && 'side1') || (rest.winningSide === 2 && 'side2') || undefined;
@@ -68,6 +70,7 @@ export const mapMatchUp = (matchUp) => {
   return {
     matchUpStatus: matchUp.matchUpStatus,
     individualParticipantIds,
+    flight: matchUp.drawName,
     competitiveProfile,
     scheduledDate,
     readyToScore,
