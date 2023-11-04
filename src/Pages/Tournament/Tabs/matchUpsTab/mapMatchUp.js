@@ -50,7 +50,11 @@ export const mapMatchUp = (matchUp) => {
   const firstLast = sides
     .flatMap((side) => {
       const person = side.participant?.person;
-      return person && [person.standardGivenName, person.standardFamilyName];
+      if (person) return [person.standardGivenName, person.standardFamilyName];
+      return side.participant?.individualParticipants?.map(({ person }) => [
+        person.standardGivenName,
+        person.standardFamilyName
+      ]);
     })
     .filter(Boolean)
     .join(' ')
