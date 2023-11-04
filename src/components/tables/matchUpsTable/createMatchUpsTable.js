@@ -27,7 +27,8 @@ export function createMatchUpsTable() {
     table.replaceData(getTableData());
   };
 
-  const columns = getMatchUpColumns(replaceTableData);
+  const data = getTableData();
+  const columns = getMatchUpColumns({ data, replaceTableData });
 
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_MATCHUPS });
@@ -47,19 +48,32 @@ export function createMatchUpsTable() {
     });
     table.on('dataFiltered', (filters, rows) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
+      !!matchUps;
+      /*
       console.log(
-        { matchUps },
+        'WTN',
         tournamentEngine.getPredictiveAccuracy({
           valueAccessor: 'wtnRating',
           scaleName: 'WTN',
-          zoneMargin: 4,
+          zoneMargin: 2.5,
           matchUps
         })
       );
+      console.log(
+        'UTR',
+        tournamentEngine.getPredictiveAccuracy({
+          valueAccessor: 'utrRating',
+          singlesForDoubles: true,
+          scaleName: 'UTR',
+          zoneMargin: 1,
+          matchUps
+        })
+      );
+      */
     });
   };
 
-  render(getTableData());
+  render(data);
 
   return { table, replaceTableData };
 }

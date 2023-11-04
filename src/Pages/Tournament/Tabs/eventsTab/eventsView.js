@@ -13,7 +13,7 @@ export function eventsView() {
 
   const eventAdded = (result) => {
     if (result?.event) {
-      const tableRow = mapEvent(result.event);
+      const tableRow = mapEvent({ event: result.event });
       table?.updateOrAddData([tableRow]);
     }
   };

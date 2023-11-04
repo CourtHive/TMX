@@ -13,7 +13,7 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
     return;
   }
 
-  const isAdHoc = !matchUp.roundPosition && !matchUp.drawPositions;
+  const isAdHoc = !matchUp?.roundPosition && !matchUp?.drawPositions;
 
   const target = cell && pointerEvent.target.getElementsByClassName('fa-ellipsis-vertical')[0];
   const data = cell?.getRow().getData() || matchUp;
