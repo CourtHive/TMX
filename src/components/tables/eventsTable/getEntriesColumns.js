@@ -48,7 +48,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     {
       // formatter: genderedText,
       /// field: 'participant.participantName',
-      formatter: formatParticipant(),
+      formatter: (cell) => formatParticipant()(cell, '', 'sideBySide'),
       field: 'participant',
       responsive: false,
       resizable: false,
