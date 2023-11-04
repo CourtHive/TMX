@@ -17,7 +17,7 @@ import { context } from 'services/context';
 
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
-export function getMatchUpColumns(replaceTableData) {
+export function getMatchUpColumns({ data, replaceTableData }) {
   const matchUpScheduleClick = (e, cell) => {
     const row = cell.getRow();
     const data = row.getData();
@@ -30,6 +30,7 @@ export function getMatchUpColumns(replaceTableData) {
   };
 
   const participantChange = () => replaceTableData();
+  const showCourts = data.some((m) => m.courtName);
 
   return [
     {
@@ -68,6 +69,13 @@ export function getMatchUpColumns(replaceTableData) {
       widthGrow: 1
     },
     {
+      title: 'Flight',
+      visible: false,
+      minWidth: 150,
+      field: 'flight',
+      widthGrow: 1
+    },
+    {
       field: 'matchUpType',
       titleFormatter,
       title: 'Type',
@@ -87,6 +95,7 @@ export function getMatchUpColumns(replaceTableData) {
     },
     {
       cellClick: matchUpScheduleClick,
+      visible: !!showCourts,
       field: 'courtName',
       title: 'Court',
       width: 100
@@ -162,7 +171,7 @@ export function getMatchUpColumns(replaceTableData) {
       width: 70
     },
     {
-      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, cell }),
+      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, ...cell.getData() }),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
