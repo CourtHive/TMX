@@ -4,7 +4,7 @@ import { mapDrawDefinition } from './mapDrawDefinition';
 
 const { MAIN } = drawDefinitionConstants;
 
-export function mapEvent(event) {
+export function mapEvent({ event, scaleValues }) {
   const { drawDefinitions = [], eventName, entries, eventId } = event;
 
   const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
@@ -18,7 +18,9 @@ export function mapEvent(event) {
   const scheduledMatchUpsCount =
     matchUps?.filter(({ winningSide, schedule }) => !winningSide && schedule?.scheduledTime)?.length || 0;
   const completedMatchUpsCount = matchUps.filter(({ winningSide }) => winningSide)?.length || 0;
-  const drawDefs = drawDefinitions.map(mapDrawDefinition(eventId));
+  const drawDefs = drawDefinitions.map((drawDefinition) =>
+    mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] })
+  );
 
   const searchText = [eventName]
     .concat(drawDefinitions.map(({ drawName }) => drawName || ''))
