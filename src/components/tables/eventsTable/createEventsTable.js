@@ -13,9 +13,11 @@ export function createEventsTable() {
   let table;
 
   const getTableData = () => {
-    const events = tournamentEngine.getEvents().events;
+    const eventData = tournamentEngine.getEvents({ withScaleValues: true });
     // TODO: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary
-    return events?.map(mapEvent);
+    return eventData?.events?.map((event) =>
+      mapEvent({ event, scaleValues: eventData.eventScaleValues?.[event.eventId] })
+    );
   };
 
   const replaceTableData = () => {
