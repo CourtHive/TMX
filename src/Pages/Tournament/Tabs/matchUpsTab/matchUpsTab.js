@@ -1,24 +1,77 @@
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
+import { dropDownButton } from 'components/buttons/dropDownButton';
 import { controlBar } from 'components/controlBar/controlBar';
 
-import { ALL_EVENTS, ALL_STATUSES, ALL_TEAMS, LEFT, MATCHUPS_CONTROL, OVERLAY } from 'constants/tmxConstants';
+import {
+  ALL_EVENTS,
+  ALL_FLIGHTS,
+  ALL_STATUSES,
+  ALL_TEAMS,
+  LEFT,
+  MATCHUPS_CONTROL,
+  NONE,
+  OVERLAY
+} from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
-  let eventIdFilter, teamIdFilter, matchUpStatusFilter;
+  let eventIdFilter, drawIdFilter, teamIdFilter, matchUpStatusFilter, elements;
 
   const { table } = createMatchUpsTable();
+  const events = tournamentEngine.getEvents().events || [];
+
+  // FILTER: flights
+  const flightFilter = (rowData) => rowData.drawId === drawIdFilter;
+  const updateFlightFilter = (drawId) => {
+    table?.removeFilter(flightFilter);
+    drawIdFilter = drawId;
+    if (drawId) {
+      table?.addFilter(flightFilter);
+    }
+  };
+  const allFlights = {
+    label: `<span style='font-weight: bold'>${ALL_FLIGHTS}</span>`,
+    onClick: () => updateFlightFilter(),
+    close: true
+  };
+  const getFlightOptions = (event) =>
+    event.drawDefinitions?.map(({ drawId, drawName }) => ({
+      onClick: () => updateFlightFilter(drawId),
+      label: drawName,
+      close: true
+    }));
+  const flightOptions = [allFlights, { divider: true }].concat(events.flatMap(getFlightOptions)).filter(Boolean);
 
   // FILTER: events
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
     table?.removeFilter(eventFilter);
     eventIdFilter = eventId;
-    if (eventId) table?.addFilter(eventFilter);
+    table?.removeFilter(flightFilter);
+    drawIdFilter = undefined;
+    if (eventId) {
+      table?.addFilter(eventFilter);
+      const eventFlightOptions = [allFlights, { divider: true }]
+        .concat(getFlightOptions(events.find((event) => eventId === event.eventId)))
+        .filter(Boolean);
+      const flightButton = {
+        options: eventFlightOptions,
+        label: ALL_FLIGHTS,
+        id: 'flightOptions',
+        modifyLabel: true,
+        selection: true,
+        location: LEFT
+      };
+      const elem = dropDownButton({ button: flightButton });
+
+      elements.flightOptions.replaceWith(elem);
+      elements.flightOptions = elem;
+    } else {
+      elements.flightOptions.style.display = NONE;
+    }
   };
-  const events = tournamentEngine.getEvents().events || [];
   const allEvents = {
     label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
     onClick: () => updateEventFilter(),
@@ -89,11 +142,13 @@ export function renderMatchUpTab() {
     close: true
   };
   const teamOptions = [allTeams, { divider: true }].concat(
-    teamParticipants.map((team) => ({
-      onClick: () => updateTeamFilter(team.participantId),
-      label: team.participantName,
-      close: true
-    }))
+    teamParticipants
+      .sort((a, b) => a?.participantName?.localeCompare(b?.participantName))
+      .map((team) => ({
+        onClick: () => updateTeamFilter(team.participantId),
+        label: team.participantName,
+        close: true
+      }))
   );
 
   const items = [
@@ -117,10 +172,20 @@ export function renderMatchUpTab() {
     {
       hide: eventOptions.length < 3,
       options: eventOptions,
+      id: 'eventOptions',
       label: ALL_EVENTS,
       modifyLabel: true,
+      selection: true,
+      location: LEFT
+    },
+    {
+      options: flightOptions,
+      label: ALL_FLIGHTS,
+      id: 'flightOptions',
+      modifyLabel: true,
+      selection: true,
       location: LEFT,
-      selection: true
+      hide: true
     },
     {
       hide: teamOptions.length < 3,
@@ -140,5 +205,5 @@ export function renderMatchUpTab() {
   ];
 
   const target = document.getElementById(MATCHUPS_CONTROL);
-  controlBar({ table, target, items });
+  elements = controlBar({ table, target, items }).elements;
 }
