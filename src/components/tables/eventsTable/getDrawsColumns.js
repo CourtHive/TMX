@@ -4,7 +4,7 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getDrawsColumns() {
+export function getDrawsColumns(data) {
   const drawActions = () => {
     console.log('drawActions');
   };
@@ -12,6 +12,9 @@ export function getDrawsColumns() {
     const { eventId, drawId } = cell.getRow().getData();
     navigateToEvent({ eventId, drawId, renderDraw: true });
   };
+
+  const utrAvg = data.find((d) => d.utrAvg);
+  const wtnAvg = data.find((d) => d.wtnAvg);
 
   return [
     {
@@ -24,10 +27,10 @@ export function getDrawsColumns() {
       width: 5
     },
     {
+      headerMenu: headerMenu({ entries: 'Entries', wtnAvg: 'WTN avg', utrAvg: 'UTR avg' }),
       headerSort: false,
       formatter: 'rownum',
       hozAlign: CENTER,
-      headerMenu: headerMenu({ entries: 'Entries' }),
       width: 55
     },
     { title: 'Draw Name', field: DRAW_NAME, cellClick: drawDetail },
@@ -36,6 +39,18 @@ export function getDrawsColumns() {
       title: '<div class="event_icon opponents_header" />',
       field: 'entries',
       width: 50
+    },
+    {
+      visible: !!wtnAvg,
+      field: 'wtnAvg',
+      title: 'WTN',
+      width: 80
+    },
+    {
+      visible: !!utrAvg,
+      field: 'utrAvg',
+      title: 'UTR',
+      width: 80
     },
     {
       cellClick: drawActions,
