@@ -38,7 +38,8 @@ export function createParticipantsTable({ view } = {}) {
     setTimeout(refresh, ready ? 0 : 1000);
   };
 
-  const columns = getParticipantColumns();
+  const data = getTableData();
+  const columns = getParticipantColumns(data);
 
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_PARTICIPANTS });
@@ -70,7 +71,7 @@ export function createParticipantsTable({ view } = {}) {
     table.on('tableBuilt', () => (ready = true));
   };
 
-  render(getTableData());
+  render(data);
 
   return { table, replaceTableData, teamParticipants };
 }

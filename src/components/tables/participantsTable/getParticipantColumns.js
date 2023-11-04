@@ -20,7 +20,11 @@ const { FEMALE, MALE } = genderConstants;
 const FIELD_UTR = 'ratings.utr.utrRating';
 const FIELD_WTN = 'ratings.wtn.wtnRating';
 
-export function getParticipantColumns() {
+export function getParticipantColumns(data) {
+  const cityState = data.some((p) => p.cityState);
+  const utr = data.some((p) => p.ratings?.utr);
+  const wtn = data.some((p) => p.ratings?.wtn);
+
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -141,6 +145,7 @@ export function getParticipantColumns() {
       widthGrow: 2
     },
     {
+      visible: !!cityState,
       title: 'City/State',
       field: 'cityState',
       minWidth: 110
@@ -148,24 +153,24 @@ export function getParticipantColumns() {
     {
       editor: numericEditor({ maxValue: 40, decimals: true, field: FIELD_WTN }),
       sorterParams: { alignEmptyValues: 'bottom' },
-      visible: columnIsVisible(FIELD_WTN),
       responsive: true,
       resizable: false,
       sorter: 'number',
       field: FIELD_WTN,
       editable: false,
+      visible: !!wtn,
       title: WTN,
       width: 70
     },
     {
       editor: numericEditor({ maxValue: 16, decimals: true, field: FIELD_UTR }),
       sorterParams: { alignEmptyValues: 'bottom' },
-      visible: columnIsVisible(FIELD_UTR),
       responsive: true,
       resizable: false,
       sorter: 'number',
       field: FIELD_UTR,
       editable: false,
+      visible: !!utr,
       title: UTR,
       width: 70
     },
