@@ -14,9 +14,10 @@ export function saveRatings(e, table) {
 
   const rows = table.getData();
   const methods = rows.flatMap((row) => {
-    const wtnRating = row.ratings?.wtn?.wtnRating;
-    let confidence = wtnRating ? 50 : 0;
-    let itemValue = confidence ? { wtnRating, confidence } : undefined;
+    const existingRating = row.ratings?.wtn;
+    const wtnRating = existingRating?.wtnRating;
+    const wtnConfidence = existingRating?.confidence || wtnRating ? 50 : 0;
+    let itemValue = wtnConfidence ? { ...existingRating, wtnRating, confidence: wtnConfidence } : undefined;
     const wtnMethod = {
       method: ADD_PARTICIPANT_TIME_ITEM,
       params: {
@@ -29,7 +30,7 @@ export function saveRatings(e, table) {
       }
     };
     const utrRating = row.ratings?.utr?.utrRating;
-    confidence = utrRating ? 50 : 0;
+    const confidence = utrRating ? 50 : 0;
     itemValue = confidence ? { utrRating, confidence } : undefined;
     const utrMethod = {
       method: ADD_PARTICIPANT_TIME_ITEM,
