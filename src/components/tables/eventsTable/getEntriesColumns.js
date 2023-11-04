@@ -1,5 +1,6 @@
+import { formatParticipant } from '../common/formatters/participantFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
-import { genderedText } from '../common/formatters/genderedText';
+//import { genderedText } from '../common/formatters/genderedText';
 import { numericEditor } from '../common/editors/numericEditor';
 import { factoryConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -45,8 +46,10 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 50
     },
     {
-      formatter: genderedText,
-      field: 'participant.participantName',
+      // formatter: genderedText,
+      /// field: 'participant.participantName',
+      formatter: formatParticipant(),
+      field: 'participant',
       responsive: false,
       resizable: false,
       minWidth: 200,
