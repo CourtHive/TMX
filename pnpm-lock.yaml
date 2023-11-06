@@ -58,7 +58,7 @@ dependencies:
     version: 2.3.2
   courthive-components:
     specifier: ^0.7.15
-    version: 0.7.15(@babel/core@7.23.2)
+    version: 0.7.15
   d3:
     specifier: 5.16.0
     version: 5.16.0
@@ -126,11 +126,11 @@ dependencies:
     specifier: 6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: ^1.8.14
-    version: 1.8.14(@babel/core@7.23.2)
+    specifier: ^1.8.17
+    version: 1.8.17
   tods-tmx-classic-converter:
     specifier: ^2.13.6
-    version: 2.13.6(@babel/core@7.23.2)
+    version: 2.13.6
   typescript:
     specifier: ^4.9.3
     version: 4.9.5
@@ -782,6 +782,7 @@ packages:
     dependencies:
       '@babel/core': 7.23.2
       '@babel/helper-plugin-utils': 7.22.5
+    dev: true
 
   /@babel/plugin-syntax-numeric-separator@7.10.4(@babel/core@7.23.2):
     resolution: {integrity: sha512-9H6YdfkcK/uOnY/K7/aA2xpzaAgkQn37yzWUMRK7OaPOqOpGS1+n0H5hxT9AUw9EsSjPW8SVyMJwYRtWs3X3ug==}
@@ -817,6 +818,7 @@ packages:
     dependencies:
       '@babel/core': 7.23.2
       '@babel/helper-plugin-utils': 7.22.5
+    dev: true
 
   /@babel/plugin-syntax-private-property-in-object@7.14.5(@babel/core@7.23.2):
     resolution: {integrity: sha512-0wVnp9dxJ72ZUJDV27ZfbSj6iHLoytYZmh3rFcxNnvsJF3ktkzLDZPy/mA17HGsaQT3/DQsWYX1f1QGWkCoVUg==}
@@ -1181,6 +1183,7 @@ packages:
       '@babel/core': 7.23.2
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/plugin-syntax-nullish-coalescing-operator': 7.8.3(@babel/core@7.23.2)
+    dev: true
 
   /@babel/plugin-transform-numeric-separator@7.22.11(@babel/core@7.23.2):
     resolution: {integrity: sha512-3dzU4QGPsILdJbASKhF/V2TVP+gJya1PsueQCxIPCEcerqF21oEcrob4mzjsp2Py/1nLfF5m+xYNMDpmA8vffg==}
@@ -1239,6 +1242,7 @@ packages:
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-skip-transparent-expression-wrappers': 7.22.5
       '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.23.2)
+    dev: true
 
   /@babel/plugin-transform-parameters@7.22.15(@babel/core@7.23.2):
     resolution: {integrity: sha512-hjk7qKIqhyzhhUvRT683TYQOFa/4cQKwQy7ALvTpODswN40MljzNDa0YldevS6tGbxwaEKVn502JmY0dP7qEtQ==}
@@ -4622,7 +4626,7 @@ packages:
       typescript: 4.9.5
     dev: true
 
-  /courthive-components@0.7.15(@babel/core@7.23.2):
+  /courthive-components@0.7.15:
     resolution: {integrity: sha512-NXNR838gS0/0QD5MbJIp/byIKM182BJrIL41/X310R5gCIsh19CVaPpEfpvLr797I8BFSSUFDbaMT4Lj3DtY3g==}
     engines: {node: '>=16.16.0 < 19'}
     dependencies:
@@ -4632,9 +4636,7 @@ packages:
       classnames: 2.3.2
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 1.8.14(@babel/core@7.23.2)
-    transitivePeerDependencies:
-      - '@babel/core'
+      tods-competition-factory: 1.8.17
     dev: false
 
   /create-ecdh@4.0.4:
@@ -11683,17 +11685,12 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@1.8.14(@babel/core@7.23.2):
-    resolution: {integrity: sha512-mDnHcVp28wsAuCyWVFfNeqSPbfiU5gd4bBHYHfuw4dSiEcQTP98UIb+y8SCVGSFOeFQXcix/EqneZVVvXW7N7w==}
+  /tods-competition-factory@1.8.17:
+    resolution: {integrity: sha512-y2owBYGzg3JUzplsedL7fr4oACWkREt4gkMisWRsblrfF4mnAc7Cl2V3vfd65+coNx/zCdVzLAqvGcc0FYkU0w==}
     engines: {node: '>=18.17.1 < 21'}
-    dependencies:
-      '@babel/plugin-transform-nullish-coalescing-operator': 7.22.11(@babel/core@7.23.2)
-      '@babel/plugin-transform-optional-chaining': 7.23.0(@babel/core@7.23.2)
-    transitivePeerDependencies:
-      - '@babel/core'
     dev: false
 
-  /tods-tmx-classic-converter@2.13.6(@babel/core@7.23.2):
+  /tods-tmx-classic-converter@2.13.6:
     resolution: {integrity: sha512-5yx3Zc2CMm9AqryGLVoFA9VZx7QcJE7kjjTBMPA7TFZ9/pUM7NhWsnqcy/zELP93PzXTFuTJZlAokX/pxMwTnQ==}
     engines: {node: '>=16.16.0 < 19'}
     dependencies:
@@ -11701,9 +11698,7 @@ packages:
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 1.8.14(@babel/core@7.23.2)
-    transitivePeerDependencies:
-      - '@babel/core'
+      tods-competition-factory: 1.8.17
     dev: false
 
   /toidentifier@1.0.1:
