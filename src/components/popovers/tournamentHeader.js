@@ -5,9 +5,7 @@ import { mainMenu } from 'components/menus/mainMenu';
 import { authDisplay /*, keyIcon*/ } from '../../Pages/Tournament/authDisplay';
 import { context } from 'services/context';
 
-import { LEFT, RIGHT } from 'constants/tmxConstants';
-import { dropDownButton } from 'components/buttons/dropDownButton';
-import { tipster } from 'components/popovers/tipster';
+import { RIGHT } from 'constants/tmxConstants';
 import { removeAllChildNodes } from 'services/dom/transformers';
 
 export function tournamentHeader() {
@@ -34,33 +32,12 @@ export function tournamentHeader() {
     };
   }
 
+  const tmxButton = document.getElementById('tmx');
+  if (tmxButton) tmxButton.onclick = () => context.router.navigate('/tournaments');
   const tournamentElement = document.getElementById('tournamentName');
   if (tournamentElement) {
     removeAllChildNodes(tournamentElement);
-
-    const onClick = (e) => {
-      const target = e.target;
-      const items = [
-        {
-          text: 'Select Tournament',
-          onClick: () => {
-            context.router.navigate('/tournaments');
-          }
-        }
-      ];
-      tipster({ target, items, config: { arrow: false } });
-    };
-
-    const label = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
-    dropDownButton({
-      target: tournamentElement,
-      field: 'tournamentName',
-      button: {
-        align: LEFT,
-        onClick,
-        label
-      }
-    });
+    tournamentElement.innerHTML = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
   }
 
   /*
