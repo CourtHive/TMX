@@ -32,6 +32,20 @@ export function getMatchUpColumns({ data, replaceTableData }) {
   const participantChange = () => replaceTableData();
   const showCourts = data.some((m) => m.courtName);
 
+  const handleSideClick = (e, cell) => participantMatchUpActions(e, cell, participantChange);
+
+  const matchUpParticipantFormatter = (cell) => {
+    const placholder = document.createElement('div');
+    placholder.className = 'has-text-warning-dark';
+    placholder.innerHTML = 'Select participant';
+    const onClick = ({ event, ...params }) => {
+      participantMatchUpActions(event, cell, participantChange, params);
+    };
+
+    const value = cell.getValue();
+    return value.participantName && formatParticipant(onClick)(cell, placholder);
+  };
+
   return [
     {
       cellClick: (e, cell) => cell.getRow().toggleSelect(),
@@ -109,10 +123,8 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       width: 70
     },
     {
-      formatter: formatParticipant(({ event, cell, ...params }) =>
-        participantMatchUpActions(event, cell, participantChange, params)
-      ),
-      cellClick: (e, cell) => participantMatchUpActions(e, cell, participantChange),
+      formatter: matchUpParticipantFormatter,
+      cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
       title: 'Side 1',
@@ -121,10 +133,8 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       widthGrow: 1
     },
     {
-      formatter: formatParticipant(({ event, cell, ...params }) =>
-        participantMatchUpActions(event, cell, participantChange, params)
-      ),
-      cellClick: (e, cell) => participantMatchUpActions(e, cell, participantChange),
+      formatter: matchUpParticipantFormatter,
+      cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
       title: 'Side 2',
