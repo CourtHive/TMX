@@ -3,6 +3,7 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 
 import { TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
@@ -33,6 +34,7 @@ export function createMatchUpsTable() {
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_MATCHUPS });
     const element = document.getElementById(TOURNAMENT_MATCHUPS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['complete', 'duration', 'score']),
@@ -48,7 +50,7 @@ export function createMatchUpsTable() {
     });
     table.on('dataFiltered', (filters, rows) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
-      !!matchUps;
+      headerElement && (headerElement.innerHTML = `Matches (${matchUps.length})`);
       /*
       console.log(
         'WTN',

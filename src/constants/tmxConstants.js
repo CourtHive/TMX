@@ -99,6 +99,7 @@ export const TOURNAMENT_VENUES = 'venuesTable';
 export const ENTRIES_COUNT = 'entriesCount';
 export const EVENTS_TABLE = 'eventsTable';
 export const TMX_OVERLAY = 'tmxOverlay';
+export const TEAM_STATS = 'teamStats';
 
 export const DRAW_CONTROL = 'drawControl';
 export const DRAW_FRAME = 'drawFrame';
