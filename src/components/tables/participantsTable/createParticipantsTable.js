@@ -6,6 +6,7 @@ import { getParticipantColumns } from './getParticipantColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { findAncestor } from 'services/dom/parentAndChild';
 
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 
@@ -44,6 +45,7 @@ export function createParticipantsTable({ view } = {}) {
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_PARTICIPANTS });
     const element = document.getElementById(TOURNAMENT_PARTICIPANTS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement([
@@ -67,6 +69,9 @@ export function createParticipantsTable({ view } = {}) {
       data
     });
 
+    table.on('dataFiltered', (filters, rows) => {
+      headerElement && (headerElement.innerHTML = `Participants (${rows.length})`);
+    });
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));
   };

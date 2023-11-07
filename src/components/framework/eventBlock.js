@@ -26,7 +26,8 @@ export function eventBlock() {
 
   div.innerHTML = `
   <div class="tab_section events_tab">
-    <div class="section" style='padding-top: 1em;'}>
+    <div class="section">
+      <div class='tabHeader foreground'></div>
       <div id=${EVENT_INFO} class="block" style='display: none; width: 100%;'}>
         <div id=${EVENT_CONTROL} class="controlBar" style='min-height: 3em; border-radius: 6px;'}></div>
       </div>
