@@ -31,7 +31,8 @@ import {
   NONE,
   SUCCESS,
   EVENTS_TAB,
-  TOURNAMENT_OVERVIEW
+  TOURNAMENT_OVERVIEW,
+  TEAM_STATS
 } from 'constants/tmxConstants';
 
 const refMap = {
@@ -45,51 +46,56 @@ const refMap = {
 
 export function tournamentContent() {
   const participantsTab = `
-         <div id='individuals' class='tab_section participants_tab'>
-            <div class='section' style='padding-top: 1em;'>
-               <div id='${PARTICIPANT_CONTROL}' class='controlBar'></div>
-               <div id='${TOURNAMENT_PARTICIPANTS}' class='tableClass flexcol flexcenter'> </div>
+        <div id='individuals' class='tab_section participants_tab'>
+          <div class='section'>
+            <div class='tabHeader foreground'>Participants</div>
+              <div id='${PARTICIPANT_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_PARTICIPANTS}' class='tableClass flexcol flexcenter'> </div>
+          </div>
+        </div>
+        <div id='participantGroupings' class='tab_section participants_tab'>
+            <div class='section'>
+              <div class='tabHeader foreground'></div>
+              <div id='${TEAMS_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_TEAMS}' class='tableClass flexcol flexcenter'> </div>
             </div>
-         </div>
-         <div id='participantGroupings' class='tab_section participants_tab'>
-            <div class='section' style='padding-top: 1em;'>
-               <div id='${TEAMS_CONTROL}' class='controlBar'></div>
-               <div id='${TOURNAMENT_TEAMS}' class='tableClass flexcol flexcenter'> </div>
-            </div>
-         </div>
+        </div>
         `;
 
   const scheduleTab = `
-         <div class='tab_section sch_tab'>
-            <div class='section block' style='padding-top: 1em;'>
-               <div id='${UNSCHEDULED_VISIBILITY}' style='width: 100%; display: none;'>
+        <div class='tab_section sch_tab'>
+            <div class='section block'>
+              <div id='${UNSCHEDULED_VISIBILITY}' style='width: 100%; display: none;'>
                   <div id='${UNSCHEDULED_CONTROL}' class='controlBar flexcol flexcenter'></div>
                   <div id='${UNSCHEDULED_MATCHUPS}' class='tableClass flexcol flexcenter'></div>
-               </div>
-               <div>
+              </div>
+              <div>
                   <div id='${SCHEDULE_CONTROL}' class='controlBar flexcol flexcenter'></div>
                   <div id='${TOURNAMENT_SCHEDULE}' class='tableClass flexcol flexcenter'></div>
-               </div>
+              </div>
             </div>
-         </div>
+        </div>
         `;
 
   const venuesTab = `
-         <div class='tab_section venues_tab'>
-            <div class='section' style='padding-top: 1em;'>
-               <div id='${VENUES_CONTROL}' class='controlBar'></div>
-               <div id='${TOURNAMENT_VENUES}' class='tableClass flexcol flexcenter'></div>
+        <div class='tab_section venues_tab'>
+            <div class='section'>
+              <div class='tabHeader foreground'></div>
+              <div id='${VENUES_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_VENUES}' class='tableClass flexcol flexcenter'></div>
             </div>
-         </div>
+        </div>
         `;
 
   const matchUpsTab = `
-         <div class='tab_section matchUps_tab'>
-            <div class='section' style='padding-top: 1em;'>
-               <div id='${MATCHUPS_CONTROL}' class='controlBar'></div>
-               <div id='${TOURNAMENT_MATCHUPS}' class='tableClass flexcol flexcenter'> </div>
+        <div class='tab_section matchUps_tab'>
+            <div class='section'>
+              <div class='tabHeader foreground'></div>
+              <div id='${MATCHUPS_CONTROL}' class='controlBar'></div>
+              <div id='${TEAM_STATS}' class='controlBar'></div>
+              <div id='${TOURNAMENT_MATCHUPS}' class='tableClass flexcol flexcenter'> </div>
             </div>
-         </div>
+        </div>
         `;
 
   const tabs = {
@@ -140,6 +146,8 @@ export function removeTournamentContent() {
     TEAMS_CONTROL,
     SCHEDULE_CONTROL,
     VENUES_CONTROL,
+
+    TEAM_STATS,
 
     ACCEPTED_PANEL,
     ALTERNATES_PANEL,

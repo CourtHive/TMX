@@ -21,8 +21,8 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
       fallback: true
     };
 
-    const rendered = (participant) =>
-      renderParticipant({
+    const rendered = (participant) => {
+      return renderParticipant({
         eventHandlers: {
           participantClick: (params) => {
             return isFunction(onClick) && onClick({ ...params, event: params.pointerEvent, cell });
@@ -34,6 +34,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
         placeholder,
         sideNumber
       });
+    };
 
     const renderPairParticipant = (participant) => {
       const div = document.createElement('div');
