@@ -4,6 +4,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { eventRowFormatter } from './eventRowFormatter';
 import { getEventColumns } from './getEventColumns';
 
@@ -31,6 +32,7 @@ export function createEventsTable() {
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     const element = document.getElementById(TOURNAMENT_EVENTS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
 
     table = new Tabulator(element, {
       columnDefaults: {}, // e.g. tooltip: true, //show tool tips on cells
@@ -55,6 +57,9 @@ export function createEventsTable() {
       data
     });
     table.on('scrollVertical', destroyTipster);
+    table.on('dataFiltered', (filters, rows) => {
+      headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
+    });
   };
 
   render(getTableData());

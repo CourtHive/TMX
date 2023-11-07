@@ -11,10 +11,11 @@ export function navbarBlock() {
 
   nav.innerHTML = `
     <div class="navbar-brand">
+      <div class="navbar-item" id="tmx">TMX</div>
       <div class="navbar-item" id="tournamentName"></div>
       <div class="navbar-item" id="authorizeActions"></div>
       <a
-        data-target="navbarBasicExample"
+        data-target="navbar-basic"
         class="navbar-burger"
         aria-expanded="false"
         aria-label="menu"
