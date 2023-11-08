@@ -6,7 +6,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 
-import { TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
+import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
 export function createMatchUpsTable() {
   let table;
@@ -51,27 +51,34 @@ export function createMatchUpsTable() {
     table.on('dataFiltered', (filters, rows) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
       headerElement && (headerElement.innerHTML = `Matches (${matchUps.length})`);
-      /*
-      console.log(
-        'WTN',
-        tournamentEngine.getPredictiveAccuracy({
-          valueAccessor: 'wtnRating',
-          scaleName: 'WTN',
-          zoneMargin: 2.5,
-          matchUps
-        })
-      );
-      console.log(
-        'UTR',
-        tournamentEngine.getPredictiveAccuracy({
-          valueAccessor: 'utrRating',
-          singlesForDoubles: true,
-          scaleName: 'UTR',
-          zoneMargin: 1,
-          matchUps
-        })
-      );
-      */
+      const predictiveWTN = document.getElementById('wtnPredictiveAccuracy');
+      const wtn = tournamentEngine.getPredictiveAccuracy({
+        valueAccessor: 'wtnRating',
+        scaleName: 'WTN',
+        zoneMargin: 2.5,
+        matchUps
+      });
+      if (wtn?.accuracy?.percent) {
+        predictiveWTN.style.display = '';
+        predictiveWTN.innerHTML = `WTN ${wtn.accuracy.percent}`;
+      } else {
+        predictiveWTN.style.display = NONE;
+      }
+
+      const predictiveUTR = document.getElementById('utrPredictiveAccuracy');
+      const utr = tournamentEngine.getPredictiveAccuracy({
+        valueAccessor: 'utrRating',
+        singlesForDoubles: true,
+        scaleName: 'UTR',
+        zoneMargin: 1,
+        matchUps
+      });
+      if (utr?.accuracy?.percent) {
+        predictiveUTR.style.display = '';
+        predictiveUTR.innerHTML = `UTR ${utr.accuracy.percent}`;
+      } else {
+        predictiveUTR.style.display = NONE;
+      }
     });
   };
 
