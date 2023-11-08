@@ -33,6 +33,7 @@ export function scheduleGridControl({
       // onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateHighlights(''),
       // onChange: (e) => updateHighlights(e.target.value),
       // onKeyUp: (e) => updateHighlights(e.target.value),
+      // clearSearch: () => updateHighlights(''),
       placeholder: 'Search participants',
       id: 'searchParticipants',
       visible: !!courtsCount,
