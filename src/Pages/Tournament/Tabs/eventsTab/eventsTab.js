@@ -7,7 +7,8 @@ import { renderDrawPanel } from './renderDrawPanel';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
-import { EVENTS_TAB } from 'constants/tmxConstants';
+import { EVENTS_TAB, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
+import { findAncestor } from 'services/dom/parentAndChild';
 
 export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {}) {
   highlightTab(EVENTS_TAB);
@@ -15,8 +16,11 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {
   cleanupDrawPanel();
 
   if (eventId || drawId) {
+    const element = document.getElementById(TOURNAMENT_EVENTS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
+
     if (drawId && renderDraw) {
-      const result = renderDrawPanel({ eventId, drawId });
+      const result = renderDrawPanel({ eventId, drawId, headerElement });
       if (result.success) {
         renderTODSdraw({ eventId, drawId, structureId, redraw: true });
         setEventView({ renderDraw });
@@ -26,7 +30,7 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw } = {
         setEventView({ eventId });
       }
     } else {
-      createEntriesPanels({ eventId, drawId });
+      createEntriesPanels({ eventId, drawId, headerElement });
       setEventView({ eventId });
     }
   } else {
