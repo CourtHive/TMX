@@ -11,6 +11,7 @@ import { context } from 'services/context';
 import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
+import { tmxToast } from './notifications/tmxToast';
 
 function functionOrLog(s, results) {
   return typeof window.dev[s] === 'function'
@@ -51,9 +52,29 @@ export function setDev() {
 
   const help = () => console.log('set window.socketURL for messaging');
   const modifyTournament = (methods) => {
-    mutationRequest({ methods });
-    // eslint-disable-next-line no-console
-    console.log('%cModified! Refresh or modify history to view changes...', 'color: lightgreen');
+    if (!Array.isArray(methods)) {
+      tmxToast({ message: 'missing methods array', intent: 'is-danger' });
+      return;
+    }
+    const tournamentId = factory.tournamentEngine.getState().tournamentRecord?.tournamentId;
+    if (tournamentId) {
+      const callback = (result) => {
+        if (result?.success) {
+          tmxToast({ message: 'success', intent: 'is-success' });
+          const tournamentRecord = factory.tournamentEngine.getState().tournamentRecord;
+          const displayTournament = () => loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
+          addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
+        } else {
+          tmxToast({ message: result?.error?.message ?? 'error', intent: 'is-danger' });
+          // eslint-disable-next-line no-console
+          console.log(result);
+        }
+      };
+
+      mutationRequest({ methods, callback });
+    } else {
+      tmxToast({ message: 'missing tournament', intent: 'is-danger' });
+    }
   };
 
   addDev({
@@ -90,20 +111,6 @@ function load(json) {
     const tournamentRecord = json.tournamentRecord || json;
     const tournamentId = tournamentRecord?.tournamentId;
     tournamentId && addAndDisplay(tournamentRecord);
-  }
-}
-
-function modifyTournament(methods) {
-  if (Array.isArray(methods)) {
-    const tournamentId = factory.tournamentEngine.getState().tournamentRecord?.tournamentId;
-    if (tournamentId) {
-      const result = factory.tournamentEngine.executionQueue(methods);
-      if (result.success || result.result?.success) {
-        const tournamentRecord = factory.tournamentEngine.getState().tournamentRecord;
-        const displayTournament = () => loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
-        addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
-      }
-    }
   }
 }
 
