@@ -33,6 +33,7 @@ export function createEventsTable() {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     const element = document.getElementById(TOURNAMENT_EVENTS);
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
+    headerElement && (headerElement.innerHTML = `Events (${data.length})`);
 
     table = new Tabulator(element, {
       columnDefaults: {}, // e.g. tooltip: true, //show tool tips on cells
@@ -57,6 +58,9 @@ export function createEventsTable() {
       data
     });
     table.on('scrollVertical', destroyTipster);
+    table.on('dataChanged', (rows) => {
+      headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
+    });
     table.on('dataFiltered', (filters, rows) => {
       headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
     });

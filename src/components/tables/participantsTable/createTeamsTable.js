@@ -62,6 +62,10 @@ export function createTeamsTable({ view } = {}) {
       columns
     });
 
+    table.on('dataChanged', (rows) => {
+      const type = view === TEAM ? 'Teams' : 'Groups';
+      headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
+    });
     table.on('dataFiltered', (filters, rows) => {
       const type = view === TEAM ? 'Teams' : 'Groups';
       headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);

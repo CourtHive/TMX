@@ -69,6 +69,9 @@ export function createParticipantsTable({ view } = {}) {
       data
     });
 
+    table.on('dataChanged', (rows) => {
+      headerElement && (headerElement.innerHTML = `Participants (${rows.length})`);
+    });
     table.on('dataFiltered', (filters, rows) => {
       headerElement && (headerElement.innerHTML = `Participants (${rows.length})`);
     });
