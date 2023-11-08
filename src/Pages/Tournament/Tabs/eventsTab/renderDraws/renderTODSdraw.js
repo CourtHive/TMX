@@ -285,8 +285,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
         onChange: (e) => updateParticipantFilter(e.target.value),
         onKeyUp: (e) => updateParticipantFilter(e.target.value),
+        clearSearch: () => updateParticipantFilter(''),
         placeholder: 'Participant name',
-        location: LEFT
+        location: LEFT,
+        search: true
       },
       {
         options: eventOptions.length > 1 ? eventOptions : undefined,
