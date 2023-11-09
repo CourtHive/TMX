@@ -75,7 +75,7 @@ export function renderIndividuals({ view }) {
       { divider: true },
       {
         label: '<p style="font-weight: bold">Create new event</p>',
-        onClick: () => eventFromParticipants(table),
+        onClick: () => eventFromParticipants(table, replaceTableData),
         close: true
       }
     ]);
@@ -104,7 +104,7 @@ export function renderIndividuals({ view }) {
       location: OVERLAY
     },
     {
-      onClick: () => eventFromParticipants(table, replaceTableData),
+      onClick: () => eventFromParticipants(table),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',

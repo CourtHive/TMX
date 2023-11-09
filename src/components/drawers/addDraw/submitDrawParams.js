@@ -34,15 +34,21 @@ const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { POLICY_TYPE_ROUND_NAMING } = policyConstants;
 
-export function submitParams({
+export function submitDrawParams({
   drawName: existingDrawName,
   matchUpFormat,
   isQualifying,
+  structureId,
   callback,
   inputs,
   drawId,
   event
 }) {
+  console.log('SUBMIT', { structureId });
+  if (structureId) {
+    console.log({ inputs, matchUpFormat });
+    return callback();
+  }
   const drawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
   matchUpFormat = matchUpFormat || inputs[MATCHUP_FORMAT]?.value;
 

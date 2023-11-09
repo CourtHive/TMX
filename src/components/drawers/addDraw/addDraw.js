@@ -6,17 +6,21 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { getFormRelationships } from './formRelationships';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getFormItems } from './getFormItems';
-import { submitParams } from './submitParams';
+import { submitDrawParams } from './submitDrawParams';
 import { context } from 'services/context';
 
 import { CUSTOM, DRAW_NAME, NONE, RIGHT, STRUCTURE_NAME } from 'constants/tmxConstants';
 
-export function addDraw({ eventId, callback, drawId, drawName, isQualifying }) {
+export function addDraw({ eventId, callback, drawId, drawName, structureId, isQualifying }) {
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
-  const relationships = getFormRelationships({ event, isQualifying });
-  const items = getFormItems({ event, drawId, isQualifying });
+  const { items, structurePositionAssignments } = getFormItems({ event, drawId, isQualifying, structureId });
+  const relationships = getFormRelationships({
+    maxQualifiers: structurePositionAssignments?.length,
+    isQualifying,
+    event
+  });
 
   let inputs;
   const content = (elem) => {
@@ -32,12 +36,12 @@ export function addDraw({ eventId, callback, drawId, drawName, isQualifying }) {
     } else if (inputs.matchUpFormat?.value === CUSTOM) {
       const setMatchUpFormat = (matchUpFormat) => {
         if (matchUpFormat) {
-          submitParams({ event, inputs, callback, matchUpFormat, drawId, drawName, isQualifying });
+          submitDrawParams({ event, inputs, callback, structureId, matchUpFormat, drawId, drawName, isQualifying });
         }
       };
       getMatchUpFormat({ callback: setMatchUpFormat });
     } else {
-      submitParams({ event, inputs, callback, drawId, drawName, isQualifying });
+      submitDrawParams({ event, inputs, callback, structureId, drawId, drawName, isQualifying });
     }
   };
 

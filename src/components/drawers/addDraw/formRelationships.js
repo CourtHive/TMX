@@ -20,7 +20,7 @@ import {
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
-export function getFormRelationships({ event, isQualifying }) {
+export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const checkCreationMethod = ({ fields, inputs }) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
@@ -42,12 +42,13 @@ export function getFormRelationships({ event, isQualifying }) {
   };
 
   const updateDrawSize = ({ drawType, fields, inputs }) => {
-    const entriesCount = acceptedEntriesCount(event, stage);
+    const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
-    const drawSizeInteger = isQualifying ? entriesCount : entriesCount + qualifiersCount;
+    const drawSizeInteger = isQualifying && !maxQualifiers ? entriesCount : parseInt(entriesCount) + qualifiersCount;
     const drawSize =
-      ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
+      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) &&
+        drawSizeInteger) ||
       utilities.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
 
@@ -55,15 +56,20 @@ export function getFormRelationships({ event, isQualifying }) {
   };
 
   const qualifiersCountChange = ({ fields, inputs }) => {
-    const drawType = inputs[DRAW_TYPE].value;
-    updateDrawSize({ drawType, fields, inputs });
+    const qualifiersValue = inputs['qualifiersCount'].value || 0;
+    if (maxQualifiers && !isNaN(qualifiersValue) && parseInt(qualifiersValue) > maxQualifiers) {
+      inputs['qualifiersCount'].value = maxQualifiers;
+    } else if (!maxQualifiers) {
+      const drawType = inputs[DRAW_TYPE].value;
+      updateDrawSize({ drawType, fields, inputs });
+    }
   };
 
   const drawTypeChange = ({ e, fields, inputs }) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const drawType = e.target.value;
 
-    updateDrawSize({ drawType, fields, inputs });
+    if (!maxQualifiers) updateDrawSize({ drawType, fields, inputs });
     checkCreationMethod({ fields, inputs });
 
     fields[ADVANCE_PER_GROUP].style.display =
@@ -79,7 +85,7 @@ export function getFormRelationships({ event, isQualifying }) {
     const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
     const options = validGroupSizes.map((size) => ({ label: size, value: size }));
     const groupSizeSelect = inputs[GROUP_SIZE];
-    const value = validGroupSizes.includes(4) ? 4 : validGroupSizes[0];
+    const value = validGroupSizes.includes(drawSize) ? 4 : validGroupSizes[0];
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
     checkCreationMethod({ fields, inputs });
