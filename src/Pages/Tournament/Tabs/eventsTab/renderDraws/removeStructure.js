@@ -1,5 +1,6 @@
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 import { REMOVE_STRUCTURE } from 'constants/mutationConstants';
@@ -7,7 +8,7 @@ import { REMOVE_STRUCTURE } from 'constants/mutationConstants';
 export function removeStructure({ drawId, eventId, structureId }) {
   const methods = [
     {
-      params: { drawId, structureId },
+      params: { drawId, structureId, force: true },
       method: REMOVE_STRUCTURE
     }
   ];
@@ -20,5 +21,17 @@ export function removeStructure({ drawId, eventId, structureId }) {
     }
   };
 
-  mutationRequest({ methods, callback: postMutation });
+  const removeIt = () => mutationRequest({ methods, callback: postMutation });
+
+  const content = `<div style='font-size: 2em'>Structure will be removed!</div>`;
+  const buttons = [
+    {
+      intent: 'is-danger',
+      onClick: removeIt,
+      label: 'Remove',
+      close: true
+    },
+    { label: 'Cancel' }
+  ];
+  openModal({ title: 'Remove structure', buttons, content });
 }
