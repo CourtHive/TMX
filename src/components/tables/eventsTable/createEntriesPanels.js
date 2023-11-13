@@ -26,7 +26,7 @@ import {
   TMX_TABLE
 } from 'constants/tmxConstants';
 
-export function createEntriesPanels({ eventId, drawId }) {
+export function createEntriesPanels({ eventId, drawId, headerElement }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
 
   // global search across all tables
@@ -45,6 +45,7 @@ export function createEntriesPanels({ eventId, drawId }) {
 
   const getTableData = () => {
     const { event, drawDefinition } = tournamentEngine.getEvent({ eventId, drawId });
+    headerElement.innerHTML = event.eventName;
 
     if (!event) return { error: 'EVENT_NOT_FOUND' };
 
@@ -246,6 +247,12 @@ export function createEntriesPanels({ eventId, drawId }) {
         intent: 'is-info',
         location: RIGHT,
         hide: !drawId
+      },
+      {
+        onClick: () => console.log('Avoidances'),
+        label: 'Avoidances',
+        location: RIGHT,
+        intent: NONE
       },
       {
         onClick: () => generateFlights({ eventId, callback: () => {} }),

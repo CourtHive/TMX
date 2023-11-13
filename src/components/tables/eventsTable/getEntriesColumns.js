@@ -1,8 +1,8 @@
+import { formatParticipant } from '../common/formatters/participantFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
-import { genderedText } from '../common/formatters/genderedText';
+//import { genderedText } from '../common/formatters/genderedText';
 import { numericEditor } from '../common/editors/numericEditor';
 import { factoryConstants } from 'tods-competition-factory';
-import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { entryActions } from '../../popovers/entryActions';
@@ -13,6 +13,12 @@ import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
 export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [], drawCreated } = {}) {
+  const utrRating = entries.find((entry) => entry.ratings?.utr);
+  const wtnRating = entries.find((entry) => entry.ratings?.wtn);
+  const cityState = entries.find((entry) => entry.cityState);
+  const seeding = entries.find((entry) => entry.seedNumber);
+  const ranking = entries.find((entry) => entry.ranking);
+
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -40,8 +46,10 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 50
     },
     {
-      formatter: genderedText,
-      field: 'participant.participantName',
+      // formatter: genderedText,
+      /// field: 'participant.participantName',
+      formatter: (cell) => formatParticipant()(cell, undefined, 'sideBySide'),
+      field: 'participant',
       responsive: false,
       resizable: false,
       minWidth: 200,
@@ -50,6 +58,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
+      visible: !!ranking,
       resizable: false,
       sorter: 'number',
       field: 'ranking',
@@ -57,24 +66,25 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 70
     },
     {
-      visible: columnIsVisible('ratings.wtn.wtnRating'),
       sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.wtn.wtnRating',
+      visible: !!wtnRating,
       resizable: false,
       sorter: 'number',
       title: WTN,
       width: 70
     },
     {
-      visible: columnIsVisible('ratings.utr.utrRating'),
       sorterParams: { alignEmptyValues: 'bottom' },
       field: 'ratings.utr.utrRating',
+      visible: !!utrRating,
       resizable: false,
       sorter: 'number',
       title: UTR,
       width: 70
     },
     {
+      visible: !!cityState,
       title: 'City/State',
       field: 'cityState',
       responsive: false,
@@ -82,8 +92,9 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       minWidth: 100
     },
     {
-      sorterParams: { alignEmptyValues: 'bottom' },
       editor: numericEditor({ maxValue: entries?.length || 0, field: 'seedNumber' }),
+      sorterParams: { alignEmptyValues: 'bottom' },
+      visible: !!seeding,
       field: 'seedNumber',
       hozAlign: CENTER,
       resizable: false,

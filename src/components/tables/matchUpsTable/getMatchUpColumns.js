@@ -17,7 +17,7 @@ import { context } from 'services/context';
 
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
-export function getMatchUpColumns(replaceTableData) {
+export function getMatchUpColumns({ data, replaceTableData }) {
   const matchUpScheduleClick = (e, cell) => {
     const row = cell.getRow();
     const data = row.getData();
@@ -30,6 +30,21 @@ export function getMatchUpColumns(replaceTableData) {
   };
 
   const participantChange = () => replaceTableData();
+  const showCourts = data.some((m) => m.courtName);
+
+  const handleSideClick = (e, cell) => participantMatchUpActions(e, cell, participantChange);
+
+  const matchUpParticipantFormatter = (cell) => {
+    const placholder = document.createElement('div');
+    placholder.className = 'has-text-warning-dark';
+    placholder.innerHTML = 'Select participant';
+    const onClick = ({ event, ...params }) => {
+      participantMatchUpActions(event, cell, participantChange, params);
+    };
+
+    const value = cell.getValue();
+    return value.participantName && formatParticipant(onClick)(cell, placholder);
+  };
 
   return [
     {
@@ -68,6 +83,13 @@ export function getMatchUpColumns(replaceTableData) {
       widthGrow: 1
     },
     {
+      title: 'Flight',
+      visible: false,
+      minWidth: 150,
+      field: 'flight',
+      widthGrow: 1
+    },
+    {
       field: 'matchUpType',
       titleFormatter,
       title: 'Type',
@@ -87,6 +109,7 @@ export function getMatchUpColumns(replaceTableData) {
     },
     {
       cellClick: matchUpScheduleClick,
+      visible: !!showCourts,
       field: 'courtName',
       title: 'Court',
       width: 100
@@ -100,10 +123,8 @@ export function getMatchUpColumns(replaceTableData) {
       width: 70
     },
     {
-      formatter: formatParticipant(({ event, cell, ...params }) =>
-        participantMatchUpActions(event, cell, participantChange, params)
-      ),
-      cellClick: (e, cell) => participantMatchUpActions(e, cell, participantChange),
+      formatter: matchUpParticipantFormatter,
+      cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
       title: 'Side 1',
@@ -112,10 +133,8 @@ export function getMatchUpColumns(replaceTableData) {
       widthGrow: 1
     },
     {
-      formatter: formatParticipant(({ event, cell, ...params }) =>
-        participantMatchUpActions(event, cell, participantChange, params)
-      ),
-      cellClick: (e, cell) => participantMatchUpActions(e, cell, participantChange),
+      formatter: matchUpParticipantFormatter,
+      cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
       title: 'Side 2',
@@ -162,7 +181,7 @@ export function getMatchUpColumns(replaceTableData) {
       width: 70
     },
     {
-      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, cell }),
+      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, ...cell.getData() }),
       formatter: threeDots,
       responsive: false,
       headerSort: false,

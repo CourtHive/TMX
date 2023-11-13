@@ -11,3 +11,32 @@
 .leaflet-default-icon-path {
   background-image: url(images/marker-icon.png);
 }
+
+.event_icon {
+  background-size: 100%;
+  padding-bottom: 1.2em;
+  width: 1.2em;
+  height: 0;
+}
+
+.drawsize_header {
+  background-image: url(images/drawbracket.png);
+}
+.opponents_header {
+  background-image: url(images/players.png);
+}
+.surface_header {
+  background-image: url(images/h_court.png);
+}
+.winloss_header {
+  background-image: url(images/winloss.png);
+}
+.matches_header {
+  background-image: url(images/match.png);
+}
+.rank_header {
+  background-image: url(images/trophy.png);
+}
+.time_header {
+  background-image: url(images/time.png);
+}

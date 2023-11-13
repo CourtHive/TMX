@@ -2,7 +2,7 @@ import { drawDefinitionConstants, factoryConstants } from 'tods-competition-fact
 import { entryStatusMapping } from 'constants/tmxConstants';
 
 const { TEAM } = factoryConstants.eventConstants;
-const { WTN } = factoryConstants.ratingConstants;
+const { WTN, UTR } = factoryConstants.ratingConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
 export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, eventId }) {
@@ -15,7 +15,8 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
 
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
   const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === WTN)?.scaleValue;
-  const ratings = { wtn };
+  const utr = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === UTR)?.scaleValue;
+  const ratings = { wtn, utr };
 
   const scaleName = entry.entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const seedNumber = participant?.seedings?.[eventType]?.find(

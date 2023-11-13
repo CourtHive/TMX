@@ -1,6 +1,8 @@
 import { drawDefinitionConstants, drawEngine, utilities } from 'tods-competition-factory';
 import { numericValidator } from 'components/validators/numericValidator';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
+import { nameValidator } from 'components/validators/nameValidator';
+import { numericRange } from 'components/validators/numericRange';
 import { renderOptions } from 'components/renderers/renderField';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
@@ -17,10 +19,11 @@ import {
   NONE,
   PLAYOFF_TYPE,
   QUALIFIERS_COUNT,
+  STRUCTURE_NAME,
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
-export function getFormRelationships({ event, isQualifying }) {
+export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const checkCreationMethod = ({ fields, inputs }) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
@@ -28,10 +31,9 @@ export function getFormRelationships({ event, isQualifying }) {
     const entriesCount = acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
-    const manualOnly = isQualifying ? drawSize < entriesCount : drawSize < entriesCount + qualifiersCount;
-    if (manualOnly) {
-      inputs[AUTOMATED].value = MANUAL;
-    }
+    const manualOnly =
+      maxQualifiers || (isQualifying && drawSize < entriesCount) || drawSize < entriesCount + qualifiersCount;
+    if (manualOnly) inputs[AUTOMATED].value = MANUAL;
     const help = getChildrenByClassName(fields[AUTOMATED], 'help')?.[0];
     help.style.display = manualOnly ? '' : NONE;
     for (const option of inputs[AUTOMATED].options) {
@@ -42,12 +44,13 @@ export function getFormRelationships({ event, isQualifying }) {
   };
 
   const updateDrawSize = ({ drawType, fields, inputs }) => {
-    const entriesCount = acceptedEntriesCount(event, stage);
-    const qualifiersValue = inputs['qualifiersCount'].value || 0;
-    const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
-    const drawSizeInteger = isQualifying ? entriesCount : entriesCount + qualifiersCount;
+    const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount(event, stage);
+    const qualifiersValue = inputs['qualifiersCount'].value || 1;
+    const qualifiersCount = (numericValidator(qualifiersValue) && parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
+    const drawSizeInteger = isQualifying && !maxQualifiers ? entriesCount : parseInt(entriesCount) + qualifiersCount;
     const drawSize =
-      ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
+      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) &&
+        drawSizeInteger) ||
       utilities.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
 
@@ -55,15 +58,33 @@ export function getFormRelationships({ event, isQualifying }) {
   };
 
   const qualifiersCountChange = ({ fields, inputs }) => {
-    const drawType = inputs[DRAW_TYPE].value;
-    updateDrawSize({ drawType, fields, inputs });
+    const drawSize = parseInt(inputs[DRAW_SIZE].value);
+    const enteredValue = inputs['qualifiersCount'].value;
+    if (numericValidator(enteredValue) && parseInt(enteredValue) < 1) {
+      inputs['qualifiersCount'].value = maxQualifiers ? 1 : 0;
+    }
+    const generateButton = document.getElementById('generateDraw');
+    let qualifiersValue = inputs['qualifiersCount'].value;
+    generateButton.disabled = false;
+
+    if (maxQualifiers && numericValidator(qualifiersValue) && parseInt(qualifiersValue) > maxQualifiers) {
+      inputs['qualifiersCount'].value = maxQualifiers;
+    } else if (!maxQualifiers) {
+      const drawType = inputs[DRAW_TYPE].value;
+      updateDrawSize({ drawType, fields, inputs });
+    }
+
+    qualifiersValue = inputs['qualifiersCount'].value;
+    if (generateButton && (!numericValidator(qualifiersValue) || drawSize <= parseInt(qualifiersValue))) {
+      generateButton.disabled = true;
+    }
   };
 
   const drawTypeChange = ({ e, fields, inputs }) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const drawType = e.target.value;
 
-    updateDrawSize({ drawType, fields, inputs });
+    if (!maxQualifiers) updateDrawSize({ drawType, fields, inputs });
     checkCreationMethod({ fields, inputs });
 
     fields[ADVANCE_PER_GROUP].style.display =
@@ -74,12 +95,15 @@ export function getFormRelationships({ event, isQualifying }) {
   };
 
   const drawSizeChange = ({ fields, inputs }) => {
+    const generateButton = document.getElementById('generateDraw');
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
+    const valid = numericRange(2, 128)(drawSizeValue);
+    generateButton.disabled = !valid;
     const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
     const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
     const options = validGroupSizes.map((size) => ({ label: size, value: size }));
     const groupSizeSelect = inputs[GROUP_SIZE];
-    const value = validGroupSizes.includes(4) ? 4 : validGroupSizes[0];
+    const value = validGroupSizes.includes(drawSize) ? 4 : validGroupSizes[0];
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
     checkCreationMethod({ fields, inputs });
@@ -110,7 +134,18 @@ export function getFormRelationships({ event, isQualifying }) {
     }
   };
 
+  const structureNameChange = ({ inputs }) => {
+    const newStructureName = inputs[STRUCTURE_NAME].value;
+    const generateButton = document.getElementById('generateDraw');
+    const valid = nameValidator(4)(newStructureName);
+    generateButton.disabled = !valid;
+  };
+
   return [
+    {
+      onInput: structureNameChange,
+      control: STRUCTURE_NAME
+    },
     {
       onChange: groupSizeChange,
       control: GROUP_SIZE

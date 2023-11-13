@@ -69,7 +69,8 @@ body {
 
 /* minimum height prevents jumpy rendering */
 .section {
-  padding-right: 1rem !important;
+  padding-top: 0em;
+  padding-right: .7rem !important;
   min-height: 1000px;
   margin-left: 1rem;
 }
@@ -132,10 +133,9 @@ body {
 
   flex-grow: 1;
 }
-.draw_buttons,
-.buttonBar {
-  padding: 1em;
-}
+.draw_buttons { padding: 1em; }
+.buttonBar { padding: .5em; }
+.tabHeader { padding: .5em; padding-bottom: 0em; }
 
 .draw_buttons,
 .buttonBar,

@@ -40,7 +40,7 @@ export function eventRowFormatter(row) {
 
   row.getElement().appendChild(holderEl);
 
-  const columns = getDrawsColumns();
+  const columns = getDrawsColumns(data);
 
   const drawsTable = new Tabulator(tableEl, {
     headerSortElement: headerSortElement(['entries']),
@@ -83,7 +83,7 @@ export function eventRowFormatter(row) {
 
   const drawAdded = (result) => {
     if (result.success) {
-      drawsTable?.addRow(mapDrawDefinition(eventId)(result.drawDefinition));
+      drawsTable?.addRow(mapDrawDefinition(eventId)({ drawDefinition: result.drawDefinition }));
       const eventRow = row?.getData();
       tableEl.style.display = '';
 

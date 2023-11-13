@@ -36,8 +36,8 @@ export function renderIndividuals({ view }) {
 
   const synchronizePlayers = () => {
     updateRegisteredPlayers({
-      showNotice: true,
-      callback: replaceTableData
+      callback: replaceTableData,
+      showNotice: true
     });
   };
 
@@ -75,7 +75,7 @@ export function renderIndividuals({ view }) {
       { divider: true },
       {
         label: '<p style="font-weight: bold">Create new event</p>',
-        onClick: () => eventFromParticipants(table),
+        onClick: () => eventFromParticipants(table, replaceTableData),
         close: true
       }
     ]);
@@ -104,16 +104,16 @@ export function renderIndividuals({ view }) {
       location: OVERLAY
     },
     {
-      selection: addToTeam,
-      label: 'Add to team',
-      intent: 'is-none',
-      location: OVERLAY
-    },
-    {
       onClick: () => eventFromParticipants(table),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
+      location: OVERLAY
+    },
+    {
+      selection: addToTeam,
+      label: 'Add to team',
+      intent: 'is-none',
       location: OVERLAY
     },
     {

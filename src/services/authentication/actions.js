@@ -1,6 +1,6 @@
 import { setDev } from 'services/setDev';
 import { context } from 'services/context';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 export function validateToken(token) {
   if (!token) {

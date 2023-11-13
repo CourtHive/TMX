@@ -4,6 +4,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { eventRowFormatter } from './eventRowFormatter';
 import { getEventColumns } from './getEventColumns';
 
@@ -13,9 +14,11 @@ export function createEventsTable() {
   let table;
 
   const getTableData = () => {
-    const events = tournamentEngine.getEvents().events;
+    const eventData = tournamentEngine.getEvents({ withScaleValues: true });
     // TODO: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary
-    return events?.map(mapEvent);
+    return eventData?.events?.map((event) =>
+      mapEvent({ event, scaleValues: eventData.eventScaleValues?.[event.eventId] })
+    );
   };
 
   const replaceTableData = () => {
@@ -29,6 +32,8 @@ export function createEventsTable() {
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     const element = document.getElementById(TOURNAMENT_EVENTS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
+    headerElement && (headerElement.innerHTML = `Events (${data.length})`);
 
     table = new Tabulator(element, {
       columnDefaults: {}, // e.g. tooltip: true, //show tool tips on cells
@@ -53,6 +58,12 @@ export function createEventsTable() {
       data
     });
     table.on('scrollVertical', destroyTipster);
+    table.on('dataChanged', (rows) => {
+      headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
+    });
+    table.on('dataFiltered', (filters, rows) => {
+      headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
+    });
   };
 
   render(getTableData());

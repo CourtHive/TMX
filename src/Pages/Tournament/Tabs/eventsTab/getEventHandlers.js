@@ -117,14 +117,14 @@ export function getEventHandlers({ callback, drawId, eventData }) {
       const sideNumber = getSideNumber(props);
       const matchUp = getMatchUp(props);
 
-      const { validActions: matchUpActions } =
+      const { validActions } =
         tournamentEngine.matchUpActions({
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId,
           sideNumber
         }) || {};
 
-      const readyToScore = matchUpActions?.find(({ type }) => type === 'SCORE');
+      const readyToScore = validActions?.find(({ type }) => type === 'SCORE');
 
       if (readyToScore) {
         if (matchUp.matchUpType === TEAM) {

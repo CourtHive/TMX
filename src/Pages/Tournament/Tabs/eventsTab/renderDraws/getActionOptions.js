@@ -2,14 +2,14 @@ import { tournamentEngine, eventConstants, utilities } from 'tods-competition-fa
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { deleteFlights } from 'components/modals/deleteFlights';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { deleteFlights } from 'components/modals/deleteFlights';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 
 import { RESET_SCORECARD } from 'constants/mutationConstants';
 import { DRAWS_VIEW } from 'constants/tmxConstants';
-import { tmxToast } from 'services/notifications/tmxToast';
 
 const { TEAM } = eventConstants;
 

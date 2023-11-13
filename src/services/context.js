@@ -16,7 +16,5 @@ export const context = {
     draw_event: null
   },
 
-  columns: {
-    'ratings.utr.utrRating': true
-  }
+  columns: {}
 };

@@ -5,6 +5,7 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { teamRowFormatter } from './teamRowFormatter';
 import { getTeamColumns } from './getTeamColumns';
 
@@ -38,6 +39,7 @@ export function createTeamsTable({ view } = {}) {
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_TEAMS });
     const element = document.getElementById(TOURNAMENT_TEAMS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['events', 'membersCount', 'matchUpsCount', 'winLoss']),
@@ -60,6 +62,14 @@ export function createTeamsTable({ view } = {}) {
       columns
     });
 
+    table.on('dataChanged', (rows) => {
+      const type = view === TEAM ? 'Teams' : 'Groups';
+      headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
+    });
+    table.on('dataFiltered', (filters, rows) => {
+      const type = view === TEAM ? 'Teams' : 'Groups';
+      headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
+    });
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));
   };

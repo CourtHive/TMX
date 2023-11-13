@@ -8,7 +8,7 @@ export function tournamentInfoBlock() {
 
   div.innerHTML = `
     <div class="tab_section events_tab">
-        <div class="section" style='padding-top: 1em;'}>
+        <div class="section">
             <div id=${TOURNAMENT_OVERVIEW} class="box tournament-information">
             </div>
         </div>
