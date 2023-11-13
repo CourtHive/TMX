@@ -12,6 +12,7 @@ export function renderOptions(select, item) {
     opt.className = 'font-medium';
     if (option.value) opt.setAttribute('value', option.value);
     if (option.selected || item.value === option.value) opt.setAttribute('selected', 'true');
+    if (option.disabled) opt.setAttribute('disabled', 'true');
     opt.innerHTML = option.label;
     select.appendChild(opt);
   }
