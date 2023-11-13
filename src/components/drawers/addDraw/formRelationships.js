@@ -1,6 +1,8 @@
 import { drawDefinitionConstants, drawEngine, utilities } from 'tods-competition-factory';
 import { numericValidator } from 'components/validators/numericValidator';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
+import { nameValidator } from 'components/validators/nameValidator';
+import { numericRange } from 'components/validators/numericRange';
 import { renderOptions } from 'components/renderers/renderField';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
@@ -17,6 +19,7 @@ import {
   NONE,
   PLAYOFF_TYPE,
   QUALIFIERS_COUNT,
+  STRUCTURE_NAME,
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
@@ -55,16 +58,25 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
   };
 
   const qualifiersCountChange = ({ fields, inputs }) => {
+    const drawSize = parseInt(inputs[DRAW_SIZE].value);
     const enteredValue = inputs['qualifiersCount'].value;
     if (numericValidator(enteredValue) && parseInt(enteredValue) < 1) {
       inputs['qualifiersCount'].value = maxQualifiers ? 1 : 0;
     }
-    const qualifiersValue = inputs['qualifiersCount'].value;
+    const generateButton = document.getElementById('generateDraw');
+    let qualifiersValue = inputs['qualifiersCount'].value;
+    generateButton.disabled = false;
+
     if (maxQualifiers && numericValidator(qualifiersValue) && parseInt(qualifiersValue) > maxQualifiers) {
       inputs['qualifiersCount'].value = maxQualifiers;
     } else if (!maxQualifiers) {
       const drawType = inputs[DRAW_TYPE].value;
       updateDrawSize({ drawType, fields, inputs });
+    }
+
+    qualifiersValue = inputs['qualifiersCount'].value;
+    if (generateButton && (!numericValidator(qualifiersValue) || drawSize <= parseInt(qualifiersValue))) {
+      generateButton.disabled = true;
     }
   };
 
@@ -83,7 +95,10 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
   };
 
   const drawSizeChange = ({ fields, inputs }) => {
+    const generateButton = document.getElementById('generateDraw');
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
+    const valid = numericRange(2, 128)(drawSizeValue);
+    generateButton.disabled = !valid;
     const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
     const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
     const options = validGroupSizes.map((size) => ({ label: size, value: size }));
@@ -119,7 +134,18 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
     }
   };
 
+  const structureNameChange = ({ inputs }) => {
+    const newStructureName = inputs[STRUCTURE_NAME].value;
+    const generateButton = document.getElementById('generateDraw');
+    const valid = nameValidator(4)(newStructureName);
+    generateButton.disabled = !valid;
+  };
+
   return [
+    {
+      onInput: structureNameChange,
+      control: STRUCTURE_NAME
+    },
     {
       onChange: groupSizeChange,
       control: GROUP_SIZE

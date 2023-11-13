@@ -47,7 +47,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
 
   const buttons = [
     { label: 'Cancel', intent: NONE, close: true },
-    { label: 'Generate', intent: 'is-primary', onClick: checkParams, close: isValid }
+    { label: 'Generate', id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid }
   ];
   const title = `Configure draw`;
 

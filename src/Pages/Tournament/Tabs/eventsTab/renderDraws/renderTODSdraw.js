@@ -149,7 +149,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     }
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
-    for (const key of Object.keys(structure.roundMatchUps)) {
+    for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
       structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }) => {
         const hasParticipant = sides?.some(({ participant }) =>
           participant?.participantName.toLowerCase().includes(participantFilter)
@@ -162,8 +162,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
       } else {
-        console.log('no matchUps', { structureId, structures, drawData });
-        removeAllChildNodes(drawsView);
+        const structureId = structures?.[0]?.structureId;
+        return renderTODSdraw({ eventId, drawId, structureId, redraw: true });
       }
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
