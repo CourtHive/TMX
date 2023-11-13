@@ -26,6 +26,7 @@ export function renderMatchUpTab() {
   const { table } = createMatchUpsTable({ elements });
   const events = tournamentEngine.getEvents().events || [];
   const statsPanel = document.getElementById(TEAM_STATS);
+  statsPanel.style.display = NONE;
 
   // FILTER: flights
   const flightFilter = (rowData) => rowData.drawId === drawIdFilter;
