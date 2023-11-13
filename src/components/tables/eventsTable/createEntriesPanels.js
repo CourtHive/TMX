@@ -249,6 +249,12 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         hide: !drawId
       },
       {
+        onClick: () => console.log('Avoidances'),
+        label: 'Avoidances',
+        location: RIGHT,
+        intent: NONE
+      },
+      {
         onClick: () => generateFlights({ eventId, callback: () => {} }),
         label: 'Flights',
         location: RIGHT,
