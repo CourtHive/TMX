@@ -3,24 +3,22 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editStructureNames } from './editStructureNames';
 import { addStructures } from './addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { isFunction } from 'functions/typeOf';
+// import { isFunction } from 'functions/typeOf';
 
-const { FINISHING_POSITIONS, MAIN, QUALIFYING } = drawDefinitionConstants;
+const { FINISHING_POSITIONS } = drawDefinitionConstants;
 
 export function getStructureOptions({ drawData, eventId, structureId, updateControlBar }) {
   const drawId = drawData.drawId;
-  const structure = drawData.structures.find((structure) => structure.structureId === structureId);
-  const canAddQualifying = structure.stage == QUALIFYING || (structure.stage === MAIN && structure.stageSequence === 1);
-  const foo = tournamentEngine.isValidForQualifying({ drawId, structureId });
-  console.log({ canAddQualifying, foo });
+  const canAddPlayoffs = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId })?.playoffRounds?.length;
+  const canAddQualifying = tournamentEngine.isValidForQualifying({ drawId, structureId })?.valid;
 
-  const addNewQualifying = ({ callback }) => {
+  const addNewQualifying = () => {
     addDraw({
       callback: (result) => {
-        console.log({ result });
-        if (isFunction(callback)) callback();
-        // const structureId = result.drawDefinition?.structures?.find(({ stage }) => stage === QUALIFYING)?.structureId;
-        // navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
+        if (result.success) {
+          const structureId = result.structure.structureId;
+          navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
+        }
       },
       drawName: 'Qualifying',
       isQualifying: true,
@@ -48,7 +46,7 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
         close: true
       },
       {
-        onClick: () => addNewQualifying({ callback: () => updateControlBar(true) }),
+        onClick: () => addNewQualifying(),
         hide: !canAddQualifying,
         label: 'Add qualifying',
         modifyLabel: false,
@@ -56,6 +54,7 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
       },
       {
         onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
+        hide: !canAddPlayoffs,
         label: 'Add playoffs',
         modifyLabel: false,
         close: true

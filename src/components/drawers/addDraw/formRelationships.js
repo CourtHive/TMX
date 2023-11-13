@@ -28,10 +28,9 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
     const entriesCount = acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
-    const manualOnly = isQualifying ? drawSize < entriesCount : drawSize < entriesCount + qualifiersCount;
-    if (manualOnly) {
-      inputs[AUTOMATED].value = MANUAL;
-    }
+    const manualOnly =
+      maxQualifiers || (isQualifying && drawSize < entriesCount) || drawSize < entriesCount + qualifiersCount;
+    if (manualOnly) inputs[AUTOMATED].value = MANUAL;
     const help = getChildrenByClassName(fields[AUTOMATED], 'help')?.[0];
     help.style.display = manualOnly ? '' : NONE;
     for (const option of inputs[AUTOMATED].options) {
@@ -43,8 +42,8 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
 
   const updateDrawSize = ({ drawType, fields, inputs }) => {
     const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount(event, stage);
-    const qualifiersValue = inputs['qualifiersCount'].value || 0;
-    const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
+    const qualifiersValue = inputs['qualifiersCount'].value || 1;
+    const qualifiersCount = (numericValidator(qualifiersValue) && parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
     const drawSizeInteger = isQualifying && !maxQualifiers ? entriesCount : parseInt(entriesCount) + qualifiersCount;
     const drawSize =
       ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) &&
@@ -56,8 +55,12 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
   };
 
   const qualifiersCountChange = ({ fields, inputs }) => {
-    const qualifiersValue = inputs['qualifiersCount'].value || 0;
-    if (maxQualifiers && !isNaN(qualifiersValue) && parseInt(qualifiersValue) > maxQualifiers) {
+    const enteredValue = inputs['qualifiersCount'].value;
+    if (numericValidator(enteredValue) && parseInt(enteredValue) < 1) {
+      inputs['qualifiersCount'].value = maxQualifiers ? 1 : 0;
+    }
+    const qualifiersValue = inputs['qualifiersCount'].value;
+    if (maxQualifiers && numericValidator(qualifiersValue) && parseInt(qualifiersValue) > maxQualifiers) {
       inputs['qualifiersCount'].value = maxQualifiers;
     } else if (!maxQualifiers) {
       const drawType = inputs[DRAW_TYPE].value;

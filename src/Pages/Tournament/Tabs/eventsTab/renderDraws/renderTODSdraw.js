@@ -143,7 +143,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
-    } else if (structure.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
+    } else if (structure?.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
       console.log('voluntary controlBar with [View participants]');
       // use modal with eligible players and selected players highlighted
     }

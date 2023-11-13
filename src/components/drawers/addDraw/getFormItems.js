@@ -48,8 +48,11 @@ export function getFormItems({ event, drawId, isQualifying, structureId }) {
   const drawDefinition = drawId && event.drawDefinitions?.find((def) => def.drawId === drawId);
   const structurePositionAssignments =
     structureId && tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments;
+  // const structure = structureId && drawDefinition?.structures.find((s) => s.structureId === structureId);
+  // const isMain = structure?.stage === MAIN && structure?.stageSequence === 1;
   const entryProfile = utilities.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension?.value;
-  const qualifiersCount = !structureId ? entryProfile?.[MAIN]?.qualifiersCount || 0 : 0;
+  const initialQualifiersCount = structureId ? 1 : 0;
+  const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
 
   const drawSize = structurePositionAssignments?.length || utilities.nextPowerOf2(acceptedEntriesCount(event, stage));
@@ -87,12 +90,11 @@ export function getFormItems({ event, drawId, isQualifying, structureId }) {
     { label: '4', value: 4 }
   ];
 
-  const creationOptions = [{ label: MANUAL, value: false }];
-  if (!structureId) {
-    creationOptions.unshift({ label: AUTOMATED, value: AUTOMATED, selected: true });
-  } else {
-    creationOptions[0].selected = true;
-  }
+  console.log({ structureId, disabled: !!structureId });
+  const creationOptions = [
+    { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
+    { label: MANUAL, value: false, selected: structureId }
+  ];
 
   const items = [
     {
@@ -157,10 +159,10 @@ export function getFormItems({ event, drawId, isQualifying, structureId }) {
     },
     {
       help: { text: 'Automation disabled', visible: false },
+      options: creationOptions,
       label: 'Creation',
       field: AUTOMATED,
-      value: '',
-      options: creationOptions
+      value: ''
     },
     {
       hide: event.eventType === TEAM,
