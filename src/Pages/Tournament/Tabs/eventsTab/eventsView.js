@@ -13,7 +13,7 @@ export function eventsView() {
 
   const eventAdded = (result) => {
     if (result?.event) {
-      const tableRow = mapEvent(result.event);
+      const tableRow = mapEvent({ event: result.event });
       table?.updateOrAddData([tableRow]);
     }
   };
@@ -38,6 +38,7 @@ export function eventsView() {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search events',
       location: LEFT,
       search: true

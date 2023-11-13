@@ -143,13 +143,13 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
-    } else if (structure.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
+    } else if (structure?.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
       console.log('voluntary controlBar with [View participants]');
       // use modal with eligible players and selected players highlighted
     }
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
-    for (const key of Object.keys(structure.roundMatchUps)) {
+    for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
       structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }) => {
         const hasParticipant = sides?.some(({ participant }) =>
           participant?.participantName.toLowerCase().includes(participantFilter)
@@ -162,8 +162,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
       } else {
-        console.log('no matchUps', { structureId, structures, drawData });
-        removeAllChildNodes(drawsView);
+        const structureId = structures?.[0]?.structureId;
+        return renderTODSdraw({ eventId, drawId, structureId, redraw: true });
       }
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
@@ -285,8 +285,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
         onChange: (e) => updateParticipantFilter(e.target.value),
         onKeyUp: (e) => updateParticipantFilter(e.target.value),
+        clearSearch: () => updateParticipantFilter(''),
         placeholder: 'Participant name',
-        location: LEFT
+        location: LEFT,
+        search: true
       },
       {
         options: eventOptions.length > 1 ? eventOptions : undefined,

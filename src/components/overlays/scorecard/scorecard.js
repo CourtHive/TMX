@@ -1,4 +1,5 @@
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
+import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -31,7 +32,13 @@ export function openScorecard({ title, drawId, matchUpId, onClose }) {
 export function renderScorecard({ matchUp }) {
   const contentContaner = document.createElement('div');
   contentContaner.className = 'overlay-content-container';
-  const overview = getOverview({ matchUp });
+  const side1 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 1 }), justify: 'end' });
+  const side2 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 2 }), justify: 'start' });
+
+  const { winningSide, sets } = matchUp;
+  const side1Score = getSideScore({ winningSide, sets, sideNumber: 1, id: TIE_SIDE_1 });
+  const side2Score = getSideScore({ winningSide, sets, sideNumber: 2, id: TIE_SIDE_2 });
+  const overview = getTeamVs({ side1, side2, side1Score, side2Score });
   contentContaner.appendChild(overview);
 
   if (!context.collectionTables) context.collectionTables = [];
@@ -75,76 +82,8 @@ export function setTieScore(result) {
   if (result.winningSide === 2) side2Score.classList.add(WIN_INDICATOR);
 }
 
-function getOverview({ matchUp }) {
-  const overview = document.createElement('div');
-  overview.className = 'overlay-content-overview';
-  const overviewBody = document.createElement('div');
-  overviewBody.className = 'overlay-content-body';
-
-  const side1 = getSide({ matchUp, sideNumber: 1, justify: 'end' });
-  const side2 = getSide({ matchUp, sideNumber: 2, justify: 'start' });
-  const score = getScore({ matchUp });
-
-  overviewBody.appendChild(side1);
-  overviewBody.appendChild(score);
-  overviewBody.appendChild(side2);
-
-  overview.appendChild(overviewBody);
-
-  return overview;
-}
-
-function getScore({ matchUp }) {
-  const scoreBox = document.createElement('div');
-  scoreBox.className = 'score-box';
-  const scoreFlex = document.createElement('div');
-  scoreFlex.className = 'score-flex';
-
-  const side1Score = getSideScore({ matchUp, sideNumber: 1, id: TIE_SIDE_1 });
-  const side2Score = getSideScore({ matchUp, sideNumber: 2, id: TIE_SIDE_2 });
-  const vs = document.createElement('div');
-  vs.className = 'score-vs';
-  vs.innerHTML = 'vs';
-
-  scoreFlex.appendChild(side1Score);
-  scoreFlex.appendChild(vs);
-  scoreFlex.appendChild(side2Score);
-
-  scoreBox.appendChild(scoreFlex);
-
-  return scoreBox;
-}
-
-function getSideScore({ matchUp, sideNumber, id }) {
-  const sideString = `side${sideNumber}Score`;
-  const score = matchUp.score?.sets?.[0]?.[sideString] || 0;
-
-  const sideScore = document.createElement('span');
-  sideScore.id = `sideScore${sideNumber}`;
-  sideScore.className = 'side-score';
-  if (sideNumber === 1) {
-    sideScore.style.paddingLeft = '1rem';
-  } else {
-    sideScore.style.paddingRight = '1rem';
-  }
-
-  const winningSide = sideNumber === matchUp.winningSide;
-  if (winningSide) sideScore.classList.add('has-text-success');
-
-  sideScore.innerHTML = score;
-  sideScore.id = id;
-
-  return sideScore;
-}
-
-function getSide({ matchUp, sideNumber, justify = 'start' }) {
-  const side = document.createElement('div');
-  side.className = `matchup-side justify-${justify}`;
-  const sideName = document.createElement('div');
-  sideName.className = 'side-name';
-  sideName.innerHTML = matchUp.sides.find((side) => side.sideNumber === sideNumber)?.participant?.participantName;
-  side.appendChild(sideName);
-  return side;
+function getParticipantName({ matchUp, sideNumber }) {
+  return matchUp.sides.find((side) => side.sideNumber === sideNumber)?.participant?.participantName;
 }
 
 export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {

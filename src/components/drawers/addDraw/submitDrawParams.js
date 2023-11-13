@@ -1,7 +1,9 @@
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { numericValidator } from 'components/validators/numericValidator';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { generateDraw } from './generateDraw';
+import { isFunction } from 'functions/typeOf';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -11,7 +13,7 @@ import {
   policyConstants
 } from 'tods-competition-factory';
 
-const { TIME_TENNIS_PRO_CIRCUIT } = factoryConstants.tieFormatConstants;
+import { ATTACH_QUALIFYING_STRUCTURE } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
@@ -31,13 +33,15 @@ import {
 
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
   drawDefinitionConstants;
+const { TIME_TENNIS_PRO_CIRCUIT } = factoryConstants.tieFormatConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { POLICY_TYPE_ROUND_NAMING } = policyConstants;
 
-export function submitParams({
+export function submitDrawParams({
   drawName: existingDrawName,
   matchUpFormat,
   isQualifying,
+  structureId,
   callback,
   inputs,
   drawId,
@@ -125,6 +129,41 @@ export function submitParams({
 
   const qualifiersCount =
     (numericValidator(inputs[QUALIFIERS_COUNT].value) && parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
+
+  if (structureId) {
+    // structureId is only present when a qualifying draw is being added to an existing structure
+    // if structureId is { stage: MAIN, stageSequence: 1 } then allow automated positioning
+    const generationResult = tournamentEngine.generateQualifyingStructure({
+      qualifyingPositions: qualifiersCount,
+      targetStructureId: structureId,
+      structureOptions,
+      matchUpFormat,
+      structureName,
+      automated,
+      drawSize,
+      drawType,
+      drawId
+    });
+
+    if (generationResult.success) {
+      const methods = [
+        {
+          method: ATTACH_QUALIFYING_STRUCTURE,
+          params: {
+            structure: generationResult.structure,
+            link: generationResult.link,
+            eventId,
+            drawId
+          }
+        }
+      ];
+      const postMutation = (result) =>
+        isFunction(callback) && callback({ ...generationResult, ...result.results?.[0] });
+      mutationRequest({ methods, callback: postMutation });
+    }
+
+    return;
+  }
 
   if (isQualifying) {
     drawOptions.drawName = existingDrawName;

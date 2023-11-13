@@ -14,6 +14,7 @@ export function dropDownButton({ target, button, stateChange }) {
   const elem = document.createElement('div');
   if (button.class) elem.classList.add(button.class);
   elem.classList.add('dropdown');
+  if (button.id) elem.id = button.id;
 
   if (button.align === RIGHT) {
     elem.classList.add('is-right');
@@ -44,7 +45,6 @@ export function dropDownButton({ target, button, stateChange }) {
   ddButton.className = 'button font-medium';
   if (button.intent) ddButton.classList.add(button.intent);
   if (button.value) ddButton.value = button.value;
-  if (button.id) ddButton.id = button.id;
   ddButton.setAttribute('aria-haspopup', 'true');
   const label = document.createElement('span');
   if (isFunction(button.onClick)) label.onclick = button.onClick;
@@ -84,7 +84,6 @@ export function dropDownButton({ target, button, stateChange }) {
     anchor.classList.add('dropdown-item');
     if (option.isActive) anchor.classList.add('is-active');
     if (option.class) {
-      console.log(option.class);
       anchor.classList.add(option.class);
     }
 

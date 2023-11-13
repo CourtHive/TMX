@@ -1,15 +1,26 @@
-export const mapDrawDefinition = (eventId) => (drawDefinition) => {
-  const { drawId, drawName, drawType, entries, matchUpFormat, tieFormat } = drawDefinition;
+import { tournamentEngine } from 'tods-competition-factory';
 
-  const entriesCount = entries?.filter(({ entryStatus }) => entryStatus !== 'WITHDRAWN')?.length;
+export const mapDrawDefinition =
+  (eventId) =>
+  ({ drawDefinition, scaleValues }) => {
+    const { drawId, drawName, drawType, entries, matchUpFormat, tieFormat } = drawDefinition;
 
-  return {
-    entries: entriesCount || 0,
-    matchUpFormat, // needs to default to event.tieFormat
-    tieFormat, // needs to default to event.tieFormat
-    drawName,
-    drawType,
-    eventId,
-    drawId
+    const entriesCount = entries?.filter(({ entryStatus }) => entryStatus !== 'WITHDRAWN')?.length;
+    const assignedParticipantIds = tournamentEngine
+      .getAssignedParticipantIds({
+        drawDefinition
+      })
+      .assignedParticipantIds?.filter(Boolean);
+
+    return {
+      entries: assignedParticipantIds?.length ?? entriesCount ?? 0,
+      matchUpFormat, // needs to default to event.tieFormat
+      tieFormat, // needs to default to event.tieFormat
+      utrAvg: scaleValues?.ratingsStats?.UTR?.avg,
+      wtnAvg: scaleValues?.ratingsStats?.WTN?.avg,
+      drawName,
+      drawType,
+      eventId,
+      drawId
+    };
   };
-};

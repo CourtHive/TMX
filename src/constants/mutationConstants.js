@@ -18,6 +18,7 @@ export const ADD_PLAYOFF_STRUCTURES = 'addPlayoffStructures';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
 export const ADD_VENUE = 'addVenue';
 export const ASSIGN_TIE_MATCHUP_PARTICIPANT_ID = 'assignTieMatchUpParticipantId';
+export const ATTACH_QUALIFYING_STRUCTURE = 'attachQualifyingStructure';
 export const AUTOMATED_PLAYOFF_POSITIONING = 'automatedPlayoffPositioning';
 export const BULK_SCHEDULE_MATCHUPS = 'bulkScheduleMatchUps';
 export const DELETE_ADHOC_MATCHUPS = 'deleteAdHocMatchUps';
@@ -33,7 +34,6 @@ export const MODIFY_COURT = 'modifyCourt';
 export const MODIFY_EVENT = 'modifyEvent';
 
 export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition'; // TODO:
-// export const MODIFY_DRAW_NAME = 'modifyDrawName'; // TODO:
 
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';

@@ -1,24 +1,80 @@
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
+import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
+import { dropDownButton } from 'components/buttons/dropDownButton';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 
-import { ALL_EVENTS, ALL_STATUSES, ALL_TEAMS, LEFT, MATCHUPS_CONTROL, OVERLAY } from 'constants/tmxConstants';
+import {
+  ALL_EVENTS,
+  ALL_FLIGHTS,
+  ALL_STATUSES,
+  ALL_TEAMS,
+  LEFT,
+  MATCHUPS_CONTROL,
+  NONE,
+  OVERLAY,
+  RIGHT,
+  TEAM_STATS
+} from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
-  let eventIdFilter, teamIdFilter, matchUpStatusFilter;
+  let eventIdFilter, drawIdFilter, teamIdFilter, matchUpStatusFilter, elements;
 
-  const { table } = createMatchUpsTable();
+  const { table } = createMatchUpsTable({ elements });
+  const events = tournamentEngine.getEvents().events || [];
+  const statsPanel = document.getElementById(TEAM_STATS);
+
+  // FILTER: flights
+  const flightFilter = (rowData) => rowData.drawId === drawIdFilter;
+  const updateFlightFilter = (drawId) => {
+    table?.removeFilter(flightFilter);
+    drawIdFilter = drawId;
+    if (drawId) table?.addFilter(flightFilter);
+  };
+  const allFlights = {
+    label: `<span style='font-weight: bold'>${ALL_FLIGHTS}</span>`,
+    onClick: () => updateFlightFilter(),
+    close: true
+  };
+  const getFlightOptions = (event) =>
+    event.drawDefinitions?.map(({ drawId, drawName }) => ({
+      onClick: () => updateFlightFilter(drawId),
+      label: drawName,
+      close: true
+    }));
+  const flightOptions = [allFlights, { divider: true }].concat(events.flatMap(getFlightOptions)).filter(Boolean);
 
   // FILTER: events
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
     table?.removeFilter(eventFilter);
     eventIdFilter = eventId;
-    if (eventId) table?.addFilter(eventFilter);
+    table?.removeFilter(flightFilter);
+    drawIdFilter = undefined;
+    if (eventId) {
+      table?.addFilter(eventFilter);
+      const eventFlightOptions = [allFlights, { divider: true }]
+        .concat(getFlightOptions(events.find((event) => eventId === event.eventId)))
+        .filter(Boolean);
+      const flightButton = {
+        options: eventFlightOptions,
+        label: ALL_FLIGHTS,
+        id: 'flightOptions',
+        modifyLabel: true,
+        selection: true,
+        location: LEFT
+      };
+      const elem = dropDownButton({ button: flightButton });
+
+      elements.flightOptions.replaceWith(elem);
+      elements.flightOptions = elem;
+    } else {
+      elements.flightOptions.style.display = NONE;
+    }
   };
-  const events = tournamentEngine.getEvents().events || [];
   const allEvents = {
     label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
     onClick: () => updateEventFilter(),
@@ -78,38 +134,61 @@ export function renderMatchUpTab() {
     ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds }))
   );
   const teamFilter = (rowData) => rowData.individualParticipantIds.some((id) => teamMap[teamIdFilter]?.includes(id));
-  const updateTeamFilter = (teamId) => {
+  const updateTeamFilter = (teamParticipantId) => {
     if (teamIdFilter) table?.removeFilter(teamFilter);
-    teamIdFilter = teamId;
-    if (teamId) table?.addFilter(teamFilter);
+    teamIdFilter = teamParticipantId;
+    if (teamParticipantId) {
+      table?.addFilter(teamFilter);
+      const { teamStats } = tournamentEngine.getParticipantStats({ teamParticipantId });
+      if (teamStats?.participantName) {
+        statsPanel.style.display = '';
+        const side1 = getSide({ participantName: teamStats.participantName, justify: 'end' });
+        const side2 = getSide({ participantName: 'Opponents', justify: 'start' });
+        const sets = [{ side1Score: teamStats.matchUps[0], side2Score: teamStats.matchUps[1] }];
+        const side1Score = getSideScore({ sets, sideNumber: 1 });
+        const side2Score = getSideScore({ sets, sideNumber: 2 });
+        removeAllChildNodes(statsPanel);
+        statsPanel.appendChild(getTeamVs({ side1, side2, side1Score, side2Score }));
+      }
+    } else {
+      statsPanel.style.display = NONE;
+    }
   };
   const allTeams = {
     label: `<span style='font-weight: bold'>${ALL_TEAMS}</span>`,
     onClick: () => updateTeamFilter(),
     close: true
   };
+
+  // TODO: teamOptions => use element.options.replaceWith to update to only those teams with results
   const teamOptions = [allTeams, { divider: true }].concat(
-    teamParticipants.map((team) => ({
-      onClick: () => updateTeamFilter(team.participantId),
-      label: team.participantName,
-      close: true
-    }))
+    teamParticipants
+      .sort((a, b) => a?.participantName?.localeCompare(b?.participantName))
+      .map((team) => ({
+        onClick: () => updateTeamFilter(team.participantId),
+        label: team.participantName,
+        close: true
+      }))
   );
 
   const items = [
     {
-      onClick: () => {
-        table.deselectRow();
-      },
+      onClick: () => table?.deselectRow(),
       label: 'Schedule',
       stateChange: true,
       location: OVERLAY
     },
     {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onChange: (e) => updateSearchFilter(e.target.value),
       onKeyUp: (e) => updateSearchFilter(e.target.value),
-      clearSearch: () => updateSearchFilter(''),
+      clearSearch: () => {
+        // remove whatever filter is currently in place
+        table?.removeFilter(searchFilter);
+        // reset searchText
+        searchText = '';
+        // set filter to empty value
+        table?.removeFilter();
+      },
       placeholder: 'Search matches',
       location: LEFT,
       search: true
@@ -117,17 +196,27 @@ export function renderMatchUpTab() {
     {
       hide: eventOptions.length < 3,
       options: eventOptions,
+      id: 'eventOptions',
       label: ALL_EVENTS,
       modifyLabel: true,
+      selection: true,
+      location: LEFT
+    },
+    {
+      options: flightOptions,
+      label: ALL_FLIGHTS,
+      id: 'flightOptions',
+      modifyLabel: true,
+      selection: true,
       location: LEFT,
-      selection: true
+      hide: true
     },
     {
       hide: teamOptions.length < 3,
       options: teamOptions,
+      modifyLabel: true,
       label: ALL_TEAMS,
       location: LEFT,
-      modifyLabel: true,
       selection: true
     },
     {
@@ -136,9 +225,23 @@ export function renderMatchUpTab() {
       modifyLabel: true,
       selection: true,
       location: LEFT
+    },
+    {
+      id: 'wtnPredictiveAccuracy',
+      intent: 'is-danger',
+      location: RIGHT,
+      text: 'WTN %',
+      hide: true
+    },
+    {
+      id: 'utrPredictiveAccuracy',
+      intent: 'is-info',
+      location: RIGHT,
+      text: 'UTR %',
+      hide: true
     }
   ];
 
   const target = document.getElementById(MATCHUPS_CONTROL);
-  controlBar({ table, target, items });
+  elements = controlBar({ table, target, items }).elements;
 }

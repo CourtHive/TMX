@@ -49,6 +49,7 @@ export function selectItem({ title, placeholder, options, selectionLimit }) {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search',
       location: LEFT,
       search: true

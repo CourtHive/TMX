@@ -110,8 +110,8 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
           clear.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color: #dddada; pointer-events: all; cursor: pointer"></i>`;
           clear.onclick = (e) => {
             e.stopPropagation();
-            itemConfig.clearSearch();
             input.value = '';
+            itemConfig.clearSearch();
           };
           elem.appendChild(clear);
         }

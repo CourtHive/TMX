@@ -187,7 +187,7 @@ const setComponents = [
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
       if (!setFormat.tiebreakFormat) return undefined;
-      return setFormat.tiebreakFormat && setFormat.tiebreakFormat?.NoAD ? 1 : 2;
+      return setFormat.tiebreakFormat?.NoAD ? 1 : 2;
     },
     whats: [SETS, TIEBREAKS],
     prefix: 'Win by ',

@@ -7,6 +7,7 @@ import {
   drawEngine,
   factoryConstants,
   drawDefinitionConstants,
+  tournamentEngine,
   eventConstants,
   policyConstants,
   utilities
@@ -39,17 +40,22 @@ const { TEAM } = eventConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
 
-export function getFormItems({ event, drawId, isQualifying }) {
+export function getFormItems({ event, drawId, isQualifying, structureId }) {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0;
   let drawType = SINGLE_ELIMINATION;
 
-  const drawSize = utilities.nextPowerOf2(acceptedEntriesCount(event, stage));
-
   const drawDefinition = drawId && event.drawDefinitions?.find((def) => def.drawId === drawId);
+  const structurePositionAssignments =
+    structureId && tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments;
+  // const structure = structureId && drawDefinition?.structures.find((s) => s.structureId === structureId);
+  // const isMain = structure?.stage === MAIN && structure?.stageSequence === 1;
   const entryProfile = utilities.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension?.value;
-  const qualifiersCount = entryProfile?.[MAIN]?.qualifiersCount || 0;
+  const initialQualifiersCount = structureId ? 1 : 0;
+  const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
+
+  const drawSize = structurePositionAssignments?.length || utilities.nextPowerOf2(acceptedEntriesCount(event, stage));
 
   const scoreFormatOptions = [
     {
@@ -84,7 +90,12 @@ export function getFormItems({ event, drawId, isQualifying }) {
     { label: '4', value: 4 }
   ];
 
-  return [
+  const creationOptions = [
+    { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
+    { label: MANUAL, value: false, selected: structureId }
+  ];
+
+  const items = [
     {
       error: 'minimum of 4 characters',
       placeholder: 'Display name of the structure',
@@ -107,7 +118,7 @@ export function getFormItems({ event, drawId, isQualifying }) {
       focus: true
     },
     {
-      options: getDrawTypeOptions(),
+      options: getDrawTypeOptions({ isQualifying }),
       label: 'Draw Type',
       field: DRAW_TYPE,
       value: drawType
@@ -147,13 +158,10 @@ export function getFormItems({ event, drawId, isQualifying }) {
     },
     {
       help: { text: 'Automation disabled', visible: false },
+      options: creationOptions,
       label: 'Creation',
       field: AUTOMATED,
-      value: '',
-      options: [
-        { label: AUTOMATED, value: AUTOMATED, selected: true },
-        { label: MANUAL, value: false }
-      ]
+      value: ''
     },
     {
       hide: event.eventType === TEAM,
@@ -170,12 +178,14 @@ export function getFormItems({ event, drawId, isQualifying }) {
       value: ''
     },
     {
+      disabled: isQualifying && !structureId,
       validator: numericValidator,
-      disabled: isQualifying,
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,
       selectOnFocus: true,
       label: 'Qualifiers'
     }
   ];
+
+  return { items, structurePositionAssignments };
 }
