@@ -90,7 +90,6 @@ export function getFormItems({ event, drawId, isQualifying, structureId }) {
     { label: '4', value: 4 }
   ];
 
-  console.log({ structureId, disabled: !!structureId });
   const creationOptions = [
     { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
     { label: MANUAL, value: false, selected: structureId }
@@ -179,8 +178,8 @@ export function getFormItems({ event, drawId, isQualifying, structureId }) {
       value: ''
     },
     {
-      validator: numericValidator,
       disabled: isQualifying && !structureId,
+      validator: numericValidator,
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,
       selectOnFocus: true,
