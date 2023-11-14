@@ -90,21 +90,27 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         const venueId = matchUp.schedule.venueId;
         const address = tournamentEngine.findVenue({ venueId })?.venue?.addresses?.[0];
         const { latitude, longitude } = address || {};
+
+        // NOTE: if there are other options not dependent on lat/long, remove following line
+        if (!latitude || !longitude) return;
+
         const google = `https://www.google.com/maps/@?api=1&map_action=map&center=${latitude}%2C${longitude}&zoom=18&basemap=satellite`;
         const bing = `https://bing.com/maps/default.aspx?cp=${latitude}~${longitude}&lvl=17&style=h`;
         const openMap = (provider) => {
           const url = provider && latitude && longitude && ((provider === 'google' && google) || bing);
-          window.open(url, '_blank');
+          url && window.open(url, '_blank');
         };
         const venueOptions = [
           { heading: 'Venue Location' },
           { divider: 'divider' },
           {
             onClick: () => openMap('google'),
+            hide: !latitude || !longitude,
             text: 'Open in Google Maps'
           },
           {
             onClick: () => openMap('bing'),
+            hide: !latitude || !longitude,
             text: 'Open in Bing Maps'
           }
         ];
