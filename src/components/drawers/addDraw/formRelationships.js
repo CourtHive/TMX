@@ -11,6 +11,7 @@ const { FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLA
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
+  DRAW_NAME,
   DRAW_SIZE,
   DRAW_TYPE,
   GROUP_REMAINING,
@@ -134,8 +135,8 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
     }
   };
 
-  const structureNameChange = ({ inputs }) => {
-    const newStructureName = inputs[STRUCTURE_NAME].value;
+  const structureNameChange = ({ inputs, name }) => {
+    const newStructureName = inputs[name].value;
     const generateButton = document.getElementById('generateDraw');
     const valid = nameValidator(4)(newStructureName);
     generateButton.disabled = !valid;
@@ -143,7 +144,11 @@ export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
 
   return [
     {
-      onInput: structureNameChange,
+      onInput: ({ inputs }) => structureNameChange({ inputs, name: DRAW_NAME }),
+      control: DRAW_NAME
+    },
+    {
+      onInput: ({ inputs }) => structureNameChange({ inputs, name: STRUCTURE_NAME }),
       control: STRUCTURE_NAME
     },
     {
