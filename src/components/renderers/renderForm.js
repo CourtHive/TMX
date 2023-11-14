@@ -102,7 +102,7 @@ export function renderForm(elem, items, relationships) {
         if (isFunction(relationship.onChange)) {
           inputs[relationship.control].addEventListener('change', (e) => relationship.onChange({ e, inputs, fields }));
         }
-        if (isFunction(relationship.onInput)) {
+        if (isFunction(relationship.onInput) && inputs[relationship.control]) {
           inputs[relationship.control].addEventListener('input', (e) => relationship.onInput({ e, inputs, fields }));
         }
       }
