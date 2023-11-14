@@ -5,7 +5,7 @@ import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getFormRelationships } from './formRelationships';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { getFormItems } from './getFormItems';
+import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
 import { context } from 'services/context';
 
@@ -15,7 +15,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
-  const { items, structurePositionAssignments } = getFormItems({ event, drawId, isQualifying, structureId });
+  const { items, structurePositionAssignments } = getDrawFormItems({ event, drawId, isQualifying, structureId });
   const relationships = getFormRelationships({
     maxQualifiers: structurePositionAssignments?.length,
     isQualifying,

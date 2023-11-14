@@ -40,7 +40,7 @@ const { TEAM } = eventConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
 
-export function getFormItems({ event, drawId, isQualifying, structureId }) {
+export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0;
   let drawType = SINGLE_ELIMINATION;
