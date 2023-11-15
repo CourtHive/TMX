@@ -128,6 +128,7 @@ export function eventRowFormatter(row) {
     },
     {
       onClick: () => editAvoidances({ eventId }),
+      id: 'editAvoidances',
       label: 'Avoidances',
       location: LEFT
     },

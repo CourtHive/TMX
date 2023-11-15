@@ -5,7 +5,8 @@ export const avoidanceRules = {
     { key: 'person.addresses.postalCode', significantCharacters: 5 },
     { key: 'individualParticipants.person.addresses.postalCode', significantCharacters: 5 }
   ],
-  country: [{ key: 'person.addresses.country' }, { key: 'individualParticipants.person.addresses.country' }],
-  pair: { directive: 'pairParticipants' },
-  team: { directive: 'groupParticipants' }
+  iso: [{ key: 'person.addresses.country' }, { key: 'individualParticipants.person.addresses.country' }],
+  groups: [{ directive: 'groupParticipants' }],
+  pairs: [{ directive: 'pairParticipants' }],
+  teams: [{ directive: 'teamParticipants' }]
 };
