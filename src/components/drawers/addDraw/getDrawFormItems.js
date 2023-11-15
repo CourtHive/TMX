@@ -153,6 +153,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
     {
       label: '2nd playoff from remaining',
       field: GROUP_REMAINING,
+      id: GROUP_REMAINING,
       checkbox: true,
       visible: false
     },
