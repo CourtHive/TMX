@@ -9,13 +9,18 @@ import { context } from 'services/context';
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 
-const { COMPETITOR } = participantRoles;
+const { COMPETITOR, OTHER } = participantRoles;
 const { TEAM } = participantConstants;
 
-export function editTeamParticipant({ title = 'Edit team', individualParticipantIds, participant, refresh }) {
-  const values = {
-    teamName: participant?.participantName
-  };
+export function editGroupingParticipant({
+  individualParticipantIds,
+  participantType = TEAM,
+  title = 'Edit team',
+  participant,
+  refresh
+}) {
+  const PARTICIPANT_NAME = 'participantName';
+  const values = { [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME] };
   let inputs;
 
   const valueChange = (/*e, item*/) => {
@@ -25,13 +30,13 @@ export function editTeamParticipant({ title = 'Edit team', individualParticipant
   const content = (elem) => {
     inputs = renderForm(elem, [
       {
-        placeholder: 'Participant name',
-        value: values.teamName || '',
-        label: 'Team name',
-        field: 'teamName',
         error: 'Please enter a name of at least 3 characters',
+        placeholder: 'Participant name',
+        value: values[PARTICIPANT_NAME] || '',
         validator: nameValidator(3),
-        onChange: valueChange
+        field: PARTICIPANT_NAME,
+        onChange: valueChange,
+        label: 'Name'
       }
       // school, club, team => autocomplete from GROUP participants in tournament
       // city, state, phone, email
@@ -66,11 +71,12 @@ export function editTeamParticipant({ title = 'Edit team', individualParticipant
   }
 
   function addParticipant() {
+    const participantRole = participantType === TEAM ? COMPETITOR : OTHER;
     const newParticipant = {
       individualParticipantIds: individualParticipantIds || participant?.individualParticipantIds || [],
-      participantName: inputs.teamName?.value,
-      participantRole: COMPETITOR,
-      participantType: TEAM
+      participantName: inputs[PARTICIPANT_NAME]?.value,
+      participantRole,
+      participantType
     };
 
     const postMutation = (result) => {
@@ -83,8 +89,8 @@ export function editTeamParticipant({ title = 'Edit team', individualParticipant
     };
     const methods = [
       {
-        method: ADD_PARTICIPANTS,
-        params: { participants: [newParticipant] }
+        params: { participants: [newParticipant] },
+        method: ADD_PARTICIPANTS
       }
     ];
     mutationRequest({ methods, callback: postMutation });
