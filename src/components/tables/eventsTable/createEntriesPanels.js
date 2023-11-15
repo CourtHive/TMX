@@ -1,3 +1,4 @@
+import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { findAncestor, getParent } from 'services/dom/parentAndChild';
 import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
@@ -249,7 +250,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         hide: !drawId
       },
       {
-        onClick: () => console.log('Avoidances'),
+        onClick: () => editAvoidances({ eventId }),
         label: 'Avoidances',
         location: RIGHT,
         intent: NONE
