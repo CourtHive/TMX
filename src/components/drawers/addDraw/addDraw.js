@@ -3,7 +3,7 @@ import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
-import { getFormRelationships } from './formRelationships';
+import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
@@ -16,7 +16,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   if (!event) return;
 
   const { items, structurePositionAssignments } = getDrawFormItems({ event, drawId, isQualifying, structureId });
-  const relationships = getFormRelationships({
+  const relationships = getDrawFormRelationships({
     maxQualifiers: structurePositionAssignments?.length,
     isQualifying,
     event
