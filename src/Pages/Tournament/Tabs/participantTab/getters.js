@@ -1,7 +1,7 @@
 import { fixtures } from 'tods-competition-factory';
 
 const getGroup = (participant, role) => {
-  return participant.groups?.find((group) => group.participantRoleResponsibilities.includes(role))?.participantName;
+  return participant.groups?.find((group) => group.participantRoleResponsibilities?.includes(role))?.participantName;
 };
 export const getClub = (participant) => getGroup(participant, 'CLUB');
 export const getSchool = (participant) => getGroup(participant, 'SCHOOL');
