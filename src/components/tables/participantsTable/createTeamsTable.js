@@ -7,7 +7,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'Pages/Tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { teamRowFormatter } from './teamRowFormatter';
-import { getTeamColumns } from './getTeamColumns';
+import { getGroupingsColumns } from './getGroupingsColumns';
 
 import { TOURNAMENT_TEAMS } from 'constants/tmxConstants';
 
@@ -34,7 +34,7 @@ export function createTeamsTable({ view } = {}) {
     setTimeout(refresh, ready ? 0 : 1000);
   };
 
-  const columns = getTeamColumns();
+  const columns = getGroupingsColumns({ view });
 
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_TEAMS });

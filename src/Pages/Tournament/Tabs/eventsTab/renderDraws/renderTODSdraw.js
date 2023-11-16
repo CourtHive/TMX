@@ -1,4 +1,5 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
+import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -27,7 +28,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
-  eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
+  // eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
+  eventManager.register('tmx-tm', 'mouseover', highlightTeam);
+  eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
   // const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
   // console.log({ drawId, displayConfig });

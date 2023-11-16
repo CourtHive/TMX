@@ -3,10 +3,10 @@ import { createParticipantsTable } from 'components/tables/participantsTable/cre
 import { participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
 import { saveRatings } from 'components/tables/participantsTable/editRatings/saveRatings';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
+import { getAddToGroupingSelection } from './controlBar/getAddToGroupingSelection';
 import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
-import { getAddToTeamSelection } from './controlBar/getAddToTeamSelection';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { editIndividualParticipant } from './editIndividualParticipant';
@@ -20,12 +20,12 @@ import { participantOptions } from './participantOptions';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
-const { INDIVIDUAL } = participantConstants;
+const { INDIVIDUAL, GROUP } = participantConstants;
 const { OFFICIAL } = participantRoles;
 const { MIXED } = genderConstants;
 
 export function renderIndividuals({ view }) {
-  const { table, replaceTableData, teamParticipants } = createParticipantsTable({ view });
+  const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
 
@@ -80,7 +80,13 @@ export function renderIndividuals({ view }) {
       }
     ]);
 
-  const addToTeam = getAddToTeamSelection({ teamParticipants, table, replaceTableData });
+  const addToGroup = getAddToGroupingSelection({
+    participants: groupParticipants,
+    participantType: GROUP,
+    replaceTableData,
+    table
+  });
+  const addToTeam = getAddToGroupingSelection({ participants: teamParticipants, table, replaceTableData });
   const selectOnEnter = createSelectOnEnter(table);
 
   const items = [
@@ -113,6 +119,12 @@ export function renderIndividuals({ view }) {
     {
       selection: addToTeam,
       label: 'Add to team',
+      intent: 'is-none',
+      location: OVERLAY
+    },
+    {
+      selection: addToGroup,
+      label: 'Add to group',
       intent: 'is-none',
       location: OVERLAY
     },

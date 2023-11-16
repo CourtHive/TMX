@@ -10,11 +10,11 @@ import { findAncestor } from 'services/dom/parentAndChild';
 
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 
+const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
-const { INDIVIDUAL, TEAM } = participantConstants;
 
 export function createParticipantsTable({ view } = {}) {
-  let table, participants, derivedEventInfo, ready, teamParticipants;
+  let table, participants, derivedEventInfo, ready, teamParticipants, groupParticipants;
 
   const participantFilters = { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
 
@@ -29,6 +29,7 @@ export function createParticipantsTable({ view } = {}) {
     ({ participants, derivedEventInfo } = result);
 
     const individualParticipants = participants.filter(({ participantType }) => participantType === INDIVIDUAL);
+    groupParticipants = participants.filter(({ participantType }) => participantType === GROUP);
     teamParticipants = participants.filter(({ participantType }) => participantType === TEAM);
 
     return individualParticipants?.map((p) => mapParticipant(p, derivedEventInfo)) || [];
@@ -81,5 +82,5 @@ export function createParticipantsTable({ view } = {}) {
 
   render(data);
 
-  return { table, replaceTableData, teamParticipants };
+  return { table, replaceTableData, teamParticipants, groupParticipants };
 }

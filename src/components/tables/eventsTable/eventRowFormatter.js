@@ -1,4 +1,5 @@
 import { mapDrawDefinition } from 'Pages/Tournament/Tabs/eventsTab/mapDrawDefinition';
+import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { editEvent } from 'Pages/Tournament/Tabs/eventsTab/editEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -123,6 +124,12 @@ export function eventRowFormatter(row) {
       onClick: () => navigateToEvent({ eventId }),
       label: 'View entries',
       intent: 'is-info',
+      location: LEFT
+    },
+    {
+      onClick: () => editAvoidances({ eventId }),
+      id: 'editAvoidances',
+      label: 'Avoidances',
       location: LEFT
     },
     {

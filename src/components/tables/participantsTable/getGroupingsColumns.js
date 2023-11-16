@@ -1,19 +1,23 @@
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
+import { participantConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
+const { GROUP } = participantConstants;
 
-export function getTeamColumns() {
+export function getGroupingsColumns({ view }) {
   const openCloseToggle = (e, cell) => {
     const result = toggleOpenClose(e, cell);
     if (result.open) {
       // TODO: display team results
     }
   };
+
+  console.log({ view });
 
   return [
     {
@@ -54,6 +58,7 @@ export function getTeamColumns() {
     {
       sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
+      visible: view !== GROUP,
       hozAlign: LEFT,
       field: 'events',
       title: 'Events',
