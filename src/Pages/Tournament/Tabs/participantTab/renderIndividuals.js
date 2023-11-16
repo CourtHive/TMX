@@ -26,7 +26,6 @@ const { MIXED } = genderConstants;
 
 export function renderIndividuals({ view }) {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
-  console.log({ view });
 
   const setSearchFilter = createSearchFilter(table);
 
