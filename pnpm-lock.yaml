@@ -126,11 +126,11 @@ dependencies:
     specifier: 6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: ^1.8.25
-    version: 1.8.25
+    specifier: ^1.8.26
+    version: 1.8.26
   tods-tmx-classic-converter:
-    specifier: ^2.13.6
-    version: 2.13.6
+    specifier: ^2.13.7
+    version: 2.13.7
   typescript:
     specifier: ^4.9.3
     version: 4.9.5
@@ -4647,7 +4647,7 @@ packages:
       classnames: 2.3.2
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 1.8.25
+      tods-competition-factory: 1.8.26
     dev: false
 
   /create-ecdh@4.0.4:
@@ -11715,20 +11715,20 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@1.8.25:
-    resolution: {integrity: sha512-3y5z1McYWCnOx/ARnonYmREAeDqCY+Y1mLSfajH+CWjCTr9NvAGOC97lwjgjY5IiGzcPYU3wdlmEWmiBnqqcCw==}
+  /tods-competition-factory@1.8.26:
+    resolution: {integrity: sha512-EsBcoDsO17unzGbo2WbAWsCxoTgeg7wA2xkL3vS43QhUrkZoI3MSAgklpwl8ab02JIyiAsimBd9sZw7YeJweEw==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
-  /tods-tmx-classic-converter@2.13.6:
-    resolution: {integrity: sha512-5yx3Zc2CMm9AqryGLVoFA9VZx7QcJE7kjjTBMPA7TFZ9/pUM7NhWsnqcy/zELP93PzXTFuTJZlAokX/pxMwTnQ==}
+  /tods-tmx-classic-converter@2.13.7:
+    resolution: {integrity: sha512-IzAC7nWbbpHc049Jr17hepYUOX3VUuVtKBZCnhERbswvUAAKkZvOE1tzlXC2Yc/+11qP4wtoLSmxBY9HbMpBQw==}
     engines: {node: '>=16.16.0 < 19'}
     dependencies:
       circular-json: 0.5.9
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 1.8.25
+      tods-competition-factory: 1.8.26
     dev: false
 
   /toidentifier@1.0.1:

@@ -19,6 +19,7 @@ export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
 export const ADD_VENUE = 'addVenue';
 export const ASSIGN_TIE_MATCHUP_PARTICIPANT_ID = 'assignTieMatchUpParticipantId';
 export const ATTACH_QUALIFYING_STRUCTURE = 'attachQualifyingStructure';
+export const ATTACH_EVENT_POLICIES = 'attachEventPolicies';
 export const AUTOMATED_PLAYOFF_POSITIONING = 'automatedPlayoffPositioning';
 export const BULK_SCHEDULE_MATCHUPS = 'bulkScheduleMatchUps';
 export const DELETE_ADHOC_MATCHUPS = 'deleteAdHocMatchUps';

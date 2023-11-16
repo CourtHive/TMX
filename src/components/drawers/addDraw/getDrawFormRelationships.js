@@ -24,7 +24,7 @@ import {
   TOP_FINISHERS
 } from 'constants/tmxConstants';
 
-export function getFormRelationships({ event, isQualifying, maxQualifiers }) {
+export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }) {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const checkCreationMethod = ({ fields, inputs }) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;

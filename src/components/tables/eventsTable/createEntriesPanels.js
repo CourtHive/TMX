@@ -1,3 +1,4 @@
+import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { findAncestor, getParent } from 'services/dom/parentAndChild';
 import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
@@ -25,6 +26,7 @@ import {
   TMX_PANEL,
   TMX_TABLE
 } from 'constants/tmxConstants';
+import { getAttachedAvoidances } from 'components/drawers/avoidances/getAttachedAvoidances';
 
 export function createEntriesPanels({ eventId, drawId, headerElement }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
@@ -229,6 +231,8 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
       */
     };
 
+    const avoidancesIntent = getAttachedAvoidances({ eventId })?.length ? 'is-success' : NONE;
+
     const items = [
       {
         onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
@@ -249,10 +253,11 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         hide: !drawId
       },
       {
-        onClick: () => console.log('Avoidances'),
+        onClick: () => editAvoidances({ eventId }),
+        intent: avoidancesIntent,
+        id: 'editAvoidances',
         label: 'Avoidances',
-        location: RIGHT,
-        intent: NONE
+        location: RIGHT
       },
       {
         onClick: () => generateFlights({ eventId, callback: () => {} }),
