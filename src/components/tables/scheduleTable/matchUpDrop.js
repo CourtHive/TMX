@@ -24,6 +24,7 @@ export function matchUpDrop(ev, cell) {
   }
 
   const selectedDate = document.getElementById(SCHEDULED_DATE_FILTER).value;
+  console.log({ selectedDate });
 
   const { courtOrder: sourceCourtOrder, courtId: sourceCourtId, venueId: sourceVenueId } = sourceMatchUp.schedule || {};
 

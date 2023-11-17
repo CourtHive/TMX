@@ -44,7 +44,6 @@ export function dropDownButton({ target, button, stateChange }) {
   const ddButton = document.createElement('button');
   ddButton.className = 'button font-medium';
   if (button.intent) ddButton.classList.add(button.intent);
-  if (button.value) ddButton.value = button.value;
   ddButton.setAttribute('aria-haspopup', 'true');
   const label = document.createElement('span');
   if (isFunction(button.onClick)) label.onclick = button.onClick;
@@ -83,13 +82,17 @@ export function dropDownButton({ target, button, stateChange }) {
     if (option.color) anchor.style.color = option.color;
     anchor.classList.add('dropdown-item');
     if (option.isActive) anchor.classList.add('is-active');
+    if (option.value) anchor.value = option.value;
     if (option.class) {
       anchor.classList.add(option.class);
     }
 
     anchor.onclick = (e) => {
       if (option.disabled) return;
-      if (option.value) ddButton.value = option.value;
+      if (option.value) {
+        ddButton.value = option.value;
+        elem.value = option.value;
+      }
       e.stopPropagation();
       if (isFunction(option.onClick)) {
         if (isFunction(stateChange)) stateChange();
@@ -129,7 +132,10 @@ export function dropDownButton({ target, button, stateChange }) {
     }
   }
 
-  if (button.options?.length) menu.appendChild(content);
+  if (button.options?.length) {
+    if (button.options[0].value) elem.value = button.options[0].value;
+    menu.appendChild(content);
+  }
   elem.appendChild(menu);
 
   if (target) target.appendChild(elem);
