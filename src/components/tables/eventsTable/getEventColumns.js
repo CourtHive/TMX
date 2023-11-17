@@ -55,13 +55,13 @@ export function getEventColumns() {
       widthGrow: 3
     },
     {
-      title: 'Type',
       field: 'event.eventType',
+      title: 'Type',
       visible: true
     },
     {
-      title: 'Gender',
       field: 'event.gender',
+      title: 'Gender',
       visible: true
     },
     {
