@@ -91,7 +91,15 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
       if (itemConfig.id) input.setAttribute('id', itemConfig.id);
       if (itemConfig.onKeyDown) input.addEventListener('keydown', (e) => itemConfig.onKeyDown(e, itemConfig));
       if (itemConfig.onChange) input.addEventListener('change', (e) => itemConfig.onChange(e, itemConfig));
-      if (itemConfig.onKeyUp) input.addEventListener('keyup', (e) => itemConfig.onKeyUp(e, itemConfig));
+      if (itemConfig.onKeyUp)
+        input.addEventListener('keyup', (e) => {
+          if (itemConfig.clearSearch && e.key === 'Escape') {
+            e.stopPropagation();
+            input.value = '';
+            itemConfig.clearSearch();
+          }
+          itemConfig.onKeyUp(e, itemConfig);
+        });
       if (itemConfig.class) input.classList.add(itemConfig.class);
       if (itemConfig.visible === false) elem.style.display = NONE;
       if (itemConfig.value) input.value = itemConfig.value;

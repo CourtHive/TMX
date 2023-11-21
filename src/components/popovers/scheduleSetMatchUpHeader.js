@@ -11,17 +11,14 @@ import { RIGHT } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
-export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
+export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) {
+  const rowData = cell.getRow().getData();
   /*
   let options = [
     { label: lang.tr('schedule.matchestime'), value: 'matchestime' },
-    { label: lang.tr('schedule.notbefore'), value: 'notbefore' },
-    { label: lang.tr('schedule.followedby'), value: 'followedby' },
-    { label: lang.tr('schedule.afterrest'), value: 'afterrest' },
     { label: lang.tr('schedule.raindelay'), value: 'raindelay' },
     { label: lang.tr('schedule.tba'), value: 'tba' },
     { label: lang.tr('schedule.nextavailable'), value: 'next' },
-    { label: lang.tr('schedule.clear'), value: 'clear' }
   ];
 
   listPicker({ options, callback, isOpen: true });
@@ -29,7 +26,7 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
 
   const setSchedule = (schedule) => {
     const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
-    const matchUpIds = matchUps.map(({ matchUpId }) => matchUpId);
+    const matchUpIds = matchUpId ? [matchUpId] : matchUps.map(({ matchUpId }) => matchUpId);
 
     const methods = [
       {
@@ -79,9 +76,10 @@ export function scheduleSetMatchUpHeader({ e, cell, rowData, callback } = {}) {
 
   const modifyTime = (modifier) => setSchedule({ timeModifiers: [modifier] });
 
+  const setMatchTimeText = matchUpId ? 'Set match time' : 'Set match times';
   const options = [
     {
-      option: `Set match times`,
+      option: setMatchTimeText,
       onClick: setMatchUpTimes
     },
     {

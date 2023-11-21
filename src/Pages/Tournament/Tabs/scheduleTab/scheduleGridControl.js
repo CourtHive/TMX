@@ -28,12 +28,15 @@ export function scheduleGridControl({
     close: true
   }));
 
+  const setSearchFilter = () => {};
+
   const items = [
     {
       // onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateHighlights(''),
       // onChange: (e) => updateHighlights(e.target.value),
       // onKeyUp: (e) => updateHighlights(e.target.value),
       // clearSearch: () => updateHighlights(''),
+      clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       id: 'searchParticipants',
       visible: !!courtsCount,
