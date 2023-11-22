@@ -20,7 +20,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
       nextMatchUps: true,
       matchUpFilters
     });
-    const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows } = result;
+    const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows, groupInfo } = result;
     const matchUps = dateMatchUps.concat(...completedMatchUps);
 
     const columns = getScheduleColumns({ courtsData, courtPrefix });
@@ -29,7 +29,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
       row.rowId = `rowId-${i + 1}`;
       row.rowNumber = i + 1;
     });
-    return { rows, columns, matchUps, courtsCount: courtsData.length, courtsData };
+    return { rows, columns, matchUps, courtsCount: courtsData.length, courtsData, groupInfo };
   };
 
   const replaceTableData = ({ scheduledDate } = {}) => {
