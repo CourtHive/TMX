@@ -44,7 +44,7 @@ export function scheduleGridControl({
       search: true
     },
     {
-      options: [{ label: 'Team ', onClick: () => console.log('team clicked') }],
+      options: [{ label: 'Team ', onClick: () => console.log('team clicked'), close: true }],
       label: 'Highlight team',
       visible: !!courtsCount,
       id: 'highlightTeam',
