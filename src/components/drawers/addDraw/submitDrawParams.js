@@ -122,7 +122,7 @@ export function submitDrawParams({
   }
 
   const seedsCount = tournamentEngine.getSeedsCount({
-    participantCount: drawEntries?.length,
+    participantsCount: drawEntries?.length,
     policyDefinitions: POLICY_SEEDING,
     drawSizeProgression: true
   })?.seedsCount;
