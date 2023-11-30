@@ -13,6 +13,13 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
   if (!factoryEngine) {
     return completion();
   } else {
+    if (window['dev']?.params) {
+      for (const method of methods) {
+        if (window['dev'].params[method]) {
+          method.params = { ...method.params, ...window['dev'].params[method] };
+        }
+      }
+    }
     const result = factoryEngine.executionQueue(methods) || {};
     if (result.error) {
       return completion(result);
