@@ -20,7 +20,7 @@ import { RIGHT } from 'constants/tmxConstants';
 const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { DOUBLES, SINGLES, TEAM } = eventConstants;
 const { INDIVIDUAL, PAIR } = participantConstants;
-const { FEMALE, MALE, MIXED } = genderConstants;
+const { ANY, FEMALE, MALE, MIXED } = genderConstants;
 const { MAIN } = drawDefinitionConstants;
 
 export function editEvent({ event, participants, callback } = {}) {
@@ -28,7 +28,7 @@ export function editEvent({ event, participants, callback } = {}) {
   const values = {
     eventType: event?.eventType || SINGLES,
     eventName: event?.eventName || `Event ${eventsCount + 1}`,
-    gender: event?.gender || 'MIXED'
+    gender: event?.gender || ANY
   };
 
   const enteredParticipantIds = event?.entries
@@ -61,19 +61,21 @@ export function editEvent({ event, participants, callback } = {}) {
     if (participantType === PAIR) eventTypeOptions = [DOUBLES];
     if (participantType === TEAM) eventTypeOptions = [TEAM];
 
-    genderOptions = [MIXED];
+    genderOptions = [ANY];
     const sexes =
       participantType === INDIVIDUAL &&
       utilities.unique(participants.map((p) => p.participant?.person?.sex)).filter(Boolean);
     if (sexes.length === 1) {
       sexes[0] === FEMALE && genderOptions.push(FEMALE);
       sexes[0] === MALE && genderOptions.push(MALE);
+      values.gender = sexes[0];
     }
   }
 
   if (enteredParticipantGenders.length) {
-    genderOptions = [MIXED];
-    if (event.gender && !event.gender === MIXED) genderOptions.push(event.gender);
+    genderOptions = [ANY];
+    if (event.gender && !event.gender === ANY) genderOptions.push(event.gender);
+    if (event.eventType === DOUBLES && !genderOptions.includes(MIXED)) genderOptions.push(MIXED);
     const uniqueEnteredGenders = utilities.unique(...enteredParticipantGenders);
     if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
       genderOptions.push(...uniqueEnteredGenders);
@@ -144,9 +146,15 @@ export function editEvent({ event, participants, callback } = {}) {
             value: FEMALE
           },
           {
+            selected: values.gender === ANY,
+            label: 'Any',
+            value: ANY
+          },
+          {
+            hide: genderOptions && !genderOptions.includes(MIXED),
+            selected: values.gender === MIXED,
             label: 'Mixed',
-            value: MIXED,
-            selected: values.gender === MIXED
+            value: MIXED
           }
         ],
         onChange: valueChange
