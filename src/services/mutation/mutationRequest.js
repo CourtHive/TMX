@@ -15,8 +15,8 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
   } else {
     if (window['dev']?.params) {
       for (const method of methods) {
-        if (window['dev'].params[method]) {
-          method.params = { ...method.params, ...window['dev'].params[method] };
+        if (window['dev'].params[method.method]) {
+          method.params = { ...method.params, ...window['dev'].params[method.method] };
         }
       }
     }
