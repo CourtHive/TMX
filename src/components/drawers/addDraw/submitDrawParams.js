@@ -67,7 +67,8 @@ export function submitDrawParams({
     isQualifying && qualifyingEntries.length
       ? qualifyingEntries
       : event.entries.filter(
-          ({ entryStage, entryStatus }) => entryStage === MAIN && DIRECT_ENTRY_STATUSES.includes(entryStatus)
+          ({ entryStage, entryStatus }) =>
+            (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus)
         );
 
   // default to Manual if the drawSize is less than the number of entries
