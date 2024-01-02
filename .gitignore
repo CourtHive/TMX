@@ -1,5 +1,4 @@
 # dependencies
-/scratch
 /node_modules*
 
 # testing

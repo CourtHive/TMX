@@ -89,7 +89,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   }
 
   composition.configuration.showAddress = undefined;
-  composition.configuration.participantDetail = 'TEAM';
+  // composition.configuration.participantDetail = 'TEAM';
+  composition.configuration.participantDetail = 'ADDRESS';
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
