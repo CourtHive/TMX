@@ -4,7 +4,6 @@ import { numericRange } from 'components/validators/numericRange';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import {
-  drawEngine,
   factoryConstants,
   drawDefinitionConstants,
   tournamentEngine,
@@ -77,7 +76,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
     { label: 'Custom', value: CUSTOM }
   ];
 
-  const { validGroupSizes } = drawEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
+  const { validGroupSizes } = utilities.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
   const playoffOptions = [
     { label: 'Group winners', value: WINNERS },

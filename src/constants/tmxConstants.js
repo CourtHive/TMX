@@ -20,7 +20,7 @@ export const ALL_EVENTS = 'All events';
 export const ALL_TEAMS = 'All teams';
 
 // extensions
-export const REGISTRATION = 'REGISTRATION';
+export const REGISTRATION = 'registration';
 
 // root
 export const TIMEPICKER = 'timepicker';

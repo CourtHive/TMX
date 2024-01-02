@@ -8,12 +8,13 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 
+import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 import { RESET_SCORECARD } from 'constants/mutationConstants';
-import { DRAWS_VIEW } from 'constants/tmxConstants';
 
 const { TEAM } = eventConstants;
 
 export function getActionOptions({ eventData, drawData, drawId, structureId, structureName, dualMatchUp }) {
+  const hasQualifying = drawData.structures?.find((structure) => structure.stage === QUALIFYING);
   const structure = drawData.structures?.find((structure) => structure.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
 
@@ -31,7 +32,7 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
       close: true
     },
     {
-      hide: structure?.stage === 'MAIN' && structure.stageSequence === 1,
+      hide: structure?.stage === 'MAIN' && structure.stageSequence === 1 && !hasQualifying,
       onClick: () => removeStructure({ drawId, eventId, structureId }),
       label: 'Remove structure',
       close: true
