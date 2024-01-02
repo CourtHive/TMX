@@ -35,7 +35,6 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
 
     const result = tournamentEngine.generateAdHocMatchUps({
       roundNumber: selectedRoundNumber,
-      addToStructure: false,
       matchUpsCount,
       structureId,
       drawId

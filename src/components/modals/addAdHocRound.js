@@ -54,7 +54,6 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   const drawMaticRound = (participantIds) => {
     const result = tournamentEngine.drawMatic({
       scaleAccessor: 'utrRating',
-      addToStructure: false,
       scaleName: 'UTR',
       participantIds,
       drawId
@@ -112,7 +111,6 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     } else {
       closeModal();
       const result = tournamentEngine.generateAdHocMatchUps({
-        addToStructure: false,
         newRound: true,
         structureId,
         drawId
