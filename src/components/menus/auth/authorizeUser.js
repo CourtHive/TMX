@@ -10,7 +10,7 @@ export function authorizeUser() {
   let key_uuid = uidate.toString(36).slice(-6).toUpperCase();
 
   /*
-  const { tournamentRecord } = tournamentEngine.getState();
+  const { tournamentRecord } = tournamentEngine.getTournament();
 
   let payload = {
     key_uuid,

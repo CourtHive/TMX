@@ -28,7 +28,7 @@ import {
 } from 'constants/tmxConstants';
 
 export function displayTournament({ config } = {}) {
-  const { tournamentRecord } = tournamentEngine.getState();
+  const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     routeTo(config);
   } else {

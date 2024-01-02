@@ -58,12 +58,12 @@ export function setDev() {
       tmxToast({ message: 'missing methods array', intent: 'is-danger' });
       return;
     }
-    const tournamentId = factory.tournamentEngine.getState().tournamentRecord?.tournamentId;
+    const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
     if (tournamentId) {
       const callback = (result) => {
         if (result?.success) {
           tmxToast({ message: 'success', intent: 'is-success' });
-          const tournamentRecord = factory.tournamentEngine.getState().tournamentRecord;
+          const tournamentRecord = factory.tournamentEngine.getTournament().tournamentRecord;
           const displayTournament = () => loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
           addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
         } else {
@@ -80,7 +80,7 @@ export function setDev() {
   };
 
   addDev({
-    getTournament: () => factory.tournamentEngine.getState()?.tournamentRecord,
+    getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
     tournamentEngine: factory.tournamentEngine,
     context: factory.setDevContext,
     generateMockTournament,

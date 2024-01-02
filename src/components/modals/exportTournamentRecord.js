@@ -6,7 +6,7 @@ import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
 
 export function exportTournamentRecord() {
-  const { tournamentRecord } = tournamentEngine.getState();
+  const { tournamentRecord } = tournamentEngine.getTournament();
   if (!tournamentRecord) return;
 
   const exportTODS = () => {
