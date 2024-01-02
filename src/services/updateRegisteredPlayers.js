@@ -9,11 +9,9 @@ export function updateRegisteredPlayers({ callback }) {
 
     if (registeredPlayers?.length) {
       addRegistered(registeredPlayers);
-    } else {
-      if (registeredPlayers && !registeredPlayers.length) {
-        let message = 'Sheet Empty: No Player Rows';
-        context.modal.inform({ message });
-      }
+    } else if (registeredPlayers && !registeredPlayers.length) {
+      let message = 'Sheet Empty: No Player Rows';
+      context.modal.inform({ message });
     }
 
     if (isFunction(callback)) callback();
