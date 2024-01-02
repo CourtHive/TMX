@@ -32,7 +32,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
-  // const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
+  // const displayConfig = tournamentEngine.findExtension({ discover: true, name: 'DISPLAY' })?.value;
   // console.log({ drawId, displayConfig });
 
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;

@@ -50,7 +50,7 @@ export function addTournament({ table }) {
 
     const result = tournamentEngine.newTournamentRecord({ tournamentName, startDate, endDate });
     if (result.success) {
-      const { tournamentRecord } = tournamentEngine.getState();
+      const { tournamentRecord } = tournamentEngine.getTournament();
       const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
       tournamentAdd({ tournamentRecord, callback: refresh });
     }

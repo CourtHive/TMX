@@ -9,7 +9,7 @@ import { lang } from 'services/translator';
 import { REGISTRATION } from 'constants/tmxConstants';
 
 export function editRegistrationLink({ callback }) {
-  const { extension } = tournamentEngine.findTournamentExtension({ name: REGISTRATION });
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: REGISTRATION });
   const existingLink = extension?.value;
 
   let inputs;

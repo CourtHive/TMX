@@ -112,7 +112,7 @@ export function tmxNavigation() {
       element.classList.add('active');
       // toggleSideBar(false);
 
-      const tournamentId = tournamentEngine.getState()?.tournamentRecord.tournamentId;
+      const tournamentId = tournamentEngine.getTournament()?.tournamentRecord.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;
       context.router.navigate(route);
     };

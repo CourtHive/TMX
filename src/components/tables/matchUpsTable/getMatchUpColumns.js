@@ -23,7 +23,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
     const data = row.getData();
     const { courtName, scheduledDate } = data;
     if (courtName && scheduledDate) {
-      const tournamentId = tournamentEngine.getState()?.tournamentRecord?.tournamentId;
+      const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
       context.router.navigate(route);
     }
