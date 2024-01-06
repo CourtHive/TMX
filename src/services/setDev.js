@@ -5,13 +5,14 @@ import { loadTournament } from 'Pages/Tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
+import { tmxToast } from './notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
+import { baseApi } from './apis/baseApi';
 import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
-import { tmxToast } from './notifications/tmxToast';
 
 function functionOrLog(s, results) {
   return typeof window.dev[s] === 'function'
@@ -81,12 +82,14 @@ export function setDev() {
 
   addDev({
     getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
+    getContext: factory.globalState.getDevContext,
     tournamentEngine: factory.tournamentEngine,
-    context: factory.setDevContext,
+    context: factory.globalState.setDevContext,
     generateMockTournament,
     modifyTournament,
     getLoginState,
     factory,
+    baseApi,
     help
   });
 
@@ -94,7 +97,7 @@ export function setDev() {
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 
-  factory.setSubscriptions({ subscriptions });
+  factory.globalState.setSubscriptions({ subscriptions });
 }
 
 function addDev(variable) {
