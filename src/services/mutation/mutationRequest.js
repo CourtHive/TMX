@@ -20,6 +20,10 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
         }
       }
     }
+    // NOTE: this enables logging of all methods called during executionQueue when there is an internal factory error
+    // eslint-disable-next-line
+    if (window?.['dev']?.getContext().internal) console.log({ methods });
+
     const result = factoryEngine.executionQueue(methods) || {};
     if (result.error) {
       return completion(result);
