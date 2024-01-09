@@ -142,7 +142,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const drawControlItems = [roundRobinStats];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
-    } else if (utilities.isAdHoc({ structure })) {
+    } else if (tournamentEngine.isAdHoc({ structure })) {
       const adHocActions = getAdHocActions({ structure, drawId, callback });
       const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);

@@ -1,7 +1,7 @@
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
-import { utilities } from 'tods-competition-factory';
+import { tournamentEngine } from 'tods-competition-factory';
 
 import { RIGHT } from 'constants/tmxConstants';
 
@@ -10,7 +10,7 @@ export const addMatchUpsAction = 'Add matches';
 export const addRoundAction = 'Add round';
 
 export function getFinalColumn({ structure, drawId, callback }) {
-  if (!utilities.isAdHoc({ structure })) return;
+  if (!tournamentEngine.isAdHoc({ structure })) return;
 
   const finalColumn = document.createElement('div');
   finalColumn.style =
@@ -53,7 +53,7 @@ export function getFinalColumn({ structure, drawId, callback }) {
 }
 
 export function getAdHocActions({ structure, drawId, callback }) {
-  if (!utilities.isAdHoc({ structure })) return [];
+  if (!tournamentEngine.isAdHoc({ structure })) return [];
   const refreshCallback = () => callback({ refresh: true });
 
   const actionOptions = [
