@@ -1,5 +1,5 @@
-import { tournamentEngine, eventConstants, utilities } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
+import { tournamentEngine, eventConstants } from 'tods-competition-factory';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -61,7 +61,7 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
         matchUpId,
         drawId
       }).matchUp;
-      const resultsPresent = currentMatchUp.tieMatchUps?.some(utilities.scoreHasValue);
+      const resultsPresent = currentMatchUp.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
       if (resultsPresent) {
         tmxToast({
           message: 'Cannot remove when scores are present',

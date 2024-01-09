@@ -9,22 +9,6 @@ export function authorizeOfficial() {
   let uidate = new Date().getTime();
   let key_uuid = uidate.toString(36).slice(-6).toUpperCase();
 
-  /*
-  let payload = {
-    key_uuid,
-    content: {
-      onetime: true,
-      directive: 'delegationOfficial',
-      content: {
-        tuid: tournament.tuid,
-        delegationOfficial: env.org && env.org.keys && env.org.keys.delegationOfficial,
-        tournament: safeJSON.stringify(tournament)
-      }
-    },
-    checkAuth: { admin: context.state.admin }
-  };
-  */
-
   const displayKey = () => {
     let title = lang.tr('phrases.keycopied');
     let buttons = [{ label: lang.tr('tournaments.close'), intent: 'primary' }];

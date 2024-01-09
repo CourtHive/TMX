@@ -11,7 +11,7 @@ export const handleScoreClick = (replaceTableData) => (e, cell) => {
     const onClose = () => replaceTableData();
     openScorecard({ title: eventName, matchUp: data.matchUp, onClose });
   } else {
-    // TODO: replace scoreStringSide1 with utilities.scoreHasValue
+    // TODO: replace scoreStringSide1 with tournamentEngine.checkScoreHasValue
     if (readyToScore || data.matchUp.score?.scoreStringSide1)
       enterMatchUpScore({ matchUpId, callback: replaceTableData });
   }

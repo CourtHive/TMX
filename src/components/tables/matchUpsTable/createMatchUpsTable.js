@@ -19,7 +19,7 @@ export function createMatchUpsTable() {
       }).matchUps || []
     ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
 
-    // TODO: sort matchUps 1st: scoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
+    // TODO: sort matchUps 1st: checkScoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
 
     return matchUps.map(mapMatchUp);
   };
