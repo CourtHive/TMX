@@ -23,25 +23,25 @@ function functionOrLog(s, results) {
 
 const subscriptions = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
-  deletedDrawIds: (results) => functionOrLog('deletedDrawIds', results),
-  addVenue: (results) => functionOrLog('addVenue', results),
-  deleteVenue: (results) => functionOrLog('deleteVenue', results),
-  modifyMatchUp: (results) => functionOrLog('modifyMatchUp', results),
   addMatchUps: (results) => functionOrLog('addMatchUps', results),
+  addVenue: (results) => functionOrLog('addVenue', results),
+  deletedDrawIds: (results) => functionOrLog('deletedDrawIds', results),
   deletedMatchUpIds: (results) => functionOrLog('deletedMatchUpIds', results),
-  publishEvent: (results) => functionOrLog('publishEvent', results),
-  unPublishEvent: (results) => functionOrLog('unPublishEvent', results),
-  publishEventSeeding: (results) => functionOrLog('publishEventSeeding', results),
-  unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
-  publishOrderOfPlay: (results) => functionOrLog('publishOrderOfPlay', results),
-  unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results),
+  deleteVenue: (results) => functionOrLog('deleteVenue', results),
+  modifyDrawDefinition: (results) => functionOrLog('modifyDrawDefinition', results),
   modifyDrawEntries: (results) => functionOrLog('modifyDrawEntries', results),
   modifyEventEntries: (results) => functionOrLog('modifyEventEntries', results),
-  modifyDrawDefinition: (results) => functionOrLog('modifyDrawDefinition', results),
+  modifyMatchUp: (results) => functionOrLog('modifyMatchUp', results),
   modifyParticipants: (results) => functionOrLog('modifyParticipants', results),
-  modifyVenue: (results) => functionOrLog('modifyVenue', results),
+  modifyPositionAssignments: (results) => functionOrLog('modifyPositionAssignments', results),
   modifySeedAssignments: (results) => functionOrLog('modifySeedAssignments', results),
-  modifyPositionAssignments: (results) => functionOrLog('modifyPositionAssignments', results)
+  modifyVenue: (results) => functionOrLog('modifyVenue', results),
+  publishEvent: (results) => functionOrLog('publishEvent', results),
+  publishEventSeeding: (results) => functionOrLog('publishEventSeeding', results),
+  publishOrderOfPlay: (results) => functionOrLog('publishOrderOfPlay', results),
+  unPublishEvent: (results) => functionOrLog('unPublishEvent', results),
+  unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
+  unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results)
 };
 
 export function setDev() {
