@@ -19,7 +19,7 @@ export function scheduleGridControl({
 
   const formatDate = (dateString) => dayjs(dateString).format('dddd MMM D');
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const dateRange = utilities.dateRange(startDate, endDate);
+  const dateRange = utilities.generateDateRange(startDate, endDate);
   const dateOptions = dateRange.map((dateString) => ({
     onClick: () => isFunction(setDate) && setDate(dateString),
     isActive: dateString === scheduledDate,
