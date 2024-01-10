@@ -84,7 +84,7 @@ export function getCollectionDefinitionColumns() {
       editor: 'list',
       width: 100,
 
-      editorParams: { values: ['Male', 'Female', 'Mixed'] }
+      editorParams: { values: ['Male', 'Female', 'Any'] }
     },
     {
       cellClick: editMatchUpFormat,

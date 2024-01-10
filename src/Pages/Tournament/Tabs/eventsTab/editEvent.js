@@ -18,9 +18,9 @@ import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT } from 'constants/mutationCo
 import { RIGHT } from 'constants/tmxConstants';
 
 const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
+const { ANY, FEMALE, MALE, MIXED } = genderConstants;
 const { DOUBLES, SINGLES, TEAM } = eventConstants;
 const { INDIVIDUAL, PAIR } = participantConstants;
-const { ANY, FEMALE, MALE, MIXED } = genderConstants;
 const { MAIN } = drawDefinitionConstants;
 
 export function editEvent({ event, participants, callback } = {}) {
@@ -81,7 +81,7 @@ export function editEvent({ event, participants, callback } = {}) {
       genderOptions.push(...uniqueEnteredGenders);
     }
   } else if (event) {
-    genderOptions = [MALE, MIXED, FEMALE];
+    genderOptions = [ANY, MALE, MIXED, FEMALE];
   }
 
   const valueChange = (/*e, item*/) => {
