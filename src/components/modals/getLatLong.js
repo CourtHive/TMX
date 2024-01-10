@@ -56,7 +56,9 @@ export function getLatLong({ coords, callback }) {
 
   const submitLink = () => {
     if (!coords.latitude || !coords.longitude) processLink();
-    if (isFunction(callback)) callback(coords);
+    if (isFunction(callback)) {
+      callback(coords);
+    }
   };
 
   const buttons = [
@@ -73,7 +75,8 @@ export function getLatLong({ coords, callback }) {
     {
       onClick: viewLocation,
       intent: 'is-primary',
-      label: 'View'
+      label: 'View',
+      close: false
     },
     {
       onClick: submitLink,
