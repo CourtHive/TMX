@@ -1,4 +1,4 @@
-import { drawDefinitionConstants, utilities } from 'tods-competition-factory';
+import { drawDefinitionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
 import { numericValidator } from 'components/validators/numericValidator';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { nameValidator } from 'components/validators/nameValidator';
@@ -101,7 +101,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers })
     const valid = numericRange(2, 128)(drawSizeValue);
     generateButton.disabled = !valid;
     const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
-    const { validGroupSizes } = utilities.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
+    const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
     const options = validGroupSizes.map((size) => ({ label: size, value: size }));
     const groupSizeSelect = inputs[GROUP_SIZE];
     const value = validGroupSizes.includes(drawSize) ? 4 : validGroupSizes[0];
