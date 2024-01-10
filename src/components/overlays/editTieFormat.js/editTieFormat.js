@@ -1,8 +1,8 @@
 import { createTieFormatTable } from 'components/tables/tieFormat/createTieFormatTable';
+import { utilities, tournamentEngine } from 'tods-competition-factory';
 import { nameValidator } from 'components/validators/nameValidator';
 import { controlBar } from 'components/controlBar/controlBar';
 import { closeOverlay, openOverlay } from '../overlay';
-import { utilities } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 
 import { COLLECTION_VALUE, LEFT, MATCH_VALUE, OVERLAY, RIGHT, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
@@ -38,7 +38,7 @@ export function editTieFormat({ title, tieFormat, onClose }) {
       })
     );
 
-    const winCriteria = utilities.calculateWinCriteria({ collectionDefinitions });
+    const winCriteria = tournamentEngine.calculateWinCriteria({ collectionDefinitions });
 
     return {
       collectionDefinitions,
@@ -115,7 +115,7 @@ function renderEditor({ tieFormat }) {
           matchUpFormat: 'SET3-S:6/TB7',
           matchUpType: 'Singles',
           matchUpCount: 1,
-          gender: 'Mixed',
+          gender: 'Any',
           awardValue: 1
         };
 

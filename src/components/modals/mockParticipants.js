@@ -4,7 +4,7 @@ import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 
 const { WTN } = factoryConstants.ratingConstants;
-const { FEMALE, MALE, MIXED } = genderConstants;
+const { FEMALE, MALE, MIXED, ANY } = genderConstants;
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
@@ -42,7 +42,7 @@ export function mockParticipants({ callback } = {}) {
     (inputs = renderForm(elem, [
       {
         options: [
-          { label: 'Mixed', value: MIXED, close: true },
+          { label: 'Any', value: ANY, close: true },
           { label: 'Female', value: FEMALE, close: true },
           { label: 'Male', value: MALE, close: true }
         ],
