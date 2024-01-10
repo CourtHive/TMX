@@ -2,11 +2,14 @@ import { tournamentEngine } from 'tods-competition-factory';
 
 import { ALL_EVENTS } from 'constants/tmxConstants';
 
-export function getEventFilter(table) {
+export function getEventFilter(table: any): {
+  events: { eventId: string; eventName: string }[];
+  eventOptions: any[];
+} {
   let filterValue;
 
   const eventFilter = (rowData) => rowData?.eventIds?.includes(filterValue);
-  const updateEventFilter = (eventId) => {
+  const updateEventFilter = (eventId?) => {
     table.removeFilter(eventFilter);
     filterValue = eventId;
     if (eventId) table.addFilter(eventFilter);
