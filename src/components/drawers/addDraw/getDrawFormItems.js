@@ -77,7 +77,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
     { label: 'Custom', value: CUSTOM }
   ];
 
-  const { validGroupSizes } = utilities.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
+  const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
   const playoffOptions = [
     { label: 'Group winners', value: WINNERS },
