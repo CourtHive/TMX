@@ -1,7 +1,15 @@
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig({
-  plugins: [tsconfigPaths()],
-  build: { sourcemap: true }
-});
+export default ({ mode }) => {
+  // Load app-level env vars to node-level env vars.
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') };
+
+  const BASE_URL = process.env.BASE_URL ?? '.';
+
+  return defineConfig({
+    base: `/${BASE_URL}/`,
+    build: { sourcemap: true },
+    plugins: [tsconfigPaths()],
+  });
+};
