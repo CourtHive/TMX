@@ -1,5 +1,5 @@
-import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab';
-import { addVenue } from 'Pages/Tournament/Tabs/venuesTab/addVenue';
+import { renderScheduleTab } from 'pages/Tournament/Tabs/scheduleTab/scheduleTab';
+import { addVenue } from 'pages/Tournament/Tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';
 import { utilities } from 'tods-competition-factory';
 

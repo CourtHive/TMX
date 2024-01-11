@@ -1,4 +1,4 @@
-import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { updateConflicts } from './updateConflicts';
@@ -151,36 +151,34 @@ export function matchUpDrop(ev, cell) {
         table.updateData([sourceRow, targetRow]); // to only update the specific rows which have been affected
       }
     }
+  } else if (!sourceRow && targetMatchUp) {
+    const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
+    unscheduledTable.deleteRow(sourceMatchUpId);
+    updateSourceMatchUp();
+
+    targetRow[targetColumnKey] = sourceMatchUp;
+    table.updateData([targetRow]); // to only update the specific rows which have been affected
+
+    unscheduledTable.addRow(mapMatchUp(targetMatchUp), true);
+    updateTargetMatchUp();
   } else {
-    if (!sourceRow && targetMatchUp) {
-      const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
-      unscheduledTable.deleteRow(sourceMatchUpId);
-      updateSourceMatchUp();
+    // matchUps are swapping schedule
+    const targetSchedule = targetMatchUp?.schedule;
+    updateSourceMatchUp({
+      scheduledTime: targetSchedule?.scheduledTime,
+      timeModifiers: targetSchedule?.timeModifiers
+    });
 
-      targetRow[targetColumnKey] = sourceMatchUp;
-      table.updateData([targetRow]); // to only update the specific rows which have been affected
+    updateTargetMatchUp();
 
-      unscheduledTable.addRow(mapMatchUp(targetMatchUp), true);
-      updateTargetMatchUp();
+    if (sourceRow.rowId == targetRow.rowId) {
+      sourceRow[sourceColumnKey] = targetMatchUp;
+      sourceRow[targetColumnKey] = sourceMatchUp;
+      table.updateData([sourceRow]); // to only update the specific row which have been affected
     } else {
-      // matchUps are swapping schedule
-      const targetSchedule = targetMatchUp?.schedule;
-      updateSourceMatchUp({
-        scheduledTime: targetSchedule?.scheduledTime,
-        timeModifiers: targetSchedule?.timeModifiers
-      });
-
-      updateTargetMatchUp();
-
-      if (sourceRow.rowId == targetRow.rowId) {
-        sourceRow[sourceColumnKey] = targetMatchUp;
-        sourceRow[targetColumnKey] = sourceMatchUp;
-        table.updateData([sourceRow]); // to only update the specific row which have been affected
-      } else {
-        sourceRow[sourceColumnKey] = targetMatchUp;
-        targetRow[targetColumnKey] = sourceMatchUp;
-        table.updateData([sourceRow, targetRow]); // to only update the specific rows which have been affected
-      }
+      sourceRow[sourceColumnKey] = targetMatchUp;
+      targetRow[targetColumnKey] = sourceMatchUp;
+      table.updateData([sourceRow, targetRow]); // to only update the specific rows which have been affected
     }
   }
 

@@ -119,9 +119,9 @@ export const coms = (() => {
   };
   fx.connectSocket = () => {
     let msgMon = (x) => console.log(x);
-    const chcsRootURL = window.socketURL || process.env.REACT_APP_CHCS_ROOT_URL || window.location.host;
+    const chcsRootURL = window.socketURL || window.location.host;
 
-    const chcsServerPath = process.env.REACT_APP_CHCS_SERVER_PATH || '';
+    const chcsServerPath = '';
     const socketIoPath = env.socketIo.tmx || '';
 
     if (!oi.socket) {
@@ -241,7 +241,7 @@ export const coms = (() => {
         }
       });
     }
-    return connected ? true : false;
+    return connected;
   };
 
   function tmxError(err) {

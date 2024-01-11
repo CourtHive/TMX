@@ -1,7 +1,7 @@
-import { mapDrawDefinition } from 'Pages/Tournament/Tabs/eventsTab/mapDrawDefinition';
+import { mapDrawDefinition } from 'pages/Tournament/Tabs/eventsTab/mapDrawDefinition';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { editEvent } from 'Pages/Tournament/Tabs/eventsTab/editEvent';
+import { editEvent } from 'pages/Tournament/Tabs/eventsTab/editEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';

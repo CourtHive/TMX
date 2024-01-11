@@ -1,7 +1,7 @@
 import { tournamentEngine, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
-import { mapEntry } from 'Pages/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pages/Tournament/Tabs/eventsTab/mapEntry';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 
