@@ -1,9 +1,9 @@
-import { setDev } from 'services/setDev';
 import { context } from 'services/context';
+import { setDev } from 'services/setDev';
 import { jwtDecode } from 'jwt-decode';
 
 export function validateToken(token) {
-  if (!token) {
+  if (!token || token === 'undefined') {
     cleanup();
     return undefined;
   }
@@ -23,8 +23,8 @@ export function validateToken(token) {
 }
 
 export function cleanup(reset) {
-  const notLocal = window.location.host.indexOf('localhost:3') !== 0;
-  // if (notLocal) delete window.dev;
+  const notLocal = !window.location.host.startsWith('localhost');
+  if (notLocal) delete window.dev;
   if (reset) {
     if (notLocal) console.log('%c dev cancelled', 'color: cyan');
     context.router.navigate('/');

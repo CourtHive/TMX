@@ -1,5 +1,5 @@
-import { editPlayer } from 'Pages/Tournament/Tabs/participantTab/editPlayer';
-import { deleteParticipants } from 'Pages/Tournament/Tabs/participantTab/deleteParticipants';
+import { editPlayer } from 'pages/Tournament/Tabs/participantTab/editPlayer';
+import { deleteParticipants } from 'pages/Tournament/Tabs/participantTab/deleteParticipants';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -19,7 +19,7 @@ export function participantActions(e, cell) {
     {
       hide: participantType !== 'INDIVIDUAL',
       text: "<i class='fas fa-address-card'></i> Participant profile",
-      onClick: () => console.log('Participant profile')
+      onClick: () => console.log('Participant profile'),
     },
     {
       hide: participantType !== 'INDIVIDUAL',
@@ -27,7 +27,7 @@ export function participantActions(e, cell) {
       onClick: () => {
         const callback = (data) => data.participantId && row.update(data);
         editPlayer({ participantId, /*derivedEventInfo,*/ callback });
-      }
+      },
     },
     {
       text: "<div style='color: red'><i class='fas fa-check-square'></i> Delete participant</div>",
@@ -43,8 +43,8 @@ export function participantActions(e, cell) {
         };
 
         deleteParticipants({ participantId, callback });
-      }
-    }
+      },
+    },
   ];
 
   tipster({ items, target: target || e.target, config: { placement: BOTTOM } });

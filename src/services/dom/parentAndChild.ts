@@ -1,8 +1,8 @@
-export function getParent(elem, className) {
+export function getParent(elem, className): { parent: HTMLElement; index: number } {
   return Array.from(elem.classList).indexOf(className) >= 0 ? elem : findAncestor(elem, className);
 }
 
-export function findAncestor(el, className) {
+export function findAncestor(el, className): HTMLElement {
   if (!el) return null;
   if (el.classList && Array.from(el.classList).indexOf(className) >= 0) return el;
   while (el.parentNode) {
@@ -12,12 +12,12 @@ export function findAncestor(el, className) {
   return null;
 }
 
-export function getTargetAttribute(el, className, attribute) {
+export function getTargetAttribute(el, className, attribute): string {
   const ancestor = findAncestor(el, className);
   return ancestor?.getAttribute(attribute);
 }
 
-export function getChildrenByClassName(elem, className) {
+export function getChildrenByClassName(elem, className): HTMLElement[] {
   const matches = [];
 
   function traverse(node) {

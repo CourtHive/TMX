@@ -7,7 +7,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { avoidanceRules } from './avoidanceRules';
 import { context } from 'services/context';
 
-import { ATTACH_EVENT_POLICIES } from 'constants/mutationConstants';
+import { ATTACH_POLICIES } from 'constants/mutationConstants';
 import { NONE, RIGHT } from 'constants/tmxConstants';
 
 export function editAvoidances({ eventId }) {
@@ -25,7 +25,7 @@ export function editAvoidances({ eventId }) {
     const policyAttributes = filteredInputs.flatMap((key) => avoidanceRules[key]).filter(Boolean);
     const methods = [
       {
-        method: ATTACH_EVENT_POLICIES,
+        method: ATTACH_POLICIES,
         params: {
           policyDefinitions: { avoidance: { policyAttributes } },
           allowReplacement: true,

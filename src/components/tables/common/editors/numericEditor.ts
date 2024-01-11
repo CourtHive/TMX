@@ -19,7 +19,7 @@ export const numericEditor =
     });
 
     function onChange() {
-      let result = editor.value;
+      let result: any = editor.value;
       if (decimals) result = parseFloat(result).toFixed(2);
       success(!isNaN(result) ? result : undefined);
     }
@@ -31,7 +31,7 @@ export const numericEditor =
       }
     });
 
-    editor.addEventListener('keyup', (e) => {
+    editor.addEventListener('keyup', (e: any) => {
       const allNumeric = e.target.value.replace(regex, '') || '';
       e.target.value = allNumeric > maxValue ? '' : allNumeric;
       if (e.key === 'Tab' && e.shiftKey && field) {

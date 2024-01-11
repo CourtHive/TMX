@@ -1,5 +1,5 @@
+import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
-import { drawDefinitionConstants, utilities } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderOptions } from 'components/renderers/renderField';
@@ -46,7 +46,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     id: DRAW_TYPE
   };
 
-  const { validGroupSizes } = utilities.getValidGroupSizes({ drawSize: 4, groupSizeLimit: 8 });
+  const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 4, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
   const groupSizeSelector = {
     options: roundRobinOptions,
@@ -137,7 +137,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
       selectedPlayoffRange.innerHTML = `${positionsToBePlayedOff} ${range}`;
     }
 
-    const { validGroupSizes } = utilities.getValidGroupSizes({
+    const { validGroupSizes } = tournamentEngine.getValidGroupSizes({
       drawSize: finishingPositions?.length || 4,
       groupSizeLimit: 8
     });

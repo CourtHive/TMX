@@ -1,7 +1,7 @@
-import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { destroyTable } from 'pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
@@ -19,7 +19,7 @@ export function createMatchUpsTable() {
       }).matchUps || []
     ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
 
-    // TODO: sort matchUps 1st: scoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
+    // TODO: sort matchUps 1st: checkScoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
 
     return matchUps.map(mapMatchUp);
   };

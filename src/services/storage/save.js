@@ -3,7 +3,7 @@ import { isFunction } from 'functions/typeOf';
 import { tmx2db } from './tmx2db';
 
 export function saveTournamentRecord({ callback } = {}) {
-  const { tournamentRecord } = tournamentEngine.getState();
+  const { tournamentRecord } = tournamentEngine.getTournament();
   tmx2db.addTournament(tournamentRecord).then(() => isFunction(callback) && callback());
 }
 
@@ -11,7 +11,7 @@ export const save = (function () {
   let fx = {};
 
   fx.local = ({ callback } = {}) => {
-    const { tournamentRecord } = tournamentEngine.getState();
+    const { tournamentRecord } = tournamentEngine.getTournament();
     tmx2db.addTournament(tournamentRecord).then(() => isFunction(callback) && callback());
     console.log('saved local', { callback });
   };

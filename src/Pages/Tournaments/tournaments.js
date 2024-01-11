@@ -1,8 +1,8 @@
 import { createTournamentsTable } from 'components/tables/tournamentsTable/createTournamentsTable';
-import { removeTournamentContent } from 'Pages/Tournament/Container/tournamentContent';
+import { removeTournamentContent } from 'pages/Tournament/Container/tournamentContent';
 import { resetTournament } from 'services/transitions/resetTournament';
 import { showTMXtournaments } from 'services/transitions/screenSlaver';
-import { destroyTables } from 'Pages/Tournament/destroyTable';
+import { destroyTables } from 'pages/Tournament/destroyTable';
 
 export function tmxTournaments() {
   destroyTables();

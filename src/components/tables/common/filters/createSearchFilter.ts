@@ -1,4 +1,4 @@
-export const createSearchFilter = (target) => {
+export const createSearchFilter = (target: any): any => {
   let searchFilter;
   const tables = Array.isArray(target) ? target : [target];
 

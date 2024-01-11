@@ -1,4 +1,4 @@
-import { scoreGovernor, matchUpFormatCode } from 'tods-competition-factory';
+import { governors, matchUpFormatCode } from 'tods-competition-factory';
 import { downCaret as clickable } from 'assets/specialCharacters/openClose';
 import { renderField } from 'components/renderers/renderField';
 import { tipster } from 'components/popovers/tipster';
@@ -86,7 +86,7 @@ function generateMatchUpFormat() {
   const hasFinalSet = document.getElementById('finalSetOption')?.checked;
   if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
 
-  const matchUpFormat = scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
+  const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
   const predefined = !!matchUpFormats.find((format) => format.format === matchUpFormat);
   const elem = document.getElementById('matchUpFormatSelector');
   const options = elem?.querySelectorAll('option');

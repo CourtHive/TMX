@@ -9,17 +9,15 @@ export function updateRegisteredPlayers({ callback }) {
 
     if (registeredPlayers?.length) {
       addRegistered(registeredPlayers);
-    } else {
-      if (registeredPlayers && !registeredPlayers.length) {
-        let message = 'Sheet Empty: No Player Rows';
-        context.modal.inform({ message });
-      }
+    } else if (registeredPlayers && !registeredPlayers.length) {
+      let message = 'Sheet Empty: No Player Rows';
+      context.modal.inform({ message });
     }
 
     if (isFunction(callback)) callback();
   };
 
-  const { extension } = tournamentEngine.findTournamentExtension({ name: 'REGISTRATION' });
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: 'REGISTRATION' });
   const registration = extension?.value;
   if (!registration) mockParticipants({ callback: done });
 }

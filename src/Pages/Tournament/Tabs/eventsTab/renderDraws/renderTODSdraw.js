@@ -6,7 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
-import { destroyTables } from 'Pages/Tournament/destroyTable';
+import { destroyTables } from 'pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
 import { getAdHocActions } from '../actions/adHocActions';
@@ -32,7 +32,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
-  // const displayConfig = tournamentEngine.findTournamentExtension({ name: 'DISPLAY' })?.value;
+  // const displayConfig = tournamentEngine.findExtension({ discover: true, name: 'DISPLAY' })?.value;
   // console.log({ drawId, displayConfig });
 
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
@@ -142,7 +142,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const drawControlItems = [roundRobinStats];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
-    } else if (utilities.isAdHoc({ structure })) {
+    } else if (tournamentEngine.isAdHoc({ structure })) {
       const adHocActions = getAdHocActions({ structure, drawId, callback });
       const drawControlItems = adHocActions;
       const drawControl = document.getElementById(DRAW_CONTROL);

@@ -34,12 +34,12 @@ export function createTeamsFromAttribute({ callback } = {}) {
     if (!selection || selection === NO_SELECTION) return;
 
     const config = valueKey[selection];
-    const result = tournamentEngine.generateTeamsFromParticipantAttribute({ ...config, addParticipants: false });
+    const result = tournamentEngine.createTeamsFromParticipantAttribute({ ...config, addParticipants: false });
     if (result.newParticipants) {
       const methods = [
         {
-          method: ADD_PARTICIPANTS,
-          params: { participants: result.newParticipants }
+          params: { participants: result.newParticipants },
+          method: ADD_PARTICIPANTS
         }
       ];
       mutationRequest({ methods, callback });

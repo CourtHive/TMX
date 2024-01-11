@@ -16,7 +16,7 @@ export const participantOptions = (view) =>
     ...option,
     onClick: () => {
       if (option.value !== view) {
-        const tournamentId = tournamentEngine.getState().tournamentRecord.tournamentId;
+        const tournamentId = tournamentEngine.getTournament().tournamentRecord.tournamentId;
         const route = `/tournament/${tournamentId}/${PARTICIPANTS}/${option.value}`;
         context.router.navigate(route);
       }

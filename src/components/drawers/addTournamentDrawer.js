@@ -1,5 +1,5 @@
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
-import { mapTournamentRecord } from 'Pages/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
@@ -50,7 +50,7 @@ export function addTournament({ table }) {
 
     const result = tournamentEngine.newTournamentRecord({ tournamentName, startDate, endDate });
     if (result.success) {
-      const { tournamentRecord } = tournamentEngine.getState();
+      const { tournamentRecord } = tournamentEngine.getTournament();
       const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
       tournamentAdd({ tournamentRecord, callback: refresh });
     }

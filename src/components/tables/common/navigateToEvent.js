@@ -4,7 +4,7 @@ import { context } from 'services/context';
 import { DRAW_ENTRIES, DRAW, EVENT, STRUCTURE, TOURNAMENT } from 'constants/tmxConstants';
 
 export function navigateToEvent({ eventId, drawId, structureId, renderDraw, participantId, matchUpId }) {
-  const tournamentId = tournamentEngine.getState()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
   const event = eventId && tournamentEngine.getEvent({ eventId, drawId }).event;
   const singleDraw = event?.drawDefinitions?.length === 1 && event.drawDefinitions[0];
 

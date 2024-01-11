@@ -1,6 +1,6 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'tods-competition-factory';
 import { tipster } from 'components/popovers/tipster';
-import { utilities } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 
 import { DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
@@ -41,7 +41,7 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
     }
   ];
 
-  if (isAdHoc && !utilities.scoreHasValue(matchUp))
+  if (isAdHoc && !tournamentEngine.checkScoreHasValue(matchUp))
     items.push({
       onClick: () => deleteAdHocMatchUp({ ...matchUp, callback: handleCallback }),
       text: 'Delete match',

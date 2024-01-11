@@ -1,17 +1,18 @@
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addTournament';
-import { loadTournament } from 'Pages/Tournament/tournamentDisplay';
+import { loadTournament } from 'pages/Tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
+import { tmxToast } from './notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
+import { baseApi } from './apis/baseApi';
 import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
-import { tmxToast } from './notifications/tmxToast';
 
 function functionOrLog(s, results) {
   return typeof window.dev[s] === 'function'
@@ -22,25 +23,25 @@ function functionOrLog(s, results) {
 
 const subscriptions = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
-  deletedDrawIds: (results) => functionOrLog('deletedDrawIds', results),
-  addVenue: (results) => functionOrLog('addVenue', results),
-  deleteVenue: (results) => functionOrLog('deleteVenue', results),
-  modifyMatchUp: (results) => functionOrLog('modifyMatchUp', results),
   addMatchUps: (results) => functionOrLog('addMatchUps', results),
+  addVenue: (results) => functionOrLog('addVenue', results),
+  deletedDrawIds: (results) => functionOrLog('deletedDrawIds', results),
   deletedMatchUpIds: (results) => functionOrLog('deletedMatchUpIds', results),
-  publishEvent: (results) => functionOrLog('publishEvent', results),
-  unPublishEvent: (results) => functionOrLog('unPublishEvent', results),
-  publishEventSeeding: (results) => functionOrLog('publishEventSeeding', results),
-  unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
-  publishOrderOfPlay: (results) => functionOrLog('publishOrderOfPlay', results),
-  unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results),
+  deleteVenue: (results) => functionOrLog('deleteVenue', results),
+  modifyDrawDefinition: (results) => functionOrLog('modifyDrawDefinition', results),
   modifyDrawEntries: (results) => functionOrLog('modifyDrawEntries', results),
   modifyEventEntries: (results) => functionOrLog('modifyEventEntries', results),
-  modifyDrawDefinition: (results) => functionOrLog('modifyDrawDefinition', results),
+  modifyMatchUp: (results) => functionOrLog('modifyMatchUp', results),
   modifyParticipants: (results) => functionOrLog('modifyParticipants', results),
-  modifyVenue: (results) => functionOrLog('modifyVenue', results),
+  modifyPositionAssignments: (results) => functionOrLog('modifyPositionAssignments', results),
   modifySeedAssignments: (results) => functionOrLog('modifySeedAssignments', results),
-  modifyPositionAssignments: (results) => functionOrLog('modifyPositionAssignments', results)
+  modifyVenue: (results) => functionOrLog('modifyVenue', results),
+  publishEvent: (results) => functionOrLog('publishEvent', results),
+  publishEventSeeding: (results) => functionOrLog('publishEventSeeding', results),
+  publishOrderOfPlay: (results) => functionOrLog('publishOrderOfPlay', results),
+  unPublishEvent: (results) => functionOrLog('unPublishEvent', results),
+  unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
+  unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results)
 };
 
 export function setDev() {
@@ -58,12 +59,12 @@ export function setDev() {
       tmxToast({ message: 'missing methods array', intent: 'is-danger' });
       return;
     }
-    const tournamentId = factory.tournamentEngine.getState().tournamentRecord?.tournamentId;
+    const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
     if (tournamentId) {
       const callback = (result) => {
         if (result?.success) {
           tmxToast({ message: 'success', intent: 'is-success' });
-          const tournamentRecord = factory.tournamentEngine.getState().tournamentRecord;
+          const tournamentRecord = factory.tournamentEngine.getTournament().tournamentRecord;
           const displayTournament = () => loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
           addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
         } else {
@@ -80,13 +81,15 @@ export function setDev() {
   };
 
   addDev({
-    getTournament: () => factory.tournamentEngine.getState()?.tournamentRecord,
+    getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
+    getContext: factory.globalState.getDevContext,
     tournamentEngine: factory.tournamentEngine,
-    context: factory.setDevContext,
+    context: factory.globalState.setDevContext,
     generateMockTournament,
     modifyTournament,
     getLoginState,
     factory,
+    baseApi,
     help
   });
 
@@ -94,7 +97,7 @@ export function setDev() {
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 
-  factory.setSubscriptions({ subscriptions });
+  factory.globalState.setSubscriptions({ subscriptions });
 }
 
 function addDev(variable) {
