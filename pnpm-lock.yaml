@@ -161,8 +161,8 @@ devDependencies:
     specifier: ^20.10.4
     version: 20.10.4
   '@types/socket.io-client':
-    specifier: 1.4.35
-    version: 1.4.35
+    specifier: 1.4.36
+    version: 1.4.36
   '@types/uuid':
     specifier: 3.4.9
     version: 3.4.9
@@ -1379,8 +1379,8 @@ packages:
     resolution: {integrity: sha512-dn1l8LaMea/IjDoHNd9J52uBbInB796CDffS6VdIxvqYCPSG0V0DzHp76GpaWnlhg88uYyPbXCDIowa86ybd5A==}
     dev: true
 
-  /@types/socket.io-client@1.4.35:
-    resolution: {integrity: sha512-MI8YmxFS+jMkIziycT5ickBWK1sZwDwy16mgH/j99Mcom6zRG/NimNGQ3vJV0uX5G6g/hEw0FG3w3b3sT5OUGw==}
+  /@types/socket.io-client@1.4.36:
+    resolution: {integrity: sha512-ZJWjtFBeBy1kRSYpVbeGYTElf6BqPQUkXDlHHD4k/42byCN5Rh027f4yARHCink9sKAkbtGZXEAmR0ZCnc2/Ag==}
     dev: true
 
   /@types/uuid@3.4.9:
