@@ -1,6 +1,6 @@
 import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
-import { destroyTables } from 'Pages/Tournament/destroyTable';
+import { destroyTables } from 'pages/Tournament/destroyTable';
 import { renderTODSdraw } from './renderDraws/renderTODSdraw';
 import { cleanupDrawPanel } from './cleanupDrawPanel';
 import { renderDrawPanel } from './renderDrawPanel';

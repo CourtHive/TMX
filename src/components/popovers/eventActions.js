@@ -1,4 +1,4 @@
-import { editEvent } from 'Pages/Tournament/Tabs/eventsTab/editEvent';
+import { editEvent } from 'pages/Tournament/Tabs/eventsTab/editEvent';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
