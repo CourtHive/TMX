@@ -2,8 +2,8 @@ import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHoc
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
+import { tournamentEngine } from 'tods-competition-factory';
 import { tipster } from 'components/popovers/tipster';
-import { utilities } from 'tods-competition-factory';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -15,7 +15,7 @@ export function handleRoundHeaderClick(props) {
 
   const roundActions = [];
 
-  if (utilities.isAdHoc({ structure })) {
+  if (tournamentEngine.isAdHoc({ structure })) {
     const adHocRoundAction = [
       {
         onClick: () => addAdHocMatchUps({ ...props }),

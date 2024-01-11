@@ -1,9 +1,9 @@
 import { registrationModal } from 'components/modals/registrationModal';
-import { displayTournament } from 'Pages/Tournament/tournamentDisplay';
-import { tmxTournaments } from 'Pages/Tournaments/tournaments';
+import { displayTournament } from 'pages/Tournament/tournamentDisplay';
+import { tmxTournaments } from 'pages/Tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
-import { destroyTables } from 'Pages/Tournament/destroyTable';
-import { renderCalendar } from 'Pages/Tournaments/calendar';
+import { destroyTables } from 'pages/Tournament/destroyTable';
+import { renderCalendar } from 'pages/Tournaments/calendar';
 import { context } from 'services/context';
 import { coms } from 'services/coms';
 import Navigo from 'navigo';
@@ -22,7 +22,7 @@ import {
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
-  const routerRoot = window.location.host.startsWith('localhost:3333') ? '/' : process.env.PUBLIC_URL || '/';
+  const routerRoot = '/';
 
   const useHash = true;
   const router = new Navigo(useHash ? '/' : `/${routerRoot}`, { hash: useHash });
@@ -30,7 +30,7 @@ export function routeTMX() {
   // make accessible
   context.router = router;
 
-  const displayRoute = ({ selectedTab, renderDraw, data }) => {
+  const displayRoute = ({ selectedTab, renderDraw, data }: any) => {
     destroyTables();
     displayTournament({ config: { selectedTab, renderDraw, ...data } }); // ...data must come last
   };

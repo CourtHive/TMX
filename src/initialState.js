@@ -1,15 +1,14 @@
-import { updateReady, popupsBlocked } from 'services/notifications/statusMessages';
-import { tournamentContent } from 'Pages/Tournament/Container/tournamentContent';
+import { tournamentContent } from 'pages/Tournament/Container/tournamentContent';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
+import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
-import { routeTMX } from 'Router/router';
+import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
-import { isDev } from 'functions/isDev';
 import { env } from 'settings/env';
 
 import dragMatch from 'assets/icons/dragmatch.png';
@@ -38,6 +37,7 @@ import 'styles/overlay.css';
 import 'styles/sidebar.css';
 import 'styles/leaflet.css';
 import 'styles/fa.min.css';
+import 'styles/icons.css';
 import 'styles/tmx.css';
 
 export function setupTMX() {
@@ -73,47 +73,6 @@ function setContext() {
 
 const RESIZE_LOOP = 'ResizeObserver loop limit exceeded';
 const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered notifications.';
-function setWindow() {
-  // to disable context menu on the page
-  document.oncontextmenu = () => false;
-  window.addEventListener(
-    'contextmenu',
-    (e) => {
-      e.preventDefault();
-    },
-    false
-  );
-  window.packageEntry = { updateReady };
-  /*
-  window.onerror = (msg, url, lineNo, columnNo, error) => {
-    console.log({ msg, error });
-    if (!msg.includes('ResizeObserver')) {
-      const errorMessage = isObject(msg) ? JSON.stringify(msg) : msg;
-      const payload = { error, stack: { lineNo, columnNo, error: errorMessage } };
-      context.ee.emit('emitTmx', { data: { action: CLIENT_ERROR, payload } });
-
-      const message = {
-        notice: `Error Detected: Development has been notified!`,
-        title: 'warn'
-      };
-      context.ee.emit('addMessage', message);
-    }
-  };
-  */
-  window.onunhandledrejection = (windowEvent) => {
-    if (isDev()) return;
-
-    windowEvent.preventDefault();
-    let reason = windowEvent.reason;
-    let message = reason && (reason.stack || reason);
-    if (message && message.indexOf('blocked') > 0) {
-      popupsBlocked();
-    } else {
-      console.warn('Unhandled rejection:', reason && (reason.stack || reason));
-      context.ee.emit('logError', reason);
-    }
-  };
-}
 
 function setEnv() {
   env.device = getDevice();

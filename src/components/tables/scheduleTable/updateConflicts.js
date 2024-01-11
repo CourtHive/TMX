@@ -6,7 +6,7 @@ import { scheduleClass } from 'constants/tmxConstants';
 
 export function updateConflicts(table) {
   const data = table.getData();
-  const rowItems = data.flatMap((row) => Object.values(row).filter(isObject));
+  const rowItems = data.flatMap((row) => Object.values(row).filter(isObject)).filter((item) => item.matchUpId);
   const { courtIssues, rowIssues } = competitionEngine.proConflicts({ matchUps: rowItems });
 
   if ((courtIssues && Object.keys(courtIssues)?.length) || rowIssues) {

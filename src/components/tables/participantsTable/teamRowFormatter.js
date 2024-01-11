@@ -1,5 +1,5 @@
 import { positionActionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
-import { removeFromTeam } from 'Pages/Tournament/Tabs/participantTab/controlBar/removeFromTeam';
+import { removeFromTeam } from 'pages/Tournament/Tabs/participantTab/controlBar/removeFromTeam';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';

@@ -49,7 +49,8 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
     structureId && tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments;
   // const structure = structureId && drawDefinition?.structures.find((s) => s.structureId === structureId);
   // const isMain = structure?.stage === MAIN && structure?.stageSequence === 1;
-  const entryProfile = utilities.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension?.value;
+  const entryProfile = tournamentEngine.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension
+    ?.value;
   const initialQualifiersCount = structureId ? 1 : 0;
   const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
@@ -76,7 +77,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
     { label: 'Custom', value: CUSTOM }
   ];
 
-  const { validGroupSizes } = utilities.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
+  const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
   const playoffOptions = [
     { label: 'Group winners', value: WINNERS },

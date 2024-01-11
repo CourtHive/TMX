@@ -1,4 +1,4 @@
-import { mapTournamentRecord } from 'Pages/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { convertTMX2TODS } from 'tods-tmx-classic-converter';
 import { tournamentEngine } from 'tods-competition-factory';

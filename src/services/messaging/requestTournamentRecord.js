@@ -5,7 +5,7 @@ import { connected, emitTmx } from './socketIo';
 import { SUCCESS } from 'constants/tmxConstants';
 
 export function requestTournamentRecord() {
-  const tournamentId = tournamentEngine.getState()?.tournaentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.getTournament()?.tournaentRecord?.tournamentId;
 
   if (connected()) {
     let data = {
