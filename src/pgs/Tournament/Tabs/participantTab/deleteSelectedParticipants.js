@@ -1,4 +1,4 @@
-import { deleteParticipants } from 'pages/Tournament/Tabs/participantTab/deleteParticipants';
+import { deleteParticipants } from 'pgs/Tournament/Tabs/participantTab/deleteParticipants';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { NONE } from 'constants/tmxConstants';
 
@@ -14,7 +14,7 @@ export const deleteSelectedParticipants = (table) => {
     content: `Delete ${participantIds.length} participants?`,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteDraw', intent: 'is-danger', close: true, onClick: okAction }
-    ]
+      { label: 'Delete', id: 'deleteDraw', intent: 'is-danger', close: true, onClick: okAction },
+    ],
   });
 };

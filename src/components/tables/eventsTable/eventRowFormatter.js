@@ -1,7 +1,7 @@
-import { mapDrawDefinition } from 'pages/Tournament/Tabs/eventsTab/mapDrawDefinition';
+import { mapDrawDefinition } from 'pgs/Tournament/Tabs/eventsTab/mapDrawDefinition';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { editEvent } from 'pages/Tournament/Tabs/eventsTab/editEvent';
+import { editEvent } from 'pgs/Tournament/Tabs/eventsTab/editEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -50,7 +50,7 @@ export function eventRowFormatter(row) {
     index: 'drawId',
     maxHeight: 400,
     columns,
-    data
+    data,
   });
 
   drawsTable.on('scrollVertical', destroyTipster);
@@ -68,7 +68,7 @@ export function eventRowFormatter(row) {
       if (eventRow) {
         const matchUps = tournamentEngine.allEventMatchUps({
           inContext: false,
-          eventId
+          eventId,
         }).matchUps;
         eventRow.drawDefs = eventRow.drawDefs.filter((drawDef) => !drawIds.includes(drawDef.drawId));
         eventRow.matchUpsCount = matchUps?.length || 0; // table data is reactive!
@@ -95,7 +95,7 @@ export function eventRowFormatter(row) {
           const matchUps = tournamentEngine.allDrawMatchUps({
             drawId: result.drawDefinition.drawId,
             inContext: false,
-            eventId
+            eventId,
           }).matchUps;
           eventRow.matchUpsCount += matchUps?.length || 0; // table data is reactive!
           eventRow.drawsCount += 1; // table data is reactive!
@@ -118,31 +118,31 @@ export function eventRowFormatter(row) {
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: () => navigateToEvent({ eventId }),
       label: 'View entries',
       intent: 'is-info',
-      location: LEFT
+      location: LEFT,
     },
     {
       onClick: () => editAvoidances({ eventId }),
       id: 'editAvoidances',
       label: 'Avoidances',
-      location: LEFT
+      location: LEFT,
     },
     {
       onClick: () => editEvent({ event, callback }),
       label: 'Edit event',
-      location: RIGHT
+      location: RIGHT,
     },
     {
       onClick: () => addDraw({ eventId, callback: drawAdded }),
       intent: 'is-primary',
       label: 'Add draw',
-      location: RIGHT
-    }
+      location: RIGHT,
+    },
   ];
   controlBar({ table: drawsTable, target: controlEl, items });
 }

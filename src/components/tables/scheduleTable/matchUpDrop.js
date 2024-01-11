@@ -1,4 +1,4 @@
-import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { updateConflicts } from './updateConflicts';
@@ -69,7 +69,7 @@ export function matchUpDrop(ev, cell) {
       venueId: targetVenueId,
       courtId: targetCourtId,
       scheduledTime,
-      timeModifiers
+      timeModifiers,
     };
 
     const methods = [
@@ -79,9 +79,9 @@ export function matchUpDrop(ev, cell) {
           tournamentId: sourceMatchUp?.tournamentId,
           matchUpId: sourceMatchUp?.matchUpId,
           schedule: updatedSourceSchedule,
-          drawId: sourceMatchUp?.drawId
-        }
-      }
+          drawId: sourceMatchUp?.drawId,
+        },
+      },
     ];
     const callback = (result) => !result.success && console.log({ result });
     mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
@@ -96,7 +96,7 @@ export function matchUpDrop(ev, cell) {
     timeModifiers: sourceSchedule?.timeModifiers,
     courtOrder: sourceCourtOrder,
     venueId: sourceVenueId,
-    courtId: sourceCourtId
+    courtId: sourceCourtId,
   };
 
   const updateTargetMatchUp = () => {
@@ -107,9 +107,9 @@ export function matchUpDrop(ev, cell) {
           tournamentId: targetMatchUp?.tournamentId,
           matchUpId: targetMatchUp?.matchUpId,
           schedule: updatedTargetSchedule,
-          drawId: targetMatchUp?.drawId
-        }
-      }
+          drawId: targetMatchUp?.drawId,
+        },
+      },
     ];
     const callback = (result) => !result.success && console.log({ result });
     mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
@@ -139,8 +139,8 @@ export function matchUpDrop(ev, cell) {
         schedule: {
           courtOrder: sourceCourtOrder,
           venueId: sourceVenueId,
-          courtId: sourceCourtId
-        }
+          courtId: sourceCourtId,
+        },
       };
 
       if (sourceRow.rowId == targetRow.rowId) {
@@ -166,7 +166,7 @@ export function matchUpDrop(ev, cell) {
     const targetSchedule = targetMatchUp?.schedule;
     updateSourceMatchUp({
       scheduledTime: targetSchedule?.scheduledTime,
-      timeModifiers: targetSchedule?.timeModifiers
+      timeModifiers: targetSchedule?.timeModifiers,
     });
 
     updateTargetMatchUp();

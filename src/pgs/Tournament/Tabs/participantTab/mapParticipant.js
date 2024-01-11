@@ -1,4 +1,4 @@
-import { getClub, getCountry, getEvents } from 'pages/Tournament/Tabs/participantTab/getters';
+import { getClub, getCountry, getEvents } from 'pgs/Tournament/Tabs/participantTab/getters';
 import { factoryConstants } from 'tods-competition-factory';
 import camelcase from 'camelcase';
 
@@ -32,6 +32,6 @@ export const mapParticipant = (participant, derivedEventInfo) => {
     participantId,
     participant,
     cityState,
-    ratings
+    ratings,
   };
 };

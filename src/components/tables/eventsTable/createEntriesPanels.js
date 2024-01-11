@@ -1,7 +1,7 @@
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { findAncestor, getParent } from 'services/dom/parentAndChild';
-import { mapEntry } from 'pages/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pgs/Tournament/Tabs/eventsTab/mapEntry';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -24,7 +24,7 @@ import {
   NONE,
   RIGHT,
   TMX_PANEL,
-  TMX_TABLE
+  TMX_TABLE,
 } from 'constants/tmxConstants';
 import { getAttachedAvoidances } from 'components/drawers/avoidances/getAttachedAvoidances';
 
@@ -57,21 +57,21 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         withIndividualParticipants: true,
         withScaleValues: true,
         withDraws: true,
-        withISO2: true
+        withISO2: true,
       }) ?? {};
 
     const hasFlights = event?.drawDefinitions?.length > 1;
 
     // TODO: flightProfile.flight.entries ...
     const entryData = (drawDefinition?.entries || event?.entries || []).map((entry) =>
-      mapEntry({ entry, derivedDrawInfo, participants, eventType: event.eventType, eventId })
+      mapEntry({ entry, derivedDrawInfo, participants, eventType: event.eventType, eventId }),
     );
 
     const { events } = tournamentEngine.getEvents();
     return {
       tableData: panelDefinitions({ event, drawDefinition, participants, entryData, hasFlights }),
       events,
-      event
+      event,
     };
   };
 
@@ -98,7 +98,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
             'ranking',
             'cityState',
             'status',
-            'flights'
+            'flights',
           ]),
           columns: getEntriesColumns({ actions, exclude, entries, eventId, drawId, drawCreated }),
           responsiveLayout: 'collapse',
@@ -107,7 +107,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
           reactiveData: true,
           height: '400px',
           data: entries,
-          placeholder
+          placeholder,
         });
         context.tables[group] = table;
 
@@ -145,7 +145,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
       .map((drawDefinition) => ({
         onClick: () => navigateToEvent({ eventId, drawId: drawDefinition.drawId }),
         label: drawDefinition?.drawName,
-        close: true
+        close: true,
       }))
       .concat([{ divider: true }, eventEntries]);
     const allEvents = { label: ALL_EVENTS, onClick: displayAllEvents, close: true };
@@ -153,7 +153,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
       .map((e) => ({
         onClick: () => navigateToEvent({ eventId: e.eventId }),
         label: e.eventName,
-        close: true
+        close: true,
       }))
       .concat([{ divider: true }, allEvents]);
 
@@ -165,13 +165,13 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
 
     const addDrawOption = {
       label: `<div style='font-weight: bold'>Add draw</div>`,
-      onClick: () => addDraw({ eventId, callback: drawAdded })
+      onClick: () => addDraw({ eventId, callback: drawAdded }),
     };
     const drawOptions = result.event.drawDefinitions
       ?.map((d) => ({
         onClick: () => navigateToEvent({ eventId, drawId: d?.drawId, renderDraw: true }),
         label: d?.drawName,
-        close: true
+        close: true,
       }))
       .concat([{ divider: true }, addDrawOption]);
     const drawName = result.event?.drawDefinitions?.find((d) => d?.drawId === drawId)?.drawName;
@@ -241,7 +241,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         clearSearch: () => setSearchFilter(''),
         placeholder: 'Search entries',
         location: LEFT,
-        search: true
+        search: true,
       },
       { label: result.event.eventName, options: eventOptions.length > 1 && eventOptions, location: LEFT },
       { label: drawName || ALL_ENTRIES, options: entriesOptions, location: LEFT },
@@ -250,21 +250,21 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         label: 'View draw',
         intent: 'is-info',
         location: RIGHT,
-        hide: !drawId
+        hide: !drawId,
       },
       {
         onClick: () => editAvoidances({ eventId }),
         intent: avoidancesIntent,
         id: 'editAvoidances',
         label: 'Avoidances',
-        location: RIGHT
+        location: RIGHT,
       },
       {
         onClick: () => generateFlights({ eventId, callback: () => {} }),
         label: 'Flights',
         location: RIGHT,
         hide: drawId,
-        intent: NONE
+        intent: NONE,
       },
       {
         options: drawOptions?.length > 2 && drawOptions,
@@ -272,15 +272,15 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
         intent: 'is-info',
         location: RIGHT,
         label: 'Draws',
-        align: RIGHT
+        align: RIGHT,
       },
       {
         onClick: () => addDraw({ eventId, callback: drawAdded }),
         hide: drawOptions?.length > 2 || drawId,
         intent: 'is-info',
         label: 'Add draw',
-        location: RIGHT
-      }
+        location: RIGHT,
+      },
     ];
 
     controlBar({ target: eventControlElement, items });

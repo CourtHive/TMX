@@ -1,4 +1,4 @@
-import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pgs/Tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
 import { isFunction } from 'functions/typeOf';
 import { tmx2db } from './tmx2db';
@@ -29,7 +29,7 @@ export function addOrUpdateTournament({ tournamentRecord, callback }) {
           tournamentRecord.parentOrganisation = {
             organisationAbbreviation: provider.organisationAbbreviation,
             organisationName: provider.organisationName,
-            organisationId: providerId
+            organisationId: providerId,
           };
         }
         checkProviderCalendar(provider);

@@ -1,7 +1,7 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { mapEvent } from 'pages/Tournament/Tabs/eventsTab/mapEvent';
+import { mapEvent } from 'pgs/Tournament/Tabs/eventsTab/mapEvent';
 import { controlBar } from 'components/controlBar/controlBar';
 import { editEvent } from './editEvent';
 
@@ -32,7 +32,7 @@ export function eventsView() {
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
@@ -41,13 +41,13 @@ export function eventsView() {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search events',
       location: LEFT,
-      search: true
+      search: true,
     },
     {
       onClick: () => editEvent({ callback: eventAdded }),
       label: 'Add event',
-      location: RIGHT
-    }
+      location: RIGHT,
+    },
   ];
 
   const target = document.getElementById(EVENTS_CONTROL);

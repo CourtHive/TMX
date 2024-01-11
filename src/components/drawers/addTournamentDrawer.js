@@ -1,5 +1,5 @@
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
-import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pgs/Tournaments/mapTournamentRecord';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
@@ -17,25 +17,25 @@ export function addTournament({ table }) {
       validator: nameValidator(5),
       label: 'Tournament name',
       field: 'tournamentName',
-      focus: true
+      focus: true,
     },
     {
       placeholder: 'YYYY-MM-DD',
       label: 'Start date',
-      field: 'startDate'
+      field: 'startDate',
     },
     {
       placeholder: 'YYYY-MM-DD',
       label: 'End date',
-      field: 'endDate'
-    }
+      field: 'endDate',
+    },
   ];
 
   const relationships = [
     {
       fields: ['startDate', 'endDate'],
-      dateRange: true
-    }
+      dateRange: true,
+    },
   ];
 
   const content = (elem) => {
@@ -57,7 +57,7 @@ export function addTournament({ table }) {
   };
   const buttons = [
     { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Add', intent: 'is-primary', onClick: submit, close: isValid }
+    { label: 'Add', intent: 'is-primary', onClick: submit, close: isValid },
   ];
   const title = `New tournament`;
 

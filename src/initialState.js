@@ -1,4 +1,4 @@
-import { tournamentContent } from 'pages/Tournament/Container/tournamentContent';
+import { tournamentContent } from 'pgs/Tournament/Container/tournamentContent';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
@@ -120,7 +120,7 @@ function getDevice() {
     isIDevice: nav && /iphone|ipod|ipad/i.test(nav.userAgent),
     isIpad: nav && /iPad/i.test(nav.userAgent),
     isWindows: nav && /indows/i.test(nav.userAgent),
-    isMobile: nav && /Mobi/.test(nav.userAgent)
+    isMobile: nav && /Mobi/.test(nav.userAgent),
   };
 }
 

@@ -1,4 +1,4 @@
-import { displayTournament } from 'pages/Tournament/tournamentDisplay';
+import { displayTournament } from 'pgs/Tournament/tournamentDisplay';
 import { openModal } from './baseModal/baseModal';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
@@ -19,14 +19,14 @@ export function receiveTournamentRecord({ record }) {
       {
         label: lang.tr('tournaments.replacelocal'),
         intent: 'is-warning',
-        onClick: saveReceivedTournament
+        onClick: saveReceivedTournament,
       },
-      { label: lang.tr('tournaments.close') }
+      { label: lang.tr('tournaments.close') },
     ];
     openModal({
       title: lang.tr('tournaments.received'),
       content,
-      buttons
+      buttons,
     });
   }
 
@@ -37,7 +37,7 @@ export function receiveTournamentRecord({ record }) {
   }
   function displayTourney() {
     displayTournament({
-      tournamentId: publishedTournament.tournamentId
+      tournamentId: publishedTournament.tournamentId,
     });
   }
 }

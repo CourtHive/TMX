@@ -1,9 +1,9 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { mapVenue } from 'pages/Tournament/Tabs/venuesTab/mapVenue';
+import { mapVenue } from 'pgs/Tournament/Tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { competitionEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { venueRowFormatter } from './venueRowFormatter';
 import { getVenuesColumns } from './getVenueColumns';
 
@@ -34,7 +34,7 @@ export function createVenuesTable({ table } = {}) {
         'venueAbbreviation',
         'availableTime',
         'courtsCount',
-        'venueName'
+        'venueName',
       ]),
       minHeight: window.innerHeight * 0.81,
       // height: // NOTE: setting a height causes scrolling issue
@@ -44,7 +44,7 @@ export function createVenuesTable({ table } = {}) {
       reactiveData: true,
       index: 'venueId',
       columns,
-      data
+      data,
     });
 
     table.on('scrollVertical', destroyTipster);

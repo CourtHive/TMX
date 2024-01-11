@@ -1,9 +1,9 @@
-import { formatParticipantTab } from 'pages/Tournament/Tabs/participantTab/participantsTab';
+import { formatParticipantTab } from 'pgs/Tournament/Tabs/participantTab/participantsTab';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
-import { renderScheduleTab } from 'pages/Tournament/Tabs/scheduleTab/scheduleTab';
-import { renderMatchUpTab } from 'pages/Tournament/Tabs/matchUpsTab/matchUpsTab';
-import { renderVenueTab } from 'pages/Tournament/Tabs/scheduleTab/venuesTab';
-import { renderEventsTab } from 'pages/Tournament/Tabs/eventsTab/eventsTab';
+import { renderScheduleTab } from 'pgs/Tournament/Tabs/scheduleTab/scheduleTab';
+import { renderMatchUpTab } from 'pgs/Tournament/Tabs/matchUpsTab/matchUpsTab';
+import { renderVenueTab } from 'pgs/Tournament/Tabs/scheduleTab/venuesTab';
+import { renderEventsTab } from 'pgs/Tournament/Tabs/eventsTab/eventsTab';
 import { renderOverview } from './Tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
@@ -24,7 +24,7 @@ import {
   TOURNAMENT,
   VENUES_TAB,
   EVENTS_TAB,
-  TOURNAMENT_OVERVIEW
+  TOURNAMENT_OVERVIEW,
 } from 'constants/tmxConstants';
 
 export function displayTournament({ config } = {}) {
@@ -65,14 +65,14 @@ export function loadTournament({ tournamentRecord, config }) {
       tmxToast({
         action: {
           text: 'Remove?',
-          onClick: () => removeProviderTournament({ tournamentId: config.tournamentId, providerId })
+          onClick: () => removeProviderTournament({ tournamentId: config.tournamentId, providerId }),
         },
         message: 'Tournament not found',
         onClose: () => {
           context.router.navigate('/tournaments');
         },
         intent: 'is-warning',
-        pauseOnHover: true
+        pauseOnHover: true,
       });
     };
 

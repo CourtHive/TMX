@@ -1,5 +1,5 @@
-import { renderScheduleTab } from 'pages/Tournament/Tabs/scheduleTab/scheduleTab';
-import { addVenue } from 'pages/Tournament/Tabs/venuesTab/addVenue';
+import { renderScheduleTab } from 'pgs/Tournament/Tabs/scheduleTab/scheduleTab';
+import { addVenue } from 'pgs/Tournament/Tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';
 import { utilities } from 'tods-competition-factory';
 
@@ -26,7 +26,7 @@ export function generateEmptyColumns({ courtsData, count }) {
         formatter: scheduleCell,
         headerSort: false,
         resizable: false,
-        minWidth: 150
+        minWidth: 150,
       }))
     : [];
 }
