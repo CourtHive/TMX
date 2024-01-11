@@ -1,7 +1,7 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { mapEvent } from 'pgs/Tournament/Tabs/eventsTab/mapEvent';
+import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { controlBar } from 'components/controlBar/controlBar';
 import { editEvent } from './editEvent';
 

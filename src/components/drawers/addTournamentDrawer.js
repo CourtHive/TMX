@@ -1,5 +1,5 @@
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
-import { mapTournamentRecord } from 'pgs/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';

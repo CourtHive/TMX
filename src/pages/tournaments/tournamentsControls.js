@@ -21,7 +21,7 @@ export function calendarControls(table) {
     { label: 'Sync with Server', onClick: serverSync, close: true },
     { label: 'Import legacy', onClick: () => legacyImport(table), close: true },
     { divider: true },
-    { label: 'Example Tournaments', onClick: () => mockTournaments(table), close: true }
+    { label: 'Example Tournaments', onClick: () => mockTournaments(table), close: true },
   ];
 
   const setSearchFilter = createSearchFilter(table);
@@ -36,8 +36,8 @@ export function calendarControls(table) {
           context: TMX_TOURNAMENTS,
           content: mainMenu,
           width: '200px',
-          side: RIGHT
-        })
+          side: RIGHT,
+        }),
     },
     {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
@@ -46,8 +46,8 @@ export function calendarControls(table) {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search tournaments',
       location: LEFT,
-      search: true
-    }
+      search: true,
+    },
   ];
 
   const target = document.getElementById(TOURNAMENTS_CONTROL);

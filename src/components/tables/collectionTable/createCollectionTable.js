@@ -1,4 +1,4 @@
-import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getCollectionColumns } from './getCollectionColumns';
 

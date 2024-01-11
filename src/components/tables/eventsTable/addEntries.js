@@ -1,7 +1,7 @@
 import { positionActionConstants, tournamentEngine } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { mapEntry } from 'pgs/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
