@@ -1,13 +1,13 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
-import { mapEntry } from 'pages/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pgs/Tournament/Tabs/eventsTab/mapEntry';
 import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 import {
   drawDefinitionConstants,
   eventConstants,
   entryStatusConstants,
-  tournamentEngine
+  tournamentEngine,
 } from 'tods-competition-factory';
 
 import { ADD_EVENT_ENTRY_PAIRS } from 'constants/mutationConstants';
@@ -31,9 +31,9 @@ export const createPair = (event, addOnPairing = true) => {
           participantIdPairs: [selectedParticipantids],
           entryStatus: ALTERNATE,
           entryStage: MAIN,
-          eventId
-        }
-      }
+          eventId,
+        },
+      },
     ];
 
     const callback = (result) => {
@@ -52,14 +52,14 @@ export const createPair = (event, addOnPairing = true) => {
 
         const participantIds = result.results[0].newParticipantIds;
         const {
-          participants: [participant]
+          participants: [participant],
         } = tournamentEngine.getParticipants({ participantFilters: { participantIds }, withISO2: true });
 
         if (participant) {
           const newEntry = mapEntry({
             entry: { participantId: participant.participantId, entryStatus: ALTERNATE },
             eventType: DOUBLES,
-            participant
+            participant,
           });
           context.tables[ALTERNATE].updateOrAddData([newEntry]);
           createPairFromSelected();
@@ -84,7 +84,7 @@ export const createPair = (event, addOnPairing = true) => {
     intent: 'is-info',
     location: OVERLAY,
     id: 'create-pair',
-    visible: false
+    visible: false,
   };
 
   const createPairFromSelected = (selectedRows) => {

@@ -1,7 +1,7 @@
-import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
@@ -15,7 +15,7 @@ export function createMatchUpsTable() {
     const matchUps = (
       tournamentEngine.allTournamentMatchUps({
         participantsProfile: { withISO2: true, withScaleValues: true },
-        contextProfile: { withCompetitiveness: true }
+        contextProfile: { withCompetitiveness: true },
       }).matchUps || []
     ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
 
@@ -46,7 +46,7 @@ export function createMatchUpsTable() {
       reactiveData: true,
       index: 'matchUpId',
       columns,
-      data
+      data,
     });
     table.on('dataFiltered', (filters, rows) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
@@ -56,7 +56,7 @@ export function createMatchUpsTable() {
         valueAccessor: 'wtnRating',
         scaleName: 'WTN',
         zoneMargin: 2.5,
-        matchUps
+        matchUps,
       });
       if (wtn?.accuracy?.percent) {
         predictiveWTN.style.display = '';
@@ -71,7 +71,7 @@ export function createMatchUpsTable() {
         singlesForDoubles: true,
         scaleName: 'UTR',
         zoneMargin: 1,
-        matchUps
+        matchUps,
       });
       if (utr?.accuracy?.percent) {
         predictiveUTR.style.display = '';

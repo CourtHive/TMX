@@ -1,7 +1,7 @@
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addTournament';
-import { loadTournament } from 'pages/Tournament/tournamentDisplay';
+import { loadTournament } from 'pgs/Tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
@@ -41,7 +41,7 @@ const subscriptions = {
   publishOrderOfPlay: (results) => functionOrLog('publishOrderOfPlay', results),
   unPublishEvent: (results) => functionOrLog('unPublishEvent', results),
   unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
-  unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results)
+  unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results),
 };
 
 export function setDev() {
@@ -90,7 +90,7 @@ export function setDev() {
     getLoginState,
     factory,
     baseApi,
-    help
+    help,
   });
 
   addDev({ connectSocket, disconnectSocket, emitTmx });

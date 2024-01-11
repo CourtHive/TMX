@@ -1,4 +1,4 @@
-import { editEvent } from 'pages/Tournament/Tabs/eventsTab/editEvent';
+import { editEvent } from 'pgs/Tournament/Tabs/eventsTab/editEvent';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -24,12 +24,12 @@ export function eventActions(e, cell) {
   const items = [
     {
       onClick: () => console.log('Delete', data),
-      text: 'Delete'
+      text: 'Delete',
     },
     {
       onClick: () => editEvent({ event: data.event, callback: doneEditing }),
-      text: 'Edit'
-    }
+      text: 'Edit',
+    },
   ];
 
   tipster({ items, target: target || e.target, config: { placement: BOTTOM } });

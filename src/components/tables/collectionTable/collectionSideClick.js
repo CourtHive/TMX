@@ -1,5 +1,5 @@
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
-import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { tournamentEngine } from 'tods-competition-factory';
 
 export const handleSideClick =
@@ -13,7 +13,7 @@ export const handleSideClick =
         const collectionId = row.getData().matchUp.collectionId;
         const collectionMatchUps = updatedMatchUp.tieMatchUps.filter((m) => m.collectionId === collectionId);
         const data = collectionMatchUps.map((collectionMatchUp) =>
-          mapMatchUp({ ...collectionMatchUp, dualMatchUp: matchUp })
+          mapMatchUp({ ...collectionMatchUp, dualMatchUp: matchUp }),
         );
         const table = cell.getTable();
         table.updateData(data);

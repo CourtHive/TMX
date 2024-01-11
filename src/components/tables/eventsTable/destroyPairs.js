@@ -1,7 +1,7 @@
 import { tournamentEngine, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
-import { mapEntry } from 'pages/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pgs/Tournament/Tabs/eventsTab/mapEntry';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 
@@ -26,14 +26,14 @@ export const destroySelected = (eventId, drawId) => (table) => {
 
         const individualParticipantIds = selected.flatMap(({ participant }) => participant?.individualParticipantIds);
         const { participants } = tournamentEngine.getParticipants({
-          participantFilters: { participantIds: individualParticipantIds }
+          participantFilters: { participantIds: individualParticipantIds },
         });
         const entries = participants.map((participant) =>
           mapEntry({
             entry: { participantId: participant.participantId, entryStatus: UNGROUPED },
             eventType: DOUBLES,
-            participant
-          })
+            participant,
+          }),
         );
         context.tables[UNGROUPED].updateOrAddData(entries);
       } else {
@@ -44,7 +44,7 @@ export const destroySelected = (eventId, drawId) => (table) => {
       removeGroupParticipant: true,
       participantIds,
       eventId,
-      drawId
+      drawId,
     };
 
     mutationRequest({ methods: [{ method: DESTROY_PAIR_ENTRIES, params }], callback: postMutation });
@@ -53,6 +53,6 @@ export const destroySelected = (eventId, drawId) => (table) => {
     onClick: () => destroyPairs(table),
     label: 'Destroy pairs',
     intent: 'is-danger',
-    location: OVERLAY
+    location: OVERLAY,
   };
 };
