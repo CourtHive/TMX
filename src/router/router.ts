@@ -1,9 +1,9 @@
 import { registrationModal } from 'components/modals/registrationModal';
-import { displayTournament } from 'pgs/Tournament/tournamentDisplay';
-import { tmxTournaments } from 'pgs/Tournaments/tournaments';
+import { displayTournament } from 'pages/tournament/tournamentDisplay';
+import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
-import { destroyTables } from 'pgs/Tournament/destroyTable';
-import { renderCalendar } from 'pgs/Tournaments/calendar';
+import { destroyTables } from 'pages/tournament/destroyTable';
+import { renderCalendar } from 'pages/tournaments/calendar';
 import { context } from 'services/context';
 import { coms } from 'services/coms';
 import Navigo from 'navigo';

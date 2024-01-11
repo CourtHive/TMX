@@ -1,4 +1,4 @@
-import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { updateConflicts } from '../scheduleTable/updateConflicts';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

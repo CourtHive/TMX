@@ -1,4 +1,4 @@
-import { tournamentContent } from 'pgs/Tournament/Container/tournamentContent';
+import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';

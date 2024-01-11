@@ -1,7 +1,7 @@
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { findAncestor, getParent } from 'services/dom/parentAndChild';
-import { mapEntry } from 'pgs/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
