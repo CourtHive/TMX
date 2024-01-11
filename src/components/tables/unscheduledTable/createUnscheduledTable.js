@@ -1,9 +1,9 @@
 import { competitionEngine, factoryConstants, eventConstants } from 'tods-competition-factory';
-import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { matchUpDragStart } from '../scheduleTable/matchUpDragStart';
 import { getUnscheduledColumns } from './getUnscheduledColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTable } from 'pgs/Tournament/destroyTable';
+import { destroyTable } from 'pages/tournament/destroyTable';
 import { matchUpReturn } from './matchUpReturn';
 
 import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';

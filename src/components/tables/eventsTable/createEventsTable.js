@@ -1,8 +1,8 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { mapEvent } from 'pgs/Tournament/Tabs/eventsTab/mapEvent';
+import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pgs/Tournament/destroyTable';
+import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { eventRowFormatter } from './eventRowFormatter';
