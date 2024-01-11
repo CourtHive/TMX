@@ -1,9 +1,9 @@
 import { competitionEngine, factoryConstants, eventConstants } from 'tods-competition-factory';
-import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { matchUpDragStart } from '../scheduleTable/matchUpDragStart';
 import { getUnscheduledColumns } from './getUnscheduledColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { matchUpReturn } from './matchUpReturn';
 
 import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
@@ -30,15 +30,15 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
         .allCompetitionMatchUps({
           matchUpFilters: {
             matchUpStatuses: factoryConstants.upcomingMatchUpStatuses,
-            matchUpTypes: [SINGLES, DOUBLES]
+            matchUpTypes: [SINGLES, DOUBLES],
           },
-          nextMatchUps: true
+          nextMatchUps: true,
         })
         .matchUps?.filter((m) => !m.schedule?.courtId && !m.sides?.some(({ bye }) => bye)) || [];
 
     const filterDate = specifiedDate || scheduledDate;
     unscheduledMatchUps = matchUpsWithNoCourt.filter(
-      (m) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === filterDate
+      (m) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === filterDate,
     );
 
     const rowMatchUps = unscheduledMatchUps.map(mapMatchUp);
@@ -71,7 +71,7 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
     index: 'matchUpId',
     data: rowMatchUps,
     height: 250,
-    columns
+    columns,
   });
 
   table.on('tableBuilt', () => {

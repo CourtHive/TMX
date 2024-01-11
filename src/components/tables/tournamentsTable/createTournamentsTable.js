@@ -1,10 +1,10 @@
-import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
-import { calendarControls } from 'pages/Tournaments/tournamentsControls';
+import { mapTournamentRecord } from 'pgs/Tournaments/mapTournamentRecord';
+import { calendarControls } from 'pgs/Tournaments/tournamentsControls';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getTournamentColumns } from './getTournamentColumn';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { tmx2db } from 'services/storage/tmx2db';
 
 import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
@@ -38,7 +38,7 @@ export function createTournamentsTable() {
       headerVisible: false,
       reactiveData: true,
       data: tableData,
-      columns
+      columns,
     });
 
     table.on('scrollVertical', destroyTipster);

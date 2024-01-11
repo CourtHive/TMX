@@ -1,11 +1,11 @@
 import { tournamentEngine, participantConstants, participantRoles } from 'tods-competition-factory';
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
-import { mapParticipant } from 'pages/Tournament/Tabs/participantTab/mapParticipant';
+import { mapParticipant } from 'pgs/Tournament/Tabs/participantTab/mapParticipant';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { getParticipantColumns } from './getParticipantColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
@@ -24,7 +24,7 @@ export function createParticipantsTable({ view } = {}) {
       withScaleValues: true,
       participantFilters,
       withEvents: true,
-      withISO2: true
+      withISO2: true,
     });
     ({ participants, derivedEventInfo } = result);
 
@@ -56,7 +56,7 @@ export function createParticipantsTable({ view } = {}) {
         'teams',
         'cityState',
         'ratings.wtn.wtnRating',
-        'ratings.utr.utrRating'
+        'ratings.utr.utrRating',
       ]),
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
@@ -67,7 +67,7 @@ export function createParticipantsTable({ view } = {}) {
       layout: 'fitColumns',
       reactiveData: true,
       columns,
-      data
+      data,
     });
 
     table.on('dataChanged', (rows) => {

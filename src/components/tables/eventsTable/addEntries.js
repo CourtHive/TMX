@@ -1,7 +1,7 @@
 import { positionActionConstants, tournamentEngine } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { mapEntry } from 'pages/Tournament/Tabs/eventsTab/mapEntry';
+import { mapEntry } from 'pgs/Tournament/Tabs/eventsTab/mapEntry';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
@@ -28,8 +28,8 @@ export const addEntries = (event, group) => (table) => {
       const methods = [
         {
           params: { eventId, participantIds, entryStatus, entryStage },
-          method: ADD_EVENT_ENTRIES
-        }
+          method: ADD_EVENT_ENTRIES,
+        },
       ];
 
       const postMutation = (result) => {
@@ -38,7 +38,7 @@ export const addEntries = (event, group) => (table) => {
             participantFilters: { participantIds },
             withIndividualParticipants: true,
             withScaleValues: true,
-            withDraws: true
+            withDraws: true,
           });
 
           const newEntries = participantIds.map((participantId) =>
@@ -47,8 +47,8 @@ export const addEntries = (event, group) => (table) => {
               derivedDrawInfo,
               participants,
               eventType,
-              eventId
-            })
+              eventId,
+            }),
           );
 
           table.addRow(newEntries);
@@ -59,7 +59,7 @@ export const addEntries = (event, group) => (table) => {
 
     const action = {
       type: ASSIGN_PARTICIPANT,
-      participantsAvailable
+      participantsAvailable,
     };
 
     selectParticipant({
@@ -67,7 +67,7 @@ export const addEntries = (event, group) => (table) => {
       activeOnEnter: true,
       selectionLimit: 99,
       onSelection,
-      action
+      action,
     });
   };
 
@@ -75,6 +75,6 @@ export const addEntries = (event, group) => (table) => {
     label: 'Add entries',
     class: 'addEntries',
     location: RIGHT,
-    onClick
+    onClick,
   };
 };

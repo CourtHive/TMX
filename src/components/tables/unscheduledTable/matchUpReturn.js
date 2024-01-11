@@ -1,4 +1,4 @@
-import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { updateConflicts } from '../scheduleTable/updateConflicts';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -29,8 +29,8 @@ export function matchUpReturn(ev, table) {
     schedule: {
       courtOrder,
       courtId,
-      venueId
-    }
+      venueId,
+    },
   };
   scheduleTable.updateData([sourceRow]);
 
@@ -48,9 +48,9 @@ export function matchUpReturn(ev, table) {
         tournamentId: sourceMatchUp.tournamentId,
         matchUpId: sourceMatchUp.matchUpId,
         schedule: updatedSourceSchedule,
-        drawId: sourceMatchUp.drawId
-      }
-    }
+        drawId: sourceMatchUp.drawId,
+      },
+    },
   ];
   const callback = (result) => !result.success && console.log({ result });
   mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });

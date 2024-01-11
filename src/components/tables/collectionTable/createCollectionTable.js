@@ -1,10 +1,10 @@
-import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pgs/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getCollectionColumns } from './getCollectionColumns';
 
 export function createCollectionTable({ matchUp, tableElement, collectionMatchUps }) {
   const data = collectionMatchUps.map((collectionMatchUp) =>
-    mapMatchUp({ ...collectionMatchUp, dualMatchUp: matchUp })
+    mapMatchUp({ ...collectionMatchUp, dualMatchUp: matchUp }),
   );
 
   const columns = getCollectionColumns({ matchUp });
@@ -17,7 +17,7 @@ export function createCollectionTable({ matchUp, tableElement, collectionMatchUp
     layout: 'fitColumns',
     index: 'matchUpId',
     columns,
-    data
+    data,
   });
 
   return { table };
