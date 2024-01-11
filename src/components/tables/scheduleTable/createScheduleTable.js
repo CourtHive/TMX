@@ -1,7 +1,7 @@
 import { competitionEngine, utilities } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { getScheduleColumns } from './getScheduleColumns';
 import { updateConflicts } from './updateConflicts';
 
@@ -18,7 +18,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
       withCourtGridRows: true,
       minCourtGridRows: 10,
       nextMatchUps: true,
-      matchUpFilters
+      matchUpFilters,
     });
     const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows, groupInfo } = result;
     const matchUps = dateMatchUps.concat(...completedMatchUps);
@@ -63,7 +63,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
     placeholder: 'No courts',
     index: 'rowId',
     data: rows,
-    columns
+    columns,
   });
 
   table.on('scrollVertical', destroyTipster);

@@ -1,10 +1,10 @@
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
-import { mapTeamParticipant } from 'pages/Tournament/Tabs/participantTab/mapTeamParticipant';
+import { mapTeamParticipant } from 'pgs/Tournament/Tabs/participantTab/mapTeamParticipant';
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pages/Tournament/destroyTable';
+import { destroyTable } from 'pgs/Tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { teamRowFormatter } from './teamRowFormatter';
 import { getGroupingsColumns } from './getGroupingsColumns';
@@ -22,7 +22,7 @@ export function createTeamsTable({ view } = {}) {
       withIndividualParticipants: true,
       withScaleValues: true,
       withEvents: true,
-      withISO2: true
+      withISO2: true,
     });
     ({ participants, derivedEventInfo } = result);
 
@@ -59,7 +59,7 @@ export function createTeamsTable({ view } = {}) {
       persistence: { filter: true, sort: true },
       persistenceID: 'trnyPtcpt',
       */
-      columns
+      columns,
     });
 
     table.on('dataChanged', (rows) => {

@@ -1,5 +1,5 @@
 import { positionActionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
-import { removeFromTeam } from 'pages/Tournament/Tabs/participantTab/controlBar/removeFromTeam';
+import { removeFromTeam } from 'pgs/Tournament/Tabs/participantTab/controlBar/removeFromTeam';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -69,12 +69,12 @@ export const teamRowFormatter = (row) => {
         headerSort: false,
         responsive: false,
         hozAlign: LEFT,
-        width: 5
+        width: 5,
       },
       { title: 'Order', headerSort: false, field: 'order', width: 70 },
       { title: 'Name', field: 'participantName', formatter: formatParticipant() },
-      { title: 'Gender', field: 'person.sex', width: 100 }
-    ]
+      { title: 'Gender', field: 'person.sex', width: 100 },
+    ],
   });
   ipTable.on('scrollVertical', destroyTipster);
   ipTable.on('rowMoved', (row) => {
@@ -84,8 +84,8 @@ export const teamRowFormatter = (row) => {
     const methods = [
       {
         params: { participant: { participantId: participant.participantId, individualParticipantIds } },
-        method: MODIFY_PARTICIPANT
-      }
+        method: MODIFY_PARTICIPANT,
+      },
     ];
     const postMutation = (result) => {
       if (result.success) {
@@ -115,20 +115,20 @@ export const teamRowFormatter = (row) => {
               method: ADD_INDIVIDUAL_PARTICIPANT_IDS,
               params: {
                 groupingParticipantId: participant.participantId,
-                individualParticipantIds
-              }
+                individualParticipantIds,
+              },
             },
             {
               params: {
-                participant: { participantId: participant.participantId, individualParticipantIds: newParticipantIds }
+                participant: { participantId: participant.participantId, individualParticipantIds: newParticipantIds },
               },
-              method: MODIFY_PARTICIPANT
-            }
+              method: MODIFY_PARTICIPANT,
+            },
           ];
           const postMutation = (result) => {
             if (result.success) {
               participant.individualParticipants = (participant.individualParticipants ?? []).concat(
-                individualParticipants
+                individualParticipants,
               );
               participant.membersCount = participant.individualParticipants.length;
               row.update(participant);
@@ -144,16 +144,16 @@ export const teamRowFormatter = (row) => {
     const existingParticipantIds = participant.individualParticipants?.map(xa('participantId')) || [];
     const { participants } = tournamentEngine.getParticipants({
       participantFilters: { participantTypes: ['INDIVIDUAL'] },
-      withISO2: true
+      withISO2: true,
     });
 
     const participantsAvailable = participants.filter(
-      ({ participantId }) => !existingParticipantIds.includes(participantId)
+      ({ participantId }) => !existingParticipantIds.includes(participantId),
     );
 
     const action = {
       type: ASSIGN_PARTICIPANT,
-      participantsAvailable
+      participantsAvailable,
     };
 
     selectParticipant({
@@ -161,7 +161,7 @@ export const teamRowFormatter = (row) => {
       activeOnEnter: true,
       selectionLimit: 99,
       onSelection,
-      action
+      action,
     });
   };
 
@@ -171,14 +171,14 @@ export const teamRowFormatter = (row) => {
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: addIndividualParticipants,
       label: 'Add players',
       intent: 'is-primary',
-      location: RIGHT
-    }
+      location: RIGHT,
+    },
   ];
 
   controlBar({ table: ipTable, target: controlEl, items });

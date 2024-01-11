@@ -1,9 +1,9 @@
 import { registrationModal } from 'components/modals/registrationModal';
-import { displayTournament } from 'pages/Tournament/tournamentDisplay';
-import { tmxTournaments } from 'pages/Tournaments/tournaments';
+import { displayTournament } from 'pgs/Tournament/tournamentDisplay';
+import { tmxTournaments } from 'pgs/Tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
-import { destroyTables } from 'pages/Tournament/destroyTable';
-import { renderCalendar } from 'pages/Tournaments/calendar';
+import { destroyTables } from 'pgs/Tournament/destroyTable';
+import { renderCalendar } from 'pgs/Tournaments/calendar';
 import { context } from 'services/context';
 import { coms } from 'services/coms';
 import Navigo from 'navigo';
@@ -18,7 +18,7 @@ import {
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE_TAB,
-  INVITE
+  INVITE,
 } from 'constants/tmxConstants';
 
 export function routeTMX() {

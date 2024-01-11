@@ -2,7 +2,7 @@ import { getLoginState } from 'services/authentication/loginState';
 // import { displayAuthOptions } from 'components/menus/authOptions';
 import { tournamentEngine } from 'tods-competition-factory';
 import { mainMenu } from 'components/menus/mainMenu';
-import { authDisplay /*, keyIcon*/ } from '../../pages/Tournament/authDisplay';
+import { authDisplay /*, keyIcon*/ } from '../../pgs/Tournament/authDisplay';
 import { context } from 'services/context';
 
 import { RIGHT } from 'constants/tmxConstants';
@@ -27,7 +27,7 @@ export function tournamentHeader() {
         title: state?.provider?.providerName || 'TMX',
         content: mainMenu,
         width: '200px',
-        side: RIGHT
+        side: RIGHT,
       });
     };
   }

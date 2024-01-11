@@ -1,4 +1,4 @@
-import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pgs/Tournaments/mapTournamentRecord';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { convertTMX2TODS } from 'tods-tmx-classic-converter';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -31,7 +31,7 @@ export function importTournaments(table) {
           console.log(result);
         }
       }
-    }
+    },
   });
 }
 
@@ -93,7 +93,7 @@ export function createProvider({ providerId = 'tmxDefault', tournamentRecord }) 
   } else {
     const provider = {
       calendar: [mapTournamentRecord(tournamentRecord)],
-      providerId
+      providerId,
     };
     addOrUpdateProvider({ provider, tournamentRecord });
   }

@@ -6,7 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
-import { destroyTables } from 'pages/Tournament/destroyTable';
+import { destroyTables } from 'pgs/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
 import { getAdHocActions } from '../actions/adHocActions';
@@ -41,7 +41,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     eventData = tournamentEngine.getEventData({
       participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true, withGroupings: true },
       includePositionAssignments: true,
-      eventId
+      eventId,
     })?.eventData;
     eventType = eventData?.eventInfo?.eventType;
     drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
@@ -72,7 +72,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   const eventHandlers = getEventHandlers({
     eventData,
     callback,
-    drawId
+    drawId,
   });
   const composition =
     compositions?.[compositionName] ||
@@ -106,7 +106,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const playoffPositioning = () => {
         const method = {
           params: { structureId: structure.sourceStructureIds[0], drawId },
-          method: AUTOMATED_PLAYOFF_POSITIONING
+          method: AUTOMATED_PLAYOFF_POSITIONING,
         };
         const postMutation = (result) => {
           if (result.success) {
@@ -125,8 +125,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
           visible: !hasAssignedPositions,
           onClick: playoffPositioning,
           label: 'Auto position',
-          location: RIGHT
-        }
+          location: RIGHT,
+        },
       ];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
@@ -136,7 +136,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const roundRobinStats = {
         onClick: () => console.log('boo'),
         label: 'View stats', // also toggle between finishing positions and matches
-        location: RIGHT
+        location: RIGHT,
       };
 
       const drawControlItems = [roundRobinStats];
@@ -156,7 +156,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
       structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }) => {
         const hasParticipant = sides?.some(({ participant }) =>
-          participant?.participantName.toLowerCase().includes(participantFilter)
+          participant?.participantName.toLowerCase().includes(participantFilter),
         );
         return hasParticipant || !participantFilter;
       });
@@ -182,9 +182,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
           eventHandlers,
           composition,
           // finalColumn,
-          structure
+          structure,
         }),
-        theme: composition.theme
+        theme: composition.theme,
       });
 
       const getTMXp = (node) => {
@@ -239,7 +239,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
               }
             }
             parentNode.appendChild(childNode);
-          }
+          },
         });
       } else {
         drawsView.appendChild(content);
@@ -258,7 +258,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       structureId,
       eventData,
       drawData,
-      drawId
+      drawId,
     });
     const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
     const drawsOptions = getDrawsOptions({ eventData, drawId });
@@ -292,33 +292,33 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         clearSearch: () => updateParticipantFilter(''),
         placeholder: 'Participant name',
         location: LEFT,
-        search: true
+        search: true,
       },
       {
         options: eventOptions.length > 1 ? eventOptions : undefined,
         label: eventData.eventInfo.eventName,
         modifyLabel: true,
-        location: LEFT
+        location: LEFT,
       },
       {
         options: drawsOptions.length > 1 ? drawsOptions : undefined,
         label: drawData.drawName,
         modifyLabel: true,
-        location: LEFT
+        location: LEFT,
       },
       {
         options: structureOptions.length > 1 ? structureOptions : undefined,
         label: structureName,
         modifyLabel: true,
-        location: LEFT
+        location: LEFT,
       },
       {
         options: actionOptions,
         intent: 'is-info',
         label: 'Actions',
         location: RIGHT,
-        align: RIGHT
-      }
+        align: RIGHT,
+      },
     ];
 
     controlBar({ target: eventControlElement, items });
