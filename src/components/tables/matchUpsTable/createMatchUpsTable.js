@@ -1,7 +1,7 @@
-import { mapMatchUp } from 'Pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
+import { mapMatchUp } from 'pages/Tournament/Tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { destroyTable } from 'pages/Tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';

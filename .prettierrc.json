@@ -1,6 +1,6 @@
 {
   "bracketSpacing": true,
-  "trailingComma": "none",
+  "trailingComma": "all",
   "singleQuote": true,
   "endOfLine": "auto",
   "printWidth": 120,

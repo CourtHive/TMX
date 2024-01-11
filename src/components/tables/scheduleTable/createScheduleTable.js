@@ -1,7 +1,7 @@
 import { competitionEngine, utilities } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { destroyTable } from 'pages/Tournament/destroyTable';
 import { getScheduleColumns } from './getScheduleColumns';
 import { updateConflicts } from './updateConflicts';
 

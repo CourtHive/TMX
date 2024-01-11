@@ -1,9 +1,9 @@
-import { formatParticipantTab } from 'Pages/Tournament/Tabs/participantTab/participantsTab';
+import { formatParticipantTab } from 'pages/Tournament/Tabs/participantTab/participantsTab';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
-import { renderScheduleTab } from 'Pages/Tournament/Tabs/scheduleTab/scheduleTab';
-import { renderMatchUpTab } from 'Pages/Tournament/Tabs/matchUpsTab/matchUpsTab';
-import { renderVenueTab } from 'Pages/Tournament/Tabs/scheduleTab/venuesTab';
-import { renderEventsTab } from 'Pages/Tournament/Tabs/eventsTab/eventsTab';
+import { renderScheduleTab } from 'pages/Tournament/Tabs/scheduleTab/scheduleTab';
+import { renderMatchUpTab } from 'pages/Tournament/Tabs/matchUpsTab/matchUpsTab';
+import { renderVenueTab } from 'pages/Tournament/Tabs/scheduleTab/venuesTab';
+import { renderEventsTab } from 'pages/Tournament/Tabs/eventsTab/eventsTab';
 import { renderOverview } from './Tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';

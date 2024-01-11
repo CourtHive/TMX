@@ -40,7 +40,7 @@ export function rootBlock() {
       <div class="drawer__overlay" data-drawer-close tabIndex="-1"></div>
       <div class="drawer__wrapper">
         <div class="drawer__header">
-          <div class="drawer__title">Title</div>
+          <div class="drawer__title"></div>
           <button
             class="drawer__close"
             style='display: none;'}
