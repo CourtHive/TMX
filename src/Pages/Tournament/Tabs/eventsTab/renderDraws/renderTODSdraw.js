@@ -6,7 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
-import { destroyTables } from 'Pages/Tournament/destroyTable';
+import { destroyTables } from 'pages/Tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
 import { getAdHocActions } from '../actions/adHocActions';

@@ -1,4 +1,4 @@
-import { mapTournamentRecord } from 'Pages/Tournaments/mapTournamentRecord';
+import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
 import { isFunction } from 'functions/typeOf';
 import { tmx2db } from './tmx2db';

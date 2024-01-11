@@ -1,7 +1,7 @@
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addTournament';
-import { loadTournament } from 'Pages/Tournament/tournamentDisplay';
+import { loadTournament } from 'pages/Tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';

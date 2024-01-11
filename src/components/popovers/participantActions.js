@@ -1,5 +1,5 @@
-import { editPlayer } from 'Pages/Tournament/Tabs/participantTab/editPlayer';
-import { deleteParticipants } from 'Pages/Tournament/Tabs/participantTab/deleteParticipants';
+import { editPlayer } from 'pages/Tournament/Tabs/participantTab/editPlayer';
+import { deleteParticipants } from 'pages/Tournament/Tabs/participantTab/deleteParticipants';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';

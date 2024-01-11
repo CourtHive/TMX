@@ -1,10 +1,10 @@
-import { mapTournamentRecord } from 'Pages/Tournaments/mapTournamentRecord';
-import { calendarControls } from 'Pages/Tournaments/tournamentsControls';
+import { mapTournamentRecord } from 'pages/Tournaments/mapTournamentRecord';
+import { calendarControls } from 'pages/Tournaments/tournamentsControls';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getTournamentColumns } from './getTournamentColumn';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { destroyTable } from 'pages/Tournament/destroyTable';
 import { tmx2db } from 'services/storage/tmx2db';
 
 import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';

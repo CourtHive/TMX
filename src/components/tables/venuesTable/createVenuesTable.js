@@ -1,9 +1,9 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { mapVenue } from 'Pages/Tournament/Tabs/venuesTab/mapVenue';
+import { mapVenue } from 'pages/Tournament/Tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { competitionEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'Pages/Tournament/destroyTable';
+import { destroyTable } from 'pages/Tournament/destroyTable';
 import { venueRowFormatter } from './venueRowFormatter';
 import { getVenuesColumns } from './getVenueColumns';
 

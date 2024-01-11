@@ -1,2 +1,2 @@
 #!/bin/bash
-sed -i -- "s/@VERSION@/$1/g" build/static/js/*.js
+sed -i -- "s/@VERSION@/$1/g" dist/assets/*.js
