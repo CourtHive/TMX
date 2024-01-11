@@ -6,13 +6,13 @@ import inquirer from 'inquirer';
 import yargs from 'yargs';
 
 const localServerUrl = 'http://localhost:3123';
-const developmentEnvPath = './env/.env.development';
-const localEnvPath = './env/.env.local';
+const developmentEnvPath = '.env.development';
+const localEnvPath = '.env.local';
 
 const fileExists = (path) =>
   stat(path).then(
     () => true,
-    () => false
+    () => false,
   );
 const args = yargs(hideBin(process.argv)).argv;
 
@@ -21,7 +21,7 @@ if (args.check && localEnvFileExists) process.exit(0);
 
 const base = {
   ...((await fileExists(developmentEnvPath)) && parse(await readFile(developmentEnvPath))),
-  ...(localEnvFileExists && parse(await readFile(localEnvFilePath)))
+  ...(localEnvFileExists && parse(await readFile(localEnvFilePath))),
 };
 
 const { environment } = {
@@ -36,14 +36,14 @@ const { environment } = {
           { name: 'Standalone', value: 'standalone' },
           { name: 'Local', value: 'local' },
           { name: 'Documentation', value: 'documentation' },
-          { name: 'courthive', value: 'courthive' }
+          { name: 'courthive', value: 'courthive' },
         ],
         default: 'local',
         describe: 'Environment',
-        demandOption: true
-      }
-    ].filter((v) => !args[v.name])
-  ))
+        demandOption: true,
+      },
+    ].filter((v) => !args[v.name]),
+  )),
 };
 
 const { server } =
@@ -56,17 +56,17 @@ const { server } =
         default: localServerUrl,
         describe: 'Server',
         // validate: (v) => v.match(/^[a-z0-9]+$/i), // should return promise
-        demandOption: true
-      }
+        demandOption: true,
+      },
     ]))) ||
   {};
 
 const data = {
   ...base,
   ...(environment.toLowerCase() !== 'standalone' && {
-    SERVER: server
+    SERVER: server,
   }),
-  ENVIRONMENT: environment
+  ENVIRONMENT: environment,
 };
 
 await writeFile(localEnvPath, stringify(data));
