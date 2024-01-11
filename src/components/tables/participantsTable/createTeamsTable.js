@@ -1,10 +1,10 @@
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
-import { mapTeamParticipant } from 'pgs/Tournament/Tabs/participantTab/mapTeamParticipant';
+import { mapTeamParticipant } from 'pages/tournament/tabs/participantTab/mapTeamParticipant';
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pgs/Tournament/destroyTable';
+import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { teamRowFormatter } from './teamRowFormatter';
 import { getGroupingsColumns } from './getGroupingsColumns';

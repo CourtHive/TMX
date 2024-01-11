@@ -1,4 +1,4 @@
-import { displayTournament } from 'pgs/Tournament/tournamentDisplay';
+import { displayTournament } from 'pages/tournament/tournamentDisplay';
 import { openModal } from './baseModal/baseModal';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';

@@ -1,4 +1,4 @@
-import { deleteParticipants } from 'pgs/Tournament/Tabs/participantTab/deleteParticipants';
+import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { NONE } from 'constants/tmxConstants';
 
