@@ -2,7 +2,6 @@
   "compilerOptions": {
     "baseUrl": "src",
     "isolatedModules": true,
-    "jsx": "preserve",
     "lib": ["dom", "dom.iterable", "esnext"],
     "skipLibCheck": true,
     "strictNullChecks": false,
