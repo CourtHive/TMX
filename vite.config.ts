@@ -5,11 +5,11 @@ export default ({ mode }) => {
   // Load app-level env vars to node-level env vars.
   process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') };
 
-  const BASE_URL = process.env.BASE_URL ?? '.';
+  const BASE_URL = (process.env.BASE_URL && `/${process.env.BASE_URL}/`) || '.';
 
   return defineConfig({
-    base: `/${BASE_URL}/`,
     build: { sourcemap: true },
     plugins: [tsconfigPaths()],
+    base: BASE_URL,
   });
 };
