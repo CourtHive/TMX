@@ -58,7 +58,7 @@
     "@vitest/ui": "1.0.1",
     "assert": "2.0.0",
     "buffer": "6.0.3",
-    "c8": "8.0.1",
+    "c8": "9.1.0",
     "crypto-browserify": "3.12.0",
     "cz-git": "1.7.1",
     "dotenv": "16.3.1",
