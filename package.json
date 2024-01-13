@@ -54,8 +54,8 @@
     "@types/uuid": "3.4.13",
     "@typescript-eslint/eslint-plugin": "6.18.1",
     "@typescript-eslint/parser": "6.18.1",
-    "@vitest/coverage-v8": "1.0.1",
-    "@vitest/ui": "1.0.1",
+    "@vitest/coverage-v8": "1.2.0",
+    "@vitest/ui": "1.2.0",
     "assert": "2.0.0",
     "buffer": "6.0.3",
     "c8": "8.0.1",
@@ -83,7 +83,7 @@
     "vite": "5.0.8",
     "vitest-github-actions-reporter": "0.11.1",
     "vitest-sonar-reporter": "1.0.0",
-    "vitest": "1.0.1",
+    "vitest": "1.2.0",
     "yargs": "17.7.2"
   },
   "dependencies": {
