@@ -17,7 +17,7 @@ const defaults = {
   offsetRight: 0,
   offsetLeft: 0,
   offsetTop: 0,
-  opacity: 1
+  opacity: 1,
 };
 
 const generateStyle = (position, offsetTop, offsetBottom, offsetLeft, offsetRight) => {
@@ -81,7 +81,7 @@ function createToast(options) {
   const classes = ['notification'];
   if (typeof options.classList === 'string') classes.push(options.classList);
   if (options.type) classes.push(options.type);
-  if (options.animate && options.animate.in) {
+  if (options?.animate?.in) {
     const speed = options.animate.speed ? `animate__${options.animate.speed}` : 'animate__faster';
     const animation = `animate__${options.animate.in}`;
     classes.push(`animate__animated ${animation} ${speed}`);
@@ -122,7 +122,7 @@ function createToast(options) {
 
   function cleanUp(onClose) {
     if (isFunction(onClose)) onClose();
-    if (options.animate && options.animate.out) {
+    if (options?.animate?.out) {
       element.classList.add(`animate__${options.animate.out}`);
       endAnimation(() => {
         removeParent(element.parentNode);
@@ -147,7 +147,7 @@ function createToast(options) {
       WebkitAnimation: 'webkitAnimationEnd',
       MozAnimation: 'mozAnimationEnd',
       OAnimation: 'oAnimationEnd',
-      animation: 'animationend'
+      animation: 'animationend',
     };
 
     for (const t in animations) {
