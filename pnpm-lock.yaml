@@ -242,8 +242,8 @@ devDependencies:
     specifier: 3.2.0
     version: 3.2.0
   url:
-    specifier: 0.11.1
-    version: 0.11.1
+    specifier: 0.11.3
+    version: 0.11.3
   vite:
     specifier: 5.0.8
     version: 5.0.8(@types/node@20.11.0)
@@ -6155,8 +6155,8 @@ packages:
       punycode: 2.3.1
     dev: true
 
-  /url@0.11.1:
-    resolution: {integrity: sha512-rWS3H04/+mzzJkv0eZ7vEDGiQbgquI1fGfOad6zKvgYQi1SzMmhl7c/DdRGxhaWrVH6z0qWITo8rpnxK/RfEhA==}
+  /url@0.11.3:
+    resolution: {integrity: sha512-6hxOLGfZASQK/cijlZnZJTq8OXAkt/3YGfQX45vvMYXpZoo8NdWZcY73K108Jf759lS1Bv/8wXnHDTSz17dSRw==}
     dependencies:
       punycode: 1.4.1
       qs: 6.11.2
