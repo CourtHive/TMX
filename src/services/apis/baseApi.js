@@ -3,7 +3,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import axios from 'axios';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
-const baseURL = window.location.host;
+// const baseURL = window.location.host;
+const baseURL = 'http://localhost:8383';
 const axiosInstance = axios.create({ baseURL });
 
 axiosInstance.interceptors.request.use(
@@ -15,7 +16,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 axiosInstance.interceptors.response.use(
@@ -31,7 +32,7 @@ axiosInstance.interceptors.response.use(
       const message = error.response.data.message || error.response.data.error || error.response.data;
       tmxToast({ message, intent: 'is-danger' });
     }
-  }
+  },
 );
 
 const addAuthorization = () => {
@@ -46,5 +47,5 @@ const removeAuthorization = () => {
 export const baseApi = {
   ...axiosInstance,
   addAuthorization,
-  removeAuthorization
+  removeAuthorization,
 };
