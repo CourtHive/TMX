@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.23.7",
-    "@babel/plugin-syntax-flow": "7.14.5",
+    "@babel/plugin-syntax-flow": "7.23.3",
     "@babel/preset-typescript": "7.23.3",
     "@commitlint/cli": "18.4.4",
     "@commitlint/config-conventional": "18.4.4",
@@ -87,7 +87,7 @@
     "yargs": "17.7.2"
   },
   "dependencies": {
-    "@babel/plugin-transform-private-property-in-object": "7.22.11",
+    "@babel/plugin-transform-private-property-in-object": "7.23.4",
     "@event-calendar/core": "1.5.0",
     "@event-calendar/day-grid": "1.5.0",
     "@event-calendar/interaction": "1.5.0",
