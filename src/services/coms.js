@@ -1,5 +1,5 @@
 import { getLoginState } from 'services/authentication/loginState';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import * as safeJSON from 'utilities/safeJSON';
 import { receiveIdiomList } from './idiomFx';
 import { context } from 'services/context';
@@ -18,7 +18,7 @@ import {
   SEND_KEY,
   TMX_DIRECTIVE,
   TMX_ERROR,
-  TMX_MESSAGE
+  TMX_MESSAGE,
 } from 'constants/comsConstants';
 
 export const coms = (() => {
@@ -47,8 +47,8 @@ export const coms = (() => {
       'force new connection': true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 'Infinity',
-      timeout: 20000
-    }
+      timeout: 20000,
+    },
   };
 
   const getNavigator = () => {
@@ -133,7 +133,7 @@ export const coms = (() => {
         reconnectionDelay: 1000,
         reconnectionAttempts: 'Infinity',
         timeout: 20000,
-        path: `${chcsServerPath}/socket.io`
+        path: `${chcsServerPath}/socket.io`,
       };
 
       oi.socket = io.connect(URL, connectionOptions);
@@ -153,8 +153,8 @@ export const coms = (() => {
           fx.emitTmx({
             data: {
               payload: { providerId },
-              action: PROVIDER_CONFIG
-            }
+              action: PROVIDER_CONFIG,
+            },
           });
         }
       });
@@ -229,7 +229,7 @@ export const coms = (() => {
   fx.leaveTournament = (tuid) => {
     if (connected && tuid)
       fx.emitTmx({
-        data: { action: LEAVE_TOURNAMENT, payload: { tournamentId: tuid } }
+        data: { action: LEAVE_TOURNAMENT, payload: { tournamentId: tuid } },
       });
   };
   fx.joinTournament = ({ tuid }) => {
@@ -237,8 +237,8 @@ export const coms = (() => {
       fx.emitTmx({
         data: {
           payload: { tournamentId: tuid, authorized: true },
-          action: JOIN_TOURNAMENT
-        }
+          action: JOIN_TOURNAMENT,
+        },
       });
     }
     return connected;
@@ -258,7 +258,7 @@ export const coms = (() => {
     if (message) {
       context.modal.inform({
         title: lang.tr('phrases.servererror'),
-        message
+        message,
       });
     }
   }
@@ -274,7 +274,7 @@ export const coms = (() => {
     console.log({ connected }); // TODO: pass token
     if (connected) {
       if (ackCallback && typeof ackCallback === 'function') {
-        let ackId = utilities.UUID();
+        let ackId = tools.UUID();
         if (data.payload) Object.assign(data.payload, { ackId });
 
         fx.requestAcknowledgement({ ackId, callback: ackCallback });
@@ -285,14 +285,14 @@ export const coms = (() => {
           timestamp: new Date().getTime(),
           version: env.version,
           providerId,
-          userId
+          userId,
         });
       } else {
         Object.assign(data, {
           timestamp: new Date().getTime(),
           version: env.version,
           providerId,
-          userId
+          userId,
         });
       }
 

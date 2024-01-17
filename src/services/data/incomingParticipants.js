@@ -1,4 +1,4 @@
-import { tournamentEngine, utilities, fixtures } from 'tods-competition-factory';
+import { tournamentEngine, tools, fixtures } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
@@ -16,8 +16,8 @@ const modelParticipant = {
     standardGivenName: ['first', 'First Name', 'first_name'],
     nationalityCode: ['ioc', 'country', 'nationality'],
     birthDate: ['*birth'],
-    sex: ['gender', 'sex']
-  }
+    sex: ['gender', 'sex'],
+  },
 };
 
 export function incomingParticipants({ data, sheetId, callback }) {
@@ -99,7 +99,7 @@ export function incomingParticipants({ data, sheetId, callback }) {
       if (!participant.timeItems) participant.timeItems = [];
       const timeItem = {
         itemType: 'SCALE.RATING.SINGLES.UTR',
-        itemValue: { utrRating: utr }
+        itemValue: { utrRating: utr },
       };
       participant.timeItems.push(timeItem);
     }
@@ -108,7 +108,7 @@ export function incomingParticipants({ data, sheetId, callback }) {
       if (!participant.timeItems) participant.timeItems = [];
       const timeItem = {
         itemType: 'SCALE.RATING.SINGLES.WTN',
-        itemValue: { wtnRating: wtn }
+        itemValue: { wtnRating: wtn },
       };
       participant.timeItems.push(timeItem);
     }
@@ -118,7 +118,7 @@ export function incomingParticipants({ data, sheetId, callback }) {
 
     const participantExists = participantIds.includes(participant.participantId);
     if (!participantExists) {
-      participants.push(utilities.definedAttributes(participant));
+      participants.push(tools.definedAttributes(participant));
     }
 
     /*
@@ -133,14 +133,14 @@ export function incomingParticipants({ data, sheetId, callback }) {
     const methods = [
       {
         method: ADD_PARTICIPANTS,
-        params: { participants }
+        params: { participants },
       },
       {
         method: ADD_TOURNAMENT_EXTENSION,
         params: {
-          extension: { name: REGISTRATION, value: sheetId }
-        }
-      }
+          extension: { name: REGISTRATION, value: sheetId },
+        },
+      },
     ];
 
     const postMutation = (result) => {

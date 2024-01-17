@@ -1,4 +1,4 @@
-import { matchUpFormatCode, utilities } from 'tods-competition-factory';
+import { matchUpFormatCode, tools } from 'tods-competition-factory';
 import { eventManager } from 'services/dom/events/eventManager';
 import { getParent } from 'services/dom/parentAndChild';
 import completedMatch from 'assets/icons/completed.png';
@@ -36,7 +36,7 @@ function visibilityToggle({ elem, type, duration = 800, height = 80, visible }) 
 export const scoreBoard = (function () {
   let fx = {
     numericFx: undefined,
-    enterFx: undefined
+    enterFx: undefined,
   };
 
   document.addEventListener('keyup', (evt) => {
@@ -73,7 +73,7 @@ export const scoreBoard = (function () {
     bestof: [1, 3, 5],
     setsto: [4, 6, 8],
     tiebreaksto: [5, 7, 12],
-    supertiebreakto: [7, 10, 21]
+    supertiebreakto: [7, 10, 21],
   };
 
   fx.options = (values) => {
@@ -91,7 +91,7 @@ export const scoreBoard = (function () {
     round_name,
     matchFormat,
     existing_scores,
-    auto_score = true
+    auto_score = true,
   }) => {
     settings.auto_score = auto_score;
 
@@ -148,7 +148,7 @@ export const scoreBoard = (function () {
         elem: sobj.actions.element,
         type: 'edit',
         height: 50,
-        visible
+        visible,
       });
       sobj.scoring.element.style.display = action_drawer || lock ? 'none' : 'inline';
       sobj.edit_scoring.element.style.display = action_drawer ? 'none' : 'inline';
@@ -309,24 +309,24 @@ export const scoreBoard = (function () {
         setFormat: {
           setTo: games_for_set,
           tiebreakAt: tiebreaks_at,
-          tiebreakFormat: { tiebreakTo: tiebreak_to }
-        }
+          tiebreakFormat: { tiebreakTo: tiebreak_to },
+        },
       };
       if (final_set_supertiebreak) {
         match_format_object.finalSetFormat = {
-          tiebreakSet: { tiebreakTo: supertiebreak_to }
+          tiebreakSet: { tiebreakTo: supertiebreak_to },
         };
       }
       const matchUpFormat = matchUpFormatCode.stringify(match_format_object);
       if (outcome) {
         const sets = set_scores.map((ss, i) =>
-          utilities.definedAttributes({
+          tools.definedAttributes({
             side1TiebreakScore: ss[0].supertiebreak,
             side2TiebreakScore: ss[1].supertiebreak,
             side1score: ss[0].games,
             side2score: ss[1].games,
-            setNumber: i + 1
-          })
+            setNumber: i + 1,
+          }),
         );
         outcome.sets = sets;
         outcome.set_scores = set_scores;
@@ -375,7 +375,7 @@ export const scoreBoard = (function () {
           type: 'edit',
           height: 100,
           visible,
-          duration
+          duration,
         });
         if (visible) {
           // make overflow visible after toggle transition has completed
@@ -389,7 +389,7 @@ export const scoreBoard = (function () {
     function configureScoreSelectors() {
       let options = [{ key: '-', value: '' }];
       let upper_range = games_for_set === tiebreaks_at ? games_for_set + 2 : games_for_set + 1;
-      utilities.generateRange(0, upper_range).forEach((n) => options.push({ key: n, value: n }));
+      tools.generateRange(0, upper_range).forEach((n) => options.push({ key: n, value: n }));
 
       let scoreChange1 = (value) => scoreChange(0, value);
       let scoreChange2 = (value) => scoreChange(1, value);
@@ -399,13 +399,13 @@ export const scoreBoard = (function () {
         element: sobj.p1selector.element,
         onChange: scoreChange1,
         id: sobj.p1selector.id,
-        value_attribute: false
+        value_attribute: false,
       });
       sobj.p2selector.ddlb = new dd.DropDown({
         element: sobj.p2selector.element,
         onChange: scoreChange2,
         id: sobj.p2selector.id,
-        value_attribute: false
+        value_attribute: false,
       });
       if (lock) {
         sobj.p1selector.ddlb.lock();
@@ -463,8 +463,8 @@ export const scoreBoard = (function () {
         { key: 'LIVE', value: 'live' },
         {
           key: `<div class='link'><img src='${completedMatch}' class='completed_icon'></div>`,
-          value: 'winner'
-        }
+          value: 'winner',
+        },
       ];
       let outcomeChange1 = (value) => outcomeChange(0, value);
       let outcomeChange2 = (value) => outcomeChange(1, value);
@@ -472,23 +472,23 @@ export const scoreBoard = (function () {
         id: sobj.p1action.id,
         options: actions,
         border: false,
-        floatleft: true
+        floatleft: true,
       });
       dd.attachDropDown({
         id: sobj.p2action.id,
         options: actions,
         border: false,
-        floatleft: true
+        floatleft: true,
       });
       sobj.p1action.ddlb = new dd.DropDown({
         element: sobj.p1action.element,
         onChange: outcomeChange1,
-        id: sobj.p1action.id
+        id: sobj.p1action.id,
       });
       sobj.p2action.ddlb = new dd.DropDown({
         element: sobj.p2action.element,
         onChange: outcomeChange2,
-        id: sobj.p2action.id
+        id: sobj.p2action.id,
       });
       if (lock) {
         sobj.p1action.ddlb.lock();
@@ -978,7 +978,7 @@ export const scoreBoard = (function () {
         matchUpStatus,
         winningSide,
         complete,
-        score
+        score,
       };
     }
 
@@ -1094,23 +1094,23 @@ export const scoreBoard = (function () {
     function configureScoring({ sobj, changeFx }) {
       dd.attachDropDown({
         id: sobj.bestof.id,
-        options: numericOptions(options.bestof)
+        options: numericOptions(options.bestof),
       });
       sobj.bestof.ddlb = new dd.DropDown({
         element: sobj.bestof.element,
         id: sobj.bestof.id,
-        onChange: setBestOf
+        onChange: setBestOf,
       });
       sobj.bestof.ddlb.setValue(max_sets, 'white');
 
       dd.attachDropDown({
         id: sobj.setsto.id,
-        options: numericOptions(options.setsto)
+        options: numericOptions(options.setsto),
       });
       sobj.setsto.ddlb = new dd.DropDown({
         element: sobj.setsto.element,
         id: sobj.setsto.id,
-        onChange: setsTo
+        onChange: setsTo,
       });
       sobj.setsto.ddlb.setValue(games_for_set, 'white');
 
@@ -1118,24 +1118,24 @@ export const scoreBoard = (function () {
       let tbat_options = tiebreakAtOptions(gfs);
       dd.attachDropDown({
         id: sobj.tiebreaksat.id,
-        options: tbat_options
+        options: tbat_options,
       });
       sobj.tiebreaksat.ddlb = new dd.DropDown({
         element: sobj.tiebreaksat.element,
         id: sobj.tiebreaksat.id,
-        onChange: setTiebreakAt
+        onChange: setTiebreakAt,
       });
       sobj.tiebreaksat.ddlb.setValue(tiebreaks_at && tiebreaks_at < gfs ? tiebreaks_at : gfs, 'white');
       sobj.tiebreaksat.ddlb.setValue(tiebreaks_at || '', 'white');
 
       dd.attachDropDown({
         id: sobj.tiebreaksto.id,
-        options: numericOptions(options.tiebreaksto)
+        options: numericOptions(options.tiebreaksto),
       });
       sobj.tiebreaksto.ddlb = new dd.DropDown({
         element: sobj.tiebreaksto.element,
         id: sobj.tiebreaksto.id,
-        onChange: setTiebreakTo
+        onChange: setTiebreakTo,
       });
       sobj.tiebreaksto.ddlb.setValue(tiebreak_to, 'white');
 
@@ -1143,25 +1143,25 @@ export const scoreBoard = (function () {
         id: sobj.finalset.id,
         options: [
           { key: lang.tr('scoring.normal'), value: 'N' },
-          { key: lang.tr('scoring.supertiebreak'), value: 'S' }
-        ]
+          { key: lang.tr('scoring.supertiebreak'), value: 'S' },
+        ],
       });
       sobj.finalset.ddlb = new dd.DropDown({
         element: sobj.finalset.element,
         id: sobj.finalset.id,
-        onChange: finalSet
+        onChange: finalSet,
       });
       sobj.finalset.ddlb.selectionBackground();
       sobj.finalset.ddlb.setValue(final_set_supertiebreak ? 'S' : 'N', 'white');
 
       dd.attachDropDown({
         id: sobj.supertiebreakto.id,
-        options: numericOptions(options.supertiebreakto)
+        options: numericOptions(options.supertiebreakto),
       });
       sobj.supertiebreakto.ddlb = new dd.DropDown({
         element: sobj.supertiebreakto.element,
         id: sobj.supertiebreakto.id,
-        onChange: superTiebreakTo
+        onChange: superTiebreakTo,
       });
       sobj.supertiebreakto.ddlb.selectionBackground();
       sobj.supertiebreakto.ddlb.setValue(supertiebreak_to || 10, 'white');
@@ -1190,7 +1190,7 @@ export const scoreBoard = (function () {
         return [
           { key: lang.tr('none'), value: '' },
           { key: `${gfs - 1}-${gfs - 1}`, value: gfs - 1 },
-          { key: `${gfs}-${gfs}`, value: gfs }
+          { key: `${gfs}-${gfs}`, value: gfs },
         ];
       }
 

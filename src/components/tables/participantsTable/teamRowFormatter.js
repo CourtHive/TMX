@@ -1,5 +1,5 @@
-import { positionActionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
 import { removeFromTeam } from 'pages/tournament/tabs/participantTab/controlBar/removeFromTeam';
+import { positionActionConstants, tournamentEngine, tools } from 'tods-competition-factory';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -11,7 +11,7 @@ import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mu
 import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
-const xa = utilities.extractAttributes;
+const xa = tools.extractAttributes;
 
 export const teamRowFormatter = (row) => {
   const holderEl = document.createElement('div');

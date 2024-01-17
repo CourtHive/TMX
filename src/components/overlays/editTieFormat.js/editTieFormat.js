@@ -1,5 +1,5 @@
 import { createTieFormatTable } from 'components/tables/tieFormat/createTieFormatTable';
-import { utilities, tournamentEngine } from 'tods-competition-factory';
+import { tools, tournamentEngine } from 'tods-competition-factory';
 import { nameValidator } from 'components/validators/nameValidator';
 import { controlBar } from 'components/controlBar/controlBar';
 import { closeOverlay, openOverlay } from '../overlay';
@@ -23,7 +23,7 @@ export function editTieFormat({ title, tieFormat, onClose }) {
     const tieFormatName = inputs['tieFormatName'].value;
 
     const collectionDefinitions = rows.map((row) =>
-      utilities.definedAttributes({
+      tools.definedAttributes({
         collectionValue: row.awardType === COLLECTION_VALUE ? row.awardValue : undefined,
         matchUpValue: row.awardType === MATCH_VALUE ? row.awardValue : undefined,
         scoreValue: row.awardType === SCORE_VALUE ? row.awardValue : undefined,
@@ -34,8 +34,8 @@ export function editTieFormat({ title, tieFormat, onClose }) {
         matchUpFormat: row.matchUpFormat,
         gender: row.gender.toUpperCase(),
         collectionId: row.collectionId,
-        matchUpCount: row.matchUpCount
-      })
+        matchUpCount: row.matchUpCount,
+      }),
     );
 
     const winCriteria = tournamentEngine.calculateWinCriteria({ collectionDefinitions });
@@ -43,7 +43,7 @@ export function editTieFormat({ title, tieFormat, onClose }) {
     return {
       collectionDefinitions,
       tieFormatName,
-      winCriteria
+      winCriteria,
     };
   };
 
@@ -90,19 +90,19 @@ function renderEditor({ tieFormat }) {
       validator: nameValidator(5),
       field: 'tieFormatName',
       id: 'tieFormatName',
-      location: LEFT
+      location: LEFT,
     },
     {
       text: getWinCriteriaText(tieFormat),
       id: 'winCriteria',
-      location: LEFT
+      location: LEFT,
     },
     {
       onClick: deleteRows,
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: () => {
@@ -110,21 +110,21 @@ function renderEditor({ tieFormat }) {
 
         const newRow = {
           collectionName: `Collection ${rowCount + 1}`,
-          collectionId: utilities.UUID(),
+          collectionId: tools.UUID(),
           awardType: 'Match value', // collection value, set value, score value
           matchUpFormat: 'SET3-S:6/TB7',
           matchUpType: 'Singles',
           matchUpCount: 1,
           gender: 'Any',
-          awardValue: 1
+          awardValue: 1,
         };
 
         table.addRow(newRow);
       },
       label: 'Add collection',
       intent: 'is-info',
-      location: RIGHT
-    }
+      location: RIGHT,
+    },
   ];
 
   const { elements, inputs } = controlBar({ table, target: controlTarget, items });
