@@ -9,8 +9,8 @@ import {
   entryStatusConstants,
   factoryConstants,
   tournamentEngine,
-  utilities,
-  policyConstants
+  tools,
+  policyConstants,
 } from 'tods-competition-factory';
 
 import { ATTACH_QUALIFYING_STRUCTURE } from 'constants/mutationConstants';
@@ -28,7 +28,7 @@ import {
   POSITIONS,
   QUALIFIERS_COUNT,
   STRUCTURE_NAME,
-  TOP_FINISHERS
+  TOP_FINISHERS,
 } from 'constants/tmxConstants';
 
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
@@ -45,7 +45,7 @@ export function submitDrawParams({
   callback,
   inputs,
   drawId,
-  event
+  event,
 }) {
   const drawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
   matchUpFormat = matchUpFormat || inputs[MATCHUP_FORMAT]?.value;
@@ -56,19 +56,19 @@ export function submitDrawParams({
 
   const drawSizeValue = inputs[DRAW_SIZE].value || 0;
   const groupSize = parseInt(inputs[GROUP_SIZE].value);
-  const drawSizeInteger = utilities.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
+  const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
   const drawSize =
     ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
-    utilities.nextPowerOf2(drawSizeInteger);
+    tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
-    ({ entryStage, entryStatus }) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus)
+    ({ entryStage, entryStatus }) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
   );
   const drawEntries =
     isQualifying && qualifyingEntries.length
       ? qualifyingEntries
       : event.entries.filter(
           ({ entryStage, entryStatus }) =>
-            (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus)
+            (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
         );
 
   // default to Manual if the drawSize is less than the number of entries
@@ -79,7 +79,7 @@ export function submitDrawParams({
     drawEntries,
     automated,
     eventId,
-    drawId
+    drawId,
   };
 
   // ROUND_ROBIN_WITH_PLAYOFFS
@@ -91,22 +91,22 @@ export function submitDrawParams({
   if (drawType === ROUND_ROBIN_WITH_PLAYOFF) {
     const playoffGroups = [];
     if (playoffType === TOP_FINISHERS) {
-      const groups = [utilities.generateRange(1, advancePerGroup + 1)];
+      const groups = [tools.generateRange(1, advancePerGroup + 1)];
       if (groupRemaining) {
-        const group = utilities.generateRange(advancePerGroup + 1, groupSize + 1);
+        const group = tools.generateRange(advancePerGroup + 1, groupSize + 1);
         if (group.length) groups.push(group);
       }
       groups.forEach((finishingPositions, i) => {
         playoffGroups.push({
           structureName: `Playoff ${i + 1}`,
-          finishingPositions
+          finishingPositions,
         });
       });
     } else if (playoffType === POSITIONS) {
-      utilities.generateRange(1, groupSize + 1).forEach((c) => {
+      tools.generateRange(1, groupSize + 1).forEach((c) => {
         playoffGroups.push({
           structureName: `Playoff ${c}`,
-          finishingPositions: [c]
+          finishingPositions: [c],
         });
       });
     }
@@ -125,7 +125,7 @@ export function submitDrawParams({
   const seedsCount = tournamentEngine.getSeedsCount({
     participantsCount: drawEntries?.length,
     policyDefinitions: POLICY_SEEDING,
-    drawSizeProgression: true
+    drawSizeProgression: true,
   })?.seedsCount;
 
   const qualifiersCount =
@@ -143,7 +143,7 @@ export function submitDrawParams({
       automated,
       drawSize,
       drawType,
-      drawId
+      drawId,
     });
 
     if (generationResult.success) {
@@ -154,9 +154,9 @@ export function submitDrawParams({
             structure: generationResult.structure,
             link: generationResult.link,
             eventId,
-            drawId
-          }
-        }
+            drawId,
+          },
+        },
       ];
       const postMutation = (result) =>
         isFunction(callback) && callback({ ...generationResult, ...result.results?.[0] });
@@ -178,10 +178,10 @@ export function submitDrawParams({
             structureName,
             seedsCount,
             drawSize,
-            drawType
-          }
-        ]
-      }
+            drawType,
+          },
+        ],
+      },
     ];
   } else {
     if (qualifiersCount) {
@@ -195,7 +195,7 @@ export function submitDrawParams({
       seedsCount,
       drawName,
       drawSize,
-      drawType
+      drawType,
     });
   }
 
@@ -216,8 +216,8 @@ export function submitDrawParams({
           [POLICY_TYPE_ROUND_NAMING]: {
             namingConventions: { round: 'Day' },
             affixes: { roundNumber: 'D' },
-            policyName: 'TTPro 4 Day'
-          }
+            policyName: 'TTPro 4 Day',
+          },
         };
         drawOptions.policyDefinitions = { ...customRoundNamingPolicy };
       }
@@ -228,7 +228,7 @@ export function submitDrawParams({
     tmxToast({
       message: 'Invalid draw size',
       intent: 'is-warning',
-      pauseOnHover: true
+      pauseOnHover: true,
     });
   }
 }

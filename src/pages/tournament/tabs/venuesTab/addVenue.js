@@ -1,5 +1,5 @@
 import { getVenueFormValues, venueForm } from 'components/forms/venue';
-import { tournamentEngine, utilities } from 'tods-competition-factory';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
@@ -13,7 +13,7 @@ import { RIGHT } from 'constants/tmxConstants';
 const saveVenue = (callback) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
   const { venueName, venueAbbreviation, courtsCount } = values;
-  const venueId = utilities.UUID();
+  const venueId = tools.UUID();
   if (!venueName || !venueAbbreviation || !courtsCount) {
     tmxToast({ message: 'Invalid values', intent: 'is-danger' });
     return;
@@ -22,9 +22,9 @@ const saveVenue = (callback) => {
   const methods = [
     {
       params: { venue: { venueName, venueAbbreviation, venueId }, returnDetails: true },
-      method: ADD_VENUE
+      method: ADD_VENUE,
     },
-    { params: { courtsCount: parseInt(courtsCount), venueId, venueAbbreviationRoot: true }, method: ADD_COURTS }
+    { params: { courtsCount: parseInt(courtsCount), venueId, venueAbbreviationRoot: true }, method: ADD_COURTS },
   ];
 
   const postMutation = (result) => {
@@ -46,9 +46,9 @@ export function addVenue(callback) {
       elem,
       [
         { label: 'Cancel', close: true },
-        { label: 'Save', onClick: () => saveVenue(callback), close: true, intent: 'is-info' }
+        { label: 'Save', onClick: () => saveVenue(callback), close: true, intent: 'is-info' },
       ],
-      close
+      close,
     );
 
   context.drawer.open({
@@ -56,6 +56,6 @@ export function addVenue(callback) {
     width: '300px',
     side: RIGHT,
     content,
-    footer
+    footer,
   });
 }

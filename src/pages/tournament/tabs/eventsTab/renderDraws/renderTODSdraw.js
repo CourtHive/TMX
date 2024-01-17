@@ -1,4 +1,4 @@
-import { tournamentEngine, drawDefinitionConstants, eventConstants, utilities } from 'tods-competition-factory';
+import { tournamentEngine, drawDefinitionConstants, eventConstants, tools } from 'tods-competition-factory';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
@@ -48,7 +48,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     structures = drawData?.structures || [];
     structureId = structureId || structures?.[0]?.structureId;
     structure = structures.find((s) => s.structureId === structureId);
-    ({ roundMatchUps, stage } = utilities.makeDeepCopy(structure || {}));
+    ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
     matchUps = Object.values(roundMatchUps || {}).flat();
   };
 

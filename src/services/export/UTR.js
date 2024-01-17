@@ -1,4 +1,4 @@
-import { tournamentEngine, utilities } from 'tods-competition-factory';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { normalizeName, normalizeDiacritics } from 'normalize-text';
 import { downloadText } from './download';
 
@@ -25,8 +25,8 @@ export function downloadUTRmatches() {
       tournamentEventSource: 'CourtHive', // change this to providerName
       tournamentEventType: 'Tournament',
       ...tournamentInfo,
-      idType: 'UTR'
-    }
+      idType: 'UTR',
+    },
   });
 
   // modify matchUps to include winners and losers
@@ -40,7 +40,7 @@ export function downloadUTRmatches() {
       winnerScore,
       ...matchUp,
       winners,
-      losers
+      losers,
     };
   });
 
@@ -49,28 +49,28 @@ export function downloadUTRmatches() {
     columnTransform: {
       'Winner 1 Name': [
         'winners.participant.individualParticipants.0.participantName',
-        'winners.participant.participantName'
+        'winners.participant.participantName',
       ],
       'Winner 1 Third Party ID': [
         'winners.participant.individualParticipants.0.participantId',
-        'winners.participant.participantId'
+        'winners.participant.participantId',
       ],
       'Winner 1 City': [
         'winners.participant.individualParticipants.0.addresses.0.city',
-        'winners.participant.addresses.0.city'
+        'winners.participant.addresses.0.city',
       ],
       'Winner 1 State': [
         'winners.participant.individualParticipants.0.addresses.0.state',
-        'winners.participant.addresses.0.state'
+        'winners.participant.addresses.0.state',
       ],
       'Winner 1 Country': [
         'winners.participant.individualParticipants.0.addresses.0.nationalityCode',
-        'winners.participant.addresses.0nationalityCode'
+        'winners.participant.addresses.0nationalityCode',
       ],
       'Winner 1 Gender': ['winners.participant.individualParticipants.0.person.sex', 'winners.participant.person.sex'],
       'Winner 1 DOB': [
         'winners.participant.individualParticipants.0.person.birthDate',
-        'winners.participant.person.birthDate'
+        'winners.participant.person.birthDate',
       ],
       'Winner 2 Name': ['winner.participant.individualParticipants.1.participantName'],
       'Winner 2 City': ['winners.participant.individualParticipants.1.addresses.0.city'],
@@ -81,28 +81,28 @@ export function downloadUTRmatches() {
       'Winner 2 DOB': ['winners.participant.individualParticipants.1.person.birthDate'],
       'Loser 1 Name': [
         'losers.participant.individualParticipants.0.participantName',
-        'losers.participant.participantName'
+        'losers.participant.participantName',
       ],
       'Loser 1 City': [
         'losers.participant.individualParticipants.0.addresses.0.city',
-        'losers.participant.addresses.0.city'
+        'losers.participant.addresses.0.city',
       ],
       'Loser 1 State': [
         'losers.participant.individualParticipants.0.addresses.0.state',
-        'losers.participant.addresses.0.state'
+        'losers.participant.addresses.0.state',
       ],
       'Loser 1 Country': [
         'losers.participant.individualParticipants.0.addresses.0.nationalityCode',
-        'losers.participant.addresses.0nationalityCode'
+        'losers.participant.addresses.0nationalityCode',
       ],
       'Loser 1 Third Party ID': [
         'losers.participant.individualParticipants.0.participantId',
-        'losers.participant.participantId'
+        'losers.participant.participantId',
       ],
       'Loser 1 Gender': ['losers.participant.individualParticipants.0.person.sex', 'winners.participant.person.sex'],
       'Loser 1 DOB': [
         'losers.participant.individualParticipants.0.person.birthDate',
-        'losers.participant.person.birthDate'
+        'losers.participant.person.birthDate',
       ],
       'Loser 2 Name': ['losers.participant.individualParticipants.1.participantName'],
       'Loser 2 City': ['losers.participant.individualParticipants.1.addresses.0.city'],
@@ -121,10 +121,10 @@ export function downloadUTRmatches() {
       'Draw Type': [DRAW_TYPE],
       'Match ID': ['matchUpId'],
       Score: ['winnerScore'],
-      'Id Type': ['idType']
-    }
+      'Id Type': ['idType'],
+    },
   };
 
-  let csv = utilities.JSON2CSV(matchUpsWinnersLosers, config);
+  let csv = tools.JSON2CSV(matchUpsWinnersLosers, config);
   downloadText(`UTR-${tournamentInfo.tournamentId}.csv`, csv);
 }

@@ -1,7 +1,7 @@
 import { getCollectionDefinitionColumns } from './getCollectionDefinitionColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { toTitleCase } from 'functions/toTitleCase';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 
 import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
@@ -9,9 +9,9 @@ export function createTieFormatTable({ tableElement, tieFormat }) {
   const data = (tieFormat?.collectionDefinitions || []).map((collectionDefinition) => {
     const { collectionValue, matchUpValue, scoreValue, setValue, matchUpType, gender } = collectionDefinition;
     const awardType =
-      (utilities.isConvertableInteger(collectionValue) && COLLECTION_VALUE) ||
-      (utilities.isConvertableInteger(scoreValue) && SCORE_VALUE) ||
-      (utilities.isConvertableInteger(setValue) && SET_VALUE) ||
+      (tools.isConvertableInteger(collectionValue) && COLLECTION_VALUE) ||
+      (tools.isConvertableInteger(scoreValue) && SCORE_VALUE) ||
+      (tools.isConvertableInteger(setValue) && SET_VALUE) ||
       MATCH_VALUE;
 
     const awardValue = collectionValue ?? scoreValue ?? setValue ?? matchUpValue;
@@ -21,7 +21,7 @@ export function createTieFormatTable({ tableElement, tieFormat }) {
       matchUpType: toTitleCase(matchUpType),
       gender: toTitleCase(gender),
       awardValue,
-      awardType
+      awardType,
     };
   });
 
@@ -38,7 +38,7 @@ export function createTieFormatTable({ tableElement, tieFormat }) {
     movableRows: true,
     minHeight: 200,
     columns,
-    data
+    data,
   });
 
   return { table };

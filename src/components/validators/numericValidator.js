@@ -1,5 +1,5 @@
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 
 export function numericValidator(value) {
-  return utilities.isConvertableInteger(value) && parseInt(value) >= 0;
+  return tools.isConvertableInteger(value) && parseInt(value) >= 0;
 }

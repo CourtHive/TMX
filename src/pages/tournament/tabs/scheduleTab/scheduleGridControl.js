@@ -1,4 +1,4 @@
-import { competitionEngine, utilities } from 'tods-competition-factory';
+import { competitionEngine, tools } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 import { isFunction } from 'functions/typeOf';
 import dayjs from 'dayjs';
@@ -11,7 +11,7 @@ export function scheduleGridControl({
   controlAnchor,
   scheduledDate,
   courtsCount,
-  setDate
+  setDate,
 } = {}) {
   if (!controlAnchor) return;
 
@@ -19,13 +19,13 @@ export function scheduleGridControl({
 
   const formatDate = (dateString) => dayjs(dateString).format('dddd MMM D');
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const dateRange = utilities.generateDateRange(startDate, endDate);
+  const dateRange = tools.generateDateRange(startDate, endDate);
   const dateOptions = dateRange.map((dateString) => ({
     onClick: () => isFunction(setDate) && setDate(dateString),
     isActive: dateString === scheduledDate,
     label: formatDate(dateString),
     value: dateString,
-    close: true
+    close: true,
   }));
 
   const setSearchFilter = () => {};
@@ -41,7 +41,7 @@ export function scheduleGridControl({
       id: 'searchParticipants',
       visible: !!courtsCount,
       location: LEFT,
-      search: true
+      search: true,
     },
     {
       options: [{ label: 'Team ', onClick: () => console.log('team clicked'), close: true }],
@@ -49,7 +49,7 @@ export function scheduleGridControl({
       visible: !!courtsCount,
       id: 'highlightTeam',
       location: LEFT,
-      align: LEFT
+      align: LEFT,
     },
     {
       visible: !!courtsCount && !schedulingActive,
@@ -57,7 +57,7 @@ export function scheduleGridControl({
       label: 'Schedule matches',
       id: 'scheduleMatchUps',
       intent: 'is-primary',
-      location: RIGHT
+      location: RIGHT,
     },
     {
       label: formatDate(scheduledDate || startDate),
@@ -67,8 +67,8 @@ export function scheduleGridControl({
       modifyLabel: true,
       intent: 'is-info',
       location: RIGHT,
-      align: RIGHT
-    }
+      align: RIGHT,
+    },
   ];
 
   elements = controlBar({ target: controlAnchor, items }).elements;
