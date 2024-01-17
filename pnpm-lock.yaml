@@ -24,8 +24,8 @@ dependencies:
     specifier: 1.5.0
     version: 1.5.0
   '@event-calendar/time-grid':
-    specifier: 1.5.0
-    version: 1.5.0
+    specifier: 1.5.1
+    version: 1.5.1
   '@stitches/core':
     specifier: 1.2.8
     version: 1.2.8
@@ -1053,15 +1053,15 @@ packages:
     resolution: {integrity: sha512-2uILGFDdtL+DQQigD6kz3vs4xdhd28Yt7jkPZzb+RK/JNIhohXVLwnA0jJocTjU3J+ADeI9s3JFs6DjpGXhCdQ==}
     dependencies:
       '@event-calendar/core': 1.5.1
-      '@event-calendar/time-grid': 1.5.0
+      '@event-calendar/time-grid': 1.5.1
       svelte: 3.59.2
     dev: false
 
-  /@event-calendar/time-grid@1.5.0:
-    resolution: {integrity: sha512-ZOhuBPpnyoPoIRq69JUtl3D/uo0G2tar8eMuHUpulrEn/so/9TZLfHbCtDjjHERUCKhQCGARPr882m5130IksA==}
+  /@event-calendar/time-grid@1.5.1:
+    resolution: {integrity: sha512-LlJQqJkBYtdeQQZtmEVn053lvFVfouaOwkjXRYciJx/0JXtjc6cSsKOcIx9OHcn30smcqOWXckU3MWXHuPm2cQ==}
     dependencies:
       '@event-calendar/core': 1.5.1
-      svelte: 3.59.2
+      svelte: 4.2.9
     dev: false
 
   /@fastify/busboy@2.1.0:
