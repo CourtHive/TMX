@@ -197,8 +197,8 @@ devDependencies:
     specifier: 16.3.1
     version: 16.3.1
   envfile:
-    specifier: 7.0.0
-    version: 7.0.0
+    specifier: 7.1.0
+    version: 7.1.0
   eslint:
     specifier: 8.56.0
     version: 8.56.0
@@ -2944,8 +2944,8 @@ packages:
     engines: {node: '>=10.0.0'}
     dev: false
 
-  /envfile@7.0.0:
-    resolution: {integrity: sha512-q6GTPMuGokB1Kz72+1mj8/O+sZQUhoae3JcAGEVJdN7Y/o2zv/PjLzbVdB+nsUBjIXLgRUb2W3hDKDJOPvtpMQ==}
+  /envfile@7.1.0:
+    resolution: {integrity: sha512-dyH4QnnZsArCLhPASr29eqBWDvKpq0GggQFTmysTT/S9TTmt1JrEKNvTBc09Cd7ujVZQful2HBGRMe2agu7Krg==}
     engines: {node: '>=8'}
     hasBin: true
     dev: true
