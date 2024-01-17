@@ -1,4 +1,4 @@
-import { competitionEngine, utilities } from 'tods-competition-factory';
+import { competitionEngine, tools } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
@@ -37,7 +37,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
       const { rows, matchUps, columns, courtsData } = getTableData({ scheduledDate });
       const courtIds = courtsData?.map((court) => court.courtId);
 
-      const equivalentCourts = utilities.intersection(existingCourtIds, courtIds).length === courtIds?.length;
+      const equivalentCourts = tools.intersection(existingCourtIds, courtIds).length === courtIds?.length;
 
       if (!equivalentCourts) {
         table.setColumns(columns);

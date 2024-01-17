@@ -1,4 +1,4 @@
-import { drawDefinitionConstants, tournamentEngine, utilities } from 'tods-competition-factory';
+import { drawDefinitionConstants, tournamentEngine, tools } from 'tods-competition-factory';
 import { numericValidator } from 'components/validators/numericValidator';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { nameValidator } from 'components/validators/nameValidator';
@@ -21,7 +21,7 @@ import {
   PLAYOFF_TYPE,
   QUALIFIERS_COUNT,
   STRUCTURE_NAME,
-  TOP_FINISHERS
+  TOP_FINISHERS,
 } from 'constants/tmxConstants';
 
 export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }) {
@@ -52,7 +52,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers })
     const drawSize =
       ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) &&
         drawSizeInteger) ||
-      utilities.nextPowerOf2(drawSizeInteger);
+      tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
 
     checkCreationMethod({ fields, inputs });
@@ -122,14 +122,14 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers })
     const existingValues = Array.from(existingOptions).map((o) => parseInt(o.value));
     const maxValue = Math.max(...existingValues);
     if (maxValue > newGroupSize) {
-      utilities
+      tools
         .generateRange(newGroupSize + 1, maxValue + 1)
         .reverse() // must remove from the bottom up
         .forEach((v) => {
           inputs[ADVANCE_PER_GROUP].remove(v - 2);
         }); // list starts at 2
     } else if (maxValue < newGroupSize) {
-      utilities
+      tools
         .generateRange(maxValue + 1, newGroupSize + 1)
         .forEach((v) => inputs[ADVANCE_PER_GROUP].add(new Option(v, v)));
     }
@@ -145,31 +145,31 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers })
   return [
     {
       onInput: ({ inputs }) => structureNameChange({ inputs, name: DRAW_NAME }),
-      control: DRAW_NAME
+      control: DRAW_NAME,
     },
     {
       onInput: ({ inputs }) => structureNameChange({ inputs, name: STRUCTURE_NAME }),
-      control: STRUCTURE_NAME
+      control: STRUCTURE_NAME,
     },
     {
       onChange: groupSizeChange,
-      control: GROUP_SIZE
+      control: GROUP_SIZE,
     },
     {
       onChange: drawTypeChange,
-      control: DRAW_TYPE
+      control: DRAW_TYPE,
     },
     {
       onChange: playoffTypeChange,
-      control: PLAYOFF_TYPE
+      control: PLAYOFF_TYPE,
     },
     {
       onInput: drawSizeChange,
-      control: DRAW_SIZE
+      control: DRAW_SIZE,
     },
     {
       onInput: qualifiersCountChange,
-      control: QUALIFIERS_COUNT
-    }
+      control: QUALIFIERS_COUNT,
+    },
   ];
 }

@@ -9,7 +9,7 @@ import {
   tournamentEngine,
   eventConstants,
   policyConstants,
-  utilities
+  tools,
 } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
@@ -29,7 +29,7 @@ import {
   QUALIFIERS_COUNT,
   STRUCTURE_NAME,
   TOP_FINISHERS,
-  WINNERS
+  WINNERS,
 } from 'constants/tmxConstants';
 
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
@@ -55,26 +55,26 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
   const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
 
-  const drawSize = structurePositionAssignments?.length || utilities.nextPowerOf2(acceptedEntriesCount(event, stage));
+  const drawSize = structurePositionAssignments?.length || tools.nextPowerOf2(acceptedEntriesCount(event, stage));
 
   const scoreFormatOptions = [
     {
       label: 'Custom',
-      value: CUSTOM
-    }
+      value: CUSTOM,
+    },
   ].concat(
     POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(({ matchUpFormat, description: label }) => ({
       selected: matchUpFormat === 'SET3-S:6/TB7',
       value: matchUpFormat,
-      label
-    }))
+      label,
+    })),
   );
 
   const tieFormatOptions = [
     { label: 'Time Tennis Pro Circuit', value: TIME_TENNIS_PRO_CIRCUIT },
     { label: 'Time Tennis', value: TIME_TENNIS_DUAL },
     { label: 'Dominant Duo', value: DOMINANT_DUO, selected: true },
-    { label: 'Custom', value: CUSTOM }
+    { label: 'Custom', value: CUSTOM },
   ];
 
   const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
@@ -82,17 +82,17 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
   const playoffOptions = [
     { label: 'Group winners', value: WINNERS },
     { label: 'Group positions', value: POSITIONS },
-    { label: 'Top finishers', value: TOP_FINISHERS }
+    { label: 'Top finishers', value: TOP_FINISHERS },
   ];
   const advanceOptions = [
     { label: '2', value: 2 },
     { label: '3', value: 3 },
-    { label: '4', value: 4 }
+    { label: '4', value: 4 },
   ];
 
   const creationOptions = [
     { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
-    { label: MANUAL, value: false, selected: structureId }
+    { label: MANUAL, value: false, selected: structureId },
   ];
 
   const items = [
@@ -104,7 +104,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
       value: structureName,
       field: STRUCTURE_NAME,
       selectOnFocus: true,
-      hide: !isQualifying
+      hide: !isQualifying,
     },
     {
       error: 'minimum of 4 characters',
@@ -115,13 +115,13 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
       hide: isQualifying,
       label: 'Draw name',
       field: DRAW_NAME,
-      focus: true
+      focus: true,
     },
     {
       options: getDrawTypeOptions({ isQualifying }),
       label: 'Draw Type',
       field: DRAW_TYPE,
-      value: drawType
+      value: drawType,
     },
     {
       error: 'Must be in range 2-128',
@@ -129,54 +129,54 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
       selectOnFocus: true,
       label: 'Draw size',
       value: drawSize,
-      field: DRAW_SIZE
+      field: DRAW_SIZE,
     },
     {
       visible: [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
       options: roundRobinOptions,
       label: 'Group size',
       field: GROUP_SIZE,
-      value: 4
+      value: 4,
     },
     {
       visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
       options: playoffOptions,
       label: 'Playoff Type',
-      field: PLAYOFF_TYPE
+      field: PLAYOFF_TYPE,
     },
     {
       label: 'Advance per group',
       options: advanceOptions,
       field: ADVANCE_PER_GROUP,
-      visible: false
+      visible: false,
     },
     {
       label: '2nd playoff from remaining',
       field: GROUP_REMAINING,
       id: GROUP_REMAINING,
       checkbox: true,
-      visible: false
+      visible: false,
     },
     {
       help: { text: 'Automation disabled', visible: false },
       options: creationOptions,
       label: 'Creation',
       field: AUTOMATED,
-      value: ''
+      value: '',
     },
     {
       hide: event.eventType === TEAM,
       options: scoreFormatOptions,
       field: MATCHUP_FORMAT,
       label: 'Score format',
-      value: ''
+      value: '',
     },
     {
       hide: event.eventType !== TEAM,
       options: tieFormatOptions,
       field: 'tieFormatName',
       label: 'Scorecard',
-      value: ''
+      value: '',
     },
     {
       disabled: isQualifying && !structureId,
@@ -184,8 +184,8 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,
       selectOnFocus: true,
-      label: 'Qualifiers'
-    }
+      label: 'Qualifiers',
+    },
   ];
 
   return { items, structurePositionAssignments };

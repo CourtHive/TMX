@@ -2,7 +2,7 @@ import { numericValidator } from 'components/validators/numericValidator';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 
 const actionLabels = {
   ALTERNATE: 'Assign alternate',
@@ -15,7 +15,7 @@ const actionLabels = {
   // PENALTY: 'Assign penalty', // TODO: implement
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
-  WITHDRAW: 'Withdraw participant'
+  WITHDRAW: 'Withdraw participant',
 };
 
 export function selectPositionAction({ pointerEvent, actions, callback }) {
@@ -29,7 +29,7 @@ export function selectPositionAction({ pointerEvent, actions, callback }) {
     ?.filter(({ type }) => actionLabels[type])
     .map((action) => ({
       option: actionLabels[action.type] || action.type,
-      onClick: () => handleClick(action)
+      onClick: () => handleClick(action),
     }));
 
   if (options?.length) tipster({ options, target, config: { arrow: false, offset: [0, 0] } });
@@ -47,8 +47,8 @@ function assignParticipant({ action, callback }) {
     const methods = [
       {
         params: { ...action.payload, ...params },
-        method: action.method
-      }
+        method: action.method,
+      },
     ];
     mutationRequest({ methods, callback: postMutation });
   };
@@ -62,13 +62,13 @@ function assignSeed({ target, action, callback }) {
   function onKeyDown(e) {
     if (e?.key === 'Enter') {
       const seedValue = e.target.value;
-      if (utilities.isConvertableInteger(seedValue)) {
+      if (tools.isConvertableInteger(seedValue)) {
         const postMutation = (result) => (result.success ? callback() : console.log({ result }));
         const methods = [
           {
             params: { ...action.payload, seedValue },
-            method: action.method
-          }
+            method: action.method,
+          },
         ];
         mutationRequest({ methods, callback: postMutation });
       }
@@ -84,8 +84,8 @@ function assignSeed({ target, action, callback }) {
       id: 'seedNumber',
       type: 'input',
       focus: true,
-      onKeyDown
-    }
+      onKeyDown,
+    },
   ];
 
   tip = tipster({ menuItems, target, config: { arrow: false, offset: [0, 0] } });
