@@ -7,8 +7,8 @@ import {
   positionActionConstants,
   matchUpActionConstants,
   tournamentEngine,
-  utilities,
-  policyConstants
+  tools,
+  policyConstants,
 } from 'tods-competition-factory';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -18,7 +18,7 @@ const { POLICY_TYPE_MATCHUP_ACTIONS } = policyConstants;
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const { TEAM, DOUBLES } = eventConstants;
 
-const xa = utilities.extractAttributes;
+const xa = tools.extractAttributes;
 
 export function participantMatchUpActions(e, cell, callback, params) {
   if (!cell) return;
@@ -44,9 +44,9 @@ export function participantMatchUpActions(e, cell, callback, params) {
     policyDefinitions: {
       [POLICY_TYPE_MATCHUP_ACTIONS]: {
         substituteAfterCompleted: true,
-        substituteWithoutScore: true
-      }
-    }
+        substituteWithoutScore: true,
+      },
+    },
   });
   const clickedParticipantId = params?.individualParticipant?.participantId;
 
@@ -54,32 +54,32 @@ export function participantMatchUpActions(e, cell, callback, params) {
     [ASSIGN_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles },
       text: 'Assign participant',
-      method: assignOrReplace
+      method: assignOrReplace,
     },
     [PENALTY]: {
       onClick: () => console.log(data),
-      text: 'Assess penalty'
+      text: 'Assess penalty',
     },
     [REMOVE_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
       text: 'Remove participant',
-      method: removeParticipant
+      method: removeParticipant,
     },
     [REPLACE_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
       text: 'Replace participant',
-      method: assignOrReplace
+      method: assignOrReplace,
     },
     [SUBSTITUTION]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
       method: assignOrReplace,
-      text: 'Substitution'
-    }
+      text: 'Substitution',
+    },
   };
 
   const items = validActions
     .filter(({ type }) =>
-      [ASSIGN_PARTICIPANT, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT, SUBSTITUTION].includes(type)
+      [ASSIGN_PARTICIPANT, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT, SUBSTITUTION].includes(type),
     )
     .map((action) => {
       const item = itemMap[action.type];
@@ -89,7 +89,7 @@ export function participantMatchUpActions(e, cell, callback, params) {
             ? item.method({ ...item.params, action })
             : isFunction(item.onClick) && item.onClick();
         },
-        text: item.text
+        text: item.text,
       };
     });
 
@@ -132,9 +132,9 @@ function assignOrReplace(params) {
             substituteParticipantId: participantId,
             newParticipantId: participantId,
             existingParticipantId,
-            participantId
+            participantId,
           },
-          method: params.action.method
+          method: params.action.method,
         });
       });
 
@@ -147,7 +147,7 @@ function assignOrReplace(params) {
 
   const action = {
     type: ASSIGN_PARTICIPANT,
-    participantsAvailable
+    participantsAvailable,
   };
 
   const title = isTeam && isDoubles ? 'Doubles: Select participants' : undefined;
@@ -158,6 +158,6 @@ function assignOrReplace(params) {
     selectionLimit,
     onSelection,
     action,
-    title
+    title,
   });
 }

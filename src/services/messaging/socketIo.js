@@ -1,6 +1,6 @@
 import { getLoginState } from 'services/authentication/loginState';
 import { processDirective } from 'services/processDirective';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { version } from 'config/version';
 import { io } from 'socket.io-client';
@@ -13,8 +13,8 @@ const oi = {
     'force new connection': true,
     reconnectionDelay: 1000,
     reconnectionAttempts: 'Infinity',
-    timeout: 20000
-  }
+    timeout: 20000,
+  },
 };
 
 const ackRequests = {};
@@ -61,7 +61,7 @@ export function emitTmx({ data, ackCallback }) {
 
   const action = () => {
     if (ackCallback && typeof ackCallback === 'function') {
-      let ackId = utilities.UUID();
+      let ackId = tools.UUID();
       if (data.payload) Object.assign(data.payload, { ackId });
 
       requestAcknowledgement({ ackId, callback: ackCallback });
@@ -72,14 +72,14 @@ export function emitTmx({ data, ackCallback }) {
         timestamp: new Date().getTime(),
         providerId,
         version,
-        userId
+        userId,
       });
     } else {
       Object.assign(data, {
         timestamp: new Date().getTime(),
         providerId,
         version,
-        userId
+        userId,
       });
     }
 

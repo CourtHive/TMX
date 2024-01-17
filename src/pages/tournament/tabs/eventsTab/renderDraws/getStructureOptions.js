@@ -1,9 +1,8 @@
-import { utilities, drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
+import { tools, drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editStructureNames } from './editStructureNames';
-import { addStructures } from './addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-// import { isFunction } from 'functions/typeOf';
+import { addStructures } from './addStructures';
 
 const { FINISHING_POSITIONS } = drawDefinitionConstants;
 
@@ -24,18 +23,18 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
       isQualifying: true,
       structureId,
       eventId,
-      drawId
+      drawId,
     });
   };
 
   return drawData.structures
-    .sort((a, b) => utilities.structureSort(a, b, { mode: FINISHING_POSITIONS }))
+    .sort((a, b) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
     .map((structure) => ({
       onClick: () => {
         navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
       },
       label: structure.structureName,
-      close: true
+      close: true,
     }))
     .concat([
       { divider: true },
@@ -43,21 +42,21 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
         onClick: () => editStructureNames({ drawId, callback: () => updateControlBar(true) }),
         label: 'Edit structure names',
         modifyLabel: false,
-        close: true
+        close: true,
       },
       {
         onClick: () => addNewQualifying(),
         hide: !canAddQualifying,
         label: 'Add qualifying',
         modifyLabel: false,
-        close: true
+        close: true,
       },
       {
         onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
         hide: !canAddPlayoffs,
         label: 'Add playoffs',
         modifyLabel: false,
-        close: true
-      }
+        close: true,
+      },
     ]);
 }

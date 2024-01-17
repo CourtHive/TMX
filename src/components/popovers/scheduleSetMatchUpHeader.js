@@ -1,5 +1,5 @@
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
-import { timeItemConstants, utilities } from 'tods-competition-factory';
+import { timeItemConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { timePicker } from '../modals/timePicker';
@@ -31,8 +31,8 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
     const methods = [
       {
         params: { matchUpIds, schedule },
-        method: BULK_SCHEDULE_MATCHUPS
-      }
+        method: BULK_SCHEDULE_MATCHUPS,
+      },
     ];
 
     const postMutation = (result) => {
@@ -47,7 +47,7 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
   const clearTimeSettings = () => setSchedule({ scheduledTime: '', timeModifiers: [] });
   const timeSelected = ({ time }) => {
     const militaryTime = true;
-    const scheduledTime = utilities.dateTime.convertTime(time, militaryTime);
+    const scheduledTime = tools.dateTime.convertTime(time, militaryTime);
     setSchedule({ scheduledTime });
   };
 
@@ -80,32 +80,32 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
   const options = [
     {
       option: setMatchTimeText,
-      onClick: setMatchUpTimes
+      onClick: setMatchUpTimes,
     },
     {
       option: timeModifierText[FOLLOWED_BY],
-      onClick: () => modifyTime(FOLLOWED_BY)
+      onClick: () => modifyTime(FOLLOWED_BY),
     },
     {
       option: timeModifierText[NEXT_AVAILABLE],
-      onClick: () => modifyTime(NEXT_AVAILABLE)
+      onClick: () => modifyTime(NEXT_AVAILABLE),
     },
     {
       option: timeModifierText[NOT_BEFORE],
-      onClick: () => modifyTime(NOT_BEFORE)
+      onClick: () => modifyTime(NOT_BEFORE),
     },
     {
       option: timeModifierText[AFTER_REST],
-      onClick: () => modifyTime(AFTER_REST)
+      onClick: () => modifyTime(AFTER_REST),
     },
     {
       option: timeModifierText[TO_BE_ANNOUNCED],
-      onClick: () => modifyTime(TO_BE_ANNOUNCED)
+      onClick: () => modifyTime(TO_BE_ANNOUNCED),
     },
     {
       option: `Clear time settings`,
-      onClick: clearTimeSettings
-    }
+      onClick: clearTimeSettings,
+    },
   ];
 
   const target = e.target;

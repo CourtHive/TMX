@@ -1,7 +1,7 @@
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';
-import { utilities } from 'tods-competition-factory';
+import { tools } from 'tods-competition-factory';
 
 import { CENTER } from 'constants/tmxConstants';
 
@@ -19,7 +19,7 @@ export function generateEmptyColumns({ courtsData, count }) {
       : `<button class='button is-danger'>Add venue</button>`;
   };
   return count > 0
-    ? utilities.generateRange(0, count).map((index) => ({
+    ? tools.generateRange(0, count).map((index) => ({
         headerClick: (e) => index === 0 && emptyColumnHeaderClick(e),
         title: emptyColumnHeader(index),
         headerHozAlign: CENTER,

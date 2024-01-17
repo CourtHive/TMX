@@ -1,5 +1,5 @@
-import { tournamentEngine, utilities } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { editTieFormat } from './editTieFormat';
 import { isFunction } from 'functions/typeOf';
@@ -9,17 +9,17 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
     structureId,
     matchUpId,
     eventId,
-    drawId
+    drawId,
   });
 
   const updateFormat = (modifiedTieFormat) => {
     if (modifiedTieFormat) {
       modifiedTieFormat.collectionDefinitions?.forEach((def, i) => (def.collectionOrder = i + 1));
 
-      const different = utilities.compareTieFormats({
+      const different = tools.compareTieFormats({
         considerations: { collectionName: true, collectionOrder: true },
         descendant: modifiedTieFormat,
-        ancestor: tieFormat
+        ancestor: tieFormat,
       })?.different;
 
       if (!different) {
@@ -34,9 +34,9 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
             modifiedTieFormat,
             structureId,
             matchUpId,
-            drawId
-          }
-        }
+            drawId,
+          },
+        },
       ];
 
       const postMutation = (result) => {

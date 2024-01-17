@@ -1,5 +1,5 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
-import { tournamentEngine, utilities } from 'tods-competition-factory';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { autoScheduleMatchUps } from './autoScheduleMatchUps';
 import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
@@ -19,7 +19,7 @@ export function unscheduledGridControl({
   eventIdFilter,
   scheduledDate,
   matchUps = [],
-  table
+  table,
 }) {
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
@@ -33,12 +33,12 @@ export function unscheduledGridControl({
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
-      close: true
-    }))
+      close: true,
+    })),
   );
 
   const roundFilter = (rowData) => rowData.roundName === roundNameFilter;
-  const roundNames = utilities.unique(matchUps.map((matchUp) => matchUp.roundName));
+  const roundNames = tools.unique(matchUps.map((matchUp) => matchUp.roundName));
   const updateRoundFilter = (roundName) => {
     table.removeFilter(roundFilter);
     roundNameFilter = roundName;
@@ -49,8 +49,8 @@ export function unscheduledGridControl({
     roundNames.map((roundName) => ({
       onClick: () => updateRoundFilter(roundName),
       label: roundName,
-      close: true
-    }))
+      close: true,
+    })),
   );
 
   const updateTables = () => {
@@ -66,7 +66,7 @@ export function unscheduledGridControl({
       eventIdFilter,
       scheduledDate,
       eventFilter,
-      roundFilter
+      roundFilter,
     });
   };
 
@@ -80,15 +80,15 @@ export function unscheduledGridControl({
       label: 'Auto schedule',
       intent: 'is-primary',
       id: 'autoSchedule',
-      close: true
+      close: true,
     },
     {
       label: 'Clear schedule',
       onClick: scheduleClear,
       intent: 'is-warning',
       id: 'clearSchedule',
-      close: true
-    }
+      close: true,
+    },
   ];
 
   const items = [
@@ -99,7 +99,7 @@ export function unscheduledGridControl({
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: LEFT,
-      search: true
+      search: true,
     },
     {
       hide: eventOptions.length < 2,
@@ -108,7 +108,7 @@ export function unscheduledGridControl({
       label: ALL_EVENTS,
       modifyLabel: true,
       location: LEFT,
-      selection: true
+      selection: true,
     },
     {
       hide: roundOptions.length < 2,
@@ -117,21 +117,21 @@ export function unscheduledGridControl({
       label: ALL_ROUNDS,
       modifyLabel: true,
       location: LEFT,
-      selection: true
+      selection: true,
     },
     {
       options: actionOptions,
       label: 'Actions',
       selection: false,
       location: RIGHT,
-      align: RIGHT
+      align: RIGHT,
     },
     {
       onClick: toggleUnscheduled,
       id: 'doneScheduling',
       intent: 'is-info',
-      label: 'Done'
-    }
+      label: 'Done',
+    },
   ];
 
   controlBar({ target: controlAnchor, items }).elements;

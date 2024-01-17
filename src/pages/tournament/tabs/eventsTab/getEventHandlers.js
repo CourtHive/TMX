@@ -1,4 +1,4 @@
-import { tournamentEngine, participantConstants, utilities } from 'tods-competition-factory';
+import { tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { handleRoundHeaderClick } from './actions/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
@@ -16,11 +16,11 @@ export function getEventHandlers({ callback, drawId, eventData }) {
     structures
       .flatMap((structure) => [
         ...[structure.structures?.flatMap((structure) => Object.values(structure.roundMatchUps || {}).flat())],
-        ...Object.values(structure.roundMatchUps || {}).flat()
+        ...Object.values(structure.roundMatchUps || {}).flat(),
       ])
-      .filter(Boolean)
+      .filter(Boolean),
   );
-  const matchUpsMap = utilities.createMap(matchUps, 'matchUpId');
+  const matchUpsMap = tools.createMap(matchUps, 'matchUpId');
   const getMatchUp = (props) => {
     const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
     return matchUpsMap[matchUpId];
@@ -47,8 +47,8 @@ export function getEventHandlers({ callback, drawId, eventData }) {
           policyDefinitions: {
             positionActions: {
               // disableRoundRestrictions: true
-            }
-          }
+            },
+          },
           /*
             policyDefinitions: {
               ...POLICY_POSITION_ACTIONS_UNRESTRICTED,
@@ -73,7 +73,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         structureId,
         eventData,
         callback,
-        drawId
+        drawId,
       });
     },
     scheduleClick: (props) => {
@@ -106,13 +106,13 @@ export function getEventHandlers({ callback, drawId, eventData }) {
           {
             onClick: () => openMap('google'),
             hide: !latitude || !longitude,
-            text: 'Open in Google Maps'
+            text: 'Open in Google Maps',
           },
           {
             onClick: () => openMap('bing'),
             hide: !latitude || !longitude,
-            text: 'Open in Bing Maps'
-          }
+            text: 'Open in Bing Maps',
+          },
         ];
 
         tipster({ items: venueOptions, target: props.pointerEvent.target, config: { placement: BOTTOM } });
@@ -127,7 +127,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         tournamentEngine.matchUpActions({
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId,
-          sideNumber
+          sideNumber,
         }) || {};
 
       const readyToScore = validActions?.find(({ type }) => type === 'SCORE');
@@ -144,6 +144,6 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         }
       }
     },
-    participantClick: sideClick
+    participantClick: sideClick,
   };
 }

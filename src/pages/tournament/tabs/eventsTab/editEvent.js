@@ -11,7 +11,7 @@ import {
   tournamentEngine,
   genderConstants,
   eventConstants,
-  utilities
+  tools,
 } from 'tods-competition-factory';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT } from 'constants/mutationConstants';
@@ -28,7 +28,7 @@ export function editEvent({ event, participants, callback } = {}) {
   const values = {
     eventType: event?.eventType || SINGLES,
     eventName: event?.eventName || `Event ${eventsCount + 1}`,
-    gender: event?.gender || ANY
+    gender: event?.gender || ANY,
   };
 
   const enteredParticipantIds = event?.entries
@@ -38,7 +38,7 @@ export function editEvent({ event, participants, callback } = {}) {
   const enteredParticipants = enteredParticipantIds
     ? tournamentEngine.getParticipants({
         participantFilters: { participantIds: enteredParticipantIds },
-        withIndividualParticipants: true
+        withIndividualParticipants: true,
       }).participants
     : [];
 
@@ -64,7 +64,7 @@ export function editEvent({ event, participants, callback } = {}) {
     genderOptions = [ANY];
     const sexes =
       participantType === INDIVIDUAL &&
-      utilities.unique(participants.map((p) => p.participant?.person?.sex)).filter(Boolean);
+      tools.unique(participants.map((p) => p.participant?.person?.sex)).filter(Boolean);
     if (sexes.length === 1) {
       sexes[0] === FEMALE && genderOptions.push(FEMALE);
       sexes[0] === MALE && genderOptions.push(MALE);
@@ -76,7 +76,7 @@ export function editEvent({ event, participants, callback } = {}) {
     genderOptions = [ANY];
     if (event.gender && !event.gender === ANY) genderOptions.push(event.gender);
     if (event.eventType === DOUBLES && !genderOptions.includes(MIXED)) genderOptions.push(MIXED);
-    const uniqueEnteredGenders = utilities.unique(...enteredParticipantGenders);
+    const uniqueEnteredGenders = tools.unique(...enteredParticipantGenders);
     if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
       genderOptions.push(...uniqueEnteredGenders);
     }
@@ -99,7 +99,7 @@ export function editEvent({ event, participants, callback } = {}) {
         selectOnFocus: true,
         label: 'Event name',
         field: 'eventName',
-        focus: true
+        focus: true,
       },
       {
         disabled: enteredParticipantTypes.length,
@@ -111,22 +111,22 @@ export function editEvent({ event, participants, callback } = {}) {
             hide: eventTypeOptions && !eventTypeOptions.includes(SINGLES),
             selected: values.eventType === SINGLES,
             label: 'Singles',
-            value: SINGLES
+            value: SINGLES,
           },
           {
             hide: eventTypeOptions && !eventTypeOptions.includes(DOUBLES),
             selected: values.eventType === DOUBLES,
             label: 'Doubles',
-            value: DOUBLES
+            value: DOUBLES,
           },
           {
             hide: eventTypeOptions && !eventTypeOptions.includes(TEAM),
             selected: values.eventType === TEAM,
             label: 'Team',
-            value: TEAM
-          }
+            value: TEAM,
+          },
         ],
-        onChange: valueChange
+        onChange: valueChange,
       },
       {
         value: values.gender,
@@ -137,32 +137,32 @@ export function editEvent({ event, participants, callback } = {}) {
             hide: genderOptions && !genderOptions.includes(MALE),
             selected: values.gender === MALE,
             label: 'Male',
-            value: MALE
+            value: MALE,
           },
           {
             hide: genderOptions && !genderOptions.includes(FEMALE),
             selected: values.gender === FEMALE,
             label: 'Female',
-            value: FEMALE
+            value: FEMALE,
           },
           {
             selected: values.gender === ANY,
             label: 'Any',
-            value: ANY
+            value: ANY,
           },
           {
             hide: genderOptions && !genderOptions.includes(MIXED),
             selected: values.gender === MIXED,
             label: 'Mixed',
-            value: MIXED
-          }
+            value: MIXED,
+          },
         ],
-        onChange: valueChange
+        onChange: valueChange,
       },
       {
         hide: event || participants,
-        divider: true
-      }
+        divider: true,
+      },
       /*
       // NOTE: no longer necessary... to be deleted
       {
@@ -194,7 +194,7 @@ export function editEvent({ event, participants, callback } = {}) {
       const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
       mutationRequest({ methods, callback: postMutation });
     } else {
-      const eventId = utilities.UUID();
+      const eventId = tools.UUID();
       const methods = [{ method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
 
       if (participants?.length) {
@@ -203,7 +203,7 @@ export function editEvent({ event, participants, callback } = {}) {
           participantType === INDIVIDUAL && [DOUBLES, TEAM].includes(eventType) ? UNGROUPED : DIRECT_ACCEPTANCE;
         const method = {
           params: { eventId, participantIds, entryStatus, entryStage: MAIN },
-          method: ADD_EVENT_ENTRIES
+          method: ADD_EVENT_ENTRIES,
         };
         methods.push(method);
       }
@@ -216,9 +216,9 @@ export function editEvent({ event, participants, callback } = {}) {
       elem,
       [
         { label: 'Cancel', close: true },
-        { label: 'Save', onClick: saveEvent, close: true, intent: 'is-info' }
+        { label: 'Save', onClick: saveEvent, close: true, intent: 'is-info' },
       ],
-      close
+      close,
     );
 
   const title = event?.eventId ? 'Edit event' : 'Add event';
@@ -227,6 +227,6 @@ export function editEvent({ event, participants, callback } = {}) {
     width: '300px',
     side: RIGHT,
     content,
-    footer
+    footer,
   });
 }

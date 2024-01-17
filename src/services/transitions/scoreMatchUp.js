@@ -1,4 +1,4 @@
-import { tournamentEngine, mocksEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { scoreBoard } from 'legacy/scoring/scoreBoard';
@@ -12,7 +12,8 @@ export function enterMatchUpScore({ matchUpId, callback }) {
 
   const scoreSubmitted = (outcome) => {
     const { matchUpStatus, winningSide, score } = outcome;
-    const sets = score && mocksEngine.parseScoreString({ scoreString: score });
+    const sets = score && tournamentEngine.parseScoreString({ scoreString: score });
+    console.log({ sets });
     const methods = [
       {
         method: SET_MATCHUP_STATUS,
@@ -21,11 +22,11 @@ export function enterMatchUpScore({ matchUpId, callback }) {
           outcome: {
             score: { sets },
             matchUpStatus,
-            winningSide
+            winningSide,
           },
-          matchUpId
-        }
-      }
+          matchUpId,
+        },
+      },
     ];
     const mutationCallback = (result) => {
       closeModal();
@@ -43,6 +44,6 @@ export function enterMatchUpScore({ matchUpId, callback }) {
     callback: scoreSubmitted,
     muid: matchUp.matchUpId,
     existing_scores,
-    teams
+    teams,
   });
 }
