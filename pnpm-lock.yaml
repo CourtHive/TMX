@@ -18,8 +18,8 @@ dependencies:
     specifier: 1.5.1
     version: 1.5.1
   '@event-calendar/list':
-    specifier: 1.5.0
-    version: 1.5.0
+    specifier: 1.5.1
+    version: 1.5.1
   '@event-calendar/resource-time-grid':
     specifier: 1.5.1
     version: 1.5.1
@@ -1042,11 +1042,11 @@ packages:
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/list@1.5.0:
-    resolution: {integrity: sha512-5Oc4eVuW3Nu/Lnez//6Gs2dvhuE1aXJOLjDdEnxmZwrMdXIGPf8xcavI1C8cfRTrWnCgjWvgwfLafgnE1gKN7w==}
+  /@event-calendar/list@1.5.1:
+    resolution: {integrity: sha512-fWiK3/2fyxlUN4pTV6pIC6PhKyXPHsEwqM7RkiyzPlnqI2BaD2ziz2Sj+VYXcZHMxr0QtttLv+wGYLV/ecznfg==}
     dependencies:
       '@event-calendar/core': 1.5.1
-      svelte: 3.59.2
+      svelte: 4.2.9
     dev: false
 
   /@event-calendar/resource-time-grid@1.5.1:
@@ -5869,11 +5869,6 @@ packages:
   /supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
-
-  /svelte@3.59.2:
-    resolution: {integrity: sha512-vzSyuGr3eEoAtT/A6bmajosJZIUWySzY2CzB3w2pgPvnkUjGqlDnsNnA0PMO+mMAhuyMul6C2uuZzY6ELSkzyA==}
-    engines: {node: '>= 8'}
-    dev: false
 
   /svelte@4.2.9:
     resolution: {integrity: sha512-hsoB/WZGEPFXeRRLPhPrbRz67PhP6sqYgvwcAs+gWdSQSvNDw+/lTeUJSWe5h2xC97Fz/8QxAOqItwBzNJPU8w==}
