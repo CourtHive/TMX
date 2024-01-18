@@ -9,8 +9,8 @@ dependencies:
     specifier: 7.23.4
     version: 7.23.4(@babel/core@7.23.7)
   '@event-calendar/core':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/day-grid':
     specifier: 1.5.1
     version: 1.5.1
@@ -1024,6 +1024,12 @@ packages:
 
   /@event-calendar/core@1.5.1:
     resolution: {integrity: sha512-aZyzH9ZDKtGMgHOXco/o6fjc8/cqbfHu8tQR73O3jvqDE18uVP3aeYyL3PQdmVPi/+FBhf4JaP2caz6V2YucGg==}
+    dependencies:
+      svelte: 4.2.9
+    dev: false
+
+  /@event-calendar/core@2.6.0:
+    resolution: {integrity: sha512-WPRGeaO8pON5h2j7weEszKro3P6DPSKZYYGH/ZUXopaXxvQyKrWIAYADaJaU6VpWvAdPRGlo9V38qcAwy51kjQ==}
     dependencies:
       svelte: 4.2.9
     dev: false
