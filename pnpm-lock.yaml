@@ -21,8 +21,8 @@ dependencies:
     specifier: 1.5.1
     version: 1.5.1
   '@event-calendar/resource-time-grid':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/time-grid':
     specifier: 1.5.1
     version: 1.5.1
@@ -1028,6 +1028,12 @@ packages:
       svelte: 4.2.9
     dev: false
 
+  /@event-calendar/core@2.6.0:
+    resolution: {integrity: sha512-WPRGeaO8pON5h2j7weEszKro3P6DPSKZYYGH/ZUXopaXxvQyKrWIAYADaJaU6VpWvAdPRGlo9V38qcAwy51kjQ==}
+    dependencies:
+      svelte: 4.2.9
+    dev: false
+
   /@event-calendar/day-grid@1.5.1:
     resolution: {integrity: sha512-YZD2Yi6iXkACftsppM0SK59Z7aoMHnJULq9gJPh2RH7UpT2yMP6m/q22Xf8Qm7r77DZM/58TFIdPAL8vG0+QKQ==}
     dependencies:
@@ -1049,11 +1055,11 @@ packages:
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/resource-time-grid@1.5.1:
-    resolution: {integrity: sha512-VAYcKZZs/wRmVzNpSLStPzcQd8PkFMv0SfUJ4Y7CHR1SPzQXS88YU7Yn1MIZ4JwQUK/7ZtWiMeNxI7RaZendnQ==}
+  /@event-calendar/resource-time-grid@2.6.0:
+    resolution: {integrity: sha512-LTYQqp6WH7Iw+vnZpWP3i4OE14isw89banj2jtzXJWHYPln/5cbph3a33Jgw0JDJvoV3fpz7SxwCHVA2LyvdvQ==}
     dependencies:
-      '@event-calendar/core': 1.5.1
-      '@event-calendar/time-grid': 1.5.1
+      '@event-calendar/core': 2.6.0
+      '@event-calendar/time-grid': 2.6.0
       svelte: 4.2.9
     dev: false
 
@@ -1061,6 +1067,13 @@ packages:
     resolution: {integrity: sha512-LlJQqJkBYtdeQQZtmEVn053lvFVfouaOwkjXRYciJx/0JXtjc6cSsKOcIx9OHcn30smcqOWXckU3MWXHuPm2cQ==}
     dependencies:
       '@event-calendar/core': 1.5.1
+      svelte: 4.2.9
+    dev: false
+
+  /@event-calendar/time-grid@2.6.0:
+    resolution: {integrity: sha512-JGziPpXIa+RG28qTJnKopezfzN1q8TwMNkZQC5UryxRetlp75nnQbuUwubjARpvVkSq5rzgLQ0nPWFc1BwMGEg==}
+    dependencies:
+      '@event-calendar/core': 2.6.0
       svelte: 4.2.9
     dev: false
 
