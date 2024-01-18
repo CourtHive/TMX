@@ -91,7 +91,7 @@
     "@event-calendar/core": "1.5.1",
     "@event-calendar/day-grid": "1.5.1",
     "@event-calendar/interaction": "1.5.1",
-    "@event-calendar/list": "1.5.1",
+    "@event-calendar/list": "2.6.0",
     "@event-calendar/resource-time-grid": "1.5.1",
     "@event-calendar/time-grid": "1.5.1",
     "@stitches/core": "1.2.8",
