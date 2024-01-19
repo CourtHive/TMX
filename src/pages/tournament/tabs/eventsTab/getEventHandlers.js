@@ -1,6 +1,6 @@
 import { tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
-import { handleRoundHeaderClick } from './actions/handleRoundHeaderClick';
+import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { matchUpActions } from 'components/popovers/matchUpActions';
