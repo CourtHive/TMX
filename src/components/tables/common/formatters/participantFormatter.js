@@ -1,8 +1,9 @@
-import { genderConstants } from 'tods-competition-factory';
+import { genderConstants, participantConstants } from 'tods-competition-factory';
 import { renderParticipant } from 'courthive-components';
 import { isFunction, isObject } from 'functions/typeOf';
 
 const { MALE, FEMALE } = genderConstants;
+const { PAIR } = participantConstants;
 
 export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
   const def = cell.getColumn().getDefinition();
@@ -18,7 +19,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
       scaleType: 'RATING',
       scaleColor: 'blue',
       scaleName: 'UTR',
-      fallback: true
+      fallback: true,
     };
 
     const rendered = (participant) => {
@@ -26,13 +27,13 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
         eventHandlers: {
           participantClick: (params) => {
             return isFunction(onClick) && onClick({ ...params, event: params.pointerEvent, cell });
-          }
+          },
         },
         composition: { configuration: { flag: false, genderColor: true, participantDetail: 'TEAM', scaleAttributes } },
         matchUp: data.matchUp,
         participant,
         placeholder,
-        sideNumber
+        sideNumber,
       });
     };
 
@@ -51,7 +52,8 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
 
       return div;
     };
-    return layout === 'sideBySide' && participant.individualParticipants?.length === 2
+    // return layout === 'sideBySide' && participant.individualParticipants?.length === 2
+    return layout === 'sideBySide' && participant.participantType === PAIR
       ? renderPairParticipant(participant)
       : rendered(participant);
   }
@@ -63,6 +65,8 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
     const color = (sex === MALE && '#2E86C1') || (sex === FEMALE && '#AA336A') || '';
     elem.style.color = color;
   }
+
   elem.innerHTML = (isObject(value) ? value.participantName : value) || '';
+
   return elem;
 };
