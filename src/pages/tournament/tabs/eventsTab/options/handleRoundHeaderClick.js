@@ -1,4 +1,4 @@
-import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocActions';
+import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocRoundOptions';
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
@@ -20,18 +20,18 @@ export function handleRoundHeaderClick(props) {
       {
         onClick: () => addAdHocMatchUps({ ...props }),
         text: addMatchUpsAction,
-        color: 'blue'
+        color: 'blue',
       },
       {
         onClick: () => addAdHocRound({ ...props, roundNumber: undefined, newRound: true }),
         text: addRoundAction,
-        color: 'blue'
+        color: 'blue',
       },
       {
         onClick: () => deleteAdHocMatchUps({ ...props }),
         text: deleteMatchUpsAction,
-        color: 'red'
-      }
+        color: 'red',
+      },
     ];
 
     roundActions.push(...adHocRoundAction);

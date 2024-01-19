@@ -9,7 +9,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
 import { generateQualifying } from './generateQualifying';
-import { getAdHocActions } from '../actions/adHocActions';
+import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
@@ -21,6 +21,7 @@ import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
+import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -143,8 +144,9 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     } else if (tournamentEngine.isAdHoc({ structure })) {
-      const adHocActions = getAdHocActions({ structure, drawId, callback });
-      const drawControlItems = adHocActions;
+      const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
+      const displayOptions = getRoundDisplayOptions({ structure, drawId, callback });
+      const drawControlItems = [displayOptions, adHocOptions];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     } else if (structure?.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
