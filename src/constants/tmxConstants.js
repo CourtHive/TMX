@@ -211,3 +211,8 @@ export const DRAW_NAME = 'drawName';
 export const DRAW_TYPE = 'drawType';
 export const TOP_FINISHERS = 'top';
 export const WINNERS = 'winners';
+
+// DISPLAY
+export const ROUNDS_COLUMNS = 'roundsColumns';
+export const ROUNDS_STATS = 'roundsStats';
+export const ROUNDS_TABLE = 'roundsTable';
