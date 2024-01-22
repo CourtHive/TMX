@@ -300,7 +300,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     });
     const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
     const drawsOptions = getDrawsOptions({ eventData, drawId });
-    const eventOptions = getEventOptions({ events });
+    const { eventOptions } = getEventOptions({ events });
 
     // PARTICIPANT filter
     const searchFilter = (rowData) => rowData.searchText?.includes(participantFilter);
