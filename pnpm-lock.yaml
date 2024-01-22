@@ -126,8 +126,8 @@ dependencies:
     specifier: 6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: 2.0.5
-    version: 2.0.5
+    specifier: 2.0.7
+    version: 2.0.7
   tods-tmx-classic-converter:
     specifier: 2.13.7
     version: 2.13.7
@@ -5984,8 +5984,8 @@ packages:
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
-  /tods-competition-factory@2.0.5:
-    resolution: {integrity: sha512-ngJHmkBmrqMss96N5IRwWufkHjhGvmHuHGWzewMHVXadX1ue0YjddVT/3Ds8NknWCIU2xAhw8jW9BhP86LVKiA==}
+  /tods-competition-factory@2.0.7:
+    resolution: {integrity: sha512-I+d+e0asi0/1Y9Jn4Y8VG3BwDDpp0NK1yQr8f8TWT1Jn9yVYd71Uj/ZO8qySYGgSegsQvxtCDZ0rsh4eQq9bZg==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
