@@ -9,23 +9,23 @@ dependencies:
     specifier: 7.23.4
     version: 7.23.4(@babel/core@7.23.7)
   '@event-calendar/core':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/day-grid':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/interaction':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/list':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/resource-time-grid':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/time-grid':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@stitches/core':
     specifier: 1.2.8
     version: 1.2.8
@@ -1022,45 +1022,45 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /@event-calendar/core@1.5.1:
-    resolution: {integrity: sha512-aZyzH9ZDKtGMgHOXco/o6fjc8/cqbfHu8tQR73O3jvqDE18uVP3aeYyL3PQdmVPi/+FBhf4JaP2caz6V2YucGg==}
+  /@event-calendar/core@2.6.0:
+    resolution: {integrity: sha512-WPRGeaO8pON5h2j7weEszKro3P6DPSKZYYGH/ZUXopaXxvQyKrWIAYADaJaU6VpWvAdPRGlo9V38qcAwy51kjQ==}
     dependencies:
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/day-grid@1.5.1:
-    resolution: {integrity: sha512-YZD2Yi6iXkACftsppM0SK59Z7aoMHnJULq9gJPh2RH7UpT2yMP6m/q22Xf8Qm7r77DZM/58TFIdPAL8vG0+QKQ==}
+  /@event-calendar/day-grid@2.6.0:
+    resolution: {integrity: sha512-efdUye3mm0I+bHMoGvgKU6BRweZIOksRrQNdVE1jgTCQlcFcW8F5SiGgVwpDZN0zBEaeYYNXWnvcLcnkOwYxXw==}
     dependencies:
-      '@event-calendar/core': 1.5.1
+      '@event-calendar/core': 2.6.0
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/interaction@1.5.1:
-    resolution: {integrity: sha512-QRSAr1b7BbjyCvXWFNBdacsr2j39EcDMcgW6xg4DojvMoYJsOgd2L0F7M4iEJsd5SJbOfI4eqDQSBOU23TxHQQ==}
+  /@event-calendar/interaction@2.6.0:
+    resolution: {integrity: sha512-1JsfEuIWJZvSctThD3B8bvZxcJ9T1AqYoUECkiXKTEpZsIo9zl/PvTyJcmQ7tNIQ1wWzesPDUNj3YQbBCwjACA==}
     dependencies:
-      '@event-calendar/core': 1.5.1
+      '@event-calendar/core': 2.6.0
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/list@1.5.1:
-    resolution: {integrity: sha512-fWiK3/2fyxlUN4pTV6pIC6PhKyXPHsEwqM7RkiyzPlnqI2BaD2ziz2Sj+VYXcZHMxr0QtttLv+wGYLV/ecznfg==}
+  /@event-calendar/list@2.6.0:
+    resolution: {integrity: sha512-cuDqYXISQlfbGYMb457tOEl5rRqp8pr+u7P4Inak1mUxolLZiy8Zv4UBUHXWlsGc9jpXuTCEdKEvtpIpeXsbRw==}
     dependencies:
-      '@event-calendar/core': 1.5.1
+      '@event-calendar/core': 2.6.0
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/resource-time-grid@1.5.1:
-    resolution: {integrity: sha512-VAYcKZZs/wRmVzNpSLStPzcQd8PkFMv0SfUJ4Y7CHR1SPzQXS88YU7Yn1MIZ4JwQUK/7ZtWiMeNxI7RaZendnQ==}
+  /@event-calendar/resource-time-grid@2.6.0:
+    resolution: {integrity: sha512-LTYQqp6WH7Iw+vnZpWP3i4OE14isw89banj2jtzXJWHYPln/5cbph3a33Jgw0JDJvoV3fpz7SxwCHVA2LyvdvQ==}
     dependencies:
-      '@event-calendar/core': 1.5.1
-      '@event-calendar/time-grid': 1.5.1
+      '@event-calendar/core': 2.6.0
+      '@event-calendar/time-grid': 2.6.0
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/time-grid@1.5.1:
-    resolution: {integrity: sha512-LlJQqJkBYtdeQQZtmEVn053lvFVfouaOwkjXRYciJx/0JXtjc6cSsKOcIx9OHcn30smcqOWXckU3MWXHuPm2cQ==}
+  /@event-calendar/time-grid@2.6.0:
+    resolution: {integrity: sha512-JGziPpXIa+RG28qTJnKopezfzN1q8TwMNkZQC5UryxRetlp75nnQbuUwubjARpvVkSq5rzgLQ0nPWFc1BwMGEg==}
     dependencies:
-      '@event-calendar/core': 1.5.1
+      '@event-calendar/core': 2.6.0
       svelte: 4.2.9
     dev: false
 
