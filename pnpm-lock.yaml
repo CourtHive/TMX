@@ -24,8 +24,8 @@ dependencies:
     specifier: 2.6.0
     version: 2.6.0
   '@event-calendar/time-grid':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@stitches/core':
     specifier: 1.2.8
     version: 1.2.8
@@ -1022,12 +1022,6 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /@event-calendar/core@1.5.1:
-    resolution: {integrity: sha512-aZyzH9ZDKtGMgHOXco/o6fjc8/cqbfHu8tQR73O3jvqDE18uVP3aeYyL3PQdmVPi/+FBhf4JaP2caz6V2YucGg==}
-    dependencies:
-      svelte: 4.2.9
-    dev: false
-
   /@event-calendar/core@2.6.0:
     resolution: {integrity: sha512-WPRGeaO8pON5h2j7weEszKro3P6DPSKZYYGH/ZUXopaXxvQyKrWIAYADaJaU6VpWvAdPRGlo9V38qcAwy51kjQ==}
     dependencies:
@@ -1060,13 +1054,6 @@ packages:
     dependencies:
       '@event-calendar/core': 2.6.0
       '@event-calendar/time-grid': 2.6.0
-      svelte: 4.2.9
-    dev: false
-
-  /@event-calendar/time-grid@1.5.1:
-    resolution: {integrity: sha512-LlJQqJkBYtdeQQZtmEVn053lvFVfouaOwkjXRYciJx/0JXtjc6cSsKOcIx9OHcn30smcqOWXckU3MWXHuPm2cQ==}
-    dependencies:
-      '@event-calendar/core': 1.5.1
       svelte: 4.2.9
     dev: false
 
