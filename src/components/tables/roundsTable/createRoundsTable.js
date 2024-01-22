@@ -1,3 +1,4 @@
+import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
@@ -8,17 +9,25 @@ import { mapRound } from './mapRound';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
 
-export function createRoundsTable({ drawId, structureId, matchUps, eventData }) {
+export function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }) {
   let table;
 
-  const getMatchUps = () => {
+  const getMatchUps = (participantFilter) => {
     return (
       tournamentEngine.allTournamentMatchUps({
         matchUpFilters: { drawIds: [drawId], structureIds: [structureId] },
         participantsProfile: { withISO2: true, withScaleValues: true },
         contextProfile: { withCompetitiveness: true },
       }).matchUps || []
-    ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
+    )
+      .filter(({ matchUpStatus }) => matchUpStatus !== 'BYE')
+      .filter(
+        ({ sides }) =>
+          !participantFilter ||
+          sides.find((side) =>
+            side.participant?.participantName?.toLowerCase().includes(participantFilter.toLowerCase()),
+          ),
+      );
   };
 
   // eventName necessary for team scorecard
@@ -29,12 +38,12 @@ export function createRoundsTable({ drawId, structureId, matchUps, eventData }) 
 
   const getTableData = () => matchUps.map(mapRound);
 
-  const updateTableData = () => {
-    const matchUps = getMatchUps();
+  const updateTableData = (participantFilter) => {
+    const matchUps = getMatchUps(participantFilter);
     return matchUps.map(mapRound);
   };
-  const replaceTableData = () => {
-    table.replaceData(updateTableData());
+  const replaceTableData = (participantFilter) => {
+    table.replaceData(updateTableData(participantFilter));
   };
 
   const data = getTableData();
@@ -70,6 +79,8 @@ export function createRoundsTable({ drawId, structureId, matchUps, eventData }) 
   };
 
   render(data);
+
+  eventControlBar({ eventId, drawId, structureId, updateDisplay: replaceTableData });
 
   return { table, replaceTableData };
 }
