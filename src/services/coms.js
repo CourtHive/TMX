@@ -119,15 +119,16 @@ export const coms = (() => {
   };
   fx.connectSocket = () => {
     let msgMon = (x) => console.log(x);
-    const chcsRootURL = window.socketURL || window.location.host;
-
     const chcsServerPath = '';
-    const socketIoPath = env.socketIo.tmx || '';
 
     if (!oi.socket) {
-      // let URL = `${chcsRootURL}${socketIoPath}?token=${token}`;
-      let URL = window.socketPath || `${chcsRootURL}${socketIoPath}`;
       if (window.dev) console.log({ URL });
+      const server =
+        window.location.hostname.startsWith('localhost') || window.location.hostname === '127.0.0.1'
+          ? 'http://127.0.0.1:8383'
+          : window.location.hostname;
+      const connectionString = `${server}/mobile`;
+
       let connectionOptions = {
         'force new connection': true,
         reconnectionDelay: 1000,
@@ -136,7 +137,7 @@ export const coms = (() => {
         path: `${chcsServerPath}/socket.io`,
       };
 
-      oi.socket = io.connect(URL, connectionOptions);
+      oi.socket = io.connect(connectionString, connectionOptions);
 
       oi.socket.on('testscore', (x) => msgMon(`testscore:${x}`));
 
