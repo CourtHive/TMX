@@ -10,7 +10,9 @@ export const handleScoreClick = (replaceTableData) => (e, cell) => {
   if (matchUpType === TEAM) {
     const onClose = () => replaceTableData();
     openScorecard({ title: eventName, matchUpId, drawId, onClose });
-  } else if (readyToScore || data.matchUp.score?.scoreStringSide1)
+  } else {
     // TODO: replace scoreStringSide1 with tournamentEngine.checkScoreHasValue
-    enterMatchUpScore({ matchUpId, callback: replaceTableData });
+    if (readyToScore || data.matchUp.score?.scoreStringSide1)
+      enterMatchUpScore({ matchUpId, callback: replaceTableData });
+  }
 };

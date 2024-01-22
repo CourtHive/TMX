@@ -49,6 +49,7 @@ export const STRUCTURE = 'structure';
 export const INVITE = 'invite';
 export const EVENT = 'event';
 export const DRAW = 'draw';
+export const VIEW = 'view';
 
 // tabs
 export const TOURNAMENT_EVENTS = 'tournamentEvents';

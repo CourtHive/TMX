@@ -1,6 +1,8 @@
 import { tournamentEngine, drawDefinitionConstants, eventConstants, tools } from 'tods-competition-factory';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
+import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
 import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
@@ -18,6 +20,7 @@ import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
+import { getEventData } from '../getEventData';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
 
@@ -64,8 +67,18 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     matchUps = Object.values(roundMatchUps || {}).flat();
   };
 
+  const gD = () => {
+    const ed = getEventData({
+      structureId,
+      eventId,
+      drawId,
+    });
+    ({ eventData, eventType, drawData, structure, structureId, matchUps, stage } = ed);
+  };
+
   destroyTables();
   getData();
+  gD();
 
   // once we have data...
   const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
@@ -77,9 +90,12 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   const isRoundRobin = structure?.structureType === 'CONTAINER';
 
   const callback = ({ refresh, view } = {}) => {
-    console.log({ refresh, view });
     cleanupDrawPanel();
-    renderTODSdraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+    if (view) {
+      navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
+    } else {
+      renderTODSdraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+    }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
@@ -189,8 +205,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         const structureId = structures?.[0]?.structureId;
         return renderTODSdraw({ eventId, drawId, structureId, redraw: true });
       }
-    } else if ((isAdHoc || isRoundRobin) && [ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
-      console.log('display', { roundsView });
+    } else if ([ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
+      createRoundsTable({ matchUps, eventData });
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
 
