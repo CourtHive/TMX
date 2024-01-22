@@ -1,3 +1,4 @@
+import { getAttachedAvoidances } from 'components/drawers/avoidances/getAttachedAvoidances';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { findAncestor, getParent } from 'services/dom/parentAndChild';
@@ -26,7 +27,6 @@ import {
   TMX_PANEL,
   TMX_TABLE,
 } from 'constants/tmxConstants';
-import { getAttachedAvoidances } from 'components/drawers/avoidances/getAttachedAvoidances';
 
 export function createEntriesPanels({ eventId, drawId, headerElement }) {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');

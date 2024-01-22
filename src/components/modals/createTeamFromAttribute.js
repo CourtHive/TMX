@@ -8,13 +8,13 @@ import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
 const valueKey = {
   country: { personAttribute: 'nationalityCode' },
-  city: { accessor: 'person.addresses.city' }
+  city: { accessor: 'person.addresses.city' },
 };
 
 export function createTeamsFromAttribute({ callback } = {}) {
   const options = [
     { label: lang.tr('cnt'), value: 'country' },
-    { label: 'City', value: 'city' }
+    { label: 'City', value: 'city' },
   ];
 
   const NO_SELECTION = '-';
@@ -25,8 +25,8 @@ export function createTeamsFromAttribute({ callback } = {}) {
         options: [{ label: 'Select attribute', value: NO_SELECTION }, ...options],
         label: 'Attribute',
         field: 'selection',
-        value: ''
-      }
+        value: '',
+      },
     ]);
 
   const createTeam = ({ content }) => {
@@ -34,13 +34,13 @@ export function createTeamsFromAttribute({ callback } = {}) {
     if (!selection || selection === NO_SELECTION) return;
 
     const config = valueKey[selection];
-    const result = tournamentEngine.createTeamsFromParticipantAttribute({ ...config, addParticipants: false });
+    const result = tournamentEngine.createTeamsFromParticipantAttributes({ ...config, addParticipants: false });
     if (result.newParticipants) {
       const methods = [
         {
           params: { participants: result.newParticipants },
-          method: ADD_PARTICIPANTS
-        }
+          method: ADD_PARTICIPANTS,
+        },
       ];
       mutationRequest({ methods, callback });
     }
@@ -51,8 +51,8 @@ export function createTeamsFromAttribute({ callback } = {}) {
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Create', intent: 'is-primary', onClick: createTeam, close: true }
+      { label: 'Create', intent: 'is-primary', onClick: createTeam, close: true },
     ],
-    onClose: () => {}
+    onClose: () => {},
   });
 }
