@@ -46,7 +46,7 @@ export function renderScorecard({ matchUp }) {
   const collectionDefinitions = matchUp.tieFormat.collectionDefinitions;
   for (const collectionDefinition of collectionDefinitions) {
     const collectionMatchUps = matchUp.tieMatchUps.filter(
-      (tieMatchUp) => tieMatchUp.collectionId === collectionDefinition.collectionId
+      (tieMatchUp) => tieMatchUp.collectionId === collectionDefinition.collectionId,
     );
     const collection = document.createElement('div');
     collection.className = 'collection';
@@ -136,8 +136,8 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
     const methods = [
       {
         params: { drawId, matchUpId, inheritance: false },
-        method: 'resetMatchUpLineUps'
-      }
+        method: 'resetMatchUpLineUps',
+      },
     ];
     mutationRequest({ methods, callback: postMutation });
   };
@@ -150,8 +150,8 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
     const methods = [
       {
         params: { drawId, matchUpId },
-        method: RESET_SCORECARD
-      }
+        method: RESET_SCORECARD,
+      },
     ];
     mutationRequest({ methods, callback: postMutation });
   };
