@@ -26,10 +26,15 @@ function tmxMessage(data) {
 
 export function connectSocket(callback) {
   if (!oi.socket) {
-    const local = window.location.host.includes('localhost');
+    // const local = window.location.host.includes('localhost');
     // TODO: move to .env file
-    const socketPath = local ? 'http://localhost:8383/tmx' : 'https://courthive.net/tmx';
-    oi.socket = io.connect(socketPath);
+    // const socketPath = local ? 'http://localhost:8383/tmx' : 'https://courthive.net/tmx';
+    const server =
+      window.location.hostname.startsWith('localhost') || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:8383'
+        : window.location.hostname;
+    const connectionString = `${server}/mobile`; // TODO: change to /tmx
+    oi.socket = io.connect(connectionString);
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
@@ -105,6 +110,7 @@ function socketEmit(msg, data) {
 }
 
 function connectionEvent(callback) {
+  console.log('connected');
   while (socketQueue.length) {
     let message = socketQueue.pop();
     socketEmit(message.header, message.data);
