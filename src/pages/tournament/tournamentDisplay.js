@@ -2,6 +2,7 @@ import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/parti
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
+import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { renderVenueTab } from 'pages/tournament/tabs/scheduleTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
@@ -11,7 +12,6 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getTournament } from 'services/apis/servicesApi';
-import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
