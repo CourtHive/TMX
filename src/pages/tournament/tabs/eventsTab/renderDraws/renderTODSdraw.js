@@ -2,14 +2,16 @@ import { tournamentEngine, drawDefinitionConstants, eventConstants, tools } from
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
+import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
+import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { getStructureOptions } from './getStructureOptions';
+import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
-import { getAdHocActions } from '../actions/adHocActions';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
@@ -19,12 +21,22 @@ import { getDrawsOptions } from './getDrawsOptions';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
 
-import { EVENT_CONTROL, DRAW_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, NONE } from 'constants/tmxConstants';
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
+import {
+  EVENT_CONTROL,
+  DRAW_CONTROL,
+  DRAWS_VIEW,
+  QUALIFYING,
+  RIGHT,
+  LEFT,
+  NONE,
+  ROUNDS_TABLE,
+  ROUNDS_STATS,
+} from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderTODSdraw({ eventId, drawId, structureId, compositionName, redraw }) {
+export function renderTODSdraw({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
@@ -64,9 +76,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
 
   const isRoundRobin = structure?.structureType === 'CONTAINER';
 
-  const callback = ({ refresh } = {}) => {
+  const callback = ({ refresh, view } = {}) => {
+    console.log({ refresh, view });
     cleanupDrawPanel();
-    renderTODSdraw({ eventId, drawId, structureId, redraw: refresh });
+    renderTODSdraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
@@ -74,6 +87,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     callback,
     drawId,
   });
+
   const composition =
     compositions?.[compositionName] ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
@@ -98,6 +112,8 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   if (redraw) removeAllChildNodes(drawsView);
+
+  const isAdHoc = tournamentEngine.isAdHoc({ structure });
 
   const updateDrawDisplay = () => {
     if (dual) return;
@@ -142,9 +158,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       const drawControlItems = [roundRobinStats];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
-    } else if (tournamentEngine.isAdHoc({ structure })) {
-      const adHocActions = getAdHocActions({ structure, drawId, callback });
-      const drawControlItems = adHocActions;
+    } else if (isAdHoc) {
+      const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
+      const setDisplay = ({ refresh, view }) => callback({ refresh, view });
+      const displayOptions = getRoundDisplayOptions({ structure, drawId, callback: setDisplay });
+      const drawControlItems = [displayOptions, adHocOptions];
       const drawControl = document.getElementById(DRAW_CONTROL);
       controlBar({ target: drawControl, items: drawControlItems });
     } else if (structure?.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
@@ -165,15 +183,18 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     if (!matchUps.length) {
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
+      } else if (isAdHoc) {
+        generateAdHocRound({ structure, drawId, callback });
       } else {
         const structureId = structures?.[0]?.structureId;
         return renderTODSdraw({ eventId, drawId, structureId, redraw: true });
       }
+    } else if ((isAdHoc || isRoundRobin) && [ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
+      console.log('display', { roundsView });
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
 
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
-
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
@@ -192,6 +213,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         return findAncestor(node, 'tmx-p');
       };
       const targetNode = drawsView.firstChild;
+
       if (targetNode) {
         morphdom(targetNode, content, {
           addChild: function (parentNode, childNode) {
