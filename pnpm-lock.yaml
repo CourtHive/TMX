@@ -15,8 +15,8 @@ dependencies:
     specifier: 2.6.0
     version: 2.6.0
   '@event-calendar/interaction':
-    specifier: 1.5.1
-    version: 1.5.1
+    specifier: 2.6.0
+    version: 2.6.0
   '@event-calendar/list':
     specifier: 1.5.1
     version: 1.5.1
@@ -1041,10 +1041,10 @@ packages:
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/interaction@1.5.1:
-    resolution: {integrity: sha512-QRSAr1b7BbjyCvXWFNBdacsr2j39EcDMcgW6xg4DojvMoYJsOgd2L0F7M4iEJsd5SJbOfI4eqDQSBOU23TxHQQ==}
+  /@event-calendar/interaction@2.6.0:
+    resolution: {integrity: sha512-1JsfEuIWJZvSctThD3B8bvZxcJ9T1AqYoUECkiXKTEpZsIo9zl/PvTyJcmQ7tNIQ1wWzesPDUNj3YQbBCwjACA==}
     dependencies:
-      '@event-calendar/core': 1.5.1
+      '@event-calendar/core': 2.6.0
       svelte: 4.2.9
     dev: false
 
