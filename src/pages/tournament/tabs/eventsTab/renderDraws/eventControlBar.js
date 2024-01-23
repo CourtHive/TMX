@@ -56,7 +56,7 @@ export function eventControlBar({ eventId, drawId, structureId, updateDisplay })
         .filter(Boolean)
         .forEach((table) => table.addFilter(searchFilter));
     }
-    if (typeof updateDisplay === 'function') updateDisplay(participantFilter);
+    if (typeof updateDisplay === 'function') updateDisplay({ participantFilter });
   };
 
   const items = [

@@ -1,18 +1,28 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar';
+import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { roundGroupingHeader } from './roundGroupingHeader';
-import { tournamentEngine } from 'tods-competition-factory';
 import { getRoundsColumns } from './getRoundsColumns';
 import { mapRound } from './mapRound';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
+import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
+import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
+import { navigateToEvent } from '../common/navigateToEvent';
+import { renderDraw } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDraw';
+const { CONTAINER } = drawDefinitionConstants;
 
-export function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }) {
-  let table;
+export async function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }) {
+  let table, structure, participantFilter, isRoundRobin;
 
-  const getMatchUps = (participantFilter) => {
+  const getMatchUps = async () => {
+    const eventData = tournamentEngine.getEventData({ eventId }).eventData;
+    const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
+    structure = drawData?.structures?.find((s) => s.structureId === structureId);
+    isRoundRobin = structure?.structureType === CONTAINER;
+
     return (
       tournamentEngine.allTournamentMatchUps({
         matchUpFilters: { drawIds: [drawId], structureIds: [structureId] },
@@ -25,54 +35,57 @@ export function createRoundsTable({ eventId, drawId, structureId, matchUps, even
         ({ sides }) =>
           !participantFilter ||
           sides.find((side) =>
-            side.participant?.participantName?.toLowerCase().includes(participantFilter.toLowerCase()),
+            side.participant?.participantName?.toLowerCase().includes(participantFilter?.toLowerCase()),
           ),
       );
   };
 
   // eventName necessary for team scorecard
-  if (!matchUps) matchUps = getMatchUps();
+  if (!matchUps) matchUps = await getMatchUps();
   if (eventData) {
     matchUps.forEach((matchUp) => (matchUp.eventName = eventData.eventInfo.eventName));
   }
 
   const getTableData = () => matchUps.map(mapRound);
 
-  const updateTableData = (participantFilter) => {
-    const matchUps = getMatchUps(participantFilter);
+  const updateTableData = () => {
+    const matchUps = getMatchUps();
     return matchUps.map(mapRound);
   };
-  const replaceTableData = (participantFilter) => {
-    table.replaceData(updateTableData(participantFilter));
+  const replaceTableData = (params) => {
+    if (params.participantFilter) participantFilter = params.participantFilter;
+    table.replaceData(updateTableData());
   };
 
   const data = getTableData();
   const columns = getRoundsColumns({ data, replaceTableData });
+  const groupBy = isRoundRobin ? ['roundName', 'structureName'] : ['roundName'];
 
   const render = (data) => {
     destroyTable({ anchorId: DRAWS_VIEW });
     const element = document.getElementById(DRAWS_VIEW);
 
     table = new Tabulator(element, {
-      groupHeader: [roundGroupingHeader, (value) => (value === true ? 'Complete' : 'Incomplete')],
+      groupHeader: [roundGroupingHeader, (value) => value],
       headerSortElement: headerSortElement(['complete', 'duration', 'score']),
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.85,
+      /*
       groupStartOpen: [
-        true,
+        true, // use function to determine if all matchUps are completed, and if so, start closed
         (a, count, rows, group) => {
           console.log({ count, rows }, group.getField(), group.getKey());
           return a;
         },
       ],
-      // groupBy: ['roundName', 'complete'],
-      groupBy: ['roundName'],
+      */
       responsiveLayout: 'collapse',
       // groupUpdateOnCellEdit: true,
       placeholder: 'No matches',
       layout: 'fitColumns',
       reactiveData: true,
       index: 'matchUpId',
+      groupBy,
       columns,
       data,
     });
@@ -80,6 +93,15 @@ export function createRoundsTable({ eventId, drawId, structureId, matchUps, even
 
   render(data);
 
+  const callback = ({ refresh, view } = {}) => {
+    cleanupDrawPanel();
+    if (view) {
+      navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
+    } else {
+      renderDraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+    }
+  };
+  drawControlBar({ structure, drawId, callback });
   eventControlBar({ eventId, drawId, structureId, updateDisplay: replaceTableData });
 
   return { table, replaceTableData };
