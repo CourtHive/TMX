@@ -2,26 +2,23 @@ import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHigh
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools } from 'tods-competition-factory';
+import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { getStructureOptions } from './getStructureOptions';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
-import { getActionOptions } from './getActionOptions';
-import { getEventOptions } from './getEventOptions';
-import { getDrawsOptions } from './getDrawsOptions';
 import { drawControlBar } from './drawControlBar';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
 
-import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -210,19 +207,6 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
   const updateControlBar = (refresh) => {
     if (refresh) getData();
 
-    const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
-    const actionOptions = getActionOptions({
-      dualMatchUp: dual && matchUps[0],
-      structureName,
-      structureId,
-      eventData,
-      drawData,
-      drawId,
-    });
-    const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
-    const drawsOptions = getDrawsOptions({ eventData, drawId });
-    const { eventOptions } = getEventOptions({ events });
-
     // PARTICIPANT filter
     const searchFilter = (rowData) => rowData.searchText?.includes(participantFilter);
     const updateParticipantFilter = (value) => {
@@ -243,43 +227,16 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
       updateDrawDisplay();
     };
 
-    // TODO: replace with eventControlItems
-    const items = [
-      {
-        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
-        onChange: (e) => updateParticipantFilter(e.target.value),
-        onKeyUp: (e) => updateParticipantFilter(e.target.value),
-        clearSearch: () => updateParticipantFilter(''),
-        placeholder: 'Participant name',
-        location: LEFT,
-        search: true,
-      },
-      {
-        options: eventOptions.length > 1 ? eventOptions : undefined,
-        label: eventData.eventInfo.eventName,
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        options: drawsOptions.length > 1 ? drawsOptions : undefined,
-        label: drawData.drawName,
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        options: structureOptions.length > 1 ? structureOptions : undefined,
-        label: structureName,
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        options: actionOptions,
-        intent: 'is-info',
-        label: 'Actions',
-        location: RIGHT,
-        align: RIGHT,
-      },
-    ];
+    const items = getEventControlItems({
+      updateParticipantFilter,
+      updateControlBar,
+      structureId,
+      eventData,
+      drawData,
+      matchUps,
+      eventId,
+      drawId,
+    });
 
     controlBar({ target: eventControlElement, items });
   };
