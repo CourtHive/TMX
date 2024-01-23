@@ -1,4 +1,4 @@
-import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar';
+import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/eventControlBar';
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';

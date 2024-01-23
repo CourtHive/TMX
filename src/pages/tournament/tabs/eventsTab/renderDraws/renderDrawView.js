@@ -57,11 +57,12 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
   getData();
 
   const callback = ({ refresh, view } = {}) => {
+    const redraw = refresh || participantFilter;
     cleanupDrawPanel();
     if (view) {
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
     } else {
-      renderDrawView({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+      renderDrawView({ eventId, drawId, structureId, redraw, roundsView: view });
     }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
@@ -150,7 +151,6 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
         return findAncestor(node, 'tmx-p');
       };
       const targetNode = drawsView.firstChild;
-
       if (targetNode) {
         morphdom(targetNode, content, {
           addChild: function (parentNode, childNode) {
