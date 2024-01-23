@@ -19,6 +19,7 @@ import {
   EVENTS_TAB,
   SCHEDULE_TAB,
   INVITE,
+  VIEW,
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
@@ -44,9 +45,18 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
   });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${VIEW}/:roundsView`, ({ data }) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+  });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
   });
+  router.on(
+    `/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId/${VIEW}/:roundsView`,
+    ({ data }) => {
+      displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+    },
+  );
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW_ENTRIES}/:drawId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, data });
   });
