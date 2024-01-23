@@ -132,10 +132,10 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
       const content = renderContainer({
         content: renderStructure({
-          // TODO: add ability to specify first round to render
           context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
+          // initialRoundNumber: 3,
           eventHandlers,
           composition,
           // finalColumn,
