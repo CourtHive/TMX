@@ -1,24 +1,25 @@
-import { cleanup, validateToken } from 'services/authentication/actions';
-import { getJwtTokenStorageKey } from 'config/localStorage';
+import { getToken, removeToken, setToken } from './tokenManagement';
+import { validateToken } from 'services/authentication/validateToken';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { checkDevState } from './checkDevState';
 import { context } from 'services/context';
 
-const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
-
 export function getLoginState() {
-  const token = localStorage.getItem(JWT_TOKEN_STORAGE_NAME);
+  const token = getToken();
   return validateToken(token);
 }
+
 export function logOut() {
-  localStorage.removeItem(JWT_TOKEN_STORAGE_NAME);
-  cleanup(true);
+  removeToken();
+  checkDevState();
+  context.router.navigate('/');
 }
 
 export function logIn({ data }) {
   const decodedToken = validateToken(data.token);
   if (decodedToken) {
-    localStorage.setItem(JWT_TOKEN_STORAGE_NAME, data.token);
+    setToken(data.token);
     tmxToast({ intent: 'is-success', message: 'Login successful' });
     tournamentEngine.reset();
     context.router.navigate('/');

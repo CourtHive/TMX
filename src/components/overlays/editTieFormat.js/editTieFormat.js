@@ -146,13 +146,13 @@ function getOverview(table) {
 }
 
 function getFooter({ table, onClose }) {
-  const cleanup = () => {
+  const destroyTableAndClose = () => {
     table.destroy();
     closeOverlay();
   };
   const cancel = document.createElement('button');
   cancel.className = 'button is-warning is-light';
-  cancel.onclick = cleanup;
+  cancel.onclick = destroyTableAndClose;
   cancel.innerHTML = 'Cancel';
 
   const close = document.createElement('button');
@@ -161,7 +161,7 @@ function getFooter({ table, onClose }) {
     e.preventDefault();
     e.stopPropagation();
     const data = table.getData();
-    cleanup();
+    destroyTableAndClose();
     isFunction(onClose) && onClose(data);
   };
   close.innerHTML = 'Done';
