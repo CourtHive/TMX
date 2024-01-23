@@ -552,9 +552,11 @@
   padding: 0.1em;
 }
 
+/*
 .tabulator-row.tabulator-row-even {
   background-color: #fafafa;
 }
+*/
 
 .tabulator-row.tabulator-selectable:hover {
   background-color: #fafafa;
@@ -819,16 +821,32 @@
   min-width: 100%;
 }
 
+/* ------------ START Sticky groupBy ------------ */
+.tabulator-row.tabulator-group.tabulator-group-level-0 {
+  background-color: rgb(204, 216, 251);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.tabulator-row.tabulator-group.tabulator-group-level-1 {
+  background-color: rgb(249, 234, 233);
+}
+.tabulator-row.tabulator-group.tabulator-group-level-0:hover {
+  /* background: #eaeaea; /* Default hover background has an opacity: rgba(0,0,0,.1) */
+  background: gray; /* Default hover background has an opacity: rgba(0,0,0,.1) */
+}
+/* ------------ END Sticky groupBy ------------ */
+
 .tabulator-row.tabulator-group:hover {
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.1);
 }
 
 .tabulator-row.tabulator-group.tabulator-group-visible .tabulator-arrow {
-  margin-right: 10px;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-top: 6px solid #363636;
+  margin-right: 10px;
   border-bottom: 0;
 }
 
@@ -1338,9 +1356,11 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
   min-height: 22px;
 }
 
+/*
 .tabulator-row.tabulator-row-even {
   background-color: inherit;
 }
+*/
 
 .tabulator-row.tabulator-selected {
   background-color: #00d1b25c !important;

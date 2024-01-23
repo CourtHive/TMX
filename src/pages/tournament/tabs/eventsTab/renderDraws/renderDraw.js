@@ -1,12 +1,9 @@
-import { tournamentEngine, drawDefinitionConstants, eventConstants, tools } from 'tods-competition-factory';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { tournamentEngine, eventConstants, tools } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
-import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
-import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -20,26 +17,15 @@ import { getEventHandlers } from '../getEventHandlers';
 import { getActionOptions } from './getActionOptions';
 import { getEventOptions } from './getEventOptions';
 import { getDrawsOptions } from './getDrawsOptions';
-import { getEventData } from '../getEventData';
+import { drawControlBar } from './drawControlBar';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
 
-import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
-import {
-  EVENT_CONTROL,
-  DRAW_CONTROL,
-  DRAWS_VIEW,
-  QUALIFYING,
-  RIGHT,
-  LEFT,
-  NONE,
-  ROUNDS_TABLE,
-  ROUNDS_STATS,
-} from 'constants/tmxConstants';
+import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderTODSdraw({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
+export function renderDraw({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
@@ -67,34 +53,15 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
     matchUps = Object.values(roundMatchUps || {}).flat();
   };
 
-  const gD = () => {
-    const ed = getEventData({
-      structureId,
-      eventId,
-      drawId,
-    });
-    ({ eventData, eventType, drawData, structure, structureId, matchUps, stage } = ed);
-  };
-
   destroyTables();
   getData();
-  gD();
-
-  // once we have data...
-  const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
-  const isPlayoff =
-    !(structure?.stage === 'MAIN' && structure?.stageSequence === 1) &&
-    structure?.stage !== 'QUALIFYING' &&
-    hasDrawFeedProfile;
-
-  const isRoundRobin = structure?.structureType === 'CONTAINER';
 
   const callback = ({ refresh, view } = {}) => {
     cleanupDrawPanel();
     if (view) {
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
     } else {
-      renderTODSdraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+      renderDraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
     }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
@@ -134,57 +101,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   const updateDrawDisplay = () => {
     if (dual) return;
 
-    if (isPlayoff) {
-      const playoffPositioning = () => {
-        const method = {
-          params: { structureId: structure.sourceStructureIds[0], drawId },
-          method: AUTOMATED_PLAYOFF_POSITIONING,
-        };
-        const postMutation = (result) => {
-          if (result.success) {
-            getData();
-            updateDrawDisplay();
-          }
-        };
-        mutationRequest({ methods: [method], callback: postMutation });
-      };
-
-      const hasAssignedPositions = structure.positionAssignments?.filter(({ participantId }) => participantId).length;
-      const drawControlItems = [
-        {
-          intent: sourceStructuresComplete ? 'is-primary' : NONE,
-          disabled: sourceStructuresComplete !== true,
-          visible: !hasAssignedPositions,
-          onClick: playoffPositioning,
-          label: 'Auto position',
-          location: RIGHT,
-        },
-      ];
-      const drawControl = document.getElementById(DRAW_CONTROL);
-      controlBar({ target: drawControl, items: drawControlItems });
-    } else if (isRoundRobin) {
-      // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
-      // if there are playoff structures, button to populate them
-      const roundRobinStats = {
-        onClick: () => console.log('boo'),
-        label: 'View stats', // also toggle between finishing positions and matches
-        location: RIGHT,
-      };
-
-      const drawControlItems = [roundRobinStats];
-      const drawControl = document.getElementById(DRAW_CONTROL);
-      controlBar({ target: drawControl, items: drawControlItems });
-    } else if (isAdHoc) {
-      const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
-      const setDisplay = ({ refresh, view }) => callback({ refresh, view });
-      const displayOptions = getRoundDisplayOptions({ structure, drawId, callback: setDisplay });
-      const drawControlItems = [displayOptions, adHocOptions];
-      const drawControl = document.getElementById(DRAW_CONTROL);
-      controlBar({ target: drawControl, items: drawControlItems });
-    } else if (structure?.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
-      console.log('voluntary controlBar with [View participants]');
-      // use modal with eligible players and selected players highlighted
-    }
+    const update = () => {
+      getData();
+      updateDrawDisplay();
+    };
+    drawControlBar({ updateDisplay: update, drawId, structure, callback });
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
     for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
@@ -203,7 +124,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         generateAdHocRound({ structure, drawId, callback });
       } else {
         const structureId = structures?.[0]?.structureId;
-        return renderTODSdraw({ eventId, drawId, structureId, redraw: true });
+        return renderDraw({ eventId, drawId, structureId, redraw: true });
       }
     } else if ([ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
       createRoundsTable({ matchUps, eventData });

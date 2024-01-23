@@ -2,7 +2,7 @@ import { createEntriesPanels } from 'components/tables/eventsTable/createEntries
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { renderTODSdraw } from './renderDraws/renderDraw';
+import { renderDraw } from './renderDraws/renderDraw';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from './cleanupDrawPanel';
 import { renderDrawPanel } from './renderDrawPanel';
@@ -27,7 +27,7 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw, roun
           createRoundsTable({ eventId, drawId, structureId });
           console.log('render table');
         } else {
-          renderTODSdraw({ eventId, drawId, structureId, redraw: true, roundsView });
+          renderDraw({ eventId, drawId, structureId, redraw: true, roundsView });
         }
         setEventView({ renderDraw });
       } else {

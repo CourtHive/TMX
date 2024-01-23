@@ -19,6 +19,8 @@ export function drawControlBar({ updateDisplay, callback, structure, drawId }) {
     hasDrawFeedProfile;
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
 
+  const drawControlItems = [];
+
   if (isPlayoff) {
     const playoffPositioning = () => {
       const method = {
@@ -32,36 +34,31 @@ export function drawControlBar({ updateDisplay, callback, structure, drawId }) {
     };
 
     const hasAssignedPositions = structure.positionAssignments?.filter(({ participantId }) => participantId).length;
-    const drawControlItems = [
-      {
-        intent: sourceStructuresComplete ? 'is-primary' : NONE,
-        disabled: sourceStructuresComplete !== true,
-        visible: !hasAssignedPositions,
-        onClick: playoffPositioning,
-        label: 'Auto position',
-        location: RIGHT,
-      },
-    ];
-    controlBar({ target: drawControl, items: drawControlItems });
-  } else if (isRoundRobin) {
+    drawControlItems.push({
+      intent: sourceStructuresComplete ? 'is-primary' : NONE,
+      disabled: sourceStructuresComplete !== true,
+      visible: !hasAssignedPositions,
+      onClick: playoffPositioning,
+      label: 'Auto position',
+      location: RIGHT,
+    });
+  }
+  if (isRoundRobin || isAdHoc) {
     // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
     // if there are playoff structures, button to populate them
-    const roundRobinStats = {
-      onClick: () => console.log('boo'),
-      label: 'View stats', // also toggle between finishing positions and matches
-      location: RIGHT,
-    };
-
-    const drawControlItems = [roundRobinStats];
-    controlBar({ target: drawControl, items: drawControlItems });
-  } else if (isAdHoc) {
-    const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
-    const setDisplay = ({ refresh, view }) => callback({ refresh, view });
+    const setDisplay = ({ refresh, view }) => typeof callback === 'function' && callback({ refresh, view });
     const displayOptions = getRoundDisplayOptions({ structure, drawId, callback: setDisplay });
-    const drawControlItems = [displayOptions, adHocOptions];
-    controlBar({ target: drawControl, items: drawControlItems });
-  } else if (structure?.stage === VOLUNTARY_CONSOLATION) {
+    drawControlItems.push(displayOptions);
+  }
+
+  if (isAdHoc) {
+    const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
+    drawControlItems.push(adHocOptions);
+  }
+  if (structure?.stage === VOLUNTARY_CONSOLATION) {
     console.log('voluntary controlBar with [View participants]');
     // use modal with eligible players and selected players highlighted
   }
+
+  if (drawControlItems.length) controlBar({ target: drawControl, items: drawControlItems });
 }

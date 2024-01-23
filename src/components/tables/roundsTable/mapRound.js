@@ -5,15 +5,16 @@ const { TEAM } = eventConstants;
 
 export const mapRound = (matchUp) => {
   const {
-    matchUpId,
-    drawId,
-    matchUpType,
-    eventId,
-    roundName,
-    roundNumber,
-    schedule,
-    sides,
     potentialParticipants,
+    structureName,
+    matchUpType,
+    roundNumber,
+    matchUpId,
+    roundName,
+    schedule,
+    eventId,
+    drawId,
+    sides,
     ...rest
   } = matchUp;
 
@@ -77,6 +78,7 @@ export const mapRound = (matchUp) => {
     individualParticipantIds,
     flight: matchUp.drawName,
     competitiveProfile,
+    structureName,
     scheduledDate,
     readyToScore,
     scheduleTime,

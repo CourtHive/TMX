@@ -16,15 +16,15 @@ export function deleteFlights({ eventData, drawIds }) {
   const deleteAction = () => {
     const auditData = { auditReason: inputs['drawDeletionReason'].value };
     const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData },
-      method: DELETE_FLIGHT_AND_DRAW
+      params: { eventId, drawId, auditData, force: true }, // TODO: force should be a checkbox
+      method: DELETE_FLIGHT_AND_DRAW,
     }));
     const postMutation = (result) => result.success && navigateToEvent({ eventId });
     mutationRequest({ methods, callback: postMutation });
   };
   const items = [
     {
-      text: `Please provide a reason for draw deletion.`
+      text: `Please provide a reason for draw deletion.`,
     },
     {
       placeholder: 'Explanation',
@@ -32,11 +32,11 @@ export function deleteFlights({ eventData, drawIds }) {
       validator: wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
-      focus: true
+      focus: true,
     },
     {
-      text: `This action cannot be undone!`
-    }
+      text: `This action cannot be undone!`,
+    },
   ];
   const enableSubmit = ({ inputs }) => {
     const value = inputs['drawDeletionReason'].value;
@@ -47,8 +47,8 @@ export function deleteFlights({ eventData, drawIds }) {
   const relationships = [
     {
       control: 'drawDeletionReason',
-      onInput: enableSubmit
-    }
+      onInput: enableSubmit,
+    },
   ];
   const content = (elem) => (inputs = renderForm(elem, items, relationships));
 
@@ -57,7 +57,7 @@ export function deleteFlights({ eventData, drawIds }) {
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteDraw', disabled: true, intent: 'is-danger', close: true, onClick: deleteAction }
-    ]
+      { label: 'Delete', id: 'deleteDraw', disabled: true, intent: 'is-danger', close: true, onClick: deleteAction },
+    ],
   });
 }
