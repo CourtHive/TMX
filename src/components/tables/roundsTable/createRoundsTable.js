@@ -1,17 +1,17 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar';
+import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
+import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDraw';
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { roundGroupingHeader } from './roundGroupingHeader';
+import { navigateToEvent } from '../common/navigateToEvent';
 import { getRoundsColumns } from './getRoundsColumns';
 import { mapRound } from './mapRound';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
-import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
-import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
-import { navigateToEvent } from '../common/navigateToEvent';
-import { renderDraw } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDraw';
 const { CONTAINER } = drawDefinitionConstants;
 
 export async function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }) {
@@ -98,7 +98,7 @@ export async function createRoundsTable({ eventId, drawId, structureId, matchUps
     if (view) {
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
     } else {
-      renderDraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+      renderDrawView({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
     }
   };
   drawControlBar({ structure, drawId, callback });

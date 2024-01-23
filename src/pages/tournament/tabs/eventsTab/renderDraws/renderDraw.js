@@ -25,7 +25,7 @@ import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, RIGHT, LEFT, ROUNDS_TABLE, ROUND
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderDraw({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
+export function renderDrawView({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
@@ -61,7 +61,7 @@ export function renderDraw({ eventId, drawId, structureId, compositionName, roun
     if (view) {
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
     } else {
-      renderDraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+      renderDrawView({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
     }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
@@ -124,7 +124,7 @@ export function renderDraw({ eventId, drawId, structureId, compositionName, roun
         generateAdHocRound({ structure, drawId, callback });
       } else {
         const structureId = structures?.[0]?.structureId;
-        return renderDraw({ eventId, drawId, structureId, redraw: true });
+        return renderDrawView({ eventId, drawId, structureId, redraw: true });
       }
     } else if ([ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
       createRoundsTable({ matchUps, eventData });
