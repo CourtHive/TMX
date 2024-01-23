@@ -243,6 +243,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
       updateDrawDisplay();
     };
 
+    // TODO: replace with eventControlItems
     const items = [
       {
         onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
