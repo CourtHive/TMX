@@ -1,9 +1,9 @@
 import { eventConstants, tournamentEngine, tools } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
-import { getStructureOptions } from './getStructureOptions';
-import { getActionOptions } from './getActionOptions';
-import { getEventOptions } from './getEventOptions';
-import { getDrawsOptions } from './getDrawsOptions';
+import { getStructureOptions } from '../getStructureOptions';
+import { getActionOptions } from '../getActionOptions';
+import { getEventOptions } from '../getEventOptions';
+import { getDrawsOptions } from '../getDrawsOptions';
 import { context } from 'services/context';
 
 import { RIGHT, LEFT, EVENT_CONTROL } from 'constants/tmxConstants';
