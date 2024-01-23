@@ -2,7 +2,7 @@ import { createEntriesPanels } from 'components/tables/eventsTable/createEntries
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { renderDrawView } from './renderDraws/renderDraw';
+import { renderDrawView } from './renderDraws/renderDrawView';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from './cleanupDrawPanel';
 import { renderDrawPanel } from './renderDrawPanel';

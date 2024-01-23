@@ -1,6 +1,6 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar';
+import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
-import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDraw';
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { headerSortElement } from '../common/sorters/headerSortElement';
