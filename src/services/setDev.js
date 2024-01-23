@@ -45,7 +45,7 @@ const subscriptions = {
 };
 
 export function setDev() {
-  if (!window.dev) {
+  if (!window['dev']) {
     // eslint-disable-next-line no-console
     console.log('%c dev initialized', 'color: yellow');
     window.dev = {};
