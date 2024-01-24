@@ -1,5 +1,6 @@
-import { getToken, removeToken, setToken } from './tokenManagement';
 import { validateToken } from 'services/authentication/validateToken';
+import { getToken, removeToken, setToken } from './tokenManagement';
+import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { checkDevState } from './checkDevState';
@@ -13,6 +14,7 @@ export function getLoginState() {
 export function logOut() {
   removeToken();
   checkDevState();
+  disconnectSocket();
   context.router.navigate('/');
 }
 
@@ -21,6 +23,7 @@ export function logIn({ data }) {
   if (decodedToken) {
     setToken(data.token);
     tmxToast({ intent: 'is-success', message: 'Login successful' });
+    disconnectSocket();
     tournamentEngine.reset();
     context.router.navigate('/');
   }

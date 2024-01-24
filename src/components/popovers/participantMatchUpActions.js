@@ -57,7 +57,7 @@ export function participantMatchUpActions(e, cell, callback, params) {
       method: assignOrReplace,
     },
     [PENALTY]: {
-      onClick: () => console.log(data),
+      onClick: () => console.log({ data }),
       text: 'Assess penalty',
     },
     [REMOVE_PARTICIPANT]: {

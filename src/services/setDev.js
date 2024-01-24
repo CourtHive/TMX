@@ -70,7 +70,7 @@ export function setDev() {
         } else {
           tmxToast({ message: result?.error?.message ?? 'error', intent: 'is-danger' });
           // eslint-disable-next-line no-console
-          console.log(result);
+          console.log({ result });
         }
       };
 

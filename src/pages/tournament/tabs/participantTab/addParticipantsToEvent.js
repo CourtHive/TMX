@@ -16,14 +16,14 @@ export function addParticipantsToEvent({ event, participantType, table, callback
     const methods = [
       {
         params: { eventId, participantIds, entryStatus, entryStage },
-        method: ADD_EVENT_ENTRIES
-      }
+        method: ADD_EVENT_ENTRIES,
+      },
     ];
     const postMutation = (result) => {
       if (result.success) {
         isFunction(callback) && callback();
       } else {
-        console.log(result);
+        console.log({ result });
         if (result.misMatchedGender) {
           tmxToast({ intent: 'is-danger', message: 'Invalid gender' });
         }
