@@ -1,10 +1,10 @@
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { getLoginState } from 'services/authentication/loginState';
 import { openModal } from 'components/modals/baseModal/baseModal';
+import { emitTmx } from 'services/messaging/socketIo';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import { lang } from 'services/translator';
-import { coms } from 'services/coms';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -16,8 +16,8 @@ export function actionFormatter(cell) {
 
   const deleteTournament = () => {
     let deleteTournamentEvents = { tuid: tournamentId, delete_tournament: true };
-    coms.emitTmx({ data: { deleteTournamentEvents } });
-    coms.emitTmx({ data: { deleteOOP: { tuid: tournamentId } } });
+    emitTmx({ data: { deleteTournamentEvents } });
+    emitTmx({ data: { deleteOOP: { tuid: tournamentId } } });
 
     tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
     function done() {
@@ -37,9 +37,9 @@ export function actionFormatter(cell) {
         label: 'Delete',
         intent: 'is-danger',
         onClick: deleteTournament,
-        close: true
+        close: true,
       },
-      { label: 'Cancel' }
+      { label: 'Cancel' },
     ];
     openModal({ title: lang.tr('actions.delete_tournament'), buttons, content });
   };
@@ -61,9 +61,9 @@ export function actionFormatter(cell) {
       target: button,
       items: [
         { text: 'Delete', onClick: confirmDelete },
-        { text: 'Edit', onClick: tournamentEdit }
+        { text: 'Edit', onClick: tournamentEdit },
       ],
-      config: { placement: BOTTOM }
+      config: { placement: BOTTOM },
     });
   };
   content.appendChild(button);

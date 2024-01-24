@@ -13,7 +13,6 @@ export function enterMatchUpScore({ matchUpId, callback }) {
   const scoreSubmitted = (outcome) => {
     const { matchUpStatus, winningSide, score } = outcome;
     const sets = score && tournamentEngine.parseScoreString({ scoreString: score });
-    console.log({ sets });
     const methods = [
       {
         method: SET_MATCHUP_STATUS,

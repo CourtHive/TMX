@@ -1,3 +1,4 @@
+import { keyWalk } from 'functions/keyWalk';
 import {
   axisBottom,
   scaleLinear,
@@ -6,9 +7,8 @@ import {
   schemeCategory10,
   line as d3Line,
   select as d3Select,
-  max as d3Max
+  max as d3Max,
 } from 'd3';
-import { keyWalk } from 'functions/keyWalk';
 
 export const timeSeries = function () {
   let o = {
@@ -31,8 +31,8 @@ export const timeSeries = function () {
       top: 30,
       left: 50,
       right: 50,
-      bottom: 30
-    }
+      bottom: 30,
+    },
   };
 
   let data = [];
@@ -40,7 +40,7 @@ export const timeSeries = function () {
   let cheight;
 
   let events = {
-    datapoints: { mouseover: null }
+    datapoints: { mouseover: null },
   };
 
   function chart(opts) {
@@ -79,7 +79,7 @@ export const timeSeries = function () {
         return {
           key: key,
           date: new Date(d.date),
-          value: d[key]
+          value: d[key],
         };
       });
     });
@@ -112,7 +112,7 @@ export const timeSeries = function () {
             return d?.value;
           })
           .x((d) => x(d.date))
-          .y((d) => y(d.value))
+          .y((d) => y(d.value)),
       );
 
     const transform = (d) => 'translate(' + x(d.date) + ',' + (d.value ? y(d.value) : 0) + ')';

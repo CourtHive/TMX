@@ -11,8 +11,8 @@ import { env } from 'settings/env';
 import { db } from 'services/storage/db';
 
 export function authMessage(msg) {
-  console.log(msg);
-  tmx2db.findTournament(msg.tournamentId).then(pushMessage, (err) => console.log(err));
+  console.log({ msg });
+  tmx2db.findTournament(msg.tournamentId).then(pushMessage, (err) => console.log({ err }));
 
   function pushMessage(tournament) {
     eventManager.call('tournamentAuthorization', 'tap', tournament);
@@ -32,8 +32,8 @@ export function authMessage(msg) {
         buttons: [
           { label: 'Save Received', onClick: keepReceived, close: true },
           { label: 'Keep Existing', onClick: keepExisting, close: true },
-          { label: 'Cancel', close: true }
-        ]
+          { label: 'Cancel', close: true },
+        ],
       });
     } else if (!tournament && msg.tournament) {
       addReceivedTournament(msg.tournament);
@@ -53,7 +53,7 @@ export function authMessage(msg) {
     function addReceivedTournament(received_tournament) {
       let tournament = safeJSON.parse({
         data: received_tournament,
-        maxTilde: 5
+        maxTilde: 5,
       });
       if (tournament) {
         context.ee.emit('updateTournament', tournament);

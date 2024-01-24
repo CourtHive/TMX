@@ -25,27 +25,27 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
   const items = [
     {
       onClick: handleCallback,
-      text: 'Schedule'
+      text: 'Schedule',
     },
     {
       onClick: handleCallback,
-      text: 'Start time'
+      text: 'Start time',
     },
     {
       onClick: handleCallback,
-      text: 'End time'
+      text: 'End time',
     },
     {
       onClick: handleCallback,
-      text: 'Set referee'
-    }
+      text: 'Set referee',
+    },
   ];
 
   if (isAdHoc && !tournamentEngine.checkScoreHasValue(matchUp))
     items.push({
       onClick: () => deleteAdHocMatchUp({ ...matchUp, callback: handleCallback }),
       text: 'Delete match',
-      color: 'red'
+      color: 'red',
     });
 
   tipster({ items, target: target || pointerEvent.target, config: { placement: BOTTOM } });
@@ -58,15 +58,15 @@ export function deleteAdHocMatchUp({ drawId, structureId, matchUpId, callback })
       params: {
         matchUpIds: [matchUpId],
         structureId,
-        drawId
-      }
-    }
+        drawId,
+      },
+    },
   ];
   const postMutation = (result) => {
     if (result.success) {
       if (isFunction(callback)) callback();
     } else {
-      console.log(result.error);
+      console.log({ postMutationError: result.error });
     }
   };
   mutationRequest({ methods, callback: postMutation });

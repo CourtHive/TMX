@@ -27,7 +27,7 @@ const format = {
     tiebreakAt: 6,
     tiebreakTo: 7,
     winBy: 2,
-    minutes: 10
+    minutes: 10,
   },
   finalSetFormat: {
     descriptor: 'Final set',
@@ -37,15 +37,15 @@ const format = {
     tiebreakAt: 6,
     tiebreakTo: 7,
     winBy: 2,
-    minutes: 10
-  }
+    minutes: 10,
+  },
 };
 
 function getSetFormat(index) {
   const which = index ? 'finalSetFormat' : 'setFormat';
   const what = format[which].what;
   const setFormat = {
-    setTo: format[which].setTo
+    setTo: format[which].setTo,
   };
   if (what === SETS && format[which].advantage === NOAD) setFormat.NoAD = true;
 
@@ -53,7 +53,7 @@ function getSetFormat(index) {
   if (hasTiebreak) {
     setFormat.tiebreakAt = format[which].tiebreakAt;
     setFormat.tiebreakFormat = {
-      tiebreakTo: format[which].tiebreakTo
+      tiebreakTo: format[which].tiebreakTo,
     };
     if (what === SETS && format[which].winBy === 1) {
       setFormat.tiebreakFormat.NoAD = true;
@@ -66,7 +66,7 @@ function getSetFormat(index) {
 
   if (what === TIEBREAKS) {
     setFormat.tiebreakSet = {
-      tiebreakTo: format[which].tiebreakTo
+      tiebreakTo: format[which].tiebreakTo,
     };
     if (format[which].winBy === 1) {
       setFormat.tiebreakSet.NoAD = true;
@@ -80,7 +80,7 @@ function generateMatchUpFormat() {
   const setFormat = getSetFormat();
   parsedMatchUpFormat = {
     bestOf: format.setFormat.bestOf,
-    setFormat
+    setFormat,
   };
 
   const hasFinalSet = document.getElementById('finalSetOption')?.checked;
@@ -113,7 +113,7 @@ const setComponents = [
     options: ['Best of', 'Exactly'],
     id: 'descriptor',
     value: 'Best of',
-    finalSet: false
+    finalSet: false,
   },
   { getValue: (pmf) => pmf.bestOf, finalSet: false, id: 'bestOf', options: [1, 3, 5], onChange: 'pluralize', value: 3 },
   {
@@ -125,12 +125,12 @@ const setComponents = [
     options: [AD, NOAD],
     defaultValue: AD,
     id: 'advantage',
-    whats: [SETS]
+    whats: [SETS],
   },
   {
     getValue: (pmf, isFinal) => {
       const setFormat = whichSetFormat(pmf, isFinal);
-      if (!setFormat) console.log(pmf);
+      if (!setFormat) console.log({ pmf });
       if (setFormat?.timed) return TIMED_SETS;
       if (setFormat?.tiebreakSet) return TIEBREAKS;
       return SETS;
@@ -139,7 +139,7 @@ const setComponents = [
     finalSetLabel: `${SETS}${clickable}`,
     onChange: 'changeWhat',
     pluralize: true,
-    id: 'what'
+    id: 'what',
   },
   {
     getValue: (pmf, isFinal) => {
@@ -151,7 +151,7 @@ const setComponents = [
     defaultValue: 6,
     whats: [SETS],
     prefix: 'to ',
-    id: 'setTo'
+    id: 'setTo',
   },
   {
     getValue: (pmf, isFinal) => {
@@ -165,7 +165,7 @@ const setComponents = [
     prefix: 'TB to ',
     tbSet: true,
     value: 7,
-    tb: true
+    tb: true,
   },
   {
     getValue: (pmf, isFinal) => {
@@ -181,7 +181,7 @@ const setComponents = [
     whats: [SETS],
     prefix: '@',
     value: 6,
-    tb: true
+    tb: true,
   },
   {
     getValue: (pmf, isFinal) => {
@@ -195,7 +195,7 @@ const setComponents = [
     defaultValue: 2,
     tbSet: true,
     id: 'winBy',
-    tb: true
+    tb: true,
   },
   {
     getValue: (pmf, isFinal) => {
@@ -207,8 +207,8 @@ const setComponents = [
     suffix: ' Minutes',
     defaultValue: 10,
     id: 'minutes',
-    timed: true
-  }
+    timed: true,
+  },
 ];
 
 const onClicks = {
@@ -248,7 +248,7 @@ const onClicks = {
     const elem = document.getElementById(elementId);
     const plural = opt > 1 ? 's' : '';
     elem.innerHTML = `${what}${plural}${clickable}`;
-  }
+  },
 };
 
 export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callback } = {}) {
@@ -268,9 +268,9 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
       onClick: () => callback(),
       label: 'Cancel',
       intent: 'none',
-      close: true
+      close: true,
     },
-    { label: 'Select', intent: 'is-info', close: true, onClick: onSelect }
+    { label: 'Select', intent: 'is-info', close: true, onClick: onSelect },
   ];
 
   const tiebreakSwitch = 'switch is-rounded is-danger';
@@ -291,8 +291,8 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
     options: matchUpFormats.map((format) => ({
       selected: format.format === selectedMatchUpFormat,
       value: format.format,
-      label: format.name
-    }))
+      label: format.name,
+    })),
   };
   const { field, inputElement } = renderField(formatSelector);
   inputElement.onchange = (e) => {
@@ -419,7 +419,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
       setComponents.map((component) => {
         const value = component.getValue(parsedMatchUpFormat, true);
         return { ...component, value };
-      })
+      }),
     )
     .filter((def) => def.finalSet !== false)
     .map((def) => createButton({ ...def, index: 1 }))
@@ -501,7 +501,7 @@ function getButtonClick(params) {
       }
       format[index ? 'finalSetFormat' : 'setFormat'][id] = opt;
       setMatchUpFormatString();
-    }
+    },
   }));
 
   tipster({ items, target: e.target, config: { arrow: false, offset: [0, 0] } });

@@ -126,8 +126,8 @@ dependencies:
     specifier: 6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: 2.0.8
-    version: 2.0.8
+    specifier: 2.0.9
+    version: 2.0.9
   tods-tmx-classic-converter:
     specifier: 2.14.0
     version: 2.14.0
@@ -194,8 +194,8 @@ devDependencies:
     specifier: 1.8.0
     version: 1.8.0
   dotenv:
-    specifier: 16.3.2
-    version: 16.3.2
+    specifier: 16.4.0
+    version: 16.4.0
   envfile:
     specifier: 7.1.0
     version: 7.1.0
@@ -2565,7 +2565,7 @@ packages:
       classnames: 2.5.1
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 2.0.8
+      tods-competition-factory: 2.0.9
     dev: false
 
   /create-ecdh@4.0.4:
@@ -3014,8 +3014,8 @@ packages:
       is-obj: 2.0.0
     dev: true
 
-  /dotenv@16.3.2:
-    resolution: {integrity: sha512-HTlk5nmhkm8F6JcdXvHIzaorzCoziNQT9mGxLPVXW8wJF1TiGSL60ZGB4gHWabHOaMmWmhvk2/lPHfnBiT78AQ==}
+  /dotenv@16.4.0:
+    resolution: {integrity: sha512-WvImr5kpN5NGNn7KaDjJnLTh5rDVLZiDf/YLA8T1ZEZEBZNEDOE+mnkS0PVjPax8ZxBP5zC5SLMB3/9VV5de9g==}
     engines: {node: '>=12'}
     dev: true
 
@@ -6567,8 +6567,8 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@2.0.8:
-    resolution: {integrity: sha512-6FWkRAbQtupGDd137MdKQTLZ7/66mSZE4Tr7TBtGMJ7/EFgVHJbXz1edZHwUVw+Q+aEGCKyY+h1E/hCqvZxMXw==}
+  /tods-competition-factory@2.0.9:
+    resolution: {integrity: sha512-4PaY0Tnh3pscPKKJ4mO8jWU8avWNuyyote+TJj1Egvd6cXkYotOa5XiVfnB/Bwrh0E5efmkvtx1L6VDlCJDQ3A==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
@@ -6580,7 +6580,7 @@ packages:
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 2.0.8
+      tods-competition-factory: 2.0.9
     dev: false
 
   /totalist@3.0.1:

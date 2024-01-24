@@ -68,7 +68,7 @@ export const db = (function () {
 
   db.findUnique = (tbl, attr, val) =>
     new Promise((resolve, reject) =>
-      db.findWhere(tbl, attr, val).then((d) => resolve(d && d.length ? d[0] : undefined), reject)
+      db.findWhere(tbl, attr, val).then((d) => resolve(d && d.length ? d[0] : undefined), reject),
     );
   db.findTournament = (tuid) => db.findUnique('tournaments', 'tuid', tuid);
   db.addItem = (tbl, item) =>
@@ -79,7 +79,7 @@ export const db = (function () {
         .catch((err) => {
           alert('try again:', err);
           reject(err);
-        })
+        }),
     );
 
   db.modifyOrAddUnique = (tbl, attr, val, item) =>
@@ -97,9 +97,9 @@ export const db = (function () {
             }
           },
           (err) => {
-            console.log(err);
+            console.log({ err });
             reject(err);
-          }
+          },
         );
     });
 
@@ -115,9 +115,9 @@ export const db = (function () {
             db.addItem(tbl, item).then(resolve, reject);
           },
           (err) => {
-            console.log(err);
+            console.log({ err });
             reject(err);
-          }
+          },
         );
     });
 

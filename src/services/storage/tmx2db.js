@@ -88,7 +88,7 @@ export const tmx2db = (function () {
             }
           },
           (err) => {
-            console.log(err);
+            console.log({err});
             reject(err);
           }
         );

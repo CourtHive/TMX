@@ -12,7 +12,7 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
   const matchUps =
     tournamentEngine.allDrawMatchUps({
       matchUpFilters: { structureIds: [structureId] },
-      drawId
+      drawId,
     }).matchUps || [];
   const roundNumbers = matchUps.reduce((roundNumbers, matchUp) => {
     const roundNumber = matchUp.roundNumber;
@@ -39,15 +39,15 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
     const methods = [
       {
         params: { drawId, structureId, matchUpIds },
-        method: DELETE_ADHOC_MATCHUPS
-      }
+        method: DELETE_ADHOC_MATCHUPS,
+      },
     ];
 
     const postMutation = (result) => {
       if (result.success) {
         if (isFunction(callback)) callback({ refresh: true });
       } else {
-        console.log(result.error);
+        console.log({ postMutationError: result.error });
       }
     };
 
@@ -58,7 +58,7 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
 
   const buttons = [
     { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Delete', intent: 'is-danger', close: true, onClick: deleteRound }
+    { label: 'Delete', intent: 'is-danger', close: true, onClick: deleteRound },
   ];
 
   const roundNumberOptions = roundNumbers.map((rn) => ({ label: rn, value: rn }));
@@ -69,8 +69,8 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       options: roundNumberOptions,
       field: 'roundNumber',
       value: roundNumber,
-      id: 'roundNumber'
-    }
+      id: 'roundNumber',
+    },
   };
   const options = [
     roundNumberSelection,
@@ -81,14 +81,14 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       checkbox: true,
       field: 'empties',
       checked: true,
-      id: 'empties'
+      id: 'empties',
     },
     {
       label: 'Remove incomplete/unscored matches',
       intent: 'is-danger',
       field: 'unscored',
       checkbox: true,
-      id: 'unscored'
+      id: 'unscored',
     },
     {
       label: 'Remove completed matches',
@@ -96,8 +96,8 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       field: 'completed',
       id: 'completed',
       checkbox: true,
-      color: 'red'
-    }
+      color: 'red',
+    },
   ];
 
   const content = (elem) => (inputs = renderForm(elem, options));

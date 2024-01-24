@@ -1,42 +1,28 @@
-import { tournamentEngine, drawDefinitionConstants, eventConstants, tools } from 'tods-competition-factory';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
+import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { tournamentEngine, eventConstants, tools } from 'tods-competition-factory';
+import { getEventControlItems } from './eventControlBar/eventControlItems';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
-import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
-import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { getStructureOptions } from './getStructureOptions';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
-import { getActionOptions } from './getActionOptions';
-import { getEventOptions } from './getEventOptions';
-import { getDrawsOptions } from './getDrawsOptions';
+import { drawControlBar } from './drawControlBar';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
 
-import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
-import {
-  EVENT_CONTROL,
-  DRAW_CONTROL,
-  DRAWS_VIEW,
-  QUALIFYING,
-  RIGHT,
-  LEFT,
-  NONE,
-  ROUNDS_TABLE,
-  ROUNDS_STATS,
-} from 'constants/tmxConstants';
+import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderTODSdraw({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
+export function renderDrawView({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
@@ -67,19 +53,14 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   destroyTables();
   getData();
 
-  // once we have data...
-  const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
-  const isPlayoff =
-    !(structure?.stage === 'MAIN' && structure?.stageSequence === 1) &&
-    structure?.stage !== 'QUALIFYING' &&
-    hasDrawFeedProfile;
-
-  const isRoundRobin = structure?.structureType === 'CONTAINER';
-
   const callback = ({ refresh, view } = {}) => {
-    console.log({ refresh, view });
+    const redraw = refresh || participantFilter;
     cleanupDrawPanel();
-    renderTODSdraw({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
+    if (view) {
+      navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
+    } else {
+      renderDrawView({ eventId, drawId, structureId, redraw, roundsView: view });
+    }
   };
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
   const eventHandlers = getEventHandlers({
@@ -118,57 +99,11 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   const updateDrawDisplay = () => {
     if (dual) return;
 
-    if (isPlayoff) {
-      const playoffPositioning = () => {
-        const method = {
-          params: { structureId: structure.sourceStructureIds[0], drawId },
-          method: AUTOMATED_PLAYOFF_POSITIONING,
-        };
-        const postMutation = (result) => {
-          if (result.success) {
-            getData();
-            updateDrawDisplay();
-          }
-        };
-        mutationRequest({ methods: [method], callback: postMutation });
-      };
-
-      const hasAssignedPositions = structure.positionAssignments?.filter(({ participantId }) => participantId).length;
-      const drawControlItems = [
-        {
-          intent: sourceStructuresComplete ? 'is-primary' : NONE,
-          disabled: sourceStructuresComplete !== true,
-          visible: !hasAssignedPositions,
-          onClick: playoffPositioning,
-          label: 'Auto position',
-          location: RIGHT,
-        },
-      ];
-      const drawControl = document.getElementById(DRAW_CONTROL);
-      controlBar({ target: drawControl, items: drawControlItems });
-    } else if (isRoundRobin) {
-      // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
-      // if there are playoff structures, button to populate them
-      const roundRobinStats = {
-        onClick: () => console.log('boo'),
-        label: 'View stats', // also toggle between finishing positions and matches
-        location: RIGHT,
-      };
-
-      const drawControlItems = [roundRobinStats];
-      const drawControl = document.getElementById(DRAW_CONTROL);
-      controlBar({ target: drawControl, items: drawControlItems });
-    } else if (isAdHoc) {
-      const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
-      const setDisplay = ({ refresh, view }) => callback({ refresh, view });
-      const displayOptions = getRoundDisplayOptions({ structure, drawId, callback: setDisplay });
-      const drawControlItems = [displayOptions, adHocOptions];
-      const drawControl = document.getElementById(DRAW_CONTROL);
-      controlBar({ target: drawControl, items: drawControlItems });
-    } else if (structure?.stage === drawDefinitionConstants.VOLUNTARY_CONSOLATION) {
-      console.log('voluntary controlBar with [View participants]');
-      // use modal with eligible players and selected players highlighted
-    }
+    const update = () => {
+      getData();
+      updateDrawDisplay();
+    };
+    drawControlBar({ updateDisplay: update, drawId, structure, callback });
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
     for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
@@ -187,10 +122,10 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         generateAdHocRound({ structure, drawId, callback });
       } else {
         const structureId = structures?.[0]?.structureId;
-        return renderTODSdraw({ eventId, drawId, structureId, redraw: true });
+        return renderDrawView({ eventId, drawId, structureId, redraw: true });
       }
-    } else if ((isAdHoc || isRoundRobin) && [ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
-      console.log('display', { roundsView });
+    } else if ([ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
+      createRoundsTable({ matchUps, eventData });
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
 
@@ -200,6 +135,7 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
           context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: filteredMatchUps,
+          // initialRoundNumber: 3,
           eventHandlers,
           composition,
           // finalColumn,
@@ -213,7 +149,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
         return findAncestor(node, 'tmx-p');
       };
       const targetNode = drawsView.firstChild;
-
       if (targetNode) {
         morphdom(targetNode, content, {
           addChild: function (parentNode, childNode) {
@@ -273,19 +208,6 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
   const updateControlBar = (refresh) => {
     if (refresh) getData();
 
-    const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
-    const actionOptions = getActionOptions({
-      dualMatchUp: dual && matchUps[0],
-      structureName,
-      structureId,
-      eventData,
-      drawData,
-      drawId,
-    });
-    const structureOptions = getStructureOptions({ drawData, eventId, structureId, updateControlBar });
-    const drawsOptions = getDrawsOptions({ eventData, drawId });
-    const eventOptions = getEventOptions({ events });
-
     // PARTICIPANT filter
     const searchFilter = (rowData) => rowData.searchText?.includes(participantFilter);
     const updateParticipantFilter = (value) => {
@@ -306,42 +228,16 @@ export function renderTODSdraw({ eventId, drawId, structureId, compositionName, 
       updateDrawDisplay();
     };
 
-    const items = [
-      {
-        onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
-        onChange: (e) => updateParticipantFilter(e.target.value),
-        onKeyUp: (e) => updateParticipantFilter(e.target.value),
-        clearSearch: () => updateParticipantFilter(''),
-        placeholder: 'Participant name',
-        location: LEFT,
-        search: true,
-      },
-      {
-        options: eventOptions.length > 1 ? eventOptions : undefined,
-        label: eventData.eventInfo.eventName,
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        options: drawsOptions.length > 1 ? drawsOptions : undefined,
-        label: drawData.drawName,
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        options: structureOptions.length > 1 ? structureOptions : undefined,
-        label: structureName,
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        options: actionOptions,
-        intent: 'is-info',
-        label: 'Actions',
-        location: RIGHT,
-        align: RIGHT,
-      },
-    ];
+    const items = getEventControlItems({
+      updateParticipantFilter,
+      updateControlBar,
+      structureId,
+      eventData,
+      drawData,
+      matchUps,
+      eventId,
+      drawId,
+    });
 
     controlBar({ target: eventControlElement, items });
   };
