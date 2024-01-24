@@ -33,7 +33,7 @@ export function receiveTournamentRecord({ record }) {
   function saveReceivedTournament() {
     publishedTournament.received = new Date().getTime();
     let tournament = publishedTournament;
-    tmx2db.addTournament(tournament).then(displayTourney, (err) => console.log(err));
+    tmx2db.addTournament(tournament).then(displayTourney, (err) => console.log({ err }));
   }
   function displayTourney() {
     displayTournament({

@@ -20,7 +20,7 @@ export function legacyImport(table) {
             addTournament({ tournamentRecord, tournamentIds, table });
             importedCount += 1;
           } else {
-            console.log(result);
+            console.log({ result });
           }
         } else {
           console.log('error');

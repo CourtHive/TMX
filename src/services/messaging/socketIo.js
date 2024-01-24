@@ -1,4 +1,5 @@
 import { getLoginState } from 'services/authentication/loginState';
+import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
@@ -7,14 +8,15 @@ import { io } from 'socket.io-client';
 
 import { TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
 
+function getAuthorization() {
+  const token = getToken();
+  if (!token) return undefined;
+  const authorization = `Bearer ${token}`;
+  return { authorization };
+}
+
 const oi = {
   socket: undefined,
-  connectionOptions: {
-    'force new connection': true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: 'Infinity',
-    timeout: 20000,
-  },
 };
 
 const ackRequests = {};
@@ -25,6 +27,13 @@ function tmxMessage(data) {
 }
 
 export function connectSocket(callback) {
+  const connectionOptions = {
+    transportOptions: { polling: { extraHeaders: getAuthorization() } },
+    'force new connection': true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 'Infinity',
+    timeout: 20000,
+  };
   if (!oi.socket) {
     // const local = window.location.host.includes('localhost');
     // TODO: move to .env file
@@ -33,8 +42,8 @@ export function connectSocket(callback) {
       window.location.hostname.startsWith('localhost') || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:8383'
         : window.location.hostname;
-    const connectionString = `${server}/mobile`; // TODO: change to /tmx
-    oi.socket = io.connect(connectionString);
+    const connectionString = `${server}/tmx`; // TODO: change to /tmx
+    oi.socket = io.connect(connectionString, connectionOptions);
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
@@ -60,7 +69,7 @@ export function disconnectSocket() {
 export function emitTmx({ data, ackCallback }) {
   const state = getLoginState(); // TODO: return token from getLoginState();
   const { profile, userId } = state || {};
-  const messageType = data?.action ? `tmx-one` : 'tmx';
+  const messageType = data.type ?? 'tmx';
 
   const { providerId } = profile?.provider || {};
 
@@ -89,8 +98,6 @@ export function emitTmx({ data, ackCallback }) {
     }
 
     socketEmit(messageType, data);
-
-    if (messageType !== 'tmx-one') console.log({ messageType, data });
   };
 
   if (oi.socket) {
@@ -125,6 +132,7 @@ function requestAcknowledgement({ ackId, uuid, callback }) {
 }
 
 function receiveAcknowledgement(ack) {
+  console.log('receiveAcknowledgement:', { ack });
   if (ack.ackId && ackRequests[ack.ackId]) {
     ackRequests[ack.ackId](ack);
     delete ackRequests[ack.ackId];
