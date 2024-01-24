@@ -1,4 +1,5 @@
 import { saveTournamentRecord } from 'services/storage/save';
+import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 
@@ -30,6 +31,7 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
     }
 
     if (result?.success) {
+      emitTmx({ data: { type: 'executionQueue', payload: { methods } } });
       saveTournamentRecord();
     }
 
