@@ -1,12 +1,12 @@
+import { tools, version as factoryVersion } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
-import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { version } from 'config/version';
 import { io } from 'socket.io-client';
 
-import { TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
+import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
 
 function getAuthorization() {
   const token = getToken();
@@ -67,6 +67,7 @@ export function disconnectSocket() {
 }
 
 export function emitTmx({ data, ackCallback }) {
+  console.log({ emitTmx: data });
   const state = getLoginState(); // TODO: return token from getLoginState();
   const { profile, userId } = state || {};
   const messageType = data.type ?? 'tmx';
@@ -81,21 +82,13 @@ export function emitTmx({ data, ackCallback }) {
       requestAcknowledgement({ ackId, callback: ackCallback });
     }
 
-    if (data?.payload) {
-      Object.assign(data.payload, {
-        timestamp: new Date().getTime(),
-        providerId,
-        version,
-        userId,
-      });
-    } else {
-      Object.assign(data, {
-        timestamp: new Date().getTime(),
-        providerId,
-        version,
-        userId,
-      });
-    }
+    Object.assign(data.payload || data, {
+      timestamp: new Date().getTime(),
+      factoryVersion: factoryVersion(),
+      providerId,
+      version,
+      userId,
+    });
 
     socketEmit(messageType, data);
   };
@@ -141,4 +134,22 @@ function receiveAcknowledgement(ack) {
     ackRequests[ack.uuid](ack);
     delete ackRequests[ack.uuid];
   }
+}
+
+export function logError(err) {
+  if (!err) return;
+  const stack = err.stack?.toString();
+  const errorMessage = typeof err === 'object' ? JSON.stringify(err) : err;
+  const payload = { stack, error: errorMessage };
+  emitTmx({ data: { action: CLIENT_ERROR, payload } });
+}
+
+let keyQueue = [];
+export function queueKey(key) {
+  keyQueue.push(key);
+}
+const sendKey = (key) => emitTmx({ data: { action: SEND_KEY, payload: { key } } });
+export function sendQueuedKeys() {
+  keyQueue.forEach(sendKey);
+  keyQueue = [];
 }

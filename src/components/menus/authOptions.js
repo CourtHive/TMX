@@ -1,7 +1,7 @@
 import { getLoginState } from 'services/authentication/loginState';
 import { openModal } from 'components/modals/baseModal/baseModal';
+import { emitTmx } from 'services/messaging/socketIo';
 import { tipster } from 'components/popovers/tipster';
-import { coms } from 'services/coms';
 import { lang } from 'services/translator';
 
 import { REVOKE_AUTH } from 'constants/comsConstants';
@@ -20,24 +20,24 @@ export function displayAuthOptions({ tournamentId, target } = {}) {
       text: lang.tr('phrases.generatekey'),
       hide: !admin,
       onClick: authorizeUser,
-      intent: 'is-success'
+      intent: 'is-success',
     },
     {
       text: 'Delegation Official',
       hide: !admin,
-      onClick: authorizeOfficial
+      onClick: authorizeOfficial,
     },
     {
       text: lang.tr('administrator'),
       hide: !admin,
-      onClick: authorizeAdmin
+      onClick: authorizeAdmin,
     },
     {
       text: lang.tr('revoke'),
       hide: !admin,
       onClick: revokeAuthorization,
-      intent: 'is-warning'
-    }
+      intent: 'is-warning',
+    },
   ];
 
   if (admin) {
@@ -54,18 +54,18 @@ export function displayAuthOptions({ tournamentId, target } = {}) {
         label: lang.tr('revoke'),
         intent: 'is-warning',
         onClick: revokeIt,
-        close: true
+        close: true,
       },
-      { label: lang.tr('tournaments.close'), intent: 'is-primary' }
+      { label: lang.tr('tournaments.close'), intent: 'is-primary' },
     ];
     openModal({ title, content: '', buttons });
 
     function revokeIt() {
-      coms.emitTmx({
+      emitTmx({
         data: {
           action: REVOKE_AUTH,
-          payload: { tournamentId }
-        }
+          payload: { tournamentId },
+        },
       });
       // setUserAuth({ authorized: false });
     }
