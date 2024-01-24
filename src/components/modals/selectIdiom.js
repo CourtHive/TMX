@@ -7,11 +7,11 @@ import { lang } from 'services/translator';
 import { env } from 'settings/env';
 
 export function selectIdiom() {
-  const response = (foo) => console.log(foo);
+  const response = (foo) => console.log({ foo });
   getIdioms().then(response, (err) => console.log({ err }));
 
   let validOptions = Object.keys(context.available_idioms || []).map((i) => ({
-    ioc: i.toUpperCase()
+    ioc: i.toUpperCase(),
   }));
   const valid_iocs = validOptions.reduce((p, c) => (c.ioc && p.indexOf(c.ioc) < 0 ? p.concat(c.ioc) : p), []);
   const valid_isos = validOptions.reduce((p, c) => (c.iso && p.indexOf(c.iso) < 0 ? p.concat(c.iso) : p), []);
@@ -20,7 +20,7 @@ export function selectIdiom() {
     fixtures.countries.filter((c) => valid_iocs.indexOf(c.ioc) >= 0 || valid_isos.indexOf(c.iso) >= 0);
   const list = (filteredCountries || []).map((country) => ({
     label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
-    value: country.ioc
+    value: country.ioc,
   }));
 
   let newIdiom;
@@ -32,8 +32,8 @@ export function selectIdiom() {
         typeAhead: { list, callback: typeAheadCallback, currentValue: env.ioc?.toUpperCase() || 'GBR' },
         placeholder: 'Country of origin',
         label: 'Country',
-        field: 'ioc'
-      }
+        field: 'ioc',
+      },
     ]);
   };
 
@@ -46,8 +46,8 @@ export function selectIdiom() {
     title: lang.tr('phrases.selectlanguage'),
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Save', onClick: saveIdiom, close: true }
+      { label: 'Save', onClick: saveIdiom, close: true },
     ],
-    content
+    content,
   });
 }

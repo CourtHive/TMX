@@ -17,7 +17,7 @@ export function editGroupingParticipant({
   participantType = TEAM,
   title = 'Edit team',
   participant,
-  refresh
+  refresh,
 }) {
   const PARTICIPANT_NAME = 'participantName';
   const values = { [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME] };
@@ -36,8 +36,8 @@ export function editGroupingParticipant({
         validator: nameValidator(3),
         field: PARTICIPANT_NAME,
         onChange: valueChange,
-        label: 'Name'
-      }
+        label: 'Name',
+      },
       // school, club, team => autocomplete from GROUP participants in tournament
       // city, state, phone, email
     ]);
@@ -48,9 +48,9 @@ export function editGroupingParticipant({
       elem,
       [
         { label: 'Cancel', close: true },
-        { label: 'Save', onClick: saveParticipant, close: true, intent: 'is-info' }
+        { label: 'Save', onClick: saveParticipant, close: true, intent: 'is-info' },
       ],
-      close
+      close,
     );
 
   context.drawer.open({
@@ -59,7 +59,7 @@ export function editGroupingParticipant({
     width: '300px',
     side: RIGHT,
     content,
-    footer
+    footer,
   });
 
   function saveParticipant() {
@@ -76,7 +76,7 @@ export function editGroupingParticipant({
       individualParticipantIds: individualParticipantIds || participant?.individualParticipantIds || [],
       participantName: inputs[PARTICIPANT_NAME]?.value,
       participantRole,
-      participantType
+      participantType,
     };
 
     const postMutation = (result) => {
@@ -84,14 +84,14 @@ export function editGroupingParticipant({
         // QUESTION: add participant to table, or just refresh?
         isFunction(refresh) && refresh();
       } else {
-        console.log(result);
+        console.log({ result });
       }
     };
     const methods = [
       {
         params: { participants: [newParticipant] },
-        method: ADD_PARTICIPANTS
-      }
+        method: ADD_PARTICIPANTS,
+      },
     ];
     mutationRequest({ methods, callback: postMutation });
   }

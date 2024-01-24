@@ -4,8 +4,8 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderCalendar } from 'pages/tournaments/calendar';
+import { queueKey } from 'services/messaging/socketIo';
 import { context } from 'services/context';
-import { coms } from 'services/coms';
 import Navigo from 'navigo';
 
 import {
@@ -19,6 +19,7 @@ import {
   EVENTS_TAB,
   SCHEDULE_TAB,
   INVITE,
+  VIEW,
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
@@ -44,9 +45,18 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
   });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${VIEW}/:roundsView`, ({ data }) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+  });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
   });
+  router.on(
+    `/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId/${VIEW}/:roundsView`,
+    ({ data }) => {
+      displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+    },
+  );
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW_ENTRIES}/:drawId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, data });
   });
@@ -70,7 +80,7 @@ export function routeTMX() {
 
   router.on(`/actionKey/:key`, ({ data }) => {
     const key = data.key;
-    coms.queueKey(key);
+    queueKey(key);
     router.navigate('/');
     showSplash();
   });

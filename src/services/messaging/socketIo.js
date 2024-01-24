@@ -1,20 +1,23 @@
 import { getLoginState } from 'services/authentication/loginState';
+import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
-import { tools } from 'tods-competition-factory';
+import { tools, version } from 'tods-competition-factory';
+import { version as tmxVersion } from 'config/version';
 import { isFunction } from 'functions/typeOf';
-import { version } from 'config/version';
 import { io } from 'socket.io-client';
 
-import { TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
+import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
+
+function getAuthorization() {
+  const token = getToken();
+  if (!token) return undefined;
+  const authorization = `Bearer ${token}`;
+  return { authorization };
+}
 
 const oi = {
+  timestampOffset: 0,
   socket: undefined,
-  connectionOptions: {
-    'force new connection': true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: 'Infinity',
-    timeout: 20000,
-  },
 };
 
 const ackRequests = {};
@@ -25,6 +28,13 @@ function tmxMessage(data) {
 }
 
 export function connectSocket(callback) {
+  const connectionOptions = {
+    transportOptions: { polling: { extraHeaders: getAuthorization() } },
+    'force new connection': true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 'Infinity',
+    timeout: 20000,
+  };
   if (!oi.socket) {
     // const local = window.location.host.includes('localhost');
     // TODO: move to .env file
@@ -33,13 +43,16 @@ export function connectSocket(callback) {
       window.location.hostname.startsWith('localhost') || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:8383'
         : window.location.hostname;
-    const connectionString = `${server}/mobile`; // TODO: change to /tmx
-    oi.socket = io.connect(connectionString);
+    const connectionString = `${server}/tmx`; // TODO: change to /tmx
+    oi.socket = io.connect(connectionString, connectionOptions);
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('connect', () => connectionEvent(callback));
     oi.socket.on('disconnect', () => console.log('disconnect'));
+    oi.socket.on('timestamp', (data) => {
+      oi.timestampOffset = new Date().getTime() - data.timestamp;
+    });
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
     });
@@ -60,7 +73,7 @@ export function disconnectSocket() {
 export function emitTmx({ data, ackCallback }) {
   const state = getLoginState(); // TODO: return token from getLoginState();
   const { profile, userId } = state || {};
-  const messageType = data?.action ? `tmx-one` : 'tmx';
+  const messageType = data.type ?? 'tmx';
 
   const { providerId } = profile?.provider || {};
 
@@ -72,25 +85,16 @@ export function emitTmx({ data, ackCallback }) {
       requestAcknowledgement({ ackId, callback: ackCallback });
     }
 
-    if (data?.payload) {
-      Object.assign(data.payload, {
-        timestamp: new Date().getTime(),
-        providerId,
-        version,
-        userId,
-      });
-    } else {
-      Object.assign(data, {
-        timestamp: new Date().getTime(),
-        providerId,
-        version,
-        userId,
-      });
-    }
+    const timestamp = oi.timestampOffset ? new Date().getTime() + oi.timestampOffset : new Date().getTime();
+    Object.assign(data.payload || data, {
+      factoryVersion: version(),
+      tmxVersion,
+      providerId,
+      timestamp,
+      userId,
+    });
 
     socketEmit(messageType, data);
-
-    if (messageType !== 'tmx-one') console.log({ messageType, data });
   };
 
   if (oi.socket) {
@@ -111,6 +115,7 @@ function socketEmit(msg, data) {
 
 function connectionEvent(callback) {
   console.log('connected');
+  emitTmx({ data: { type: 'timestamp' } });
   while (socketQueue.length) {
     let message = socketQueue.pop();
     socketEmit(message.header, message.data);
@@ -125,6 +130,7 @@ function requestAcknowledgement({ ackId, uuid, callback }) {
 }
 
 function receiveAcknowledgement(ack) {
+  console.log('receiveAcknowledgement:', { ack });
   if (ack.ackId && ackRequests[ack.ackId]) {
     ackRequests[ack.ackId](ack);
     delete ackRequests[ack.ackId];
@@ -133,4 +139,22 @@ function receiveAcknowledgement(ack) {
     ackRequests[ack.uuid](ack);
     delete ackRequests[ack.uuid];
   }
+}
+
+export function logError(err) {
+  if (!err) return;
+  const stack = err.stack?.toString();
+  const errorMessage = typeof err === 'object' ? JSON.stringify(err) : err;
+  const payload = { stack, error: errorMessage };
+  emitTmx({ data: { action: CLIENT_ERROR, payload } });
+}
+
+let keyQueue = [];
+export function queueKey(key) {
+  keyQueue.push(key);
+}
+const sendKey = (key) => emitTmx({ data: { action: SEND_KEY, payload: { key } } });
+export function sendQueuedKeys() {
+  keyQueue.forEach(sendKey);
+  keyQueue = [];
 }
