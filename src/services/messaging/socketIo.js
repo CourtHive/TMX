@@ -1,9 +1,9 @@
-import { tools, version as factoryVersion } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
+import { tools, version } from 'tods-competition-factory';
+import { version as tmxVersion } from 'config/version';
 import { isFunction } from 'functions/typeOf';
-import { version } from 'config/version';
 import { io } from 'socket.io-client';
 
 import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
@@ -16,6 +16,7 @@ function getAuthorization() {
 }
 
 const oi = {
+  timestampOffset: 0,
   socket: undefined,
 };
 
@@ -49,6 +50,9 @@ export function connectSocket(callback) {
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('connect', () => connectionEvent(callback));
     oi.socket.on('disconnect', () => console.log('disconnect'));
+    oi.socket.on('timestamp', (data) => {
+      oi.timestampOffset = new Date().getTime() - data.timestamp;
+    });
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
     });
@@ -67,7 +71,6 @@ export function disconnectSocket() {
 }
 
 export function emitTmx({ data, ackCallback }) {
-  console.log({ emitTmx: data });
   const state = getLoginState(); // TODO: return token from getLoginState();
   const { profile, userId } = state || {};
   const messageType = data.type ?? 'tmx';
@@ -82,11 +85,12 @@ export function emitTmx({ data, ackCallback }) {
       requestAcknowledgement({ ackId, callback: ackCallback });
     }
 
+    const timestamp = oi.timestampOffset ? new Date().getTime() + oi.timestampOffset : new Date().getTime();
     Object.assign(data.payload || data, {
-      timestamp: new Date().getTime(),
-      factoryVersion: factoryVersion(),
+      factoryVersion: version(),
+      tmxVersion,
       providerId,
-      version,
+      timestamp,
       userId,
     });
 
@@ -111,6 +115,7 @@ function socketEmit(msg, data) {
 
 function connectionEvent(callback) {
   console.log('connected');
+  emitTmx({ data: { type: 'timestamp' } });
   while (socketQueue.length) {
     let message = socketQueue.pop();
     socketEmit(message.header, message.data);
