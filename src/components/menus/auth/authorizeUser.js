@@ -1,7 +1,7 @@
 import { openModal } from 'components/modals/baseModal/baseModal';
+import { emitTmx } from 'services/messaging/socketIo';
 import { copyClick } from 'services/dom/copyClick';
 import { lang } from 'services/translator';
-import { coms } from 'services/coms';
 
 import { PUSH_KEY } from 'constants/comsConstants';
 
@@ -36,9 +36,9 @@ export function authorizeUser() {
     openModal({ title, content, buttons });
   };
 
-  coms.emitTmx({
+  emitTmx({
     data: { action: PUSH_KEY, payload: undefined },
-    ackCallback: displayKey
+    ackCallback: displayKey,
   });
   copyClick(key_uuid);
 }

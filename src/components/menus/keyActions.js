@@ -1,10 +1,12 @@
 import { renderMenu } from 'components/renderers/renderMenu';
 import { tournamentEngine } from 'tods-competition-factory';
 import { stringSort } from 'functions/sorting/sorting';
+import { emitTmx } from 'services/messaging/socketIo';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
-import { coms } from 'services/coms';
+
+import { SEND_KEY } from 'constants/comsConstants';
 
 export function displayKeyActions() {
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
@@ -17,7 +19,7 @@ export function displayKeyActions() {
         .sort((a, b) => stringSort(a.description, b.description))
         .map((key) => ({
           text: key.description,
-          onClick: () => submitKey(key.keyid)
+          onClick: () => submitKey(key.keyid),
         }));
       const menu = [
         {
@@ -27,13 +29,13 @@ export function displayKeyActions() {
           type: 'input',
           focus: true,
           field: 'key',
-          onKeyDown
+          onKeyDown,
         },
         { type: 'divider' },
         {
           text: 'Stored Keys',
-          items
-        }
+          items,
+        },
       ];
 
       focusElement = renderMenu(elem, menu, close).focusElement;
@@ -48,12 +50,12 @@ export function displayKeyActions() {
             focusElement.focus();
           }, 500);
         }
-      }
+      },
     });
   });
 
   function submitKey(keyid) {
-    coms.sendKey(keyid.trim());
+    emitTmx({ data: { action: SEND_KEY, payload: { key: keyid.trim() } } });
   }
   function onKeyDown(e) {
     if (e.key && e.key === 'Enter') {

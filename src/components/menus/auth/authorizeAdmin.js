@@ -1,8 +1,8 @@
 import { tournamentEngine } from 'tods-competition-factory';
 import { copyClick } from 'services/dom/copyClick';
-import { coms } from 'services/coms';
+import { emitTmx } from 'services/messaging/socketIo';
 
-import { PUSH_KEY } from '../../../constants/comsConstants';
+import { PUSH_KEY, SEND_KEY } from '../../../constants/comsConstants';
 
 export function authorizeAdmin() {
   let uidate = new Date().getTime();
@@ -18,15 +18,15 @@ export function authorizeAdmin() {
       content: {
         tuid: tournamentId,
         tournamentId,
-        send_auth: true
-      }
+        send_auth: true,
+      },
     },
-    checkAuth: { admin: true }
+    checkAuth: { admin: true },
   };
 
-  coms.emitTmx({
-    ackCallback: () => coms.sendKey(key_uuid),
-    data: { action: PUSH_KEY, payload }
+  emitTmx({
+    ackCallback: () => emitTmx({ data: { action: SEND_KEY, payload: { key: key_uuid.trim() } } }),
+    data: { action: PUSH_KEY, payload },
   });
 
   copyClick(key_uuid);

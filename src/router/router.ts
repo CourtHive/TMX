@@ -4,8 +4,8 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderCalendar } from 'pages/tournaments/calendar';
+import { queueKey } from 'services/messaging/socketIo';
 import { context } from 'services/context';
-import { coms } from 'services/coms';
 import Navigo from 'navigo';
 
 import {
@@ -80,7 +80,7 @@ export function routeTMX() {
 
   router.on(`/actionKey/:key`, ({ data }) => {
     const key = data.key;
-    coms.queueKey(key);
+    queueKey(key);
     router.navigate('/');
     showSplash();
   });
