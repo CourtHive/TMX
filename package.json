@@ -67,7 +67,7 @@
     "eslint-plugin-jsx-a11y": "6.8.0",
     "eslint-plugin-sonarjs": "0.23.0",
     "esm": "3.2.25",
-    "husky": "8.0.3",
+    "husky": "9.0.6",
     "inquirer": "9.2.12",
     "lint-staged": "15.2.0",
     "os-browserify": "0.3.0",
