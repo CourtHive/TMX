@@ -23,9 +23,10 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw, roun
     if (drawId && renderDraw) {
       const result = renderDrawPanel({ eventId, drawId, headerElement });
       if (result.success) {
-        if ([ROUNDS_TABLE, ROUNDS_STATS].includes(roundsView)) {
+        if (roundsView === ROUNDS_TABLE) {
           createRoundsTable({ eventId, drawId, structureId });
-          console.log('render table');
+        } else if (roundsView === ROUNDS_STATS) {
+          createRoundsTable({ eventId, drawId, structureId });
         } else {
           renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView });
         }
