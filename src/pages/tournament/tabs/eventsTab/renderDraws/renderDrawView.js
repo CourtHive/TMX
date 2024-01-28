@@ -103,7 +103,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
       getData();
       updateDrawDisplay();
     };
-    drawControlBar({ updateDisplay: update, drawId, structure, callback });
+    drawControlBar({ updateDisplay: update, drawId, structure, existingView: roundsView, callback });
 
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
     for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
