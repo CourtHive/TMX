@@ -19,6 +19,7 @@ import { context } from 'services/context';
 import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -124,8 +125,10 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
         const structureId = structures?.[0]?.structureId;
         return renderDrawView({ eventId, drawId, structureId, redraw: true });
       }
-    } else if ([ROUNDS_STATS, ROUNDS_TABLE].includes(roundsView)) {
+    } else if (roundsView === ROUNDS_TABLE) {
       createRoundsTable({ matchUps, eventData });
+    } else if (roundsView === ROUNDS_STATS) {
+      createStatsTable({ eventId, drawId, structureId, eventData });
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
 

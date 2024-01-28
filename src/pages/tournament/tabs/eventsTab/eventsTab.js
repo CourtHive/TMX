@@ -1,5 +1,6 @@
 import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
@@ -26,7 +27,7 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw, roun
         if (roundsView === ROUNDS_TABLE) {
           createRoundsTable({ eventId, drawId, structureId });
         } else if (roundsView === ROUNDS_STATS) {
-          createRoundsTable({ eventId, drawId, structureId });
+          createStatsTable({ eventId, drawId, structureId });
         } else {
           renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView });
         }
