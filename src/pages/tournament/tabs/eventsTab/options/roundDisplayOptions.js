@@ -3,27 +3,32 @@ import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-fact
 import { RIGHT, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
-export function getRoundDisplayOptions({ callback, structure }) {
-  const displayUpdate = (view) => callback({ refresh: true, view });
+export function getRoundDisplayOptions({ callback, structure, existingView }) {
+  const displayUpdate = (view) => existingView !== view && callback({ refresh: true, view });
   const isRoundRobin = structure?.structureType === CONTAINER;
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
 
   const actionOptions = [];
 
-  actionOptions.push({
-    onClick: () => displayUpdate(ROUNDS_COLUMNS),
-    label: isAdHoc ? 'Columns' : 'Draw',
-  });
+  existingView !== ROUNDS_COLUMNS &&
+    actionOptions.push({
+      onClick: () => displayUpdate(ROUNDS_COLUMNS),
+      label: isAdHoc ? 'Columns' : 'Draw',
+      close: true,
+    });
 
-  actionOptions.push({
-    onClick: () => displayUpdate(ROUNDS_TABLE),
-    label: 'Table view',
-  });
+  existingView !== ROUNDS_TABLE &&
+    actionOptions.push({
+      onClick: () => displayUpdate(ROUNDS_TABLE),
+      label: 'Table view',
+      close: true,
+    });
 
-  if (isAdHoc || isRoundRobin)
+  if ((isAdHoc || isRoundRobin) && existingView !== ROUNDS_STATS)
     actionOptions.push({
       onClick: () => displayUpdate(ROUNDS_STATS),
       label: 'Statistics',
+      close: true,
     });
 
   return {

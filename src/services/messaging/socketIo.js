@@ -55,6 +55,7 @@ export function connectSocket(callback) {
     });
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
+      disconnectSocket();
     });
   } else {
     console.log('socket exists');
@@ -109,8 +110,11 @@ export function emitTmx({ data, ackCallback }) {
 }
 
 function socketEmit(msg, data) {
-  if (!oi.socket.connected) console.log('socket not connected');
-  oi.socket.emit(msg, data);
+  if (!oi.socket.connected) {
+    console.log('socket not connected');
+  } else {
+    oi.socket.emit(msg, data);
+  }
 }
 
 function connectionEvent(callback) {
