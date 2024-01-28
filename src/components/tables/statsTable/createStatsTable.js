@@ -12,22 +12,20 @@ import { getStatsColumns } from './getStatsColumns';
 
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';
 
-export async function createStatsTable({ eventId, drawId, structureId, eventData }) {
-  let table, structure, participantFilter;
-  const getParticipantMap = () =>
-    (eventData?.participants ?? []).reduce((map, participant) => {
+export async function createStatsTable({ eventId, drawId, structureId }) {
+  let table, structure, participantFilter, participantMap;
+  const getParticipantMap = (participants) =>
+    (participants ?? []).reduce((map, participant) => {
       map[participant.participantId] = participant;
       return map;
     }, {});
 
-  let participantMap = getParticipantMap();
-
   const getParticipantResults = () => {
-    const eventData = tournamentEngine.getEventData({ eventId, allParticipantResults: true }).eventData;
+    const { participants, eventData } = tournamentEngine.getEventData({ eventId, allParticipantResults: true });
     const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structure = drawData?.structures?.find((s) => s.structureId === structureId);
 
-    if (!participantMap) participantMap = getParticipantMap();
+    if (!participantMap) participantMap = getParticipantMap(participants);
 
     return (structure?.participantResults ?? []).filter((pResults) => {
       const participant = participantMap[pResults.participantId];

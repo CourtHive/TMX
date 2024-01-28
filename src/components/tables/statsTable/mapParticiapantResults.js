@@ -1,4 +1,5 @@
 export function mapParticipantResults({ participantResult, participantId, participantMap } = {}) {
   if (participantResult) console.log({ participantResult, participantId, participantMap });
-  return { participantId, participantName: participantResult.GEMscore };
+  const participant = participantMap[participantId];
+  return { participantId, participantName: participant.participantName, participant };
 }
