@@ -9,7 +9,7 @@ import { DRAW_CONTROL, NONE, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING, /*CONTAINER,*/ VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
-export function drawControlBar({ updateDisplay, callback, structure, drawId }) {
+export function drawControlBar({ updateDisplay, callback, structure, drawId, existingView }) {
   const drawControl = document.getElementById(DRAW_CONTROL);
   // const isRoundRobin = structure?.structureType === CONTAINER;
   const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
@@ -46,7 +46,7 @@ export function drawControlBar({ updateDisplay, callback, structure, drawId }) {
   // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
   // if there are playoff structures, button to populate them
   const setDisplay = ({ refresh, view }) => typeof callback === 'function' && callback({ refresh, view });
-  const displayOptions = getRoundDisplayOptions({ structure, drawId, callback: setDisplay });
+  const displayOptions = getRoundDisplayOptions({ structure, drawId, existingView, callback: setDisplay });
   if (displayOptions?.options.length) drawControlItems.push(displayOptions);
 
   if (isAdHoc) {

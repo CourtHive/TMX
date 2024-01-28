@@ -11,7 +11,7 @@ import { navigateToEvent } from '../common/navigateToEvent';
 import { getRoundsColumns } from './getRoundsColumns';
 import { mapRound } from './mapRound';
 
-import { DRAWS_VIEW } from 'constants/tmxConstants';
+import { DRAWS_VIEW, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
 export async function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }) {
@@ -101,7 +101,8 @@ export async function createRoundsTable({ eventId, drawId, structureId, matchUps
       renderDrawView({ eventId, drawId, structureId, redraw: refresh, roundsView: view });
     }
   };
-  drawControlBar({ structure, drawId, callback });
+
+  drawControlBar({ structure, drawId, existingView: ROUNDS_TABLE, callback });
   eventControlBar({ eventId, drawId, structureId, updateDisplay: replaceTableData });
 
   return { table, replaceTableData };
