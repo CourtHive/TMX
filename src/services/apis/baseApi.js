@@ -1,10 +1,11 @@
 import { getJwtTokenStorageKey } from 'config/localStorage';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { env } from 'settings/env';
 import axios from 'axios';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
-// const baseURL = window.location.host;
-const baseURL = 'http://localhost:8383';
+const local = window.location.host.includes('localhost') || window.location.hostname === '127.0.0.1';
+const baseURL = env.baseURL || local ? 'http://localhost:8383' : 'https://courthive.net';
 const axiosInstance = axios.create({ baseURL });
 
 axiosInstance.interceptors.request.use(
