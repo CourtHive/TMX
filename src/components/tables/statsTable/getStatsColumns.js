@@ -1,4 +1,5 @@
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { percentFormatter } from '../common/formatters/percentFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { headerMenu } from '../common/headerMenu';
 
@@ -19,7 +20,8 @@ export function getStatsColumns() {
       headerMenu: headerMenu({
         // sex: 'Gender', // provide mapping of icon column headers to field names
       }),
-      formatter: 'rownum',
+      // formatter: 'rownum',
+      field: 'drawPosition',
       headerSort: false,
       hozAlign: LEFT,
       width: 55,
@@ -36,18 +38,77 @@ export function getStatsColumns() {
       formatter: formatParticipant(({ event, cell, ...params }) =>
         console.log('cell clicked', { event, cell, undefined, params }),
       ),
-      // cellClick: participantActions,
       sorter: participantSorter,
       field: 'participantName',
       responsive: false,
       resizable: false,
+      maxWidth: 400,
       minWidth: 200,
       widthGrow: 2,
       title: 'Name',
     },
     {
-      field: 'participantId',
-      title: 'Id',
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      title: 'Match W/L',
+      hozAlign: CENTER,
+      maxWidth: 80,
+      field: 'result',
+    },
+    {
+      formatter: percentFormatter,
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      field: 'matchUpsPct',
+      title: 'Match Win%',
+      hozAlign: CENTER,
+      maxWidth: 80,
+    },
+    {
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      field: 'setsResult',
+      title: 'Sets W/L',
+      hozAlign: CENTER,
+      maxWidth: 80,
+    },
+    {
+      formatter: percentFormatter,
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      title: 'Set Win%',
+      hozAlign: CENTER,
+      field: 'setsPct',
+      maxWidth: 80,
+    },
+    {
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      field: 'gamesResult',
+      title: 'Games W/L',
+      hozAlign: CENTER,
+      maxWidth: 80,
+    },
+    {
+      formatter: percentFormatter,
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      title: 'Game Win%',
+      hozAlign: CENTER,
+      field: 'gamesPct',
+      maxWidth: 80,
+    },
+    {
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      title: 'Order',
+      field: 'order',
+      maxWidth: 80,
+    },
+    {
+      title: 'Group',
+      field: 'groupName',
+      visible: false,
     },
   ];
 }

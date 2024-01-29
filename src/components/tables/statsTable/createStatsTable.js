@@ -20,12 +20,23 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
       return map;
     }, {});
 
+  const groupNames = {};
+
   const getParticipantResults = () => {
     const { participants, eventData } = tournamentEngine.getEventData({ eventId, allParticipantResults: true });
     const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structure = drawData?.structures?.find((s) => s.structureId === structureId);
 
     if (!participantMap) participantMap = getParticipantMap(participants);
+    const matchUps = structure?.roundMatchUps ? Object.values(structure.roundMatchUps).flat() : [];
+    matchUps.forEach(({ sides, structureName, structureId }) => {
+      groupNames[structureId] = structureName;
+      sides.forEach((side) => {
+        if (side.participantId) {
+          participantMap[side.participantId].groupName = structureName;
+        }
+      });
+    });
 
     return (structure?.participantResults ?? []).filter((pResults) => {
       const participant = participantMap[pResults.participantId];
@@ -55,15 +66,27 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
     destroyTable({ anchorId: DRAWS_VIEW });
     const element = document.getElementById(DRAWS_VIEW);
 
+    const groupBy = Object.values(groupNames).length > 1 ? ['groupName'] : undefined;
     table = new Tabulator(element, {
-      headerSortElement: headerSortElement(['complete', 'duration', 'score']),
+      headerSortElement: headerSortElement([
+        'participantName',
+        'gamesResult',
+        'matchUpsPct',
+        'setsResult',
+        'gamesPct',
+        'setsPct',
+        'result',
+        'order',
+      ]),
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.85,
+      groupHeader: [(value) => value],
       placeholder: 'No participants',
       responsiveLayout: 'collapse',
       layout: 'fitColumns',
       reactiveData: true,
       index: 'matchUpId',
+      groupBy,
       columns,
       data,
     });
