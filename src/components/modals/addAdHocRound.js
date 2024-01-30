@@ -16,7 +16,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   const matchUps =
     tournamentEngine.allDrawMatchUps({
       matchUpFilters: { structureIds: [structureId] },
-      drawId
+      drawId,
     }).matchUps || [];
 
   const roundNumbers = matchUps.reduce((roundNumbers, matchUp) => {
@@ -35,10 +35,11 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       {
         method: ADD_ADHOC_MATCHUPS,
         params: {
+          structureId,
           matchUps,
-          drawId
-        }
-      }
+          drawId,
+        },
+      },
     ];
 
     const postMutation = (result) => {
@@ -56,7 +57,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       scaleAccessor: 'utrRating',
       scaleName: 'UTR',
       participantIds,
-      drawId
+      drawId,
     });
     if (!result.matchUps?.length) return;
     addRound(result.matchUps);
@@ -64,7 +65,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
 
   const checkParticipants = ({ participantIds }) => {
     const participantsAvailable = tournamentEngine.getParticipants({
-      participantFilters: { participantIds }
+      participantFilters: { participantIds },
     }).participants;
 
     const lastRoundParticipantIds = !lastRoundNumber
@@ -72,7 +73,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       : matchUps
           .filter(
             ({ roundNumber, sides }) =>
-              roundNumber === lastRoundNumber && sides?.some(({ participantId }) => participantId)
+              roundNumber === lastRoundNumber && sides?.some(({ participantId }) => participantId),
           )
           .map(({ sides }) => sides.map(({ participantId }) => participantId))
           .flat();
@@ -81,7 +82,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
 
     const action = {
       type: ASSIGN_PARTICIPANT,
-      participantsAvailable
+      participantsAvailable,
     };
 
     const onSelection = (result) => {
@@ -96,7 +97,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       selectionLimit: 99,
       onSelection,
       action,
-      update
+      update,
     });
   };
 
@@ -104,7 +105,11 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     if (inputs[AUTOMATED].value === AUTOMATED) {
       const { drawDefinition } = tournamentEngine.getEvent({ drawId });
       const participantIds = drawDefinition.entries
-        .filter(({ entryStatus }) => !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus))
+        .filter(
+          ({ entryStatus, entryStage }) =>
+            !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
+          // TODO: add linked source structure qualifiers
+        )
         .map(({ participantId }) => participantId);
 
       checkParticipants({ participantIds });
@@ -113,7 +118,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       const result = tournamentEngine.generateAdHocMatchUps({
         newRound: true,
         structureId,
-        drawId
+        drawId,
       });
       console.log({ result });
 
@@ -124,7 +129,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
 
   const buttons = [
     { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Add round', intent: 'is-success', close: false, onClick: addMatchUps }
+    { label: 'Add round', intent: 'is-success', close: false, onClick: addMatchUps },
   ];
 
   const options = [
@@ -133,9 +138,9 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       value: AUTOMATED,
       options: [
         { label: AUTOMATED, value: AUTOMATED, selected: true },
-        { label: MANUAL, value: false }
-      ]
-    }
+        { label: MANUAL, value: false },
+      ],
+    },
   ];
 
   const content = (elem) => (inputs = renderForm(elem, options));
