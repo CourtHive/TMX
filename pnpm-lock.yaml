@@ -21,8 +21,8 @@ dependencies:
     specifier: 2.6.0
     version: 2.6.0
   '@event-calendar/resource-time-grid':
-    specifier: 2.6.0
-    version: 2.6.0
+    specifier: 2.6.1
+    version: 2.6.1
   '@event-calendar/time-grid':
     specifier: 2.6.1
     version: 2.6.1
@@ -1072,8 +1072,8 @@ packages:
       svelte: 4.2.9
     dev: false
 
-  /@event-calendar/resource-time-grid@2.6.0:
-    resolution: {integrity: sha512-LTYQqp6WH7Iw+vnZpWP3i4OE14isw89banj2jtzXJWHYPln/5cbph3a33Jgw0JDJvoV3fpz7SxwCHVA2LyvdvQ==}
+  /@event-calendar/resource-time-grid@2.6.1:
+    resolution: {integrity: sha512-oeDXmueuS+TdTbHbMwv6c592lsea5QNGIchkuqbdWRf4MbG2GnAdvChMywxpbur/7s8D/YBZaNGN4raC57uLUg==}
     dependencies:
       '@event-calendar/core': 2.6.1
       '@event-calendar/time-grid': 2.6.1
