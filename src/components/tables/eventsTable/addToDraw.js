@@ -16,12 +16,13 @@ const addTo = (table, eventId, drawId) => {
       method: ADD_DRAW_ENTRIES,
       params: {
         entryStatus: DIRECT_ACCEPTANCE,
+        ignoreStageSpace: true,
         entryStage: MAIN,
         participantIds,
         eventId,
-        drawId
-      }
-    }
+        drawId,
+      },
+    },
   ];
   const postMutation = (result) => {
     if (result.success) {
@@ -39,13 +40,13 @@ export const addToDraw = (event, drawId) => (table) => {
     stateChange: true,
     label: drawName,
     value: drawId,
-    close: true
+    close: true,
   }));
 
   return {
     hide: !event.drawDefinitions?.length || drawId,
     label: 'Add to draw',
     location: OVERLAY,
-    options
+    options,
   };
 };

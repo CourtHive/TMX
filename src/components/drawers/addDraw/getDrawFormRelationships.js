@@ -56,10 +56,11 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers })
     inputs[DRAW_SIZE].value = drawSize;
 
     checkCreationMethod({ fields, inputs });
+    return drawSize;
   };
 
   const qualifiersCountChange = ({ fields, inputs }) => {
-    const drawSize = parseInt(inputs[DRAW_SIZE].value);
+    let drawSize = parseInt(inputs[DRAW_SIZE].value);
     const enteredValue = inputs['qualifiersCount'].value;
     if (numericValidator(enteredValue) && parseInt(enteredValue) < 1) {
       inputs['qualifiersCount'].value = maxQualifiers ? 1 : 0;
@@ -72,7 +73,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers })
       inputs['qualifiersCount'].value = maxQualifiers;
     } else if (!maxQualifiers) {
       const drawType = inputs[DRAW_TYPE].value;
-      updateDrawSize({ drawType, fields, inputs });
+      drawSize = updateDrawSize({ drawType, fields, inputs });
     }
 
     qualifiersValue = inputs['qualifiersCount'].value;

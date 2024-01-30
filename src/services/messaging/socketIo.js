@@ -7,6 +7,7 @@ import { isFunction } from 'functions/typeOf';
 import { io } from 'socket.io-client';
 
 import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
+import { env } from 'settings/env';
 
 function getAuthorization() {
   const token = getToken();
@@ -36,14 +37,9 @@ export function connectSocket(callback) {
     timeout: 20000,
   };
   if (!oi.socket) {
-    // const local = window.location.host.includes('localhost');
-    // TODO: move to .env file
-    // const socketPath = local ? 'http://localhost:8383/tmx' : 'https://courthive.net/tmx';
-    const server =
-      window.location.hostname.startsWith('localhost') || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:8383'
-        : window.location.hostname;
-    const connectionString = `${server}/tmx`; // TODO: change to /tmx
+    const local = window.location.host.includes('localhost') || window.location.hostname === '127.0.0.1';
+    const socketPath = env.socketPath || local ? 'http://127.0.0.1:8383' : 'https://courthive.net';
+    const connectionString = `${socketPath}/tmx`; // TODO: change to /tmx
     oi.socket = io.connect(connectionString, connectionOptions);
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
