@@ -91,7 +91,7 @@
     "@event-calendar/core": "2.6.1",
     "@event-calendar/day-grid": "2.6.1",
     "@event-calendar/interaction": "2.6.1",
-    "@event-calendar/list": "2.6.0",
+    "@event-calendar/list": "2.6.1",
     "@event-calendar/resource-time-grid": "2.6.1",
     "@event-calendar/time-grid": "2.6.1",
     "@stitches/core": "1.2.8",
