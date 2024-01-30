@@ -24,6 +24,7 @@ function functionOrLog(s, results) {
 const subscriptions = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
   addMatchUps: (results) => functionOrLog('addMatchUps', results),
+  addParticipants: (results) => functionOrLog('addParticipants', results),
   addVenue: (results) => functionOrLog('addVenue', results),
   deletedDrawIds: (results) => functionOrLog('deletedDrawIds', results),
   deletedMatchUpIds: (results) => functionOrLog('deletedMatchUpIds', results),
@@ -42,6 +43,7 @@ const subscriptions = {
   unPublishEvent: (results) => functionOrLog('unPublishEvent', results),
   unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
   unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results),
+  updateInContextMatchUp: (results) => functionOrLog('updateInContextMatchUp', results),
 };
 
 export function setDev() {
