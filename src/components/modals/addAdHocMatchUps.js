@@ -12,7 +12,7 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
   const matchUps =
     tournamentEngine.allDrawMatchUps({
       matchUpFilters: { structureIds: [structureId] },
-      drawId
+      drawId,
     }).matchUps || [];
 
   const roundNumbers = matchUps.reduce((roundNumbers, matchUp) => {
@@ -37,19 +37,20 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
       roundNumber: selectedRoundNumber,
       matchUpsCount,
       structureId,
-      drawId
+      drawId,
     });
 
     if (!result.matchUps?.length) return;
 
     const methods = [
       {
+        method: ADD_ADHOC_MATCHUPS,
         params: {
           matchUps: result.matchUps,
-          drawId
+          structureId,
+          drawId,
         },
-        method: ADD_ADHOC_MATCHUPS
-      }
+      },
     ];
 
     const postMutation = (result) => {
@@ -64,7 +65,7 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
 
   const buttons = [
     { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Add', intent: 'is-success', close: true, onClick: addMatchUps }
+    { label: 'Add', intent: 'is-success', close: true, onClick: addMatchUps },
   ];
 
   const roundNumberOptions = roundNumbers.map((rn) => ({ label: rn, value: rn }));
@@ -74,8 +75,8 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
       options: roundNumberOptions,
       field: 'roundNumber',
       value: roundNumber,
-      id: 'roundNumber'
-    }
+      id: 'roundNumber',
+    },
   };
   const matchUpCountOptions = ['Auto', 1, 5, 10].map((rn) => ({ label: rn, value: rn }));
   const matchUpCountSelection = {
@@ -84,8 +85,8 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
       options: matchUpCountOptions,
       field: 'matchUpsCount',
       id: 'matchUpsCount',
-      value: 'Auto'
-    }
+      value: 'Auto',
+    },
   };
 
   const options = [roundNumberSelection, { spacer: true }, matchUpCountSelection];
