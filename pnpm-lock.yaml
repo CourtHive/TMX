@@ -9,8 +9,8 @@ dependencies:
     specifier: 7.23.4
     version: 7.23.4(@babel/core@7.23.9)
   '@event-calendar/core':
-    specifier: 2.6.0
-    version: 2.6.0
+    specifier: 2.6.1
+    version: 2.6.1
   '@event-calendar/day-grid':
     specifier: 2.6.0
     version: 2.6.0
@@ -1045,12 +1045,6 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /@event-calendar/core@2.6.0:
-    resolution: {integrity: sha512-WPRGeaO8pON5h2j7weEszKro3P6DPSKZYYGH/ZUXopaXxvQyKrWIAYADaJaU6VpWvAdPRGlo9V38qcAwy51kjQ==}
-    dependencies:
-      svelte: 4.2.9
-    dev: false
-
   /@event-calendar/core@2.6.1:
     resolution: {integrity: sha512-3dxMnmFfjEzeyNFhm0PS04/Js3LqqQC6HzqY6XtypxC2wLFhxrK4NqX4cq8ZKtIrTJu6EFFB3DZ8GamW28Pl7g==}
     dependencies:
@@ -1060,28 +1054,28 @@ packages:
   /@event-calendar/day-grid@2.6.0:
     resolution: {integrity: sha512-efdUye3mm0I+bHMoGvgKU6BRweZIOksRrQNdVE1jgTCQlcFcW8F5SiGgVwpDZN0zBEaeYYNXWnvcLcnkOwYxXw==}
     dependencies:
-      '@event-calendar/core': 2.6.0
+      '@event-calendar/core': 2.6.1
       svelte: 4.2.9
     dev: false
 
   /@event-calendar/interaction@2.6.0:
     resolution: {integrity: sha512-1JsfEuIWJZvSctThD3B8bvZxcJ9T1AqYoUECkiXKTEpZsIo9zl/PvTyJcmQ7tNIQ1wWzesPDUNj3YQbBCwjACA==}
     dependencies:
-      '@event-calendar/core': 2.6.0
+      '@event-calendar/core': 2.6.1
       svelte: 4.2.9
     dev: false
 
   /@event-calendar/list@2.6.0:
     resolution: {integrity: sha512-cuDqYXISQlfbGYMb457tOEl5rRqp8pr+u7P4Inak1mUxolLZiy8Zv4UBUHXWlsGc9jpXuTCEdKEvtpIpeXsbRw==}
     dependencies:
-      '@event-calendar/core': 2.6.0
+      '@event-calendar/core': 2.6.1
       svelte: 4.2.9
     dev: false
 
   /@event-calendar/resource-time-grid@2.6.0:
     resolution: {integrity: sha512-LTYQqp6WH7Iw+vnZpWP3i4OE14isw89banj2jtzXJWHYPln/5cbph3a33Jgw0JDJvoV3fpz7SxwCHVA2LyvdvQ==}
     dependencies:
-      '@event-calendar/core': 2.6.0
+      '@event-calendar/core': 2.6.1
       '@event-calendar/time-grid': 2.6.1
       svelte: 4.2.9
     dev: false
