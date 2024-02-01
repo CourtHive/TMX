@@ -38,7 +38,14 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
 
     const methods = [
       {
-        params: { drawId, structureId, matchUpIds },
+        params: {
+          removeCompleted: inputs.completed.checked,
+          removeIncomplete: inputs.unscored.checked,
+          removeUnassigned: inputs.empties.checked,
+          structureId,
+          matchUpIds,
+          drawId,
+        },
         method: DELETE_ADHOC_MATCHUPS,
       },
     ];
