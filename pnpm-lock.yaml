@@ -126,8 +126,8 @@ dependencies:
     specifier: 6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: 2.0.16
-    version: 2.0.16
+    specifier: 2.0.18
+    version: 2.0.18
   tods-tmx-classic-converter:
     specifier: 2.14.0
     version: 2.14.0
@@ -2440,7 +2440,7 @@ packages:
       classnames: 2.5.1
       dayjs: 1.11.10
       husky: 8.0.3
-      tods-competition-factory: 2.0.16
+      tods-competition-factory: 2.0.18
     dev: false
 
   /create-ecdh@4.0.4:
@@ -5998,8 +5998,8 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /tods-competition-factory@2.0.16:
-    resolution: {integrity: sha512-99Qac3VVhn+dU9XSzasS7fc2Z//R9BgnId7Oh07FG5eClwrfeKkrZfc9BvKgMrUFNZi/xLd+a/dlUUb72Owg9A==}
+  /tods-competition-factory@2.0.18:
+    resolution: {integrity: sha512-exWy6RDaIEBoIYFazNTemmDQ2NgMVDckxRSeaDDJDKexXnaO4yrWOvBCzD0xQhIt74aHc5rXX7+IHA29jlXSLA==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
@@ -6011,7 +6011,7 @@ packages:
       cli-progress: 3.12.0
       d3: 5.16.0
       date-fns: 2.30.0
-      tods-competition-factory: 2.0.16
+      tods-competition-factory: 2.0.18
     dev: false
 
   /totalist@3.0.1:
