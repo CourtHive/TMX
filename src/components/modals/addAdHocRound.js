@@ -4,9 +4,11 @@ import { closeModal, openModal } from './baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { selectParticipant } from './selectParticipant';
 import { isFunction } from 'functions/typeOf';
+import { env } from 'settings/env';
 
 import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
+
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
 export function addAdHocRound({ drawId, structure, structureId, callback } = {}) {
@@ -53,10 +55,11 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   };
 
   const drawMaticRound = (participantIds) => {
+    const { scaleAccessor, scaleName } = env.scales[env.activeScale];
     const result = tournamentEngine.drawMatic({
-      scaleAccessor: 'utrRating',
-      scaleName: 'UTR',
       participantIds,
+      scaleAccessor,
+      scaleName,
       drawId,
     });
     if (!result.matchUps?.length) return;
