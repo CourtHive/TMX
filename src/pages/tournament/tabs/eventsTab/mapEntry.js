@@ -1,8 +1,8 @@
 import { drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
 import { entryStatusMapping } from 'constants/tmxConstants';
 
-const { TEAM } = factoryConstants.eventConstants;
 const { WTN, UTR } = factoryConstants.ratingConstants;
+const { TEAM } = factoryConstants.eventConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
 export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, eventId }) {
@@ -20,7 +20,7 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
 
   const scaleName = entry.entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const seedNumber = participant?.seedings?.[eventType]?.find(
-    (scaleItem) => scaleItem.scaleName === scaleName
+    (scaleItem) => scaleItem.scaleName === scaleName,
   )?.scaleValue;
 
   const status = entryStatusMapping[entry.entryStatus];
@@ -33,6 +33,6 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
     ...entry,
     ratings,
     flights,
-    status
+    status,
   };
 }

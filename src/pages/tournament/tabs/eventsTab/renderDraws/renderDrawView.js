@@ -20,6 +20,7 @@ import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
+import { env } from 'settings/env';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -76,12 +77,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
 
   // override WTN default
   if (composition.configuration.scaleAttributes) {
-    composition.configuration.scaleAttributes.scaleName = 'UTR';
-    composition.configuration.scaleAttributes.accessor = 'utrRating';
-    // composition.configuration.scaleAttributes.scaleName = 'WTN';
-    // composition.configuration.scaleAttributes.accessor = 'wtnRating';
-    composition.configuration.scaleAttributes.scaleColor = 'blue';
-    composition.configuration.scaleAttributes.fallback = true;
+    composition.configuration.scaleAttributes = env.scales[env.activeScale];
   }
 
   composition.configuration.showAddress = undefined;

@@ -6,7 +6,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 
-import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
+import { NONE, TOURNAMENT_MATCHUPS, UTR, WTN } from 'constants/tmxConstants';
 
 export function createMatchUpsTable() {
   let table;
@@ -54,7 +54,7 @@ export function createMatchUpsTable() {
       const predictiveWTN = document.getElementById('wtnPredictiveAccuracy');
       const wtn = tournamentEngine.getPredictiveAccuracy({
         valueAccessor: 'wtnRating',
-        scaleName: 'WTN',
+        scaleName: WTN,
         zoneMargin: 2.5,
         matchUps,
       });
@@ -69,7 +69,7 @@ export function createMatchUpsTable() {
       const utr = tournamentEngine.getPredictiveAccuracy({
         valueAccessor: 'utrRating',
         singlesForDoubles: true,
-        scaleName: 'UTR',
+        scaleName: UTR,
         zoneMargin: 1,
         matchUps,
       });
