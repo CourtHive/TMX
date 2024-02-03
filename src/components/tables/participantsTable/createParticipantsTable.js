@@ -55,6 +55,7 @@ export function createParticipantsTable({ view } = {}) {
         'events',
         'teams',
         'cityState',
+        'tennisId',
         'ratings.wtn.wtnRating',
         'ratings.utr.utrRating',
       ]),
