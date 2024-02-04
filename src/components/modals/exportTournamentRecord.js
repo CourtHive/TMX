@@ -4,6 +4,7 @@ import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
+import { UTR } from 'constants/tmxConstants';
 
 export function exportTournamentRecord() {
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -19,8 +20,8 @@ export function exportTournamentRecord() {
 
   const buttons = [
     { label: 'Cancel', intent: 'none' },
-    { label: 'UTR', intent: 'is-warning', onClick: downloadUTRmatches, close: true },
-    { label: 'TODS', intent: 'is-primary', onClick: exportTODS, close: true }
+    { label: UTR, intent: 'is-warning', onClick: downloadUTRmatches, close: true },
+    { label: 'TODS', intent: 'is-primary', onClick: exportTODS, close: true },
   ];
   const title = `${lang.tr('phrases.export')}: ${lang.tr('trn')}`;
 

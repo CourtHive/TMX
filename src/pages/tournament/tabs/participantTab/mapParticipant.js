@@ -22,6 +22,7 @@ export const mapParticipant = (participant, derivedEventInfo) => {
     ioc: getCountry(participant.person?.nationalityCode),
     events: getEvents(participant, derivedEventInfo),
     penalties: participant.penalties || [],
+    tennisId: participant.person.tennisId,
     signedIn: participant.signedIn,
     lastName: standardFamilyName,
     firstName: standardGivenName,
