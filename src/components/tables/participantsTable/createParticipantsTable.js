@@ -1,4 +1,4 @@
-import { tournamentEngine, participantConstants, participantRoles } from 'tods-competition-factory';
+import { tournamentEngine, participantConstants, participantRoles, tools } from 'tods-competition-factory';
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -43,6 +43,10 @@ export function createParticipantsTable({ view } = {}) {
   const data = getTableData();
   const columns = getParticipantColumns(data);
 
+  const simpleAddition = (a, b) => {
+    return ((tools.isNumeric(a) && a) || 0) + ((tools.isNumeric(b) && b) || 0);
+  };
+
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_PARTICIPANTS });
     const element = document.getElementById(TOURNAMENT_PARTICIPANTS);
@@ -76,6 +80,20 @@ export function createParticipantsTable({ view } = {}) {
     });
     table.on('dataFiltered', (filters, rows) => {
       headerElement && (headerElement.innerHTML = `Participants (${rows.length})`);
+      const wtns = [];
+      const utrs = [];
+      for (const row of rows) {
+        const data = row.getData();
+        const { wtn, utr } = data.ratings;
+        tools.isNumeric(utr?.utrRating) && utrs.push(parseFloat(utr.utrRating));
+        tools.isNumeric(wtn?.wtnRating) && wtns.push(parseFloat(wtn.wtnRating));
+      }
+      const utrTotal = utrs.reduce(simpleAddition, 0);
+      const wtnTotal = wtns.reduce(simpleAddition, 0);
+      const utrAverage = (utrs.length ? utrTotal / utrs.length : 0).toFixed(2);
+      const wtnAverage = (wtns.length ? wtnTotal / wtns.length : 0).toFixed(2);
+      console.log(`UTR ${utrAverage}x̄`);
+      console.log(`WTN ${wtnAverage}x̄`);
     });
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));
