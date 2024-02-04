@@ -15,15 +15,16 @@ import {
   NONE,
   OVERLAY,
   RIGHT,
-  TEAM_STATS
+  TEAM_STATS,
 } from 'constants/tmxConstants';
+import { env } from 'settings/env';
 
 const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
   let eventIdFilter, drawIdFilter, teamIdFilter, matchUpStatusFilter, elements;
 
-  const { table } = createMatchUpsTable({ elements });
+  const { table, replaceTableData } = createMatchUpsTable({ elements });
   const events = tournamentEngine.getEvents().events || [];
   const statsPanel = document.getElementById(TEAM_STATS);
   statsPanel.style.display = NONE;
@@ -38,13 +39,13 @@ export function renderMatchUpTab() {
   const allFlights = {
     label: `<span style='font-weight: bold'>${ALL_FLIGHTS}</span>`,
     onClick: () => updateFlightFilter(),
-    close: true
+    close: true,
   };
   const getFlightOptions = (event) =>
     event.drawDefinitions?.map(({ drawId, drawName }) => ({
       onClick: () => updateFlightFilter(drawId),
       label: drawName,
-      close: true
+      close: true,
     }));
   const flightOptions = [allFlights, { divider: true }].concat(events.flatMap(getFlightOptions)).filter(Boolean);
 
@@ -66,7 +67,7 @@ export function renderMatchUpTab() {
         id: 'flightOptions',
         modifyLabel: true,
         selection: true,
-        location: LEFT
+        location: LEFT,
       };
       const elem = dropDownButton({ button: flightButton });
 
@@ -79,14 +80,14 @@ export function renderMatchUpTab() {
   const allEvents = {
     label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
     onClick: () => updateEventFilter(),
-    close: true
+    close: true,
   };
   const eventOptions = [allEvents, { divider: true }].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
-      close: true
-    }))
+      close: true,
+    })),
   );
 
   const statusFilter = (rowData) => {
@@ -109,13 +110,13 @@ export function renderMatchUpTab() {
   const allStatuses = {
     label: `<span style='font-weight: bold'>${ALL_STATUSES}</span>`,
     onClick: () => updateStatusFilter(),
-    close: true
+    close: true,
   };
   const scoreOptions = [
     allStatuses,
     { divider: true },
     { label: 'Ready to score', close: true, onClick: () => updateStatusFilter('readyToScore') },
-    { label: 'Complete', close: true, onClick: () => updateStatusFilter('complete') }
+    { label: 'Complete', close: true, onClick: () => updateStatusFilter('complete') },
   ];
 
   // SEARCH filter
@@ -132,7 +133,7 @@ export function renderMatchUpTab() {
     tournamentEngine.getParticipants({ participantFilters: { participantTypes: [TEAM] } }).participants || [];
   const teamMap = Object.assign(
     {},
-    ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds }))
+    ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds })),
   );
   const teamFilter = (rowData) => rowData.individualParticipantIds.some((id) => teamMap[teamIdFilter]?.includes(id));
   const updateTeamFilter = (teamParticipantId) => {
@@ -158,7 +159,7 @@ export function renderMatchUpTab() {
   const allTeams = {
     label: `<span style='font-weight: bold'>${ALL_TEAMS}</span>`,
     onClick: () => updateTeamFilter(),
-    close: true
+    close: true,
   };
 
   // TODO: teamOptions => use element.options.replaceWith to update to only those teams with results
@@ -168,8 +169,8 @@ export function renderMatchUpTab() {
       .map((team) => ({
         onClick: () => updateTeamFilter(team.participantId),
         label: team.participantName,
-        close: true
-      }))
+        close: true,
+      })),
   );
 
   const items = [
@@ -177,7 +178,7 @@ export function renderMatchUpTab() {
       onClick: () => table?.deselectRow(),
       label: 'Schedule',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
@@ -192,7 +193,7 @@ export function renderMatchUpTab() {
       },
       placeholder: 'Search matches',
       location: LEFT,
-      search: true
+      search: true,
     },
     {
       hide: eventOptions.length < 3,
@@ -201,7 +202,7 @@ export function renderMatchUpTab() {
       label: ALL_EVENTS,
       modifyLabel: true,
       selection: true,
-      location: LEFT
+      location: LEFT,
     },
     {
       options: flightOptions,
@@ -210,7 +211,7 @@ export function renderMatchUpTab() {
       modifyLabel: true,
       selection: true,
       location: LEFT,
-      hide: true
+      hide: true,
     },
     {
       hide: teamOptions.length < 3,
@@ -218,29 +219,37 @@ export function renderMatchUpTab() {
       modifyLabel: true,
       label: ALL_TEAMS,
       location: LEFT,
-      selection: true
+      selection: true,
     },
     {
       options: scoreOptions,
       label: ALL_STATUSES,
       modifyLabel: true,
       selection: true,
-      location: LEFT
+      location: LEFT,
     },
     {
+      onClick: () => {
+        env.activeScale = 'wtn';
+        replaceTableData();
+      },
       id: 'wtnPredictiveAccuracy',
       intent: 'is-danger',
       location: RIGHT,
       text: 'WTN %',
-      hide: true
+      hide: true,
     },
     {
+      onClick: () => {
+        env.activeScale = 'utr';
+        replaceTableData();
+      },
       id: 'utrPredictiveAccuracy',
       intent: 'is-info',
       location: RIGHT,
       text: 'UTR %',
-      hide: true
-    }
+      hide: true,
+    },
   ];
 
   const target = document.getElementById(MATCHUPS_CONTROL);

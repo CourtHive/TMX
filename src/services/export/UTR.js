@@ -2,7 +2,7 @@ import { tournamentEngine, tools } from 'tods-competition-factory';
 import { normalizeName, normalizeDiacritics } from 'normalize-text';
 import { downloadText } from './download';
 
-import { DRAW_NAME, DRAW_TYPE } from 'constants/tmxConstants';
+import { DRAW_NAME, DRAW_TYPE, UTR } from 'constants/tmxConstants';
 
 export const replaceDiacritics = (text) => normalizeDiacritics(text);
 
@@ -25,7 +25,7 @@ export function downloadUTRmatches() {
       tournamentEventSource: 'CourtHive', // change this to providerName
       tournamentEventType: 'Tournament',
       ...tournamentInfo,
-      idType: 'UTR',
+      idType: UTR,
     },
   });
 

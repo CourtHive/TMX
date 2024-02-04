@@ -54,7 +54,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       headerSort: false,
       responsive: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
       formatter: 'responsiveCollapse',
@@ -62,17 +62,17 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       resizable: false,
       hozAlign: CENTER,
       minWidth: 50,
-      width: 50
+      width: 50,
     },
     {
       headerMenu: headerMenu({
         duration: 'Duration',
-        complete: 'Complete'
+        complete: 'Complete',
       }),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
-      width: 55
+      width: 55,
     },
     {
       formatter: eventFormatter(navigateToEvent),
@@ -80,47 +80,47 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       title: 'Event',
       visible: true,
       minWidth: 200,
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       title: 'Flight',
       visible: false,
       minWidth: 150,
       field: 'flight',
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       field: 'matchUpType',
       titleFormatter,
       title: 'Type',
-      minWidth: 90
+      minWidth: 90,
     },
     {
       field: 'roundName',
       title: 'Round',
       titleFormatter,
-      minWidth: 90
+      minWidth: 90,
     },
     {
       cellClick: matchUpScheduleClick,
       field: 'scheduledDate',
       title: 'Date',
-      width: 110
+      width: 110,
     },
     {
       cellClick: matchUpScheduleClick,
       visible: !!showCourts,
       field: 'courtName',
       title: 'Court',
-      width: 100
+      width: 100,
     },
     {
       cellClick: matchUpScheduleClick,
-      field: 'scheduleTime',
+      field: 'scheduledTime',
       headerSort: false,
       visible: false,
       title: 'Time',
-      width: 70
+      width: 70,
     },
     {
       formatter: matchUpParticipantFormatter,
@@ -130,7 +130,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       title: 'Side 1',
       minWidth: 180,
       field: 'side1',
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       formatter: matchUpParticipantFormatter,
@@ -140,7 +140,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       title: 'Side 2',
       minWidth: 180,
       field: 'side2',
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       cellClick: handleScoreClick(replaceTableData),
@@ -149,7 +149,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       field: 'scoreDetail',
       responsive: false,
       title: 'Score',
-      width: 140
+      width: 140,
     },
     {
       sorter: competitiveProfileSorter,
@@ -158,7 +158,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       responsive: false,
       title: 'Profile',
       visible: false,
-      width: 140
+      width: 140,
     },
     {
       title: `<div class='fa-solid fa-check' style='color: green' />`,
@@ -166,19 +166,19 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       field: 'complete',
       hozAlign: LEFT,
       tooltip: false,
-      width: 40
+      width: 40,
     },
     {
       field: 'matchUp.matchUpStatus',
       title: 'Status',
-      width: 150
+      width: 150,
     },
     {
       title: `<div class='fa-solid fa-clock' style='color: blue' />`,
       headerSort: false,
       field: 'duration',
       visible: false,
-      width: 70
+      width: 70,
     },
     {
       cellClick: (e, cell) => matchUpActions({ pointerEvent: e, ...cell.getData() }),
@@ -187,7 +187,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       headerSort: false,
       hozAlign: RIGHT,
       widthGrow: 0,
-      width: 50
-    }
+      width: 50,
+    },
   ];
 }

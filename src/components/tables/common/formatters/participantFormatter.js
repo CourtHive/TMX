@@ -1,6 +1,7 @@
 import { genderConstants, participantConstants } from 'tods-competition-factory';
 import { renderParticipant } from 'courthive-components';
 import { isFunction, isObject } from 'functions/typeOf';
+import { env } from 'settings/env';
 
 const { MALE, FEMALE } = genderConstants;
 const { PAIR } = participantConstants;
@@ -14,13 +15,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
   const value = cell.getValue();
   const participant = data.participant || value.participant || (data.person && data);
   if (participant) {
-    const scaleAttributes = {
-      accessor: 'utrRating',
-      scaleType: 'RATING',
-      scaleColor: 'blue',
-      scaleName: 'UTR',
-      fallback: true,
-    };
+    const scaleAttributes = env.scales[env.activeScale];
 
     const rendered = (participant) => {
       return renderParticipant({

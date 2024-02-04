@@ -60,7 +60,7 @@ export function createMatchUpsTable() {
       });
       if (wtn?.accuracy?.percent) {
         predictiveWTN.style.display = '';
-        predictiveWTN.innerHTML = `WTN ${wtn.accuracy.percent}`;
+        predictiveWTN.innerHTML = `WTN ${wtn.accuracy.percent}%`;
       } else {
         predictiveWTN.style.display = NONE;
       }
@@ -75,7 +75,7 @@ export function createMatchUpsTable() {
       });
       if (utr?.accuracy?.percent) {
         predictiveUTR.style.display = '';
-        predictiveUTR.innerHTML = `UTR ${utr.accuracy.percent}`;
+        predictiveUTR.innerHTML = `UTR ${utr.accuracy.percent}%`;
       } else {
         predictiveUTR.style.display = NONE;
       }
