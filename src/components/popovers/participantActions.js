@@ -19,7 +19,7 @@ export function participantActions(e, cell) {
     {
       hide: participantType !== 'INDIVIDUAL',
       text: "<i class='fas fa-address-card'></i> Participant profile",
-      onClick: () => console.log('Participant profile'),
+      onClick: () => console.log('Participant profile', cell.getData()?.participant),
     },
     {
       hide: participantType !== 'INDIVIDUAL',
