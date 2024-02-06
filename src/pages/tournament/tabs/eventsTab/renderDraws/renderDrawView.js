@@ -39,7 +39,13 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
-      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true, withGroupings: true },
+      participantsProfile: {
+        convertExtensions: true,
+        withScaleValues: true,
+        withGroupings: true,
+        withISO2: true,
+        withIOC: true,
+      },
       includePositionAssignments: true,
       eventId,
     })?.eventData;
@@ -82,7 +88,8 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
 
   composition.configuration.showAddress = undefined;
   // composition.configuration.participantDetail = 'TEAM';
-  composition.configuration.participantDetail = 'ADDRESS';
+  // composition.configuration.participantDetail = 'ADDRESS';
+  composition.configuration.participantDetail = '_ustaSection.name';
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;
