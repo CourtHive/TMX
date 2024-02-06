@@ -2,6 +2,7 @@ import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHigh
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools } from 'tods-competition-factory';
+import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
@@ -16,11 +17,10 @@ import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { drawControlBar } from './drawControlBar';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
-import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
-import { env } from 'settings/env';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -39,7 +39,13 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
-      participantsProfile: { withIOC: true, withISO2: true, withScaleValues: true, withGroupings: true },
+      participantsProfile: {
+        convertExtensions: true,
+        withScaleValues: true,
+        withGroupings: true,
+        withISO2: true,
+        withIOC: true,
+      },
       includePositionAssignments: true,
       eventId,
     })?.eventData;
@@ -82,7 +88,8 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
 
   composition.configuration.showAddress = undefined;
   // composition.configuration.participantDetail = 'TEAM';
-  composition.configuration.participantDetail = 'ADDRESS';
+  // composition.configuration.participantDetail = 'ADDRESS';
+  composition.configuration.participantDetail = '_ustaSection.name';
 
   composition.configuration.allDrawPositions = true;
   composition.configuration.drawPositions = true;

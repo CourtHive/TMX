@@ -15,9 +15,8 @@ export function actionFormatter(cell) {
   const tournamentId = cell.getValue();
 
   const deleteTournament = () => {
-    let deleteTournamentEvents = { tuid: tournamentId, delete_tournament: true };
-    emitTmx({ data: { deleteTournamentEvents } });
-    emitTmx({ data: { deleteOOP: { tuid: tournamentId } } });
+    let deleteTournament = { tournamentId };
+    emitTmx({ data: { deleteTournament } });
 
     tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
     function done() {
