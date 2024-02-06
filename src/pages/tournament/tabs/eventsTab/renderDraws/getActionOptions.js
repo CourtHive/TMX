@@ -4,6 +4,7 @@ import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { deleteFlights } from 'components/modals/deleteFlights';
+import { resetDraws } from 'components/modals/resetDraws';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
@@ -23,24 +24,28 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
       hide: eventData.eventInfo.eventType !== TEAM,
       onClick: () => updateTieFormat({ structureId, eventId, drawId }),
       label: 'Edit scorecard',
-      close: true
+      close: true,
     },
     {
       hide: eventData.eventInfo.eventType === TEAM,
       onClick: () => editMatchUpFormat({ structureId, eventId, drawId }),
       label: `Edit ${structureName} scoring`,
-      close: true
+      close: true,
     },
     {
       hide: structure?.stage === 'MAIN' && structure.stageSequence === 1 && !hasQualifying,
       onClick: () => removeStructure({ drawId, eventId, structureId }),
       label: 'Remove structure',
-      close: true
+      close: true,
     },
     {
       onClick: () => deleteFlights({ eventData, drawIds: [drawId] }),
-      label: 'Delete draw'
-    }
+      label: 'Delete draw',
+    },
+    {
+      onClick: () => resetDraws({ eventData, drawIds: [drawId] }),
+      label: 'Reset draw',
+    },
   ];
 
   if (dualMatchUp) {
@@ -59,21 +64,21 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
     const removePlayers = () => {
       const currentMatchUp = tournamentEngine.findMatchUp({
         matchUpId,
-        drawId
+        drawId,
       }).matchUp;
       const resultsPresent = currentMatchUp.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
       if (resultsPresent) {
         tmxToast({
           message: 'Cannot remove when scores are present',
           intent: 'is-warning',
-          pauseOnHover: true
+          pauseOnHover: true,
         });
       } else {
         const methods = [
           {
             params: { drawId, matchUpId, inheritance: false },
-            method: 'resetMatchUpLineUps'
-          }
+            method: 'resetMatchUpLineUps',
+          },
         ];
         mutationRequest({ methods, callback: postMutation });
       }
@@ -81,7 +86,7 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
     const removeParticipantsButton = {
       label: 'Remove players',
       onClick: removePlayers,
-      close: true
+      close: true,
     };
     options.push(removeParticipantsButton);
 
@@ -89,15 +94,15 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
       const methods = [
         {
           params: { drawId, matchUpId },
-          method: RESET_SCORECARD
-        }
+          method: RESET_SCORECARD,
+        },
       ];
       mutationRequest({ methods, callback: postMutation });
     };
     const clearResultsButton = {
       label: 'Clear results',
       onClick: clearResults,
-      close: true
+      close: true,
     };
     options.push(clearResultsButton);
   }
