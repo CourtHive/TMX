@@ -3,15 +3,6 @@ import { findAncestor } from 'services/dom/parentAndChild';
 
 import { NONE } from 'constants/tmxConstants';
 
-/*
- * @param {object} e - event
- * @param {object} table
- * @param {[string]} columns - columns which are editable
- * @param {[string]} classNames - array of classNames to target
- * @param {string} className - single className to target
- * @param {boolean} visible
- */
-
 export function toggleEditVisibility({ e, table, classNames, className, visible, columns }) {
   const optionsRight = findAncestor(e.target, 'options_right');
   const targetState = visible ? '' : NONE;
