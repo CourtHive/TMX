@@ -9,6 +9,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
+import { env } from 'settings/env';
 
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
@@ -31,6 +32,12 @@ export function createParticipantsTable({ view } = {}) {
     const individualParticipants = participants.filter(({ participantType }) => participantType === INDIVIDUAL);
     groupParticipants = participants.filter(({ participantType }) => participantType === GROUP);
     teamParticipants = participants.filter(({ participantType }) => participantType === TEAM);
+    const ratingsScales = tools.unique(
+      individualParticipants
+        .flatMap(({ ratings }) => ratings?.SINGLES?.map(({ scaleName }) => scaleName))
+        .filter(Boolean),
+    );
+    env.activeScale = (ratingsScales.includes('WTN') && 'wtn') || (ratingsScales.includes('UTR') && 'utr') || 'wtn';
 
     return individualParticipants?.map((p) => mapParticipant(p, derivedEventInfo)) || [];
   };

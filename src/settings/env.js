@@ -1,10 +1,10 @@
 import { version } from '../config/version';
 
 export const env = {
-  dev: undefined,
   socketIo: { tmx: '/tmx' }, // should be set as part of authenticated connection
+  activeScale: 'wtn', // TODO: discover activeScale from tournament data
+  hotkeys: true,
 
-  activeScale: 'utr',
   scales: {
     utr: {
       accessor: 'utrRating',

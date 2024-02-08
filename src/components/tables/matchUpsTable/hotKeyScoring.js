@@ -10,17 +10,55 @@ const { HOTKEYS, SIDE1KEYS, MODIFIERS } = keyValueConstants;
 export function hotKeyScoring() {
   let focusData, updatedMatchUp;
   const setFocusData = (params) => {
-    focusData = params;
     updatedMatchUp = undefined;
+    focusData = params;
   };
 
-  hotkeys(HOTKEYS, (event, handler) => {
+  hotkeys(HOTKEYS + ',esc', (event, handler) => {
     if (focusData) {
+      const element = focusData.cell.getElement();
+      const targetElement = element.classList.contains('tabulator-cell') ? element.firstChild : element;
+      event.preventDefault();
+
       const data = focusData.cell.getRow().getData();
       if (!updatedMatchUp) updatedMatchUp = data.matchUp;
+
       const shifted = hotkeys.shift;
       const value = shifted ? handler.key.split(handler.splitKey)[1] : handler.key;
-      event.preventDefault();
+
+      if (value === 'esc') {
+        focusData.replaceTableData();
+        focusData = undefined;
+      }
+
+      if (value === 'tab') {
+        /*
+        const row = focusData.cell.getRow();
+        let targetRow, targetData;
+        let nextRow = row.getNextRow();
+        while (nextRow && !targetRow) {
+          const nextRowData = nextRow.getData();
+          const canScore = nextRowData.readyToScore || nextRowData.score?.scoreStringSide1;
+          if (canScore) {
+            targetData = nextRowData;
+            targetRow = nextRow;
+          } else {
+            nextRow = row.getNextRow();
+          }
+        }
+
+        if (targetData) {
+          const tcells = document.querySelectorAll('.activeScoreCell');
+          for (const tcell of Array.from(tcells)) {
+            tcell.classList.remove('activeScoreCell');
+          }
+          const targetCell = targetRow.getCell('scoreDetail');
+          focusData.cell = targetCell;
+          return; // critical
+        }
+        */
+      }
+
       const lowSide = (SIDE1KEYS.some((k) => k === value) && (shifted ? 2 : 1)) || undefined;
       if (lowSide || MODIFIERS.includes(value)) {
         const { matchUpFormat, matchUpStatus, score, sets, winningSide } = updatedMatchUp;
@@ -50,10 +88,11 @@ export function hotKeyScoring() {
             matchUpFormat,
             updated,
           });
-          console.log(updatedScoreString);
+          targetElement.innerText = updatedScoreString || 'Enter score';
         }
       }
     }
+
     if (focusData && handler.key === 'enter') {
       const scoreStringSide2 = scoreGovernor.generateScoreString({ sets: updatedMatchUp.sets, reversed: true });
       const scoreStringSide1 = scoreGovernor.generateScoreString({ sets: updatedMatchUp.sets });
@@ -66,7 +105,6 @@ export function hotKeyScoring() {
           scoreStringSide2,
         },
       };
-      console.log('submit score', { outcome });
       submitScore({
         callback: focusData.replaceTableData,
         matchUpId: updatedMatchUp.matchUpId,
