@@ -17,7 +17,7 @@ const { CONTAINER } = drawDefinitionConstants;
 export async function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }) {
   let table, structure, participantFilter, isRoundRobin;
 
-  const getMatchUps = async () => {
+  const getMatchUps = () => {
     // TODO: it is inefficient to call both getEventData and allTournamentMatchUps
     // Can getEventData be modified to return participants array
     const eventData = tournamentEngine.getEventData({ eventId }).eventData;

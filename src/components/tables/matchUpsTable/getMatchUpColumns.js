@@ -17,7 +17,7 @@ import { context } from 'services/context';
 
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
-export function getMatchUpColumns({ data, replaceTableData }) {
+export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
   const matchUpScheduleClick = (e, cell) => {
     const row = cell.getRow();
     const data = row.getData();
@@ -143,7 +143,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       widthGrow: 1,
     },
     {
-      cellClick: handleScoreClick(replaceTableData),
+      cellClick: handleScoreClick(replaceTableData, setFocusData),
       formatter: scoreFormatter,
       sorter: scoreSorter,
       field: 'scoreDetail',

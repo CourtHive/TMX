@@ -26,6 +26,15 @@ body {
   background-color: #e7e6e7;
 }
 
+.activeScoreCell {
+  margin: 2px;
+  margin-left: 0px;
+  background: #D3D3D3;
+  font-size: 15px;
+  padding: 8px;
+  border: 1px solid rgb(203, 248, 203);
+}
+
 .event-pill {
   font-size: .8rem !important;
   margin-right: 2px;
