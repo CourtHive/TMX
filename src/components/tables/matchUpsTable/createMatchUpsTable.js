@@ -5,11 +5,14 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
+import { hotKeyScoring } from './hotKeyScoring';
 
 import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
 export function createMatchUpsTable() {
   let table;
+
+  const { setFocusData } = hotKeyScoring();
 
   const getTableData = () => {
     const matchUps = (
@@ -29,7 +32,7 @@ export function createMatchUpsTable() {
   };
 
   const data = getTableData();
-  const columns = getMatchUpColumns({ data, replaceTableData });
+  const columns = getMatchUpColumns({ data, replaceTableData, setFocusData });
 
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_MATCHUPS });
