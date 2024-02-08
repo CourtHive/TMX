@@ -132,8 +132,8 @@ dependencies:
     specifier: 2.0.21
     version: link:../factory
   tods-tmx-classic-converter:
-    specifier: 2.14.0
-    version: 2.14.0
+    specifier: 2.14.1
+    version: 2.14.1
   typescript:
     specifier: 5.3.3
     version: 5.3.3
@@ -6010,8 +6010,8 @@ packages:
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
-  /tods-tmx-classic-converter@2.14.0:
-    resolution: {integrity: sha512-Ecjxep6Iq3o02/NYa4Hfd0Kuewnh1YCZHOqqZ0hLXl7bm9FQ07hA5x8IPDP5H3VqBiA4CikS8eoq1K/qohuXVA==}
+  /tods-tmx-classic-converter@2.14.1:
+    resolution: {integrity: sha512-MF3vMW+ybSbO8+MRe0Jawu0xxxBwvwgiPRdmdQJkEGlb3AnsQN56lnII7lY2jlgb06d9PBeUCw5R2Xl3kToVTA==}
     engines: {node: '>=16.16.0 < 21'}
     dependencies:
       circular-json: 0.5.9
