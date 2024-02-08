@@ -74,6 +74,9 @@ dependencies:
   focus-trap:
     specifier: 7.5.4
     version: 7.5.4
+  hotkeys-js:
+    specifier: ^3.13.7
+    version: 3.13.7
   https-browserify:
     specifier: 1.0.0
     version: 1.0.0
@@ -127,7 +130,7 @@ dependencies:
     version: 6.3.7
   tods-competition-factory:
     specifier: 2.0.21
-    version: 2.0.21
+    version: link:../factory
   tods-tmx-classic-converter:
     specifier: 2.14.0
     version: 2.14.0
@@ -3834,6 +3837,10 @@ packages:
     dependencies:
       lru-cache: 6.0.0
     dev: true
+
+  /hotkeys-js@3.13.7:
+    resolution: {integrity: sha512-ygFIdTqqwG4fFP7kkiYlvayZppeIQX2aPpirsngkv1xM1lP0piDY5QEh68nQnIKvz64hfocxhBaD/uK3sSK1yQ==}
+    dev: false
 
   /html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
