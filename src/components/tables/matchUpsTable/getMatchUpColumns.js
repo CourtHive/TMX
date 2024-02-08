@@ -12,12 +12,14 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
+import { scoreEditState } from './scoreEditState';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
 
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { env } from 'settings/env';
 
-export function getMatchUpColumns({ data, replaceTableData }) {
+export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
   const matchUpScheduleClick = (e, cell) => {
     const row = cell.getRow();
     const data = row.getData();
@@ -143,7 +145,7 @@ export function getMatchUpColumns({ data, replaceTableData }) {
       widthGrow: 1,
     },
     {
-      cellClick: handleScoreClick(replaceTableData),
+      cellClick: env.hotkeys ? scoreEditState(replaceTableData, setFocusData) : handleScoreClick(replaceTableData),
       formatter: scoreFormatter,
       sorter: scoreSorter,
       field: 'scoreDetail',

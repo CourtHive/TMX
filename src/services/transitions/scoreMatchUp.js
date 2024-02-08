@@ -1,6 +1,6 @@
-import { tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
+import { tournamentEngine } from 'tods-competition-factory';
 import { scoreBoard } from 'legacy/scoring/scoreBoard';
 import { isFunction } from 'functions/typeOf';
 import { env } from 'settings/env';
