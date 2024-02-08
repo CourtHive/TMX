@@ -5,6 +5,7 @@ export function scoreFormatter(cell) {
   const isWalkover = data.matchUp.matchUpStatus === 'WALKOVER';
 
   const content = document.createElement('span');
+  content.classList.add('scoreCell');
   if (data.score) {
     content.style = 'font-size: smaller';
     content.innerHTML = data.score;
