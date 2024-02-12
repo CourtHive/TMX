@@ -6,7 +6,11 @@ import { isFunction } from 'functions/typeOf';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 export function generateDraw({ eventId, drawOptions, callback }) {
-  const result = tournamentEngine.generateDrawDefinition({ ...drawOptions, ignoreStageSpace: true });
+  const adHocConfig = {
+    scaleAccessor: 'wtnRating',
+    scaleName: 'WTN',
+  };
+  const result = tournamentEngine.generateDrawDefinition({ ...drawOptions, ...adHocConfig, ignoreStageSpace: true });
 
   if (result.success) {
     const drawDefinition = result.drawDefinition;
@@ -17,7 +21,7 @@ export function generateDraw({ eventId, drawOptions, callback }) {
     tmxToast({
       message: result.error?.message || 'Error',
       intent: 'is-warning',
-      pauseOnHover: true
+      pauseOnHover: true,
     });
   }
 }
