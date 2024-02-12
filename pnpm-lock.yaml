@@ -209,8 +209,8 @@ devDependencies:
     specifier: 6.8.0
     version: 6.8.0(eslint@8.56.0)
   eslint-plugin-sonarjs:
-    specifier: 0.23.0
-    version: 0.23.0(eslint@8.56.0)
+    specifier: 0.24.0
+    version: 0.24.0(eslint@8.56.0)
   esm:
     specifier: 3.2.25
     version: 3.2.25
@@ -3401,9 +3401,9 @@ packages:
       object.fromentries: 2.0.7
     dev: true
 
-  /eslint-plugin-sonarjs@0.23.0(eslint@8.56.0):
-    resolution: {integrity: sha512-z44T3PBf9W7qQ/aR+NmofOTyg6HLhSEZOPD4zhStqBpLoMp8GYhFksuUBnCxbnf1nfISpKBVkQhiBLFI/F4Wlg==}
-    engines: {node: '>=14'}
+  /eslint-plugin-sonarjs@0.24.0(eslint@8.56.0):
+    resolution: {integrity: sha512-87zp50mbbNrSTuoEOebdRQBPa0mdejA5UEjyuScyIw8hEpEjfWP89Qhkq5xVZfVyVSRQKZc9alVm7yRKQvvUmg==}
+    engines: {node: '>=16'}
     peerDependencies:
       eslint: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
     dependencies:
