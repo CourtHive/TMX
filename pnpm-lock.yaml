@@ -93,8 +93,8 @@ dependencies:
     specifier: 8.11.1
     version: 8.11.1
   normalize-text:
-    specifier: 2.4.1
-    version: 2.4.1
+    specifier: 2.5.0
+    version: 2.5.0
   pdfmake:
     specifier: 0.2.9
     version: 0.2.9
@@ -5104,8 +5104,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /normalize-text@2.4.1:
-    resolution: {integrity: sha512-cmckAM5KW/lvqJoDUZWOdMHswvEA5LBEtkR/0YXv6iNV+4+5Aha+1lOKQuVFT38lnRavDRSzpoxb9DTt/3nbOw==}
+  /normalize-text@2.5.0:
+    resolution: {integrity: sha512-Pl3DEd6cu6ftiOFNPH2v9mSYVGRDV/d+cl2Xc8LdkJpNiK7YGlt4mE0uJ5q+dlutQCvgIGiBIwlbxlPM51QF/A==}
     dependencies:
       '@bitty/pipe': 0.3.0
     dev: false
