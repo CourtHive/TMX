@@ -59,7 +59,7 @@ export function controlBar({ table, target, targetClassName, items = [], onSelec
 
   const defaultItem = { onClick: () => {}, location: RIGHT };
   for (const item of items) {
-    const itemConfig = Object.assign({}, defaultItem);
+    const itemConfig = { ...defaultItem };
     if (isObject(item)) Object.assign(itemConfig, item);
 
     const location = locations[itemConfig.location];
