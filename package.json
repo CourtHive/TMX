@@ -19,6 +19,7 @@
     "config": "node config.mjs",
     "format": "prettier --write src",
     "lint": "eslint src --fix --cache",
+    "lint:staged": "TZ=UTC lint-staged",
     "pre-commit": "lint-staged",
     "prepare": "husky",
     "preview": "vite preview",
