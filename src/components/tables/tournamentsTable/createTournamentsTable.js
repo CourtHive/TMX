@@ -30,7 +30,7 @@ export function createTournamentsTable() {
 
     table = new Tabulator(calendarAnchor, {
       responsiveLayoutCollapseStartOpen: false,
-      height: window.innerHeight * 0.9,
+      height: window.innerHeight * 0.85,
       placeholder: 'No tournaments',
       responsiveLayout: 'collapse',
       layout: 'fitColumns',
