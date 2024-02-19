@@ -13,7 +13,7 @@ import { authorizeUser } from 'components/menus/auth/authorizeUser';
 
 export function displayAuthOptions({ tournamentId, target } = {}) {
   const state = getLoginState();
-  const admin = state?.profile?.roles?.includes(SUPER_ADMIN);
+  const admin = state?.roles?.includes(SUPER_ADMIN);
 
   const items = [
     {

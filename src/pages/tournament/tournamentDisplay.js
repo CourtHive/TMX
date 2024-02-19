@@ -86,7 +86,7 @@ export function loadTournament({ tournamentRecord, config }) {
           notFound();
         }
       };
-      getTournament({ tournamentId: config.tournamentId, providerId }).then(showResult, notFound);
+      getTournament({ tournamentId: config.tournamentId }).then(showResult, notFound);
     } else {
       console.log('no provider');
       notFound();

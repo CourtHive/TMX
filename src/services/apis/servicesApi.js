@@ -5,7 +5,6 @@ export async function getIdioms() {
   console.log({ result });
 }
 
-export async function getTournament({ providerId, tournamentId }) {
-  if (!providerId) return { error: 'missing providerId' };
-  return await baseApi.post('/api/tournament', { providerId, tournamentId });
+export async function getTournament({ tournamentId }) {
+  return await baseApi.post('/factory/fetch', { tournamentId });
 }
