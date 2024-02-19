@@ -33,9 +33,9 @@ export function actionFormatter(cell) {
     const content = `<div style='font-size: 2em'>${row.tournament.tournamentName} will be deleted!</div>`;
     const buttons = [
       {
-        label: 'Delete',
-        intent: 'is-danger',
         onClick: deleteTournament,
+        intent: 'is-danger',
+        label: 'Delete',
         close: true,
       },
       { label: 'Cancel' },

@@ -6,7 +6,17 @@ import { NONE } from 'constants/tmxConstants';
 export function closeModal() {
   cModal.close();
 }
-export function openModal({ title, content, buttons, footer, onClose } = {}) {
+
+type OpenModal = {
+  buttons: { label: string; intent?: string; onClick?: () => void; close?: boolean }[];
+  content: (elem: HTMLElement) => void;
+  onClose?: () => void;
+  footer?: string;
+  title: string;
+};
+
+export function openModal(params: OpenModal) {
+  const { title, content, buttons, footer, onClose } = params;
   const noPadding = !title && !buttons;
   const config = { padding: noPadding ? '' : '.5', maxWidth: 500 };
   return cModal.open({ title, content, footer, buttons, config, onClose });
@@ -23,14 +33,14 @@ export function confirmModal({ title, query, okAction, cancelAction, okIntent })
       onClick: cancelAction || cModal.close,
       label: 'Cancel',
       intent: NONE,
-      close: true
+      close: true,
     },
     okAction && {
       intent: okIntent || 'is-warning',
       onClick: okAction,
       label: 'Ok',
-      close: true
-    }
+      close: true,
+    },
   ].filter(Boolean);
 
   return cModal.open({ title: title || lang.tr('act'), content: query, buttons });

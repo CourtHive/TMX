@@ -1,6 +1,6 @@
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
-import { addOrUpdateTournament } from 'services/storage/addTournament';
+import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { loadTournament } from 'pages/tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
