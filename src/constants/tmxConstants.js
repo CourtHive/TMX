@@ -35,7 +35,7 @@ export const SPLASH = 'splash';
 export const HOME = 'home';
 
 // user
-export const SUPER_ADMIN = 'SUPER_ADMIN';
+export const SUPER_ADMIN = 'superadmin';
 
 // engines
 export const COMPETITION_ENGINE = 'competitionEngine';
