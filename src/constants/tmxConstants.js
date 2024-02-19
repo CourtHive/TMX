@@ -29,7 +29,6 @@ export const TIMEVALUE = 'timevalue';
 export const TMX_CONTENT = 'tmxContent';
 export const TMX_DRAWER = 'tmxDrawer';
 export const TMX_MODAL = 'tmxModal';
-export const TMX_NAV = 'tmxNav';
 export const NAVBAR = 'navbar';
 export const SPLASH = 'splash';
 export const HOME = 'home';

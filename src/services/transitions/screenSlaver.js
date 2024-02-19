@@ -1,13 +1,14 @@
-import { showNav, hideNav } from '../../components/buttons/tmxNav';
-import { context } from 'services/context';
+// import { context } from 'services/context';
 
 import { NAVBAR, NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR } from 'constants/tmxConstants';
 
 let content;
 
+/*
 function displayTournaments() {
-  context.router.navigate('/tournaments');
+  context.router.navigate(`/${TMX_TOURNAMENTS}`);
 }
+*/
 
 function selectDisplay(which) {
   setState(TMX_CONTENT, which);
@@ -21,17 +22,13 @@ function selectDisplay(which) {
   } else {
     sideNav.style.display = NONE;
   }
-
-  if (which === SPLASH) {
-    showNav(displayTournaments);
-  } else {
-    hideNav();
-  }
 }
+
 function isActive(id) {
   const docnode = document.getElementById(id);
   return docnode && docnode.style.display === 'flex';
 }
+
 function setState(id, which) {
   const display = id === which;
   const docnode = document.getElementById(id);
@@ -42,6 +39,8 @@ export const contentEquals = (what) => {
   return what ? what === content : content;
 };
 export const showSplash = () => {
+  const navbar = document.getElementById(NAVBAR);
+  navbar.style.display = NONE;
   content = SPLASH;
   selectDisplay(SPLASH);
 };
@@ -52,6 +51,12 @@ export const showContent = (what) => {
   selectDisplay(TMX_CONTENT);
 };
 export const showTMXtournaments = () => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>Tournaments</div>`;
+  }
+  const navbar = document.getElementById(NAVBAR);
+  navbar.style.display = '';
   content = TMX_TOURNAMENTS;
   selectDisplay(content);
 };

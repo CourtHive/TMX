@@ -12,8 +12,7 @@ export function navbarBlock() {
   nav.innerHTML = `
     <div class="navbar-brand">
       <div class="navbar-item" id="tmx">TMX</div>
-      <div class="navbar-item" id="tournamentName"></div>
-      <div class="navbar-item" id="authorizeActions"></div>
+      <div class="navbar-item" id="pageTitle"></div>
       <a
         data-target="navbar-basic"
         class="navbar-burger"
@@ -29,13 +28,8 @@ export function navbarBlock() {
 
     <div id="navbar-menu" class="navbar-menu">
       <div class="navbar-end">
-        <div class="navbar-item">
-          <figure class="image">
-            <img class="is-rounded" src="" alt="" />
-          </figure>
-        </div>
-        <div class="navbar-item">
-          <div class="buttons"></div>
+        <div class="navbar-item" style="font-size: 2em">
+          <i id="login" class="fa-solid fa-circle-user"></i>
         </div>
       </div>
     </div>

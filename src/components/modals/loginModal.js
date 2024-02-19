@@ -3,7 +3,7 @@ import { renderForm } from 'components/renderers/renderForm';
 import { logIn, logOut } from 'services/authentication/loginState';
 import { openModal } from './baseModal/baseModal';
 
-export function loginModal() {
+export function loginModal(callback) {
   let inputs;
 
   const content = (elem) =>
@@ -30,7 +30,7 @@ export function loginModal() {
     const password = inputs.password.value;
     const response = (res) => {
       !res && logOut();
-      res?.status === 200 && logIn(res);
+      res?.status === 200 && logIn({ data: res.data, callback });
     };
     systemLogin(email, password).then(response, (err) => console.log({ err }));
   };
