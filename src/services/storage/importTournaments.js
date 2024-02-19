@@ -1,7 +1,7 @@
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
-import { convertTMX2TODS } from 'tods-tmx-classic-converter';
 import { tournamentEngine } from 'tods-competition-factory';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
 import { isFunction } from 'functions/typeOf';
@@ -17,10 +17,7 @@ export function importTournaments(table) {
         if (tournament.tournamentId && tournament.startDate) {
           tournamentRecord = tournament;
         } else if (tournament.tuid && tournament.start) {
-          result = convertTMX2TODS({ tournament });
-          if (result.tournamentRecord) {
-            tournamentRecord = result.tournamentRecord;
-          }
+          tmxToast({ message: 'TMX Classic file not converted' });
         }
 
         result = tournamentEngine.setState(tournamentRecord);
