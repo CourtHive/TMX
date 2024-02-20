@@ -1,4 +1,4 @@
-import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { tournamentEngine, publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { mapDrawDefinition } from './mapDrawDefinition';
 
@@ -8,18 +8,19 @@ export function mapEvent({ event, scaleValues }) {
   const { drawDefinitions = [], eventName, entries, eventId } = event;
 
   const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
+  const publishState = publishingGovernor.getPublishState({ event }).publishState;
 
   const drawsCount = drawDefinitions.length;
   const entriesCount =
     entries.filter(({ entryStage = MAIN, entryStatus }) =>
-      acceptedEntryStatuses(MAIN).includes(`${entryStage}.${entryStatus}`)
+      acceptedEntryStatuses(MAIN).includes(`${entryStage}.${entryStatus}`),
     )?.length || 0;
   const matchUpsCount = matchUps?.length || 0;
   const scheduledMatchUpsCount =
     matchUps?.filter(({ winningSide, schedule }) => !winningSide && schedule?.scheduledTime)?.length || 0;
   const completedMatchUpsCount = matchUps.filter(({ winningSide }) => winningSide)?.length || 0;
   const drawDefs = drawDefinitions.map((drawDefinition) =>
-    mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] })
+    mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] }),
   );
 
   const searchText = [eventName]
@@ -28,6 +29,7 @@ export function mapEvent({ event, scaleValues }) {
     .toLowerCase();
 
   return {
+    published: publishState?.status.published,
     scheduledMatchUpsCount,
     completedMatchUpsCount,
     matchUpsCount,
@@ -38,6 +40,6 @@ export function mapEvent({ event, scaleValues }) {
     drawDefs,
     eventId,
     // endDate, //  => event.endDate to default to tournament endDate
-    event
+    event,
   };
 }
