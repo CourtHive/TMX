@@ -13,15 +13,17 @@ import { context } from 'services/context';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
+function styleLogin(valid) {
+  const el = document.getElementById('login');
+  const impersonating = context?.provider;
+  const admin = valid?.roles?.includes(SUPER_ADMIN);
+  el.style.color = (impersonating && 'red') || (admin && 'green') || 'blue';
+}
+
 export function getLoginState() {
   const token = getToken();
-  const el = document.getElementById('login');
   const valid = validateToken(token);
-  if (valid) {
-    const impersonating = context?.provider;
-    const admin = valid?.roles?.includes(SUPER_ADMIN);
-    el.style.color = (impersonating && 'red') || (admin && 'green') || 'blue';
-  }
+  if (valid) styleLogin(valid);
   return valid;
 }
 
@@ -42,6 +44,7 @@ export function logIn({ data, callback }) {
     tmxToast({ intent: 'is-success', message: 'Login successful' });
     disconnectSocket();
     tournamentEngine.reset();
+    styleLogin(decodedToken);
     if (isFunction(callback)) callback();
     context.router.navigate(`/${TMX_TOURNAMENTS}`);
   }
@@ -72,7 +75,6 @@ export function cancelImpersonation() {
 
 export function initLoginToggle() {
   const el = document.getElementById('login');
-  const callback = () => (el.style.color = 'blue');
 
   if (el) {
     el.addEventListener('click', () => {
@@ -84,7 +86,7 @@ export function initLoginToggle() {
         {
           text: 'Log in',
           hide: loggedIn,
-          onClick: () => loginModal(callback),
+          onClick: () => loginModal(),
         },
         {
           style: 'text-decoration: line-through;',
