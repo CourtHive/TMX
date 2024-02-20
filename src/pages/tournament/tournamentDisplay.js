@@ -8,10 +8,10 @@ import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
+import { requestTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { getTournament } from 'services/apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
@@ -59,13 +59,14 @@ export function routeTo(config) {
 export function loadTournament({ tournamentRecord, config }) {
   if (!tournamentRecord) {
     const state = getLoginState();
-    const providerId = state?.profile?.provider?.providerId;
+    const provider = state?.profile?.provider || context?.provider;
 
     const notFound = () => {
       tmxToast({
         action: {
           text: 'Remove?',
-          onClick: () => removeProviderTournament({ tournamentId: config.tournamentId, providerId }),
+          onClick: () =>
+            removeProviderTournament({ tournamentId: config.tournamentId, providerId: provider.providerId }),
         },
         message: 'Tournament not found',
         onClose: () => {
@@ -76,9 +77,9 @@ export function loadTournament({ tournamentRecord, config }) {
       });
     };
 
-    if (providerId) {
+    if (provider) {
       const showResult = (result) => {
-        const tournamentRecord = result?.data?.tournamentRecord;
+        const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
         if (tournamentRecord) {
           tournamentEngine.setState(tournamentRecord);
           renderTournament({ config });
@@ -86,7 +87,7 @@ export function loadTournament({ tournamentRecord, config }) {
           notFound();
         }
       };
-      getTournament({ tournamentId: config.tournamentId }).then(showResult, notFound);
+      requestTournament({ tournamentId: config.tournamentId }).then(showResult, notFound);
     } else {
       console.log('no provider');
       notFound();

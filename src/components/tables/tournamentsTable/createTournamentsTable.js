@@ -5,7 +5,9 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getTournamentColumns } from './getTournamentColumn';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { getCalendar } from 'services/apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
+import { context } from 'services/context';
 
 import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
@@ -57,19 +59,21 @@ export function createTournamentsTable() {
     renderTable(calendar);
   };
   const state = getLoginState();
-  const providerId = state?.profile?.provider?.providerId;
+  const provider = state?.profile?.provider || context?.provider;
 
-  if (providerId) {
+  const noProvider = () => tmx2db.findAllTournaments().then(render, handleError);
+
+  if (provider?.providerAbbr) {
     const showResults = (result) => {
-      if (result?.calendar) {
-        renderCalendarTable(result.calendar);
+      if (result?.data?.calendar) {
+        renderCalendarTable(result.data.calendar.tournaments);
       } else {
-        tmx2db.findAllTournaments().then(render, handleError);
+        noProvider();
       }
     };
-    tmx2db.findProvider(providerId).then(showResults, handleError);
+    getCalendar({ providerAbbr: provider.providerAbbr }).then(showResults);
   } else {
-    tmx2db.findAllTournaments().then(render, handleError);
+    noProvider();
   }
 
   return { table, replaceTableData };

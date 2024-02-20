@@ -22,6 +22,7 @@ export function logOut() {
   removeToken();
   checkDevState();
   disconnectSocket();
+  context.provider = undefined; // clear provider
   context.router.navigate(`/${TMX_TOURNAMENTS}`);
 }
 
