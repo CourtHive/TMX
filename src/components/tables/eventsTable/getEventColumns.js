@@ -1,4 +1,6 @@
 import { openClose, toggleOpenClose } from '../common/formatters/openClose';
+import { togglePublishState } from 'services/publishing/togglePublishState';
+import { visiblityFormatter } from '../common/formatters/visibility';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { eventActions } from '../../popovers/eventActions';
@@ -31,38 +33,47 @@ export function getEventColumns() {
       formatter: 'rowSelection',
       headerSort: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
-      headerSort: false,
-      formatter: 'rownum',
-      hozAlign: CENTER,
       headerMenu: headerMenu({
         completedMatchUpsCount: 'Completed MatchUps',
         scheduledMatchUpsCount: 'Scheduled MatchUps',
         entriesCount: 'Accepted entries',
         matchUpsCount: 'Total matches',
-        drawsCount: 'Number of draws'
+        drawsCount: 'Number of draws',
+        published: 'Published',
       }),
-      width: 55
+      formatter: 'rownum',
+      headerSort: false,
+      hozAlign: CENTER,
+      width: 55,
     },
     {
-      cellClick: nameClick,
+      title: '<i class="fa-solid fa-eye"></i>',
+      formatter: visiblityFormatter,
+      cellClick: togglePublishState,
+      headerSort: false,
+      field: 'published',
+      width: 55,
+    },
+    {
       field: 'event.eventName',
+      cellClick: nameClick,
       title: 'Event',
       minWidth: 200,
       visible: true,
-      widthGrow: 3
+      widthGrow: 3,
     },
     {
       field: 'event.eventType',
       title: 'Type',
-      visible: true
+      visible: true,
     },
     {
       field: 'event.gender',
       title: 'Gender',
-      visible: true
+      visible: true,
     },
     {
       title: '<div class="event_icon drawsize_header" />',
@@ -73,7 +84,7 @@ export function getEventColumns() {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 45
+      width: 45,
     },
     {
       title: '<div class="event_icon opponents_header" />',
@@ -84,7 +95,7 @@ export function getEventColumns() {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: '<div class="event_icon matches_header" />',
@@ -94,7 +105,7 @@ export function getEventColumns() {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: '<div class="event_icon time_header" />',
@@ -104,17 +115,17 @@ export function getEventColumns() {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: '<div class="event_icon rank_header" />',
-      field: 'completedMatchUpsCount',
       headerTooltip: 'Completed MatchUps',
+      field: 'completedMatchUpsCount',
       headerHozAlign: CENTER,
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       cellClick: toggleOpenClose,
@@ -123,7 +134,7 @@ export function getEventColumns() {
       headerSort: false,
       hozAlign: RIGHT,
       field: 'isOpen',
-      width: 20
+      width: 20,
     },
     {
       cellClick: eventActions,
@@ -131,7 +142,7 @@ export function getEventColumns() {
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
-      width: 20
-    }
+      width: 20,
+    },
   ];
 }
