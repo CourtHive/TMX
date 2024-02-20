@@ -1,7 +1,6 @@
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { getLoginState } from 'services/authentication/loginState';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { emitTmx } from 'services/messaging/socketIo';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import { lang } from 'services/translator';
@@ -15,9 +14,6 @@ export function actionFormatter(cell) {
   const tournamentId = cell.getValue();
 
   const deleteTournament = () => {
-    let deleteTournament = { tournamentId };
-    emitTmx({ data: { deleteTournament } });
-
     tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
     function done() {
       const row = cell.getRow();
