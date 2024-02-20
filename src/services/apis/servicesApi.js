@@ -7,3 +7,7 @@ export async function requestTournament({ tournamentId }) {
 export async function getCalendar({ providerAbbr }) {
   return await baseApi.post('/provider/calendar', { providerAbbr });
 }
+
+export async function getProviders() {
+  return await baseApi.post('/provider/allProviders', {});
+}

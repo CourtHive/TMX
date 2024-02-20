@@ -6,6 +6,7 @@ import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
+import { getProviders } from './apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -90,6 +91,7 @@ export function setDev() {
     generateMockTournament,
     modifyTournament,
     getLoginState,
+    getProviders,
     factory,
     baseApi,
     help,

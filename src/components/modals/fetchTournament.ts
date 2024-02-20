@@ -21,11 +21,11 @@ export function fetchTournament({ table }) {
 
   const notFound = () => {
     tmxToast({
-      action: 'show',
-      message: 'Tournament not found',
       onClose: () => context.router.navigate('/tournaments'),
+      message: 'Tournament not found',
       intent: 'is-warning',
       pauseOnHover: true,
+      action: 'show',
     });
   };
 
