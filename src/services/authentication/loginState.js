@@ -8,7 +8,10 @@ import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { tipster } from 'components/popovers/tipster';
+import { getProviders } from 'services/apis/servicesApi';
+import { selectItem } from 'components/modals/selectItem';
 
 export function getLoginState() {
   const token = getToken();
@@ -24,6 +27,8 @@ export function logOut() {
   disconnectSocket();
   context.provider = undefined; // clear provider
   context.router.navigate(`/${TMX_TOURNAMENTS}`);
+  const el = document.getElementById('login');
+  el.style.color = '';
 }
 
 export function logIn({ data, callback }) {
@@ -38,18 +43,63 @@ export function logIn({ data, callback }) {
   }
 }
 
+export function impersonate() {
+  getProviders().then(({ data }) => {
+    const options = data?.providers?.map(({ value }) => {
+      return {
+        onClick: () => {
+          context.provider = value;
+          context.router.navigate(`/${TMX_TOURNAMENTS}/${value.organisationAbbreviation}`);
+        },
+        participantName: value.organisationName,
+      };
+    });
+
+    if (options) {
+      selectItem({ title: 'Select Provider', options, selectionLimit: 1 });
+    }
+  });
+}
+
+export function cancelImpersonation() {
+  context.provider = undefined;
+  context.router.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
+}
+
 export function initLoginToggle() {
   const el = document.getElementById('login');
   const callback = () => (el.style.color = 'blue');
+
   if (el) {
     el.addEventListener('click', () => {
       const loggedIn = getLoginState();
-      if (!loggedIn) {
-        loginModal(callback);
-      } else {
-        logOut();
-        el.style.color = '';
-      }
+      const admin = loggedIn?.roles?.includes(SUPER_ADMIN);
+      const impersonating = context?.provider;
+
+      const items = [
+        {
+          text: 'Log in',
+          hide: loggedIn,
+          onClick: () => loginModal(callback),
+        },
+        {
+          style: 'text-decoration: line-through;',
+          onClick: cancelImpersonation,
+          text: 'Impersonate',
+          hide: !admin || !impersonating,
+        },
+        {
+          onClick: impersonate,
+          text: 'Impersonate',
+          hide: !admin || impersonating,
+        },
+        {
+          text: 'Log out',
+          hide: !loggedIn,
+          onClick: logOut,
+        },
+      ];
+      tipster({ target: el, title: 'Authorization', items });
     });
   }
 }

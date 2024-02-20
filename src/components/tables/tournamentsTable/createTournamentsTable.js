@@ -63,7 +63,7 @@ export function createTournamentsTable() {
 
   const noProvider = () => tmx2db.findAllTournaments().then(render, handleError);
 
-  if (provider?.providerAbbr) {
+  if (provider?.organisationAbbreviation) {
     const showResults = (result) => {
       if (result?.data?.calendar) {
         renderCalendarTable(result.data.calendar.tournaments);
@@ -71,7 +71,7 @@ export function createTournamentsTable() {
         noProvider();
       }
     };
-    getCalendar({ providerAbbr: provider.providerAbbr }).then(showResults);
+    getCalendar({ providerAbbr: provider.organisationAbbreviation }).then(showResults);
   } else {
     noProvider();
   }

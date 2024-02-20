@@ -30,12 +30,13 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
           onClick: () => {
             destroyTipster(tippyMenu);
             if (typeof i.onClick === 'function') i.onClick();
-          }
+          },
         })) ||
       options
         ?.filter((o) => !o.hide && !o.disabled)
         .map((o) => ({
           text: typeof o === 'object' ? o.option : o,
+          style: o.style,
           onClick: () => {
             if (o.subMenu) {
               tip.setContent('IMPLEMENT SUB MENU');
@@ -50,7 +51,7 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
                 callback(o);
               }
             }
-          }
+          },
         }));
 
     const menu = [{ text: title, items }, ...menuItems];
