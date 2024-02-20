@@ -3,21 +3,24 @@ import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
 import { loginModal } from 'components/modals/loginModal';
+import { selectItem } from 'components/modals/selectItem';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { getProviders } from 'services/apis/servicesApi';
+import { tipster } from 'components/popovers/tipster';
 import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
-import { tipster } from 'components/popovers/tipster';
-import { getProviders } from 'services/apis/servicesApi';
-import { selectItem } from 'components/modals/selectItem';
 
 export function getLoginState() {
   const token = getToken();
   const el = document.getElementById('login');
   const valid = validateToken(token);
-  if (valid) el.style.color = 'blue';
+  if (valid) {
+    const impersonating = context?.provider;
+    el.style.color = impersonating ? 'red' : 'blue';
+  }
   return valid;
 }
 
