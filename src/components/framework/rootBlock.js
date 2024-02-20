@@ -19,7 +19,6 @@ import {
 
 export function rootBlock() {
   const root = document.getElementById('root');
-
   const splash = document.createElement('div');
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
