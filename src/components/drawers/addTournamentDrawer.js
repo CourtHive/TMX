@@ -1,7 +1,9 @@
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
+import { getProvider, sendTournament } from 'services/apis/servicesApi';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
+import { getLoginState } from 'services/authentication/loginState';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
@@ -47,12 +49,24 @@ export function addTournament({ table }) {
     const tournamentName = inputs.tournamentName.value;
     const startDate = inputs.startDate.value;
     const endDate = inputs.endDate.value;
-
     const result = tournamentEngine.newTournamentRecord({ tournamentName, startDate, endDate });
     if (result.success) {
+      const state = getLoginState();
       const { tournamentRecord } = tournamentEngine.getTournament();
-      const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
-      tournamentAdd({ tournamentRecord, callback: refresh });
+      if (state?.providerId) {
+        const addProvider = (result) => {
+          const provider = result.data?.provider;
+          tournamentRecord.parentOrganisation = provider;
+          if (provider) {
+            const report = (result) => console.log('sendTournament', result);
+            sendTournament({ tournamentRecord }).then(report, report);
+          }
+          completeTournamentAdd({ tournamentRecord, table });
+        };
+        getProvider({ providerId: state.providerId }).then(addProvider);
+      } else {
+        completeTournamentAdd({ tournamentRecord, table });
+      }
     }
   };
   const buttons = [
@@ -63,4 +77,9 @@ export function addTournament({ table }) {
 
   const footer = (elem, close) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
+}
+
+function completeTournamentAdd({ tournamentRecord, table }) {
+  const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
+  tournamentAdd({ tournamentRecord, callback: refresh });
 }

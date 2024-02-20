@@ -23,8 +23,7 @@ function onUpdate() {
   updateReady();
 }
 
-const root = document.getElementById('root');
-root.appendChild(rootBlock());
+rootBlock();
 
 // NOTE: serviceWorker.unregister() is used for development; serviceWorker.register() is used for production
 // pehaps an environment variable could be used to determine which to use

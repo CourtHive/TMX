@@ -1,4 +1,5 @@
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
+import { initLoginToggle } from 'services/authentication/loginState';
 import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
@@ -10,6 +11,8 @@ import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
 import { env } from 'settings/env';
+
+import { SPLASH, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
@@ -45,6 +48,7 @@ export function setupTMX() {
   setWindow();
   setContext();
   tournamentContent();
+  initLoginToggle();
 
   // add TMX Drawer
   context.drawer = drawer();
@@ -61,6 +65,7 @@ function tmxReady() {
   setDev();
   // }
 
+  document.getElementById(SPLASH).onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
   routeTMX();
   tmxNavigation();
 }

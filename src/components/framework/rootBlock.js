@@ -14,11 +14,17 @@ import {
   TIMEVALUE,
   NONE,
   TOURNAMENT_CONTAINER,
-  TOURNAMENTS_CALENDAR
+  TOURNAMENTS_CALENDAR,
 } from 'constants/tmxConstants';
 
 export function rootBlock() {
-  const root = document.createElement('div');
+  const root = document.getElementById('root');
+  const splash = document.createElement('div');
+  splash.className = 'flexrow flexcenter';
+  splash.id = SPLASH;
+  splash.style = 'margin-top: 2em; padding-top: 5em; display: none;';
+  splash.appendChild(TMXlogo());
+  root.appendChild(splash);
 
   const tp = document.createElement('div');
   tp.style.display = NONE;
@@ -57,13 +63,7 @@ export function rootBlock() {
 
   const main = document.createElement('div');
   main.className = 'main noselect';
-
-  const splash = document.createElement('div');
-  splash.className = 'flexrow flexcenter';
-  splash.id = SPLASH;
-  splash.style = 'margin-top: 2em; padding-top: 5em; display: none;';
-  splash.appendChild(TMXlogo());
-  main.appendChild(splash);
+  main.appendChild(navbarBlock());
 
   const content = document.createElement('div');
   content.id = TMX_CONTENT;
@@ -78,7 +78,6 @@ export function rootBlock() {
   const container = document.createElement('div');
   container.id = TOURNAMENT_CONTAINER;
   container.className = 'flexcol flexcenter tournament_container';
-  container.appendChild(navbarBlock());
   container.appendChild(tournamentInfoBlock());
   container.appendChild(eventBlock());
 
@@ -87,6 +86,7 @@ export function rootBlock() {
 
   const tournaments = document.createElement('div');
   tournaments.className = 'flexcol flexgrow';
+  tournaments.style.paddingTop = '3em';
   tournaments.style.display = NONE;
   tournaments.id = TMX_TOURNAMENTS;
 
@@ -104,7 +104,10 @@ export function rootBlock() {
 
   const calendar = document.createElement('div');
   calendar.className = 'flexcol flexgrow';
-  calendar.style = 'display: none; height: 90%; width: 100%;';
+  calendar.style.paddingTop = '3em';
+  calendar.style.display = NONE;
+  calendar.style.height = '90%';
+  calendar.style.width = '100%';
   calendar.id = TOURNAMENTS_CALENDAR;
 
   main.appendChild(calendar);

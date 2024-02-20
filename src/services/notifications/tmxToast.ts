@@ -1,23 +1,25 @@
 import { toast } from './toaster';
 
-export function tmxToast({
-  position = 'top-center',
-  intent = 'is-success',
-  pauseOnHover = false,
-  dismissible = true,
-  clickClose = true,
-  duration = 2500,
-  single = true,
-  onClose,
+export function tmxToast(params) {
+  const {
+    position = 'top-center',
+    intent = 'is-success',
+    pauseOnHover = false,
+    dismissible = true,
+    clickClose = true,
+    duration = 2500,
+    single = true,
+    onClose,
 
-  offsetBottom = 0,
-  offsetRight = 0,
-  offsetLeft = 0,
-  offsetTop = 0,
-  opacity = 1,
-  message,
-  action
-}) {
+    offsetBottom = 0,
+    offsetRight = 0,
+    offsetLeft = 0,
+    offsetTop = 0,
+    opacity = 1,
+    message,
+    action
+  } = params ?? {};
+
   toast({
     // animate: { in: 'fadeInRight', out: 'fadeOutLeft' }, // see animate.css
     // animate: { in: 'bounceInDown', out: 'bounceOutUp' }, // see animate.css

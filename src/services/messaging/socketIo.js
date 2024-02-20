@@ -68,11 +68,9 @@ export function disconnectSocket() {
 }
 
 export function emitTmx({ data, ackCallback }) {
-  const state = getLoginState(); // TODO: return token from getLoginState();
-  const { profile, userId } = state || {};
+  const state = getLoginState();
+  const { email: userId } = state || {};
   const messageType = data.type ?? 'tmx';
-
-  const { providerId } = profile?.provider || {};
 
   const action = () => {
     if (ackCallback && typeof ackCallback === 'function') {
@@ -86,7 +84,6 @@ export function emitTmx({ data, ackCallback }) {
     Object.assign(data.payload || data, {
       factoryVersion: version(),
       tmxVersion,
-      providerId,
       timestamp,
       userId,
     });

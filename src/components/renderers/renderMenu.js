@@ -30,6 +30,7 @@ export function renderMenu(elem, menu, close) {
   const createMenuItem = (subItem) => {
     const menuItem = document.createElement('li');
     menuItem.className = 'font-medium';
+    if (subItem.style) menuItem.style = subItem.style;
     if (subItem.onClick) {
       const fontSize = subItem.fontSize || '1em';
       if (subItem.divider) {
