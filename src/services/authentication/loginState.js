@@ -19,7 +19,8 @@ export function getLoginState() {
   const valid = validateToken(token);
   if (valid) {
     const impersonating = context?.provider;
-    el.style.color = impersonating ? 'red' : 'blue';
+    const admin = valid?.roles?.includes(SUPER_ADMIN);
+    el.style.color = (impersonating && 'red') || (admin && 'green') || 'blue';
   }
   return valid;
 }

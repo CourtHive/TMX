@@ -193,7 +193,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
                   console.log('condition 3');
                   parentNode.removeChild(parentNode.firstChild);
                 } else if (!incomingId && existingId) {
-                  console.log('condition 4', { existingIdValue });
+                  console.log('condition 4');
                 } else {
                   console.log({ incomingId, existingId, incomingIdValue, existingIdValue });
                 }

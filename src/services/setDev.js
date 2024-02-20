@@ -1,12 +1,12 @@
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
+import { getProviders, requestTournament } from './apis/servicesApi';
 import { loadTournament } from 'pages/tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
-import { getProviders } from './apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -83,6 +83,17 @@ export function setDev() {
     }
   };
 
+  const fetchTournament = (tournamentId) => {
+    requestTournament({ tournamentId }).then((result) => {
+      if (result?.error) {
+        console.log({ error: result.error });
+      } else {
+        const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
+        tournamentRecord && addAndDisplay(tournamentRecord);
+      }
+    });
+  };
+
   addDev({
     getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
     getContext: factory.globalState.getDevContext,
@@ -90,6 +101,7 @@ export function setDev() {
     context: factory.globalState.setDevContext,
     generateMockTournament,
     modifyTournament,
+    fetchTournament,
     getLoginState,
     getProviders,
     factory,

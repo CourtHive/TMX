@@ -16,41 +16,45 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
   if (!factoryEngine) return completion();
 
   const getProviderId = (tournamentRecord) => tournamentRecord?.parentOrganisation?.organisationId;
-  const tournamentRecords = factoryEngine.getState()?.tournamentRecords;
+  const tournamentRecords = factoryEngine.getState()?.tournamentRecords ?? {};
   const tournamentIds =
     engine === TOURNAMENT_ENGINE
       ? [factoryEngine.getTournamentId()]
-      : tournamentRecords?.map((record) => record.tournamentId);
+      : Object.values(tournamentRecords)?.map((record) => record.tournamentId);
   const providerIds = factory.tools
     .unique(
       engine === TOURNAMENT_ENGINE
         ? [getProviderId(factoryEngine.getTournament().tournamentRecord)]
-        : tournamentRecords?.map(getProviderId),
+        : Object.values(tournamentRecords)?.map(getProviderId),
     )
     .filter(Boolean);
-  if (!providerIds.length) return completion({ success: true });
+
   if (providerIds.length > 1) return tmxToast({ message: 'Multiple providers', intent: 'is-danger' });
 
   const state = getLoginState();
-  if (!state) return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
-  const isProvider = !!state?.providerIds?.includes(providerIds[0]);
-  const isSuperAdmin = state?.roles?.includes(SUPER_ADMIN);
-  if (!isProvider && !isSuperAdmin) return tmxToast({ message: 'Not authorised', intent: 'is-danger' });
-  if (!isProvider && isSuperAdmin) {
-    const impersonating = context.provider?.organisationId === providerIds[0];
-    if (!impersonating) {
-      const impersonateProvider = () => {
-        context.provider = { organisationId: providerIds[0] };
-        return makeMutation({ methods, factoryEngine, tournamentIds, completion });
-      };
-      return tmxToast({
-        action: {
-          onClick: impersonateProvider,
-          text: 'Impersonate?',
-        },
-        message: 'Super Admin',
-        intent: 'is-danger',
-      });
+
+  if (providerIds.length) {
+    // if the tournamentRecord(s) are associated with a providerId, check permissions
+    if (!state) return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
+    const isProvider = !!state?.providerIds?.includes(providerIds[0]);
+    const isSuperAdmin = state?.roles?.includes(SUPER_ADMIN);
+    if (!isProvider && !isSuperAdmin) return tmxToast({ message: 'Not authorised', intent: 'is-danger' });
+    if (!isProvider && isSuperAdmin) {
+      const impersonating = context.provider?.organisationId === providerIds[0];
+      if (!impersonating) {
+        const impersonateProvider = () => {
+          context.provider = { organisationId: providerIds[0] };
+          return makeMutation({ methods, factoryEngine, tournamentIds, completion });
+        };
+        return tmxToast({
+          action: {
+            onClick: impersonateProvider,
+            text: 'Impersonate?',
+          },
+          message: 'Super Admin',
+          intent: 'is-danger',
+        });
+      }
     }
   }
 
@@ -65,8 +69,8 @@ function makeMutation({ methods, completion, factoryEngine, tournamentIds }) {
       }
     }
   }
+
   // NOTE: this enables logging of all methods called during executionQueue when there is an internal factory error
-  // eslint-disable-next-line
   if (window?.['dev']?.getContext().internal) console.log({ methods });
 
   const result = factoryEngine.executionQueue(methods) || {};
