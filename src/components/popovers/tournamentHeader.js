@@ -1,11 +1,10 @@
 import { getLoginState } from 'services/authentication/loginState';
-import { authDisplay } from '../../pages/tournament/authDisplay';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { mainMenu } from 'components/menus/mainMenu';
 import { context } from 'services/context';
 
 import { RIGHT } from 'constants/tmxConstants';
-import { removeAllChildNodes } from 'services/dom/transformers';
 
 export function tournamentHeader() {
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
@@ -25,13 +24,11 @@ export function tournamentHeader() {
     };
   }
 
-  const tmxButton = document.getElementById('tmx');
+  const tmxButton = document.getElementById('provider');
   if (tmxButton) tmxButton.onclick = () => context.router.navigate('/tournaments');
   const tournamentElement = document.getElementById('pageTitle');
   if (tournamentElement) {
     removeAllChildNodes(tournamentElement);
     tournamentElement.innerHTML = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
   }
-
-  authDisplay();
 }
