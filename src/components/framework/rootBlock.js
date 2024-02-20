@@ -105,7 +105,10 @@ export function rootBlock() {
 
   const calendar = document.createElement('div');
   calendar.className = 'flexcol flexgrow';
-  calendar.style = 'display: none; height: 90%; width: 100%;';
+  calendar.style.paddingTop = '3em';
+  calendar.style.display = NONE;
+  calendar.style.height = '90%';
+  calendar.style.width = '100%';
   calendar.id = TOURNAMENTS_CALENDAR;
 
   main.appendChild(calendar);

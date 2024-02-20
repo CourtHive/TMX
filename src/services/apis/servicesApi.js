@@ -1,10 +1,9 @@
 import { baseApi } from './baseApi';
 
-export async function getIdioms() {
-  const result = await baseApi.post('/api/idioms');
-  console.log({ result });
+export async function requestTournament({ tournamentId }) {
+  return await baseApi.post('/factory/fetch', { tournamentId });
 }
 
-export async function getTournament({ tournamentId }) {
-  return await baseApi.post('/factory/fetch', { tournamentId });
+export async function getCalendar({ providerAbbr }) {
+  return await baseApi.post('/provider/calendar', { providerAbbr });
 }
