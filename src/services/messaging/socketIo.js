@@ -46,9 +46,7 @@ export function connectSocket(callback) {
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('connect', () => connectionEvent(callback));
     oi.socket.on('disconnect', () => console.log('disconnect'));
-    oi.socket.on('timestamp', (data) => {
-      oi.timestampOffset = new Date().getTime() - data.timestamp;
-    });
+    oi.socket.on('timestamp', (data) => (oi.timestampOffset = new Date().getTime() - data.timestamp));
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
       disconnectSocket();
@@ -111,10 +109,11 @@ function socketEmit(msg, data) {
 }
 
 function connectionEvent(callback) {
-  console.log('connected');
+  console.log('** connected');
   emitTmx({ data: { type: 'timestamp' } });
   while (socketQueue.length) {
-    let message = socketQueue.pop();
+    const message = socketQueue.pop();
+    // todo: add message to submitted messages and if no ack, resubmit
     socketEmit(message.header, message.data);
   }
 

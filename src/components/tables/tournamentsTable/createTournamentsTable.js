@@ -58,8 +58,8 @@ export function createTournamentsTable() {
     calendar.sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate));
     renderTable(calendar);
   };
-  const state = getLoginState();
-  const provider = state?.profile?.provider || context?.provider;
+  const loginState = getLoginState();
+  const provider = loginState?.provider || context?.provider;
 
   const noProvider = () => tmx2db.findAllTournaments().then(render, handleError);
 

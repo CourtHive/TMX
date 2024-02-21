@@ -1,5 +1,4 @@
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
-// import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
@@ -59,7 +58,7 @@ export function routeTo(config) {
 export function loadTournament({ tournamentRecord, config }) {
   if (!tournamentRecord) {
     const state = getLoginState();
-    const provider = state?.profile?.provider || context?.provider;
+    const provider = state?.provider || context?.provider;
 
     const notFound = () => {
       tmxToast({
