@@ -8,6 +8,9 @@ dependencies:
   '@babel/plugin-transform-private-property-in-object':
     specifier: 7.23.4
     version: 7.23.4(@babel/core@7.23.9)
+  '@creativebulma/bulma-badge':
+    specifier: ^1.0.1
+    version: 1.0.1
   '@event-calendar/core':
     specifier: 2.6.1
     version: 2.6.1
@@ -850,6 +853,11 @@ packages:
     dependencies:
       chalk: 4.1.2
     dev: true
+
+  /@creativebulma/bulma-badge@1.0.1:
+    resolution:
+      { integrity: sha512-cTMgxPdTOsAfPqd9wbrvKNUTvnIt+pNgwwO9Xzu6MRUIFlvGRtIVApaV51f3wt0/uI78BpKv5FPAtEJbmSTZOg== }
+    dev: false
 
   /@esbuild/aix-ppc64@0.19.12:
     resolution:
