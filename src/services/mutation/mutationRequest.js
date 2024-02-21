@@ -1,14 +1,15 @@
 import { getLoginState } from 'services/authentication/loginState';
-import { saveTournamentRecord } from 'services/storage/save';
+import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import dayjs from 'dayjs';
 
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 
-export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback }) {
+export async function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback }) {
   const completion = (result) => isFunction(callback) && callback(result);
 
   if (!Array.isArray(methods)) return completion();
@@ -33,9 +34,9 @@ export function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback 
 
   const now = new Date().getTime();
   const inDateRange = Object.values(tournamentRecords).every((record) => {
-    const startTime = new Date(record.startDate).getTime();
-    const endTime = new Date(record.endDate).getTime();
-    return startTime && endTime && startTime >= now && endTime <= now;
+    const startTime = dayjs(record.startDate).startOf('day').valueOf();
+    const endTime = dayjs(record.endDate).endOf('day').valueOf();
+    return startTime && endTime && startTime <= now && endTime >= now;
   });
 
   const mutate = (saveLocal) => makeMutation({ methods, factoryEngine, tournamentIds, completion, saveLocal });

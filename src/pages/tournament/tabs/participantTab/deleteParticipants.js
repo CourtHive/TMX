@@ -3,13 +3,13 @@ import { isFunction } from 'functions/typeOf';
 
 import { DELETE_PARTICIPANTS } from 'constants/mutationConstants';
 
-export function deleteParticipants({ participantIds, participantId, callback }) {
+export async function deleteParticipants({ participantIds, participantId, callback }) {
   if (participantId || participantIds) {
     const methods = [
       {
         params: { participantIds: participantIds || [participantId] },
-        method: DELETE_PARTICIPANTS
-      }
+        method: DELETE_PARTICIPANTS,
+      },
     ];
 
     const postMutation = (result) => {
