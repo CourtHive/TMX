@@ -167,7 +167,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
 
               try {
                 if (!incomingId && !existingId) {
-                  console.log('condition 0');
+                  if (env.renderLog) console.log('condition 0');
                   const nextSibling = getTMXp(existing)?.nextSibling;
                   if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
                     nextSibling.parentElement.removeChild(nextSibling);
@@ -180,20 +180,20 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
                   existingIdValue &&
                   incomingIdValue !== existingIdValue
                 ) {
-                  console.log('condition 1');
+                  if (env.renderLog) console.log('condition 1');
                   parentNode.removeChild(parentNode.firstChild);
                 } else if (childNode.classList?.contains('tmx-p') && !existingId) {
-                  console.log('condition 2');
+                  if (env.renderLog) console.log('condition 2');
                   parentNode.removeChild(parentNode.firstChild);
                 } else if (
                   parentNode.firstChild?.classList?.contains('tmx-p') &&
                   parentNode.firstChild.getAttribute('id') !== 'undefined' &&
                   childNode.getAttribute('id') === 'undefined'
                 ) {
-                  console.log('condition 3');
+                  if (env.renderLog) console.log('condition 3');
                   parentNode.removeChild(parentNode.firstChild);
                 } else if (!incomingId && existingId) {
-                  console.log('condition 4');
+                  if (env.renderLog) console.log('condition 4');
                 } else {
                   console.log({ incomingId, existingId, incomingIdValue, existingIdValue });
                 }

@@ -3,11 +3,11 @@ import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
 import { tools, version } from 'tods-competition-factory';
 import { version as tmxVersion } from 'config/version';
-import { isFunction } from 'functions/typeOf';
+import { isFunction, isObject } from 'functions/typeOf';
 import { io } from 'socket.io-client';
+import { env } from 'settings/env';
 
 import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
-import { env } from 'settings/env';
 
 function getAuthorization() {
   const token = getToken();
@@ -71,8 +71,8 @@ export function emitTmx({ data, ackCallback }) {
   const messageType = data.type ?? 'tmx';
 
   const action = () => {
-    if (ackCallback && typeof ackCallback === 'function') {
-      let ackId = tools.UUID();
+    if (ackCallback && isFunction(ackCallback)) {
+      const ackId = tools.UUID();
       if (data.payload) Object.assign(data.payload, { ackId });
 
       requestAcknowledgement({ ackId, callback: ackCallback });
@@ -126,7 +126,6 @@ function requestAcknowledgement({ ackId, uuid, callback }) {
 }
 
 function receiveAcknowledgement(ack) {
-  console.log('receiveAcknowledgement:', { ack });
   if (ack.ackId && ackRequests[ack.ackId]) {
     ackRequests[ack.ackId](ack);
     delete ackRequests[ack.ackId];
@@ -140,7 +139,7 @@ function receiveAcknowledgement(ack) {
 export function logError(err) {
   if (!err) return;
   const stack = err.stack?.toString();
-  const errorMessage = typeof err === 'object' ? JSON.stringify(err) : err;
+  const errorMessage = isObject(err) ? JSON.stringify(err) : err;
   const payload = { stack, error: errorMessage };
   emitTmx({ data: { action: CLIENT_ERROR, payload } });
 }

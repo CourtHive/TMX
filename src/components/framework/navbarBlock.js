@@ -12,7 +12,8 @@ export function navbarBlock() {
   nav.innerHTML = `
     <div class="navbar-brand">
       <div class="navbar-item" id="provider">TMX</div>
-      <div class="navbar-item" id="pageTitle"></div>
+      <div class="navbar-item" id="pageTitle">
+      </div>
       <a
         data-target="navbar-basic"
         class="navbar-burger"

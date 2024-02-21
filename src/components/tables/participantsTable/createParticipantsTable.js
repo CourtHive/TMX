@@ -82,11 +82,15 @@ export function createParticipantsTable({ view } = {}) {
       data,
     });
 
-    table.on('dataChanged', (rows) => {
-      headerElement && (headerElement.innerHTML = `Participants (${rows.length})`);
-    });
+    /**
+    const span = `<span class='badge is-danger'>1</span>`;
+    // const span = `<span class='icon'>🎾</span>`;
+    const getHeader = (rows) => `<button class='button is-inverted is-info'>${span}Participants (${rows.length})</button>`;
+    */
+    const getHeader = (rows) => `Participants (${rows.length})`;
+    table.on('dataChanged', (rows) => headerElement && (headerElement.innerHTML = getHeader(rows)));
     table.on('dataFiltered', (filters, rows) => {
-      headerElement && (headerElement.innerHTML = `Participants (${rows.length})`);
+      headerElement && (headerElement.innerHTML = getHeader(rows));
       const wtns = [];
       const utrs = [];
       for (const row of rows) {
