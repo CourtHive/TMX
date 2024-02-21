@@ -1,7 +1,6 @@
 import { getLoginState } from 'services/authentication/loginState';
 import { tools } from 'tods-competition-factory';
 import * as safeJSON from 'utilities/safeJSON';
-import { receiveIdiomList } from '../services/idiomFx';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { isDev } from 'functions/isDev';
@@ -147,7 +146,7 @@ export const coms = (() => {
       });
       oi.socket.on('connect', () => {
         const state = getLoginState();
-        const providerId = state?.profile?.provider?.providerId;
+        const providerId = state?.provider?.organisationId;
 
         comsConnect();
         if (providerId) {
@@ -179,7 +178,6 @@ export const coms = (() => {
 
       oi.socket.on(AVAILABLE_IDIOMS, (list) => {
         msgMon({ message: AVAILABLE_IDIOMS, list });
-        receiveIdiomList(list);
       });
 
       oi.socket.on('tournament record', (data) => {
@@ -267,12 +265,10 @@ export const coms = (() => {
   fx.emitTmx = emitTmx;
   function emitTmx({ data, ackCallback }) {
     const state = getLoginState(); // TODO: return token from getLoginState();
-    const { profile, userId } = state || {};
+    const userId = state?.email;
     const messageType = data?.action ? `tmx-one` : 'tmx';
+    const providerId = state?.provider?.organisationId;
 
-    const { providerId } = profile?.provider || {};
-
-    console.log({ connected }); // TODO: pass token
     if (connected) {
       if (ackCallback && typeof ackCallback === 'function') {
         let ackId = tools.UUID();

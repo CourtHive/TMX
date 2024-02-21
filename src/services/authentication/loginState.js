@@ -32,21 +32,21 @@ export function logOut() {
   checkDevState();
   disconnectSocket();
   context.provider = undefined; // clear provider
-  context.router.navigate(`/${TMX_TOURNAMENTS}`);
+  context.router.navigate(`/${TMX_TOURNAMENTS}/logout`);
   const el = document.getElementById('login');
   el.style.color = '';
 }
 
 export function logIn({ data, callback }) {
-  const decodedToken = validateToken(data.token);
-  if (decodedToken) {
+  const valid = validateToken(data.token);
+  if (valid) {
     setToken(data.token);
     tmxToast({ intent: 'is-success', message: 'Login successful' });
     disconnectSocket();
     tournamentEngine.reset();
-    styleLogin(decodedToken);
+    styleLogin(valid);
     if (isFunction(callback)) callback();
-    context.router.navigate(`/${TMX_TOURNAMENTS}`);
+    context.router.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
   }
 }
 
@@ -62,9 +62,7 @@ export function impersonate() {
       };
     });
 
-    if (options) {
-      selectItem({ title: 'Select Provider', options, selectionLimit: 1 });
-    }
+    if (options) selectItem({ title: 'Select Provider', options, selectionLimit: 1 });
   });
 }
 

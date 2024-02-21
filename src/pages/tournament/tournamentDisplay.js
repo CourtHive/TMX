@@ -1,5 +1,4 @@
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
-// import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
@@ -28,6 +27,7 @@ import {
 } from 'constants/tmxConstants';
 
 export function displayTournament({ config } = {}) {
+  console.log('displayTournament');
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     routeTo(config);
@@ -59,17 +59,10 @@ export function routeTo(config) {
 export function loadTournament({ tournamentRecord, config }) {
   if (!tournamentRecord) {
     const state = getLoginState();
-    const provider = state?.profile?.provider || context?.provider;
+    const provider = state?.provider || context?.provider;
 
     const notFound = () => {
       tmxToast({
-        /*
-        action: {
-          text: 'Remove?',
-          onClick: () =>
-            removeProviderTournament({ tournamentId: config.tournamentId, providerId: provider.providerId }),
-        },
-        */
         message: 'Tournament not found',
         onClose: () => {
           context.router.navigate('/tournaments');
