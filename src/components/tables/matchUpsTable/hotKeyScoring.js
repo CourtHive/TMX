@@ -80,14 +80,16 @@ export function hotKeyScoring() {
         });
 
         if (updated) {
-          updatedMatchUp = Object.assign({}, data.matchUp, {
+          updatedMatchUp = {
+            matchUpId: data.matchUp.matchUpId,
+            drawId: data.matchUp.drawId,
             score: { scoreStringSide1: updatedScoreString },
             matchUpStatus: updatedMatchUpStatus,
             winningSide: updatedWinningSide,
             sets: updatedSets,
             matchUpFormat,
             updated,
-          });
+          };
           targetElement.innerText = updatedScoreString || 'Enter score';
         }
       }
