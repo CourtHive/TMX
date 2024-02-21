@@ -1,7 +1,6 @@
 import { getLoginState } from 'services/authentication/loginState';
 import { tools } from 'tods-competition-factory';
 import * as safeJSON from 'utilities/safeJSON';
-import { receiveIdiomList } from '../services/idiomFx';
 import { context } from 'services/context';
 import { lang } from 'services/translator';
 import { isDev } from 'functions/isDev';
@@ -179,7 +178,6 @@ export const coms = (() => {
 
       oi.socket.on(AVAILABLE_IDIOMS, (list) => {
         msgMon({ message: AVAILABLE_IDIOMS, list });
-        receiveIdiomList(list);
       });
 
       oi.socket.on('tournament record', (data) => {

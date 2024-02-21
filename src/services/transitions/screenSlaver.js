@@ -4,12 +4,6 @@ import { NAVBAR, NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TOURNAMENTS_CALENDA
 
 let content;
 
-/*
-function displayTournaments() {
-  context.router.navigate(`/${TMX_TOURNAMENTS}`);
-}
-*/
-
 function selectDisplay(which) {
   setState(TMX_CONTENT, which);
   setState(SPLASH, which);
