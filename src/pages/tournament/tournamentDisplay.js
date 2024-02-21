@@ -27,7 +27,6 @@ import {
 } from 'constants/tmxConstants';
 
 export function displayTournament({ config } = {}) {
-  console.log('displayTournament');
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     routeTo(config);
@@ -57,36 +56,40 @@ export function routeTo(config) {
 }
 
 export function loadTournament({ tournamentRecord, config }) {
-  if (!tournamentRecord) {
-    const state = getLoginState();
-    const provider = state?.provider || context?.provider;
+  const state = getLoginState();
+  const provider = state?.provider || context?.provider;
 
-    const notFound = () => {
-      tmxToast({
-        message: 'Tournament not found',
-        onClose: () => {
-          context.router.navigate('/tournaments');
-        },
-        intent: 'is-warning',
-        pauseOnHover: true,
-      });
-    };
+  const notFound = () => {
+    tmxToast({
+      message: 'Tournament not found',
+      onClose: () => {
+        context.router.navigate('/tournaments');
+      },
+      intent: 'is-warning',
+      pauseOnHover: true,
+    });
+  };
 
-    if (provider) {
-      const showResult = (result) => {
-        const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
-        if (tournamentRecord) {
-          tournamentEngine.setState(tournamentRecord);
-          renderTournament({ config });
-        } else {
-          notFound();
-        }
-      };
-      requestTournament({ tournamentId: config.tournamentId }).then(showResult, notFound);
+  const showResult = (result) => {
+    const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
+    if (tournamentRecord) {
+      tournamentEngine.setState(tournamentRecord);
+      renderTournament({ config });
     } else {
-      console.log('no provider');
       notFound();
     }
+  };
+
+  if (provider) {
+    const tryLocal = () => {
+      if (tournamentRecord) {
+        tournamentEngine.setState(tournamentRecord);
+        renderTournament({ config });
+      } else {
+        notFound();
+      }
+    };
+    requestTournament({ tournamentId: config.tournamentId }).then(showResult, tryLocal);
   } else {
     tournamentEngine.setState(tournamentRecord);
     renderTournament({ config });
