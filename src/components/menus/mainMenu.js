@@ -98,7 +98,7 @@ export const mainMenu = (elem, close, menuContext) => {
     },
     /*
     {
-      hide: !loggedIn?.profile?.provider,
+      hide: !loggedIn?.provider,
       text: 'Organization',
       items: [
         { text: lang.tr('phrases.weblink'), onClick: orgLink },

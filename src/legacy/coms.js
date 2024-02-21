@@ -147,7 +147,7 @@ export const coms = (() => {
       });
       oi.socket.on('connect', () => {
         const state = getLoginState();
-        const providerId = state?.profile?.provider?.providerId;
+        const providerId = state?.provider?.organisationId;
 
         comsConnect();
         if (providerId) {
@@ -267,12 +267,10 @@ export const coms = (() => {
   fx.emitTmx = emitTmx;
   function emitTmx({ data, ackCallback }) {
     const state = getLoginState(); // TODO: return token from getLoginState();
-    const { profile, userId } = state || {};
+    const userId = state?.email;
     const messageType = data?.action ? `tmx-one` : 'tmx';
+    const providerId = state?.provider?.organisationId;
 
-    const { providerId } = profile?.provider || {};
-
-    console.log({ connected }); // TODO: pass token
     if (connected) {
       if (ackCallback && typeof ackCallback === 'function') {
         let ackId = tools.UUID();

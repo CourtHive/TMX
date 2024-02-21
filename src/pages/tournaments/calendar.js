@@ -19,7 +19,7 @@ let calendar;
 
 export function renderCalendar() {
   const state = getLoginState();
-  const providerId = state?.profile?.provider?.providerId;
+  const providerId = state?.provider?.organisationId;
 
   if (providerId) {
     const showResults = (result) => {
@@ -53,7 +53,7 @@ export function render(data) {
           start: 'prev,next',
           center: 'title',
           // end: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek resourceTimeGridWeek'
-          end: ''
+          end: '',
         },
         buttonText: (texts) => {
           texts.resourceTimeGridWeek = 'resources';
@@ -61,7 +61,7 @@ export function render(data) {
         },
         resources: [
           { id: 1, title: 'Resource A' },
-          { id: 2, title: 'Resource B' }
+          { id: 2, title: 'Resource B' },
         ],
         scrollTime: '09:00:00',
         events: createEvents(data),
@@ -73,9 +73,9 @@ export function render(data) {
         },
         dayMaxEvents: true,
         nowIndicator: true,
-        selectable: true
-      }
-    }
+        selectable: true,
+      },
+    },
   });
 
   return { ...SUCCESS, calendar };
@@ -100,7 +100,7 @@ function createEvents(data) {
     extendedProps: { tournamentId: record.tournamentId },
     resourceIds: [record.tournamentId],
     id: record.tournamentId,
-    color: '#FE6B64'
+    color: '#FE6B64',
   }));
 }
 
@@ -108,6 +108,6 @@ function eventHover({ event, jsEvent }) {
   tippy(jsEvent.target, {
     content: event.title,
     showOnCreate: true,
-    arrow: true
+    arrow: true,
   });
 }
