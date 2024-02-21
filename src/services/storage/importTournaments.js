@@ -1,8 +1,8 @@
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
+import { saveTournamentRecord } from './saveTournamentRecord';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
 import { isFunction } from 'functions/typeOf';
 
@@ -42,68 +42,13 @@ export function addTournament({ tournamentRecord, tournamentIds, table, callback
   } else {
     table?.addData([rowData], true);
   }
-  // check whether tournament exists for provider in indexedDB
-  updateLocalData({ existsInCalendar, tournamentRecord });
+  addOrUpdateTournament({ tournamentRecord });
   isFunction(callback) && callback();
-}
-
-function updateLocalData({ existsInCalendar, tournamentRecord }) {
-  const providerId = tournamentRecord.parentOrganisation?.organisationId;
-  if (providerId) {
-    const checkProvider = (provider) => {
-      if (!provider) {
-        createProvider({ providerId, tournamentRecord });
-      } else {
-        checkProviderCalendar({ provider, existsInCalendar, tournamentRecord });
-      }
-    };
-    tmx2db.findProvider(providerId).then(checkProvider, handleError);
-  } else {
-    createProvider({ providerId, tournamentRecord });
-  }
-}
-
-function handleError(error) {
-  console.log('database error', { error });
 }
 
 function addOrUpdateTournament({ tournamentRecord }) {
   const tournamentAdded = () => {
     // console.log('updated or added', { tournamentRecord });
   };
-  tmx2db.addTournament(tournamentRecord).then(tournamentAdded, handleError);
-}
-
-function addOrUpdateProvider({ provider, tournamentRecord }) {
-  const success = () => {
-    tournamentRecord && addOrUpdateTournament({ tournamentRecord });
-  };
-  tmx2db.addProvider(provider).then(success, handleError);
-}
-
-export function createProvider({ providerId = 'tmxDefault', tournamentRecord }) {
-  const provider = tournamentRecord.parentOrganisation;
-  if (provider) {
-    provider.providerId = providerId;
-    provider.calendar = [mapTournamentRecord(tournamentRecord)];
-    addOrUpdateProvider({ provider, tournamentRecord });
-  } else {
-    const provider = {
-      calendar: [mapTournamentRecord(tournamentRecord)],
-      providerId,
-    };
-    addOrUpdateProvider({ provider, tournamentRecord });
-  }
-}
-
-function checkProviderCalendar({ provider, existsInCalendar, tournamentRecord }) {
-  const calendarConfirmed = provider.calendar?.find((item) => item.tournamentId === tournamentRecord.tournamentId);
-
-  if (!existsInCalendar || !calendarConfirmed) {
-    if (!provider.calendar) provider.calendar = [];
-    provider.calendar.push(mapTournamentRecord(tournamentRecord));
-    addOrUpdateProvider({ provider, tournamentRecord });
-  } else {
-    addOrUpdateTournament({ tournamentRecord });
-  }
+  saveTournamentRecord({ tournamentRecord, callback: tournamentAdded });
 }

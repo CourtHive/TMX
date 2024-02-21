@@ -14,6 +14,7 @@ import { baseApi } from './apis/baseApi';
 import { env } from 'settings/env';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
+import dayjs from 'dayjs';
 
 function functionOrLog(s, results) {
   return typeof window.dev[s] === 'function'
@@ -112,6 +113,7 @@ export function setDev() {
     getLoginState,
     factory,
     baseApi,
+    dayjs,
     help,
   });
 

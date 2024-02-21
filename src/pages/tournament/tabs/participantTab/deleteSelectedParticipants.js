@@ -1,12 +1,15 @@
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { openModal } from 'components/modals/baseModal/baseModal';
+
 import { NONE } from 'constants/tmxConstants';
 
-export const deleteSelectedParticipants = (table) => {
+export function deleteSelectedParticipants(table) {
   const selected = table.getSelectedData();
   const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
   const okAction = () => {
-    const callback = (result) => result.success && table.deleteRow(participantIds);
+    const callback = (result) => {
+      result.success && table.deleteRow(participantIds) && table.deselectRow();
+    };
     deleteParticipants({ participantIds, callback });
   };
   openModal({
@@ -17,4 +20,4 @@ export const deleteSelectedParticipants = (table) => {
       { label: 'Delete', id: 'deleteDraw', intent: 'is-danger', close: true, onClick: okAction },
     ],
   });
-};
+}
