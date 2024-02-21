@@ -13,8 +13,9 @@ export function deleteSelectedParticipants(table) {
     deleteParticipants({ participantIds, callback });
   };
   openModal({
-    title: 'Delete participants',
     content: `Delete ${participantIds.length} participants?`,
+    onClose: () => table.deselectRow(),
+    title: 'Delete participants',
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
       { label: 'Delete', id: 'deleteDraw', intent: 'is-danger', close: true, onClick: okAction },
