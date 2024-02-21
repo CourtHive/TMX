@@ -1,12 +1,9 @@
-import { receiveTournamentRecord } from 'components/modals/receiveTournamentRecord';
 import { processDirective } from 'services/processDirective';
 import { authMessage } from 'components/modals/authMessage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { isDev } from 'functions/isDev';
 import { env } from 'settings/env';
-
-import { changeIdiom } from '../services/idiomFx';
 
 import { PROCESS_DIRECTIVE } from 'constants/comsConstants';
 
@@ -65,9 +62,7 @@ function tmxMessage(msg) {
 }
 
 function initListeners() {
-  context.ee.addListener('receiveTournamentRecord', receiveTournamentRecord);
   context.ee.addListener(PROCESS_DIRECTIVE, processDirective);
-  context.ee.addListener('changeIdiom', changeIdiom);
   context.ee.addListener('tmxMessage', tmxMessage);
   context.ee.addListener('addMessage', addMessage);
 }
