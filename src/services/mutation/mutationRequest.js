@@ -5,6 +5,7 @@ import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 import dayjs from 'dayjs';
 
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
@@ -84,7 +85,19 @@ function checkPermissions({ providerIds, mutate }) {
   return mutate(!isProvider && !(isSuperAdmin && impersonating));
 }
 
-function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal = true }) {
+function engineExecution({ factoryEngine, methods }) {
+  console.log('%c executing locally', 'color: lightgreen');
+  return factoryEngine.executionQueue(methods) || {};
+}
+
+async function localSave(saveLocal) {
+  if (saveLocal || env.saveLocal) {
+    console.log('%c localSave', 'color: yellow');
+    await saveTournamentRecord();
+  }
+}
+
+async function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal = true }) {
   if (window['dev']?.params) {
     for (const method of methods) {
       if (window['dev'].params[method.method]) {
@@ -96,13 +109,25 @@ function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveL
   // NOTE: this enables logging of all methods called during executionQueue when there is an internal factory error
   if (window?.['dev']?.getContext().internal) console.log({ methods });
 
-  const result = factoryEngine.executionQueue(methods) || {};
-  if (result.error) return completion(result);
-
-  if (result?.success) {
-    emitTmx({ data: { type: 'executionQueue', payload: { methods, tournamentIds } } });
-    if (saveLocal) saveTournamentRecord();
+  let factoryResult;
+  if (!env.serverFirst) {
+    factoryResult = engineExecution({ factoryEngine, methods });
+    if (factoryResult.error) return completion(factoryResult);
   }
 
-  return completion(result);
+  if (factoryResult?.success || env.serverFirst) {
+    const ackCallback = async (ack) => {
+      if (env.serverFirst && ack?.success) {
+        factoryResult = engineExecution({ factoryEngine, methods });
+        if (factoryResult.error) return completion(factoryResult);
+        await localSave(saveLocal);
+        return completion(factoryResult);
+      }
+    };
+    console.log('%c invoking remote', 'color: lightblue');
+    emitTmx({ data: { type: 'executionQueue', payload: { methods, tournamentIds } }, ackCallback });
+    if (!env.serverFirst) await localSave(saveLocal);
+  }
+
+  return !env.serverFirst ? completion(factoryResult) : completion({ success: true });
 }

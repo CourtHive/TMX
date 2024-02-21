@@ -32,7 +32,7 @@ import {
   SUCCESS,
   EVENTS_TAB,
   TOURNAMENT_OVERVIEW,
-  TEAM_STATS
+  TEAM_STATS,
 } from 'constants/tmxConstants';
 
 const refMap = {
@@ -41,7 +41,7 @@ const refMap = {
   [EVENTS_TAB]: 'e-tab',
   [MATCHUPS_TAB]: 'm-tab',
   [SCHEDULE_TAB]: 's-tab',
-  [VENUES_TAB]: 'v-tab'
+  [VENUES_TAB]: 'v-tab',
 };
 
 export function tournamentContent() {
@@ -49,8 +49,8 @@ export function tournamentContent() {
         <div id='individuals' class='tab_section participants_tab'>
           <div class='section'>
             <div class='tabHeader foreground'>Participants</div>
-              <div id='${PARTICIPANT_CONTROL}' class='controlBar'></div>
-              <div id='${TOURNAMENT_PARTICIPANTS}' class='tableClass flexcol flexcenter'> </div>
+            <div id='${PARTICIPANT_CONTROL}' class='controlBar'></div>
+            <div id='${TOURNAMENT_PARTICIPANTS}' class='tableClass flexcol flexcenter'> </div>
           </div>
         </div>
         <div id='participantGroupings' class='tab_section participants_tab'>
@@ -102,7 +102,7 @@ export function tournamentContent() {
     'p-tab': participantsTab,
     's-tab': scheduleTab,
     'v-tab': venuesTab,
-    'm-tab': matchUpsTab
+    'm-tab': matchUpsTab,
   };
 
   const contentContainer = document.getElementById(TOURNAMENT_CONTAINER);
@@ -161,7 +161,7 @@ export function removeTournamentContent() {
     TOURNAMENT_SCHEDULE,
     TOURNAMENT_TEAMS,
     UNSCHEDULED_MATCHUPS,
-    TOURNAMENT_VENUES
+    TOURNAMENT_VENUES,
   ];
 
   ids.forEach((key) => {
