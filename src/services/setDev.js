@@ -95,6 +95,13 @@ export function setDev() {
   };
 
   addDev({
+    getProviders: () => getProviders().then((result) => console.log(result?.data?.providers)),
+    getProvider: (name) =>
+      getProviders().then((result) =>
+        console.log(
+          result?.data?.providers.find((p) => p.value.organisationName.toLowerCase().includes(name.toLowerCase())),
+        ),
+      ),
     getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
     getContext: factory.globalState.getDevContext,
     tournamentEngine: factory.tournamentEngine,
@@ -103,7 +110,6 @@ export function setDev() {
     modifyTournament,
     fetchTournament,
     getLoginState,
-    getProviders,
     factory,
     baseApi,
     help,
