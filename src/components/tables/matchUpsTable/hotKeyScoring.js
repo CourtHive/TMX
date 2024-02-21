@@ -81,7 +81,8 @@ export function hotKeyScoring() {
 
         if (updated) {
           updatedMatchUp = {
-            ...data.machUp,
+            matchUpId: data.matchUp.matchUpId,
+            drawId: data.matchUp.drawId,
             score: { scoreStringSide1: updatedScoreString },
             matchUpStatus: updatedMatchUpStatus,
             winningSide: updatedWinningSide,

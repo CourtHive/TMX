@@ -11,7 +11,13 @@ import dayjs from 'dayjs';
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 
 export async function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback }) {
-  const completion = (result) => isFunction(callback) && callback(result);
+  const completion = (result) => {
+    if (isFunction(callback)) {
+      callback(result);
+    } else {
+      console.log({ result });
+    }
+  };
 
   if (!Array.isArray(methods)) return completion();
   const factoryEngine = factory[engine];
