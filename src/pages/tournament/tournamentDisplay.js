@@ -27,6 +27,7 @@ import {
 } from 'constants/tmxConstants';
 
 export function displayTournament({ config } = {}) {
+  console.log('displayTournament');
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     routeTo(config);
@@ -62,13 +63,6 @@ export function loadTournament({ tournamentRecord, config }) {
 
     const notFound = () => {
       tmxToast({
-        /*
-        action: {
-          text: 'Remove?',
-          onClick: () =>
-            removeProviderTournament({ tournamentId: config.tournamentId, providerId: provider.providerId }),
-        },
-        */
         message: 'Tournament not found',
         onClose: () => {
           context.router.navigate('/tournaments');
