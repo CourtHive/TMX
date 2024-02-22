@@ -103,8 +103,8 @@ export function createParticipantsTable({ view } = {}) {
       const wtnTotal = wtns.reduce(simpleAddition, 0);
       const utrAverage = (utrs.length ? utrTotal / utrs.length : 0).toFixed(2);
       const wtnAverage = (wtns.length ? wtnTotal / wtns.length : 0).toFixed(2);
-      console.log(`UTR ${utrAverage}x̄`);
-      console.log(`WTN ${wtnAverage}x̄`);
+      env.averages && console.log(`UTR ${utrAverage}x̄`);
+      env.averages && console.log(`WTN ${wtnAverage}x̄`);
     });
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));

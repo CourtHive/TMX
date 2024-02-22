@@ -41,7 +41,7 @@ export function logIn({ data, callback }) {
   const valid = validateToken(data.token);
   if (valid) {
     setToken(data.token);
-    tmxToast({ intent: 'is-success', message: 'Login successful' });
+    tmxToast({ intent: 'is-success', message: 'Log in successful' });
     disconnectSocket();
     tournamentEngine.reset();
     styleLogin(valid);
@@ -82,6 +82,11 @@ export function initLoginToggle() {
 
       const items = [
         {
+          onClick: () => tmxToast({ message: 'TBD: Registration Modal' }),
+          text: 'Register',
+          hide: loggedIn,
+        },
+        {
           text: 'Log in',
           hide: loggedIn,
           onClick: () => loginModal(),
@@ -96,6 +101,11 @@ export function initLoginToggle() {
           onClick: impersonate,
           text: 'Impersonate',
           hide: !admin || impersonating,
+        },
+        {
+          onClick: () => tmxToast({ message: 'TBD: Invite User Modal' }),
+          hide: !admin && !impersonating,
+          text: 'Invite User',
         },
         {
           text: 'Log out',

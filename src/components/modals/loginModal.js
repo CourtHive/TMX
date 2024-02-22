@@ -36,7 +36,7 @@ export function loginModal(callback) {
   };
 
   openModal({
-    title: 'Login',
+    title: 'Log in',
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
