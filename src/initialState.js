@@ -1,6 +1,6 @@
+import { factoryConstants, globalState, tournamentEngine } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
-import { tournamentEngine } from 'tods-competition-factory';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
@@ -64,6 +64,7 @@ function tmxReady() {
   // if (window.location.host.startsWith('localhost:') || window.location.host.startsWith('https://courthive.github.io')) {
   // to re-enable also uncomment (notLocal) check in actions.js
   setDev();
+  setSubscriptions();
   // }
 
   document.getElementById(SPLASH).onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
@@ -88,6 +89,20 @@ function setEnv() {
   console.log(`%cfactory: ${cfv}`, 'color: lightblue');
 
   eventListeners();
+}
+
+function setSubscriptions() {
+  const topicConstants = factoryConstants.topicConstants;
+  globalState.setSubscriptions({
+    subscriptions: {
+      [topicConstants.MODIFY_MATCHUP]: (data) => {
+        const matchUpId = data.matchUp?.matchUpId;
+        context.matchUpsToBroadcast.push(matchUpId);
+        // TODO: use matchUpId to catch hydrated matchUp on next method call which hydrates matchUps
+        env.devNotes && console.log('MODIFY_MATCHUP', data);
+      },
+    },
+  });
 }
 
 function eventListeners() {

@@ -1,4 +1,5 @@
 export const context = {
+  matchUpsToBroadcast: [],
   tables: [],
 
   ee: null, // EventEmitter
@@ -8,13 +9,13 @@ export const context = {
 
   state: {
     authorized: false,
-    admin: false
+    admin: false,
   },
 
   displayed: {
     schedule_day: null,
-    draw_event: null
+    draw_event: null,
   },
 
-  columns: {}
+  columns: {},
 };

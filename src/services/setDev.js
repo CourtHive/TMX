@@ -16,13 +16,6 @@ import { env } from 'settings/env';
 import { TOURNAMENT } from 'constants/tmxConstants';
 import dayjs from 'dayjs';
 
-function functionOrLog(s, results) {
-  return typeof window.dev[s] === 'function'
-    ? window.dev[s](results)
-    : // eslint-disable-next-line no-console
-      (window.dev.allSubscriptions || window.dev[s]) && console.log(s, results);
-}
-
 const subscriptions = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
   addMatchUps: (results) => functionOrLog('addMatchUps', results),
@@ -47,6 +40,16 @@ const subscriptions = {
   unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results),
   updateInContextMatchUp: (results) => functionOrLog('updateInContextMatchUp', results),
 };
+
+function functionOrLog(s, results) {
+  console.log({ s }, window.dev?.subs?.[s]);
+  console.log(typeof subscriptions?.[s] === 'function');
+  return typeof window.dev?.subs?.[s] === 'function'
+    ? // TODO: use matchUpId to catch hydrated matchUp on next method call which hydrates matchUps
+      window.dev.subs[s](results)
+    : // eslint-disable-next-line no-console
+      (window.dev.allSubscriptions || window.dev.subs?.[s]) && console.log(s, results);
+}
 
 export function setDev() {
   if (!window['dev']) {
@@ -95,6 +98,8 @@ export function setDev() {
     });
   };
 
+  const subs = Object.assign({}, ...Object.keys(subscriptions).map((key) => ({ [key]: false })));
+
   addDev({
     getProviders: () => getProviders().then((result) => console.log(result?.data?.providers)),
     getProvider: (name) =>
@@ -115,6 +120,7 @@ export function setDev() {
     baseApi,
     dayjs,
     help,
+    subs,
   });
 
   addDev({ connectSocket, disconnectSocket, emitTmx });
