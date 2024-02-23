@@ -65,7 +65,7 @@
     "cz-git": "1.8.0",
     "dotenv": "16.4.5",
     "envfile": "7.1.0",
-    "eslint": "8.56.0",
+    "eslint": "8.57.0",
     "eslint-plugin-jsx-a11y": "6.8.0",
     "eslint-plugin-sonarjs": "0.24.0",
     "esm": "3.2.25",
