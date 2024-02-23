@@ -129,8 +129,8 @@ dependencies:
     specifier: 6.3.7
     version: 6.3.7
   tods-competition-factory:
-    specifier: 2.0.30
-    version: 2.0.30
+    specifier: 2.0.31
+    version: 2.0.31
   typescript:
     specifier: 5.3.3
     version: 5.3.3
@@ -6455,8 +6455,8 @@ packages:
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
-  /tods-competition-factory@2.0.30:
-    resolution: {integrity: sha512-mht76KCYY6gIvwCEGNCCL7RN1QGsl8eKsBPeYzkZE99dfQ83l7wx8jzgIEoILrq/XEm8pVYmymr667PVeF/kUA==}
+  /tods-competition-factory@2.0.31:
+    resolution: {integrity: sha512-m4E5egq7Q7Zov656rTMJ7uCseRT61v6UzP3OawCCR8aug+wTK4T/nqJXUpAqZSG2oD6oWv4K2eshrumOQZhdaQ==}
     engines: {node: '>=18.17.1 < 21'}
     dev: false
 
