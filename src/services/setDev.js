@@ -42,8 +42,6 @@ const subscriptions = {
 };
 
 function functionOrLog(s, results) {
-  console.log({ s }, window.dev?.subs?.[s]);
-  console.log(typeof subscriptions?.[s] === 'function');
   return typeof window.dev?.subs?.[s] === 'function'
     ? // TODO: use matchUpId to catch hydrated matchUp on next method call which hydrates matchUps
       window.dev.subs[s](results)
