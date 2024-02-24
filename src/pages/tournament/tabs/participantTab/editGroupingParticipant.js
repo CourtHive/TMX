@@ -18,6 +18,7 @@ export function editGroupingParticipant({
   title = 'Edit team',
   participant,
   refresh,
+  table,
 }) {
   const PARTICIPANT_NAME = 'participantName';
   const values = { [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME] };
@@ -47,7 +48,7 @@ export function editGroupingParticipant({
     renderButtons(
       elem,
       [
-        { label: 'Cancel', close: true },
+        { label: 'Cancel', onClick: () => table?.deselectRow(), close: true },
         { label: 'Save', onClick: saveParticipant, close: true, intent: 'is-info' },
       ],
       close,
@@ -63,6 +64,7 @@ export function editGroupingParticipant({
   });
 
   function saveParticipant() {
+    table.deselectRow();
     if (!participant?.participantId) {
       addParticipant();
     } else {

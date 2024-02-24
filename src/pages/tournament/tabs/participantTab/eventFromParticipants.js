@@ -18,5 +18,5 @@ export const eventFromParticipants = (table, callback) => {
       }
     }
   };
-  editEvent({ callback: postEventCreation, participants });
+  editEvent({ table, callback: postEventCreation, participants });
 };

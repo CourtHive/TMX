@@ -23,7 +23,7 @@ const { DOUBLES, SINGLES, TEAM } = eventConstants;
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { MAIN } = drawDefinitionConstants;
 
-export function editEvent({ event, participants, callback } = {}) {
+export function editEvent({ table, event, participants, callback } = {}) {
   const eventsCount = tournamentEngine.getEvents().events?.length || 0;
   const values = {
     eventType: event?.eventType || SINGLES,
@@ -215,7 +215,7 @@ export function editEvent({ event, participants, callback } = {}) {
     renderButtons(
       elem,
       [
-        { label: 'Cancel', close: true },
+        { label: 'Cancel', onClick: () => table?.deselectRow(), close: true },
         { label: 'Save', onClick: saveEvent, close: true, intent: 'is-info' },
       ],
       close,
