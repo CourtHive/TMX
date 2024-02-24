@@ -16,9 +16,9 @@ export function getAddToGroupingSelection({ participants, table, replaceTableDat
         method: ADD_INDIVIDUAL_PARTICIPANT_IDS,
         params: {
           groupingParticipantId: team.participantId,
-          individualParticipantIds
-        }
-      }
+          individualParticipantIds,
+        },
+      },
     ];
     const postMutation = (result) => {
       if (result.success) replaceTableData();
@@ -30,12 +30,12 @@ export function getAddToGroupingSelection({ participants, table, replaceTableDat
     const title = participantType === TEAM ? 'New team' : 'New Group';
     const selected = table.getSelectedData();
     const individualParticipantIds = selected.map(({ participantId }) => participantId);
-    table.deselectRow();
     editGroupingParticipant({
       refresh: replaceTableData,
       individualParticipantIds,
       participantType,
-      title
+      table,
+      title,
     });
   };
 
@@ -46,14 +46,14 @@ export function getAddToGroupingSelection({ participants, table, replaceTableDat
       onClick: () => addToTeam({ team }),
       label: team.participantName,
       participant: team,
-      close: true
+      close: true,
     })),
     actions: [
       {
         onClick: () => createNewGrouping(),
         close: true,
-        label
-      }
-    ]
+        label,
+      },
+    ],
   };
 }
