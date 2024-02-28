@@ -13,7 +13,7 @@ import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { INVITE, SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 function styleLogin(valid) {
   const el = document.getElementById('login');
@@ -40,7 +40,7 @@ export function logOut() {
 }
 
 export function logIn({ data, callback }) {
-  const valid = validateToken(data.token);
+  const valid: any = validateToken(data.token);
   if (valid) {
     setToken(data.token);
     tmxToast({ intent: 'is-success', message: 'Log in successful' });
@@ -81,15 +81,16 @@ export function initLoginToggle(id) {
     const processInviteResult = (inviteResult) => {
       const inviteCode = inviteResult?.data.inviteCode;
       if (inviteCode) {
-        copyClick(inviteCode);
-        console.log({ inviteCode });
+        const inviteURL = `${window.location.origin}/#/${INVITE}/${inviteCode}`;
+        copyClick(inviteURL);
+        console.log({ inviteCode, inviteURL });
       } else {
         handleError(inviteResult);
       }
     };
 
     el.addEventListener('click', () => {
-      const loggedIn = getLoginState();
+      const loggedIn: any = getLoginState();
       const admin = loggedIn?.roles?.includes(SUPER_ADMIN);
       const impersonating = context?.provider;
 

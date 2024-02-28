@@ -18,7 +18,9 @@ import { CENTER, HEADER, EMPTY_STRING, LEFT, NONE, OVERLAY, RIGHT, BUTTON_BAR, T
  * { selection: { options: [], actions: [], threshold }} will create either a dropDownButton or a selection modal, depending on threshold
  */
 
-export function controlBar({ table, target, targetClassName, items = [], onSelection }) {
+export function controlBar(params) {
+  const { table, targetClassName, items = [], onSelection } = params;
+  let { target } = params;
   const buildElement = !!target;
   target = target || (targetClassName && document.getElementsByClassName(targetClassName)?.[0]);
   if (!target) return;

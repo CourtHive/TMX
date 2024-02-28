@@ -15,13 +15,12 @@ export async function inviteUser(email, providerId, roles) {
   });
 }
 
-export async function systemRegister(preferredFamilyName, preferredGivenName, inviteKey, email, password) {
+export async function systemRegister(firstName, lastName, password, code) {
   return baseApi.post('/auth/register', {
-    preferredFamilyName,
-    preferredGivenName,
-    inviteKey,
+    firstName,
+    lastName,
     password,
-    email,
+    code,
   });
 }
 

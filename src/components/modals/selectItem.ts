@@ -9,7 +9,8 @@ import { LEFT } from 'constants/tmxConstants';
 /*
  * assumes that all options have their own .onClick method
  */
-export function selectItem({ title, placeholder, options, selectionLimit }) {
+export function selectItem(params) {
+  const { title, placeholder, options, selectionLimit } = params;
   const controlId = 'selectionControl';
   const anchorId = 'selectionTable';
   const buttons = [{ label: 'Cancel', intent: 'is-none', close: true }];
@@ -40,7 +41,7 @@ export function selectItem({ title, placeholder, options, selectionLimit }) {
     data: options,
     placeholder,
     onSelected,
-    anchorId
+    anchorId,
   });
 
   const setSearchFilter = createSearchFilter(table);
@@ -52,8 +53,8 @@ export function selectItem({ title, placeholder, options, selectionLimit }) {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search',
       location: LEFT,
-      search: true
-    }
+      search: true,
+    },
   ];
 
   const target = document.getElementById(controlId);

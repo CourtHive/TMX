@@ -45,7 +45,7 @@ const removeAuthorization = () => {
   axiosInstance.defaults.headers.common.Authorization = undefined;
 };
 
-export const baseApi = {
+export const baseApi: any = {
   ...axiosInstance,
   addAuthorization,
   removeAuthorization,
