@@ -33,7 +33,7 @@ export function inviteModal(callback, providers = []) {
         {
           iconLeft: 'fa-regular fa-envelope',
           placeholder: 'valid@email.com',
-          autocomplete: 'credit-card',
+          autocomplete: 'cc-number',
           validator: emailValidator,
           label: 'Email',
           field: 'email',
@@ -47,7 +47,7 @@ export function inviteModal(callback, providers = []) {
         },
         {
           placeholder: 'client, admin, etc',
-          autocomplete: 'credit-card',
+          autocomplete: 'cc-number',
           label: 'Roles',
           field: 'roles',
         },
