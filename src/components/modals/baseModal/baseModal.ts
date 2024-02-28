@@ -9,10 +9,10 @@ export function closeModal() {
 
 type OpenModal = {
   buttons: { id?: string; disabled?: boolean; label: string; intent?: string; onClick?: () => void; close?: boolean }[];
-  content: (elem: HTMLElement) => void;
   onClose?: () => void;
   footer?: string;
   title: string;
+  content: any;
 };
 
 export function openModal(params: OpenModal) {
