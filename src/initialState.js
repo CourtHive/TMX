@@ -49,7 +49,8 @@ export function setupTMX() {
   setWindow();
   setContext();
   tournamentContent();
-  initLoginToggle();
+  initLoginToggle('login');
+  initLoginToggle('burger');
 
   // add TMX Drawer
   context.drawer = drawer();

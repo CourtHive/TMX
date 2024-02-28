@@ -8,7 +8,7 @@ export function closeModal() {
 }
 
 type OpenModal = {
-  buttons: { label: string; intent?: string; onClick?: () => void; close?: boolean }[];
+  buttons: { id?: string; disabled?: boolean; label: string; intent?: string; onClick?: () => void; close?: boolean }[];
   content: (elem: HTMLElement) => void;
   onClose?: () => void;
   footer?: string;

@@ -2,11 +2,13 @@ import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
+import { inviteModal } from 'components/modals/inviteUser';
 import { loginModal } from 'components/modals/loginModal';
 import { selectItem } from 'components/modals/selectItem';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getProviders } from 'services/apis/servicesApi';
 import { tipster } from 'components/popovers/tipster';
+import { copyClick } from 'services/dom/copyClick';
 import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -71,10 +73,21 @@ export function cancelImpersonation() {
   context.router.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
 }
 
-export function initLoginToggle() {
-  const el = document.getElementById('login');
+export function initLoginToggle(id) {
+  const el = document.getElementById(id);
+  const handleError = (error) => console.log('Invite:', { error });
 
   if (el) {
+    const processInviteResult = (inviteResult) => {
+      const inviteCode = inviteResult?.data.inviteCode;
+      if (inviteCode) {
+        copyClick(inviteCode);
+        console.log({ inviteCode });
+      } else {
+        handleError(inviteResult);
+      }
+    };
+
     el.addEventListener('click', () => {
       const loggedIn = getLoginState();
       const admin = loggedIn?.roles?.includes(SUPER_ADMIN);
@@ -87,23 +100,24 @@ export function initLoginToggle() {
           hide: loggedIn,
         },
         {
-          text: 'Log in',
-          hide: loggedIn,
           onClick: () => loginModal(),
+          hide: loggedIn,
+          text: 'Log in',
         },
         {
           style: 'text-decoration: line-through;',
+          hide: !admin || !impersonating,
           onClick: cancelImpersonation,
           text: 'Impersonate',
-          hide: !admin || !impersonating,
         },
         {
+          hide: !admin || impersonating,
           onClick: impersonate,
           text: 'Impersonate',
-          hide: !admin || impersonating,
         },
         {
-          onClick: () => tmxToast({ message: 'TBD: Invite User Modal' }),
+          onClick: () =>
+            getProviders().then(({ data }) => inviteModal(processInviteResult, data?.providers), handleError),
           hide: !admin && !impersonating,
           text: 'Invite User',
         },
@@ -112,7 +126,15 @@ export function initLoginToggle() {
           hide: !loggedIn,
           onClick: logOut,
         },
+        {
+          divider: true,
+        },
+        {
+          heading: 'Settings',
+          onClick: () => tmxToast({ message: 'TBD: Settings' }),
+        },
       ];
+
       tipster({ target: el, title: 'Authorization', items });
     });
   }

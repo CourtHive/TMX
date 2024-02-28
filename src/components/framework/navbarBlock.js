@@ -20,6 +20,7 @@ export function navbarBlock() {
         aria-expanded="false"
         aria-label="menu"
         role="button"
+        id="burger"
       >
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
