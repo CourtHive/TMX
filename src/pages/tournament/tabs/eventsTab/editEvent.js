@@ -25,9 +25,12 @@ const { MAIN } = drawDefinitionConstants;
 
 export function editEvent({ table, event, participants, callback } = {}) {
   const eventsCount = tournamentEngine.getEvents().events?.length || 0;
+  const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo || {};
   const values = {
-    eventType: event?.eventType || SINGLES,
     eventName: event?.eventName || `Event ${eventsCount + 1}`,
+    startDate: event?.startDate ?? tournamentInfo.startDate,
+    endDate: event?.endDate ?? tournamentInfo.endDate,
+    eventType: event?.eventType || SINGLES,
     gender: event?.gender || ANY,
   };
 
@@ -88,97 +91,116 @@ export function editEvent({ table, event, participants, callback } = {}) {
     //
   };
 
+  const relationships = [
+    {
+      fields: ['startDate', 'endDate'],
+      minDate: tournamentInfo.startDate,
+      maxDate: tournamentInfo.endDate,
+      dateRange: true,
+    },
+  ];
+
   const content = (elem) =>
-    renderForm(elem, [
-      {
-        error: 'minimum of 5 characters',
-        validator: nameValidator(5),
-        placeholder: 'Event name',
-        value: values.eventName,
-        onChange: valueChange,
-        selectOnFocus: true,
-        label: 'Event name',
-        field: 'eventName',
-        focus: true,
-      },
-      {
-        disabled: enteredParticipantTypes.length,
-        value: values.eventType,
-        field: 'eventType',
-        label: 'Format',
-        options: [
-          {
-            hide: eventTypeOptions && !eventTypeOptions.includes(SINGLES),
-            selected: values.eventType === SINGLES,
-            label: 'Singles',
-            value: SINGLES,
-          },
-          {
-            hide: eventTypeOptions && !eventTypeOptions.includes(DOUBLES),
-            selected: values.eventType === DOUBLES,
-            label: 'Doubles',
-            value: DOUBLES,
-          },
-          {
-            hide: eventTypeOptions && !eventTypeOptions.includes(TEAM),
-            selected: values.eventType === TEAM,
-            label: 'Team',
-            value: TEAM,
-          },
-        ],
-        onChange: valueChange,
-      },
-      {
-        value: values.gender,
-        label: 'Gender',
-        field: 'gender',
-        options: [
-          {
-            hide: genderOptions && !genderOptions.includes(MALE),
-            selected: values.gender === MALE,
-            label: 'Male',
-            value: MALE,
-          },
-          {
-            hide: genderOptions && !genderOptions.includes(FEMALE),
-            selected: values.gender === FEMALE,
-            label: 'Female',
-            value: FEMALE,
-          },
-          {
-            selected: values.gender === ANY,
-            label: 'Any',
-            value: ANY,
-          },
-          {
-            hide: genderOptions && !genderOptions.includes(MIXED),
-            selected: values.gender === MIXED,
-            label: 'Mixed',
-            value: MIXED,
-          },
-        ],
-        onChange: valueChange,
-      },
-      {
-        hide: event || participants,
-        divider: true,
-      },
-      /*
-      // NOTE: no longer necessary... to be deleted
-      {
-        text: 'Add participants to events by selecting them in the participants table',
-        hide: event || participants,
-        label: 'Participants',
-        field: 'text'
-      }
-      */
-    ]);
+    renderForm(
+      elem,
+      [
+        {
+          error: 'minimum of 5 characters',
+          validator: nameValidator(5),
+          placeholder: 'Event name',
+          value: values.eventName,
+          onChange: valueChange,
+          selectOnFocus: true,
+          label: 'Event name',
+          field: 'eventName',
+          focus: true,
+        },
+        {
+          disabled: enteredParticipantTypes.length,
+          value: values.eventType,
+          field: 'eventType',
+          label: 'Format',
+          options: [
+            {
+              hide: eventTypeOptions && !eventTypeOptions.includes(SINGLES),
+              selected: values.eventType === SINGLES,
+              label: 'Singles',
+              value: SINGLES,
+            },
+            {
+              hide: eventTypeOptions && !eventTypeOptions.includes(DOUBLES),
+              selected: values.eventType === DOUBLES,
+              label: 'Doubles',
+              value: DOUBLES,
+            },
+            {
+              hide: eventTypeOptions && !eventTypeOptions.includes(TEAM),
+              selected: values.eventType === TEAM,
+              label: 'Team',
+              value: TEAM,
+            },
+          ],
+          onChange: valueChange,
+        },
+        {
+          value: values.gender,
+          label: 'Gender',
+          field: 'gender',
+          options: [
+            {
+              hide: genderOptions && !genderOptions.includes(MALE),
+              selected: values.gender === MALE,
+              label: 'Male',
+              value: MALE,
+            },
+            {
+              hide: genderOptions && !genderOptions.includes(FEMALE),
+              selected: values.gender === FEMALE,
+              label: 'Female',
+              value: FEMALE,
+            },
+            {
+              selected: values.gender === ANY,
+              label: 'Any',
+              value: ANY,
+            },
+            {
+              hide: genderOptions && !genderOptions.includes(MIXED),
+              selected: values.gender === MIXED,
+              label: 'Mixed',
+              value: MIXED,
+            },
+          ],
+          onChange: valueChange,
+        },
+        {
+          value: event?.startDate ?? tournamentInfo.startDate,
+          placeholder: 'YYYY-MM-DD',
+          label: 'Start date',
+          field: 'startDate',
+        },
+        {
+          value: event?.endDate ?? tournamentInfo.endDate,
+          placeholder: 'YYYY-MM-DD',
+          label: 'End date',
+          field: 'endDate',
+        },
+        {
+          hide: event || participants,
+          divider: true,
+        },
+      ],
+      relationships,
+    );
 
   const saveEvent = () => {
     const eventName = context.drawer.attributes.content.eventName.value;
     const eventType = context.drawer.attributes.content.eventType.value;
+    const startDate = context.drawer.attributes.content.startDate.value;
+    const endDate = context.drawer.attributes.content.endDate.value;
     const gender = context.drawer.attributes.content.gender.value;
-    const eventUpdates = { eventName, eventType, gender };
+
+    const eventUpdates = { eventName, eventType, gender, startDate, endDate };
 
     const postMutation = (result) => {
       if (result.success) {
@@ -195,7 +217,9 @@ export function editEvent({ table, event, participants, callback } = {}) {
       mutationRequest({ methods, callback: postMutation });
     } else {
       const eventId = tools.UUID();
-      const methods = [{ method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender } } }];
+      const methods = [
+        { method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender, startDate, endDate } } },
+      ];
 
       if (participants?.length) {
         const participantIds = participants.map(({ participantId }) => participantId);

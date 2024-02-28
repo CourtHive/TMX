@@ -3,7 +3,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 export function copyClick(message) {
   navigator.clipboard
     .writeText(message)
-    .then(() => tmxToast({ message: `Key copied to clipboard: ${message}`, intent: 'is-success' }))
+    .then(() => tmxToast({ message: `Copied to clipboard`, intent: 'is-success' }))
     .catch((err) => tmxToast({ message: err, intent: 'is-danger' }));
 
   let c = document.createElement('input');

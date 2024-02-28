@@ -1,3 +1,4 @@
+import { emailValidator } from 'components/validators/emailValidator';
 import { logIn, logOut } from 'services/authentication/loginState';
 import { systemLogin } from 'services/authentication/authApi';
 import { renderForm } from 'components/renderers/renderForm';
@@ -6,24 +7,43 @@ import { openModal } from './baseModal/baseModal';
 export function loginModal(callback) {
   let inputs;
 
+  const enableSubmit = ({ inputs }) => {
+    const value = inputs['email'].value;
+    const isValid = emailValidator(value);
+    const inviteButton = document.getElementById('loginButton');
+    if (inviteButton) inviteButton.disabled = !isValid;
+  };
+
+  const relationships = [
+    {
+      onInput: enableSubmit,
+      control: 'email',
+    },
+  ];
+
   const content = (elem) =>
-    (inputs = renderForm(elem, [
-      {
-        iconLeft: 'fa-regular fa-envelope',
-        placeholder: 'valid@email.com',
-        autocomplete: 'email',
-        label: 'Email',
-        field: 'email',
-      },
-      {
-        placeholder: 'minimum 8 characters',
-        autocomplete: 'current-password',
-        iconLeft: 'fa-solid fa-lock',
-        label: 'Password',
-        field: 'password',
-        type: 'password',
-      },
-    ]));
+    (inputs = renderForm(
+      elem,
+      [
+        {
+          iconLeft: 'fa-regular fa-envelope',
+          placeholder: 'valid@email.com',
+          validator: emailValidator,
+          autocomplete: 'email',
+          label: 'Email',
+          field: 'email',
+        },
+        {
+          placeholder: 'minimum 8 characters',
+          autocomplete: 'current-password',
+          iconLeft: 'fa-solid fa-lock',
+          label: 'Password',
+          field: 'password',
+          type: 'password',
+        },
+      ],
+      relationships,
+    ));
 
   const submitCredentials = () => {
     const email = inputs.email.value;
@@ -40,7 +60,14 @@ export function loginModal(callback) {
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Login', intent: 'is-primary', onClick: submitCredentials, close: true },
+      {
+        label: 'Login',
+        id: 'loginButton',
+        disabled: true,
+        intent: 'is-primary',
+        onClick: submitCredentials,
+        close: true,
+      },
     ],
   });
 }

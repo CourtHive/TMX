@@ -3,7 +3,15 @@ import { baseApi } from '../apis/baseApi';
 export async function systemLogin(email, password) {
   return baseApi.post('/auth/login', {
     password,
-    email
+    email,
+  });
+}
+
+export async function inviteUser(email, providerId, roles) {
+  return baseApi.post('/auth/invite', {
+    providerId,
+    email,
+    roles,
   });
 }
 
@@ -13,14 +21,14 @@ export async function systemRegister(preferredFamilyName, preferredGivenName, in
     preferredGivenName,
     inviteKey,
     password,
-    email
+    email,
   });
 }
 
 export async function setPassword(password, setPasswordToken) {
   return baseApi.post('/auth/set-password', {
     setPasswordToken,
-    password
+    password,
   });
 }
 
