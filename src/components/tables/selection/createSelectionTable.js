@@ -3,15 +3,17 @@ import { getSelectionColumns } from './getSelectionColumns';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-export function createSelectionTable({
-  selectedParticipantIds, // already selected
-  selectionLimit = 1,
-  targetAttribute,
-  placeholder,
-  onSelected,
-  data = [],
-  anchorId
-}) {
+export function createSelectionTable(params) {
+  let { data = [] } = params;
+  const {
+    selectedParticipantIds, // already selected
+    selectionLimit = 1,
+    targetAttribute,
+    placeholder,
+    onSelected,
+    anchorId,
+  } = params;
+
   const participants = data.some((item) => item.participant);
 
   // spread participant object
@@ -32,7 +34,7 @@ export function createSelectionTable({
     reactiveData: true,
     maxHeight: 350,
     columns,
-    data
+    data,
   });
   if (!context.tables) context.tables = {};
   context.tables.selectionTable = table;

@@ -1,4 +1,5 @@
 import { renderMenu } from 'components/renderers/renderMenu';
+import { isFunction } from 'functions/typeOf';
 import tippy from 'tippy.js';
 
 let tip;
@@ -15,7 +16,9 @@ export function destroyTipster(target) {
 /*
  *   e.g. config: { placement: 'bottom' }
  */
-export function tipster({ title, options, items, menuItems = [], target, coords, callback, config }) {
+export function tipster(params) {
+  const { title, options, menuItems = [], coords, callback, config } = params;
+  let { target, items } = params;
   if (!options?.length && !items?.length && !menuItems) return;
 
   destroyTipster();
@@ -29,7 +32,7 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
           ...i,
           onClick: () => {
             destroyTipster(tippyMenu);
-            if (typeof i.onClick === 'function') i.onClick();
+            if (isFunction(i.onClick)) i.onClick();
           },
         })) ||
       options
@@ -40,10 +43,10 @@ export function tipster({ title, options, items, menuItems = [], target, coords,
           onClick: () => {
             if (o.subMenu) {
               tip.setContent('IMPLEMENT SUB MENU');
-            } else if (typeof o.onClick === 'function') {
+            } else if (isFunction(o.onClick)) {
               destroyTipster(tippyMenu);
               o.onClick();
-            } else if (typeof callback === 'function') {
+            } else if (isFunction(callback)) {
               destroyTipster(tippyMenu);
               if (typeof o === 'object') {
                 callback({ ...o, coords });
