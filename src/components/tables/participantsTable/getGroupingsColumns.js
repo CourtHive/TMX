@@ -17,8 +17,6 @@ export function getGroupingsColumns({ view }) {
     }
   };
 
-  console.log({ view });
-
   return [
     {
       cellClick: (_, cell) => cell.getRow().toggleSelect(),
@@ -27,7 +25,7 @@ export function getGroupingsColumns({ view }) {
       responsive: false,
       headerSort: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
       formatter: 'responsiveCollapse',
@@ -35,25 +33,25 @@ export function getGroupingsColumns({ view }) {
       minWidth: 50,
       hozAlign: CENTER,
       resizable: false,
-      headerSort: false
+      headerSort: false,
     },
     {
       headerMenu: headerMenu({
         matchUpsCount: 'Total MatchUps',
         membersCount: 'Individuals',
-        winLoss: 'Win/Loss'
+        winLoss: 'Win/Loss',
       }),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
-      width: 55
+      width: 55,
     },
     {
       cellClick: (e, cell) => openCloseToggle(e, cell),
       field: 'participantName',
       title: 'Name',
       minWidth: 200,
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
@@ -64,7 +62,7 @@ export function getGroupingsColumns({ view }) {
       title: 'Events',
       minWidth: 300,
       editor: false,
-      widthGrow: 2
+      widthGrow: 2,
     },
     {
       title: '<div class="event_icon opponents_header" />',
@@ -74,7 +72,7 @@ export function getGroupingsColumns({ view }) {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: '<div class="event_icon matches_header" />',
@@ -84,7 +82,7 @@ export function getGroupingsColumns({ view }) {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: '<div class="event_icon winloss_header" />',
@@ -94,13 +92,13 @@ export function getGroupingsColumns({ view }) {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       field: 'representing',
       title: 'Representing',
       visible: false,
-      minWidth: 200
+      minWidth: 200,
     },
     {
       cellClick: (e, cell) => openCloseToggle(e, cell),
@@ -109,7 +107,7 @@ export function getGroupingsColumns({ view }) {
       headerSort: false,
       hozAlign: RIGHT,
       field: IS_OPEN,
-      width: 20
+      width: 20,
     },
     {
       cellClick: participantActions,
@@ -117,7 +115,7 @@ export function getGroupingsColumns({ view }) {
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
-      width: 20
-    }
+      width: 20,
+    },
   ];
 }
