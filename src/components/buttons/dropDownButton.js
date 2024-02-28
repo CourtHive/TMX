@@ -63,7 +63,7 @@ export function dropDownButton({ target, button, stateChange }) {
 
   const menu = document.createElement('div');
   menu.classList.add('dropdown-menu');
-  menu.zIndex = 99998;
+  menu.setAttribute('z-index', '99998');
   const content = document.createElement('div');
   content.classList.add('dropdown-content');
 

@@ -74,9 +74,13 @@ export function renderField(item) {
     const div = document.createElement('div');
     div.className = 'select font-medium';
     div.style = 'width: 100%';
+    if (item.zIndex) div.style.zIndex = item.zIndex;
     const select = document.createElement('select');
-    if (item.id) div.id = item.id;
+    if (item.dataPlaceholder) select.setAttribute('data-placeholder', item.dataPlaceholder);
+    if (item.dataType) select.setAttribute('data-type', item.dataType);
+    if (item.multiple) select.setAttribute('multiple', true);
     if (item.disabled) select.disabled = true;
+    if (item.id) div.id = item.id;
     select.style = 'width: 100%';
     renderOptions(select, item);
     div.appendChild(select);
