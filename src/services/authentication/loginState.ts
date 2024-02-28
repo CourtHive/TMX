@@ -40,7 +40,7 @@ export function logOut() {
 }
 
 export function logIn({ data, callback }) {
-  const valid = validateToken(data.token);
+  const valid: any = validateToken(data.token);
   if (valid) {
     setToken(data.token);
     tmxToast({ intent: 'is-success', message: 'Log in successful' });
@@ -90,7 +90,7 @@ export function initLoginToggle(id) {
     };
 
     el.addEventListener('click', () => {
-      const loggedIn = getLoginState();
+      const loggedIn: any = getLoginState();
       const admin = loggedIn?.roles?.includes(SUPER_ADMIN);
       const impersonating = context?.provider;
 
