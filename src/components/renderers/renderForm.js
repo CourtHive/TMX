@@ -90,14 +90,19 @@ export function renderForm(elem, items, relationships) {
       if (relationship.dateRange && Array.isArray(relationship.fields)) {
         const [field1, field2] = relationship.fields;
 
-        const datepicker = new DateRangePicker(inputs[field1], {
-          inputs: [inputs[field1], inputs[field2]],
-          format: 'yyyy-mm-dd',
-          autohide: true
-        });
+        if (inputs[field1] && inputs[field2]) {
+          const datepicker = new DateRangePicker(inputs[field1], {
+            inputs: [inputs[field1], inputs[field2]],
+            minDate: relationship.minDate,
+            maxDate: relationship.maxDate,
+            format: 'yyyy-mm-dd',
+            autohide: true,
+          });
 
-        inputs[`${field1}.date`] = datepicker;
+          inputs[`${field1}.date`] = datepicker;
+        }
       }
+
       if (relationship.control) {
         if (isFunction(relationship.onChange)) {
           inputs[relationship.control].addEventListener('change', (e) => relationship.onChange({ e, inputs, fields }));

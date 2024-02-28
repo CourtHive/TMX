@@ -1,9 +1,9 @@
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
+import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
-import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
@@ -19,7 +19,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   const relationships = getDrawFormRelationships({
     maxQualifiers: structurePositionAssignments?.length,
     isQualifying,
-    event
+    event,
   });
 
   let inputs;
@@ -47,7 +47,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
 
   const buttons = [
     { label: 'Cancel', intent: NONE, close: true },
-    { label: 'Generate', id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid }
+    { label: 'Generate', id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid },
   ];
   const title = `Configure draw`;
 

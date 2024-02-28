@@ -149,7 +149,7 @@ export function renderField(item) {
       datepicker = new Datepicker(inputElement, {
         // ...options
         format: 'yyyy-mm-dd',
-        autohide: true
+        autohide: true,
       });
     } else if (item.typeAhead) {
       createTypeAhead({ ...item.typeAhead, element: input });
