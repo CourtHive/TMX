@@ -9,31 +9,31 @@ export function venueForm({ values, valueChange, isValid }) {
 
   return [
     {
+      error: 'Please enter a name of at least 5 characters',
       placeholder: 'Venue name',
       value: values.venueName || '',
+      validator: nameValidator(5),
       label: 'Venue name',
       field: 'venueName',
-      error: 'Please enter a name of at least 5 characters',
-      validator: nameValidator(5),
       focus: true,
-      onChange
+      onChange,
     },
     {
-      value: values.venueAbbreviation || '',
-      label: 'Abbreviation',
-      field: 'venueAbbreviation',
       error: 'Please enter an abbreviation of 2-6 characters',
+      value: values.venueAbbreviation || '',
       validator: nameValidator(2, 6),
-      onChange
+      field: 'venueAbbreviation',
+      label: 'Abbreviation',
+      onChange,
     },
     {
+      error: 'Must be a whole number',
       value: values.courtsCount || '',
+      validator: numberValidator,
       label: 'Number of courts',
       field: 'courtsCount',
-      error: 'Must be a whole number',
-      validator: numberValidator,
-      onChange
-    }
+      onChange,
+    },
   ];
 }
 
@@ -41,6 +41,6 @@ export function getVenueFormValues(content) {
   return {
     venueAbbreviation: content?.venueAbbreviation.value,
     courtsCount: content?.courtsCount.value,
-    venueName: content?.venueName.value
+    venueName: content?.venueName.value,
   };
 }
