@@ -14,7 +14,7 @@ export function generateEmptyColumns({ courtsData, count }) {
   const emptyColumnHeader = (index) => {
     if (index) return;
 
-    return courtsData.length
+    return courtsData?.length || 0
       ? `<p style='font-weight: normal; color: lightblue'>Add venue</p>`
       : `<button class='button is-danger'>Add venue</button>`;
   };
