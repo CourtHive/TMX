@@ -16,7 +16,7 @@ export function getScheduleColumns({ courtsData, courtPrefix }) {
       // const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId, nextMatchUps: true })?.matchUp;
       const matchUp = tournamentEngine.allTournamentMatchUps({
         matchUpFilters: { drawIds: [drawId], matchUpIds: [matchUpId] },
-        nextMatchUps: true
+        nextMatchUps: true,
       })?.matchUps?.[0];
       const targetRow = cell.getRow().getData();
       targetRow[field] = matchUp;
@@ -26,7 +26,7 @@ export function getScheduleColumns({ courtsData, courtPrefix }) {
     scheduleSetMatchUpHeader({ e, cell, matchUpId, callback });
   };
 
-  const columnsCalc = MINIMUM_SCHEDULE_COLUMNS - courtsData.length;
+  const columnsCalc = MINIMUM_SCHEDULE_COLUMNS - courtsData?.length || 0;
   const emptyColumnsCount = columnsCalc <= 0 ? 1 : columnsCalc;
 
   const emptyColumns = generateEmptyColumns({ courtsData, count: emptyColumnsCount });
@@ -42,8 +42,8 @@ export function getScheduleColumns({ courtsData, courtPrefix }) {
     headerSort: false,
     resizable: false,
     hozAlign: CENTER,
-    minWidth: 150
+    minWidth: 150,
   });
 
-  return [controlColumn].concat(courtsData.map(generateColumn), emptyColumns);
+  return [controlColumn].concat(courtsData?.map(generateColumn), emptyColumns);
 }

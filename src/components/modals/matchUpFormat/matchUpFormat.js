@@ -78,6 +78,7 @@ function getSetFormat(index) {
 
 function generateMatchUpFormat() {
   const setFormat = getSetFormat();
+
   parsedMatchUpFormat = {
     bestOf: format.setFormat.bestOf,
     setFormat,
@@ -93,6 +94,7 @@ function generateMatchUpFormat() {
   Array.from(options).forEach((option) => {
     option.selected = (!predefined && option.value === 'Custom') || option.value === matchUpFormat;
   });
+
   return matchUpFormat;
 }
 
@@ -254,7 +256,6 @@ const onClicks = {
 export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callback } = {}) {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
-  console.log({ parsedMatchUpFormat });
   const onSelect = () => {
     const specifiedFormat = generateMatchUpFormat();
     isFunction(callback) && callback(specifiedFormat);
@@ -299,6 +300,10 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
     selectedMatchUpFormat = e.target.value;
     setMatchUpFormatString(selectedMatchUpFormat);
     parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
+
+    format.setFormat = parsedMatchUpFormat.setFormat;
+    format.setFormat.bestOf = parsedMatchUpFormat.bestOf;
+    if (parsedMatchUpFormat.finalSetFormat) format.finalSetFormat = parsedMatchUpFormat.finalSetFormat;
 
     const finalSet = parsedMatchUpFormat.finalSetFormat;
     finalSetFormat.style.display = finalSet ? '' : NONE;

@@ -61,11 +61,11 @@ export function loginModal(callback) {
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
       {
-        label: 'Login',
+        onClick: submitCredentials,
+        intent: 'is-primary',
         id: 'loginButton',
         disabled: true,
-        intent: 'is-primary',
-        onClick: submitCredentials,
+        label: 'Login',
         close: true,
       },
     ],

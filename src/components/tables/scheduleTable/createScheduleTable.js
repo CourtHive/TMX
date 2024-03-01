@@ -25,11 +25,11 @@ export function createScheduleTable({ scheduledDate } = {}) {
 
     const columns = getScheduleColumns({ courtsData, courtPrefix });
 
-    rows.forEach((row, i) => {
+    rows?.forEach((row, i) => {
       row.rowId = `rowId-${i + 1}`;
       row.rowNumber = i + 1;
     });
-    return { rows, columns, matchUps, courtsCount: courtsData.length, courtsData, groupInfo };
+    return { rows, columns, matchUps, courtsCount: courtsData?.length ?? 0, courtsData, groupInfo };
   };
 
   const replaceTableData = ({ scheduledDate } = {}) => {
@@ -55,7 +55,7 @@ export function createScheduleTable({ scheduledDate } = {}) {
   const element = document.getElementById(TOURNAMENT_SCHEDULE);
 
   const { rows = [], columns = [], courtsCount } = getTableData({ scheduledDate });
-  existingCourtIds = columns.map(({ courtId }) => courtId).filter(Boolean);
+  existingCourtIds = columns.map((col) => col?.courtId).filter(Boolean);
 
   table = new Tabulator(element, {
     height: window.innerHeight * 0.84,

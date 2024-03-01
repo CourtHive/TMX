@@ -12,7 +12,7 @@ import {
   SCHEDULE_TAB,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
-  VENUES_TAB
+  VENUES_TAB,
 } from 'constants/tmxConstants';
 
 const routeMap = {
@@ -21,7 +21,7 @@ const routeMap = {
   'e-route': EVENTS_TAB,
   'm-route': MATCHUPS_TAB,
   's-route': SCHEDULE_TAB,
-  'v-route': VENUES_TAB
+  'v-route': VENUES_TAB,
 };
 
 const tips = {
@@ -30,7 +30,7 @@ const tips = {
   'e-route': 'Events',
   'm-route': 'MatchUps',
   's-route': 'Schedule',
-  'v-route': 'Venues'
+  'v-route': 'Venues',
 };
 
 export function tmxNavigation() {
@@ -90,7 +90,7 @@ export function tmxNavigation() {
     onShow: (options) => !!options.props.content,
     plugins: [enhancedContentFunction],
     placement: RIGHT,
-    arrow: false
+    arrow: false,
   });
 
   ids.forEach((id) => {
@@ -100,7 +100,7 @@ export function tmxNavigation() {
       onShow: (options) => !!options.props.content,
       plugins: [enhancedContentFunction],
       placement: RIGHT,
-      arrow: false
+      arrow: false,
     });
 
     if (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === PARTICIPANTS)) {
@@ -112,7 +112,7 @@ export function tmxNavigation() {
       element.classList.add('active');
       // toggleSideBar(false);
 
-      const tournamentId = tournamentEngine.getTournament()?.tournamentRecord.tournamentId;
+      const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;
       context.router.navigate(route);
     };
