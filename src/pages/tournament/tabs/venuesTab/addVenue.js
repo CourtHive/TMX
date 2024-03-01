@@ -1,7 +1,8 @@
 import { getVenueFormValues, venueForm } from 'components/forms/venue';
-import { tournamentEngine, tools } from 'tods-competition-factory';
+import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
@@ -40,13 +41,46 @@ export function addVenue(callback) {
   const valueChange = () => {
     // console.log('value change');
   };
-  const content = (elem) => renderForm(elem, venueForm({ values: {}, valueChange }));
+
+  const numberValidator = (value) => value && !isNaN(value);
+  const enableSubmit = ({ inputs }) => {
+    const isValid = !!(
+      nameValidator(2, 6)(inputs['venueAbbreviation'].value) &&
+      numberValidator(inputs['courtsCount'].value) &&
+      nameValidator(5)(inputs['venueName'].value)
+    );
+    const saveButton = document.getElementById('addVenue');
+    if (saveButton) saveButton.disabled = !isValid;
+  };
+  const relationships = [
+    {
+      control: 'venueAbbreviation',
+      onInput: enableSubmit,
+    },
+    {
+      control: 'courtsCount',
+      onInput: enableSubmit,
+    },
+    {
+      control: 'venueName',
+      onInput: enableSubmit,
+    },
+  ];
+
+  const content = (elem) => renderForm(elem, venueForm({ values: {}, valueChange }), relationships);
   const footer = (elem, close) =>
     renderButtons(
       elem,
       [
         { label: 'Cancel', close: true },
-        { label: 'Save', onClick: () => saveVenue(callback), close: true, intent: 'is-info' },
+        {
+          onClick: () => saveVenue(callback),
+          intent: 'is-info',
+          disabled: true,
+          id: 'addVenue',
+          label: 'Save',
+          close: true,
+        },
       ],
       close,
     );

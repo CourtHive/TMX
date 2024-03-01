@@ -18,9 +18,10 @@ export function renderButtons(target, buttons, close) {
     elem.className = 'button font-medium';
     if (button.intent) elem.classList.add(button.intent);
     elem.innerHTML = button.label;
+    if (button.disabled) elem.disabled = true;
     elem.onclick = (e) => {
       e.stopPropagation();
-      !button.disabled && isFunction(button.onClick) && button.onClick();
+      !e.target.disabled && isFunction(button.onClick) && button.onClick();
       isFunction(close) && close();
     };
     target.appendChild(elem);
