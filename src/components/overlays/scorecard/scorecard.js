@@ -43,7 +43,9 @@ export function renderScorecard({ matchUp }) {
 
   if (!context.collectionTables) context.collectionTables = [];
 
-  const collectionDefinitions = matchUp.tieFormat.collectionDefinitions;
+  const collectionDefinitions =
+    matchUp.tieFormat.collectionDefinitions?.sort((a, b) => a.collectionOrder - b.collectionOrder) || [];
+
   for (const collectionDefinition of collectionDefinitions) {
     const collectionMatchUps = matchUp.tieMatchUps.filter(
       (tieMatchUp) => tieMatchUp.collectionId === collectionDefinition.collectionId,
@@ -98,9 +100,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
       uuids // optional - in client/server scenarios generated matchUps must have equivalent matchUpIds
     });
     */
-    const callback = () => {
-      openScorecard({ title, drawId, matchUpId });
-    };
+    const callback = () => openScorecard({ title, drawId, matchUpId, onClose: () => console.log('closed') });
     updateTieFormat({ matchUpId, drawId, callback });
   };
   edit.innerHTML = 'Edit scorecard';
