@@ -13,7 +13,7 @@ pnpm-debug.log*
 /coverage
 
 # sandbox
-/scratch
+scratch
 
 # tarballs
 *.gz
