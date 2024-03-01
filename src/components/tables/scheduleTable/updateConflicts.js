@@ -14,7 +14,7 @@ export function updateConflicts(table) {
     // <i class="fa-solid fa-triangle-exclamation"></i> or <i class="fa-solid fa-triangle-exclamation" style="color: #f5220a;"></i>
   }
 
-  table.updateData(data);
+  if (data?.length) table.updateData(data);
   const controlCells = table.getColumns()[0].getCells();
   if (rowIssues?.length) {
     rowIssues.forEach((issues, rowIndex) => {

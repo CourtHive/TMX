@@ -27,8 +27,10 @@ export function tournamentHeader() {
   const tmxButton = document.getElementById('provider');
   if (tmxButton) tmxButton.onclick = () => context.router.navigate('/tournaments');
   const tournamentElement = document.getElementById('pageTitle');
-  if (tournamentElement) {
+  if (tournamentElement && tournamentInfo?.tournamentName) {
     removeAllChildNodes(tournamentElement);
     tournamentElement.innerHTML = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
+  } else {
+    context.router.navigate('/tournaments');
   }
 }

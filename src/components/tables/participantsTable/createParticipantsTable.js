@@ -7,15 +7,15 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
+import { env } from 'settings/env';
 
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
-import { env } from 'settings/env';
 
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
 
 export function createParticipantsTable({ view } = {}) {
-  let table, participants, derivedEventInfo, ready, teamParticipants, groupParticipants;
+  let table, groupParticipants, participants, derivedEventInfo, teamParticipants, ready;
 
   const participantFilters = { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
 
@@ -27,7 +27,7 @@ export function createParticipantsTable({ view } = {}) {
       withEvents: true,
       withISO2: true,
     });
-    ({ participants, derivedEventInfo } = result);
+    ({ participants = [], derivedEventInfo } = result);
 
     const individualParticipants = participants.filter(({ participantType }) => participantType === INDIVIDUAL);
     groupParticipants = participants.filter(({ participantType }) => participantType === GROUP);
