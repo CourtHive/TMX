@@ -12,7 +12,7 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
     drawId,
   });
 
-  const updateFormat = (modifiedTieFormat) => {
+  const updateTieFormat = (modifiedTieFormat) => {
     if (modifiedTieFormat) {
       modifiedTieFormat.collectionDefinitions?.forEach((def, i) => (def.collectionOrder = i + 1));
 
@@ -44,14 +44,14 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
       const postMutation = (result) => {
         if (result.success) {
           tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
-          isFunction(callback) && callback();
+          return isFunction(callback) && callback();
         } else {
-          tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error' });
+          return tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error' });
         }
       };
       mutationRequest({ methods, callback: postMutation });
     }
   };
 
-  editTieFormat({ title: 'Edit scorecard', tieFormat, onClose: updateFormat });
+  editTieFormat({ title: 'Edit scorecard', tieFormat, onClose: updateTieFormat });
 }
