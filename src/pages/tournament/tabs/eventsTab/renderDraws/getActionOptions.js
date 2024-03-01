@@ -14,15 +14,25 @@ import { RESET_SCORECARD } from 'constants/mutationConstants';
 
 const { TEAM } = eventConstants;
 
-export function getActionOptions({ eventData, drawData, drawId, structureId, structureName, dualMatchUp }) {
+export function getActionOptions({ structureName, dualMatchUp, structureId, eventData, drawData, drawId }) {
   const hasQualifying = drawData.structures?.find((structure) => structure.stage === QUALIFYING);
   const structure = drawData.structures?.find((structure) => structure.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
 
+  const scorecardUpdated = () => {
+    const matchUpId = dualMatchUp.matchUpId;
+    const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
+    const scorecard = renderScorecard({ matchUp });
+    const drawsView = document.getElementById(DRAWS_VIEW);
+    removeAllChildNodes(drawsView);
+    drawsView.appendChild(scorecard);
+  };
+
   const options = [
     {
       hide: eventData.eventInfo.eventType !== TEAM,
-      onClick: () => updateTieFormat({ matchUpId: dualMatchUp.matchUpId, structureId, eventId, drawId }),
+      onClick: () =>
+        updateTieFormat({ matchUpId: dualMatchUp.matchUpId, structureId, eventId, drawId, callback: scorecardUpdated }),
       label: 'Edit scorecard',
       close: true,
     },
@@ -52,15 +62,7 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
     const matchUpId = dualMatchUp.matchUpId;
     options.push({ divider: true });
 
-    const postMutation = (result) => {
-      if (result.success) {
-        const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
-        const scorecard = renderScorecard({ matchUp });
-        const drawsView = document.getElementById(DRAWS_VIEW);
-        removeAllChildNodes(drawsView);
-        drawsView.appendChild(scorecard);
-      }
-    };
+    const postMutation = (result) => result.success && scorecardUpdated();
     const removePlayers = () => {
       const currentMatchUp = tournamentEngine.findMatchUp({
         matchUpId,
