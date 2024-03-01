@@ -22,7 +22,7 @@ export function getActionOptions({ eventData, drawData, drawId, structureId, str
   const options = [
     {
       hide: eventData.eventInfo.eventType !== TEAM,
-      onClick: () => updateTieFormat({ structureId, eventId, drawId }),
+      onClick: () => updateTieFormat({ matchUpId: dualMatchUp.matchUpId, structureId, eventId, drawId }),
       label: 'Edit scorecard',
       close: true,
     },
