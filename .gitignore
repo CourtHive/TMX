@@ -6,7 +6,7 @@
 /coverage
 
 # sandbox
-/scratch
+scratch
 
 # tarballs
 *.gz
