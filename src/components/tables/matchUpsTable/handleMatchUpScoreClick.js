@@ -1,7 +1,6 @@
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { participantConstants } from 'tods-competition-factory';
-// import { getParent } from 'services/dom/parentAndChild';
 import { env } from 'settings/env';
 
 const { TEAM } = participantConstants;
