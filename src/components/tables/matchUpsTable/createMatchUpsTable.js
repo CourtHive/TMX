@@ -87,5 +87,5 @@ export function createMatchUpsTable() {
 
   render(data);
 
-  return { table, replaceTableData };
+  return { table, data, replaceTableData };
 }

@@ -1,9 +1,10 @@
+import { tournamentEngine, participantConstants, eventConstants } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
-import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { dropDownButton } from 'components/buttons/dropDownButton';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
+import { env } from 'settings/env';
 
 import {
   ALL_EVENTS,
@@ -17,14 +18,14 @@ import {
   RIGHT,
   TEAM_STATS,
 } from 'constants/tmxConstants';
-import { env } from 'settings/env';
 
+const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
 const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
-  let eventIdFilter, drawIdFilter, teamIdFilter, matchUpStatusFilter, elements;
+  let eventIdFilter, drawIdFilter, teamIdFilter, matchUpStatusFilter, matchUpTypeFilter, elements;
 
-  const { table, replaceTableData } = createMatchUpsTable({ elements });
+  const { data, table, replaceTableData } = createMatchUpsTable({ elements });
   const events = tournamentEngine.getEvents().events || [];
   const statsPanel = document.getElementById(TEAM_STATS);
   statsPanel.style.display = NONE;
@@ -90,6 +91,7 @@ export function renderMatchUpTab() {
     })),
   );
 
+  // FILTER: matchUpStatus
   const statusFilter = (rowData) => {
     if (matchUpStatusFilter === 'readyToScore') {
       return rowData.scoreDetail.readyToScore && !rowData.scoreDetail.score && !rowData.scoreDetail.winningSide;
@@ -103,9 +105,7 @@ export function renderMatchUpTab() {
   const updateStatusFilter = (status) => {
     table?.removeFilter(statusFilter);
     matchUpStatusFilter = status;
-    if (matchUpStatusFilter) {
-      table?.addFilter(statusFilter);
-    }
+    if (matchUpStatusFilter) table?.addFilter(statusFilter);
   };
   const allStatuses = {
     label: `<span style='font-weight: bold'>${ALL_STATUSES}</span>`,
@@ -127,6 +127,31 @@ export function renderMatchUpTab() {
     searchText = value;
     if (value) table?.addFilter(searchFilter);
   };
+
+  // FILTER: type
+  const typeFilter = (rowData) => rowData.matchUpType === matchUpTypeFilter;
+  const updateTypeFilter = (type) => {
+    table?.removeFilter(typeFilter);
+    matchUpTypeFilter = type;
+    if (matchUpTypeFilter) table?.addFilter(typeFilter);
+  };
+  const ALL_TYPES = 'All Types';
+  const allTypes = {
+    label: `<span style='font-weight: bold'>${ALL_TYPES}</span>`,
+    onClick: () => updateTypeFilter(),
+    close: true,
+  };
+  const matchUpTypes = data.reduce((types, matchUp) => {
+    if (!types.includes(matchUp.matchUpType)) types.push(matchUp.matchUpType);
+    return types;
+  }, []);
+  const typeOptions = [
+    allTypes,
+    { divider: true },
+    matchUpTypes.includes(SINGLES) && { label: 'Singles', close: true, onClick: () => updateTypeFilter(SINGLES) },
+    matchUpTypes.includes(DOUBLES) && { label: 'Doubles', close: true, onClick: () => updateTypeFilter(DOUBLES) },
+    matchUpTypes.includes(TEAM_EVENT) && { label: 'Team', close: true, onClick: () => updateTypeFilter(TEAM_EVENT) },
+  ].filter(Boolean);
 
   // FILTER: teams
   const teamParticipants =
@@ -196,7 +221,7 @@ export function renderMatchUpTab() {
       search: true,
     },
     {
-      hide: eventOptions.length < 3,
+      hide: eventOptions.length < 4,
       options: eventOptions,
       id: 'eventOptions',
       label: ALL_EVENTS,
@@ -225,6 +250,14 @@ export function renderMatchUpTab() {
       options: scoreOptions,
       label: ALL_STATUSES,
       modifyLabel: true,
+      selection: true,
+      location: LEFT,
+    },
+    {
+      hide: typeOptions.length < 4,
+      options: typeOptions,
+      modifyLabel: true,
+      label: ALL_TYPES,
       selection: true,
       location: LEFT,
     },
