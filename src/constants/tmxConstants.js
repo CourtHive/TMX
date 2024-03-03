@@ -19,6 +19,7 @@ export const ALL_FLIGHTS = 'All flights';
 export const ALL_ROUNDS = 'All rounds';
 export const ALL_EVENTS = 'All events';
 export const ALL_TEAMS = 'All teams';
+export const ALL_TYPES = 'All Types';
 
 // extensions
 export const REGISTRATION = 'registration';
