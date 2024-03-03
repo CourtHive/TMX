@@ -16,6 +16,7 @@ const {
 export const ALL_STATUSES = 'All statuses';
 export const ALL_GENDERS = 'All genders';
 export const ALL_FLIGHTS = 'All flights';
+export const ALL_ROUNDS = 'All rounds';
 export const ALL_EVENTS = 'All events';
 export const ALL_TEAMS = 'All teams';
 
