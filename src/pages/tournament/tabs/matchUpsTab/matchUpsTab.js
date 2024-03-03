@@ -23,18 +23,19 @@ const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
 const { TEAM } = participantConstants;
 
 export function renderMatchUpTab() {
-  let eventIdFilter, drawIdFilter, teamIdFilter, matchUpStatusFilter, matchUpTypeFilter, elements;
+  const matchUpFilters = new Map();
+  const components = { elements: {} };
 
-  const { data, table, replaceTableData } = createMatchUpsTable({ elements });
+  const { data, table, replaceTableData } = createMatchUpsTable();
   const events = tournamentEngine.getEvents().events || [];
   const statsPanel = document.getElementById(TEAM_STATS);
   statsPanel.style.display = NONE;
 
   // FILTER: flights
-  const flightFilter = (rowData) => rowData.drawId === drawIdFilter;
+  const flightFilter = (rowData) => rowData.drawId === matchUpFilters.get('drawIdFilter');
   const updateFlightFilter = (drawId) => {
     table?.removeFilter(flightFilter);
-    drawIdFilter = drawId;
+    matchUpFilters.set('drawIdFilter', drawId);
     if (drawId) table?.addFilter(flightFilter);
   };
   const allFlights = {
@@ -51,12 +52,12 @@ export function renderMatchUpTab() {
   const flightOptions = [allFlights, { divider: true }].concat(events.flatMap(getFlightOptions)).filter(Boolean);
 
   // FILTER: events
-  const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
+  const eventFilter = (rowData) => rowData.eventId === matchUpFilters.get('eventIdFilter');
   const updateEventFilter = (eventId) => {
     table?.removeFilter(eventFilter);
-    eventIdFilter = eventId;
+    matchUpFilters.set('eventIdFilter', eventId);
     table?.removeFilter(flightFilter);
-    drawIdFilter = undefined;
+    matchUpFilters.set('drawIdFilter', undefined);
     if (eventId) {
       table?.addFilter(eventFilter);
       const eventFlightOptions = [allFlights, { divider: true }]
@@ -72,10 +73,10 @@ export function renderMatchUpTab() {
       };
       const elem = dropDownButton({ button: flightButton });
 
-      elements.flightOptions.replaceWith(elem);
-      elements.flightOptions = elem;
+      components.elements.flightOptions.replaceWith(elem);
+      components.elements.flightOptions = elem;
     } else {
-      elements.flightOptions.style.display = NONE;
+      components.elements.flightOptions.style.display = NONE;
     }
   };
   const allEvents = {
@@ -93,9 +94,10 @@ export function renderMatchUpTab() {
 
   // FILTER: matchUpStatus
   const statusFilter = (rowData) => {
-    if (matchUpStatusFilter === 'readyToScore') {
+    const currentFilter = matchUpFilters.get('matchUpStatusFilter');
+    if (currentFilter === 'readyToScore') {
       return rowData.scoreDetail.readyToScore && !rowData.scoreDetail.score && !rowData.scoreDetail.winningSide;
-    } else if (matchUpStatusFilter === 'complete') {
+    } else if (currentFilter === 'complete') {
       return (
         rowData.scoreDetail.winningSide ||
         ['DOUBLE_WALKOVER', 'DOUBLE_DEFAULT', 'CANCELLED', 'ABANDONED'].includes(rowData.scoreDetail.matchUpStatus)
@@ -104,8 +106,8 @@ export function renderMatchUpTab() {
   };
   const updateStatusFilter = (status) => {
     table?.removeFilter(statusFilter);
-    matchUpStatusFilter = status;
-    if (matchUpStatusFilter) table?.addFilter(statusFilter);
+    matchUpFilters.set('matchUpStatusFilter', status);
+    if (status) table?.addFilter(statusFilter);
   };
   const allStatuses = {
     label: `<span style='font-weight: bold'>${ALL_STATUSES}</span>`,
@@ -120,20 +122,19 @@ export function renderMatchUpTab() {
   ];
 
   // SEARCH filter
-  let searchText;
-  const searchFilter = (rowData) => rowData.searchText?.includes(searchText);
+  const searchFilter = (rowData) => rowData.searchText?.includes(matchUpFilters.get('searchText'));
   const updateSearchFilter = (value) => {
     if (!value) table?.removeFilter(searchFilter);
-    searchText = value;
+    matchUpFilters.set('searchText', value);
     if (value) table?.addFilter(searchFilter);
   };
 
   // FILTER: type
-  const typeFilter = (rowData) => rowData.matchUpType === matchUpTypeFilter;
+  const typeFilter = (rowData) => rowData.matchUpType === matchUpFilters.get('matchUpTypeFilter');
   const updateTypeFilter = (type) => {
     table?.removeFilter(typeFilter);
-    matchUpTypeFilter = type;
-    if (matchUpTypeFilter) table?.addFilter(typeFilter);
+    matchUpFilters.set('matchUpTypeFilter', type);
+    if (type) table?.addFilter(typeFilter);
   };
   const ALL_TYPES = 'All Types';
   const allTypes = {
@@ -160,10 +161,11 @@ export function renderMatchUpTab() {
     {},
     ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds })),
   );
-  const teamFilter = (rowData) => rowData.individualParticipantIds.some((id) => teamMap[teamIdFilter]?.includes(id));
+  const teamFilter = (rowData) =>
+    rowData.individualParticipantIds.some((id) => teamMap[matchUpFilters.get('teamIdFilter')]?.includes(id));
   const updateTeamFilter = (teamParticipantId) => {
-    if (teamIdFilter) table?.removeFilter(teamFilter);
-    teamIdFilter = teamParticipantId;
+    if (matchUpFilters.get('teamIdFilter')) table?.removeFilter(teamFilter);
+    matchUpFilters.set('teamIdFilter', teamParticipantId);
     if (teamParticipantId) {
       table?.addFilter(teamFilter);
       const { teamStats } = tournamentEngine.getParticipantStats({ teamParticipantId });
@@ -212,7 +214,7 @@ export function renderMatchUpTab() {
         // remove whatever filter is currently in place
         table?.removeFilter(searchFilter);
         // reset searchText
-        searchText = '';
+        matchUpFilters.set('searchText', '');
         // set filter to empty value
         table?.removeFilter();
       },
@@ -286,5 +288,5 @@ export function renderMatchUpTab() {
   ];
 
   const target = document.getElementById(MATCHUPS_CONTROL);
-  elements = controlBar({ table, target, items }).elements;
+  components.elements = controlBar({ table, target, items }).elements;
 }
