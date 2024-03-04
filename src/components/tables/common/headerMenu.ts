@@ -7,15 +7,15 @@ export const headerMenu = (displayTitles) => (_, column) => {
   const columns = table.getColumns();
   const menu = [];
 
-  for (let column of columns) {
+  for (const column of columns) {
     const def = column.getDefinition();
     if (def.title) {
-      let icon = document.createElement('i');
+      const icon = document.createElement('i');
       icon.classList.add('fas');
       icon.classList.add(column.isVisible() ? CHECKBOX : 'fa-square');
 
-      let label = document.createElement('span');
-      let title = document.createElement('span');
+      const label = document.createElement('span');
+      const title = document.createElement('span');
 
       const displayTitle = displayTitles?.[def.field] || def.displayTitle || def.title;
       title.textContent = ' ' + displayTitle;
@@ -43,7 +43,7 @@ export const headerMenu = (displayTitles) => (_, column) => {
             icon.classList.remove(CHECKBOX);
             icon.classList.add('fa-square');
           }
-        }
+        },
       });
     }
   }

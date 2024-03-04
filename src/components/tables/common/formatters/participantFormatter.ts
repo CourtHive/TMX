@@ -54,7 +54,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
   }
   if (hasWinner) {
     const winningSide = def.field === data.winningSide;
-    elem.style = winningSide ? 'color: green' : 'color: red';
+    elem.style.color = winningSide ? 'green' : 'red';
   } else {
     const sex = value?.sex || data?.person?.sex;
     const color = (sex === MALE && '#2E86C1') || (sex === FEMALE && '#AA336A') || '';
