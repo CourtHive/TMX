@@ -1,6 +1,8 @@
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
+import { percentSorter } from '../common/sorters/percentSorter';
+import { orderSorter } from '../common/sorters/orderSorter';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT } from 'constants/tmxConstants';
@@ -99,16 +101,35 @@ export function getStatsColumns() {
       maxWidth: 80,
     },
     {
+      formatter: percentFormatter,
+      field: 'averagePressure',
       headerHozAlign: CENTER,
+      sorter: percentSorter,
+      hozAlign: CENTER,
+      maxWidth: 70,
+      title: 'PS',
+    },
+    {
+      formatter: percentFormatter,
+      field: 'averageVariation',
+      headerHozAlign: CENTER,
+      sorter: percentSorter,
+      hozAlign: CENTER,
+      maxWidth: 70,
+      title: 'RV',
+    },
+    {
+      headerHozAlign: CENTER,
+      sorter: orderSorter,
       hozAlign: CENTER,
       title: 'Order',
       field: 'order',
       maxWidth: 80,
     },
     {
-      title: 'Group',
       field: 'groupName',
       visible: false,
+      title: 'Group',
     },
   ];
 }

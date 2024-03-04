@@ -23,7 +23,7 @@ export function handleRoundHeaderClick(props) {
         color: 'blue',
       },
       {
-        onClick: () => addAdHocRound({ ...props, roundNumber: undefined, newRound: true }),
+        onClick: () => addAdHocRound({ ...props, structure, roundNumber: undefined, newRound: true }),
         text: addRoundAction,
         color: 'blue',
       },
