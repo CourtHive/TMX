@@ -47,7 +47,7 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
 
   const getTableData = () => {
     const { event, drawDefinition } = tournamentEngine.getEvent({ eventId, drawId });
-    headerElement.innerHTML = event?.eventName;
+    if (headerElement) headerElement.innerHTML = event?.eventName;
 
     if (!event) return { error: 'EVENT_NOT_FOUND' };
 

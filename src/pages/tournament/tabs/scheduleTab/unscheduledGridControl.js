@@ -5,10 +5,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 
-import { LEFT, RIGHT } from 'constants/tmxConstants';
-
-const ALL_EVENTS = 'All events';
-const ALL_ROUNDS = 'All rounds';
+import { ALL_EVENTS, ALL_ROUNDS, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function unscheduledGridControl({
   updateUnscheduledTable,

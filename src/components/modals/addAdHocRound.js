@@ -148,5 +148,5 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
 
   const content = (elem) => (inputs = renderForm(elem, options));
 
-  update = openModal({ title: 'Add round', content, buttons }).update;
+  update = openModal({ title: 'Add round', content, structure, buttons }).update;
 }
