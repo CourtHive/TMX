@@ -194,8 +194,8 @@ devDependencies:
     specifier: 3.12.0
     version: 3.12.0
   cz-git:
-    specifier: 1.8.0
-    version: 1.8.0
+    specifier: 1.9.0
+    version: 1.9.0
   dotenv:
     specifier: 16.4.5
     version: 16.4.5
@@ -2912,9 +2912,9 @@ packages:
       { integrity: sha512-GAj5FOq0Hd+RsCGVJxZuKaIDXDf3h6GQoNEjFgbLLI/trgtavwUbSnZ5pVfg27DVCaWjIohryS0JFwIJyT2cMg== }
     dev: false
 
-  /cz-git@1.8.0:
+  /cz-git@1.9.0:
     resolution:
-      { integrity: sha512-XL5nXiqbW10YswQqWODrbwyWhydw3mLhP8OBrXyl8u4sIjTf/6mhGsizd6FA2VgPc4tZaNGguFoUyDj7vIBouw== }
+      { integrity: sha512-xxqJwVS4MseVXLOlIK6w97WSHlo14BaOmhO3H6qB0H2Q5Kf3URMwJuYbInq1GxAVT14XLUZBhMy/3Di+lux/Cg== }
     engines: { node: '>=v12.20.0' }
     dev: true
 
