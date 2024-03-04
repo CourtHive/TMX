@@ -23,7 +23,13 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
   const groupNames = {};
 
   const getParticipantResults = () => {
-    const { participants, eventData } = tournamentEngine.getEventData({ eventId, allParticipantResults: true });
+    const { participants, eventData } = tournamentEngine.getEventData({
+      participantsProfile: { withScaleValues: true },
+      allParticipantResults: true,
+      pressureRating: true,
+      refreshResults: true,
+      eventId,
+    });
     const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structure = drawData?.structures?.find((s) => s.structureId === structureId);
 
@@ -69,6 +75,8 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
     const groupBy = Object.values(groupNames).length > 1 ? ['groupName'] : undefined;
     table = new Tabulator(element, {
       headerSortElement: headerSortElement([
+        'averageVariation',
+        'averagePressure',
         'participantName',
         'gamesResult',
         'matchUpsPct',

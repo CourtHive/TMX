@@ -13,7 +13,7 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
   const address = participant?.person?.addresses?.[0];
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
 
-  const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
+  const ratingType = eventType === TEAM ? 'AVERAGE' : eventType; // TODO: AVERAGE is to be team average
   const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === WTN)?.scaleValue;
   const utr = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === UTR)?.scaleValue;
   const ratings = { wtn, utr };
