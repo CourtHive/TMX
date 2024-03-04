@@ -105,8 +105,8 @@ dependencies:
     specifier: 1.8.2
     version: 1.8.2
   public-google-sheets-parser:
-    specifier: 1.3.4
-    version: 1.3.4
+    specifier: 1.4.0
+    version: 1.4.0
   qrious:
     specifier: 4.0.2
     version: 4.0.2
@@ -6098,9 +6098,9 @@ packages:
       safe-buffer: 5.2.1
     dev: true
 
-  /public-google-sheets-parser@1.3.4:
+  /public-google-sheets-parser@1.4.0:
     resolution:
-      { integrity: sha512-Cd0zeKiaMTaDJQrC5dq3ARB819AHt4A7YhtkU1AmrXi9orffbg4mn5vp2gW+xvJSgHvgmHd6K5CutLagkJ8n1Q== }
+      { integrity: sha512-jrbj0Nv734RLEiZSZsYywNc5biv3yUythVmUJMMiMz0s8R4FLW/Dhvx1/AFQyi8dLumAbI6C/jQwfv9iK7TwEw== }
     dev: false
 
   /punycode@1.4.1:
