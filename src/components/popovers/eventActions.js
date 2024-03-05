@@ -1,3 +1,4 @@
+import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
 import { tipster } from 'components/popovers/tipster';
@@ -30,7 +31,7 @@ export const eventActions = (nestedTables) => (e, cell) => {
 
   const items = [
     {
-      onClick: () => console.log('Display Settings', data),
+      onClick: () => editDisplaySettings({ eventId: data.eventId }),
       text: 'Display Settings',
     },
     {

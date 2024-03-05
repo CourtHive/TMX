@@ -26,7 +26,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
         },
         composition: {
           configuration: {
-            participantDetail: 'TEAM',
+            participantDetail: 'ADDRESS', // ['ADDRESS', 'TEAM']
             genderColor: true,
             winnerColor: true,
             scaleAttributes,
