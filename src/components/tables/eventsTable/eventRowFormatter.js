@@ -14,7 +14,7 @@ import { getDrawsColumns } from './getDrawsColumns';
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 
-export function eventRowFormatter(row) {
+export const eventRowFormatter = (setTable) => (row) => {
   const holderEl = document.createElement('div');
   const controlEl = document.createElement('div');
   controlEl.className = 'tableControl';
@@ -41,7 +41,7 @@ export function eventRowFormatter(row) {
 
   row.getElement().appendChild(holderEl);
 
-  const columns = getDrawsColumns(data);
+  const columns = getDrawsColumns(data, row);
 
   const drawsTable = new Tabulator(tableEl, {
     headerSortElement: headerSortElement(['entries']),
@@ -57,6 +57,7 @@ export function eventRowFormatter(row) {
 
   const event = row.getData().event;
   const eventId = event.eventId;
+  setTable(eventId, drawsTable);
 
   const deleteSelectedDraws = () => {
     const selectedDraws = drawsTable.getSelectedData();
@@ -145,4 +146,4 @@ export function eventRowFormatter(row) {
     },
   ];
   controlBar({ table: drawsTable, target: controlEl, items });
-}
+};
