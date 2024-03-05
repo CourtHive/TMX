@@ -78,6 +78,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
   });
 
   const composition =
+    env.composition ||
     compositions?.[compositionName] ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
 
@@ -86,14 +87,17 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
     composition.configuration.scaleAttributes = env.scales[env.activeScale];
   }
 
-  composition.configuration.genderColor = true;
-  composition.configuration.showAddress = undefined;
-  // composition.configuration.participantDetail = 'TEAM';
-  // composition.configuration.participantDetail = 'ADDRESS';
-  composition.configuration.participantDetail = '_ustaSection.name';
+  if (!env.composition) {
+    composition.configuration.genderColor = true;
+    composition.configuration.showAddress = undefined;
+    // composition.configuration.participantDetail = 'TEAM';
+    // composition.configuration.participantDetail = 'ADDRESS';
+    // composition.configuration.participantDetail = '_ustaSection.name';
+    // composition.configuration.participantDetail = 'sex';
 
-  composition.configuration.allDrawPositions = true;
-  composition.configuration.drawPositions = true;
+    composition.configuration.allDrawPositions = true;
+    composition.configuration.drawPositions = true;
+  }
   composition.configuration.roundHeader = true;
 
   const drawsView = document.getElementById(DRAWS_VIEW);

@@ -28,8 +28,8 @@ export function addStructures({ drawId, structureId, callback }) {
         field: `${finishingPositionRange}-name`,
         placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
         id: `${finishingPositionRange}-name`,
-        width: '350px'
-      }
+        width: '350px',
+      },
     }));
 
   if (!fields || fields.length < 1) {
@@ -50,7 +50,7 @@ export function addStructures({ drawId, structureId, callback }) {
     value: PLAYOFF_NAME_BASE,
     label: 'Name base',
     field: 'nameBase',
-    id: 'nameBase'
+    id: 'nameBase',
   };
 
   const options = [nameBase].concat(fields);
@@ -72,8 +72,8 @@ export function addStructures({ drawId, structureId, callback }) {
     const methods = [
       {
         params: { drawId, structureId, playoffAttributes, roundProfiles, playoffStructureNameBase },
-        method: ADD_PLAYOFF_STRUCTURES
-      }
+        method: ADD_PLAYOFF_STRUCTURES,
+      },
     ];
     const postMutation = (result) => {
       if (result.success) {
@@ -93,7 +93,7 @@ export function addStructures({ drawId, structureId, callback }) {
   };
   const relationships = result.playoffRoundsRanges.map(({ finishingPositionRange }) => ({
     control: finishingPositionRange,
-    onChange: checkValid
+    onChange: checkValid,
   }));
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
@@ -102,7 +102,7 @@ export function addStructures({ drawId, structureId, callback }) {
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', id: 'addStructure', disabled: true, intent: 'is-info', close: true, onClick }
-    ]
+      { label: 'Add', id: 'addStructure', disabled: true, intent: 'is-info', close: true, onClick },
+    ],
   });
 }
