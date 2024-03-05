@@ -1,10 +1,12 @@
+import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
+import { visiblityFormatter } from '../common/formatters/visibility';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT, UTR, WTN } from 'constants/tmxConstants';
 
-export function getDrawsColumns(data) {
+export function getDrawsColumns(data, eventRow) {
   const drawActions = () => {
     console.log('drawActions');
   };
@@ -31,6 +33,14 @@ export function getDrawsColumns(data) {
       headerSort: false,
       formatter: 'rownum',
       hozAlign: CENTER,
+      width: 55,
+    },
+    {
+      title: '<i class="fa-solid fa-eye"></i>',
+      cellClick: toggleDrawPublishState(eventRow),
+      formatter: visiblityFormatter,
+      headerSort: false,
+      field: 'published',
       width: 55,
     },
     { title: 'Draw Name', field: DRAW_NAME, cellClick: drawDetail },
