@@ -86,6 +86,7 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
     composition.configuration.scaleAttributes = env.scales[env.activeScale];
   }
 
+  composition.configuration.genderColor = true;
   composition.configuration.showAddress = undefined;
   // composition.configuration.participantDetail = 'TEAM';
   // composition.configuration.participantDetail = 'ADDRESS';
