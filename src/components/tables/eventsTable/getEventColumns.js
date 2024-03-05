@@ -137,7 +137,7 @@ export function getEventColumns(nestedTables) {
       width: 20,
     },
     {
-      cellClick: eventActions,
+      cellClick: eventActions(nestedTables),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
