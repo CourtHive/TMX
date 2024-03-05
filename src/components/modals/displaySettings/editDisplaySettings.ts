@@ -5,8 +5,11 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderForm } from 'components/renderers/renderForm';
 import { isFunction } from 'functions/typeOf';
-import { NONE } from 'constants/tmxConstants';
 import { env } from 'settings/env';
+
+// constants
+import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
+import { NONE } from 'constants/tmxConstants';
 
 export function editDisplaySettings({ eventId, drawId, callback }) {
   const storedValue = tournamentEngine.findExtension({ discover: true, name: 'display', drawId, eventId }).extension
@@ -159,7 +162,7 @@ export function editDisplaySettings({ eventId, drawId, callback }) {
       value: { compositionName: selections.composition.compositionName, configuration: selections.configuration },
       name: 'display',
     };
-    const method = drawId ? 'addDrawDefinitionExtension' : 'addEventExtension';
+    const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
     const methods = [{ method, params: { eventId, drawId, extension } }];
     mutationRequest({ methods, callback: postMutation });
     isFunction(callback) && callback(selections.composition);
