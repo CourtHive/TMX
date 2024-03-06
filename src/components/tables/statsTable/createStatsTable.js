@@ -46,7 +46,9 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
 
     return (structure?.participantResults ?? []).filter((pResults) => {
       const participant = participantMap[pResults.participantId];
-      return !participantFilter || participant?.participantName?.toLowerCase().includes(participantFilter?.toLowerCase());
+      return (
+        !participantFilter || participant?.participantName?.toLowerCase().includes(participantFilter?.toLowerCase())
+      );
     });
   };
 
@@ -62,7 +64,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
   };
 
   const data = getTableData();
-  const columns = getStatsColumns({ data, replaceTableData });
+  const columns = getStatsColumns();
 
   const render = (data) => {
     destroyTable({ anchorId: DRAWS_VIEW });
