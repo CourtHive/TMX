@@ -46,9 +46,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
 
     return (structure?.participantResults ?? []).filter((pResults) => {
       const participant = participantMap[pResults.participantId];
-      return (
-        !participantFilter || participant?.participantName?.toLowerCase().includes(participantFilter?.toLowerCase())
-      );
+      return !participantFilter || participant?.participantName?.toLowerCase().includes(participantFilter?.toLowerCase());
     });
   };
 
@@ -56,12 +54,10 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
   const getTableData = () =>
     participantResults?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }));
 
-  const updateTableData = () => {
-    const participantResults = getParticipantResults();
-    return participantResults.map(mapParticipantResults);
-  };
+  const updateTableData = () =>
+    getParticipantResults()?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }));
   const replaceTableData = (params) => {
-    if (params.participantFilter) participantFilter = params.participantFilter;
+    if (params?.participantFilter !== undefined) participantFilter = params.participantFilter;
     table.replaceData(updateTableData());
   };
 
