@@ -2,6 +2,7 @@ import { mapDrawDefinition } from 'pages/tournament/tabs/eventsTab/mapDrawDefini
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
+import { eventTabDeleteDraws } from '../common/eventTabDeleteDraws';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -9,6 +10,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawsColumns } from './getDrawsColumns';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
@@ -23,20 +25,18 @@ export const eventRowFormatter = (setTable) => (row) => {
 
   holderEl.appendChild(controlEl);
 
-  const borderStyle = '1px solid #333';
   const tableEl = document.createElement('div');
-  tableEl.style.display = data.length ? '' : NONE;
   tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  const borderStyle = '1px solid #333';
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 
+  holderEl.style.borderBotom = borderStyle;
+  holderEl.style.boxSizing = 'border-box';
+  holderEl.style.borderTop = borderStyle;
+  holderEl.style.paddingLeft = '10px';
   holderEl.className = SUB_TABLE;
   holderEl.style.display = NONE;
-  holderEl.style.boxSizing = 'border-box';
-  holderEl.style.paddingLeft = '10px';
-  holderEl.style.borderTop = borderStyle;
-  holderEl.style.borderBotom = borderStyle;
-
   holderEl.appendChild(tableEl);
 
   row.getElement().appendChild(holderEl);
@@ -62,23 +62,18 @@ export const eventRowFormatter = (setTable) => (row) => {
   const deleteSelectedDraws = () => {
     const selectedDraws = drawsTable.getSelectedData();
     const drawIds = selectedDraws.map(({ drawId }) => drawId);
-    const methods = drawIds.map((drawId) => ({ method: DELETE_FLIGHT_AND_DRAW, params: { eventId, drawId } }));
+    drawsTable.deselectRow();
+    const methods = drawIds.map((drawId) => ({
+      params: { eventId, drawId, force: false },
+      method: DELETE_FLIGHT_AND_DRAW,
+    }));
     const callback = (result) => {
-      result.success && drawsTable.deleteRow(drawIds);
-      const eventRow = row?.getData();
-      if (eventRow) {
-        const matchUps = tournamentEngine.allEventMatchUps({
-          inContext: false,
-          eventId,
-        }).matchUps;
-        eventRow.drawDefs = eventRow.drawDefs.filter((drawDef) => !drawIds.includes(drawDef.drawId));
-        eventRow.matchUpsCount = matchUps?.length || 0; // table data is reactive!
-        eventRow.drawsCount -= 1; // table data is reactive!
+      if (!result.success) {
+        if (result.error?.message) tmxToast({ message: result.error.message, intent: 'is-danger' });
+        return;
       }
 
-      if (!drawsTable.getData().length) {
-        tableEl.style.display = NONE;
-      }
+      eventTabDeleteDraws({ eventRow: row, drawsTable, drawIds });
     };
     mutationRequest({ methods, callback });
   };

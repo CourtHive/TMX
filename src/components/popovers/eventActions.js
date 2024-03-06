@@ -32,7 +32,7 @@ export const eventActions = (nestedTables) => (e, cell) => {
   const items = [
     {
       onClick: () => editDisplaySettings({ eventId: data.eventId }),
-      text: 'Display Settings',
+      text: 'Display settings',
     },
     {
       text: published ? 'Unpublish' : 'Publish',

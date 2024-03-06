@@ -24,16 +24,13 @@ import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } fro
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderDrawView({ eventId, drawId, structureId, compositionName, roundsView, redraw }) {
+export function renderDrawView({ eventId, drawId, structureId, roundsView, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
 
   // eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
-
-  // const displayConfig = tournamentEngine.findExtension({ discover: true, name: 'DISPLAY' })?.value;
-  // console.log({ drawId, displayConfig });
 
   let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
 
@@ -77,9 +74,10 @@ export function renderDrawView({ eventId, drawId, structureId, compositionName, 
     drawId,
   });
 
+  const compositionName = eventData.eventInfo?.display?.compositionName;
   const composition =
+    compositions[compositionName] ||
     env.composition ||
-    compositions?.[compositionName] ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
 
   // override WTN default
