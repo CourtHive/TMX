@@ -106,12 +106,6 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   const updateDrawDisplay = () => {
     if (dual) return;
 
-    const update = () => {
-      getData();
-      updateDrawDisplay();
-    };
-    drawControlBar({ updateDisplay: update, drawId, structure, existingView: roundsView, callback });
-
     // FILTER: participantFilter used to filter matchUps from all rounds in target structure
     for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
       structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }) => {
@@ -213,6 +207,11 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     }
   };
 
+  const update = () => {
+    getData();
+    updateDrawDisplay();
+  };
+  drawControlBar({ updateDisplay: update, drawId, structure, existingView: roundsView, callback });
   const eventControlElement = document.getElementById(EVENT_CONTROL);
   const updateControlBar = (refresh) => {
     if (refresh) getData();

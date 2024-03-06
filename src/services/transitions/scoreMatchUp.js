@@ -17,6 +17,7 @@ export function enterMatchUpScore({ matchUpId, callback }) {
       {
         method: SET_MATCHUP_STATUS,
         params: {
+          allowChangePropagation: true,
           drawId: matchUp.drawId,
           outcome: {
             score: { sets },
