@@ -11,7 +11,8 @@ import { env } from 'settings/env';
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function editDisplaySettings({ eventId, drawId, callback }) {
+export function editDisplaySettings(params) {
+  const { eventId, drawId, callback } = params;
   const storedValue = tournamentEngine.findExtension({ discover: true, name: 'display', drawId, eventId }).extension
     ?.value;
   const noScheduleInfo = ['Wimbledon', 'French', 'ITF'];
@@ -170,7 +171,7 @@ export function editDisplaySettings({ eventId, drawId, callback }) {
   };
 
   openModal({
-    title: `Edit Display Settings`,
+    title: `Edit display settings`,
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },

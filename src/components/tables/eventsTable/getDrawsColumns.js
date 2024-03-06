@@ -1,5 +1,6 @@
 import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
 import { visiblityFormatter } from '../common/formatters/visibility';
+import { drawActions } from 'components/popovers/drawActions';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -7,9 +8,6 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT, UTR, WTN } from 'constants/tmxConstants';
 
 export function getDrawsColumns(data, eventRow) {
-  const drawActions = () => {
-    console.log('drawActions');
-  };
   const drawDetail = (_, cell) => {
     const { eventId, drawId } = cell.getRow().getData();
     navigateToEvent({ eventId, drawId, renderDraw: true });
@@ -63,7 +61,7 @@ export function getDrawsColumns(data, eventRow) {
       width: 80,
     },
     {
-      cellClick: drawActions,
+      cellClick: drawActions(eventRow),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
