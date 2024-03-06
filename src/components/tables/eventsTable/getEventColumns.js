@@ -1,5 +1,5 @@
+import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { openClose, toggleOpenClose } from '../common/formatters/openClose';
-import { togglePublishState } from 'services/publishing/togglePublishState';
 import { visiblityFormatter } from '../common/formatters/visibility';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
@@ -8,7 +8,7 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getEventColumns() {
+export function getEventColumns(nestedTables) {
   const eventDetail = (e, cell) => {
     e.stopPropagation();
     const eventId = cell.getRow().getData().eventId;
@@ -51,8 +51,8 @@ export function getEventColumns() {
     },
     {
       title: '<i class="fa-solid fa-eye"></i>',
+      cellClick: toggleEventPublishState(nestedTables),
       formatter: visiblityFormatter,
-      cellClick: togglePublishState,
       headerSort: false,
       field: 'published',
       width: 55,
@@ -137,7 +137,7 @@ export function getEventColumns() {
       width: 20,
     },
     {
-      cellClick: eventActions,
+      cellClick: eventActions(nestedTables),
       formatter: threeDots,
       responsive: false,
       headerSort: false,

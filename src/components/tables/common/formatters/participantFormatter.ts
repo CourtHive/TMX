@@ -24,7 +24,15 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
             return isFunction(onClick) && onClick({ ...params, event: params.pointerEvent, cell });
           },
         },
-        composition: { configuration: { flag: false, genderColor: true, participantDetail: 'TEAM', scaleAttributes } },
+        composition: {
+          configuration: {
+            participantDetail: 'ADDRESS', // ['ADDRESS', 'TEAM']
+            genderColor: true,
+            winnerColor: true,
+            scaleAttributes,
+            flag: false,
+          },
+        },
         matchUp: data.matchUp,
         participant,
         placeholder,

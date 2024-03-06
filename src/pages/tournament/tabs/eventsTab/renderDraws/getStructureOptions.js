@@ -2,7 +2,7 @@ import { tools, drawDefinitionConstants, tournamentEngine } from 'tods-competiti
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editStructureNames } from './editStructureNames';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { addStructures } from './addStructures';
+import { addStructures } from '../../../../../components/modals/addStructures';
 
 const { FINISHING_POSITIONS } = drawDefinitionConstants;
 

@@ -5,10 +5,12 @@ export const mapDrawDefinition =
   ({ drawDefinition, scaleValues }) => {
     const { drawId, drawName, drawType, entries, matchUpFormat, tieFormat } = drawDefinition;
 
+    const publishState = tournamentEngine.getPublishState({ drawId }).publishState;
+    const published = publishState?.status?.published;
     const entriesCount = entries?.filter(({ entryStatus }) => entryStatus !== 'WITHDRAWN')?.length;
     const assignedParticipantIds = tournamentEngine
       .getAssignedParticipantIds({
-        drawDefinition
+        drawDefinition,
       })
       .assignedParticipantIds?.filter(Boolean);
 
@@ -18,9 +20,10 @@ export const mapDrawDefinition =
       tieFormat, // needs to default to event.tieFormat
       utrAvg: scaleValues?.ratingsStats?.UTR?.avg,
       wtnAvg: scaleValues?.ratingsStats?.WTN?.avg,
+      published,
       drawName,
       drawType,
       eventId,
-      drawId
+      drawId,
     };
   };

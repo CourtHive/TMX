@@ -40,6 +40,8 @@ export function renderField(item) {
 
   const control = document.createElement('div');
   control.className = 'control font-medium';
+  if (item.controlVisible === false) control.style.display = NONE;
+  if (item.controlId) control.id = item.controlId;
 
   if (item.text) {
     const div = document.createElement('div');
@@ -101,6 +103,7 @@ export function renderField(item) {
     div.className = 'flexrow field nowrap';
     div.style.display = 'inline-block';
     const input = document.createElement('input');
+    if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
     inputElement = input;
     const intent = item.intent ?? 'is-success';
     input.className = `is-checkradio ${intent}`;
