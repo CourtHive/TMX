@@ -1,11 +1,12 @@
 import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
-import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
+// import { getRoundDisplayOptions } from '../options/roundDisplayOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
 import { controlBar } from 'components/controlBar/controlBar';
+import { getRoundTabs } from '../options/getRoundTabs';
 
 import { AUTOMATED_PLAYOFF_POSITIONING } from 'constants/mutationConstants';
-import { DRAW_CONTROL, NONE, RIGHT } from 'constants/tmxConstants';
+import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING, /*CONTAINER,*/ VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
@@ -46,8 +47,8 @@ export function drawControlBar({ updateDisplay, callback, structure, drawId, exi
   // when all matcheUps have been scored (structure is complete) auto-switch to finishing position/stats view
   // if there are playoff structures, button to populate them
   const setDisplay = ({ refresh, view }) => typeof callback === 'function' && callback({ refresh, view });
-  const displayOptions = getRoundDisplayOptions({ structure, drawId, existingView, callback: setDisplay });
-  if (displayOptions?.options.length) drawControlItems.push(displayOptions);
+  // const displayOptions = getRoundDisplayOptions({ structure, drawId, existingView, callback: setDisplay });
+  // if (displayOptions?.options.length) drawControlItems.push(displayOptions);
 
   if (isAdHoc) {
     const adHocOptions = getAdHocRoundOptions({ structure, drawId, callback });
@@ -57,6 +58,15 @@ export function drawControlBar({ updateDisplay, callback, structure, drawId, exi
     console.log('voluntary controlBar with [View participants]');
     // use modal with eligible players and selected players highlighted
   }
+
+  const tabs = getRoundTabs({ structure, existingView, drawId, callback: setDisplay }).tabs;
+
+  drawControlItems.push({
+    tabs,
+    onClick: () => setDisplay({ refresh: true, view: 'participants' }),
+    id: 'roundDisplayTabs',
+    location: LEFT,
+  });
 
   if (drawControlItems.length) {
     controlBar({ target: drawControl, items: drawControlItems });
