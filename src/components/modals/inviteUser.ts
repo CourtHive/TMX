@@ -41,7 +41,7 @@ export function inviteModal(callback, providers = []) {
           field: 'email',
         },
         {
-          label: 'User Roles',
+          label: 'User roles',
           dataType: 'tags',
           zIndex: '99999',
           multiple: true,
@@ -76,7 +76,7 @@ export function inviteModal(callback, providers = []) {
   };
 
   openModal({
-    title: 'Log in',
+    title: 'Invite user',
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },

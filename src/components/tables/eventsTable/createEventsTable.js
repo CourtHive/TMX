@@ -12,6 +12,11 @@ import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 
 export function createEventsTable() {
   let table;
+  const nestedTables = new Map();
+  const setNestedTable = (eventId, table) => {
+    if (nestedTables.has(eventId)) return;
+    nestedTables.set(eventId, table);
+  };
 
   const getTableData = () => {
     const eventData = tournamentEngine.getEvents({ withScaleValues: true });
@@ -27,7 +32,7 @@ export function createEventsTable() {
     table.replaceData(getTableData());
   };
 
-  const columns = getEventColumns();
+  const columns = getEventColumns(nestedTables);
 
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
@@ -45,7 +50,7 @@ export function createEventsTable() {
         'drawsCount',
       ]),
       responsiveLayoutCollapseStartOpen: false,
-      rowFormatter: eventRowFormatter,
+      rowFormatter: eventRowFormatter(setNestedTable),
       // minHeight: window.innerHeight * 0.8,
       height: window.innerHeight * 0.8,
       // height: // NOTE: setting a height causes scrolling issue

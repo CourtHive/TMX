@@ -22,8 +22,8 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     checkbox: true,
     fieldPair: {
       text: `Creates playoff for positions ${finishingPositionRange}`,
-      width: '400px'
-    }
+      width: '400px',
+    },
   }));
 
   if (!fields || fields.length < 1) {
@@ -35,7 +35,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     value: PLAYOFF_NAME_BASE,
     label: 'Playoff name',
     field: 'structureName',
-    id: 'structureName'
+    id: 'structureName',
   };
   const drawTypeOptions = getDrawTypeOptions({ isPlayoff: true });
   const playoffDrawType = {
@@ -43,7 +43,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     options: drawTypeOptions,
     label: 'Draw type',
     field: DRAW_TYPE,
-    id: DRAW_TYPE
+    id: DRAW_TYPE,
   };
 
   const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 4, groupSizeLimit: 8 });
@@ -53,27 +53,27 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     label: 'Group size',
     field: GROUP_SIZE,
     visible: false,
-    value: 4
+    value: 4,
   };
 
   const positionsToBePlayedOff = 'Positions to be played off:';
   const selectedPlayoffRange = {
     text: `${positionsToBePlayedOff} None`,
-    id: 'selectedPlayoffRange'
+    id: 'selectedPlayoffRange',
   };
   const admonition = {
-    text: 'Select group finishing positions. Selections must be sequential'
+    text: 'Select group finishing positions. Selections must be sequential',
   };
 
   const options = [playoffStructureName, playoffDrawType, groupSizeSelector, selectedPlayoffRange, admonition].concat(
-    fields
+    fields,
   );
 
   let inputs;
 
   const onClick = () => {
     const checkedRanges = playoffFinishingPositionRanges.filter(
-      ({ finishingPosition }) => inputs[getId(finishingPosition)]?.checked
+      ({ finishingPosition }) => inputs[getId(finishingPosition)]?.checked,
     );
     const finishingPositions = checkedRanges.map(({ finishingPosition }) => finishingPosition);
     const structureName = inputs.structureName.value;
@@ -81,7 +81,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     const playoffGroup = {
       finishingPositions,
       structureName,
-      drawType
+      drawType,
     };
 
     if (drawType === ROUND_ROBIN) {
@@ -92,8 +92,8 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     const methods = [
       {
         params: { drawId, structureId, playoffGroups: [playoffGroup], playoffStructureNameBase: PLAYOFF_NAME_BASE },
-        method: ADD_PLAYOFF_STRUCTURES
-      }
+        method: ADD_PLAYOFF_STRUCTURES,
+      },
     ];
 
     const postMutation = (result) => {
@@ -117,7 +117,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
       .map(({ finishingPositions }) => finishingPositions)
       .flat();
     const checkStatus = playoffFinishingPositionRanges.map(
-      ({ finishingPosition }) => inputs[getId(finishingPosition)].checked
+      ({ finishingPosition }) => inputs[getId(finishingPosition)].checked,
     );
     const selectedFinishingPositions = playoffFinishingPositionRanges
       .map(({ finishingPosition }) => inputs[getId(finishingPosition)].checked && finishingPosition)
@@ -139,7 +139,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
 
     const { validGroupSizes } = tournamentEngine.getValidGroupSizes({
       drawSize: finishingPositions?.length || 4,
-      groupSizeLimit: 8
+      groupSizeLimit: 8,
     });
     const options = validGroupSizes.map((size) => ({ label: size, value: size }));
     const groupSizeSelect = inputs[GROUP_SIZE];
@@ -158,13 +158,13 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
   const relationships = playoffFinishingPositionRanges
     .map(({ finishingPosition }) => ({
       control: getId(finishingPosition),
-      onChange: checkFinishingPositions
+      onChange: checkFinishingPositions,
     }))
     .concat([
       {
         onChange: drawTypeChange,
-        control: DRAW_TYPE
-      }
+        control: DRAW_TYPE,
+      },
     ]);
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
 
@@ -173,7 +173,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', id: 'addStructure', intent: 'is-info', disabled: true, close: true, onClick }
-    ]
+      { label: 'Add', id: 'addStructure', intent: 'is-info', disabled: true, close: true, onClick },
+    ],
   });
 }

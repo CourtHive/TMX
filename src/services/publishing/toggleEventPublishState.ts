@@ -1,11 +1,17 @@
-import { PUBLISH_EVENT, UNPUBLISH_EVENT } from 'constants/mutationConstants';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 
-export function togglePublishState(_, cell) {
+// constants
+import { PUBLISH_EVENT, UNPUBLISH_EVENT } from 'constants/mutationConstants';
+
+export const toggleEventPublishState = (nestedTables) => (_, cell) => {
   const row = cell.getRow().getData();
+  const eventId = row.eventId;
+  const published = !row.published;
   const method = row.published ? UNPUBLISH_EVENT : PUBLISH_EVENT;
-  const methods = [{ method, params: { eventId: row.eventId } }];
+  const drawsRows = nestedTables.get(eventId).getRows();
+  drawsRows.forEach((drawRow) => drawRow.update({ published }));
+  const methods = [{ method, params: { eventId } }];
   const postMutation = (result) => {
     if (result?.success) {
       cell.getRow().update({ published: !row.published });
@@ -14,4 +20,4 @@ export function togglePublishState(_, cell) {
     }
   };
   mutationRequest({ methods, callback: postMutation });
-}
+};
