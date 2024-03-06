@@ -4,7 +4,7 @@ import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 
 const { TEAM } = participantConstants;
 
-export const handleScoreClick = (replaceTableData) => (e, cell) => {
+export const handleScoreClick = (replaceTableData) => (_, cell) => {
   const row = cell.getRow();
   const data = row.getData();
   const { matchUpId, readyToScore, matchUpType, drawId, eventName } = data.matchUp;
