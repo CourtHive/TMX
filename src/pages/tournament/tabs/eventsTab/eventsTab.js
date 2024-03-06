@@ -12,7 +12,8 @@ import { eventsView } from './eventsView';
 
 import { EVENTS_TAB, ROUNDS_STATS, ROUNDS_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 
-export function renderEventsTab({ eventId, drawId, structureId, renderDraw, roundsView } = {}) {
+export function renderEventsTab(params) {
+  const { eventId, drawId, structureId, renderDraw, roundsView = 'roundsColumns' } = params;
   highlightTab(EVENTS_TAB);
   destroyTables();
   cleanupDrawPanel();
@@ -25,9 +26,9 @@ export function renderEventsTab({ eventId, drawId, structureId, renderDraw, roun
       const result = renderDrawPanel({ eventId, drawId, headerElement });
       if (result.success) {
         if (roundsView === ROUNDS_TABLE) {
-          createRoundsTable({ eventId, drawId, structureId });
+          createRoundsTable({ eventId, drawId, structureId, roundsView });
         } else if (roundsView === ROUNDS_STATS) {
-          createStatsTable({ eventId, drawId, structureId });
+          createStatsTable({ eventId, drawId, structureId, roundsView });
         } else {
           renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView });
         }
