@@ -160,7 +160,6 @@ export function controlBar(params) {
     if (!itemConfig.id && (!itemConfig?.label || itemConfig.hide)) {
       continue;
     }
-
     if (itemConfig.options) {
       const elem = dropDownButton({ target: location, button: itemConfig, stateChange });
       if (itemConfig.visible === false) elem.style.display = NONE;
@@ -193,6 +192,28 @@ export function controlBar(params) {
         if (itemConfig.id) elements[itemConfig.id] = elem;
         location?.appendChild(elem);
       }
+    } else if (itemConfig.tabs) {
+      const elem = document.createElement('div');
+      elem.className = 'tabs is-toggle is-toggle-rounded';
+      const ul = document.createElement('ul');
+      elem.appendChild(ul);
+      itemConfig.tabs.forEach((tab) => {
+        const li = document.createElement('li');
+        if (tab.active) li.classList.add('is-active');
+        const a = document.createElement('a');
+        li.appendChild(a);
+        const span = document.createElement('span');
+        a.appendChild(span);
+        span.innerHTML = tab.label;
+        span.onclick = (e) => {
+          ul.querySelectorAll('li').forEach((li) => li.classList.remove('is-active'));
+          li.classList.add('is-active');
+          if (isFunction(tab.onClick)) tab.onClick(e, itemConfig);
+        };
+        ul.appendChild(li);
+      });
+      if (itemConfig.id) elements[itemConfig.id] = elem;
+      location.appendChild(elem);
     } else {
       const elem = barButton(itemConfig);
       elem.onclick = (e) => onClick(e, itemConfig);
@@ -200,7 +221,7 @@ export function controlBar(params) {
       location?.appendChild(elem);
     }
 
-    if (!itemConfig?.label || itemConfig.hide) {
+    if ((!(itemConfig?.label || itemConfig.tabs) || itemConfig.hide) && elements[itemConfig.id]) {
       elements[itemConfig.id].style.display = NONE;
     }
   }

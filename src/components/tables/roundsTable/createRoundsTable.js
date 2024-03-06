@@ -56,7 +56,7 @@ export async function createRoundsTable({ eventId, drawId, structureId, matchUps
     return matchUps.map(mapRound);
   };
   const replaceTableData = (params) => {
-    if (params.participantFilter) participantFilter = params.participantFilter;
+    if (params?.participantFilter) participantFilter = params.participantFilter;
     table.replaceData(updateTableData());
   };
 
