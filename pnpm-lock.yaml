@@ -99,8 +99,8 @@ dependencies:
     specifier: 2.5.0
     version: 2.5.0
   pdfmake:
-    specifier: 0.2.9
-    version: 0.2.9
+    specifier: 0.2.10
+    version: 0.2.10
   pikaday:
     specifier: 1.8.2
     version: 1.8.2
@@ -5274,8 +5274,8 @@ packages:
       sha.js: 2.4.11
     dev: true
 
-  /pdfmake@0.2.9:
-    resolution: {integrity: sha512-LAtYwlR8cCQqbxESK2d50DYaVAzAC9Id9NjilRte6Tb9pyHUB+Z50nhD0imuBL0eDyXQKvEYSNjo3P5AOc2ZCg==}
+  /pdfmake@0.2.10:
+    resolution: {integrity: sha512-doipFnmE1UHSk+Z3wfQuVweVQqx2pE/Ns2G5gCqZmWwqjDj+mZHnZYH/ryXWoIfD+iVdZUAutgI/VHkTCN+Xrw==}
     engines: {node: '>=12'}
     dependencies:
       '@foliojs-fork/linebreak': 1.1.1
