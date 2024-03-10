@@ -56,8 +56,8 @@ export function inviteModal(callback, providers = []) {
         },
         {
           label: 'Scoring',
-          field: 'Score',
-          id: 'Score',
+          field: 'score',
+          id: 'score',
           checkbox: true,
         },
         {
@@ -92,7 +92,7 @@ export function inviteModal(callback, providers = []) {
       relationships,
     ));
 
-  const roles = ['client', 'admin', 'Score', 'developer', 'generate'];
+  const roles = ['client', 'admin', 'score', 'developer', 'generate'];
   const permissions = ['devMode'];
   const submitInvite = () => {
     const email = inputs.email.value;
