@@ -6,13 +6,11 @@ import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 
 export function inviteModal(callback, providers = []) {
+  const providerList = providers.map(({ key, value }) => ({ label: value.organisationName, value: key }));
   const delimiter = ',';
   let inputs;
 
   const values = { providerId: '' };
-
-  const setProviderId = (value) => (values.providerId = value);
-  const providerList = providers.map(({ key, value }) => ({ label: value.organisationName, value: key }));
 
   const enableSubmit = ({ inputs }) => {
     const value = inputs['email'].value;
@@ -41,38 +39,68 @@ export function inviteModal(callback, providers = []) {
           field: 'email',
         },
         {
-          label: 'User roles',
-          dataType: 'tags',
-          zIndex: '99999',
-          multiple: true,
-          field: 'roles',
-          id: 'roles',
-          type: 'tags',
-          options: [
-            { label: 'Developer', value: 'developer' },
-            { label: 'Generate', value: 'generate' },
-            { label: 'Client', value: 'client' },
-            { label: 'Admin', value: 'admin' },
-            { label: 'Score', value: 'score' },
-          ],
+          text: 'Roles',
+          header: true,
         },
         {
-          typeAhead: { list: providerList, callback: setProviderId },
-          placeholder: 'providerId',
+          label: 'Client',
+          field: 'client',
+          checkbox: true,
+          id: 'client',
+        },
+        {
+          label: 'Admin',
+          checkbox: true,
+          field: 'admin',
+          id: 'admin',
+        },
+        {
+          label: 'Scoring',
+          field: 'Score',
+          id: 'Score',
+          checkbox: true,
+        },
+        {
+          label: 'Developer',
+          field: 'developer',
+          id: 'developer',
+          checkbox: true,
+        },
+        {
+          label: 'Generate',
+          field: 'generate',
+          checkbox: true,
+          id: 'generate',
+        },
+        {
           value: values.providerId,
-          label: 'Provider Id',
+          options: providerList,
           field: 'providerId',
+          label: 'Provider',
+        },
+        {
+          text: 'Permissions',
+          header: true,
+        },
+        {
+          label: 'Dev mode',
+          field: 'devMode',
+          checkbox: true,
+          id: 'devmode',
         },
       ],
       relationships,
     ));
 
+  const roles = ['client', 'admin', 'Score', 'developer', 'generate'];
+  const permissions = ['devMode'];
   const submitInvite = () => {
     const email = inputs.email.value;
     const providerId = inputs.providerId.value;
-    const roles = inputs.roles.BulmaTagsInput().items.map(({ value }) => value);
+    const userPermissions = permissions.map((permission) => inputs[permission].checked && permission).filter(Boolean);
+    const userRoles = roles.map((role) => inputs[role].checked && role).filter(Boolean);
     const response = (res) => isFunction(callback) && callback(res);
-    inviteUser(email, providerId, roles).then(response, (err) => console.log({ err }));
+    inviteUser(email, providerId, userRoles, userPermissions).then(response, (err) => console.log({ err }));
   };
 
   openModal({
