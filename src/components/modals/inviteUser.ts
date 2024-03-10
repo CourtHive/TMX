@@ -48,25 +48,40 @@ export function inviteModal(callback, providers = []) {
           label: 'Client',
           field: 'client',
           checkbox: true,
+          width: '50%',
           id: 'client',
+          fieldPair: {
+            label: 'Director',
+            field: 'director',
+            id: 'director',
+            checkbox: true,
+          },
         },
         {
           label: 'Admin',
           checkbox: true,
           field: 'admin',
+          width: '50%',
           id: 'admin',
+          fieldPair: {
+            label: 'Official',
+            field: 'official',
+            id: 'official',
+            checkbox: true,
+          },
         },
         {
           label: 'Scoring',
           field: 'score',
+          width: '50%',
           id: 'score',
           checkbox: true,
-        },
-        {
-          label: 'Developer',
-          field: 'developer',
-          id: 'developer',
-          checkbox: true,
+          fieldPair: {
+            label: 'Developer',
+            field: 'developer',
+            id: 'developer',
+            checkbox: true,
+          },
         },
         {
           label: 'Generate',
@@ -94,13 +109,14 @@ export function inviteModal(callback, providers = []) {
       relationships,
     ));
 
-  const roles = ['client', 'admin', 'score', 'developer', 'generate'];
+  const roles = ['client', 'admin', 'score', 'developer', 'generate', 'director', 'official'];
   const permissions = ['devMode'];
   const submitInvite = () => {
     const email = inputs.email.value;
     const providerId = inputs.providerId.value;
     const userPermissions = permissions.map((permission) => inputs[permission].checked && permission).filter(Boolean);
     const userRoles = roles.map((role) => inputs[role].checked && role).filter(Boolean);
+    console.log({ userRoles });
     const response = (res) => isFunction(callback) && callback(res);
     inviteUser(email, providerId, userRoles, userPermissions).then(response, (err) => console.log({ err }));
   };
