@@ -62,7 +62,7 @@ export function eventsView() {
       onClick: () => toggleOOP(tournamentPubState.orderOfPlay, updateOopState),
       hide: !somethingPublished,
       label: oopButtonLabel(tournamentPubState.orderOfPlay),
-      intent: somethingPublished ? '' : 'is-primary',
+      intent: tournamentPubState?.orderOfPlay ? 'is-primary' : '',
       id: 'oopButton',
       location: RIGHT,
     },
