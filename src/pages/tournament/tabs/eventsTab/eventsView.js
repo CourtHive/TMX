@@ -3,12 +3,16 @@ import { createEventsTable } from 'components/tables/eventsTable/createEventsTab
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { controlBar } from 'components/controlBar/controlBar';
+import { tournamentEngine } from 'tods-competition-factory';
 import { editEvent } from './editEvent';
 
 import { EVENTS_CONTROL, LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';
 import { DELETE_EVENTS } from 'constants/mutationConstants';
 
 export function eventsView() {
+  const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
+  const somethingPublished = tournamentPubState?.status?.published;
+
   const { table } = createEventsTable();
 
   const eventAdded = (result) => {
@@ -24,6 +28,17 @@ export function eventsView() {
 
     const callback = (result) => result.success && table?.deleteRow(eventIds);
     mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
+  };
+
+  const oopAction = (published) => (published ? 'Unpublish' : 'Publish');
+  const oopButtonLabel = (published) => `${oopAction(published)} OOP`;
+  const updateOopState = (result) => {
+    if (result?.success) {
+      const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
+      const button = document.getElementById('oopButton');
+      button.innerText = oopButtonLabel(tournamentPubState.orderOfPlay);
+      button.classList.toggle('is-primary');
+    }
   };
 
   const items = [
@@ -44,6 +59,14 @@ export function eventsView() {
       search: true,
     },
     {
+      onClick: () => toggleOOP(tournamentPubState.orderOfPlay, updateOopState),
+      hide: !somethingPublished,
+      label: oopButtonLabel(tournamentPubState.orderOfPlay),
+      intent: somethingPublished ? '' : 'is-primary',
+      id: 'oopButton',
+      location: RIGHT,
+    },
+    {
       onClick: () => editEvent({ callback: eventAdded }),
       label: 'Add event',
       location: RIGHT,
@@ -52,4 +75,10 @@ export function eventsView() {
 
   const target = document.getElementById(EVENTS_CONTROL);
   controlBar({ table, target, items });
+}
+
+function toggleOOP(published, callback) {
+  const method = published ? 'unPublishOrderOfPlay' : 'publishOrderOfPlay';
+  const methods = [{ method }];
+  mutationRequest({ methods, callback });
 }
