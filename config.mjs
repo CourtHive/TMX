@@ -21,7 +21,7 @@ if (args.check && localEnvFileExists) process.exit(0);
 
 const base = {
   ...((await fileExists(developmentEnvPath)) && parse(await readFile(developmentEnvPath))),
-  ...(localEnvFileExists && parse(await readFile(localEnvFilePath))),
+  ...(localEnvFileExists && parse(await readFile(localEnvPath))),
 };
 
 const { environment } = {
@@ -33,10 +33,9 @@ const { environment } = {
         name: 'environment',
         type: 'list',
         choices: [
-          { name: 'Standalone', value: 'standalone' },
           { name: 'Local', value: 'local' },
-          { name: 'Documentation', value: 'documentation' },
-          { name: 'courthive', value: 'courthive' },
+          { name: 'Production', value: 'production' },
+          { name: 'Standalone', value: 'standalone' },
         ],
         default: 'local',
         describe: 'Environment',
