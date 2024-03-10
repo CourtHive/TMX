@@ -202,14 +202,14 @@ export function controlBar(params) {
         if (tab.active) li.classList.add('is-active');
         const a = document.createElement('a');
         li.appendChild(a);
-        const span = document.createElement('span');
-        a.appendChild(span);
-        span.innerHTML = tab.label;
-        span.onclick = (e) => {
+        a.onclick = (e) => {
           ul.querySelectorAll('li').forEach((li) => li.classList.remove('is-active'));
           li.classList.add('is-active');
           if (isFunction(tab.onClick)) tab.onClick(e, itemConfig);
         };
+        const span = document.createElement('span');
+        span.innerHTML = tab.label;
+        a.appendChild(span);
         ul.appendChild(li);
       });
       if (itemConfig.id) elements[itemConfig.id] = elem;

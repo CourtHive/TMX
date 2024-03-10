@@ -62,10 +62,10 @@ export function drawControlBar({ updateDisplay, callback, structure, drawId, exi
   const tabs = getRoundTabs({ structure, existingView, drawId, callback: setDisplay }).tabs;
 
   drawControlItems.push({
-    tabs,
     onClick: () => setDisplay({ refresh: true, view: 'participants' }),
     id: 'roundDisplayTabs',
     location: LEFT,
+    tabs,
   });
 
   if (drawControlItems.length) {
