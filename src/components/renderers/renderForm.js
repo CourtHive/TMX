@@ -19,7 +19,8 @@ export function renderForm(elem, items, relationships) {
 
       const text = document.createElement('div');
       text.className = 'flexaligncenter';
-      text.style = 'height: 2.5em; padding-right: 1em;';
+      text.style =
+        item.style || (item.header && 'font-weight: bold; font-size: larger;') || 'height: 2.5em; padding-right: 1em;';
       const content = document.createElement('div');
       if (item.id) content.id = item.id;
       content.className = 'content';
