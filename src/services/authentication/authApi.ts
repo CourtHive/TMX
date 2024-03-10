@@ -7,8 +7,9 @@ export async function systemLogin(email, password) {
   });
 }
 
-export async function inviteUser(email, providerId, roles) {
+export async function inviteUser(email, providerId, roles, permissions) {
   return baseApi.post('/auth/invite', {
+    permissions,
     providerId,
     email,
     roles,
