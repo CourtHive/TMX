@@ -11,9 +11,6 @@ dependencies:
   '@creativebulma/bulma-badge':
     specifier: ^1.0.1
     version: 1.0.1
-  '@creativebulma/bulma-tagsinput':
-    specifier: ^1.0.3
-    version: 1.0.3
   '@event-calendar/core':
     specifier: 2.6.1
     version: 2.6.1
@@ -883,11 +880,6 @@ packages:
   /@creativebulma/bulma-badge@1.0.1:
     resolution:
       { integrity: sha512-cTMgxPdTOsAfPqd9wbrvKNUTvnIt+pNgwwO9Xzu6MRUIFlvGRtIVApaV51f3wt0/uI78BpKv5FPAtEJbmSTZOg== }
-    dev: false
-
-  /@creativebulma/bulma-tagsinput@1.0.3:
-    resolution:
-      { integrity: sha512-uQg0KEBcvEmSfwozv2EkFtqai1+pwOgunt3YLlADjRuyKXQePcR3nPW4EDnLMsCt9XlDr4RLu5pcp3XwHIhaOQ== }
     dev: false
 
   /@esbuild/aix-ppc64@0.19.12:
@@ -3374,12 +3366,6 @@ packages:
     engines: { node: '>=8' }
     dependencies:
       is-obj: 2.0.0
-    dev: true
-
-  /dotenv@16.4.5:
-    resolution:
-      { integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg== }
-    engines: { node: '>=12' }
     dev: true
 
   /duplexer2@0.1.4:
