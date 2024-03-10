@@ -37,6 +37,8 @@ export function connectSocket(callback) {
     timeout: 20000,
   };
   if (!oi.socket) {
+    // const local = window.location.host.includes('localhost') || window.location.hostname === '127.0.0.1';
+    // const socketPath = env.socketPath || local ? 'http://127.0.0.1:8383' : 'https://courthive.net';
     const socketPath = env.socketPath || process.env.SERVER;
     const connectionString = `${socketPath}/tmx`; // TODO: change to /tmx
     oi.socket = io.connect(connectionString, connectionOptions);
