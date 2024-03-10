@@ -36,7 +36,7 @@ export function eventsView() {
     if (result?.success) {
       const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
       const button = document.getElementById('oopButton');
-      button.innerText = oopButtonLabel(tournamentPubState.orderOfPlay);
+      button.innerText = oopButtonLabel(tournamentPubState?.orderOfPlay?.published);
       button.classList.toggle('is-primary');
     }
   };
@@ -59,10 +59,10 @@ export function eventsView() {
       search: true,
     },
     {
-      onClick: () => toggleOOP(tournamentPubState.orderOfPlay, updateOopState),
+      onClick: () => toggleOOP(tournamentPubState?.orderOfPlay?.published, updateOopState),
       hide: !somethingPublished,
-      label: oopButtonLabel(tournamentPubState.orderOfPlay),
-      intent: tournamentPubState?.orderOfPlay ? 'is-primary' : '',
+      label: oopButtonLabel(tournamentPubState?.orderOfPlay?.published),
+      intent: tournamentPubState?.orderOfPlay?.published ? 'is-primary' : '',
       id: 'oopButton',
       location: RIGHT,
     },
