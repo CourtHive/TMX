@@ -1,4 +1,3 @@
-import BulmaTagsInput from '@creativebulma/bulma-tagsinput';
 import { emailValidator } from 'components/validators/emailValidator';
 import { inviteUser } from 'services/authentication/authApi';
 import { renderForm } from 'components/renderers/renderForm';
@@ -6,8 +5,11 @@ import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 
 export function inviteModal(callback, providers = []) {
-  const providerList = providers.map(({ key, value }) => ({ label: value.organisationName, value: key }));
-  const delimiter = ',';
+  const noProvider: any = { value: { organisationName: 'None' }, key: '' };
+  const providerList = [noProvider, ...providers].map(({ key, value }) => ({
+    label: value?.organisationName,
+    value: key,
+  }));
   let inputs;
 
   const values = { providerId: '' };
@@ -112,13 +114,6 @@ export function inviteModal(callback, providers = []) {
     ],
   });
 
-  BulmaTagsInput.attach(inputs.roles, {
-    closeDropdownOnItemSelect: true,
-    clearSelectionOnTyping: false,
-    noResultsLabel: 'not found',
-    delimiter,
-    maxTags: 2,
-  });
   const div = document.getElementById('roles');
   const input = div.querySelector('input');
   input.style.width = 'auto';
