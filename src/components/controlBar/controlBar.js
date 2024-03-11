@@ -87,7 +87,7 @@ export function controlBar(params) {
       if (itemConfig.focus) focus = input;
       input.className = 'input font-medium';
       input.setAttribute('type', 'text');
-      input.setAttribute('autocomplete', 'cc-number');
+      input.setAttribute('autocomplete', 'off');
       input.setAttribute('placeholder', item.placeholder || EMPTY_STRING);
       if (itemConfig.id) inputs[itemConfig.id] = input;
       if (itemConfig.id) input.setAttribute('id', itemConfig.id);

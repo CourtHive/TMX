@@ -19,7 +19,7 @@ export function createTypeAhead({ list, element, callback, currentValue, withCat
     element.addEventListener('keyup', catchTab, false);
   }
   if (typeof onChange === 'function') element.addEventListener('change', onChange);
-  element.setAttribute('autocomplete', 'cc-number');
+  element.setAttribute('autocomplete', 'off');
   element.addEventListener('awesomplete-selectcomplete', (c) => selectComplete(c), false);
   element.addEventListener('keyup', function (evt) {
     // auto select first item on 'Enter' *only* if selectcomplete hasn't been triggered

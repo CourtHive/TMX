@@ -35,8 +35,8 @@ export function inviteModal(callback, providers = []) {
         {
           iconLeft: 'fa-regular fa-envelope',
           placeholder: 'valid@email.com',
-          autocomplete: 'cc-number',
           validator: emailValidator,
+          autocomplete: 'off',
           label: 'Email',
           field: 'email',
         },
@@ -98,6 +98,12 @@ export function inviteModal(callback, providers = []) {
         {
           text: 'Permissions',
           header: true,
+        },
+        {
+          label: 'Delete Tournaments',
+          field: 'deleteTournament',
+          checkbox: true,
+          id: 'delete',
         },
         {
           label: 'Dev mode',

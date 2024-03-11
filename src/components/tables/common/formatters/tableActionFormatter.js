@@ -1,8 +1,8 @@
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
+import { removeTournament, requestTournament } from 'services/apis/servicesApi';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { getLoginState } from 'services/authentication/loginState';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { requestTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
@@ -18,13 +18,14 @@ export function actionFormatter(cell) {
   const tournamentId = cell.getValue();
 
   const deleteTournament = () => {
-    tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
-    function done() {
+    const done = () => {
       const row = cell.getRow();
       row.delete();
       const providerId = getLoginState()?.providerId;
       providerId && removeProviderTournament({ tournamentId, providerId });
-    }
+    };
+    const localDelete = () => tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
+    removeTournament({ tournamentId }).then(localDelete, (err) => console.log(err));
   };
 
   const confirmDelete = () => {
