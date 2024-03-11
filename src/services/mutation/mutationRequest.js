@@ -10,8 +10,10 @@ import dayjs from 'dayjs';
 
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 
-export async function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, callback }) {
+export async function mutationRequest(params) {
+  const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
   const completion = (result) => {
+    if (tournamentRecord) factory[engine].reset();
     if (isFunction(callback)) {
       callback(result);
     } else {
@@ -22,6 +24,8 @@ export async function mutationRequest({ methods, engine = TOURNAMENT_ENGINE, cal
   if (!Array.isArray(methods)) return completion();
   const factoryEngine = factory[engine];
   if (!factoryEngine) return completion();
+
+  if (tournamentRecord) factoryEngine.setState(tournamentRecord);
 
   const getProviderId = (tournamentRecord) => tournamentRecord?.parentOrganisation?.organisationId;
   const tournamentRecords = factoryEngine.getState()?.tournamentRecords ?? {};

@@ -1,8 +1,12 @@
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
+import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { getLoginState } from 'services/authentication/loginState';
 import { openModal } from 'components/modals/baseModal/baseModal';
+import { requestTournament } from 'services/apis/servicesApi';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
+import { context } from 'services/context';
 import { lang } from 'services/translator';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -39,13 +43,7 @@ export function actionFormatter(cell) {
     openModal({ title: lang.tr('actions.delete_tournament'), buttons, content });
   };
 
-  const tournamentEdit = () => {
-    console.log('tournament Edit');
-    const goEdit = (tournamentRecord) => {
-      console.log('edit:', { tournamentRecord });
-    };
-    tmx2db.findTournament(tournamentId).then(goEdit, (err) => console.log(err));
-  };
+  const tournamentEdit = () => getTournament({ tournamentId });
 
   const button = document.createElement('span');
   button.innerHTML = "<i class='fa fa-ellipsis-vertical'></i>";
@@ -64,4 +62,38 @@ export function actionFormatter(cell) {
   content.appendChild(button);
 
   return content;
+}
+
+export function getTournament({ tournamentId }) {
+  const state = getLoginState();
+  const provider = state?.provider;
+
+  const notFound = () => {
+    tmxToast({
+      message: 'Tournament not found',
+      onClose: () => {
+        context.router.navigate('/tournaments');
+      },
+      intent: 'is-warning',
+      pauseOnHover: true,
+    });
+  };
+
+  const goEdit = (result) => {
+    const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
+    if (tournamentRecord) {
+      editTournament({ tournamentRecord });
+    } else {
+      notFound();
+    }
+  };
+
+  if (provider) {
+    requestTournament({ tournamentId }).then(goEdit, (err) => console.log(err));
+  } else {
+    tmx2db.findTournament(tournamentId).then(
+      (res) => goEdit(res),
+      (err) => console.log(err),
+    );
+  }
 }
