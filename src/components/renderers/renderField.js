@@ -122,7 +122,7 @@ export function renderField(item) {
     input.className = 'input font-medium';
     if (item.class) input.classList.add(item.class);
     input.setAttribute('type', item.type || 'text');
-    input.setAttribute('autocomplete', item.autocomplete || 'cc-number');
+    input.setAttribute('autocomplete', item.autocomplete || 'off');
     input.setAttribute('placeholder', item.placeholder || '');
     if (item.disabled) input.setAttribute('disabled', true);
     if (item.id) input.setAttribute('id', item.id);
