@@ -16,6 +16,14 @@ export async function getProviders() {
   return await baseApi.post('/provider/allProviders', {});
 }
 
+export async function getUsers() {
+  return await baseApi.post('/auth/allusers', {});
+}
+
+export async function removeUser({ email }) {
+  return await baseApi.post('/auth/remove', { email });
+}
+
 export async function sendTournament({ tournamentRecord }) {
   return await baseApi.post('/factory/save', { tournamentRecord });
 }
