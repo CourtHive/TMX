@@ -54,7 +54,7 @@ export function createTournamentsTable() {
     data.sort((a, b) => new Date(b.startDate || b.start) - new Date(a.startDate || a.start));
     renderTable(data.map(mapTournamentRecord));
   };
-  const renderCalendarTable = (calendar) => {
+  const renderCalendarTable = (calendar = []) => {
     calendar.sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate));
     renderTable(calendar);
   };
