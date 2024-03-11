@@ -100,6 +100,12 @@ export function inviteModal(callback, providers = []) {
           header: true,
         },
         {
+          label: 'Delete Tournaments',
+          field: 'deleteTournament',
+          checkbox: true,
+          id: 'delete',
+        },
+        {
           label: 'Dev mode',
           field: 'devMode',
           checkbox: true,
