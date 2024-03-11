@@ -1,3 +1,4 @@
+import { getProviders, getUsers, removeUser } from 'services/apis/servicesApi';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
@@ -6,7 +7,6 @@ import { inviteModal } from 'components/modals/inviteUser';
 import { loginModal } from 'components/modals/loginModal';
 import { selectItem } from 'components/modals/selectItem';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { getProviders } from 'services/apis/servicesApi';
 import { tipster } from 'components/popovers/tipster';
 import { copyClick } from 'services/dom/copyClick';
 import { checkDevState } from './checkDevState';
@@ -68,6 +68,20 @@ export function impersonate() {
   });
 }
 
+export function removeUserDialog() {
+  getUsers().then(({ data }) => {
+    console.log({ data });
+    const options = data?.users?.map(({ value }) => {
+      return {
+        participantName: `${value.firstName} ${value.lastName} (${value.email})`,
+        onClick: () => removeUser(value).then(() => tmxToast({ message: 'User removed' })),
+      };
+    });
+
+    if (options) selectItem({ title: 'Select User', options, selectionLimit: 1 });
+  });
+}
+
 export function cancelImpersonation() {
   context.provider = undefined;
   context.router.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
@@ -115,6 +129,11 @@ export function initLoginToggle(id) {
           hide: !admin || impersonating,
           onClick: impersonate,
           text: 'Impersonate',
+        },
+        {
+          onClick: removeUserDialog,
+          text: 'Remove user',
+          hide: !admin,
         },
         {
           onClick: () =>
