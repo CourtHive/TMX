@@ -1,6 +1,6 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { importTournaments } from '../../services/storage/importTournaments';
-import { addTournament } from 'components/drawers/addTournamentDrawer';
+import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { fetchTournament } from 'components/modals/fetchTournament';
 import { getLoginState } from 'services/authentication/loginState';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -13,7 +13,7 @@ export function calendarControls(table) {
   const admin = state?.roles?.includes(SUPER_ADMIN);
 
   const actions = [
-    { label: 'Create new tournament', onClick: () => addTournament({ table }) },
+    { label: 'Create new tournament', onClick: () => editTournament({ table }) },
     { label: 'Import tournament', onClick: () => importTournaments(table) },
     admin && { label: 'Load by ID', onClick: () => fetchTournament({ table }) },
     { divider: true },
