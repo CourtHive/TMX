@@ -18,14 +18,14 @@ export function actionFormatter(cell) {
   const tournamentId = cell.getValue();
 
   const deleteTournament = () => {
+    const row = cell.getRow();
+    const providerId = getLoginState()?.providerId || row.getData().providerId;
     const done = () => {
-      const row = cell.getRow();
       row.delete();
-      const providerId = getLoginState()?.providerId;
       providerId && removeProviderTournament({ tournamentId, providerId });
     };
     const localDelete = () => tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
-    removeTournament({ tournamentId }).then(localDelete, (err) => console.log(err));
+    removeTournament({ providerId, tournamentId }).then(localDelete, (err) => console.log(err));
   };
 
   const confirmDelete = () => {
