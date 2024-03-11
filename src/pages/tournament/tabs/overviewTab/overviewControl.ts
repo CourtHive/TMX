@@ -19,7 +19,6 @@ export function overviewControl({ controlAnchor }) {
     } else {
       notesView.previousElementSibling.remove();
       notesView.style.border = 'none';
-      notesView.className = '';
       const content = notesView.querySelector('.ql-editor').innerHTML;
       removeAllChildNodes(notesView);
       notesView.innerHTML = content;
