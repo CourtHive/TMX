@@ -22,7 +22,6 @@ import 'styles/legacy/scoreboard.css';
 import 'styles/legacy/ddScoring.css';
 
 // import '@creativebulma/bulma-badge/dist/bulma-badge.min.css';
-import '@creativebulma/bulma-tagsinput/dist/css/bulma-tagsinput.min.css';
 import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
 import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'awesomplete/awesomplete.css';
