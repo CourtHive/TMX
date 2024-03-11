@@ -99,7 +99,6 @@ function setSubscriptions() {
       [topicConstants.MODIFY_MATCHUP]: (data) => {
         const matchUpId = data.matchUp?.matchUpId;
         context.matchUpsToBroadcast.push(matchUpId);
-        // TODO: use matchUpId to catch hydrated matchUp on next method call which hydrates matchUps
         env.devNotes && console.log('MODIFY_MATCHUP', data);
       },
     },
