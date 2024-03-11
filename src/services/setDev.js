@@ -12,9 +12,9 @@ import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
 import { baseApi } from './apis/baseApi';
 import { env } from 'settings/env';
+import dayjs from 'dayjs';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
-import dayjs from 'dayjs';
 
 const subscriptions = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
@@ -39,12 +39,12 @@ const subscriptions = {
   unPublishEventSeeding: (results) => functionOrLog('unPublishEventSeeding', results),
   unPublishOrderOfPlay: (results) => functionOrLog('unPublishOrderOfPlay', results),
   updateInContextMatchUp: (results) => functionOrLog('updateInContextMatchUp', results),
+  modifyTournamentDetail: (results) => functionOrLog('modifyTournamentDetail', results),
 };
 
 function functionOrLog(s, results) {
   return typeof window.dev?.subs?.[s] === 'function'
-    ? // TODO: use matchUpId to catch hydrated matchUp on next method call which hydrates matchUps
-      window.dev.subs[s](results)
+    ? window.dev.subs[s](results)
     : // eslint-disable-next-line no-console
       (window.dev.allSubscriptions || window.dev.subs?.[s]) && console.log(s, results);
 }
