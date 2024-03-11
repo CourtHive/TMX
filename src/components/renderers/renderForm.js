@@ -111,6 +111,11 @@ export function renderForm(elem, items, relationships) {
         if (isFunction(relationship.onInput) && inputs[relationship.control]) {
           inputs[relationship.control].addEventListener('input', (e) => relationship.onInput({ e, inputs, fields }));
         }
+        if (isFunction(relationship.onFocusOut) && inputs[relationship.control]) {
+          inputs[relationship.control].addEventListener('focusout', (e) =>
+            relationship.onFocusOut({ e, inputs, fields }),
+          );
+        }
       }
     }
   }
