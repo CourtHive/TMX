@@ -27,3 +27,7 @@ export async function removeUser({ email }) {
 export async function sendTournament({ tournamentRecord }) {
   return await baseApi.post('/factory/save', { tournamentRecord });
 }
+
+export async function removeTournament({ tournamentId }) {
+  return await baseApi.post('/factory/remove', { tournamentId });
+}
