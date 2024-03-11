@@ -45,9 +45,9 @@ export async function mutationRequest(params) {
 
   const now = new Date().getTime();
   const inDateRange = Object.values(tournamentRecords).every((record) => {
-    const startTime = dayjs(record.startDate).startOf('day').valueOf();
+    // const startTime = dayjs(record.startDate).startOf('day').valueOf();
     const endTime = dayjs(record.endDate).endOf('day').valueOf();
-    return startTime && endTime && startTime <= now && endTime >= now;
+    return endTime && endTime >= now;
   });
 
   const mutate = (saveLocal) => makeMutation({ methods, factoryEngine, tournamentIds, completion, saveLocal });
