@@ -36,7 +36,10 @@ export function renderIndividuals({ view }) {
 
   const synchronizePlayers = () => {
     updateRegisteredPlayers({
-      callback: replaceTableData,
+      callback: () => {
+        replaceTableData();
+        table?.redraw(true);
+      },
       showNotice: true,
     });
   };
