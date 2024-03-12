@@ -2,6 +2,7 @@ import { tournamentEngine, drawDefinitionConstants, scaleConstants } from 'tods-
 import { setParticipantScaleItems } from './setParticipantScaleItems';
 import { isFunction } from 'functions/typeOf';
 
+import { GENERATE_SEEDING_SCALE_ITEMS } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 
 const { QUALIFYING, MAIN } = drawDefinitionConstants;
@@ -14,7 +15,7 @@ export function generateSeedValues({ event, group, table, field }) {
   const { seedsCount, stageEntries } = tournamentEngine.getEntriesAndSeedsCount({
     stage: group === QUALIFYING ? QUALIFYING : MAIN,
     policyDefinitions: POLICY_SEEDING,
-    eventId
+    eventId,
   });
 
   const wtnSort = (a, b) => getWtn(a).wtnRating - getWtn(b).wtnRating;
@@ -39,9 +40,9 @@ export function generateSeedValues({ event, group, table, field }) {
   const sortedBy =
     isFunction(sortMethod) &&
     [].concat(
-      bandedParticipants.high.sort(sortMethod),
-      bandedParticipants.medium.sort(sortMethod),
-      bandedParticipants.low.sort(sortMethod)
+      bandedParticipants.high.toSorted(sortMethod),
+      bandedParticipants.medium.toSorted(sortMethod),
+      bandedParticipants.low.toSorted(sortMethod),
     );
 
   const scaledEntries = sortedBy.slice(0, Math.min(ratedParticipants, seedsCount));
@@ -50,23 +51,26 @@ export function generateSeedValues({ event, group, table, field }) {
   const scaleAttributes = {
     scaleType: SEEDING,
     scaleName,
-    eventType
+    eventType,
   };
   const { scaleItemsWithParticipantIds } = tournamentEngine.generateSeedingScaleItems({
     scaleAttributes,
     scaledEntries,
     stageEntries,
     seedsCount,
-    scaleName
+    scaleName,
   });
 
   const callback = () => {
     const seedsMap = Object.assign(
       {},
-      ...scaledEntries.map((participant, i) => ({ [participant.participantId]: i + 1 }))
+      ...scaledEntries.map((participant, i) => ({ [participant.participantId]: i + 1 })),
     );
 
     const rows = table.getRows();
+    table.showColumn('seedNumber');
+    table.redraw(true);
+
     for (const row of rows) {
       const rowData = row.getData();
       const seedNumber = seedsMap[rowData.participantId];
@@ -87,7 +91,7 @@ function getWtn(participant) {
 export function generateSeedingScaleItems() {
   // getScaledEntries...
   return {
-    method: 'generateSeedingScaleItems',
+    method: GENERATE_SEEDING_SCALE_ITEMS,
     params: {
       scaledEntries: [
         // { participantId: 'pid', value: '33', order: 1 },
@@ -99,7 +103,7 @@ export function generateSeedingScaleItems() {
       scaleName: 'eventId',
       stageEntries: [
         // { participantId: 'pid', entryStatus, entryStage, entryPosition }
-      ]
-    }
+      ],
+    },
   };
 }
