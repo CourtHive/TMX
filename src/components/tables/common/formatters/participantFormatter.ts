@@ -13,7 +13,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
   const data = cell.getRow().getData();
   const hasWinner = data.winningSide;
   const value = cell.getValue();
-  const participant = data.participant || value.participant || (data.person && data);
+  const participant = data.participant || value?.participant || (data.person && data);
   if (participant) {
     const scaleAttributes = env.scales[env.activeScale];
 
