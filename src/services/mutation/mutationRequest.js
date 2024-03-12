@@ -16,8 +16,8 @@ export async function mutationRequest(params) {
     if (tournamentRecord) factory[engine].reset(); // reset engine state since tournamentRecord was passed
     if (isFunction(callback)) {
       callback(result);
-    } else {
-      console.log({ result });
+    } else if (result.error) {
+      tmxToast({ message: result.error.message ?? 'Error', intent: 'is-danger' });
     }
   };
 

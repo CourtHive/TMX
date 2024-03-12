@@ -39,7 +39,7 @@ export function overviewControl({ controlAnchor }) {
       const content = notesView.querySelector('.ql-editor').innerHTML;
       removeAllChildNodes(notesView);
       notesView.innerHTML = content;
-      const methods = [{ method: SET_TOURNAMENT_NOTES, args: { notes: content } }];
+      const methods = [{ method: SET_TOURNAMENT_NOTES, params: { notes: content } }];
       mutationRequest({ methods });
     }
     overviewState.editing = !overviewState.editing;
