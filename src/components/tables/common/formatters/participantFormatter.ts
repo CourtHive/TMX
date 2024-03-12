@@ -43,7 +43,6 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
     const renderPairParticipant = (participant) => {
       const div = document.createElement('div');
       div.className = 'flexrow flexjustifystart';
-      console.log({ participant });
       participant.individualParticipants?.forEach((individual, i) => {
         div.appendChild(rendered(individual));
         if (!i) {
