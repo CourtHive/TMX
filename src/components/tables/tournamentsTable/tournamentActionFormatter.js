@@ -11,7 +11,7 @@ import { lang } from 'services/translator';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function actionFormatter(cell) {
+export const tournamentActionFormatter = (replaceTableData) => (cell) => {
   const content = document.createElement('span');
   content.style.width = '100%';
 
@@ -44,7 +44,7 @@ export function actionFormatter(cell) {
     openModal({ title: lang.tr('actions.delete_tournament'), buttons, content });
   };
 
-  const tournamentEdit = () => getTournament({ tournamentId });
+  const tournamentEdit = () => getTournament({ table: cell.getTable(), tournamentId, replaceTableData });
 
   const button = document.createElement('span');
   button.innerHTML = "<i class='fa fa-ellipsis-vertical'></i>";
@@ -63,9 +63,9 @@ export function actionFormatter(cell) {
   content.appendChild(button);
 
   return content;
-}
+};
 
-export function getTournament({ tournamentId }) {
+export function getTournament({ tournamentId, replaceTableData, table }) {
   const state = getLoginState();
   const provider = state?.provider;
 
@@ -83,7 +83,7 @@ export function getTournament({ tournamentId }) {
   const goEdit = (result) => {
     const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
     if (tournamentRecord) {
-      editTournament({ tournamentRecord });
+      editTournament({ table, tournamentRecord, replaceTableData });
     } else {
       notFound();
     }

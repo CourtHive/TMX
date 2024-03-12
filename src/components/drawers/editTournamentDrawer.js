@@ -112,8 +112,7 @@ export function editTournament({ table, tournamentRecord }) {
       const updatedTournamentRecord = { ...tournamentRecord, tournamentName, startDate, endDate };
       const postMutation = (result) => {
         if (result.success) {
-          console.log('--- update tournament row ---');
-          table?.updateData([mapTournamentRecord(updatedTournamentRecord)]);
+          table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
           // only add if not a provider or saveLocal
           tournamentAdd({ tournamentRecord: updatedTournamentRecord });
         } else {
