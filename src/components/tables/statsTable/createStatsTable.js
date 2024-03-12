@@ -27,7 +27,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
       participantsProfile: { withScaleValues: true },
       allParticipantResults: true,
       pressureRating: true,
-      refreshResults: true,
+      // refreshResults: true,
       eventId,
     });
     const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);

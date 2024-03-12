@@ -22,7 +22,8 @@ export const env = {
     },
   },
 
-  first_time_user: false,
+  firstTimeUser: false,
+  serverFirst: false,
 
   // version is Major.minor.added.changed.fixed
   version,

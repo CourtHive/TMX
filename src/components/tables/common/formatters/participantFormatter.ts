@@ -13,7 +13,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
   const data = cell.getRow().getData();
   const hasWinner = data.winningSide;
   const value = cell.getValue();
-  const participant = data.participant || value.participant || (data.person && data);
+  const participant = data.participant || value?.participant || (data.person && data);
   if (participant) {
     const scaleAttributes = env.scales[env.activeScale];
 
@@ -43,7 +43,6 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
     const renderPairParticipant = (participant) => {
       const div = document.createElement('div');
       div.className = 'flexrow flexjustifystart';
-      console.log({ participant });
       participant.individualParticipants?.forEach((individual, i) => {
         div.appendChild(rendered(individual));
         if (!i) {

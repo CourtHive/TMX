@@ -2,6 +2,7 @@ import { modifyEntriesStatus } from './modifyEntriesStatus';
 import { context } from 'services/context';
 
 import { OVERLAY } from 'constants/tmxConstants';
+import { tmxToast } from 'services/notifications/tmxToast';
 
 const moveTo = (table, group, eventId, drawId) => {
   const selected = table.getSelectedData();
@@ -15,8 +16,10 @@ const moveTo = (table, group, eventId, drawId) => {
       table.deleteRow(participantIds);
     } else {
       table.deselectRow();
+      tmxToast({ message: result.error.message ?? 'Error moving participants', intent: 'is-danger' });
     }
   };
+
   modifyEntriesStatus({ participantIds, group, eventId, drawId, callback });
 };
 
@@ -26,12 +29,12 @@ export const moveSelected = (groups, eventId, drawId) => (table) => {
     stateChange: true,
     label: group,
     value: group,
-    close: true
+    close: true,
   }));
 
   return {
     label: 'Move participants',
     location: OVERLAY,
-    options
+    options,
   };
 };
