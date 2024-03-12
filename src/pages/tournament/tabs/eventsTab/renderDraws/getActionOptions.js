@@ -9,8 +9,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 
+import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
-import { RESET_SCORECARD } from 'constants/mutationConstants';
 
 const { TEAM } = eventConstants;
 
@@ -79,7 +79,7 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
         const methods = [
           {
             params: { drawId, matchUpId, inheritance: false },
-            method: 'resetMatchUpLineUps',
+            method: RESET_MATCHUP_LINEUPS,
           },
         ];
         mutationRequest({ methods, callback: postMutation });

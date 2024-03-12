@@ -10,10 +10,10 @@ import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
+import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
-import { idEditor } from '../common/editors/idEditor';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
@@ -21,7 +21,7 @@ const { FEMALE, MALE } = genderConstants;
 const FIELD_UTR = 'ratings.utr.utrRating';
 const FIELD_WTN = 'ratings.wtn.wtnRating';
 
-export function getParticipantColumns(data) {
+export function getParticipantColumns({ data, replaceTableData }) {
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
   const utr = data.some((p) => p.ratings?.utr);
@@ -133,9 +133,9 @@ export function getParticipantColumns(data) {
       visible: false,
     },
     {
+      sorter: (a, b) => a?.[0].eventName?.localeCompare(b?.[0].eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: columnIsVisible('events'),
-      sorter: (a, b) => a && b,
       title: 'Events',
       field: 'events',
       hozAlign: LEFT,
@@ -144,9 +144,9 @@ export function getParticipantColumns(data) {
       widthGrow: 2,
     },
     {
+      sorter: (a, b) => a?.[0].participantName?.localeCompare(b?.[0].participantName),
       formatter: teamsFormatter(() => console.log('boo')),
       visible: columnIsVisible('teams'),
-      sorter: (a, b) => a && b,
       title: 'Teams',
       field: 'teams',
       hozAlign: LEFT,
@@ -155,6 +155,7 @@ export function getParticipantColumns(data) {
       widthGrow: 2,
     },
     {
+      headerFilter: 'input',
       visible: !!cityState,
       title: 'City/State',
       field: 'cityState',
@@ -185,7 +186,7 @@ export function getParticipantColumns(data) {
       width: 70,
     },
     {
-      cellClick: participantActions,
+      cellClick: participantActions(replaceTableData),
       formatter: threeDots,
       responsive: false,
       headerSort: false,

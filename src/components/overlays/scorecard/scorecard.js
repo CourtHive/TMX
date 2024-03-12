@@ -7,7 +7,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { RESET_SCORECARD } from 'constants/mutationConstants';
+import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
 
 const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
@@ -136,7 +136,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
     const methods = [
       {
         params: { drawId, matchUpId, inheritance: false },
-        method: 'resetMatchUpLineUps',
+        method: RESET_MATCHUP_LINEUPS,
       },
     ];
     mutationRequest({ methods, callback: postMutation });

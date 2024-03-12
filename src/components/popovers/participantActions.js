@@ -1,10 +1,10 @@
-import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
+import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function participantActions(e, cell) {
+export const participantActions = (replaceTableData) => (e, cell) => {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
@@ -25,8 +25,7 @@ export function participantActions(e, cell) {
       hide: participantType !== 'INDIVIDUAL',
       text: "<i class='fas fa-user'></i> Edit Participant",
       onClick: () => {
-        const callback = (data) => data.participantId && row.update(data);
-        editPlayer({ participantId, /*derivedEventInfo,*/ callback });
+        editPlayer({ participantId, /*derivedEventInfo,*/ callback: replaceTableData });
       },
     },
     {
@@ -48,4 +47,4 @@ export function participantActions(e, cell) {
   ];
 
   tipster({ items, target: target || e.target, config: { placement: BOTTOM } });
-}
+};

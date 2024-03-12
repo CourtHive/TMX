@@ -1,7 +1,8 @@
+import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
-import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import {
   drawDefinitionConstants,
@@ -18,7 +19,7 @@ const { MAIN } = drawDefinitionConstants;
 const { DOUBLES } = eventConstants;
 
 export const createPair = (event, addOnPairing = true) => {
-  const { eventId, eventType } = event;
+  const { eventId, eventType, gender } = event;
 
   const addNewPair = (e, table) => {
     const selectedParticipantids = table.getSelectedData().map((r) => r.participantId);
@@ -53,7 +54,11 @@ export const createPair = (event, addOnPairing = true) => {
         const participantIds = result.results[0].newParticipantIds;
         const {
           participants: [participant],
-        } = tournamentEngine.getParticipants({ participantFilters: { participantIds }, withISO2: true });
+        } = tournamentEngine.getParticipants({
+          participantFilters: { participantIds },
+          withIndividualParticipants: true,
+          withISO2: true,
+        });
 
         if (participant) {
           const newEntry = mapEntry({
@@ -62,7 +67,6 @@ export const createPair = (event, addOnPairing = true) => {
             participant,
           });
           context.tables[ALTERNATE].updateOrAddData([newEntry]);
-          createPairFromSelected();
           const tableClass = getParent(e.target, 'tableClass');
           const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
           // timeout is necessary to allow table event to trigger
@@ -70,6 +74,10 @@ export const createPair = (event, addOnPairing = true) => {
         } else {
           console.log('participant not found', { participantIds, methods, result });
         }
+      } else if (result.error?.code === 'ERR_INVALID_PARTICIPANT_IDS') {
+        const message = gender === 'MIXED' ? 'Genders must be mixed' : 'Invalid pairing';
+        tmxToast({ intent: 'is-danger', message });
+        table.deselectRow();
       } else {
         console.log({ methods, result });
       }
