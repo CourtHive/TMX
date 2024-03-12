@@ -14,7 +14,22 @@ export function overviewControl({ controlAnchor }) {
     if (!overviewState.editing) {
       notesView.style.border = '.5px solid';
       notesView.style.borderTop = '';
-      const quill = new Quill('#notes', { theme: 'snow' });
+      const quill = new Quill('#notes', {
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, 4, 5, 6, false] }],
+            [{ font: [] }],
+            ['bold', 'italic', 'underline'],
+            [{ color: [] }, { background: [] }],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ align: [] }],
+
+            ['blockquote', 'code-block', /* 'image', */ 'link', 'video'],
+            ['clean'],
+          ],
+        },
+        theme: 'snow',
+      });
       context.quill = quill;
     } else {
       notesView.previousElementSibling.remove();
