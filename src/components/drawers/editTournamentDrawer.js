@@ -10,6 +10,7 @@ import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
+import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
 export function editTournament({ table, tournamentRecord }) {
@@ -120,8 +121,8 @@ export function editTournament({ table, tournamentRecord }) {
         }
       };
       const methods = [
-        { method: 'setTournamentName', params: { tournamentName } },
-        { method: 'setTournamentDates', params: { startDate, endDate } },
+        { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
+        { method: SET_TOURNAMENT_DATES, params: { startDate, endDate } },
       ];
       mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
     }
