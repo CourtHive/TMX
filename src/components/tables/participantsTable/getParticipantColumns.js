@@ -70,7 +70,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       editor: idEditor({ field: 'tennisId' }),
       visible: tennisId,
       field: 'tennisId',
-      editable: false, // TODO: toggle edit state based on user role
+      editable: false, // TODO: toggle edit state based on permissions
       title: 'WTID',
       width: 120,
     },
