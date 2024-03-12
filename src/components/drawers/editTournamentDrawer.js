@@ -98,7 +98,7 @@ export function editTournament({ table, tournamentRecord }) {
             newTournamentRecord.parentOrganisation = provider;
             if (provider) {
               const report = (result) => console.log('sendTournament', result);
-              sendTournament({ tournamentRecord: newTournamentRecord }).then(report, report);
+              sendTournament({ tournamentRecord: newTournamentRecord }).then(() => {}, report);
             }
             completeTournamentAdd({ tournamentRecord: newTournamentRecord, table });
           };
@@ -111,6 +111,7 @@ export function editTournament({ table, tournamentRecord }) {
       const updatedTournamentRecord = { ...tournamentRecord, tournamentName, startDate, endDate };
       const postMutation = (result) => {
         if (result.success) {
+          console.log('--- update tournament row ---');
           table?.updateData([mapTournamentRecord(updatedTournamentRecord)]);
           // only add if not a provider or saveLocal
           tournamentAdd({ tournamentRecord: updatedTournamentRecord });
