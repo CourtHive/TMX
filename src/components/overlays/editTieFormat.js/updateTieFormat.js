@@ -4,6 +4,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { editTieFormat } from './editTieFormat';
 import { isFunction } from 'functions/typeOf';
 
+import { MODIFY_TIE_FORMAT } from 'constants/mutationConstants';
+
 export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callback }) {
   const { tieFormat } = tournamentEngine.getTieFormat({
     structureId,
@@ -30,7 +32,7 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
 
       const methods = [
         {
-          method: 'modifyTieFormat',
+          method: MODIFY_TIE_FORMAT,
           params: {
             modifiedTieFormat,
             considerations,

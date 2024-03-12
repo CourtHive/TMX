@@ -13,7 +13,7 @@ import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 export async function mutationRequest(params) {
   const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
   const completion = (result) => {
-    if (tournamentRecord) factory[engine].reset();
+    if (tournamentRecord) factory[engine].reset(); // reset engine state since tournamentRecord was passed
     if (isFunction(callback)) {
       callback(result);
     } else {
