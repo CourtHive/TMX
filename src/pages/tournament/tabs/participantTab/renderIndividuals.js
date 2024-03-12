@@ -37,7 +37,7 @@ export function renderIndividuals({ view }) {
   const synchronizePlayers = () => {
     updateRegisteredPlayers({
       callback: replaceTableData,
-      showNotice: true
+      showNotice: true,
     });
   };
 
@@ -47,44 +47,44 @@ export function renderIndividuals({ view }) {
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: 'Sign out players not approved for events',
-      close: true
+      close: true,
     },
     {
       label: 'Edit ratings',
       onClick: (e) => enableManualRatings(e, table),
-      close: true
+      close: true,
     },
     { divider: true },
     { heading: 'Add participants' },
     { label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
     { label: 'Import from Google sheet', onClick: editRegistrationLink, close: true },
     {
-      onClick: () => editIndividualParticipant({ refresh: replaceTableData, view }),
+      onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
       label: 'New participant',
-      close: true
-    }
+      close: true,
+    },
   ];
 
   const addToEventOptions = events
     .map((event) => ({
       onClick: () => addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: replaceTableData }),
       label: event.eventName,
-      close: true
+      close: true,
     }))
     .concat([
       { divider: true },
       {
         label: '<p style="font-weight: bold">Create new event</p>',
         onClick: () => eventFromParticipants(table, replaceTableData),
-        close: true
-      }
+        close: true,
+      },
     ]);
 
   const addToGroup = getAddToGroupingSelection({
     participants: groupParticipants,
     participantType: GROUP,
     replaceTableData,
-    table
+    table,
   });
   const addToTeam = getAddToGroupingSelection({ participants: teamParticipants, table, replaceTableData });
   const selectOnEnter = createSelectOnEnter(table);
@@ -100,46 +100,46 @@ export function renderIndividuals({ view }) {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: OVERLAY,
-      search: true
+      search: true,
     },
     {
       options: addToEventOptions,
       label: 'Add to event',
       hide: !events.length,
       intent: 'is-none',
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: () => eventFromParticipants(table),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       selection: addToTeam,
       label: 'Add to team',
       intent: 'is-none',
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       selection: addToGroup,
       label: 'Add to group',
       intent: 'is-none',
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: () => signInParticipants(table),
       intent: 'is-primary',
       location: OVERLAY,
-      label: 'Sign in'
+      label: 'Sign in',
     },
     {
       onClick: () => deleteSelectedParticipants(table),
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onKeyDown: (e) => {
@@ -151,7 +151,7 @@ export function renderIndividuals({ view }) {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: LEFT,
-      search: true
+      search: true,
     },
     {
       hide: (events || []).length < 1,
@@ -159,14 +159,14 @@ export function renderIndividuals({ view }) {
       label: ALL_EVENTS,
       modifyLabel: true,
       location: LEFT,
-      selection: true
+      selection: true,
     },
     {
       options: sexOptions,
       label: genders[MIXED],
       modifyLabel: true,
       location: LEFT,
-      selection: true
+      selection: true,
     },
     {
       options: participantOptions(view),
@@ -175,14 +175,14 @@ export function renderIndividuals({ view }) {
       modifyLabel: true,
       location: RIGHT,
       selection: true,
-      align: RIGHT
+      align: RIGHT,
     },
     {
       options: actionOptions,
       label: 'Actions',
       selection: false,
       location: RIGHT,
-      align: RIGHT
+      align: RIGHT,
     },
     {
       onClick: (e) => saveRatings(e, table),
@@ -190,8 +190,8 @@ export function renderIndividuals({ view }) {
       intent: 'is-primary',
       class: 'saveRatings',
       location: RIGHT,
-      visible: false
-    }
+      visible: false,
+    },
   ];
 
   const participantControl = document.getElementById(PARTICIPANT_CONTROL);

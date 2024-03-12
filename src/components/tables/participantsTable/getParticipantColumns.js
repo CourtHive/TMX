@@ -10,10 +10,10 @@ import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
+import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
-import { idEditor } from '../common/editors/idEditor';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
@@ -21,7 +21,7 @@ const { FEMALE, MALE } = genderConstants;
 const FIELD_UTR = 'ratings.utr.utrRating';
 const FIELD_WTN = 'ratings.wtn.wtnRating';
 
-export function getParticipantColumns(data) {
+export function getParticipantColumns({ data, replaceTableData }) {
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
   const utr = data.some((p) => p.ratings?.utr);
@@ -186,7 +186,7 @@ export function getParticipantColumns(data) {
       width: 70,
     },
     {
-      cellClick: participantActions,
+      cellClick: participantActions(replaceTableData),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
