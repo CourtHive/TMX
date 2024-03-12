@@ -1,4 +1,4 @@
-import { participantConstants, participantRoles, fixtures } from 'tods-competition-factory';
+import { participantConstants, participantRoles, fixtures, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
@@ -163,8 +163,9 @@ export function editIndividualParticipant({ participant, view, callback }) {
     const lastName = inputs.lastName.value;
     const sex = inputs.sex.value;
     const newParticipant = {
-      participantType: INDIVIDUAL,
       participantRole: view === OFFICIAL ? OFFICIAL : COMPETITOR,
+      participantType: INDIVIDUAL,
+      participantId: tools.UUID(),
       person: {
         nationalityCode: values.nationalityCode,
         standardGivenName: firstName,
@@ -174,12 +175,10 @@ export function editIndividualParticipant({ participant, view, callback }) {
     };
 
     const postMutation = (result) => {
-      if (result.success) {
-        isFunction(callback) && callback();
-      } else {
-        console.log(result);
-      }
+      result.success && isFunction(callback) && callback();
+      !result.success && console.log(result);
     };
+
     const methods = [
       {
         params: { participants: [newParticipant] },

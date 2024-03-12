@@ -15,7 +15,7 @@ export async function mutationRequest(params) {
   const completion = (result) => {
     if (tournamentRecord) factory[engine].reset(); // reset engine state since tournamentRecord was passed
     if (isFunction(callback)) {
-      callback(result);
+      return callback(result);
     } else if (result.error) {
       tmxToast({ message: result.error.message ?? 'Error', intent: 'is-danger' });
     }
@@ -97,7 +97,9 @@ function checkPermissions({ providerIds, mutate }) {
 
 function engineExecution({ factoryEngine, methods }) {
   console.log('%c executing locally', 'color: lightgreen');
-  return factoryEngine.executionQueue(methods) || {};
+  // deep copy of directives to avoid mutation (e.g. uuids.pop() robbing server of uuids)
+  const directives = factory.tools.makeDeepCopy(methods);
+  return factoryEngine.executionQueue(directives) || {};
 }
 
 async function localSave(saveLocal) {
@@ -139,5 +141,5 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
     if (!env.serverFirst) await localSave(saveLocal);
   }
 
-  return !env.serverFirst ? completion(factoryResult) : completion({ success: true });
+  if (!env.serverFirst) return completion(factoryResult);
 }

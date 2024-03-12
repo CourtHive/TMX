@@ -9,6 +9,7 @@ import {
   eventConstants,
   entryStatusConstants,
   tournamentEngine,
+  tools,
 } from 'tods-competition-factory';
 
 import { ADD_EVENT_ENTRY_PAIRS } from 'constants/mutationConstants';
@@ -24,15 +25,19 @@ export const createPair = (event, addOnPairing = true) => {
   const addNewPair = (e, table) => {
     const selectedParticipantids = table.getSelectedData().map((r) => r.participantId);
     if (selectedParticipantids.length !== 2) return;
+    const participantId = tools.UUID();
+    const uuids = [participantId];
 
     const methods = [
       {
         method: ADD_EVENT_ENTRY_PAIRS,
         params: {
           participantIdPairs: [selectedParticipantids],
+          allowDuplicateParticipantIdPairs: true,
           entryStatus: ALTERNATE,
           entryStage: MAIN,
           eventId,
+          uuids,
         },
       },
     ];
