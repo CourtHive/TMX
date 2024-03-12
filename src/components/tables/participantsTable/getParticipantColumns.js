@@ -133,9 +133,9 @@ export function getParticipantColumns(data) {
       visible: false,
     },
     {
+      sorter: (a, b) => a?.[0].eventName?.localeCompare(b?.[0].eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: columnIsVisible('events'),
-      sorter: (a, b) => a && b,
       title: 'Events',
       field: 'events',
       hozAlign: LEFT,
@@ -144,9 +144,9 @@ export function getParticipantColumns(data) {
       widthGrow: 2,
     },
     {
+      sorter: (a, b) => a?.[0].participantName?.localeCompare(b?.[0].participantName),
       formatter: teamsFormatter(() => console.log('boo')),
       visible: columnIsVisible('teams'),
-      sorter: (a, b) => a && b,
       title: 'Teams',
       field: 'teams',
       hozAlign: LEFT,
@@ -155,6 +155,7 @@ export function getParticipantColumns(data) {
       widthGrow: 2,
     },
     {
+      headerFilter: 'input',
       visible: !!cityState,
       title: 'City/State',
       field: 'cityState',
