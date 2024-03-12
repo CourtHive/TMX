@@ -1,8 +1,10 @@
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { context } from 'services/context';
 import Quill from 'quill';
 
+import { SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
 export function overviewControl({ controlAnchor }) {
@@ -37,6 +39,8 @@ export function overviewControl({ controlAnchor }) {
       const content = notesView.querySelector('.ql-editor').innerHTML;
       removeAllChildNodes(notesView);
       notesView.innerHTML = content;
+      const methods = [{ method: SET_TOURNAMENT_NOTES, args: { notes: content } }];
+      mutationRequest({ methods });
     }
     overviewState.editing = !overviewState.editing;
   };
