@@ -54,9 +54,11 @@ export function createTournamentsTable() {
     data.sort((a, b) => new Date(b.startDate || b.start) - new Date(a.startDate || a.start));
     renderTable(data.map(mapTournamentRecord));
   };
-  const renderCalendarTable = (calendar = []) => {
-    calendar.sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate));
-    renderTable(calendar);
+  const renderCalendarTable = ({ tournaments, provider }) => {
+    const tableData = tournaments
+      .sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate))
+      .map((t) => ({ ...t, provider }));
+    renderTable(tableData);
   };
   const loginState = getLoginState();
   const provider = loginState?.provider || context?.provider;
@@ -66,7 +68,7 @@ export function createTournamentsTable() {
   if (provider?.organisationAbbreviation) {
     const showResults = (result) => {
       if (result?.data?.calendar) {
-        renderCalendarTable(result.data.calendar.tournaments);
+        renderCalendarTable(result.data.calendar);
       } else {
         noProvider();
       }

@@ -10,6 +10,7 @@ import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
+import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
 export function editTournament({ table, tournamentRecord }) {
@@ -98,7 +99,7 @@ export function editTournament({ table, tournamentRecord }) {
             newTournamentRecord.parentOrganisation = provider;
             if (provider) {
               const report = (result) => console.log('sendTournament', result);
-              sendTournament({ tournamentRecord: newTournamentRecord }).then(report, report);
+              sendTournament({ tournamentRecord: newTournamentRecord }).then(() => {}, report);
             }
             completeTournamentAdd({ tournamentRecord: newTournamentRecord, table });
           };
@@ -111,7 +112,7 @@ export function editTournament({ table, tournamentRecord }) {
       const updatedTournamentRecord = { ...tournamentRecord, tournamentName, startDate, endDate };
       const postMutation = (result) => {
         if (result.success) {
-          table?.updateData([mapTournamentRecord(updatedTournamentRecord)]);
+          table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
           // only add if not a provider or saveLocal
           tournamentAdd({ tournamentRecord: updatedTournamentRecord });
         } else {
@@ -119,8 +120,8 @@ export function editTournament({ table, tournamentRecord }) {
         }
       };
       const methods = [
-        { method: 'setTournamentName', params: { tournamentName } },
-        { method: 'setTournamentDates', params: { startDate, endDate } },
+        { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
+        { method: SET_TOURNAMENT_DATES, params: { startDate, endDate } },
       ];
       mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
     }

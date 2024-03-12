@@ -48,7 +48,7 @@ export function createParticipantsTable({ view } = {}) {
   };
 
   const data = getTableData();
-  const columns = getParticipantColumns(data);
+  const columns = getParticipantColumns({ data, replaceTableData });
 
   const simpleAddition = (a, b) => {
     return ((tools.isNumeric(a) && a) || 0) + ((tools.isNumeric(b) && b) || 0);

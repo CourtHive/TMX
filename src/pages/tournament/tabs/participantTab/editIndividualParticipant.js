@@ -6,79 +6,101 @@ import { renderForm } from 'components/renderers/renderForm';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
+import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 
 const { COMPETITOR, OFFICIAL } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
 
-export function editIndividualParticipant({ participant, view, refresh }) {
+export function editIndividualParticipant({ participant, view, callback }) {
   const list = fixtures.countries.map((country) => ({
     label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
-    value: country.ioc
+    value: country.ioc,
   }));
 
   const values = {
     nationalityCode: participant?.person?.nationalityCode,
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
-    sex: participant?.person?.sex
+    sex: participant?.person?.sex,
   };
   let inputs;
 
   const nationalityCodeValue = (value) => (values.nationalityCode = value);
-  const valueChange = (e, item) => console.log(item.field, e.target.value);
+
+  const validValues = ({ firstName, lastName }) =>
+    nameValidator(3)(firstName || '') && nameValidator(3)(lastName || '');
+
+  const enableSubmit = ({ inputs }) => {
+    const valid = validValues({
+      firstName: inputs['firstName'].value,
+      lastName: inputs['lastName'].value,
+    });
+    const saveButton = document.getElementById('saveParticipant');
+    if (saveButton) saveButton.disabled = !valid;
+  };
+
+  const relationships = [
+    {
+      onInput: enableSubmit,
+      control: 'firstName',
+    },
+    {
+      onInput: enableSubmit,
+      control: 'lastName',
+    },
+  ];
 
   const content = (elem) => {
-    inputs = renderForm(elem, [
-      {
-        placeholder: 'Given name',
-        value: values.firstName || '',
-        label: 'First name',
-        field: 'firstName',
-        error: 'Please enter a name of at least 3 characters',
-        validator: nameValidator(3),
-        onChange: valueChange,
-        focus: true
-      },
-      {
-        placeholder: 'Family name',
-        value: values.lastName || '',
-        label: 'Last name',
-        field: 'lastName',
-        error: 'Please enter a name of at least 3 characters',
-        validator: nameValidator(3),
-        onChange: valueChange
-      },
-      {
-        value: undefined,
-        label: 'Sex',
-        field: 'sex',
-        options: [
-          { label: 'Unknown', value: undefined, selected: !values.sex },
-          { label: 'Male', value: 'MALE', selected: values.sex === 'MALE' },
-          { label: 'Female', value: 'FEMALE', selected: values.sex === 'FEMALE' }
-        ],
-        onChange: valueChange
-      },
-      {
-        placeholder: 'Birthday',
-        value: values.birthDate || '',
-        label: 'Date of birth',
-        onChange: valueChange,
-        field: 'birthday',
-        date: true
-      },
-      {
-        typeAhead: { list, callback: nationalityCodeValue },
-        placeholder: 'Country of origin',
-        value: values.nationalityCode || '',
-        field: 'nationalityCode',
-        label: 'Country'
-      }
-      // school, club, team => autocomplete from GROUP participants in tournament
-      // city, state, phone, email
-    ]);
+    inputs = renderForm(
+      elem,
+      [
+        {
+          error: 'Please enter a name of at least 3 characters',
+          value: values.firstName || '',
+          validator: nameValidator(3),
+          placeholder: 'Given name',
+          label: 'First name',
+          field: 'firstName',
+          focus: true,
+        },
+        {
+          error: 'Please enter a name of at least 3 characters',
+          value: values.lastName || '',
+          validator: nameValidator(3),
+          placeholder: 'Family name',
+          label: 'Last name',
+          field: 'lastName',
+        },
+        {
+          value: undefined,
+          label: 'Sex',
+          field: 'sex',
+          options: [
+            { label: 'Unknown', value: undefined, selected: !values.sex },
+            { label: 'Male', value: 'MALE', selected: values.sex === 'MALE' },
+            { label: 'Female', value: 'FEMALE', selected: values.sex === 'FEMALE' },
+          ],
+        },
+        {
+          placeholder: 'Birthday',
+          value: values.birthDate || '',
+          label: 'Date of birth',
+          field: 'birthday',
+          date: true,
+        },
+        {
+          typeAhead: { list, callback: nationalityCodeValue },
+          placeholder: 'Country of origin',
+          value: values.nationalityCode || '',
+          field: 'nationalityCode',
+          label: 'Country',
+        },
+        // school, club, team => autocomplete from GROUP participants in tournament
+        // city, state, phone, email
+      ],
+      relationships,
+    );
   };
 
   const footer = (elem, close) =>
@@ -86,25 +108,53 @@ export function editIndividualParticipant({ participant, view, refresh }) {
       elem,
       [
         { label: 'Cancel', close: true },
-        { label: 'Save', onClick: saveParticipant, close: true, intent: 'is-info' }
+        {
+          disabled: !validValues(values),
+          onClick: saveParticipant,
+          id: 'saveParticipant',
+          intent: 'is-info',
+          label: 'Save',
+          close: true,
+        },
       ],
-      close
+      close,
     );
 
+  const action = participant ? 'Edit' : 'New';
   context.drawer.open({
-    title: `<b style='larger'>New participant</b>`,
-    callback: () => console.log('drawer callback'),
+    title: `<b style='larger'>${action} participant</b>`,
+    callback: () => {},
     width: '300px',
     side: RIGHT,
     content,
-    footer
+    footer,
   });
 
   function saveParticipant() {
     if (!participant?.participantId) {
       addParticipant();
     } else {
-      console.log('update existing');
+      const person = {
+        nationalityCode: inputs.nationalityCode.value,
+        standardFamilyName: inputs.lastName.value,
+        standardGivenName: inputs.firstName.value,
+        birthdate: inputs.birthday.value,
+        sex: inputs.sex.value,
+      };
+      const methods = [
+        {
+          params: { participant: { participantId: participant.participantId, person } },
+          method: MODIFY_PARTICIPANT,
+        },
+      ];
+      const postMutation = (result) => {
+        if (result.success) {
+          isFunction(callback) && callback();
+        } else {
+          console.log(result);
+        }
+      };
+      mutationRequest({ methods, callback: postMutation });
     }
   }
 
@@ -119,23 +169,22 @@ export function editIndividualParticipant({ participant, view, refresh }) {
         nationalityCode: values.nationalityCode,
         standardGivenName: firstName,
         standardFamilyName: lastName,
-        sex
-      }
+        sex,
+      },
     };
 
     const postMutation = (result) => {
       if (result.success) {
-        // QUESTION: add participant to table, or just refresh?
-        isFunction(refresh) && refresh();
+        isFunction(callback) && callback();
       } else {
         console.log(result);
       }
     };
     const methods = [
       {
+        params: { participants: [newParticipant] },
         method: ADD_PARTICIPANTS,
-        params: { participants: [newParticipant] }
-      }
+      },
     ];
     mutationRequest({ methods, callback: postMutation });
   }

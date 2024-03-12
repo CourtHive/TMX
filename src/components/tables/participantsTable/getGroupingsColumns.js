@@ -9,7 +9,7 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
 const { GROUP } = participantConstants;
 
-export function getGroupingsColumns({ view }) {
+export function getGroupingsColumns({ view, replaceTableData }) {
   const openCloseToggle = (e, cell) => {
     const result = toggleOpenClose(e, cell);
     if (result.open) {
@@ -110,7 +110,7 @@ export function getGroupingsColumns({ view }) {
       width: 20,
     },
     {
-      cellClick: participantActions,
+      cellClick: participantActions(replaceTableData),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
