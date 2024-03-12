@@ -1,7 +1,8 @@
+import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
-import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import {
   drawDefinitionConstants,
@@ -18,7 +19,7 @@ const { MAIN } = drawDefinitionConstants;
 const { DOUBLES } = eventConstants;
 
 export const createPair = (event, addOnPairing = true) => {
-  const { eventId, eventType } = event;
+  const { eventId, eventType, gender } = event;
 
   const addNewPair = (e, table) => {
     const selectedParticipantids = table.getSelectedData().map((r) => r.participantId);
@@ -70,6 +71,10 @@ export const createPair = (event, addOnPairing = true) => {
         } else {
           console.log('participant not found', { participantIds, methods, result });
         }
+      } else if (result.error?.code === 'ERR_INVALID_PARTICIPANT_IDS') {
+        const message = gender === 'MIXED' ? 'Genders must be mixed' : 'Invalid pairing';
+        tmxToast({ intent: 'is-danger', message });
+        table.deselectRow();
       } else {
         console.log({ methods, result });
       }
