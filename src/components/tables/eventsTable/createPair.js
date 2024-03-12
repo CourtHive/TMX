@@ -54,7 +54,11 @@ export const createPair = (event, addOnPairing = true) => {
         const participantIds = result.results[0].newParticipantIds;
         const {
           participants: [participant],
-        } = tournamentEngine.getParticipants({ participantFilters: { participantIds }, withISO2: true });
+        } = tournamentEngine.getParticipants({
+          participantFilters: { participantIds },
+          withIndividualParticipants: true,
+          withISO2: true,
+        });
 
         if (participant) {
           const newEntry = mapEntry({
@@ -63,7 +67,6 @@ export const createPair = (event, addOnPairing = true) => {
             participant,
           });
           context.tables[ALTERNATE].updateOrAddData([newEntry]);
-          createPairFromSelected();
           const tableClass = getParent(e.target, 'tableClass');
           const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
           // timeout is necessary to allow table event to trigger
