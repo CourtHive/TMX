@@ -96,7 +96,7 @@ function checkPermissions({ providerIds, mutate }) {
 }
 
 function engineExecution({ factoryEngine, methods }) {
-  console.log('%c executing locally', 'color: lightgreen');
+  env.log?.verbose && console.log('%c executing locally', 'color: lightgreen');
   // deep copy of directives to avoid mutation (e.g. uuids.pop() robbing server of uuids)
   const directives = factory.tools.makeDeepCopy(methods);
   return factoryEngine.executionQueue(directives) || {};
@@ -136,7 +136,7 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
         return completion(factoryResult);
       }
     };
-    console.log('%c invoking remote', 'color: lightblue');
+    env.log?.verbose && console.log('%c invoking remote', 'color: lightblue');
     emitTmx({ data: { type: 'executionQueue', payload: { methods, tournamentIds } }, ackCallback });
     if (!env.serverFirst) await localSave(saveLocal);
   }
