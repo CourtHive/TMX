@@ -6,7 +6,7 @@ import { selectParticipant } from './selectParticipant';
 import { isFunction } from 'functions/typeOf';
 import { env } from 'settings/env';
 
-import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
+import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
 import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
@@ -32,17 +32,22 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   const maxRoundNumber = Math.max(...roundNumbers, 1);
   if (matchUps.length) roundNumbers.push(maxRoundNumber + 1);
 
-  const addRound = (matchUps) => {
+  const addRound = ({ matchUps, roundResults }) => {
     const methods = [
       {
+        params: { structureId, matchUps, drawId },
         method: ADD_ADHOC_MATCHUPS,
-        params: {
-          structureId,
-          matchUps,
-          drawId,
-        },
       },
     ];
+    if (roundResults?.length) {
+      for (const roundResult of roundResults) {
+        const modifiedScaleValues = roundResult?.modifiedScaleValues;
+        methods.push({
+          params: { modifiedScaleValues, replacePriorValues: true },
+          method: ADD_DYNAMIC_RATINGS,
+        });
+      }
+    }
 
     const postMutation = (result) => {
       if (result.success) {
@@ -57,13 +62,16 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   const drawMaticRound = (participantIds) => {
     const { scaleAccessor, scaleName } = env.scales[env.activeScale];
     const result = tournamentEngine.drawMatic({
+      updateParticipantRatings: true,
+      dynamicRatings: true,
+      refreshRatings: true,
       participantIds,
       scaleAccessor,
       scaleName,
       drawId,
     });
     if (!result.matchUps?.length) return;
-    addRound(result.matchUps);
+    addRound(result);
   };
 
   const checkParticipants = ({ participantIds }) => {
@@ -123,10 +131,9 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
         structureId,
         drawId,
       });
-      console.log({ result });
 
       if (!result.matchUps?.length) return;
-      addRound(result.matchUps);
+      addRound(result);
     }
   };
 

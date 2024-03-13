@@ -2,13 +2,15 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { env } from 'settings/env';
 
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 export function generateDraw({ eventId, drawOptions, callback }) {
+  const scale = env.scales[env.activeScale];
   const adHocConfig = {
-    scaleAccessor: 'wtnRating',
-    scaleName: 'WTN',
+    scaleAccessor: scale?.accessor,
+    scaleName: scale?.scaleName,
   };
   const result = tournamentEngine.generateDrawDefinition({ ...drawOptions, ...adHocConfig, ignoreStageSpace: true });
 
