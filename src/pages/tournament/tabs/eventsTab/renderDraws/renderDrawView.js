@@ -32,7 +32,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
-  let participantFilter, eventData, eventType, drawData, structures, structure, stage, roundMatchUps, matchUps;
+  let participantFilter, roundMatchUps, structures, eventData, eventType, structure, drawData, matchUps, stage;
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
@@ -128,7 +128,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     } else if (roundsView === ROUNDS_TABLE) {
       createRoundsTable({ matchUps, eventData });
     } else if (roundsView === ROUNDS_STATS) {
-      createStatsTable({ eventId, drawId, structureId, eventData });
+      createStatsTable({ eventId, drawId, structureId });
     } else {
       const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
 
