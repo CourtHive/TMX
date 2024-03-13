@@ -7,7 +7,7 @@ import { env } from 'settings/env';
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
 export function generateDraw({ eventId, drawOptions, callback }) {
-  const scale = env.scales[env.activeScale];
+  const scale = env.scales[env.activeScale?.toLowerCase()];
   const adHocConfig = {
     scaleAccessor: scale?.accessor,
     scaleName: scale?.scaleName,
