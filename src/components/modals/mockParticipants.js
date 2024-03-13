@@ -3,23 +3,30 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 
-const { WTN } = factoryConstants.ratingConstants;
+const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE, MIXED, ANY } = genderConstants;
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
-export function mockParticipants({ callback } = {}) {
+export function mockParticipants({ callback }) {
   let inputs;
 
   const generate = () => {
     const count = inputs.participantsCount.value;
+    const genWtn = inputs.wtnRating.checked;
+    const genUtr = inputs.utrRating.checked;
     const gender = inputs.gender.value;
     const sex = gender === MIXED ? undefined : gender;
 
+    const categories = [
+      genWtn && { ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
+      genUtr && { ratingType: UTR, ratingMin: 8, ratingMax: 10 },
+    ].filter(Boolean);
+
     const { participants } = mocksEngine.generateParticipants({
-      category: { ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
       participantsCount: parseInt(count),
       scaleAllParticipants: true,
+      categories,
       sex,
     });
 
@@ -61,6 +68,30 @@ export function mockParticipants({ callback } = {}) {
         field: 'participantsCount',
         value: 32,
       },
+      {
+        text: 'Generate Ratings',
+        header: true,
+      },
+      {
+        label: 'WTN',
+        field: 'wtnRating',
+        id: 'wtnRating',
+        checkbox: true,
+      },
+      {
+        label: 'UTR',
+        field: 'utrRating',
+        id: 'utrRating',
+        checkbox: true,
+      },
+      /* POSTERITY: left as an example of a radio group
+      {
+        label: 'Rating type',
+        field: 'ratingType',
+        options: [{ text: 'WTN', checked: true }, { text: 'UTR' }, { text: 'None' }],
+        radio: true,
+      },
+      */
     ]));
 
   openModal({ title: 'Generate mock players', content, buttons });

@@ -1,5 +1,5 @@
+import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 import { mockParticipants } from 'components/modals/mockParticipants';
-import { tournamentEngine } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -17,9 +17,11 @@ export function updateRegisteredPlayers({ callback }) {
     if (isFunction(callback)) callback();
   };
 
-  const { extension } = tournamentEngine.findExtension({ discover: true, name: 'REGISTRATION' });
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
   const registration = extension?.value;
-  if (!registration) mockParticipants({ callback: done });
+  if (!registration) {
+    mockParticipants({ callback: done });
+  }
 }
 
 function addRegistered(registeredPlayers) {
