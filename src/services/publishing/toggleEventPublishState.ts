@@ -11,7 +11,20 @@ export const toggleEventPublishState = (nestedTables) => (_, cell) => {
   const method = row.published ? UNPUBLISH_EVENT : PUBLISH_EVENT;
   const drawsRows = nestedTables.get(eventId).getRows();
   drawsRows.forEach((drawRow) => drawRow.update({ published }));
-  const methods = [{ method, params: { eventId } }];
+  const methods = [
+    {
+      method,
+      params: {
+        eventId,
+        eventDataParams: {
+          // in the case of publishing, add additional parameters
+          participantsProfile: { withScaleValues: true },
+          pressureRating: true,
+          refreshResults: true,
+        },
+      },
+    },
+  ];
   const postMutation = (result) => {
     if (result?.success) {
       cell.getRow().update({ published: !row.published });
