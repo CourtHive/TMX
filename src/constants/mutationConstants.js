@@ -8,6 +8,7 @@ export const ADD_DRAW_DEFINITION = 'addDrawDefinition';
 export const ADD_ADHOC_MATCHUPS = 'addAdHocMatchUps';
 export const ADD_DRAW_ENTRIES = 'addDrawEntries';
 export const ADD_DRAW_DEFINITION_EXTENSION = 'addDrawDefinitionExtension';
+export const ADD_DYNAMIC_RATINGS = 'addDynamicRatings';
 export const ADD_EVENT = 'addEvent';
 export const ADD_EVENT_ENTRIES = 'addEventEntries';
 export const ADD_EVENT_ENTRY_PAIRS = 'addEventEntryPairs';
