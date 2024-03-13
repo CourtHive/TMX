@@ -60,7 +60,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   };
 
   const drawMaticRound = (participantIds) => {
-    const { scaleAccessor, scaleName } = env.scales[env.activeScale];
+    const { accessor: scaleAccessor, scaleName } = env.scales[env.activeScale?.toLowerCase()];
     const result = tournamentEngine.drawMatic({
       updateParticipantRatings: true,
       dynamicRatings: true,

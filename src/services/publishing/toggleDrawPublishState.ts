@@ -11,7 +11,21 @@ export const toggleDrawPublishState = (eventRow) => (_, cell) => {
   const drawIdsToAdd = !row.published ? [row.drawId] : undefined;
 
   const method = PUBLISH_EVENT;
-  const methods = [{ method, params: { eventId: row.eventId, drawIdsToAdd, drawIdsToRemove } }];
+  const methods = [
+    {
+      method,
+      params: {
+        eventId: row.eventId,
+        drawIdsToAdd,
+        drawIdsToRemove,
+        eventDataParams: {
+          participantsProfile: { withScaleValues: true },
+          pressureRating: true,
+          refreshResults: true,
+        },
+      },
+    },
+  ];
   const postMutation = (result) => {
     if (result?.success) {
       cell.getRow().update({ published: !row.published });
