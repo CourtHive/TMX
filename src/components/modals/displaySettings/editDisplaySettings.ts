@@ -82,7 +82,6 @@ export function editDisplaySettings(params) {
   const render = ({ compositionName, configuration }) => {
     removeAllChildNodes(matchUpNode);
     selections.composition = compositions[compositionName];
-    // composition.configuration.scaleAttributes = env.scales[env.activeScale];
     selections.composition.configuration.scheduleInfo = selections.composition.configuration.showAddress = undefined;
     selections.composition.configuration.flags = undefined;
     Object.assign(selections.composition.configuration, configuration);
