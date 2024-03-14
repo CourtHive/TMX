@@ -50,6 +50,8 @@ export function tournamentActions() {
           options: [
             { label: '-- select action --', close: true },
             { label: 'Upload tournament', value: 'upload', close: true },
+            { label: 'Delete tournament', disabled: true, value: 'delete', close: true },
+            { label: 'Go Offline - standalone mode', disabled: true, value: 'offline', close: true },
           ],
           label: 'Action',
           field: 'action',
