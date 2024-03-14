@@ -101,9 +101,6 @@ dependencies:
   pikaday:
     specifier: 1.8.2
     version: 1.8.2
-  public-google-sheets-parser:
-    specifier: 1.5.0
-    version: 1.5.0
   qrious:
     specifier: 4.0.2
     version: 4.0.2
@@ -6083,11 +6080,6 @@ packages:
       randombytes: 2.1.0
       safe-buffer: 5.2.1
     dev: true
-
-  /public-google-sheets-parser@1.5.0:
-    resolution:
-      { integrity: sha512-Kt0zlExvNASKtA27GIxZojFuTk4NzBcTR0f+XfMBD5idjoyw9KPhoKonl0CyPJXI8cAoe9ZmzjIfbjdZqBtiOQ== }
-    dev: false
 
   /punycode@1.4.1:
     resolution:
