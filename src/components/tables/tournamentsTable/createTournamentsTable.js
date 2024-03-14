@@ -57,7 +57,15 @@ export function createTournamentsTable() {
   const renderCalendarTable = ({ tournaments, provider }) => {
     const tableData = tournaments
       .sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate))
-      .map((t) => ({ ...t, provider }));
+      .map((t) => {
+        const tournamentImageURL = t.tournament.onlineResources?.find(
+          ({ name, resourceType }) => name === 'tournamentImage' && resourceType === 'URL',
+        )?.identifier;
+        if (tournamentImageURL) {
+          t.tournament.tournamentImageURL = tournamentImageURL;
+        }
+        return { ...t, provider };
+      });
     renderTable(tableData);
   };
   const loginState = getLoginState();
