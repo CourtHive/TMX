@@ -63,7 +63,8 @@ export function renderForm(elem, items, relationships) {
       const container = item.fieldPair && document.createElement('div');
       if (container) container.className = 'flexrow';
 
-      const { field, inputElement, datepicker } = renderField(item);
+      const { field, inputElement, datepicker, subFields } = renderField(item);
+      if (subFields) subFields.forEach((subField) => (inputs[subField.field] = subField.input));
       if (datepicker) inputs[`${item.field}.date`] = datepicker;
       if (item.focus) focus = inputElement;
       inputs[item.field] = inputElement;
