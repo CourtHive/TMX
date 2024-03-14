@@ -1,5 +1,5 @@
-import { tournamentEngine, tools } from 'tods-competition-factory';
 import { normalizeName, normalizeDiacritics } from 'normalize-text';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { downloadText } from './download';
 
 import { DRAW_NAME, DRAW_TYPE, UTR } from 'constants/tmxConstants';

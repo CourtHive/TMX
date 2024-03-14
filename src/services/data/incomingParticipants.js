@@ -11,10 +11,10 @@ const modelParticipant = {
   participantName: ['full name', 'name'],
   participantId: ['id', 'participantid'],
   person: {
-    address: { city: ['city'], state: ['state'] },
     standardFamilyName: ['last', 'last name', 'last_name'],
     standardGivenName: ['first', 'First Name', 'first_name'],
     nationalityCode: ['ioc', 'country', 'nationality'],
+    address: { city: ['city'], state: ['state'] },
     birthDate: ['*birth'],
     sex: ['gender', 'sex'],
   },
@@ -53,6 +53,9 @@ export function incomingParticipants({ data, sheetId, callback }) {
     const participant = { participantType: 'INDIVIDUAL', participantRole: 'COMPETITOR', person: {} };
     participant.participantName = rowParser(modelParticipant.participantName);
 
+    const tennisId = rowParser(['tennis id', 'tennisid']);
+    if (tennisId) participant.person.tennisId = tennisId;
+
     const standardFamilyName = rowParser(modelParticipant.person.standardFamilyName);
     const standardGivenName = rowParser(modelParticipant.person.standardGivenName);
     if (standardFamilyName && standardGivenName) {
@@ -73,13 +76,9 @@ export function incomingParticipants({ data, sheetId, callback }) {
     }
 
     const birthDate = rowParser(modelParticipant.person.birthDate);
-    if (birthDate?.startsWith('Date')) {
-      const dateExtractor = new RegExp(/Date\((\d+),(\d+),(\d+)\)/);
-      const match = birthDate.match(dateExtractor);
-      if (match) {
-        const [year, mo, day] = match.slice(1, 4);
-        participant.person.birthDate = `${year}-${mo + 1}-${day}`;
-      }
+    if (tools.dateTime.dateValidation.test(birthDate)) {
+      const date = tools.dateTime.extractDate(birthDate);
+      if (date) participant.person.birthDate = date;
     }
 
     const sex = rowParser(modelParticipant.person.sex);
@@ -91,6 +90,24 @@ export function incomingParticipants({ data, sheetId, callback }) {
         participant.person.sex = 'FEMALE';
       } else if (['M', 'B'].includes(sex[0])) {
         participant.person.sex = 'MALE';
+      }
+    }
+
+    const utrProfile = rowParser(['utr profile']);
+    if (utrProfile) {
+      if (!participant.onlineResources) participant.onlineResources = [];
+      const identifier = utrProfile.split('profiles/')?.reverse()[0];
+      if (identifier) {
+        if (!participant.person.personOtherIds) participant.person.personOtherIds = [];
+        participant.person.personOtherIds.push({ uniqueOrganisationName: 'UTR', personId: identifier });
+        if (utrProfile.startsWith('http')) {
+          participant.onlineResources.push({
+            resourceSubType: 'PROFILE',
+            identifier: utrProfile,
+            name: 'UTR Profile',
+            resource: 'URL',
+          });
+        }
       }
     }
 
