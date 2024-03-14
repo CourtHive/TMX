@@ -61,8 +61,8 @@ export function renderIndividuals({ view }) {
       close: true,
     },
     {
-      label: 'Edit ratings',
       onClick: (e) => enableManualRatings(e, table),
+      label: 'Edit ratings',
       close: true,
     },
     { divider: true },
