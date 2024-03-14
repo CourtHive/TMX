@@ -37,6 +37,7 @@ export const HOME = 'home';
 
 // user
 export const SUPER_ADMIN = 'superadmin';
+export const ADMIN = 'admin';
 
 // engines
 export const COMPETITION_ENGINE = 'competitionEngine';

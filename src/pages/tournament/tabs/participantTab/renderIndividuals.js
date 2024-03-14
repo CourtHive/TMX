@@ -1,6 +1,5 @@
 import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
-import { participantConstants, genderConstants, participantRoles } from 'tods-competition-factory';
 import { saveRatings } from 'components/tables/participantsTable/editRatings/saveRatings';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getAddToGroupingSelection } from './controlBar/getAddToGroupingSelection';
@@ -17,6 +16,13 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'components/controlBar/controlBar';
 import { participantOptions } from './participantOptions';
+import {
+  participantConstants,
+  genderConstants,
+  participantRoles,
+  tournamentEngine,
+  extensionConstants,
+} from 'tods-competition-factory';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
@@ -45,6 +51,8 @@ export function renderIndividuals({ view }) {
   };
 
   const participantLabel = view === OFFICIAL ? 'Officials' : 'Individuals';
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
+  const registration = extension?.value;
 
   const actionOptions = [
     {
@@ -59,7 +67,7 @@ export function renderIndividuals({ view }) {
     },
     { divider: true },
     { heading: 'Add participants' },
-    { label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
+    { hide: registration, label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
     { label: 'Import from Google sheet', onClick: editRegistrationLink, close: true },
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
