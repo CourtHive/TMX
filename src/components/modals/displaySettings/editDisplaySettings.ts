@@ -156,11 +156,19 @@ export function editDisplaySettings(params) {
   selections.inputs = renderForm(formElement, formElements, relationships);
 
   const saveComposition = () => {
-    const postMutation = (res) => {
-      console.log({ res });
-    };
+    const postMutation = () => {};
+    const existingValue = tournamentEngine.findExtension({
+      name: extensionConstants.DISPLAY,
+      discover: true,
+      eventId,
+      drawId,
+    })?.extension?.value;
     const extension = {
-      value: { compositionName: selections.composition.compositionName, configuration: selections.configuration },
+      value: {
+        ...existingValue, // order is important!
+        compositionName: selections.composition.compositionName,
+        configuration: selections.configuration,
+      },
       name: extensionConstants.DISPLAY,
     };
     const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
@@ -172,10 +180,10 @@ export function editDisplaySettings(params) {
 
   openModal({
     title: `Edit display settings`,
-    content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
       { label: 'Save', id: saveId, intent: 'is-info', close: true, onClick: saveComposition },
     ],
+    content,
   });
 }
