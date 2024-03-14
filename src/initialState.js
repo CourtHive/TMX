@@ -1,6 +1,7 @@
 import { factoryConstants, globalState, tournamentEngine } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
+import { initSettingsIcon } from 'components/modals/settingsModal';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
@@ -51,6 +52,7 @@ export function setupTMX() {
   tournamentContent();
   initLoginToggle('login');
   initLoginToggle('burger');
+  initSettingsIcon('config');
 
   // add TMX Drawer
   context.drawer = drawer();
