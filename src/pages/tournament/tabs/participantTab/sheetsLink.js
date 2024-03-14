@@ -1,5 +1,5 @@
 import { incomingParticipants } from 'services/data/incomingParticipants';
-import PublicGoogleSheetsParser from 'public-google-sheets-parser';
+import { fetchGoogleSheet } from 'services/sheets/fetchGoogleSheet';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -16,14 +16,14 @@ export function editRegistrationLink({ callback }) {
   const content = (elem) => {
     inputs = renderForm(elem, [
       {
-        text: 'Pull participants from a Google Sheet which has a shared link'
+        text: 'Pull participants from a Google Sheet which has a shared link',
       },
       {
         placeholder: 'URL of Google Sheet',
         value: existingLink,
         label: 'Sheet URL',
-        field: 'url'
-      }
+        field: 'url',
+      },
     ]);
   };
   const submit = () => {
@@ -39,8 +39,7 @@ export function editRegistrationLink({ callback }) {
         tmxToast({ message, intent: 'is-danger' });
         inputs.url.value = '';
       } else if (validBits) {
-        const parser = new PublicGoogleSheetsParser(sheetId);
-        parser.parse().then((data) => incomingParticipants({ data, sheetId, callback }));
+        fetchGoogleSheet({ sheetId }).then((data) => incomingParticipants({ data, sheetId, callback }));
       } else {
         tmxToast({ message: 'URL unchanged', intent: 'is-info' });
       }
@@ -48,7 +47,7 @@ export function editRegistrationLink({ callback }) {
   };
   const buttons = [
     { label: 'Cancel', intent: 'is-nothing' },
-    { label: 'Submit', intent: 'is-primary', onClick: submit, close: true }
+    { label: 'Submit', intent: 'is-primary', onClick: submit, close: true },
   ];
   openModal({ title: 'Import participants', buttons, content });
 }

@@ -89,7 +89,10 @@ export function loadTournament({ tournamentRecord, config }) {
         notFound();
       }
     };
-    requestTournament({ tournamentId: config.tournamentId }).then(showResult, tryLocal);
+
+    if (config.tournamentId) {
+      requestTournament({ tournamentId: config.tournamentId }).then(showResult, tryLocal);
+    }
   } else {
     tournamentEngine.setState(tournamentRecord);
     renderTournament({ config });
