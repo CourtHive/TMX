@@ -1,4 +1,4 @@
-import { mocksEngine, queryGovernor, tournamentEngine, tools } from 'tods-competition-factory';
+import { mocksEngine, queryGovernor, tournamentEngine, tools, extensionConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { compositions, renderMatchUp } from 'courthive-components';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -161,7 +161,7 @@ export function editDisplaySettings(params) {
     };
     const extension = {
       value: { compositionName: selections.composition.compositionName, configuration: selections.configuration },
-      name: 'display',
+      name: extensionConstants.DISPLAY,
     };
     const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
     const methods = [{ method, params: { eventId, drawId, extension } }];
