@@ -6,6 +6,10 @@ export function enableManualRatings(e, table) {
     className: 'saveRatings',
     visible: true,
     table,
-    e
+    e,
   });
+
+  table.showColumn('ratings.utr.utrRating');
+  table.showColumn('ratings.wtn.wtnRating');
+  table.redraw(true);
 }

@@ -1,7 +1,7 @@
+import { getProviders, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
-import { getProviders, requestTournament } from './apis/servicesApi';
 import { loadTournament } from 'pages/tournament/tournamentDisplay';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
@@ -113,6 +113,7 @@ export function setDev() {
     generateMockTournament,
     modifyTournament,
     fetchTournament,
+    sendTournament,
     getLoginState,
     factory,
     baseApi,

@@ -84,14 +84,6 @@ export function mockParticipants({ callback }) {
         id: 'utrRating',
         checkbox: true,
       },
-      /* POSTERITY: left as an example of a radio group
-      {
-        label: 'Rating type',
-        field: 'ratingType',
-        options: [{ text: 'WTN', checked: true }, { text: 'UTR' }, { text: 'None' }],
-        radio: true,
-      },
-      */
     ]));
 
   openModal({ title: 'Generate mock players', content, buttons });

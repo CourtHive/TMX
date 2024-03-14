@@ -1,4 +1,4 @@
-import { mocksEngine, queryGovernor, tournamentEngine, tools } from 'tods-competition-factory';
+import { mocksEngine, queryGovernor, tournamentEngine, tools, extensionConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { compositions, renderMatchUp } from 'courthive-components';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -82,7 +82,6 @@ export function editDisplaySettings(params) {
   const render = ({ compositionName, configuration }) => {
     removeAllChildNodes(matchUpNode);
     selections.composition = compositions[compositionName];
-    // composition.configuration.scaleAttributes = env.scales[env.activeScale];
     selections.composition.configuration.scheduleInfo = selections.composition.configuration.showAddress = undefined;
     selections.composition.configuration.flags = undefined;
     Object.assign(selections.composition.configuration, configuration);
@@ -156,12 +155,20 @@ export function editDisplaySettings(params) {
   selections.inputs = renderForm(formElement, formElements, relationships);
 
   const saveComposition = () => {
-    const postMutation = (res) => {
-      console.log({ res });
-    };
+    const postMutation = () => {};
+    const existingValue = tournamentEngine.findExtension({
+      name: extensionConstants.DISPLAY,
+      discover: true,
+      eventId,
+      drawId,
+    })?.extension?.value;
     const extension = {
-      value: { compositionName: selections.composition.compositionName, configuration: selections.configuration },
-      name: 'display',
+      value: {
+        ...existingValue, // order is important!
+        compositionName: selections.composition.compositionName,
+        configuration: selections.configuration,
+      },
+      name: extensionConstants.DISPLAY,
     };
     const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
     const methods = [{ method, params: { eventId, drawId, extension } }];
@@ -172,10 +179,10 @@ export function editDisplaySettings(params) {
 
   openModal({
     title: `Edit display settings`,
-    content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
       { label: 'Save', id: saveId, intent: 'is-info', close: true, onClick: saveComposition },
     ],
+    content,
   });
 }

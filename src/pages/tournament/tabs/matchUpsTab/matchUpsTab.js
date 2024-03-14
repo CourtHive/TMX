@@ -4,7 +4,7 @@ import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs'
 import { dropDownButton } from 'components/buttons/dropDownButton';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
-import { env } from 'settings/env';
+import { setActiveScale } from 'settings/setActiveScale';
 
 import {
   ALL_EVENTS,
@@ -18,6 +18,8 @@ import {
   OVERLAY,
   RIGHT,
   TEAM_STATS,
+  UTR,
+  WTN,
 } from 'constants/tmxConstants';
 
 const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
@@ -122,7 +124,7 @@ export function renderMatchUpTab() {
     },
     {
       onClick: () => {
-        env.activeScale = 'wtn';
+        setActiveScale(WTN);
         replaceTableData();
       },
       id: 'wtnPredictiveAccuracy',
@@ -133,7 +135,7 @@ export function renderMatchUpTab() {
     },
     {
       onClick: () => {
-        env.activeScale = 'utr';
+        setActiveScale(UTR);
         replaceTableData();
       },
       id: 'utrPredictiveAccuracy',
