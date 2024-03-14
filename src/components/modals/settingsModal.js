@@ -1,20 +1,23 @@
 import { renderForm } from 'components/renderers/renderForm';
+import { setActiveScale } from 'settings/setActiveScale';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
 
 // constants
+import { UTR, WTN } from 'constants/tmxConstants';
 
 export function settingsModal() {
   let inputs;
   const saveSettings = () => {
-    env.activeScale = inputs.wtn.checked ? 'wtn' : 'utr';
+    const activeScale = inputs.wtn.checked ? WTN : UTR;
+    setActiveScale(activeScale);
   };
   const content = (elem) =>
     (inputs = renderForm(elem, [
       {
         options: [
-          { text: 'WTN', field: 'wtn', checked: env.activeScale === 'wtn' },
-          { text: 'UTR', field: 'utr', checked: env.activeScale === 'utr' },
+          { text: 'WTN', field: 'wtn', checked: env.activeScale === WTN },
+          { text: 'UTR', field: 'utr', checked: env.activeScale === UTR },
         ],
         onClick: (x) => console.log({ x }),
         label: 'Active rating',
