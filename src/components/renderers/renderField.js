@@ -36,7 +36,9 @@ export function renderField(item) {
     field.appendChild(label);
   }
 
-  let inputElement, datepicker;
+  let inputElement,
+    datepicker,
+    subFields = [];
 
   const control = document.createElement('div');
   control.className = 'control font-medium';
@@ -58,6 +60,8 @@ export function renderField(item) {
       const label = document.createElement('label');
       label.className = 'radio';
       const input = document.createElement('input');
+      if (option.field) subFields.push({ input, field: option.field });
+      if (option.id) input.id = option.id;
       input.name = item.id;
       input.type = 'radio';
       input.value = option.text;
@@ -100,7 +104,7 @@ export function renderField(item) {
     if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
   } else if (item.checkbox) {
     const div = document.createElement('div');
-    div.className = 'flexrow field nowrap';
+    div.className = 'flexrow nowrap';
     div.style.display = 'inline-block';
     const input = document.createElement('input');
     if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
@@ -177,5 +181,5 @@ export function renderField(item) {
     field.style.display = NONE;
   }
 
-  return { field, inputElement, datepicker };
+  return { field, inputElement, datepicker, subFields };
 }

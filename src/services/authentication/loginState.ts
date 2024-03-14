@@ -1,6 +1,8 @@
 import { getProviders, getUsers, removeUser } from 'services/apis/servicesApi';
+import { tournamentActions } from 'components/modals/tournamentActions';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
+import { settingsModal } from 'components/modals/settingsModal';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
 import { inviteModal } from 'components/modals/inviteUser';
@@ -13,7 +15,7 @@ import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { INVITE, SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { INVITE, SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 function styleLogin(valid) {
   const el = document.getElementById('login');
@@ -105,7 +107,8 @@ export function initLoginToggle(id) {
 
     el.addEventListener('click', () => {
       const loggedIn: any = getLoginState();
-      const admin = loggedIn?.roles?.includes(SUPER_ADMIN);
+      const superAdmin = loggedIn?.roles?.includes(SUPER_ADMIN);
+      const admin = loggedIn?.roles?.includes(ADMIN);
       const impersonating = context?.provider;
 
       const items = [
@@ -121,24 +124,24 @@ export function initLoginToggle(id) {
         },
         {
           style: 'text-decoration: line-through;',
-          hide: !admin || !impersonating,
+          hide: !superAdmin || !impersonating,
           onClick: cancelImpersonation,
           text: 'Impersonate',
         },
         {
-          hide: !admin || impersonating,
+          hide: !superAdmin || impersonating,
           onClick: impersonate,
           text: 'Impersonate',
         },
         {
           onClick: removeUserDialog,
           text: 'Remove user',
-          hide: !admin,
+          hide: !superAdmin,
         },
         {
           onClick: () =>
             getProviders().then(({ data }) => inviteModal(processInviteResult, data?.providers), handleError),
-          hide: !admin && !impersonating,
+          hide: !superAdmin && !impersonating,
           text: 'Invite User',
         },
         {
@@ -146,12 +149,18 @@ export function initLoginToggle(id) {
           hide: !loggedIn,
           onClick: logOut,
         },
+        { hide: !admin, divider: true },
+        {
+          onClick: tournamentActions,
+          heading: 'Actions',
+          hide: !admin,
+        },
         {
           divider: true,
         },
         {
+          onClick: settingsModal,
           heading: 'Settings',
-          onClick: () => tmxToast({ message: 'TBD: Settings' }),
         },
       ];
 

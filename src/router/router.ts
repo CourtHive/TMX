@@ -20,6 +20,7 @@ import {
   SCHEDULE_TAB,
   INVITE,
   VIEW,
+  TOURNAMENT_OVERVIEW,
 } from 'constants/tmxConstants';
 
 export function routeTMX() {
@@ -38,6 +39,9 @@ export function routeTMX() {
 
   router.on(`/${TOURNAMENT}/:tournamentId`, ({ data }) => {
     displayRoute({ data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/overview`, ({ data }) => {
+    displayRoute({ data, selectedTab: TOURNAMENT_OVERVIEW });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId`, ({ data }) => {
     displayRoute({ selectedTab: EVENTS_TAB, data });

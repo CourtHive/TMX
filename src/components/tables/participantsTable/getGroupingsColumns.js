@@ -101,7 +101,7 @@ export function getGroupingsColumns({ view, replaceTableData }) {
       minWidth: 200,
     },
     {
-      cellClick: (e, cell) => openCloseToggle(e, cell),
+      cellClick: openCloseToggle,
       formatter: openClose,
       responsive: false,
       headerSort: false,
