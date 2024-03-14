@@ -2,12 +2,13 @@ import { positionActionConstants, tournamentEngine } from 'tods-competition-fact
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
+import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
 import { isFunction } from 'functions/typeOf';
 import { env } from 'settings/env';
 
 import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
-import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
+import { AUTOMATED, MANUAL, UTR, WTN } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
@@ -62,7 +63,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   const drawMaticRound = (participantIds) => {
     const selectedScale = (inputs.wtn.checked && 'wtn') || (inputs.utr.checked && 'utr') || '';
     const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
-    env.activeScale = selectedScale;
+    setActiveScale(selectedScale);
 
     const result = tournamentEngine.drawMatic({
       updateParticipantRatings: true,
@@ -156,8 +157,8 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     },
     {
       options: [
-        { text: 'WTN', field: 'wtn', checked: env.activeScale === 'wtn' },
-        { text: 'UTR', field: 'utr', checked: env.activeScale === 'utr' },
+        { text: 'WTN', field: 'wtn', checked: env.activeScale === WTN },
+        { text: 'UTR', field: 'utr', checked: env.activeScale === UTR },
         { text: 'None', field: 'none', checked: !env.activeScale },
       ],
       onClick: (x) => console.log({ x }),
