@@ -2,6 +2,7 @@ import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
 import { findAncestor } from 'services/dom/parentAndChild';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
 import { openModal } from './baseModal/baseModal';
@@ -13,9 +14,17 @@ export function tournamentActions() {
   const takeAction = () => {
     if (inputs.action.value === 'upload' && inputs.replace.checked) {
       const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
-      sendTournament({ tournamentRecord }).then(success, failure);
+      return tmxToast({
+        action: {
+          onClick: () => sendTournament({ tournamentRecord }).then(success, failure),
+          text: 'Send??',
+        },
+        message: 'Upload tournament',
+        intent: 'is-danger',
+      });
     }
   };
+
   const relationships = [
     {
       control: 'replace',
