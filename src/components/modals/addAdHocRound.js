@@ -60,7 +60,10 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   };
 
   const drawMaticRound = (participantIds) => {
-    const { accessor: scaleAccessor, scaleName } = env.scales[env.activeScale?.toLowerCase()];
+    const selectedScale = (inputs.wtn.checked && 'wtn') || (inputs.utr.checked && 'utr') || '';
+    const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
+    env.activeScale = selectedScale;
+
     const result = tournamentEngine.drawMatic({
       updateParticipantRatings: true,
       dynamicRatings: true,
@@ -150,6 +153,18 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
         { label: AUTOMATED, value: AUTOMATED, selected: true },
         { label: MANUAL, value: false },
       ],
+    },
+    {
+      options: [
+        { text: 'WTN', field: 'wtn', checked: env.activeScale === 'wtn' },
+        { text: 'UTR', field: 'utr', checked: env.activeScale === 'utr' },
+        { text: 'None', field: 'none', checked: !env.activeScale },
+      ],
+      onClick: (x) => console.log({ x }),
+      label: 'Level of play',
+      field: 'levelOfPlay',
+      id: 'levelOfPlay',
+      radio: true,
     },
   ];
 
