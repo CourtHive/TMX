@@ -3,11 +3,11 @@ import { createTeamsTable } from 'components/tables/participantsTable/createTeam
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
+import { editGroupingParticipant } from './editGroupingParticipant';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
-import { editGroupingParticipant } from './editGroupingParticipant';
 import { participantOptions } from './participantOptions';
 
 import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
@@ -23,13 +23,13 @@ export function renderGroupings({ view }) {
 
   const actionOptions = [
     { label: 'New team', onClick: () => editGroupingParticipant({ title: 'New team', refresh: replaceTableData }) },
-    { label: 'Generate teams', onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) }
+    { label: 'Generate teams', onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) },
   ];
 
   const createNewEvent = {
     label: '<p style="font-weight: bold">Create new event</p>',
     onClick: () => eventFromParticipants(table),
-    close: true
+    close: true,
   };
   const addToEventOptions = [createNewEvent, { divider: true }].concat(
     events
@@ -37,8 +37,8 @@ export function renderGroupings({ view }) {
       .map((event) => ({
         onClick: () => addParticipantsToEvent({ event, participantType: TEAM, table, callback: replaceTableData }),
         label: event.eventName,
-        close: true
-      }))
+        close: true,
+      })),
   );
 
   const participantLabel = view === 'GROUP' ? 'Groups' : 'Teams';
@@ -50,28 +50,28 @@ export function renderGroupings({ view }) {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search teams',
       location: OVERLAY,
-      search: true
+      search: true,
     },
     {
       options: addToEventOptions,
       label: 'Add to event',
       hide: !events.length,
       intent: 'is-none',
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: () => eventFromParticipants(table),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onClick: () => deleteSelectedParticipants(table),
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
@@ -80,7 +80,7 @@ export function renderGroupings({ view }) {
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search teams',
       location: LEFT,
-      search: true
+      search: true,
     },
     {
       hide: eventOptions.length < 2,
@@ -88,7 +88,7 @@ export function renderGroupings({ view }) {
       modifyLabel: true,
       label: ALL_EVENTS,
       location: LEFT,
-      selection: true
+      selection: true,
     },
     {
       options: participantOptions(view),
@@ -97,15 +97,15 @@ export function renderGroupings({ view }) {
       intent: 'is-info',
       location: RIGHT,
       selection: true,
-      align: RIGHT
+      align: RIGHT,
     },
     {
       options: actionOptions,
       label: 'Actions',
       selection: false,
       location: RIGHT,
-      align: RIGHT
-    }
+      align: RIGHT,
+    },
   ];
 
   const target = document.getElementById(TEAMS_CONTROL);

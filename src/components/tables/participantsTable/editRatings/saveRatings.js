@@ -9,7 +9,7 @@ export function saveRatings(e, table) {
     className: 'saveRatings',
     visible: false,
     table,
-    e
+    e,
   });
 
   const rows = table.getData();
@@ -25,9 +25,9 @@ export function saveRatings(e, table) {
         removePriorValues: true,
         timeItem: {
           itemType: 'SCALE.RATING.SINGLES.WTN',
-          itemValue
-        }
-      }
+          itemValue,
+        },
+      },
     };
     const utrRating = row.ratings?.utr?.utrRating;
     const confidence = utrRating ? 50 : 0;
@@ -39,14 +39,15 @@ export function saveRatings(e, table) {
         removePriorValues: true,
         timeItem: {
           itemType: 'SCALE.RATING.SINGLES.UTR',
-          itemValue
-        }
-      }
+          itemValue,
+        },
+      },
     };
     return [wtnMethod, utrMethod];
   });
 
   const postMutation = (result) => {
+    console.log({ result });
     if (!result.success) console.log(result);
   };
   mutationRequest({ methods, callback: postMutation });
