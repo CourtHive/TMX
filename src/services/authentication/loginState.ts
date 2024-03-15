@@ -97,7 +97,7 @@ export function initLoginToggle(id) {
     const processInviteResult = (inviteResult) => {
       const inviteCode = inviteResult?.data.inviteCode;
       if (inviteCode) {
-        const inviteURL = `${window.location.origin}/#/${INVITE}/${inviteCode}`;
+        const inviteURL = `${window.location.origin}${window.location.pathname}/#/${INVITE}/${inviteCode}`;
         copyClick(inviteURL);
         console.log({ inviteCode, inviteURL });
       } else {
