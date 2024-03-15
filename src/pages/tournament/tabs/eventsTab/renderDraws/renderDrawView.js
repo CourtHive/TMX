@@ -21,12 +21,14 @@ import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import { matchUpScheduleSort } from 'functions/sorting/matchUpScheduleSort';
 
 const { DOUBLES, TEAM } = eventConstants;
 
 export function renderDrawView({ eventId, drawId, structureId, roundsView, redraw }) {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
+  let isAdHoc;
 
   // eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
@@ -51,8 +53,10 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     structures = drawData?.structures || [];
     structureId = structureId || structures?.[0]?.structureId;
     structure = structures.find((s) => s.structureId === structureId);
+    isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
     matchUps = Object.values(roundMatchUps || {}).flat();
+    if (isAdHoc) matchUps.sort(matchUpScheduleSort);
   };
 
   destroyTables();
@@ -100,8 +104,6 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   if (redraw) removeAllChildNodes(drawsView);
-
-  const isAdHoc = tournamentEngine.isAdHoc({ structure });
 
   const updateDrawDisplay = () => {
     if (dual) return;
