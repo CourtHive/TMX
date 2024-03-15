@@ -132,14 +132,12 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId });
     } else {
-      const filteredMatchUps = Object.values(structure.roundMatchUps || {}).flat();
-
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
           searchActive: participantFilter,
-          matchUps: filteredMatchUps,
+          matchUps,
           // initialRoundNumber: 3,
           eventHandlers,
           composition,
