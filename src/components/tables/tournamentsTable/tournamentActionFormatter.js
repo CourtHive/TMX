@@ -25,7 +25,13 @@ export const tournamentActionFormatter = (replaceTableData) => (cell) => {
       providerId && removeProviderTournament({ tournamentId, providerId });
     };
     const localDelete = () => tmx2db.deleteTournament(tournamentId).then(done, (err) => console.log(err));
-    removeTournament({ providerId, tournamentId }).then(localDelete, (err) => console.log(err));
+    const loginState = getLoginState();
+    const provider = loginState?.provider || context?.provider;
+    if (provider) {
+      removeTournament({ providerId, tournamentId }).then(localDelete, (err) => console.log(err));
+    } else {
+      localDelete();
+    }
   };
 
   const confirmDelete = () => {
