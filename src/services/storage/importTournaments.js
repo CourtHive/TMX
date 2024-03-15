@@ -1,6 +1,6 @@
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
+import { addOrUpdateTournament } from './addOrUpdateTournament';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
-import { saveTournamentRecord } from './saveTournamentRecord';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as safeJSON from 'utilities/safeJSON';
@@ -44,11 +44,4 @@ export function addTournament({ tournamentRecord, tournamentIds, table, callback
   }
   addOrUpdateTournament({ tournamentRecord });
   isFunction(callback) && callback();
-}
-
-function addOrUpdateTournament({ tournamentRecord }) {
-  const tournamentAdded = () => {
-    // console.log('updated or added', { tournamentRecord });
-  };
-  saveTournamentRecord({ tournamentRecord, callback: tournamentAdded });
 }
