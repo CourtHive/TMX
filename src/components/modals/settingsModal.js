@@ -10,6 +10,7 @@ export function settingsModal() {
   let inputs;
   const saveSettings = () => {
     const activeScale = inputs.wtn.checked ? WTN : UTR;
+    env.saveLocal = inputs.saveLocal.checked;
     setActiveScale(activeScale);
   };
   const content = (elem) =>
@@ -24,6 +25,13 @@ export function settingsModal() {
         field: 'activeRating',
         id: 'activeRating',
         radio: true,
+      },
+      {
+        label: 'Save local copies',
+        checked: env.saveLocal,
+        field: 'saveLocal',
+        id: 'saveLocal',
+        checkbox: true,
       },
     ]));
 

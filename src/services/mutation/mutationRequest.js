@@ -103,13 +103,13 @@ function engineExecution({ factoryEngine, methods }) {
 }
 
 async function localSave(saveLocal) {
+  console.log({ saveLocal, envSaveLocal: env.saveLocal });
   if (saveLocal || env.saveLocal) {
-    console.log('%c localSave', 'color: yellow');
     await saveTournamentRecord();
   }
 }
 
-async function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal = true }) {
+async function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal }) {
   if (window['dev']?.params) {
     for (const method of methods) {
       if (window['dev'].params[method.method]) {
