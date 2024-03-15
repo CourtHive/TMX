@@ -70,8 +70,7 @@ export function setDev() {
         if (result?.success) {
           tmxToast({ message: 'success', intent: 'is-success' });
           const tournamentRecord = factory.tournamentEngine.getTournament().tournamentRecord;
-          const displayTournament = () => loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
-          addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
+          loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
         } else {
           tmxToast({ message: result?.error?.message ?? 'error', intent: 'is-danger' });
           // eslint-disable-next-line no-console
@@ -91,7 +90,7 @@ export function setDev() {
         console.log({ error: result.error });
       } else {
         const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
-        tournamentRecord && addAndDisplay(tournamentRecord);
+        tournamentRecord && loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
       }
     });
   };
