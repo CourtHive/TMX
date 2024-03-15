@@ -9,11 +9,11 @@ export function matchUpScheduleSort(a: any, b: any): number {
   if (scheduleB.scheduledDate && !scheduleA.scheduledDate) return -1;
   if (scheduleA.scheduledDate && scheduleB.scheduledDate) {
     if (scheduleA.scheduledDate === scheduleB.scheduledDate) {
-      if (scheduleA.scheduleTime && !scheduleB.scheduleTime) return 1;
-      if (scheduleB.scheduleTime && !scheduleA.scheduleTime) return -1;
-      if (scheduleA.scheduleTime && scheduleB.scheduleTime) {
-        const timeA = timeStringMinutes(extractTime(scheduleA.scheduleTime));
-        const timeB = timeStringMinutes(extractTime(scheduleB.scheduleTime));
+      if (scheduleA.scheduledTime && !scheduleB.scheduledTime) return 1;
+      if (scheduleB.scheduledTime && !scheduleA.scheduledTime) return -1;
+      if (scheduleA.scheduledTime && scheduleB.scheduledTime) {
+        const timeA = timeStringMinutes(extractTime(scheduleA.scheduledTime));
+        const timeB = timeStringMinutes(extractTime(scheduleB.scheduledTime));
         return timeA - timeB;
       }
     }
