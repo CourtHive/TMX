@@ -54,7 +54,9 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
 
   const participantResults = getParticipantResults();
   const getTableData = () =>
-    participantResults?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }));
+    participantResults
+      ?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }))
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   const updateTableData = () =>
     getParticipantResults()?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }));
@@ -76,6 +78,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
         'averageVariation',
         'averagePressure',
         'participantName',
+        'pressureOrder',
         'gamesResult',
         'matchUpsPct',
         'setsResult',
