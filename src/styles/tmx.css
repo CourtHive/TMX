@@ -1,12 +1,17 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
 html,
 body {
-  font-family: 'Poppins', sans-serif;
   /* font-size: 62.5%; */
   font-weight: 500;
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
   font-size: 1.4rem;
   color: var(--white-color);
   height: 100vh;
