@@ -10,15 +10,6 @@ import { CENTER, LEFT } from 'constants/tmxConstants';
 export function getStatsColumns() {
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
-      titleFormatter: 'rowSelection',
-      formatter: 'rowSelection',
-      headerSort: false,
-      responsive: false,
-      hozAlign: LEFT,
-      width: 5,
-    },
-    {
       headerMenu: headerMenu({
         // sex: 'Gender', // provide mapping of icon column headers to field names
       }),
@@ -102,6 +93,15 @@ export function getStatsColumns() {
     },
     {
       formatter: percentFormatter,
+      field: 'averageVariation',
+      headerHozAlign: CENTER,
+      sorter: percentSorter,
+      hozAlign: CENTER,
+      maxWidth: 70,
+      title: 'RV',
+    },
+    {
+      formatter: percentFormatter,
       field: 'averagePressure',
       headerHozAlign: CENTER,
       sorter: percentSorter,
@@ -110,13 +110,12 @@ export function getStatsColumns() {
       title: 'PS',
     },
     {
-      formatter: percentFormatter,
-      field: 'averageVariation',
       headerHozAlign: CENTER,
-      sorter: percentSorter,
+      field: 'pressureOrder',
+      sorter: orderSorter,
+      title: 'PS#',
       hozAlign: CENTER,
-      maxWidth: 70,
-      title: 'RV',
+      maxWidth: 80,
     },
     {
       headerHozAlign: CENTER,
