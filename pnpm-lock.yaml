@@ -8,9 +8,6 @@ dependencies:
   '@babel/plugin-transform-private-property-in-object':
     specifier: 7.23.4
     version: 7.23.4(@babel/core@7.24.0)
-  '@creativebulma/bulma-badge':
-    specifier: ^1.0.1
-    version: 1.0.1
   '@event-calendar/core':
     specifier: 2.6.1
     version: 2.6.1
@@ -117,8 +114,8 @@ dependencies:
     specifier: 4.7.5
     version: 4.7.5
   tabulator-tables:
-    specifier: 5.6.1
-    version: 5.6.1
+    specifier: 6.0.0
+    version: 6.0.0
   timepicker-ui:
     specifier: 2.6.1
     version: 2.6.1
@@ -866,11 +863,6 @@ packages:
       '@types/conventional-commits-parser': 5.0.0
       chalk: 5.3.0
     dev: true
-
-  /@creativebulma/bulma-badge@1.0.1:
-    resolution:
-      { integrity: sha512-cTMgxPdTOsAfPqd9wbrvKNUTvnIt+pNgwwO9Xzu6MRUIFlvGRtIVApaV51f3wt0/uI78BpKv5FPAtEJbmSTZOg== }
-    dev: false
 
   /@esbuild/aix-ppc64@0.19.12:
     resolution:
@@ -6962,9 +6954,9 @@ packages:
       { integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew== }
     dev: false
 
-  /tabulator-tables@5.6.1:
+  /tabulator-tables@6.0.0:
     resolution:
-      { integrity: sha512-DsmaZqEmlQS/NL5ZJbVtoaeYjJgofEFp+2er7+uwKerGwd/E2rZbeQgux4+Ab1dxNJcbptiX7oUiTwogOnUdgQ== }
+      { integrity: sha512-5UCZO6/MxKEUBo6jXSCAZ30m5CFtQQBmIRaNDwfvTZSMNUtfWTiBR2zt0w9IB6K+n2tOrNdlmI/3CKej6RixCQ== }
     dev: false
 
   /temp@0.9.4:
