@@ -1,5 +1,6 @@
 import { getProviders, getUsers, removeUser } from 'services/apis/servicesApi';
 import { tournamentActions } from 'components/modals/tournamentActions';
+import { createProviderModal } from 'components/modals/createProvider';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { settingsModal } from 'components/modals/settingsModal';
@@ -72,7 +73,6 @@ export function impersonate() {
 
 export function removeUserDialog() {
   getUsers().then(({ data }) => {
-    console.log({ data });
     const options = data?.users?.map(({ value }) => {
       return {
         participantName: `${value.firstName} ${value.lastName} (${value.email})`,
@@ -132,6 +132,11 @@ export function initLoginToggle(id) {
           hide: !superAdmin || impersonating,
           onClick: impersonate,
           text: 'Impersonate',
+        },
+        {
+          onClick: createProviderModal,
+          text: 'Create provider',
+          hide: !superAdmin,
         },
         {
           onClick: removeUserDialog,
