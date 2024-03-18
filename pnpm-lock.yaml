@@ -223,6 +223,9 @@ devDependencies:
   rimraf:
     specifier: 5.0.5
     version: 5.0.5
+  semver:
+    specifier: ^7.6.0
+    version: 7.6.0
   source-map-explorer:
     specifier: 2.5.3
     version: 2.5.3
