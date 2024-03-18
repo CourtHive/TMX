@@ -28,8 +28,8 @@ export function createSelectionTable(params) {
 
   const table = new Tabulator(element, {
     placeholder: placeholder || 'No options',
-    index: targetAttribute,
     selectable: selectionLimit,
+    index: targetAttribute,
     layout: 'fitColumns',
     reactiveData: true,
     maxHeight: 350,
