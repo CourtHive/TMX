@@ -73,7 +73,7 @@ export function render(data) {
         },
         dayMaxEvents: true,
         nowIndicator: true,
-        selectable: true,
+        selectableRows: true,
       },
     },
   });
