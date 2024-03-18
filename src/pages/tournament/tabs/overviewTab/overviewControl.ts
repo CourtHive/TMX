@@ -1,3 +1,4 @@
+import { editTournamentImage } from 'components/modals/tournamentImage';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
@@ -45,6 +46,13 @@ export function overviewControl({ controlAnchor }) {
     overviewState.editing = !overviewState.editing;
   };
   const items = [
+    {
+      label: 'Tournament image',
+      onClick: editTournamentImage,
+      id: 'tournamentImage',
+      location: RIGHT,
+      intent: 'none',
+    },
     {
       label: 'Edit overview',
       onClick: toggleEditor,
