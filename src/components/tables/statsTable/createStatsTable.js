@@ -8,6 +8,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { orderSorter } from '../common/sorters/orderSorter';
 import { getStatsColumns } from './getStatsColumns';
 
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';
@@ -56,7 +57,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
   const getTableData = () =>
     participantResults
       ?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }))
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+      .sort((a, b) => orderSorter(a.order, b.order));
 
   const updateTableData = () =>
     getParticipantResults()?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }));
