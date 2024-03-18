@@ -105,8 +105,8 @@ dependencies:
     specifier: 6.12.0
     version: 6.12.0
   quill:
-    specifier: 1.3.7
-    version: 1.3.7
+    specifier: 2.0.0-beta.2
+    version: 2.0.0-beta.2
   rxjs:
     specifier: 7.8.1
     version: 7.8.1
@@ -2606,12 +2606,6 @@ packages:
       { integrity: sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg== }
     engines: { node: '>=0.8' }
 
-  /clone@2.1.2:
-    resolution:
-      { integrity: sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w== }
-    engines: { node: '>=0.8' }
-    dev: false
-
   /clsx@2.0.0:
     resolution:
       { integrity: sha512-rQ1+kcj+ttHG0MKVGBUXwayCCF1oh39BF5COIpRzuCEv8Mwjv0XucrI2ExNTOn9IlLifGClWQcU9BrZORvtw6Q== }
@@ -3963,11 +3957,6 @@ packages:
       es5-ext: 0.10.63
     dev: false
 
-  /eventemitter3@2.0.3:
-    resolution:
-      { integrity: sha512-jLN68Dx5kyFHaePoXWPsCGW5qdyZQtLYHkxkg02/Mz6g0kYpDx4FyP6XfArhQdlOC4b8Mv+EMxPo/8La7Tzghg== }
-    dev: false
-
   /eventemitter3@4.0.7:
     resolution:
       { integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw== }
@@ -3976,7 +3965,6 @@ packages:
   /eventemitter3@5.0.1:
     resolution:
       { integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA== }
-    dev: true
 
   /evp_bytestokey@1.0.3:
     resolution:
@@ -4029,9 +4017,9 @@ packages:
       { integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q== }
     dev: true
 
-  /fast-diff@1.1.2:
+  /fast-diff@1.3.0:
     resolution:
-      { integrity: sha512-KaJUt+M9t1qaIteSvjc6P3RbMdXsNhK61GRftR6SNxqmhthcd9MGIi4T+o0jD8LUSpSnSKXE20nLtJ3fOHxQig== }
+      { integrity: sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw== }
     dev: false
 
   /fast-glob@3.3.2:
@@ -5257,10 +5245,25 @@ packages:
       p-locate: 6.0.0
     dev: true
 
+  /lodash-es@4.17.21:
+    resolution:
+      { integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw== }
+    dev: false
+
   /lodash.camelcase@4.3.0:
     resolution:
       { integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA== }
     dev: true
+
+  /lodash.clonedeep@4.5.0:
+    resolution:
+      { integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ== }
+    dev: false
+
+  /lodash.isequal@4.5.0:
+    resolution:
+      { integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ== }
+    dev: false
 
   /lodash.isplainobject@4.0.6:
     resolution:
@@ -5841,9 +5844,9 @@ packages:
       { integrity: sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA== }
     dev: false
 
-  /parchment@1.1.4:
+  /parchment@3.0.0-beta.0:
     resolution:
-      { integrity: sha512-J5FBQt/pM2inLzg4hEWmzQx/8h8D0CiDxaG3vyp9rKrQRSDgBlhjdP5jQGgosEajXPSQouXGHOmVdgo7QmJuOg== }
+      { integrity: sha512-5TELdlKhfAFJ7TNUiGPZk8pVi8UPZ0qAffaZsMwIpGe3+JngGJjYW7hB7VaUTL3cSW1iZ+HEHixOdf+U58/HWA== }
     dev: false
 
   /parent-module@1.0.1:
@@ -6123,26 +6126,25 @@ packages:
       { integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A== }
     dev: true
 
-  /quill-delta@3.6.3:
+  /quill-delta@5.1.0:
     resolution:
-      { integrity: sha512-wdIGBlcX13tCHOXGMVnnTVFtGRLoP0imqxM696fIPwIf5ODIYUHIvHbZcyvGlZFiFhK5XzDC2lpjbxRhnM05Tg== }
-    engines: { node: '>=0.10' }
+      { integrity: sha512-X74oCeRI4/p0ucjb5Ma8adTXd9Scumz367kkMK5V/IatcX6A0vlgLgKbzXWy5nZmCGeNJm2oQX0d2Eqj+ZIlCA== }
+    engines: { node: '>= 12.0.0' }
     dependencies:
-      deep-equal: 1.1.2
-      extend: 3.0.2
-      fast-diff: 1.1.2
+      fast-diff: 1.3.0
+      lodash.clonedeep: 4.5.0
+      lodash.isequal: 4.5.0
     dev: false
 
-  /quill@1.3.7:
+  /quill@2.0.0-beta.2:
     resolution:
-      { integrity: sha512-hG/DVzh/TiknWtE6QmWAF/pxoZKYxfe3J/d/+ShUWkDvvkZQVTPeVmUJVu1uE6DDooC4fWTiCLh84ul89oNz5g== }
+      { integrity: sha512-skTsc3jDsOHcpGj+1sZJBEoRs+UjE5MHtp1bBuWq4yNgDP+jnGhX8wXvKNCHdMXfTtax6D0fgPSIMRSRUBnblQ== }
+    engines: { npm: '>=8.2.3' }
     dependencies:
-      clone: 2.1.2
-      deep-equal: 1.1.2
-      eventemitter3: 2.0.3
-      extend: 3.0.2
-      parchment: 1.1.4
-      quill-delta: 3.6.3
+      eventemitter3: 5.0.1
+      lodash-es: 4.17.21
+      parchment: 3.0.0-beta.0
+      quill-delta: 5.1.0
     dev: false
 
   /quote-stream@1.0.2:
