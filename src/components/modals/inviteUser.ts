@@ -135,8 +135,4 @@ export function inviteModal(callback, providers = []) {
       { label: 'Invite', intent: 'is-primary', id: 'inviteUser', disabled: true, onClick: submitInvite, close: true },
     ],
   });
-
-  const div = document.getElementById('roles');
-  const input = div.querySelector('input');
-  input.style.width = 'auto';
 }

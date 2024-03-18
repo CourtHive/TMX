@@ -53,7 +53,7 @@ export async function mutationRequest(params) {
   const mutate = (saveLocal) => makeMutation({ methods, factoryEngine, tournamentIds, completion, saveLocal });
   if (!inDateRange) return queryDateRange({ providerIds, mutate });
   if (providerIds.length) return checkPermissions({ providerIds, mutate });
-  return mutate();
+  return mutate(true);
 }
 
 function queryDateRange({ providerIds, mutate }) {
@@ -92,7 +92,8 @@ function checkPermissions({ providerIds, mutate }) {
     });
   }
 
-  return mutate(!isProvider && !(isSuperAdmin && impersonating));
+  const saveLocal = !isProvider && !(isSuperAdmin && impersonating);
+  return mutate(saveLocal);
 }
 
 function engineExecution({ factoryEngine, methods }) {
@@ -103,7 +104,6 @@ function engineExecution({ factoryEngine, methods }) {
 }
 
 async function localSave(saveLocal) {
-  console.log({ saveLocal, envSaveLocal: env.saveLocal });
   if (saveLocal || env.saveLocal) {
     await saveTournamentRecord();
   }

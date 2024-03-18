@@ -15,30 +15,30 @@ const actionTypes = {
     selections: 'availableAlternates',
     targetAttribute: 'participantId',
     param: 'alternateParticipantId',
-    title: 'Assign alternate'
+    title: 'Assign alternate',
   },
   [ASSIGN_PARTICIPANT]: {
     selections: 'participantsAvailable',
     targetAttribute: 'participantId',
-    title: 'Select participant'
+    title: 'Select participant',
   },
   [QUALIFYING_PARTICIPANT]: {
     selections: 'qualifyingParticipants',
     targetAttribute: 'participantId',
     param: 'qualifyingParticipantId',
-    title: 'Assign qualifier'
+    title: 'Assign qualifier',
   },
   [SWAP_PARTICIPANTS]: {
     selections: 'availableAssignments',
     targetAttribute: 'drawPosition',
     title: 'Swap draw positions',
-    param: 'drawPositions'
+    param: 'drawPositions',
   },
   selectParticipants: {
     selections: 'participantsAvailable',
     targetAttribute: 'participantId',
-    title: 'Select participants'
-  }
+    title: 'Select participants',
+  },
 };
 
 export function selectParticipant({
@@ -49,7 +49,7 @@ export function selectParticipant({
   selectOnEnter,
   onSelection,
   update,
-  action
+  action,
 }) {
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
@@ -74,7 +74,7 @@ export function selectParticipant({
   const buttons = [
     { label: 'Cancel', intent: 'is-none', close: true },
     // [Select] button will be hidden if only one item is being selected
-    { hide: selectionLimit === 1, label: 'Select', intent: 'is-info', onClick, close: true }
+    { hide: selectionLimit === 1, label: 'Select', intent: 'is-info', onClick, close: true },
   ];
   const onClose = () => {
     const table = context.tables['selectionTable'];
@@ -109,7 +109,7 @@ export function selectParticipant({
     selectionLimit,
     onSelected,
     anchorId,
-    data
+    data,
   });
 
   const setSearchFilter = createSearchFilter(table);
@@ -150,8 +150,8 @@ export function selectParticipant({
       id: 'participantSearch',
       location: LEFT,
       search: true,
-      focus: true
-    }
+      focus: true,
+    },
   ];
 
   const target = document.getElementById(controlId);
