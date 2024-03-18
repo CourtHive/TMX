@@ -18,7 +18,7 @@
     "commit": "git-cz",
     "commitlint": "commitlint --edit",
     "config": "node config.mjs",
-    "docs:publish": "pnpm build && git checkout docs && cp -r dist/* src/docs && git add src/docs && git commit -m 'docs: update' && git push && git checkout main",
+    "docs:publish": "pnpm build && git checkout docs && cp -r dist/* docs && git add src/docs && git commit -m 'docs: update' && git push && git checkout main",
     "format": "prettier --write src",
     "lint": "eslint src --fix --cache",
     "lint:staged": "TZ=UTC lint-staged",
