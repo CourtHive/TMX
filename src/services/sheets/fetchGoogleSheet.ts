@@ -23,7 +23,7 @@ export function getRows(res) {
       return mapHeaderIntoRows({ header, rows });
     } else {
       const [headerRow, ...remainingRows] = rows;
-      const header = mapColumns(headerRow.c).map((row) => row.v);
+      const header = mapColumns(headerRow).map((row) => row.v);
       return mapHeaderIntoRows({ header, rows: remainingRows });
     }
   } catch (e) {
