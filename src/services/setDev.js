@@ -98,7 +98,7 @@ export function setDev() {
   const subs = Object.assign({}, ...Object.keys(subscriptions).map((key) => ({ [key]: false })));
 
   addDev({
-    getProviders: () => getProviders().then((result) => console.log(result?.data?.providers)),
+    getProviders,
     getProvider: (name) =>
       getProviders().then((result) =>
         console.log(
