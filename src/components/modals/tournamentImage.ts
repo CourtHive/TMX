@@ -7,6 +7,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 // constants
 import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
+import { NONE } from 'constants/tmxConstants';
 
 export function editTournamentImage({ callback }) {
   let inputs,
@@ -17,6 +18,12 @@ export function editTournamentImage({ callback }) {
     ({ name, resourceType }) => name === 'tournamentImage' && resourceType === 'URL',
   )?.identifier;
 
+  const clearImage = () => {
+    const imageEl = document.getElementById('tournamentImagePreview');
+    imageEl.style.display = NONE;
+    enableSubmit(true);
+  };
+
   const enableSubmit = (enable?) => {
     const submitButton: any = document.getElementById('createButton');
     const disabled = enable ? false : !imageLoaded && inputs.tournamentImage.value;
@@ -24,17 +31,21 @@ export function editTournamentImage({ callback }) {
   };
 
   const attemptLoad = () => {
+    enableSubmit(false);
     imageLoaded = false;
     const imageEl = document.getElementById('tournamentImagePreview');
     imageEl.onload = () => (imageLoaded = true) && enableSubmit();
     imageEl['src'] = inputs.tournamentImage.value;
+    imageEl.style.display = '';
   };
 
   const form = (elem) =>
     (inputs = renderForm(elem, [
       {
         onKeyUp: (val) => val.key === 'Enter' && attemptLoad(),
-        onChange: () => (inputs.tournamentImage.value ? attemptLoad() : enableSubmit(true)),
+        onChange: () => {
+          return inputs.tournamentImage.value ? attemptLoad() : clearImage();
+        },
         label: 'Web address of online image',
         value: tournamentImageURL,
         placeholder: 'Image URL',
