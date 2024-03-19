@@ -16,6 +16,8 @@ export const eventFromParticipants = (table, callback) => {
       } else {
         if (eventId) navigateToEvent({ eventId });
       }
+    } else {
+      if (isFunction(callback)) callback();
     }
   };
   editEvent({ table, callback: postEventCreation, participants });
