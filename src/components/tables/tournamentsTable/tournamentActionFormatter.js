@@ -86,8 +86,7 @@ export function getTournament({ tournamentId, replaceTableData, table }) {
     });
   };
 
-  const goEdit = (result) => {
-    const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
+  const editRecord = (tournamentRecord) => {
     if (tournamentRecord) {
       editTournament({ table, tournamentRecord, replaceTableData });
     } else {
@@ -95,12 +94,14 @@ export function getTournament({ tournamentId, replaceTableData, table }) {
     }
   };
 
+  const goEdit = (result) => {
+    const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
+    editRecord(tournamentRecord);
+  };
+
   if (provider) {
     requestTournament({ tournamentId }).then(goEdit, (err) => console.log(err));
   } else {
-    tmx2db.findTournament(tournamentId).then(
-      (res) => goEdit(res),
-      (err) => console.log(err),
-    );
+    tmx2db.findTournament(tournamentId).then(editRecord, (err) => console.log(err));
   }
 }
