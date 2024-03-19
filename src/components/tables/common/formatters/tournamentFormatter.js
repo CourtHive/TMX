@@ -1,4 +1,4 @@
-export function tournamentFormatter(cell) {
+export const tournamentFormatter = (isMobile) => (cell) => {
   const content = document.createElement('span');
   const rowTable = document.createElement('table');
   const values = cell.getValue();
@@ -9,8 +9,8 @@ export function tournamentFormatter(cell) {
   const img = values.tournamentImageURL
     ? `<img src='${values.tournamentImageURL}' style='width: ${imageSize}' alt=''>`
     : '';
-  const cellContents =
-    `<td style='min-width: ${imageSize}'>${img}</td>` +
+  let cellContents =
+    (isMobile ? '' : `<td style='min-width: ${imageSize}'>${img}</td>`) +
     `<td>` +
     `<div style='margin-left: 1em'><strong style='font-size: 1.5em'>${values.tournamentName}</strong></div>` +
     `<div style='margin-left: 1em'>${values.startDate} / ${values.endDate}</div>` +
@@ -21,4 +21,4 @@ export function tournamentFormatter(cell) {
   content.appendChild(rowTable);
 
   return content;
-}
+};

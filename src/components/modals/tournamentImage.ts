@@ -84,7 +84,7 @@ export function editTournamentImage({ callback }) {
   };
 
   openModal({
-    title: 'Create provider',
+    title: 'Tournament image',
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
