@@ -2,7 +2,7 @@
   "name": "tmx",
   "license": "MIT",
   "private": true,
-  "version": "3.0.21",
+  "version": "3.0.22",
   "type": "module",
   "engines": {
     "node": "20",
@@ -48,13 +48,13 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@babel/core": "7.24.0",
-    "@babel/plugin-syntax-flow": "7.23.3",
-    "@babel/preset-typescript": "7.23.3",
+    "@babel/core": "7.24.1",
+    "@babel/plugin-syntax-flow": "7.24.1",
+    "@babel/preset-typescript": "7.24.1",
     "@commitlint/cli": "19.2.1",
     "@commitlint/config-conventional": "19.1.0",
     "@types/babel__traverse": "7.20.5",
-    "@types/node": "20.11.29",
+    "@types/node": "20.11.30",
     "@types/socket.io-client": "1.4.36",
     "@types/uuid": "9.0.8",
     "@typescript-eslint/eslint-plugin": "7.3.1",
@@ -93,7 +93,7 @@
     "yargs": "17.7.2"
   },
   "dependencies": {
-    "@babel/plugin-transform-private-property-in-object": "7.23.4",
+    "@babel/plugin-transform-private-property-in-object": "7.24.1",
     "@event-calendar/core": "2.6.1",
     "@event-calendar/day-grid": "2.6.1",
     "@event-calendar/interaction": "2.6.1",

@@ -4,6 +4,7 @@ import AWSP from 'awesomplete';
 
 export function createTypeAhead({ list, element, callback, currentValue, withCatchTab, onChange }) {
   const typeAhead = new AWSP(element, { list });
+  element.parentElement.style.width = '100%';
 
   let selectionFlag = false;
   const selectComplete = (c) => {
