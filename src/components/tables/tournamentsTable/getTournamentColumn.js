@@ -3,9 +3,10 @@ import { tournamentActionFormatter } from './tournamentActionFormatter';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
-import { CENTER, RIGHT, TOURNAMENT } from 'constants/tmxConstants';
+import { RIGHT, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getTournamentColumns(replaceTableData) {
+  const isMobile = /Mobile/.test(navigator.userAgent);
   const openTournament = (_, cell) => {
     const tournamentId = cell.getRow().getData().tournamentId;
 
@@ -18,15 +19,7 @@ export function getTournamentColumns(replaceTableData) {
 
   return [
     {
-      formatter: 'responsiveCollapse',
-      hozAlign: CENTER,
-      headerSort: false,
-      resizable: false,
-      minWidth: 50,
-      width: 50,
-    },
-    {
-      formatter: tournamentFormatter,
+      formatter: tournamentFormatter(isMobile),
       cellClick: openTournament,
       field: 'tournament',
       headerSort: false,
@@ -35,10 +28,11 @@ export function getTournamentColumns(replaceTableData) {
       widthGrow: 3,
     },
     {
-      title: 'Open',
-      vertAlign: 'middle',
       formatter: () => `<div class="button font-medium">Open</div>`,
       cellClick: openTournament,
+      vertAlign: 'middle',
+      visible: !isMobile,
+      title: 'Open',
       width: 90,
     },
     {

@@ -13,13 +13,21 @@ import { NONE } from 'constants/tmxConstants';
 
 export function editDisplaySettings(params) {
   const { eventId, drawId, callback } = params;
-  const storedValue = tournamentEngine.findExtension({ discover: true, name: 'display', drawId, eventId }).extension
-    ?.value;
+  const storedValue = tournamentEngine.findExtension({
+    name: extensionConstants.DISPLAY,
+    discover: true,
+    eventId,
+    drawId,
+  }).extension?.value;
+
+  // support there being multiple "scopes", e.g. admin, public, etc.
+  const scopedValue = storedValue?.admin ?? storedValue;
+
   const noScheduleInfo = ['Wimbledon', 'French', 'ITF'];
   const saveId = 'saveDisplaySettings';
   const selections: any = {
-    compositionName: storedValue?.compositionName ?? env.composition?.compositionName ?? 'Australian',
-    configuration: storedValue?.configuration ?? {},
+    compositionName: scopedValue?.compositionName ?? env.composition?.compositionName ?? 'Australian',
+    configuration: scopedValue?.configuration ?? {},
     composition: undefined,
     inputs: undefined,
   };
