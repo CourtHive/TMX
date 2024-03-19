@@ -105,7 +105,7 @@ export function createProviderModal(callback) {
       const url = inputs.tournamentImage.value;
       const onlineResource = {
         resourceSubType: 'IMAGE',
-        name: 'tournamentImage',
+        name: 'providerImage',
         resourceType: 'URL',
         identifier: url,
       };
