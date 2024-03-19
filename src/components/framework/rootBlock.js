@@ -1,4 +1,5 @@
 import { tournamentInfoBlock } from './infoiBlock';
+import { initScrollNav } from './initScrollNav';
 import { navbarBlock } from './navbarBlock';
 import { eventBlock } from './eventBlock';
 import { TMXlogo } from './courtHiveLogo';
@@ -113,5 +114,29 @@ export function rootBlock() {
   main.appendChild(calendar);
   root.appendChild(main);
 
+  root.appendChild(newBlock());
+  initScrollNav();
+
   return root;
+}
+
+function newBlock() {
+  const block = document.createElement('div');
+  block.style.display = NONE;
+  block.innerHTML = `<dnav>
+  <div class="logo">
+    TMX
+  </div>
+  <div class="links">
+    <a href="">Link 1</a>
+    <a href="">Link 2</a>
+    <a href="">Link 3</a>
+    <a href="">Link 4</a>
+  </div>
+</dnav>
+<main>
+</main>
+<section>
+  `;
+  return block;
 }
