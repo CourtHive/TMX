@@ -1,10 +1,11 @@
 import { tools, drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { editStructureNames } from './editStructureNames';
+import { editStructureNames } from 'components/modals/editStructureNames';
+import { editGroupNames } from 'components/modals/editGroupNames';
+import { addStructures } from 'components/modals/addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { addStructures } from '../../../../../components/modals/addStructures';
 
-const { FINISHING_POSITIONS } = drawDefinitionConstants;
+const { FINISHING_POSITIONS, CONTAINER } = drawDefinitionConstants;
 
 export function getStructureOptions({ drawData, eventId, structureId, updateControlBar }) {
   const drawId = drawData.drawId;
@@ -27,6 +28,9 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
     });
   };
 
+  const structure = drawData.structures.find((structure) => structure.structureId === structureId);
+  const isRoundRobin = structure?.structureType === CONTAINER;
+
   return drawData.structures
     .sort((a, b) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
     .map((structure) => ({
@@ -41,6 +45,13 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
       {
         onClick: () => editStructureNames({ drawId, callback: () => updateControlBar(true) }),
         label: 'Edit structure names',
+        modifyLabel: false,
+        close: true,
+      },
+      {
+        onClick: () => editGroupNames({ drawId, structure, callback: (res) => console.log(res) }),
+        label: 'Edit group names',
+        hide: !isRoundRobin,
         modifyLabel: false,
         close: true,
       },
