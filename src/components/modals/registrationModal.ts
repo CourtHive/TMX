@@ -18,7 +18,7 @@ export function registrationModal(params) {
         passwordMatch(inputs['passwordConfirm'].value) &&
         passwordValidator(inputs['password'].value) &&
         nameValidator(2)(inputs['givenName'].value) &&
-        nameValidator(2)(inputs['familyName'].value);
+        nameValidator(2)(inputs['lastName'].value);
 
       if (isValid) {
         registerButton.removeAttribute('disabled');
@@ -50,18 +50,17 @@ export function registrationModal(params) {
         },
         {
           error: 'Last name must be at least 2 characters long',
-          iconLeft: 'fa-solid fa-house',
           validator: nameValidator(2),
           placeholder: 'Last name',
           autocomplete: 'off',
           label: 'Last name',
-          field: 'familyName',
+          field: 'lastName',
         },
         {
           error: 'Must contain upper/lower, number, and special character',
           placeholder: 'minimum 8 characters',
-          validator: passwordValidator,
           iconLeft: 'fa-solid fa-lock',
+          validator: passwordValidator,
           autocomplete: 'off',
           label: 'Password',
           field: 'password',
@@ -82,7 +81,7 @@ export function registrationModal(params) {
     ));
 
   const submitRegistration = () => {
-    const lastName = inputs.familyName.value;
+    const lastName = inputs.lastName.value;
     const firstName = inputs.givenName.value;
     const password = inputs.password.value;
     const code = params?.data?.inviteKey;
