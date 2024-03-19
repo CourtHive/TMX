@@ -1,6 +1,6 @@
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderForm } from 'components/renderers/renderForm';
-import { addProvider } from 'services/apis/servicesApi';
+import { addProvider, modifyProvider } from 'services/apis/servicesApi';
 import { openModal } from './baseModal/baseModal';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
@@ -8,18 +8,24 @@ import { isFunction } from 'functions/typeOf';
 // constants
 import { NONE } from 'constants/tmxConstants';
 
-export function createProviderModal(callback) {
+export function editProviderModal(params) {
+  const { callback, provider } = params || {};
+  const providerImage = provider?.onlineResources?.find(
+    (resource) =>
+      resource.name === 'providerImage' && resource.resourceType === 'URL' && resource.resourceSubType === 'IMAGE',
+  );
   let inputs, imageLoaded;
+  const values = provider || {};
 
   const clearImage = () => {
-    const imageEl = document.getElementById('tournamentImagePreview');
+    const imageEl = document.getElementById('providerImagePreview');
     imageEl.style.display = NONE;
   };
 
   const attemptLoad = () => {
     enableSubmit({ inputs });
     imageLoaded = false;
-    const imageEl = document.getElementById('tournamentImagePreview');
+    const imageEl = document.getElementById('providerImagePreview');
     imageEl.onload = () => (imageLoaded = true) && enableSubmit({ inputs });
     imageEl['src'] = inputs.tournamentImage.value;
     imageEl.style.display = '';
@@ -55,6 +61,7 @@ export function createProviderModal(callback) {
       elem,
       [
         {
+          value: values.organisationName,
           placeholder: 'Provider name',
           validator: nameValidator(10),
           label: 'Provider Name',
@@ -62,6 +69,7 @@ export function createProviderModal(callback) {
           autocomplete: 'off',
         },
         {
+          value: values.organisationAbbreviation,
           placeholder: 'Abbreviation',
           validator: nameValidator(3),
           label: 'Abbreviation',
@@ -70,6 +78,8 @@ export function createProviderModal(callback) {
         },
         {
           placeholder: 'NOT REQUIRED - automatically generated',
+          value: params?.provider?.organisationId ?? '',
+          disabled: params?.provider?.organisationId,
           label: 'Provider ID',
           autocomplete: 'off',
           field: 'providerId',
@@ -80,6 +90,7 @@ export function createProviderModal(callback) {
             return inputs.tournamentImage.value ? attemptLoad() : clearImage();
           },
           label: 'Web address of online image',
+          value: providerImage?.identifier,
           placeholder: 'Image URL',
           field: 'tournamentImage',
           autocomplete: 'off',
@@ -91,14 +102,14 @@ export function createProviderModal(callback) {
   const content = document.createElement('div');
   form(content);
   const image = document.createElement('img');
-  image.id = 'tournamentImagePreview';
-
+  image.id = 'providerImagePreview';
   image.style.width = '100%';
   content.appendChild(image);
+
   const submitProvider = () => {
     const organisationAbbreviation = inputs.providerAbbr.value;
     const organisationName = inputs.providerName.value;
-    const organisationId = tools.UUID();
+    const organisationId = params?.provider?.organisationId || inputs.providerId.value || tools.UUID();
 
     const provider: any = { organisationAbbreviation, organisationName, organisationId };
     if (imageLoaded) {
@@ -112,11 +123,12 @@ export function createProviderModal(callback) {
       provider.onlineResources = [onlineResource];
     }
 
-    const response = (res) => {
-      console.log(res);
-      isFunction(callback) && callback(res);
-    };
-    addProvider({ provider }).then(response, (err) => console.log({ err }));
+    const response = (res) => isFunction(callback) && callback(res);
+    if (params?.provider) {
+      modifyProvider({ provider }).then(response, (err) => console.log({ err }));
+    } else {
+      addProvider({ provider }).then(response, (err) => console.log({ err }));
+    }
   };
 
   openModal({
@@ -125,13 +137,15 @@ export function createProviderModal(callback) {
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
       {
+        label: params?.provider ? 'Update' : 'Create',
         onClick: submitProvider,
-        intent: 'is-primary',
         id: 'createButton',
-        label: 'Create',
+        intent: 'is-info',
         disabled: true,
         close: true,
       },
     ],
   });
+
+  if (providerImage) setTimeout(attemptLoad, 400);
 }
