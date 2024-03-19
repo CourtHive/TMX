@@ -121,7 +121,7 @@ export function renderIndividuals({ view }) {
       location: OVERLAY,
     },
     {
-      onClick: () => eventFromParticipants(table),
+      onClick: () => eventFromParticipants(table, replaceTableData),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',

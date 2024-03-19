@@ -2,6 +2,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { renderForm } from 'components/renderers/renderForm';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import {
@@ -64,10 +65,9 @@ export function editEvent({ table, event, participants, callback } = {}) {
     if (participantType === PAIR) eventTypeOptions = [DOUBLES];
     if (participantType === TEAM) eventTypeOptions = [TEAM];
 
+    const sexes = participantType === INDIVIDUAL && tools.unique(participants.map((p) => p.participant?.person?.sex));
+
     genderOptions = [ANY];
-    const sexes =
-      participantType === INDIVIDUAL &&
-      tools.unique(participants.map((p) => p.participant?.person?.sex)).filter(Boolean);
     if (sexes.length === 1) {
       sexes[0] === FEMALE && genderOptions.push(FEMALE);
       sexes[0] === MALE && genderOptions.push(MALE);
@@ -203,11 +203,17 @@ export function editEvent({ table, event, participants, callback } = {}) {
     const eventUpdates = { eventName, eventType, gender, startDate, endDate };
 
     const postMutation = (result) => {
+      table?.deselectRow();
       if (result.success) {
         const event = result.results?.[0]?.event;
         if (isFunction(callback)) callback({ ...result, event, eventUpdates });
       } else {
-        console.log({ result });
+        if (result.error) {
+          tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
+          if (isFunction(callback)) {
+            callback();
+          }
+        }
       }
     };
 
