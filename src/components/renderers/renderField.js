@@ -101,13 +101,11 @@ export function renderField(item) {
     }
 
     inputElement = select;
-    if (isFunction(item.onChange)) select.addEventListener('change', (e) => item.onChange(e, item));
   } else if (item.checkbox) {
     const div = document.createElement('div');
     div.className = 'flexrow nowrap';
     div.style.display = 'inline-block';
     const input = document.createElement('input');
-    if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
     inputElement = input;
     const intent = item.intent ?? 'is-success';
     input.className = `is-checkradio ${intent}`;
@@ -164,13 +162,12 @@ export function renderField(item) {
       });
     } else if (item.typeAhead) {
       createTypeAhead({ ...item.typeAhead, element: input });
-    } else {
-      if (isFunction(item.onKeyDown)) input.addEventListener('keydown', (e) => item.onKeyDown(e, item));
-      if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
-      if (isFunction(item.onInput)) input.addEventListener('input', (e) => item.onInput(e, item));
-      if (isFunction(item.onKeyUp)) input.addEventListener('keyup', (e) => item.onKeyUp(e, item));
-      if (item.value !== undefined) input.value = item.value;
     }
+    if (isFunction(item.onKeyDown)) input.addEventListener('keydown', (e) => item.onKeyDown(e, item));
+    if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
+    if (isFunction(item.onInput)) input.addEventListener('input', (e) => item.onInput(e, item));
+    if (isFunction(item.onKeyUp)) input.addEventListener('keyup', (e) => item.onKeyUp(e, item));
+    if (item.value !== undefined) input.value = item.value;
     if (item.selectOnFocus) {
       input.addEventListener('focus', () => input.select());
     }

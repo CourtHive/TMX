@@ -1,8 +1,9 @@
 import { getProviders, getUsers, removeUser } from 'services/apis/servicesApi';
+import { selectProviderModal } from 'components/modals/selectProviderModal';
 import { tournamentActions } from 'components/modals/tournamentActions';
-import { createProviderModal } from 'components/modals/createProvider';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
+import { editProviderModal } from 'components/modals/editProvider';
 import { settingsModal } from 'components/modals/settingsModal';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -105,6 +106,8 @@ export function initLoginToggle(id) {
       }
     };
 
+    const providerSelected = (provider) => setTimeout(() => editProviderModal({ provider }), 200);
+
     el.addEventListener('click', () => {
       const loggedIn: any = getLoginState();
       const superAdmin = loggedIn?.roles?.includes(SUPER_ADMIN);
@@ -134,8 +137,13 @@ export function initLoginToggle(id) {
           text: 'Impersonate',
         },
         {
-          onClick: createProviderModal,
+          onClick: editProviderModal,
           text: 'Create provider',
+          hide: !superAdmin,
+        },
+        {
+          onClick: () => selectProviderModal({ callback: providerSelected }),
+          text: 'Edit provider',
           hide: !superAdmin,
         },
         {
