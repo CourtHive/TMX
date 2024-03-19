@@ -155,7 +155,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       widthGrow: 2,
     },
     {
-      headerFilter: 'input',
+      // headerFilter: 'input',
       visible: !!cityState,
       title: 'City/State',
       field: 'cityState',

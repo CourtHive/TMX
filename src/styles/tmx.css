@@ -348,3 +348,62 @@ html {
   min-height: 15em;
   font-size: 1em;
 }
+
+/*
+*/
+
+body {
+  margin: 0;
+  font-family: 'Lato', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+dnav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background-color: #eaeaea;
+  transition: top 500ms ease-in-out;
+}
+
+dnav.scroll-up,
+dnav:focus-within {
+  top: 0;
+}
+
+dnav.scroll-down {
+  top: -100%;
+}
+
+.links {
+  display: flex;
+  margin: 0 -1em;
+}
+
+.links a {
+  display: inline-block;
+  margin: 0 1em;
+}
+
+.logo {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+dnav a {
+  color: #0f0f0f;
+  text-decoration: none;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+
+
