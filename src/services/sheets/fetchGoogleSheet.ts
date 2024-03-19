@@ -18,12 +18,15 @@ export function getRows(res) {
     const content = res.split('setResponse(')[1].split(');')[0];
     const json = JSON.parse(content);
     const { cols, rows } = json.table ?? {};
-    const header = cols.map(({ label }) => label);
+    const header = cols.map(({ label }) => {
+      return label.split(' ')[0];
+    });
     if (header.filter(Boolean).length) {
       return mapHeaderIntoRows({ header, rows });
     } else {
       const [headerRow, ...remainingRows] = rows;
       const header = mapColumns(headerRow).map((row) => row.v);
+      console.log({ header });
       return mapHeaderIntoRows({ header, rows: remainingRows });
     }
   } catch (e) {
