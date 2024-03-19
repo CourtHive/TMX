@@ -21,7 +21,6 @@ import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
-import { matchUpScheduleSort } from 'functions/sorting/matchUpScheduleSort';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -56,7 +55,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
     matchUps = Object.values(roundMatchUps || {}).flat();
-    if (isAdHoc) matchUps.sort(matchUpScheduleSort);
+    if (isAdHoc) matchUps.sort(tools.matchUpScheduleSort);
   };
 
   destroyTables();
