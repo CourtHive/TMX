@@ -20,8 +20,8 @@ export function editStructureNames({ drawId, callback }) {
       validator: nameValidator(4),
       placeholder: structureName,
       field: structureId,
-      id: structureId
-    }
+      id: structureId,
+    },
   }));
 
   let inputs;
@@ -29,14 +29,14 @@ export function editStructureNames({ drawId, callback }) {
     const structureDetails = structures
       .map(
         ({ structureId }) =>
-          inputs[structureId]?.value && { structureId, structureName: inputs[structureId].value.trim() }
+          inputs[structureId]?.value && { structureId, structureName: inputs[structureId].value.trim() },
       )
       .filter(Boolean);
     const methods = [
       {
         params: { drawId, structureDetails },
-        method: RENAME_STRUCTURES
-      }
+        method: RENAME_STRUCTURES,
+      },
     ];
     const postMutation = (result) => {
       if (result.success) {
@@ -55,7 +55,7 @@ export function editStructureNames({ drawId, callback }) {
   };
   const relationships = structures.map(({ structureId }) => ({
     control: structureId,
-    onInput: checkValid
+    onInput: checkValid,
   }));
   const content = (elem) => (inputs = renderForm(elem, options, relationships));
   openModal({
@@ -63,7 +63,7 @@ export function editStructureNames({ drawId, callback }) {
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Rename', id: 'renameStructures', disabled: true, intent: 'is-info', close: true, onClick }
-    ]
+      { label: 'Rename', id: 'renameStructures', disabled: true, intent: 'is-info', close: true, onClick },
+    ],
   });
 }

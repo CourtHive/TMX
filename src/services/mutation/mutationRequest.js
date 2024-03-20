@@ -100,7 +100,7 @@ function engineExecution({ factoryEngine, methods }) {
   env.log?.verbose && console.log('%c executing locally', 'color: lightgreen');
   // deep copy of directives to avoid mutation (e.g. uuids.pop() robbing server of uuids)
   const directives = factory.tools.makeDeepCopy(methods);
-  return factoryEngine.executionQueue(directives) || {};
+  return factoryEngine.executionQueue(directives, true) || {}; // true => rollbackOnError
 }
 
 async function localSave(saveLocal) {
@@ -137,7 +137,10 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
       }
     };
     env.log?.verbose && console.log('%c invoking remote', 'color: lightblue');
-    emitTmx({ data: { type: 'executionQueue', payload: { methods, tournamentIds } }, ackCallback });
+    emitTmx({
+      data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
+      ackCallback,
+    });
     if (!env.serverFirst) await localSave(saveLocal);
   }
 
