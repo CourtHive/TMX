@@ -9,10 +9,12 @@ import { entryActions } from '../../popovers/entryActions';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { teamsFormatter } from '../common/formatters/teamsFormatter';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
 export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [], drawCreated } = {}) {
+  const teams = entries.find((entry) => entry.participant?.teams?.length);
   const utrRating = entries.find((entry) => entry.ratings?.utr);
   const wtnRating = entries.find((entry) => entry.ratings?.wtn);
   const cityState = entries.find((entry) => entry.cityState);
@@ -28,14 +30,14 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       headerSort: false,
       responsive: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
       headerMenu: headerMenu(),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
-      width: 55
+      width: 55,
     },
     {
       formatter: 'responsiveCollapse',
@@ -43,7 +45,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       headerSort: false,
       hozAlign: CENTER,
       resizable: false,
-      width: 50
+      width: 50,
     },
     {
       // formatter: genderedText,
@@ -54,7 +56,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       resizable: false,
       minWidth: 200,
       widthGrow: 1,
-      title: 'Name'
+      title: 'Name',
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
@@ -63,7 +65,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       sorter: 'number',
       field: 'ranking',
       title: 'Rank',
-      width: 70
+      width: 70,
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
@@ -72,7 +74,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       resizable: false,
       sorter: 'number',
       title: WTN,
-      width: 70
+      width: 70,
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
@@ -81,7 +83,17 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       resizable: false,
       sorter: 'number',
       title: UTR,
-      width: 70
+      width: 70,
+    },
+    {
+      sorter: (a, b) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
+      formatter: teamsFormatter(() => console.log('boo')),
+      field: 'participant.teams',
+      visible: !!teams,
+      title: 'Teams',
+      responsive: false,
+      resizable: false,
+      minWidth: 100,
     },
     {
       visible: !!cityState,
@@ -89,7 +101,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       field: 'cityState',
       responsive: false,
       resizable: false,
-      minWidth: 100
+      minWidth: 100,
     },
     {
       editor: numericEditor({ maxValue: entries?.length || 0, field: 'seedNumber' }),
@@ -101,7 +113,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       sorter: 'number',
       editable: false,
       title: 'Seed',
-      maxWidth: 70
+      maxWidth: 70,
     },
     {
       formatter: flightsFormatter(navigateToEvent),
@@ -109,14 +121,14 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       responsive: true,
       field: 'flights',
       minWidth: 100,
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       responsive: false,
       resizable: false,
       title: 'Status',
       field: 'status',
-      maxWidth: 80
+      maxWidth: 80,
     },
     {
       cellClick: entryActions(actions, eventId, drawId),
@@ -124,7 +136,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
-      maxWidth: 40
-    }
+      maxWidth: 40,
+    },
   ].filter(({ field }) => Array.isArray(exclude) && !exclude?.includes(field));
 }

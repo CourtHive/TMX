@@ -26,7 +26,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
         },
         composition: {
           configuration: {
-            participantDetail: 'ADDRESS', // ['ADDRESS', 'TEAM']
+            participantDetail: 'TEAM', // ['ADDRESS', 'TEAM'] // TODO: pass display into formatParticipant, or use env
             genderColor: true,
             winnerColor: true,
             scaleAttributes,

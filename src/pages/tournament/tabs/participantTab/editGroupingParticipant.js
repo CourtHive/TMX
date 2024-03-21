@@ -56,7 +56,7 @@ export function editGroupingParticipant({
 
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
-    callback: () => console.log('drawer callback'),
+    callback: () => {},
     width: '300px',
     side: RIGHT,
     content,
@@ -64,7 +64,7 @@ export function editGroupingParticipant({
   });
 
   function saveParticipant() {
-    table.deselectRow();
+    table?.deselectRow();
     if (!participant?.participantId) {
       addParticipant();
     } else {
