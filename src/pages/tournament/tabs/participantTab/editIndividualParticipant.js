@@ -29,7 +29,7 @@ export function editIndividualParticipant({ participant, view, callback }) {
   const nationalityCodeValue = (value) => (values.nationalityCode = value);
 
   const validValues = ({ firstName, lastName }) =>
-    nameValidator(3)(firstName || '') && nameValidator(3)(lastName || '');
+    nameValidator(2)(firstName || '') && nameValidator(2)(lastName || '');
 
   const enableSubmit = ({ inputs }) => {
     const valid = validValues({
@@ -58,7 +58,7 @@ export function editIndividualParticipant({ participant, view, callback }) {
         {
           error: 'Please enter a name of at least 3 characters',
           value: values.firstName || '',
-          validator: nameValidator(3),
+          validator: nameValidator(2),
           placeholder: 'Given name',
           label: 'First name',
           field: 'firstName',
@@ -67,7 +67,7 @@ export function editIndividualParticipant({ participant, view, callback }) {
         {
           error: 'Please enter a name of at least 3 characters',
           value: values.lastName || '',
-          validator: nameValidator(3),
+          validator: nameValidator(2),
           placeholder: 'Family name',
           label: 'Last name',
           field: 'lastName',
