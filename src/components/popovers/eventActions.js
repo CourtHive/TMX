@@ -1,11 +1,10 @@
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { deleteEvents } from 'components/modals/deleteEvents';
 import { tipster } from 'components/popovers/tipster';
 
 // constants
-import { DELETE_EVENTS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
 export const eventActions = (nestedTables) => (e, cell) => {
@@ -38,7 +37,8 @@ export const eventActions = (nestedTables) => (e, cell) => {
       const table = cell.getTable();
       result.success && table?.deleteRow(eventIds);
     };
-    mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
+    return deleteEvents({ eventIds, callback });
+    // mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
   };
 
   const items = [

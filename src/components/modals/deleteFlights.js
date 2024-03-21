@@ -13,8 +13,6 @@ export function deleteFlights(params) {
   const drawName = drawIds.length === 1 && eventData?.drawsData?.find((data) => drawIds.includes(data.drawId)).drawName;
   const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
 
-  console.log('delete Flights');
-
   let inputs;
   const deleteAction = () => {
     const auditData = { auditReason: inputs['drawDeletionReason'].value };
