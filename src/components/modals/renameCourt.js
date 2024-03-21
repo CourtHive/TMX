@@ -1,11 +1,25 @@
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 
-export function renameCourt({ courtInfo }) {
+// constants
+import { MODIFY_COURT } from 'constants/mutationConstants';
+
+export function renameCourt({ column, courtInfo }) {
+  const courtId = courtInfo.courtId;
+
   const setNewName = ({ content }) => {
-    const newValue = content?.courtName.value;
-    if (newValue && newValue !== courtInfo.courtName) {
-      console.log({ newValue });
+    const value = content?.courtName.value;
+    if (value.length && value !== courtInfo.courtName) {
+      const postMutation = (result) => {
+        if (result.success) {
+          column.updateDefinition({ title: value });
+        } else {
+          console.log({ result });
+        }
+      };
+      const methods = [{ method: MODIFY_COURT, params: { courtId, modifications: { courtName: value } } }];
+      mutationRequest({ methods, callback: postMutation });
     }
   };
 
@@ -14,8 +28,8 @@ export function renameCourt({ courtInfo }) {
       {
         value: courtInfo.courtName,
         label: 'Court Name',
-        field: 'courtName'
-      }
+        field: 'courtName',
+      },
     ]);
 
   openModal({
@@ -23,7 +37,7 @@ export function renameCourt({ courtInfo }) {
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Rename', intent: 'is-primary', onClick: setNewName, close: true }
-    ]
+      { label: 'Rename', intent: 'is-primary', onClick: setNewName, close: true },
+    ],
   });
 }
