@@ -72,6 +72,8 @@ export function editEvent({ table, event, participants, callback } = {}) {
       sexes[0] === FEMALE && genderOptions.push(FEMALE);
       sexes[0] === MALE && genderOptions.push(MALE);
       values.gender = sexes[0];
+    } else if (sexes.length > 1) {
+      genderOptions.push(MIXED);
     }
   }
 
