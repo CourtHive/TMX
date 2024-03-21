@@ -90,7 +90,6 @@ export function editDisplaySettings(params) {
   const render = ({ compositionName, configuration }) => {
     removeAllChildNodes(matchUpNode);
     selections.composition = compositions[compositionName];
-    selections.composition.configuration.scheduleInfo = selections.composition.configuration.showAddress = undefined;
     selections.composition.configuration.flags = undefined;
     Object.assign(selections.composition.configuration, configuration);
 
@@ -110,17 +109,18 @@ export function editDisplaySettings(params) {
       value: key,
     }));
 
+  const participantDetail = selections.configuration.participantDetail;
   const detailOptions = [
-    { label: 'None', value: 'NONE', selected: true },
-    { label: 'Address', value: 'ADDRESS' },
-    { label: 'Team', value: 'TEAM' },
+    { label: 'None', value: 'NONE', selected: !participantDetail },
+    { label: 'Address', value: 'ADDRESS', selected: participantDetail === 'ADDRESS' },
+    { label: 'Team', value: 'TEAM', selected: participantDetail === 'TEAM' },
   ];
 
   const onChange = () => {
     selections.compositionName = selections.inputs.composition.value;
     selections.configuration.scheduleInfo =
       !noScheduleInfo.includes(selections.compositionName) && selections.inputs.showSchedule.checked;
-    selections.configuration.particiapntDetail = selections.inputs.detail.value;
+    selections.configuration.participantDetail = selections.inputs.detail.value;
     render(selections);
   };
 
