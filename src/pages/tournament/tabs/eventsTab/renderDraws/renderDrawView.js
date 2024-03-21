@@ -78,10 +78,15 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   });
 
   const compositionName = eventData.eventInfo?.display?.compositionName;
+  const configuration = eventData.eventInfo?.display?.configuration;
+
   const composition =
     compositions[compositionName] ||
     env.composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
+  // composition.configuration.participantDetail = 'TEAM';
+  composition.configuration.flags = false;
+  Object.assign(composition.configuration, configuration);
 
   // override WTN default
   if (composition.configuration.scaleAttributes) {
