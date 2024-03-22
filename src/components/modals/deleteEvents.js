@@ -13,7 +13,7 @@ export function deleteEvents(params) {
 
   let inputs;
   const deleteAction = () => {
-    const auditData = { auditReason: inputs['drawDeletionReason'].value };
+    const auditData = { auditReason: inputs['eventDeletionReason'].value };
     mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds, auditData } }], callback });
   };
   const items = [
