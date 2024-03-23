@@ -1,5 +1,5 @@
+import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { getLoginState } from 'services/authentication/loginState';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
@@ -68,7 +68,11 @@ function queryDateRange({ providerIds, mutate }) {
 function checkPermissions({ providerIds, mutate }) {
   const state = getLoginState();
   // if the tournamentRecord(s) are associated with a providerId, check permissions
-  if (!state) return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
+  if (!state) {
+    context.provider = undefined;
+    styleLogin(false);
+    return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
+  }
 
   const isProvider = !!(
     state?.providerIds?.includes(providerIds[0]) || state?.provider?.organisationId === providerIds[0]
