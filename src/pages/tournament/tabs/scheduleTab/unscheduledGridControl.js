@@ -19,6 +19,9 @@ export function unscheduledGridControl({
   matchUps = [],
   table,
 }) {
+  const updateScheduledDate = (date) => {
+    scheduledDate = date;
+  };
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
     table.removeFilter(eventFilter);
@@ -158,4 +161,5 @@ export function unscheduledGridControl({
   ];
 
   controlBar({ target: controlAnchor, items }).elements;
+  return { updateScheduledDate };
 }
