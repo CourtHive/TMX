@@ -5,12 +5,13 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 
-import { ALL_EVENTS, ALL_ROUNDS, LEFT, RIGHT } from 'constants/tmxConstants';
+import { ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function unscheduledGridControl({
   updateUnscheduledTable,
   updateScheduleTable,
   toggleUnscheduled,
+  flightNameFilter,
   roundNameFilter,
   controlAnchor,
   eventIdFilter,
@@ -46,6 +47,22 @@ export function unscheduledGridControl({
     roundNames.map((roundName) => ({
       onClick: () => updateRoundFilter(roundName),
       label: roundName,
+      close: true,
+    })),
+  );
+
+  const flightFilter = (rowData) => rowData.flight === flightNameFilter;
+  const flightNames = tools.unique(matchUps.map((matchUp) => matchUp.drawName));
+  const updateFlightFilter = (flightName) => {
+    table.removeFilter(flightFilter);
+    flightNameFilter = flightName;
+    if (flightName) table.addFilter(flightFilter);
+  };
+  const allFlights = { label: ALL_FLIGHTS, onClick: () => updateFlightFilter(), close: true };
+  const flightOptions = [allFlights].concat(
+    flightNames.map((flightName) => ({
+      onClick: () => updateFlightFilter(flightName),
+      label: flightName,
       close: true,
     })),
   );
@@ -112,6 +129,15 @@ export function unscheduledGridControl({
       options: roundOptions,
       id: 'roundOptions',
       label: ALL_ROUNDS,
+      modifyLabel: true,
+      location: LEFT,
+      selection: true,
+    },
+    {
+      hide: flightOptions.length < 2,
+      options: flightOptions,
+      id: 'flightOptions',
+      label: ALL_FLIGHTS,
       modifyLabel: true,
       location: LEFT,
       selection: true,
