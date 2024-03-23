@@ -86,6 +86,7 @@ function checkPermissions({ providerIds, mutate }) {
       context.provider = { organisationId: providerIds[0] };
       return mutate(false);
     };
+
     return tmxToast({
       action: {
         onClick: impersonateProvider,
@@ -114,6 +115,7 @@ async function localSave(saveLocal) {
 }
 
 async function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal }) {
+  const hasProvider = factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
   if (window['dev']?.params) {
     for (const method of methods) {
       if (window['dev'].params[method.method]) {
@@ -126,17 +128,18 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
   if (window?.['dev']?.getContext().internal) console.log({ methods });
 
   let factoryResult;
-  if (!env.serverFirst) {
+  if (!env.serverFirst || !hasProvider) {
     factoryResult = engineExecution({ factoryEngine, methods });
     if (factoryResult.error) return completion(factoryResult);
   }
 
-  if (factoryResult?.success || env.serverFirst) {
+  if (hasProvider && (factoryResult?.success || env.serverFirst)) {
     const ackCallback = async (ack) => {
-      if (env.serverFirst && ack?.success) {
+      const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
+      if (env.serverFirst && (ack?.success || missingTournament)) {
         factoryResult = engineExecution({ factoryEngine, methods });
         if (factoryResult.error) return completion(factoryResult);
-        await localSave(saveLocal);
+        await localSave(saveLocal || missingTournament);
         return completion(factoryResult);
       }
     };
@@ -148,5 +151,5 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
     if (!env.serverFirst) await localSave(saveLocal);
   }
 
-  if (!env.serverFirst) return completion(factoryResult);
+  if (!env.serverFirst || !hasProvider) return completion(factoryResult);
 }
