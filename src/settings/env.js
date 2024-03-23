@@ -22,16 +22,10 @@ export const env = {
     },
   },
 
-  firstTimeUser: false,
-  serverFirst: false,
-
-  // version is Major.minor.added.changed.fixed
+  serverFirst: true,
   version,
-  version_check: undefined,
-  format_version: '1.2',
 
   ioc: 'gbr',
-  orientation: undefined,
   locations: {
     geolocate: true,
     geoposition: undefined,
