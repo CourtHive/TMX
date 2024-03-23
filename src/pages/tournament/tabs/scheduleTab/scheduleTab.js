@@ -23,7 +23,7 @@ export function renderScheduleTab({ scheduledDate }) {
   const {
     replaceTableData: updateUnscheduledTable,
     table: unscheduledTable,
-    unscheduledMatchUps
+    unscheduledMatchUps,
   } = createUnscheduledTable({ scheduledDate });
 
   const toggleUnscheduled = () => {
@@ -38,25 +38,26 @@ export function renderScheduleTab({ scheduledDate }) {
   const {
     replaceTableData: updateScheduleTable,
     table: scheduleTable,
-    courtsCount
+    courtsCount,
   } = createScheduleTable({
-    scheduledDate
+    scheduledDate,
   });
 
-  unscheduledGridControl({
+  const { updateScheduledDate } = unscheduledGridControl({
     controlAnchor: unscheduldControlAnchor,
     matchUps: unscheduledMatchUps,
     table: unscheduledTable,
     updateUnscheduledTable,
     updateScheduleTable,
     toggleUnscheduled,
-    scheduledDate
+    scheduledDate,
   });
 
   const setDate = (scheduledDate) => {
     context.displayed.schedule_day = scheduledDate;
     updateUnscheduledTable({ scheduledDate });
     updateScheduleTable({ scheduledDate });
+    if (updateScheduledDate) updateScheduledDate(scheduledDate);
   };
   gridControlElements = scheduleGridControl({
     table: scheduleTable,
@@ -67,6 +68,6 @@ export function renderScheduleTab({ scheduledDate }) {
     controlAnchor,
     scheduledDate,
     courtsCount,
-    setDate
+    setDate,
   }).elements;
 }
