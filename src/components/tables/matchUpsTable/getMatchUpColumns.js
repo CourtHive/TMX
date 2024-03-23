@@ -157,7 +157,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
     {
       cellClick: matchUpTimeClick,
       field: 'scheduledTime',
-      headerSort: false,
+      // headerSort: false,
       visible: true,
       title: 'Time',
       width: 70,
