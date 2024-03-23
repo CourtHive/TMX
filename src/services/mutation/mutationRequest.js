@@ -131,6 +131,10 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
   if (!env.serverFirst || !hasProvider) {
     factoryResult = engineExecution({ factoryEngine, methods });
     if (factoryResult.error) return completion(factoryResult);
+    if (!hasProvider) {
+      await localSave(true);
+      return completion(factoryResult);
+    }
   }
 
   if (hasProvider && (factoryResult?.success || env.serverFirst)) {
@@ -148,7 +152,7 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
       data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
       ackCallback,
     });
-    if (!env.serverFirst) await localSave(saveLocal);
+    if (!env.serverFirst || !hasProvider) await localSave(saveLocal);
   }
 
   if (!env.serverFirst || !hasProvider) return completion(factoryResult);
