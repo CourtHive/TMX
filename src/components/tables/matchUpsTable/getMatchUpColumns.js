@@ -6,16 +6,20 @@ import { profileFormatter } from '../common/formatters/profileFormatter';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { titleFormatter } from '../common/formatters/titleFormatter';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { matchUpActions } from 'components/popovers/matchUpActions';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { handleScoreClick } from './handleMatchUpScoreClick';
-import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
+import { timePicker } from 'components/modals/timePicker';
 import { headerMenu } from '../common/headerMenu';
+import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 
 export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
   const matchUpScheduleClick = (e, cell) => {
@@ -27,6 +31,42 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
       context.router.navigate(route);
     }
+  };
+
+  const setMatchUpSchedule = ({ matchUpId, scheduledTime, callback }) => {
+    const methods = [
+      {
+        params: { matchUpIds: [matchUpId], schedule: { scheduledTime } },
+        method: BULK_SCHEDULE_MATCHUPS,
+      },
+    ];
+
+    const postMutation = (result) => {
+      if (result.success) {
+        isFunction(callback) && callback();
+      }
+    };
+
+    mutationRequest({ methods, callback: postMutation });
+  };
+
+  const matchUpTimeClick = (e, cell) => {
+    const existingTime = cell.getValue();
+    const timeSelected = ({ time }) => {
+      const militaryTime = true;
+      const scheduledTime = tools.dateTime.convertTime(time, militaryTime);
+      const row = cell.getRow();
+      const data = row.getData();
+      const { matchUpId } = data;
+      if (scheduledTime !== existingTime) {
+        const callback = () => {
+          console.log('callback');
+          row.update({ ...data, scheduledTime });
+        };
+        setMatchUpSchedule({ matchUpId, scheduledTime, callback });
+      }
+    };
+    timePicker({ time: existingTime, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
   };
 
   const participantChange = () => replaceTableData();
@@ -115,10 +155,10 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       width: 100,
     },
     {
-      cellClick: matchUpScheduleClick,
+      cellClick: matchUpTimeClick,
       field: 'scheduledTime',
       headerSort: false,
-      visible: false,
+      visible: true,
       title: 'Time',
       width: 70,
     },
