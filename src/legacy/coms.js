@@ -280,14 +280,12 @@ export const coms = (() => {
       if (data?.payload) {
         Object.assign(data.payload, {
           timestamp: new Date().getTime(),
-          version: env.version,
           providerId,
           userId,
         });
       } else {
         Object.assign(data, {
           timestamp: new Date().getTime(),
-          version: env.version,
           providerId,
           userId,
         });

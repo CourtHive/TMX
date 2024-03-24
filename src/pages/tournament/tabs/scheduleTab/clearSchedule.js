@@ -1,8 +1,9 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionEngine } from 'tods-competition-factory';
-import { isFunction } from 'functions/typeOf';
 import { tipster } from 'components/popovers/tipster';
+import { isFunction } from 'functions/typeOf';
 
+// constants
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -11,26 +12,26 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
   const { dateMatchUps = [], completedMatchUps = [] } = result;
   const matchUps = dateMatchUps.concat(...completedMatchUps);
   const scheduledMatchUps = matchUps.filter(
-    ({ schedule }) => schedule.scheduledDate || schedule.scheduledTime || schedule.courtId
+    ({ schedule }) => schedule.scheduledDate || schedule.scheduledTime || schedule.courtId,
   );
   const selectedDateMatchUps = scheduledMatchUps.filter(({ schedule }) => schedule.scheduledDate === scheduledDate);
 
   let options = [
     {
+      disabled: !selectedDateMatchUps.length,
       option: 'Clear scheduled matches',
-      disabled: !selectedDateMatchUps.length,
-      onClick: clearScheduleDay
+      onClick: clearScheduleDay,
     },
     {
+      disabled: !selectedDateMatchUps.length,
       option: 'Clear all matches',
-      disabled: !selectedDateMatchUps.length,
-      onClick: clearCompleted
+      onClick: clearCompleted,
     },
     {
-      option: 'Clear all days',
       disabled: !scheduledMatchUps.length,
-      onClick: resetSchedule
-    }
+      option: 'Clear all days',
+      onClick: resetSchedule,
+    },
   ];
 
   if (options.filter((o) => !o.disabled).length) {
@@ -51,7 +52,7 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
 
     if (!completed) {
       filteredMatchUps = filteredMatchUps?.filter(
-        ({ matchUpStatus, winningSide }) => matchUpStatus !== 'COMPLETED' && !winningSide
+        ({ matchUpStatus, winningSide }) => matchUpStatus !== 'COMPLETED' && !winningSide,
       );
     }
 
@@ -63,9 +64,9 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
         method: BULK_SCHEDULE_MATCHUPS,
         params: {
           schedule: { courtId: '', scheduledDate: '', courtOrder: '', scheduledTime: '', venueId: '' },
-          matchUpIds
-        }
-      }
+          matchUpIds,
+        },
+      },
     ];
 
     const postMutation = (result) => {

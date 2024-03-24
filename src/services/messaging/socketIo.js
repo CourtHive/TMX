@@ -2,8 +2,9 @@ import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
 import { tools, version } from 'tods-competition-factory';
-import { version as tmxVersion } from 'config/version';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction, isObject } from 'functions/typeOf';
+import { version as tmxVersion } from 'config/version';
 import { io } from 'socket.io-client';
 import { env } from 'settings/env';
 
@@ -50,6 +51,7 @@ export function connectSocket(callback) {
     oi.socket.on('timestamp', (data) => (oi.timestampOffset = new Date().getTime() - data.timestamp));
     oi.socket.on('connect_error', (data) => {
       console.log('connection error:', { data });
+      tmxToast({ message: 'Connection error', intent: 'is-danger' });
       disconnectSocket();
     });
   } else {

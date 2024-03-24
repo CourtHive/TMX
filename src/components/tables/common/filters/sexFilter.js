@@ -18,14 +18,14 @@ export function getSexFilter(table) {
   const allSexes = {
     label: `<span style='font-weight: bold'>${genders[ANY]}</span>`,
     onClick: () => updateSexFilter(),
-    close: true
+    close: true,
   };
   const sexOptions = [allSexes, { divider: true }].concat(
     sexes.map((sex) => ({
       onClick: () => updateSexFilter(sex),
       label: genders[sex],
-      close: true
-    }))
+      close: true,
+    })),
   );
 
   return { sexOptions, genders };

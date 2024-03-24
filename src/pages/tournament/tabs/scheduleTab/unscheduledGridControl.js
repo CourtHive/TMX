@@ -5,12 +5,13 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 
-import { ALL_EVENTS, ALL_ROUNDS, LEFT, RIGHT } from 'constants/tmxConstants';
+import { ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function unscheduledGridControl({
   updateUnscheduledTable,
   updateScheduleTable,
   toggleUnscheduled,
+  flightNameFilter,
   roundNameFilter,
   controlAnchor,
   eventIdFilter,
@@ -18,6 +19,9 @@ export function unscheduledGridControl({
   matchUps = [],
   table,
 }) {
+  const updateScheduledDate = (date) => {
+    scheduledDate = date;
+  };
   const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId) => {
     table.removeFilter(eventFilter);
@@ -50,8 +54,24 @@ export function unscheduledGridControl({
     })),
   );
 
+  const flightFilter = (rowData) => rowData.flight === flightNameFilter;
+  const flightNames = tools.unique(matchUps.map((matchUp) => matchUp.drawName));
+  const updateFlightFilter = (flightName) => {
+    table.removeFilter(flightFilter);
+    flightNameFilter = flightName;
+    if (flightName) table.addFilter(flightFilter);
+  };
+  const allFlights = { label: ALL_FLIGHTS, onClick: () => updateFlightFilter(), close: true };
+  const flightOptions = [allFlights].concat(
+    flightNames.map((flightName) => ({
+      onClick: () => updateFlightFilter(flightName),
+      label: flightName,
+      close: true,
+    })),
+  );
+
   const updateTables = () => {
-    updateUnscheduledTable() && updateScheduleTable();
+    updateUnscheduledTable() && updateScheduleTable({ scheduledDate });
     console.log('clear filters ?');
   };
   const scheduleClear = (e) => {
@@ -117,6 +137,15 @@ export function unscheduledGridControl({
       selection: true,
     },
     {
+      hide: flightOptions.length < 2,
+      options: flightOptions,
+      id: 'flightOptions',
+      label: ALL_FLIGHTS,
+      modifyLabel: true,
+      location: LEFT,
+      selection: true,
+    },
+    {
       options: actionOptions,
       label: 'Actions',
       selection: false,
@@ -132,4 +161,5 @@ export function unscheduledGridControl({
   ];
 
   controlBar({ target: controlAnchor, items }).elements;
+  return { updateScheduledDate };
 }

@@ -1,8 +1,10 @@
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
+import { deleteEvents } from 'components/modals/deleteEvents';
 import { tipster } from 'components/popovers/tipster';
 
+// constants
 import { BOTTOM } from 'constants/tmxConstants';
 
 export const eventActions = (nestedTables) => (e, cell) => {
@@ -29,6 +31,16 @@ export const eventActions = (nestedTables) => (e, cell) => {
     toggleEventPublishState(nestedTables)(e, cell);
   };
 
+  const deleteEvent = () => {
+    const eventIds = [data.eventId];
+    const callback = (result) => {
+      const table = cell.getTable();
+      result.success && table?.deleteRow(eventIds);
+    };
+    return deleteEvents({ eventIds, callback });
+    // mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
+  };
+
   const items = [
     {
       onClick: () => editDisplaySettings({ eventId: data.eventId }),
@@ -39,7 +51,7 @@ export const eventActions = (nestedTables) => (e, cell) => {
       onClick: publish,
     },
     {
-      onClick: () => console.log('Delete', data),
+      onClick: deleteEvent,
       text: 'Delete',
     },
     {

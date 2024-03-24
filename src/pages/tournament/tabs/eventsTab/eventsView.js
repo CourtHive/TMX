@@ -2,12 +2,13 @@ import { createSearchFilter } from 'components/tables/common/filters/createSearc
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
+import { deleteEvents } from 'components/modals/deleteEvents';
 import { controlBar } from 'components/controlBar/controlBar';
 import { tournamentEngine } from 'tods-competition-factory';
 import { editEvent } from './editEvent';
 
+// constants
 import { EVENTS_CONTROL, LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';
-import { DELETE_EVENTS } from 'constants/mutationConstants';
 
 export function eventsView() {
   const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
@@ -23,11 +24,11 @@ export function eventsView() {
   };
 
   const setSearchFilter = createSearchFilter(table);
-  const deleteEvents = () => {
+  const deleteAction = () => {
     const eventIds = table?.getSelectedData().map(({ eventId }) => eventId);
 
     const callback = (result) => result.success && table?.deleteRow(eventIds);
-    mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
+    return deleteEvents({ eventIds, callback });
   };
 
   const oopAction = (published) => (published ? 'Unpublish' : 'Publish');
@@ -43,7 +44,7 @@ export function eventsView() {
 
   const items = [
     {
-      onClick: deleteEvents,
+      onClick: deleteAction,
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
