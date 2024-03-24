@@ -129,7 +129,7 @@
     "quill": "2.0.0-rc.4",
     "rxjs": "7.8.1",
     "socket.io-client": "4.7.5",
-    "tabulator-tables": "6.0.1",
+    "tabulator-tables": "6.1.0",
     "timepicker-ui": "2.6.1",
     "tippy.js": "6.3.7",
     "tods-competition-factory": "2.0.59",
