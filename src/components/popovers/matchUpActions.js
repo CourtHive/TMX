@@ -1,3 +1,4 @@
+import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
@@ -21,7 +22,33 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
     if (isFunction(callback)) callback(data);
   };
 
+  const hasSchedule =
+    matchUp?.schedule?.scheduledTime ||
+    matchUp?.schedule?.scheduledDate ||
+    matchUp?.schedule?.venueId ||
+    matchUp?.schedule?.courtId;
+
+  const clearSchedule = () => {
+    const schedule = {
+      scheduledDate: '',
+      scheduledTime: '',
+      courtId: '',
+      venueId: '',
+    };
+    const updateRow = () => {
+      if (!cell) return;
+      const row = cell.getRow();
+      row.update({ ...data, ...schedule, courtName: '', venueName: '' });
+    };
+    setMatchUpSchedule({ matchUpId: matchUp.matchUpId, schedule, callback: updateRow });
+  };
+
   const items = [
+    {
+      onClick: clearSchedule,
+      text: 'Clear schedule',
+      hide: !hasSchedule,
+    },
     {
       onClick: handleCallback,
       text: 'Schedule',
