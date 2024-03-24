@@ -251,7 +251,7 @@ function createControlElement() {
 
   const control = document.createElement('div');
   control.className = BUTTON_BAR;
-  control.style = 'flex-wrap: wrap-reverse;';
+  // control.style = 'flex-wrap: wrap-reverse;';
 
   // IMPORTANT: order of the elements cannot be changed
   const elements = {
