@@ -3,7 +3,7 @@ import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
 import { eventTabDeleteDraws } from '../common/eventTabDeleteDraws';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { deleteFlights } from 'components/modals/deleteFlights';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTipster } from 'components/popovers/tipster';
@@ -14,7 +14,6 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawsColumns } from './getDrawsColumns';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
-import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 
 export const eventRowFormatter = (setTable) => (row) => {
   const holderEl = document.createElement('div');
@@ -63,10 +62,6 @@ export const eventRowFormatter = (setTable) => (row) => {
     const selectedDraws = drawsTable.getSelectedData();
     const drawIds = selectedDraws.map(({ drawId }) => drawId);
     drawsTable.deselectRow();
-    const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, force: false },
-      method: DELETE_FLIGHT_AND_DRAW,
-    }));
     const callback = (result) => {
       if (!result.success) {
         if (result.error?.message) tmxToast({ message: result.error.message, intent: 'is-danger' });
@@ -75,7 +70,7 @@ export const eventRowFormatter = (setTable) => (row) => {
 
       eventTabDeleteDraws({ eventRow: row, drawsTable, drawIds });
     };
-    mutationRequest({ methods, callback });
+    deleteFlights({ eventId, drawIds, callback });
   };
 
   const drawAdded = (result) => {

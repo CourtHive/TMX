@@ -1,5 +1,6 @@
 import { competitionEngine, factoryConstants, eventConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
+import { headerSortElement } from '../common/sorters/headerSortElement';
 import { matchUpDragStart } from '../scheduleTable/matchUpDragStart';
 import { getUnscheduledColumns } from './getUnscheduledColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -65,6 +66,7 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
   const { rowMatchUps = [] } = getTableData({ scheduledDate });
 
   table = new Tabulator(unscheduledAnchor, {
+    headerSortElement: headerSortElement(['flight']),
     placeholder: 'No unscheduled matches',
     rowFormatter: initDragDrop,
     layout: 'fitDataStretch',

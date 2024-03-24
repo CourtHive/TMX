@@ -7,14 +7,17 @@ import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { titleFormatter } from '../common/formatters/titleFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
+import { tournamentEngine, tools } from 'tods-competition-factory';
 import { handleScoreClick } from './handleMatchUpScoreClick';
-import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
+import { setMatchUpSchedule } from './setMatchUpSchedule';
+import { timePicker } from 'components/modals/timePicker';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
 
+// constants
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
@@ -27,6 +30,25 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
       context.router.navigate(route);
     }
+  };
+
+  const matchUpTimeClick = (e, cell) => {
+    const existingTime = cell.getValue();
+    const timeSelected = ({ time }) => {
+      const militaryTime = true;
+      const scheduledTime = tools.dateTime.convertTime(time, militaryTime);
+      const row = cell.getRow();
+      const data = row.getData();
+      const { matchUpId } = data;
+      if (scheduledTime !== existingTime) {
+        const callback = () => {
+          console.log('callback');
+          row.update({ ...data, scheduledTime });
+        };
+        setMatchUpSchedule({ matchUpId, schedule: { scheduledTime }, callback });
+      }
+    };
+    timePicker({ time: existingTime, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
   };
 
   const participantChange = () => replaceTableData();
@@ -115,10 +137,10 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       width: 100,
     },
     {
-      cellClick: matchUpScheduleClick,
+      cellClick: matchUpTimeClick,
       field: 'scheduledTime',
-      headerSort: false,
-      visible: false,
+      // headerSort: false,
+      visible: true,
       title: 'Time',
       width: 70,
     },
@@ -181,7 +203,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       width: 70,
     },
     {
-      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, ...cell.getData() }),
+      cellClick: (e, cell) => matchUpActions({ pointerEvent: e, cell, ...cell.getData() }),
       formatter: threeDots,
       responsive: false,
       headerSort: false,

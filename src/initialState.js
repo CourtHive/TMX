@@ -86,7 +86,6 @@ const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered not
 
 function setEnv() {
   env.device = getDevice();
-  env.version_check = new Date().getTime();
   const cfv = tournamentEngine.version();
   console.log(`%cversion: ${version}`, 'color: lightblue');
   console.log(`%cfactory: ${cfv}`, 'color: lightblue');

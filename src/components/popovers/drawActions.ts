@@ -1,13 +1,12 @@
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
 import { eventTabDeleteDraws } from 'components/tables/common/eventTabDeleteDraws';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { deleteFlights } from 'components/modals/deleteFlights';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tipster } from 'components/popovers/tipster';
 
 // constants
-import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
-import { tmxToast } from 'services/notifications/tmxToast';
 
 export const drawActions = (eventRow) => (e, cell) => {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
@@ -30,19 +29,13 @@ export const drawActions = (eventRow) => (e, cell) => {
    */
 
   const deleteDraw = () => {
-    const methods = [
-      {
-        params: { eventId, drawId, force: false },
-        method: DELETE_FLIGHT_AND_DRAW,
-      },
-    ];
     const callback = (result) => {
       if (!result.success) {
         result.error?.message && tmxToast({ message: result.error.message, intent: 'is-danger' });
       }
       eventTabDeleteDraws({ eventRow, drawsTable: cell.getTable(), drawIds: [drawId] });
     };
-    mutationRequest({ methods, callback });
+    deleteFlights({ eventId, drawIds: [drawId], callback });
   };
 
   const publish = () => {

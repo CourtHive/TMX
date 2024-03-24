@@ -133,7 +133,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       visible: false,
     },
     {
-      sorter: (a, b) => a?.[0].eventName?.localeCompare(b?.[0].eventName),
+      sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: columnIsVisible('events'),
       title: 'Events',
