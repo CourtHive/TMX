@@ -9,13 +9,13 @@ export function autoScheduleMatchUps({ updateUnscheduledTable, updateScheduleTab
   const methods = [
     {
       params: { matchUps, scheduledDate },
-      method: PRO_AUTO_SCHEDULE
-    }
+      method: PRO_AUTO_SCHEDULE,
+    },
   ];
   const postMutation = (result) => {
     if (result.success) {
       updateUnscheduledTable(); // faster than updating individual rows
-      updateScheduleTable(); // faster than updating individual rows
+      updateScheduleTable({ scheduledDate }); // faster than updating individual rows
     }
   };
   mutationRequest({ methods, callback: postMutation, engine: COMPETITION_ENGINE });

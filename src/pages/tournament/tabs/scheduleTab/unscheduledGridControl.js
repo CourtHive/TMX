@@ -71,7 +71,7 @@ export function unscheduledGridControl({
   );
 
   const updateTables = () => {
-    updateUnscheduledTable() && updateScheduleTable();
+    updateUnscheduledTable() && updateScheduleTable({ scheduledDate });
     console.log('clear filters ?');
   };
   const scheduleClear = (e) => {
