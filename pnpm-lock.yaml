@@ -114,8 +114,8 @@ dependencies:
     specifier: 4.7.5
     version: 4.7.5
   tabulator-tables:
-    specifier: 6.0.1
-    version: 6.0.1
+    specifier: 6.1.0
+    version: 6.1.0
   timepicker-ui:
     specifier: 2.6.1
     version: 2.6.1
@@ -6595,9 +6595,9 @@ packages:
       { integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew== }
     dev: false
 
-  /tabulator-tables@6.0.1:
+  /tabulator-tables@6.1.0:
     resolution:
-      { integrity: sha512-wdxqWajUoG/K8rZNdWgoTuFN/qWEzqTrg4C+LyVuVWSij9hx/edL3G54h2nJRD9d+VrymQg4juTWTj84hVmC8A== }
+      { integrity: sha512-J+FgWNTxrOoafOeNTUmFDFgKAqctFKtQmV6RwLuDcJJe2qsxKaeQ2OQ6OdaIDIPZ0mykpdKXYqjioOdUagvTZg== }
     dev: false
 
   /temp@0.9.4:
