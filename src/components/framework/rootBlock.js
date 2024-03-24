@@ -1,6 +1,5 @@
 import { tournamentInfoBlock } from './infoiBlock';
 import { initScrollNav } from './initScrollNav';
-import { navbarBlock } from './navbarBlock';
 import { eventBlock } from './eventBlock';
 import { TMXlogo } from './courtHiveLogo';
 
@@ -20,6 +19,8 @@ import {
 
 export function rootBlock() {
   const root = document.getElementById('root');
+  root.appendChild(newBlock());
+
   const splash = document.createElement('div');
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
@@ -62,9 +63,7 @@ export function rootBlock() {
 
   root.appendChild(drawer);
 
-  const main = document.createElement('div');
-  main.className = 'main noselect';
-  main.appendChild(navbarBlock());
+  const main = document.getElementById('navMain');
 
   const content = document.createElement('div');
   content.id = TMX_CONTENT;
@@ -72,8 +71,9 @@ export function rootBlock() {
   content.style.display = NONE;
 
   const sidenav = document.createElement('div');
-  sidenav.id = 'sideNav';
-  sidenav.className = 'sideNav';
+  sidenav.id = 'navText';
+  sidenav.className = 'navText';
+  sidenav.style.display = NONE;
   content.appendChild(sidenav);
 
   const container = document.createElement('div');
@@ -87,7 +87,7 @@ export function rootBlock() {
 
   const tournaments = document.createElement('div');
   tournaments.className = 'flexcol flexgrow';
-  tournaments.style.paddingTop = '3em';
+  // tournaments.style.paddingTop = '3em';
   tournaments.style.display = NONE;
   tournaments.id = TMX_TOURNAMENTS;
 
@@ -112,9 +112,8 @@ export function rootBlock() {
   calendar.id = TOURNAMENTS_CALENDAR;
 
   main.appendChild(calendar);
-  root.appendChild(main);
+  // root.appendChild(main);
 
-  root.appendChild(newBlock());
   initScrollNav();
 
   return root;
@@ -122,21 +121,27 @@ export function rootBlock() {
 
 function newBlock() {
   const block = document.createElement('div');
-  block.style.display = NONE;
-  block.innerHTML = `<dnav>
-  <div class="logo">
-    TMX
+  block.innerHTML = `<dnav id='dnav'>
+  <div class="navbar-item" style="display: flex; flex-wrap: nowrap">
+    <div id="provider" style="display: flex; flex-direction: column">
+      <div style="font-size: .6em">TMX</div>
+    </div>
+    <div style="padding-left: 1em" id="pageTitle"> </div>
   </div>
-  <div class="links">
-    <a href="">Link 1</a>
-    <a href="">Link 2</a>
-    <a href="">Link 3</a>
-    <a href="">Link 4</a>
+  <div id='trnynav' class="navbar-item" style="display: flex; flex-direction: row;">
+    <i id='o-route' class="nav-icon fa-solid fa-trophy"></i>
+    <i id='p-route' class="nav-icon fa-solid fa-user-group" style="color: blue"></i>
+    <i id='e-route' class="nav-icon fa-solid fa-diagram-project"></i>
+    <i id='m-route' class="nav-icon fa-solid fa-table-tennis-paddle-ball"></i>
+    <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
+    <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
   </div>
-</dnav>
-<main>
-</main>
-<section>
-  `;
+  <div class="navbar-item" style="font-size: 1em">
+    <i id="config" class="fa-solid fa-sliders"></i>
+    <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
+  </div>
+  </dnav>
+  <main id="navMain"></main>`;
+
   return block;
 }

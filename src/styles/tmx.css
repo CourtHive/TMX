@@ -57,17 +57,6 @@ body {
   min-height: 50vh;
 }
 
-.navbar {
-  border-bottom: 1px solid #d9d9d9;
-  font-size: 60%;
-  position: fixed;
-  top: 0;
-}
-
-.tab_section {
-  margin-top: 3em;
-}
-
 .tableClass {
   background-color: white;
 }
@@ -83,10 +72,10 @@ body {
 
 /* minimum height prevents jumpy rendering */
 .section {
-  padding-top: 0em;
-  padding-right: .7rem !important;
+  padding: 0em;
+  /* padding-right: .7rem !important; */
   min-height: 1000px;
-  margin-left: 1rem;
+  /* margin-left: 1rem;*/
 }
 
 .tmxLogo {
@@ -332,14 +321,6 @@ html {
   align-items: center;
   -webkit-align-items: center;
 }
-@media (max-width: 767px) {
-  #content {
-    padding: 0;
-  }
-  body {
-    margin: 2px;
-  }
-}
 .header {
   margin-bottom: 0.5em;
 }
@@ -367,9 +348,8 @@ dnav {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: 1.5rem 2rem;
-  background-color: #eaeaea;
   transition: top 500ms ease-in-out;
+  border-bottom: 1px solid #ddd;
 }
 
 dnav.scroll-up,
@@ -405,5 +385,21 @@ dnav a {
   letter-spacing: 0.2em;
 }
 
+.dnav-item-text {
+  margin-top: 1.5rem;
+  transition: opacity 0.6s ease;
+  opacity: 1;
+}
 
+.nav-icon { width: 2em; }
+img {
+  max-width: 200%; /* override minireset */
+}
 
+@media (max-width: 767px) {
+  .nav-icon { font-size: .8em; }
+  #pageTitle { display: none; }
+  #config { display: none; }
+  #content { padding: 0; }
+  body { margin: 2px; }
+}
