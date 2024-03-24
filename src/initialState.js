@@ -41,7 +41,6 @@ import 'styles/tournamentContainer.css';
 import 'styles/tournamentSchedule.css';
 import 'styles/tabulator.css';
 import 'styles/overlay.css';
-import 'styles/sidebar.css';
 import 'styles/leaflet.css';
 import 'styles/fa.min.css';
 import 'styles/icons.css';
