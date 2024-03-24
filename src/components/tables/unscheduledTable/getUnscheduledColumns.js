@@ -43,7 +43,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       headerSort: false,
       hozAlign: CENTER,
       frozen: true,
-      width: 55
+      width: 55,
     },
     {
       formatter: formatCell,
@@ -51,14 +51,18 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       resizable: false,
       title: 'Event',
       visible: true,
-      minWidth: 250
+      minWidth: 250,
+    },
+    {
+      title: 'Flight',
+      field: 'flight',
     },
     {
       formatter: formatCell,
       field: 'roundName',
       resizable: false,
       title: 'Round',
-      minWidth: 90
+      minWidth: 90,
     },
     {
       formatter: genderedParticipant,
@@ -67,7 +71,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       resizable: false,
       title: 'Side 1',
       minWidth: 120,
-      field: 'side1'
+      field: 'side1',
     },
     {
       formatter: genderedParticipant,
@@ -76,7 +80,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       resizable: false,
       title: 'Side 2',
       minWidth: 120,
-      field: 'side2'
+      field: 'side2',
     },
     {
       field: 'matchUp.matchUpFormat',
@@ -84,7 +88,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       formatter: formatCell,
       responsive: false,
       resizable: false,
-      minWidth: 100
+      minWidth: 100,
       /*
     },
     {
@@ -95,6 +99,6 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       resizable: false,
       minWidth: 100
     */
-    }
+    },
   ];
 }

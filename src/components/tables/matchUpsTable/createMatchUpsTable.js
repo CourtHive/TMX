@@ -40,7 +40,7 @@ export function createMatchUpsTable() {
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
 
     table = new Tabulator(element, {
-      headerSortElement: headerSortElement(['complete', 'duration', 'score']),
+      headerSortElement: headerSortElement(['complete', 'duration', 'score', 'scheduledTime']),
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.85,
       responsiveLayout: 'collapse',

@@ -133,7 +133,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       visible: false,
     },
     {
-      sorter: (a, b) => a?.[0].eventName?.localeCompare(b?.[0].eventName),
+      sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: columnIsVisible('events'),
       title: 'Events',
@@ -144,7 +144,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       widthGrow: 2,
     },
     {
-      sorter: (a, b) => a?.[0].participantName?.localeCompare(b?.[0].participantName),
+      sorter: (a, b) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
       formatter: teamsFormatter(() => console.log('boo')),
       visible: columnIsVisible('teams'),
       title: 'Teams',

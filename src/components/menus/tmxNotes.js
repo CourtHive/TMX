@@ -1,5 +1,4 @@
 import { lang } from 'services/translator';
-import { env } from 'settings/env';
 
 export const tmxNotes = (() => {
   let fx = {};
@@ -22,9 +21,7 @@ export const tmxNotes = (() => {
          </div>`;
   };
 
-  fx.version = () => {
-    return `<div style='font-size: larger; font-weight: bold'> ${env.version} </div>`;
-  };
+  fx.version = () => '';
 
   return fx;
 })();

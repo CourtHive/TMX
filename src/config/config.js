@@ -15,7 +15,6 @@ export function initConfig() {
 
     const DBready = () => {
       initWithDB();
-      env.firstTimeUser = env.firstTimeUser && context.ee.emit('sendKey', 'players') ? false : env.firstTimeUser;
       resolve();
     };
 

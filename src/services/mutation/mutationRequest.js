@@ -1,5 +1,5 @@
+import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { getLoginState } from 'services/authentication/loginState';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
@@ -68,7 +68,11 @@ function queryDateRange({ providerIds, mutate }) {
 function checkPermissions({ providerIds, mutate }) {
   const state = getLoginState();
   // if the tournamentRecord(s) are associated with a providerId, check permissions
-  if (!state) return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
+  if (!state) {
+    context.provider = undefined;
+    styleLogin(false);
+    return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
+  }
 
   const isProvider = !!(
     state?.providerIds?.includes(providerIds[0]) || state?.provider?.organisationId === providerIds[0]
@@ -82,6 +86,7 @@ function checkPermissions({ providerIds, mutate }) {
       context.provider = { organisationId: providerIds[0] };
       return mutate(false);
     };
+
     return tmxToast({
       action: {
         onClick: impersonateProvider,
@@ -100,7 +105,7 @@ function engineExecution({ factoryEngine, methods }) {
   env.log?.verbose && console.log('%c executing locally', 'color: lightgreen');
   // deep copy of directives to avoid mutation (e.g. uuids.pop() robbing server of uuids)
   const directives = factory.tools.makeDeepCopy(methods);
-  return factoryEngine.executionQueue(directives) || {};
+  return factoryEngine.executionQueue(directives, true) || {}; // true => rollbackOnError
 }
 
 async function localSave(saveLocal) {
@@ -110,6 +115,7 @@ async function localSave(saveLocal) {
 }
 
 async function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal }) {
+  const hasProvider = factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
   if (window['dev']?.params) {
     for (const method of methods) {
       if (window['dev'].params[method.method]) {
@@ -122,24 +128,32 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
   if (window?.['dev']?.getContext().internal) console.log({ methods });
 
   let factoryResult;
-  if (!env.serverFirst) {
+  if (!env.serverFirst || !hasProvider) {
     factoryResult = engineExecution({ factoryEngine, methods });
     if (factoryResult.error) return completion(factoryResult);
+    if (!hasProvider) {
+      await localSave(true);
+      return completion(factoryResult);
+    }
   }
 
-  if (factoryResult?.success || env.serverFirst) {
+  if (hasProvider && (factoryResult?.success || env.serverFirst)) {
     const ackCallback = async (ack) => {
-      if (env.serverFirst && ack?.success) {
+      const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
+      if (env.serverFirst && (ack?.success || missingTournament)) {
         factoryResult = engineExecution({ factoryEngine, methods });
         if (factoryResult.error) return completion(factoryResult);
-        await localSave(saveLocal);
+        await localSave(saveLocal || missingTournament);
         return completion(factoryResult);
       }
     };
     env.log?.verbose && console.log('%c invoking remote', 'color: lightblue');
-    emitTmx({ data: { type: 'executionQueue', payload: { methods, tournamentIds } }, ackCallback });
-    if (!env.serverFirst) await localSave(saveLocal);
+    emitTmx({
+      data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
+      ackCallback,
+    });
+    if (!env.serverFirst || !hasProvider) await localSave(saveLocal);
   }
 
-  if (!env.serverFirst) return completion(factoryResult);
+  if (!env.serverFirst || !hasProvider) return completion(factoryResult);
 }

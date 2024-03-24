@@ -33,7 +33,7 @@ import {
 } from 'constants/tmxConstants';
 
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
-const { DOMINANT_DUO, TIME_TENNIS_DUAL, TIME_TENNIS_PRO_CIRCUIT } = factoryConstants.tieFormatConstants;
+const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING } = policyConstants;
 const { TEAM } = eventConstants;
 
@@ -71,9 +71,9 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
   );
 
   const tieFormatOptions = [
-    { label: 'Time Tennis Pro Circuit', value: TIME_TENNIS_PRO_CIRCUIT },
-    { label: 'Time Tennis', value: TIME_TENNIS_DUAL },
     { label: 'Dominant Duo', value: DOMINANT_DUO, selected: true },
+    { label: 'College Default', value: COLLEGE_DEFAULT },
+    { label: 'Laver Cup', value: LAVER_CUP },
     { label: 'Custom', value: CUSTOM },
   ];
 

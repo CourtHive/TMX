@@ -92,6 +92,23 @@ export function getStatsColumns() {
       maxWidth: 80,
     },
     {
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      field: 'pointsResult',
+      title: 'Points W/L',
+      hozAlign: CENTER,
+      maxWidth: 80,
+    },
+    {
+      formatter: percentFormatter,
+      headerHozAlign: CENTER,
+      headerWordWrap: true,
+      title: 'Points Win%',
+      field: 'pointsPct',
+      hozAlign: CENTER,
+      maxWidth: 80,
+    },
+    {
       formatter: percentFormatter,
       field: 'averageVariation',
       headerHozAlign: CENTER,

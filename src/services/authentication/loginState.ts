@@ -19,11 +19,15 @@ import { context } from 'services/context';
 
 import { INVITE, SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
-function styleLogin(valid) {
+export function styleLogin(valid) {
   const el = document.getElementById('login');
   const impersonating = context?.provider;
   const admin = valid?.roles?.includes(SUPER_ADMIN);
-  el.style.color = (impersonating && 'red') || (admin && 'green') || 'blue';
+  if (!valid) {
+    el.style.color = '';
+  } else {
+    el.style.color = (impersonating && 'red') || (admin && 'green') || 'blue';
+  }
 }
 
 export function getLoginState() {
@@ -39,20 +43,23 @@ export function logOut() {
   disconnectSocket();
   context.provider = undefined; // clear provider
   context.router.navigate(`/${TMX_TOURNAMENTS}/logout`);
-  const el = document.getElementById('login');
-  el.style.color = '';
+  styleLogin(false);
 }
 
 export function logIn({ data, callback }) {
   const valid: any = validateToken(data.token);
+  const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
   if (valid) {
     setToken(data.token);
     tmxToast({ intent: 'is-success', message: 'Log in successful' });
     disconnectSocket();
-    tournamentEngine.reset();
+    if (!tournamentInState) tournamentEngine.reset();
     styleLogin(valid);
-    if (isFunction(callback)) callback();
-    context.router.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
+    if (isFunction(callback)) {
+      callback();
+    } else if (!tournamentInState) {
+      context.router.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
+    }
   }
 }
 

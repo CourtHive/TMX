@@ -59,6 +59,8 @@ export function mockParticipants({ callback }) {
       },
       {
         options: [
+          { label: '8', value: 8, close: true },
+          { label: '16', value: 16, close: true },
           { label: '32', value: 32, close: true },
           { label: '64', value: 64, close: true },
           { label: '128', value: 128, close: true },

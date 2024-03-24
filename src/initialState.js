@@ -29,7 +29,9 @@ import 'awesomplete/awesomplete.css';
 import 'animate.css/animate.min.css';
 import 'quill/dist/quill.snow.css';
 import 'pikaday/css/pikaday.css';
-import 'bulma/css/bulma.css';
+import 'bulma/css/versions/bulma-no-dark-mode.min.css';
+import 'tabulator-tables/dist/css/tabulator_bulma.css';
+// import 'bulma/css/bulma.css';
 
 import 'tippy.js/themes/light-border.css';
 import 'tippy.js/themes/light.css';
@@ -86,7 +88,6 @@ const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered not
 
 function setEnv() {
   env.device = getDevice();
-  env.version_check = new Date().getTime();
   const cfv = tournamentEngine.version();
   console.log(`%cversion: ${version}`, 'color: lightblue');
   console.log(`%cfactory: ${cfv}`, 'color: lightblue');
