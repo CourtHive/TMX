@@ -17,7 +17,6 @@ export function setLatLong(e, cell) {
     }
 
     const postMutation = (result) => {
-      console.log({ result });
       if (result.results?.[0]?.success) {
         const table = cell.getTable();
         rowData.address.latitude = value.latitude;
@@ -33,12 +32,11 @@ export function setLatLong(e, cell) {
         params: {
           venueId: rowData.venueId,
           modifications: {
-            addresses: venue.addresses
-          }
-        }
-      }
+            addresses: venue.addresses,
+          },
+        },
+      },
     ];
-    console.log({ methods });
 
     mutationRequest({ methods, callback: postMutation });
   };

@@ -17,7 +17,7 @@ export function hotKeyScoring() {
   hotkeys(HOTKEYS + ',esc', (event, handler) => {
     if (focusData) {
       const element = focusData.cell.getElement();
-      const targetElement = element.classList.contains('tabulator-cell') ? element.firstChild : element;
+      const targetElement = element.classList?.contains('tabulator-cell') ? element.firstChild : element;
       event.preventDefault();
 
       const data = focusData.cell.getRow().getData();

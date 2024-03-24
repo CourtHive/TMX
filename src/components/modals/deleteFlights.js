@@ -7,8 +7,9 @@ import { openModal } from './baseModal/baseModal';
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function deleteFlights({ eventData, drawIds }) {
-  const eventId = eventData.eventInfo.eventId;
+export function deleteFlights(params) {
+  const { eventData, drawIds, callback } = params;
+  const eventId = params.eventId ?? eventData.eventInfo.eventId;
   const drawName = drawIds.length === 1 && eventData?.drawsData?.find((data) => drawIds.includes(data.drawId)).drawName;
   const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
 
@@ -19,7 +20,7 @@ export function deleteFlights({ eventData, drawIds }) {
       params: { eventId, drawId, auditData, force: true }, // TODO: force should be a checkbox
       method: DELETE_FLIGHT_AND_DRAW,
     }));
-    const postMutation = (result) => result.success && navigateToEvent({ eventId });
+    const postMutation = (result) => (callback ? callback(result) : navigateToEvent({ eventId }));
     mutationRequest({ methods, callback: postMutation });
   };
   const items = [

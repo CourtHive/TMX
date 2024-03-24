@@ -1,4 +1,5 @@
 import { matchUpFormatCode, tools } from 'tods-competition-factory';
+import { closeModal } from 'components/modals/baseModal/baseModal';
 import { eventManager } from 'services/dom/events/eventManager';
 import { getParent } from 'services/dom/parentAndChild';
 import completedMatch from 'assets/icons/completed.png';
@@ -332,6 +333,7 @@ export const scoreBoard = (function () {
         outcome.set_scores = set_scores;
         outcome.matchUpFormat = matchUpFormat;
       }
+
       if (outcome && typeof callback === 'function') {
         callback(outcome);
       }
@@ -339,7 +341,7 @@ export const scoreBoard = (function () {
       fx.numericFx = undefined;
       fx.enterFx = undefined;
       document.body.style.overflow = null;
-      d3Select(sobj.scoreboard.element).remove();
+      closeModal();
     }
 
     function acceptScores() {

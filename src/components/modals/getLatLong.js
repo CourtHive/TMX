@@ -28,7 +28,7 @@ export function getLatLong({ coords, callback }) {
 
   let ids = {
     map: 'latLongMap',
-    link: 'latLonglink'
+    link: 'latLonglink',
   };
 
   let map_style = 'width: 100%; height: 100%; min-width: 350px; min-height: 350px;';
@@ -65,28 +65,26 @@ export function getLatLong({ coords, callback }) {
     {
       label: 'Cancel',
       intent: 'none',
-      close: true
+      close: true,
     },
     {
       onClick: updateCoords,
       intent: 'is-warning',
-      label: 'Clear'
+      label: 'Clear',
     },
     {
       onClick: viewLocation,
       intent: 'is-primary',
       label: 'View',
-      close: false
+      close: false,
     },
     {
       onClick: submitLink,
       intent: 'is-info',
       label: 'Submit',
-      close: true
-    }
+      close: true,
+    },
   ];
-  openModal({ content: html, buttons });
-  const container = idObj(ids);
 
   const processLink = () => {
     const link = container.link.element.value;
@@ -103,11 +101,15 @@ export function getLatLong({ coords, callback }) {
   const linkKeyEvent = (evt) => {
     if (evt.which === 13) processLink();
   };
+
+  openModal({ content: html, buttons });
+
+  const container = idObj(ids);
   let { map, marker } = locationMap({
     successElement: container.map.element,
     mapElementId: container.map.id,
     coords,
-    zoom
+    zoom,
   });
   container.link.element.value = '';
   container.link.element.focus();
@@ -152,11 +154,13 @@ function locationMap({ successElement, mapElementId, coords, zoom }) {
     if (isNaN(lat) || isNaN(lng)) return {};
     let view = env.locations.map_view || 'map';
     let layer = L.tileLayer(env.leaflet[view].tileLayer, {
+      // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       attribution: env.leaflet[view].attribution,
-      maxZoom: env.leaflet[view].maxZoom
+      maxZoom: env.leaflet[view].maxZoom ?? 16,
     });
     let map = L.map(mapElementId).fitWorld().addLayer(layer);
-    if (lat && lng) map.setView([+lat, +lng], zoom);
+    if (lat || lng) map.setView([+lat, +lng], zoom);
+
     let marker = L.marker([+lat, +lng]).addTo(map);
 
     // necessary to make the map fill the parent element

@@ -6,6 +6,7 @@ import { getAddToGroupingSelection } from './controlBar/getAddToGroupingSelectio
 import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
+import { getTeamFilter } from 'components/tables/common/filters/teamFilter';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { editIndividualParticipant } from './editIndividualParticipant';
@@ -28,7 +29,7 @@ import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants
 
 const { INDIVIDUAL, GROUP } = participantConstants;
 const { OFFICIAL } = participantRoles;
-const { MIXED } = genderConstants;
+const { ANY } = genderConstants;
 
 export function renderIndividuals({ view }) {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
@@ -37,12 +38,14 @@ export function renderIndividuals({ view }) {
 
   const { eventOptions, events } = getEventFilter(table);
   const { sexOptions, genders } = getSexFilter(table);
+  const { teamOptions } = getTeamFilter({ table, teamParticipants });
 
   const editRegistrationLink = () => sheetsLink({ callback: replaceTableData });
 
   const synchronizePlayers = () => {
     updateRegisteredPlayers({
       callback: () => {
+        // TODO: check whether additional columns should be added based on updated data
         replaceTableData();
         table?.redraw(true);
       },
@@ -121,7 +124,7 @@ export function renderIndividuals({ view }) {
       location: OVERLAY,
     },
     {
-      onClick: () => eventFromParticipants(table),
+      onClick: () => eventFromParticipants(table, replaceTableData),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
@@ -169,15 +172,22 @@ export function renderIndividuals({ view }) {
       options: eventOptions,
       label: ALL_EVENTS,
       modifyLabel: true,
-      location: LEFT,
       selection: true,
+      location: LEFT,
+    },
+    {
+      label: teamOptions[0]?.label,
+      options: teamOptions,
+      modifyLabel: true,
+      selection: true,
+      location: LEFT,
     },
     {
       options: sexOptions,
-      label: genders[MIXED],
+      label: genders[ANY],
       modifyLabel: true,
-      location: LEFT,
       selection: true,
+      location: LEFT,
     },
     {
       options: participantOptions(view),

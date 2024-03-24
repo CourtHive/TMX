@@ -28,7 +28,7 @@ export function renderGroupings({ view }) {
 
   const createNewEvent = {
     label: '<p style="font-weight: bold">Create new event</p>',
-    onClick: () => eventFromParticipants(table),
+    onClick: () => eventFromParticipants(table, replaceTableData),
     close: true,
   };
   const addToEventOptions = [createNewEvent, { divider: true }].concat(
@@ -60,7 +60,7 @@ export function renderGroupings({ view }) {
       location: OVERLAY,
     },
     {
-      onClick: () => eventFromParticipants(table),
+      onClick: () => eventFromParticipants(table, replaceTableData),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
