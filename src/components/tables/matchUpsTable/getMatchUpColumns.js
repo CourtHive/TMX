@@ -16,6 +16,7 @@ import { setMatchUpSchedule } from './setMatchUpSchedule';
 import { timePicker } from 'components/modals/timePicker';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
+import { highlightTab } from 'navigation';
 
 // constants
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -29,6 +30,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
       context.router.navigate(route);
+      highlightTab(SCHEDULE_TAB);
     }
   };
 
