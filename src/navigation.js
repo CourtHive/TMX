@@ -13,6 +13,7 @@ import {
   TOURNAMENT_OVERVIEW,
   VENUES_TAB,
 } from 'constants/tmxConstants';
+import { env } from 'settings/env';
 
 const routeMap = {
   'o-route': TOURNAMENT_OVERVIEW,
@@ -61,7 +62,7 @@ export function tmxNavigation() {
   const tRoute = document.getElementById('o-route');
 
   tippy(tRoute, {
-    dynContent: () => tippyContent(tips['o-route']),
+    dynContent: () => !env.device.isMobile && tippyContent(tips['o-route']),
     onShow: (options) => !!options.props.content,
     plugins: [enhancedContentFunction],
     placement: BOTTOM,
@@ -71,7 +72,7 @@ export function tmxNavigation() {
   ids.forEach((id) => {
     const element = document.getElementById(id);
     tippy(element, {
-      dynContent: () => tippyContent(tips[id]),
+      dynContent: () => !env.device.isMobile && tippyContent(tips['o-route']),
       onShow: (options) => !!options.props.content,
       plugins: [enhancedContentFunction],
       placement: BOTTOM,
