@@ -184,6 +184,7 @@ body {
 }
 .options_right {
   flex-grow: 1;
+  flex-wrap: wrap;
   -webkit-flex-direction: row;
   flex-direction: row;
   -webkit-justify-content: flex-end;
