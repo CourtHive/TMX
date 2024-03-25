@@ -41,9 +41,9 @@ export function createMatchUpsTable() {
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['complete', 'duration', 'score', 'scheduledTime']),
-      responsiveLayoutCollapseStartOpen: false,
+      // responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.85,
-      responsiveLayout: 'collapse',
+      // responsiveLayout: 'collapse',
       placeholder: 'No matches',
       layout: 'fitColumns',
       reactiveData: true,

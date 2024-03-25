@@ -49,12 +49,12 @@ export function createEventsTable() {
         'entriesCount',
         'drawsCount',
       ]),
-      responsiveLayoutCollapseStartOpen: false,
+      // responsiveLayoutCollapseStartOpen: false,
       rowFormatter: eventRowFormatter(setNestedTable),
       // minHeight: window.innerHeight * 0.8,
       height: window.innerHeight * 0.8,
       // height: // NOTE: setting a height causes scrolling issue
-      responsiveLayout: 'collapse',
+      // responsiveLayout: 'collapse',
       placeholder: 'No events',
       layout: 'fitColumns',
       reactiveData: true, // updating row data will automatically update the table row!
