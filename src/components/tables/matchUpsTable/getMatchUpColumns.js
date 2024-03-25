@@ -16,9 +16,10 @@ import { setMatchUpSchedule } from './setMatchUpSchedule';
 import { timePicker } from 'components/modals/timePicker';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
+import { highlightTab } from 'navigation';
 
 // constants
-import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
   const matchUpScheduleClick = (e, cell) => {
@@ -29,6 +30,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
       context.router.navigate(route);
+      highlightTab(SCHEDULE_TAB);
     }
   };
 
@@ -78,6 +80,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       hozAlign: LEFT,
       width: 5,
     },
+    /*
     {
       formatter: 'responsiveCollapse',
       headerSort: false,
@@ -86,6 +89,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }) {
       minWidth: 50,
       width: 50,
     },
+    */
     {
       headerMenu: headerMenu({
         duration: 'Duration',
