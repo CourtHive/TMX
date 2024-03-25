@@ -1,18 +1,20 @@
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { overviewControl } from './overviewControl';
+import { env } from 'settings/env';
 
 import { TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
 
-export function renderOverview() {
+export function renderOverview({ tournamentName }) {
   const element = document.getElementById(TOURNAMENT_OVERVIEW);
   element.style.minHeight = `${window.innerHeight * 0.9}px`;
   removeAllChildNodes(element);
 
+  console.log(env.device.isMobile);
   const header = document.createElement('div');
   header.style.fontWeight = 'bold';
   header.className = 'block';
-  header.innerHTML = 'Tournament Overview';
+  header.innerHTML = env.device.isMobile ? tournamentName ?? 'Tournament overview' : 'Tournament overview';
   element.appendChild(header);
 
   const controlAnchor = document.createElement('div');
