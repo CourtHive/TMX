@@ -56,10 +56,6 @@ body {
   min-height: 50vh;
 }
 
-.tableClass {
-  background-color: white;
-}
-
 /* prevent scrollbar on hover in Tabulator tables */
 .tabulator-tableholder {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
@@ -87,22 +83,12 @@ body {
 }
 
 
-.main,
-#tc-draws {
-  background-color: white;
-}
-
 #unscheduledVisibility {
   margin-bottom: 2em;
 }
 
 .panel_container {
   width: 100%;
-}
-
-.controlBar,
-.foreground {
-  background-color: white;
 }
 
 .mfcButton {
@@ -343,6 +329,8 @@ body {
 }
 
 dnav {
+  background-color: var(--bulma-body-background-color);
+  color: var(--bulma-body-color);
   position: sticky;
   top: 0;
   display: flex;
