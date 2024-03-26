@@ -49,7 +49,7 @@ export function addVenue(callback) {
       numberValidator(inputs['courtsCount'].value) &&
       nameValidator(5)(inputs['venueName'].value)
     );
-    const saveButton = document.getElementById('addVenue');
+    const saveButton = document.getElementById('addVenueButton');
     if (saveButton) saveButton.disabled = !isValid;
   };
   const relationships = [
@@ -75,10 +75,10 @@ export function addVenue(callback) {
         { label: 'Cancel', close: true },
         {
           onClick: () => saveVenue(callback),
+          id: 'addVenueButton',
           intent: 'is-info',
           disabled: true,
-          id: 'addVenue',
-          label: 'Save',
+          label: 'Add',
           close: true,
         },
       ],
