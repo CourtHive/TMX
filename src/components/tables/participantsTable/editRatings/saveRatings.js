@@ -7,7 +7,7 @@ import { ADD_PARTICIPANT_TIME_ITEM } from 'constants/mutationConstants';
 export function saveRatings(e, table) {
   toggleEditVisibility({
     columns: ['ratings.wtn.wtnRating', 'ratings.utr.utrRating'],
-    className: 'saveRatings',
+    classNames: ['saveRatings', 'saveTennisId'],
     visible: false,
     table,
     e,
