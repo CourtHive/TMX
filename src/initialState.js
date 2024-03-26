@@ -34,6 +34,12 @@ import 'tippy.js/themes/light-border.css';
 import 'tippy.js/themes/light.css';
 import 'tippy.js/dist/tippy.css';
 
+// import 'tabulator-tables/dist/css/tabulator_site_dark.css';
+import 'styles/tabulator.css';
+
+import 'bulma/css/versions/bulma-no-dark-mode.min.css';
+// import 'bulma/css/bulma.css';
+
 import 'styles/tournamentContainer.css';
 import 'styles/tournamentSchedule.css';
 import 'styles/overlay.css';
@@ -41,12 +47,6 @@ import 'styles/leaflet.css';
 import 'styles/fa.min.css';
 import 'styles/icons.css';
 import 'styles/tmx.css';
-
-// import 'tabulator-tables/dist/css/tabulator_site_dark.css';
-import 'styles/tabulator.css';
-
-import 'bulma/css/versions/bulma-no-dark-mode.min.css';
-// import 'bulma/css/bulma.css';
 
 export function setupTMX() {
   setEnv();
