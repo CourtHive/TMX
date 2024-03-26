@@ -1,9 +1,11 @@
 import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
+import { enableEditWTID } from 'components/tables/participantsTable/editWTID/enableEditWTID';
 import { saveRatings } from 'components/tables/participantsTable/editRatings/saveRatings';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getAddToGroupingSelection } from './controlBar/getAddToGroupingSelection';
 import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
+import { saveWTID } from 'components/tables/participantsTable/editWTID/saveWTID';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { updateRegisteredPlayers } from 'services/updateRegisteredPlayers';
 import { getTeamFilter } from 'components/tables/common/filters/teamFilter';
@@ -12,6 +14,7 @@ import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { signInParticipants } from './controlBar/signInParticipants';
 import { signOutUnapproved } from './controlBar/signOutUnapproved';
+import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
@@ -57,6 +60,9 @@ export function renderIndividuals({ view }) {
   const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
   const registration = extension?.value;
 
+  const state = getLoginState();
+  const canEditTennisId = state?.roles?.includes('superadmin') || state?.permissions?.includes('editTennisId');
+
   const actionOptions = [
     {
       onClick: () => signOutUnapproved(replaceTableData),
@@ -66,6 +72,12 @@ export function renderIndividuals({ view }) {
     {
       onClick: (e) => enableManualRatings(e, table),
       label: 'Edit ratings',
+      close: true,
+    },
+    {
+      onClick: (e) => enableEditWTID(e, table),
+      hide: !canEditTennisId,
+      label: 'Edit WTID',
       close: true,
     },
     { divider: true },
@@ -204,6 +216,14 @@ export function renderIndividuals({ view }) {
       selection: false,
       location: RIGHT,
       align: RIGHT,
+    },
+    {
+      onClick: (e) => saveWTID(e, table),
+      class: 'saveTennisId',
+      intent: 'is-primary',
+      label: 'Save WTID',
+      location: RIGHT,
+      visible: false,
     },
     {
       onClick: (e) => saveRatings(e, table),
