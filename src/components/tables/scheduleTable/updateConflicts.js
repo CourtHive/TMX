@@ -31,7 +31,7 @@ export function updateConflicts(table) {
           const issueClass = scheduleClass[sortedIssues[0].issue];
           controlCell.getElement().classList.add(issueClass);
         } else {
-          controlCell.getElement().style.backgroundColor = 'white';
+          // controlCell.getElement().style.backgroundColor = 'white';
           data.issues = [];
         }
       } else {

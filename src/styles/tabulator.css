@@ -60,7 +60,7 @@
   flex-direction: column;
   justify-content: flex-start;
   border-right: 1px solid #aaa;
-  background: white;
+  /* background: white; */
   text-align: left;
   vertical-align: bottom;
   overflow: hidden;
@@ -823,13 +823,13 @@
 
 /* ------------ START Sticky groupBy ------------ */
 .tabulator-row.tabulator-group.tabulator-group-level-0 {
-  background-color: rgb(204, 216, 251);
+  /* background-color: rgb(204, 216, 251); */
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 .tabulator-row.tabulator-group.tabulator-group-level-1 {
-  background-color: rgb(249, 234, 233);
+  /* background-color: rgb(249, 234, 233); */
 }
 .tabulator-row.tabulator-group.tabulator-group-level-0:hover {
   /* background: #eaeaea; /* Default hover background has an opacity: rgba(0,0,0,.1) */
@@ -1329,7 +1329,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator.is-striped .tabulator-row:nth-child(even) {
-  background-color: #fafafa;
+  /* background-color: #fafafa; */
 }
 
 .tabulator.is-bordered {
@@ -1392,13 +1392,13 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator-popup-container {
-  background: white;
+  /* background: white; */
 }
 
 .tabulator-edit-list .tabulator-edit-list-item.active {
-  color: white;
+  /* background: white; */
 }
 
 .tabulator-edit-list .tabulator-edit-list-item:hover {
-  color: white;
+  /* background: white; */
 }

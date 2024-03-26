@@ -19,20 +19,20 @@ export function venueRowFormatter(row) {
       label: 'Delete selected',
       intent: 'is-danger',
       stateChange: true,
-      location: OVERLAY
+      location: OVERLAY,
     },
     {
       label: 'Add courts',
       location: RIGHT,
-      align: RIGHT
-    }
+      align: RIGHT,
+    },
   ];
 
   holderEl.appendChild(controlEl);
 
   const borderStyle = '1px solid #333';
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  // tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 
@@ -56,14 +56,14 @@ export function venueRowFormatter(row) {
       'unscheduledTime',
       'floodlit',
       'surfaceType',
-      'indoorOutdoor'
+      'indoorOutdoor',
     ]),
     data: row.getData().courts,
     placeholder: 'No courts',
     layout: 'fitColumns',
     index: 'courtId',
     maxHeight: 400,
-    columns
+    columns,
   });
 
   controlBar({ table: courtsTable, target: controlEl, items });
