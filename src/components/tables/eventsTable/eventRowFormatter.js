@@ -25,7 +25,7 @@ export const eventRowFormatter = (setTable) => (row) => {
   holderEl.appendChild(controlEl);
 
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  // tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
   const borderStyle = '1px solid #333';
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';

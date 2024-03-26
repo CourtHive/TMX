@@ -24,7 +24,7 @@ export const teamRowFormatter = (row) => {
 
   const borderStyle = '1px solid #333';
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  // tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 

@@ -7,7 +7,7 @@ export const panelHeader = (heading, count = 0) => {
   const text = `${heading} <span class='${ENTRIES_COUNT}'>${count}</span>`;
   return {
     location: HEADER,
-    text
+    text,
   };
 };
 
@@ -23,9 +23,7 @@ export const togglePanel = ({ target, table, close }) => {
       const open = close || toggle.innerHTML.charCodeAt(0) === 9660;
       buttonBar.style.display = open ? NONE : EMPTY_STRING;
       tmxTable.style.display = open ? NONE : EMPTY_STRING;
-      toggle.parentNode.innerHTML = `<span class='toggle' style='color: white'>${
-        open ? closedFilled : openedFilled
-      }</span>`;
+      toggle.parentNode.innerHTML = `<span class='toggle'>${open ? closedFilled : openedFilled}</span>`;
 
       // ensure data display
       if (!open) table.redraw(true);
@@ -37,9 +35,9 @@ export const panelCollapse = (table) => {
   const onClick = (e) => togglePanel({ target: e.target, table });
   return {
     headerClick: onClick,
-    text: `<span class='toggle' style='color: white'>${openedFilled}</span>`,
+    text: `<span class='toggle'>${openedFilled}</span>`,
     location: HEADER,
-    onClick
+    onClick,
   };
 };
 

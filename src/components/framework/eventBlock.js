@@ -15,7 +15,7 @@ import {
   DRAWS_VIEW,
   EVENT_INFO,
   EVENT_CONTROL,
-  TMX_PANEL
+  TMX_PANEL,
 } from 'constants/tmxConstants';
 
 export function eventBlock() {
@@ -54,7 +54,7 @@ export function eventBlock() {
           {' '}
         </div>
       </div>
-      <div style="background-color: white; width: 100%; margin: 0">
+      <div style=" width: 100%; margin: 0">
         <div id=${DRAW_CONTROL}></div>
         <div id=${DRAW_FRAME} class="flexrow flexjustifystart" style="width: 100%">
           <div id=${DRAW_LEFT} ></div>

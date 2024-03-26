@@ -24,13 +24,13 @@
 }
 
 .collection {
-  background: white;
+  /* background: white; */
   margin-bottom: 1rem;
   padding: 1rem;
 }
 
 .overlay-root {
-  background-color: rgb(243, 241, 245);
+  /* background-color: rgb(243, 241, 245); */
   flex-direction: column;
   position: relative;
   max-height: none;
@@ -48,7 +48,7 @@
 }
 
 .overlay-header {
-  background-color: white;
+  /* background-color: white; */
   justify-content: center;
   align-items: center;
   font-size: 1.3rem;
@@ -62,7 +62,7 @@
 }
 
 .overlay-footer {
-  background-color: white;
+  /* background-color: white; */
   justify-content: center;
   padding: 0.5rem 1.5rem;
   align-items: center;
@@ -101,7 +101,7 @@
 }
 
 .overlay-content-overview {
-  background-color: white;
+  /* background-color: white; */
   padding: 1rem 0.5rem;
   margin-bottom: 1rem;
   text-align: center;

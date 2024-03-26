@@ -13,12 +13,12 @@ body {
 
 body {
   font-size: 1.4rem;
-  color: var(--white-color);
+  /* color: var(--white-color); */
   height: 100vh;
 }
 
 .springboard {
-  background-color: #edecf0;
+  /* background-color: #edecf0; */
   width: 100%;
 }
 
@@ -28,7 +28,7 @@ body {
 
 .subTable {
   padding-bottom: 1em;
-  background-color: #e7e6e7;
+  /* background-color: #e7e6e7; */
 }
 
 .activeScoreCell {
@@ -58,7 +58,7 @@ body {
 }
 
 .tableClass {
-  background-color: white;
+  /* background-color: white; */
 }
 
 /* prevent scrollbar on hover in Tabulator tables */
@@ -90,7 +90,7 @@ body {
 
 .main,
 #tc-draws {
-  background-color: white;
+  /* background-color: white; */
 }
 
 #unscheduledVisibility {
@@ -103,7 +103,7 @@ body {
 
 .controlBar,
 .foreground {
-  background-color: white;
+  /* background-color: white; */
 }
 
 .mfcButton {

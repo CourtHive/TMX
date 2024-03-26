@@ -65,7 +65,7 @@ export function editTieFormat({ title, tieFormat, onClose }) {
 function renderEditor({ tieFormat }) {
   const contentContainer = document.createElement('div');
   contentContainer.className = 'overlay-content-container';
-  contentContainer.style.backgroundColor = 'white';
+  // contentContainer.style.backgroundColor = 'white';
 
   const tableElement = document.createElement('div');
   const { table } = createTieFormatTable({ tieFormat, tableElement });
