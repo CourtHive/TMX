@@ -104,7 +104,6 @@ function createToast(options) {
     container.insertAdjacentHTML('beforeend', options.message);
   } else if (options.message) {
     console.log(' MESSAGE ', options.message, typeof options.messsage);
-    container.appendChild(options.message);
   }
 
   if (isFunction(options.action?.onClick)) {
