@@ -106,6 +106,12 @@ export function inviteModal(callback, providers = []) {
           id: 'delete',
         },
         {
+          field: 'editTennisId',
+          label: 'Edit WTID',
+          id: 'editTennisId',
+          checkbox: true,
+        },
+        {
           label: 'Dev mode',
           field: 'devMode',
           checkbox: true,
@@ -122,7 +128,6 @@ export function inviteModal(callback, providers = []) {
     const providerId = inputs.providerId.value;
     const userPermissions = permissions.map((permission) => inputs[permission].checked && permission).filter(Boolean);
     const userRoles = roles.map((role) => inputs[role].checked && role).filter(Boolean);
-    console.log({ userRoles });
     const response = (res) => isFunction(callback) && callback(res);
     inviteUser(email, providerId, userRoles, userPermissions).then(response, (err) => console.log({ err }));
   };
