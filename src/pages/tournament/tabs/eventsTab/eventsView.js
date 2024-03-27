@@ -12,7 +12,6 @@ import { EVENTS_CONTROL, LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 export function eventsView() {
   const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
-  const somethingPublished = tournamentPubState?.status?.published;
 
   const { table } = createEventsTable();
 
@@ -61,7 +60,6 @@ export function eventsView() {
     },
     {
       onClick: () => toggleOOP(tournamentPubState?.orderOfPlay?.published, updateOopState),
-      hide: !somethingPublished,
       label: oopButtonLabel(tournamentPubState?.orderOfPlay?.published),
       intent: tournamentPubState?.orderOfPlay?.published ? 'is-primary' : '',
       id: 'oopButton',
