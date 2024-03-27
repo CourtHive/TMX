@@ -30,8 +30,8 @@ export function eventsView() {
     return deleteEvents({ eventIds, callback });
   };
 
-  const oopAction = (published) => (published ? 'Unpublish' : 'Publish');
-  const oopButtonLabel = (published) => `${oopAction(published)} OOP`;
+  const oopAction = (p) => (p ? 'Unpublish' : 'Publish');
+  const oopButtonLabel = (pd) => `${oopAction(pd)} OOP`;
   const updateOopState = (result) => {
     if (result?.success) {
       const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
@@ -59,7 +59,7 @@ export function eventsView() {
       search: true,
     },
     {
-      onClick: () => toggleOOP(tournamentPubState?.orderOfPlay?.published, updateOopState),
+      onClick: () => toggleOOP(updateOopState),
       label: oopButtonLabel(tournamentPubState?.orderOfPlay?.published),
       intent: tournamentPubState?.orderOfPlay?.published ? 'is-primary' : '',
       id: 'oopButton',
@@ -76,7 +76,9 @@ export function eventsView() {
   controlBar({ table, target, items });
 }
 
-function toggleOOP(published, callback) {
+function toggleOOP(callback) {
+  const tournamentPubState = tournamentEngine.getPublishState().publishState?.tournament;
+  const published = tournamentPubState?.orderOfPlay?.published;
   const method = published ? 'unPublishOrderOfPlay' : 'publishOrderOfPlay';
   const methods = [{ method }];
   mutationRequest({ methods, callback });

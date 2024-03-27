@@ -37,7 +37,9 @@ export function overviewControl({ controlAnchor }) {
     } else {
       notesView.previousElementSibling.remove();
       notesView.style.border = 'none';
-      const content = notesView.querySelector('.ql-editor').innerHTML;
+      const editor: any = notesView.querySelector('.ql-editor');
+      const innerText = editor?.innerText?.replace('\n', '');
+      const content = innerText ? editor.innerHTML : '';
       removeAllChildNodes(notesView);
       notesView.innerHTML = content;
       const methods = [{ method: SET_TOURNAMENT_NOTES, params: { notes: content } }];
