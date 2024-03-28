@@ -1,6 +1,8 @@
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
+import { ratingFormatter } from '../common/formatters/ratingFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
-//import { genderedText } from '../common/formatters/genderedText';
+import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { numericEditor } from '../common/editors/numericEditor';
 import { factoryConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -9,7 +11,6 @@ import { entryActions } from '../../popovers/entryActions';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
-import { teamsFormatter } from '../common/formatters/teamsFormatter';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
@@ -48,8 +49,6 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 50,
     },
     {
-      // formatter: genderedText,
-      /// field: 'participant.participantName',
       formatter: (cell) => formatParticipant()(cell, undefined, 'sideBySide'),
       field: 'participant',
       responsive: false,
@@ -68,20 +67,20 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 70,
     },
     {
-      sorterParams: { alignEmptyValues: 'bottom' },
-      field: 'ratings.wtn.wtnRating',
+      formatter: ratingFormatter(WTN),
+      sorter: ratingSorter(WTN),
       visible: !!wtnRating,
+      field: 'ratings.wtn',
       resizable: false,
-      sorter: 'number',
       title: WTN,
       width: 70,
     },
     {
-      sorterParams: { alignEmptyValues: 'bottom' },
-      field: 'ratings.utr.utrRating',
+      formatter: ratingFormatter(UTR),
+      sorter: ratingSorter(UTR),
       visible: !!utrRating,
+      field: 'ratings.utr',
       resizable: false,
-      sorter: 'number',
       title: UTR,
       width: 70,
     },

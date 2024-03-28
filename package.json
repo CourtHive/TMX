@@ -69,7 +69,7 @@
     "envfile": "7.1.0",
     "eslint": "8.57.0",
     "eslint-plugin-jsx-a11y": "6.8.0",
-    "eslint-plugin-sonarjs": "0.24.0",
+    "eslint-plugin-sonarjs": "0.25.0",
     "esm": "3.2.25",
     "husky": "9.0.11",
     "inquirer": "9.2.16",
