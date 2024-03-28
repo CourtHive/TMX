@@ -6,6 +6,8 @@ export function enableManualSeeding(e, table) {
     columns: ['seedNumber'],
     visible: true,
     table,
-    e
+    e,
   });
+  table.showColumn('seedNumber');
+  table.redraw(true);
 }
