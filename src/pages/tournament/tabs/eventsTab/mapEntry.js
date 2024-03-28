@@ -5,7 +5,7 @@ const { WTN, UTR } = factoryConstants.ratingConstants;
 const { TEAM } = factoryConstants.eventConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
-export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, eventId }) {
+export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, categoryName, eventId }) {
   participant = participant || participants?.find((p) => p.participantId === entry.participantId);
   const flights =
     participant?.draws
@@ -18,6 +18,8 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
   const wtn = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === WTN)?.scaleValue;
   const utr = participant?.ratings?.[ratingType]?.find((rating) => rating.scaleName === UTR)?.scaleValue;
   const ratings = { wtn, utr };
+
+  const ranking = participant?.rankings?.[eventType]?.find((ranking) => ranking.scaleName === categoryName)?.scaleValue;
 
   const scaleName = entry.entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const seedNumber = participant?.seedings?.[eventType]?.find(
@@ -32,6 +34,7 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
     seedNumber,
     cityState,
     ...entry,
+    ranking,
     ratings,
     flights,
     status,

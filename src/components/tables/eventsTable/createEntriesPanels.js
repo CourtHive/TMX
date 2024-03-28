@@ -63,8 +63,16 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
     const hasFlights = event?.drawDefinitions?.length > 1;
 
     // TODO: flightProfile.flight.entries ...
+    const categoryName = event.category?.categoryName ?? event.category?.ageCategoryCode;
     const entryData = (drawDefinition?.entries || event?.entries || []).map((entry) =>
-      mapEntry({ entry, derivedDrawInfo, participants, eventType: event.eventType, eventId }),
+      mapEntry({
+        eventType: event.eventType,
+        derivedDrawInfo,
+        categoryName,
+        participants,
+        eventId,
+        entry,
+      }),
     );
 
     const { events } = tournamentEngine.getEvents();

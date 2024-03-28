@@ -1,8 +1,9 @@
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
+import { ratingFormatter } from '../common/formatters/ratingFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { numericEditor } from '../common/editors/numericEditor';
-import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
 import { factoryConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
@@ -10,7 +11,6 @@ import { entryActions } from '../../popovers/entryActions';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
-import { ratingFormatter } from '../common/formatters/ratingFormatter';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
