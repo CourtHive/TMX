@@ -1,5 +1,6 @@
 import { tournamentEngine, drawDefinitionConstants, scaleConstants, fixtures } from 'tods-competition-factory';
 import { setParticipantScaleItems } from './setParticipantScaleItems';
+import { getConfidenceBand } from 'components/tables/common/sorters/ratingSorter';
 import { isFunction } from 'functions/typeOf';
 
 import { GENERATE_SEEDING_SCALE_ITEMS } from 'constants/mutationConstants';
@@ -9,8 +10,6 @@ const { QUALIFYING, MAIN } = drawDefinitionConstants;
 const { SEEDING, RATING } = scaleConstants;
 const { ratingsParameters } = fixtures;
 
-const bands = { high: [80, 100], medium: [60, 80], low: [40, 60] };
-
 export function generateSeedValues({ event, group, table, field }) {
   const { eventId, eventType } = event;
   const { seedsCount, stageEntries } = tournamentEngine.getEntriesAndSeedsCount({
@@ -19,10 +18,11 @@ export function generateSeedValues({ event, group, table, field }) {
     eventId,
   });
 
-  const [scaleType, rating, accessor] = field.split('.');
+  const [scaleType, rating] = field.split('.');
+  const reversed = rating ? !ratingsParameters[rating.toUpperCase()].ascending : false;
+  const accessor = ratingsParameters[rating.toUpperCase()].accessor;
   const getRating = (participant) => participant.ratings?.[rating] || { confidence: 0, [accessor]: Infinity };
   const getRatingValue = (participant) => getRating(participant)?.[accessor] || 0;
-  const reversed = rating ? !ratingsParameters[rating.toUpperCase()].ascending : false;
 
   const scaleSort = (a, b) =>
     (scaleType === 'ratings' && reversed
@@ -36,11 +36,11 @@ export function generateSeedValues({ event, group, table, field }) {
     const rating = getRating(participant);
     if (rating[accessor]) ratedParticipants += 1;
 
-    if (rating.confidence || 100 >= bands.high[0]) {
+    if (getConfidenceBand(rating.confidence || 100) === 'high') {
       bandedParticipants.high.push(participant);
-    } else if (rating.confidence >= bands.medium[0] && rating.confidence < bands.medium[1]) {
+    } else if (getConfidenceBand(rating.confidence) === 'medium') {
       bandedParticipants.medium.push(participant);
-    } else if (rating.confidence >= bands.low[0] && rating.confidence < bands.low[1]) {
+    } else {
       bandedParticipants.low.push(participant);
     }
   }

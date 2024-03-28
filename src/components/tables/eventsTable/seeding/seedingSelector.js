@@ -7,15 +7,15 @@ import { RIGHT } from 'constants/tmxConstants';
 export const seedingSelector = (event, group) => (table) => {
   const labelMap = {
     ranking: 'Seed by ranking',
-    'ratings.wtn.wtnRating': 'Seed by WTN',
-    'ratings.utr.utrRating': 'Seed by UTR',
+    'ratings.wtn': 'Seed by WTN',
+    'ratings.utr': 'Seed by UTR',
   };
 
   const seedingColumns = table
     .getColumns()
     .map((col) => col.getDefinition())
     // TODO: add ranking to seedingColumns; filter out columns which have no values
-    .filter((def) => ['ratings.wtn.wtnRating', 'ratings.utr.utrRating'].includes(def.field));
+    .filter((def) => ['ratings.wtn', 'ratings.utr'].includes(def.field));
 
   const options = [
     { label: 'Manual seeding', onClick: (e) => enableManualSeeding(e, table), close: true },
