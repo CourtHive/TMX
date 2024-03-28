@@ -7,8 +7,8 @@ export const ratingFormatter = (rating) => (cell) => {
   const ratingDetails = ratingsParameters[rating];
   const { accessor } = ratingDetails;
   const data = cell.getValue();
-  const confidence = data.confidence ?? 100;
-  const value = data[accessor];
+  const confidence = data?.confidence ?? 100;
+  const value = data?.[accessor];
   const band = getConfidenceBand(confidence);
 
   const content = document.createElement('span');
@@ -20,7 +20,7 @@ export const ratingFormatter = (rating) => (cell) => {
   };
 
   content.style.color = colorMap[band];
-  content.innerHTML = value;
+  content.innerHTML = value ?? '';
 
   return content;
 };

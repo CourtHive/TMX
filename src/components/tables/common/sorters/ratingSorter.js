@@ -23,13 +23,13 @@ export const ratingSorter = (rating) => (a, b) => {
 };
 
 function getConfidenceValue(x) {
-  const band = getConfidenceBand(x.confidence);
+  const band = getConfidenceBand(x.confidence ?? 100);
   return (band === 'high' && 100) || (band === 'medium' && 80) || (band === 'low' && 60) || 0;
 }
 
 export function getConfidenceBand(value) {
-  if (value >= confidenceBands.high[0]) return 'high';
-  if (value >= confidenceBands.medium[0]) return 'medium';
-  if (value >= confidenceBands.low[0]) return 'low';
+  if (parseInt(value) >= confidenceBands.high[0]) return 'high';
+  if (parseInt(value) >= confidenceBands.medium[0]) return 'medium';
+  if (parseInt(value) >= confidenceBands.low[0]) return 'low';
   return 'unrated';
 }
