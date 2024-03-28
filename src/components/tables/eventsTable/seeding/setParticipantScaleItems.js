@@ -16,10 +16,10 @@ export function setParticipantScaleItems({ scaleItemsWithParticipantIds, scaleBa
         context: {
           scaleAttributes: { scaleType: SEEDING },
           scaleBasis: { scaleType: scaleBasis },
-          eventId
-        }
-      }
-    }
+          eventId,
+        },
+      },
+    },
   ];
 
   const postMutation = (result) => {

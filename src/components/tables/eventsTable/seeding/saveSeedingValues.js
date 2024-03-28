@@ -15,9 +15,9 @@ export function saveSeedingValues({ event, rows, callback }) {
           scaleValue: seedNumber,
           scaleType: SEEDING,
           scaleName,
-          eventType
-        }
-      ]
+          eventType,
+        },
+      ],
     };
   });
 
