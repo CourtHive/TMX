@@ -92,8 +92,8 @@ export function createEntriesPanels({ eventId, drawId, headerElement }) {
 
         const table = new Tabulator(tableElement, {
           headerSortElement: headerSortElement([
-            'ratings.utr.utrRating',
-            'ratings.wtn.wtnRating',
+            'ratings.utr',
+            'ratings.wtn',
             'seedNumber',
             'ranking',
             'cityState',
