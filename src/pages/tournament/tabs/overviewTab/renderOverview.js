@@ -10,7 +10,6 @@ export function renderOverview({ tournamentName }) {
   element.style.minHeight = `${window.innerHeight * 0.9}px`;
   removeAllChildNodes(element);
 
-  console.log(env.device.isMobile);
   const header = document.createElement('div');
   header.style.fontWeight = 'bold';
   header.className = 'block';
