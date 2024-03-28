@@ -36,9 +36,11 @@ export function generateSeedValues({ event, group, table, field }) {
     const rating = getRating(participant);
     if (rating[accessor]) ratedParticipants += 1;
 
-    if (getConfidenceBand(rating.confidence || 100) === 'high') {
+    const confidence = rating.confidence ?? 100;
+
+    if (getConfidenceBand(confidence) === 'high') {
       bandedParticipants.high.push(participant);
-    } else if (getConfidenceBand(rating.confidence) === 'medium') {
+    } else if (getConfidenceBand(confidence) === 'medium') {
       bandedParticipants.medium.push(participant);
     } else {
       bandedParticipants.low.push(participant);
