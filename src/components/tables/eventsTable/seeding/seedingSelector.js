@@ -7,24 +7,26 @@ import { RIGHT } from 'constants/tmxConstants';
 export const seedingSelector = (event, group) => (table) => {
   const labelMap = {
     ranking: 'Seed by ranking',
-    'ratings.wtn.wtnRating': 'Seed by WTN'
+    'ratings.wtn.wtnRating': 'Seed by WTN',
+    'ratings.utr.utrRating': 'Seed by UTR',
   };
 
   const seedingColumns = table
     .getColumns()
     .map((col) => col.getDefinition())
-    .filter((def) => ['ranking', 'ratings.wtn.wtnRating'].includes(def.field));
+    // TODO: add ranking to seedingColumns; filter out columns which have no values
+    .filter((def) => ['ratings.wtn.wtnRating', 'ratings.utr.utrRating'].includes(def.field));
 
   const options = [
     { label: 'Manual seeding', onClick: (e) => enableManualSeeding(e, table), close: true },
-    { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true }
+    { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true },
   ].concat(
     ...seedingColumns.map((column) => ({
       onClick: () => generateSeedValues({ event, group, table, field: column.field }),
       label: labelMap[column.field],
       value: column.field,
-      close: true
-    }))
+      close: true,
+    })),
   );
 
   return {
@@ -33,6 +35,6 @@ export const seedingSelector = (event, group) => (table) => {
     selection: false,
     location: RIGHT,
     align: RIGHT,
-    options
+    options,
   };
 };
