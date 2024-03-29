@@ -18,7 +18,7 @@ export function calendarControls(table) {
     admin && { label: 'Load by ID', onClick: () => fetchTournament({ table }) },
     { divider: true },
     { divider: true },
-    { label: 'Example Tournaments', onClick: () => mockTournaments(table), close: true },
+    { label: 'Example tournaments', onClick: () => mockTournaments(table), close: true },
   ].filter(Boolean);
 
   const setSearchFilter = createSearchFilter(table);
