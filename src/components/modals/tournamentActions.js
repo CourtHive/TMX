@@ -1,3 +1,4 @@
+import { getLoginState } from 'services/authentication/loginState';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
@@ -6,6 +7,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
 import { openModal } from './baseModal/baseModal';
+import { context } from 'services/context';
+import { tmx2db } from 'services/storage/tmx2db';
 
 // constants
 
@@ -28,10 +31,30 @@ export function tournamentActions() {
     }
 
     if (inputs.action.value === 'claim') {
-      return tmxToast({
-        message: 'Claim tournament',
-        intent: 'is-info',
-      });
+      const state = getLoginState();
+      const provider = state?.provider;
+      if (provider) {
+        const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+        if (!tournamentRecord.parentOrganisation) {
+          tournamentRecord.parentOrganisation = provider;
+          tournamentEngine.setState(tournamentRecord);
+          const success = () => {
+            tmx2db.deleteTournament(tournamentRecord.tournamentId);
+            context.router.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
+            tmxToast({
+              message: 'Tournament claimed',
+              intent: 'is-info',
+            });
+          };
+          const failure = (error) => {
+            tmxToast({
+              message: error.message || 'Not claimed',
+              intent: 'is-danger',
+            });
+          };
+          sendTournament({ tournamentRecord }).then(success, failure);
+        }
+      }
     }
   };
 

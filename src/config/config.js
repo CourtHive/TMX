@@ -1,5 +1,4 @@
 import { processDirective } from 'services/processDirective';
-import { authMessage } from 'components/modals/authMessage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { isDev } from 'functions/isDev';
@@ -50,6 +49,7 @@ function addMessage(msg) {
   if (!exists) env.messages.push(msg);
 }
 
+/*
 function tmxMessage(msg) {
   console.log({ tmxMessage: msg });
   if (msg.authorized && (msg.tuid || msg.tournamentId)) {
@@ -59,9 +59,10 @@ function tmxMessage(msg) {
     if (msg.notice) addMessage(msg);
   }
 }
+*/
 
 function initListeners() {
   context.ee.addListener(PROCESS_DIRECTIVE, processDirective);
-  context.ee.addListener('tmxMessage', tmxMessage);
+  // context.ee.addListener('tmxMessage', tmxMessage);
   context.ee.addListener('addMessage', addMessage);
 }
