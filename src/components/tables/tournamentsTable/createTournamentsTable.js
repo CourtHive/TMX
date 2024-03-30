@@ -20,7 +20,6 @@ export function createTournamentsTable() {
   const renderTable = (tableData) => {
     destroyTable({ anchorId: TOURNAMENTS_TABLE });
     const calendarAnchor = document.getElementById(TOURNAMENTS_TABLE);
-    console.log({ tableData });
 
     table = new Tabulator(calendarAnchor, {
       height: window.innerHeight * 0.85,
@@ -45,6 +44,8 @@ export function createTournamentsTable() {
     const tableData = tournaments
       .sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate))
       .map((t) => {
+        const offline = t.tournament.timeItemValues?.TMX?.offline;
+        t.tournament.offline = offline;
         const tournamentImageURL = t.tournament.onlineResources?.find(
           ({ name, resourceType }) => name === 'tournamentImage' && resourceType === 'URL',
         )?.identifier;
