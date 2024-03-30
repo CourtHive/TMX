@@ -7,12 +7,10 @@
   },
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "ignorePatterns": ["*.mjs", "vite.config.ts"],
+  "ignorePatterns": ["*.mjs", "vite.config.ts", "*.cy.ts", "cypress", "cypress.config.ts"],
   "extends": ["plugin:@typescript-eslint/recommended", "eslint:recommended", "plugin:sonarjs/recommended"],
+  "parserOptions": { "project": ["tsconfig.json"] },
   "plugins": ["sonarjs"],
-  "parserOptions": {
-    "project": ["tsconfig.json"]
-  },
   "rules": {
     "no-unused-expressions": "off",
     "sonarjs/cognitive-complexity": "off",

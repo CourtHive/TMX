@@ -1,3 +1,6 @@
+import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getLoginState } from 'services/authentication/loginState';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
@@ -6,6 +9,11 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
 import { openModal } from './baseModal/baseModal';
+import { tmx2db } from 'services/storage/tmx2db';
+import { context } from 'services/context';
+
+// constants
+import { ADD_TOURNAMENT_TIMEITEM } from 'constants/mutationConstants';
 
 // constants
 
@@ -28,10 +36,56 @@ export function tournamentActions() {
     }
 
     if (inputs.action.value === 'claim') {
-      return tmxToast({
-        message: 'Claim tournament',
-        intent: 'is-info',
-      });
+      const state = getLoginState();
+      const provider = state?.provider;
+      if (provider) {
+        const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+        if (!tournamentRecord.parentOrganisation) {
+          tournamentRecord.parentOrganisation = provider;
+          tournamentEngine.setState(tournamentRecord); // update tournamentEngine state with provider
+          const success = () => {
+            tmx2db.deleteTournament(tournamentRecord.tournamentId);
+            context.router.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
+            tmxToast({
+              message: 'Tournament claimed',
+              intent: 'is-info',
+            });
+          };
+          const failure = (error) => {
+            tmxToast({
+              message: error.message || 'Not claimed',
+              intent: 'is-danger',
+            });
+          };
+          sendTournament({ tournamentRecord }).then(success, failure);
+        }
+      }
+    }
+
+    if (inputs.action.value === 'offline') {
+      const state = getLoginState();
+      const provider = state?.provider;
+      if (provider) {
+        const itemValue = tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem ?? {};
+        itemValue.offline = true;
+        const timeItem = {
+          itemType: 'TMX',
+          itemValue,
+        };
+        const postMutation = (result) => {
+          if (result?.success) {
+            saveTournamentRecord();
+            tmxToast({
+              message: 'Offline',
+              intent: 'is-info',
+            });
+          }
+        };
+        mutationRequest({
+          methods: [{ method: ADD_TOURNAMENT_TIMEITEM, params: { timeItem } }],
+          callback: postMutation,
+        });
+      }
     }
   };
 
@@ -64,7 +118,7 @@ export function tournamentActions() {
             providerId && { label: 'Upload tournament', value: 'upload', close: true },
             { label: 'Delete tournament', disabled: true, value: 'delete', close: true },
             !providerId && { label: 'Claim tournament', value: 'claim', close: true },
-            providerId && { label: 'Go Offline - standalone mode', value: 'offline', close: true },
+            providerId && { label: 'Go offline - standalone mode', value: 'offline', close: true },
           ].filter(Boolean),
           label: 'Action',
           field: 'action',

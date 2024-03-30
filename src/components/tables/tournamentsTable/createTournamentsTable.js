@@ -13,22 +13,14 @@ import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
 export function createTournamentsTable() {
   const handleError = (error) => console.log('db Error', { error });
-  let table, ready;
-
-  const replaceTableData = () => {
-    const refresh = () => {
-      const refreshData = (data) => table.replaceData(data.map(mapTournamentRecord));
-      tmx2db.findAllTournaments().then(refreshData, handleError);
-    };
-
-    setTimeout(refresh, ready ? 0 : 1000);
-  };
+  let table;
 
   const columns = getTournamentColumns();
 
   const renderTable = (tableData) => {
     destroyTable({ anchorId: TOURNAMENTS_TABLE });
     const calendarAnchor = document.getElementById(TOURNAMENTS_TABLE);
+    console.log({ tableData });
 
     table = new Tabulator(calendarAnchor, {
       height: window.innerHeight * 0.85,
@@ -41,11 +33,8 @@ export function createTournamentsTable() {
       columns,
     });
 
+    table.on('tableBuilt', () => calendarControls(table));
     table.on('scrollVertical', destroyTipster);
-    table.on('tableBuilt', () => {
-      calendarControls(table);
-      ready = true;
-    });
   };
 
   const render = (data) => {
@@ -84,5 +73,5 @@ export function createTournamentsTable() {
     noProvider();
   }
 
-  return { table, replaceTableData };
+  return { table };
 }
