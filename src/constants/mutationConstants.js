@@ -20,6 +20,7 @@ export const ADD_PARTICIPANTS = 'addParticipants';
 export const ADD_PARTICIPANT_TIME_ITEM = 'addParticipantTimeItem';
 export const ADD_PLAYOFF_STRUCTURES = 'addPlayoffStructures';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
+export const ADD_TOURNAMENT_TIMEITEM = 'addTournamentTimeItem';
 export const ADD_VENUE = 'addVenue';
 export const ASSIGN_TIE_MATCHUP_PARTICIPANT_ID = 'assignTieMatchUpParticipantId';
 export const ATTACH_FLIGHT_PROFILE = 'attachFlightProfile';
