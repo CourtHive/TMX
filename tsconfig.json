@@ -36,5 +36,5 @@
     "sourceMap": false
   },
   "include": ["src", "src/**.d.ts"],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "build", "cypress", "scratch"]
 }
