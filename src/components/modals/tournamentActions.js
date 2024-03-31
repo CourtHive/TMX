@@ -67,7 +67,7 @@ export function tournamentActions() {
       const provider = state?.provider;
       if (provider) {
         const itemValue = (tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem ?? {}).itemValue;
-        itemValue.offline = true;
+        itemValue.offline = { email: state.email };
         const timeItem = {
           itemType: 'TMX',
           itemValue,
@@ -82,7 +82,7 @@ export function tournamentActions() {
           }
         };
         mutationRequest({
-          methods: [{ method: ADD_TOURNAMENT_TIMEITEM, params: { replacePriorValues: true, timeItem } }],
+          methods: [{ method: ADD_TOURNAMENT_TIMEITEM, params: { removePriorValues: true, timeItem } }],
           callback: postMutation,
         });
       }
