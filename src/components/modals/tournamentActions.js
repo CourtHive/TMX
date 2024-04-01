@@ -18,8 +18,11 @@ import { ADD_TOURNAMENT_TIMEITEM } from 'constants/mutationConstants';
 // constants
 
 export function tournamentActions() {
-  const provider = tournamentEngine.getTournament().tournamentRecord?.parentOrganisation;
+  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const offline = tournamentRecord?.timeItems?.find(({ itemType }) => itemType === 'TMX')?.itemValue?.offline;
+  const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
+  const state = getLoginState();
 
   let inputs;
   const takeAction = () => {
@@ -35,57 +38,67 @@ export function tournamentActions() {
       });
     }
 
-    if (inputs.action.value === 'claim') {
-      const state = getLoginState();
-      const provider = state?.provider;
-      if (provider) {
-        const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
-        if (!tournamentRecord.parentOrganisation) {
-          tournamentRecord.parentOrganisation = provider;
-          tournamentEngine.setState(tournamentRecord); // update tournamentEngine state with provider
-          const success = () => {
-            tmx2db.deleteTournament(tournamentRecord.tournamentId);
-            context.router.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
-            tmxToast({
-              message: 'Tournament claimed',
-              intent: 'is-info',
-            });
-          };
-          const failure = (error) => {
-            tmxToast({
-              message: error.message || 'Not claimed',
-              intent: 'is-danger',
-            });
-          };
-          sendTournament({ tournamentRecord }).then(success, failure);
-        }
+    if (inputs.action.value === 'claim' && state?.provider) {
+      const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+      if (!tournamentRecord.parentOrganisation) {
+        tournamentRecord.parentOrganisation = state.provider;
+        tournamentEngine.setState(tournamentRecord); // update tournamentEngine state with provider
+        const success = () => {
+          tmx2db.deleteTournament(tournamentRecord.tournamentId);
+          context.router.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
+          tmxToast({
+            message: 'Tournament claimed',
+            intent: 'is-info',
+          });
+        };
+        const failure = (error) => {
+          tmxToast({
+            message: error.message || 'Not claimed',
+            intent: 'is-danger',
+          });
+        };
+        sendTournament({ tournamentRecord }).then(success, failure);
       }
     }
 
-    if (inputs.action.value === 'offline') {
-      const state = getLoginState();
-      const provider = state?.provider;
-      if (provider) {
-        const itemValue = (tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem ?? {}).itemValue;
-        itemValue.offline = { email: state.email };
-        const timeItem = {
-          itemType: 'TMX',
-          itemValue,
-        };
-        const postMutation = (result) => {
-          if (result?.success) {
-            saveTournamentRecord();
-            tmxToast({
-              message: 'Offline',
-              intent: 'is-info',
-            });
-          }
-        };
-        mutationRequest({
-          methods: [{ method: ADD_TOURNAMENT_TIMEITEM, params: { removePriorValues: true, timeItem } }],
-          callback: postMutation,
-        });
-      }
+    if (inputs.action.value === 'goOffline' && state?.provider) {
+      const postMutation = (result) => {
+        if (result?.success) {
+          saveTournamentRecord();
+          const dnav = document.getElementById('dnav');
+          dnav.style.backgroundColor = 'lightyellow';
+          tmxToast({ message: 'Offline', intent: 'is-info' });
+        }
+      };
+      changeOnlineState({ postMutation, state, offline: true });
+    }
+
+    if (inputs.action.value === 'goOnline' && state?.provider) {
+      /**
+       * 1. remove offline property from TMX timeItem
+       * 2. send tournament to server
+       * 3. if success, remove local copy of tournament; if failure, set offline property back to true
+       */
+      const postMutation = (result) => {
+        if (result?.success) {
+          const success = () => {
+            tmx2db.deleteTournament(tournamentRecord.tournamentId);
+            const dnav = document.getElementById('dnav');
+            dnav.style.backgroundColor = '';
+            tmxToast({ message: 'Online', intent: 'is-info' });
+          };
+          const failure = (err) => {
+            console.log({ err });
+            changeOnlineState({ state, offline: true });
+          };
+
+          const updatedTournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+          // this will send the tournament to the server
+          sendTournament({ tournamentRecord: updatedTournamentRecord }).then(success, failure);
+        }
+      };
+      // this will only change the online state locally
+      changeOnlineState({ postMutation, state, offline: false });
     }
   };
 
@@ -117,8 +130,11 @@ export function tournamentActions() {
             { label: '-- select action --', close: true },
             providerId && { label: 'Upload tournament', value: 'upload', close: true },
             { label: 'Delete tournament', disabled: true, value: 'delete', close: true },
-            !providerId && { label: 'Claim tournament', value: 'claim', close: true },
-            providerId && { label: 'Go offline - standalone mode', value: 'offline', close: true },
+            tournamentRecord &&
+              !providerId &&
+              state?.provider && { label: 'Claim tournament', value: 'claim', close: true },
+            providerId && !offline && { label: 'Go offline - standalone mode', value: 'goOffline', close: true },
+            providerId && offline && { label: 'Go online - exit standalone mode', value: 'goOnline', close: true },
           ].filter(Boolean),
           label: 'Action',
           field: 'action',
@@ -141,5 +157,19 @@ export function tournamentActions() {
       { label: 'Cancel', intent: 'none', close: true },
       { label: 'Go', id: 'go', intent: 'is-danger', disabled: true, onClick: takeAction, close: true },
     ],
+  });
+}
+
+function changeOnlineState({ postMutation, state, offline }) {
+  const itemValue = { ...(tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem ?? {}).itemValue };
+  if (offline) {
+    itemValue.offline = { email: state.email };
+  } else {
+    delete itemValue.offline;
+  }
+  const timeItem = { itemType: 'TMX', itemValue };
+  mutationRequest({
+    methods: [{ method: ADD_TOURNAMENT_TIMEITEM, params: { removePriorValues: true, timeItem } }],
+    callback: postMutation,
   });
 }
