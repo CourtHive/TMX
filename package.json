@@ -74,7 +74,7 @@
     "eslint-plugin-sonarjs": "0.25.0",
     "esm": "3.2.25",
     "husky": "9.0.11",
-    "inquirer": "9.2.16",
+    "inquirer": "9.2.17",
     "lint-staged": "15.2.2",
     "os-browserify": "0.3.0",
     "prettier": "3.2.5",
@@ -134,7 +134,7 @@
     "tabulator-tables": "6.2.0",
     "timepicker-ui": "2.6.1",
     "tippy.js": "6.3.7",
-    "tods-competition-factory": "2.1.2",
+    "tods-competition-factory": "2.1.3",
     "typescript": "5.4.3",
     "vanillajs-datepicker": "1.3.4"
   }

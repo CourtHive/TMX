@@ -92,6 +92,8 @@ export function loadTournament({ tournamentRecord, config }) {
     };
 
     if (config.tournamentId) {
+      const offline = tournamentRecord?.timeItems?.find(({ itemType }) => itemType === 'TMX')?.itemValue?.offline;
+      if (offline) return tryLocal();
       requestTournament({ tournamentId: config.tournamentId }).then(showResult, tryLocal);
     }
   } else {
