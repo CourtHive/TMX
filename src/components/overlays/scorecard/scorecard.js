@@ -35,7 +35,8 @@ export function renderScorecard({ matchUp }) {
   const side1 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 1 }), justify: 'end' });
   const side2 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 2 }), justify: 'start' });
 
-  const { winningSide, sets } = matchUp;
+  const { winningSide, score } = matchUp;
+  const sets = score?.sets || [];
   const side1Score = getSideScore({ winningSide, sets, sideNumber: 1, id: TIE_SIDE_1 });
   const side2Score = getSideScore({ winningSide, sets, sideNumber: 2, id: TIE_SIDE_2 });
   const overview = getTeamVs({ side1, side2, side1Score, side2Score });
