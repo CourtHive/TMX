@@ -1,5 +1,5 @@
 export function initScrollNav() {
-  const nav = document.querySelector('dnav');
+  const nav = document.getElementById('dnav');
   const supportPageOffset = window.pageXOffset !== undefined;
   const isCSS1Compat = (document.compatMode || '') === 'CSS1Compat';
 
