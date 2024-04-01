@@ -328,7 +328,7 @@ body {
   box-sizing: border-box;
 }
 
-dnav {
+#dnav {
   background-color: var(--bulma-body-background-color);
   color: var(--bulma-body-color);
   position: sticky;
@@ -340,12 +340,12 @@ dnav {
   border-bottom: 1px solid #ddd;
 }
 
-dnav.scroll-up,
-dnav:focus-within {
+#dnav.scroll-up,
+#dnav:focus-within {
   top: 0;
 }
 
-dnav.scroll-down {
+#dnav.scroll-down {
   top: -100%;
 }
 
@@ -365,7 +365,7 @@ dnav.scroll-down {
   letter-spacing: 0.2em;
 }
 
-dnav a {
+#dnav a {
   color: #0f0f0f;
   text-decoration: none;
   font-size: 0.9rem;

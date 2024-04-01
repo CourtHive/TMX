@@ -54,7 +54,7 @@ export async function mutationRequest(params) {
 
   const mutate = (saveLocal) => makeMutation({ offline, methods, factoryEngine, tournamentIds, completion, saveLocal });
   if (!inDateRange) return queryDateRange({ state, providerIds, mutate });
-  if (providerIds.length) return checkPermissions({ state, providerIds, mutate });
+  if (providerIds.length && !offline) return checkPermissions({ state, providerIds, mutate });
   return mutate(true);
 }
 
