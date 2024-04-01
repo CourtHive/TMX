@@ -162,6 +162,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       minWidth: 110,
     },
     {
+      // TODO: ratings columns should display confidence level via color
       editor: numericEditor({ maxValue: 40, decimals: true, field: FIELD_WTN }),
       sorterParams: { alignEmptyValues: 'bottom' },
       responsive: true,
@@ -174,6 +175,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       width: 70,
     },
     {
+      // TODO: ratings columns should display confidence level via color
       editor: numericEditor({ maxValue: 16, decimals: true, field: FIELD_UTR }),
       sorterParams: { alignEmptyValues: 'bottom' },
       responsive: true,
