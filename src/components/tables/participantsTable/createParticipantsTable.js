@@ -37,7 +37,16 @@ export function createParticipantsTable({ view } = {}) {
   };
 
   const replaceTableData = () => {
-    const refresh = () => table.replaceData(getTableData());
+    const data = getTableData();
+    const cityState = data?.some((p) => p.cityState);
+    const tennisId = data?.some((p) => p.tennisId);
+    const utr = data?.some((p) => p.ratings?.utr);
+    const wtn = data?.some((p) => p.ratings?.wtn);
+    cityState && table?.showColumn('cityState');
+    tennisId && table?.showColumn('tennisId');
+    utr && table?.showColumn('ratings.utr.utrRating');
+    wtn && table?.showColumn('ratings.wtn.wtnRating');
+    const refresh = () => table.replaceData(data);
     setTimeout(refresh, ready ? 0 : 1000);
   };
 

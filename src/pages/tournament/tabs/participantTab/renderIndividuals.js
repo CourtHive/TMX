@@ -48,7 +48,6 @@ export function renderIndividuals({ view }) {
   const synchronizePlayers = () => {
     updateRegisteredPlayers({
       callback: () => {
-        // TODO: check whether additional columns should be added based on updated data
         replaceTableData();
         table?.redraw(true);
       },
