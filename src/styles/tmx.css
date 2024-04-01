@@ -391,3 +391,7 @@ img {
   #content { padding: 0; }
   body { margin: 2px; }
 }
+
+.has-text-success {
+  color: #11c550;
+}
