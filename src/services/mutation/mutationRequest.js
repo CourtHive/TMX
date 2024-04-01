@@ -13,6 +13,8 @@ import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 
 export async function mutationRequest(params) {
   const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
+  const state = getLoginState();
+
   const completion = (result) => {
     if (tournamentRecord) factory[engine].reset(); // reset engine state since tournamentRecord was passed
     if (isFunction(callback)) {
@@ -31,34 +33,33 @@ export async function mutationRequest(params) {
   const getProviderId = (tournamentRecord) => tournamentRecord?.parentOrganisation?.organisationId;
   const tournamentRecords = factoryEngine.getState()?.tournamentRecords ?? {};
 
-  const tournamentIds =
-    engine === TOURNAMENT_ENGINE
-      ? [factoryEngine.getTournamentId()]
-      : Object.values(tournamentRecords)?.map((record) => record.tournamentId);
-  const providerIds = factory.tools
-    .unique(
-      engine === TOURNAMENT_ENGINE
-        ? [getProviderId(factoryEngine.getTournament().tournamentRecord)]
-        : Object.values(tournamentRecords)?.map(getProviderId),
-    )
-    .filter(Boolean);
+  const getOffline = (tournamentRecord) =>
+    tournamentRecord.timeItems?.find(({ itemType }) => itemType === 'TMX')?.itemValue?.offline;
+
+  const offlineValues = Object.values(tournamentRecords)?.map(getOffline).filter(Boolean);
+  const invalidOffline =
+    offlineValues.length > 1 && !offlineValues.every((v) => !v.email || v.email === offlineValues[0].email);
+  if (invalidOffline) return tmxToast({ message: 'Not all linked tournaments are offline', intent: 'is-danger' });
+  const offline = offlineValues.length;
+
+  const tournamentIds = Object.values(tournamentRecords)?.map((record) => record.tournamentId);
+  const providerIds = factory.tools.unique(Object.values(tournamentRecords)?.map(getProviderId)).filter(Boolean);
   if (providerIds.length > 1) return tmxToast({ message: 'Multiple providers', intent: 'is-danger' });
 
   const now = new Date().getTime();
   const inDateRange = Object.values(tournamentRecords).every((record) => {
-    // const startTime = dayjs(record.startDate).startOf('day').valueOf();
     const endTime = dayjs(record.endDate).endOf('day').valueOf();
     return endTime && endTime >= now;
   });
 
-  const mutate = (saveLocal) => makeMutation({ methods, factoryEngine, tournamentIds, completion, saveLocal });
-  if (!inDateRange) return queryDateRange({ providerIds, mutate });
-  if (providerIds.length) return checkPermissions({ providerIds, mutate });
+  const mutate = (saveLocal) => makeMutation({ offline, methods, factoryEngine, tournamentIds, completion, saveLocal });
+  if (!inDateRange) return queryDateRange({ state, providerIds, mutate });
+  if (providerIds.length && !offline) return checkPermissions({ state, providerIds, mutate });
   return mutate(true);
 }
 
-function queryDateRange({ providerIds, mutate }) {
-  const onClick = () => (providerIds?.length ? checkPermissions({ providerIds, mutate }) : mutate());
+function queryDateRange({ state, providerIds, mutate }) {
+  const onClick = () => (providerIds?.length ? checkPermissions({ state, providerIds, mutate }) : mutate());
   return tmxToast({
     action: { onClick, text: 'Modify?' },
     message: 'Not in date range',
@@ -66,8 +67,7 @@ function queryDateRange({ providerIds, mutate }) {
   });
 }
 
-function checkPermissions({ providerIds, mutate }) {
-  const state = getLoginState();
+function checkPermissions({ state, providerIds, mutate }) {
   // if the tournamentRecord(s) are associated with a providerId, check permissions
   if (!state) {
     context.provider = undefined;
@@ -115,7 +115,7 @@ async function localSave(saveLocal) {
   }
 }
 
-async function makeMutation({ methods, completion, factoryEngine, tournamentIds, saveLocal }) {
+async function makeMutation({ offline, methods, completion, factoryEngine, tournamentIds, saveLocal }) {
   const hasProvider = factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
   if (window['dev']?.params) {
     for (const method of methods) {
@@ -128,11 +128,13 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
   // NOTE: this enables logging of all methods called during executionQueue when there is an internal factory error
   if (window?.['dev']?.getContext().internal) console.log({ methods });
 
+  const executeLocalFirst = !env.serverFirst || !hasProvider;
+
   let factoryResult;
-  if (!env.serverFirst || !hasProvider) {
+  if (executeLocalFirst || offline) {
     factoryResult = engineExecution({ factoryEngine, methods });
     if (factoryResult.error) return completion(factoryResult);
-    if (!hasProvider) {
+    if (!hasProvider || offline) {
       await localSave(true);
       return completion(factoryResult);
     }
@@ -153,8 +155,8 @@ async function makeMutation({ methods, completion, factoryEngine, tournamentIds,
       data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
       ackCallback,
     });
-    if (!env.serverFirst || !hasProvider) await localSave(saveLocal);
+    if (executeLocalFirst) await localSave(saveLocal);
   }
 
-  if (!env.serverFirst || !hasProvider) return completion(factoryResult);
+  if (executeLocalFirst) return completion(factoryResult);
 }

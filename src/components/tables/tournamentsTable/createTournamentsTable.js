@@ -13,6 +13,8 @@ import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
 export function createTournamentsTable() {
   const handleError = (error) => console.log('db Error', { error });
+  const dnav = document.getElementById('dnav');
+  dnav.style.backgroundColor = '';
   let table;
 
   const columns = getTournamentColumns();
