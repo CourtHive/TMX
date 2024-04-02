@@ -157,10 +157,14 @@ export function renderField(item) {
       input.addEventListener('input', (e) => validator(item, e, input, help, item.validator));
     }
     if (item.date) {
+      const maxNumberOfDates = item.maxNumberOfDates || 1;
+      const autohide = !item.maxNumberOfDates || maxNumberOfDates === 1;
       datepicker = new Datepicker(inputElement, {
-        // ...options
+        maxDate: item.maxDate,
+        minDate: item.minDate,
         format: 'yyyy-mm-dd',
-        autohide: true,
+        maxNumberOfDates,
+        autohide,
       });
     } else if (item.typeAhead) {
       createTypeAhead({ ...item.typeAhead, element: input });

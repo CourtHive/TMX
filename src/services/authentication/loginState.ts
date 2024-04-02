@@ -99,7 +99,7 @@ export function cancelImpersonation() {
 
 export function initLoginToggle(id) {
   const el = document.getElementById(id);
-  const handleError = (error) => console.log('Invite:', { error });
+  const handleError = (error) => tmxToast({ intent: 'is-danger', message: error?.data?.message || 'Error' });
 
   if (el) {
     const processInviteResult = (inviteResult) => {
