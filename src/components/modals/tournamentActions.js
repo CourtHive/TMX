@@ -6,6 +6,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { downloadUTRmatches } from 'services/export/UTR';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
 import { openModal } from './baseModal/baseModal';
@@ -100,6 +101,8 @@ export function tournamentActions() {
       // this will only change the online state locally
       changeOnlineState({ postMutation, state, offline: false });
     }
+
+    if (inputs.action.value === 'utrExport') downloadUTRmatches();
   };
 
   const relationships = [
@@ -135,6 +138,7 @@ export function tournamentActions() {
               state?.provider && { label: 'Claim tournament', value: 'claim', close: true },
             providerId && !offline && { label: 'Go offline - standalone mode', value: 'goOffline', close: true },
             providerId && offline && { label: 'Go online - exit standalone mode', value: 'goOnline', close: true },
+            { label: 'Export UTR matches', value: 'utrExport' },
           ].filter(Boolean),
           label: 'Action',
           field: 'action',
@@ -151,7 +155,7 @@ export function tournamentActions() {
     ));
 
   openModal({
-    title: 'Tournament Actions',
+    title: 'Tournament actions',
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
