@@ -7,6 +7,7 @@ import { sendTournament } from 'services/apis/servicesApi';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
+import { downloadJSON } from 'services/export/download';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
 import { openModal } from './baseModal/baseModal';
@@ -15,6 +16,7 @@ import { context } from 'services/context';
 
 // constants
 import { ADD_TOURNAMENT_TIMEITEM } from 'constants/mutationConstants';
+import { ADMIN } from 'constants/tmxConstants';
 
 // constants
 
@@ -24,6 +26,7 @@ export function tournamentActions() {
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
   const state = getLoginState();
+  const admin = state?.roles?.includes(ADMIN);
 
   let inputs;
   const takeAction = () => {
@@ -103,6 +106,13 @@ export function tournamentActions() {
     }
 
     if (inputs.action.value === 'utrExport') downloadUTRmatches();
+    if (inputs.action.value === 'todsExport') {
+      if (tournamentRecord) {
+        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+      } else {
+        tmxToast({ message: 'Error' });
+      }
+    }
   };
 
   const relationships = [
@@ -138,7 +148,8 @@ export function tournamentActions() {
               state?.provider && { label: 'Claim tournament', value: 'claim', close: true },
             providerId && !offline && { label: 'Go offline - standalone mode', value: 'goOffline', close: true },
             providerId && offline && { label: 'Go online - exit standalone mode', value: 'goOnline', close: true },
-            { label: 'Export UTR matches', value: 'utrExport' },
+            admin && { label: 'Export UTR matches', value: 'utrExport' },
+            admin && { label: 'Export TODS file', value: 'todsExport' },
           ].filter(Boolean),
           label: 'Action',
           field: 'action',
