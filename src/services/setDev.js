@@ -1,4 +1,4 @@
-import { getProviders, requestTournament, sendTournament } from './apis/servicesApi';
+import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
@@ -114,6 +114,7 @@ export function setDev() {
     fetchTournament,
     sendTournament,
     getLoginState,
+    getUsers,
     factory,
     baseApi,
     dayjs,
