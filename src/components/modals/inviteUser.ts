@@ -122,7 +122,7 @@ export function inviteModal(callback, providers = []) {
     ));
 
   const roles = ['client', 'admin', 'score', 'developer', 'generate', 'director', 'official'];
-  const permissions = ['devMode'];
+  const permissions = ['devMode', 'editTennisId', 'deleteTournament'];
   const submitInvite = () => {
     const email = inputs.email.value;
     const providerId = inputs.providerId.value;
