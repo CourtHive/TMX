@@ -64,6 +64,8 @@ function queryDateRange({ state, providerIds, mutate }) {
     action: { onClick, text: 'Modify?' },
     message: 'Not in date range',
     intent: 'is-danger',
+    pauseOnHover: true,
+    duration: 8000,
   });
 }
 
