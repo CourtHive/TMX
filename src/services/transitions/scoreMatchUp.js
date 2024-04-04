@@ -1,5 +1,6 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
+import { scoringModal } from 'components/modals/scoringModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { scoreBoard } from 'legacy/scoring/scoreBoard';
 import { isFunction } from 'functions/typeOf';
@@ -7,8 +8,10 @@ import { env } from 'settings/env';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
-export function enterMatchUpScore({ matchUpId, callback }) {
-  const { matchUp } = tournamentEngine.findMatchUp({ matchUpId });
+export function enterMatchUpScore(params) {
+  const { matchUpId, callback } = params;
+  const participantsProfile = { withScaleValues: true };
+  const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId });
 
   const scoreSubmitted = (outcome) => {
     const { matchUpStatus, winningSide, score } = outcome;
@@ -37,13 +40,17 @@ export function enterMatchUpScore({ matchUpId, callback }) {
 
   const teams = matchUp.sides.map((side) => side.participant);
   const existing_scores = matchUp.score?.sets || [];
-  scoreBoard.setMatchScore({
-    delegation: env.scoring.delegation,
-    round_name: matchUp.roundName || '',
-    matchFormat: matchUp.matchUpFormat,
-    callback: scoreSubmitted,
-    muid: matchUp.matchUpId,
-    existing_scores,
-    teams,
-  });
+
+  if (env.scoring) {
+    scoringModal({ matchUp, callback: scoreSubmitted });
+  } else {
+    scoreBoard.setMatchScore({
+      round_name: matchUp.roundName || '',
+      matchFormat: matchUp.matchUpFormat,
+      callback: scoreSubmitted,
+      muid: matchUp.matchUpId,
+      existing_scores,
+      teams,
+    });
+  }
 }

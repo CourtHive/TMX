@@ -12,7 +12,7 @@ export const handleScoreClick = (replaceTableData, setFocusData) => (e, cell) =>
     const onClose = () => replaceTableData();
     openScorecard({ title: eventName, matchUpId, drawId, onClose });
   } else if (readyToScore || data.matchUp.score?.scoreStringSide1)
-    if (env.hotkeys) {
+    if (env.hotkeys && !env.device.isMobile) {
       setFocusData({ e, cell, replaceTableData });
       const tcells = document.querySelectorAll('.activeScoreCell');
       for (const tcell of Array.from(tcells)) {
@@ -24,6 +24,6 @@ export const handleScoreClick = (replaceTableData, setFocusData) => (e, cell) =>
         e.target.classList.add('activeScoreCell');
       }
     } else {
-      enterMatchUpScore({ matchUpId, callback: replaceTableData });
+      enterMatchUpScore({ matchUp: data.matchUp, matchUpId, callback: replaceTableData });
     }
 };

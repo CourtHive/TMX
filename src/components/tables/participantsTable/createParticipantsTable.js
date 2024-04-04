@@ -1,5 +1,5 @@
 import { tournamentEngine, participantConstants, participantRoles, tools } from 'tods-competition-factory';
-import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
+// import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { getParticipantColumns } from './getParticipantColumns';
@@ -73,11 +73,11 @@ export function createParticipantsTable({ view } = {}) {
         'cityState',
         'tennisId',
       ]),
-      responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
-      responsiveLayoutCollapseStartOpen: false,
+      // responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
+      // responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.86,
       placeholder: 'No participants',
-      responsiveLayout: 'collapse',
+      // responsiveLayout: 'collapse',
       index: 'participantId',
       layout: 'fitColumns',
       reactiveData: true,
