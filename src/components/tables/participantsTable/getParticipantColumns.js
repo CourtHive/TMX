@@ -13,7 +13,7 @@ import { toggleSignInStatus } from './toggleSignInStatus';
 import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
-import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
@@ -47,6 +47,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       hozAlign: LEFT,
       width: 55,
     },
+    /*
     {
       formatter: 'responsiveCollapse',
       responsive: false,
@@ -55,6 +56,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       hozAlign: CENTER,
       width: 50,
     },
+    */
     {
       formatter: formatParticipant(({ event, cell, ...params }) => participantActions(event, cell, undefined, params)),
       cellClick: participantActions,
