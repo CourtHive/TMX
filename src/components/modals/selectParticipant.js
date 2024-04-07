@@ -29,7 +29,7 @@ const actionTypes = {
     title: 'Assign qualifier',
   },
   [SWAP_PARTICIPANTS]: {
-    selections: 'availableAssignments',
+    selections: ['availableAssignments', 'swappableParticipants'],
     targetAttribute: 'drawPosition',
     title: 'Swap draw positions',
     param: 'drawPositions',
@@ -59,13 +59,17 @@ export function selectParticipant({
     const attribute = actionType.targetAttribute;
     const param = actionType.param || actionType.targetAttribute;
     const value = Array.isArray(selected) ? selected[0]?.[attribute] : selected?.[attribute];
-    if (value) {
-      if (action.type === 'SWAP') {
+    if (action.type === 'SWAP') {
+      if (value) {
         action.payload.drawPositions.push(value);
         onSelection({ [param]: action.payload.drawPositions });
-      } else {
-        onSelection({ [param]: value, selected });
+      } else if (selected?.length === 1) {
+        const participantId = selected?.[0]?.participantId;
+        action.payload.participantIds.push(participantId);
+        onSelection({ participantIds: action.payload.participantIds });
       }
+    } else if (value) {
+      onSelection({ [param]: value, selected });
     }
   };
 
@@ -102,7 +106,9 @@ export function selectParticipant({
       onClick();
     }
   };
-  const data = action[actionType.selections];
+  const data = Array.isArray(actionType.selections)
+    ? action[actionType.selections.find((s) => action[s])]
+    : action[actionType.selections];
   const { table } = createSelectionTable({
     selectedParticipantIds, // already selected
     targetAttribute: actionType.targetAttribute,
