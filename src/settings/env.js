@@ -4,7 +4,7 @@ export const env = {
   socketIo: { tmx: '/tmx' }, // should be set as part of authenticated connection
   activeScale: 'wtn', // TODO: discover activeScale from tournament data
   hotkeys: false,
-  scoring: true,
+  scoring: false,
 
   scales: {
     utr: {

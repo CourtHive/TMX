@@ -11,7 +11,7 @@ import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 export function enterMatchUpScore(params) {
   const { matchUpId, callback } = params;
   const participantsProfile = { withScaleValues: true };
-  const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId });
+  const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId }).matchUp;
 
   const scoreSubmitted = (outcome) => {
     const { matchUpStatus, winningSide, score } = outcome;

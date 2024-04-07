@@ -1,4 +1,5 @@
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { timeItemConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -6,8 +7,7 @@ import { timePicker } from '../modals/timePicker';
 import { isFunction } from 'functions/typeOf';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
-import { timeModifierText } from 'constants/tmxConstants';
-import { RIGHT } from 'constants/tmxConstants';
+import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
@@ -44,6 +44,8 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
     mutationRequest({ methods, callback: postMutation });
   };
 
+  const scoreMatchUp = (matchUp) => enterMatchUpScore({ matchUp, matchUpId, callback });
+
   const clearTimeSettings = () => setSchedule({ scheduledTime: '', timeModifiers: [] });
   const timeSelected = ({ time }) => {
     const militaryTime = true;
@@ -77,10 +79,17 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
   const modifyTime = (modifier) => setSchedule({ timeModifiers: [modifier] });
 
   const setMatchTimeText = matchUpId ? 'Set match time' : 'Set match times';
+  const matchUp = Object.values(cell.getData()).find((c) => c?.matchUpId === matchUpId);
+  const readyToScore = matchUp?.readyToScore || matchUp?.winningSide || matchUp?.score?.sets;
+
   const options = [
     {
       option: setMatchTimeText,
       onClick: setMatchUpTimes,
+    },
+    readyToScore && {
+      option: 'Enter score',
+      onClick: () => scoreMatchUp(matchUp),
     },
     {
       option: timeModifierText[FOLLOWED_BY],
@@ -106,7 +115,7 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
       option: `Clear time settings`,
       onClick: clearTimeSettings,
     },
-  ];
+  ].filter(Boolean);
 
   const target = e.target;
   tipster({ options, target, config: { placement: RIGHT } });
