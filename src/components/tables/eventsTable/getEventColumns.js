@@ -16,6 +16,7 @@ export function getEventColumns(nestedTables) {
   };
 
   const nameClick = (e, cell) => {
+    /*
     const rowData = cell.getRow().getData();
     if (rowData.drawDefs.length === 1) {
       const eventId = rowData.eventId;
@@ -24,6 +25,8 @@ export function getEventColumns(nestedTables) {
     } else {
       toggleOpenClose(e, cell);
     }
+    */
+    toggleOpenClose(e, cell);
   };
 
   return [
