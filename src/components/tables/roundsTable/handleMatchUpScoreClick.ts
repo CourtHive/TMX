@@ -16,7 +16,7 @@ export const handleScoreClick = (replaceTableData) => (_, cell) => {
       const callback = () => {
         replaceTableData();
       };
-      enterMatchUpScore({ matchUpId, callback });
+      enterMatchUpScore({ matchUp: data.matchUp, matchUpId, callback });
     }
   }
 };

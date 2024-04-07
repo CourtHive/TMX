@@ -83,16 +83,16 @@ export const scoreBoard = (function () {
   };
 
   fx.setMatchScore = ({
-    muid,
-    lock,
+    auto_score = true,
+    existing_scores,
+    matchFormat,
+    round_name,
+    callback,
+    grouped,
     match,
     teams,
-    grouped,
-    callback,
-    round_name,
-    matchFormat,
-    existing_scores,
-    auto_score = true,
+    muid,
+    lock,
   }) => {
     settings.auto_score = auto_score;
 

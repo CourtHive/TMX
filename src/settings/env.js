@@ -3,7 +3,8 @@ import { version } from '../config/version';
 export const env = {
   socketIo: { tmx: '/tmx' }, // should be set as part of authenticated connection
   activeScale: 'wtn', // TODO: discover activeScale from tournament data
-  hotkeys: true,
+  hotkeys: false,
+  scoring: false,
 
   scales: {
     utr: {
@@ -43,16 +44,6 @@ export const env = {
       tileLayer: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       attribution: 'Tiles &copy; Esri',
     },
-  },
-  calendar: {
-    start: undefined,
-    end: undefined,
-    category: undefined,
-    first_day: 0,
-  },
-  scoring: {
-    delegationOfficial: false,
-    delegation: true,
   },
   scoreboard: {
     matchFormats: {
