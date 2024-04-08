@@ -15,6 +15,12 @@ export function renderScheduleTab(params) {
   const today = tools.dateTime.formatDate(now);
   const nowInRange = now >= new Date(startDate) && now <= new Date(endDate);
   const fallback = now > new Date(endDate) ? endDate : startDate;
+
+  if (!params.scheduledDate) {
+    const scheduledDate = nowInRange ? today : fallback;
+    const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo.tournamentId;
+    context.router.navigate(`/tournament/${tournamentId}/schedule/${scheduledDate}`);
+  }
   const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
 
   const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY);
@@ -49,7 +55,7 @@ export function renderScheduleTab(params) {
     scheduledDate,
   });
 
-  const { updateScheduledDate } = unscheduledGridControl({
+  unscheduledGridControl({
     controlAnchor: unscheduldControlAnchor,
     matchUps: unscheduledMatchUps,
     table: unscheduledTable,
@@ -59,12 +65,6 @@ export function renderScheduleTab(params) {
     scheduledDate,
   });
 
-  const setDate = (scheduledDate) => {
-    context.displayed.schedule_day = scheduledDate;
-    updateUnscheduledTable({ scheduledDate });
-    updateScheduleTable({ scheduledDate });
-    if (updateScheduledDate) updateScheduledDate(scheduledDate);
-  };
   gridControlElements = scheduleGridControl({
     table: scheduleTable,
     unscheduledMatchUps,
@@ -74,6 +74,5 @@ export function renderScheduleTab(params) {
     controlAnchor,
     scheduledDate,
     courtsCount,
-    setDate,
   }).elements;
 }
