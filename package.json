@@ -2,7 +2,7 @@
   "name": "tmx",
   "license": "MIT",
   "private": true,
-  "version": "3.0.38",
+  "version": "3.0.39",
   "type": "module",
   "engines": {
     "node": "20",
@@ -66,7 +66,7 @@
     "buffer": "6.0.3",
     "c8": "9.1.0",
     "crypto-browserify": "3.12.0",
-    "cypress": "^13.7.1",
+    "cypress": "^13.7.2",
     "cz-git": "1.9.1",
     "envfile": "7.1.0",
     "eslint": "8.57.0",
