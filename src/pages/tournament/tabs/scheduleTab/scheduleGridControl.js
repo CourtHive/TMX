@@ -21,7 +21,6 @@ export function scheduleGridControl({
   const dateRange = tools.generateDateRange(startDate, endDate);
   const dateOptions = dateRange.map((dateString) => ({
     onClick: () => {
-      // isFunction(setDate) && setDate(dateString);
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo.tournamentId;
       context.router.navigate(`/tournament/${tournamentId}/schedule/${dateString}`);
     },
