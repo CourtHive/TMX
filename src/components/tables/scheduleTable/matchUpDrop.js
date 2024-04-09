@@ -3,8 +3,9 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { updateConflicts } from './updateConflicts';
 import { isObject } from 'functions/typeOf';
+import { context } from 'services/context';
 
-import { COMPETITION_ENGINE, SCHEDULED_DATE_FILTER, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
+import { COMPETITION_ENGINE, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
 export function matchUpDrop(ev, cell) {
@@ -23,7 +24,7 @@ export function matchUpDrop(ev, cell) {
     sourceMatchUp = unscheduledMatchUps.find((matchUp) => matchUp.matchUpId === sourceMatchUpId) || {};
   }
 
-  const selectedDate = document.getElementById(SCHEDULED_DATE_FILTER).value;
+  const selectedDate = context.displayed.selectedScheduleDate;
 
   const { courtOrder: sourceCourtOrder, courtId: sourceCourtId, venueId: sourceVenueId } = sourceMatchUp.schedule || {};
 

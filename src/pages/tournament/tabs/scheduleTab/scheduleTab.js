@@ -22,6 +22,7 @@ export function renderScheduleTab(params) {
     context.router.navigate(`/tournament/${tournamentId}/schedule/${scheduledDate}`);
   }
   const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
+  context.displayed.selectedScheduleDate = scheduledDate;
 
   const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY);
   const unscheduldControlAnchor = document.getElementById(UNSCHEDULED_CONTROL);
