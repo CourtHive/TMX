@@ -185,7 +185,7 @@ devDependencies:
     specifier: 3.12.0
     version: 3.12.0
   cypress:
-    specifier: ^13.7.1
+    specifier: ^13.7.2
     version: 13.7.2
   cz-git:
     specifier: 1.9.1
@@ -2434,7 +2434,7 @@ packages:
     engines: { node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7 }
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001589
+      caniuse-lite: 1.0.30001607
       electron-to-chromium: 1.4.679
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
@@ -2566,9 +2566,9 @@ packages:
     engines: { node: '>=16' }
     dev: false
 
-  /caniuse-lite@1.0.30001589:
+  /caniuse-lite@1.0.30001607:
     resolution:
-      { integrity: sha512-vNQWS6kI+q6sBlHbh71IIeC+sRwK2N3EDySc/updIGhIee2x5z00J4c1242/5/d6EpEMdOnk/m+6tuk4/tcsqg== }
+      { integrity: sha512-WcvhVRjXLKFB/kmOFVwELtMxyhq3iM/MvmXcyCe2PNf166c39mptscOc/45TTS96n2gpNV2z7+NakArTWZCQ3w== }
 
   /caseless@0.12.0:
     resolution:
