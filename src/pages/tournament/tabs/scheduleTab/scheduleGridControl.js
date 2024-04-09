@@ -1,6 +1,6 @@
 import { competitionEngine, tools } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
-import { isFunction } from 'functions/typeOf';
+import { context } from 'services/context';
 import dayjs from 'dayjs';
 
 import { LEFT, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
@@ -11,7 +11,6 @@ export function scheduleGridControl({
   controlAnchor,
   scheduledDate,
   courtsCount,
-  setDate,
 } = {}) {
   if (!controlAnchor) return;
 
@@ -21,7 +20,11 @@ export function scheduleGridControl({
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
   const dateRange = tools.generateDateRange(startDate, endDate);
   const dateOptions = dateRange.map((dateString) => ({
-    onClick: () => isFunction(setDate) && setDate(dateString),
+    onClick: () => {
+      // isFunction(setDate) && setDate(dateString);
+      const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo.tournamentId;
+      context.router.navigate(`/tournament/${tournamentId}/schedule/${dateString}`);
+    },
     isActive: dateString === scheduledDate,
     label: formatDate(dateString),
     value: dateString,

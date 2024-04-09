@@ -1,14 +1,27 @@
 import { createUnscheduledTable } from 'components/tables/unscheduledTable/createUnscheduledTable';
 import { createScheduleTable } from 'components/tables/scheduleTable/createScheduleTable';
+import { competitionEngine, tools } from 'tods-competition-factory';
 import { unscheduledGridControl } from './unscheduledGridControl';
-import { competitionEngine } from 'tods-competition-factory';
 import { scheduleGridControl } from './scheduleGridControl';
 import { context } from 'services/context';
 
 import { NONE, SCHEDULE_CONTROL, UNSCHEDULED_CONTROL, UNSCHEDULED_VISIBILITY } from 'constants/tmxConstants';
 
-export function renderScheduleTab({ scheduledDate }) {
+export function renderScheduleTab(params) {
   let gridControlElements;
+
+  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
+  const now = new Date();
+  const today = tools.dateTime.formatDate(now);
+  const nowInRange = now >= new Date(startDate) && now <= new Date(endDate);
+  const fallback = now > new Date(endDate) ? endDate : startDate;
+
+  if (!params.scheduledDate) {
+    const scheduledDate = nowInRange ? today : fallback;
+    const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
+    context.router.navigate(`/tournament/${tournamentId}/schedule/${scheduledDate}`);
+  }
+  const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
 
   const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY);
   const unscheduldControlAnchor = document.getElementById(UNSCHEDULED_CONTROL);
@@ -19,7 +32,6 @@ export function renderScheduleTab({ scheduledDate }) {
   let schedulingActive = context.state.schedulingActive;
   unscheduledVisibility.style.display = schedulingActive ? '' : NONE;
 
-  scheduledDate = scheduledDate || competitionEngine.getCompetitionDateRange().startDate;
   const {
     replaceTableData: updateUnscheduledTable,
     table: unscheduledTable,
@@ -43,7 +55,7 @@ export function renderScheduleTab({ scheduledDate }) {
     scheduledDate,
   });
 
-  const { updateScheduledDate } = unscheduledGridControl({
+  unscheduledGridControl({
     controlAnchor: unscheduldControlAnchor,
     matchUps: unscheduledMatchUps,
     table: unscheduledTable,
@@ -53,12 +65,6 @@ export function renderScheduleTab({ scheduledDate }) {
     scheduledDate,
   });
 
-  const setDate = (scheduledDate) => {
-    context.displayed.schedule_day = scheduledDate;
-    updateUnscheduledTable({ scheduledDate });
-    updateScheduleTable({ scheduledDate });
-    if (updateScheduledDate) updateScheduledDate(scheduledDate);
-  };
   gridControlElements = scheduleGridControl({
     table: scheduleTable,
     unscheduledMatchUps,
@@ -68,6 +74,5 @@ export function renderScheduleTab({ scheduledDate }) {
     controlAnchor,
     scheduledDate,
     courtsCount,
-    setDate,
   }).elements;
 }
