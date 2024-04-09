@@ -13,7 +13,7 @@ export const context = {
   },
 
   displayed: {
-    schedule_day: null,
+    selectedScheduleDate: null,
     draw_event: null,
   },
 
