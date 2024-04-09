@@ -14,8 +14,9 @@ export function enterMatchUpScore(params) {
   const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId }).matchUp;
 
   const scoreSubmitted = (outcome) => {
-    const { matchUpStatus, winningSide, score } = outcome;
-    const sets = score && tournamentEngine.parseScoreString({ scoreString: score });
+    const { matchUpStatus, matchUpFormat, winningSide, score } = outcome;
+    const parsedSets = score && tournamentEngine.parseScoreString({ scoreString: score });
+    const sets = parsedSets?.sets || [];
     const methods = [
       {
         method: SET_MATCHUP_STATUS,
@@ -24,6 +25,7 @@ export function enterMatchUpScore(params) {
           drawId: matchUp.drawId,
           outcome: {
             score: { sets },
+            matchUpFormat,
             matchUpStatus,
             winningSide,
           },

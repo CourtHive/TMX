@@ -6,7 +6,7 @@ export const eventManager = (function () {
     touched: undefined,
     holdTime: 800,
     holdAction: undefined,
-    holdActions: {}
+    holdActions: {},
   };
   const keys = {};
   let registeredFunctions = {};
@@ -59,7 +59,7 @@ export const eventManager = (function () {
       x: evt.clientX,
       y: evt.clientY,
       pageX: evt.pageX,
-      pageY: evt.pageY
+      pageY: evt.pageY,
     };
     let classList = Array.from(evt.target.classList);
     let matchedClasses = classList.length && keys[evnt] ? intersection(classList, keys[evnt]) : [];
@@ -89,21 +89,21 @@ export const eventManager = (function () {
         }, em.holdTime);
       }
     },
-    false
+    false,
   );
   document.addEventListener(
     'touchend',
     function () {
       touchleave();
     },
-    false
+    false,
   );
   document.addEventListener(
     'touchmove',
     function (pointerEvent) {
       if (em.touched !== pointerEvent.target) touchleave();
     },
-    false
+    false,
   );
   function touchleave() {
     clearTimeout(touchTimer);
