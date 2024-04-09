@@ -88,6 +88,7 @@ export function editTournament({ table, tournamentRecord }) {
             ? false
             : true,
         )
+        .filter(Boolean)
         .join(',');
     }
 
@@ -135,8 +136,8 @@ export function editTournament({ table, tournamentRecord }) {
 
   const isValid = () => nameValidator(5)(inputs.drawName.value);
   const submit = () => {
+    const activeDates = inputs.activeDates.value?.split(',').filter(Boolean);
     const tournamentName = inputs.tournamentName.value?.trim();
-    const activeDates = inputs.activeDates.value?.split(',');
     const startDate = inputs.startDate.value;
     const endDate = inputs.endDate.value;
 
