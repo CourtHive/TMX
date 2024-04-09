@@ -1,6 +1,5 @@
 import { matchUpFormatCode, tools } from 'tods-competition-factory';
 import { closeModal } from 'components/modals/baseModal/baseModal';
-import { eventManager } from 'services/dom/events/eventManager';
 import { getParent } from 'services/dom/parentAndChild';
 import completedMatch from 'assets/icons/completed.png';
 import { floatingScoring } from './floatingScoring';
@@ -57,16 +56,6 @@ export const scoreBoard = (function () {
   });
 
   let setClicks = {};
-
-  eventManager.register('setClick', 'tap', setClick);
-
-  function setClick(elem) {
-    let set_number_element = getParent(elem, 'set_number');
-    if (!set_number_element) return;
-    let set = set_number_element.getAttribute('setnum');
-    let muid = getParent(elem, 'muid').getAttribute('muid');
-    if (setClicks[muid] && typeof setClicks[muid] === 'function') setClicks[muid](set);
-  }
 
   let settings = { auto_score: true };
 
@@ -161,13 +150,40 @@ export const scoreBoard = (function () {
     configureTiebreakEntry();
     initialState();
 
-    function convertExisting() {
-      return [];
+    const elems = document.querySelectorAll('.setClick');
+    for (const elem of elems) {
+      let set_number_element = getParent(elem, 'set_number');
+      if (set_number_element) {
+        let set = set_number_element.getAttribute('setnum');
+        let muid = getParent(elem, 'muid').getAttribute('muid');
+        elem.addEventListener('click', () => {
+          if (setClicks[muid] && typeof setClicks[muid] === 'function') setClicks[muid](set);
+        });
+      }
+    }
+
+    function convertExisting(existing) {
+      return existing.map((set) => {
+        return [
+          {
+            tiebreak: set.side1Score ? set.side1TiebreakScore : undefined,
+            supertiebreak: set.side1TiebreakScore,
+            spacer: set.side1score,
+            games: set.side1Score,
+          },
+          {
+            tiebreak: set.side2score ? set.side2TiebreakScore : undefined,
+            supertiebreak: set.side2TiebreakScore,
+            spacer: set.side2score,
+            games: set.side2Score,
+          },
+        ];
+      });
     }
 
     // SUPPORTING FUNCTIONS
     function initialState() {
-      set_scores = existing_scores ? convertExisting() : [];
+      set_scores = existing_scores ? convertExisting(existing_scores) : [];
       action_drawer = false;
       ddlb_lock = false;
 
