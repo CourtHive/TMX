@@ -1,14 +1,16 @@
-import { normalizeName, normalizeDiacritics } from 'normalize-text';
+// import { normalizeName, normalizeDiacritics } from 'normalize-text';
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { downloadText } from './download';
 
 import { DRAW_NAME, DRAW_TYPE, UTR } from 'constants/tmxConstants';
 
+/*
 export const replaceDiacritics = (text) => normalizeDiacritics(text);
 
 export const nameNormalization = (name) => {
   return normalizeName(name || '', ['de', 'la', 'da']);
 };
+*/
 export function downloadUTRmatches() {
   const zeroPad = (number) => (number.toString()[1] ? number : '0' + number);
   const dateFormatUTR = (date) => {
@@ -20,9 +22,11 @@ export function downloadUTRmatches() {
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
   const { completedMatchUps } = tournamentEngine.tournamentMatchUps({
     context: {
+      tournamentSanctionBody: tournamentInfo.parentOrganisation?.organisationName,
       tournamentStartDate: dateFormatUTR(tournamentInfo.startDate),
       tournamentEndDate: dateFormatUTR(tournamentInfo.endDate),
-      tournamentEventSource: 'CourtHive', // change this to providerName
+      tournamentEventSource: 'CourtHive',
+      tournamentEventCategory: 'Junior',
       tournamentEventType: 'Tournament',
       ...tournamentInfo,
       idType: UTR,
@@ -44,9 +48,12 @@ export function downloadUTRmatches() {
     };
   });
 
+  const genderInitial = (value) => value?.slice(0, 1);
+
   const config = {
     columnAccessors: [''],
     columnTransform: {
+      Date: ['tournamentEndDate'],
       'Winner 1 Name': [
         'winners.participant.individualParticipants.0.participantName',
         'winners.participant.participantName',
@@ -111,11 +118,12 @@ export function downloadUTRmatches() {
       'Loser 2 Third Party ID': ['losers.participant.individualParticipants.1.participantId'],
       'Loser 2 Gender': ['losers.participant.individualParticipants.1.person.sex'],
       'Loser 2 DOB': ['losers.participant.individualParticipants.1.person.birthDate'],
-
-      'Tournament Start Date': ['tournamentStartDate'],
-      'Tournament End Date': ['tournamentEndDate'],
+      'Tournament Sanction Body': ['tournamentSanctionBody'],
+      'Tournament Event Category': ['tournamentEventCategory'],
       'Tournament Import Source': ['tournamentEventSource'],
       'Tournament Event Type': ['tournamentEventType'],
+      'Tournament Start Date': ['tournamentStartDate'],
+      'Tournament End Date': ['tournamentEndDate'],
       'Tournament Name': ['tournamentName'],
       'Draw Name': [DRAW_NAME],
       'Draw Type': [DRAW_TYPE],
@@ -123,8 +131,14 @@ export function downloadUTRmatches() {
       Score: ['winnerScore'],
       'Id Type': ['idType'],
     },
+    functionMap: {
+      'Winner 1 Gender': genderInitial,
+      'Winner 2 Gender': genderInitial,
+      'Loser 1 Gender': genderInitial,
+      'Loser 2 Gender': genderInitial,
+    },
   };
 
-  let csv = tools.JSON2CSV(matchUpsWinnersLosers, config);
+  const csv = tools.JSON2CSV(matchUpsWinnersLosers, config);
   downloadText(`UTR-${tournamentInfo.tournamentId}.csv`, csv);
 }
