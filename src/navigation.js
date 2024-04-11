@@ -1,6 +1,7 @@
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 import tippy from 'tippy.js';
 
 import {
@@ -13,7 +14,6 @@ import {
   TOURNAMENT_OVERVIEW,
   VENUES_TAB,
 } from 'constants/tmxConstants';
-import { env } from 'settings/env';
 
 const routeMap = {
   'o-route': TOURNAMENT_OVERVIEW,
@@ -72,7 +72,7 @@ export function tmxNavigation() {
   ids.forEach((id) => {
     const element = document.getElementById(id);
     tippy(element, {
-      dynContent: () => !env.device.isMobile && tippyContent(tips['o-route']),
+      dynContent: () => !env.device.isMobile && tippyContent(tips[id]),
       onShow: (options) => !!options.props.content,
       plugins: [enhancedContentFunction],
       placement: BOTTOM,
