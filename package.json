@@ -74,7 +74,7 @@
     "eslint-plugin-sonarjs": "0.25.1",
     "esm": "3.2.25",
     "husky": "9.0.11",
-    "inquirer": "9.2.17",
+    "inquirer": "9.2.18",
     "lint-staged": "15.2.2",
     "os-browserify": "0.3.0",
     "prettier": "3.2.5",
