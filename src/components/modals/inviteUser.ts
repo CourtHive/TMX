@@ -117,19 +117,34 @@ export function inviteModal(callback, providers = []) {
           checkbox: true,
           id: 'devmode',
         },
+        {
+          text: 'Services',
+          header: true,
+        },
+        {
+          label: 'Tournament Profiles',
+          field: 'tournamentProfile',
+          id: 'tournamentProfile',
+          checkbox: true,
+        },
       ],
       relationships,
     ));
 
   const roles = ['client', 'admin', 'score', 'developer', 'generate', 'director', 'official'];
   const permissions = ['devMode', 'editTennisId', 'deleteTournament'];
+  const services = ['tournamentProfile'];
   const submitInvite = () => {
+    console.log({ inputs });
     const email = inputs.email.value;
     const providerId = inputs.providerId.value;
     const userPermissions = permissions.map((permission) => inputs[permission].checked && permission).filter(Boolean);
+    const userServices = services.map((service) => inputs[service].checked && service).filter(Boolean);
     const userRoles = roles.map((role) => inputs[role].checked && role).filter(Boolean);
     const response = (res) => isFunction(callback) && callback(res);
-    inviteUser(email, providerId, userRoles, userPermissions).then(response, (err) => console.log({ err }));
+    inviteUser(email, providerId, userRoles, userPermissions, userServices).then(response, (err) =>
+      console.log({ err }),
+    );
   };
 
   openModal({

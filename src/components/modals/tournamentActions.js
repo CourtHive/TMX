@@ -26,6 +26,7 @@ export function tournamentActions() {
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
   const state = getLoginState();
+  const canDelete = state?.permissions?.includes('deleteTournament');
   const admin = state?.roles?.includes(ADMIN);
 
   let inputs;
@@ -134,6 +135,7 @@ export function tournamentActions() {
       },
     },
   ];
+
   const content = (elem) =>
     (inputs = renderForm(
       elem,
@@ -142,7 +144,7 @@ export function tournamentActions() {
           options: [
             { label: '-- select action --', close: true },
             providerId && { label: 'Upload tournament', value: 'upload', close: true },
-            { label: 'Delete tournament', disabled: true, value: 'delete', close: true },
+            { label: 'Delete tournament', disabled: !canDelete, value: 'delete', close: true },
             tournamentRecord &&
               !providerId &&
               state?.provider && { label: 'Claim tournament', value: 'claim', close: true },

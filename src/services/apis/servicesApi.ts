@@ -1,5 +1,10 @@
 import { baseApi } from './baseApi';
 
+// TODO: URL and parameters should be defined in provider specific location.  Provider-services?
+export async function fetchTournamentDetails({ identifier }) {
+  return await baseApi.post('/service/tournamentdetails', { identifier });
+}
+
 export async function requestTournament({ tournamentId }) {
   return await baseApi.post('/factory/fetch', { tournamentId });
 }

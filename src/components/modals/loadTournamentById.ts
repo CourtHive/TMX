@@ -1,11 +1,11 @@
 import { addTournament } from 'services/storage/importTournaments';
+import { requestTournament } from 'services/apis/servicesApi';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
-import { requestTournament } from 'services/apis/servicesApi';
 
-export function fetchTournament({ table }) {
+export function loadTournamentById({ table }) {
   const tournamentIds = table.getData().map((t) => t.tournamentId);
   let inputs;
 
@@ -32,7 +32,6 @@ export function fetchTournament({ table }) {
   const showResult = (result) => {
     const tournamentId = inputs.tournamentId.value;
     const tournamentRecord = result.data.tournamentRecords?.[tournamentId];
-    // const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
     const callback = () => {};
     addTournament({ tournamentRecord, tournamentIds, table, callback });
   };
@@ -43,7 +42,7 @@ export function fetchTournament({ table }) {
   };
 
   openModal({
-    title: 'Login',
+    title: 'Load tournament',
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
