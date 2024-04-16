@@ -7,10 +7,11 @@ export async function systemLogin(email, password) {
   });
 }
 
-export async function inviteUser(email, providerId, roles, permissions) {
+export async function inviteUser(email, providerId, roles, permissions, services) {
   return baseApi.post('/auth/invite', {
     permissions,
     providerId,
+    services,
     email,
     roles,
   });
