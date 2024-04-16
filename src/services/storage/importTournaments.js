@@ -6,7 +6,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import * as safeJSON from 'utilities/safeJSON';
 import { isFunction } from 'functions/typeOf';
 
-export function importTournaments(table) {
+export function importTournaments({ table }) {
   const tournamentIds = table.getData().map((t) => t.tournamentId);
 
   dropzoneModal({
