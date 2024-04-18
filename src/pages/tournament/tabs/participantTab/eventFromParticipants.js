@@ -20,5 +20,6 @@ export const eventFromParticipants = (table, callback) => {
       if (isFunction(callback)) callback();
     }
   };
+
   editEvent({ table, callback: postEventCreation, participants });
 };
