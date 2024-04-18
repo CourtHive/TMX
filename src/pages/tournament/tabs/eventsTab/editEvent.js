@@ -31,6 +31,7 @@ export function editEvent({ table, event, participants, callback } = {}) {
     eventName: event?.eventName || `Event ${eventsCount + 1}`,
     startDate: event?.startDate ?? tournamentInfo.startDate,
     endDate: event?.endDate ?? tournamentInfo.endDate,
+    ageCategoryCode: event?.category?.ageCategoryCode,
     eventType: event?.eventType || SINGLES,
     gender: event?.gender || ANY,
   };
@@ -45,15 +46,6 @@ export function editEvent({ table, event, participants, callback } = {}) {
         withIndividualParticipants: true,
       }).participants
     : [];
-
-  const enteredParticipantGenders = [];
-  const enteredParticipantTypes = enteredParticipants.reduce((types, participant) => {
-    const genders = participant.person?.sex
-      ? [participant.person.sex]
-      : participant.individualParticpants?.map((p) => p.person?.sex) || [];
-    enteredParticipantGenders.push(genders);
-    return !types.includes(participant.participantType) ? types.concat(participant.participantType) : types;
-  }, []);
 
   let eventTypeOptions, genderOptions;
 
@@ -76,6 +68,27 @@ export function editEvent({ table, event, participants, callback } = {}) {
       genderOptions.push(MIXED);
     }
   }
+
+  const enteredParticipantGenders = [];
+  const enteredParticipantTypes = enteredParticipants.reduce((types, participant) => {
+    const genders = participant.person?.sex
+      ? [participant.person.sex]
+      : participant.individualParticpants?.map((p) => p.person?.sex) || [];
+    enteredParticipantGenders.push(genders);
+    return !types.includes(participant.participantType) ? types.concat(participant.participantType) : types;
+  }, []);
+
+  const participantAgeCategories = [];
+  for (const participant of [...enteredParticipants, ...(participants || []).map((p) => p.participant)].filter(
+    (p) => p,
+  )) {
+    const rankings = participant.timeItems
+      ?.filter(({ itemType }) => itemType?.startsWith(`SCALE.RANKING.${values.eventType}`))
+      .map(({ itemType }) => itemType?.split('.').pop());
+    participantAgeCategories.push(rankings);
+  }
+  const categories = tools.unique(...participantAgeCategories);
+  if (categories.length === 1) values.ageCategoryCode = categories[0];
 
   if (enteredParticipantGenders.length) {
     genderOptions = [ANY];
@@ -176,6 +189,49 @@ export function editEvent({ table, event, participants, callback } = {}) {
           onChange: valueChange,
         },
         {
+          value: values.ageCategoryCode,
+          field: 'ageCategoryCode',
+          label: 'Category',
+          options: [
+            {
+              selected: ['', undefined].includes(values.ageCategoryCode),
+              label: '------------',
+              value: '',
+            },
+            {
+              selected: values.ageCategoryCode === 'U10',
+              label: '10 and Under',
+              value: 'U10',
+            },
+            {
+              selected: values.ageCategoryCode === 'U12',
+              label: '12 and Under',
+              value: 'U12',
+            },
+            {
+              selected: values.ageCategoryCode === 'U14',
+              label: '14 and Under',
+              value: 'U14',
+            },
+            {
+              selected: values.ageCategoryCode === 'U16',
+              label: '16 and Under',
+              value: 'U16',
+            },
+            {
+              selected: values.ageCategoryCode === 'U18',
+              label: '18 and Under',
+              value: 'U18',
+            },
+            {
+              label: 'Custom',
+              value: 'custom',
+              disabled: true,
+            },
+          ],
+          onChange: valueChange,
+        },
+        {
           value: event?.startDate ?? tournamentInfo.startDate,
           placeholder: 'YYYY-MM-DD',
           label: 'Start date',
@@ -196,6 +252,7 @@ export function editEvent({ table, event, participants, callback } = {}) {
     );
 
   const saveEvent = () => {
+    const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
     const eventName = context.drawer.attributes.content.eventName.value;
     const eventType = context.drawer.attributes.content.eventType.value;
     const startDate = context.drawer.attributes.content.startDate.value;
@@ -203,6 +260,10 @@ export function editEvent({ table, event, participants, callback } = {}) {
     const gender = context.drawer.attributes.content.gender.value;
 
     const eventUpdates = { eventName, eventType, gender, startDate, endDate };
+
+    if (ageCategoryCode && ageCategoryCode !== 'custom') {
+      eventUpdates.category = { ...event?.category, ageCategoryCode };
+    }
 
     const postMutation = (result) => {
       table?.deselectRow();
@@ -224,9 +285,13 @@ export function editEvent({ table, event, participants, callback } = {}) {
       const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
       mutationRequest({ methods, callback: postMutation });
     } else {
+      const category = ageCategoryCode && ageCategoryCode !== 'custom' ? { ageCategoryCode } : undefined;
       const eventId = tools.UUID();
       const methods = [
-        { method: ADD_EVENT, params: { event: { eventId, eventName, eventType, gender, startDate, endDate } } },
+        {
+          params: { event: { category, eventId, eventName, eventType, gender, startDate, endDate } },
+          method: ADD_EVENT,
+        },
       ];
 
       if (participants?.length) {
@@ -256,6 +321,7 @@ export function editEvent({ table, event, participants, callback } = {}) {
   const title = event?.eventId ? 'Edit event' : 'Add event';
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
+    onClose: () => table?.deselectRow(),
     width: '300px',
     side: RIGHT,
     content,
