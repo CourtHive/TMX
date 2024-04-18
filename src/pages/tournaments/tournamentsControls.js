@@ -34,6 +34,7 @@ export function calendarControls(table) {
       onKeyUp: (e) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search tournaments',
+      id: 'tournamentSearch',
       location: LEFT,
       search: true,
     },
