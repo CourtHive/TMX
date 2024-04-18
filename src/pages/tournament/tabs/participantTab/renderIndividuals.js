@@ -34,6 +34,8 @@ const { INDIVIDUAL, GROUP } = participantConstants;
 const { OFFICIAL } = participantRoles;
 const { ANY } = genderConstants;
 
+const isPrimary = 'is-primary';
+
 export function renderIndividuals({ view }) {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
@@ -155,7 +157,7 @@ export function renderIndividuals({ view }) {
     },
     {
       onClick: () => signInParticipants(table),
-      intent: 'is-primary',
+      intent: isPrimary,
       location: OVERLAY,
       label: 'Sign in',
     },
@@ -219,7 +221,7 @@ export function renderIndividuals({ view }) {
     {
       onClick: (e) => saveWTID(e, table),
       class: 'saveTennisId',
-      intent: 'is-primary',
+      intent: isPrimary,
       label: 'Save WTID',
       location: RIGHT,
       visible: false,
@@ -227,7 +229,7 @@ export function renderIndividuals({ view }) {
     {
       onClick: (e) => saveRatings(e, table),
       label: 'Save ratings',
-      intent: 'is-primary',
+      intent: isPrimary,
       class: 'saveRatings',
       location: RIGHT,
       visible: false,
