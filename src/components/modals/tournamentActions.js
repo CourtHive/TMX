@@ -136,26 +136,24 @@ export function tournamentActions() {
     },
   ];
 
+  const options = [
+    { label: '-- select action --', close: true },
+    providerId && { label: 'Upload tournament', value: 'upload', close: true },
+    tournamentRecord && { label: 'Delete tournament', disabled: !canDelete, value: 'delete', close: true },
+    tournamentRecord && !providerId && state?.provider && { label: 'Claim tournament', value: 'claim', close: true },
+    providerId && !offline && { label: 'Go offline - standalone mode', value: 'goOffline', close: true },
+    providerId && offline && { label: 'Go online - exit standalone mode', value: 'goOnline', close: true },
+    tournamentRecord && admin && { label: 'Export UTR matches', value: 'utrExport' },
+    tournamentRecord && admin && { label: 'Export TODS file', value: 'todsExport' },
+  ].filter(Boolean);
+
+  if (options.length < 2) return tmxToast({ message: 'No actions available' });
+
   const content = (elem) =>
     (inputs = renderForm(
       elem,
       [
-        {
-          options: [
-            { label: '-- select action --', close: true },
-            providerId && { label: 'Upload tournament', value: 'upload', close: true },
-            { label: 'Delete tournament', disabled: !canDelete, value: 'delete', close: true },
-            tournamentRecord &&
-              !providerId &&
-              state?.provider && { label: 'Claim tournament', value: 'claim', close: true },
-            providerId && !offline && { label: 'Go offline - standalone mode', value: 'goOffline', close: true },
-            providerId && offline && { label: 'Go online - exit standalone mode', value: 'goOnline', close: true },
-            admin && { label: 'Export UTR matches', value: 'utrExport' },
-            admin && { label: 'Export TODS file', value: 'todsExport' },
-          ].filter(Boolean),
-          label: 'Action',
-          field: 'action',
-        },
+        { label: 'Action', field: 'action', options },
         {
           label: 'Replace tournament on server',
           field: 'replace',
