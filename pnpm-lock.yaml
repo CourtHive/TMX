@@ -108,8 +108,8 @@ importers:
         specifier: 6.12.1
         version: 6.12.1
       quill:
-        specifier: 2.0.0-rc.5
-        version: 2.0.0-rc.5
+        specifier: 2.0.0
+        version: 2.0.0
       rxjs:
         specifier: 7.8.1
         version: 7.8.1
@@ -3005,8 +3005,8 @@ packages:
   pako@0.2.9:
     resolution: {integrity: sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA==}
 
-  parchment@3.0.0-rc.1:
-    resolution: {integrity: sha512-UiXun/99vbUgfPgAIuyZzqRN1YARfMz3ktAoTOxDWnrK/OMQlshPh0TKrNhePxxDWCGz/xVsexMtsaEQy+fmXQ==}
+  parchment@3.0.0:
+    resolution: {integrity: sha512-HUrJFQ/StvgmXRcQ1ftY6VEZUq3jA2t9ncFN4F84J/vN0/FPpQF+8FKXb3l6fLces6q0uOHj6NJn+2xvZnxO6A==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -3177,8 +3177,8 @@ packages:
     resolution: {integrity: sha512-X74oCeRI4/p0ucjb5Ma8adTXd9Scumz367kkMK5V/IatcX6A0vlgLgKbzXWy5nZmCGeNJm2oQX0d2Eqj+ZIlCA==}
     engines: {node: '>= 12.0.0'}
 
-  quill@2.0.0-rc.5:
-    resolution: {integrity: sha512-3jpk3Jb+TETSZ+3owQqneMDVe30qWmp7vXEVkj9Z5b+qp443HKF/jVu86U+uSW1vB2dphFYgHXhh71c/oq4ohQ==}
+  quill@2.0.0:
+    resolution: {integrity: sha512-rVjwXhUD7svWsHPgzaT/O5D1xbZ5xeJjN2SZ/CxAkX1+WLV1VaALkmBt/elV/OCYNr/VapuXPoEZMYU5e72NPw==}
     engines: {npm: '>=8.2.3'}
 
   quote-stream@1.0.2:
@@ -7153,7 +7153,7 @@ snapshots:
 
   pako@0.2.9: {}
 
-  parchment@3.0.0-rc.1: {}
+  parchment@3.0.0: {}
 
   parent-module@1.0.1:
     dependencies:
@@ -7310,11 +7310,11 @@ snapshots:
       lodash.clonedeep: 4.5.0
       lodash.isequal: 4.5.0
 
-  quill@2.0.0-rc.5:
+  quill@2.0.0:
     dependencies:
       eventemitter3: 5.0.1
       lodash-es: 4.17.21
-      parchment: 3.0.0-rc.1
+      parchment: 3.0.0
       quill-delta: 5.1.0
 
   quote-stream@1.0.2:
