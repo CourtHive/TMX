@@ -70,15 +70,15 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
       renderDrawView({ eventId, drawId, structureId, redraw, roundsView: view });
     }
   };
-  const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
+  const dual = matchUps?.length === 1 && eventData?.eventInfo?.eventType === TEAM;
   const eventHandlers = getEventHandlers({
     eventData,
     callback,
     drawId,
   });
 
-  const compositionName = eventData.eventInfo?.display?.compositionName;
-  const configuration = eventData.eventInfo?.display?.configuration;
+  const compositionName = eventData?.eventInfo?.display?.compositionName;
+  const configuration = eventData?.eventInfo?.display?.configuration;
 
   const composition =
     compositions[compositionName] ||
