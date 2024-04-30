@@ -121,6 +121,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
         return hasParticipant || !participantFilter;
       });
     }
+    const displayMatchUps = Object.values(structure.roundMatchUps || {}).flat();
 
     if (!matchUps.length) {
       if (stage === QUALIFYING) {
@@ -132,7 +133,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
         return renderDrawView({ eventId, drawId, structureId, redraw: true });
       }
     } else if (roundsView === ROUNDS_TABLE) {
-      createRoundsTable({ matchUps, eventData });
+      createRoundsTable({ matchUps: displayMatchUps, eventData });
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId });
     } else {
@@ -141,12 +142,11 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
         content: renderStructure({
           context: { drawId, structureId },
           searchActive: participantFilter,
-          matchUps,
+          matchUps: displayMatchUps,
           // initialRoundNumber: 3,
           eventHandlers,
           composition,
           // finalColumn,
-          structure,
         }),
         theme: composition.theme,
       });
