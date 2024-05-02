@@ -4781,10 +4781,6 @@ packages:
       { integrity: sha512-qNczQIzU3q23FzwqlXKxbGNsGXeemDDOW90A1jGl076fK8m3tYFzXw5Etc8R5BPiXo+mvGMAUcRqNqPd+BeFUw== }
     engines: { node: '>=20' }
 
-  tods-competition-factory@2.1.19:
-    resolution: {integrity: sha512-qNczQIzU3q23FzwqlXKxbGNsGXeemDDOW90A1jGl076fK8m3tYFzXw5Etc8R5BPiXo+mvGMAUcRqNqPd+BeFUw==}
-    engines: {node: '>=20'}
-
   totalist@3.0.1:
     resolution:
       { integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ== }
