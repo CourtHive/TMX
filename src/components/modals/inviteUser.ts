@@ -122,7 +122,7 @@ export function inviteModal(callback, providers = []) {
           header: true,
         },
         {
-          label: 'Tournament Profiles',
+          label: 'Tournament Profiles (fetch)',
           field: 'tournamentProfile',
           id: 'tournamentProfile',
           checkbox: true,

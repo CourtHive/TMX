@@ -16,8 +16,8 @@ export const toggleDrawPublishState = (eventRow) => (_, cell) => {
       method,
       params: {
         eventId: row.eventId,
-        drawIdsToAdd,
         drawIdsToRemove,
+        drawIdsToAdd,
         eventDataParams: {
           participantsProfile: { withScaleValues: true },
           pressureRating: true,
