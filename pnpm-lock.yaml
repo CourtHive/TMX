@@ -57,8 +57,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.7.18
-        version: 0.7.18(vitest@1.5.3(@types/node@20.12.8)(@vitest/ui@1.5.3)(sass@1.76.0))
+        specifier: 0.7.19
+        version: 0.7.19(vitest@1.5.3(@types/node@20.12.8)(@vitest/ui@1.5.3)(sass@1.76.0))
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -1602,8 +1602,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.7.18:
-    resolution: {integrity: sha512-xti488KHKKJedVHuHFT5cuvIiSWwNvUhSdI51NtP2aP9Meaa/96uSih1/k3ScL0759K7GZQbGPmybsFASIh+bw==}
+  courthive-components@0.7.19:
+    resolution: {integrity: sha512-1G9ROZwCFAbvBfdDya8UEsh8K6sWmvWIo5iuAqtFLWK1JQq1GlgNRxzcPSq/zSQe0335CAy9ZwYui4zmhpp4MQ==}
     engines: {node: '>=16.16.0 < 21'}
 
   create-ecdh@4.0.4:
@@ -3601,10 +3601,6 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.1.18:
-    resolution: {integrity: sha512-5h1b7PufCi6Ch2T8RjLg/2IRD9idegfDuVHjwvvBceLrkJs745OGtj2UK5oCdPcSIpKcn/7VNJlzDDknUmic5g==}
-    engines: {node: '>=18.17.1'}
-
   tods-competition-factory@2.1.20:
     resolution: {integrity: sha512-3v/9OKsoYg+hciXbokhqI54J142CbYagT8O9iOA0uIzRnSFKe5qREDs3mK3weDjL14ghOhL5JEdKM9uT/oEefg==}
     engines: {node: '>=20'}
@@ -5495,7 +5491,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.4.5
 
-  courthive-components@0.7.18(vitest@1.5.3(@types/node@20.12.8)(@vitest/ui@1.5.3)(sass@1.76.0)):
+  courthive-components@0.7.19(vitest@1.5.3(@types/node@20.12.8)(@vitest/ui@1.5.3)(sass@1.76.0)):
     dependencies:
       '@stitches/core': 1.2.8
       '@storybook/test': 8.0.9(vitest@1.5.3(@types/node@20.12.8)(@vitest/ui@1.5.3)(sass@1.76.0))
@@ -5504,7 +5500,7 @@ snapshots:
       classnames: 2.5.1
       dayjs: 1.11.11
       husky: 9.0.11
-      tods-competition-factory: 2.1.18
+      tods-competition-factory: 2.1.20
     transitivePeerDependencies:
       - '@jest/globals'
       - '@types/bun'
@@ -7856,8 +7852,6 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
-
-  tods-competition-factory@2.1.18: {}
 
   tods-competition-factory@2.1.20: {}
 
