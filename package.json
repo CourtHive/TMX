@@ -100,7 +100,7 @@
     "@event-calendar/day-grid": "2.7.0",
     "@event-calendar/interaction": "2.7.0",
     "@event-calendar/list": "2.7.0",
-    "@event-calendar/resource-time-grid": "2.6.1",
+    "@event-calendar/resource-time-grid": "2.7.0",
     "@event-calendar/time-grid": "2.6.1",
     "@stitches/core": "1.2.8",
     "animate.css": "4.1.1",
