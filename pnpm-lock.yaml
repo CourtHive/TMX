@@ -15,8 +15,8 @@ importers:
         specifier: 2.6.1
         version: 2.6.1
       '@event-calendar/day-grid':
-        specifier: 2.6.1
-        version: 2.6.1
+        specifier: 2.7.0
+        version: 2.7.0
       '@event-calendar/interaction':
         specifier: 2.6.1
         version: 2.6.1
@@ -699,8 +699,11 @@ packages:
   '@event-calendar/core@2.6.1':
     resolution: {integrity: sha512-3dxMnmFfjEzeyNFhm0PS04/Js3LqqQC6HzqY6XtypxC2wLFhxrK4NqX4cq8ZKtIrTJu6EFFB3DZ8GamW28Pl7g==}
 
-  '@event-calendar/day-grid@2.6.1':
-    resolution: {integrity: sha512-wYzPRauhJRyCYNfh00vLdYdinE9DhWE5DYSh8drk8z1dVdjrunERRvcaMASi+Q6gwn9/i7U4yTORBnFeSktqrQ==}
+  '@event-calendar/core@2.7.0':
+    resolution: {integrity: sha512-Zo4OzKuo5KDyskrnZzJRiUyu7Ieag2dmvhBGEElaCRgmmKmZ+TxIAqLYMZOU+oMrEDVfqegAHwwEZJep7CGypg==}
+
+  '@event-calendar/day-grid@2.7.0':
+    resolution: {integrity: sha512-cuJlvYagVuhGZuXcUnY30VWUNUJxC2FIZXvldB36fZ/2iEGgpoJn6t/1kJVzqcw3iIK9ikZxmvy1QkGGUpyxRA==}
 
   '@event-calendar/interaction@2.6.1':
     resolution: {integrity: sha512-BrD7MPQAhADS9kPVNiLGi1qCONNN1q9KVkfaVCEtYTY2JJ4QBrxDBzAghjvhql5pSDMNXZs2GpEHuWANJ4Olyg==}
@@ -3529,6 +3532,10 @@ packages:
     resolution: {integrity: sha512-j9KJSccHgLeRERPlhMKrCXpk2TqL2m5Z+k+OBTQhZOhIdCCd3WfqV+ylPWeipEwq17P/ekiSFWwrVQv93i3bsg==}
     engines: {node: '>=16'}
 
+  svelte@4.2.16:
+    resolution: {integrity: sha512-mQwHpqHD2PmFcCyHaZ7XiTqposaLvJ75WpYcyY5/ce3qxbYtwQpZ+M7ZKP+2CG5U6kfnBZBpPLyofhlE6ROrnQ==}
+    engines: {node: '>=16'}
+
   tabbable@6.2.0:
     resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
 
@@ -4441,10 +4448,14 @@ snapshots:
     dependencies:
       svelte: 4.2.15
 
-  '@event-calendar/day-grid@2.6.1':
+  '@event-calendar/core@2.7.0':
     dependencies:
-      '@event-calendar/core': 2.6.1
-      svelte: 4.2.15
+      svelte: 4.2.16
+
+  '@event-calendar/day-grid@2.7.0':
+    dependencies:
+      '@event-calendar/core': 2.7.0
+      svelte: 4.2.16
 
   '@event-calendar/interaction@2.6.1':
     dependencies:
@@ -7784,6 +7795,23 @@ snapshots:
       has-flag: 4.0.0
 
   svelte@4.2.15:
+    dependencies:
+      '@ampproject/remapping': 2.3.0
+      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/trace-mapping': 0.3.25
+      '@types/estree': 1.0.5
+      acorn: 8.11.3
+      aria-query: 5.3.0
+      axobject-query: 4.0.0
+      code-red: 1.0.4
+      css-tree: 2.3.1
+      estree-walker: 3.0.3
+      is-reference: 3.0.2
+      locate-character: 3.0.0
+      magic-string: 0.30.10
+      periscopic: 3.1.0
+
+  svelte@4.2.16:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.4.15
