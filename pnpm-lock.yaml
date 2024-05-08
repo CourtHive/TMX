@@ -20,11 +20,11 @@ importers:
         specifier: 2.7.0
         version: 2.7.0
       '@event-calendar/list':
-        specifier: 2.6.1
-        version: 2.6.1
+        specifier: 2.7.0
+        version: 2.7.0
       '@event-calendar/resource-time-grid':
-        specifier: 2.6.1
-        version: 2.6.1
+        specifier: 2.7.0
+        version: 2.7.0
       '@event-calendar/time-grid':
         specifier: 2.6.1
         version: 2.6.1
@@ -800,17 +800,21 @@ packages:
     resolution:
       { integrity: sha512-5sS/RVsY8wZ6DAxgGZiQIRFlKTuCAjD39YDIuTa9kRCpo+IJlTfImSGYlJYvau8d2hCwlmtOBx/QT4GXQoALtg== }
 
-  '@event-calendar/list@2.6.1':
+  '@event-calendar/list@2.7.0':
     resolution:
-      { integrity: sha512-pf9TJD/myj4wjj+nhjGRESthWsyVdCpXFIsRchosu7UTy5ZVxwCNOa/eFy/2AtXPXu5bgb6RXWYTdNl5q/FZmw== }
+      { integrity: sha512-7s0SvadjYu8fpPaUSu8jJXfAn7lxurbgfHTThs4iJeWkCLA61YXsIDsirLOiOBgFUcre0RP/8W3MhgVGSgKQNQ== }
 
-  '@event-calendar/resource-time-grid@2.6.1':
+  '@event-calendar/resource-time-grid@2.7.0':
     resolution:
-      { integrity: sha512-oeDXmueuS+TdTbHbMwv6c592lsea5QNGIchkuqbdWRf4MbG2GnAdvChMywxpbur/7s8D/YBZaNGN4raC57uLUg== }
+      { integrity: sha512-eAbxKObr0hSr7gs+FlqIlIm63nrivx6CoxDjokbX4tp3OZYaANc/pchIANgMVyWDDAto7rbH5XigEJWxn1uAaA== }
 
   '@event-calendar/time-grid@2.6.1':
     resolution:
       { integrity: sha512-YSy2sJlpu7ZR7l+/c4DO/LpyZ+1+i357mXwth/i3gBew+bNQvWdMpiaYX05gNR5DokbXx3ZNYcbnXFPLVVvBDw== }
+
+  '@event-calendar/time-grid@2.7.0':
+    resolution:
+      { integrity: sha512-XV6vbo98u1RTSlmn0dLCsD5aEOaBuFprq7EbEggpvo9armrbxD76zC1jjslTBRsgmJvgsGy9KW/zFBUNFGRYhA== }
 
   '@fastify/busboy@2.1.1':
     resolution:
@@ -5405,21 +5409,26 @@ snapshots:
       '@event-calendar/core': 2.7.0
       svelte: 4.2.16
 
-  '@event-calendar/list@2.6.1':
+  '@event-calendar/list@2.7.0':
     dependencies:
-      '@event-calendar/core': 2.6.1
-      svelte: 4.2.15
+      '@event-calendar/core': 2.7.0
+      svelte: 4.2.16
 
-  '@event-calendar/resource-time-grid@2.6.1':
+  '@event-calendar/resource-time-grid@2.7.0':
     dependencies:
-      '@event-calendar/core': 2.6.1
-      '@event-calendar/time-grid': 2.6.1
-      svelte: 4.2.15
+      '@event-calendar/core': 2.7.0
+      '@event-calendar/time-grid': 2.7.0
+      svelte: 4.2.16
 
   '@event-calendar/time-grid@2.6.1':
     dependencies:
       '@event-calendar/core': 2.6.1
       svelte: 4.2.15
+
+  '@event-calendar/time-grid@2.7.0':
+    dependencies:
+      '@event-calendar/core': 2.7.0
+      svelte: 4.2.16
 
   '@fastify/busboy@2.1.1': {}
 
