@@ -15,13 +15,13 @@ export const toggleEventPublishState = (nestedTables) => (_, cell) => {
     {
       method,
       params: {
-        eventId,
         eventDataParams: {
           // in the case of publishing, add additional parameters
           participantsProfile: { withScaleValues: true },
           pressureRating: true,
           refreshResults: true,
         },
+        eventId,
       },
     },
   ];

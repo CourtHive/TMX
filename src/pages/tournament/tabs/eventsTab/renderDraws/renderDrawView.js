@@ -77,14 +77,14 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     drawId,
   });
 
-  const compositionName = eventData?.eventInfo?.display?.compositionName;
-  const configuration = eventData?.eventInfo?.display?.configuration;
+  const display = structure?.display || drawData?.display || eventData?.eventInfo?.display || {};
+  const compositionName = display?.compositionName;
+  const configuration = display?.configuration;
 
   const composition =
     compositions[compositionName] ||
     env.composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
-  // composition.configuration.participantDetail = 'TEAM';
   composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 

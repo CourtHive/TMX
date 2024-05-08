@@ -14,6 +14,8 @@ export function inviteModal(callback, providers = []) {
 
   const values = { providerId: '' };
 
+  const setProviderId = (value) => (values.providerId = value);
+
   const enableSubmit = ({ inputs }) => {
     const value = inputs['email'].value;
     const isValid = emailValidator(value);
@@ -89,9 +91,18 @@ export function inviteModal(callback, providers = []) {
           checkbox: true,
           id: 'generate',
         },
+        /* OPTION: Dropdown selector
         {
           value: values.providerId,
           options: providerList,
+          field: 'providerId',
+          label: 'Provider',
+        },
+        */
+        {
+          typeAhead: { list: providerList, callback: setProviderId },
+          value: values.providerId || '',
+          placeholder: 'None',
           field: 'providerId',
           label: 'Provider',
         },
@@ -122,7 +133,7 @@ export function inviteModal(callback, providers = []) {
           header: true,
         },
         {
-          label: 'Tournament Profiles',
+          label: 'Tournament Profiles (fetch)',
           field: 'tournamentProfile',
           id: 'tournamentProfile',
           checkbox: true,
@@ -135,9 +146,8 @@ export function inviteModal(callback, providers = []) {
   const permissions = ['devMode', 'editTennisId', 'deleteTournament'];
   const services = ['tournamentProfile'];
   const submitInvite = () => {
-    console.log({ inputs });
     const email = inputs.email.value;
-    const providerId = inputs.providerId.value;
+    const providerId = values.providerId || inputs.providerId?.value;
     const userPermissions = permissions.map((permission) => inputs[permission].checked && permission).filter(Boolean);
     const userServices = services.map((service) => inputs[service].checked && service).filter(Boolean);
     const userRoles = roles.map((role) => inputs[role].checked && role).filter(Boolean);
