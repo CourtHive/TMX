@@ -17,8 +17,8 @@ importers:
         specifier: 2.7.0
         version: 2.7.0
       '@event-calendar/interaction':
-        specifier: 2.6.1
-        version: 2.6.1
+        specifier: 2.7.0
+        version: 2.7.0
       '@event-calendar/list':
         specifier: 2.6.1
         version: 2.6.1
@@ -796,9 +796,9 @@ packages:
     resolution:
       { integrity: sha512-cuJlvYagVuhGZuXcUnY30VWUNUJxC2FIZXvldB36fZ/2iEGgpoJn6t/1kJVzqcw3iIK9ikZxmvy1QkGGUpyxRA== }
 
-  '@event-calendar/interaction@2.6.1':
+  '@event-calendar/interaction@2.7.0':
     resolution:
-      { integrity: sha512-BrD7MPQAhADS9kPVNiLGi1qCONNN1q9KVkfaVCEtYTY2JJ4QBrxDBzAghjvhql5pSDMNXZs2GpEHuWANJ4Olyg== }
+      { integrity: sha512-5sS/RVsY8wZ6DAxgGZiQIRFlKTuCAjD39YDIuTa9kRCpo+IJlTfImSGYlJYvau8d2hCwlmtOBx/QT4GXQoALtg== }
 
   '@event-calendar/list@2.6.1':
     resolution:
@@ -5400,10 +5400,10 @@ snapshots:
       '@event-calendar/core': 2.7.0
       svelte: 4.2.16
 
-  '@event-calendar/interaction@2.6.1':
+  '@event-calendar/interaction@2.7.0':
     dependencies:
-      '@event-calendar/core': 2.6.1
-      svelte: 4.2.15
+      '@event-calendar/core': 2.7.0
+      svelte: 4.2.16
 
   '@event-calendar/list@2.6.1':
     dependencies:
