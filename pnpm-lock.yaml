@@ -128,8 +128,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.1.20
-        version: 2.1.20
+        specifier: 2.1.23
+        version: 2.1.23
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -190,7 +190,7 @@ importers:
         version: 3.12.0
       cypress:
         specifier: ^13.7.2
-        version: 13.8.1
+        version: 13.9.0
       cz-git:
         specifier: 1.9.1
         version: 1.9.1
@@ -1984,9 +1984,9 @@ packages:
     resolution:
       { integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg== }
 
-  cypress@13.8.1:
+  cypress@13.9.0:
     resolution:
-      { integrity: sha512-Uk6ovhRbTg6FmXjeZW/TkbRM07KPtvM5gah1BIMp4Y2s+i/NMxgaLw0+PbYTOdw1+egE0FP3mWRiGcRkjjmhzA== }
+      { integrity: sha512-atNjmYfHsvTuCaxTxLZr9xGoHz53LLui3266WWxXJHY7+N6OdwJdg/feEa3T+buez9dmUXHT1izCOklqG82uCQ== }
     engines: { node: ^16.0.0 || ^18.0.0 || >=20.0.0 }
     hasBin: true
 
@@ -4494,6 +4494,11 @@ packages:
       { integrity: sha512-3v/9OKsoYg+hciXbokhqI54J142CbYagT8O9iOA0uIzRnSFKe5qREDs3mK3weDjL14ghOhL5JEdKM9uT/oEefg== }
     engines: { node: '>=20' }
 
+  tods-competition-factory@2.1.23:
+    resolution:
+      { integrity: sha512-Usg6LBer+Jo5DWSDXt6ScTCHblV+5vude+T3lxfciAN1C3YlWdLodMPKd9q8/frxsau9M9uxlXoAAEp5wu8/tg== }
+    engines: { node: '>=20' }
+
   totalist@3.0.1:
     resolution:
       { integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ== }
@@ -6537,7 +6542,7 @@ snapshots:
 
   css.escape@1.5.1: {}
 
-  cypress@13.8.1:
+  cypress@13.9.0:
     dependencies:
       '@cypress/request': 3.0.1
       '@cypress/xvfb': 1.2.4(supports-color@8.1.1)
@@ -8843,6 +8848,8 @@ snapshots:
       is-number: 7.0.0
 
   tods-competition-factory@2.1.20: {}
+
+  tods-competition-factory@2.1.23: {}
 
   totalist@3.0.1: {}
 
