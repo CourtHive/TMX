@@ -107,8 +107,8 @@ importers:
         specifier: 6.12.1
         version: 6.12.1
       quill:
-        specifier: 2.0.1
-        version: 2.0.1
+        specifier: 2.0.2
+        version: 2.0.2
       rxjs:
         specifier: 7.8.1
         version: 7.8.1
@@ -228,8 +228,8 @@ importers:
         specifier: 0.11.10
         version: 0.11.10
       rimraf:
-        specifier: 5.0.5
-        version: 5.0.5
+        specifier: 5.0.7
+        version: 5.0.7
       semver:
         specifier: 7.6.2
         version: 7.6.2
@@ -3965,9 +3965,9 @@ packages:
       { integrity: sha512-X74oCeRI4/p0ucjb5Ma8adTXd9Scumz367kkMK5V/IatcX6A0vlgLgKbzXWy5nZmCGeNJm2oQX0d2Eqj+ZIlCA== }
     engines: { node: '>= 12.0.0' }
 
-  quill@2.0.1:
+  quill@2.0.2:
     resolution:
-      { integrity: sha512-HtZSieCRgGCfXkc0a4r+e4NlITvl1C1B2cpS+NyNsDskomj+MbfCcUlZ8JxgPCCwmq/vIDbYuyumDkJKVeBcXg== }
+      { integrity: sha512-QfazNrhMakEdRG57IoYFwffUIr04LWJxbS/ZkidRFXYCQt63c1gK6Z7IHUXMx/Vh25WgPBU42oBaNzQ0K1R/xw== }
     engines: { npm: '>=8.2.3' }
 
   ramda@0.29.0:
@@ -4080,10 +4080,10 @@ packages:
       { integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA== }
     hasBin: true
 
-  rimraf@5.0.5:
+  rimraf@5.0.7:
     resolution:
-      { integrity: sha512-CqDakW+hMe/Bz202FPEymy68P+G50RfMQK+Qo5YUqc9SPipvbGjCGKd0RSKEelbsfQuw3g5NZDSrlZZAJurH1A== }
-    engines: { node: '>=14' }
+      { integrity: sha512-nV6YcJo5wbLW77m+8KjH8aB/7/rxQy9SZ0HY5shnwULfS+9nmTtVXAJET5NdZmCzA4fPI/Hm1wo/Po/4mopOdg== }
+    engines: { node: '>=14.18' }
     hasBin: true
 
   ripemd160@2.0.2:
@@ -8336,7 +8336,7 @@ snapshots:
       lodash.clonedeep: 4.5.0
       lodash.isequal: 4.5.0
 
-  quill@2.0.1:
+  quill@2.0.2:
     dependencies:
       eventemitter3: 5.0.1
       lodash-es: 4.17.21
@@ -8438,7 +8438,7 @@ snapshots:
     dependencies:
       glob: 7.2.3
 
-  rimraf@5.0.5:
+  rimraf@5.0.7:
     dependencies:
       glob: 10.3.12
 
