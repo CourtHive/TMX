@@ -98,7 +98,7 @@
   "dependencies": {
     "@babel/plugin-transform-private-property-in-object": "7.24.6",
     "@event-calendar/core": "2.7.0",
-    "@event-calendar/day-grid": "2.7.0",
+    "@event-calendar/day-grid": "2.7.2",
     "@event-calendar/interaction": "2.7.0",
     "@event-calendar/list": "2.7.2",
     "@event-calendar/resource-time-grid": "2.7.2",
