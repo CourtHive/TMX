@@ -26,8 +26,8 @@ importers:
         specifier: 2.7.0
         version: 2.7.0
       '@event-calendar/time-grid':
-        specifier: 2.7.0
-        version: 2.7.0
+        specifier: 2.7.2
+        version: 2.7.2
       '@stitches/core':
         specifier: 1.2.8
         version: 1.2.8
@@ -788,6 +788,10 @@ packages:
     resolution:
       { integrity: sha512-Zo4OzKuo5KDyskrnZzJRiUyu7Ieag2dmvhBGEElaCRgmmKmZ+TxIAqLYMZOU+oMrEDVfqegAHwwEZJep7CGypg== }
 
+  '@event-calendar/core@2.7.2':
+    resolution:
+      { integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw== }
+
   '@event-calendar/day-grid@2.7.0':
     resolution:
       { integrity: sha512-cuJlvYagVuhGZuXcUnY30VWUNUJxC2FIZXvldB36fZ/2iEGgpoJn6t/1kJVzqcw3iIK9ikZxmvy1QkGGUpyxRA== }
@@ -804,9 +808,9 @@ packages:
     resolution:
       { integrity: sha512-eAbxKObr0hSr7gs+FlqIlIm63nrivx6CoxDjokbX4tp3OZYaANc/pchIANgMVyWDDAto7rbH5XigEJWxn1uAaA== }
 
-  '@event-calendar/time-grid@2.7.0':
+  '@event-calendar/time-grid@2.7.2':
     resolution:
-      { integrity: sha512-XV6vbo98u1RTSlmn0dLCsD5aEOaBuFprq7EbEggpvo9armrbxD76zC1jjslTBRsgmJvgsGy9KW/zFBUNFGRYhA== }
+      { integrity: sha512-KKX/Y6EUcueIFsOyn0ESircedpbIC0j06hr3XYcbmi8sYdzZRQ+mTVXVOUS5xwXEdiM31wCQLxrPfhR/sDKe8w== }
 
   '@fastify/busboy@2.1.1':
     resolution:
@@ -5383,6 +5387,10 @@ snapshots:
     dependencies:
       svelte: 4.2.16
 
+  '@event-calendar/core@2.7.2':
+    dependencies:
+      svelte: 4.2.16
+
   '@event-calendar/day-grid@2.7.0':
     dependencies:
       '@event-calendar/core': 2.7.0
@@ -5401,12 +5409,12 @@ snapshots:
   '@event-calendar/resource-time-grid@2.7.0':
     dependencies:
       '@event-calendar/core': 2.7.0
-      '@event-calendar/time-grid': 2.7.0
+      '@event-calendar/time-grid': 2.7.2
       svelte: 4.2.16
 
-  '@event-calendar/time-grid@2.7.0':
+  '@event-calendar/time-grid@2.7.2':
     dependencies:
-      '@event-calendar/core': 2.7.0
+      '@event-calendar/core': 2.7.2
       svelte: 4.2.16
 
   '@fastify/busboy@2.1.1': {}
