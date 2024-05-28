@@ -20,8 +20,8 @@ importers:
         specifier: 2.7.0
         version: 2.7.0
       '@event-calendar/list':
-        specifier: 2.7.0
-        version: 2.7.0
+        specifier: 2.7.2
+        version: 2.7.2
       '@event-calendar/resource-time-grid':
         specifier: 2.7.0
         version: 2.7.0
@@ -800,9 +800,9 @@ packages:
     resolution:
       { integrity: sha512-5sS/RVsY8wZ6DAxgGZiQIRFlKTuCAjD39YDIuTa9kRCpo+IJlTfImSGYlJYvau8d2hCwlmtOBx/QT4GXQoALtg== }
 
-  '@event-calendar/list@2.7.0':
+  '@event-calendar/list@2.7.2':
     resolution:
-      { integrity: sha512-7s0SvadjYu8fpPaUSu8jJXfAn7lxurbgfHTThs4iJeWkCLA61YXsIDsirLOiOBgFUcre0RP/8W3MhgVGSgKQNQ== }
+      { integrity: sha512-4g1ZuJcDsZ7W4BRP3hAxdO7TawI9rgAmthxxpr5BbdM7k3SPXeuIlAN8VAmHa4v9duHpDu0fBJ9/j/qgcZU5qg== }
 
   '@event-calendar/resource-time-grid@2.7.0':
     resolution:
@@ -5401,9 +5401,9 @@ snapshots:
       '@event-calendar/core': 2.7.0
       svelte: 4.2.16
 
-  '@event-calendar/list@2.7.0':
+  '@event-calendar/list@2.7.2':
     dependencies:
-      '@event-calendar/core': 2.7.0
+      '@event-calendar/core': 2.7.2
       svelte: 4.2.16
 
   '@event-calendar/resource-time-grid@2.7.0':
