@@ -11,14 +11,14 @@ importers:
         specifier: 7.24.6
         version: 7.24.6(@babel/core@7.24.6)
       '@event-calendar/core':
-        specifier: 2.7.0
-        version: 2.7.0
+        specifier: 2.7.2
+        version: 2.7.2
       '@event-calendar/day-grid':
-        specifier: 2.7.0
-        version: 2.7.0
+        specifier: 2.7.2
+        version: 2.7.2
       '@event-calendar/interaction':
-        specifier: 2.7.0
-        version: 2.7.0
+        specifier: 2.7.2
+        version: 2.7.2
       '@event-calendar/list':
         specifier: 2.7.2
         version: 2.7.2
@@ -815,21 +815,17 @@ packages:
       { integrity: sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g== }
     engines: { node: ^12.22.0 || ^14.17.0 || >=16.0.0 }
 
-  '@event-calendar/core@2.7.0':
-    resolution:
-      { integrity: sha512-Zo4OzKuo5KDyskrnZzJRiUyu7Ieag2dmvhBGEElaCRgmmKmZ+TxIAqLYMZOU+oMrEDVfqegAHwwEZJep7CGypg== }
-
   '@event-calendar/core@2.7.2':
     resolution:
       { integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw== }
 
-  '@event-calendar/day-grid@2.7.0':
+  '@event-calendar/day-grid@2.7.2':
     resolution:
-      { integrity: sha512-cuJlvYagVuhGZuXcUnY30VWUNUJxC2FIZXvldB36fZ/2iEGgpoJn6t/1kJVzqcw3iIK9ikZxmvy1QkGGUpyxRA== }
+      { integrity: sha512-8x8Ujh1erSzZHDR0D9cqeECZENg6lmrCsHYSHL2gHaDNU+kG4kLqoane2zgImulST2VJ3OR/Q3ec14xXiHgCcA== }
 
-  '@event-calendar/interaction@2.7.0':
+  '@event-calendar/interaction@2.7.2':
     resolution:
-      { integrity: sha512-5sS/RVsY8wZ6DAxgGZiQIRFlKTuCAjD39YDIuTa9kRCpo+IJlTfImSGYlJYvau8d2hCwlmtOBx/QT4GXQoALtg== }
+      { integrity: sha512-r4A3Y7LAy2bcgbX5L2ShxxxyBTAoCkoP1RPwg5i+Itq/2TOd6sA77PCTpLsPwFvv+Of3BUeYSI5GLLXN3o0o/w== }
 
   '@event-calendar/list@2.7.2':
     resolution:
@@ -5437,22 +5433,18 @@ snapshots:
 
   '@eslint/js@8.57.0': {}
 
-  '@event-calendar/core@2.7.0':
-    dependencies:
-      svelte: 4.2.16
-
   '@event-calendar/core@2.7.2':
     dependencies:
       svelte: 4.2.16
 
-  '@event-calendar/day-grid@2.7.0':
+  '@event-calendar/day-grid@2.7.2':
     dependencies:
-      '@event-calendar/core': 2.7.0
+      '@event-calendar/core': 2.7.2
       svelte: 4.2.16
 
-  '@event-calendar/interaction@2.7.0':
+  '@event-calendar/interaction@2.7.2':
     dependencies:
-      '@event-calendar/core': 2.7.0
+      '@event-calendar/core': 2.7.2
       svelte: 4.2.16
 
   '@event-calendar/list@2.7.2':
