@@ -13,7 +13,7 @@ export function setMatchUpSchedule(params: SetMatchUpScheduleParams) {
   const { matchUpId, schedule, callback } = params;
   const methods = [
     {
-      params: { matchUpIds: [matchUpId], schedule },
+      params: { matchUpIds: [matchUpId], schedule, removePriorValues: true },
       method: BULK_SCHEDULE_MATCHUPS,
     },
   ];
