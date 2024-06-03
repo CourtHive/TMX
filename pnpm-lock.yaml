@@ -18,17 +18,17 @@ importers:
         specifier: 3.0.2
         version: 3.0.2
       '@event-calendar/interaction':
-        specifier: 2.7.2
-        version: 2.7.2
+        specifier: 3.0.2
+        version: 3.0.2
       '@event-calendar/list':
-        specifier: 2.7.2
-        version: 2.7.2
+        specifier: 3.0.2
+        version: 3.0.2
       '@event-calendar/resource-time-grid':
         specifier: 2.7.2
         version: 2.7.2
       '@event-calendar/time-grid':
-        specifier: 2.7.2
-        version: 2.7.2
+        specifier: 3.0.2
+        version: 3.0.2
       '@stitches/core':
         specifier: 1.2.8
         version: 1.2.8
@@ -57,8 +57,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.7.20
-        version: 0.7.20(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
+        specifier: 0.7.21
+        version: 0.7.21(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -126,8 +126,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.1.28
-        version: 2.1.28
+        specifier: 2.1.29
+        version: 2.1.29
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -730,17 +730,20 @@ packages:
   '@event-calendar/day-grid@3.0.2':
     resolution: {integrity: sha512-H48oJokdfMM+isUTCyvnCVzJOo2AMhv3gVmQvurKXjK00+XtOo3zC4PFE5FS02/3F+1jKjgUYjmq/tTwpBc5lw==}
 
-  '@event-calendar/interaction@2.7.2':
-    resolution: {integrity: sha512-r4A3Y7LAy2bcgbX5L2ShxxxyBTAoCkoP1RPwg5i+Itq/2TOd6sA77PCTpLsPwFvv+Of3BUeYSI5GLLXN3o0o/w==}
+  '@event-calendar/interaction@3.0.2':
+    resolution: {integrity: sha512-vUw158xXi1nCdyZrUBBwzg3AY1OEgUvl9Znaj40kx89sNmy/atPDvskBfFiyGeGMlmztBrPhVK4mOrbWW1NaQQ==}
 
-  '@event-calendar/list@2.7.2':
-    resolution: {integrity: sha512-4g1ZuJcDsZ7W4BRP3hAxdO7TawI9rgAmthxxpr5BbdM7k3SPXeuIlAN8VAmHa4v9duHpDu0fBJ9/j/qgcZU5qg==}
+  '@event-calendar/list@3.0.2':
+    resolution: {integrity: sha512-qHEbZtAnsZQRyDgUAbgo1FYtHiTX1ePWyPuCt4Vq1qzI1/saiI4mTzhmeqyOaXKcY4VcQ5owcO8pFrv5HTqrIA==}
 
   '@event-calendar/resource-time-grid@2.7.2':
     resolution: {integrity: sha512-kQBOYCOeA4ll1mIaesA8m2uiPgkVwzRRbTuZWmCKTZGu0IMceFqLkCWOBSFz4qUHtD9YctgD3XBeR0uKuY0yrA==}
 
   '@event-calendar/time-grid@2.7.2':
     resolution: {integrity: sha512-KKX/Y6EUcueIFsOyn0ESircedpbIC0j06hr3XYcbmi8sYdzZRQ+mTVXVOUS5xwXEdiM31wCQLxrPfhR/sDKe8w==}
+
+  '@event-calendar/time-grid@3.0.2':
+    resolution: {integrity: sha512-Ptomb0m0noYRl1nRa6EmK67JC95OyCTR06AbNMBFEBEHM+dG7ncfvygoS0NDDuey5+lai5H2VV26UqH3nJfrJg==}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -1628,8 +1631,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.7.20:
-    resolution: {integrity: sha512-NR7sQ5JX9cnWCT3xFDWg4NM8OKB145LNdXdY+UwxBGL7U7W9d6wNfnk7obcdrF5C1SwqWLAx8Acetj5er08uWA==}
+  courthive-components@0.7.21:
+    resolution: {integrity: sha512-peEk3WKBrXniTewY2U2PUTYa1F76Gj5urpINBzzHGyAR17aJKnhJjnPY8z/aMISd/VaxLBHEn08jXNoSqe7aSw==}
     engines: {node: '>=16.16.0 < 21'}
 
   create-ecdh@4.0.4:
@@ -3635,8 +3638,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.1.28:
-    resolution: {integrity: sha512-RJ+Y51MdEVqXJubj1M9vCVXUbdhxb6tUVpn0KPT8CXGs9dTaLIzZorAJhCLBUJ60T/FJeGwaInlgJvPTUrgXHA==}
+  tods-competition-factory@2.1.29:
+    resolution: {integrity: sha512-DkProJkJ8iwdACc+Fwrd95W9yRlXUlf5x4syvDoGwI4qBebbUdWea7w4qw3uMac1BxBxRnGI7oIAkqbB2X3bTg==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -4501,14 +4504,14 @@ snapshots:
       '@event-calendar/core': 3.0.2
       svelte: 4.2.16
 
-  '@event-calendar/interaction@2.7.2':
+  '@event-calendar/interaction@3.0.2':
     dependencies:
-      '@event-calendar/core': 2.7.2
+      '@event-calendar/core': 3.0.2
       svelte: 4.2.16
 
-  '@event-calendar/list@2.7.2':
+  '@event-calendar/list@3.0.2':
     dependencies:
-      '@event-calendar/core': 2.7.2
+      '@event-calendar/core': 3.0.2
       svelte: 4.2.16
 
   '@event-calendar/resource-time-grid@2.7.2':
@@ -4520,6 +4523,11 @@ snapshots:
   '@event-calendar/time-grid@2.7.2':
     dependencies:
       '@event-calendar/core': 2.7.2
+      svelte: 4.2.16
+
+  '@event-calendar/time-grid@3.0.2':
+    dependencies:
+      '@event-calendar/core': 3.0.2
       svelte: 4.2.16
 
   '@fastify/busboy@2.1.1': {}
@@ -5546,7 +5554,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.4.5
 
-  courthive-components@0.7.20(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)):
+  courthive-components@0.7.21(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)):
     dependencies:
       '@stitches/core': 1.2.8
       '@storybook/test': 8.0.9(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
@@ -5555,7 +5563,7 @@ snapshots:
       classnames: 2.5.1
       dayjs: 1.11.11
       husky: 9.0.11
-      tods-competition-factory: 2.1.28
+      tods-competition-factory: 2.1.29
     transitivePeerDependencies:
       - '@jest/globals'
       - '@types/bun'
@@ -7916,7 +7924,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.1.28: {}
+  tods-competition-factory@2.1.29: {}
 
   totalist@3.0.1: {}
 
