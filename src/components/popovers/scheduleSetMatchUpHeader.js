@@ -30,7 +30,7 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
 
     const methods = [
       {
-        params: { matchUpIds, schedule },
+        params: { matchUpIds, schedule, removePriorValues: true },
         method: BULK_SCHEDULE_MATCHUPS,
       },
     ];
