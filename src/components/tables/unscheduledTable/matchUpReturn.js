@@ -49,6 +49,7 @@ export function matchUpReturn(ev, table) {
         matchUpId: sourceMatchUp.matchUpId,
         schedule: updatedSourceSchedule,
         drawId: sourceMatchUp.drawId,
+        removePriorValues: true,
       },
     },
   ];
