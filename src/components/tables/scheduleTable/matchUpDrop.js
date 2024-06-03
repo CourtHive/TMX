@@ -81,6 +81,7 @@ export function matchUpDrop(ev, cell) {
           matchUpId: sourceMatchUp?.matchUpId,
           schedule: updatedSourceSchedule,
           drawId: sourceMatchUp?.drawId,
+          removePriorValues: true,
         },
       },
     ];
@@ -109,6 +110,7 @@ export function matchUpDrop(ev, cell) {
           matchUpId: targetMatchUp?.matchUpId,
           schedule: updatedTargetSchedule,
           drawId: targetMatchUp?.drawId,
+          removePriorValues: true,
         },
       },
     ];

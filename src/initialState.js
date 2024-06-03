@@ -57,6 +57,12 @@ export function setupTMX() {
   initLoginToggle('burger');
   initSettingsIcon('config');
 
+  if (!Array.prototype.toSorted) {
+    Array.prototype.toSorted = function (compareFn) {
+      return this.slice().sort(compareFn);
+    };
+  }
+
   // add TMX Drawer
   context.drawer = drawer();
 
