@@ -57,8 +57,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.7.20
-        version: 0.7.20(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
+        specifier: 0.7.21
+        version: 0.7.21(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -126,8 +126,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.1.28
-        version: 2.1.28
+        specifier: 2.1.29
+        version: 2.1.29
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1631,8 +1631,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.7.20:
-    resolution: {integrity: sha512-NR7sQ5JX9cnWCT3xFDWg4NM8OKB145LNdXdY+UwxBGL7U7W9d6wNfnk7obcdrF5C1SwqWLAx8Acetj5er08uWA==}
+  courthive-components@0.7.21:
+    resolution: {integrity: sha512-peEk3WKBrXniTewY2U2PUTYa1F76Gj5urpINBzzHGyAR17aJKnhJjnPY8z/aMISd/VaxLBHEn08jXNoSqe7aSw==}
     engines: {node: '>=16.16.0 < 21'}
 
   create-ecdh@4.0.4:
@@ -3638,8 +3638,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.1.28:
-    resolution: {integrity: sha512-RJ+Y51MdEVqXJubj1M9vCVXUbdhxb6tUVpn0KPT8CXGs9dTaLIzZorAJhCLBUJ60T/FJeGwaInlgJvPTUrgXHA==}
+  tods-competition-factory@2.1.29:
+    resolution: {integrity: sha512-DkProJkJ8iwdACc+Fwrd95W9yRlXUlf5x4syvDoGwI4qBebbUdWea7w4qw3uMac1BxBxRnGI7oIAkqbB2X3bTg==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -5554,7 +5554,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.4.5
 
-  courthive-components@0.7.20(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)):
+  courthive-components@0.7.21(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)):
     dependencies:
       '@stitches/core': 1.2.8
       '@storybook/test': 8.0.9(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
@@ -5563,7 +5563,7 @@ snapshots:
       classnames: 2.5.1
       dayjs: 1.11.11
       husky: 9.0.11
-      tods-competition-factory: 2.1.28
+      tods-competition-factory: 2.1.29
     transitivePeerDependencies:
       - '@jest/globals'
       - '@types/bun'
@@ -7924,7 +7924,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.1.28: {}
+  tods-competition-factory@2.1.29: {}
 
   totalist@3.0.1: {}
 
