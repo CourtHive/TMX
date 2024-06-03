@@ -190,8 +190,8 @@ importers:
         specifier: 13.9.0
         version: 13.9.0
       cz-git:
-        specifier: 1.9.1
-        version: 1.9.1
+        specifier: 1.9.2
+        version: 1.9.2
       envfile:
         specifier: 7.1.0
         version: 7.1.0
@@ -1666,8 +1666,8 @@ packages:
     engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  cz-git@1.9.1:
-    resolution: {integrity: sha512-GK3EI5R7GApS8u+g9QPvy/50z0NiG7ijc1NASxZaDnQn0ARzr73MjZb3Lt4cZQvKJBd8GrfvOWqHgwMQQ/OlaA==}
+  cz-git@1.9.2:
+    resolution: {integrity: sha512-HqwSIZBl/Vtlq56wsHuQHhQ0CF7rABEvhvbSAaGViLeM5YucLu5o+U2XLow1Y2bwIAfAIKZHfgg9fxP7P3XU3Q==}
     engines: {node: '>=v12.20.0'}
 
   d3-array@1.2.4:
@@ -5672,7 +5672,7 @@ snapshots:
       untildify: 4.0.0
       yauzl: 2.10.0
 
-  cz-git@1.9.1: {}
+  cz-git@1.9.2: {}
 
   d3-array@1.2.4: {}
 
