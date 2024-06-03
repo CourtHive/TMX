@@ -1,4 +1,4 @@
-import { tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
+import { fixtures, tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
@@ -48,14 +48,13 @@ export function getEventHandlers({ callback, drawId, eventData }) {
             positionActions: {
               // disableRoundRestrictions: true
             },
+            ...fixtures.policies.POLICY_POSITION_ACTIONS_UNRESTRICTED,
           },
-          /*
-            policyDefinitions: {
-              ...POLICY_POSITION_ACTIONS_UNRESTRICTED,
-              ...(tournamentPolicies?.positionActions && { positionActions: tournamentPolicies?.positionActions }),
-              ...{ seeding: tournamentPolicies?.seeding }
-            }
-          */
+          // policyDefinitions: {
+          // ...POLICY_POSITION_ACTIONS_UNRESTRICTED,
+          //   ...(tournamentPolicies?.positionActions && { positionActions: tournamentPolicies?.positionActions }),
+          //   ...{ seeding: tournamentPolicies?.seeding }
+          // },
         })) ||
       {};
 
