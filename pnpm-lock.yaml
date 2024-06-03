@@ -21,8 +21,8 @@ importers:
         specifier: 2.7.2
         version: 2.7.2
       '@event-calendar/list':
-        specifier: 2.7.2
-        version: 2.7.2
+        specifier: 3.0.2
+        version: 3.0.2
       '@event-calendar/resource-time-grid':
         specifier: 2.7.2
         version: 2.7.2
@@ -724,14 +724,17 @@ packages:
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
 
+  '@event-calendar/core@3.0.2':
+    resolution: {integrity: sha512-EXwKFPSZk3uSecpsewRCZxPJ5ECjjD57WY9jS7rVwWpkwKbpn3DEvz+Gczs3BM82IR1OBlRj5qcPRrz7Ny6+DQ==}
+
   '@event-calendar/day-grid@2.7.2':
     resolution: {integrity: sha512-8x8Ujh1erSzZHDR0D9cqeECZENg6lmrCsHYSHL2gHaDNU+kG4kLqoane2zgImulST2VJ3OR/Q3ec14xXiHgCcA==}
 
   '@event-calendar/interaction@2.7.2':
     resolution: {integrity: sha512-r4A3Y7LAy2bcgbX5L2ShxxxyBTAoCkoP1RPwg5i+Itq/2TOd6sA77PCTpLsPwFvv+Of3BUeYSI5GLLXN3o0o/w==}
 
-  '@event-calendar/list@2.7.2':
-    resolution: {integrity: sha512-4g1ZuJcDsZ7W4BRP3hAxdO7TawI9rgAmthxxpr5BbdM7k3SPXeuIlAN8VAmHa4v9duHpDu0fBJ9/j/qgcZU5qg==}
+  '@event-calendar/list@3.0.2':
+    resolution: {integrity: sha512-qHEbZtAnsZQRyDgUAbgo1FYtHiTX1ePWyPuCt4Vq1qzI1/saiI4mTzhmeqyOaXKcY4VcQ5owcO8pFrv5HTqrIA==}
 
   '@event-calendar/resource-time-grid@2.7.2':
     resolution: {integrity: sha512-kQBOYCOeA4ll1mIaesA8m2uiPgkVwzRRbTuZWmCKTZGu0IMceFqLkCWOBSFz4qUHtD9YctgD3XBeR0uKuY0yrA==}
@@ -4502,6 +4505,10 @@ snapshots:
     dependencies:
       svelte: 4.2.16
 
+  '@event-calendar/core@3.0.2':
+    dependencies:
+      svelte: 4.2.16
+
   '@event-calendar/day-grid@2.7.2':
     dependencies:
       '@event-calendar/core': 2.7.2
@@ -4512,9 +4519,9 @@ snapshots:
       '@event-calendar/core': 2.7.2
       svelte: 4.2.16
 
-  '@event-calendar/list@2.7.2':
+  '@event-calendar/list@3.0.2':
     dependencies:
-      '@event-calendar/core': 2.7.2
+      '@event-calendar/core': 3.0.2
       svelte: 4.2.16
 
   '@event-calendar/resource-time-grid@2.7.2':
