@@ -57,8 +57,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.7.19
-        version: 0.7.19(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
+        specifier: 0.7.20
+        version: 0.7.20(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -126,8 +126,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.1.27
-        version: 2.1.27
+        specifier: 2.1.28
+        version: 2.1.28
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1127,9 +1127,6 @@ packages:
   '@vitest/spy@1.3.1':
     resolution: {integrity: sha512-xAcW+S099ylC9VLU7eZfdT9myV67Nor9w9zhf0mGCYJSO+zM2839tOeROTdikOi/8Qeusffvxb/MyBSOja1Uig==}
 
-  '@vitest/spy@1.5.3':
-    resolution: {integrity: sha512-Llj7Jgs6lbnL55WoshJUUacdJfjU2honvGcAJBxhra5TPEzTJH8ZuhI3p/JwqqfnTr4PmP7nDmOXP53MS7GJlg==}
-
   '@vitest/spy@1.6.0':
     resolution: {integrity: sha512-leUTap6B/cqi/bQkXUu6bQV5TZPx7pmMBKBQiI0rJA8c3pB56ZsaTbREnF7CJfmvAS4V2cXIBAh/3rVwrrCYgw==}
 
@@ -1140,9 +1137,6 @@ packages:
 
   '@vitest/utils@1.3.1':
     resolution: {integrity: sha512-d3Waie/299qqRyHTm2DjADeTaNdNSVsnwHPWrs20JMpjh6eiVq7ggggweO8rc4arhf6rRkWuHKwvxGvejUXZZQ==}
-
-  '@vitest/utils@1.5.3':
-    resolution: {integrity: sha512-rE9DTN1BRhzkzqNQO+kw8ZgfeEBCLXiHJwetk668shmNBpSagQxneT5eSqEBLP+cqSiAeecvQmbpFfdMyLcIQA==}
 
   '@vitest/utils@1.6.0':
     resolution: {integrity: sha512-21cPiuGMoMZwiOHa2i4LXkMkMkCGzA+MVFV70jRwHo95dL4x/ts5GZhML1QWuy7yfp3WzK3lRvZi3JnXTYqrBw==}
@@ -1417,9 +1411,6 @@ packages:
   bulma@0.9.4:
     resolution: {integrity: sha512-86FlT5+1GrsgKbPLRRY7cGDg8fsJiP/jzTqXXVqiUZZ2aZT8uemEOHlU1CDU+TxklPEZ11HZNNWclRBBecP4CQ==}
 
-  bulma@1.0.0:
-    resolution: {integrity: sha512-7n49v/gdHXaHcU9fVobqGXO2OguiCoMh6CLbeX7jq00XrZ5vOSE4LNS0S/0Q6rlBbckY6kk6W7LwqxS0nu4bug==}
-
   bulma@1.0.1:
     resolution: {integrity: sha512-+xv/BIAEQakHkR0QVz+s+RjNqfC53Mx9ZYexyaFNFo9wx5i76HXArNdwW7bccyJxa5mgV/T5DcVGqsAB19nBJQ==}
 
@@ -1637,8 +1628,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.7.19:
-    resolution: {integrity: sha512-1G9ROZwCFAbvBfdDya8UEsh8K6sWmvWIo5iuAqtFLWK1JQq1GlgNRxzcPSq/zSQe0335CAy9ZwYui4zmhpp4MQ==}
+  courthive-components@0.7.20:
+    resolution: {integrity: sha512-NR7sQ5JX9cnWCT3xFDWg4NM8OKB145LNdXdY+UwxBGL7U7W9d6wNfnk7obcdrF5C1SwqWLAx8Acetj5er08uWA==}
     engines: {node: '>=16.16.0 < 21'}
 
   create-ecdh@4.0.4:
@@ -3644,12 +3635,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.1.20:
-    resolution: {integrity: sha512-3v/9OKsoYg+hciXbokhqI54J142CbYagT8O9iOA0uIzRnSFKe5qREDs3mK3weDjL14ghOhL5JEdKM9uT/oEefg==}
-    engines: {node: '>=20'}
-
-  tods-competition-factory@2.1.27:
-    resolution: {integrity: sha512-Xf49wBhuLX7SEk/1p9hvPoLkAsdj4j9o7IEw7XquXsnSZ9Axq9SywG3IrbZ1Eu4BVJhteS208Ic4J5lX/WYbpg==}
+  tods-competition-factory@2.1.28:
+    resolution: {integrity: sha512-RJ+Y51MdEVqXJubj1M9vCVXUbdhxb6tUVpn0KPT8CXGs9dTaLIzZorAJhCLBUJ60T/FJeGwaInlgJvPTUrgXHA==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -4714,7 +4701,7 @@ snapshots:
       '@storybook/core-events': 8.0.9
       '@storybook/global': 5.0.0
       '@storybook/preview-api': 8.0.9
-      '@vitest/utils': 1.5.3
+      '@vitest/utils': 1.6.0
       util: 0.12.5
 
   '@storybook/preview-api@8.0.9':
@@ -4744,7 +4731,7 @@ snapshots:
       '@testing-library/jest-dom': 6.4.2(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
       '@testing-library/user-event': 14.5.2(@testing-library/dom@9.3.4)
       '@vitest/expect': 1.3.1
-      '@vitest/spy': 1.5.3
+      '@vitest/spy': 1.6.0
       util: 0.12.5
     transitivePeerDependencies:
       - '@jest/globals'
@@ -4767,7 +4754,7 @@ snapshots:
 
   '@testing-library/dom@9.3.4':
     dependencies:
-      '@babel/code-frame': 7.24.2
+      '@babel/code-frame': 7.24.6
       '@babel/runtime': 7.24.5
       '@types/aria-query': 5.0.4
       aria-query: 5.1.3
@@ -5002,10 +4989,6 @@ snapshots:
     dependencies:
       tinyspy: 2.2.1
 
-  '@vitest/spy@1.5.3':
-    dependencies:
-      tinyspy: 2.2.1
-
   '@vitest/spy@1.6.0':
     dependencies:
       tinyspy: 2.2.1
@@ -5022,13 +5005,6 @@ snapshots:
       vitest: 1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)
 
   '@vitest/utils@1.3.1':
-    dependencies:
-      diff-sequences: 29.6.3
-      estree-walker: 3.0.3
-      loupe: 2.3.7
-      pretty-format: 29.7.0
-
-  '@vitest/utils@1.5.3':
     dependencies:
       diff-sequences: 29.6.3
       estree-walker: 3.0.3
@@ -5104,6 +5080,7 @@ snapshots:
     dependencies:
       normalize-path: 3.0.0
       picomatch: 2.3.1
+    optional: true
 
   arch@2.2.0: {}
 
@@ -5230,7 +5207,8 @@ snapshots:
     dependencies:
       tweetnacl: 0.14.5
 
-  binary-extensions@2.3.0: {}
+  binary-extensions@2.3.0:
+    optional: true
 
   bl@4.1.0:
     dependencies:
@@ -5342,10 +5320,6 @@ snapshots:
 
   bulma@0.9.4: {}
 
-  bulma@1.0.0:
-    dependencies:
-      sass: 1.76.0
-
   bulma@1.0.1: {}
 
   c8@9.1.0:
@@ -5421,7 +5395,7 @@ snapshots:
   chokidar@3.6.0:
     dependencies:
       anymatch: 3.1.3
-      braces: 3.0.2
+      braces: 3.0.3
       glob-parent: 5.1.2
       is-binary-path: 2.1.0
       is-glob: 4.0.3
@@ -5429,6 +5403,7 @@ snapshots:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   ci-info@3.9.0: {}
 
@@ -5571,16 +5546,16 @@ snapshots:
     optionalDependencies:
       typescript: 5.4.5
 
-  courthive-components@0.7.19(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)):
+  courthive-components@0.7.20(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0)):
     dependencies:
       '@stitches/core': 1.2.8
       '@storybook/test': 8.0.9(vitest@1.6.0(@types/node@20.14.0)(@vitest/ui@1.6.0)(sass@1.76.0))
-      bulma: 1.0.0
+      bulma: 1.0.1
       class-variance-authority: 0.7.0
       classnames: 2.5.1
       dayjs: 1.11.11
       husky: 9.0.11
-      tods-competition-factory: 2.1.20
+      tods-competition-factory: 2.1.28
     transitivePeerDependencies:
       - '@jest/globals'
       - '@types/bun'
@@ -6641,7 +6616,8 @@ snapshots:
 
   ignore@5.3.1: {}
 
-  immutable@4.3.5: {}
+  immutable@4.3.5:
+    optional: true
 
   import-fresh@3.3.0:
     dependencies:
@@ -6712,6 +6688,7 @@ snapshots:
   is-binary-path@2.1.0:
     dependencies:
       binary-extensions: 2.3.0
+    optional: true
 
   is-boolean-object@1.1.2:
     dependencies:
@@ -7185,7 +7162,8 @@ snapshots:
 
   node-releases@2.0.14: {}
 
-  normalize-path@3.0.0: {}
+  normalize-path@3.0.0:
+    optional: true
 
   normalize-text@2.5.0:
     dependencies:
@@ -7505,6 +7483,7 @@ snapshots:
   readdirp@3.6.0:
     dependencies:
       picomatch: 2.3.1
+    optional: true
 
   redent@3.0.0:
     dependencies:
@@ -7633,6 +7612,7 @@ snapshots:
       chokidar: 3.6.0
       immutable: 4.3.5
       source-map-js: 1.2.0
+    optional: true
 
   sax@1.3.0: {}
 
@@ -7936,9 +7916,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.1.20: {}
-
-  tods-competition-factory@2.1.27: {}
+  tods-competition-factory@2.1.28: {}
 
   totalist@3.0.1: {}
 
