@@ -7,7 +7,7 @@ import { context } from 'services/context';
 
 import { LEFT } from 'constants/tmxConstants';
 
-const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, QUALIFYING_PARTICIPANT, SWAP_PARTICIPANTS } =
+const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, LUCKY_PARTICIPANT, QUALIFYING_PARTICIPANT, SWAP_PARTICIPANTS } =
   positionActionConstants;
 
 const actionTypes = {
@@ -21,6 +21,12 @@ const actionTypes = {
     selections: 'participantsAvailable',
     targetAttribute: 'participantId',
     title: 'Select participant',
+  },
+  [LUCKY_PARTICIPANT]: {
+    selections: 'availableLuckyLosers',
+    targetAttribute: 'participantId',
+    param: 'luckyLoserParticipantId',
+    title: 'Assign lucky loser',
   },
   [QUALIFYING_PARTICIPANT]: {
     selections: 'qualifyingParticipants',
@@ -41,18 +47,12 @@ const actionTypes = {
   },
 };
 
-export function selectParticipant({
-  title = 'Select participant',
-  selectedParticipantIds,
-  selectionLimit,
-  activeOnEnter,
-  selectOnEnter,
-  onSelection,
-  update,
-  action,
-}) {
+export function selectParticipant(params) {
+  const { selectedParticipantIds, selectionLimit, activeOnEnter, selectOnEnter, onSelection, update, action } = params;
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
+
+  const title = params.title || actionType.title || 'Select participant';
   let selected, controlInputs;
 
   const onClick = () => {
