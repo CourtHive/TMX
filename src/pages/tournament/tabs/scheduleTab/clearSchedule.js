@@ -64,6 +64,7 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
         method: BULK_SCHEDULE_MATCHUPS,
         params: {
           schedule: { courtId: '', scheduledDate: '', courtOrder: '', scheduledTime: '', venueId: '' },
+          removePriorValues: true,
           matchUpIds,
         },
       },
