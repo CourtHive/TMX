@@ -49,9 +49,9 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@babel/core": "7.24.6",
-    "@babel/plugin-syntax-flow": "7.24.6",
-    "@babel/preset-typescript": "7.24.6",
+    "@babel/core": "7.24.7",
+    "@babel/plugin-syntax-flow": "7.24.7",
+    "@babel/preset-typescript": "7.24.7",
     "@commitlint/cli": "19.3.0",
     "@commitlint/config-conventional": "19.2.2",
     "@types/babel__traverse": "7.20.6",
@@ -96,7 +96,7 @@
     "yargs": "17.7.2"
   },
   "dependencies": {
-    "@babel/plugin-transform-private-property-in-object": "7.24.6",
+    "@babel/plugin-transform-private-property-in-object": "7.24.7",
     "@event-calendar/core": "3.0.2",
     "@event-calendar/day-grid": "3.0.2",
     "@event-calendar/interaction": "3.0.2",
