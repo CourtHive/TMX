@@ -126,8 +126,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.1.30
-        version: 2.1.30
+        specifier: 2.2.0
+        version: 2.2.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -776,6 +776,7 @@ packages:
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -783,6 +784,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@inquirer/figures@1.0.3':
     resolution: {integrity: sha512-ErXXzENMH5pJt5/ssXV0DfWUZqly8nGzf0UcBV9xTnP+KyffE2mqyxIMBrZ8ijQck2nU0TQm40EQB53YreyWHw==}
@@ -3654,8 +3656,8 @@ packages:
     resolution: {integrity: sha512-DkProJkJ8iwdACc+Fwrd95W9yRlXUlf5x4syvDoGwI4qBebbUdWea7w4qw3uMac1BxBxRnGI7oIAkqbB2X3bTg==}
     engines: {node: '>=20'}
 
-  tods-competition-factory@2.1.30:
-    resolution: {integrity: sha512-9wqeijEvWJSleIwAs9VcWGIKGcVPik1hTUSkomYlJ6DjnuZaF3BtCrf5IotYu6xV7fa9CNQ03UGvnrhRjP2s+w==}
+  tods-competition-factory@2.2.0:
+    resolution: {integrity: sha512-4UCU1/9nKI9CvslE6bzrD3bxQqw17SNsUfIJ9koXumzM+4Q/gd2GUVpAlhLHoom1U/ZTIN30lBy32xTwccGDew==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -7980,7 +7982,7 @@ snapshots:
 
   tods-competition-factory@2.1.29: {}
 
-  tods-competition-factory@2.1.30: {}
+  tods-competition-factory@2.2.0: {}
 
   totalist@3.0.1: {}
 
