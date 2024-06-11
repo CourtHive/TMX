@@ -18,21 +18,18 @@ export async function createRoundsTable({ eventId, drawId, structureId, matchUps
   let table, structure, participantFilter, isRoundRobin;
 
   const getMatchUps = () => {
-    // TODO: it is inefficient to call both getEventData and allTournamentMatchUps
-    // Can getEventData be modified to return participants array
-    const eventData = tournamentEngine.getEventData({ eventId }).eventData;
+    const participantsProfile = { withISO2: true, withScaleValues: true };
+    const contextProfile = { withCompetitiveness: true };
+    const eventData = tournamentEngine.getEventData({ eventId, contextProfile, participantsProfile }).eventData;
     const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
     structure = drawData?.structures?.find((s) => s.structureId === structureId);
     isRoundRobin = structure?.structureType === CONTAINER;
 
-    // TODO: if both engine methods need to be called, use allEventMatchUps();
-    return (
-      tournamentEngine.allTournamentMatchUps({
-        matchUpFilters: { drawIds: [drawId], structureIds: [structureId] },
-        participantsProfile: { withISO2: true, withScaleValues: true },
-        contextProfile: { withCompetitiveness: true },
-      }).matchUps || []
-    )
+    const matchUps = structure?.roundMatchUps ? Object.values(structure?.roundMatchUps || {}).flat() : [];
+    const tieMatchUps = matchUps.flatMap((matchUp) => matchUp.tieMatchUps || []);
+    if (tieMatchUps.length) matchUps.push(...tieMatchUps);
+
+    return matchUps
       .filter(({ matchUpStatus }) => matchUpStatus !== 'BYE')
       .filter(
         ({ sides }) =>
@@ -44,7 +41,7 @@ export async function createRoundsTable({ eventId, drawId, structureId, matchUps
   };
 
   // eventName necessary for team scorecard
-  if (!matchUps) matchUps = await getMatchUps();
+  if (!matchUps) matchUps = getMatchUps();
   if (eventData) {
     matchUps.forEach((matchUp) => (matchUp.eventName = eventData.eventInfo.eventName));
   }
