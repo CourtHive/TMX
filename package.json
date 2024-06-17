@@ -73,7 +73,7 @@
     "eslint-plugin-jsx-a11y": "6.8.0",
     "eslint-plugin-sonarjs": "1.0.3",
     "esm": "3.2.25",
-    "globals": "15.4.0",
+    "globals": "15.6.0",
     "husky": "9.0.11",
     "inquirer": "9.2.23",
     "lint-staged": "15.2.7",
