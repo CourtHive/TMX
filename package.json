@@ -70,7 +70,7 @@
     "cz-git": "1.9.3",
     "envfile": "7.1.0",
     "eslint": "8.57.0",
-    "eslint-plugin-jsx-a11y": "6.8.0",
+    "eslint-plugin-jsx-a11y": "6.9.0",
     "eslint-plugin-sonarjs": "1.0.3",
     "esm": "3.2.25",
     "globals": "15.4.0",
