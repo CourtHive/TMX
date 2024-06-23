@@ -18,8 +18,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
       '@event-calendar/interaction':
-        specifier: 3.0.2
-        version: 3.0.2
+        specifier: 3.1.0
+        version: 3.1.0
       '@event-calendar/list':
         specifier: 3.0.2
         version: 3.0.2
@@ -745,8 +745,8 @@ packages:
   '@event-calendar/day-grid@3.1.0':
     resolution: {integrity: sha512-koaIBZxYB+SrjvgvJmehFI4SrDqd4PdN8aPb+7f7HYWrFKA3SZmVr6WHaPTog34p4bFjMYiJC3gJfaNK/KhEpw==}
 
-  '@event-calendar/interaction@3.0.2':
-    resolution: {integrity: sha512-vUw158xXi1nCdyZrUBBwzg3AY1OEgUvl9Znaj40kx89sNmy/atPDvskBfFiyGeGMlmztBrPhVK4mOrbWW1NaQQ==}
+  '@event-calendar/interaction@3.1.0':
+    resolution: {integrity: sha512-G9eZSfd/NZPzB14p7pejC6GPjitl6OgaTFsT3r19ogGSdp9wdL1sif9Lmioq8dFUIC3hkU/Uu5sL2o64tQ6wWA==}
 
   '@event-calendar/list@3.0.2':
     resolution: {integrity: sha512-qHEbZtAnsZQRyDgUAbgo1FYtHiTX1ePWyPuCt4Vq1qzI1/saiI4mTzhmeqyOaXKcY4VcQ5owcO8pFrv5HTqrIA==}
@@ -4592,9 +4592,9 @@ snapshots:
       '@event-calendar/core': 3.1.0
       svelte: 4.2.16
 
-  '@event-calendar/interaction@3.0.2':
+  '@event-calendar/interaction@3.1.0':
     dependencies:
-      '@event-calendar/core': 3.0.2
+      '@event-calendar/core': 3.1.0
       svelte: 4.2.16
 
   '@event-calendar/list@3.0.2':
