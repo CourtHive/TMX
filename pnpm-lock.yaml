@@ -181,8 +181,8 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       c8:
-        specifier: 10.1.1
-        version: 10.1.1
+        specifier: 10.1.2
+        version: 10.1.2
       crypto-browserify:
         specifier: 3.12.0
         version: 3.12.0
@@ -1431,10 +1431,15 @@ packages:
   bulma@1.0.1:
     resolution: {integrity: sha512-+xv/BIAEQakHkR0QVz+s+RjNqfC53Mx9ZYexyaFNFo9wx5i76HXArNdwW7bccyJxa5mgV/T5DcVGqsAB19nBJQ==}
 
-  c8@10.1.1:
-    resolution: {integrity: sha512-+aAvpNMwnzncW27XsEf2eMrGTF8HXIGZ24UQ1dW679+8SQ/UvDXxHNoKwMohcI9ZVj0xl/bI4/meqxvIWOBYaw==}
+  c8@10.1.2:
+    resolution: {integrity: sha512-Qr6rj76eSshu5CgRYvktW0uM0CFY0yi4Fd5D0duDXO6sYinyopmftUiJVuzBQxQcwQLor7JWDVRP+dUfCmzgJw==}
     engines: {node: '>=18'}
     hasBin: true
+    peerDependencies:
+      monocart-coverage-reports: ^2
+    peerDependenciesMeta:
+      monocart-coverage-reports:
+        optional: true
 
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
@@ -5407,7 +5412,7 @@ snapshots:
 
   bulma@1.0.1: {}
 
-  c8@10.1.1:
+  c8@10.1.2:
     dependencies:
       '@bcoe/v8-coverage': 0.2.3
       '@istanbuljs/schema': 0.1.3
