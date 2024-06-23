@@ -21,8 +21,8 @@ importers:
         specifier: 3.0.2
         version: 3.0.2
       '@event-calendar/list':
-        specifier: 3.0.2
-        version: 3.0.2
+        specifier: 3.1.0
+        version: 3.1.0
       '@event-calendar/resource-time-grid':
         specifier: 2.7.2
         version: 2.7.2
@@ -748,8 +748,8 @@ packages:
   '@event-calendar/interaction@3.0.2':
     resolution: {integrity: sha512-vUw158xXi1nCdyZrUBBwzg3AY1OEgUvl9Znaj40kx89sNmy/atPDvskBfFiyGeGMlmztBrPhVK4mOrbWW1NaQQ==}
 
-  '@event-calendar/list@3.0.2':
-    resolution: {integrity: sha512-qHEbZtAnsZQRyDgUAbgo1FYtHiTX1ePWyPuCt4Vq1qzI1/saiI4mTzhmeqyOaXKcY4VcQ5owcO8pFrv5HTqrIA==}
+  '@event-calendar/list@3.1.0':
+    resolution: {integrity: sha512-EivcJ5jwA1kS7milhppPZ4/ys+YdqEHLwyUSoO4LjB99M3czgyyoaa7BzWMThSmF5xdqhcPBa9so5b41A/rJwQ==}
 
   '@event-calendar/resource-time-grid@2.7.2':
     resolution: {integrity: sha512-kQBOYCOeA4ll1mIaesA8m2uiPgkVwzRRbTuZWmCKTZGu0IMceFqLkCWOBSFz4qUHtD9YctgD3XBeR0uKuY0yrA==}
@@ -4597,9 +4597,9 @@ snapshots:
       '@event-calendar/core': 3.0.2
       svelte: 4.2.16
 
-  '@event-calendar/list@3.0.2':
+  '@event-calendar/list@3.1.0':
     dependencies:
-      '@event-calendar/core': 3.0.2
+      '@event-calendar/core': 3.1.0
       svelte: 4.2.16
 
   '@event-calendar/resource-time-grid@2.7.2':
