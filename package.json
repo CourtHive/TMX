@@ -122,7 +122,7 @@
     "https-browserify": "1.0.0",
     "jwt-decode": "4.0.0",
     "leaflet": "1.9.4",
-    "morphdom": "2.7.2",
+    "morphdom": "2.7.3",
     "navigo": "8.11.1",
     "normalize-text": "2.5.0",
     "pdfmake": "0.2.10",

@@ -87,8 +87,8 @@ importers:
         specifier: 1.9.4
         version: 1.9.4
       morphdom:
-        specifier: 2.7.2
-        version: 2.7.2
+        specifier: 2.7.3
+        version: 2.7.3
       navigo:
         specifier: 8.11.1
         version: 8.11.1
@@ -2963,8 +2963,8 @@ packages:
   mlly@1.7.0:
     resolution: {integrity: sha512-U9SDaXGEREBYQgfejV97coK0UL1r+qnF2SyO9A3qcI8MzKnsIFKHNVEkrDyNncQTKQQumsasmeq84eNMdBfsNQ==}
 
-  morphdom@2.7.2:
-    resolution: {integrity: sha512-Dqb/lHFyTi7SZpY0a5R4I/0Edo+iPMbaUexsHHsLAByyixCDiLHPHyVoKVmrpL0THcT7V9Cgev9y21TQYq6wQg==}
+  morphdom@2.7.3:
+    resolution: {integrity: sha512-rvGK92GxSuPEZLY8D/JH07cG3BxyA+/F0Bxg32OoGAEFFhGWA3OqVpqPZlOgZTCR52clXrmz+z2pYSJ6gOig1w==}
 
   mrmime@2.0.0:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
@@ -7249,7 +7249,7 @@ snapshots:
       pkg-types: 1.1.0
       ufo: 1.5.3
 
-  morphdom@2.7.2: {}
+  morphdom@2.7.3: {}
 
   mrmime@2.0.0: {}
 
