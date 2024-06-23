@@ -12,8 +12,8 @@ importers:
         specifier: 7.24.7
         version: 7.24.7(@babel/core@7.24.7)
       '@event-calendar/core':
-        specifier: 3.0.2
-        version: 3.0.2
+        specifier: 3.1.0
+        version: 3.1.0
       '@event-calendar/day-grid':
         specifier: 3.0.2
         version: 3.0.2
@@ -738,6 +738,9 @@ packages:
 
   '@event-calendar/core@3.0.2':
     resolution: {integrity: sha512-EXwKFPSZk3uSecpsewRCZxPJ5ECjjD57WY9jS7rVwWpkwKbpn3DEvz+Gczs3BM82IR1OBlRj5qcPRrz7Ny6+DQ==}
+
+  '@event-calendar/core@3.1.0':
+    resolution: {integrity: sha512-hz6jpFeFUEb/mOu2vFn96wBFYEDYHb8lPyDjlaHqD4E02OXnLb/ej0kRWMu5NnF4aE7UEKq648Lx3cbH1QJrIw==}
 
   '@event-calendar/day-grid@3.0.2':
     resolution: {integrity: sha512-H48oJokdfMM+isUTCyvnCVzJOo2AMhv3gVmQvurKXjK00+XtOo3zC4PFE5FS02/3F+1jKjgUYjmq/tTwpBc5lw==}
@@ -4577,6 +4580,10 @@ snapshots:
       svelte: 4.2.16
 
   '@event-calendar/core@3.0.2':
+    dependencies:
+      svelte: 4.2.16
+
+  '@event-calendar/core@3.1.0':
     dependencies:
       svelte: 4.2.16
 
