@@ -156,7 +156,6 @@ export async function matchUpDrop(ev, cell) {
       }
     }
   } else if (!sourceRow && targetMatchUp) {
-    console.log('sourceRow missing and targetMatchUp');
     const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
     unscheduledTable.deleteRow(sourceMatchUpId);
     updateSourceMatchUp();
@@ -167,7 +166,6 @@ export async function matchUpDrop(ev, cell) {
     unscheduledTable.addRow(mapMatchUp(targetMatchUp), true);
     updateTargetMatchUp();
   } else {
-    console.log('matchUps swapping schedule');
     // matchUps are swapping schedule
     const targetSchedule = targetMatchUp?.schedule;
     updateSourceMatchUp({
