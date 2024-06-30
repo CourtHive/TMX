@@ -60,6 +60,31 @@ export function getEventHandlers({ callback, drawId, eventData }) {
 
     selectPositionAction({ ...props, actions, callback });
   };
+  const scoreClick = (props) => {
+    const sideNumber = getSideNumber(props);
+    const matchUp = getMatchUp(props);
+
+    const { validActions } =
+      tournamentEngine.matchUpActions({
+        matchUpId: matchUp.matchUpId,
+        drawId: matchUp.drawId,
+        sideNumber,
+      }) || {};
+
+    const readyToScore = validActions?.find(({ type }) => type === 'SCORE');
+
+    if (readyToScore) {
+      if (matchUp.matchUpType === TEAM) {
+        const onClose = () => callback();
+        const title = eventData?.eventInfo?.eventName;
+
+        const { matchUpId, drawId } = matchUp;
+        openScorecard({ title, drawId, matchUpId, onClose });
+      } else {
+        enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
+      }
+    }
+  };
 
   return {
     centerInfoClick: () => console.log('centerInfo click'),
@@ -117,32 +142,9 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         tipster({ items: venueOptions, target: props.pointerEvent.target, config: { placement: BOTTOM } });
       }
     },
-    matchUpClick: (params) => console.log('matchUpClick', params),
-    scoreClick: (props) => {
-      const sideNumber = getSideNumber(props);
-      const matchUp = getMatchUp(props);
-
-      const { validActions } =
-        tournamentEngine.matchUpActions({
-          matchUpId: matchUp.matchUpId,
-          drawId: matchUp.drawId,
-          sideNumber,
-        }) || {};
-
-      const readyToScore = validActions?.find(({ type }) => type === 'SCORE');
-
-      if (readyToScore) {
-        if (matchUp.matchUpType === TEAM) {
-          const onClose = () => callback();
-          const title = eventData?.eventInfo?.eventName;
-
-          const { matchUpId, drawId } = matchUp;
-          openScorecard({ title, drawId, matchUpId, onClose });
-        } else {
-          enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
-        }
-      }
-    },
+    // matchUpClick: (params) => console.log('matchUpClick', params),
     participantClick: sideClick,
+    matchUpClick: scoreClick,
+    scoreClick,
   };
 }
