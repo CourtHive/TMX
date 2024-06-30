@@ -61,7 +61,8 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   destroyTables();
   getData();
 
-  const callback = ({ refresh, view } = {}) => {
+  const callback = (params) => {
+    const { refresh, view } = params ?? {};
     const redraw = refresh || participantFilter;
     cleanupDrawPanel();
     if (view) {

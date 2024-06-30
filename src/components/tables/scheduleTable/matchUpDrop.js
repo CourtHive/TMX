@@ -8,9 +8,10 @@ import { context } from 'services/context';
 import { COMPETITION_ENGINE, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
-export function matchUpDrop(ev, cell) {
+export async function matchUpDrop(ev, cell) {
   ev.preventDefault();
   const sourceMatchUpId = ev.dataTransfer.getData('itemid');
+  const methods = [];
 
   const table = cell.getTable();
   const data = table.getData();
@@ -63,6 +64,14 @@ export function matchUpDrop(ev, cell) {
     return sourceColumnKey;
   });
 
+  const invokeMethods = () => {
+    const callback = (result) => {
+      !result.success && console.log({ result });
+      updateConflicts(table);
+    };
+    mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
+  };
+
   const updateSourceMatchUp = ({ scheduledTime = '', timeModifiers = [] } = {}) => {
     const updatedSourceSchedule = {
       courtOrder: targetCourtOrder,
@@ -73,20 +82,16 @@ export function matchUpDrop(ev, cell) {
       timeModifiers,
     };
 
-    const methods = [
-      {
-        method: ADD_MATCHUP_SCHEDULE_ITEMS,
-        params: {
-          tournamentId: sourceMatchUp?.tournamentId,
-          matchUpId: sourceMatchUp?.matchUpId,
-          schedule: updatedSourceSchedule,
-          drawId: sourceMatchUp?.drawId,
-          removePriorValues: true,
-        },
+    methods.push({
+      method: ADD_MATCHUP_SCHEDULE_ITEMS,
+      params: {
+        tournamentId: sourceMatchUp?.tournamentId,
+        matchUpId: sourceMatchUp?.matchUpId,
+        schedule: updatedSourceSchedule,
+        drawId: sourceMatchUp?.drawId,
+        removePriorValues: true,
       },
-    ];
-    const callback = (result) => !result.success && console.log({ result });
-    mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
+    });
 
     // update the source data for future re-renders
     sourceMatchUp.schedule = updatedSourceSchedule;
@@ -102,20 +107,16 @@ export function matchUpDrop(ev, cell) {
   };
 
   const updateTargetMatchUp = () => {
-    const methods = [
-      {
-        method: ADD_MATCHUP_SCHEDULE_ITEMS,
-        params: {
-          tournamentId: targetMatchUp?.tournamentId,
-          matchUpId: targetMatchUp?.matchUpId,
-          schedule: updatedTargetSchedule,
-          drawId: targetMatchUp?.drawId,
-          removePriorValues: true,
-        },
+    methods.push({
+      method: ADD_MATCHUP_SCHEDULE_ITEMS,
+      params: {
+        tournamentId: targetMatchUp?.tournamentId,
+        matchUpId: targetMatchUp?.matchUpId,
+        schedule: updatedTargetSchedule,
+        drawId: targetMatchUp?.drawId,
+        removePriorValues: true,
       },
-    ];
-    const callback = (result) => !result.success && console.log({ result });
-    mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
+    });
 
     if (targetMatchUp) {
       targetMatchUp.schedule = updatedTargetSchedule;
@@ -185,5 +186,5 @@ export function matchUpDrop(ev, cell) {
     }
   }
 
-  updateConflicts(table);
+  invokeMethods();
 }
