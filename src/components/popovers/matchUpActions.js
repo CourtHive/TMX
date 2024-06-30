@@ -36,7 +36,11 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
       venueId: '',
     };
     const updateRow = () => {
-      if (!cell) return;
+      if (!cell) {
+        // clearing schedule in draw structure - need to re-render
+        callback({ refresh: true });
+        return;
+      }
       const row = cell.getRow();
       row.update({ ...data, ...schedule, courtName: '', venueName: '' });
     };
