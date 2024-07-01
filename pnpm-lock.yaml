@@ -105,8 +105,8 @@ importers:
         specifier: 4.0.2
         version: 4.0.2
       qs:
-        specifier: 6.12.1
-        version: 6.12.1
+        specifier: 6.12.2
+        version: 6.12.2
       quill:
         specifier: 2.0.2
         version: 2.0.2
@@ -735,9 +735,6 @@ packages:
 
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
-
-  '@event-calendar/core@3.0.2':
-    resolution: {integrity: sha512-EXwKFPSZk3uSecpsewRCZxPJ5ECjjD57WY9jS7rVwWpkwKbpn3DEvz+Gczs3BM82IR1OBlRj5qcPRrz7Ny6+DQ==}
 
   '@event-calendar/core@3.1.0':
     resolution: {integrity: sha512-hz6jpFeFUEb/mOu2vFn96wBFYEDYHb8lPyDjlaHqD4E02OXnLb/ej0kRWMu5NnF4aE7UEKq648Lx3cbH1QJrIw==}
@@ -3254,8 +3251,8 @@ packages:
     resolution: {integrity: sha512-OQiU+C+Ds5qiH91qh/mg0w+8nwQuLjM4F4M/PbmhDOoYehPh+Fb0bDjtR1sOvy7YKxvj28Y/M0PhP5uVX0kB+g==}
     engines: {node: '>=0.6'}
 
-  qs@6.12.1:
-    resolution: {integrity: sha512-zWmv4RSuB9r2mYQw3zxQuHWeU+42aKi1wWig/j4ele4ygELZ7PEO6MM7rim9oAQH2A5MWfsAVf/jPvTPgCbvUQ==}
+  qs@6.12.2:
+    resolution: {integrity: sha512-x+NLUpx9SYrcwXtX7ob1gnkSems4i/mGZX5SlYxwIau6RrUSODO89TR/XDGGpn5RPWSYIB+aSfuSlV5+CmbTBg==}
     engines: {node: '>=0.6'}
 
   querystringify@2.2.0:
@@ -4578,10 +4575,6 @@ snapshots:
     dependencies:
       svelte: 4.2.16
 
-  '@event-calendar/core@3.0.2':
-    dependencies:
-      svelte: 4.2.16
-
   '@event-calendar/core@3.1.0':
     dependencies:
       svelte: 4.2.16
@@ -4807,7 +4800,7 @@ snapshots:
       dequal: 2.0.3
       lodash: 4.17.21
       memoizerific: 1.11.3
-      qs: 6.12.1
+      qs: 6.12.2
       tiny-invariant: 1.3.3
       ts-dedent: 2.2.0
       util-deprecate: 1.0.2
@@ -7533,7 +7526,7 @@ snapshots:
     dependencies:
       side-channel: 1.0.6
 
-  qs@6.12.1:
+  qs@6.12.2:
     dependencies:
       side-channel: 1.0.6
 
@@ -8162,7 +8155,7 @@ snapshots:
   url@0.11.3:
     dependencies:
       punycode: 1.4.1
-      qs: 6.12.1
+      qs: 6.12.2
 
   util-deprecate@1.0.2: {}
 
