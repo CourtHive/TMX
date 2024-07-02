@@ -187,8 +187,8 @@ importers:
         specifier: 3.12.0
         version: 3.12.0
       cypress:
-        specifier: 13.12.0
-        version: 13.12.0
+        specifier: 13.13.0
+        version: 13.13.0
       cz-git:
         specifier: 1.9.3
         version: 1.9.3
@@ -735,9 +735,6 @@ packages:
 
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
-
-  '@event-calendar/core@3.0.2':
-    resolution: {integrity: sha512-EXwKFPSZk3uSecpsewRCZxPJ5ECjjD57WY9jS7rVwWpkwKbpn3DEvz+Gczs3BM82IR1OBlRj5qcPRrz7Ny6+DQ==}
 
   '@event-calendar/core@3.1.0':
     resolution: {integrity: sha512-hz6jpFeFUEb/mOu2vFn96wBFYEDYHb8lPyDjlaHqD4E02OXnLb/ej0kRWMu5NnF4aE7UEKq648Lx3cbH1QJrIw==}
@@ -1679,8 +1676,8 @@ packages:
   css.escape@1.5.1:
     resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
 
-  cypress@13.12.0:
-    resolution: {integrity: sha512-udzS2JilmI9ApO/UuqurEwOvThclin5ntz7K0BtnHBs+tg2Bl9QShLISXpSEMDv/u8b6mqdoAdyKeZiSqKWL8g==}
+  cypress@13.13.0:
+    resolution: {integrity: sha512-ou/MQUDq4tcDJI2FsPaod2FZpex4kpIK43JJlcBgWrX8WX7R/05ZxGTuxedOuZBfxjZxja+fbijZGyxiLP6CFA==}
     engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
 
@@ -4578,10 +4575,6 @@ snapshots:
     dependencies:
       svelte: 4.2.16
 
-  '@event-calendar/core@3.0.2':
-    dependencies:
-      svelte: 4.2.16
-
   '@event-calendar/core@3.1.0':
     dependencies:
       svelte: 4.2.16
@@ -5705,7 +5698,7 @@ snapshots:
 
   css.escape@1.5.1: {}
 
-  cypress@13.12.0:
+  cypress@13.13.0:
     dependencies:
       '@cypress/request': 3.0.1
       '@cypress/xvfb': 1.2.4(supports-color@8.1.1)
