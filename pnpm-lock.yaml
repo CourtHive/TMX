@@ -244,8 +244,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       url:
-        specifier: 0.11.3
-        version: 0.11.3
+        specifier: 0.11.4
+        version: 0.11.4
       vite:
         specifier: 5.4.1
         version: 5.4.1(@types/node@20.14.10)(sass@1.76.0)
@@ -3897,8 +3897,9 @@ packages:
   url-parse@1.5.10:
     resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
 
-  url@0.11.3:
-    resolution: {integrity: sha512-6hxOLGfZASQK/cijlZnZJTq8OXAkt/3YGfQX45vvMYXpZoo8NdWZcY73K108Jf759lS1Bv/8wXnHDTSz17dSRw==}
+  url@0.11.4:
+    resolution: {integrity: sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg==}
+    engines: {node: '>= 0.4'}
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -8368,7 +8369,7 @@ snapshots:
       querystringify: 2.2.0
       requires-port: 1.0.0
 
-  url@0.11.3:
+  url@0.11.4:
     dependencies:
       punycode: 1.4.1
       qs: 6.12.3
