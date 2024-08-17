@@ -36,8 +36,8 @@ importers:
         specifier: 4.1.1
         version: 4.1.1
       awesomplete:
-        specifier: 1.1.5
-        version: 1.1.5
+        specifier: 1.1.7
+        version: 1.1.7
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -1398,8 +1398,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  awesomplete@1.1.5:
-    resolution: {integrity: sha512-UFw1mPW8NaSECDSTC36HbAOTpF9JK2wBUJcNn4MSvlNtK7SZ9N72gB+ajHtA6D1abYXRcszZnBA4nHBwvFwzHw==}
+  awesomplete@1.1.7:
+    resolution: {integrity: sha512-hwClzFReIIfheoMWpoJ7juLp1o6Q7YjTtEdZIGfXvhRHA9ewKM03VS4ZoK+OEFIKM066PfQt9pzRIGV1TguRBw==}
 
   aws-sign2@0.7.0:
     resolution: {integrity: sha512-08kcGqnYf/YmjoRhfxyu+CLxBjUtHLXLXX/vUfx9l2LYzG3c1m61nrpyFUZI6zeS+Li/wWMMidD9KgrqtGq3mA==}
@@ -5519,7 +5519,7 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  awesomplete@1.1.5: {}
+  awesomplete@1.1.7: {}
 
   aws-sign2@0.7.0: {}
 
