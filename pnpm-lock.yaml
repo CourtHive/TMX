@@ -96,8 +96,8 @@ importers:
         specifier: 2.5.0
         version: 2.5.0
       pdfmake:
-        specifier: 0.2.10
-        version: 0.2.10
+        specifier: 0.2.12
+        version: 0.2.12
       pikaday:
         specifier: 1.8.2
         version: 1.8.2
@@ -3261,8 +3261,8 @@ packages:
     resolution: {integrity: sha512-iuh7L6jA7JEGu2WxDwtQP1ddOpaJNC4KlDEFfdQajSGgGPNi4OyDc2R7QnbY2bR9QjBVGwgvTdNJZoE7RaxUMA==}
     engines: {node: '>=0.12'}
 
-  pdfmake@0.2.10:
-    resolution: {integrity: sha512-doipFnmE1UHSk+Z3wfQuVweVQqx2pE/Ns2G5gCqZmWwqjDj+mZHnZYH/ryXWoIfD+iVdZUAutgI/VHkTCN+Xrw==}
+  pdfmake@0.2.12:
+    resolution: {integrity: sha512-TFsqaG6KVtk+TWermmJNNwom3wmB/xiz07prM74KBhdM+7pz3Uwq2b0uoqhhQRn6cYUTpL8lXZY6xF011o1YcQ==}
     engines: {node: '>=12'}
 
   pend@1.2.0:
@@ -7707,7 +7707,7 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.11
 
-  pdfmake@0.2.10:
+  pdfmake@0.2.12:
     dependencies:
       '@foliojs-fork/linebreak': 1.1.2
       '@foliojs-fork/pdfkit': 0.14.0
