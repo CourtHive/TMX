@@ -126,8 +126,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.2.9
-        version: 2.2.9
+        specifier: 2.2.11
+        version: 2.2.11
       typescript:
         specifier: 5.5.4
         version: 5.5.4
@@ -3788,6 +3788,10 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  tods-competition-factory@2.2.11:
+    resolution: {integrity: sha512-2Fqs9GDeYJaQqHaHhVDTonh7gYg5T5l/EJgK4p68zMiDSqRo34qVqgofTcqsbqLIfXbx42EUTRSyo8G+DjIjLw==}
+    engines: {node: '>=20'}
 
   tods-competition-factory@2.2.9:
     resolution: {integrity: sha512-8RRQR2VfUkHEv901kNnoTobD7BRkJnWSHYOcz0GamQTMVFlmXXuaguS9SScT0N/xyJDTtxix6YfSTELe7q6PPA==}
@@ -8284,6 +8288,8 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  tods-competition-factory@2.2.11: {}
 
   tods-competition-factory@2.2.9: {}
 
