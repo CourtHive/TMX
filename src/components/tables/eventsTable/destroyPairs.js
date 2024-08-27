@@ -7,6 +7,7 @@ import { context } from 'services/context';
 
 import { DESTROY_PAIR_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
+import { tmxToast } from 'services/notifications/tmxToast';
 
 const { UNGROUPED } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
@@ -38,6 +39,7 @@ export const destroySelected = (eventId, drawId) => (table) => {
         context.tables[UNGROUPED].updateOrAddData(entries);
       } else {
         table.deselectRow();
+        tmxToast({ message: result.error[0]?.message ?? 'Error destroying pair', intent: 'is-danger' });
       }
     };
     const params = {
