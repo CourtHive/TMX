@@ -214,8 +214,8 @@ importers:
         specifier: 9.1.5
         version: 9.1.5
       inquirer:
-        specifier: 10.2.0
-        version: 10.2.0
+        specifier: 10.2.2
+        version: 10.2.2
       lint-staged:
         specifier: 15.2.10
         version: 15.2.10
@@ -1339,8 +1339,8 @@ packages:
     resolution: {integrity: sha512-9KHOpJ+dIL5SZli8lJ6xdaYLPPzB8xB9GZItg39MBybzhxA16vxmszmQFrRwbOA918WA2rvu8xhDEg/p6LXKbw==}
     engines: {node: '>=18'}
 
-  '@inquirer/expand@2.2.0':
-    resolution: {integrity: sha512-PD0z1dTRTIlpcnXRMRvdVPfBe10jBf4i7YLBU8tNWDkf3HxqmdymVvqnT8XG+hxQSvqfpJCe13Jv2Iv1eB3bIg==}
+  '@inquirer/expand@2.3.0':
+    resolution: {integrity: sha512-qnJsUcOGCSG1e5DTOErmv2BPQqrtT6uzqn1vI/aYGiPKq+FgslGZmtdnXbhuI7IlT7OByDoEEqdnhUnVR2hhLw==}
     engines: {node: '>=18'}
 
   '@inquirer/figures@1.0.5':
@@ -1359,8 +1359,8 @@ packages:
     resolution: {integrity: sha512-5otqIpgsPYIshqhgtEwSspBQE40etouR8VIxzpJkv9i0dVHIpyhiivbkH9/dGiMLdyamT54YRdGJLfl8TFnLHg==}
     engines: {node: '>=18'}
 
-  '@inquirer/prompts@5.4.0':
-    resolution: {integrity: sha512-HIQGd7JOX6WXf7zg7WGs+1m+e3eRFyL4mDtWRlV01AXqZido9W3BSoku2BR4E1lK/NCXok6jg6tTcLw4I0thfg==}
+  '@inquirer/prompts@5.5.0':
+    resolution: {integrity: sha512-BHDeL0catgHdcHbSFFUddNzvx/imzJMft+tWDPwTm3hfu8/tApk1HrooNngB2Mb4qY+KaRWF+iZqoVUPeslEog==}
     engines: {node: '>=18'}
 
   '@inquirer/rawlist@2.3.0':
@@ -3243,8 +3243,8 @@ packages:
     resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  inquirer@10.2.0:
-    resolution: {integrity: sha512-OE/HDYrQAgeUPs3mKetfarr/EFiotdULUc7R2XvwqPHMEjFtCqNsfYDfCZ5baAKKtb9kCaKclNTTE9hSi7JFjg==}
+  inquirer@10.2.2:
+    resolution: {integrity: sha512-tyao/4Vo36XnUItZ7DnUXX4f1jVao2mSrleV/5IPtW/XAEA26hRVsbc68nuTEKWcr5vMP/1mVoT2O7u8H4v1Vg==}
     engines: {node: '>=18'}
 
   internal-slot@1.0.7:
@@ -6421,7 +6421,7 @@ snapshots:
       '@inquirer/type': 1.5.3
       external-editor: 3.1.0
 
-  '@inquirer/expand@2.2.0':
+  '@inquirer/expand@2.3.0':
     dependencies:
       '@inquirer/core': 9.1.0
       '@inquirer/type': 1.5.3
@@ -6445,12 +6445,12 @@ snapshots:
       '@inquirer/type': 1.5.3
       ansi-escapes: 4.3.2
 
-  '@inquirer/prompts@5.4.0':
+  '@inquirer/prompts@5.5.0':
     dependencies:
       '@inquirer/checkbox': 2.5.0
       '@inquirer/confirm': 3.2.0
       '@inquirer/editor': 2.2.0
-      '@inquirer/expand': 2.2.0
+      '@inquirer/expand': 2.3.0
       '@inquirer/input': 2.3.0
       '@inquirer/number': 1.1.0
       '@inquirer/password': 2.2.0
@@ -8860,9 +8860,10 @@ snapshots:
 
   ini@4.1.1: {}
 
-  inquirer@10.2.0:
+  inquirer@10.2.2:
     dependencies:
-      '@inquirer/prompts': 5.4.0
+      '@inquirer/core': 9.1.0
+      '@inquirer/prompts': 5.5.0
       '@inquirer/type': 1.5.3
       '@types/mute-stream': 0.0.4
       ansi-escapes: 4.3.2
