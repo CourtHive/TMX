@@ -69,7 +69,7 @@
     "cypress": "13.14.2",
     "cz-git": "1.9.4",
     "envfile": "7.1.0",
-    "eslint": "8.57.0",
+    "eslint": "8.57.1",
     "eslint-plugin-jsx-a11y": "6.10.0",
     "eslint-plugin-sonarjs": "2.0.2",
     "esm": "3.2.25",
