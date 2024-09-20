@@ -21,8 +21,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0
       '@event-calendar/list':
-        specifier: 3.4.0
-        version: 3.4.0
+        specifier: 3.5.0
+        version: 3.5.0
       '@event-calendar/resource-time-grid':
         specifier: 2.7.2
         version: 2.7.2
@@ -1271,14 +1271,17 @@ packages:
   '@event-calendar/core@3.4.0':
     resolution: {integrity: sha512-b7Kx214hRs6MNfRbnN/L29kgWsBI+Zv2KrU0Gp0H/alqN9yJR+6YNaqcaAo3NV4DiCo+9moBOlZ4KbbpZhnulQ==}
 
+  '@event-calendar/core@3.5.0':
+    resolution: {integrity: sha512-wKuaXi7YVhcNvm/jF288BPYlaPK497v3YHoi2UHmwNYjHYVPvm2NYEEUAvryvaiX5KZnd823XktZh5pXEWCFrA==}
+
   '@event-calendar/day-grid@3.4.0':
     resolution: {integrity: sha512-BlZLM4fiqb4kPtis4tX5jg8XcbhmIOesgc8qhUjooEmWcPc8GZvW4Ob0UYt0Js/HjX+u4IvNdVUsNDzJe8o2Dw==}
 
   '@event-calendar/interaction@3.4.0':
     resolution: {integrity: sha512-cizgMNdaPbeONCoBeMODglzn2dH6lLhpoaCdU4uBb2EOafe3DdtiK5yj+G4QjLOz+GcB3BomT8lwgzCQaD9akg==}
 
-  '@event-calendar/list@3.4.0':
-    resolution: {integrity: sha512-e1WuxTKN5fkVVepFKGyIm9z4o92hx/mT/XZ9oqr8CvJlbTmnvrD9It0d9OsWnluMGB3nKyqcVknCIoL+TVlYzw==}
+  '@event-calendar/list@3.5.0':
+    resolution: {integrity: sha512-qSt3SoDBSN06jhoOhDOxJrYfpyCnKtyENPmczGMWmFqQFg50fMkjnK39Yyzptj4oO2uoO4GZ6KmROuOr5L8vlg==}
 
   '@event-calendar/resource-time-grid@2.7.2':
     resolution: {integrity: sha512-kQBOYCOeA4ll1mIaesA8m2uiPgkVwzRRbTuZWmCKTZGu0IMceFqLkCWOBSFz4qUHtD9YctgD3XBeR0uKuY0yrA==}
@@ -4525,6 +4528,10 @@ packages:
     resolution: {integrity: sha512-mQwHpqHD2PmFcCyHaZ7XiTqposaLvJ75WpYcyY5/ce3qxbYtwQpZ+M7ZKP+2CG5U6kfnBZBpPLyofhlE6ROrnQ==}
     engines: {node: '>=16'}
 
+  svelte@4.2.19:
+    resolution: {integrity: sha512-IY1rnGr6izd10B0A8LqsBfmlT5OILVuZ7XsI0vdGPEvuonFV7NYEUK4dAkm9Zg2q0Um92kYjTpS1CAP3Nh/KWw==}
+    engines: {node: '>=16'}
+
   tabbable@6.2.0:
     resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
 
@@ -6344,6 +6351,10 @@ snapshots:
     dependencies:
       svelte: 4.2.16
 
+  '@event-calendar/core@3.5.0':
+    dependencies:
+      svelte: 4.2.19
+
   '@event-calendar/day-grid@3.4.0':
     dependencies:
       '@event-calendar/core': 3.4.0
@@ -6354,10 +6365,10 @@ snapshots:
       '@event-calendar/core': 3.4.0
       svelte: 4.2.16
 
-  '@event-calendar/list@3.4.0':
+  '@event-calendar/list@3.5.0':
     dependencies:
-      '@event-calendar/core': 3.4.0
-      svelte: 4.2.16
+      '@event-calendar/core': 3.5.0
+      svelte: 4.2.19
 
   '@event-calendar/resource-time-grid@2.7.2':
     dependencies:
@@ -10224,6 +10235,23 @@ snapshots:
       is-reference: 3.0.2
       locate-character: 3.0.0
       magic-string: 0.30.10
+      periscopic: 3.1.0
+
+  svelte@4.2.19:
+    dependencies:
+      '@ampproject/remapping': 2.3.0
+      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/trace-mapping': 0.3.25
+      '@types/estree': 1.0.5
+      acorn: 8.11.3
+      aria-query: 5.3.0
+      axobject-query: 4.1.0
+      code-red: 1.0.4
+      css-tree: 2.3.1
+      estree-walker: 3.0.3
+      is-reference: 3.0.2
+      locate-character: 3.0.0
+      magic-string: 0.30.11
       periscopic: 3.1.0
 
   tabbable@6.2.0: {}
