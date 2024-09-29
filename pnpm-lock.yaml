@@ -214,8 +214,8 @@ importers:
         specifier: 9.1.6
         version: 9.1.6
       inquirer:
-        specifier: 11.0.2
-        version: 11.0.2
+        specifier: 11.1.0
+        version: 11.1.0
       lint-staged:
         specifier: 15.2.10
         version: 15.2.10
@@ -1267,9 +1267,6 @@ packages:
 
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
-
-  '@event-calendar/core@3.4.0':
-    resolution: {integrity: sha512-b7Kx214hRs6MNfRbnN/L29kgWsBI+Zv2KrU0Gp0H/alqN9yJR+6YNaqcaAo3NV4DiCo+9moBOlZ4KbbpZhnulQ==}
 
   '@event-calendar/core@3.5.0':
     resolution: {integrity: sha512-wKuaXi7YVhcNvm/jF288BPYlaPK497v3YHoi2UHmwNYjHYVPvm2NYEEUAvryvaiX5KZnd823XktZh5pXEWCFrA==}
@@ -3261,8 +3258,8 @@ packages:
     resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  inquirer@11.0.2:
-    resolution: {integrity: sha512-pnbn3nL+JFrTw/pLhzyE/IQ3+gA3n5JxTAZQDjB6qu4gbjOaiTnpZbxT6HY2DDCT7bzDjTTsd3snRP+B6N//Pg==}
+  inquirer@11.1.0:
+    resolution: {integrity: sha512-CmLAZT65GG/v30c+D2Fk8+ceP6pxD6RL+hIUOWAltCmeyEqWYwqu9v76q03OvjyZ3AB0C1Ala2stn1z/rMqGEw==}
     engines: {node: '>=18'}
 
   internal-slot@1.0.7:
@@ -6339,10 +6336,6 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.4.0':
-    dependencies:
-      svelte: 4.2.19
-
   '@event-calendar/core@3.5.0':
     dependencies:
       svelte: 4.2.19
@@ -8893,7 +8886,7 @@ snapshots:
 
   ini@4.1.1: {}
 
-  inquirer@11.0.2:
+  inquirer@11.1.0:
     dependencies:
       '@inquirer/core': 9.2.1
       '@inquirer/prompts': 6.0.1
