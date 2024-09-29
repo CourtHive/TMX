@@ -190,8 +190,8 @@ importers:
         specifier: 13.15.0
         version: 13.15.0
       cz-git:
-        specifier: 1.9.4
-        version: 1.9.4
+        specifier: 1.10.0
+        version: 1.10.0
       envfile:
         specifier: 7.1.0
         version: 7.1.0
@@ -1267,9 +1267,6 @@ packages:
 
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
-
-  '@event-calendar/core@3.4.0':
-    resolution: {integrity: sha512-b7Kx214hRs6MNfRbnN/L29kgWsBI+Zv2KrU0Gp0H/alqN9yJR+6YNaqcaAo3NV4DiCo+9moBOlZ4KbbpZhnulQ==}
 
   '@event-calendar/core@3.5.0':
     resolution: {integrity: sha512-wKuaXi7YVhcNvm/jF288BPYlaPK497v3YHoi2UHmwNYjHYVPvm2NYEEUAvryvaiX5KZnd823XktZh5pXEWCFrA==}
@@ -2400,8 +2397,8 @@ packages:
     engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  cz-git@1.9.4:
-    resolution: {integrity: sha512-VntWcIEFfW8+7RgwYaRn1r10NhUkl8/8ZdJQRupEdqE7QXBCSjNP8hKSk9zhSLzYAsdXfGEAwiAYJM1T2Qsh8w==}
+  cz-git@1.10.0:
+    resolution: {integrity: sha512-WJidM6BwqJXPi2KUBzkUgZwZYh9U5VP5tJSIZ5G4+CDDv0lzLo8vrOrsWItE12f3xpAvlZTeQipreSczuaxFRA==}
     engines: {node: '>=v12.20.0'}
 
   d3-array@1.2.4:
@@ -6339,10 +6336,6 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.4.0':
-    dependencies:
-      svelte: 4.2.19
-
   '@event-calendar/core@3.5.0':
     dependencies:
       svelte: 4.2.19
@@ -7775,7 +7768,7 @@ snapshots:
       untildify: 4.0.0
       yauzl: 2.10.0
 
-  cz-git@1.9.4: {}
+  cz-git@1.10.0: {}
 
   d3-array@1.2.4: {}
 
