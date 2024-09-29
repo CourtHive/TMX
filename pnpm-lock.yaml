@@ -117,8 +117,8 @@ importers:
         specifier: 4.8.0
         version: 4.8.0
       tabulator-tables:
-        specifier: 6.2.5
-        version: 6.2.5
+        specifier: 6.3.0
+        version: 6.3.0
       timepicker-ui:
         specifier: 2.6.1
         version: 2.6.1
@@ -1267,9 +1267,6 @@ packages:
 
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
-
-  '@event-calendar/core@3.4.0':
-    resolution: {integrity: sha512-b7Kx214hRs6MNfRbnN/L29kgWsBI+Zv2KrU0Gp0H/alqN9yJR+6YNaqcaAo3NV4DiCo+9moBOlZ4KbbpZhnulQ==}
 
   '@event-calendar/core@3.5.0':
     resolution: {integrity: sha512-wKuaXi7YVhcNvm/jF288BPYlaPK497v3YHoi2UHmwNYjHYVPvm2NYEEUAvryvaiX5KZnd823XktZh5pXEWCFrA==}
@@ -4527,8 +4524,8 @@ packages:
   tabbable@6.2.0:
     resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
 
-  tabulator-tables@6.2.5:
-    resolution: {integrity: sha512-f/TI78hV+GNoBefdqQ4q5RXbP+vJkvwSwt7sqeCTriAchNXax3ekcT1GG3i2J+8mhz6dHg0PFKyCYfmMW45HEg==}
+  tabulator-tables@6.3.0:
+    resolution: {integrity: sha512-gFiivoa03+NCDJ28Na3UU45nJT7sFXBsFCBtMqXz5OpsNTWrmL5ZJYA4oZtDFaVfarPqUHNgwm2PhL6DR7CQxg==}
 
   telejson@7.2.0:
     resolution: {integrity: sha512-1QTEcJkJEhc8OnStBx/ILRu5J2p0GjvWsBx56bmZRqnrkdBMUe+nX92jxV+p3dB4CP6PZCdJMQJwCggkNBMzkQ==}
@@ -6336,10 +6333,6 @@ snapshots:
   '@eslint/js@8.57.1': {}
 
   '@event-calendar/core@2.7.2':
-    dependencies:
-      svelte: 4.2.19
-
-  '@event-calendar/core@3.4.0':
     dependencies:
       svelte: 4.2.19
 
@@ -10238,7 +10231,7 @@ snapshots:
 
   tabbable@6.2.0: {}
 
-  tabulator-tables@6.2.5: {}
+  tabulator-tables@6.3.0: {}
 
   telejson@7.2.0:
     dependencies:
