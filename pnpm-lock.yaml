@@ -27,8 +27,8 @@ importers:
         specifier: 2.7.2
         version: 2.7.2
       '@event-calendar/time-grid':
-        specifier: 3.5.0
-        version: 3.5.0
+        specifier: 3.6.1
+        version: 3.6.1
       '@stitches/core':
         specifier: 1.2.8
         version: 1.2.8
@@ -58,7 +58,7 @@ importers:
         version: 2.5.1
       courthive-components:
         specifier: 0.7.22
-        version: 0.7.22(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))
+        version: 0.7.22(vitest@2.1.2)
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -170,7 +170,7 @@ importers:
         version: 7.18.0(eslint@8.57.1)(typescript@5.6.2)
       '@vitest/coverage-v8':
         specifier: 2.1.2
-        version: 2.1.2(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))
+        version: 2.1.2(vitest@2.1.2)
       '@vitest/ui':
         specifier: 2.1.2
         version: 2.1.2(vitest@2.1.2)
@@ -260,10 +260,10 @@ importers:
         version: 2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0)
       vitest-github-actions-reporter:
         specifier: 0.11.1
-        version: 0.11.1(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))
+        version: 0.11.1(vitest@2.1.2)
       vitest-sonar-reporter:
         specifier: 2.0.0
-        version: 2.0.0(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))
+        version: 2.0.0(vitest@2.1.2)
       yargs:
         specifier: 17.7.2
         version: 17.7.2
@@ -1322,9 +1322,6 @@ packages:
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
 
-  '@event-calendar/core@3.5.0':
-    resolution: {integrity: sha512-wKuaXi7YVhcNvm/jF288BPYlaPK497v3YHoi2UHmwNYjHYVPvm2NYEEUAvryvaiX5KZnd823XktZh5pXEWCFrA==}
-
   '@event-calendar/core@3.6.1':
     resolution: {integrity: sha512-Q2ungvu3h/aZTf8bWDHUIja7Hxea2Et31riR+U8c95ZuCtwnLhxff1PSvrbGIOR1LPgZc9XYvPx91sM+Z/7Ybg==}
 
@@ -1343,8 +1340,8 @@ packages:
   '@event-calendar/time-grid@2.7.2':
     resolution: {integrity: sha512-KKX/Y6EUcueIFsOyn0ESircedpbIC0j06hr3XYcbmi8sYdzZRQ+mTVXVOUS5xwXEdiM31wCQLxrPfhR/sDKe8w==}
 
-  '@event-calendar/time-grid@3.5.0':
-    resolution: {integrity: sha512-PupNdecnberU4MvngVR8h/VH04ABzq9DmN6H9pwKs2tIoN8XkSKqjr2EEq4fLUJnzGXCZxxs8kBTwU2gyGqqcQ==}
+  '@event-calendar/time-grid@3.6.1':
+    resolution: {integrity: sha512-calixq1vk8QDfnGLUkrwlZ+6fbyS8KxdDqKTinTkwUTradjPLRvjmID6CUveNW2qltW4XGxiId9gi3BGbLCwBA==}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -6391,10 +6388,6 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.5.0':
-    dependencies:
-      svelte: 4.2.19
-
   '@event-calendar/core@3.6.1':
     dependencies:
       svelte: 4.2.19
@@ -6425,9 +6418,9 @@ snapshots:
       '@event-calendar/core': 2.7.2
       svelte: 4.2.19
 
-  '@event-calendar/time-grid@3.5.0':
+  '@event-calendar/time-grid@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.5.0
+      '@event-calendar/core': 3.6.1
       svelte: 4.2.19
 
   '@fastify/busboy@2.1.1': {}
@@ -6725,14 +6718,14 @@ snapshots:
       ts-dedent: 2.2.0
       util-deprecate: 1.0.2
 
-  '@storybook/test@8.0.9(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))':
+  '@storybook/test@8.0.9(vitest@2.1.2)':
     dependencies:
       '@storybook/client-logger': 8.0.9
       '@storybook/core-events': 8.0.9
       '@storybook/instrumenter': 8.0.9
       '@storybook/preview-api': 8.0.9
       '@testing-library/dom': 9.3.4
-      '@testing-library/jest-dom': 6.4.2(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))
+      '@testing-library/jest-dom': 6.4.2(vitest@2.1.2)
       '@testing-library/user-event': 14.5.2(@testing-library/dom@9.3.4)
       '@vitest/expect': 1.3.1
       '@vitest/spy': 1.6.0
@@ -6767,7 +6760,7 @@ snapshots:
       lz-string: 1.5.0
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@6.4.2(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))':
+  '@testing-library/jest-dom@6.4.2(vitest@2.1.2)':
     dependencies:
       '@adobe/css-tools': 4.3.3
       '@babel/runtime': 7.24.5
@@ -7028,7 +7021,7 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitest/coverage-v8@2.1.2(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))':
+  '@vitest/coverage-v8@2.1.2(vitest@2.1.2)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -7712,10 +7705,10 @@ snapshots:
     optionalDependencies:
       typescript: 5.6.2
 
-  courthive-components@0.7.22(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0)):
+  courthive-components@0.7.22(vitest@2.1.2):
     dependencies:
       '@stitches/core': 1.2.8
-      '@storybook/test': 8.0.9(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0))
+      '@storybook/test': 8.0.9(vitest@2.1.2)
       bulma: 1.0.2
       class-variance-authority: 0.7.0
       classnames: 2.5.1
@@ -10543,12 +10536,12 @@ snapshots:
       fsevents: 2.3.3
       sass: 1.76.0
 
-  vitest-github-actions-reporter@0.11.1(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0)):
+  vitest-github-actions-reporter@0.11.1(vitest@2.1.2):
     dependencies:
       '@actions/core': 1.10.1
       vitest: 2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0)
 
-  vitest-sonar-reporter@2.0.0(vitest@2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0)):
+  vitest-sonar-reporter@2.0.0(vitest@2.1.2):
     dependencies:
       vitest: 2.1.2(@types/node@20.16.10)(@vitest/ui@2.1.2)(sass@1.76.0)
 
