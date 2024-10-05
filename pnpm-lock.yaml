@@ -18,8 +18,8 @@ importers:
         specifier: 3.6.1
         version: 3.6.1
       '@event-calendar/interaction':
-        specifier: 3.5.0
-        version: 3.5.0
+        specifier: 3.6.1
+        version: 3.6.1
       '@event-calendar/list':
         specifier: 3.5.0
         version: 3.5.0
@@ -1331,8 +1331,8 @@ packages:
   '@event-calendar/day-grid@3.6.1':
     resolution: {integrity: sha512-YKJwysDnnys1knIlCV6W2AS1r+zC0P5Xcc8TPW7uAmXF/C/GO4nobi78xJXw8U1suYV3zXzY5vG1+s/wUIEyaA==}
 
-  '@event-calendar/interaction@3.5.0':
-    resolution: {integrity: sha512-vwAawOZpO0JBa9++YdsQeDWpDXz942EoVFSxixIv+xBURxv+NvAiA3b6VQun5sPACQHg7wL3pGK2ekW2fnf4og==}
+  '@event-calendar/interaction@3.6.1':
+    resolution: {integrity: sha512-0eovxWrJSYU9x2CyJHaW0M+cKLubyBB2hPZLoI0sRMrCu52XppxKo7cIHp9WpmooYsyFWTerFkaIEB5s3WR1RA==}
 
   '@event-calendar/list@3.5.0':
     resolution: {integrity: sha512-qSt3SoDBSN06jhoOhDOxJrYfpyCnKtyENPmczGMWmFqQFg50fMkjnK39Yyzptj4oO2uoO4GZ6KmROuOr5L8vlg==}
@@ -6415,9 +6415,9 @@ snapshots:
       '@event-calendar/core': 3.6.1
       svelte: 4.2.19
 
-  '@event-calendar/interaction@3.5.0':
+  '@event-calendar/interaction@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.5.0
+      '@event-calendar/core': 3.6.1
       svelte: 4.2.19
 
   '@event-calendar/list@3.5.0':
@@ -9390,8 +9390,8 @@ snapshots:
 
   magicast@0.3.4:
     dependencies:
-      '@babel/parser': 7.25.4
-      '@babel/types': 7.25.4
+      '@babel/parser': 7.25.7
+      '@babel/types': 7.25.7
       source-map-js: 1.2.0
 
   make-dir@4.0.0:
