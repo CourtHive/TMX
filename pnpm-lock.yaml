@@ -27,8 +27,8 @@ importers:
         specifier: 2.7.2
         version: 2.7.2
       '@event-calendar/time-grid':
-        specifier: 3.5.0
-        version: 3.5.0
+        specifier: 3.6.1
+        version: 3.6.1
       '@stitches/core':
         specifier: 1.2.8
         version: 1.2.8
@@ -1322,9 +1322,6 @@ packages:
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
 
-  '@event-calendar/core@3.5.0':
-    resolution: {integrity: sha512-wKuaXi7YVhcNvm/jF288BPYlaPK497v3YHoi2UHmwNYjHYVPvm2NYEEUAvryvaiX5KZnd823XktZh5pXEWCFrA==}
-
   '@event-calendar/core@3.6.1':
     resolution: {integrity: sha512-Q2ungvu3h/aZTf8bWDHUIja7Hxea2Et31riR+U8c95ZuCtwnLhxff1PSvrbGIOR1LPgZc9XYvPx91sM+Z/7Ybg==}
 
@@ -1343,8 +1340,8 @@ packages:
   '@event-calendar/time-grid@2.7.2':
     resolution: {integrity: sha512-KKX/Y6EUcueIFsOyn0ESircedpbIC0j06hr3XYcbmi8sYdzZRQ+mTVXVOUS5xwXEdiM31wCQLxrPfhR/sDKe8w==}
 
-  '@event-calendar/time-grid@3.5.0':
-    resolution: {integrity: sha512-PupNdecnberU4MvngVR8h/VH04ABzq9DmN6H9pwKs2tIoN8XkSKqjr2EEq4fLUJnzGXCZxxs8kBTwU2gyGqqcQ==}
+  '@event-calendar/time-grid@3.6.1':
+    resolution: {integrity: sha512-calixq1vk8QDfnGLUkrwlZ+6fbyS8KxdDqKTinTkwUTradjPLRvjmID6CUveNW2qltW4XGxiId9gi3BGbLCwBA==}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -6385,10 +6382,6 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.5.0':
-    dependencies:
-      svelte: 4.2.19
-
   '@event-calendar/core@3.6.1':
     dependencies:
       svelte: 4.2.19
@@ -6419,9 +6412,9 @@ snapshots:
       '@event-calendar/core': 2.7.2
       svelte: 4.2.19
 
-  '@event-calendar/time-grid@3.5.0':
+  '@event-calendar/time-grid@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.5.0
+      '@event-calendar/core': 3.6.1
       svelte: 4.2.19
 
   '@fastify/busboy@2.1.1': {}
