@@ -12,8 +12,8 @@ importers:
         specifier: 7.25.7
         version: 7.25.7(@babel/core@7.25.7)
       '@event-calendar/core':
-        specifier: 3.6.1
-        version: 3.6.1
+        specifier: 3.6.2
+        version: 3.6.2
       '@event-calendar/day-grid':
         specifier: 3.6.1
         version: 3.6.1
@@ -1322,8 +1322,8 @@ packages:
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
 
-  '@event-calendar/core@3.6.1':
-    resolution: {integrity: sha512-Q2ungvu3h/aZTf8bWDHUIja7Hxea2Et31riR+U8c95ZuCtwnLhxff1PSvrbGIOR1LPgZc9XYvPx91sM+Z/7Ybg==}
+  '@event-calendar/core@3.6.2':
+    resolution: {integrity: sha512-DUSKtuhc49Uhjadk3sBQnB0ZaR8JeZnxcmA5xAN2Gv7HLNinXcUOPOwuraBeL25nASxGgAQ7kQxDSgv4EOxcmQ==}
 
   '@event-calendar/day-grid@3.6.1':
     resolution: {integrity: sha512-YKJwysDnnys1knIlCV6W2AS1r+zC0P5Xcc8TPW7uAmXF/C/GO4nobi78xJXw8U1suYV3zXzY5vG1+s/wUIEyaA==}
@@ -6382,23 +6382,23 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.6.1':
+  '@event-calendar/core@3.6.2':
     dependencies:
       svelte: 4.2.19
 
   '@event-calendar/day-grid@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.6.1
+      '@event-calendar/core': 3.6.2
       svelte: 4.2.19
 
   '@event-calendar/interaction@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.6.1
+      '@event-calendar/core': 3.6.2
       svelte: 4.2.19
 
   '@event-calendar/list@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.6.1
+      '@event-calendar/core': 3.6.2
       svelte: 4.2.19
 
   '@event-calendar/resource-time-grid@2.7.2':
@@ -6414,7 +6414,7 @@ snapshots:
 
   '@event-calendar/time-grid@3.6.1':
     dependencies:
-      '@event-calendar/core': 3.6.1
+      '@event-calendar/core': 3.6.2
       svelte: 4.2.19
 
   '@fastify/busboy@2.1.1': {}
@@ -7629,7 +7629,7 @@ snapshots:
   code-red@1.0.4:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.6
       acorn: 8.11.3
       estree-walker: 3.0.3
       periscopic: 3.1.0
@@ -9058,7 +9058,7 @@ snapshots:
 
   is-reference@3.0.2:
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.6
 
   is-regex@1.1.4:
     dependencies:
@@ -9663,7 +9663,7 @@ snapshots:
 
   periscopic@3.1.0:
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.6
       estree-walker: 3.0.3
       is-reference: 3.0.2
 
@@ -10240,7 +10240,7 @@ snapshots:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.6
       acorn: 8.11.3
       aria-query: 5.3.0
       axobject-query: 4.1.0
