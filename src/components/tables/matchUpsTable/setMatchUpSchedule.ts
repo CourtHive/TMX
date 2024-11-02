@@ -20,7 +20,7 @@ export function setMatchUpSchedule(params: SetMatchUpScheduleParams) {
 
   const postMutation = (result) => {
     if (result.success) {
-      isFunction(callback) && callback();
+      if (callback && isFunction(callback)) callback();
     }
   };
 

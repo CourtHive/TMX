@@ -122,7 +122,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         const bing = `https://bing.com/maps/default.aspx?cp=${latitude}~${longitude}&lvl=17&style=h`;
         const openMap = (provider) => {
           const url = provider && latitude && longitude && ((provider === 'google' && google) || bing);
-          url && window.open(url, '_blank');
+          if (url) window.open(url, '_blank');
         };
         const venueOptions = [
           { heading: 'Venue Location' },

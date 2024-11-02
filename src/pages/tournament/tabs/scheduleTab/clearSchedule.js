@@ -72,7 +72,7 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
 
     const postMutation = (result) => {
       if (result.success) {
-        isFunction(callback) && callback();
+        if (isFunction(callback)) callback();
       }
     };
     mutationRequest({ methods, callback: postMutation });
