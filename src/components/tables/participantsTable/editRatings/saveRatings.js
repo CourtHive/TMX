@@ -1,6 +1,6 @@
 import { toggleEditVisibility } from '../../common/toggleEditVisibility';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
+// import { tournamentEngine } from 'tods-competition-factory';
 
 import { ADD_PARTICIPANT_TIME_ITEM } from 'constants/mutationConstants';
 
@@ -17,10 +17,10 @@ export function saveRatings(e, table) {
   table.showColumn('ratings.wtn.wtnRating');
   table.redraw(true);
 
-  const { participantMap } = tournamentEngine.getParticipants({ withScaleValues: true });
-  // TODO: check the cellValue against the current value in the participantMap and only update if different
-  // TODO: factory method to bulk update participant scale values
-  !!participantMap;
+  // const { participantMap } = tournamentEngine.getParticipants({ withScaleValues: true });
+  // check the cellValue against the current value in the participantMap and only update if different
+  // factory method to bulk update participant scale values
+  // !!participantMap;
 
   const rows = table.getData();
   const methods = rows.flatMap((row) => {

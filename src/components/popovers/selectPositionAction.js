@@ -12,8 +12,8 @@ const actionLabels = {
   REMOVE: 'Remove assignment',
   QUALIFIER: 'Assign qualifier',
   LUCKY: 'Assign Lucky Loser',
-  // REMOVE_SEED: 'Remove seed', // TODO: implement
-  // PENALTY: 'Assign penalty', // TODO: implement
+  // REMOVE_SEED: 'Remove seed',
+  // PENALTY: 'Assign penalty',
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
   WITHDRAW: 'Withdraw participant',
@@ -22,10 +22,10 @@ const actionLabels = {
 export function selectPositionAction({ pointerEvent, actions, callback }) {
   const target = pointerEvent.target;
   const handleClick = (action) => {
-    ['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT'].includes(action.type) && noChoiceAction({ action, callback });
-    ['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER', 'LUCKY'].includes(action.type) &&
+    if (['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT'].includes(action.type)) noChoiceAction({ action, callback });
+    if (['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER', 'LUCKY'].includes(action.type))
       assignParticipant({ action, callback });
-    ['SEED_VALUE'].includes(action.type) && assignSeed({ target, action, callback });
+    if (['SEED_VALUE'].includes(action.type)) assignSeed({ target, action, callback });
   };
   const options = actions
     ?.filter(({ type }) => actionLabels[type])
