@@ -184,8 +184,8 @@ importers:
         specifier: 10.1.2
         version: 10.1.2
       crypto-browserify:
-        specifier: 3.12.0
-        version: 3.12.0
+        specifier: 3.12.1
+        version: 3.12.1
       cypress:
         specifier: 13.15.1
         version: 13.15.1
@@ -2418,8 +2418,9 @@ packages:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
     engines: {node: '>= 8'}
 
-  crypto-browserify@3.12.0:
-    resolution: {integrity: sha512-fz4spIh+znjO2VjL+IdhEpRJ3YN6sMzITSBijk6FK2UvTqruSQW+/cCZTSNsMiZNvUeq0CqurF+dAbyiGOY6Wg==}
+  crypto-browserify@3.12.1:
+    resolution: {integrity: sha512-r4ESw/IlusD17lgQi1O20Fa3qNnsckR126TdUuBgAu7GBYSIPvdNyONd3Zrxh0xCwA4+6w/TDArBPsMvhur+KQ==}
+    engines: {node: '>= 0.10'}
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
@@ -7722,7 +7723,7 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  crypto-browserify@3.12.0:
+  crypto-browserify@3.12.1:
     dependencies:
       browserify-cipher: 1.0.1
       browserify-sign: 4.2.3
@@ -7730,6 +7731,7 @@ snapshots:
       create-hash: 1.2.0
       create-hmac: 1.1.7
       diffie-hellman: 5.0.3
+      hash-base: 3.0.4
       inherits: 2.0.4
       pbkdf2: 3.1.2
       public-encrypt: 4.0.3
