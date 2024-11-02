@@ -100,7 +100,7 @@
     "@event-calendar/core": "3.6.2",
     "@event-calendar/day-grid": "3.6.2",
     "@event-calendar/interaction": "3.6.1",
-    "@event-calendar/list": "3.6.1",
+    "@event-calendar/list": "3.6.2",
     "@event-calendar/resource-time-grid": "2.7.2",
     "@event-calendar/time-grid": "3.6.1",
     "@stitches/core": "1.2.8",
