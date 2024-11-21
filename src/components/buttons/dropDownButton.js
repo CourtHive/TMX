@@ -127,9 +127,7 @@ export function dropDownButton({ target, button, stateChange }) {
       item.classList.add('dropdown-divider');
       item.classList.add(FONT_MEDIUM);
       content.appendChild(item);
-    } else {
-      if (!option.hide) content.appendChild(createAnchor(option));
-    }
+    } else if (!option.hide) content.appendChild(createAnchor(option));
   }
 
   if (button.options?.length) {

@@ -32,7 +32,7 @@ export function initScrollNav() {
     }
   };
 
-  var throttleTimer;
+  let throttleTimer;
 
   const throttle = (callback, time) => {
     if (throttleTimer) return;

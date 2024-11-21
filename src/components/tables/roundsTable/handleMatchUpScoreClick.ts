@@ -11,12 +11,10 @@ export const handleScoreClick = (replaceTableData) => (_, cell) => {
   if (matchUpType === TEAM) {
     const onClose = () => replaceTableData();
     openScorecard({ title: eventName, matchUpId, drawId, onClose });
-  } else {
-    if (readyToScore || scoreGovernor.checkScoreHasValue(data.matchUp)) {
+  } else if (readyToScore || scoreGovernor.checkScoreHasValue(data.matchUp)) {
       const callback = () => {
         replaceTableData();
       };
       enterMatchUpScore({ matchUp: data.matchUp, matchUpId, callback });
     }
-  }
 };
