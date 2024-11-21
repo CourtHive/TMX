@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 
 module.exports = [
   js.configs.recommended,
-  ...compat.extends('plugin:@typescript-eslint/recommended', 'plugin:sonarjs/recommended'),
+  ...compat.extends('plugin:@typescript-eslint/recommended', 'plugin:sonarjs/recommended-legacy'),
   { plugins: { sonarjs: eslintPluginSonarjs } },
   {
     languageOptions: {
