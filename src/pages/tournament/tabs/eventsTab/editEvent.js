@@ -270,14 +270,12 @@ export function editEvent({ table, event, participants, callback } = {}) {
       if (result.success) {
         const event = result.results?.[0]?.event;
         if (isFunction(callback)) callback({ ...result, event, eventUpdates });
-      } else {
-        if (result.error) {
+      } else if (result.error) {
           tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
           if (isFunction(callback)) {
             callback();
           }
         }
-      }
     };
 
     if (event) {
