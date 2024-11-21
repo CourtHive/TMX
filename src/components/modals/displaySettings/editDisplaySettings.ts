@@ -155,7 +155,7 @@ export function editDisplaySettings(params) {
       onChange: ({ e }) => {
         const display = !noScheduleInfo.includes(e.target.value);
         const elem = document.getElementById('scheduleToggle');
-        elem.style.display = display ? 'block' : NONE;
+        if (elem) elem.style.display = display ? 'block' : NONE;
       },
       control: 'composition',
     },
@@ -163,7 +163,9 @@ export function editDisplaySettings(params) {
   selections.inputs = renderForm(formElement, formElements, relationships);
 
   const saveComposition = () => {
-    const postMutation = () => {};
+    const postMutation = () => {
+      console.log('Mutation completed');
+    };
     const existingValue = tournamentEngine.findExtension({
       name: extensionConstants.DISPLAY,
       discover: true,
@@ -181,7 +183,7 @@ export function editDisplaySettings(params) {
     const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
     const methods = [{ method, params: { eventId, drawId, extension } }];
     mutationRequest({ methods, callback: postMutation });
-    isFunction(callback) && callback(selections.composition);
+    if (isFunction(callback)) callback(selections.composition);
     env.composition = selections.composition;
   };
 

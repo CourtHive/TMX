@@ -90,7 +90,7 @@ export function setDev() {
         console.log({ error: result.error });
       } else {
         const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
-        tournamentRecord && loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
+        if (tournamentRecord) loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
       }
     });
   };
@@ -135,8 +135,8 @@ function addDev(variable) {
   try {
     Object.keys(variable).forEach((key) => (window.dev[key] = variable[key]));
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log('production environment');
+    tmxToast({ message: 'An error occurred while adding dev variables', intent: 'is-danger' });
+    console.error('Error adding dev variables:', err);
   }
 }
 
@@ -144,7 +144,7 @@ function load(json) {
   if (typeof json === 'object') {
     const tournamentRecord = json.tournamentRecord || json;
     const tournamentId = tournamentRecord?.tournamentId;
-    tournamentId && addAndDisplay(tournamentRecord);
+    if (tournamentId) addAndDisplay(tournamentRecord);
   }
 }
 
