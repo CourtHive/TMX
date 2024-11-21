@@ -197,7 +197,7 @@ export const dd = (function () {
     },
     borderColor(color) {
       if (color) this.bordercolor = color;
-      if (this.bordercolor && this.options && this.options.style)
+      if (this.bordercolor && this.options?.style)
         this.options.style.border = `1px solid ${this.bordercolor}`;
     }
   };

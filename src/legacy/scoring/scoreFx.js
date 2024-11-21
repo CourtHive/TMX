@@ -12,7 +12,7 @@ export const scoreFx = (function () {
   // target is an object which *must* have all keys defined.
   // preference is given to the *first* object processed
   function assignKeys({ source = {}, objects = [] }) {
-    let target = Object.assign({}, source);
+    let target = { ...source};
     if (objects && !Array.isArray(objects)) objects = [objects];
     objects = objects.filter((f) => f);
     objects.forEach((o) => {
@@ -75,7 +75,7 @@ export const scoreFx = (function () {
     let matchFormats = env.scoreboard.matchFormats;
     let formats = { S: 'singles', D: 'doubles' };
     if (Object.keys(formats).indexOf(format) >= 0) format = formats[format];
-    if (format && category && matchFormats.categories[category] && matchFormats.categories[category][format])
+    if (format && category && matchFormats.categories[category]?.[format])
       return matchFormats.categories[category][format];
     if (format && matchFormats[format]) return matchFormats[format];
     return matchFormats.singles;
