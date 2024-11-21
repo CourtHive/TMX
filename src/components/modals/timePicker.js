@@ -40,8 +40,8 @@ function splitTime(value) {
   value = value || '00:00';
   let o = {},
     time = {};
-  ({ 0: o.time, 1: o.ampm } = (value && value.split(' ')) || '');
-  ({ 0: time.hours, 1: time.minutes } = (o.time && o.time.split(':')) || '');
+  ({ 0: o.time, 1: o.ampm } = (value?.split(' ')) || '');
+  ({ 0: time.hours, 1: time.minutes } = (o.time?.split(':')) || '');
   time.ampm = o.ampm;
   return time;
 }

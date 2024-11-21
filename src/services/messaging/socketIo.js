@@ -64,7 +64,7 @@ export function connected() {
 }
 
 export function disconnectSocket() {
-  oi?.socket && oi.socket.disconnect();
+  oi?.socket?.disconnect();
   setTimeout(() => delete oi.socket, 1000);
 }
 
