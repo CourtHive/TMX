@@ -102,8 +102,8 @@ importers:
         specifier: 2.5.0
         version: 2.5.0
       pdfmake:
-        specifier: 0.2.14
-        version: 0.2.14
+        specifier: 0.2.15
+        version: 0.2.15
       pikaday:
         specifier: 1.8.2
         version: 1.8.2
@@ -1255,8 +1255,8 @@ packages:
   '@foliojs-fork/linebreak@1.1.2':
     resolution: {integrity: sha512-ZPohpxxbuKNE0l/5iBJnOAfUaMACwvUIKCvqtWGKIMv1lPYoNjYXRfhi9FeeV9McBkBLxsMFWTVVhHJA8cyzvg==}
 
-  '@foliojs-fork/pdfkit@0.14.0':
-    resolution: {integrity: sha512-nMOiQAv6id89MT3tVTCgc7HxD5ZMANwio2o5yvs5sexQkC0KI3BLaLakpsrHmFfeGFAhqPmZATZGbJGXTUebpg==}
+  '@foliojs-fork/pdfkit@0.15.1':
+    resolution: {integrity: sha512-4Cq2onHZAhThIfzv3/AFTPALqHzbmV8uNvgRELULWNbsZATgVeqEL4zHOzCyblLfX6tMXVO2BVaPcXboIxGjiw==}
 
   '@foliojs-fork/restructure@2.0.2':
     resolution: {integrity: sha512-59SgoZ3EXbkfSX7b63tsou/SDGzwUEK6MuB5sKqgVK1/XE0fxmpsOb9DQI8LXW3KfGnAjImCGhhEb7uPPAUVNA==}
@@ -3447,6 +3447,9 @@ packages:
     resolution: {integrity: sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==}
     hasBin: true
 
+  jpeg-exif@1.1.4:
+    resolution: {integrity: sha512-a+bKEcCjtuW5WTdgeXFzswSrdqi0jk4XlEtZlx5A94wCoBpFjfFTbo/Tra5SpNCl/YFZPvcV1dJc+TAYeg6ROQ==}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -3961,8 +3964,8 @@ packages:
     resolution: {integrity: sha512-iuh7L6jA7JEGu2WxDwtQP1ddOpaJNC4KlDEFfdQajSGgGPNi4OyDc2R7QnbY2bR9QjBVGwgvTdNJZoE7RaxUMA==}
     engines: {node: '>=0.12'}
 
-  pdfmake@0.2.14:
-    resolution: {integrity: sha512-x9gXFAY37/CAC/WaZB/683E4Pi0cVW/RMTTNxMpe4I2kRsKv8AE3Pz6+n7iTfn+84/GtSg99BjZkYh7oGFCKmg==}
+  pdfmake@0.2.15:
+    resolution: {integrity: sha512-Ryef9mjxo6q8dthhbssAK0zwCsPZ6Pl7kCHnIEXOvQdd79LUGZD6SHGi21YryFXczPjvw6V009uxQwp5iritcA==}
     engines: {node: '>=18'}
 
   pend@1.2.0:
@@ -6235,11 +6238,12 @@ snapshots:
       base64-js: 1.3.1
       unicode-trie: 2.0.0
 
-  '@foliojs-fork/pdfkit@0.14.0':
+  '@foliojs-fork/pdfkit@0.15.1':
     dependencies:
       '@foliojs-fork/fontkit': 1.9.2
       '@foliojs-fork/linebreak': 1.1.2
       crypto-js: 4.2.0
+      jpeg-exif: 1.1.4
       png-js: 1.0.0
 
   '@foliojs-fork/restructure@2.0.2': {}
@@ -8947,6 +8951,8 @@ snapshots:
 
   jiti@1.21.0: {}
 
+  jpeg-exif@1.1.4: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@4.1.0:
@@ -9433,10 +9439,10 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.11
 
-  pdfmake@0.2.14:
+  pdfmake@0.2.15:
     dependencies:
       '@foliojs-fork/linebreak': 1.1.2
-      '@foliojs-fork/pdfkit': 0.14.0
+      '@foliojs-fork/pdfkit': 0.15.1
       iconv-lite: 0.6.3
       xmldoc: 1.3.0
 
