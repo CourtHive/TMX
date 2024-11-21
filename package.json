@@ -133,7 +133,7 @@
     "qs": "6.13.0",
     "quill": "2.0.2",
     "rxjs": "7.8.1",
-    "socket.io-client": "4.8.0",
+    "socket.io-client": "4.8.1",
     "tabulator-tables": "6.3.0",
     "timepicker-ui": "2.6.1",
     "tippy.js": "6.3.7",
