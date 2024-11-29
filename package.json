@@ -100,7 +100,7 @@
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.14.0",
     "@event-calendar/core": "3.6.2",
-    "@event-calendar/day-grid": "3.6.2",
+    "@event-calendar/day-grid": "3.7.1",
     "@event-calendar/interaction": "3.6.2",
     "@event-calendar/list": "3.6.2",
     "@event-calendar/resource-time-grid": "2.7.2",
