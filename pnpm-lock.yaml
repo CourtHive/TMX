@@ -18,8 +18,8 @@ importers:
         specifier: ^9.14.0
         version: 9.14.0
       '@event-calendar/core':
-        specifier: 3.6.2
-        version: 3.6.2
+        specifier: 3.7.1
+        version: 3.7.1
       '@event-calendar/day-grid':
         specifier: 3.6.2
         version: 3.6.2
@@ -1224,8 +1224,8 @@ packages:
   '@event-calendar/core@3.6.2':
     resolution: {integrity: sha512-DUSKtuhc49Uhjadk3sBQnB0ZaR8JeZnxcmA5xAN2Gv7HLNinXcUOPOwuraBeL25nASxGgAQ7kQxDSgv4EOxcmQ==}
 
-  '@event-calendar/core@3.7.0':
-    resolution: {integrity: sha512-dib31CLpy1OND+79R7yuQMwhlYeNq24os+bsfjVl4+6MlkSM8m34pLzxG0Z9Vo2uIqnuyBlpdINg5G4Zyf+oBw==}
+  '@event-calendar/core@3.7.1':
+    resolution: {integrity: sha512-S5D4arG7b47uhXmcT/rC7FT3UO9+KB+QhDuhfOzDgKCpAFlEBU1wt1UoHmPTbGy3J+yVMR+rmcresYUvM44+pA==}
 
   '@event-calendar/day-grid@3.6.2':
     resolution: {integrity: sha512-nDMipE8NhscXUgkE9u5+4cd0VEoJZ3oQOYhEFwp79UyWbqG20JMSWPSfss1Vju3y3lc80PgLTAedM3QbwgWOrg==}
@@ -3674,9 +3674,6 @@ packages:
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
-
-  magic-string@0.30.11:
-    resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
 
   magic-string@0.30.12:
     resolution: {integrity: sha512-Ea8I3sQMVXr8JhN4z+H/d8zwo+tYDgHE9+5G4Wnrwhs0gaK9fXTKx0Tw5Xwsd/bCPTTZNRAdpyzvoeORe9LYpw==}
@@ -6205,7 +6202,7 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.7.0':
+  '@event-calendar/core@3.7.1':
     dependencies:
       svelte: 4.2.19
 
@@ -6237,7 +6234,7 @@ snapshots:
 
   '@event-calendar/time-grid@3.7.0':
     dependencies:
-      '@event-calendar/core': 3.7.0
+      '@event-calendar/core': 3.7.1
       svelte: 4.2.19
 
   '@fastify/busboy@2.1.1': {}
@@ -7431,7 +7428,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
       '@types/estree': 1.0.6
-      acorn: 8.11.3
+      acorn: 8.14.0
       estree-walker: 3.0.3
       periscopic: 3.1.0
 
@@ -9195,10 +9192,6 @@ snapshots:
 
   lz-string@1.5.0: {}
 
-  magic-string@0.30.11:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.0
-
   magic-string@0.30.12:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -10073,15 +10066,15 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
       '@types/estree': 1.0.6
-      acorn: 8.11.3
-      aria-query: 5.3.0
+      acorn: 8.14.0
+      aria-query: 5.3.2
       axobject-query: 4.1.0
       code-red: 1.0.4
       css-tree: 2.3.1
       estree-walker: 3.0.3
       is-reference: 3.0.2
       locate-character: 3.0.0
-      magic-string: 0.30.11
+      magic-string: 0.30.12
       periscopic: 3.1.0
 
   tabbable@6.2.0: {}
