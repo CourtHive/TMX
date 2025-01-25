@@ -119,7 +119,7 @@
     "dayjs": "1.11.13",
     "dexie": "4.0.11",
     "esri-leaflet": "3.0.14",
-    "focus-trap": "7.6.2",
+    "focus-trap": "7.6.4",
     "hotkeys-js": "3.13.7",
     "https-browserify": "1.0.0",
     "jwt-decode": "4.0.0",
