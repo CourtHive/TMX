@@ -76,7 +76,7 @@
     "globals": "15.14.0",
     "husky": "9.1.7",
     "inquirer": "12.3.2",
-    "lint-staged": "15.2.10",
+    "lint-staged": "15.4.2",
     "os-browserify": "0.3.0",
     "prettier": "3.3.3",
     "process": "0.11.10",
