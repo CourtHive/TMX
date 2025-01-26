@@ -21,8 +21,8 @@ importers:
         specifier: 3.6.2
         version: 3.6.2
       '@event-calendar/day-grid':
-        specifier: 3.6.2
-        version: 3.6.2
+        specifier: 3.8.0
+        version: 3.8.0
       '@event-calendar/interaction':
         specifier: 3.6.2
         version: 3.6.2
@@ -1231,8 +1231,8 @@ packages:
   '@event-calendar/core@3.8.0':
     resolution: {integrity: sha512-gP1kevyrRHDCrsAx3vppxtTHEhkx7SL0NZMYTGPZCILJAyc9g/lD4aS7ZOJPxY4F51xJ10TtGku7uCcYG1aeOw==}
 
-  '@event-calendar/day-grid@3.6.2':
-    resolution: {integrity: sha512-nDMipE8NhscXUgkE9u5+4cd0VEoJZ3oQOYhEFwp79UyWbqG20JMSWPSfss1Vju3y3lc80PgLTAedM3QbwgWOrg==}
+  '@event-calendar/day-grid@3.8.0':
+    resolution: {integrity: sha512-fef46ZTeV2Dr8RZmUk1NSvxFNzvGmEZpUw6ZItrg+XWqUpdoZV4oLB45YhlWcrFTvwF3eqd3cl2iMuTwy72TJA==}
 
   '@event-calendar/interaction@3.6.2':
     resolution: {integrity: sha512-exxzgkAWLnusLfUwOpiqe9LFMIl7scOobEtgVq5fiDI7/NzLnLbGTU6H0eyipcEc2HG6nlAz2j3u0x4VO+wc+g==}
@@ -3595,6 +3595,7 @@ packages:
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.isplainobject@4.0.6:
     resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
@@ -6186,9 +6187,9 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/day-grid@3.6.2':
+  '@event-calendar/day-grid@3.8.0':
     dependencies:
-      '@event-calendar/core': 3.6.2
+      '@event-calendar/core': 3.8.0
       svelte: 4.2.19
 
   '@event-calendar/interaction@3.6.2':
