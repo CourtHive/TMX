@@ -24,8 +24,8 @@ importers:
         specifier: 3.8.0
         version: 3.8.0
       '@event-calendar/interaction':
-        specifier: 3.6.2
-        version: 3.6.2
+        specifier: 3.10.0
+        version: 3.10.0
       '@event-calendar/list':
         specifier: 3.6.2
         version: 3.6.2
@@ -1258,6 +1258,9 @@ packages:
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
 
+  '@event-calendar/core@3.10.0':
+    resolution: {integrity: sha512-E6zLW/uUg+OxLFYWS4YOY17SaS1QZ/t1VP+TjLwNSufW+Pbx554kSyPPA+CBrENHbWlQrrPAt+VnngjIDQtk+Q==}
+
   '@event-calendar/core@3.6.2':
     resolution: {integrity: sha512-DUSKtuhc49Uhjadk3sBQnB0ZaR8JeZnxcmA5xAN2Gv7HLNinXcUOPOwuraBeL25nASxGgAQ7kQxDSgv4EOxcmQ==}
 
@@ -1267,8 +1270,8 @@ packages:
   '@event-calendar/day-grid@3.8.0':
     resolution: {integrity: sha512-fef46ZTeV2Dr8RZmUk1NSvxFNzvGmEZpUw6ZItrg+XWqUpdoZV4oLB45YhlWcrFTvwF3eqd3cl2iMuTwy72TJA==}
 
-  '@event-calendar/interaction@3.6.2':
-    resolution: {integrity: sha512-exxzgkAWLnusLfUwOpiqe9LFMIl7scOobEtgVq5fiDI7/NzLnLbGTU6H0eyipcEc2HG6nlAz2j3u0x4VO+wc+g==}
+  '@event-calendar/interaction@3.10.0':
+    resolution: {integrity: sha512-cFgJb3EU2/hwtrOyx6IRgzUj/ZMBosyZS/xhOpEhhVqIkfX8pjWnLbxwsSLVNyIB+pep1VkVHlrGrsc8v+hI2w==}
 
   '@event-calendar/list@3.6.2':
     resolution: {integrity: sha512-AUGqHsU+pVND5yZPjZbAkJ7oxjOhScQwUEs2A0B8TgjCd1622bWNvdM1YKjzqi16bi+bYaeE1CDtdjRcz3cU4w==}
@@ -6283,6 +6286,10 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
+  '@event-calendar/core@3.10.0':
+    dependencies:
+      svelte: 4.2.19
+
   '@event-calendar/core@3.6.2':
     dependencies:
       svelte: 4.2.19
@@ -6296,9 +6303,9 @@ snapshots:
       '@event-calendar/core': 3.8.0
       svelte: 4.2.19
 
-  '@event-calendar/interaction@3.6.2':
+  '@event-calendar/interaction@3.10.0':
     dependencies:
-      '@event-calendar/core': 3.6.2
+      '@event-calendar/core': 3.10.0
       svelte: 4.2.19
 
   '@event-calendar/list@3.6.2':
