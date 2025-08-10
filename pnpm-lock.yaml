@@ -24,8 +24,8 @@ importers:
         specifier: 3.8.0
         version: 3.8.0
       '@event-calendar/interaction':
-        specifier: 3.6.2
-        version: 3.6.2
+        specifier: 3.12.0
+        version: 3.12.0
       '@event-calendar/list':
         specifier: 3.6.2
         version: 3.6.2
@@ -1258,6 +1258,9 @@ packages:
   '@event-calendar/core@2.7.2':
     resolution: {integrity: sha512-gH0JE0emGQpLMFPWY1BU+NdNRGv0byhZnzJRJnzV9jCnThUk8rOCJ6T4VcfGZwzlxg5L24hF0UOdTSec2LuOqw==}
 
+  '@event-calendar/core@3.12.0':
+    resolution: {integrity: sha512-aKtDwEKzWHOV2PLVdhR/f843ecW3C0w5G5VhGl1f0GBEgT8dZvoYreQ7QKTBWh7B7YEtEn2P0Dn36zFYj5XEXQ==}
+
   '@event-calendar/core@3.6.2':
     resolution: {integrity: sha512-DUSKtuhc49Uhjadk3sBQnB0ZaR8JeZnxcmA5xAN2Gv7HLNinXcUOPOwuraBeL25nASxGgAQ7kQxDSgv4EOxcmQ==}
 
@@ -1267,8 +1270,8 @@ packages:
   '@event-calendar/day-grid@3.8.0':
     resolution: {integrity: sha512-fef46ZTeV2Dr8RZmUk1NSvxFNzvGmEZpUw6ZItrg+XWqUpdoZV4oLB45YhlWcrFTvwF3eqd3cl2iMuTwy72TJA==}
 
-  '@event-calendar/interaction@3.6.2':
-    resolution: {integrity: sha512-exxzgkAWLnusLfUwOpiqe9LFMIl7scOobEtgVq5fiDI7/NzLnLbGTU6H0eyipcEc2HG6nlAz2j3u0x4VO+wc+g==}
+  '@event-calendar/interaction@3.12.0':
+    resolution: {integrity: sha512-+d3KqxNdcY/RfJrdai37XCoTx7KKpzqJIo/WAjH1p8ZiypsfrHgpWWuTtF76u3hpn/1qqWUM3VFJSTKbjJkWTg==}
 
   '@event-calendar/list@3.6.2':
     resolution: {integrity: sha512-AUGqHsU+pVND5yZPjZbAkJ7oxjOhScQwUEs2A0B8TgjCd1622bWNvdM1YKjzqi16bi+bYaeE1CDtdjRcz3cU4w==}
@@ -2112,6 +2115,7 @@ packages:
 
   bulma-checkradio@2.1.3:
     resolution: {integrity: sha512-8OmZ7PURyftNLGXSTNAYNTJHIe0OkoH/8z9iWfSXGxiv3AlrKneMtiVpBKofXsvc9ZHBUI1YjefiW5WFhgFgAQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   bulma-switch@2.0.4:
     resolution: {integrity: sha512-kMu4H0Pr0VjvfsnT6viRDCgptUq0Rvy7y7PX6q+IHg1xUynsjszPjhAdal5ysAlCG5HNO+5YXxeiu92qYGQolw==}
@@ -6283,6 +6287,10 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
+  '@event-calendar/core@3.12.0':
+    dependencies:
+      svelte: 4.2.19
+
   '@event-calendar/core@3.6.2':
     dependencies:
       svelte: 4.2.19
@@ -6296,9 +6304,9 @@ snapshots:
       '@event-calendar/core': 3.8.0
       svelte: 4.2.19
 
-  '@event-calendar/interaction@3.6.2':
+  '@event-calendar/interaction@3.12.0':
     dependencies:
-      '@event-calendar/core': 3.6.2
+      '@event-calendar/core': 3.12.0
       svelte: 4.2.19
 
   '@event-calendar/list@3.6.2':
