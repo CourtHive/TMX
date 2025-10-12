@@ -75,8 +75,8 @@ importers:
         specifier: 4.0.11
         version: 4.0.11
       esri-leaflet:
-        specifier: 3.0.14
-        version: 3.0.14(leaflet@1.9.4)
+        specifier: 3.0.19
+        version: 3.0.19(leaflet@1.9.4)
       focus-trap:
         specifier: 7.6.4
         version: 7.6.4
@@ -2234,8 +2234,8 @@ packages:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
     engines: {node: '>=4.0'}
 
-  esri-leaflet@3.0.14:
-    resolution: {integrity: sha512-mXUFWFkHbnLnFh3uYHJiZNoOOEK2Jwt0MVx4b5wC7qAt6X0e7dyLQoiWuy2XPGkhg1/RTR96Lz63QAm4HUVNbQ==}
+  esri-leaflet@3.0.19:
+    resolution: {integrity: sha512-GBMRuRV0zyzVSxdImwKnnTh3ptMvzeaGdnsL68BwPLebibEOsgquRKArwLNpuIz0E03SXccaJafiDLCGvp2PGQ==}
     peerDependencies:
       leaflet: ^1.0.0
 
@@ -6778,7 +6778,7 @@ snapshots:
     dependencies:
       estraverse: 5.3.0
 
-  esri-leaflet@3.0.14(leaflet@1.9.4):
+  esri-leaflet@3.0.19(leaflet@1.9.4):
     dependencies:
       '@terraformer/arcgis': 2.1.2
       leaflet: 1.9.4
