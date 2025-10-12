@@ -118,7 +118,7 @@
     "d3": "5.16.0",
     "dayjs": "1.11.18",
     "dexie": "4.0.11",
-    "esri-leaflet": "3.0.14",
+    "esri-leaflet": "3.0.19",
     "focus-trap": "7.6.4",
     "hotkeys-js": "3.13.9",
     "https-browserify": "1.0.0",
