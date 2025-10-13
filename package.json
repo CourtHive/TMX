@@ -54,7 +54,7 @@
     "@babel/preset-typescript": "7.26.0",
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
-    "@types/babel__traverse": "7.20.6",
+    "@types/babel__traverse": "7.28.0",
     "@types/node": "22.10.10",
     "@types/socket.io-client": "3.0.0",
     "@types/uuid": "10.0.0",
