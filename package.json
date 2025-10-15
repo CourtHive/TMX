@@ -120,7 +120,7 @@
     "dexie": "4.0.11",
     "esri-leaflet": "3.0.19",
     "focus-trap": "7.6.5",
-    "hotkeys-js": "3.13.9",
+    "hotkeys-js": "3.13.15",
     "https-browserify": "1.0.0",
     "jwt-decode": "4.0.0",
     "leaflet": "1.9.4",
