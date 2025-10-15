@@ -55,7 +55,7 @@
     "@commitlint/cli": "19.8.1",
     "@commitlint/config-conventional": "19.8.1",
     "@types/babel__traverse": "7.28.0",
-    "@types/node": "22.10.10",
+    "@types/node": "22.18.10",
     "@types/socket.io-client": "3.0.0",
     "@types/uuid": "10.0.0",
     "@typescript-eslint/eslint-plugin": "8.21.0",
