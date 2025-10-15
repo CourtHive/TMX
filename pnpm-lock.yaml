@@ -93,8 +93,8 @@ importers:
         specifier: 1.9.4
         version: 1.9.4
       morphdom:
-        specifier: 2.7.4
-        version: 2.7.4
+        specifier: 2.7.7
+        version: 2.7.7
       navigo:
         specifier: 8.11.1
         version: 8.11.1
@@ -3188,8 +3188,8 @@ packages:
     resolution: {integrity: sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==}
     hasBin: true
 
-  morphdom@2.7.4:
-    resolution: {integrity: sha512-ATTbWMgGa+FaMU3FhnFYB6WgulCqwf6opOll4CBzmVDTLvPMmUPrEv8CudmLPK0MESa64+6B89fWOxP3+YIlxQ==}
+  morphdom@2.7.7:
+    resolution: {integrity: sha512-04GmsiBcalrSCNmzfo+UjU8tt3PhZJKzcOy+r1FlGA7/zri8wre3I1WkYN9PT3sIeIKfW9bpyElA+VzOg2E24g==}
 
   mrmime@2.0.0:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
@@ -7706,7 +7706,7 @@ snapshots:
     dependencies:
       minimist: 1.2.8
 
-  morphdom@2.7.4: {}
+  morphdom@2.7.7: {}
 
   mrmime@2.0.0: {}
 
