@@ -1,6 +1,5 @@
 import { toggleEditVisibility } from '../../common/toggleEditVisibility';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-// import { tournamentEngine } from 'tods-competition-factory';
 
 import { ADD_PARTICIPANT_TIME_ITEM } from 'constants/mutationConstants';
 
