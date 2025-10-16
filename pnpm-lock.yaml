@@ -33,8 +33,8 @@ importers:
         specifier: 2.7.2
         version: 2.7.2
       '@event-calendar/time-grid':
-        specifier: 3.8.0
-        version: 3.8.0
+        specifier: 3.12.0
+        version: 3.12.0
       '@stitches/core':
         specifier: 1.2.8
         version: 1.2.8
@@ -710,9 +710,6 @@ packages:
   '@event-calendar/core@3.12.0':
     resolution: {integrity: sha512-aKtDwEKzWHOV2PLVdhR/f843ecW3C0w5G5VhGl1f0GBEgT8dZvoYreQ7QKTBWh7B7YEtEn2P0Dn36zFYj5XEXQ==}
 
-  '@event-calendar/core@3.8.0':
-    resolution: {integrity: sha512-gP1kevyrRHDCrsAx3vppxtTHEhkx7SL0NZMYTGPZCILJAyc9g/lD4aS7ZOJPxY4F51xJ10TtGku7uCcYG1aeOw==}
-
   '@event-calendar/day-grid@3.12.0':
     resolution: {integrity: sha512-gY6XvEIlwWI9uKWsXukyanDmrEWv1UDHdhikhchpe6iZP25p3+760qXIU2kdu91tXjb+hVbpFcn7sdNPPE4u7Q==}
 
@@ -728,8 +725,8 @@ packages:
   '@event-calendar/time-grid@2.7.2':
     resolution: {integrity: sha512-KKX/Y6EUcueIFsOyn0ESircedpbIC0j06hr3XYcbmi8sYdzZRQ+mTVXVOUS5xwXEdiM31wCQLxrPfhR/sDKe8w==}
 
-  '@event-calendar/time-grid@3.8.0':
-    resolution: {integrity: sha512-jgcHmjYmPbty7zJ6ZibH0BrUFeNiflW3R8HNFNyCoQ6wlIw+nro3D7RiJD2egvZY6fbX7idMIwO1AIMImTuLEA==}
+  '@event-calendar/time-grid@3.12.0':
+    resolution: {integrity: sha512-n/IoFSq/ym6ad2k+H9RL2A8GpfOJy1zpKKLb1Edp/QEusexpPg8LNdSbxhmKGz6ip5ud0Bi/xgUa8xUqut8ooQ==}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -4864,10 +4861,6 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@3.8.0':
-    dependencies:
-      svelte: 4.2.19
-
   '@event-calendar/day-grid@3.12.0':
     dependencies:
       '@event-calendar/core': 3.12.0
@@ -4894,9 +4887,9 @@ snapshots:
       '@event-calendar/core': 2.7.2
       svelte: 4.2.19
 
-  '@event-calendar/time-grid@3.8.0':
+  '@event-calendar/time-grid@3.12.0':
     dependencies:
-      '@event-calendar/core': 3.8.0
+      '@event-calendar/core': 3.12.0
       svelte: 4.2.19
 
   '@fastify/busboy@2.1.1': {}
