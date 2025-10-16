@@ -18,8 +18,8 @@ importers:
         specifier: ^9.14.0
         version: 9.37.0
       '@event-calendar/core':
-        specifier: 3.8.0
-        version: 3.8.0
+        specifier: 3.12.0
+        version: 3.12.0
       '@event-calendar/day-grid':
         specifier: 3.8.0
         version: 3.8.0
