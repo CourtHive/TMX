@@ -37,41 +37,41 @@ export function routeTMX() {
     displayTournament({ config: { selectedTab, renderDraw, ...data } }); // ...data must come last
   };
 
-  router.on(`/${TOURNAMENT}/:tournamentId`, ({ data }) => {
-    displayRoute({ data });
+  router.on(`/${TOURNAMENT}/:tournamentId`, (match) => {
+    displayRoute({ data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/overview`, ({ data }) => {
-    displayRoute({ data, selectedTab: TOURNAMENT_OVERVIEW });
+  router.on(`/${TOURNAMENT}/:tournamentId/overview`, (match) => {
+    displayRoute({ data: match?.data, selectedTab: TOURNAMENT_OVERVIEW });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId`, ({ data }) => {
-    displayRoute({ selectedTab: EVENTS_TAB, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId`, ({ data }) => {
-    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${VIEW}/:roundsView`, ({ data }) => {
-    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${VIEW}/:roundsView`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId`, ({ data }) => {
-    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
   });
   router.on(
     `/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId/${STRUCTURE}/:structureId/${VIEW}/:roundsView`,
-    ({ data }) => {
-      displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data });
+    (match) => {
+      displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
     },
   );
-  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW_ENTRIES}/:drawId`, ({ data }) => {
-    displayRoute({ selectedTab: EVENTS_TAB, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW_ENTRIES}/:drawId`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${PARTICIPANTS}/:participantView`, ({ data }) => {
-    displayRoute({ selectedTab: PARTICIPANTS, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${PARTICIPANTS}/:participantView`, (match) => {
+    displayRoute({ selectedTab: PARTICIPANTS, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE_TAB}/:scheduledDate`, ({ data }) => {
-    displayRoute({ selectedTab: SCHEDULE_TAB, data });
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE_TAB}/:scheduledDate`, (match) => {
+    displayRoute({ selectedTab: SCHEDULE_TAB, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, ({ data }) => {
-    displayRoute({ data });
+  router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, (match) => {
+    displayRoute({ data: match?.data });
   });
 
   // adding a unique identifer to the URL will force refresh
@@ -82,8 +82,8 @@ export function routeTMX() {
 
   router.on(`/calendar`, renderCalendar);
 
-  router.on(`/actionKey/:key`, ({ data }) => {
-    const key = data.key;
+  router.on(`/actionKey/:key`, (match) => {
+    const key = match?.data?.key;
     queueKey(key);
     router.navigate('/');
     showSplash();

@@ -8,7 +8,12 @@ export function getRoundTabs({ callback, structure, existingView }) {
   const isRoundRobin = structure?.structureType === CONTAINER;
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
 
-  const actionOptions = [];
+  const actionOptions: Array<{
+    active: boolean;
+    onClick: () => any;
+    label: string;
+    close: boolean;
+  }> = [];
 
   actionOptions.push({
     active: !existingView || existingView === ROUNDS_COLUMNS,

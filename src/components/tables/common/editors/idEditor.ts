@@ -32,7 +32,7 @@ export const idEditor =
     editor.addEventListener('keyup', (e: any) => {
       if (e.key === 'Tab' && e.shiftKey && field) {
         const row = findAncestor(e.target, 'tabulator-row');
-        const previousRow = row.previousSibling;
+        const previousRow = row?.previousSibling;
         const editableCells = previousRow && getChildrenByClassName(previousRow, 'tabulator-editable');
         if (editableCells) {
           for (cell of editableCells) {
@@ -41,7 +41,7 @@ export const idEditor =
         }
       } else if ((e.key === 'Enter' || e.key === 'Tab') && field) {
         const row = findAncestor(e.target, 'tabulator-row');
-        const nextRow = row.nextSibling;
+        const nextRow = row?.nextSibling;
         const editableCells = nextRow && getChildrenByClassName(nextRow, 'tabulator-editable');
         if (editableCells) {
           for (cell of editableCells) {
