@@ -3,7 +3,7 @@ import { findAncestor, getChildrenByClassName } from 'services/dom/parentAndChil
 export const numericEditor =
   ({ maxValue, decimals, field }) =>
   (cell, onRendered, success) => {
-    const regex = decimals ? /[^0-9.]/g : /[^0-9]/g;
+    const regex = decimals ? /[^0-9.]/g : /^\D/g;
     const editor = document.createElement('input');
     editor.style.backgroundColor = 'lightyellow';
     editor.style.boxSizing = 'border-box';
@@ -36,7 +36,7 @@ export const numericEditor =
       e.target.value = allNumeric > maxValue ? '' : allNumeric;
       if (e.key === 'Tab' && e.shiftKey && field) {
         const row = findAncestor(e.target, 'tabulator-row');
-        const previousRow = row.previousSibling;
+        const previousRow = row?.previousSibling;
         const editableCells = previousRow && getChildrenByClassName(previousRow, 'tabulator-editable');
         if (editableCells) {
           for (cell of editableCells) {
@@ -45,7 +45,7 @@ export const numericEditor =
         }
       } else if ((e.key === 'Enter' || e.key === 'Tab') && field) {
         const row = findAncestor(e.target, 'tabulator-row');
-        const nextRow = row.nextSibling;
+        const nextRow = row?.nextSibling;
         const editableCells = nextRow && getChildrenByClassName(nextRow, 'tabulator-editable');
         if (editableCells) {
           for (cell of editableCells) {
