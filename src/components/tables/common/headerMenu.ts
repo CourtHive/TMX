@@ -5,7 +5,7 @@ const CHECKBOX = 'fa-check-square';
 export const headerMenu = (displayTitles) => (_, column) => {
   const table = column.getTable();
   const columns = table.getColumns();
-  const menu = [];
+  const menu: Array<{ label: HTMLSpanElement; action: (e: any) => void }> = [];
 
   for (const column of columns) {
     const def = column.getDefinition();

@@ -23,6 +23,7 @@ export function styleLogin(valid) {
   const el = document.getElementById('login');
   const impersonating = context?.provider;
   const admin = valid?.roles?.includes(SUPER_ADMIN);
+  if (!el) return;
   if (!valid) {
     el.style.color = '';
   } else {
@@ -79,12 +80,16 @@ export function impersonate() {
   });
 }
 
+function handleUserRemoval(value) {
+  return () => removeUser(value).then(() => tmxToast({ message: 'User removed' }));
+}
+
 export function removeUserDialog() {
   getUsers().then(({ data }) => {
     const options = data?.users?.map(({ value }) => {
       return {
         participantName: `${value.firstName} ${value.lastName} (${value.email})`,
-        onClick: () => removeUser(value).then(() => tmxToast({ message: 'User removed' })),
+        onClick: handleUserRemoval(value),
       };
     });
 

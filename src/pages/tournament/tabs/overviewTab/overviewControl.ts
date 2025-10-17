@@ -12,30 +12,32 @@ export function overviewControl({ controlAnchor }) {
   const overviewState = { editing: false };
   const toggleEditor = () => {
     const editButton = document.getElementById('editOverview');
-    editButton.innerHTML = !overviewState.editing ? 'Save overview' : 'Edit overview';
     const notesView = document.getElementById('notes');
-    if (!overviewState.editing) {
-      notesView.style.border = '.5px solid';
-      notesView.style.borderTop = '';
-      const quill = new Quill('#notes', {
-        modules: {
-          toolbar: [
-            [{ header: [1, 2, 3, 4, 5, 6, false] }],
-            [{ font: [] }],
-            ['bold', 'italic', 'underline'],
-            [{ color: [] }, { background: [] }],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            [{ align: [] }],
+    if (editButton && notesView) {
+      editButton.innerHTML = !overviewState.editing ? 'Save overview' : 'Edit overview';
+      if (!overviewState.editing) {
+        notesView.style.border = '.5px solid';
+        notesView.style.borderTop = '';
+        const quill = new Quill('#notes', {
+          modules: {
+            toolbar: [
+              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+              [{ font: [] }],
+              ['bold', 'italic', 'underline'],
+              [{ color: [] }, { background: [] }],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              [{ align: [] }],
 
-            ['blockquote', 'code-block', /* 'image', */ 'link', 'video'],
-            ['clean'],
-          ],
-        },
-        theme: 'snow',
-      });
-      context.quill = quill;
-    } else {
-      notesView.previousElementSibling.remove();
+              ['blockquote', 'code-block', /* 'image', */ 'link', 'video'],
+              ['clean'],
+            ],
+          },
+          theme: 'snow',
+        });
+        context.quill = quill;
+      }
+    } else if (notesView) {
+      if (notesView.previousElementSibling) notesView.previousElementSibling.remove();
       notesView.style.border = 'none';
       const editor: any = notesView.querySelector('.ql-editor');
       const innerText = editor?.innerText?.replace('\n', '');
@@ -64,5 +66,5 @@ export function overviewControl({ controlAnchor }) {
     },
   ];
 
-  return controlBar({ target: controlAnchor, items }).elements;
+  return controlBar({ target: controlAnchor, items })?.elements;
 }
