@@ -93,7 +93,7 @@
     "vitest": "2.1.9",
     "vitest-github-actions-reporter": "0.11.1",
     "vitest-sonar-reporter": "2.0.4",
-    "yargs": "17.7.2"
+    "yargs": "18.0.0"
   },
   "dependencies": {
     "@babel/plugin-transform-private-property-in-object": "7.27.1",
