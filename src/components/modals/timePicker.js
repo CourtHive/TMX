@@ -8,13 +8,15 @@ export function timePicker({ time, options, callback } = {}) {
   const tpu = new TimepickerUI(document.getElementById('timepicker'), {
     switchToMinutesAfterSelectHour: true,
     clockType: '12h',
-    ...options
+    ...options,
   });
   tpu.create();
   tpu.open();
   timepicker.addEventListener('accept', () => {
     const value = timeValue.value;
-    isFunction(callback) && callback({ time: value });
+    if (isFunction(callback)) {
+      callback({ time: value });
+    }
     tpu.destroy();
   });
 }
@@ -40,8 +42,8 @@ function splitTime(value) {
   value = value || '00:00';
   let o = {},
     time = {};
-  ({ 0: o.time, 1: o.ampm } = (value?.split(' ')) || '');
-  ({ 0: time.hours, 1: time.minutes } = (o.time?.split(':')) || '');
+  ({ 0: o.time, 1: o.ampm } = value?.split(' ') || '');
+  ({ 0: time.hours, 1: time.minutes } = o.time?.split(':') || '');
   time.ampm = o.ampm;
   return time;
 }
