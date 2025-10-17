@@ -20,7 +20,7 @@ export function editTournamentImage({ callback }) {
 
   const clearImage = () => {
     const imageEl = document.getElementById('tournamentImagePreview');
-    imageEl.style.display = NONE;
+    if (imageEl) imageEl.style.display = NONE;
     enableSubmit(true);
   };
 
@@ -34,9 +34,14 @@ export function editTournamentImage({ callback }) {
     enableSubmit(false);
     imageLoaded = false;
     const imageEl = document.getElementById('tournamentImagePreview');
-    imageEl.onload = () => (imageLoaded = true) && enableSubmit();
-    imageEl['src'] = inputs.tournamentImage.value;
-    imageEl.style.display = '';
+    if (imageEl) {
+      imageEl.onload = () => {
+        imageLoaded = true;
+        enableSubmit();
+      };
+      imageEl['src'] = inputs.tournamentImage.value;
+      imageEl.style.display = '';
+    }
   };
 
   const form = (elem) =>
@@ -74,7 +79,7 @@ export function editTournamentImage({ callback }) {
     const postMutation = (result) => {
       if (result.success) {
         tmxToast({ message: 'Tournament image updated', intent: 'is-success' });
-        isFunction(callback) && callback(url);
+        if (isFunction(callback)) callback(url);
       }
     };
     mutationRequest({
