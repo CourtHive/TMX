@@ -19,16 +19,23 @@ export function editProviderModal(params) {
 
   const clearImage = () => {
     const imageEl = document.getElementById('providerImagePreview');
-    imageEl.style.display = NONE;
+    if (imageEl) {
+      imageEl.style.display = NONE;
+    }
   };
 
   const attemptLoad = () => {
     enableSubmit({ inputs });
     imageLoaded = false;
     const imageEl = document.getElementById('providerImagePreview');
-    imageEl.onload = () => (imageLoaded = true) && enableSubmit({ inputs });
-    imageEl['src'] = inputs.tournamentImage.value;
-    imageEl.style.display = '';
+    if (imageEl) {
+      imageEl.onload = () => {
+        imageLoaded = true;
+        enableSubmit({ inputs });
+      };
+      imageEl['src'] = inputs.tournamentImage.value;
+      imageEl.style.display = '';
+    }
   };
 
   const enableSubmit = ({ inputs }) => {
