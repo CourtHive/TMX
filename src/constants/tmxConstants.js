@@ -73,7 +73,6 @@ export const SUCCESS = { success: true };
 
 // scheduling
 export const MINIMUM_SCHEDULE_COLUMNS = 10;
-// TODO: remove from tmxConstants; use factory exports
 
 export const CONFLICT_PARTICIPANTS = 'participantConflict';
 export const CONFLICT_MATCHUP_ORDER = 'matchUpConflict';
