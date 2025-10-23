@@ -265,8 +265,8 @@ importers:
         specifier: 0.11.1
         version: 0.11.1(vitest@3.2.4)
       vitest-sonar-reporter:
-        specifier: 2.0.4
-        version: 2.0.4(vitest@3.2.4)
+        specifier: 3.0.0
+        version: 3.0.0(vitest@3.2.4)
       yargs:
         specifier: 18.0.0
         version: 18.0.0
@@ -4220,11 +4220,11 @@ packages:
     peerDependencies:
       vitest: '>=0.28.5'
 
-  vitest-sonar-reporter@2.0.4:
-    resolution: {integrity: sha512-6mKFLXYzaHsuR+qnmuXXVhcjhostuicZ9iL3I325uf6sUKSZ2ZOpDWUBcgQwEmGs2xE05SPF6F72eoHmfOWX7A==}
+  vitest-sonar-reporter@3.0.0:
+    resolution: {integrity: sha512-QRT5m9Z/3Kt0WVDVcFHm5LC9Ba89yDP4twlX2QUAJ9PdqfJBkLAh/kXj7m6U3i0k6GxnIEiwCc295bmAYokmZg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
-      vitest: '>=1'
+      vitest: '>=3'
 
   vitest@3.2.4:
     resolution: {integrity: sha512-LUCP5ev3GURDysTWiP47wRRUpLKMOfPh+yKTx3kVIEiu5KOMeqzpnYNsKyOoVrULivR8tLcks4+lga33Whn90A==}
@@ -8812,7 +8812,7 @@ snapshots:
       '@actions/core': 1.10.1
       vitest: 3.2.4(@types/node@22.18.12)(@vitest/ui@3.2.4)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)
 
-  vitest-sonar-reporter@2.0.4(vitest@3.2.4):
+  vitest-sonar-reporter@3.0.0(vitest@3.2.4):
     dependencies:
       vitest: 3.2.4(@types/node@22.18.12)(@vitest/ui@3.2.4)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)
 
