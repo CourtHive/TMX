@@ -28,8 +28,9 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
   let isAdHoc;
-
+  /*
   // eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
+  */
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
@@ -97,10 +98,12 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   if (!env.composition) {
     composition.configuration.genderColor = true;
     composition.configuration.showAddress = undefined;
+    /*
     // composition.configuration.participantDetail = 'TEAM';
     // composition.configuration.participantDetail = 'ADDRESS';
     // composition.configuration.participantDetail = '_ustaSection.name';
     // composition.configuration.participantDetail = 'sex';
+    */
 
     composition.configuration.allDrawPositions = true;
     composition.configuration.drawPositions = true;
@@ -138,7 +141,9 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId });
     } else {
+      /*
       // const finalColumn = getFinalColumn({ structure, drawId, callback });
+      */
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
@@ -174,7 +179,9 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
                   if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
                     nextSibling.parentElement.removeChild(nextSibling);
                   }
+                  /*
                   // return false;
+                  */
                 } else if (
                   incomingId &&
                   existingId &&
@@ -227,8 +234,10 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
       if (!value) {
         Object.values(context.tables)
           .filter(Boolean)
-          // TODO: update this search logic!
+          /*
+          // To be done: update this search logic!
           // .forEach((table) => table.removeFilter(searchFilter));
+          */
           .forEach((table) => table.clearFilter());
       }
       participantFilter = value?.toLowerCase();
