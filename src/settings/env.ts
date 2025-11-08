@@ -1,8 +1,37 @@
+/**
+ * Environment configuration and settings.
+ * Application-wide configuration for scales, locations, scoreboard, and display options.
+ */
 import { version } from '../config/version';
 
+interface Scale {
+  accessor: string;
+  scaleType: string;
+  scaleColor: string;
+  scaleName: string;
+  fallback: boolean;
+}
+
+interface LeafletConfig {
+  tileLayer: string;
+  attribution: string;
+  maxZoom?: number;
+}
+
+interface ScoreboardSettings {
+  max_sets: number;
+  sets_to_win: number;
+  games_for_set: number;
+  tiebreak_to: number;
+  tiebreaks_at: number;
+  supertiebreak_to: number;
+  final_set_tiebreak: boolean;
+  final_set_supertiebreak: boolean;
+}
+
 export const env = {
-  socketIo: { tmx: '/tmx' }, // should be set as part of authenticated connection
-  activeScale: 'wtn', // TODO: discover activeScale from tournament data
+  socketIo: { tmx: '/tmx' },
+  activeScale: 'wtn',
   hotkeys: false,
   scoring: false,
 
@@ -13,14 +42,14 @@ export const env = {
       scaleColor: 'blue',
       scaleName: 'UTR',
       fallback: true,
-    },
+    } as Scale,
     wtn: {
       accessor: 'wtnRating',
       scaleType: 'RATING',
       scaleColor: 'red',
       scaleName: 'WTN',
       fallback: true,
-    },
+    } as Scale,
   },
 
   serverFirst: true,
@@ -29,25 +58,25 @@ export const env = {
   ioc: 'gbr',
   locations: {
     geolocate: true,
-    geoposition: undefined,
-    map: undefined,
-    map_view: 'satellite', // 'map'
-    map_provider: 'leaflet', // 'google' or 'leaflet'
+    geoposition: undefined as any,
+    map: undefined as any,
+    map_view: 'satellite',
+    map_provider: 'leaflet',
   },
   leaflet: {
     map: {
       tileLayer: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> Contributors',
       maxZoom: 18,
-    },
+    } as LeafletConfig,
     satellite: {
       tileLayer: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       attribution: 'Tiles &copy; Esri',
-    },
+    } as LeafletConfig,
   },
   scoreboard: {
     matchFormats: {
-      categories: {},
+      categories: {} as Record<string, any>,
       singles: 'SET3-S:6/TB7',
       doubles: 'SET3-S:6/TB7-F:TB10',
     },
@@ -67,7 +96,7 @@ export const env = {
         supertiebreak_to: 10,
         final_set_tiebreak: true,
         final_set_supertiebreak: false,
-      },
+      } as ScoreboardSettings,
       doubles: {
         max_sets: 3,
         sets_to_win: 2,
@@ -77,7 +106,7 @@ export const env = {
         supertiebreak_to: 10,
         final_set_tiebreak: false,
         final_set_supertiebreak: true,
-      },
+      } as ScoreboardSettings,
     },
   },
   printing: {
@@ -94,6 +123,10 @@ export const env = {
     max_matches_per_court: 14,
     court_identifiers: true,
   },
-  messages: [],
-  device: {},
+  messages: [] as any[],
+  device: {} as Record<string, any>,
+  averages: false, // show averages in console
+  log: { verbose: false } as any, // enable logging
+  saveLocal: true, // save locally
+  composition: {} as any, // composition settings
 };
