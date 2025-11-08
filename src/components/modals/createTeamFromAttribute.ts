@@ -1,3 +1,7 @@
+/**
+ * Create teams from participant attributes modal.
+ * Groups participants by country or city and creates team participants via mutation.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -6,12 +10,12 @@ import { lang } from 'services/translator';
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
-const valueKey = {
+const valueKey: Record<string, any> = {
   country: { personAttribute: 'nationalityCode' },
   city: { accessor: 'person.addresses.city' },
 };
 
-export function createTeamsFromAttribute({ callback } = {}) {
+export function createTeamsFromAttribute({ callback }: { callback?: () => void } = {}): void {
   const options = [
     { label: lang.tr('cnt'), value: 'country' },
     { label: 'City', value: 'city' },
@@ -19,7 +23,7 @@ export function createTeamsFromAttribute({ callback } = {}) {
 
   const NO_SELECTION = '-';
 
-  const content = (elem) =>
+  const content = (elem: HTMLElement) =>
     renderForm(elem, [
       {
         options: [{ label: 'Select attribute', value: NO_SELECTION }, ...options],
@@ -29,7 +33,7 @@ export function createTeamsFromAttribute({ callback } = {}) {
       },
     ]);
 
-  const createTeam = ({ content }) => {
+  const createTeam = ({ content }: any) => {
     const selection = content?.selection.value;
     if (!selection || selection === NO_SELECTION) return;
 
@@ -51,7 +55,7 @@ export function createTeamsFromAttribute({ callback } = {}) {
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Create', intent: 'is-primary', onClick: createTeam, close: true },
+      { label: 'Create', intent: 'is-primary', onClick: createTeam as any, close: true },
     ],
     onClose: () => {},
   });

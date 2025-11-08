@@ -1,11 +1,15 @@
-export function venueForm({ values, valueChange, isValid }) {
+/**
+ * Venue form configuration and value extraction.
+ * Provides form fields for venue name, abbreviation, and court count with validation.
+ */
+export function venueForm({ values, valueChange, isValid }: { values: any; valueChange: (e: Event) => void; isValid?: boolean }): any[] {
   if (isValid) {
     // function to call with current validity of form values
   }
-  const nameValidator = (minLength, maxLength) => (value) =>
-    value.length >= minLength && (!maxLength || (maxLength && value.length <= maxLength));
-  const numberValidator = (value) => !isNaN(value);
-  const onChange = (e) => valueChange(e);
+  const nameValidator = (minLength: number, maxLength?: number) => (value: string) =>
+    value.length >= minLength && (!maxLength || value.length <= maxLength);
+  const numberValidator = (value: string) => !isNaN(Number(value));
+  const onChange = (e: Event) => valueChange(e);
 
   return [
     {
@@ -37,7 +41,7 @@ export function venueForm({ values, valueChange, isValid }) {
   ];
 }
 
-export function getVenueFormValues(content) {
+export function getVenueFormValues(content: any): any {
   return {
     venueAbbreviation: content?.venueAbbreviation.value,
     courtsCount: content?.courtsCount.value,

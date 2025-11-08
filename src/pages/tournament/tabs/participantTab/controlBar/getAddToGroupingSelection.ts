@@ -1,3 +1,7 @@
+/**
+ * Get add to team/group selection options.
+ * Provides menu to add selected participants to existing teams/groups or create new ones.
+ */
 import { editGroupingParticipant } from '../editGroupingParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { participantConstants } from 'tods-competition-factory';
@@ -5,10 +9,17 @@ import { participantConstants } from 'tods-competition-factory';
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS } from 'constants/mutationConstants';
 const { TEAM } = participantConstants;
 
-export function getAddToGroupingSelection({ participants, table, replaceTableData, participantType = TEAM }) {
-  const addToTeam = ({ team }) => {
+type GetAddToGroupingSelectionParams = {
+  participants: any[];
+  table: any;
+  replaceTableData: () => void;
+  participantType?: string;
+};
+
+export function getAddToGroupingSelection({ participants, table, replaceTableData, participantType = TEAM }: GetAddToGroupingSelectionParams): any {
+  const addToTeam = ({ team }: { team: any }) => {
     const selected = table.getSelectedData();
-    const individualParticipantIds = selected.map(({ participantId }) => participantId);
+    const individualParticipantIds = selected.map(({ participantId }: any) => participantId);
     table.deselectRow();
 
     const methods = [
@@ -20,7 +31,7 @@ export function getAddToGroupingSelection({ participants, table, replaceTableDat
         },
       },
     ];
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) replaceTableData();
     };
     mutationRequest({ methods, callback: postMutation });
@@ -29,11 +40,12 @@ export function getAddToGroupingSelection({ participants, table, replaceTableDat
   const createNewGrouping = () => {
     const title = participantType === TEAM ? 'New team' : 'New Group';
     const selected = table.getSelectedData();
-    const individualParticipantIds = selected.map(({ participantId }) => participantId);
-    editGroupingParticipant({
+    const individualParticipantIds = selected.map(({ participantId }: any) => participantId);
+    (editGroupingParticipant as any)({
       refresh: replaceTableData,
       individualParticipantIds,
       participantType,
+      participant: {},
       table,
       title,
     });

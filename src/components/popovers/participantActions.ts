@@ -1,16 +1,20 @@
+/**
+ * Participant actions popover with edit and delete options.
+ * Shows tipster menu with profile view, edit, and delete actions based on participant type.
+ */
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export const participantActions = (replaceTableData) => (e, cell) => {
+export const participantActions = (replaceTableData: () => void) => (e: MouseEvent, cell: any): void => {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
     return;
   }
-  const target = e.target.getElementsByClassName('fa-ellipsis-vertical')[0];
+  const target = (e.target as HTMLElement).getElementsByClassName('fa-ellipsis-vertical')[0] as HTMLElement;
   const row = cell.getRow();
   const data = row.getData();
   const { participantId, participantType } = data;
@@ -25,13 +29,13 @@ export const participantActions = (replaceTableData) => (e, cell) => {
       hide: participantType !== 'INDIVIDUAL',
       text: "<i class='fas fa-user'></i> Edit Participant",
       onClick: () => {
-        editPlayer({ participantId, /*derivedEventInfo,*/ callback: replaceTableData });
+        editPlayer({ participantId, callback: replaceTableData });
       },
     },
     {
       text: "<div style='color: red'><i class='fas fa-check-square'></i> Delete participant</div>",
       onClick: () => {
-        const callback = (result) => {
+        const callback = (result: any) => {
           if (result.success) {
             row.delete();
           } else {
@@ -46,5 +50,5 @@ export const participantActions = (replaceTableData) => (e, cell) => {
     },
   ];
 
-  tipster({ items, target: target || e.target, config: { placement: BOTTOM } });
+  tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
 };

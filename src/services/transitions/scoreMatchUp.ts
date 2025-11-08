@@ -1,3 +1,7 @@
+/**
+ * Enter matchUp score with modal or legacy scoreBoard.
+ * Handles score submission, parsing, and mutation with callback propagation.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { scoringModal } from 'components/modals/scoringModal';
@@ -8,12 +12,12 @@ import { env } from 'settings/env';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
-export function enterMatchUpScore(params) {
+export function enterMatchUpScore(params: { matchUpId: string; matchUp?: any; callback?: (result: any) => void }): void {
   const { matchUpId, callback } = params;
   const participantsProfile = { withScaleValues: true };
   const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId }).matchUp;
 
-  const scoreSubmitted = (outcome) => {
+  const scoreSubmitted = (outcome: any) => {
     const { matchUpStatus, matchUpFormat, winningSide, score } = outcome;
     const parsedSets = score && tournamentEngine.parseScoreString({ scoreString: score });
     const sets = parsedSets || [];
@@ -33,14 +37,14 @@ export function enterMatchUpScore(params) {
         },
       },
     ];
-    const mutationCallback = (result) => {
+    const mutationCallback = (result: any) => {
       closeModal();
-      isFunction(callback) && callback({ ...result, outcome });
+      isFunction(callback) && callback && callback({ ...result, outcome });
     };
     mutationRequest({ methods, callback: mutationCallback });
   };
 
-  const teams = matchUp.sides.map((side) => side.participant);
+  const teams = matchUp.sides.map((side: any) => side.participant);
   const existing_scores = matchUp.score?.sets || [];
 
   if (env.scoring) {

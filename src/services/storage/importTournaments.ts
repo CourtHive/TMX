@@ -1,3 +1,7 @@
+/**
+ * Import tournament records from file via dropzone modal.
+ * Parses TODS JSON and adds tournaments to calendar table with conflict handling.
+ */
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { addOrUpdateTournament } from './addOrUpdateTournament';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
@@ -6,11 +10,11 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import * as safeJSON from 'utilities/safeJSON';
 import { isFunction } from 'functions/typeOf';
 
-export function importTournaments({ table }) {
-  const tournamentIds = table.getData().map((t) => t.tournamentId);
+export function importTournaments({ table }: { table: any }): void {
+  const tournamentIds = table.getData().map((t: any) => t.tournamentId);
 
-  dropzoneModal({
-    callback: (data) => {
+  (dropzoneModal as any)({
+    callback: (data: string) => {
       const tournament = safeJSON.parse({ data });
       if (tournament) {
         let result, tournamentRecord;
@@ -32,16 +36,14 @@ export function importTournaments({ table }) {
   });
 }
 
-export function addTournament({ tournamentRecord, tournamentIds, table, callback }) {
+export function addTournament({ tournamentRecord, tournamentIds, table, callback }: { tournamentRecord: any; tournamentIds?: string[]; table?: any; callback?: () => void }): void {
   const rowData = mapTournamentRecord(tournamentRecord);
   const existsInCalendar = tournamentIds?.includes(tournamentRecord.tournamentId);
   if (existsInCalendar) {
-    // tournament exists in calendar; update details
-    // unsure whether, true inserts rows being added at top of table...
     table?.updateOrAddData([rowData], true);
   } else {
     table?.addData([rowData], true);
   }
   addOrUpdateTournament({ tournamentRecord });
-  isFunction(callback) && callback();
+  isFunction(callback) && callback && callback();
 }

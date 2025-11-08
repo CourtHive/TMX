@@ -1,17 +1,23 @@
-export function initScrollNav() {
+/**
+ * Initialize scroll-based navigation behavior.
+ * Shows/hides navigation bar based on scroll direction with throttling and reduced motion support.
+ */
+export function initScrollNav(): void {
   const nav = document.getElementById('dnav');
+  if (!nav) return;
+
   const supportPageOffset = window.pageXOffset !== undefined;
   const isCSS1Compat = (document.compatMode || '') === 'CSS1Compat';
 
   let previousScrollPosition = 0;
 
-  const isScrollingDown = () => {
-    let scrolledPosition = supportPageOffset
+  const isScrollingDown = (): boolean => {
+    const scrolledPosition = supportPageOffset
       ? window.pageYOffset
       : isCSS1Compat
         ? document.documentElement.scrollTop
         : document.body.scrollTop;
-    let isScrollDown;
+    let isScrollDown: boolean;
 
     if (scrolledPosition > previousScrollPosition) {
       isScrollDown = true;
@@ -32,9 +38,9 @@ export function initScrollNav() {
     }
   };
 
-  let throttleTimer;
+  let throttleTimer: boolean;
 
-  const throttle = (callback, time) => {
+  const throttle = (callback: () => void, time: number) => {
     if (throttleTimer) return;
 
     throttleTimer = true;

@@ -6,7 +6,11 @@ const mapColumns = ({ c }) => c.map((col) => (notEmpty(col?.v) ? col : {}));
 export function mapHeaderIntoRows({ header, rows, useFormat = false }) {
   const hasDateValue = (v) => isString(v) && /Date\((\d+),(\d+),(\d+)\)/.test(v);
   const formatOrValue = (c) => c.f || c.v;
-  const extractColumnValue = (c) => (useFormat ? formatOrValue(c) : hasDateValue(c.v) ? formatOrValue(c) : c.v);
+  const extractColumnValue = (c) => {
+    if (useFormat) return formatOrValue(c);
+    if (hasDateValue(c.v)) return formatOrValue(c);
+    return c.v;
+  };
   const addAttribute = (p, c, i) => ({ ...p, [header[i]]: extractColumnValue(c) });
   const processColumn = (p, c, i) => (notEmpty(c.v) ? addAttribute(p, c, i) : p);
   const buildRow = (row) => row.reduce((p, c, i) => processColumn(p, c, i), {});
@@ -29,7 +33,8 @@ export function getRows(res) {
       console.log({ header });
       return mapHeaderIntoRows({ header, rows: remainingRows });
     }
-  } catch (e) {
+  } catch (_e) {
+    console.error('Error parsing sheet response:', _e);
     return [];
   }
 }
@@ -40,7 +45,8 @@ async function fetchSheet({ sheetId }) {
   try {
     const response = await window.fetch(sheetUrl);
     return response?.ok ? response.text() : undefined;
-  } catch (e) {
+  } catch (_e) {
+    console.error('Error fetching sheet:', _e);
     return undefined;
   }
 }

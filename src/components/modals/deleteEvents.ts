@@ -1,17 +1,20 @@
+/**
+ * Delete events modal with audit reason requirement.
+ * Validates minimum word count before allowing deletion with mutation.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { wordValidator } from 'components/validators/wordValidator';
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 
-// constants
 import { DELETE_EVENTS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function deleteEvents(params) {
+export function deleteEvents(params: { eventIds: string[]; callback?: (result: any) => void }): void {
   const { eventIds, callback } = params;
   const modalTitle = eventIds.length > 1 ? `Delete Events` : 'Delete Event';
 
-  let inputs;
+  let inputs: any;
   const deleteAction = () => {
     const auditData = { auditReason: inputs['eventDeletionReason'].value };
     mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds, auditData } }], callback });
@@ -32,11 +35,11 @@ export function deleteEvents(params) {
       text: `This action cannot be undone!`,
     },
   ];
-  const enableSubmit = ({ inputs }) => {
+  const enableSubmit = ({ inputs }: any) => {
     const value = inputs['eventDeletionReason'].value;
     const isValid = wordValidator(5)(value);
     const deleteButton = document.getElementById('deleteEvent');
-    if (deleteButton) deleteButton.disabled = !isValid;
+    if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
   };
   const relationships = [
     {
@@ -44,7 +47,7 @@ export function deleteEvents(params) {
       onInput: enableSubmit,
     },
   ];
-  const content = (elem) => (inputs = renderForm(elem, items, relationships));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, items, relationships));
 
   openModal({
     title: modalTitle,

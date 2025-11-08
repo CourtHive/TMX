@@ -1,3 +1,7 @@
+/**
+ * Add selected participants to event draws.
+ * Provides dropdown menu of available draws with direct acceptance entry status.
+ */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 
@@ -7,9 +11,9 @@ import { OVERLAY } from 'constants/tmxConstants';
 const { DIRECT_ACCEPTANCE } = entryStatusConstants;
 const { MAIN } = drawDefinitionConstants;
 
-const addTo = (table, eventId, drawId) => {
+const addTo = (table: any, eventId: string, drawId: string): void => {
   const selected = table.getSelectedData();
-  const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
+  const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
 
   const methods = [
     {
@@ -24,7 +28,7 @@ const addTo = (table, eventId, drawId) => {
       },
     },
   ];
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (result.success) {
       table.deselectRow();
     } else {
@@ -34,8 +38,8 @@ const addTo = (table, eventId, drawId) => {
   mutationRequest({ methods, callback: postMutation });
 };
 
-export const addToDraw = (event, drawId) => (table) => {
-  const options = (event.drawDefinitions || []).filter(Boolean).map(({ drawName, drawId }) => ({
+export const addToDraw = (event: any, drawId?: string) => (table: any): any => {
+  const options = (event.drawDefinitions || []).filter(Boolean).map(({ drawName, drawId }: any) => ({
     onClick: () => addTo(table, event.eventId, drawId),
     stateChange: true,
     label: drawName,
