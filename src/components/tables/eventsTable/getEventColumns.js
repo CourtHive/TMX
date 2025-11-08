@@ -8,7 +8,9 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getEventColumns(nestedTables) {
+export function getEventColumns(nestedTables, getLightMode) {
+  const isLightMode = typeof getLightMode === 'function' ? getLightMode() : false;
+
   const eventDetail = (e, cell) => {
     e.stopPropagation();
     const eventId = cell.getRow().getData().eventId;
@@ -107,7 +109,7 @@ export function getEventColumns(nestedTables) {
       field: 'matchUpsCount',
       hozAlign: CENTER,
       headerSort: true,
-      visible: true,
+      visible: !isLightMode,
       width: 50,
     },
     {
@@ -117,7 +119,7 @@ export function getEventColumns(nestedTables) {
       headerHozAlign: CENTER,
       hozAlign: CENTER,
       headerSort: true,
-      visible: true,
+      visible: !isLightMode,
       width: 50,
     },
     {
@@ -127,7 +129,7 @@ export function getEventColumns(nestedTables) {
       headerHozAlign: CENTER,
       hozAlign: CENTER,
       headerSort: true,
-      visible: true,
+      visible: !isLightMode,
       width: 50,
     },
     {

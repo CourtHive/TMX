@@ -10,6 +10,8 @@ import { getEventColumns } from './getEventColumns';
 
 import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 
+const EVENT_COUNT_THRESHOLD = 15;
+
 export function createEventsTable() {
   let table;
   const nestedTables = new Map();
@@ -18,23 +20,31 @@ export function createEventsTable() {
     nestedTables.set(eventId, table);
   };
 
-  /* To Be Done: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary */
+  // Determine lightMode before creating columns
+  const initialEventData = tournamentEngine.getEvents({ withScaleValues: false });
+  const eventCount = initialEventData?.events?.length || 0;
+  const lightMode = eventCount > EVENT_COUNT_THRESHOLD;
+
   const getTableData = () => {
-    const eventData = tournamentEngine.getEvents({ withScaleValues: true });
+    const eventData = tournamentEngine.getEvents({ withScaleValues: !lightMode });
+
+    // TODO: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary
     return eventData?.events?.map((event) =>
-      mapEvent({ event, scaleValues: eventData.eventScaleValues?.[event.eventId] }),
+      mapEvent({
+        event,
+        scaleValues: eventData.eventScaleValues?.[event.eventId],
+        lightMode,
+      }),
     );
   };
 
-  /*
-  To be Done: add competitiveness column and/or highlight scores based on competitiveness                                        │
-  matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']       
-  */
   const replaceTableData = () => {
+    // TODO: add competitiveness column and/or highlight scores based on competitiveness
+    // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
     table.replaceData(getTableData());
   };
 
-  const columns = getEventColumns(nestedTables);
+  const columns = getEventColumns(nestedTables, () => lightMode);
 
   const render = (data) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });

@@ -4,24 +4,33 @@ import { mapDrawDefinition } from './mapDrawDefinition';
 
 const { MAIN } = drawDefinitionConstants;
 
-export function mapEvent({ event, scaleValues }) {
+export function mapEvent({ event, scaleValues, lightMode = false }) {
   const { drawDefinitions = [], eventName, entries, eventId } = event;
 
-  const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
   const publishState = publishingGovernor.getPublishState({ event }).publishState;
-
   const drawsCount = drawDefinitions.length;
+  
   const entriesCount =
     entries.filter(({ entryStage = MAIN, entryStatus }) =>
       acceptedEntryStatuses(MAIN).includes(`${entryStage}.${entryStatus}`),
     )?.length || 0;
-  const matchUpsCount = matchUps?.length || 0;
-  const scheduledMatchUpsCount =
-    matchUps?.filter(({ winningSide, schedule }) => !winningSide && schedule?.scheduledTime)?.length || 0;
-  const completedMatchUpsCount = matchUps.filter(({ winningSide }) => winningSide)?.length || 0;
-  const drawDefs = drawDefinitions.map((drawDefinition) =>
-    mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] }),
-  );
+
+  // Skip resource-intensive calculations in light mode
+  let matchUpsCount = 0;
+  let scheduledMatchUpsCount = 0;
+  let completedMatchUpsCount = 0;
+  let drawDefs = [];
+
+  if (!lightMode) {
+    const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
+    matchUpsCount = matchUps?.length || 0;
+    scheduledMatchUpsCount =
+      matchUps?.filter(({ winningSide, schedule }) => !winningSide && schedule?.scheduledTime)?.length || 0;
+    completedMatchUpsCount = matchUps.filter(({ winningSide }) => winningSide)?.length || 0;
+    drawDefs = drawDefinitions.map((drawDefinition) =>
+      mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] }),
+    );
+  }
 
   const searchText = [eventName]
     .concat(drawDefinitions.map(({ drawName }) => drawName || ''))
