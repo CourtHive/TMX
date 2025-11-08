@@ -1,3 +1,7 @@
+/**
+ * Generate mock participants modal with ratings.
+ * Creates mock players with WTN/UTR ratings and configurable gender/count.
+ */
 import { genderConstants, factoryConstants, mocksEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
@@ -8,8 +12,8 @@ const { FEMALE, MALE, MIXED, ANY } = genderConstants;
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
-export function mockParticipants({ callback }) {
-  let inputs;
+export function mockParticipants({ callback }: { callback?: () => void }): void {
+  let inputs: any;
 
   const generate = () => {
     const count = inputs.participantsCount.value;
@@ -45,7 +49,7 @@ export function mockParticipants({ callback }) {
     { label: 'Generate', intent: 'is-info', close: true, onClick: generate },
   ];
 
-  const content = (elem) =>
+  const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
       {
         options: [

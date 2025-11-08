@@ -1,3 +1,7 @@
+/**
+ * Create events table with light mode optimization.
+ * Displays tournament events with conditional data loading based on event count threshold.
+ */
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -12,15 +16,14 @@ import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 
 const EVENT_COUNT_THRESHOLD = 15;
 
-export function createEventsTable() {
-  let table;
+export function createEventsTable(): { table: any; replaceTableData: () => void } {
+  let table: any;
   const nestedTables = new Map();
-  const setNestedTable = (eventId, table) => {
+  const setNestedTable = (eventId: string, table: any) => {
     if (nestedTables.has(eventId)) return;
     nestedTables.set(eventId, table);
   };
 
-  // Determine lightMode before creating columns
   const initialEventData = tournamentEngine.getEvents({ withScaleValues: false });
   const eventCount = initialEventData?.events?.length || 0;
   const lightMode = eventCount > EVENT_COUNT_THRESHOLD;
@@ -28,8 +31,7 @@ export function createEventsTable() {
   const getTableData = () => {
     const eventData = tournamentEngine.getEvents({ withScaleValues: !lightMode });
 
-    // TODO: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary
-    return eventData?.events?.map((event) =>
+    return eventData?.events?.map((event: any) =>
       mapEvent({
         event,
         scaleValues: eventData.eventScaleValues?.[event.eventId],
@@ -39,23 +41,21 @@ export function createEventsTable() {
   };
 
   const replaceTableData = () => {
-    // TODO: add competitiveness column and/or highlight scores based on competitiveness
-    // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
     table.replaceData(getTableData());
   };
 
   const columns = getEventColumns(nestedTables, () => lightMode);
 
-  const render = (data) => {
+  const render = (data: any[]) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
-    const element = document.getElementById(TOURNAMENT_EVENTS);
-    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
+    const element = document.getElementById(TOURNAMENT_EVENTS)!;
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
     if (headerElement?.innerHTML) {
       headerElement.innerHTML = `Events (${data.length})`;
     }
 
     table = new Tabulator(element, {
-      columnDefaults: {}, // e.g. tooltip: true, //show tool tips on cells
+      columnDefaults: {},
       headerSortElement: headerSortElement([
         'scheduledMatchUpsCount',
         'completedMatchUpsCount',
@@ -63,26 +63,22 @@ export function createEventsTable() {
         'entriesCount',
         'drawsCount',
       ]),
-      // responsiveLayoutCollapseStartOpen: false,
       rowFormatter: eventRowFormatter(setNestedTable),
-      // minHeight: window.innerHeight * 0.8,
       height: window.innerHeight * 0.8,
-      // height: // NOTE: setting a height causes scrolling issue
-      // responsiveLayout: 'collapse',
       placeholder: 'No events',
       layout: 'fitColumns',
-      reactiveData: true, // updating row data will automatically update the table row!
+      reactiveData: true,
       index: 'eventId',
       columns,
       data,
     });
     table.on('scrollVertical', destroyTipster);
-    table.on('dataChanged', (rows) => {
+    table.on('dataChanged', (rows: any[]) => {
       if (headerElement) {
         headerElement.innerHTML = `Events (${rows.length})`;
       }
     });
-    table.on('dataFiltered', (filters, rows) => {
+    table.on('dataFiltered', (_filters: any, rows: any[]) => {
       if (headerElement) {
         headerElement.innerHTML = `Events (${rows.length})`;
       }

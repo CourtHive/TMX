@@ -1,10 +1,14 @@
+/**
+ * Overlay modal system for full-screen content.
+ * Creates centered overlay with header, content, and footer sections.
+ */
 import { removeAllChildNodes } from 'services/dom/transformers';
 
 import { NONE, TMX_OVERLAY } from 'constants/tmxConstants';
 
-let scrollTop;
+let scrollTop: number;
 
-export function openOverlay({ title, content, footer } = {}) {
+export function openOverlay({ title, content, footer }: { title?: string; content?: string | HTMLElement; footer?: string | HTMLElement } = {}): void {
   if (!content || !footer) return;
 
   const tmxOverlay = document.getElementById(TMX_OVERLAY);
@@ -50,23 +54,23 @@ export function openOverlay({ title, content, footer } = {}) {
   document.body.appendChild(overlay);
 
   scrollTop = window.scrollY || document.documentElement.scrollTop;
-  const root = document.getElementById('root');
+  const root = document.getElementById('root')!;
   root.style.display = NONE;
 }
 
-export function setOverlayContent({ content }) {
+export function setOverlayContent({ content }: { content: string | HTMLElement }): void {
   const contentElement = document.getElementById(TMX_OVERLAY)?.getElementsByClassName('overlay-content')?.[0];
   if (contentElement) {
-    removeAllChildNodes(contentElement);
+    removeAllChildNodes(contentElement as HTMLElement);
     if (typeof content === 'string') {
-      contentElement.innerHTML = content;
+      (contentElement as HTMLElement).innerHTML = content;
     } else if (content) {
       contentElement.appendChild(content);
     }
   }
 }
 
-function overlayHeader({ title }) {
+function overlayHeader({ title }: { title: string }): HTMLHeadingElement {
   const header = document.createElement('h2');
   header.className = 'overlay-header';
   header.innerHTML = `
@@ -77,13 +81,13 @@ function overlayHeader({ title }) {
   return header;
 }
 
-export function closeOverlay() {
-  const root = document.getElementById('root');
+export function closeOverlay(): void {
+  const root = document.getElementById('root')!;
   root.style.display = 'inline';
   window.scrollTo({ top: scrollTop });
 
   let tmxOverlay = document.getElementById(TMX_OVERLAY);
-  removeAllChildNodes(tmxOverlay);
+  removeAllChildNodes(tmxOverlay as HTMLElement);
   let iterations = 0;
 
   while (iterations < 5 && tmxOverlay) {

@@ -1,3 +1,7 @@
+/**
+ * Add participants to event modal with entry stage and status selection.
+ * Allows selection of entry stage (main/qualifying) and status (direct acceptance/alternate/wildcard/ungrouped).
+ */
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -16,8 +20,16 @@ const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { INDIVIDUAL } = participantConstants;
 const { TEAM, DOUBLES } = eventConstants;
 
-export function addToEvent({ callback, eventName, eventType, participantType, participantIds } = {}) {
-  const ungroupedOnly = [TEAM, DOUBLES].includes(eventType) && participantType === INDIVIDUAL;
+type AddToEventParams = {
+  callback?: (params: { entryStatus: string; entryStage: string }) => void;
+  eventName?: string;
+  eventType?: string;
+  participantType?: string;
+  participantIds?: string[];
+};
+
+export function addToEvent({ callback, eventName, eventType, participantType, participantIds }: AddToEventParams = {}): void {
+  const ungroupedOnly = [TEAM, DOUBLES].includes(eventType as any) && participantType === INDIVIDUAL;
 
   if (!participantIds?.length) {
     tmxToast({ message: 'Nothing to do', intent: 'is-info' });
@@ -36,15 +48,15 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
     { hide: participantType === TEAM, label: 'Ungrouped', value: UNGROUPED, selected: ungroupedOnly }
   ];
 
-  let inputs;
+  let inputs: any;
 
   const onClick = () => {
     const entryStatus = inputs.entryStatus.value;
     const entryStage = inputs.entryStage.value;
-    if (isFunction(callback)) callback({ entryStatus, entryStage });
+    if (isFunction(callback) && callback) callback({ entryStatus, entryStage });
   };
 
-  const content = (elem) =>
+  const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
       {
         text: `Add ${participantIds.length} participant to ${eventName}`

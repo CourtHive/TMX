@@ -1,3 +1,7 @@
+/**
+ * Schedule grid control bar with date navigation and search.
+ * Provides date selection, search, team highlighting, and schedule activation toggle.
+ */
 import { competitionEngine, tools } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 import { context } from 'services/context';
@@ -5,21 +9,29 @@ import dayjs from 'dayjs';
 
 import { LEFT, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
 
+type ScheduleGridControlParams = {
+  toggleUnscheduled?: () => void;
+  schedulingActive?: boolean;
+  controlAnchor?: HTMLElement;
+  scheduledDate?: string;
+  courtsCount?: number;
+};
+
 export function scheduleGridControl({
   toggleUnscheduled,
   schedulingActive,
   controlAnchor,
   scheduledDate,
   courtsCount,
-} = {}) {
-  if (!controlAnchor) return;
+}: ScheduleGridControlParams = {}): { elements: any } {
+  if (!controlAnchor) return { elements: undefined };
 
-  let elements; // for internal manipulation
+  let elements: any;
 
-  const formatDate = (dateString) => dayjs(dateString).format('dddd MMM D');
+  const formatDate = (dateString: string) => dayjs(dateString).format('dddd MMM D');
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
   const dateRange = tools.generateDateRange(startDate, endDate);
-  const dateOptions = dateRange.map((dateString) => ({
+  const dateOptions = dateRange.map((dateString: string) => ({
     onClick: () => {
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo.tournamentId;
       context.router.navigate(`/tournament/${tournamentId}/schedule/${dateString}`);
@@ -30,14 +42,10 @@ export function scheduleGridControl({
     close: true,
   }));
 
-  const setSearchFilter = () => {};
+  const setSearchFilter = (_value?: string) => {};
 
   const items = [
     {
-      // onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateHighlights(''),
-      // onChange: (e) => updateHighlights(e.target.value),
-      // onKeyUp: (e) => updateHighlights(e.target.value),
-      // clearSearch: () => updateHighlights(''),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       id: 'searchParticipants',
@@ -73,7 +81,7 @@ export function scheduleGridControl({
     },
   ];
 
-  elements = controlBar({ target: controlAnchor, items }).elements;
+  elements = controlBar({ target: controlAnchor, items })?.elements;
 
   return { elements };
 }

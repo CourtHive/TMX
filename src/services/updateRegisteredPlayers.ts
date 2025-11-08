@@ -19,7 +19,7 @@ export function updateRegisteredPlayers({ callback }: { callback?: () => void })
 
   const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
   const registration = extension?.value;
-  if (!registration) mockParticipants({ callback: done });
+  if (!registration) (mockParticipants as any)({ callback: done });
 }
 
 function addRegistered(registeredPlayers: any[]): void {

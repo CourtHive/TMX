@@ -1,3 +1,7 @@
+/**
+ * Create matchUps table with scoring and predictive accuracy.
+ * Displays all tournament matchUps with WTN/UTR predictive accuracy calculations.
+ */
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -9,8 +13,8 @@ import { hotKeyScoring } from './hotKeyScoring';
 
 import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
-export function createMatchUpsTable() {
-  let table;
+export function createMatchUpsTable(): { table: any; data: any[]; replaceTableData: () => void } {
+  let table: any;
 
   const { setFocusData } = hotKeyScoring();
 
@@ -20,11 +24,9 @@ export function createMatchUpsTable() {
         participantsProfile: { withISO2: true, withScaleValues: true },
         contextProfile: { withCompetitiveness: true },
       }).matchUps || []
-    ).filter(({ matchUpStatus }) => matchUpStatus !== 'BYE');
+    ).filter(({ matchUpStatus }: any) => matchUpStatus !== 'BYE');
 
-    // TODO: sort matchUps 1st: checkScoreHasValue but incomplete, 2nd: readyToScore, 3rd: ordered rounds with most matchUps
-
-    return matchUps.map(mapMatchUp);
+    return matchUps.map((mapMatchUp as any));
   };
 
   const replaceTableData = () => {
@@ -32,18 +34,16 @@ export function createMatchUpsTable() {
   };
 
   const data = getTableData();
-  const columns = getMatchUpColumns({ data, replaceTableData, setFocusData });
+  const columns = (getMatchUpColumns as any)({ data, replaceTableData, setFocusData });
 
-  const render = (data) => {
+  const render = (data: any[]) => {
     destroyTable({ anchorId: TOURNAMENT_MATCHUPS });
-    const element = document.getElementById(TOURNAMENT_MATCHUPS);
-    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
+    const element = document.getElementById(TOURNAMENT_MATCHUPS)!;
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['complete', 'duration', 'score', 'scheduledTime']),
-      // responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.85,
-      // responsiveLayout: 'collapse',
       placeholder: 'No matches',
       layout: 'fitColumns',
       reactiveData: true,
@@ -51,10 +51,10 @@ export function createMatchUpsTable() {
       columns,
       data,
     });
-    table.on('dataFiltered', (filters, rows) => {
+    table.on('dataFiltered', (_filters: any, rows: any[]) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
       headerElement && (headerElement.innerHTML = `Matches (${matchUps.length})`);
-      const predictiveWTN = document.getElementById('wtnPredictiveAccuracy');
+      const predictiveWTN = document.getElementById('wtnPredictiveAccuracy')!;
       const wtn = tournamentEngine.getPredictiveAccuracy({
         valueAccessor: 'wtnRating',
         scaleName: 'WTN',
@@ -68,7 +68,7 @@ export function createMatchUpsTable() {
         predictiveWTN.style.display = NONE;
       }
 
-      const predictiveUTR = document.getElementById('utrPredictiveAccuracy');
+      const predictiveUTR = document.getElementById('utrPredictiveAccuracy')!;
       const utr = tournamentEngine.getPredictiveAccuracy({
         valueAccessor: 'utrRating',
         singlesForDoubles: true,

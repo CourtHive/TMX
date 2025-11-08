@@ -1,3 +1,7 @@
+/**
+ * Fetch tournament details modal by identifier.
+ * Validates identifier length and fetches tournament from remote API.
+ */
 import { fetchTournamentDetails } from 'services/apis/servicesApi';
 import { addTournament } from 'services/storage/importTournaments';
 import { renderForm } from 'components/renderers/renderForm';
@@ -5,15 +9,15 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 
-export function fetchTournamentDetailsModal({ table }) {
-  const tournamentIds = table.getData().map((t) => t.tournamentId);
-  let inputs;
+export function fetchTournamentDetailsModal({ table }: { table: any }): void {
+  const tournamentIds = table.getData().map((t: any) => t.tournamentId);
+  let inputs: any;
 
-  const enableFetch = ({ inputs }) => {
+  const enableFetch = ({ inputs }: any) => {
     const identifier = inputs['identifier'].value;
     const isValid = identifier.length > 10;
     const fetchButton = document.getElementById('fetchButton');
-    if (fetchButton) fetchButton.disabled = !isValid;
+    if (fetchButton) (fetchButton as HTMLButtonElement).disabled = !isValid;
   };
 
   const relationships = [
@@ -23,7 +27,7 @@ export function fetchTournamentDetailsModal({ table }) {
     },
   ];
 
-  const content = (elem) =>
+  const content = (elem: HTMLElement) =>
     (inputs = renderForm(
       elem,
       [
@@ -47,7 +51,7 @@ export function fetchTournamentDetailsModal({ table }) {
     });
   };
 
-  const showResult = (result) => {
+  const showResult = (result: any) => {
     const tournamentRecord = result?.data?.tournamentRecord;
     const tournamentId = result?.data?.tournamentId;
     const exists = tournamentIds.includes(tournamentId);
@@ -56,7 +60,6 @@ export function fetchTournamentDetailsModal({ table }) {
       addTournament({ tournamentRecord, tournamentIds, table, callback });
     } else {
       console.log({ exists });
-      // TODO: check for updated participants and tournamentInfo
     }
   };
 

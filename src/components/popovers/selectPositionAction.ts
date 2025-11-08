@@ -1,10 +1,14 @@
+/**
+ * Select position action popover for draw assignments.
+ * Provides actions for assigning, withdrawing, seeding, swapping participants.
+ */
 import { numericValidator } from 'components/validators/numericValidator';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { tools } from 'tods-competition-factory';
 
-const actionLabels = {
+const actionLabels: Record<string, string> = {
   ALTERNATE: 'Assign alternate',
   ASSIGN: 'Assign participant',
   BYE: 'Assign BYE',
@@ -12,16 +16,14 @@ const actionLabels = {
   REMOVE: 'Remove assignment',
   QUALIFIER: 'Assign qualifier',
   LUCKY: 'Assign Lucky Loser',
-  // REMOVE_SEED: 'Remove seed',
-  // PENALTY: 'Assign penalty',
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
   WITHDRAW: 'Withdraw participant',
 };
 
-export function selectPositionAction({ pointerEvent, actions, callback }) {
-  const target = pointerEvent.target;
-  const handleClick = (action) => {
+export function selectPositionAction({ pointerEvent, actions, callback }: { pointerEvent: PointerEvent; actions: any[]; callback: () => void }): void {
+  const target = pointerEvent.target as HTMLElement;
+  const handleClick = (action: any) => {
     if (['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT'].includes(action.type)) noChoiceAction({ action, callback });
     if (['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER', 'LUCKY'].includes(action.type))
       assignParticipant({ action, callback });
@@ -37,15 +39,15 @@ export function selectPositionAction({ pointerEvent, actions, callback }) {
   if (options?.length) tipster({ options, target, config: { arrow: false, offset: [0, 0] } });
 }
 
-function noChoiceAction({ action, callback }) {
-  const postMutation = (result) => (result.success ? callback() : console.log({ result }));
+function noChoiceAction({ action, callback }: { action: any; callback: () => void }) {
+  const postMutation = (result: any) => (result.success ? callback() : console.log({ result }));
   const methods = [{ method: action.method, params: action.payload }];
   mutationRequest({ methods, callback: postMutation });
 }
 
-function assignParticipant({ action, callback }) {
-  const onSelection = (params) => {
-    const postMutation = (result) => (result.success ? callback() : console.log({ result }));
+function assignParticipant({ action, callback }: { action: any; callback: () => void }) {
+  const onSelection = (params: any) => {
+    const postMutation = (result: any) => (result.success ? callback() : console.log({ result }));
     const methods = [
       {
         params: { ...action.payload, ...params },
@@ -55,17 +57,17 @@ function assignParticipant({ action, callback }) {
     mutationRequest({ methods, callback: postMutation });
   };
 
-  selectParticipant({ action, onSelection, selectOnEnter: true });
+  (selectParticipant as any)({ action, onSelection, selectOnEnter: true });
 }
 
-function assignSeed({ target, action, callback }) {
-  let tip;
+function assignSeed({ target, action, callback }: { target: HTMLElement; action: any; callback: () => void }) {
+  let tip: any;
 
-  function onKeyDown(e) {
+  function onKeyDown(e: KeyboardEvent) {
     if (e?.key === 'Enter') {
-      const seedValue = e.target.value;
+      const seedValue = (e.target as HTMLInputElement).value;
       if (tools.isConvertableInteger(seedValue)) {
-        const postMutation = (result) => (result.success ? callback() : console.log({ result }));
+        const postMutation = (result: any) => (result.success ? callback() : console.log({ result }));
         const methods = [
           {
             params: { ...action.payload, seedValue },

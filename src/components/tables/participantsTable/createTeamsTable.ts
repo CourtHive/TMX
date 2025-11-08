@@ -1,3 +1,7 @@
+/**
+ * Create teams/groups table with individual participants.
+ * Displays team participants with events, members, matchUps, and win/loss records.
+ */
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapTeamParticipant } from 'pages/tournament/tabs/participantTab/mapTeamParticipant';
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
@@ -13,8 +17,8 @@ import { TOURNAMENT_TEAMS } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
-export function createTeamsTable({ view } = {}) {
-  let table, participants, derivedEventInfo, ready;
+export function createTeamsTable({ view }: { view?: string } = {}): { table: any; replaceTableData: () => void } {
+  let table: any, participants: any[], derivedEventInfo: any, ready: boolean;
 
   const getTableData = () => {
     const result = tournamentEngine.getParticipants({
@@ -26,7 +30,7 @@ export function createTeamsTable({ view } = {}) {
     });
     ({ participants, derivedEventInfo } = result);
 
-    return participants.map((p) => mapTeamParticipant(p, derivedEventInfo));
+    return participants.map((p: any) => (mapTeamParticipant as any)(p, derivedEventInfo));
   };
 
   const replaceTableData = () => {
@@ -34,12 +38,12 @@ export function createTeamsTable({ view } = {}) {
     setTimeout(refresh, ready ? 0 : 1000);
   };
 
-  const columns = getGroupingsColumns({ view });
+  const columns = (getGroupingsColumns as any)({ view });
 
-  const render = (data) => {
+  const render = (data: any[]) => {
     destroyTable({ anchorId: TOURNAMENT_TEAMS });
-    const element = document.getElementById(TOURNAMENT_TEAMS);
-    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
+    const element = document.getElementById(TOURNAMENT_TEAMS)!;
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['events', 'membersCount', 'matchUpsCount', 'winLoss']),
@@ -54,19 +58,14 @@ export function createTeamsTable({ view } = {}) {
       layout: 'fitColumns',
       reactiveData: true,
       data,
-      /*
-      // NOTE: persistence causes filter cleanup warnings in console
-      persistence: { filter: true, sort: true },
-      persistenceID: 'trnyPtcpt',
-      */
       columns,
     });
 
-    table.on('dataChanged', (rows) => {
+    table.on('dataChanged', (rows: any[]) => {
       const type = view === TEAM ? 'Teams' : 'Groups';
       headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
     });
-    table.on('dataFiltered', (filters, rows) => {
+    table.on('dataFiltered', (_filters: any, rows: any[]) => {
       const type = view === TEAM ? 'Teams' : 'Groups';
       headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
     });

@@ -1,21 +1,25 @@
+/**
+ * Render menu with items, inputs, and dividers.
+ * Creates hierarchical menu structure with click actions and form inputs.
+ */
 import { renderField } from './renderField';
 
-export function renderMenu(elem, menu, close) {
-  if (!elem) return;
+export function renderMenu(elem: HTMLElement, menu: any[], close?: () => void): { focusElement?: HTMLElement } {
+  if (!elem) return {};
 
   const aside = document.createElement('aside');
   aside.classList.add('menu');
-  const inputs = {};
+  const inputs: Record<string, HTMLElement> = {};
 
-  const getClickAction = (item) => {
+  const getClickAction = (item: any) => {
     if (close && item.close !== false) {
-      return (e) => {
+      return (e: Event) => {
         e.stopPropagation();
         close();
         item.onClick();
       };
     }
-    return (e) => {
+    return (e: Event) => {
       e.stopPropagation();
       item.onClick();
     };
@@ -26,11 +30,11 @@ export function renderMenu(elem, menu, close) {
     i += 1;
     return i;
   };
-  const genericItem = (item) => item?.heading || item?.text || item?.label || `Item ${getIndex()}`;
-  const createMenuItem = (subItem) => {
+  const genericItem = (item: any) => item?.heading || item?.text || item?.label || `Item ${getIndex()}`;
+  const createMenuItem = (subItem: any) => {
     const menuItem = document.createElement('li');
     menuItem.className = 'font-medium';
-    if (subItem.style) menuItem.style = subItem.style;
+    if (subItem.style) menuItem.style.cssText = subItem.style;
     if (subItem.onClick) {
       const fontSize = subItem.fontSize || '1em';
       if (subItem.divider) {
@@ -40,7 +44,7 @@ export function renderMenu(elem, menu, close) {
       } else {
         const anchor = document.createElement('a');
         const opacity = subItem.disabled ? '0.4' : '1';
-        anchor.style = `text-decoration: none; opacity: ${opacity}; font-size: ${fontSize}`;
+        anchor.style.cssText = `text-decoration: none; opacity: ${opacity}; font-size: ${fontSize}`;
         if (subItem.class) anchor.classList.add(subItem.class);
         if (subItem.color) anchor.style.color = subItem.color;
         if (subItem.heading) anchor.style.fontWeight = 'bold';
@@ -55,7 +59,7 @@ export function renderMenu(elem, menu, close) {
     return menuItem;
   };
 
-  let focusElement;
+  let focusElement: HTMLElement | undefined;
 
   for (const item of menu || []) {
     if (item.hide) continue;
@@ -75,8 +79,8 @@ export function renderMenu(elem, menu, close) {
       aside.appendChild(menuList);
     } else if (item.type === 'input') {
       const { field, inputElement } = renderField(item);
-      if (item.focus) focusElement = inputElement;
-      inputs[item.field] = inputElement;
+      if (item.focus) focusElement = inputElement as HTMLElement;
+      inputs[item.field] = inputElement as HTMLElement;
       aside.appendChild(field);
     } else if (item.type === 'divider') {
       const item = document.createElement('hr');

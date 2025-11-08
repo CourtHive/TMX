@@ -1,3 +1,7 @@
+/**
+ * Event control bar items configuration.
+ * Provides search, event/draw/structure navigation, and action options.
+ */
 import { getStructureOptions } from '../getStructureOptions';
 import { eventConstants } from 'tods-competition-factory';
 import { getActionOptions } from '../getActionOptions';
@@ -15,12 +19,20 @@ export function getEventControlItems({
   matchUps,
   eventId,
   drawId,
-}) {
-  const { eventOptions } = getEventOptions({ eventId, drawId });
+}: {
+  updateParticipantFilter: (value: string) => void;
+  updateControlBar: (refresh?: boolean) => void;
+  structureId: string;
+  eventData: any;
+  matchUps: any[];
+  eventId: string;
+  drawId: string;
+}): any[] {
+  const { eventOptions } = (getEventOptions as any)({ eventId, drawId });
   const drawsOptions = getDrawsOptions({ eventData, drawId });
 
-  const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
-  const structureName = drawData?.structures?.find((s) => s.structureId === structureId)?.structureName;
+  const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
+  const structureName = drawData?.structures?.find((s: any) => s.structureId === structureId)?.structureName;
   const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
 
   const structureOptions = getStructureOptions({
@@ -29,7 +41,7 @@ export function getEventControlItems({
     drawData,
     eventId,
   });
-  const actionOptions = getActionOptions({
+  const actionOptions = (getActionOptions as any)({
     dualMatchUp: dual && matchUps[0],
     structureName,
     structureId,
@@ -40,9 +52,9 @@ export function getEventControlItems({
 
   return [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateParticipantFilter(''),
-      onChange: (e) => updateParticipantFilter(e.target.value),
-      onKeyUp: (e) => updateParticipantFilter(e.target.value),
+      onKeyDown: (e: KeyboardEvent) => e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && updateParticipantFilter(''),
+      onChange: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
+      onKeyUp: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       clearSearch: () => updateParticipantFilter(''),
       placeholder: 'Participant name',
       location: LEFT,

@@ -1,22 +1,33 @@
+/**
+ * Tippy.js-based popover menu renderer.
+ * Creates interactive popup menus with items, options, and callbacks.
+ */
 import { renderMenu } from 'components/renderers/renderMenu';
 import { isFunction } from 'functions/typeOf';
-import tippy from 'tippy.js';
+import tippy, { Instance } from 'tippy.js';
 
-let tip;
+let tip: Instance | undefined;
 
-// useful when tip appears on table row that could scroll out of view
-export function destroyTipster(target) {
+export function destroyTipster(target?: HTMLElement | any): void {
   if (tip) {
-    tip?.destroy(true);
+    (tip as any)?.destroy(true);
     tip = undefined;
   }
   if (target?.remove) target.remove();
 }
 
-/*
- *   e.g. config: { placement: 'bottom' }
- */
-export function tipster(params) {
+type TipsterParams = {
+  title?: string;
+  options?: any[];
+  menuItems?: any[];
+  coords?: any;
+  callback?: (result: any) => void;
+  config?: any;
+  target?: HTMLElement;
+  items?: any[];
+};
+
+export function tipster(params: TipsterParams): Instance | undefined {
   const { title, options, menuItems = [], coords, callback, config } = params;
   let { target, items } = params;
   if (!options?.length && !items?.length && !menuItems) return;
@@ -42,11 +53,11 @@ export function tipster(params) {
           style: o.style,
           onClick: () => {
             if (o.subMenu) {
-              tip.setContent('IMPLEMENT SUB MENU');
+              tip!.setContent('IMPLEMENT SUB MENU');
             } else if (isFunction(o.onClick)) {
               destroyTipster(tippyMenu);
               o.onClick();
-            } else if (isFunction(callback)) {
+            } else if (isFunction(callback) && callback) {
               destroyTipster(tippyMenu);
               if (typeof o === 'object') {
                 callback({ ...o, coords });
@@ -58,7 +69,7 @@ export function tipster(params) {
         }));
 
     const menu = [{ text: title, items }, ...menuItems];
-    const { focusElement } = renderMenu(tippyMenu, menu);
+    const { focusElement } = (renderMenu as any)(tippyMenu, menu);
     if (focusElement) focusElement.focus();
 
     return tippyMenu;
@@ -68,7 +79,6 @@ export function tipster(params) {
   if (target) {
     tip = tippy(target, { content, theme: 'light-border', trigger: 'click', ...config });
     tip.show();
-    // must be programmatic after show() event
     tip.setProps({ interactive: true });
   }
 

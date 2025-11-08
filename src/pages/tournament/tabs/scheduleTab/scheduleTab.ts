@@ -1,3 +1,7 @@
+/**
+ * Render schedule tab with schedule and unscheduled tables.
+ * Creates schedule grid and unscheduled matchUps table with date navigation.
+ */
 import { createUnscheduledTable } from 'components/tables/unscheduledTable/createUnscheduledTable';
 import { createScheduleTable } from 'components/tables/scheduleTable/createScheduleTable';
 import { competitionEngine, tools } from 'tods-competition-factory';
@@ -7,8 +11,8 @@ import { context } from 'services/context';
 
 import { NONE, SCHEDULE_CONTROL, UNSCHEDULED_CONTROL, UNSCHEDULED_VISIBILITY } from 'constants/tmxConstants';
 
-export function renderScheduleTab(params) {
-  let gridControlElements;
+export function renderScheduleTab(params: { scheduledDate?: string }): void {
+  let gridControlElements: any;
 
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
   const now = new Date();
@@ -24,13 +28,13 @@ export function renderScheduleTab(params) {
   const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
   context.displayed.selectedScheduleDate = scheduledDate;
 
-  const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY);
-  const unscheduldControlAnchor = document.getElementById(UNSCHEDULED_CONTROL);
-  const controlAnchor = document.getElementById(SCHEDULE_CONTROL);
+  const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY)!;
+  const unscheduldControlAnchor = document.getElementById(UNSCHEDULED_CONTROL)!;
+  const controlAnchor = document.getElementById(SCHEDULE_CONTROL)!;
   unscheduldControlAnchor.style.paddingBottom = '1em';
   controlAnchor.style.paddingBottom = '1em';
 
-  let schedulingActive = context.state.schedulingActive;
+  let schedulingActive = (context.state as any).schedulingActive;
   unscheduledVisibility.style.display = schedulingActive ? '' : NONE;
 
   const {
@@ -41,7 +45,7 @@ export function renderScheduleTab(params) {
 
   const toggleUnscheduled = () => {
     schedulingActive = !schedulingActive;
-    context.state.schedulingActive = schedulingActive;
+    (context.state as any).schedulingActive = schedulingActive;
     unscheduledVisibility.style.display = schedulingActive ? '' : NONE;
 
     if (gridControlElements?.scheduleMatchUps)
@@ -56,7 +60,7 @@ export function renderScheduleTab(params) {
     scheduledDate,
   });
 
-  unscheduledGridControl({
+  (unscheduledGridControl as any)({
     controlAnchor: unscheduldControlAnchor,
     matchUps: unscheduledMatchUps,
     table: unscheduledTable,
@@ -66,7 +70,7 @@ export function renderScheduleTab(params) {
     scheduledDate,
   });
 
-  gridControlElements = scheduleGridControl({
+  gridControlElements = (scheduleGridControl as any)({
     table: scheduleTable,
     unscheduledMatchUps,
     updateScheduleTable,
