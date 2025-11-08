@@ -1,23 +1,40 @@
+/**
+ * Generic DOM event manager with class-based event registration.
+ * Supports touch and mouse events with hold detection and device type detection.
+ */
+
+interface RegisteredFunction {
+  fx: Function;
+  delay?: number;
+}
+
+interface MouseCoords {
+  x: number;
+  y: number;
+  pageX: number;
+  pageY: number;
+}
+
 export const eventManager = (function () {
-  let touchTimer;
-  let em = {
+  let touchTimer: NodeJS.Timeout;
+  const em: any = {
     elapsed: 100000,
-    held: undefined,
-    touched: undefined,
+    held: undefined as any,
+    touched: undefined as any,
     holdTime: 800,
-    holdAction: undefined,
+    holdAction: undefined as any,
     holdActions: {},
   };
-  const keys = {};
-  let registeredFunctions = {};
-  const intersection = (a, b) => a.filter((n) => b.indexOf(n) !== -1).filter((e, i, c) => c.indexOf(e) === i);
+  const keys: Record<string, string[]> = {};
+  let registeredFunctions: Record<string, Record<string, RegisteredFunction>> = {};
+  const intersection = (a: string[], b: string[]) => a.filter((n) => b.indexOf(n) !== -1).filter((e, i, c) => c.indexOf(e) === i);
 
   em.reset = () => {
     registeredFunctions = {};
     return em;
   };
 
-  em.register = (cls, evnt, fx, delay) => {
+  em.register = (cls: string, evnt: string, fx: Function, delay?: number) => {
     if (typeof fx == 'function') {
       if (!registeredFunctions[evnt]) {
         registeredFunctions[evnt] = {};
@@ -29,7 +46,7 @@ export const eventManager = (function () {
     return em;
   };
 
-  em.deRegister = (cls, evnt) => {
+  em.deRegister = (cls: string, evnt: string) => {
     if (registeredFunctions[evnt]) {
       delete registeredFunctions[evnt][cls];
       keys[evnt] = Object.keys(registeredFunctions[evnt]);
@@ -37,10 +54,10 @@ export const eventManager = (function () {
     return em;
   };
 
-  em.call = (cls, evnt, ...args) => {
+  em.call = (cls: string, evnt: string, ...args: any[]) => {
     return registeredFunctions?.[evnt]?.[cls]?.fx(...args);
   };
-  em.trigger = (cls, evnt, target, mouse) => registeredFunctions[evnt][cls].fx(target, mouse, evnt);
+  em.trigger = (cls: string, evnt: string, target: any, mouse: MouseCoords) => registeredFunctions[evnt][cls].fx(target, mouse, evnt);
   em.list = () => console.log(registeredFunctions);
 
   const tapHandler = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
@@ -53,18 +70,19 @@ export const eventManager = (function () {
 
   let lastTap = 0;
 
-  function processEvnt({ evt, evnt, stopPropagation = true }) {
+  function processEvnt({ evt, evnt, stopPropagation = true }: { evt: Event; evnt: string; stopPropagation?: boolean }) {
     if (stopPropagation) evt.stopPropagation();
-    const mouse = {
-      x: evt.clientX,
-      y: evt.clientY,
-      pageX: evt.pageX,
-      pageY: evt.pageY,
+    const mouseEvent = evt as MouseEvent;
+    const mouse: MouseCoords = {
+      x: mouseEvent.clientX,
+      y: mouseEvent.clientY,
+      pageX: mouseEvent.pageX,
+      pageY: mouseEvent.pageY,
     };
-    let classList = Array.from(evt.target.classList);
-    let matchedClasses = classList.length && keys[evnt] ? intersection(classList, keys[evnt]) : [];
+    const classList = Array.from((evt.target as HTMLElement).classList);
+    const matchedClasses = classList.length && keys[evnt] ? intersection(classList, keys[evnt]) : [];
     if (matchedClasses.length) {
-      let thisTap = new Date().getTime();
+      const thisTap = new Date().getTime();
       em.elapsed = thisTap - lastTap;
       lastTap = thisTap;
       matchedClasses.forEach((cls) => {
@@ -73,16 +91,17 @@ export const eventManager = (function () {
     }
   }
 
-  function callFunction({ cls, evt, evnt, mouse }) {
-    let target = evt.target;
+  function callFunction({ cls, evt, evnt, mouse }: { cls: string; evt: Event; evnt: string; mouse: MouseCoords }) {
+    const target = evt.target;
     registeredFunctions[evnt][cls].fx(target, mouse, evnt, evt);
   }
 
   document.addEventListener(
     'touchstart',
-    (pointerEvent) => {
-      em.touched = pointerEvent.target;
-      em.coords = [pointerEvent.touches[0].clientX, pointerEvent.touches[0].clientY];
+    (pointerEvent: Event) => {
+      const touchEvent = pointerEvent as TouchEvent;
+      em.touched = touchEvent.target;
+      em.coords = [touchEvent.touches[0].clientX, touchEvent.touches[0].clientY];
       if (em.touched) {
         touchTimer = setTimeout(function () {
           holdAction();
@@ -100,8 +119,9 @@ export const eventManager = (function () {
   );
   document.addEventListener(
     'touchmove',
-    function (pointerEvent) {
-      if (em.touched !== pointerEvent.target) touchleave();
+    function (pointerEvent: Event) {
+      const touchEvent = pointerEvent as TouchEvent;
+      if (em.touched !== touchEvent.target) touchleave();
     },
     false,
   );
@@ -116,36 +136,32 @@ export const eventManager = (function () {
   }
 
   (function () {
-    let isTouch = false; //let to indicate current input type (is touch versus no touch)
-    let isTouchTimer;
-    let curRootClass = ''; //let indicating current document root class ("can-touch" or "")
+    let isTouch = false;
+    let isTouchTimer: NodeJS.Timeout;
+    let curRootClass = '';
 
     function addtouchclass() {
       clearTimeout(isTouchTimer);
       isTouch = true;
       if (curRootClass !== 'can-touch') {
-        //add "can-touch' class if it's not already present
         curRootClass = 'can-touch';
         document.documentElement.classList.add(curRootClass);
       }
-      //maintain "istouch" state for 500ms so removetouchclass doesn't get fired immediately following a touch event
       isTouchTimer = setTimeout(function () {
         isTouch = false;
       }, 500);
     }
 
     function removetouchclass() {
-      // console.log('removing touch class');
       if (!isTouch && curRootClass === 'can-touch') {
-        //remove 'can-touch' class if not triggered by a touch event and class is present
         isTouch = false;
         curRootClass = '';
         document.documentElement.classList.remove('can-touch');
       }
     }
 
-    document.addEventListener('touchstart', addtouchclass, false); //this event only gets called when input type is touch
-    document.addEventListener('mouseover', removetouchclass, false); //this event gets called when input type is everything from touch to mouse/ trackpad
+    document.addEventListener('touchstart', addtouchclass, false);
+    document.addEventListener('mouseover', removetouchclass, false);
   })();
 
   return em;
