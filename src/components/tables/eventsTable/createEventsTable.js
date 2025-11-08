@@ -18,17 +18,19 @@ export function createEventsTable() {
     nestedTables.set(eventId, table);
   };
 
+  /* To Be Done: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary */
   const getTableData = () => {
     const eventData = tournamentEngine.getEvents({ withScaleValues: true });
-    // TODO: optimization => pass mapEvent visible columns and only get inContext matchUps when necessary
     return eventData?.events?.map((event) =>
       mapEvent({ event, scaleValues: eventData.eventScaleValues?.[event.eventId] }),
     );
   };
 
+  /*
+  To be Done: add competitiveness column and/or highlight scores based on competitiveness                                        │
+  matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']       
+  */
   const replaceTableData = () => {
-    // TODO: add competitiveness column and/or highlight scores based on competitiveness
-    // matchUp.competitiveness ['ROUTINE', 'DECISIVE', 'COMPETITIVE']
     table.replaceData(getTableData());
   };
 
@@ -38,7 +40,9 @@ export function createEventsTable() {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     const element = document.getElementById(TOURNAMENT_EVENTS);
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
-    headerElement?.innerHTML && (headerElement.innerHTML = `Events (${data.length})`);
+    if (headerElement?.innerHTML) {
+      headerElement.innerHTML = `Events (${data.length})`;
+    }
 
     table = new Tabulator(element, {
       columnDefaults: {}, // e.g. tooltip: true, //show tool tips on cells
@@ -64,10 +68,14 @@ export function createEventsTable() {
     });
     table.on('scrollVertical', destroyTipster);
     table.on('dataChanged', (rows) => {
-      headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
+      if (headerElement) {
+        headerElement.innerHTML = `Events (${rows.length})`;
+      }
     });
     table.on('dataFiltered', (filters, rows) => {
-      headerElement && (headerElement.innerHTML = `Events (${rows.length})`);
+      if (headerElement) {
+        headerElement.innerHTML = `Events (${rows.length})`;
+      }
     });
   };
 

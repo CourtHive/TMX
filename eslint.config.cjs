@@ -29,6 +29,8 @@ module.exports = [
     rules: {
       'no-unused-expressions': 'off',
       'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/no-commented-code': 'off',
+      'sonarjs/todo-tag': 'off',
       'sonarjs/no-all-duplicated-branches': 'warn',
       'sonarjs/no-collapsible-if': 'warn',
       'sonarjs/no-collection-size-mischeck': 'warn',
