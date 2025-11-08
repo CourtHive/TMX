@@ -1,3 +1,7 @@
+/**
+ * Tournament calendar view using event-calendar library.
+ * Displays tournaments in a monthly calendar format.
+ */
 import { showTMXcalendar } from 'services/transitions/screenSlaver';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -11,14 +15,14 @@ import tippy from 'tippy.js';
 
 import { SUCCESS, TOURNAMENT, TOURNAMENTS_CALENDAR } from 'constants/tmxConstants';
 
-let calendar;
+let calendar: any;
 
-export function renderCalendar() {
+export function renderCalendar(): void {
   const state = getLoginState();
   const providerId = state?.provider?.organisationId;
 
   if (providerId) {
-    const showResults = (result) => {
+    const showResults = (result: any) => {
       if (result?.calendar) {
         render(result.calendar);
       } else {
@@ -31,25 +35,24 @@ export function renderCalendar() {
   }
 }
 
-export function render(data) {
+export function render(data: any[]): any {
   const calendarAnchor = document.getElementById(TOURNAMENTS_CALENDAR);
-  if (calendar) removeAllChildNodes(calendarAnchor);
+  if (calendar && calendarAnchor) removeAllChildNodes(calendarAnchor);
   showTMXcalendar();
 
+  if (!calendarAnchor) return;
+
   calendar = createCalendar(calendarAnchor, {
-    // plugins: [ResourceTimeGrid, DayGrid, TimeGrid, Interactions, List],
     plugins: [DayGrid, Interactions],
     options: {
       view: 'dayGridMonth',
       height: '800px',
       headerToolbar: {
-        // start: 'prev,next today',
         start: 'prev,next',
         center: 'title',
-        // end: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek resourceTimeGridWeek'
         end: '',
       },
-      buttonText: (texts) => {
+      buttonText: (texts: any) => {
         texts.resourceTimeGridWeek = 'resources';
         return texts;
       },
@@ -61,10 +64,7 @@ export function render(data) {
       events: createEvents(data),
       eventClick: openTournament,
       eventMouseEnter: eventHover,
-      views: {
-        // timeGridWeek: { pointer: true },
-        // resourceTimeGridWeek: { pointer: true }
-      },
+      views: {},
       dayMaxEvents: true,
       nowIndicator: true,
       selectable: true,
@@ -74,17 +74,18 @@ export function render(data) {
   return { ...SUCCESS, calendar };
 }
 
-function openTournament({ event }) {
+function openTournament({ event }: any): void {
   if (event.id) {
     calendar.destroy();
     const tournamentId = event.id;
-    tournamentEngine.reset(); // ensure no tournament is in state
+    tournamentEngine.reset();
     const tournamentUrl = `/${TOURNAMENT}/${tournamentId}`;
     context.router.navigate(tournamentUrl);
   }
 }
-function createEvents(data) {
-  const extractDate = (dateTime) => dateTime?.split('T')[0];
+
+function createEvents(data: any[]): any[] {
+  const extractDate = (dateTime: string) => dateTime?.split('T')[0];
 
   return data.map((record) => ({
     title: record.tournamentName,
@@ -97,7 +98,7 @@ function createEvents(data) {
   }));
 }
 
-function eventHover({ event, jsEvent }) {
+function eventHover({ event, jsEvent }: any): void {
   tippy(jsEvent.target, {
     content: event.title,
     showOnCreate: true,

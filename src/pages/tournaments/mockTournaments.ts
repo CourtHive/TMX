@@ -1,3 +1,7 @@
+/**
+ * Mock tournament generation for testing and demo purposes.
+ * Creates sample tournaments with various draw types and categories.
+ */
 import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { addTournament } from 'services/storage/importTournaments';
 
@@ -8,8 +12,8 @@ const { MALE, FEMALE } = factoryConstants.genderConstants;
 const { DOUBLES } = factoryConstants.eventConstants;
 const { WTN } = factoryConstants.ratingConstants;
 
-export function mockTournaments(table) {
-  const tournamentIds = table.getData().map((t) => t.tournamentId);
+export function mockTournaments(table: any): any {
+  const tournamentIds = table.getData().map((t: any) => t.tournamentId);
   const tournamentRecords = generateTournamentRecords();
 
   for (const tournamentRecord of tournamentRecords) {
@@ -19,7 +23,7 @@ export function mockTournaments(table) {
   return { ...SUCCESS };
 }
 
-function generateTournamentRecords() {
+function generateTournamentRecords(): any[] {
   const clubCourts = {
     venueName: 'Super Fast Courts',
     venueAbbreviation: 'SFC',

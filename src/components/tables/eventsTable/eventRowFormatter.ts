@@ -1,3 +1,7 @@
+/**
+ * Row formatter for events table with nested draws table.
+ * Creates expandable rows showing draws for each event.
+ */
 import { mapDrawDefinition } from 'pages/tournament/tabs/eventsTab/mapDrawDefinition';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -15,7 +19,7 @@ import { getDrawsColumns } from './getDrawsColumns';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 
-export const eventRowFormatter = (setTable) => (row) => {
+export const eventRowFormatter = (setTable: (eventId: string, table: any) => void) => (row: any) => {
   const holderEl = document.createElement('div');
   const controlEl = document.createElement('div');
   controlEl.className = 'tableControl';
@@ -25,12 +29,12 @@ export const eventRowFormatter = (setTable) => (row) => {
   holderEl.appendChild(controlEl);
 
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  tableEl.style.backgroundColor = 'white';
   const borderStyle = '1px solid #333';
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 
-  holderEl.style.borderBotom = borderStyle;
+  holderEl.style.borderBottom = borderStyle;
   holderEl.style.boxSizing = 'border-box';
   holderEl.style.borderTop = borderStyle;
   holderEl.style.paddingLeft = '10px';
@@ -60,9 +64,9 @@ export const eventRowFormatter = (setTable) => (row) => {
 
   const deleteSelectedDraws = () => {
     const selectedDraws = drawsTable.getSelectedData();
-    const drawIds = selectedDraws.map(({ drawId }) => drawId);
+    const drawIds = selectedDraws.map(({ drawId }: any) => drawId);
     drawsTable.deselectRow();
-    const callback = (result) => {
+    const callback = (result: any) => {
       if (!result.success) {
         if (result.error?.message) tmxToast({ message: result.error.message, intent: 'is-danger' });
         return;
@@ -73,7 +77,7 @@ export const eventRowFormatter = (setTable) => (row) => {
     deleteFlights({ eventId, drawIds, callback });
   };
 
-  const drawAdded = (result) => {
+  const drawAdded = (result: any) => {
     if (result.success) {
       drawsTable?.addRow(mapDrawDefinition(eventId)({ drawDefinition: result.drawDefinition }));
       const eventRow = row?.getData();
@@ -88,14 +92,14 @@ export const eventRowFormatter = (setTable) => (row) => {
             inContext: false,
             eventId,
           }).matchUps;
-          eventRow.matchUpsCount += matchUps?.length || 0; // table data is reactive!
-          eventRow.drawsCount += 1; // table data is reactive!
+          eventRow.matchUpsCount += matchUps?.length || 0;
+          eventRow.drawsCount += 1;
         }
       }
     }
   };
 
-  const callback = ({ success, eventUpdates }) => {
+  const callback = ({ success, eventUpdates }: any) => {
     if (success) {
       const eventRow = row?.getData();
       Object.assign(eventRow.event, eventUpdates);

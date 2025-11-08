@@ -1,3 +1,7 @@
+/**
+ * Tournament editor drawer component.
+ * Allows creating new tournaments or editing existing tournament details.
+ */
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getProvider, sendTournament } from 'services/apis/servicesApi';
@@ -14,7 +18,7 @@ import { context } from 'services/context';
 import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
-export function editTournament({ table, tournamentRecord }) {
+export function editTournament({ table, tournamentRecord }: { table?: any; tournamentRecord?: any }): void {
   const values = {
     activeDates: (tournamentRecord?.activeDates || []).join(','),
     tournamentName: tournamentRecord?.tournamentName || '',
@@ -22,7 +26,7 @@ export function editTournament({ table, tournamentRecord }) {
     endDate: tournamentRecord?.endDate || '',
   };
 
-  let inputs;
+  let inputs: any;
   const items = [
     {
       error: 'minimum of 5 characters',
@@ -66,11 +70,11 @@ export function editTournament({ table, tournamentRecord }) {
     },
   ];
 
-  const validValues = ({ tournamentName, startDate, endDate }) => {
+  const validValues = ({ tournamentName, startDate, endDate }: any) => {
     return nameValidator(5)(tournamentName) && dateValidator(startDate) && dateValidator(endDate);
   };
 
-  const enableSubmit = ({ inputs }) => {
+  const enableSubmit = ({ inputs }: any) => {
     const activeDates = inputs['activeDates'].value;
     const startDate = inputs['startDate'].value;
     const endDate = inputs['endDate'].value;
@@ -83,7 +87,7 @@ export function editTournament({ table, tournamentRecord }) {
     if (activeDates) {
       inputs['activeDates'].value = activeDates
         .split(',')
-        .filter((d) =>
+        .filter((d: string) =>
           (startDate && new Date(d) < new Date(startDate)) || (endDate && new Date(d) > new Date(endDate))
             ? false
             : true,
@@ -96,14 +100,14 @@ export function editTournament({ table, tournamentRecord }) {
     endDate && inputs.activeDates.datepicker.setOptions({ maxDate: endDate });
 
     const saveButton = document.getElementById('saveTournamentEdits');
-    if (saveButton) saveButton.disabled = !valid;
+    if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;
   };
 
-  const toggleActiveDates = ({ inputs }) => {
+  const toggleActiveDates = ({ inputs }: any) => {
     const show = inputs.activeDateSelector.checked;
     const activeDates = document.getElementById('activeDates');
-    const fieldParent = getParent(activeDates, 'field');
-    fieldParent.style.display = show ? 'block' : 'none';
+    const fieldParent = getParent(activeDates, 'field') as any;
+    if (fieldParent?.parent) fieldParent.parent.style.display = show ? 'block' : 'none';
   };
 
   const relationships = [
@@ -129,7 +133,7 @@ export function editTournament({ table, tournamentRecord }) {
     },
   ];
 
-  const content = (elem) => {
+  const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, items, relationships);
     inputs.activeDates?.datepicker?.update();
   };
@@ -147,11 +151,11 @@ export function editTournament({ table, tournamentRecord }) {
         const state = getLoginState();
         const newTournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
         if (state?.providerId) {
-          const addProvider = (result) => {
+          const addProvider = (result: any) => {
             const provider = result.data?.provider;
             newTournamentRecord.parentOrganisation = provider;
             if (provider) {
-              const report = (result) => console.log('sendTournament', result);
+              const report = (result: any) => console.log('sendTournament', result);
               sendTournament({ tournamentRecord: newTournamentRecord }).then(() => {}, report);
             }
             completeTournamentAdd({ tournamentRecord: newTournamentRecord, table });
@@ -163,7 +167,7 @@ export function editTournament({ table, tournamentRecord }) {
       }
     } else {
       const updatedTournamentRecord = { ...tournamentRecord, tournamentName, activeDates, startDate, endDate };
-      const postMutation = (result) => {
+      const postMutation = (result: any) => {
         if (result.success) {
           table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
         } else {
@@ -191,12 +195,12 @@ export function editTournament({ table, tournamentRecord }) {
     },
   ];
 
-  const footer = (elem, close) => renderButtons(elem, buttons, close);
+  const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   const title = tournamentRecord ? `Edit tournament` : `New tournament`;
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }
 
-function completeTournamentAdd({ tournamentRecord, table }) {
+function completeTournamentAdd({ tournamentRecord, table }: { tournamentRecord: any; table?: any }): void {
   const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
   tournamentAdd({ tournamentRecord, callback: refresh });
 }

@@ -1,3 +1,7 @@
+/**
+ * Editor for group participants (teams).
+ * Allows creating or editing team/group participants.
+ */
 import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
@@ -19,16 +23,23 @@ export function editGroupingParticipant({
   participant,
   refresh,
   table,
-}) {
+}: {
+  individualParticipantIds?: string[];
+  participantType?: string;
+  title?: string;
+  participant?: any;
+  refresh?: () => void;
+  table?: any;
+}): any {
   const PARTICIPANT_NAME = 'participantName';
   const values = { [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME] };
-  let inputs;
+  let inputs: any;
 
-  const valueChange = (/*e, item*/) => {
-    // console.log(item.field, e.target.value);
+  const valueChange = () => {
+    // Placeholder for future functionality
   };
 
-  const content = (elem) => {
+  const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, [
       {
         error: 'Please enter a name of at least 3 characters',
@@ -39,12 +50,10 @@ export function editGroupingParticipant({
         onChange: valueChange,
         label: 'Name',
       },
-      // school, club, team => autocomplete from GROUP participants in tournament
-      // city, state, phone, email
     ]);
   };
 
-  const footer = (elem, close) =>
+  const footer = (elem: HTMLElement, close: () => void) =>
     renderButtons(
       elem,
       [
@@ -63,7 +72,7 @@ export function editGroupingParticipant({
     footer,
   });
 
-  function saveParticipant() {
+  function saveParticipant(): void {
     table?.deselectRow();
     if (!participant?.participantId) {
       addParticipant();
@@ -72,7 +81,7 @@ export function editGroupingParticipant({
     }
   }
 
-  function addParticipant() {
+  function addParticipant(): void {
     const participantRole = participantType === TEAM ? COMPETITOR : OTHER;
     const newParticipant = {
       individualParticipantIds: individualParticipantIds || participant?.individualParticipantIds || [],
@@ -81,10 +90,9 @@ export function editGroupingParticipant({
       participantType,
     };
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
-        // QUESTION: add participant to table, or just refresh?
-        isFunction(refresh) && refresh();
+        isFunction(refresh) && refresh && refresh();
       } else {
         console.log({ result });
       }

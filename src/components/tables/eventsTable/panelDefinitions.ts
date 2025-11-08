@@ -1,9 +1,13 @@
+/**
+ * Panel definitions for event entries table.
+ * Organizes participants by entry status (accepted, qualifying, alternates, etc.).
+ */
 import { drawDefinitionConstants, eventConstants, entryStatusConstants } from 'tods-competition-factory';
 import { cancelManualSeeding } from './seeding/canceManuallSeeding';
 import { seedingSelector } from './seeding/seedingSelector';
 import { changeEntryStatus } from './changeEntryStatus';
 import { panelItems, togglePanel } from './panelItems';
-import { searchField } from '../common/tableSearch'; // if searchFields are preferred on each table
+import { searchField } from '../common/tableSearch';
 import { saveSeeding } from './seeding/saveSeeding';
 import { destroySelected } from './destroyPairs';
 import { createFlight } from './createFlight';
@@ -20,16 +24,16 @@ import {
   LEFT,
   QUALIFYING_PANEL,
   UNGROUPED_PANEL,
-  WITHDRAWN_PANEL
+  WITHDRAWN_PANEL,
 } from 'constants/tmxConstants';
 
 const { DIRECT_ACCEPTANCE, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { SINGLES, DOUBLES } = eventConstants;
 
-export function panelDefinitions({ drawDefinition, event, entryData, hasFlights }) {
-  const filterEntries = (groupings) =>
-    entryData.filter(({ entryStage = MAIN, entryStatus }) => {
+export function panelDefinitions({ drawDefinition, event, entryData, hasFlights }: any): any[] {
+  const filterEntries = (groupings: string[]) =>
+    entryData.filter(({ entryStage = MAIN, entryStatus }: any) => {
       return groupings.includes(`${entryStage}.${entryStatus}`);
     });
 
@@ -37,36 +41,35 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
   const drawId = drawDefinition?.drawId;
   const eventId = event?.eventId;
 
-  const moves = {
+  const moves: Record<string, string[]> = {
     [ACCEPTED]: [ALTERNATE, WITHDRAWN],
     [QUALIFYING]: [ACCEPTED, ALTERNATE, WITHDRAWN],
     [ALTERNATE]: [ACCEPTED, QUALIFYING, WITHDRAWN],
-    [WITHDRAWN]: [ALTERNATE]
+    [WITHDRAWN]: [ALTERNATE],
   };
 
-  // NOTE: auto-pair can be turned off and createPairButton enabled
-  const { /*createPairButton,*/ createPairFromSelected } = createPair(event);
+  const { createPairFromSelected } = createPair(event);
   const excludeColumns = !hasFlights ? ['flights'] : [];
 
-  const selectWithEnter = (table) => {
+  const selectWithEnter = (table: any): boolean => {
     const active = table.getData('active');
-    const participantIds = active.map(({ participantId }) => participantId);
+    const participantIds = active.map(({ participantId }: any) => participantId);
     if (active.length === 1) {
       table.selectRow(participantIds);
       return true;
     } else if (active.length === 2) {
       table.selectRow(participantIds);
+      return false;
     }
+    return false;
   };
 
-  // group entries
   const acceptedEntries = filterEntries(acceptedEntryStatuses(MAIN));
   const qualifyingEntries = filterEntries([`${QUALIFYING}.${DIRECT_ACCEPTANCE}`]);
   const alternateEntries = filterEntries([`${MAIN}.${ALTERNATE}`]);
   const ungroupedEntries = filterEntries([`${MAIN}.${UNGROUPED}`]);
   const withdrawnEntries = filterEntries([`${MAIN}.${WITHDRAWN}`]);
 
-  // NOTE: QUALIFYING.ALTERNATE and e.g. QUALIFYING.WILDCARD are not yet supported by the UI
   return [
     {
       placeholder: 'No accepted participants',
@@ -79,7 +82,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         !drawCreated && seedingSelector(event, ACCEPTED),
         cancelManualSeeding(event),
         saveSeeding(event),
-        !drawCreated && addEntries(event, ACCEPTED)
+        !drawCreated && addEntries(event, ACCEPTED),
       ],
       actions: moves[ACCEPTED],
       anchorId: ACCEPTED_PANEL,
@@ -87,7 +90,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       group: ACCEPTED,
       excludeColumns,
       drawCreated,
-      togglePanel
+      togglePanel,
     },
     {
       placeholder: 'No qualifying participants',
@@ -97,7 +100,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
         !drawCreated && seedingSelector(event, QUALIFYING),
         cancelManualSeeding(event),
         saveSeeding(event),
-        !drawCreated && addEntries(event, QUALIFYING)
+        !drawCreated && addEntries(event, QUALIFYING),
       ],
       actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
       anchorId: QUALIFYING_PANEL,
@@ -105,14 +108,14 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       group: QUALIFYING,
       excludeColumns,
       drawCreated,
-      togglePanel
+      togglePanel,
     },
     {
       items: [
         ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
         moveSelected(moves[ALTERNATE], eventId, drawId),
         event?.eventType === DOUBLES && destroySelected(eventId, drawId),
-        !drawCreated && addEntries(event, ALTERNATE)
+        !drawCreated && addEntries(event, ALTERNATE),
       ],
       actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
       excludeColumns: ['seedNumber', 'flights'],
@@ -121,14 +124,13 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       entries: alternateEntries,
       group: ALTERNATE,
       drawCreated,
-      togglePanel
+      togglePanel,
     },
     {
       hide: !!([SINGLES].includes(event?.eventType) || drawCreated),
       items: [
         ...panelItems({ heading: 'Ungrouped', count: ungroupedEntries.length }),
-        searchField(LEFT, 'participantId', selectWithEnter)
-        // createPairButton
+        searchField(LEFT, 'participantId', selectWithEnter),
       ],
       placeholder: 'No ungrouped participants',
       excludeColumns: ['seedNumber', 'flights'],
@@ -138,12 +140,12 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       actions: [WITHDRAWN],
       group: UNGROUPED,
       drawCreated,
-      togglePanel
+      togglePanel,
     },
     {
       items: [
         ...panelItems({ heading: 'Withdrawn', count: withdrawnEntries.length }),
-        !drawCreated && moveSelected(moves[WITHDRAWN], eventId, drawId)
+        !drawCreated && moveSelected(moves[WITHDRAWN], eventId, drawId),
       ],
       placeholder: 'No withdrawn participants',
       excludeColumns: ['seedNumber', 'flights'],
@@ -154,7 +156,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       group: WITHDRAWN,
       collapsed: true,
       drawCreated,
-      togglePanel
-    }
+      togglePanel,
+    },
   ];
 }

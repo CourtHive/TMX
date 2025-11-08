@@ -1,3 +1,7 @@
+/**
+ * Column definitions for events table.
+ * Defines columns for event display including name, type, counts, and actions.
+ */
 import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { openClose, toggleOpenClose } from '../common/formatters/openClose';
 import { visiblityFormatter } from '../common/formatters/visibility';
@@ -8,32 +12,22 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getEventColumns(nestedTables, getLightMode) {
+export function getEventColumns(nestedTables: any, getLightMode?: () => boolean): any[] {
   const isLightMode = typeof getLightMode === 'function' ? getLightMode() : false;
 
-  const eventDetail = (e, cell) => {
+  const eventDetail = (e: any, cell: any) => {
     e.stopPropagation();
     const eventId = cell.getRow().getData().eventId;
     navigateToEvent({ eventId });
   };
 
-  const nameClick = (e, cell) => {
-    /*
-    const rowData = cell.getRow().getData();
-    if (rowData.drawDefs.length === 1) {
-      const eventId = rowData.eventId;
-      const drawId = rowData.drawDefs[0].drawId;
-      navigateToEvent({ eventId, drawId, renderDraw: true });
-    } else {
-      toggleOpenClose(e, cell);
-    }
-    */
+  const nameClick = (e: any, cell: any) => {
     toggleOpenClose(e, cell);
   };
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,

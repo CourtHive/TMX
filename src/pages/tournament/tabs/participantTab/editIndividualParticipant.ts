@@ -1,3 +1,7 @@
+/**
+ * Editor for individual participants.
+ * Allows creating or editing individual participant details.
+ */
 import { participantConstants, participantRoles, fixtures, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
@@ -12,8 +16,8 @@ import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 const { COMPETITOR, OFFICIAL } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
 
-export function editIndividualParticipant({ participant, view, callback }) {
-  const list = fixtures.countries.map((country) => ({
+export function editIndividualParticipant({ participant, view, callback }: { participant?: any; view?: string; callback?: () => void }): any {
+  const list = fixtures.countries.map((country: any) => ({
     label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
     value: country.ioc,
   }));
@@ -22,22 +26,23 @@ export function editIndividualParticipant({ participant, view, callback }) {
     nationalityCode: participant?.person?.nationalityCode,
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
+    birthDate: participant?.person?.birthDate,
     sex: participant?.person?.sex,
   };
-  let inputs;
+  let inputs: any;
 
-  const nationalityCodeValue = (value) => (values.nationalityCode = value);
+  const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
-  const validValues = ({ firstName, lastName }) =>
+  const validValues = ({ firstName, lastName }: any) =>
     nameValidator(2)(firstName || '') && nameValidator(2)(lastName || '');
 
-  const enableSubmit = ({ inputs }) => {
+  const enableSubmit = ({ inputs }: any) => {
     const valid = validValues({
       firstName: inputs['firstName'].value,
       lastName: inputs['lastName'].value,
     });
     const saveButton = document.getElementById('saveParticipant');
-    if (saveButton) saveButton.disabled = !valid;
+    if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;
   };
 
   const relationships = [
@@ -51,7 +56,7 @@ export function editIndividualParticipant({ participant, view, callback }) {
     },
   ];
 
-  const content = (elem) => {
+  const content = (elem: HTMLElement) => {
     inputs = renderForm(
       elem,
       [
@@ -96,14 +101,12 @@ export function editIndividualParticipant({ participant, view, callback }) {
           field: 'nationalityCode',
           label: 'Country',
         },
-        // school, club, team => autocomplete from GROUP participants in tournament
-        // city, state, phone, email
       ],
       relationships,
     );
   };
 
-  const footer = (elem, close) =>
+  const footer = (elem: HTMLElement, close: () => void) =>
     renderButtons(
       elem,
       [
@@ -130,7 +133,7 @@ export function editIndividualParticipant({ participant, view, callback }) {
     footer,
   });
 
-  function saveParticipant() {
+  function saveParticipant(): void {
     if (!participant?.participantId) {
       addParticipant();
     } else {
@@ -147,9 +150,9 @@ export function editIndividualParticipant({ participant, view, callback }) {
           method: MODIFY_PARTICIPANT,
         },
       ];
-      const postMutation = (result) => {
+      const postMutation = (result: any) => {
         if (result.success) {
-          isFunction(callback) && callback();
+          isFunction(callback) && callback && callback();
         } else {
           console.log(result);
         }
@@ -158,7 +161,7 @@ export function editIndividualParticipant({ participant, view, callback }) {
     }
   }
 
-  function addParticipant() {
+  function addParticipant(): void {
     const firstName = inputs.firstName.value;
     const lastName = inputs.lastName.value;
     const sex = inputs.sex.value;
@@ -174,8 +177,8 @@ export function editIndividualParticipant({ participant, view, callback }) {
       },
     };
 
-    const postMutation = (result) => {
-      result.success && isFunction(callback) && callback();
+    const postMutation = (result: any) => {
+      result.success && isFunction(callback) && callback && callback();
       !result.success && console.log(result);
     };
 

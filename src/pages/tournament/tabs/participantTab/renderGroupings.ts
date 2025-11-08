@@ -1,3 +1,7 @@
+/**
+ * Renders groupings (teams) tab with table and controls.
+ * Displays team participants with filtering and management options.
+ */
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createTeamsTable } from 'components/tables/participantsTable/createTeamsTable';
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
@@ -14,7 +18,7 @@ import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxCo
 
 const { TEAM } = participantConstants;
 
-export function renderGroupings({ view }) {
+export function renderGroupings({ view }: { view: string }): void {
   const { table, replaceTableData } = createTeamsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
@@ -33,8 +37,8 @@ export function renderGroupings({ view }) {
   };
   const addToEventOptions = [createNewEvent, { divider: true }].concat(
     events
-      .filter(({ eventType }) => eventType === TEAM)
-      .map((event) => ({
+      .filter(({ eventType }: any) => eventType === TEAM)
+      .map((event: any) => ({
         onClick: () => addParticipantsToEvent({ event, participantType: TEAM, table, callback: replaceTableData }),
         label: event.eventName,
         close: true,
@@ -44,9 +48,9 @@ export function renderGroupings({ view }) {
   const participantLabel = view === 'GROUP' ? 'Groups' : 'Teams';
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
-      onChange: (e) => setSearchFilter(e.target.value),
-      onKeyUp: (e) => setSearchFilter(e.target.value),
+      onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e: any) => setSearchFilter(e.target.value),
+      onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search teams',
       location: OVERLAY,
@@ -74,9 +78,9 @@ export function renderGroupings({ view }) {
       location: OVERLAY,
     },
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
-      onChange: (e) => setSearchFilter(e.target.value),
-      onKeyUp: (e) => setSearchFilter(e.target.value),
+      onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
+      onChange: (e: any) => setSearchFilter(e.target.value),
+      onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search teams',
       location: LEFT,
