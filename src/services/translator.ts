@@ -1,47 +1,50 @@
+/**
+ * Internationalization and translation service.
+ * Manages language idioms and translations for the application.
+ */
 export const lang = (function () {
-  let lang = {};
-  let idioms = {};
+  const langObj: any = {};
+  const idioms: Record<string, any> = {};
   let selected_ioc = 'gbr';
 
-  lang.define = ({ ioc, idiom }) => {
+  langObj.define = ({ ioc, idiom }: { ioc: string; idiom: any }) => {
     idioms[ioc] = idiom;
   };
 
-  lang.set = (new_ioc) => {
+  langObj.set = (new_ioc?: string) => {
     if (!new_ioc) return selected_ioc;
     if (!idioms[new_ioc]) return;
     selected_ioc = new_ioc;
     return idioms[new_ioc];
   };
 
-  lang.options = () => Object.keys(idioms);
-  lang.current = () => idioms[selected_ioc];
+  langObj.options = () => Object.keys(idioms);
+  langObj.current = () => idioms[selected_ioc];
 
-  function translate(what) {
+  function translate(what: string): string {
     if (!what) return '';
     let obj = idioms[selected_ioc];
-    let children = what.split('.');
+    const children = what.split('.');
     while (children.length) {
-      let child = children.shift();
-      obj = obj?.[child] || '';
+      const child = children.shift();
+      obj = obj?.[child!] || '';
     }
     return obj;
   }
 
-  // fall back to English if not found in idiom
-  lang.tr = (what) => {
+  langObj.tr = (what: string): string => {
     if (!what) return '';
     if (translate(what)) return translate(what);
     let obj = idioms.default;
-    let children = what.split('.');
+    const children = what.split('.');
     while (children.length) {
-      let child = children.shift();
-      obj = obj?.[child] || '';
+      const child = children.shift();
+      obj = obj?.[child!] || '';
     }
     return obj;
   };
 
-  lang.obj = (what) => {
+  langObj.obj = (what: string): any => {
     if (!what) return '';
     if (idioms?.[selected_ioc]?.[what]) return idioms[selected_ioc][what];
     if (idioms.default[what]) return idioms.default[what];
@@ -100,8 +103,8 @@ export const lang = (function () {
     rnkz: 'Rankings',
     rtg: 'Rating',
     rtz: 'Ratings',
-    prnk: 'Rank', // player rank
-    trnk: 'Rank', // tournament rank
+    prnk: 'Rank',
+    trnk: 'Rank',
     rl: 'Rank List',
     rlo: 'Rank Order',
     alpha: 'Alphabetical',
@@ -232,11 +235,11 @@ export const lang = (function () {
         'September',
         'October',
         'November',
-        'December'
+        'December',
       ],
       monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     },
 
     settings: {
@@ -278,10 +281,10 @@ export const lang = (function () {
       restrictseedplacement: 'Restrict Seed Placement',
 
       separate_by_team: 'Auto Separate Players by Team',
-      separate_by_ioc: 'Auto Separate Players by Country', // will be removed
-      separate_by_club: 'Auto Separate Players by Club', // will be removed
-      separate_by_school: 'Auto Separate Players by School', // will be removed
-      clear_separation: 'Clear Auto Separation', // will be removed
+      separate_by_ioc: 'Auto Separate Players by Country',
+      separate_by_club: 'Auto Separate Players by Club',
+      separate_by_school: 'Auto Separate Players by School',
+      clear_separation: 'Clear Auto Separation',
 
       courtdetail: 'Court Details',
       matchtimes: 'Match Times',
@@ -290,13 +293,13 @@ export const lang = (function () {
       time24: '24 Hour Clock',
       draworderscores: 'Scores in Draw Order',
       schedulecompleted: 'Schedule Completed Matches',
-      courtidentifiers: 'court identifiers'
+      courtidentifiers: 'court identifiers',
     },
 
     round_names: {
       F: 'Final',
       SF: 'Semifinal',
-      QF: 'Quarterfinal'
+      QF: 'Quarterfinal',
     },
 
     search: {
@@ -307,13 +310,13 @@ export const lang = (function () {
       approve: 'Approve Player',
       add2team: 'Add Team Player',
       lastfirst: 'LAST First',
-      firstlast: 'First Last'
+      firstlast: 'First Last',
     },
 
     formats: {
       singles: 'Singles',
       doubles: 'Doubles',
-      team: 'Team'
+      team: 'Team',
     },
 
     scoring_format: {
@@ -330,10 +333,9 @@ export const lang = (function () {
       finalset: 'Final Set',
       setsto: 'Sets to',
       tbto: 'TB to',
-      superto: 'To'
+      superto: 'To',
     },
 
-    // eslint-disable-next-line no-dupe-keys
     scoring: {
       label: 'Scoring',
       retire: 'Retire',
@@ -342,8 +344,8 @@ export const lang = (function () {
       supertiebreak: 'Match Tiebreak',
       normal: 'Normal',
       winloss_abbreviation: 'W/L',
-      cancelled: 'Cancelled', // unused
-      abandoned: 'Abandoned' // unused
+      cancelled: 'Cancelled',
+      abandoned: 'Abandoned',
     },
 
     draws: {
@@ -421,7 +423,7 @@ export const lang = (function () {
       modifyseeding: 'Modify Seeding',
       playerrange: 'All Players',
       unpublish: 'Unpublish Draw',
-      unpublishall: 'Unpublish All Events'
+      unpublishall: 'Unpublish All Events',
     },
 
     print: {
@@ -435,7 +437,7 @@ export const lang = (function () {
       matchesbytime: 'Matches by Time',
       pendingmatches: 'Pending Matches',
       matchesbycourt: 'Matches by Court',
-      completedmatches: 'Completed Matches'
+      completedmatches: 'Completed Matches',
     },
 
     teams: {
@@ -454,7 +456,7 @@ export const lang = (function () {
       coaches: 'Coaches',
       school: 'School',
       ioc: 'Country',
-      abbreviation: 'Abbreviation'
+      abbreviation: 'Abbreviation',
     },
 
     tournament: {
@@ -464,7 +466,7 @@ export const lang = (function () {
       judge_phone: 'Referee Phone',
       sponsor: 'Sponsor(s)',
       logo: 'Tournament Logo',
-      images: 'Tournament Images'
+      images: 'Tournament Images',
     },
 
     tournaments: {
@@ -495,7 +497,6 @@ export const lang = (function () {
       convert: 'Convert to TODS / Save',
       send: 'Upload Tournament Record',
       export: 'Export Tournament Record',
-      // mergeevents: 'Merge Events from server',
       renewlist: 'Renew List',
       natlassoc: 'National Association',
       tennisclub: 'Tennis Club',
@@ -503,7 +504,7 @@ export const lang = (function () {
       existing: 'Existing Tournament Record',
       publishtime: 'Publish Time',
       replacelocal: 'Replace Local Copy?',
-      unpublish: 'Unpublish Tournament?'
+      unpublish: 'Unpublish Tournament?',
     },
 
     ddlb: {
@@ -511,7 +512,7 @@ export const lang = (function () {
       doubles: 'Doubles Tournament Rank:',
       category: 'Tournament Category:',
       draws: 'Select Event:',
-      direction: 'Select Draw:'
+      direction: 'Select Draw:',
     },
 
     phrases: {
@@ -543,7 +544,7 @@ export const lang = (function () {
       retrieveFromServer: 'Retrieve from CourtHive Server?',
       mainmenu: 'Main Menu',
       rankbyrating: 'Rank by Rating',
-      dblsrankisrating: 'Use Rating as Doubles Ranking?', // deprecated
+      dblsrankisrating: 'Use Rating as Doubles Ranking?',
       sheetdataurls: 'Enter Google Sheet URLs for Synchronizing Data',
       playerimport: 'Player Import',
       entersheeturl: 'Enter Sheet URL',
@@ -629,7 +630,7 @@ export const lang = (function () {
       cantrefresh: 'Offline: Cannot Refresh',
       blocked: 'Pop-Up Windows are blocked by your browser',
       enablepopups: 'Please enable Pop-Ups for PDF printing',
-      nopersist: 'Data Persistence not guaranteed'
+      nopersist: 'Data Persistence not guaranteed',
     },
 
     events: {
@@ -658,7 +659,7 @@ export const lang = (function () {
       wildcard: 'Wildcard',
       received: 'Received Event(s)',
       toggle: 'Toggle Publish State?',
-      modifyranking: 'Modify Ranking'
+      modifyranking: 'Modify Ranking',
     },
 
     locations: {
@@ -667,7 +668,7 @@ export const lang = (function () {
       name: 'Name',
       address: 'Address',
       courts: 'Courts',
-      identifiers: 'Court IDs'
+      identifiers: 'Court IDs',
     },
 
     genders: {
@@ -675,14 +676,14 @@ export const lang = (function () {
       male_abbr: 'M',
       female: 'Female',
       female_abbr: 'W',
-      mixed: 'Mixed'
+      mixed: 'Mixed',
     },
 
     surfaces: {
       clay: 'Clay',
       hard: 'Hard',
       grass: 'Grass',
-      carpet: 'Carpet'
+      carpet: 'Carpet',
     },
 
     actions: {
@@ -714,13 +715,13 @@ export const lang = (function () {
       copy_tournament: 'Copy Tournament',
       createteambyattr: 'Create team',
       add2localdb: 'Add Players to Local Database',
-      signoutunapproved: 'Sign Out players not approved for Events'
+      signoutunapproved: 'Sign Out players not approved for Events',
     },
 
     requests: {
       syncClubs: 'Synchronize Clubs',
       syncTournaments: 'Synchronize Tournaments',
-      syncPlayers: 'Synchronize players'
+      syncPlayers: 'Synchronize players',
     },
 
     signin: {
@@ -743,7 +744,7 @@ export const lang = (function () {
       create_new_player: 'Create New',
       modifyrankings: 'Modify Rankings',
       acceptrankings: 'Accept Rankings',
-      reglink: 'Set Link'
+      reglink: 'Set Link',
     },
 
     schedule: {
@@ -783,19 +784,8 @@ export const lang = (function () {
       umpirenotes: 'Umpire Notes',
       notice: 'Schedule Notice',
       opponentname: 'Opponent Name',
-      scheduled: 'Scheduled'
+      scheduled: 'Scheduled',
     },
-
-    /*
-      refresh: {
-         // general: 'Refresh',
-         // roster: 'Updating Team Roster...',
-         // registered: 'Updating Registered Players...',
-         // players: 'Updating Players...',
-         // calendar: 'Updating Calendar...',
-         // clubs: 'Updating Clubs...'
-      },
-      */
 
     penalties: {
       fail2signout: 'Failed to Sign Out',
@@ -808,12 +798,11 @@ export const lang = (function () {
       foullanguage: 'Foul Language',
       timeviolation: 'Time Violation',
       latearrival: 'Late Arrival',
-      unsporting: 'Unsporting Behavior'
+      unsporting: 'Unsporting Behavior',
     },
 
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString
-    datelocalization: 'en-EN'
+    datelocalization: 'en-EN',
   };
 
-  return lang;
+  return langObj;
 })();

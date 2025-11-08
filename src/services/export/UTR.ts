@@ -1,19 +1,15 @@
-// import { normalizeName, normalizeDiacritics } from 'normalize-text';
+/**
+ * UTR match export functionality.
+ * Formats completed matches for UTR (Universal Tennis Rating) submission.
+ */
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { downloadText } from './download';
 
 import { DRAW_NAME, DRAW_TYPE, UTR } from 'constants/tmxConstants';
 
-/*
-export const replaceDiacritics = (text) => normalizeDiacritics(text);
-
-export const nameNormalization = (name) => {
-  return normalizeName(name || '', ['de', 'la', 'da']);
-};
-*/
-export function downloadUTRmatches() {
-  const zeroPad = (number) => (number.toString()[1] ? number : '0' + number);
-  const dateFormatUTR = (date) => {
+export function downloadUTRmatches(): void {
+  const zeroPad = (number: number) => (number.toString()[1] ? number : '0' + number);
+  const dateFormatUTR = (date: string) => {
     if (!date) return '';
     const utrDate = new Date(date);
     return [zeroPad(utrDate.getMonth() + 1), zeroPad(utrDate.getDate()), utrDate.getFullYear()].join('/');
@@ -33,11 +29,10 @@ export function downloadUTRmatches() {
     },
   });
 
-  // modify matchUps to include winners and losers
-  const matchUpsWinnersLosers = completedMatchUps.map((matchUp) => {
+  const matchUpsWinnersLosers = completedMatchUps.map((matchUp: any) => {
     const { winningSide, sides, score } = matchUp;
-    const winners = sides.find(({ sideNumber }) => sideNumber === winningSide);
-    const losers = sides.find(({ sideNumber }) => sideNumber !== winningSide);
+    const winners = sides.find(({ sideNumber }: any) => sideNumber === winningSide);
+    const losers = sides.find(({ sideNumber }: any) => sideNumber !== winningSide);
     const winnerScore = score[`scoreStringSide${winningSide}`];
 
     return {
@@ -48,7 +43,7 @@ export function downloadUTRmatches() {
     };
   });
 
-  const genderInitial = (value) => value?.slice(0, 1);
+  const genderInitial = (value: string) => value?.slice(0, 1);
 
   const config = {
     columnAccessors: [''],

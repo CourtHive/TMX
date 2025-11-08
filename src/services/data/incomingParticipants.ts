@@ -1,3 +1,7 @@
+/**
+ * Processes incoming participant data from external sources.
+ * Maps participant attributes and adds them to the tournament.
+ */
 import { tournamentEngine, tools, fixtures } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -20,37 +24,36 @@ const modelParticipant = {
   },
 };
 
-export function incomingParticipants({ data, sheetId, callback }) {
+export function incomingParticipants({ data, sheetId, callback }: { data: any[]; sheetId: string; callback?: () => void }): void {
   const existingParticipants = tournamentEngine.getParticipants().participants;
-  const participantIds = existingParticipants.map(({ participantId }) => participantId);
+  const participantIds = existingParticipants.map(({ participantId }: any) => participantId);
 
   const validNationalityCodes = fixtures.countries
-    .map((f) => [f.ioc, f.iso])
+    .map((f: any) => [f.ioc, f.iso])
     .flat()
     .filter(Boolean);
 
-  const participants = [];
+  const participants: any[] = [];
 
-  const getAttributes = (attrs) =>
+  const getAttributes = (attrs: string[]) =>
     attrs.map((attr) => [attr.toLowerCase(), attr.toLowerCase().split(' ').join('')]).flat();
   const findAttr =
-    (row) =>
-    (attrs = []) => {
+    (row: any) =>
+    (attrs: string[] = []) => {
       const keys = Object.keys(row);
       const attributes = getAttributes(attrs);
       const match = attributes.reduce((p, c) => row[c] || p, undefined);
       const partial =
         !match &&
         keys.filter((key) => attributes.find((a) => a.startsWith('*') && key.toLowerCase().includes(a.slice(1))));
-      return match || row[partial];
+      return match || row[partial[0]];
     };
 
   for (const row of data || []) {
     const loweredRow = Object.assign({}, ...Object.keys(row).map((key) => ({ [key.toLowerCase()]: row[key] })));
     const rowParser = findAttr(loweredRow);
 
-    // TODO: allow for specifying participantType
-    const participant = { participantType: 'INDIVIDUAL', participantRole: 'COMPETITOR', person: {} };
+    const participant: any = { participantType: 'INDIVIDUAL', participantRole: 'COMPETITOR', person: {} };
     participant.participantName = rowParser(modelParticipant.participantName);
 
     const tennisId = rowParser(['tennis id', 'tennisid']);
@@ -137,13 +140,6 @@ export function incomingParticipants({ data, sheetId, callback }) {
     if (!participantExists) {
       participants.push(tools.definedAttributes(participant));
     }
-
-    /*
-    const phone = findAttr(row, ['phone', 'Phone Number', "Player's Phone Number", 'Handphone Number']);
-    const containsPhone = attrContains(row, ['phone', 'Phone Number', "Player's Phone Number", 'Handphone Number']);
-    const phoneNumber = phone || containsPhone;
-    if (phoneNumber) console.log({ phoneNumber });
-    */
   }
 
   if (participants.length) {
@@ -160,10 +156,10 @@ export function incomingParticipants({ data, sheetId, callback }) {
       },
     ];
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: `Added ${result.results[0].addedCount} participant(s)`, intent: 'is-success' });
-        isFunction(callback) && callback();
+        isFunction(callback) && callback && callback();
       } else {
         console.log(result);
       }
@@ -173,5 +169,5 @@ export function incomingParticipants({ data, sheetId, callback }) {
     tmxToast({ message: 'No new participants found', intent: 'is-primary' });
   }
 
-  isFunction(callback) && callback();
+  isFunction(callback) && callback && callback();
 }

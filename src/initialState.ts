@@ -1,3 +1,7 @@
+/**
+ * Application initialization and setup.
+ * Sets up context, environment, event listeners, and routing.
+ */
 import { factoryConstants, globalState, tournamentEngine } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
@@ -22,7 +26,6 @@ import '@event-calendar/core/index.css';
 import 'styles/legacy/scoreboard.css';
 import 'styles/legacy/ddScoring.css';
 
-// import '@creativebulma/bulma-badge/dist/bulma-badge.min.css';
 import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
 import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'awesomplete/awesomplete.css';
@@ -34,11 +37,9 @@ import 'tippy.js/themes/light-border.css';
 import 'tippy.js/themes/light.css';
 import 'tippy.js/dist/tippy.css';
 
-// import 'tabulator-tables/dist/css/tabulator_site_dark.css';
 import 'styles/tabulator.css';
 
 import 'bulma/css/versions/bulma-no-dark-mode.min.css';
-// import 'bulma/css/bulma.css';
 
 import 'styles/tournamentContainer.css';
 import 'styles/tournamentSchedule.css';
@@ -48,7 +49,7 @@ import 'styles/fa.min.css';
 import 'styles/icons.css';
 import 'styles/tmx.css';
 
-export function setupTMX() {
+export function setupTMX(): void {
   setEnv();
   setWindow();
   setContext();
@@ -57,34 +58,31 @@ export function setupTMX() {
   initLoginToggle('burger');
   initSettingsIcon('config');
 
-  if (!Array.prototype.toSorted) {
-    Array.prototype.toSorted = function (compareFn) {
+  if (!(Array.prototype as any).toSorted) {
+    (Array.prototype as any).toSorted = function (compareFn?: (a: any, b: any) => number) {
       return this.slice().sort(compareFn);
     };
   }
 
-  // add TMX Drawer
   context.drawer = drawer();
 
-  // temporary while refactoring
   initConfig().then(tmxReady, (err) => console.log({ err }));
 }
 
-function tmxReady() {
+function tmxReady(): void {
   console.log('%c TMX ready', 'color: lightgreen');
-  // TODO: uncomment upon release
-  // if (window.location.host.startsWith('localhost:') || window.location.host.startsWith('https://courthive.github.io')) {
-  // to re-enable also uncomment (notLocal) check in actions.js
   setDev();
   setSubscriptions();
-  // }
 
-  document.getElementById(SPLASH).onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
+  const splashElement = document.getElementById(SPLASH);
+  if (splashElement) {
+    splashElement.onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
+  }
   routeTMX();
   tmxNavigation();
 }
 
-function setContext() {
+function setContext(): void {
   context.dragMatch = new Image();
   context.dragMatch.src = dragMatch;
   context.ee = new EventEmitter();
@@ -93,7 +91,7 @@ function setContext() {
 const RESIZE_LOOP = 'ResizeObserver loop limit exceeded';
 const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered notifications.';
 
-function setEnv() {
+function setEnv(): void {
   env.device = getDevice();
   const cfv = tournamentEngine.version();
   console.log(`%cversion: ${version}`, 'color: lightblue');
@@ -102,11 +100,11 @@ function setEnv() {
   eventListeners();
 }
 
-function setSubscriptions() {
+function setSubscriptions(): void {
   const topicConstants = factoryConstants.topicConstants;
   globalState.setSubscriptions({
     subscriptions: {
-      [topicConstants.MODIFY_MATCHUP]: (data) => {
+      [topicConstants.MODIFY_MATCHUP]: (data: any) => {
         const matchUpId = data.matchUp?.matchUpId;
         context.matchUpsToBroadcast.push(matchUpId);
         env.devNotes && console.log('MODIFY_MATCHUP', data);
@@ -115,21 +113,7 @@ function setSubscriptions() {
   });
 }
 
-function eventListeners() {
-  /*
-    see: https://webpack.js.org/configuration/dev-server/#overlay .
-    webpack can be configured to suppress overlay on this error.
-    add in 'devServer' =>  'client':
-
-    overlay: {
-      runtimeErrors: (error) => {
-        if (error.message === "ResizeObserver loop limit exceeded") {
-          return false;
-        }
-        return true;
-      },
-    },
-  */
+function eventListeners(): void {
   window.addEventListener('error', (e) => {
     if ([RESIZE_LOOP, RESIZE_NOTIFICATIONS].includes(e.message)) {
       const resizeObserverErrDiv = document.getElementById('webpack-dev-server-client-overlay-div');
@@ -144,10 +128,10 @@ function eventListeners() {
   });
 }
 
-function getDevice() {
-  let nav = getNavigator();
+function getDevice(): any {
+  const nav = getNavigator();
   return {
-    isStandalone: nav && 'standalone' in nav && nav.standalone,
+    isStandalone: nav && 'standalone' in nav && (nav as any).standalone,
     isIDevice: nav && /iphone|ipod|ipad/i.test(nav.userAgent),
     isIpad: nav && /iPad/i.test(nav.userAgent),
     isWindows: nav && /indows/i.test(nav.userAgent),
@@ -155,9 +139,9 @@ function getDevice() {
   };
 }
 
-function getNavigator() {
+function getNavigator(): Navigator | undefined {
   try {
-    return navigator || window.navigator;
+    return navigator || (window as any).navigator;
   } catch (e) {
     return undefined;
   }
