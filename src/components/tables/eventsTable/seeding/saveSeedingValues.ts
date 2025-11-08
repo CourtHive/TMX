@@ -7,7 +7,7 @@ const { SEEDING, MANUAL } = scaleConstants;
 type SaveSeedingValuesParams = {
   event: any;
   rows: any[];
-  callback?: (result: any) => void;
+  callback?: () => void;
 };
 
 export function saveSeedingValues({ event, rows, callback }: SaveSeedingValuesParams): void {

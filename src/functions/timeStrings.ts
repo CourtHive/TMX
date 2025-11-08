@@ -1,0 +1,24 @@
+import { tools } from 'tods-competition-factory';
+
+export function timeFormat(time: string, militaryTime?: boolean): string {
+  return time ? tools.dateTime.convertTime(time, militaryTime) : '';
+}
+
+export function timeStringToSeconds(timeString: string): number {
+  const a = timeFormat(timeString, true).split(':');
+  return +a[0] * 60 * 60 + +a[1] * 60 + (+a[2] || 0);
+}
+
+export function zeroPad(number: number): string {
+  return number.toString()[1] ? number.toString() : '0' + number;
+}
+export function secondsToTimeString(seconds: number, nextHour?: boolean): string {
+  let hours = Math.floor(seconds / (60 * 60));
+  let minutes = Math.floor((seconds - hours * (60 * 60)) / 60);
+  if (nextHour) {
+    minutes = 0;
+    hours += 1;
+    if (hours > 23) hours = 0;
+  }
+  return `${zeroPad(hours)}:${zeroPad(minutes)}`;
+}

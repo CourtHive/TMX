@@ -13,6 +13,7 @@ export const context: {
     draw_event: any;
   };
   columns: Record<string, any>;
+  collectionTables?: any[];
   router?: any;
   provider?: any;
   quill?: any;
