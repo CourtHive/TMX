@@ -1,3 +1,7 @@
+/**
+ * Column definitions for event entries table.
+ * Displays participant details, rankings, ratings, teams, seeding, flights, and status.
+ */
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
 import { ratingFormatter } from '../common/formatters/ratingFormatter';
@@ -14,7 +18,7 @@ import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
-export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [], drawCreated } = {}) {
+export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [], drawCreated }: { entries: any[]; exclude?: string[]; eventId?: string; drawId?: string; actions?: any[]; drawCreated?: boolean } = {} as any): any[] {
   const teams = entries.find((entry) => entry.participant?.teams?.length);
   const utrRating = entries.find((entry) => entry.ratings?.utr);
   const wtnRating = entries.find((entry) => entry.ratings?.wtn);
@@ -24,7 +28,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       visible: !drawCreated,
@@ -34,7 +38,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 5,
     },
     {
-      headerMenu: headerMenu(),
+      headerMenu: headerMenu({}),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: LEFT,
@@ -49,7 +53,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 50,
     },
     {
-      formatter: (cell) => formatParticipant()(cell, undefined, 'sideBySide'),
+      formatter: (cell: any) => (formatParticipant(undefined) as any)(cell, undefined, 'sideBySide'),
       field: 'participant',
       responsive: false,
       resizable: false,
@@ -85,7 +89,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       width: 70,
     },
     {
-      sorter: (a, b) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
+      sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
       formatter: teamsFormatter(() => console.log('boo')),
       field: 'participant.teams',
       visible: !!teams,
@@ -103,7 +107,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       minWidth: 100,
     },
     {
-      editor: numericEditor({ maxValue: entries?.length || 0, field: 'seedNumber' }),
+      editor: numericEditor({ maxValue: entries?.length || 0, decimals: false, field: 'seedNumber' }),
       sorterParams: { alignEmptyValues: 'bottom' },
       visible: !!seeding,
       field: 'seedNumber',
@@ -130,12 +134,12 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       maxWidth: 80,
     },
     {
-      cellClick: entryActions(actions, eventId, drawId),
+      cellClick: entryActions(actions, eventId || '', drawId),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
       maxWidth: 40,
     },
-  ].filter(({ field }) => Array.isArray(exclude) && !exclude?.includes(field));
+  ].filter(({ field }) => Array.isArray(exclude) && !exclude?.includes(field || ''));
 }

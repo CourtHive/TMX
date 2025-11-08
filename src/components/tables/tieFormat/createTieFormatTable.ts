@@ -1,3 +1,7 @@
+/**
+ * Create table for tie format collection definitions.
+ * Displays and manages scorecard structure with drag-and-drop ordering.
+ */
 import { getCollectionDefinitionColumns } from './getCollectionDefinitionColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { toTitleCase } from 'functions/toTitleCase';
@@ -5,9 +9,9 @@ import { tools } from 'tods-competition-factory';
 
 import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
-export function createTieFormatTable({ tableElement, tieFormat }) {
-  const data = (tieFormat?.collectionDefinitions?.sort((a, b) => a.collectionOrder - b.collectionOrder) || []).map(
-    (collectionDefinition) => {
+export function createTieFormatTable({ tableElement, tieFormat }: { tableElement: HTMLElement; tieFormat: any }): { table: any } {
+  const data = (tieFormat?.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || []).map(
+    (collectionDefinition: any) => {
       const { collectionValue, matchUpValue, scoreValue, setValue, matchUpType, gender } = collectionDefinition;
       const awardType =
         (tools.isConvertableInteger(collectionValue) && COLLECTION_VALUE) ||

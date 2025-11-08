@@ -1,3 +1,7 @@
+/**
+ * MatchUp actions popover menu.
+ * Provides options for scheduling, timing, referee assignment, and deletion of ad-hoc matches.
+ */
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -6,7 +10,7 @@ import { isFunction } from 'functions/typeOf';
 import { DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
+export function matchUpActions({ pointerEvent, cell, matchUp, callback }: { pointerEvent: PointerEvent; cell?: any; matchUp?: any; callback?: (data: any) => void }): void {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
@@ -15,11 +19,11 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
 
   const isAdHoc = !matchUp?.roundPosition && !matchUp?.drawPositions;
 
-  const target = cell && pointerEvent.target.getElementsByClassName('fa-ellipsis-vertical')[0];
+  const target = cell && (pointerEvent.target as HTMLElement)?.getElementsByClassName('fa-ellipsis-vertical')[0];
   const data = cell?.getRow().getData() || matchUp;
 
   const handleCallback = () => {
-    if (isFunction(callback)) callback(data);
+    if (isFunction(callback) && callback) callback(data);
   };
 
   const hasSchedule =
@@ -37,8 +41,7 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
     };
     const updateRow = () => {
       if (!cell) {
-        // clearing schedule in draw structure - need to re-render
-        callback({ refresh: true });
+        callback && callback({ refresh: true });
         return;
       }
       const row = cell.getRow();
@@ -72,16 +75,16 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }) {
   ];
 
   if (isAdHoc)
-    items.push({
+    (items as any).push({
       onClick: () => deleteAdHocMatchUp({ ...matchUp, callback: handleCallback }),
       text: 'Delete match',
       color: 'red',
     });
 
-  tipster({ items, target: target || pointerEvent.target, config: { placement: BOTTOM } });
+  tipster({ items, target: target || (pointerEvent.target as HTMLElement), config: { placement: BOTTOM } });
 }
 
-export function deleteAdHocMatchUp({ drawId, structureId, matchUpId, callback }) {
+export function deleteAdHocMatchUp({ drawId, structureId, matchUpId, callback }: { drawId: string; structureId: string; matchUpId: string; callback?: () => void }): void {
   const methods = [
     {
       method: DELETE_ADHOC_MATCHUPS,
@@ -94,9 +97,9 @@ export function deleteAdHocMatchUp({ drawId, structureId, matchUpId, callback })
       },
     },
   ];
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (result.success) {
-      if (isFunction(callback)) callback();
+      if (isFunction(callback) && callback) callback();
     } else {
       console.log({ postMutationError: result.error });
     }

@@ -1,3 +1,7 @@
+/**
+ * Column definitions for tie format collection definitions table.
+ * Manages collection names, match counts, types, genders, and scoring formats.
+ */
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 
 import {
@@ -10,11 +14,11 @@ import {
   SET_VALUE
 } from 'constants/tmxConstants';
 
-export function getCollectionDefinitionColumns() {
-  const editMatchUpFormat = (e, cell) => {
+export function getCollectionDefinitionColumns(): any[] {
+  const editMatchUpFormat = (_e: Event, cell: any) => {
     const row = cell.getRow();
     const data = row.getData();
-    const callback = (matchUpFormat) => {
+    const callback = (matchUpFormat: string) => {
       if (matchUpFormat) {
         Object.assign(data, { matchUpFormat });
         row.update(data);
@@ -22,12 +26,12 @@ export function getCollectionDefinitionColumns() {
         table.redraw(true);
       }
     };
-    getMatchUpFormat({ callback, existingMatchUpFormat: data.matchUpFormat });
+    (getMatchUpFormat as any)({ callback, existingMatchUpFormat: data.matchUpFormat });
   };
   return [
     { rowHandle: true, formatter: 'handle', width: 30, minWidth: 30 },
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       responsive: false,
@@ -71,13 +75,6 @@ export function getCollectionDefinitionColumns() {
 
       editorParams: { values: ['Singles', 'Doubles'] }
     },
-    /*
-    // TODO: create a TODS Category code constructor similar to matchUpFormatCode constructor
-    {
-      title: 'Category', 
-      field: 'category'
-    },
-    */
     {
       title: 'Gender',
       field: 'gender',

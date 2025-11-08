@@ -1,5 +1,8 @@
+/**
+ * Create table for tournament participants.
+ * Displays individual participant details, ratings, and event assignments.
+ */
 import { tournamentEngine, participantConstants, participantRoles, tools } from 'tods-competition-factory';
-// import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { getParticipantColumns } from './getParticipantColumns';
@@ -14,8 +17,13 @@ import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
 
-export function createParticipantsTable({ view } = {}) {
-  let table, groupParticipants, participants, derivedEventInfo, teamParticipants, ready;
+export function createParticipantsTable({ view }: { view?: string } = {}): { table: any; replaceTableData: () => void; teamParticipants: any[]; groupParticipants: any[] } {
+  let table: any;
+  let groupParticipants: any[] = [];
+  let participants: any[];
+  let derivedEventInfo: any;
+  let teamParticipants: any[] = [];
+  let ready: boolean;
 
   const participantFilters = { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
 
@@ -29,19 +37,19 @@ export function createParticipantsTable({ view } = {}) {
     });
     ({ participants = [], derivedEventInfo } = result);
 
-    const individualParticipants = participants.filter(({ participantType }) => participantType === INDIVIDUAL);
-    groupParticipants = participants.filter(({ participantType }) => participantType === GROUP);
-    teamParticipants = participants.filter(({ participantType }) => participantType === TEAM);
+    const individualParticipants = participants.filter(({ participantType }: any) => participantType === INDIVIDUAL);
+    groupParticipants = participants.filter(({ participantType }: any) => participantType === GROUP);
+    teamParticipants = participants.filter(({ participantType }: any) => participantType === TEAM);
 
-    return individualParticipants?.map((p) => mapParticipant(p, derivedEventInfo)) || [];
+    return individualParticipants?.map((p: any) => mapParticipant(p, derivedEventInfo)) || [];
   };
 
   const replaceTableData = () => {
     const data = getTableData();
-    const cityState = data?.some((p) => p.cityState);
-    const tennisId = data?.some((p) => p.tennisId);
-    const utr = data?.some((p) => p.ratings?.utr);
-    const wtn = data?.some((p) => p.ratings?.wtn);
+    const cityState = data?.some((p: any) => p.cityState);
+    const tennisId = data?.some((p: any) => p.tennisId);
+    const utr = data?.some((p: any) => p.ratings?.utr);
+    const wtn = data?.some((p: any) => p.ratings?.wtn);
     cityState && table?.showColumn('cityState');
     tennisId && table?.showColumn('tennisId');
     utr && table?.showColumn('ratings.utr.utrRating');
@@ -53,11 +61,11 @@ export function createParticipantsTable({ view } = {}) {
   const data = getTableData();
   const columns = getParticipantColumns({ data, replaceTableData });
 
-  const simpleAddition = (a, b) => {
+  const simpleAddition = (a: any, b: any) => {
     return ((tools.isNumeric(a) && a) || 0) + ((tools.isNumeric(b) && b) || 0);
   };
 
-  const render = (data) => {
+  const render = (data: any) => {
     destroyTable({ anchorId: TOURNAMENT_PARTICIPANTS });
     const element = document.getElementById(TOURNAMENT_PARTICIPANTS);
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
@@ -73,11 +81,8 @@ export function createParticipantsTable({ view } = {}) {
         'cityState',
         'tennisId',
       ]),
-      // responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
-      // responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.86,
       placeholder: 'No participants',
-      // responsiveLayout: 'collapse',
       index: 'participantId',
       layout: 'fitColumns',
       reactiveData: true,
@@ -85,17 +90,12 @@ export function createParticipantsTable({ view } = {}) {
       data,
     });
 
-    /**
-    const span = `<span class='badge is-danger'>1</span>`;
-    // const span = `<span class='icon'>🎾</span>`;
-    const getHeader = (rows) => `<button class='button is-inverted is-info'>${span}Participants (${rows.length})</button>`;
-    */
-    const getHeader = (rows) => `Participants (${rows.length})`;
-    table.on('dataChanged', (rows) => headerElement && (headerElement.innerHTML = getHeader(rows)));
-    table.on('dataFiltered', (filters, rows) => {
+    const getHeader = (rows: any[]) => `Participants (${rows.length})`;
+    table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
+    table.on('dataFiltered', (_filters: any, rows: any[]) => {
       headerElement && (headerElement.innerHTML = getHeader(rows));
-      const wtns = [];
-      const utrs = [];
+      const wtns: number[] = [];
+      const utrs: number[] = [];
       for (const row of rows) {
         const data = row.getData();
         const { wtn, utr } = data.ratings;

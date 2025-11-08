@@ -1,3 +1,7 @@
+/**
+ * Edit tie format overlay with collection definitions.
+ * Manages scorecard structure, win criteria, and collection configurations.
+ */
 import { createTieFormatTable } from 'components/tables/tieFormat/createTieFormatTable';
 import { tools, tournamentEngine } from 'tods-competition-factory';
 import { nameValidator } from 'components/validators/nameValidator';
@@ -7,7 +11,7 @@ import { isFunction } from 'functions/typeOf';
 
 import { COLLECTION_VALUE, LEFT, MATCH_VALUE, OVERLAY, RIGHT, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
-function getWinCriteriaText(tieFormat) {
+function getWinCriteriaText(tieFormat: any): string {
   const valueGoal = tieFormat?.winCriteria?.valueGoal;
   const aggregateValue = tieFormat?.collectionDefinitions?.length
     ? tieFormat?.winCriteria?.aggregateValue && 'Aggregate value'
@@ -16,10 +20,10 @@ function getWinCriteriaText(tieFormat) {
   return `<div style="font-weight: bold">Win criteria: <span class="has-text-success">${value}</span></div>`;
 }
 
-export function editTieFormat({ title, tieFormat, onClose }) {
+export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFormat: any; onClose: any }): any {
   const { content, inputs, elements, table } = renderEditor({ tieFormat });
 
-  const constructTieFormat = (rows) => {
+  const constructTieFormat = (rows: any[]) => {
     const tieFormatName = inputs['tieFormatName'].value;
 
     const collectionDefinitions = rows.map((row) =>
@@ -52,7 +56,7 @@ export function editTieFormat({ title, tieFormat, onClose }) {
     elements['winCriteria'].innerHTML = getWinCriteriaText(tieFormat);
   });
 
-  const prepareExit = (rows) => {
+  const prepareExit = (rows: any[]) => {
     const tieFormat = constructTieFormat(rows);
     isFunction(onClose) && onClose(tieFormat?.collectionDefinitions?.length && tieFormat);
   };
@@ -62,13 +66,13 @@ export function editTieFormat({ title, tieFormat, onClose }) {
   return openOverlay({ title, content, footer });
 }
 
-function renderEditor({ tieFormat }) {
+function renderEditor({ tieFormat }: { tieFormat: any }): { content: HTMLDivElement; table: any; elements: any; inputs: any } {
   const contentContainer = document.createElement('div');
   contentContainer.className = 'overlay-content-container';
   contentContainer.style.backgroundColor = 'white';
 
   const tableElement = document.createElement('div');
-  const { table } = createTieFormatTable({ tieFormat, tableElement });
+  const { table } = (createTieFormatTable as any)({ tieFormat, tableElement });
 
   const overview = getOverview(table);
   contentContainer.appendChild(overview);
@@ -78,7 +82,7 @@ function renderEditor({ tieFormat }) {
   contentContainer.appendChild(tableElement);
 
   const deleteRows = () => {
-    const collectionIds = table?.getSelectedData().map(({ collectionId }) => collectionId);
+    const collectionIds = table?.getSelectedData().map(({ collectionId }: any) => collectionId);
     table?.deleteRow(collectionIds);
   };
 
@@ -111,7 +115,7 @@ function renderEditor({ tieFormat }) {
         const newRow = {
           collectionName: `Collection ${rowCount + 1}`,
           collectionId: tools.UUID(),
-          awardType: 'Match value', // collection value, set value, score value
+          awardType: 'Match value',
           matchUpFormat: 'SET3-S:6/TB7',
           matchUpType: 'Singles',
           matchUpCount: 1,
@@ -127,12 +131,12 @@ function renderEditor({ tieFormat }) {
     },
   ];
 
-  const { elements, inputs } = controlBar({ table, target: controlTarget, items });
+  const { elements, inputs } = controlBar({ table, target: controlTarget, items }) || {};
 
   return { content: contentContainer, table, elements, inputs };
 }
 
-function getOverview(table) {
+function getOverview(_table: any): HTMLDivElement {
   const overview = document.createElement('div');
   overview.className = 'overlay-content-overview';
   const overviewBody = document.createElement('div');
@@ -140,12 +144,10 @@ function getOverview(table) {
 
   overview.appendChild(overviewBody);
 
-  !!table;
-
   return overview;
 }
 
-function getFooter({ table, onClose }) {
+function getFooter({ table, onClose }: { table: any; onClose: (rows: any[]) => void }): HTMLDivElement {
   const destroyTableAndClose = () => {
     table.destroy();
     closeOverlay();

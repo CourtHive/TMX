@@ -1,3 +1,7 @@
+/**
+ * Create table for unscheduled matchUps.
+ * Displays matches without court assignments with drag-and-drop functionality.
+ */
 import { competitionEngine, factoryConstants, eventConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -11,12 +15,13 @@ import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 
 const { SINGLES, DOUBLES } = eventConstants;
 
-export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
+export function createUnscheduledTable({ scheduledDate: specifiedDate }: { scheduledDate?: string } = {}): { table: any; replaceTableData: (params?: { scheduledDate?: string }) => { unscheduledMatchUps: any[] }; unscheduledMatchUps: any[] } {
   let scheduledDate = specifiedDate;
-  let unscheduledMatchUps;
-  let ready, table;
+  let unscheduledMatchUps: any[] = [];
+  let ready: boolean;
+  let table: any;
 
-  function initDragDrop(row) {
+  function initDragDrop(row: any) {
     const element = row.getElement();
     const matchUp = row.getData().matchUp;
     const matchUpId = matchUp.matchUpId;
@@ -25,7 +30,7 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
     element.draggable = true;
   }
 
-  function getTableData({ scheduledDate: specifiedDate }) {
+  function getTableData({ scheduledDate: specifiedDate }: { scheduledDate?: string }) {
     const matchUpsWithNoCourt =
       competitionEngine
         .allCompetitionMatchUps({
@@ -35,18 +40,18 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
           },
           nextMatchUps: true,
         })
-        .matchUps?.filter((m) => !m.schedule?.courtId && !m.sides?.some(({ bye }) => bye)) || [];
+        .matchUps?.filter((m: any) => !m.schedule?.courtId && !m.sides?.some(({ bye }: any) => bye)) || [];
 
     const filterDate = specifiedDate || scheduledDate;
     unscheduledMatchUps = matchUpsWithNoCourt.filter(
-      (m) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === filterDate,
+      (m: any) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === filterDate,
     );
 
     const rowMatchUps = unscheduledMatchUps.map(mapMatchUp);
     return { rowMatchUps };
   }
 
-  function replaceTableData({ scheduledDate } = {}) {
+  function replaceTableData({ scheduledDate }: { scheduledDate?: string } = {}) {
     const refresh = () => {
       const { rowMatchUps = [] } = getTableData({ scheduledDate });
       if (table) {
@@ -78,20 +83,20 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate } = {}) {
 
   table.on('tableBuilt', () => {
     ready = true;
-    const tableHolder = unscheduledAnchor.getElementsByClassName('tabulator-tableholder')[0];
+    const tableHolder = unscheduledAnchor?.getElementsByClassName('tabulator-tableholder')[0] as HTMLElement;
     tableHolder.addEventListener('drop', (e) => matchUpReturn(e, table));
     tableHolder.ondragover = (e) => e.preventDefault();
     tableHolder.draggable = true;
   });
-  table.on('dataChanged', (rows) => {
+  table.on('dataChanged', (rows: any[]) => {
     const titleElement = table.getColumns()[0]._getSelf().titleElement;
     titleElement.innerHTML = `${rows.length}`;
   });
-  table.on('dataFiltered', (filters, rows) => {
+  table.on('dataFiltered', (_filters: any, rows: any[]) => {
     const titleElement = table.getColumns()[0]._getSelf().titleElement;
     titleElement.innerHTML = `${rows.length}`;
   });
-  table.on('rowClick', (e, row) => {
+  table.on('rowClick', (_e: Event, row: any) => {
     const matchUp = row.getData();
     console.log({ matchUp });
   });

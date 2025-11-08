@@ -1,3 +1,7 @@
+/**
+ * Participant matchUp actions popover menu.
+ * Handles participant assignment, replacement, substitution, penalties, and removal.
+ */
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -20,7 +24,7 @@ const { TEAM, DOUBLES } = eventConstants;
 
 const xa = tools.extractAttributes;
 
-export function participantMatchUpActions(e, cell, callback, params) {
+export function participantMatchUpActions(e: Event, cell: any, callback?: (result: any) => void, params?: any): void {
   if (!cell) return;
 
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
@@ -50,7 +54,7 @@ export function participantMatchUpActions(e, cell, callback, params) {
   });
   const clickedParticipantId = params?.individualParticipant?.participantId;
 
-  const itemMap = {
+  const itemMap: any = {
     [ASSIGN_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles },
       text: 'Assign participant',
@@ -78,10 +82,10 @@ export function participantMatchUpActions(e, cell, callback, params) {
   };
 
   const items = validActions
-    .filter(({ type }) =>
+    .filter(({ type }: any) =>
       [ASSIGN_PARTICIPANT, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT, SUBSTITUTION].includes(type),
     )
-    .map((action) => {
+    .map((action: any) => {
       const item = itemMap[action.type];
       return {
         onClick: () => {
@@ -96,36 +100,36 @@ export function participantMatchUpActions(e, cell, callback, params) {
   if (items.length === 1) {
     items[0].onClick();
   } else if (items.length > 0 && e?.target) {
-    tipster({ items, target: e.target, config: { placement: BOTTOM } });
+    tipster({ items, target: e.target as HTMLElement, config: { placement: BOTTOM } });
   }
 }
 
-function removeParticipant(params) {
+function removeParticipant(params: any): void {
   const { action, callback, clickedParticipantId } = params;
   action.payload.participantId = clickedParticipantId;
   const methods = [{ method: action.method, params: action.payload }];
-  const postMutation = (result) => isFunction(callback) && callback(result);
+  const postMutation = (result: any) => isFunction(callback) && callback && callback(result);
   mutationRequest({ methods, callback: postMutation });
 }
 
-function assignOrReplace(params) {
+function assignOrReplace(params: any): void {
   const { sideNumber, callback, isTeam, isDoubles, data } = params;
   const participantsAvailable = params.action.availableParticipants;
   const matchUpType = data.matchUp.matchUpType;
 
-  const side = data.matchUp.sides.find((side) => sideNumber === side.sideNumber);
+  const side = data.matchUp.sides.find((side: any) => sideNumber === side.sideNumber);
   const existingParticipantIds = side?.participant?.individualParticipantIds;
   const existingParticipantId = params.clickedParticipantId;
 
   const selectionLimit = matchUpType === DOUBLES && !existingParticipantId ? 2 : 1;
-  const onSelection = (result) => {
+  const onSelection = (result: any) => {
     if (result.participantId || result.selected) {
-      const methods = [];
+      const methods: any[] = [];
       const participantIds = (
         Array.isArray(result.selected) ? result.selected.map(xa('participantId')) : [result.participantId]
       ).filter(Boolean);
 
-      participantIds.forEach((participantId) => {
+      participantIds.forEach((participantId: string) => {
         methods.push({
           params: {
             ...params.action.payload,
@@ -138,8 +142,8 @@ function assignOrReplace(params) {
         });
       });
 
-      const postMutation = (result) => {
-        isFunction(callback) && callback(result);
+      const postMutation = (result: any) => {
+        isFunction(callback) && callback && callback(result);
       };
       mutationRequest({ methods, callback: postMutation });
     }

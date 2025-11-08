@@ -1,3 +1,7 @@
+/**
+ * Column definitions for groupings/teams table.
+ * Displays team names, events, member counts, match statistics, and actions.
+ */
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
@@ -9,17 +13,17 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
 const { GROUP } = participantConstants;
 
-export function getGroupingsColumns({ view, replaceTableData }) {
-  const openCloseToggle = (e, cell) => {
+export function getGroupingsColumns({ view, replaceTableData }: { view?: string; replaceTableData: () => void }): any[] {
+  const openCloseToggle = (e: Event, cell: any) => {
     const result = toggleOpenClose(e, cell);
-    if (result.open) {
+    if (result?.open) {
       // TODO: display team results
     }
   };
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       responsive: false,
@@ -47,14 +51,14 @@ export function getGroupingsColumns({ view, replaceTableData }) {
       width: 55,
     },
     {
-      cellClick: (e, cell) => openCloseToggle(e, cell),
+      cellClick: (e: Event, cell: any) => openCloseToggle(e, cell),
       field: 'participantName',
       title: 'Name',
       minWidth: 200,
       widthGrow: 1,
     },
     {
-      sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
+      sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: view !== GROUP,
       hozAlign: LEFT,

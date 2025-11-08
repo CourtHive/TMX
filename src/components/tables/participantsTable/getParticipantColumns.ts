@@ -1,3 +1,7 @@
+/**
+ * Column definitions for participants table.
+ * Displays participant details, ratings, sign-in status, events, and teams.
+ */
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
@@ -21,7 +25,7 @@ const { FEMALE, MALE } = genderConstants;
 const FIELD_UTR = 'ratings.utr.utrRating';
 const FIELD_WTN = 'ratings.wtn.wtnRating';
 
-export function getParticipantColumns({ data, replaceTableData }) {
+export function getParticipantColumns({ data, replaceTableData }: { data: any[]; replaceTableData: () => void }): any[] {
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
   const utr = data.some((p) => p.ratings?.utr);
@@ -29,7 +33,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,
@@ -47,19 +51,9 @@ export function getParticipantColumns({ data, replaceTableData }) {
       hozAlign: LEFT,
       width: 55,
     },
-    /*
     {
-      formatter: 'responsiveCollapse',
-      responsive: false,
-      headerSort: false,
-      resizable: false,
-      hozAlign: CENTER,
-      width: 50,
-    },
-    */
-    {
-      formatter: formatParticipant(({ event, cell, ...params }) => participantActions(event, cell, undefined, params)),
-      cellClick: participantActions,
+      formatter: formatParticipant(({ event, cell }: any) => (participantActions(replaceTableData) as any)(event, cell)),
+      cellClick: participantActions(replaceTableData),
       sorter: participantSorter,
       field: 'participant',
       responsive: false,
@@ -97,7 +91,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       editor: 'list',
       width: 80,
       editorParams: {
-        itemFormatter: (_, value) => value,
+        itemFormatter: (_: any, value: any) => value,
         values: {
           Male: MALE,
           Female: FEMALE,
@@ -117,7 +111,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       width: 40,
     },
     {
-      sorter: (a, b) => (a.length || 0) - (b?.length || 0),
+      sorter: (a: any, b: any) => (a.length || 0) - (b?.length || 0),
       formatter: arrayLengthFormatter,
       title: 'Penalties',
       field: 'penalties',
@@ -135,7 +129,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       visible: false,
     },
     {
-      sorter: (a, b) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
+      sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: columnIsVisible('events'),
       title: 'Events',
@@ -146,7 +140,7 @@ export function getParticipantColumns({ data, replaceTableData }) {
       widthGrow: 2,
     },
     {
-      sorter: (a, b) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
+      sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
       formatter: teamsFormatter(() => console.log('boo')),
       visible: columnIsVisible('teams'),
       title: 'Teams',
@@ -157,14 +151,12 @@ export function getParticipantColumns({ data, replaceTableData }) {
       widthGrow: 2,
     },
     {
-      // headerFilter: 'input',
       visible: !!cityState,
       title: 'City/State',
       field: 'cityState',
       minWidth: 110,
     },
     {
-      // TODO: ratings columns should display confidence level via color
       editor: numericEditor({ maxValue: 40, decimals: true, field: FIELD_WTN }),
       sorterParams: { alignEmptyValues: 'bottom' },
       responsive: true,
@@ -177,7 +169,6 @@ export function getParticipantColumns({ data, replaceTableData }) {
       width: 70,
     },
     {
-      // TODO: ratings columns should display confidence level via color
       editor: numericEditor({ maxValue: 16, decimals: true, field: FIELD_UTR }),
       sorterParams: { alignEmptyValues: 'bottom' },
       responsive: true,

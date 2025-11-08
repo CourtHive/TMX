@@ -1,3 +1,7 @@
+/**
+ * Unscheduled matchUps grid control bar.
+ * Provides filtering, search, auto-scheduling, and schedule clearing functionality.
+ */
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { autoScheduleMatchUps } from './autoScheduleMatchUps';
@@ -18,12 +22,23 @@ export function unscheduledGridControl({
   scheduledDate,
   matchUps = [],
   table,
-}) {
-  const updateScheduledDate = (date) => {
+}: {
+  updateUnscheduledTable: () => boolean;
+  updateScheduleTable: (params: { scheduledDate: string }) => void;
+  toggleUnscheduled: () => void;
+  flightNameFilter?: string;
+  roundNameFilter?: string;
+  controlAnchor: HTMLElement;
+  eventIdFilter?: string;
+  scheduledDate: string;
+  matchUps?: any[];
+  table: any;
+}): { updateScheduledDate: (date: string) => void } {
+  const updateScheduledDate = (date: string) => {
     scheduledDate = date;
   };
-  const eventFilter = (rowData) => rowData.eventId === eventIdFilter;
-  const updateEventFilter = (eventId) => {
+  const eventFilter = (rowData: any) => rowData.eventId === eventIdFilter;
+  const updateEventFilter = (eventId?: string) => {
     table.removeFilter(eventFilter);
     eventIdFilter = eventId;
     if (eventId) table.addFilter(eventFilter);
@@ -31,39 +46,39 @@ export function unscheduledGridControl({
   const events = tournamentEngine.getEvents().events || [];
   const allEvents = { label: ALL_EVENTS, onClick: () => updateEventFilter(), close: true };
   const eventOptions = [allEvents].concat(
-    events.map((event) => ({
+    events.map((event: any) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
       close: true,
     })),
   );
 
-  const roundFilter = (rowData) => rowData.roundName === roundNameFilter;
-  const roundNames = tools.unique(matchUps.map((matchUp) => matchUp.roundName));
-  const updateRoundFilter = (roundName) => {
+  const roundFilter = (rowData: any) => rowData.roundName === roundNameFilter;
+  const roundNames = tools.unique(matchUps.map((matchUp: any) => matchUp.roundName));
+  const updateRoundFilter = (roundName?: string) => {
     table.removeFilter(roundFilter);
     roundNameFilter = roundName;
     if (roundName) table.addFilter(roundFilter);
   };
   const allRounds = { label: ALL_ROUNDS, onClick: () => updateRoundFilter(), close: true };
   const roundOptions = [allRounds].concat(
-    roundNames.map((roundName) => ({
+    roundNames.map((roundName: string) => ({
       onClick: () => updateRoundFilter(roundName),
       label: roundName,
       close: true,
     })),
   );
 
-  const flightFilter = (rowData) => rowData.flight === flightNameFilter;
-  const flightNames = tools.unique(matchUps.map((matchUp) => matchUp.drawName));
-  const updateFlightFilter = (flightName) => {
+  const flightFilter = (rowData: any) => rowData.flight === flightNameFilter;
+  const flightNames = tools.unique(matchUps.map((matchUp: any) => matchUp.drawName));
+  const updateFlightFilter = (flightName?: string) => {
     table.removeFilter(flightFilter);
     flightNameFilter = flightName;
     if (flightName) table.addFilter(flightFilter);
   };
   const allFlights = { label: ALL_FLIGHTS, onClick: () => updateFlightFilter(), close: true };
   const flightOptions = [allFlights].concat(
-    flightNames.map((flightName) => ({
+    flightNames.map((flightName: string) => ({
       onClick: () => updateFlightFilter(flightName),
       label: flightName,
       close: true,
@@ -74,16 +89,14 @@ export function unscheduledGridControl({
     updateUnscheduledTable() && updateScheduleTable({ scheduledDate });
     console.log('clear filters ?');
   };
-  const scheduleClear = (e) => {
-    const result = findAncestor(e.target, 'dropdown');
+  const scheduleClear = (e: Event) => {
+    const result = findAncestor(e.target as HTMLElement, 'dropdown');
     clearSchedule({
-      target: result || e?.target,
+      target: result || (e?.target as HTMLElement),
       callback: updateTables,
       roundNameFilter,
       eventIdFilter,
       scheduledDate,
-      eventFilter,
-      roundFilter,
     });
   };
 
@@ -110,9 +123,9 @@ export function unscheduledGridControl({
 
   const items = [
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
-      onChange: (e) => setSearchFilter(e.target.value),
-      onKeyUp: (e) => setSearchFilter(e.target.value),
+      onKeyDown: (e: KeyboardEvent) => e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
+      onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
+      onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: LEFT,
@@ -160,6 +173,6 @@ export function unscheduledGridControl({
     },
   ];
 
-  controlBar({ target: controlAnchor, items }).elements;
+  controlBar({ target: controlAnchor, items });
   return { updateScheduledDate };
 }

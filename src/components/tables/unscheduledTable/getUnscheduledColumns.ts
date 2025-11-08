@@ -1,3 +1,7 @@
+/**
+ * Column definitions for unscheduled matchUps table.
+ * Displays event, flight, round, participants, and scoring format information.
+ */
 import { genderConstants } from 'tods-competition-factory';
 import { isObject } from 'functions/typeOf';
 
@@ -5,23 +9,23 @@ import { CENTER } from 'constants/tmxConstants';
 
 const { MALE, FEMALE } = genderConstants;
 
-export function getUnscheduledColumns(unscheduledMatchUps) {
-  function genderedParticipant(cell) {
+export function getUnscheduledColumns(unscheduledMatchUps: any[]): any[] {
+  function genderedParticipant(cell: any): HTMLDivElement {
     const elem = document.createElement('div');
     const value = cell.getValue();
-    const color = (isObject(value) && value?.sex === MALE && '#2E86C1') || (value?.sex === FEMALE && '#AA336A') || '';
+    const color = (isObject(value) && (value as any)?.sex === MALE && '#2E86C1') || ((value as any)?.sex === FEMALE && '#AA336A') || '';
     elem.style.color = color;
-    elem.innerHTML = (isObject(value) ? value.participantName : value) || '';
+    elem.innerHTML = (isObject(value) ? (value as any).participantName : value) || '';
     return elem;
   }
 
-  function formatCell(cell) {
+  function formatCell(cell: any): HTMLDivElement {
     const element = document.createElement('div');
     element.innerHTML = cell.getValue();
     return element;
   }
 
-  function titleFormatter(cell) {
+  function titleFormatter(cell: any): number {
     const elem = cell.getElement();
     elem.classList.add('tag');
     elem.classList.add('is-info');
@@ -29,7 +33,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
     return unscheduledMatchUps?.length || 0;
   }
 
-  const participantSorter = (a, b) => {
+  const participantSorter = (a: any, b: any) => {
     if (a.participantName && !b.participantName) return 1;
     if (b.participantName && !a.participantName) return 1;
     if (!a?.participantName && !b?.participantName) return 1;
@@ -39,7 +43,7 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
   return [
     {
       titleFormatter,
-      formatter: 'rownum', // format this to show open/close caret
+      formatter: 'rownum',
       headerSort: false,
       hozAlign: CENTER,
       frozen: true,
@@ -89,16 +93,6 @@ export function getUnscheduledColumns(unscheduledMatchUps) {
       responsive: false,
       resizable: false,
       minWidth: 100,
-      /*
-    },
-    {
-      // field: 'matchUp.matchUpFormat',
-      title: 'Average Time',
-      formatter: formatCell,
-      responsive: false,
-      resizable: false,
-      minWidth: 100
-    */
     },
   ];
 }

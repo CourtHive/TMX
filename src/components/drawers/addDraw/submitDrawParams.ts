@@ -1,3 +1,7 @@
+/**
+ * Submit draw parameters and generate draw structure.
+ * Handles draw creation, qualifying structures, and tie format configuration.
+ */
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { numericValidator } from 'components/validators/numericValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -39,16 +43,25 @@ const { POLICY_TYPE_ROUND_NAMING } = policyConstants;
 
 export function submitDrawParams({
   drawName: existingDrawName,
-  matchUpFormat,
+  matchUpFormat: providedMatchUpFormat,
   isQualifying,
   structureId,
   callback,
   inputs,
   drawId,
   event,
-}) {
+}: {
+  drawName?: string;
+  matchUpFormat?: string;
+  isQualifying?: boolean;
+  structureId?: string;
+  callback?: (result: any) => void;
+  inputs: any;
+  drawId?: string;
+  event: any;
+}): void {
   const drawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
-  matchUpFormat = matchUpFormat || inputs[MATCHUP_FORMAT]?.value;
+  const matchUpFormat = providedMatchUpFormat || inputs[MATCHUP_FORMAT]?.value;
 
   const structureName = inputs[STRUCTURE_NAME]?.value;
   const tieFormatName = inputs.tieFormatName?.value;
@@ -61,35 +74,33 @@ export function submitDrawParams({
     ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
-    ({ entryStage, entryStatus }) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+    ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
   );
   const drawEntries =
     isQualifying && qualifyingEntries.length
       ? qualifyingEntries
       : event.entries.filter(
-          ({ entryStage, entryStatus }) =>
+          ({ entryStage, entryStatus }: any) =>
             (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
         );
 
-  // default to Manual if the drawSize is less than the number of entries
   const automated = drawSize < drawEntries.length ? false : inputs[AUTOMATED].value === AUTOMATED;
 
   const eventId = event.eventId;
-  const drawOptions = {
+  const drawOptions: any = {
     drawEntries,
     automated,
     eventId,
     drawId,
   };
 
-  // ROUND_ROBIN_WITH_PLAYOFFS
   const advancePerGroup = parseInt(inputs.advancePerGroup?.value || 0);
   const groupRemaining = inputs[GROUP_REMAINING]?.checked;
   const playoffType = inputs[PLAYOFF_TYPE]?.value;
-  let structureOptions;
+  let structureOptions: any;
 
   if (drawType === ROUND_ROBIN_WITH_PLAYOFF) {
-    const playoffGroups = [];
+    const playoffGroups: any[] = [];
     if (playoffType === TOP_FINISHERS) {
       const groups = [tools.generateRange(1, advancePerGroup + 1)];
       if (groupRemaining) {
@@ -113,7 +124,6 @@ export function submitDrawParams({
 
     structureOptions = { groupSize };
     if (playoffGroups.length) {
-      // NOTE: if no playoffGroups are specified, defaults to placing "winners" of each group in playoff
       structureOptions.playoffGroups = playoffGroups;
     }
   } else if (drawType === ROUND_ROBIN) {
@@ -132,8 +142,6 @@ export function submitDrawParams({
     (numericValidator(inputs[QUALIFIERS_COUNT].value) && parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
 
   if (structureId) {
-    // structureId is only present when a qualifying draw is being added to an existing structure
-    // if structureId is { stage: MAIN, stageSequence: 1 } then allow automated positioning
     const generationResult = tournamentEngine.generateQualifyingStructure({
       qualifyingPositions: qualifiersCount,
       targetStructureId: structureId,
@@ -158,8 +166,8 @@ export function submitDrawParams({
           },
         },
       ];
-      const postMutation = (result) =>
-        isFunction(callback) && callback({ ...generationResult, ...result.results?.[0] });
+      const postMutation = (result: any) =>
+        isFunction(callback) && callback && callback({ ...generationResult, ...result.results?.[0] });
       mutationRequest({ methods, callback: postMutation });
     }
 
@@ -189,7 +197,7 @@ export function submitDrawParams({
       drawOptions.qualifyingPlaceholder = true;
     }
     Object.assign(drawOptions, {
-      seedingScaleName: eventId, // TODO: qualifying seeding needs to have a unique seedingScaleName
+      seedingScaleName: eventId,
       structureOptions,
       matchUpFormat,
       seedsCount,
@@ -201,13 +209,13 @@ export function submitDrawParams({
 
   if (drawSizeInteger) {
     if (tieFormatName === CUSTOM) {
-      const setTieFormat = (tieFormat) => {
+      const setTieFormat = (tieFormat: any) => {
         if (tieFormat) {
           drawOptions.tieFormat = tieFormat;
           generateDraw({ drawOptions, eventId, callback });
         }
       };
-      editTieFormat({ title: 'Custom scorecard', onClose: setTieFormat });
+      editTieFormat({ title: 'Custom scorecard', tieFormat: undefined, onClose: setTieFormat });
     } else {
       drawOptions.tieFormatName = tieFormatName;
 

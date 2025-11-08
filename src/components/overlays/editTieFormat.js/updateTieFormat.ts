@@ -1,3 +1,7 @@
+/**
+ * Update tie format with modifications.
+ * Compares and persists changes to tournament tie format configuration.
+ */
 import { tournamentEngine, queryGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -6,7 +10,7 @@ import { isFunction } from 'functions/typeOf';
 
 import { MODIFY_TIE_FORMAT } from 'constants/mutationConstants';
 
-export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callback }) {
+export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callback }: { matchUpId?: string; structureId?: string; eventId?: string; drawId?: string; callback?: () => void }): void {
   const { tieFormat } = tournamentEngine.getTieFormat({
     structureId,
     matchUpId,
@@ -14,9 +18,9 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
     drawId,
   });
 
-  const updateTieFormat = (modifiedTieFormat) => {
+  const updateTieFormat = (modifiedTieFormat: any) => {
     if (modifiedTieFormat) {
-      modifiedTieFormat.collectionDefinitions?.forEach((def, i) => (def.collectionOrder = i + 1));
+      modifiedTieFormat.collectionDefinitions?.forEach((def: any, i: number) => (def.collectionOrder = i + 1));
 
       const considerations = { collectionName: true, collectionOrder: true };
       const different = queryGovernor.compareTieFormats({
@@ -43,10 +47,10 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
         },
       ];
 
-      const postMutation = (result) => {
+      const postMutation = (result: any) => {
         if (result.success) {
           tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
-          return isFunction(callback) && callback();
+          return isFunction(callback) && callback && callback();
         } else {
           return tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error' });
         }
