@@ -1,4 +1,4 @@
-export function removeAllChildNodes(parent) {
+export function removeAllChildNodes(parent: HTMLElement | null): void {
   if (!parent) return;
 
   while (parent.firstChild) {

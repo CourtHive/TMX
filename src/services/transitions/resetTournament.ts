@@ -3,7 +3,7 @@ import { context } from 'services/context';
 
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 
-export function resetTournament() {
+export function resetTournament(): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
 
   if (tournamentRecord) {

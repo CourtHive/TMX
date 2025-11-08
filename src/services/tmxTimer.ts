@@ -1,10 +1,16 @@
-export function tmxTimer(callback, delay = 0) {
+type TimerControls = {
+  pause: () => void;
+  resume: () => void;
+  reset: () => void;
+};
+
+export function tmxTimer(callback: () => void, delay = 0): TimerControls {
   let remaining = delay;
-  let timerId;
-  let start;
+  let timerId: number;
+  let start: Date;
 
   const pause = () => {
-    remaining -= new Date() - start;
+    remaining -= new Date().getTime() - start.getTime();
     window.clearTimeout(timerId);
   };
   const reset = () => (remaining = delay);

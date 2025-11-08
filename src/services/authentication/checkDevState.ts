@@ -1,4 +1,4 @@
-export function checkDevState() {
+export function checkDevState(): void {
   const notLocal = !window.location.host.startsWith('localhost');
   const isGithub = window.location.host.endsWith('github.io');
   if (!isGithub && notLocal && window['dev']) {

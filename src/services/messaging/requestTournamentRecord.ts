@@ -4,20 +4,21 @@ import { connected, emitTmx } from './socketIo';
 
 import { SUCCESS } from 'constants/tmxConstants';
 
-export function requestTournamentRecord() {
+export function requestTournamentRecord(): { success: boolean } {
   const tournamentId = tournamentEngine.getTournament()?.tournaentRecord?.tournamentId;
 
   if (connected()) {
-    let data = {
+    const data = {
       timestamp: new Date().getTime(),
       tournamentId
     };
-    emitTmx({ data: { tournamentRequest: data } });
+    emitTmx({ data: { tournamentRequest: data }, ackCallback: undefined });
   } else {
-    let message = `Offline: must be connected to internet`;
+    const message = `Offline: must be connected to internet`;
     openModal({
       title: 'No connection',
-      content: message
+      content: message,
+      buttons: []
     });
   }
 

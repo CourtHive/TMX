@@ -4,13 +4,13 @@ import { setDev } from 'services/setDev';
 import { jwtDecode } from 'jwt-decode';
 import { logOut } from './loginState';
 
-export function validateToken(token) {
+export function validateToken(token: string | null | undefined): any {
   if (!token || token === 'undefined') {
     checkDevState();
     return undefined;
   }
 
-  let decodedToken;
+  let decodedToken: any;
 
   try {
     decodedToken = jwtDecode(token);

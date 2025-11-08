@@ -1,5 +1,5 @@
 export const enhancedContentFunction = {
-  fn: (instance) => ({
+  fn: (instance: any) => ({
     name: 'dynamicContent',
     default: true,
     onShow() {
