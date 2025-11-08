@@ -1,3 +1,7 @@
+/**
+ * Add playoff structures modal with round selection.
+ * Configures playoff rounds for finishing position ranges with custom naming.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'components/renderers/renderForm';
@@ -9,17 +13,17 @@ import { isFunction } from 'functions/typeOf';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 
-export function addStructures({ drawId, structureId, callback }) {
+export function addStructures({ drawId, structureId, callback }: { drawId: string; structureId: string; callback?: () => void }): void {
   const result = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
-  const sum = (p) => p.finishingPositions.reduce((a, b) => (a || 0) + (b || 0));
+  const sum = (p: any) => p.finishingPositions.reduce((a: number, b: number) => (a || 0) + (b || 0));
 
   if (!result.playoffRoundsRanges && result.finishingPositionsAvailable?.length) {
-    return addRRplayoffs({ ...result, drawId, structureId, callback });
+    return (addRRplayoffs as any)({ ...result, drawId, structureId, callback });
   }
 
   const fields = result.playoffRoundsRanges
-    ?.sort((a, b) => sum(a) - sum(b))
-    .map(({ finishingPositionRange }) => ({
+    ?.sort((a: any, b: any) => sum(a) - sum(b))
+    .map(({ finishingPositionRange }: any) => ({
       label: finishingPositionRange,
       field: finishingPositionRange,
       id: finishingPositionRange,
@@ -37,16 +41,16 @@ export function addStructures({ drawId, structureId, callback }) {
     return;
   }
 
-  const modifyPlaceholders = (value) => {
-    fields.forEach(({ label, fieldPair }) => {
+  const modifyPlaceholders = (value: string) => {
+    fields.forEach(({ label, fieldPair }: any) => {
       const elem = document.getElementById(fieldPair.id);
-      if (elem) elem.placeholder = `${value} ${label}`;
+      if (elem) (elem as HTMLInputElement).placeholder = `${value} ${label}`;
     });
   };
 
   const nameBase = {
-    onChange: (e) => modifyPlaceholders(e.target.value),
-    onKeyDown: (e) => e.key === 'Tab' && modifyPlaceholders(e.target.value),
+    onChange: (e: Event) => modifyPlaceholders((e.target as HTMLInputElement).value),
+    onKeyDown: (e: KeyboardEvent) => e.key === 'Tab' && modifyPlaceholders((e.target as HTMLInputElement).value),
     value: PLAYOFF_NAME_BASE,
     label: 'Name base',
     field: 'nameBase',
@@ -55,14 +59,14 @@ export function addStructures({ drawId, structureId, callback }) {
 
   const options = [nameBase].concat(fields);
 
-  let inputs;
+  let inputs: any;
 
   const onClick = () => {
-    const checkedRanges = result.playoffRoundsRanges.filter((range) => inputs[range.finishingPositionRange]?.checked);
+    const checkedRanges = result.playoffRoundsRanges.filter((range: any) => inputs[range.finishingPositionRange]?.checked);
 
     const playoffStructureNameBase = inputs.nameBase.value;
-    const playoffAttributes = {};
-    const roundProfiles = checkedRanges.map(({ roundNumber, finishingPositionRange }) => {
+    const playoffAttributes: any = {};
+    const roundProfiles = checkedRanges.map(({ roundNumber, finishingPositionRange }: any) => {
       const name = inputs[`${finishingPositionRange}-name`]?.value;
       if (name) {
         playoffAttributes[`0-${roundNumber}`] = { name };
@@ -75,10 +79,10 @@ export function addStructures({ drawId, structureId, callback }) {
         method: ADD_PLAYOFF_STRUCTURES,
       },
     ];
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Structure(s) added', intent: 'is-success' });
-        isFunction(callback) && callback();
+        isFunction(callback) && callback && callback();
       } else {
         tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
       }
@@ -87,15 +91,15 @@ export function addStructures({ drawId, structureId, callback }) {
   };
 
   const checkValid = () => {
-    const checkedRanges = result.playoffRoundsRanges.filter((range) => inputs[range.finishingPositionRange]?.checked);
+    const checkedRanges = result.playoffRoundsRanges.filter((range: any) => inputs[range.finishingPositionRange]?.checked);
     const addButton = document.getElementById('addStructure');
-    if (addButton) addButton.disabled = !checkedRanges.length;
+    if (addButton) (addButton as HTMLButtonElement).disabled = !checkedRanges.length;
   };
-  const relationships = result.playoffRoundsRanges.map(({ finishingPositionRange }) => ({
+  const relationships = result.playoffRoundsRanges.map(({ finishingPositionRange }: any) => ({
     control: finishingPositionRange,
     onChange: checkValid,
   }));
-  const content = (elem) => (inputs = renderForm(elem, options, relationships));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
   openModal({
     title: `Add playoff structures`,

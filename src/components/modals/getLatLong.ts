@@ -1,3 +1,7 @@
+/**
+ * Get latitude/longitude modal with map interface.
+ * Accepts map URLs from multiple providers and allows interactive marker placement.
+ */
 import { parseOpenStreetMap } from 'functions/parsing/parseOpenStreetMap';
 import { parseGoogleLink } from 'functions/parsing/parseGoogleLink';
 import { parseBingCoords } from 'functions/parsing/parseBingCoords';
@@ -13,12 +17,17 @@ import * as L from 'leaflet';
 function getNavigator() {
   try {
     return navigator || window.navigator;
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 }
 
-export function getLatLong({ coords, callback }) {
+type Coords = {
+  latitude: number;
+  longitude: number;
+};
+
+export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (coords: Coords) => void }): void {
   let zoom = 16;
 
   if (!coords?.latitude || !coords?.longitude) {
@@ -26,13 +35,13 @@ export function getLatLong({ coords, callback }) {
     zoom = 2;
   }
 
-  let ids = {
+  const ids = {
     map: 'latLongMap',
     link: 'latLonglink',
   };
 
-  let map_style = 'width: 100%; height: 100%; min-width: 350px; min-height: 350px;';
-  let html = `
+  const map_style = 'width: 100%; height: 100%; min-width: 350px; min-height: 350px;';
+  const html = `
          <div style='min-height: 150px'>
          <h2 class='tmx-title'>Enter map URL</h2>
          <div class='flexcenter'>${lang.tr('phrases.addgooglemap')}</div>
@@ -47,17 +56,17 @@ export function getLatLong({ coords, callback }) {
       `;
 
   const viewLocation = () => {
-    if (!coords.latitude || !coords.longitude) {
+    if (!coords!.latitude || !coords!.longitude) {
       processLink();
     } else {
-      updateCoords(coords);
+      updateCoords(coords!);
     }
   };
 
   const submitLink = () => {
-    if (!coords.latitude || !coords.longitude) processLink();
-    if (isFunction(callback)) {
-      callback(coords);
+    if (!coords!.latitude || !coords!.longitude) processLink();
+    if (isFunction(callback) && callback) {
+      callback(coords!);
     }
   };
 
@@ -87,46 +96,48 @@ export function getLatLong({ coords, callback }) {
   ];
 
   const processLink = () => {
-    const link = container.link.element.value;
+    const link = (container.link.element as HTMLInputElement)?.value;
     const parsedCoords =
       parseGoogleLink(link) || parseBingCoords(link) || parseOpenStreetMap(link) || parseHereWeGo(link);
 
     if (parsedCoords.latitude) {
-      updateCoords(parsedCoords);
+      updateCoords(parsedCoords as any);
     } else if (link && parsedCoords.latitude === undefined) {
       tmxToast({ message: 'Invalid URL' });
     }
   };
 
-  const linkKeyEvent = (evt) => {
+  const linkKeyEvent = (evt: KeyboardEvent) => {
     if (evt.which === 13) processLink();
   };
 
-  openModal({ content: html, buttons });
+  openModal({ title: 'Location', content: html, buttons });
 
   const container = idObj(ids);
-  let { map, marker } = locationMap({
+  const { map, marker } = locationMap({
     successElement: container.map.element,
     mapElementId: container.map.id,
     coords,
     zoom,
   });
-  container.link.element.value = '';
-  container.link.element.focus();
-  container.link.element.addEventListener('keyup', linkKeyEvent);
-
-  if (map) {
-    map.on('click', (e) => updateMarker({ latitude: e.latlng.lat, longitude: e.latlng.lng }));
-    map.on('contextmenu', (e) => console.log('Coordinates: ' + e.latlng.toString()));
+  if (container.link.element) {
+    (container.link.element as HTMLInputElement).value = '';
+    container.link.element.focus();
+    container.link.element.addEventListener('keyup', linkKeyEvent);
   }
 
-  function updateMarker({ latitude, longitude }) {
+  if (map) {
+    map.on('click', (e: any) => updateMarker({ latitude: e.latlng.lat, longitude: e.latlng.lng }));
+    map.on('contextmenu', (e: any) => console.log('Coordinates: ' + e.latlng.toString()));
+  }
+
+  function updateMarker({ latitude, longitude }: Coords) {
     coords = { latitude, longitude };
-    let newLatLng = new L.LatLng(latitude, longitude);
+    const newLatLng = new L.LatLng(latitude, longitude);
     marker.setLatLng(newLatLng);
   }
 
-  function updateCoords({ latitude = 0, longitude = 0 } = {}) {
+  function updateCoords({ latitude = 0, longitude = 0 }: Partial<Coords> = {}): boolean | undefined {
     if (latitude && longitude) {
       coords = { latitude: +latitude, longitude: +longitude };
       map.setView([+latitude, +longitude], 16);
@@ -134,36 +145,35 @@ export function getLatLong({ coords, callback }) {
     } else {
       coords = { latitude: 0, longitude: 0 };
       map.fitWorld();
+      return false;
     }
   }
 }
 
-function locationMap({ successElement, mapElementId, coords, zoom }) {
-  let nav = getNavigator();
-  if (!nav?.onLine) return {};
+function locationMap({ successElement, mapElementId, coords, zoom }: { successElement: any; mapElementId: string; coords: Coords; zoom: number }): { map: any; marker: any } {
+  const nav = getNavigator();
+  if (!nav?.onLine) return {} as any;
 
   zoom = zoom === undefined ? 16 : zoom;
   if (coords.latitude !== undefined && coords.longitude !== undefined) {
     if (successElement) successElement.style.display = 'inline';
     return gpsLocation(coords.latitude, coords.longitude, zoom);
   } else {
-    return {};
+    return {} as any;
   }
 
-  function gpsLocation(lat, lng, zoom) {
-    if (isNaN(lat) || isNaN(lng)) return {};
-    let view = env.locations.map_view || 'map';
-    let layer = L.tileLayer(env.leaflet[view].tileLayer, {
-      // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  function gpsLocation(lat: number, lng: number, zoom: number): { map: any; marker: any } {
+    if (isNaN(lat) || isNaN(lng)) return {} as any;
+    const view = env.locations.map_view || 'map';
+    const layer = L.tileLayer(env.leaflet[view].tileLayer, {
       attribution: env.leaflet[view].attribution,
       maxZoom: env.leaflet[view].maxZoom ?? 16,
     });
-    let map = L.map(mapElementId).fitWorld().addLayer(layer);
+    const map = L.map(mapElementId).fitWorld().addLayer(layer);
     if (lat || lng) map.setView([+lat, +lng], zoom);
 
-    let marker = L.marker([+lat, +lng]).addTo(map);
+    const marker = L.marker([+lat, +lng]).addTo(map);
 
-    // necessary to make the map fill the parent element
     setTimeout(function () {
       map.invalidateSize();
     }, 300);

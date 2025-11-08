@@ -1,3 +1,7 @@
+/**
+ * Add ad-hoc round modal with automated drawMatic or manual generation.
+ * Creates new round with optional dynamic ratings and participant selection.
+ */
 import { positionActionConstants, tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
@@ -12,9 +16,17 @@ import { AUTOMATED, MANUAL, UTR, WTN } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
-export function addAdHocRound({ drawId, structure, structureId, callback } = {}) {
+type AddAdHocRoundParams = {
+  drawId?: string;
+  structure?: any;
+  structureId?: string;
+  newRound?: boolean;
+  callback?: (params: any) => void;
+};
+
+export function addAdHocRound({ drawId, structure, structureId, callback }: AddAdHocRoundParams = {}): void {
   structureId = structureId || structure?.structureId;
-  let update, inputs;
+  let update: any, inputs: any;
 
   const matchUps =
     tournamentEngine.allDrawMatchUps({
@@ -22,7 +34,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       drawId,
     }).matchUps || [];
 
-  const roundNumbers = matchUps.reduce((roundNumbers, matchUp) => {
+  const roundNumbers = matchUps.reduce((roundNumbers: number[], matchUp: any) => {
     const roundNumber = matchUp.roundNumber;
     if (roundNumber && !roundNumbers.includes(roundNumber)) roundNumbers.push(roundNumber);
     return roundNumbers;
@@ -33,7 +45,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
   const maxRoundNumber = Math.max(...roundNumbers, 1);
   if (matchUps.length) roundNumbers.push(maxRoundNumber + 1);
 
-  const addRound = ({ matchUps, roundResults }) => {
+  const addRound = ({ matchUps, roundResults }: any) => {
     const methods = [
       {
         params: { structureId, matchUps, drawId },
@@ -43,16 +55,16 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     if (roundResults?.length) {
       for (const roundResult of roundResults) {
         const modifiedScaleValues = roundResult?.modifiedScaleValues;
-        methods.push({
+        (methods as any).push({
           params: { modifiedScaleValues, replacePriorValues: true },
           method: ADD_DYNAMIC_RATINGS,
         });
       }
     }
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
-        if (isFunction(callback)) callback({ refresh: true });
+        if (isFunction(callback) && callback) callback({ refresh: true });
       } else {
         console.log(result.error);
       }
@@ -60,7 +72,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     mutationRequest({ methods, callback: postMutation });
   };
 
-  const drawMaticRound = (participantIds) => {
+  const drawMaticRound = (participantIds: string[]) => {
     const selectedScale = (inputs.wtn.checked && 'wtn') || (inputs.utr.checked && 'utr') || '';
     const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
     setActiveScale(selectedScale);
@@ -78,7 +90,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     addRound(result);
   };
 
-  const checkParticipants = ({ participantIds }) => {
+  const checkParticipants = ({ participantIds }: { participantIds: string[] }) => {
     const participantsAvailable = tournamentEngine.getParticipants({
       participantFilters: { participantIds },
     }).participants;
@@ -87,10 +99,10 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       ? []
       : matchUps
           .filter(
-            ({ roundNumber, sides }) =>
-              roundNumber === lastRoundNumber && sides?.some(({ participantId }) => participantId),
+            ({ roundNumber, sides }: any) =>
+              roundNumber === lastRoundNumber && sides?.some(({ participantId }: any) => participantId),
           )
-          .map(({ sides }) => sides.map(({ participantId }) => participantId))
+          .map(({ sides }: any) => sides.map(({ participantId }: any) => participantId))
           .flat();
 
     const selectedParticipantIds = !lastRoundParticipantIds.length ? participantIds : lastRoundParticipantIds;
@@ -100,8 +112,8 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       participantsAvailable,
     };
 
-    const onSelection = (result) => {
-      const participantIds = result.selected?.map(({ participantId }) => participantId);
+    const onSelection = (result: any) => {
+      const participantIds = result.selected?.map(({ participantId }: any) => participantId);
       drawMaticRound(participantIds);
     };
 
@@ -121,11 +133,10 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
       const { drawDefinition } = tournamentEngine.getEvent({ drawId });
       const participantIds = drawDefinition.entries
         .filter(
-          ({ entryStatus, entryStage }) =>
+          ({ entryStatus, entryStage }: any) =>
             !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
-          // TODO: add linked source structure qualifiers
         )
-        .map(({ participantId }) => participantId);
+        .map(({ participantId }: any) => participantId);
 
       checkParticipants({ participantIds });
     } else {
@@ -161,7 +172,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
         { text: 'UTR', field: 'utr', checked: env.activeScale === UTR },
         { text: 'None', field: 'none', checked: !env.activeScale },
       ],
-      onClick: (x) => console.log({ x }),
+      onClick: (x: any) => console.log({ x }),
       label: 'Level of play',
       field: 'levelOfPlay',
       id: 'levelOfPlay',
@@ -169,7 +180,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback } = {})
     },
   ];
 
-  const content = (elem) => (inputs = renderForm(elem, options));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
 
-  update = openModal({ title: 'Add round', content, structure, buttons }).update;
+  update = (openModal as any)({ title: 'Add round', content, structure, buttons }).update;
 }

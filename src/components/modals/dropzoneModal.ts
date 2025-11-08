@@ -1,22 +1,26 @@
+/**
+ * Dropzone modal for file upload with drag-and-drop.
+ * Accepts JSON and CSV files with FileReader processing and callback support.
+ */
 import { closeModal, openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 
 import 'styles/dropzone.css';
 
-export function dropzoneModal({ callback, autoClose = true } = {}) {
-  const loadFile = (file) => {
+export function dropzoneModal({ callback, autoClose = true }: { callback?: (data: string) => void; autoClose?: boolean } = {}): void {
+  const loadFile = (file: File) => {
     const ending = file.name.split('.').reverse()[0];
-    let reader = new FileReader();
+    const reader = new FileReader();
 
     reader.onload = function (evt) {
-      if (evt.target.error) {
+      if (evt.target?.error) {
         console.log('file error', evt.target.error);
         return;
       }
 
-      let fileContent = evt.target.result;
+      const fileContent = evt.target?.result as string;
       if (!fileContent.length) return;
-      if (isFunction(callback)) {
+      if (isFunction(callback) && callback) {
         callback(fileContent);
       } else {
         console.log(fileContent);
@@ -27,7 +31,6 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
       reader.readAsText(file);
     } else {
       console.log('not loaded');
-      // reader.readAsBinaryString(file);
     }
   };
 
@@ -79,16 +82,12 @@ export function dropzoneModal({ callback, autoClose = true } = {}) {
   dropzone.addEventListener(
     'drop',
     function (e) {
-      const multiple = dropzone_input.getAttribute('multiple');
       this.classList.remove(DRAGGING);
-      const files = e.dataTransfer.files;
+      const files = e.dataTransfer!.files;
       const dataTransfer = new DataTransfer();
 
-      Array.prototype.forEach.call(files, (file) => {
+      Array.prototype.forEach.call(files, (file: File) => {
         dataTransfer.items.add(file);
-        if (!multiple) {
-          return false;
-        }
       });
 
       const filesToBeAdded = dataTransfer.files;

@@ -1,3 +1,7 @@
+/**
+ * Delete ad-hoc matchUps modal with selective filtering.
+ * Removes matchUps based on completion status (empty, unscored, completed).
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -6,7 +10,15 @@ import { isFunction } from 'functions/typeOf';
 
 import { DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 
-export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureId, callback } = {}) {
+type DeleteAdHocMatchUpsParams = {
+  drawId?: string;
+  roundNumber?: number;
+  structure?: any;
+  structureId?: string;
+  callback?: (params: any) => void;
+};
+
+export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureId, callback }: DeleteAdHocMatchUpsParams = {}): void {
   structureId = structureId || structure?.structureId;
 
   const matchUps =
@@ -14,7 +26,7 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       matchUpFilters: { structureIds: [structureId] },
       drawId,
     }).matchUps || [];
-  const roundNumbers = matchUps.reduce((roundNumbers, matchUp) => {
+  const roundNumbers = matchUps.reduce((roundNumbers: number[], matchUp: any) => {
     const roundNumber = matchUp.roundNumber;
     if (roundNumber && !roundNumbers.includes(roundNumber)) roundNumbers.push(roundNumber);
     return roundNumbers;
@@ -23,18 +35,18 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
   roundNumber = roundNumber || (roundNumbers.length && roundNumbers[roundNumbers.length - 1]);
   if (!roundNumber) return;
 
-  let inputs;
+  let inputs: any;
 
   const deleteRound = () => {
     const matchUpIds = matchUps
-      .filter((matchUp) => {
+      .filter((matchUp: any) => {
         if (matchUp.roundNumber !== roundNumber) return;
         if (matchUp.winningSide && inputs.completed.checked) return true;
-        if (matchUp.sides.some(({ participantId }) => participantId) && !matchUp.winningSide && inputs.unscored.checked)
+        if (matchUp.sides.some(({ participantId }: any) => participantId) && !matchUp.winningSide && inputs.unscored.checked)
           return true;
-        return matchUp.sides.every(({ participantId }) => !participantId) && inputs.empties.checked;
+        return matchUp.sides.every(({ participantId }: any) => !participantId) && inputs.empties.checked;
       })
-      .map(({ matchUpId }) => matchUpId);
+      .map(({ matchUpId }: any) => matchUpId);
 
     const methods = [
       {
@@ -50,9 +62,9 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       },
     ];
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
-        if (isFunction(callback)) callback({ refresh: true });
+        if (isFunction(callback) && callback) callback({ refresh: true });
       } else {
         console.log({ postMutationError: result.error });
       }
@@ -107,7 +119,7 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
     },
   ];
 
-  const content = (elem) => (inputs = renderForm(elem, options));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
 
   openModal({ title: 'Delete matches', content, buttons });
 }

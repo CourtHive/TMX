@@ -1,3 +1,7 @@
+/**
+ * Add ad-hoc matchUps modal with round and count selection.
+ * Generates matchUps for selected round number with auto or manual count.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'components/renderers/renderForm';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -6,7 +10,15 @@ import { isFunction } from 'functions/typeOf';
 
 import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 
-export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, callback } = {}) {
+type AddAdHocMatchUpsParams = {
+  drawId?: string;
+  structure?: any;
+  structureId?: string;
+  roundNumber?: number;
+  callback?: (params: any) => void;
+};
+
+export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, callback }: AddAdHocMatchUpsParams = {}): void {
   structureId = structureId || structure?.structureId;
 
   const matchUps =
@@ -15,7 +27,7 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
       drawId,
     }).matchUps || [];
 
-  const roundNumbers = matchUps.reduce((roundNumbers, matchUp) => {
+  const roundNumbers = matchUps.reduce((roundNumbers: number[], matchUp: any) => {
     const roundNumber = matchUp.roundNumber;
     if (roundNumber && !roundNumbers.includes(roundNumber)) roundNumbers.push(roundNumber);
     return roundNumbers;
@@ -27,7 +39,7 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
     roundNumbers.push(1);
   }
 
-  let inputs;
+  let inputs: any;
 
   const addMatchUps = () => {
     const selectedRoundNumber = parseInt(inputs.roundNumber.value);
@@ -53,9 +65,9 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
       },
     ];
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
-        if (isFunction(callback)) callback({ refresh: true });
+        if (isFunction(callback) && callback) callback({ refresh: true });
       } else {
         console.log(result.error);
       }
@@ -91,7 +103,7 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
 
   const options = [roundNumberSelection, { spacer: true }, matchUpCountSelection];
 
-  const content = (elem) => (inputs = renderForm(elem, options));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
 
   openModal({ title: 'Add matches', content, buttons });
 }

@@ -1,3 +1,7 @@
+/**
+ * Render form field with various input types.
+ * Supports text, select, checkbox, radio, date, and type-ahead inputs with validation.
+ */
 import { createTypeAhead } from 'services/dom/createTypeAhead';
 import { Datepicker } from 'vanillajs-datepicker';
 import { isFunction } from 'functions/typeOf';
@@ -5,7 +9,7 @@ import { validator } from './renderValidator';
 
 import { NONE } from 'constants/tmxConstants';
 
-export function renderOptions(select, item) {
+export function renderOptions(select: HTMLSelectElement, item: any): void {
   for (const option of item.options) {
     if (option.hide) continue;
     const opt = document.createElement('option');
@@ -18,27 +22,27 @@ export function renderOptions(select, item) {
   }
 }
 
-export function renderField(item) {
+export function renderField(item: any): { field: HTMLDivElement; inputElement?: HTMLDivElement | HTMLSelectElement; datepicker?: any; subFields?: any[] } {
   const field = document.createElement('div');
   field.className = 'field font-medium';
   if (item.class) field.classList.add(item.class);
 
   if (item.width) {
-    field.style = `width: ${item.width}`;
+    field.style.cssText = `width: ${item.width}`;
   } else {
-    field.style = 'flex-grow: 1';
+    field.style.cssText = 'flex-grow: 1';
   }
 
   if (item.label && !item.checkbox) {
     const label = document.createElement('label');
-    label.style = item.labelStyle || 'font-weight: bold; font-size: larger;';
+    label.style.cssText = item.labelStyle || 'font-weight: bold; font-size: larger;';
     label.innerHTML = item.label;
     field.appendChild(label);
   }
 
-  let inputElement,
-    datepicker,
-    subFields = [];
+  let inputElement: HTMLDivElement | HTMLSelectElement | undefined,
+    datepicker: any,
+    subFields: any[] = [];
 
   const control = document.createElement('div');
   control.className = 'control font-medium';
@@ -55,7 +59,6 @@ export function renderField(item) {
     const radioGroup = document.createElement('div');
     radioGroup.id = item.id;
     radioGroup.className = 'control';
-    // USAGE: const value = Array.from(document.getElementsByName(radioGroup.id)).find((i) => i.checked).value;
     for (const option of item.options ?? []) {
       const label = document.createElement('label');
       label.className = 'radio';
@@ -79,15 +82,15 @@ export function renderField(item) {
   } else if (item.options) {
     const div = document.createElement('div');
     div.className = 'select font-medium';
-    div.style = 'width: 100%';
+    div.style.cssText = 'width: 100%';
     if (item.zIndex) div.style.zIndex = item.zIndex;
     const select = document.createElement('select');
     if (item.dataPlaceholder) select.setAttribute('data-placeholder', item.dataPlaceholder);
     if (item.dataType) select.setAttribute('data-type', item.dataType);
-    if (item.multiple) select.setAttribute('multiple', true);
+    if (item.multiple) select.setAttribute('multiple', 'true');
     if (item.disabled) select.disabled = true;
     if (item.id) div.id = item.id;
-    select.style = 'width: 100%';
+    select.style.cssText = 'width: 100%';
     renderOptions(select, item);
     div.appendChild(select);
     control.appendChild(div);
@@ -108,7 +111,7 @@ export function renderField(item) {
     div.style.display = 'inline-block';
     const input = document.createElement('input');
     if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
-    inputElement = input;
+    inputElement = div;
     const intent = item.intent ?? 'is-success';
     input.className = `is-checkradio ${intent}`;
     input.type = 'checkbox';
@@ -128,7 +131,7 @@ export function renderField(item) {
     input.setAttribute('type', item.type || 'text');
     input.setAttribute('autocomplete', item.autocomplete || 'off');
     input.setAttribute('placeholder', item.placeholder || '');
-    if (item.disabled) input.setAttribute('disabled', true);
+    if (item.disabled) input.setAttribute('disabled', 'true');
     if (item.id) input.setAttribute('id', item.id);
     control.appendChild(input);
     if (item.iconLeft) {
@@ -149,7 +152,7 @@ export function renderField(item) {
       span.appendChild(icon);
       control.appendChild(span);
     }
-    inputElement = input;
+    inputElement = input as any;
     const help = document.createElement('p');
     help.className = 'help font-medium';
     control.appendChild(help);
@@ -159,7 +162,7 @@ export function renderField(item) {
     if (item.date) {
       const maxNumberOfDates = item.maxNumberOfDates || 1;
       const autohide = !item.maxNumberOfDates || maxNumberOfDates === 1;
-      datepicker = new Datepicker(inputElement, {
+      datepicker = new Datepicker(input, {
         maxDate: item.maxDate,
         minDate: item.minDate,
         format: 'yyyy-mm-dd',

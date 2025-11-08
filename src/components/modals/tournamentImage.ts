@@ -9,8 +9,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function editTournamentImage({ callback }) {
-  let inputs,
+export function editTournamentImage({ callback }: { callback?: (url: string) => void } = {}) {
+  let inputs: any,
     imageLoaded = false;
 
   const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;

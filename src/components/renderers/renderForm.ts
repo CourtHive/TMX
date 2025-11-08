@@ -1,16 +1,20 @@
+/**
+ * Render form with multiple fields and relationships.
+ * Supports field pairing, date ranges, validation, and event handlers.
+ */
 import { DateRangePicker } from 'vanillajs-datepicker';
 import { isFunction } from 'functions/typeOf';
 import { renderField } from './renderField';
 
-export function renderForm(elem, items, relationships) {
+export function renderForm(elem: HTMLElement, items: any[], relationships?: any[]): any {
   const div = document.createElement('div');
-  div.style = 'display: flex; width: 100%;';
+  div.style.cssText = 'display: flex; width: 100%;';
   div.classList.add('flexcol');
 
-  const inputs = {},
-    fields = {};
+  const inputs: any = {},
+    fields: any = {};
 
-  let focus;
+  let focus: HTMLElement | undefined;
 
   for (const item of items) {
     if ((item.text || item.html) && !item.field) {
@@ -19,7 +23,7 @@ export function renderForm(elem, items, relationships) {
 
       const text = document.createElement('div');
       text.className = 'flexaligncenter';
-      text.style =
+      text.style.cssText =
         item.style || (item.header && 'font-weight: bold; font-size: larger;') || 'height: 2.5em; padding-right: 1em;';
       const content = document.createElement('div');
       if (item.id) content.id = item.id;
@@ -64,9 +68,9 @@ export function renderForm(elem, items, relationships) {
       if (container) container.className = 'flexrow';
 
       const { field, inputElement, datepicker, subFields } = renderField(item);
-      if (subFields) subFields.forEach((subField) => (inputs[subField.field] = subField.input));
+      if (subFields) subFields.forEach((subField: any) => (inputs[subField.field] = subField.input));
       if (datepicker) inputs[`${item.field}.date`] = datepicker;
-      if (item.focus) focus = inputElement;
+      if (item.focus) focus = inputElement as HTMLElement;
       inputs[item.field] = inputElement;
       fields[item.field] = field;
 
@@ -83,7 +87,7 @@ export function renderForm(elem, items, relationships) {
       }
     }
   }
-  if (focus) setTimeout(() => focus.focus(), 200);
+  if (focus) setTimeout(() => focus!.focus(), 200);
 
   elem.appendChild(div);
 
@@ -107,13 +111,13 @@ export function renderForm(elem, items, relationships) {
 
       if (relationship.control) {
         if (isFunction(relationship.onChange)) {
-          inputs[relationship.control].addEventListener('change', (e) => relationship.onChange({ e, inputs, fields }));
+          inputs[relationship.control].addEventListener('change', (e: Event) => relationship.onChange({ e, inputs, fields }));
         }
         if (isFunction(relationship.onInput) && inputs[relationship.control]) {
-          inputs[relationship.control].addEventListener('input', (e) => relationship.onInput({ e, inputs, fields }));
+          inputs[relationship.control].addEventListener('input', (e: Event) => relationship.onInput({ e, inputs, fields }));
         }
         if (isFunction(relationship.onFocusOut) && inputs[relationship.control]) {
-          inputs[relationship.control].addEventListener('focusout', (e) =>
+          inputs[relationship.control].addEventListener('focusout', (e: Event) =>
             relationship.onFocusOut({ e, inputs, fields }),
           );
         }

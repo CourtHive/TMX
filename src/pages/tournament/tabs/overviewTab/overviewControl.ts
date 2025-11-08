@@ -13,30 +13,34 @@ export function overviewControl({ controlAnchor }) {
   const toggleEditor = () => {
     const editButton = document.getElementById('editOverview');
     const notesView = document.getElementById('notes');
-    if (editButton && notesView) {
-      editButton.innerHTML = !overviewState.editing ? 'Save overview' : 'Edit overview';
-      if (!overviewState.editing) {
-        notesView.style.border = '.5px solid';
-        notesView.style.borderTop = '';
-        const quill = new Quill('#notes', {
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, 4, 5, 6, false] }],
-              [{ font: [] }],
-              ['bold', 'italic', 'underline'],
-              [{ color: [] }, { background: [] }],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              [{ align: [] }],
+    
+    if (!editButton || !notesView) return;
+    
+    editButton.innerHTML = overviewState.editing ? 'Edit overview' : 'Save overview';
+    
+    if (!overviewState.editing) {
+      // Entering edit mode
+      notesView.style.border = '.5px solid';
+      notesView.style.borderTop = '';
+      const quill = new Quill('#notes', {
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, 4, 5, 6, false] }],
+            [{ font: [] }],
+            ['bold', 'italic', 'underline'],
+            [{ color: [] }, { background: [] }],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ align: [] }],
 
-              ['blockquote', 'code-block', /* 'image', */ 'link', 'video'],
-              ['clean'],
-            ],
-          },
-          theme: 'snow',
-        });
-        context.quill = quill;
-      }
-    } else if (notesView) {
+            ['blockquote', 'code-block', /* 'image', */ 'link', 'video'],
+            ['clean'],
+          ],
+        },
+        theme: 'snow',
+      });
+      context.quill = quill;
+    } else {
+      // Saving and exiting edit mode
       if (notesView.previousElementSibling) notesView.previousElementSibling.remove();
       notesView.style.border = 'none';
       const editor: any = notesView.querySelector('.ql-editor');

@@ -1,3 +1,7 @@
+/**
+ * Select participant modal with search and filtering.
+ * Supports single/multiple selection, alternates, qualifiers, swapping, and lucky losers.
+ */
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { positionActionConstants } from 'tods-competition-factory';
@@ -10,7 +14,7 @@ import { LEFT } from 'constants/tmxConstants';
 const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, LUCKY_PARTICIPANT, QUALIFYING_PARTICIPANT, SWAP_PARTICIPANTS } =
   positionActionConstants;
 
-const actionTypes = {
+const actionTypes: Record<string, any> = {
   [ALTERNATE_PARTICIPANT]: {
     selections: 'availableAlternates',
     targetAttribute: 'participantId',
@@ -47,13 +51,13 @@ const actionTypes = {
   },
 };
 
-export function selectParticipant(params) {
+export function selectParticipant(params: any): void {
   const { selectedParticipantIds, selectionLimit, activeOnEnter, selectOnEnter, onSelection, update, action } = params;
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
 
   const title = params.title || actionType.title || 'Select participant';
-  let selected, controlInputs;
+  let selected: any, controlInputs: any;
 
   const onClick = () => {
     const attribute = actionType.targetAttribute;
@@ -77,7 +81,6 @@ export function selectParticipant(params) {
   const anchorId = 'selectionTable';
   const buttons = [
     { label: 'Cancel', intent: 'is-none', close: true },
-    // [Select] button will be hidden if only one item is being selected
     { hide: selectionLimit === 1, label: 'Select', intent: 'is-info', onClick, close: true },
   ];
   const onClose = () => {
@@ -99,7 +102,7 @@ export function selectParticipant(params) {
     openModal({ title, content, buttons, onClose });
   }
 
-  const onSelected = (value) => {
+  const onSelected = (value: any) => {
     selected = value;
     if (selectionLimit && selected?.length === selectionLimit) {
       closeModal();
@@ -107,10 +110,10 @@ export function selectParticipant(params) {
     }
   };
   const data = Array.isArray(actionType.selections)
-    ? action[actionType.selections.find((s) => action[s])]
+    ? action[actionType.selections.find((s: string) => action[s])]
     : action[actionType.selections];
-  const { table } = createSelectionTable({
-    selectedParticipantIds, // already selected
+  const { table } = (createSelectionTable as any)({
+    selectedParticipantIds,
     targetAttribute: actionType.targetAttribute,
     selectionLimit,
     onSelected,
@@ -127,7 +130,7 @@ export function selectParticipant(params) {
         closeModal();
         onClick();
       } else if (activeOnEnter) {
-        const selectedIds = selected?.map((s) => s.participantId) || [];
+        const selectedIds = selected?.map((s: any) => s.participantId) || [];
         const activeId = active[0].participantId;
         if (!selectedIds.includes(activeId)) {
           if (Array.isArray(selected)) {
@@ -142,15 +145,15 @@ export function selectParticipant(params) {
     }
   };
 
-  const onSearchKeyDown = (e) => {
-    e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
+  const onSearchKeyDown = (e: KeyboardEvent) => {
+    e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter('');
     e.key === 'Enter' && checkSelection();
   };
   const items = [
     {
       onKeyDown: onSearchKeyDown,
-      onChange: (e) => setSearchFilter(e.target.value),
-      onKeyUp: (e) => setSearchFilter(e.target.value),
+      onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
+      onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search entries',
       id: 'participantSearch',
@@ -162,5 +165,5 @@ export function selectParticipant(params) {
 
   const target = document.getElementById(controlId);
 
-  controlInputs = controlBar({ table, target, items }).inputs;
+  controlInputs = controlBar({ table, target, items })?.inputs;
 }
