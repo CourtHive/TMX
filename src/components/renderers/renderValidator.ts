@@ -1,4 +1,4 @@
-export function validator(item, e, input, help, fx) {
+export function validator(item: any, e: any, input: HTMLElement, help: HTMLElement, fx?: (value: string) => boolean): void {
   if (fx) {
     const value = e.target.value;
     if (!fx(value)) {

@@ -1,6 +1,6 @@
 import tmxLogo from 'assets/images/orgLogo.png';
 
-export function TMXlogo() {
+export function TMXlogo(): HTMLImageElement {
   const img = document.createElement('img');
   img.style.maxWidth = '800px';
   img.style.width = '100%';

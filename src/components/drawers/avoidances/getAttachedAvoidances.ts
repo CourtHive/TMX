@@ -2,7 +2,7 @@ import { tournamentEngine, policyConstants } from 'tods-competition-factory';
 
 const { POLICY_TYPE_AVOIDANCE } = policyConstants;
 
-export function getAttachedAvoidances({ eventId, drawId }) {
+export function getAttachedAvoidances({ eventId, drawId }: { eventId: string; drawId?: string }): any {
   return tournamentEngine.getPolicyDefinitions({
     policyTypes: [POLICY_TYPE_AVOIDANCE],
     eventId,

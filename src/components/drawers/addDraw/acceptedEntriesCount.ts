@@ -3,8 +3,8 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const { MAIN } = drawDefinitionConstants;
 
-export function acceptedEntriesCount(event, stage = MAIN) {
-  return event.entries.filter(({ entryStage = MAIN, entryStatus }) =>
+export function acceptedEntriesCount(event: any, stage: string = MAIN): number {
+  return event.entries.filter(({ entryStage = MAIN, entryStatus }: any) =>
     acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`)
   ).length;
 }

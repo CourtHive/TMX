@@ -1,11 +1,11 @@
-export function keyWalk(valuesObject, optionsObject) {
+export function keyWalk(valuesObject: any, optionsObject: any): void {
   if (!valuesObject || !optionsObject) return;
-  let vKeys = Object.keys(valuesObject);
-  let oKeys = Object.keys(optionsObject);
-  for (let key of vKeys) {
+  const vKeys = Object.keys(valuesObject);
+  const oKeys = Object.keys(optionsObject);
+  for (const key of vKeys) {
     if (oKeys.indexOf(key) >= 0) {
-      let oo = optionsObject[key];
-      let vo = valuesObject[key];
+      const oo = optionsObject[key];
+      const vo = valuesObject[key];
       if (typeof oo == 'object' && typeof vo !== 'function' && oo.constructor !== Array) {
         keyWalk(valuesObject[key], optionsObject[key]);
       } else {

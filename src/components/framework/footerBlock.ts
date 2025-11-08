@@ -1,7 +1,7 @@
-export function footerBlock() {
+export function footerBlock(): HTMLElement {
   const footer = document.createElement('footer');
   footer.className = 'footer';
-  footer.style.wicth = '100%';
+  footer.style.width = '100%';
   footer.innerHTML = `
     <nav class="level">
       <div class="level-left"></div>

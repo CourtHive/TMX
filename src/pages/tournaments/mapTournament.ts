@@ -1,4 +1,4 @@
-export function mapTournament(tournament) {
+export function mapTournament(tournament: any): any {
   const tournamentName = tournament.tournamentName;
   const searchText = tournamentName?.toLowerCase() || 'Error';
 

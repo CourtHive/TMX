@@ -4,7 +4,7 @@ import { resetTournament } from 'services/transitions/resetTournament';
 import { showTMXtournaments } from 'services/transitions/screenSlaver';
 import { destroyTables } from 'pages/tournament/destroyTable';
 
-export function tmxTournaments() {
+export function tmxTournaments(): void {
   destroyTables();
   showTMXtournaments();
   removeTournamentContent();

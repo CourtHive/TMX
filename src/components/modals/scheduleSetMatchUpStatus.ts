@@ -1,7 +1,7 @@
 import { lang } from 'services/translator';
 import { listPicker } from './listPicker';
 
-export function scheduleSetMatchUpStatus({ callback }) {
+export function scheduleSetMatchUpStatus({ callback }: { callback?: (result: any) => void }): void {
   const options = [
     { label: lang.tr('schedule.called'), value: 'called' },
     { label: lang.tr('schedule.oncourt'), value: 'oncourt' },
@@ -11,5 +11,5 @@ export function scheduleSetMatchUpStatus({ callback }) {
     { label: lang.tr('schedule.raindelay'), value: 'raindelay' },
     { label: lang.tr('schedule.clear'), value: 'clear' },
   ];
-  listPicker({ options, callback, isOpen: true });
+  listPicker({ options, callback, isOpen: true } as any);
 }

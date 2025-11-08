@@ -1,4 +1,4 @@
-export function mapVenue(venue) {
+export function mapVenue(venue: any): any {
   const { venueName, venueAbbreviation, addresses, venueId, courts } = venue;
 
   return {

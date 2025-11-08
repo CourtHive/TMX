@@ -11,7 +11,7 @@ export function matchUpReturn(ev: DragEvent, table: any): void {
   ev.preventDefault();
   const sourceMatchUpId = ev.dataTransfer?.getData('itemid');
   const scheduleTable = Tabulator.findTable('#tournamentSchedule')[0];
-  const scheduledMatchUps = scheduleTable.getData().flatMap((row: any) => Object.values(row).filter((v: any) => v.matchUpId));
+  const scheduledMatchUps = scheduleTable.getData().flatMap((row: any) => Object.values(row).filter((v: any) => v && typeof v === 'object' && 'matchUpId' in v));
   const sourceMatchUp = scheduledMatchUps.find((matchUp: any) => matchUp.matchUpId === sourceMatchUpId) || {};
   if (!sourceMatchUp?.schedule?.courtId) return;
 
@@ -19,7 +19,7 @@ export function matchUpReturn(ev: DragEvent, table: any): void {
   const sourceRow = scheduleTable.getData().find((row: any) => {
     sourceColumnKey = Object.keys(row).find((key) => {
       if (!isObject(row[key])) return;
-      return row[key].matchUpId === sourceMatchUpId;
+      return (row[key] as any).matchUpId === sourceMatchUpId;
     });
     return sourceColumnKey;
   });
