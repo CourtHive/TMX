@@ -11,15 +11,15 @@ import { context } from 'services/context';
 
 import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
-export function createTournamentsTable() {
-  const handleError = (error) => console.log('db Error', { error });
+export function createTournamentsTable(): { table: any } {
+  const handleError = (error: any) => console.log('db Error', { error });
   const dnav = document.getElementById('dnav');
-  dnav.style.backgroundColor = '';
-  let table;
+  if (dnav) dnav.style.backgroundColor = '';
+  let table: any;
 
-  const columns = getTournamentColumns();
+  const columns = getTournamentColumns(() => {});
 
-  const renderTable = (tableData) => {
+  const renderTable = (tableData: any[]) => {
     destroyTable({ anchorId: TOURNAMENTS_TABLE });
     const calendarAnchor = document.getElementById(TOURNAMENTS_TABLE);
 
@@ -38,18 +38,18 @@ export function createTournamentsTable() {
     table.on('scrollVertical', destroyTipster);
   };
 
-  const render = (data) => {
-    data.sort((a, b) => new Date(b.startDate || b.start) - new Date(a.startDate || a.start));
+  const render = (data: any[]) => {
+    data.sort((a, b) => new Date(b.startDate || b.start).getTime() - new Date(a.startDate || a.start).getTime());
     renderTable(data.map(mapTournamentRecord));
   };
-  const renderCalendarTable = ({ tournaments, provider }) => {
+  const renderCalendarTable = ({ tournaments, provider }: { tournaments: any[]; provider: any }) => {
     const tableData = tournaments
-      .sort((a, b) => new Date(b.tournament.startDate) - new Date(a.tournament.startDate))
+      .sort((a, b) => new Date(b.tournament.startDate).getTime() - new Date(a.tournament.startDate).getTime())
       .map((t) => {
         const offline = t.tournament.timeItemValues?.TMX?.offline;
         t.tournament.offline = offline;
         const tournamentImageURL = t.tournament.onlineResources?.find(
-          ({ name, resourceType }) => name === 'tournamentImage' && resourceType === 'URL',
+          ({ name, resourceType }: any) => name === 'tournamentImage' && resourceType === 'URL',
         )?.identifier;
         if (tournamentImageURL) {
           t.tournament.tournamentImageURL = tournamentImageURL;
@@ -64,7 +64,7 @@ export function createTournamentsTable() {
   const noProvider = () => tmx2db.findAllTournaments().then(render, handleError);
 
   if (provider?.organisationAbbreviation) {
-    const showResults = (result) => {
+    const showResults = (result: any) => {
       if (result?.data?.calendar) {
         renderCalendarTable(result.data.calendar);
       } else {

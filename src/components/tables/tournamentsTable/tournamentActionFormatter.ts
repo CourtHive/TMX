@@ -11,7 +11,7 @@ import { lang } from 'services/translator';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export const tournamentActionFormatter = (replaceTableData) => (cell) => {
+export const tournamentActionFormatter = (replaceTableData: () => void) => (cell: any): HTMLSpanElement => {
   const content = document.createElement('span');
   content.style.width = '100%';
 
@@ -36,7 +36,7 @@ export const tournamentActionFormatter = (replaceTableData) => (cell) => {
 
   const confirmDelete = () => {
     const table = cell.getTable();
-    const row = table.getData().find((t) => t.tournamentId === tournamentId);
+    const row = table.getData().find((t: any) => t.tournamentId === tournamentId);
     const content = `<div style='font-size: 2em'>${row.tournament.tournamentName} will be deleted!</div>`;
     const buttons = [
       {
@@ -71,7 +71,7 @@ export const tournamentActionFormatter = (replaceTableData) => (cell) => {
   return content;
 };
 
-export function getTournament({ tournamentId, replaceTableData, table }) {
+export function getTournament({ tournamentId, replaceTableData: _replaceTableData, table }: { tournamentId: string; replaceTableData: () => void; table: any }): void {
   const state = getLoginState();
   const provider = state?.provider;
 
@@ -86,15 +86,15 @@ export function getTournament({ tournamentId, replaceTableData, table }) {
     });
   };
 
-  const editRecord = (tournamentRecord) => {
+  const editRecord = (tournamentRecord: any) => {
     if (tournamentRecord) {
-      editTournament({ table, tournamentRecord, replaceTableData });
+      editTournament({ table, tournamentRecord });
     } else {
       notFound();
     }
   };
 
-  const goEdit = (result) => {
+  const goEdit = (result: any) => {
     const tournamentRecord = result?.data?.tournamentRecords?.[tournamentId];
     editRecord(tournamentRecord);
   };

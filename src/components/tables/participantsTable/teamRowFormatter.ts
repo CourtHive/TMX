@@ -13,7 +13,7 @@ import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const xa = tools.extractAttributes;
 
-export const teamRowFormatter = (row) => {
+export const teamRowFormatter = (row: any): void => {
   const holderEl = document.createElement('div');
 
   const controlEl = document.createElement('div');
@@ -24,7 +24,7 @@ export const teamRowFormatter = (row) => {
 
   const borderStyle = '1px solid #333';
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  tableEl.style.backgroundColor = 'white';
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 
@@ -33,7 +33,7 @@ export const teamRowFormatter = (row) => {
   holderEl.style.boxSizing = 'border-box';
   holderEl.style.paddingLeft = '10px';
   holderEl.style.borderTop = borderStyle;
-  holderEl.style.borderBotom = borderStyle;
+  holderEl.style.borderBottom = borderStyle;
 
   holderEl.appendChild(tableEl);
 
@@ -41,8 +41,8 @@ export const teamRowFormatter = (row) => {
 
   const participant = row.getData();
 
-  const getData = (individualParticipants) => {
-    const genderCounts = {};
+  const getData = (individualParticipants: any[]) => {
+    const genderCounts: Record<string, number> = {};
     return individualParticipants?.map((p) => {
       const sex = p.person?.sex || 'OTHER';
       if (!genderCounts[sex]) genderCounts[sex] = 0;
@@ -52,7 +52,6 @@ export const teamRowFormatter = (row) => {
   };
 
   const data = getData(participant.individualParticipants);
-  // TODO: average rating for team (considering players with target ratings)
 
   const ipTable = new Tabulator(tableEl, {
     placeholder: 'No individual participants',
@@ -63,7 +62,7 @@ export const teamRowFormatter = (row) => {
     data,
     columns: [
       {
-        cellClick: (_, cell) => cell.getRow().toggleSelect(),
+        cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
         titleFormatter: 'rowSelection',
         formatter: 'rowSelection',
         headerSort: false,
@@ -72,34 +71,34 @@ export const teamRowFormatter = (row) => {
         width: 5,
       },
       { title: 'Order', headerSort: false, field: 'order', width: 70 },
-      { title: 'Name', field: 'participantName', formatter: formatParticipant() },
+      { title: 'Name', field: 'participantName', formatter: formatParticipant(undefined) },
       { title: 'Gender', field: 'person.sex', width: 100 },
     ],
   });
   ipTable.on('scrollVertical', destroyTipster);
-  ipTable.on('rowMoved', (row) => {
+  ipTable.on('rowMoved', (row: any) => {
     const table = row.getTable();
-    const tableData = table.getData().map((p, i) => ({ ...p, order: i + 1 }));
-    const individualParticipantIds = tableData.map(({ participantId }) => participantId);
+    const tableData = table.getData().map((p: any, i: number) => ({ ...p, order: i + 1 }));
+    const individualParticipantIds = tableData.map(({ participantId }: any) => participantId);
     const methods = [
       {
         params: { participant: { participantId: participant.participantId, individualParticipantIds } },
         method: MODIFY_PARTICIPANT,
       },
     ];
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
         const rows = table.getRows();
-        const individualParticipants = rows.map((r) => r.getData());
+        const individualParticipants = rows.map((r: any) => r.getData());
         const data = getData(individualParticipants);
-        rows.forEach((r, i) => r.update(data[i]));
+        rows.forEach((r: any, i: number) => r.update(data[i]));
       }
     };
     mutationRequest({ methods, callback: postMutation });
   });
 
   const addIndividualParticipants = () => {
-    const onSelection = (result) => {
+    const onSelection = (result: any) => {
       if (result.participantId) {
         const individualParticipants = result.selected;
         const individualParticipantIds = (
@@ -125,7 +124,7 @@ export const teamRowFormatter = (row) => {
               method: MODIFY_PARTICIPANT,
             },
           ];
-          const postMutation = (result) => {
+          const postMutation = (result: any) => {
             if (result.success) {
               participant.individualParticipants = (participant.individualParticipants ?? []).concat(
                 individualParticipants,
@@ -148,7 +147,7 @@ export const teamRowFormatter = (row) => {
     });
 
     const participantsAvailable = participants.filter(
-      ({ participantId }) => !existingParticipantIds.includes(participantId),
+      ({ participantId }: any) => !existingParticipantIds.includes(participantId),
     );
 
     const action = {

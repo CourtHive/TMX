@@ -13,15 +13,30 @@ import { getStatsColumns } from './getStatsColumns';
 
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';
 
-export async function createStatsTable({ eventId, drawId, structureId }) {
-  let table, structure, participantFilter, participantMap;
-  const getParticipantMap = (participants) =>
-    (participants ?? []).reduce((map, participant) => {
+type CreateStatsTableParams = {
+  eventId: string;
+  drawId: string;
+  structureId: string;
+};
+
+type CreateStatsTableResult = {
+  table: any;
+  replaceTableData: (params?: { participantFilter?: string }) => void;
+};
+
+export async function createStatsTable({ eventId, drawId, structureId }: CreateStatsTableParams): Promise<CreateStatsTableResult> {
+  let table: any;
+  let structure: any;
+  let participantFilter: string | undefined;
+  let participantMap: Record<string, any>;
+  
+  const getParticipantMap = (participants: any[]) =>
+    (participants ?? []).reduce((map: Record<string, any>, participant: any) => {
       map[participant.participantId] = participant;
       return map;
     }, {});
 
-  const groupNames = {};
+  const groupNames: Record<string, string> = {};
 
   const getParticipantResults = () => {
     const { participants, eventData } = tournamentEngine.getEventData({
@@ -31,21 +46,21 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
       refreshResults: true,
       eventId,
     });
-    const drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
-    structure = drawData?.structures?.find((s) => s.structureId === structureId);
+    const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
+    structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
     if (!participantMap) participantMap = getParticipantMap(participants);
     const matchUps = structure?.roundMatchUps ? Object.values(structure.roundMatchUps).flat() : [];
-    matchUps.forEach(({ sides, structureName, structureId }) => {
+    matchUps.forEach(({ sides, structureName, structureId }: any) => {
       groupNames[structureId] = structureName;
-      sides.forEach((side) => {
+      sides.forEach((side: any) => {
         if (side.participantId) {
           participantMap[side.participantId].groupName = structureName;
         }
       });
     });
 
-    return (structure?.participantResults ?? []).filter((pResults) => {
+    return (structure?.participantResults ?? []).filter((pResults: any) => {
       const participant = participantMap[pResults.participantId];
       return (
         !participantFilter || participant?.participantName?.toLowerCase().includes(participantFilter?.toLowerCase())
@@ -56,12 +71,12 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
   const participantResults = getParticipantResults();
   const getTableData = () =>
     participantResults
-      ?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }))
-      .sort((a, b) => orderSorter(a.order, b.order));
+      ?.map((participantInfo: any) => mapParticipantResults({ ...participantInfo, participantMap }))
+      .sort((a: any, b: any) => orderSorter(a.order, b.order));
 
   const updateTableData = () =>
-    getParticipantResults()?.map((participantInfo) => mapParticipantResults({ ...participantInfo, participantMap }));
-  const replaceTableData = (params) => {
+    getParticipantResults()?.map((participantInfo: any) => mapParticipantResults({ ...participantInfo, participantMap }));
+  const replaceTableData = (params?: { participantFilter?: string }) => {
     if (params?.participantFilter !== undefined) participantFilter = params.participantFilter;
     table.replaceData(updateTableData());
   };
@@ -69,7 +84,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
   const data = getTableData();
   const columns = getStatsColumns();
 
-  const render = (data) => {
+  const render = (data: any[]) => {
     destroyTable({ anchorId: DRAWS_VIEW });
     const element = document.getElementById(DRAWS_VIEW);
 
@@ -92,7 +107,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
       ]),
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * 0.85,
-      groupHeader: [(value) => value],
+      groupHeader: [(value: string) => value],
       placeholder: 'No participants',
       responsiveLayout: 'collapse',
       layout: 'fitColumns',
@@ -106,7 +121,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
 
   render(data);
 
-  const callback = ({ refresh, view } = {}) => {
+  const callback = ({ refresh, view }: { refresh?: boolean; view?: string } = {}) => {
     cleanupDrawPanel();
     if (view) {
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
@@ -115,7 +130,7 @@ export async function createStatsTable({ eventId, drawId, structureId }) {
     }
   };
 
-  drawControlBar({ structure, drawId, existingView: ROUNDS_STATS, callback });
+  drawControlBar({ structure, drawId, existingView: ROUNDS_STATS, callback, updateDisplay: replaceTableData });
   eventControlBar({ eventId, drawId, structureId, updateDisplay: replaceTableData });
 
   return { table, replaceTableData };

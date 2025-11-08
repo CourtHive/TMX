@@ -7,13 +7,10 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT } from 'constants/tmxConstants';
 
-export function getStatsColumns() {
+export function getStatsColumns(): any[] {
   return [
     {
-      headerMenu: headerMenu({
-        // sex: 'Gender', // provide mapping of icon column headers to field names
-      }),
-      // formatter: 'rownum',
+      headerMenu: headerMenu({}),
       field: 'drawPosition',
       headerSort: false,
       hozAlign: LEFT,
@@ -28,7 +25,7 @@ export function getStatsColumns() {
       width: 50,
     },
     {
-      formatter: formatParticipant(({ event, cell, ...params }) =>
+      formatter: formatParticipant(({ event, cell, ...params }: any) =>
         console.log('cell clicked', { event, cell, undefined, params }),
       ),
       sorter: participantSorter,

@@ -3,7 +3,7 @@ import { isFunction } from 'functions/typeOf';
 
 const { SINGLES } = eventConstants;
 
-export const eventsFormatter = (eventClick) => (cell) => {
+export const eventsFormatter = (eventClick?: (params: any) => void) => (cell: any): HTMLDivElement => {
   const def = cell.getColumn().getDefinition();
   const content = document.createElement('div');
   content.className = 'tags';
@@ -11,8 +11,8 @@ export const eventsFormatter = (eventClick) => (cell) => {
   const events = cell.getValue();
   const rowData = cell.getRow().getData();
   const { participantId } = rowData;
-  const eventSorter = (a, b) => a?.eventName?.localeCompare(b?.eventName);
-  events.sort(eventSorter).forEach((event) => {
+  const eventSorter = (a: any, b: any) => a?.eventName?.localeCompare(b?.eventName);
+  events.sort(eventSorter).forEach((event: any) => {
     const pill = createPill({ def, participantId, event, eventClick });
     content.appendChild(pill);
   });
@@ -20,9 +20,9 @@ export const eventsFormatter = (eventClick) => (cell) => {
   return content;
 };
 
-function createPill({ matchUpId, participantId, event, eventClick }) {
+function createPill({ matchUpId, participantId, event, eventClick }: { matchUpId?: string; participantId?: string; event: any; eventClick?: (params: any) => void; def?: any }): HTMLSpanElement {
   const pill = document.createElement('span');
-  if (isFunction(eventClick)) {
+  if (isFunction(eventClick) && eventClick) {
     pill.onclick = () => eventClick({ eventId: event.eventId, participantId, matchUpId });
   }
   pill.className = 'tag event-pill';
@@ -40,7 +40,7 @@ function createPill({ matchUpId, participantId, event, eventClick }) {
   return pill;
 }
 
-export const eventFormatter = (eventClick) => (cell) => {
+export const eventFormatter = (eventClick?: (params: any) => void) => (cell: any): HTMLDivElement => {
   const def = cell.getColumn().getDefinition();
   const rowData = cell.getRow().getData();
   const { matchUpId } = rowData;

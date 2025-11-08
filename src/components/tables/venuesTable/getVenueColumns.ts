@@ -5,9 +5,9 @@ import { setLatLong } from './setLatLong';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getVenuesColumns() {
+export function getVenuesColumns(): any[] {
   const venueActions = () => console.log('Venue actions');
-  const locationFormatter = (cell) => {
+  const locationFormatter = (cell: any): string => {
     const value = cell.getValue();
     const undef = `?`;
     const def = `<i class="fa-sharp fa-solid fa-location-dot" style="color: blue"></i>`;
@@ -16,7 +16,7 @@ export function getVenuesColumns() {
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,

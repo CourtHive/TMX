@@ -9,7 +9,12 @@ import { getVenuesColumns } from './getVenueColumns';
 
 import { TOURNAMENT_VENUES } from 'constants/tmxConstants';
 
-export function createVenuesTable({ table } = {}) {
+type CreateVenuesTableResult = {
+  table: any;
+  replaceTableData: () => void;
+};
+
+export function createVenuesTable({ table }: { table?: any } = {}): CreateVenuesTableResult {
   const getTableData = () => {
     const { venues } = competitionEngine.getVenuesAndCourts();
     const rows = venues.map(mapVenue);
@@ -37,7 +42,6 @@ export function createVenuesTable({ table } = {}) {
         'venueName',
       ]),
       minHeight: window.innerHeight * 0.81,
-      // height: // NOTE: setting a height causes scrolling issue
       rowFormatter: venueRowFormatter,
       placeholder: 'No venues',
       layout: 'fitColumns',
@@ -48,7 +52,7 @@ export function createVenuesTable({ table } = {}) {
     });
 
     table.on('scrollVertical', destroyTipster);
-    table.on('cellEdited', (cell) => {
+    table.on('cellEdited', (cell: any) => {
       const def = cell.getColumn().getDefinition();
       const row = cell.getRow().getData();
       const value = cell.getValue();

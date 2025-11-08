@@ -3,9 +3,9 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { OVERLAY, entryStatusMapping } from 'constants/tmxConstants';
 import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
-const modifyStatus = (table, group, eventId, drawId) => {
+const modifyStatus = (table: any, group: string, eventId: string, drawId?: string) => {
   const selected = table.getSelectedData();
-  const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
+  const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
   const [entryStage, entryStatus] = group.split('.');
 
   const params = {
@@ -17,7 +17,7 @@ const modifyStatus = (table, group, eventId, drawId) => {
     drawId
   };
 
-  const callback = (result) => {
+  const callback = (result: any) => {
     table.deselectRow();
 
     if (result.success) {
@@ -37,7 +37,7 @@ const modifyStatus = (table, group, eventId, drawId) => {
   mutationRequest({ methods: [{ method: MODIFY_ENTRIES_STATUS, params }], callback });
 };
 
-export const changeEntryStatus = (groups, eventId, drawId) => (table) => {
+export const changeEntryStatus = (groups: string[], eventId: string, drawId?: string) => (table: any): any => {
   const options = groups.map((group) => ({
     onClick: () => modifyStatus(table, group, eventId, drawId),
     label: group,

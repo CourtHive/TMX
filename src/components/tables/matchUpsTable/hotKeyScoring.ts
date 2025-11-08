@@ -7,9 +7,16 @@ import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 const { HOTKEYS, SIDE1KEYS, MODIFIERS } = keyValueConstants;
 
-export function hotKeyScoring() {
-  let focusData, updatedMatchUp;
-  const setFocusData = (params) => {
+type FocusData = {
+  cell: any;
+  replaceTableData: () => void;
+};
+
+export function hotKeyScoring(): { setFocusData: (params: FocusData) => void } {
+  let focusData: FocusData | undefined;
+  let updatedMatchUp: any;
+  
+  const setFocusData = (params: FocusData) => {
     updatedMatchUp = undefined;
     focusData = params;
   };
@@ -24,7 +31,7 @@ export function hotKeyScoring() {
       if (!updatedMatchUp) updatedMatchUp = data.matchUp;
 
       const shifted = hotkeys.shift;
-      const value = shifted ? handler.key.split(handler.splitKey)[1] : handler.key;
+      const value = shifted ? handler.key.split((handler as any).splitKey)[1] : handler.key;
 
       if (value === 'esc') {
         focusData.replaceTableData();
@@ -32,31 +39,7 @@ export function hotKeyScoring() {
       }
 
       if (value === 'tab') {
-        /*
-        const row = focusData.cell.getRow();
-        let targetRow, targetData;
-        let nextRow = row.getNextRow();
-        while (nextRow && !targetRow) {
-          const nextRowData = nextRow.getData();
-          const canScore = nextRowData.readyToScore || nextRowData.score?.scoreStringSide1;
-          if (canScore) {
-            targetData = nextRowData;
-            targetRow = nextRow;
-          } else {
-            nextRow = row.getNextRow();
-          }
-        }
-
-        if (targetData) {
-          const tcells = document.querySelectorAll('.activeScoreCell');
-          for (const tcell of Array.from(tcells)) {
-            tcell.classList.remove('activeScoreCell');
-          }
-          const targetCell = targetRow.getCell('scoreDetail');
-          focusData.cell = targetCell;
-          return; // critical
-        }
-        */
+        // Tab navigation logic commented out in original
       }
 
       const lowSide = (SIDE1KEYS.some((k) => k === value) && (shifted ? 2 : 1)) || undefined;
@@ -121,7 +104,7 @@ export function hotKeyScoring() {
   return { setFocusData };
 }
 
-function submitScore({ outcome, callback, matchUpId, drawId }) {
+function submitScore({ outcome, callback, matchUpId, drawId }: { outcome: any; callback: (result: any) => void; matchUpId: string; drawId: string }): void {
   const { matchUpStatus, winningSide, score } = outcome;
   const methods = [
     {
@@ -137,7 +120,7 @@ function submitScore({ outcome, callback, matchUpId, drawId }) {
       },
     },
   ];
-  const mutationCallback = (result) => {
+  const mutationCallback = (result: any) => {
     isFunction(callback) && callback({ ...result, outcome });
   };
   mutationRequest({ methods, callback: mutationCallback });

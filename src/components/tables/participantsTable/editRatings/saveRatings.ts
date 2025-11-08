@@ -3,7 +3,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 
 import { ADD_PARTICIPANT_TIME_ITEM } from 'constants/mutationConstants';
 
-export function saveRatings(e, table) {
+export function saveRatings(e: any, table: any): void {
   toggleEditVisibility({
     columns: ['ratings.wtn.wtnRating', 'ratings.utr.utrRating'],
     classNames: ['saveRatings', 'saveTennisId'],
@@ -16,17 +16,12 @@ export function saveRatings(e, table) {
   table.showColumn('ratings.wtn.wtnRating');
   table.redraw(true);
 
-  // const { participantMap } = tournamentEngine.getParticipants({ withScaleValues: true });
-  // check the cellValue against the current value in the participantMap and only update if different
-  // factory method to bulk update participant scale values
-  // !!participantMap;
-
   const rows = table.getData();
-  const methods = rows.flatMap((row) => {
+  const methods = rows.flatMap((row: any) => {
     const cellRating = row.ratings?.wtn;
     const wtnRating = cellRating?.wtnRating;
     const wtnConfidence = cellRating?.confidence || wtnRating ? 50 : 0;
-    let itemValue = wtnConfidence ? { ...cellRating, wtnRating, confidence: wtnConfidence } : '';
+    let itemValue: any = wtnConfidence ? { ...cellRating, wtnRating, confidence: wtnConfidence } : '';
     const wtnMethod = {
       method: ADD_PARTICIPANT_TIME_ITEM,
       params: {
@@ -55,7 +50,7 @@ export function saveRatings(e, table) {
     return [wtnMethod, utrMethod];
   });
 
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (!result.success) console.log(result);
   };
   mutationRequest({ methods, callback: postMutation });

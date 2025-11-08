@@ -3,10 +3,20 @@ import { getSelectionColumns } from './getSelectionColumns';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-export function createSelectionTable(params) {
+type CreateSelectionTableParams = {
+  data?: any[];
+  selectedParticipantIds?: string[];
+  selectionLimit?: number;
+  targetAttribute?: string;
+  placeholder?: string;
+  onSelected?: (values: any[]) => void;
+  anchorId: string;
+};
+
+export function createSelectionTable(params: CreateSelectionTableParams): { table: any } {
   let { data = [] } = params;
   const {
-    selectedParticipantIds, // already selected
+    selectedParticipantIds,
     selectionLimit = 1,
     targetAttribute,
     placeholder,
@@ -16,9 +26,7 @@ export function createSelectionTable(params) {
 
   const participants = data.some((item) => item.participant);
 
-  // spread participant object
   if (participants) {
-    // default participantName to BYE for swaps
     data = data.map(({ participant, ...rest }) => ({ ...rest, participantName: 'BYE', ...participant }));
   }
   data.forEach((row) => (row.searchText = row.participantName?.toLowerCase()));
@@ -36,16 +44,18 @@ export function createSelectionTable(params) {
     columns,
     data,
   });
-  if (!context.tables) context.tables = {};
-  context.tables.selectionTable = table;
+  if (!context.tables) context.tables = [];
+  if (!context.tables.selectionTable) {
+    context.tables = { ...context.tables, selectionTable: table };
+  }
 
   table.on('tableBuilt', () => {
     if (selectedParticipantIds?.length) table.selectRow(selectedParticipantIds);
   });
 
-  table.on('rowSelectionChanged', (data, rows) => {
-    const values = rows?.map((row) => row.getData());
-    isFunction(onSelected) && onSelected(values);
+  table.on('rowSelectionChanged', (_data: any, rows: any) => {
+    const values = rows?.map((row: any) => row.getData());
+    isFunction(onSelected) && onSelected?.(values);
   });
 
   return { table };

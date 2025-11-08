@@ -7,16 +7,16 @@ import { isObject } from 'functions/typeOf';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
-export function matchUpReturn(ev, table) {
+export function matchUpReturn(ev: DragEvent, table: any): void {
   ev.preventDefault();
-  const sourceMatchUpId = ev.dataTransfer.getData('itemid');
+  const sourceMatchUpId = ev.dataTransfer?.getData('itemid');
   const scheduleTable = Tabulator.findTable('#tournamentSchedule')[0];
-  const scheduledMatchUps = scheduleTable.getData().flatMap((row) => Object.values(row).filter((v) => v.matchUpId));
-  const sourceMatchUp = scheduledMatchUps.find((matchUp) => matchUp.matchUpId === sourceMatchUpId) || {};
+  const scheduledMatchUps = scheduleTable.getData().flatMap((row: any) => Object.values(row).filter((v: any) => v.matchUpId));
+  const sourceMatchUp = scheduledMatchUps.find((matchUp: any) => matchUp.matchUpId === sourceMatchUpId) || {};
   if (!sourceMatchUp?.schedule?.courtId) return;
 
-  let sourceColumnKey;
-  const sourceRow = scheduleTable.getData().find((row) => {
+  let sourceColumnKey: string | undefined;
+  const sourceRow = scheduleTable.getData().find((row: any) => {
     sourceColumnKey = Object.keys(row).find((key) => {
       if (!isObject(row[key])) return;
       return row[key].matchUpId === sourceMatchUpId;
@@ -25,14 +25,16 @@ export function matchUpReturn(ev, table) {
   });
   const { courtId, courtOrder, venueId } = sourceMatchUp.schedule;
 
-  sourceRow[sourceColumnKey] = {
-    schedule: {
-      courtOrder,
-      courtId,
-      venueId,
-    },
-  };
-  scheduleTable.updateData([sourceRow]);
+  if (sourceRow && sourceColumnKey) {
+    sourceRow[sourceColumnKey] = {
+      schedule: {
+        courtOrder,
+        courtId,
+        venueId,
+      },
+    };
+    scheduleTable.updateData([sourceRow]);
+  }
 
   delete sourceMatchUp.schedule.scheduledDate;
   delete sourceMatchUp.schedule.scheduledTime;
@@ -53,14 +55,11 @@ export function matchUpReturn(ev, table) {
       },
     },
   ];
-  const callback = (result) => !result.success && console.log({ result });
+  const callback = (result: any) => !result.success && console.log({ result });
   mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
 
-  // update the source data for future re-renders
   sourceMatchUp.schedule = updatedSourceSchedule;
 
-  // transform and add new row at the top of the table;
-  // NOTE: do not add if matchUp is COMPLETED (see matchUpStatuses filters)
   const newRow = mapMatchUp(sourceMatchUp);
   table.addRow(newRow, true);
 

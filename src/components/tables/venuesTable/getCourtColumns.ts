@@ -3,8 +3,8 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getCourtColumns() {
-  function lightsFormatter(cell) {
+export function getCourtColumns(): any[] {
+  function lightsFormatter(cell: any): string {
     const value = cell.getValue();
     const hasLights = `<i class="fa-solid fa-check" style="color: green"></i>`;
     const noLights = `<i class="fa-solid fa-xmark"></i>`;
@@ -15,7 +15,7 @@ export function getCourtColumns() {
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,

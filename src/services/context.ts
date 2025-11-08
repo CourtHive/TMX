@@ -1,6 +1,6 @@
 export const context: {
   matchUpsToBroadcast: any[];
-  tables: any[];
+  tables: any;
   ee: any;
   drawer: any;
   modal: any;

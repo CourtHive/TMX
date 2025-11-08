@@ -8,7 +8,7 @@ import { getCourtColumns } from './getCourtColumns';
 import { NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 import { MODIFY_COURT } from 'constants/mutationConstants';
 
-export function venueRowFormatter(row) {
+export function venueRowFormatter(row: any): void {
   const holderEl = document.createElement('div');
   const controlEl = document.createElement('div');
   controlEl.className = 'tableControl';
@@ -32,7 +32,7 @@ export function venueRowFormatter(row) {
 
   const borderStyle = '1px solid #333';
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white'; // avoid artifact in select column
+  tableEl.style.backgroundColor = 'white';
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 
@@ -41,7 +41,7 @@ export function venueRowFormatter(row) {
   holderEl.style.boxSizing = 'border-box';
   holderEl.style.paddingLeft = '10px';
   holderEl.style.borderTop = borderStyle;
-  holderEl.style.borderBotom = borderStyle;
+  holderEl.style.borderBottom = borderStyle;
 
   holderEl.appendChild(tableEl);
 
@@ -69,12 +69,12 @@ export function venueRowFormatter(row) {
   controlBar({ table: courtsTable, target: controlEl, items });
 
   courtsTable.on('scrollVertical', destroyTipster);
-  courtsTable.on('cellEdited', (cell) => {
+  courtsTable.on('cellEdited', (cell: any) => {
     const row = cell.getRow().getData();
     const value = cell.getValue();
 
     if (value.length) {
-      const postMutation = (result) => {
+      const postMutation = (result: any) => {
         if (result.success) {
           console.log('success', { result });
         } else {
