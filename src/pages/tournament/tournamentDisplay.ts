@@ -1,3 +1,7 @@
+/**
+ * Main tournament display router and loader.
+ * Handles tournament loading, navigation, and tab rendering.
+ */
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
@@ -26,24 +30,24 @@ import {
   TOURNAMENT_OVERVIEW,
 } from 'constants/tmxConstants';
 
-export function displayTournament({ config } = {}) {
+export function displayTournament({ config }: { config?: any } = {}): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     routeTo(config);
   } else {
-    context.ee.emit(LEAVE_TOURNAMENT, context.tournamentId);
-    tmx2db.findTournament(config.tournamentId).then((tournamentRecord) => loadTournament({ tournamentRecord, config }));
+    context.ee.emit(LEAVE_TOURNAMENT, (context as any).tournamentId);
+    tmx2db.findTournament(config.tournamentId).then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
   }
 }
 
-function renderTournament({ config }) {
+function renderTournament({ config }: { config: any }): void {
   showContent(TOURNAMENT);
   tournamentHeader();
   highlightTab(config.selectedTab);
   routeTo(config);
 }
 
-export function routeTo(config) {
+export function routeTo(config: any): void {
   const { selectedTab = PARTICIPANTS } = config;
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
@@ -56,7 +60,7 @@ export function routeTo(config) {
   }
 }
 
-export function loadTournament({ tournamentRecord, config }) {
+export function loadTournament({ tournamentRecord, config }: { tournamentRecord?: any; config: any }): void {
   const state = getLoginState();
   const provider = state?.provider || context?.provider;
 
@@ -71,7 +75,7 @@ export function loadTournament({ tournamentRecord, config }) {
     });
   };
 
-  const showResult = (result) => {
+  const showResult = (result: any) => {
     const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
     if (tournamentRecord) {
       tournamentEngine.setState(tournamentRecord);
@@ -92,7 +96,7 @@ export function loadTournament({ tournamentRecord, config }) {
     };
 
     if (config.tournamentId) {
-      const offline = tournamentRecord?.timeItems?.find(({ itemType }) => itemType === 'TMX')?.itemValue?.offline;
+      const offline = tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
       if (offline) return tryLocal();
       requestTournament({ tournamentId: config.tournamentId }).then(showResult, tryLocal);
     }

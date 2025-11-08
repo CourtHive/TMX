@@ -1,3 +1,7 @@
+/**
+ * Renders individuals (players) tab with table and controls.
+ * Displays individual participants with filtering, editing, and management options.
+ */
 import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
 import { enableEditWTID } from 'components/tables/participantsTable/editWTID/enableEditWTID';
@@ -36,7 +40,7 @@ const { ANY } = genderConstants;
 
 const isPrimary = 'is-primary';
 
-export function renderIndividuals({ view }) {
+export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
@@ -48,7 +52,7 @@ export function renderIndividuals({ view }) {
   const editRegistrationLink = () => sheetsLink({ callback: replaceTableData });
 
   const synchronizePlayers = () => {
-    updateRegisteredPlayers({
+    (updateRegisteredPlayers as any)({
       callback: () => {
         replaceTableData();
         table?.redraw(true);
@@ -64,25 +68,25 @@ export function renderIndividuals({ view }) {
   const state = getLoginState();
   const canEditTennisId = state?.roles?.includes('superadmin') || state?.permissions?.includes('editTennisId');
 
-  const actionOptions = [
+  const actionOptions: any[] = [
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: 'Sign out players not approved for events',
       close: true,
     },
     {
-      onClick: (e) => enableManualRatings(e, table),
+      onClick: (e: any) => enableManualRatings(e, table),
       label: 'Edit ratings',
       close: true,
     },
     {
-      onClick: (e) => enableEditWTID(e, table),
+      onClick: (e: any) => enableEditWTID(e, table),
       hide: !canEditTennisId,
       label: 'Edit WTID',
       close: true,
     },
-    { divider: true },
-    { heading: 'Add participants' },
+    { divider: true } as any,
+    { heading: 'Add participants' } as any,
     { hide: registration, label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
     { label: 'Import from Google sheet', onClick: editRegistrationLink, close: true },
     {
@@ -93,13 +97,13 @@ export function renderIndividuals({ view }) {
   ];
 
   const addToEventOptions = events
-    .map((event) => ({
+    .map((event: any) => ({
       onClick: () => addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: replaceTableData }),
       label: event.eventName,
       close: true,
     }))
     .concat([
-      { divider: true },
+      { divider: true } as any,
       {
         label: '<p style="font-weight: bold">Create new event</p>',
         onClick: () => eventFromParticipants(table, replaceTableData),
@@ -118,12 +122,12 @@ export function renderIndividuals({ view }) {
 
   const items = [
     {
-      onKeyDown: (e) => {
+      onKeyDown: (e: any) => {
         e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
         selectOnEnter(e);
       },
-      onChange: (e) => setSearchFilter(e.target.value),
-      onKeyUp: (e) => setSearchFilter(e.target.value),
+      onChange: (e: any) => setSearchFilter(e.target.value),
+      onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: OVERLAY,
@@ -169,12 +173,12 @@ export function renderIndividuals({ view }) {
       location: OVERLAY,
     },
     {
-      onKeyDown: (e) => {
+      onKeyDown: (e: any) => {
         e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter('');
         selectOnEnter(e);
       },
-      onChange: (e) => setSearchFilter(e.target.value),
-      onKeyUp: (e) => setSearchFilter(e.target.value),
+      onChange: (e: any) => setSearchFilter(e.target.value),
+      onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: 'Search participants',
       location: LEFT,
@@ -189,7 +193,7 @@ export function renderIndividuals({ view }) {
       location: LEFT,
     },
     {
-      label: teamOptions[0]?.label,
+      label: (teamOptions[0] as any)?.label || '',
       options: teamOptions,
       modifyLabel: true,
       selection: true,
@@ -219,7 +223,7 @@ export function renderIndividuals({ view }) {
       align: RIGHT,
     },
     {
-      onClick: (e) => saveWTID(e, table),
+      onClick: (e: any) => saveWTID(e, table),
       class: 'saveTennisId',
       intent: isPrimary,
       label: 'Save WTID',
@@ -227,7 +231,7 @@ export function renderIndividuals({ view }) {
       visible: false,
     },
     {
-      onClick: (e) => saveRatings(e, table),
+      onClick: (e: any) => saveRatings(e, table),
       label: 'Save ratings',
       intent: isPrimary,
       class: 'saveRatings',
