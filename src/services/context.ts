@@ -16,6 +16,7 @@ export const context: {
   router?: any;
   provider?: any;
   quill?: any;
+  dragMatch?: any;
 } = {
   matchUpsToBroadcast: [],
   tables: [],

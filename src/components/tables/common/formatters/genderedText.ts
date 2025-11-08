@@ -2,7 +2,7 @@ import { genderConstants } from 'tods-competition-factory';
 
 const { MALE, FEMALE } = genderConstants;
 
-export function genderedText(cell) {
+export function genderedText(cell: any): HTMLDivElement {
   const value = cell.getValue();
   const data = cell.getRow().getData();
   const sex = data.sex || data.person?.sex;

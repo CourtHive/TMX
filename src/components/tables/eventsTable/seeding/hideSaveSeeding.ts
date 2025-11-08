@@ -1,13 +1,11 @@
 import { toggleEditVisibility } from 'components/tables/common/toggleEditVisibility';
 
-export function enableManualSeeding(e, table) {
+export function hideSaveSeeding(e: any, table: any): void {
   toggleEditVisibility({
     classNames: ['saveSeeding', 'cancelManualSeeding'],
     columns: ['seedNumber'],
-    visible: true,
+    visible: false,
     table,
-    e,
+    e
   });
-  table.showColumn('seedNumber');
-  table.redraw(true);
 }
