@@ -3,10 +3,10 @@ import { getLatLong } from 'components/modals/getLatLong';
 
 import { MODIFY_VENUE } from 'constants/mutationConstants';
 
-export function setLatLong(e, cell) {
+export function setLatLong(_e: any, cell: any): void {
   const rowData = cell.getRow().getData();
   const { latitude, longitude } = rowData?.address || {};
-  const callback = (value = {}) => {
+  const callback = (value: any = {}) => {
     if (!rowData.address) rowData.address = {};
     const venue = rowData.venue;
     if (!venue.addresses) venue.addresses = [];
@@ -16,7 +16,7 @@ export function setLatLong(e, cell) {
       Object.assign(venue.addresses[0], { latitude: value.latitude, longitude: value.longitude });
     }
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.results?.[0]?.success) {
         const table = cell.getTable();
         rowData.address.latitude = value.latitude;

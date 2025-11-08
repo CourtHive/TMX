@@ -5,13 +5,13 @@ import { context } from 'services/context';
 
 import { RIGHT, TOURNAMENT } from 'constants/tmxConstants';
 
-export function getTournamentColumns(replaceTableData) {
+export function getTournamentColumns(replaceTableData: () => void): any[] {
   const isMobile = /Mobile/.test(navigator.userAgent);
-  const openTournament = (_, cell) => {
+  const openTournament = (_: any, cell: any) => {
     const tournamentId = cell.getRow().getData().tournamentId;
 
     if (tournamentId) {
-      tournamentEngine.reset(); // ensure no tournament is in state
+      tournamentEngine.reset();
       const tournamentUrl = `/${TOURNAMENT}/${tournamentId}`;
       context.router.navigate(tournamentUrl);
     }

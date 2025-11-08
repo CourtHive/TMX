@@ -3,11 +3,11 @@ import { setTieScore } from 'components/overlays/scorecard/scorecard';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
-export function scoreHandler(e, cell) {
+export function scoreHandler(_e: any, cell: any): void {
   const row = cell.getRow();
   const data = row.getData();
   const { matchUpId, readyToScore } = data;
-  const callback = (result) => {
+  const callback = (result: any) => {
     if (result.success) {
       const { matchUpStatus, sets, matchUpFormat, score, winningSide } = result.outcome;
       Object.assign(data, { matchUpStatus, sets, matchUpFormat, score });
@@ -17,7 +17,7 @@ export function scoreHandler(e, cell) {
       const table = cell.getTable();
       table.redraw(true);
 
-      const tieResult = result.results.find(({ methodName }) => methodName === SET_MATCHUP_STATUS)?.tieMatchUpResult;
+      const tieResult = result.results.find(({ methodName }: any) => methodName === SET_MATCHUP_STATUS)?.tieMatchUpResult;
       setTieScore(tieResult);
     } else {
       console.log({ result });

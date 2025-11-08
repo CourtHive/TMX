@@ -3,7 +3,7 @@ import { normalizeDiacritics } from 'normalize-text';
 
 const { TEAM } = eventConstants;
 
-export const mapRound = (matchUp) => {
+export const mapRound = (matchUp: any): any => {
   const {
     potentialParticipants,
     structureName,
@@ -20,9 +20,9 @@ export const mapRound = (matchUp) => {
 
   const { scheduledDate, scheduleTime, courtName } = schedule || {};
 
-  const getPotentialName = (participant) => participant.person?.standardFamilyName || participant.participantName;
+  const getPotentialName = (participant: any) => participant.person?.standardFamilyName || participant.participantName;
   const potentials =
-    potentialParticipants?.map((potentials) => ({
+    potentialParticipants?.map((potentials: any) => ({
       participantName: potentials.map(getPotentialName).filter(Boolean).join(' or '),
     })) || [];
   const side1Participant = sides?.[0]?.participant || potentials.shift();
@@ -38,7 +38,7 @@ export const mapRound = (matchUp) => {
     participant: side2Participant,
   };
   const individualParticipantIds = sides
-    .flatMap(({ participant }) =>
+    .flatMap(({ participant }: any) =>
       participant?.individualParticipantIds?.length ? participant.individualParticipantIds : participant?.participantId,
     )
     .filter(Boolean);
@@ -50,10 +50,10 @@ export const mapRound = (matchUp) => {
   const score = rest.score?.scoreStringSide1;
 
   const firstLast = sides
-    .flatMap((side) => {
+    .flatMap((side: any) => {
       const person = side.participant?.person;
       if (person) return [person.standardGivenName, person.standardFamilyName];
-      return side.participant?.individualParticipants?.map(({ person }) => [
+      return side.participant?.individualParticipants?.map(({ person }: any) => [
         person.standardGivenName,
         person.standardFamilyName,
       ]);

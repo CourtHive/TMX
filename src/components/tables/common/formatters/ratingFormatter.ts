@@ -3,7 +3,7 @@ import { getConfidenceBand } from '../sorters/ratingSorter';
 
 const { ratingsParameters } = fixtures;
 
-export const ratingFormatter = (rating) => (cell) => {
+export const ratingFormatter = (rating: string) => (cell: any): HTMLSpanElement => {
   const ratingDetails = ratingsParameters[rating];
   const { accessor } = ratingDetails;
   const data = cell.getValue();
@@ -13,7 +13,7 @@ export const ratingFormatter = (rating) => (cell) => {
 
   const content = document.createElement('span');
 
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     medium: 'darkgreen',
     low: 'lightblue',
     high: 'blue',

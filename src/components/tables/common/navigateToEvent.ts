@@ -13,7 +13,17 @@ import {
   VIEW,
 } from 'constants/tmxConstants';
 
-export function navigateToEvent({ eventId, drawId, structureId, renderDraw, participantId, matchUpId, view }) {
+type NavigateToEventParams = {
+  eventId?: string;
+  drawId?: string;
+  structureId?: string;
+  renderDraw?: boolean;
+  participantId?: string;
+  matchUpId?: string;
+  view?: string;
+};
+
+export function navigateToEvent({ eventId, drawId, structureId, renderDraw, participantId, matchUpId, view }: NavigateToEventParams): void {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
   const event = eventId && tournamentEngine.getEvent({ eventId, drawId }).event;
   const singleDraw = event?.drawDefinitions?.length === 1 && event.drawDefinitions[0];
@@ -24,9 +34,9 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, part
   }
 
   if (matchUpId) {
-    drawId = event.drawDefinitions.find(({ drawId }) => {
+    drawId = event.drawDefinitions.find(({ drawId }: any) => {
       const matchUps = tournamentEngine.allDrawMatchUps({ drawId, inContext: false }).matchUps;
-      return matchUps.find((matchUp) => matchUp.matchUpId === matchUpId);
+      return matchUps.find((matchUp: any) => matchUp.matchUpId === matchUpId);
     })?.drawId;
     renderDraw = !!drawId;
   }
@@ -37,7 +47,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, part
     if (structureId) {
       route += `/${STRUCTURE}/${structureId}`;
     }
-    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS].includes(view)) {
+    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS].includes(view || '')) {
       route += `/${VIEW}/${view}`;
     }
   } else if (drawId) {
