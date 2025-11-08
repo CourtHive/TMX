@@ -1,3 +1,7 @@
+/**
+ * Ad hoc round action options for draw structures.
+ * Provides options to add/delete matchUps and rounds in ad hoc draws.
+ */
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
@@ -9,7 +13,7 @@ export const deleteMatchUpsAction = 'Delete matches';
 export const addMatchUpsAction = 'Add matches';
 export const addRoundAction = 'Add round';
 
-export function getAdHocRoundOptions({ structure, drawId, callback }) {
+export function getAdHocRoundOptions({ structure, drawId, callback }: { structure: any; drawId: string; callback: (params: any) => void }): any {
   if (!tournamentEngine.isAdHoc({ structure })) return {};
   const refreshCallback = () => callback({ refresh: true });
 
@@ -31,7 +35,7 @@ export function getAdHocRoundOptions({ structure, drawId, callback }) {
     },
   ];
   return {
-    label: 'Round actions', // also toggle between finishing positions and matches
+    label: 'Round actions',
     options: actionOptions,
     selection: false,
     location: RIGHT,

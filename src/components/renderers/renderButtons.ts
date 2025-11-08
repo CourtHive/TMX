@@ -1,3 +1,7 @@
+/**
+ * Render modal buttons with configuration.
+ * Creates button elements with intents, labels, click handlers, and disabled states.
+ */
 import { isFunction } from 'functions/typeOf';
 
 export function renderButtons(target: HTMLElement, buttons: any[], close?: () => void): { elements: Record<string, HTMLElement> } {

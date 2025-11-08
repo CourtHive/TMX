@@ -1,17 +1,21 @@
+/**
+ * Move participants between entry status groups (e.g., from Accepted to Withdrawn).
+ * Updates table data and displays success/error notifications.
+ */
 import { modifyEntriesStatus } from './modifyEntriesStatus';
 import { context } from 'services/context';
 
 import { OVERLAY } from 'constants/tmxConstants';
 import { tmxToast } from 'services/notifications/tmxToast';
 
-const moveTo = (table, group, eventId, drawId) => {
+const moveTo = (table: any, group: string, eventId: string, drawId?: string): void => {
   const selected = table.getSelectedData();
-  const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
+  const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
 
-  const callback = (result) => {
+  const callback = (result: any) => {
     if (result?.success) {
       const data = table.getData();
-      const targetRows = data.filter(({ participantId }) => participantIds.includes(participantId));
+      const targetRows = data.filter(({ participantId }: any) => participantIds.includes(participantId));
       context.tables[group].updateOrAddData(targetRows);
       table.deleteRow(participantIds);
     } else {
@@ -23,7 +27,7 @@ const moveTo = (table, group, eventId, drawId) => {
   modifyEntriesStatus({ participantIds, group, eventId, drawId, callback });
 };
 
-export const moveSelected = (groups, eventId, drawId) => (table) => {
+export const moveSelected = (groups: string[], eventId: string, drawId?: string) => (table: any): any => {
   const options = groups.map((group) => ({
     onClick: () => moveTo(table, group, eventId, drawId),
     stateChange: true,

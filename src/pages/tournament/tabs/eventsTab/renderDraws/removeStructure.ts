@@ -1,3 +1,7 @@
+/**
+ * Remove draw structure with confirmation modal.
+ * Navigates to draw view after successful removal.
+ */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -5,7 +9,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 import { REMOVE_STRUCTURE } from 'constants/mutationConstants';
 
-export function removeStructure({ drawId, eventId, structureId }) {
+export function removeStructure({ drawId, eventId, structureId }: { drawId: string; eventId: string; structureId: string }): void {
   const methods = [
     {
       params: { drawId, structureId, force: true },
@@ -13,7 +17,7 @@ export function removeStructure({ drawId, eventId, structureId }) {
     }
   ];
 
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (result.success) {
       navigateToEvent({ eventId, drawId, renderDraw: true });
     } else {

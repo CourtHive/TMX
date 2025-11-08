@@ -1,3 +1,7 @@
+/**
+ * Map draw definition with publish state and scale values.
+ * Returns draw metadata including entries count, ratings averages, and formats.
+ */
 import { tournamentEngine } from 'tods-competition-factory';
 
 export const mapDrawDefinition =

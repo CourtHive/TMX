@@ -1,3 +1,7 @@
+/**
+ * Export tournament record modal.
+ * Provides options to export as TODS JSON or UTR format.
+ */
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';

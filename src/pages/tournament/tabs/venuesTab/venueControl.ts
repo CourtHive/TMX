@@ -1,3 +1,7 @@
+/**
+ * Venue control bar with add and delete venue actions.
+ * Manages venue operations from the venues table.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'components/controlBar/controlBar';
 import { addVenue } from './addVenue';
@@ -5,13 +9,19 @@ import { addVenue } from './addVenue';
 import { DELETE_VENUES } from 'constants/mutationConstants';
 import { OVERLAY, RIGHT } from 'constants/tmxConstants';
 
-export function venueControl({ table, updateVenueRow, controlAnchor } = {}) {
+type VenueControlParams = {
+  table: any;
+  updateVenueRow: (params: any) => void;
+  controlAnchor?: HTMLElement;
+};
+
+export function venueControl({ table, updateVenueRow, controlAnchor }: VenueControlParams = {} as any): any {
   if (!controlAnchor) return;
 
   const deleteVenues = () => {
-    const venueIds = table.getSelectedData().map(({ venueId }) => venueId);
+    const venueIds = table.getSelectedData().map(({ venueId }: any) => venueId);
     const methods = [{ method: DELETE_VENUES, params: { venueIds, force: true } }];
-    const callback = (result) => result.success && table.deleteRow(venueIds);
+    const callback = (result: any) => result.success && table.deleteRow(venueIds);
     mutationRequest({ methods, callback });
   };
 
@@ -32,5 +42,5 @@ export function venueControl({ table, updateVenueRow, controlAnchor } = {}) {
     }
   ];
 
-  return controlBar({ table, target: controlAnchor, items }).elements;
+  return controlBar({ table, target: controlAnchor, items })?.elements;
 }

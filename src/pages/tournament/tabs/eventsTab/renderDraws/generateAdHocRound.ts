@@ -1,3 +1,7 @@
+/**
+ * Generate ad hoc round UI for draw structures.
+ * Creates a button to trigger ad hoc round creation modal.
+ */
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';

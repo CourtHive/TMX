@@ -1,12 +1,16 @@
+/**
+ * Create flight from selected entries in an event.
+ * Adds a new draw with selected participants as flight entries.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 
 import { ADD_FLIGHT } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
 
-const newFlight = (table, event) => {
+const newFlight = (table: any, event: any): void => {
   const selected = table.getSelectedData();
-  const participantIds = selected.map(({ participantId }) => participantId);
-  const drawEntries = event.entries.filter(({ participantId }) => participantIds.includes(participantId));
+  const participantIds = selected.map(({ participantId }: any) => participantId);
+  const drawEntries = event.entries.filter(({ participantId }: any) => participantIds.includes(participantId));
 
   const methods = [
     {
@@ -18,7 +22,7 @@ const newFlight = (table, event) => {
       }
     }
   ];
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (result.success) {
       table.deselectRow();
     } else {
@@ -28,7 +32,7 @@ const newFlight = (table, event) => {
   mutationRequest({ methods, callback: postMutation });
 };
 
-export const createFlight = (event, drawId) => (table) => {
+export const createFlight = (event: any, drawId?: string) => (table: any): any => {
   return {
     onClick: () => newFlight(table, event),
     label: 'Add flight',

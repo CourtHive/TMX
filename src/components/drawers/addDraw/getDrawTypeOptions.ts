@@ -1,3 +1,7 @@
+/**
+ * Get available draw type options based on context.
+ * Filters draw types by playoff and qualifying flags.
+ */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 const {
@@ -24,7 +28,7 @@ const {
   SINGLE_ELIMINATION
 } = drawDefinitionConstants;
 
-export function getDrawTypeOptions({ isPlayoff, isQualifying } = {}) {
+export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: boolean; isQualifying?: boolean } = {}): any[] {
   return [
     { label: 'Ad-hoc', value: AD_HOC, hide: isQualifying },
     { label: 'Compass', value: COMPASS, hide: isQualifying },

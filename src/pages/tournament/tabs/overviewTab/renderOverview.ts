@@ -1,3 +1,7 @@
+/**
+ * Render tournament overview tab.
+ * Displays tournament header, notes in Quill viewer, and control buttons.
+ */
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { overviewControl } from './overviewControl';

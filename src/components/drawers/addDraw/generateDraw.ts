@@ -1,3 +1,7 @@
+/**
+ * Generate draw definition with tournament engine.
+ * Applies active scale configuration and adds draw to event via mutation.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';

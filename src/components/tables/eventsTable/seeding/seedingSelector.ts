@@ -1,11 +1,15 @@
+/**
+ * Seeding options selector for events.
+ * Provides options for manual seeding, seeding by ranking, WTN, or UTR.
+ */
 import { enableManualSeeding } from './enableManualSeeding';
 import { generateSeedValues } from './generateSeedValues';
 import { clearSeeding } from './removeSeeding';
 
 import { RIGHT } from 'constants/tmxConstants';
 
-export const seedingSelector = (event, group) => (table) => {
-  const labelMap = {
+export const seedingSelector = (event: any, group: string) => (table: any): any => {
+  const labelMap: Record<string, string> = {
     ranking: 'Seed by ranking',
     'ratings.wtn': 'Seed by WTN',
     'ratings.utr': 'Seed by UTR',
@@ -13,15 +17,14 @@ export const seedingSelector = (event, group) => (table) => {
 
   const seedingColumns = table
     .getColumns()
-    .map((col) => col.getDefinition())
-    // TODO: add ranking to seedingColumns; filter out columns which have no values
-    .filter((def) => ['ratings.wtn', 'ratings.utr'].includes(def.field));
+    .map((col: any) => col.getDefinition())
+    .filter((def: any) => ['ratings.wtn', 'ratings.utr'].includes(def.field));
 
   const options = [
-    { label: 'Manual seeding', onClick: (e) => enableManualSeeding(e, table), close: true },
+    { label: 'Manual seeding', onClick: (e: any) => enableManualSeeding(e, table), close: true },
     { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true },
   ].concat(
-    ...seedingColumns.map((column) => ({
+    ...seedingColumns.map((column: any) => ({
       onClick: () => generateSeedValues({ event, group, table, field: column.field }),
       label: labelMap[column.field],
       value: column.field,

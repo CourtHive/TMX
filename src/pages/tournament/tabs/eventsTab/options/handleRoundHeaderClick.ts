@@ -1,3 +1,7 @@
+/**
+ * Handle round header click for ad hoc draws.
+ * Shows tipster with actions to add/delete matchUps and rounds.
+ */
 import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocRoundOptions';
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
@@ -7,13 +11,13 @@ import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export function handleRoundHeaderClick(props) {
+export function handleRoundHeaderClick(props: any): void {
   const { structureId, drawId } = props?.context ?? props;
   const structure = props.eventData?.drawsData
-    ?.find((drawData) => drawData.drawId === drawId)
-    ?.structures?.find((s) => s.structureId === structureId);
+    ?.find((drawData: any) => drawData.drawId === drawId)
+    ?.structures?.find((s: any) => s.structureId === structureId);
 
-  const roundActions = [];
+  const roundActions: any[] = [];
 
   if (tournamentEngine.isAdHoc({ structure })) {
     const adHocRoundAction = [

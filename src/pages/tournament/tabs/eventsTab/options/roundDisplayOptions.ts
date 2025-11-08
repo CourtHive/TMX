@@ -1,14 +1,24 @@
+/**
+ * Round display view options for draw structures.
+ * Provides options to switch between columns/draw view, table view, and statistics.
+ */
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
 import { RIGHT, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
-export function getRoundDisplayOptions({ callback, structure, existingView }) {
-  const displayUpdate = (view) => existingView !== view && callback({ refresh: true, view });
+type RoundDisplayOptionsParams = {
+  callback: (params: any) => void;
+  structure: any;
+  existingView: string;
+};
+
+export function getRoundDisplayOptions({ callback, structure, existingView }: RoundDisplayOptionsParams): any {
+  const displayUpdate = (view: string) => existingView !== view && callback({ refresh: true, view });
   const isRoundRobin = structure?.structureType === CONTAINER;
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
 
-  const actionOptions = [];
+  const actionOptions: any[] = [];
 
   existingView !== ROUNDS_COLUMNS &&
     actionOptions.push({
@@ -32,7 +42,7 @@ export function getRoundDisplayOptions({ callback, structure, existingView }) {
     });
 
   return {
-    label: 'Display', // also toggle between finishing positions and matches
+    label: 'Display',
     options: actionOptions,
     selection: false,
     location: RIGHT,

@@ -1,3 +1,7 @@
+/**
+ * Edit matchUp format for a draw structure.
+ * Prompts for format selection and updates via mutation if changed.
+ */
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';

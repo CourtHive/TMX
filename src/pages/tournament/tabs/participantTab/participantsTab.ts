@@ -1,3 +1,7 @@
+/**
+ * Format participant tab based on view type (individuals, teams, groups, officials).
+ * Toggles visibility and renders appropriate participant table.
+ */
 import { participantConstants } from 'tods-competition-factory';
 import { renderIndividuals } from './renderIndividuals';
 import { renderGroupings } from './renderGroupings';

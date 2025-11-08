@@ -1,3 +1,7 @@
+/**
+ * Map participant data with ratings (WTN, UTR), events, location, and personal information.
+ * Creates search text and formats participant details for display.
+ */
 import { getClub, getCountry, getEvents } from 'pages/tournament/tabs/participantTab/getters';
 import { factoryConstants } from 'tods-competition-factory';
 import camelcase from 'camelcase';
@@ -5,20 +9,20 @@ import camelcase from 'camelcase';
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { SINGLES } = factoryConstants.eventConstants;
 
-export const mapParticipant = (participant, derivedEventInfo) => {
+export const mapParticipant = (participant: any, derivedEventInfo: any): any => {
   const { participantId, participantName, participantType, person } = participant;
   const { standardFamilyName, standardGivenName } = person || {};
   const address = participant.person?.addresses?.[0];
   const cityState = address?.city && address?.state ? `${address.city}, ${address.state}` : undefined;
 
-  const utr = participant.ratings?.[SINGLES]?.find((rating) => rating.scaleName === UTR)?.scaleValue;
-  const wtn = participant.ratings?.[SINGLES]?.find((rating) => rating.scaleName === WTN)?.scaleValue;
+  const utr = participant.ratings?.[SINGLES]?.find((rating: any) => rating.scaleName === UTR)?.scaleValue;
+  const wtn = participant.ratings?.[SINGLES]?.find((rating: any) => rating.scaleName === WTN)?.scaleValue;
   const ratings = { wtn, utr };
 
   return {
     searchText: `${participantName} ${standardGivenName} ${standardFamilyName}`.toLowerCase(),
     sex: camelcase(participant.person.sex || '', { pascalCase: true }),
-    eventIds: participant.events.map(({ eventId }) => eventId),
+    eventIds: participant.events.map(({ eventId }: any) => eventId),
     ioc: getCountry(participant.person?.nationalityCode),
     events: getEvents(participant, derivedEventInfo),
     penalties: participant.penalties || [],

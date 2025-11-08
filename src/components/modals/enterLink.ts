@@ -1,3 +1,7 @@
+/**
+ * Link entry modal for updating values.
+ * Renders form with existing value and callback on update.
+ */
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
