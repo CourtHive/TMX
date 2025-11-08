@@ -1,3 +1,7 @@
+/**
+ * Create participant pairs for doubles events.
+ * Handles pairing of individual participants into doubles teams.
+ */
 import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
@@ -19,11 +23,11 @@ const { ALTERNATE, UNGROUPED } = entryStatusConstants;
 const { MAIN } = drawDefinitionConstants;
 const { DOUBLES } = eventConstants;
 
-export const createPair = (event, addOnPairing = true) => {
+export const createPair = (event: any, addOnPairing = true): any => {
   const { eventId, eventType, gender } = event;
 
-  const addNewPair = (e, table) => {
-    const selectedParticipantids = table.getSelectedData().map((r) => r.participantId);
+  const addNewPair = (e: any, table: any) => {
+    const selectedParticipantids = table.getSelectedData().map((r: any) => r.participantId);
     if (selectedParticipantids.length !== 2) return;
     const participantId = tools.UUID();
     const uuids = [participantId];
@@ -42,7 +46,7 @@ export const createPair = (event, addOnPairing = true) => {
       },
     ];
 
-    const callback = (result) => {
+    const callback = (result: any) => {
       if (result.success) {
         table.deleteRow(selectedParticipantids);
         table.clearFilter();
@@ -52,7 +56,7 @@ export const createPair = (event, addOnPairing = true) => {
           const controlBar = getChildrenByClassName(parentElement, 'controlBar')?.[0];
           if (controlBar) {
             const search = getChildrenByClassName(controlBar, 'search');
-            Array.from(search).forEach((el) => (el.value = ''));
+            Array.from(search).forEach((el: any) => (el.value = ''));
           }
         }
 
@@ -70,12 +74,11 @@ export const createPair = (event, addOnPairing = true) => {
             entry: { participantId: participant.participantId, entryStatus: ALTERNATE },
             eventType: DOUBLES,
             participant,
-          });
+          } as any);
           context.tables[ALTERNATE].updateOrAddData([newEntry]);
           const tableClass = getParent(e.target, 'tableClass');
-          const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
-          // timeout is necessary to allow table event to trigger
-          if (controlBar) setTimeout(() => toggleOverlay({ table, target: controlBar })(), 100);
+          const controlBar = tableClass?.parent?.getElementsByClassName('controlBar')?.[0] as HTMLElement;
+          if (controlBar) setTimeout(() => toggleOverlay({ target: controlBar })(), 100);
         } else {
           console.log('participant not found', { participantIds, methods, result });
         }
@@ -100,7 +103,7 @@ export const createPair = (event, addOnPairing = true) => {
     visible: false,
   };
 
-  const createPairFromSelected = (selectedRows) => {
+  const createPairFromSelected = (selectedRows: any[]) => {
     const pairSelected = selectedRows?.length === 2;
     if (pairSelected && addOnPairing) {
       const ungroupedTable = context.tables[UNGROUPED];

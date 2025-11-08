@@ -1,3 +1,7 @@
+/**
+ * Scorecard overlay for team match display and editing.
+ * Displays collection definitions and individual match results within a team match.
+ */
 import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
@@ -13,8 +17,14 @@ const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
 const TIE_SIDE_2 = 'tieSide2';
 
-export function openScorecard({ title, drawId, matchUpId, onClose }) {
-  // NOTE: since this is opening for editing, fetch with any changes that have been made to scoring
+interface ScorecardParams {
+  title: string;
+  drawId: string;
+  matchUpId: string;
+  onClose?: () => void;
+}
+
+export function openScorecard({ title, drawId, matchUpId, onClose }: ScorecardParams): any {
   const result = tournamentEngine.findMatchUp({ drawId, matchUpId, participantsProfile: { withISO2: true } });
   const matchUp = result.matchUp;
 
@@ -23,17 +33,16 @@ export function openScorecard({ title, drawId, matchUpId, onClose }) {
   if (!title || !Array.isArray(matchUp?.tieFormat?.collectionDefinitions)) return;
   const content = renderScorecard({ matchUp });
 
-  // title is passed into footer for re-creating scorecard after mutations
   const footer = renderScorecardFooter({ title, drawId, matchUpId, onClose });
 
   return openOverlay({ title, content, footer });
 }
 
-export function renderScorecard({ matchUp }) {
+export function renderScorecard({ matchUp }: { matchUp: any }): HTMLDivElement {
   const contentContaner = document.createElement('div');
   contentContaner.className = 'overlay-content-container';
-  const side1 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 1 }), justify: 'end' });
-  const side2 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 2 }), justify: 'start' });
+  const side1 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 1 }) || '', justify: 'end' });
+  const side2 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 2 }) || '', justify: 'start' });
 
   const { winningSide, score } = matchUp;
   const sets = score?.sets || [];
@@ -45,11 +54,11 @@ export function renderScorecard({ matchUp }) {
   if (!context.collectionTables) context.collectionTables = [];
 
   const collectionDefinitions =
-    matchUp.tieFormat.collectionDefinitions?.sort((a, b) => a.collectionOrder - b.collectionOrder) || [];
+    matchUp.tieFormat.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || [];
 
   for (const collectionDefinition of collectionDefinitions) {
     const collectionMatchUps = matchUp.tieMatchUps.filter(
-      (tieMatchUp) => tieMatchUp.collectionId === collectionDefinition.collectionId,
+      (tieMatchUp: any) => tieMatchUp.collectionId === collectionDefinition.collectionId,
     );
     const collection = document.createElement('div');
     collection.className = 'collection';
@@ -70,12 +79,12 @@ export function renderScorecard({ matchUp }) {
   return contentContaner;
 }
 
-export function setTieScore(result) {
+export function setTieScore(result: any): void {
   const set = result?.score?.sets?.[0];
   if (!set) return;
 
-  const side1Score = document.getElementById(TIE_SIDE_1);
-  const side2Score = document.getElementById(TIE_SIDE_2);
+  const side1Score = document.getElementById(TIE_SIDE_1)!;
+  const side2Score = document.getElementById(TIE_SIDE_2)!;
   side1Score.classList.remove(WIN_INDICATOR);
   side2Score.classList.remove(WIN_INDICATOR);
   side1Score.innerHTML = set.side1Score;
@@ -85,43 +94,20 @@ export function setTieScore(result) {
   if (result.winningSide === 2) side2Score.classList.add(WIN_INDICATOR);
 }
 
-function getParticipantName({ matchUp, sideNumber }) {
-  return matchUp.sides.find((side) => side.sideNumber === sideNumber)?.participant?.participantName;
+function getParticipantName({ matchUp, sideNumber }: { matchUp: any; sideNumber: number }): string | undefined {
+  return matchUp.sides.find((side: any) => side.sideNumber === sideNumber)?.participant?.participantName;
 }
 
-export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
+export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: ScorecardParams): HTMLDivElement {
   const edit = document.createElement('button');
   edit.className = 'button is-warning is-light';
   edit.onclick = () => {
-    // NOTE: this will reset a tieFormat to the next inherited tieFormat matchUp => structure => drawDefinition
-    /*
-    tournamentEngine.resetTieFormat({
-      matchUpId, // must be a TEAM matchUp
-      drawId, // required
-      uuids // optional - in client/server scenarios generated matchUps must have equivalent matchUpIds
-    });
-    */
     const callback = () => openScorecard({ title, drawId, matchUpId, onClose: () => console.log('closed') });
     updateTieFormat({ matchUpId, drawId, callback });
   };
   edit.innerHTML = 'Edit scorecard';
 
-  /*
-  const reset = document.createElement('button');
-  reset.className = 'button is-warning is-light';
-  reset.onclick = () => {
-    // NOTE: this will reset a tieFormat to the next inherited tieFormat matchUp => structure => drawDefinition
-    // tournamentEngine.resetTieFormat({
-    //   matchUpId, // must be a TEAM matchUp
-    //   drawId, // required
-    //   uuids // optional - in client/server scenarios generated matchUps must have equivalent matchUpIds
-    // });
-    console.log('reset');
-  };
-  reset.innerHTML = 'Reset';
-  */
-
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (result.success) {
       const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
       const content = renderScorecard({ matchUp });
@@ -162,12 +148,12 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }) {
   close.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    while (context.collectionTables.length) {
+    while (context.collectionTables && context.collectionTables.length) {
       const table = context.collectionTables.pop();
       table.destroy();
     }
     closeOverlay();
-    isFunction(onClose) && onClose();
+    isFunction(onClose) && onClose && onClose();
   };
   close.innerHTML = 'Done';
 

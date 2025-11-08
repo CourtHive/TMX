@@ -1,3 +1,7 @@
+/**
+ * MatchUps tab with filtering and statistics.
+ * Displays all tournament matches with search, event, flight, team, status, and type filters.
+ */
 import { tournamentEngine, participantConstants, eventConstants } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
@@ -25,16 +29,15 @@ import {
 const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
 const { TEAM } = participantConstants;
 
-export function renderMatchUpTab() {
+export function renderMatchUpTab(): void {
   const matchUpFilters = new Map();
-  const components = { elements: {}, options: {} };
+  const components: any = { elements: {}, options: {} };
 
   const { data, table, replaceTableData } = createMatchUpsTable();
   const events = tournamentEngine.getEvents().events || [];
-  const statsPanel = document.getElementById(TEAM_STATS);
+  const statsPanel = document.getElementById(TEAM_STATS)!;
   statsPanel.style.display = NONE;
 
-  // const { flightOptions, allFlights, flightFilter, mapFlightOptions } = getFlightOptions({
   components.options.flight = getFlightOptions({
     matchUpFilters,
     events,
@@ -51,9 +54,8 @@ export function renderMatchUpTab() {
   const typeOptions = getTypeOptions({ table, matchUpFilters, data });
   const statusOptions = getStatusOptions({ matchUpFilters, table });
 
-  // SEARCH filter
-  const searchFilter = (rowData) => rowData.searchText?.includes(matchUpFilters.get('searchText'));
-  const updateSearchFilter = (value) => {
+  const searchFilter = (rowData: any) => rowData.searchText?.includes(matchUpFilters.get('searchText'));
+  const updateSearchFilter = (value: string) => {
     if (!value) table?.removeFilter(searchFilter);
     matchUpFilters.set('searchText', value);
     if (value) table?.addFilter(searchFilter);
@@ -67,14 +69,11 @@ export function renderMatchUpTab() {
       location: OVERLAY,
     },
     {
-      onKeyDown: (e) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
-      onKeyUp: (e) => updateSearchFilter(e.target.value),
+      onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && updateSearchFilter(''),
+      onKeyUp: (e: any) => updateSearchFilter(e.target.value),
       clearSearch: () => {
-        // remove whatever filter is currently in place
         table?.removeFilter(searchFilter);
-        // reset searchText
         matchUpFilters.set('searchText', '');
-        // set filter to empty value
         table?.removeFilter();
       },
       placeholder: 'Search matches',
@@ -146,14 +145,13 @@ export function renderMatchUpTab() {
     },
   ];
 
-  const target = document.getElementById(MATCHUPS_CONTROL);
-  components.elements = controlBar({ table, target, items }).elements;
+  const target = document.getElementById(MATCHUPS_CONTROL)!;
+  components.elements = controlBar({ table, target, items })?.elements;
 }
 
-function getTypeOptions({ table, matchUpFilters, data }) {
-  // FILTER: type
-  const typeFilter = (rowData) => rowData.matchUpType === matchUpFilters.get('matchUpTypeFilter');
-  const updateTypeFilter = (type) => {
+function getTypeOptions({ table, matchUpFilters, data }: any): any[] {
+  const typeFilter = (rowData: any) => rowData.matchUpType === matchUpFilters.get('matchUpTypeFilter');
+  const updateTypeFilter = (type?: string) => {
     table?.removeFilter(typeFilter);
     matchUpFilters.set('matchUpTypeFilter', type);
     if (type) table?.addFilter(typeFilter);
@@ -163,7 +161,7 @@ function getTypeOptions({ table, matchUpFilters, data }) {
     onClick: () => updateTypeFilter(),
     close: true,
   };
-  const matchUpTypes = data.reduce((types, matchUp) => {
+  const matchUpTypes = data.reduce((types: string[], matchUp: any) => {
     if (!types.includes(matchUp.matchUpType)) types.push(matchUp.matchUpType);
     return types;
   }, []);
@@ -176,17 +174,16 @@ function getTypeOptions({ table, matchUpFilters, data }) {
   ].filter(Boolean);
 }
 
-function getTeamOptions({ table, matchUpFilters, statsPanel }) {
-  // FILTER: teams
+function getTeamOptions({ table, matchUpFilters, statsPanel }: any): any[] {
   const teamParticipants =
     tournamentEngine.getParticipants({ participantFilters: { participantTypes: [TEAM] } }).participants || [];
   const teamMap = Object.assign(
     {},
-    ...teamParticipants.map((p) => ({ [p.participantId]: p.individualParticipantIds })),
+    ...teamParticipants.map((p: any) => ({ [p.participantId]: p.individualParticipantIds })),
   );
-  const teamFilter = (rowData) =>
-    rowData.individualParticipantIds.some((id) => teamMap[matchUpFilters.get('teamIdFilter')]?.includes(id));
-  const updateTeamFilter = (teamParticipantId) => {
+  const teamFilter = (rowData: any) =>
+    rowData.individualParticipantIds.some((id: string) => teamMap[matchUpFilters.get('teamIdFilter')]?.includes(id));
+  const updateTeamFilter = (teamParticipantId?: string) => {
     if (matchUpFilters.get('teamIdFilter')) table?.removeFilter(teamFilter);
     matchUpFilters.set('teamIdFilter', teamParticipantId);
     if (teamParticipantId) {
@@ -212,11 +209,10 @@ function getTeamOptions({ table, matchUpFilters, statsPanel }) {
     close: true,
   };
 
-  // TODO: teamOptions => use element.options.replaceWith to update to only those teams with results
   return [allTeams, { divider: true }].concat(
     teamParticipants
-      .sort((a, b) => a?.participantName?.localeCompare(b?.participantName))
-      .map((team) => ({
+      .sort((a: any, b: any) => a?.participantName?.localeCompare(b?.participantName))
+      .map((team: any) => ({
         onClick: () => updateTeamFilter(team.participantId),
         label: team.participantName,
         close: true,
@@ -224,9 +220,8 @@ function getTeamOptions({ table, matchUpFilters, statsPanel }) {
   );
 }
 
-function getStatusOptions({ matchUpFilters, table }) {
-  // FILTER: matchUpStatus
-  const statusFilter = (rowData) => {
+function getStatusOptions({ matchUpFilters, table }: any): any[] {
+  const statusFilter = (rowData: any) => {
     const currentFilter = matchUpFilters.get('matchUpStatusFilter');
     if (currentFilter === 'readyToScore') {
       return rowData.scoreDetail.readyToScore && !rowData.scoreDetail.score && !rowData.scoreDetail.winningSide;
@@ -237,7 +232,7 @@ function getStatusOptions({ matchUpFilters, table }) {
       );
     }
   };
-  const updateStatusFilter = (status) => {
+  const updateStatusFilter = (status?: string) => {
     table?.removeFilter(statusFilter);
     matchUpFilters.set('matchUpStatusFilter', status);
     if (status) table?.addFilter(statusFilter);
@@ -255,10 +250,9 @@ function getStatusOptions({ matchUpFilters, table }) {
   ];
 }
 
-function getFlightOptions({ matchUpFilters, events, table }) {
-  // FILTER: flights
-  const flightFilter = (rowData) => rowData.drawId === matchUpFilters.get('drawIdFilter');
-  const updateFlightFilter = (drawId) => {
+function getFlightOptions({ matchUpFilters, events, table }: any): any {
+  const flightFilter = (rowData: any) => rowData.drawId === matchUpFilters.get('drawIdFilter');
+  const updateFlightFilter = (drawId?: string) => {
     table?.removeFilter(flightFilter);
     matchUpFilters.set('drawIdFilter', drawId);
     if (drawId) table?.addFilter(flightFilter);
@@ -268,8 +262,8 @@ function getFlightOptions({ matchUpFilters, events, table }) {
     onClick: () => updateFlightFilter(),
     close: true,
   };
-  const mapFlightOptions = (event) =>
-    event.drawDefinitions?.map(({ drawId, drawName }) => ({
+  const mapFlightOptions = (event: any) =>
+    event.drawDefinitions?.map(({ drawId, drawName }: any) => ({
       onClick: () => updateFlightFilter(drawId),
       label: drawName,
       close: true,
@@ -278,10 +272,9 @@ function getFlightOptions({ matchUpFilters, events, table }) {
   return { flightFilter, flightOptions, allFlights, mapFlightOptions };
 }
 
-function getEventOptions({ matchUpFilters, table, events, components }) {
-  // FILTER: events
-  const eventFilter = (rowData) => rowData.eventId === matchUpFilters.get('eventIdFilter');
-  const updateEventFilter = (eventId) => {
+function getEventOptions({ matchUpFilters, table, events, components }: any): any[] {
+  const eventFilter = (rowData: any) => rowData.eventId === matchUpFilters.get('eventIdFilter');
+  const updateEventFilter = (eventId?: string) => {
     table?.removeFilter(eventFilter);
     matchUpFilters.set('eventIdFilter', eventId);
     table?.removeFilter(components.options.flight.flightFilter);
@@ -289,7 +282,7 @@ function getEventOptions({ matchUpFilters, table, events, components }) {
     if (eventId) {
       table?.addFilter(eventFilter);
       components.options.flight.flightOptions = [components.options.flight.allFlights, { divider: true }]
-        .concat(components.options.flight.mapFlightOptions(events.find((event) => eventId === event.eventId)))
+        .concat(components.options.flight.mapFlightOptions(events.find((event: any) => eventId === event.eventId)))
         .filter(Boolean);
 
       const flightButton = {
@@ -314,7 +307,7 @@ function getEventOptions({ matchUpFilters, table, events, components }) {
     close: true,
   };
   return [allEvents, { divider: true }].concat(
-    events.map((event) => ({
+    events.map((event: any) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
       close: true,

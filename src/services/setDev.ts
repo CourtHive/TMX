@@ -1,3 +1,7 @@
+/**
+ * Development mode utilities and debugging tools.
+ * Exposes factory methods and utilities on window.dev for debugging.
+ */
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
@@ -16,7 +20,7 @@ import dayjs from 'dayjs';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
 
-const subscriptions = {
+const subscriptions: Record<string, (results: any) => void> = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
   addMatchUps: (results) => functionOrLog('addMatchUps', results),
   addParticipants: (results) => functionOrLog('addParticipants', results),
@@ -42,38 +46,35 @@ const subscriptions = {
   modifyTournamentDetail: (results) => functionOrLog('modifyTournamentDetail', results),
 };
 
-function functionOrLog(s, results) {
-  return typeof window.dev?.subs?.[s] === 'function'
-    ? window.dev.subs[s](results)
-    : // eslint-disable-next-line no-console
-      (window.dev.allSubscriptions || window.dev.subs?.[s]) && console.log(s, results);
+function functionOrLog(s: string, results: any): void {
+  return typeof (window as any).dev?.subs?.[s] === 'function'
+    ? (window as any).dev.subs[s](results)
+    : ((window as any).dev.allSubscriptions || (window as any).dev.subs?.[s]) && console.log(s, results);
 }
 
-export function setDev() {
-  if (!window['dev']) {
-    // eslint-disable-next-line no-console
+export function setDev(): void {
+  if (!(window as any)['dev']) {
     console.log('%c dev initialized', 'color: yellow');
-    window.dev = {};
+    (window as any).dev = {};
   } else {
     return;
   }
 
   const help = () => console.log('set window.socketURL for messaging');
-  const modifyTournament = (methods) => {
+  const modifyTournament = (methods: any[]) => {
     if (!Array.isArray(methods)) {
       tmxToast({ message: 'missing methods array', intent: 'is-danger' });
       return;
     }
     const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
     if (tournamentId) {
-      const callback = (result) => {
+      const callback = (result: any) => {
         if (result?.success) {
           tmxToast({ message: 'success', intent: 'is-success' });
           const tournamentRecord = factory.tournamentEngine.getTournament().tournamentRecord;
           loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
         } else {
           tmxToast({ message: result?.error?.message ?? 'error', intent: 'is-danger' });
-          // eslint-disable-next-line no-console
           console.log({ result });
         }
       };
@@ -84,8 +85,8 @@ export function setDev() {
     }
   };
 
-  const fetchTournament = (tournamentId) => {
-    requestTournament({ tournamentId }).then((result) => {
+  const fetchTournament = (tournamentId: string) => {
+    requestTournament({ tournamentId }).then((result: any) => {
       if (result?.error) {
         console.log({ error: result.error });
       } else {
@@ -99,10 +100,10 @@ export function setDev() {
 
   addDev({
     getProviders,
-    getProvider: (name) =>
-      getProviders().then((result) =>
+    getProvider: (name: string) =>
+      getProviders().then((result: any) =>
         console.log(
-          result?.data?.providers.find((p) => p.value.organisationName.toLowerCase().includes(name.toLowerCase())),
+          result?.data?.providers.find((p: any) => p.value.organisationName.toLowerCase().includes(name.toLowerCase())),
         ),
       ),
     getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
@@ -129,18 +130,18 @@ export function setDev() {
   factory.globalState.setSubscriptions({ subscriptions });
 }
 
-function addDev(variable) {
-  if (!isObject(window.dev)) return;
+function addDev(variable: Record<string, any>): void {
+  if (!isObject((window as any).dev)) return;
 
   try {
-    Object.keys(variable).forEach((key) => (window.dev[key] = variable[key]));
+    Object.keys(variable).forEach((key) => ((window as any).dev[key] = variable[key]));
   } catch (err) {
     tmxToast({ message: 'An error occurred while adding dev variables', intent: 'is-danger' });
     console.error('Error adding dev variables:', err);
   }
 }
 
-function load(json) {
+function load(json: any): void {
   if (typeof json === 'object') {
     const tournamentRecord = json.tournamentRecord || json;
     const tournamentId = tournamentRecord?.tournamentId;
@@ -148,17 +149,16 @@ function load(json) {
   }
 }
 
-function generateMockTournament(params) {
+function generateMockTournament(params: any): void {
   const { tournamentRecord, error } = factory.mocksEngine.generateTournamentRecord(params);
   if (error) {
-    // eslint-disable-next-line no-console
     console.log({ error });
   } else {
     addAndDisplay(tournamentRecord);
   }
 }
 
-function addAndDisplay(tournamentRecord) {
+function addAndDisplay(tournamentRecord: any): void {
   const tournamentId = tournamentRecord?.tournamentId;
   const displayTournament = () => context.router.navigate(`/${TOURNAMENT}/${tournamentId}`);
   addOrUpdateTournament({ tournamentRecord, callback: displayTournament });

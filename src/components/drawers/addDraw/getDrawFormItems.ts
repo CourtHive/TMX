@@ -1,3 +1,7 @@
+/**
+ * Draw form items configuration.
+ * Generates form field definitions for draw creation with validation and options.
+ */
 import { numericValidator } from 'components/validators/numericValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 import { numericRange } from 'components/validators/numericRange';
@@ -39,16 +43,21 @@ const { TEAM } = eventConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
 
-export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
+interface DrawFormParams {
+  event: any;
+  drawId?: string;
+  isQualifying?: boolean;
+  structureId?: string;
+}
+
+export function getDrawFormItems({ event, drawId, isQualifying, structureId }: DrawFormParams): { items: any[]; structurePositionAssignments: any } {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0;
-  let drawType = SINGLE_ELIMINATION;
+  const drawType = SINGLE_ELIMINATION;
 
-  const drawDefinition = drawId && event.drawDefinitions?.find((def) => def.drawId === drawId);
+  const drawDefinition = drawId && event.drawDefinitions?.find((def: any) => def.drawId === drawId);
   const structurePositionAssignments =
     structureId && tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments;
-  // const structure = structureId && drawDefinition?.structures.find((s) => s.structureId === structureId);
-  // const isMain = structure?.stage === MAIN && structure?.stageSequence === 1;
   const entryProfile = tournamentEngine.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension
     ?.value;
   const initialQualifiersCount = structureId ? 1 : 0;
@@ -63,7 +72,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
       value: CUSTOM,
     },
   ].concat(
-    POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(({ matchUpFormat, description: label }) => ({
+    POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(({ matchUpFormat, description: label }: any) => ({
       selected: matchUpFormat === 'SET3-S:6/TB7',
       value: matchUpFormat,
       label,
@@ -78,7 +87,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }) {
   ];
 
   const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
-  const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
+  const roundRobinOptions = validGroupSizes.map((size: number) => ({ label: size, value: size }));
   const playoffOptions = [
     { label: 'Group winners', value: WINNERS },
     { label: 'Group positions', value: POSITIONS },

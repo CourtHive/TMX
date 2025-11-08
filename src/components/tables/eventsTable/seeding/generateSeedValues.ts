@@ -1,3 +1,7 @@
+/**
+ * Generate seed values from participant ratings.
+ * Automatically assigns seeding based on rating scales with confidence bands.
+ */
 import { tournamentEngine, drawDefinitionConstants, scaleConstants, fixtures } from 'tods-competition-factory';
 import { setParticipantScaleItems } from './setParticipantScaleItems';
 import { getConfidenceBand } from 'components/tables/common/sorters/ratingSorter';
@@ -10,7 +14,14 @@ const { QUALIFYING, MAIN } = drawDefinitionConstants;
 const { SEEDING, RATING } = scaleConstants;
 const { ratingsParameters } = fixtures;
 
-export function generateSeedValues({ event, group, table, field }) {
+interface GenerateSeedValuesParams {
+  event: any;
+  group: string;
+  table: any;
+  field: string;
+}
+
+export function generateSeedValues({ event, group, table, field }: GenerateSeedValuesParams): void {
   const { eventId, eventType } = event;
   const { seedsCount, stageEntries } = tournamentEngine.getEntriesAndSeedsCount({
     stage: group === QUALIFYING ? QUALIFYING : MAIN,
@@ -21,15 +32,15 @@ export function generateSeedValues({ event, group, table, field }) {
   const [scaleType, rating] = field.split('.');
   const reversed = rating ? !ratingsParameters[rating.toUpperCase()].ascending : false;
   const accessor = ratingsParameters[rating.toUpperCase()].accessor;
-  const getRating = (participant) => participant.ratings?.[rating] || { confidence: 0, [accessor]: Infinity };
-  const getRatingValue = (participant) => getRating(participant)?.[accessor] || 0;
+  const getRating = (participant: any) => participant.ratings?.[rating] || { confidence: 0, [accessor]: Infinity };
+  const getRatingValue = (participant: any) => getRating(participant)?.[accessor] || 0;
 
-  const scaleSort = (a, b) =>
+  const scaleSort = (a: any, b: any) =>
     (scaleType === 'ratings' && reversed
       ? getRatingValue(a) - getRatingValue(b)
       : getRatingValue(b) - getRatingValue(a)) || a - b;
   const data = table.getData();
-  const bandedParticipants = { high: [], medium: [], low: [] };
+  const bandedParticipants: Record<string, any[]> = { high: [], medium: [], low: [] };
 
   let ratedParticipants = 0;
   for (const participant of data) {
@@ -47,13 +58,12 @@ export function generateSeedValues({ event, group, table, field }) {
     }
   }
 
-  const sortedBy =
-    isFunction(scaleSort) &&
-    [].concat(
-      bandedParticipants.high.toSorted(scaleSort),
-      bandedParticipants.medium.toSorted(scaleSort),
-      bandedParticipants.low.toSorted(scaleSort),
-    );
+  const sortedBy = (isFunction(scaleSort) &&
+    ([] as any[]).concat(
+      [...bandedParticipants.high].sort(scaleSort),
+      [...bandedParticipants.medium].sort(scaleSort),
+      [...bandedParticipants.low].sort(scaleSort),
+    )) || [];
 
   const scaledEntries = sortedBy.slice(0, Math.min(ratedParticipants, seedsCount));
 
@@ -74,7 +84,7 @@ export function generateSeedValues({ event, group, table, field }) {
   const callback = () => {
     const seedsMap = Object.assign(
       {},
-      ...scaledEntries.map((participant, i) => ({ [participant.participantId]: i + 1 })),
+      ...scaledEntries.map((participant: any, i: number) => ({ [participant.participantId]: i + 1 })),
     );
 
     const rows = table.getRows();
@@ -92,22 +102,15 @@ export function generateSeedValues({ event, group, table, field }) {
   setParticipantScaleItems({ scaleItemsWithParticipantIds, scaleBasis: RATING, eventId, callback });
 }
 
-export function generateSeedingScaleItems() {
-  // getScaledEntries...
+export function generateSeedingScaleItems(): any {
   return {
     method: GENERATE_SEEDING_SCALE_ITEMS,
     params: {
-      scaledEntries: [
-        // { participantId: 'pid', value: '33', order: 1 },
-      ],
+      scaledEntries: [],
       seedsCount: 8,
-      scaleAttributes: {
-        // scaleName: eventId, scaleType: 'RANKING', eventType: 'SINGLES'
-      },
+      scaleAttributes: {},
       scaleName: 'eventId',
-      stageEntries: [
-        // { participantId: 'pid', entryStatus, entryStage, entryPosition }
-      ],
+      stageEntries: [],
     },
   };
 }

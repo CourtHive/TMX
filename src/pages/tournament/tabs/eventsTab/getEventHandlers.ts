@@ -1,3 +1,7 @@
+/**
+ * Event handlers for draw view interactions.
+ * Handles clicks on participants, scores, schedules, venues, and round headers.
+ */
 import { fixtures, tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
@@ -11,30 +15,38 @@ import { BOTTOM } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
-export function getEventHandlers({ callback, drawId, eventData }) {
-  const matchUps = eventData?.drawsData?.flatMap(({ structures }) =>
+interface EventHandlersParams {
+  callback: (params?: any) => void;
+  drawId: string;
+  eventData: any;
+}
+
+export function getEventHandlers({ callback, drawId, eventData }: EventHandlersParams): any {
+  const matchUps = eventData?.drawsData?.flatMap(({ structures }: any) =>
     structures
-      .flatMap((structure) => [
-        ...[structure.structures?.flatMap((structure) => Object.values(structure.roundMatchUps || {}).flat())],
+      .flatMap((structure: any) => [
+        ...[structure.structures?.flatMap((structure: any) => Object.values(structure.roundMatchUps || {}).flat())],
         ...Object.values(structure.roundMatchUps || {}).flat(),
       ])
       .filter(Boolean),
   );
   const matchUpsMap = tools.createMap(matchUps, 'matchUpId');
-  const getMatchUp = (props) => {
+  const getMatchUp = (props: any) => {
     const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
     return matchUpsMap[matchUpId];
   };
 
-  const getSideNumber = (props) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-sd', 'sideNumber'));
-  const getStructureId = (props) => getTargetAttribute(props.pointerEvent.target, 'tmx-str', 'id');
-  const getRoundNumber = (props) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-rd', 'roundNumber'));
+  const getSideNumber = (props: any) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-sd', 'sideNumber'));
+  const getStructureId = (props: any) => getTargetAttribute(props.pointerEvent.target, 'tmx-str', 'id');
+  const getRoundNumber = (props: any) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-rd', 'roundNumber'));
 
-  const sideClick = (props) => {
+  const sideClick = (props: any) => {
     const matchUp = getMatchUp(props);
+    if (!matchUp) return;
+    
     const sideNumber = getSideNumber(props);
 
-    const side = props.side || matchUp.sides?.find((side) => side.sideNumber === sideNumber);
+    const side = props.side || matchUp.sides?.find((side: any) => side.sideNumber === sideNumber);
 
     const { validActions: actions } =
       (matchUp.drawId &&
@@ -45,24 +57,18 @@ export function getEventHandlers({ callback, drawId, eventData }) {
           matchUpId: matchUp?.matchUpId,
           drawId: matchUp?.drawId,
           policyDefinitions: {
-            positionActions: {
-              // disableRoundRestrictions: true
-            },
+            positionActions: {},
             ...fixtures.policies.POLICY_POSITION_ACTIONS_UNRESTRICTED,
           },
-          // policyDefinitions: {
-          // ...POLICY_POSITION_ACTIONS_UNRESTRICTED,
-          //   ...(tournamentPolicies?.positionActions && { positionActions: tournamentPolicies?.positionActions }),
-          //   ...{ seeding: tournamentPolicies?.seeding }
-          // },
         })) ||
       {};
 
     selectPositionAction({ ...props, actions, callback });
   };
-  const scoreClick = (props) => {
+  const scoreClick = (props: any) => {
     const sideNumber = getSideNumber(props);
     const matchUp = getMatchUp(props);
+    if (!matchUp) return;
 
     const { validActions } =
       tournamentEngine.matchUpActions({
@@ -71,7 +77,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         sideNumber,
       }) || {};
 
-    const readyToScore = validActions?.find(({ type }) => type === 'SCORE');
+    const readyToScore = validActions?.find(({ type }: any) => type === 'SCORE');
 
     if (readyToScore) {
       if (matchUp.matchUpType === TEAM) {
@@ -88,7 +94,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
 
   return {
     centerInfoClick: () => console.log('centerInfo click'),
-    roundHeaderClick: (props) => {
+    roundHeaderClick: (props: any) => {
       const roundNumber = getRoundNumber(props);
       const structureId = getStructureId(props);
       return handleRoundHeaderClick({
@@ -100,7 +106,7 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         drawId,
       });
     },
-    scheduleClick: (props) => {
+    scheduleClick: (props: any) => {
       if (props?.pointerEvent) {
         props.pointerEvent.stopPropagation();
         const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
@@ -108,19 +114,18 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         matchUpActions({ pointerEvent: props.pointerEvent, matchUp, callback });
       }
     },
-    venueClick: (props) => {
+    venueClick: (props: any) => {
       const matchUp = getMatchUp(props);
       if (props?.pointerEvent && matchUp?.schedule?.venueId) {
         const venueId = matchUp.schedule.venueId;
         const address = tournamentEngine.findVenue({ venueId })?.venue?.addresses?.[0];
         const { latitude, longitude } = address || {};
 
-        // NOTE: if there are other options not dependent on lat/long, remove following line
         if (!latitude || !longitude) return;
 
         const google = `https://www.google.com/maps/@?api=1&map_action=map&center=${latitude}%2C${longitude}&zoom=18&basemap=satellite`;
         const bing = `https://bing.com/maps/default.aspx?cp=${latitude}~${longitude}&lvl=17&style=h`;
-        const openMap = (provider) => {
+        const openMap = (provider: string) => {
           const url = provider && latitude && longitude && ((provider === 'google' && google) || bing);
           if (url) window.open(url, '_blank');
         };
@@ -142,7 +147,6 @@ export function getEventHandlers({ callback, drawId, eventData }) {
         tipster({ items: venueOptions, target: props.pointerEvent.target, config: { placement: BOTTOM } });
       }
     },
-    // matchUpClick: (params) => console.log('matchUpClick', params),
     participantClick: sideClick,
     matchUpClick: scoreClick,
     scoreClick,

@@ -1,3 +1,7 @@
+/**
+ * Tournament content container and tab management.
+ * Creates and manages tournament tab structure and visibility.
+ */
 import { removeAllChildNodes } from 'services/dom/transformers';
 
 import {
@@ -35,7 +39,7 @@ import {
   TEAM_STATS,
 } from 'constants/tmxConstants';
 
-const refMap = {
+const refMap: Record<string, string> = {
   [TOURNAMENT_OVERVIEW]: 'o-tab',
   [PARTICIPANTS]: 'p-tab',
   [EVENTS_TAB]: 'e-tab',
@@ -44,7 +48,7 @@ const refMap = {
   [VENUES_TAB]: 'v-tab',
 };
 
-export function tournamentContent() {
+export function tournamentContent(): void {
   const participantsTab = `
         <div id='individuals' class='tab_section participants_tab'>
           <div class='section'>
@@ -98,19 +102,19 @@ export function tournamentContent() {
         </div>
         `;
 
-  const tabs = {
+  const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's-tab': scheduleTab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
   };
 
-  const contentContainer = document.getElementById(TOURNAMENT_CONTAINER);
+  const contentContainer = document.getElementById(TOURNAMENT_CONTAINER)!;
 
   Object.keys(tabs).forEach((id) => {
     const elem = document.createElement('div');
-    elem.class = 'is-marginless';
-    elem.style = 'width: inherit';
+    elem.className = 'is-marginless';
+    elem.style.cssText = 'width: inherit';
     elem.id = id;
     elem.innerHTML = tabs[id];
     contentContainer.appendChild(elem);
@@ -119,7 +123,7 @@ export function tournamentContent() {
   displayTab(PARTICIPANTS);
 }
 
-export function displayTab(reference) {
+export function displayTab(reference: string): any {
   if (!Object.keys(refMap).includes(reference)) return false;
 
   Object.keys(refMap).forEach((key) => {
@@ -135,7 +139,7 @@ export function displayTab(reference) {
   return { ...SUCCESS };
 }
 
-export function removeTournamentContent() {
+export function removeTournamentContent(): void {
   const ids = [
     DRAWS_VIEW,
     EVENTS_CONTROL,

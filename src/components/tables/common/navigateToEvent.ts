@@ -55,4 +55,5 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, part
   }
 
   context.router.navigate(route);
+  context.router.resolve();
 }

@@ -1,3 +1,7 @@
+/**
+ * Action options for draw structures.
+ * Provides menu options for editing, removing, and resetting draw structures.
+ */
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { tournamentEngine, eventConstants } from 'tods-competition-factory';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
@@ -14,16 +18,25 @@ import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 
 const { TEAM } = eventConstants;
 
-export function getActionOptions({ structureName, dualMatchUp, structureId, eventData, drawData, drawId }) {
-  const hasQualifying = drawData.structures?.find((structure) => structure.stage === QUALIFYING);
-  const structure = drawData.structures?.find((structure) => structure.structureId === structureId);
+interface ActionOptionsParams {
+  structureName: string;
+  dualMatchUp?: any;
+  structureId: string;
+  eventData: any;
+  drawData: any;
+  drawId: string;
+}
+
+export function getActionOptions({ structureName, dualMatchUp, structureId, eventData, drawData, drawId }: ActionOptionsParams): any[] {
+  const hasQualifying = drawData.structures?.find((structure: any) => structure.stage === QUALIFYING);
+  const structure = drawData.structures?.find((structure: any) => structure.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
 
   const scorecardUpdated = () => {
     const matchUpId = dualMatchUp.matchUpId;
     const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
     const scorecard = renderScorecard({ matchUp });
-    const drawsView = document.getElementById(DRAWS_VIEW);
+    const drawsView = document.getElementById(DRAWS_VIEW)!;
     removeAllChildNodes(drawsView);
     drawsView.appendChild(scorecard);
   };
@@ -38,7 +51,7 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
     },
     {
       hide: eventData.eventInfo.eventType === TEAM,
-      onClick: () => editMatchUpFormat({ structureId, eventId, drawId }),
+      onClick: () => editMatchUpFormat({ structureId, drawId }),
       label: `Edit ${structureName} scoring`,
       close: true,
     },
@@ -60,9 +73,9 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
 
   if (dualMatchUp) {
     const matchUpId = dualMatchUp.matchUpId;
-    options.push({ divider: true });
+    options.push({ divider: true } as any);
 
-    const postMutation = (result) => result.success && scorecardUpdated();
+    const postMutation = (result: any) => result.success && scorecardUpdated();
     const removePlayers = () => {
       const currentMatchUp = tournamentEngine.findMatchUp({
         matchUpId,
@@ -89,7 +102,7 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
       label: 'Remove players',
       onClick: removePlayers,
       close: true,
-    };
+    } as any;
     options.push(removeParticipantsButton);
 
     const clearResults = () => {
@@ -105,7 +118,7 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
       label: 'Clear results',
       onClick: clearResults,
       close: true,
-    };
+    } as any;
     options.push(clearResultsButton);
   }
 
