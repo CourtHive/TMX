@@ -1,3 +1,7 @@
+/**
+ * MatchUp drag-and-drop handler for schedule table.
+ * Handles dropping matchUps onto schedule grid cells with venue/court coordination.
+ */
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -8,28 +12,28 @@ import { context } from 'services/context';
 import { COMPETITION_ENGINE, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
-export async function matchUpDrop(ev, cell) {
+export async function matchUpDrop(ev: DragEvent, cell: any): Promise<void> {
   ev.preventDefault();
-  const sourceMatchUpId = ev.dataTransfer.getData('itemid');
-  const methods = [];
+  const sourceMatchUpId = ev.dataTransfer?.getData('itemid');
+  const methods: any[] = [];
 
   const table = cell.getTable();
   const data = table.getData();
   const targetRow = cell.getRow().getData();
 
-  let matchUps = table.getData().flatMap((row) => Object.values(row).filter((m) => m.matchUpId));
-  let sourceMatchUp = matchUps.find((matchUp) => matchUp.matchUpId === sourceMatchUpId);
+  let matchUps = table.getData().flatMap((row: any) => Object.values(row).filter((m: any) => m.matchUpId));
+  let sourceMatchUp = matchUps.find((matchUp: any) => matchUp.matchUpId === sourceMatchUpId);
   if (!sourceMatchUp) {
     const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
-    const unscheduledMatchUps = unscheduledTable.getData().map((row) => row.matchUp);
-    sourceMatchUp = unscheduledMatchUps.find((matchUp) => matchUp.matchUpId === sourceMatchUpId) || {};
+    const unscheduledMatchUps = unscheduledTable.getData().map((row: any) => row.matchUp);
+    sourceMatchUp = unscheduledMatchUps.find((matchUp: any) => matchUp.matchUpId === sourceMatchUpId) || {};
   }
 
   const selectedDate = context.displayed.selectedScheduleDate;
 
   const { courtOrder: sourceCourtOrder, courtId: sourceCourtId, venueId: sourceVenueId } = sourceMatchUp.schedule || {};
 
-  const target = ev.currentTarget;
+  const target = ev.currentTarget as HTMLElement;
   const targetMatchUpId = target.id;
 
   // CASE: dropped onto origin cell
@@ -38,7 +42,7 @@ export async function matchUpDrop(ev, cell) {
   }
 
   const sourceSchedule = sourceMatchUp.schedule;
-  const targetMatchUp = targetMatchUpId && matchUps.find((matchUp) => matchUp.matchUpId === targetMatchUpId);
+  const targetMatchUp = targetMatchUpId && matchUps.find((matchUp: any) => matchUp.matchUpId === targetMatchUpId);
 
   const targetVenueId = target.getAttribute('venueId');
   const targetCourtId = target.getAttribute('courtId');
@@ -46,18 +50,18 @@ export async function matchUpDrop(ev, cell) {
 
   const targetColumnKey = Object.keys(targetRow).find((key) => {
     if (!isObject(targetRow[key])) return;
-    const schedule = targetRow[key]?.schedule || {};
+    const schedule = (targetRow[key] as any)?.schedule || {};
     const { courtOrder, courtId, venueId } = schedule;
     return (
-      courtOrder?.toString() === targetCourtOrder.toString() && venueId === targetVenueId && courtId === targetCourtId
+      courtOrder?.toString() === targetCourtOrder?.toString() && venueId === targetVenueId && courtId === targetCourtId
     );
   });
 
-  let sourceColumnKey;
-  const sourceRow = data.find((row) => {
+  let sourceColumnKey: string | undefined;
+  const sourceRow = data.find((row: any) => {
     sourceColumnKey = Object.keys(row).find((key) => {
       if (!isObject(row[key])) return;
-      const schedule = row[key]?.schedule || {};
+      const schedule = (row[key] as any)?.schedule || {};
       const { courtOrder, courtId, venueId } = schedule;
       return courtOrder === sourceCourtOrder && venueId === sourceVenueId && courtId === sourceCourtId;
     });
@@ -65,14 +69,14 @@ export async function matchUpDrop(ev, cell) {
   });
 
   const invokeMethods = () => {
-    const callback = (result) => {
+    const callback = (result: any) => {
       !result.success && console.log({ result });
       updateConflicts(table);
     };
     mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
   };
 
-  const updateSourceMatchUp = ({ scheduledTime = '', timeModifiers = [] } = {}) => {
+  const updateSourceMatchUp = ({ scheduledTime = '', timeModifiers = [] }: { scheduledTime?: string; timeModifiers?: any[] } = {}) => {
     const updatedSourceSchedule = {
       courtOrder: targetCourtOrder,
       scheduledDate: selectedDate,
@@ -93,7 +97,6 @@ export async function matchUpDrop(ev, cell) {
       },
     });
 
-    // update the source data for future re-renders
     sourceMatchUp.schedule = updatedSourceSchedule;
   };
 
@@ -133,13 +136,12 @@ export async function matchUpDrop(ev, cell) {
       unscheduledTable.deleteRow(sourceMatchUpId);
       updateSourceMatchUp();
 
-      targetRow[targetColumnKey] = sourceMatchUp;
-      table.updateData([targetRow]); // to only update the specific rows which have been affected
+      targetRow[targetColumnKey!] = sourceMatchUp;
+      table.updateData([targetRow]);
     } else {
       updateSourceMatchUp();
 
-      // update cell of source row by removing all matchUp detail
-      sourceRow[sourceColumnKey] = {
+      sourceRow[sourceColumnKey!] = {
         schedule: {
           courtOrder: sourceCourtOrder,
           venueId: sourceVenueId,
@@ -148,11 +150,11 @@ export async function matchUpDrop(ev, cell) {
       };
 
       if (sourceRow.rowId == targetRow.rowId) {
-        sourceRow[targetColumnKey] = sourceMatchUp;
-        table.updateData([sourceRow]); // to only update the specific row which have been affected
+        sourceRow[targetColumnKey!] = sourceMatchUp;
+        table.updateData([sourceRow]);
       } else {
-        targetRow[targetColumnKey] = sourceMatchUp;
-        table.updateData([sourceRow, targetRow]); // to only update the specific rows which have been affected
+        targetRow[targetColumnKey!] = sourceMatchUp;
+        table.updateData([sourceRow, targetRow]);
       }
     }
   } else if (!sourceRow && targetMatchUp) {
@@ -160,13 +162,12 @@ export async function matchUpDrop(ev, cell) {
     unscheduledTable.deleteRow(sourceMatchUpId);
     updateSourceMatchUp();
 
-    targetRow[targetColumnKey] = sourceMatchUp;
-    table.updateData([targetRow]); // to only update the specific rows which have been affected
+    targetRow[targetColumnKey!] = sourceMatchUp;
+    table.updateData([targetRow]);
 
     unscheduledTable.addRow(mapMatchUp(targetMatchUp), true);
     updateTargetMatchUp();
   } else {
-    // matchUps are swapping schedule
     const targetSchedule = targetMatchUp?.schedule;
     updateSourceMatchUp({
       scheduledTime: targetSchedule?.scheduledTime,
@@ -176,13 +177,13 @@ export async function matchUpDrop(ev, cell) {
     updateTargetMatchUp();
 
     if (sourceRow.rowId == targetRow.rowId) {
-      sourceRow[sourceColumnKey] = targetMatchUp;
-      sourceRow[targetColumnKey] = sourceMatchUp;
-      table.updateData([sourceRow]); // to only update the specific row which have been affected
+      sourceRow[sourceColumnKey!] = targetMatchUp;
+      sourceRow[targetColumnKey!] = sourceMatchUp;
+      table.updateData([sourceRow]);
     } else {
-      sourceRow[sourceColumnKey] = targetMatchUp;
-      targetRow[targetColumnKey] = sourceMatchUp;
-      table.updateData([sourceRow, targetRow]); // to only update the specific rows which have been affected
+      sourceRow[sourceColumnKey!] = targetMatchUp;
+      targetRow[targetColumnKey!] = sourceMatchUp;
+      table.updateData([sourceRow, targetRow]);
     }
   }
 

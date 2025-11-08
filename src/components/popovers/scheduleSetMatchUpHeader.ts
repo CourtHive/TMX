@@ -1,3 +1,7 @@
+/**
+ * Schedule set matchUp header popover.
+ * Provides options for setting match times, modifiers, and entering scores.
+ */
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { timeItemConstants, tools } from 'tods-competition-factory';
@@ -11,22 +15,12 @@ import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
-export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) {
-  const rowData = cell.getRow().getData();
-  /*
-  let options = [
-    { label: lang.tr('schedule.matchestime'), value: 'matchestime' },
-    { label: lang.tr('schedule.raindelay'), value: 'raindelay' },
-    { label: lang.tr('schedule.tba'), value: 'tba' },
-    { label: lang.tr('schedule.nextavailable'), value: 'next' },
-  ];
+export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData: providedRowData }: { e: Event; cell: any; callback?: (schedule: any) => void; matchUpId?: string; rowData?: any } = {} as any): void {
+  const rowData = providedRowData || cell.getRow().getData();
 
-  listPicker({ options, callback, isOpen: true });
-  */
-
-  const setSchedule = (schedule) => {
-    const matchUps = Object.values(rowData).filter((c) => c?.matchUpId);
-    const matchUpIds = matchUpId ? [matchUpId] : matchUps.map(({ matchUpId }) => matchUpId);
+  const setSchedule = (schedule: any) => {
+    const matchUps = Object.values(rowData).filter((c: any) => c?.matchUpId);
+    const matchUpIds = matchUpId ? [matchUpId] : matchUps.map(({ matchUpId }: any) => matchUpId);
 
     const methods = [
       {
@@ -35,49 +29,49 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
       },
     ];
 
-    const postMutation = (result) => {
-      if (result.success && isFunction(callback)) callback(schedule);
+    const postMutation = (result: any) => {
+      if (result.success && isFunction(callback) && callback) callback(schedule);
     };
 
     mutationRequest({ methods, callback: postMutation });
   };
 
-  const scoreMatchUp = (matchUp) => enterMatchUpScore({ matchUp, matchUpId, callback });
+  const scoreMatchUp = (matchUp: any) => enterMatchUpScore({ matchUp, matchUpId: matchUpId!, callback });
 
   const clearTimeSettings = () => setSchedule({ scheduledTime: '', timeModifiers: [] });
-  const timeSelected = ({ time }) => {
+  const timeSelected = ({ time }: { time: string }) => {
     const militaryTime = true;
-    const scheduledTime = tools.dateTime.convertTime(time, militaryTime);
+    const scheduledTime = tools.dateTime.convertTime(time, militaryTime) || '';
     setSchedule({ scheduledTime });
   };
 
   const setMatchUpTimes = () => {
     const table = cell.getTable();
     const tableData = table.getData();
-    let rowEncountered;
+    let rowEncountered: number | undefined;
 
     const previousRowScheduledTimes = tableData
-      .flatMap((row, i) => {
+      .flatMap((row: any, i: number) => {
         if (rowEncountered) return;
         if (row.rowId === rowData.rowId) {
           rowEncountered = i + 1;
           if (i) return;
         }
-        return Object.values(row).flatMap((c) => c?.schedule?.scheduledTime);
+        return Object.values(row).flatMap((c: any) => c?.schedule?.scheduledTime);
       })
       .filter(Boolean)
       .map(timeStringToSeconds);
-    const maxSeconds = Math.max(...previousRowScheduledTimes, 0); // zero prevents -Infinity
+    const maxSeconds = Math.max(...previousRowScheduledTimes, 0);
 
-    const nextHour = rowEncountered > 1;
+    const nextHour = (rowEncountered ?? 0) > 1;
     const time = (maxSeconds && secondsToTimeString(maxSeconds, nextHour)) || '8:00 AM';
-    timePicker({ time, callback: timeSelected /*, options: { disabledTime: { hours: [11, 12] } }*/ });
+    timePicker({ time, callback: timeSelected });
   };
 
-  const modifyTime = (modifier) => setSchedule({ timeModifiers: [modifier] });
+  const modifyTime = (modifier: string) => setSchedule({ timeModifiers: [modifier] });
 
   const setMatchTimeText = matchUpId ? 'Set match time' : 'Set match times';
-  const matchUp = Object.values(cell.getData()).find((c) => c?.matchUpId === matchUpId);
+  const matchUp = Object.values(cell.getData()).find((c: any) => c?.matchUpId === matchUpId) as any;
   const readyToScore = matchUp?.readyToScore || matchUp?.winningSide || matchUp?.score?.sets;
 
   const options = [
@@ -115,6 +109,6 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId } = {}) 
     },
   ].filter(Boolean);
 
-  const target = e.target;
+  const target = e.target as HTMLElement;
   tipster({ options, target, config: { placement: RIGHT } });
 }
