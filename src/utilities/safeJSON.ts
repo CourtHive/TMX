@@ -1,4 +1,4 @@
-export function parse({ note, data }) {
+export function parse({ note, data }: { note?: string; data: string }): any {
   try {
     return JSON.parse(data);
   } catch (err) {
@@ -6,7 +6,7 @@ export function parse({ note, data }) {
   }
 }
 
-export function stringify(data) {
+export function stringify(data: any): string | undefined {
   if (!data) return undefined;
   if (typeof data === 'string') return data;
   try {

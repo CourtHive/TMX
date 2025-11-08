@@ -3,7 +3,7 @@ import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-
 const { ORGANISER_ACCEPTANCE, DIRECT_ACCEPTANCE, SPECIAL_EXEMPT, JUNIOR_EXEMPT, WILDCARD } = entryStatusConstants;
 const { MAIN } = drawDefinitionConstants;
 
-export const acceptedEntryStatuses = (stage = MAIN) => [
+export const acceptedEntryStatuses = (stage: string = MAIN): string[] => [
   `${stage}.${DIRECT_ACCEPTANCE}`,
   `${stage}.${ORGANISER_ACCEPTANCE}`,
   `${stage}.${SPECIAL_EXEMPT}`,

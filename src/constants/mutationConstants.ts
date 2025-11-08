@@ -1,7 +1,3 @@
-/*
- * Curated list of factory methods used for mutations
- */
-
 export const ADD_COURTS = 'addCourts';
 export const ADD_FLIGHT = 'addFlight';
 export const ADD_DRAW_DEFINITION = 'addDrawDefinition';
@@ -37,13 +33,9 @@ export const DELETE_VENUES = 'deleteVenues';
 export const DESTROY_PAIR_ENTRIES = 'destroyPairEntries';
 export const GENERATE_FLIGHT_PROFILE = 'generateFlightProfile';
 export const GENERATE_SEEDING_SCALE_ITEMS = 'generateSeedingScaleItems';
-// export const GENERATE_POPULATE_PLAYOFF = 'generateAndPopulatePlayoffStructures';  // => ADD_PLAYOFF_STRUCTURE
-// export const GENERATE_POPULATE_RR_PLAYOFF = 'generateAndPopulateRRplayoffStructures'; // => ADD_PLAYOFF_STRUCTURE
 export const MODIFY_COURT = 'modifyCourt';
 export const MODIFY_EVENT = 'modifyEvent';
-
-export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition'; // TODO:
-
+export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';
 export const MODIFY_SIGN_IN_STATUS = 'modifyParticipantsSignInStatus';
