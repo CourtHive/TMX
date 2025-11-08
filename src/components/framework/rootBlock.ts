@@ -1,3 +1,7 @@
+/**
+ * Root application block structure.
+ * Creates main navigation, content areas, tournament container, and drawer components.
+ */
 import { tournamentInfoBlock } from './infoiBlock';
 import { initScrollNav } from './initScrollNav';
 import { eventBlock } from './eventBlock';
@@ -17,14 +21,14 @@ import {
   TOURNAMENTS_CALENDAR,
 } from 'constants/tmxConstants';
 
-export function rootBlock() {
-  const root = document.getElementById('root');
+export function rootBlock(): HTMLElement {
+  const root = document.getElementById('root')!;
   root.appendChild(newBlock());
 
   const splash = document.createElement('div');
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
-  splash.style = 'margin-top: 2em; padding-top: 5em; display: none;';
+  splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: none;';
   splash.appendChild(TMXlogo());
   root.appendChild(splash);
 
@@ -63,7 +67,7 @@ export function rootBlock() {
 
   root.appendChild(drawer);
 
-  const main = document.getElementById('navMain');
+  const main = document.getElementById('navMain')!;
 
   const content = document.createElement('div');
   content.id = TMX_CONTENT;
@@ -87,7 +91,6 @@ export function rootBlock() {
 
   const tournaments = document.createElement('div');
   tournaments.className = 'flexcol flexgrow';
-  // tournaments.style.paddingTop = '3em';
   tournaments.style.display = NONE;
   tournaments.id = TMX_TOURNAMENTS;
 
@@ -112,14 +115,13 @@ export function rootBlock() {
   calendar.id = TOURNAMENTS_CALENDAR;
 
   main.appendChild(calendar);
-  // root.appendChild(main);
 
   initScrollNav();
 
   return root;
 }
 
-function newBlock() {
+function newBlock(): HTMLDivElement {
   const block = document.createElement('div');
   block.innerHTML = `<div id='dnav'>
     <div class="navbar-item" style="display: flex; flex-wrap: nowrap">

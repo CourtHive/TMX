@@ -1,10 +1,14 @@
+/**
+ * Dropdown button component with configurable options.
+ * Supports selection, custom styling, and state management.
+ */
 import { isFunction } from 'functions/typeOf';
 
 import { RIGHT } from 'constants/tmxConstants';
 
 const FONT_MEDIUM = 'font-medium';
 
-export function dropDownButton({ target, button, stateChange }) {
+export function dropDownButton({ target, button, stateChange }: { target?: HTMLElement; button: any; stateChange?: () => void }): HTMLDivElement {
   let i = 0;
   const genericItem = () => {
     i += 1;
@@ -18,19 +22,20 @@ export function dropDownButton({ target, button, stateChange }) {
 
   if (button.align === RIGHT) {
     elem.classList.add('is-right');
-    elem.style = 'margin-left: 1em';
+    elem.style.cssText = 'margin-left: 1em';
   } else {
-    elem.style = 'margin-right: 1em';
+    elem.style.cssText = 'margin-right: 1em';
   }
-  const isActive = (e) => e.classList.contains('is-active');
+  const isActive = (e: HTMLElement) => e.classList.contains('is-active');
   const closeDropDown = () => {
     if (isActive(elem)) {
       elem.classList.remove('is-active');
     }
   };
-  const activeState = (e) => {
+  const activeState = (e: HTMLElement): boolean => {
     if (isActive(e)) {
       e.classList.remove('is-active');
+      return false;
     } else {
       e.classList.add('is-active');
       return true;
@@ -41,13 +46,13 @@ export function dropDownButton({ target, button, stateChange }) {
 
   const trigger = document.createElement('div');
   trigger.classList.add('dropdown-trigger');
-  const ddButton = document.createElement('button');
+  const ddButton = document.createElement('button') as any;
   ddButton.className = 'button font-medium';
   if (button.intent) ddButton.classList.add(button.intent);
   ddButton.setAttribute('aria-haspopup', 'true');
   const label = document.createElement('span');
   if (isFunction(button.onClick)) label.onclick = button.onClick;
-  label.style = `margin-right: 1em`;
+  label.style.cssText = `margin-right: 1em`;
   label.innerHTML = button.label;
   ddButton.appendChild(label);
   const icon = document.createElement('span');
@@ -74,11 +79,11 @@ export function dropDownButton({ target, button, stateChange }) {
     }
   };
 
-  const createAnchor = (option) => {
-    const anchor = document.createElement('a');
+  const createAnchor = (option: any) => {
+    const anchor = document.createElement('a') as any;
     anchor.className = FONT_MEDIUM;
     const opacity = option.disabled ? '0.4' : '1';
-    anchor.style = `text-decoration: none; opacity: ${opacity};`;
+    anchor.style.cssText = `text-decoration: none; opacity: ${opacity};`;
     if (option.color) anchor.style.color = option.color;
     anchor.classList.add('dropdown-item');
     if (option.isActive) anchor.classList.add('is-active');
@@ -87,11 +92,11 @@ export function dropDownButton({ target, button, stateChange }) {
       anchor.classList.add(option.class);
     }
 
-    anchor.onclick = (e) => {
+    anchor.onclick = (e: Event) => {
       if (option.disabled) return;
       if (option.value) {
         ddButton.value = option.value;
-        elem.value = option.value;
+        (elem as any).value = option.value;
       }
       e.stopPropagation();
       if (isFunction(option.onClick)) {
@@ -117,7 +122,7 @@ export function dropDownButton({ target, button, stateChange }) {
   for (const option of button.options || []) {
     if (option.heading) {
       const heading = document.createElement('div');
-      heading.style = 'font-weight: bold';
+      heading.style.cssText = 'font-weight: bold';
       heading.classList.add('dropdown-item');
       heading.classList.add(FONT_MEDIUM);
       heading.innerHTML = option.heading;
@@ -131,7 +136,7 @@ export function dropDownButton({ target, button, stateChange }) {
   }
 
   if (button.options?.length) {
-    if (button.options[0].value) elem.value = button.options[0].value;
+    if (button.options[0].value) (elem as any).value = button.options[0].value;
     menu.appendChild(content);
   }
   elem.appendChild(menu);
