@@ -7,7 +7,15 @@ import { ACCEPTED } from 'constants/tmxConstants';
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { DIRECT_ACCEPTANCE } = entryStatusConstants;
 
-export function modifyEntriesStatus({ participantIds, group, eventId, drawId, callback }) {
+type ModifyEntriesStatusParams = {
+  participantIds: string[];
+  group: string;
+  eventId: string;
+  drawId?: string;
+  callback?: (result: any) => void;
+};
+
+export function modifyEntriesStatus({ participantIds, group, eventId, drawId, callback }: ModifyEntriesStatusParams): void {
   const entryStatus = (group === ACCEPTED && DIRECT_ACCEPTANCE) || (group === QUALIFYING && DIRECT_ACCEPTANCE) || group;
   const entryStage = group === QUALIFYING ? QUALIFYING : MAIN;
 

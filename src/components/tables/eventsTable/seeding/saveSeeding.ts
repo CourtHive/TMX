@@ -3,8 +3,8 @@ import { hideSaveSeeding } from './hideSaveSeeding';
 
 import { RIGHT } from 'constants/tmxConstants';
 
-export const saveSeeding = (event) => (table) => {
-  const onClick = (e) => {
+export const saveSeeding = (event: any) => (table: any) => {
+  const onClick = (e: any) => {
     hideSaveSeeding(e, table);
     const rows = table.getData();
     saveSeedingValues({ event, rows });

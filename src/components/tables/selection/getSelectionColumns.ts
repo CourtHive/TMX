@@ -1,6 +1,6 @@
 import { genderedText } from '../common/formatters/genderedText';
 
-export function getSelectionColumns(data) {
+export function getSelectionColumns(data: any[]): any[] {
   const drawPositions = data.some((item) => item.drawPosition);
 
   return [

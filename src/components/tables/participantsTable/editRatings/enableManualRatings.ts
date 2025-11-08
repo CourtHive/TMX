@@ -1,6 +1,6 @@
 import { toggleEditVisibility } from '../../common/toggleEditVisibility';
 
-export function enableManualRatings(e, table) {
+export function enableManualRatings(e: any, table: any): void {
   toggleEditVisibility({
     columns: ['ratings.wtn.wtnRating', 'ratings.utr.utrRating'],
     className: 'saveRatings',

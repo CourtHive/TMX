@@ -4,9 +4,15 @@ import { setParticipantScaleItems } from './setParticipantScaleItems';
 const { QUALIFYING } = drawDefinitionConstants;
 const { SEEDING, MANUAL } = scaleConstants;
 
-export function saveSeedingValues({ event, rows, callback }) {
+type SaveSeedingValuesParams = {
+  event: any;
+  rows: any[];
+  callback?: (result: any) => void;
+};
+
+export function saveSeedingValues({ event, rows, callback }: SaveSeedingValuesParams): void {
   const { eventId, eventType } = event;
-  const scaleItemsWithParticipantIds = rows.map(({ entryStage, participantId, seedNumber }) => {
+  const scaleItemsWithParticipantIds = rows.map(({ entryStage, participantId, seedNumber }: any) => {
     const scaleName = entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
     return {
       participantId,

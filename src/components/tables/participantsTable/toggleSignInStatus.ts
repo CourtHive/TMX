@@ -5,7 +5,7 @@ import { participantConstants } from 'tods-competition-factory';
 
 const { SIGNED_IN, SIGNED_OUT } = participantConstants;
 
-export function toggleSignInStatus(e, cell) {
+export function toggleSignInStatus(_e: any, cell: any): void {
   const participantId = cell.getRow().getData().participantId;
   const signedIn = !cell.getValue();
   const signInState = signedIn ? SIGNED_IN : SIGNED_OUT;
@@ -16,7 +16,7 @@ export function toggleSignInStatus(e, cell) {
       method: MODIFY_SIGN_IN_STATUS
     }
   ];
-  const postMutation = (result) => {
+  const postMutation = (result: any) => {
     if (result.success) {
       cell.setValue(signedIn);
     }
