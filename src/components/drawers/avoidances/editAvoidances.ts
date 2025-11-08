@@ -1,3 +1,7 @@
+/**
+ * Edit avoidance policies drawer.
+ * Configures participant avoidance rules (country, club, etc.) via policy attachments.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons } from 'components/renderers/renderButtons';
 import { getAvoidanceFormItems } from './getAvoidanceFormItems';
@@ -10,15 +14,15 @@ import { context } from 'services/context';
 import { ATTACH_POLICIES } from 'constants/mutationConstants';
 import { NONE, RIGHT } from 'constants/tmxConstants';
 
-export function editAvoidances({ eventId }) {
+export function editAvoidances({ eventId }: { eventId: string }): void {
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
   const { items } = getAvoidanceFormItems({ event });
 
-  let inputs;
+  let inputs: any;
   const isValid = true;
-  const content = (elem) => (inputs = renderForm(elem, items));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, items));
 
   const getChecked = () => {
     const filteredInputs = Object.keys(inputs).filter((key) => inputs[key].checked);
@@ -33,7 +37,7 @@ export function editAvoidances({ eventId }) {
         }
       }
     ];
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
         const isSuccess = 'is-success';
         const editAvoidancesButton = document.getElementById('editAvoidances');
@@ -56,6 +60,6 @@ export function editAvoidances({ eventId }) {
   ];
   const title = `Set avoidances`;
 
-  const footer = (elem, close) => renderButtons(elem, buttons, close);
+  const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }

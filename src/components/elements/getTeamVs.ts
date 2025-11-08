@@ -1,4 +1,8 @@
-export function getTeamVs({ side1, side2, side1Score, side2Score }) {
+/**
+ * Build team vs display elements for matchUps.
+ * Creates side, score, and vs elements for matchUp display with winner highlighting.
+ */
+export function getTeamVs({ side1, side2, side1Score, side2Score }: { side1: HTMLElement; side2: HTMLElement; side1Score: HTMLElement; side2Score: HTMLElement }): HTMLDivElement {
   const overview = document.createElement('div');
   overview.className = 'overlay-content-overview';
   const overviewBody = document.createElement('div');
@@ -15,7 +19,7 @@ export function getTeamVs({ side1, side2, side1Score, side2Score }) {
   return overview;
 }
 
-export function getSide({ participantName, justify = 'start' }) {
+export function getSide({ participantName, justify = 'start' }: { participantName: string; justify?: string }): HTMLDivElement {
   const side = document.createElement('div');
   side.className = `matchup-side justify-${justify}`;
   const sideName = document.createElement('div');
@@ -25,7 +29,7 @@ export function getSide({ participantName, justify = 'start' }) {
   return side;
 }
 
-function buildScore({ side1Score, side2Score }) {
+function buildScore({ side1Score, side2Score }: { side1Score: HTMLElement; side2Score: HTMLElement }): HTMLDivElement {
   const scoreBox = document.createElement('div');
   scoreBox.className = 'score-box';
   const scoreFlex = document.createElement('div');
@@ -44,13 +48,12 @@ function buildScore({ side1Score, side2Score }) {
   return scoreBox;
 }
 
-export function getSideScore({ winningSide, sets, sideNumber, id }) {
+export function getSideScore({ winningSide, sets, sideNumber, id }: { winningSide?: number; sets?: any[]; sideNumber: number; id?: string }): HTMLSpanElement {
   const sideString = `side${sideNumber}Score`;
   const score = sets?.[0]?.[sideString] || 0;
 
   const sideScore = document.createElement('span');
   if (id) sideScore.id = id;
-  // sideScore.id = `sideScore${sideNumber}`;
   sideScore.className = 'side-score';
   if (sideNumber === 1) {
     sideScore.style.paddingLeft = '1rem';
@@ -61,7 +64,7 @@ export function getSideScore({ winningSide, sets, sideNumber, id }) {
   const isWinner = sideNumber === winningSide;
   if (isWinner) sideScore.classList.add('has-text-success');
 
-  sideScore.innerHTML = score;
+  sideScore.innerHTML = String(score);
 
   return sideScore;
 }

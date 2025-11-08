@@ -1,3 +1,7 @@
+/**
+ * Final column with action buttons for ad-hoc structures.
+ * Provides add/delete matchUp and round buttons for ad-hoc draw structures.
+ */
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
@@ -7,11 +11,11 @@ export const deleteMatchUpsAction = 'Delete matches';
 export const addMatchUpsAction = 'Add matches';
 export const addRoundAction = 'Add round';
 
-export function getFinalColumn({ structure, drawId, callback }) {
+export function getFinalColumn({ structure, drawId, callback }: { structure: any; drawId: string; callback?: () => void }): HTMLDivElement | undefined {
   if (!tournamentEngine.isAdHoc({ structure })) return;
 
   const finalColumn = document.createElement('div');
-  finalColumn.style =
+  finalColumn.style.cssText =
     'display: flex; flex-direction: column; place-content: flex-start; height: 100%; margin-top: 2em;';
 
   const addMatchUps = document.createElement('button');

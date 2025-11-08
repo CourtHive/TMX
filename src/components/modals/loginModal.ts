@@ -1,17 +1,21 @@
+/**
+ * Login modal with email and password validation.
+ * Authenticates user credentials and updates login state on success.
+ */
 import { emailValidator } from 'components/validators/emailValidator';
 import { logIn, logOut } from 'services/authentication/loginState';
 import { systemLogin } from 'services/authentication/authApi';
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 
-export function loginModal(callback) {
-  let inputs;
+export function loginModal(callback?: () => void): void {
+  let inputs: any;
 
-  const enableSubmit = ({ inputs }) => {
+  const enableSubmit = ({ inputs }: any) => {
     const value = inputs['email'].value;
     const isValid = emailValidator(value);
     const inviteButton = document.getElementById('loginButton');
-    if (inviteButton) inviteButton.disabled = !isValid;
+    if (inviteButton) (inviteButton as HTMLButtonElement).disabled = !isValid;
   };
 
   const relationships = [
@@ -21,7 +25,7 @@ export function loginModal(callback) {
     },
   ];
 
-  const content = (elem) =>
+  const content = (elem: HTMLElement) =>
     (inputs = renderForm(
       elem,
       [
@@ -48,11 +52,11 @@ export function loginModal(callback) {
   const submitCredentials = () => {
     const email = inputs.email.value;
     const password = inputs.password.value;
-    const response = (res) => {
+    const response = (res: any) => {
       !res && logOut();
       res?.status === 200 && logIn({ data: res.data, callback });
     };
-    systemLogin(email, password).then(response, (err) => console.log({ err }));
+    systemLogin(email, password).then(response, (err: any) => console.log({ err }));
   };
 
   openModal({

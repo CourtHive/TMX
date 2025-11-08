@@ -1,3 +1,7 @@
+/**
+ * Draws table columns configuration.
+ * Defines columns for draw name, type, entries, ratings, and publish/actions.
+ */
 import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
 import { visiblityFormatter } from '../common/formatters/visibility';
 import { drawActions } from 'components/popovers/drawActions';
@@ -7,8 +11,8 @@ import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT, UTR, WTN } from 'constants/tmxConstants';
 
-export function getDrawsColumns(data, eventRow) {
-  const drawDetail = (_, cell) => {
+export function getDrawsColumns(data: any[], eventRow: any): any[] {
+  const drawDetail = (_: any, cell: any) => {
     const { eventId, drawId } = cell.getRow().getData();
     navigateToEvent({ eventId, drawId, renderDraw: true });
   };
@@ -18,7 +22,7 @@ export function getDrawsColumns(data, eventRow) {
 
   return [
     {
-      cellClick: (_, cell) => cell.getRow().toggleSelect(),
+      cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,

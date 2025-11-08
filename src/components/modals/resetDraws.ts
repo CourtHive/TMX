@@ -1,31 +1,34 @@
+/**
+ * Reset draw definitions modal with audit reason.
+ * Validates word count and resets draw to initial state with mutation.
+ */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { wordValidator } from 'components/validators/wordValidator';
 import { renderForm } from 'components/renderers/renderForm';
 import { openModal } from './baseModal/baseModal';
 
-import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
+import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function deleteFlights(params) {
-  const { eventData, drawIds, callback } = params;
-  const eventId = params.eventId ?? eventData.eventInfo.eventId;
-  const drawName = drawIds.length === 1 && eventData?.drawsData?.find((data) => drawIds.includes(data.drawId)).drawName;
+export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: string[] }): void {
+  const eventId = eventData.eventInfo.eventId;
+  const drawName = drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
   const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
 
-  let inputs;
+  let inputs: any;
   const deleteAction = () => {
     const auditData = { auditReason: inputs['drawDeletionReason'].value };
     const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData, force: true }, // TODO: force should be a checkbox
-      method: DELETE_FLIGHT_AND_DRAW,
+      params: { eventId, drawId, auditData },
+      method: RESET_DRAW_DEFINITION,
     }));
-    const postMutation = (result) => (callback ? callback(result) : navigateToEvent({ eventId }));
+    const postMutation = (result: any) => result.success && navigateToEvent({ eventId, drawId: drawIds[0] });
     mutationRequest({ methods, callback: postMutation });
   };
   const items = [
     {
-      text: `Please provide a reason for draw deletion.`,
+      text: `Please provide a reason for resetting draws.`,
     },
     {
       placeholder: 'Explanation',
@@ -39,11 +42,11 @@ export function deleteFlights(params) {
       text: `This action cannot be undone!`,
     },
   ];
-  const enableSubmit = ({ inputs }) => {
+  const enableSubmit = ({ inputs }: any) => {
     const value = inputs['drawDeletionReason'].value;
     const isValid = wordValidator(5)(value);
     const deleteButton = document.getElementById('deleteDraw');
-    if (deleteButton) deleteButton.disabled = !isValid;
+    if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
   };
   const relationships = [
     {
@@ -51,7 +54,7 @@ export function deleteFlights(params) {
       onInput: enableSubmit,
     },
   ];
-  const content = (elem) => (inputs = renderForm(elem, items, relationships));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, items, relationships));
 
   openModal({
     title: modalTitle,

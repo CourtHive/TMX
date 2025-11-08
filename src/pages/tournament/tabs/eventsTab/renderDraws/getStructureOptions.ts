@@ -1,3 +1,7 @@
+/**
+ * Get structure options menu for draw navigation.
+ * Provides options to navigate structures, edit names, and add qualifying/playoffs.
+ */
 import { tools, drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editStructureNames } from 'components/modals/editStructureNames';
@@ -7,14 +11,14 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 
 const { FINISHING_POSITIONS, CONTAINER } = drawDefinitionConstants;
 
-export function getStructureOptions({ drawData, eventId, structureId, updateControlBar }) {
+export function getStructureOptions({ drawData, eventId, structureId, updateControlBar }: { drawData: any; eventId: string; structureId: string; updateControlBar: (refresh?: boolean) => void }): any[] {
   const drawId = drawData.drawId;
   const canAddPlayoffs = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId })?.playoffRounds?.length;
   const canAddQualifying = tournamentEngine.isValidForQualifying({ drawId, structureId })?.valid;
 
   const addNewQualifying = () => {
     addDraw({
-      callback: (result) => {
+      callback: (result: any) => {
         if (result.success) {
           const structureId = result.structure.structureId;
           navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
@@ -28,12 +32,12 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
     });
   };
 
-  const structure = drawData.structures.find((structure) => structure.structureId === structureId);
+  const structure = drawData.structures.find((structure: any) => structure.structureId === structureId);
   const isRoundRobin = structure?.structureType === CONTAINER;
 
   return drawData.structures
-    .sort((a, b) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
-    .map((structure) => ({
+    .sort((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
+    .map((structure: any) => ({
       onClick: () => {
         navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
       },
@@ -49,7 +53,7 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
         close: true,
       },
       {
-        onClick: () => editGroupNames({ drawId, structure, callback: (res) => console.log(res) }),
+        onClick: () => editGroupNames({ drawId, structure, callback: (res: any) => console.log(res) }),
         label: 'Edit group names',
         hide: !isRoundRobin,
         modifyLabel: false,
@@ -63,7 +67,7 @@ export function getStructureOptions({ drawData, eventId, structureId, updateCont
         close: true,
       },
       {
-        onClick: () => addStructures({ drawId, structureId, callback: () => updateControlBar(true) }),
+        onClick: () => (addStructures as any)({ drawId, structureId, callback: () => updateControlBar(true) }),
         hide: !canAddPlayoffs,
         label: 'Add playoffs',
         modifyLabel: false,

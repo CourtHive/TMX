@@ -1,3 +1,7 @@
+/**
+ * Add draw configuration drawer.
+ * Provides form for creating new draw/flight with matchUp format and generation options.
+ */
 import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { nameValidator } from 'components/validators/nameValidator';
@@ -11,7 +15,16 @@ import { context } from 'services/context';
 
 import { CUSTOM, DRAW_NAME, NONE, RIGHT, STRUCTURE_NAME } from 'constants/tmxConstants';
 
-export function addDraw({ eventId, callback, drawId, drawName, structureId, isQualifying }) {
+type AddDrawParams = {
+  eventId: string;
+  callback?: (result: any) => void;
+  drawId?: string;
+  drawName?: string;
+  structureId?: string;
+  isQualifying?: boolean;
+};
+
+export function addDraw({ eventId, callback, drawId, drawName, structureId, isQualifying }: AddDrawParams): void {
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
@@ -22,8 +35,8 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
     event,
   });
 
-  let inputs;
-  const content = (elem) => {
+  let inputs: any;
+  const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, items, relationships);
   };
 
@@ -34,14 +47,14 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
     if (!isValid()) {
       tmxToast({ message: 'Missing Draw name', intent: 'is-danger' });
     } else if (inputs.matchUpFormat?.value === CUSTOM) {
-      const setMatchUpFormat = (matchUpFormat) => {
+      const setMatchUpFormat = (matchUpFormat: string) => {
         if (matchUpFormat) {
-          submitDrawParams({ event, inputs, callback, structureId, matchUpFormat, drawId, drawName, isQualifying });
+          (submitDrawParams as any)({ event, inputs, callback, structureId, matchUpFormat, drawId, drawName, isQualifying });
         }
       };
-      getMatchUpFormat({ callback: setMatchUpFormat });
+      (getMatchUpFormat as any)({ callback: setMatchUpFormat });
     } else {
-      submitDrawParams({ event, inputs, callback, structureId, drawId, drawName, isQualifying });
+      (submitDrawParams as any)({ event, inputs, callback, structureId, drawId, drawName, isQualifying });
     }
   };
 
@@ -51,6 +64,6 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   ];
   const title = `Configure draw`;
 
-  const footer = (elem, close) => renderButtons(elem, buttons, close);
+  const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }

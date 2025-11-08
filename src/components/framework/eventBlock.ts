@@ -1,3 +1,7 @@
+/**
+ * Create event tab block HTML structure.
+ * Builds the complete DOM structure for events, entries, and draws views.
+ */
 import {
   EVENTS_CONTROL,
   ENTRIES_VIEW,
@@ -18,7 +22,7 @@ import {
   TMX_PANEL,
 } from 'constants/tmxConstants';
 
-export function eventBlock() {
+export function eventBlock(): HTMLDivElement {
   const div = document.createElement('div');
   div.className = 'is-marginless';
   div.style.width = 'inherit';
@@ -28,7 +32,7 @@ export function eventBlock() {
   <div class="tab_section events_tab">
     <div class="section">
       <div class='tabHeader foreground'></div>
-      <div id=${EVENT_INFO} class="block" style='display: none; width: 100%;'}>
+      <div id=${EVENT_INFO} class="block" style='display: none; width: 100%;'>
         <div id=${EVENT_CONTROL} class="controlBar" style='min-height: 3em; border-radius: 6px;'}></div>
       </div>
       <div id=${EVENTS_TABLE}>
@@ -37,7 +41,7 @@ export function eventBlock() {
           {' '}
         </div>
       </div>
-      <div id=${ENTRIES_VIEW} style='display: none;'}>
+      <div id=${ENTRIES_VIEW} style='display: none;'>
         <div id=${ACCEPTED_PANEL} class='tableClass block ${TMX_PANEL}'>
           {' '}
         </div>

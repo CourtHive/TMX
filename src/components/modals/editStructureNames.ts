@@ -1,3 +1,7 @@
+/**
+ * Edit structure names modal with validation.
+ * Allows renaming of draw structures with minimum character validation.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -9,11 +13,11 @@ import { isFunction } from 'functions/typeOf';
 import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function editStructureNames({ drawId, callback }) {
+export function editStructureNames({ drawId, callback }: { drawId: string; callback?: () => void }): void {
   const structures = tournamentEngine.getEvent({ drawId })?.drawDefinition?.structures;
   if (!structures?.length) return;
 
-  const options = structures.map(({ structureName, structureId }) => ({
+  const options = structures.map(({ structureName, structureId }: any) => ({
     text: `${structureName}:`,
     fieldPair: {
       error: 'minimum 4 characters',
@@ -24,11 +28,11 @@ export function editStructureNames({ drawId, callback }) {
     },
   }));
 
-  let inputs;
+  let inputs: any;
   const onClick = () => {
     const structureDetails = structures
       .map(
-        ({ structureId }) =>
+        ({ structureId }: any) =>
           inputs[structureId]?.value && { structureId, structureName: inputs[structureId].value.trim() },
       )
       .filter(Boolean);
@@ -38,26 +42,26 @@ export function editStructureNames({ drawId, callback }) {
         method: RENAME_STRUCTURES,
       },
     ];
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Structure renamed', intent: 'is-success' });
-        isFunction(callback) && callback();
+        isFunction(callback) && callback && callback();
       }
     };
     mutationRequest({ methods, callback: postMutation });
   };
   const checkValid = () => {
-    const nameValues = structures.map(({ structureId }) => inputs[structureId]?.value).filter(Boolean);
+    const nameValues = structures.map(({ structureId }: any) => inputs[structureId]?.value).filter(Boolean);
     const validValues = nameValues.every(nameValidator(4));
     const renameButton = document.getElementById('renameStructures');
     const valid = nameValues.length && validValues;
-    if (renameButton) renameButton.disabled = !valid;
+    if (renameButton) (renameButton as HTMLButtonElement).disabled = !valid;
   };
-  const relationships = structures.map(({ structureId }) => ({
+  const relationships = structures.map(({ structureId }: any) => ({
     control: structureId,
     onInput: checkValid,
   }));
-  const content = (elem) => (inputs = renderForm(elem, options, relationships));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
   openModal({
     title: `Edit structure names`,
     content,

@@ -1,3 +1,7 @@
+/**
+ * Destroy pair entries action.
+ * Removes selected pair participants and returns individuals to ungrouped status.
+ */
 import { tournamentEngine, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'components/controlBar/toggleOverlay';
@@ -12,25 +16,24 @@ import { tmxToast } from 'services/notifications/tmxToast';
 const { UNGROUPED } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
 
-export const destroySelected = (eventId, drawId) => (table) => {
-  const destroyPairs = (table) => {
+export const destroySelected = (eventId: string, drawId?: string) => (table: any): any => {
+  const destroyPairs = (table: any) => {
     const selected = table.getSelectedData();
-    const participantIds = selected.filter((p) => !p.events?.length).map(({ participantId }) => participantId);
-    const postMutation = (result) => {
+    const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
+    const postMutation = (result: any) => {
       if (!result?.error) {
         table.deleteRow(participantIds);
 
         const tableClass = getParent(table.element, 'tableClass');
-        const controlBar = tableClass.getElementsByClassName('controlBar')?.[0];
-        // timeout is necessary to allow table event to trigger
-        if (controlBar) setTimeout(() => toggleOverlay({ table, target: controlBar })(), 100);
+        const controlBar = tableClass?.parent?.getElementsByClassName('controlBar')?.[0];
+        if (controlBar) setTimeout(() => (toggleOverlay as any)({ table, target: controlBar })(), 100);
 
-        const individualParticipantIds = selected.flatMap(({ participant }) => participant?.individualParticipantIds);
+        const individualParticipantIds = selected.flatMap(({ participant }: any) => participant?.individualParticipantIds);
         const { participants } = tournamentEngine.getParticipants({
           participantFilters: { participantIds: individualParticipantIds },
         });
-        const entries = participants.map((participant) =>
-          mapEntry({
+        const entries = participants.map((participant: any) =>
+          (mapEntry as any)({
             entry: { participantId: participant.participantId, entryStatus: UNGROUPED },
             eventType: DOUBLES,
             participant,

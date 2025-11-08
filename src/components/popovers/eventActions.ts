@@ -1,26 +1,29 @@
+/**
+ * Event actions popover with publish, edit, and delete options.
+ * Shows tipster menu for event management actions from table rows.
+ */
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
 import { deleteEvents } from 'components/modals/deleteEvents';
 import { tipster } from 'components/popovers/tipster';
 
-// constants
 import { BOTTOM } from 'constants/tmxConstants';
 
-export const eventActions = (nestedTables) => (e, cell) => {
+export const eventActions = (nestedTables: any) => (e: MouseEvent, cell: any): void => {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
     return;
   }
-  const target = e.target.getElementsByClassName('fa-ellipsis-vertical')[0];
+  const target = (e.target as HTMLElement).getElementsByClassName('fa-ellipsis-vertical')[0] as HTMLElement;
   const data = cell.getRow().getData();
 
   const row = cell.getRow();
   const eventRow = row?.getData();
   const published = eventRow?.published;
 
-  const doneEditing = ({ success, eventUpdates }) => {
+  const doneEditing = ({ success, eventUpdates }: any) => {
     if (success) {
       Object.assign(eventRow.event, eventUpdates);
       row.update(eventRow);
@@ -33,12 +36,11 @@ export const eventActions = (nestedTables) => (e, cell) => {
 
   const deleteEvent = () => {
     const eventIds = [data.eventId];
-    const callback = (result) => {
+    const callback = (result: any) => {
       const table = cell.getTable();
       result.success && table?.deleteRow(eventIds);
     };
     return deleteEvents({ eventIds, callback });
-    // mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds } }], callback });
   };
 
   const items = [
@@ -60,5 +62,5 @@ export const eventActions = (nestedTables) => (e, cell) => {
     },
   ];
 
-  tipster({ items, target: target || e.target, config: { placement: BOTTOM } });
+  tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
 };

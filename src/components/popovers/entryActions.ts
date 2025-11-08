@@ -1,3 +1,7 @@
+/**
+ * Entry actions popover for participant status changes.
+ * Provides options to move entries between accepted, qualifying, alternates, or withdrawn status.
+ */
 import { tournamentEngine, drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { modifyEntriesStatus } from '../tables/eventsTable/modifyEntriesStatus';
 import { tipster } from 'components/popovers/tipster';
@@ -8,11 +12,11 @@ import { ACCEPTED, BOTTOM } from 'constants/tmxConstants';
 const { ALTERNATE, DIRECT_ACCEPTANCE, WITHDRAWN, UNGROUPED } = entryStatusConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
-export const entryActions = (actions, eventId, drawId) => (e, cell) => {
+export const entryActions = (actions: string[], eventId: string, drawId?: string) => (e: MouseEvent, cell: any): void => {
   const { participant } = cell.getRow().getData();
 
-  const modifyEntryStatus = (group) => () => {
-    const callback = (result) => {
+  const modifyEntryStatus = (group: string) => () => {
+    const callback = (result: any) => {
       if (result.success) {
         const row = cell.getRow();
         const targetGroup = group === ACCEPTED ? DIRECT_ACCEPTANCE : group;
@@ -37,7 +41,7 @@ export const entryActions = (actions, eventId, drawId) => (e, cell) => {
     console.log({ result });
   };
 
-  let options = [
+  const options = [
     {
       onClick: modifyEntryStatus(DIRECT_ACCEPTANCE),
       option: 'Move to accepted',
@@ -66,7 +70,7 @@ export const entryActions = (actions, eventId, drawId) => (e, cell) => {
   ].filter((option) => actions.includes(option.action));
 
   if (options.length) {
-    const target = e.target;
+    const target = e.target as HTMLElement;
     tipster({ options, target, config: { placement: BOTTOM } });
   }
 };
