@@ -65,6 +65,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const structureName = 'Qualifying';
 
   const drawSize = structurePositionAssignments?.length || tools.nextPowerOf2(acceptedEntriesCount(event, stage));
+  const maxDrawSize = Math.max(drawSize, 512); // Allow at least 512, or the next power of 2 above entries
 
   const scoreFormatOptions = [
     {
@@ -133,8 +134,8 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       value: drawType,
     },
     {
-      error: 'Must be in range 2-128',
-      validator: numericRange(2, 128),
+      error: `Must be in range 2-${maxDrawSize}`,
+      validator: numericRange(2, maxDrawSize),
       selectOnFocus: true,
       label: 'Draw size',
       value: drawSize,

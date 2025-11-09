@@ -120,9 +120,11 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
   const drawSizeChange = ({ fields, inputs }: FormInteractionParams) => {
     const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
-    const valid = numericRange(2, 128)(drawSizeValue);
-    if (generateButton) generateButton.disabled = !valid;
     const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
+    const entriesCount = acceptedEntriesCount(event, stage);
+    const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount), 512);
+    const valid = numericRange(2, maxDrawSize)(drawSizeValue);
+    if (generateButton) generateButton.disabled = !valid;
     const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });
     const options = validGroupSizes.map((size: number) => ({ label: size, value: size }));
     const groupSizeSelect = inputs[GROUP_SIZE];
