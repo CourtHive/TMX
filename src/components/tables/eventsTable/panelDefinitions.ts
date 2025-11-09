@@ -1,0 +1,162 @@
+/**
+ * Panel definitions for event entries table.
+ * Organizes participants by entry status (accepted, qualifying, alternates, etc.).
+ */
+import { drawDefinitionConstants, eventConstants, entryStatusConstants } from 'tods-competition-factory';
+import { cancelManualSeeding } from './seeding/canceManuallSeeding';
+import { seedingSelector } from './seeding/seedingSelector';
+import { changeEntryStatus } from './changeEntryStatus';
+import { panelItems, togglePanel } from './panelItems';
+import { searchField } from '../common/tableSearch';
+import { saveSeeding } from './seeding/saveSeeding';
+import { destroySelected } from './destroyPairs';
+import { createFlight } from './createFlight';
+import { moveSelected } from './moveSelected';
+import { addEntries } from './addEntries';
+import { createPair } from './createPair';
+import { addToDraw } from './addToDraw';
+
+import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
+import {
+  ACCEPTED,
+  ACCEPTED_PANEL,
+  ALTERNATES_PANEL,
+  LEFT,
+  QUALIFYING_PANEL,
+  UNGROUPED_PANEL,
+  WITHDRAWN_PANEL,
+} from 'constants/tmxConstants';
+
+const { DIRECT_ACCEPTANCE, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
+const { SINGLES, DOUBLES } = eventConstants;
+
+export function panelDefinitions({ drawDefinition, event, entryData, hasFlights }: any): any[] {
+  const filterEntries = (groupings: string[]) =>
+    entryData.filter(({ entryStage = MAIN, entryStatus }: any) => {
+      return groupings.includes(`${entryStage}.${entryStatus}`);
+    });
+
+  const drawCreated = !!drawDefinition;
+  const drawId = drawDefinition?.drawId;
+  const eventId = event?.eventId;
+
+  const moves: Record<string, string[]> = {
+    [ACCEPTED]: [ALTERNATE, WITHDRAWN],
+    [QUALIFYING]: [ACCEPTED, ALTERNATE, WITHDRAWN],
+    [ALTERNATE]: [ACCEPTED, QUALIFYING, WITHDRAWN],
+    [WITHDRAWN]: [ALTERNATE],
+  };
+
+  const { createPairFromSelected } = createPair(event);
+  const excludeColumns = !hasFlights ? ['flights'] : [];
+
+  const selectWithEnter = (table: any): boolean => {
+    const active = table.getData('active');
+    const participantIds = active.map(({ participantId }: any) => participantId);
+    if (active.length === 1) {
+      table.selectRow(participantIds);
+      return true;
+    } else if (active.length === 2) {
+      table.selectRow(participantIds);
+      return false;
+    }
+    return false;
+  };
+
+  const acceptedEntries = filterEntries(acceptedEntryStatuses(MAIN));
+  const qualifyingEntries = filterEntries([`${QUALIFYING}.${DIRECT_ACCEPTANCE}`]);
+  const alternateEntries = filterEntries([`${MAIN}.${ALTERNATE}`]);
+  const ungroupedEntries = filterEntries([`${MAIN}.${UNGROUPED}`]);
+  const withdrawnEntries = filterEntries([`${MAIN}.${WITHDRAWN}`]);
+
+  return [
+    {
+      placeholder: 'No accepted participants',
+      items: [
+        moveSelected(moves[ACCEPTED], eventId, drawId),
+        changeEntryStatus(acceptedEntryStatuses(MAIN), eventId, drawId),
+        addToDraw(event, drawId),
+        createFlight(event, drawId),
+        ...panelItems({ heading: 'Accepted', count: acceptedEntries.length }),
+        !drawCreated && seedingSelector(event, ACCEPTED),
+        cancelManualSeeding(event),
+        saveSeeding(event),
+        !drawCreated && addEntries(event, ACCEPTED),
+      ],
+      actions: moves[ACCEPTED],
+      anchorId: ACCEPTED_PANEL,
+      entries: acceptedEntries,
+      group: ACCEPTED,
+      excludeColumns,
+      drawCreated,
+      togglePanel,
+    },
+    {
+      placeholder: 'No qualifying participants',
+      items: [
+        ...panelItems({ heading: 'Qualifying', count: qualifyingEntries.length }),
+        moveSelected(moves[QUALIFYING], eventId, drawId),
+        !drawCreated && seedingSelector(event, QUALIFYING),
+        cancelManualSeeding(event),
+        saveSeeding(event),
+        !drawCreated && addEntries(event, QUALIFYING),
+      ],
+      actions: [ACCEPTED, ALTERNATE, WITHDRAWN],
+      anchorId: QUALIFYING_PANEL,
+      entries: qualifyingEntries,
+      group: QUALIFYING,
+      excludeColumns,
+      drawCreated,
+      togglePanel,
+    },
+    {
+      items: [
+        ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
+        moveSelected(moves[ALTERNATE], eventId, drawId),
+        event?.eventType === DOUBLES && destroySelected(eventId, drawId),
+        !drawCreated && addEntries(event, ALTERNATE),
+      ],
+      actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
+      excludeColumns: ['seedNumber', 'flights'],
+      placeholder: 'No alternates',
+      anchorId: ALTERNATES_PANEL,
+      entries: alternateEntries,
+      group: ALTERNATE,
+      drawCreated,
+      togglePanel,
+    },
+    {
+      hide: !!([SINGLES].includes(event?.eventType) || drawCreated),
+      items: [
+        ...panelItems({ heading: 'Ungrouped', count: ungroupedEntries.length }),
+        searchField(LEFT, 'participantId', selectWithEnter),
+      ],
+      placeholder: 'No ungrouped participants',
+      excludeColumns: ['seedNumber', 'flights'],
+      onSelection: event?.eventType === DOUBLES && createPairFromSelected,
+      anchorId: UNGROUPED_PANEL,
+      entries: ungroupedEntries,
+      actions: [WITHDRAWN],
+      group: UNGROUPED,
+      drawCreated,
+      togglePanel,
+    },
+    {
+      items: [
+        ...panelItems({ heading: 'Withdrawn', count: withdrawnEntries.length }),
+        !drawCreated && moveSelected(moves[WITHDRAWN], eventId, drawId),
+      ],
+      placeholder: 'No withdrawn participants',
+      excludeColumns: ['seedNumber', 'flights'],
+      anchorId: WITHDRAWN_PANEL,
+      entries: withdrawnEntries,
+      actions: [ALTERNATE],
+      hide: drawCreated,
+      group: WITHDRAWN,
+      collapsed: true,
+      drawCreated,
+      togglePanel,
+    },
+  ];
+}

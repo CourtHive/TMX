@@ -1,0 +1,115 @@
+/**
+ * Column definitions for tie format collection definitions table.
+ * Manages collection names, match counts, types, genders, and scoring formats.
+ */
+import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
+
+import {
+  CENTER,
+  COLLECTION_VALUE,
+  LEFT,
+  MATCHUP_FORMAT,
+  MATCH_VALUE,
+  SCORE_VALUE,
+  SET_VALUE
+} from 'constants/tmxConstants';
+
+export function getCollectionDefinitionColumns(): any[] {
+  const editMatchUpFormat = (_e: Event, cell: any) => {
+    const row = cell.getRow();
+    const data = row.getData();
+    const callback = (matchUpFormat: string) => {
+      if (matchUpFormat) {
+        Object.assign(data, { matchUpFormat });
+        row.update(data);
+        const table = cell.getTable();
+        table.redraw(true);
+      }
+    };
+    (getMatchUpFormat as any)({ callback, existingMatchUpFormat: data.matchUpFormat });
+  };
+  return [
+    { rowHandle: true, formatter: 'handle', width: 30, minWidth: 30 },
+    {
+      cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
+      titleFormatter: 'rowSelection',
+      formatter: 'rowSelection',
+      responsive: false,
+      hozAlign: LEFT,
+      width: 5
+    },
+    {
+      formatter: 'responsiveCollapse',
+      responsive: false,
+      resizable: false,
+      hozAlign: CENTER,
+      width: 50
+    },
+    {
+      editorParams: { selectContents: true },
+      field: 'collectionName',
+      minWidth: 200,
+      title: 'Name',
+      editor: true
+    },
+    {
+      field: 'matchUpCount',
+      editor: 'number',
+      title: '#',
+      width: 70,
+
+      editorParams: {
+        elementAttributes: { maxlength: 2 },
+        selectContents: true,
+        mask: '99',
+        step: 1,
+        max: 20,
+        min: 0
+      }
+    },
+    {
+      field: 'matchUpType',
+      editor: 'list',
+      title: 'Type',
+      width: 100,
+
+      editorParams: { values: ['Singles', 'Doubles'] }
+    },
+    {
+      title: 'Gender',
+      field: 'gender',
+      editor: 'list',
+      width: 100,
+
+      editorParams: { values: ['Male', 'Female', 'Any'] }
+    },
+    {
+      cellClick: editMatchUpFormat,
+      title: 'Score format',
+      field: MATCHUP_FORMAT,
+      minWidth: 150
+    },
+    {
+      title: 'Award type',
+      field: 'awardType',
+      editor: 'list',
+      width: 150,
+
+      editorParams: { values: [COLLECTION_VALUE, MATCH_VALUE, SET_VALUE, SCORE_VALUE] }
+    },
+    {
+      field: 'awardValue',
+      editor: 'number',
+      title: 'Value',
+      width: 70,
+      editorParams: {
+        elementAttributes: { maxlength: 2 },
+        selectContents: true,
+        mask: '99',
+        step: 1,
+        max: 99,
+        min: 0
+      }
+    }
+  ];
+}

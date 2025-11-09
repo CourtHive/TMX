@@ -1,0 +1,57 @@
+/**
+ * Edit Google Sheets registration link modal.
+ * Validates and imports participants from Google Sheets with shared link.
+ */
+import { incomingParticipants } from 'services/data/incomingParticipants';
+import { fetchGoogleSheet } from 'services/sheets/fetchGoogleSheet';
+import { openModal } from 'components/modals/baseModal/baseModal';
+import { renderForm } from 'components/renderers/renderForm';
+import { tournamentEngine } from 'tods-competition-factory';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { lang } from 'services/translator';
+
+import { REGISTRATION } from 'constants/tmxConstants';
+
+export function editRegistrationLink({ callback }: { callback?: () => void }): void {
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: REGISTRATION });
+  const existingLink = extension?.value;
+
+  let inputs: any;
+  const content = (elem: HTMLElement) => {
+    inputs = renderForm(elem, [
+      {
+        text: 'Pull participants from a Google Sheet which has a shared link',
+      },
+      {
+        placeholder: 'URL of Google Sheet',
+        value: existingLink,
+        label: 'Sheet URL',
+        field: 'url',
+      },
+    ]);
+  };
+  const submit = () => {
+    const value = inputs.url.value;
+    if (value) {
+      const parts = value.split('/');
+      const registered = parts.reduce((p: string | undefined, c: string) => (!p || c.length > p.length ? c : p), undefined);
+      const newURL = !existingLink || (existingLink && registered !== existingLink);
+      const validBits = existingLink || (parts.indexOf('docs.google.com') > 0 && parts.indexOf('spreadsheets') > 0);
+      const sheetId = newURL ? registered : existingLink;
+      if (!validBits) {
+        const message = lang.tr('phrases.invalidsheeturl');
+        tmxToast({ message, intent: 'is-danger' });
+        inputs.url.value = '';
+      } else if (validBits) {
+        fetchGoogleSheet({ sheetId }).then((data: any) => incomingParticipants({ data, sheetId, callback }));
+      } else {
+        tmxToast({ message: 'URL unchanged', intent: 'is-info' });
+      }
+    }
+  };
+  const buttons = [
+    { label: 'Cancel', intent: 'is-nothing' },
+    { label: 'Submit', intent: 'is-primary', onClick: submit, close: true },
+  ];
+  openModal({ title: 'Import participants', buttons, content });
+}

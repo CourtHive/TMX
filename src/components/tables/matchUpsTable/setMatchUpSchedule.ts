@@ -19,8 +19,8 @@ export function setMatchUpSchedule(params: SetMatchUpScheduleParams) {
   ];
 
   const postMutation = (result) => {
-    if (result.success) {
-      if (callback && isFunction(callback)) callback();
+    if (result.success && callback && isFunction(callback)) {
+      callback();
     }
   };
 

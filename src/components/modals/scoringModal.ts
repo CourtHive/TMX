@@ -17,7 +17,7 @@ export function scoringModal(params) {
 
   const submitScore = () => {
     console.log({ matchUp, inputs });
-    isFunction(params.callback) && console.log('Callback');
+    if (isFunction(params.callback)) console.log('Callback');
   };
 
   const scaleAttributes = env.scales[env.activeScale];
