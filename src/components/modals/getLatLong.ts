@@ -17,8 +17,9 @@ import * as L from 'leaflet';
 function getNavigator() {
   try {
     return navigator || window.navigator;
-  } catch (_e) {
-    console.log(_e);
+  } catch (e) {
+    // Navigator not available
+    console.log(e);
     return undefined;
   }
 }

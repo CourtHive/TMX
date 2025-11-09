@@ -14,7 +14,8 @@ export function validateToken(token: string | null | undefined): any {
 
   try {
     decodedToken = jwtDecode(token);
-  } catch (err) {
+  } catch {
+    // Token decode failed - invalid token, remove it
     removeToken();
     return;
   }

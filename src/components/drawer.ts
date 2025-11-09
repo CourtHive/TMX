@@ -158,7 +158,7 @@ export const drawer = (): any => {
   };
 
   const keydownHandler = (keyEvent: KeyboardEvent) => {
-    if (keyEvent.key === 'Escape' || keyEvent.keyCode === 27) close();
+    if (keyEvent.key === 'Escape') close();
   };
 
   document.addEventListener('click', clickHandler, false);

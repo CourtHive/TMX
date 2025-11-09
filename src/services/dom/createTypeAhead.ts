@@ -15,20 +15,27 @@ type CreateTypeAheadParams = {
   onChange?: (event: Event) => void;
 };
 
-export function createTypeAhead({ list, element, callback, currentValue, withCatchTab, onChange }: CreateTypeAheadParams): { typeAhead: any } {
+export function createTypeAhead({
+  list,
+  element,
+  callback,
+  currentValue,
+  withCatchTab,
+  onChange,
+}: CreateTypeAheadParams): { typeAhead: any } {
   const typeAhead = new AWSP(element, { list });
   if (element.parentElement) element.parentElement.style.width = '100%';
 
   let selectionFlag = false;
   const selectComplete = (c: any) => {
     selectionFlag = true;
-    isFunction(callback) && callback && callback(c.text.value);
+    if (isFunction(callback)) callback(c.text.value);
     element.value = c.text.label;
     typeAhead.suggestions = [];
   };
 
   if (withCatchTab) {
-    const catchTab = (evt: KeyboardEvent) => evt.which === 9 && evt.preventDefault();
+    const catchTab = (evt: KeyboardEvent) => evt.key === 'Tab' && evt.preventDefault();
     element.addEventListener('keydown', catchTab, false);
     element.addEventListener('keyup', catchTab, false);
   }
@@ -36,7 +43,7 @@ export function createTypeAhead({ list, element, callback, currentValue, withCat
   element.setAttribute('autocomplete', 'off');
   element.addEventListener('awesomplete-selectcomplete', (c: any) => selectComplete(c), false);
   element.addEventListener('keyup', function (evt: any) {
-    if ((evt.which === 13 || evt.which === 9) && !selectionFlag && typeAhead.suggestions?.length) {
+    if ((evt.key === 'Enter' || evt.key === 'Tab') && !selectionFlag && typeAhead.suggestions?.length) {
       typeAhead.next();
       typeAhead.select(0);
     }

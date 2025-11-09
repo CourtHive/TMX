@@ -65,6 +65,6 @@ module.exports = [
     },
   },
   {
-    ignores: ['**/*.mjs', 'vite.config.ts', '**/*.cy.ts', 'cypress', 'cypress.config.ts'],
+    ignores: ['**/*.mjs', 'vite.config.ts', '**/*.cy.ts', 'cypress', 'cypress.config.ts', 'src/legacy/**'],
   },
 ];

@@ -53,7 +53,7 @@ export function eventsView(): void {
       location: OVERLAY,
     },
     {
-      onKeyDown: (e: KeyboardEvent) => e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
+      onKeyDown: (e: KeyboardEvent) => e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
       onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),

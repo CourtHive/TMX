@@ -1,7 +1,8 @@
 function getWindow(): any {
   try {
     return window;
-  } catch (e) {
+  } catch {
+    // Window not available (e.g., server-side rendering)
     return undefined;
   }
 }

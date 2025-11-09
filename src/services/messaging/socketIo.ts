@@ -99,7 +99,8 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
   } else {
     try {
       connectSocket(action);
-    } catch (err) {
+    } catch {
+      // Socket action failed - queue message for retry
       socketQueue.push({ header: messageType, data, ackCallback });
     }
   }
@@ -121,10 +122,18 @@ function connectionEvent(callback?: () => void): void {
     socketEmit(message.header, message.data);
   }
 
-  isFunction(callback) && callback && callback();
+  if (isFunction(callback)) callback();
 }
 
-function requestAcknowledgement({ ackId, uuid, callback }: { ackId?: string; uuid?: string; callback: (ack: any) => void }): void {
+function requestAcknowledgement({
+  ackId,
+  uuid,
+  callback,
+}: {
+  ackId?: string;
+  uuid?: string;
+  callback: (ack: any) => void;
+}): void {
   if (ackId) ackRequests[ackId] = callback;
   if (uuid) ackRequests[uuid] = callback;
 }
