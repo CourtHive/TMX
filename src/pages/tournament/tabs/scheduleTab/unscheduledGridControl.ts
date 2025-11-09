@@ -34,8 +34,9 @@ export function unscheduledGridControl({
   matchUps?: any[];
   table: any;
 }): { updateScheduledDate: (date: string) => void } {
+  let currentScheduledDate = scheduledDate;
   const updateScheduledDate = (date: string) => {
-    scheduledDate = date;
+    currentScheduledDate = date;
   };
   const eventFilter = (rowData: any) => rowData.eventId === eventIdFilter;
   const updateEventFilter = (eventId?: string) => {
@@ -86,23 +87,25 @@ export function unscheduledGridControl({
   );
 
   const updateTables = () => {
-    updateUnscheduledTable() && updateScheduleTable({ scheduledDate });
+    if (updateUnscheduledTable()) {
+      updateScheduleTable({ scheduledDate: currentScheduledDate });
+    }
     console.log('clear filters ?');
   };
   const scheduleClear = (e: Event) => {
     const result = findAncestor(e.target as HTMLElement, 'dropdown');
     clearSchedule({
       target: result || (e?.target as HTMLElement),
+      scheduledDate: currentScheduledDate,
       callback: updateTables,
       roundNameFilter,
       eventIdFilter,
-      scheduledDate,
     });
   };
 
   const setSearchFilter = createSearchFilter(table);
   const autoScheduler = () =>
-    autoScheduleMatchUps({ scheduledDate, table, updateScheduleTable, updateUnscheduledTable });
+    autoScheduleMatchUps({ scheduledDate: currentScheduledDate, table, updateScheduleTable, updateUnscheduledTable });
 
   const actionOptions = [
     {
@@ -123,7 +126,8 @@ export function unscheduledGridControl({
 
   const items = [
     {
-      onKeyDown: (e: KeyboardEvent) => e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
+      onKeyDown: (e: KeyboardEvent) =>
+        e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
       onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),

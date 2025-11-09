@@ -18,14 +18,22 @@ type ClearScheduleParams = {
   callback?: () => void;
 };
 
-export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdFilter, callback }: ClearScheduleParams): void {
+export function clearSchedule({
+  scheduledDate,
+  target,
+  roundNameFilter,
+  eventIdFilter,
+  callback,
+}: ClearScheduleParams): void {
   const result = competitionEngine.competitionScheduleMatchUps({ courtCompletedMatchUps: true });
   const { dateMatchUps = [], completedMatchUps = [] } = result;
   const matchUps = dateMatchUps.concat(...completedMatchUps);
   const scheduledMatchUps = matchUps.filter(
     ({ schedule }: any) => schedule.scheduledDate || schedule.scheduledTime || schedule.courtId,
   );
-  const selectedDateMatchUps = scheduledMatchUps.filter(({ schedule }: any) => schedule.scheduledDate === scheduledDate);
+  const selectedDateMatchUps = scheduledMatchUps.filter(
+    ({ schedule }: any) => schedule.scheduledDate === scheduledDate,
+  );
 
   const options = [
     {
@@ -82,8 +90,8 @@ export function clearSchedule({ scheduledDate, target, roundNameFilter, eventIdF
     ];
 
     const postMutation = (result: any) => {
-      if (result.success) {
-        if (isFunction(callback) && callback) callback();
+      if (result.success && callback && isFunction(callback)) {
+        callback();
       }
     };
     mutationRequest({ methods, callback: postMutation });

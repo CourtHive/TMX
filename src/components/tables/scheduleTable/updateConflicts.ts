@@ -30,9 +30,9 @@ export function updateConflicts(table: any): void {
         });
         const data = controlCell.getData();
         if (issues.length) {
-          const sortedIssues = issues.sort(scheduleIssueSort);
-          data.issues = sortedIssues;
-          const issueClass = (scheduleClass as any)[sortedIssues[0].issue];
+          issues.sort(scheduleIssueSort);
+          data.issues = issues;
+          const issueClass = (scheduleClass as any)[issues[0].issue];
           controlCell.getElement().classList.add(issueClass);
         } else {
           controlCell.getElement().style.backgroundColor = 'white';

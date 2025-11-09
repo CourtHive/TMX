@@ -43,9 +43,10 @@ export function createTournamentsTable(): { table: any } {
     renderTable(data.map(mapTournamentRecord));
   };
   const renderCalendarTable = ({ tournaments, provider }: { tournaments: any[]; provider: any }) => {
-    const tableData = tournaments
-      .sort((a, b) => new Date(b.tournament.startDate).getTime() - new Date(a.tournament.startDate).getTime())
-      .map((t) => {
+    const sortedTournaments = [...tournaments].sort(
+      (a, b) => new Date(b.tournament.startDate).getTime() - new Date(a.tournament.startDate).getTime(),
+    );
+    const tableData = sortedTournaments.map((t) => {
         const offline = t.tournament.timeItemValues?.TMX?.offline;
         t.tournament.offline = offline;
         const tournamentImageURL = t.tournament.onlineResources?.find(
