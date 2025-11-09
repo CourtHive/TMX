@@ -66,7 +66,12 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
   return openOverlay({ title, content, footer });
 }
 
-function renderEditor({ tieFormat }: { tieFormat: any }): { content: HTMLDivElement; table: any; elements: any; inputs: any } {
+function renderEditor({ tieFormat }: { tieFormat: any }): {
+  content: HTMLDivElement;
+  table: any;
+  elements: any;
+  inputs: any;
+} {
   const contentContainer = document.createElement('div');
   contentContainer.className = 'overlay-content-container';
   contentContainer.style.backgroundColor = 'white';
@@ -74,7 +79,7 @@ function renderEditor({ tieFormat }: { tieFormat: any }): { content: HTMLDivElem
   const tableElement = document.createElement('div');
   const { table } = (createTieFormatTable as any)({ tieFormat, tableElement });
 
-  const overview = getOverview(table);
+  const overview = getOverview();
   contentContainer.appendChild(overview);
 
   const controlTarget = document.createElement('div');
@@ -136,7 +141,7 @@ function renderEditor({ tieFormat }: { tieFormat: any }): { content: HTMLDivElem
   return { content: contentContainer, table, elements, inputs };
 }
 
-function getOverview(_table: any): HTMLDivElement {
+function getOverview(): HTMLDivElement {
   const overview = document.createElement('div');
   overview.className = 'overlay-content-overview';
   const overviewBody = document.createElement('div');

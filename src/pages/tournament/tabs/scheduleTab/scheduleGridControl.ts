@@ -42,11 +42,11 @@ export function scheduleGridControl({
     close: true,
   }));
 
-  const setSearchFilter = (_value?: string) => {};
+  const setSearchFilter = () => {};
 
   const items = [
     {
-      clearSearch: () => setSearchFilter(''),
+      clearSearch: () => setSearchFilter(),
       placeholder: 'Search participants',
       id: 'searchParticipants',
       visible: !!courtsCount,

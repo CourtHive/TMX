@@ -13,6 +13,8 @@ interface ListenerObject {
   once: boolean;
 }
 
+type EventType = string | Record<string, Function | Function[]> | RegExp;
+
 export const EventEmitter = (function () {
   /**
    * Class for managing events.
@@ -44,8 +46,8 @@ export const EventEmitter = (function () {
    * Alias a method while keeping the context correct, to allow for overwriting of target method.
    */
   function alias(name: string) {
-    return function aliasClosure(this: any) {
-      return this[name].apply(this, arguments);
+    return function aliasClosure(this: any, ...args: any[]) {
+      return this[name](...args);
     };
   }
 
@@ -196,7 +198,7 @@ export const EventEmitter = (function () {
   /**
    * Adds listeners in bulk using the manipulateListeners method.
    */
-  proto.addListeners = function addListeners(this: any, evt: string | Record<string, Function | Function[]> | RegExp, listeners?: Function[]): any {
+  proto.addListeners = function addListeners(this: any, evt: EventType, listeners?: Function[]): any {
     return this.manipulateListeners(false, evt, listeners);
   };
 

@@ -8,7 +8,7 @@ import { loginModal } from 'components/modals/loginModal';
 
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 
-export const mainMenu = (elem: HTMLElement, close: () => void, _menuContext?: string): void => {
+export const mainMenu = (elem: HTMLElement, close: () => void): void => {
   const loggedIn = getLoginState();
 
   const socketConnected = connected();
