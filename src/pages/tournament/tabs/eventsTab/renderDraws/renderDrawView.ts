@@ -1,3 +1,7 @@
+/**
+ * Draw view renderer with structure visualization.
+ * Handles draw display, participant filtering, and morphdom-based updates.
+ */
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
@@ -24,17 +28,29 @@ import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } fro
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderDrawView({ eventId, drawId, structureId, roundsView, redraw }) {
+export function renderDrawView({ eventId, drawId, structureId, roundsView, redraw }: {
+  eventId: string;
+  drawId: string;
+  structureId?: string;
+  roundsView?: string;
+  redraw?: boolean;
+}): void {
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
-  let isAdHoc;
-  /*
-  // eventManager.register('tmx-m', 'mouseover', () => console.log('tmx-m'));
-  */
+  let isAdHoc: boolean;
+
   eventManager.register('tmx-tm', 'mouseover', highlightTeam);
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
-  let participantFilter, roundMatchUps, structures, eventData, eventType, structure, drawData, matchUps, stage;
+  let participantFilter: string | undefined;
+  let roundMatchUps: any;
+  let structures: any[] = [];
+  let eventData: any;
+  let eventType: string = '';
+  let structure: any;
+  let drawData: any;
+  let matchUps: any[] = [];
+  let stage: string;
 
   const getData = () => {
     eventData = tournamentEngine.getEventData({
@@ -49,10 +65,10 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
       eventId,
     })?.eventData;
     eventType = eventData?.eventInfo?.eventType;
-    drawData = eventData?.drawsData?.find((data) => data.drawId === drawId);
+    drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structures = drawData?.structures || [];
     structureId = structureId || structures?.[0]?.structureId;
-    structure = structures.find((s) => s.structureId === structureId);
+    structure = structures.find((s: any) => s.structureId === structureId);
     isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
     matchUps = Object.values(roundMatchUps || {}).flat();
@@ -62,7 +78,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   destroyTables();
   getData();
 
-  const callback = (params) => {
+  const callback = (params?: any) => {
     const { refresh, view } = params ?? {};
     const redraw = refresh || participantFilter;
     cleanupDrawPanel();
@@ -90,7 +106,6 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 
-  // override WTN default
   if (composition.configuration.scaleAttributes) {
     composition.configuration.scaleAttributes = env.scales[env.activeScale];
   }
@@ -98,12 +113,6 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   if (!env.composition) {
     composition.configuration.genderColor = true;
     composition.configuration.showAddress = undefined;
-    /*
-    // composition.configuration.participantDetail = 'TEAM';
-    // composition.configuration.participantDetail = 'ADDRESS';
-    // composition.configuration.participantDetail = '_ustaSection.name';
-    // composition.configuration.participantDetail = 'sex';
-    */
 
     composition.configuration.allDrawPositions = true;
     composition.configuration.drawPositions = true;
@@ -111,15 +120,14 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
   composition.configuration.roundHeader = true;
 
   const drawsView = document.getElementById(DRAWS_VIEW);
-  if (redraw) removeAllChildNodes(drawsView);
+  if (redraw && drawsView) removeAllChildNodes(drawsView);
 
   const updateDrawDisplay = () => {
     if (dual) return;
 
-    // FILTER: participantFilter used to filter matchUps from all rounds in target structure
     for (const key of Object.keys(structure?.roundMatchUps ?? {})) {
-      structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }) => {
-        const hasParticipant = sides?.some(({ participant }) =>
+      structure.roundMatchUps[key] = roundMatchUps?.[key]?.filter(({ sides }: any) => {
+        const hasParticipant = sides?.some(({ participant }: any) =>
           participant?.participantName.toLowerCase().includes(participantFilter),
         );
         return hasParticipant || !participantFilter;
@@ -137,34 +145,29 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
         return renderDrawView({ eventId, drawId, structureId, redraw: true });
       }
     } else if (roundsView === ROUNDS_TABLE) {
-      createRoundsTable({ matchUps: displayMatchUps, eventData });
+      (createRoundsTable as any)({ matchUps: displayMatchUps, eventData });
     } else if (roundsView === ROUNDS_STATS) {
-      createStatsTable({ eventId, drawId, structureId });
+      createStatsTable({ eventId, drawId, structureId: structureId! });
     } else {
-      /*
-      // const finalColumn = getFinalColumn({ structure, drawId, callback });
-      */
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
           searchActive: participantFilter,
           matchUps: displayMatchUps,
-          // initialRoundNumber: 3,
           eventHandlers,
           composition,
-          // finalColumn,
         }),
         theme: composition.theme,
       });
 
-      const getTMXp = (node) => {
+      const getTMXp = (node: any) => {
         if (node?.classList?.contains('tmx-p')) return node;
         return findAncestor(node, 'tmx-p');
       };
-      const targetNode = drawsView.firstChild;
+      const targetNode = drawsView?.firstChild;
       if (targetNode) {
         morphdom(targetNode, content, {
-          addChild: function (parentNode, childNode) {
+          addChild: function (parentNode: any, childNode: any) {
             if (childNode.classList) {
               const existing = parentNode.firstChild;
               const incomingIdValue = childNode.getAttribute('id');
@@ -179,9 +182,6 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
                   if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
                     nextSibling.parentElement.removeChild(nextSibling);
                   }
-                  /*
-                  // return false;
-                  */
                 } else if (
                   incomingId &&
                   existingId &&
@@ -213,7 +213,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
             parentNode.appendChild(childNode);
           },
         });
-      } else {
+      } else if (drawsView) {
         drawsView.appendChild(content);
       }
     }
@@ -224,36 +224,31 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     updateDrawDisplay();
   };
   drawControlBar({ updateDisplay: update, drawId, structure, existingView: roundsView, callback });
-  const eventControlElement = document.getElementById(EVENT_CONTROL);
-  const updateControlBar = (refresh) => {
+  const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
+  const updateControlBar = (refresh?: boolean) => {
     if (refresh) getData();
 
-    // PARTICIPANT filter
-    const searchFilter = (rowData) => rowData.searchText?.includes(participantFilter);
-    const updateParticipantFilter = (value) => {
+    const searchFilter = (rowData: any) => rowData.searchText?.includes(participantFilter);
+    const updateParticipantFilter = (value: string) => {
       if (!value) {
         Object.values(context.tables)
           .filter(Boolean)
-          /*
-          // To be done: update this search logic!
-          // .forEach((table) => table.removeFilter(searchFilter));
-          */
-          .forEach((table) => table.clearFilter());
+          .forEach((table: any) => table.clearFilter());
       }
       participantFilter = value?.toLowerCase();
       if (value) {
         Object.values(context.tables)
           .filter(Boolean)
-          .forEach((table) => table.addFilter(searchFilter));
+          .forEach((table: any) => table.addFilter(searchFilter));
       }
-      removeAllChildNodes(drawsView);
+      if (drawsView) removeAllChildNodes(drawsView);
       updateDrawDisplay();
     };
 
-    const items = getEventControlItems({
+    const items = (getEventControlItems as any)({
       updateParticipantFilter,
       updateControlBar,
-      structureId,
+      structureId: structureId!,
       eventData,
       drawData,
       matchUps,
@@ -269,15 +264,17 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
     return;
   }
 
-  structureId = structureId || drawData.structures?.[0]?.structureId;
+  if (!structureId) {
+    structureId = drawData.structures?.[0]?.structureId;
+  }
   if (!structureId) {
     console.log('structure not found');
     return;
   }
 
   if (dual) {
-    const scorecard = renderScorecard({ matchUp: matchUps[0], participantFilter });
-    if (scorecard) {
+    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], participantFilter });
+    if (scorecard && drawsView) {
       drawsView.appendChild(scorecard);
     }
   } else {
