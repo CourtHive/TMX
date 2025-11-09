@@ -10,36 +10,76 @@
  *
  * RUNTIME MUTABILITY:
  * This object is typed as `any` to preserve full JavaScript mutability.
- * Various parts of the application dynamically add or modify properties at runtime:
- *
- * Properties added dynamically:
- * - env.device: Populated with device capabilities during initialization
- * - env.composition: Set when user configures display settings
- * - env.saveLocal: Modified when user changes save preferences
- * - env.log: Can be set to enable verbose logging
- * - env.averages: Toggle for showing averages in console
- *
- * Properties modified at runtime:
- * - env.activeScale: Changed when switching between WTN/UTR rating systems
- * - env.locations.map: Set when map is initialized
- * - env.locations.geoposition: Set when geolocation succeeds
- * - env.messages: Array that accumulates application messages
+ * Various parts of the application dynamically add or modify properties at runtime.
  *
  * CAUTION: Do not add TypeScript type constraints (interfaces, type assertions) to this
  * object as they can interfere with runtime property additions and cause initialization
  * failures or navigation issues. The `any` type is intentional and necessary.
  *
+ * ============================================================================
+ * RUNTIME PROPERTIES - Set/Modified Dynamically
+ * ============================================================================
+ *
+ * DEVICE & DISPLAY:
+ * - env.device: Device capabilities { isMobile, isTouch, etc. } - Set during initialization
+ * - env.composition: Display composition settings - Set when user configures draw display
+ *
+ * MUTATION & PERSISTENCE:
+ * - env.serverFirst: (default true) Execute mutations on server first, then locally
+ *                    If false, executes locally first, then sends to server
+ * - env.saveLocal: Auto-save tournament records to IndexedDB after mutations
+ *
+ * RATING SCALES:
+ * - env.activeScale: Current rating scale ('wtn' or 'utr') - Changed by user or programmatically
+ * - env.scales: Scale configuration { wtn: {...}, utr: {...} } with accessor, color, etc.
+ *
+ * LOCATION & MAPPING:
+ * - env.locations.map: Leaflet map instance - Set when map is initialized
+ * - env.locations.geoposition: User's geolocation { lat, lng } - Set when geolocation succeeds
+ * - env.locations.map_view: Map display mode ('map' or 'satellite')
+ * - env.locations.map_provider: Map provider ('leaflet')
+ * - env.locations.geolocate: Enable/disable geolocation
+ *
+ * SOCKET.IO COMMUNICATION:
+ * - env.socketPath: Socket.IO server path - Overrides process.env.SERVER if set
+ * - env.socketIo: Socket configuration { tmx: '/tmx' }
+ *
+ * DEBUGGING & LOGGING:
+ * - env.log.verbose: Enable verbose logging for mutations and operations
+ * - env.averages: Show rating averages in console (participants table)
+ * - env.renderLog: Log draw rendering operations
+ * - env.devNotes: Log matchUp modifications
+ *
+ * USER INTERFACE:
+ * - env.hotkeys: Enable keyboard shortcuts for match scoring
+ * - env.scoring: Enable scoring modal (vs direct score entry)
+ * - env.skipReason: Skip audit reason modal when deleting events/draws
+ *
+ * DATA STORAGE:
+ * - env.messages: Array of application messages - Accumulates throughout session
+ * - env.ioc: Country code for internationalization (default: 'gbr')
+ *
+ * ============================================================================
+ *
  * @example
- * // Setting active scale
+ * // Setting active rating scale
  * env.activeScale = 'utr';
  *
  * @example
- * // Adding device info at runtime
- * env.device = { isMobile: true, isTouch: true };
+ * // Enable verbose logging
+ * env.log = { verbose: true };
  *
  * @example
- * // Modifying composition settings
- * env.composition = { genderColor: true, flags: false };
+ * // Skip deletion reason prompts
+ * env.skipReason = true;
+ *
+ * @example
+ * // Execute mutations locally first (offline mode)
+ * env.serverFirst = false;
+ *
+ * @example
+ * // Enable auto-save to IndexedDB
+ * env.saveLocal = true;
  */
 import { version } from '../config/version';
 
