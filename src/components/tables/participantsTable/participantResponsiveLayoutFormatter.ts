@@ -1,7 +1,10 @@
 import { isObject } from 'functions/typeOf';
 
-export const participantResponsiveLayourFormatter = (data: any[]): HTMLUListElement | string => {
+export const participantResponsiveLayourFormatter = (data: any[]): HTMLUListElement => {
   const list = document.createElement('ul');
+  
+  if (!Object.keys(data).length) return list;
+  
   data.forEach((col: any) => {
     const item = document.createElement('li');
     if (col.field === 'sex') {
@@ -19,5 +22,5 @@ export const participantResponsiveLayourFormatter = (data: any[]): HTMLUListElem
     list.appendChild(item);
   });
 
-  return Object.keys(data).length ? list : '';
+  return list;
 };

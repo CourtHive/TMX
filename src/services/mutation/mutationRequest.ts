@@ -25,10 +25,10 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
   const state = getLoginState();
 
-  const completion = (result?: any) => {
+  const completion = (result?: any): void => {
     if (tournamentRecord) factory[engine].reset();
-    if (isFunction(callback)) {
-      return callback && callback(result);
+    if (callback && isFunction(callback)) {
+      callback(result);
     } else if (result?.error) {
       tmxToast({ message: result.error.message ?? 'Error', intent: 'is-danger' });
     }
@@ -59,16 +59,31 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const now = new Date().getTime();
   const inDateRange = Object.values(tournamentRecords).every((record: any) => {
     const endTime = dayjs(record.endDate).endOf('day').valueOf();
-    return endTime && endTime >= now;
+    return !!(endTime && endTime >= now);
   });
 
-  const mutate = (saveLocal?: boolean) => makeMutation({ offline, methods, factoryEngine, tournamentIds, completion, saveLocal });
-  if (!inDateRange) return queryDateRange({ state, providerIds, mutate });
-  if (providerIds.length && !offline) return checkPermissions({ state, providerIds, mutate });
-  return mutate(true);
+  const mutate = (saveLocal?: boolean) =>
+    makeMutation({ offline, methods, factoryEngine, tournamentIds, completion, saveLocal });
+  if (!inDateRange) {
+    queryDateRange({ state, providerIds, mutate });
+    return;
+  }
+  if (providerIds.length && !offline) {
+    checkPermissions({ state, providerIds, mutate });
+    return;
+  }
+  await mutate(true);
 }
 
-function queryDateRange({ state, providerIds, mutate }: { state: any; providerIds: string[]; mutate: (saveLocal?: boolean) => void }): void {
+function queryDateRange({
+  state,
+  providerIds,
+  mutate,
+}: {
+  state: any;
+  providerIds: string[];
+  mutate: (saveLocal?: boolean) => void;
+}): void {
   const onClick = () => (providerIds?.length ? checkPermissions({ state, providerIds, mutate }) : mutate());
   return tmxToast({
     action: { onClick, text: 'Modify?' },
@@ -79,7 +94,15 @@ function queryDateRange({ state, providerIds, mutate }: { state: any; providerId
   });
 }
 
-function checkPermissions({ state, providerIds, mutate }: { state: any; providerIds: string[]; mutate: (saveLocal?: boolean) => void }): void {
+function checkPermissions({
+  state,
+  providerIds,
+  mutate,
+}: {
+  state: any;
+  providerIds: string[];
+  mutate: (saveLocal?: boolean) => void;
+}): void {
   if (!state) {
     context.provider = undefined;
     styleLogin(false);
@@ -114,7 +137,7 @@ function checkPermissions({ state, providerIds, mutate }: { state: any; provider
 }
 
 function engineExecution({ factoryEngine, methods }: { factoryEngine: any; methods: any[] }): any {
-  env.log?.verbose && console.log('%c executing locally', 'color: lightgreen');
+  if (env.log?.verbose) console.log('%c executing locally', 'color: lightgreen');
   const directives = factory.tools.makeDeepCopy(methods);
   return factoryEngine.executionQueue(directives, true) || {};
 }
@@ -125,7 +148,21 @@ async function localSave(saveLocal: boolean): Promise<void> {
   }
 }
 
-async function makeMutation({ offline, methods, completion, factoryEngine, tournamentIds, saveLocal }: { offline: any; methods: any[]; completion: (result?: any) => void; factoryEngine: any; tournamentIds: string[]; saveLocal?: boolean }): Promise<void> {
+async function makeMutation({
+  offline,
+  methods,
+  completion,
+  factoryEngine,
+  tournamentIds,
+  saveLocal,
+}: {
+  offline: any;
+  methods: any[];
+  completion: (result?: any) => void;
+  factoryEngine: any;
+  tournamentIds: string[];
+  saveLocal?: boolean;
+}): Promise<void> {
   const hasProvider = factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
   if (window['dev']?.params) {
     for (const method of methods) {
@@ -159,7 +196,7 @@ async function makeMutation({ offline, methods, completion, factoryEngine, tourn
         return completion(factoryResult);
       }
     };
-    env.log?.verbose && console.log('%c invoking remote', 'color: lightblue');
+    if (env.log?.verbose) console.log('%c invoking remote', 'color: lightblue');
     emitTmx({
       data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
       ackCallback,

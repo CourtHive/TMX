@@ -1,10 +1,10 @@
-export function profileFormatter(cell) {
+export function profileFormatter(cell): HTMLSpanElement {
   const data = cell.getRow().getData();
-  if (!data.competitiveProfile?.competitiveness) return '';
+  const content = document.createElement('span');
+  
+  if (!data.competitiveProfile?.competitiveness) return content;
 
   const { competitiveProfile, score } = data;
-
-  const content = document.createElement('span');
 
   const colorMap = {
     COMPETITIVE: 'green',
