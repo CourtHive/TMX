@@ -47,6 +47,6 @@ export function eventControlBar({ eventId, drawId, structureId, updateDisplay }:
     drawId,
   });
 
-  const eventControlElement = document.getElementById(EVENT_CONTROL);
+  const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
   controlBar({ target: eventControlElement, items });
 }

@@ -112,6 +112,6 @@ export function renderGroupings({ view }: { view: string }): void {
     },
   ];
 
-  const target = document.getElementById(TEAMS_CONTROL);
+  const target = document.getElementById(TEAMS_CONTROL) || undefined;
   controlBar({ table, target, items });
 }

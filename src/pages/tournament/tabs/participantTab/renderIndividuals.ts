@@ -240,6 +240,6 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
   ];
 
-  const participantControl = document.getElementById(PARTICIPANT_CONTROL);
+  const participantControl = document.getElementById(PARTICIPANT_CONTROL) || undefined;
   controlBar({ table, target: participantControl, items });
 }

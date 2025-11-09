@@ -75,7 +75,7 @@ export function eventsView(): void {
     },
   ];
 
-  const target = document.getElementById(EVENTS_CONTROL);
+  const target = document.getElementById(EVENTS_CONTROL) || undefined;
   controlBar({ table, target, items });
 }
 

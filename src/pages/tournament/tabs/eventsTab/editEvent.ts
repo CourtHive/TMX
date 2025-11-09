@@ -1,3 +1,7 @@
+/**
+ * Event editor drawer for creating and modifying events.
+ * Handles event configuration including name, type, gender, category, and dates.
+ */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
@@ -24,10 +28,15 @@ const { DOUBLES, SINGLES, TEAM } = eventConstants;
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { MAIN } = drawDefinitionConstants;
 
-export function editEvent({ table, event, participants, callback } = {}) {
+export function editEvent({
+  table,
+  event,
+  participants,
+  callback,
+}: { table?: any; event?: any; participants?: any[]; callback?: (result: any) => void } = {}): void {
   const eventsCount = tournamentEngine.getEvents().events?.length || 0;
   const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo || {};
-  const values = {
+  const values: any = {
     eventName: event?.eventName || `Event ${eventsCount + 1}`,
     startDate: event?.startDate ?? tournamentInfo.startDate,
     endDate: event?.endDate ?? tournamentInfo.endDate,
@@ -37,8 +46,8 @@ export function editEvent({ table, event, participants, callback } = {}) {
   };
 
   const enteredParticipantIds = event?.entries
-    ?.filter(({ entryStatus }) => [...STRUCTURE_SELECTED_STATUSES, ALTERNATE].includes(entryStatus))
-    .map(({ participantId }) => participantId);
+    ?.filter(({ entryStatus }: any) => [...STRUCTURE_SELECTED_STATUSES, ALTERNATE].includes(entryStatus))
+    .map(({ participantId }: any) => participantId);
 
   const enteredParticipants = enteredParticipantIds
     ? tournamentEngine.getParticipants({
@@ -47,7 +56,8 @@ export function editEvent({ table, event, participants, callback } = {}) {
       }).participants
     : [];
 
-  let eventTypeOptions, genderOptions;
+  let eventTypeOptions: string[] | undefined;
+  let genderOptions: string[] | undefined;
 
   const participantType = participants?.[0].participantType;
 
@@ -57,7 +67,8 @@ export function editEvent({ table, event, participants, callback } = {}) {
     if (participantType === PAIR) eventTypeOptions = [DOUBLES];
     if (participantType === TEAM) eventTypeOptions = [TEAM];
 
-    const sexes = participantType === INDIVIDUAL && tools.unique(participants.map((p) => p.participant?.person?.sex));
+    const sexes =
+      participantType === INDIVIDUAL && tools.unique(participants.map((p: any) => p.participant?.person?.sex));
 
     genderOptions = [ANY];
     if (sexes.length === 1) {
@@ -69,22 +80,22 @@ export function editEvent({ table, event, participants, callback } = {}) {
     }
   }
 
-  const enteredParticipantGenders = [];
-  const enteredParticipantTypes = enteredParticipants.reduce((types, participant) => {
+  const enteredParticipantGenders: any[] = [];
+  const enteredParticipantTypes = enteredParticipants.reduce((types: any[], participant: any) => {
     const genders = participant.person?.sex
       ? [participant.person.sex]
-      : participant.individualParticpants?.map((p) => p.person?.sex) || [];
+      : participant.individualParticpants?.map((p: any) => p.person?.sex) || [];
     enteredParticipantGenders.push(genders);
     return !types.includes(participant.participantType) ? types.concat(participant.participantType) : types;
   }, []);
 
-  const participantAgeCategories = [];
-  for (const participant of [...enteredParticipants, ...(participants || []).map((p) => p.participant)].filter(
-    (p) => p,
+  const participantAgeCategories: any[] = [];
+  for (const participant of [...enteredParticipants, ...(participants || []).map((p: any) => p.participant)].filter(
+    (p: any) => p,
   )) {
     const rankings = participant.timeItems
-      ?.filter(({ itemType }) => itemType?.startsWith(`SCALE.RANKING.${values.eventType}`))
-      .map(({ itemType }) => itemType?.split('.').pop());
+      ?.filter(({ itemType }: any) => itemType?.startsWith(`SCALE.RANKING.${values.eventType}`))
+      .map(({ itemType }: any) => itemType?.split('.').pop());
     participantAgeCategories.push(rankings);
   }
   const categories = tools.unique(...participantAgeCategories);
@@ -102,8 +113,8 @@ export function editEvent({ table, event, participants, callback } = {}) {
     genderOptions = [ANY, MALE, MIXED, FEMALE];
   }
 
-  const valueChange = (/*e, item*/) => {
-    //
+  const valueChange = () => {
+    // Placeholder for future functionality
   };
 
   const relationships = [
@@ -115,7 +126,7 @@ export function editEvent({ table, event, participants, callback } = {}) {
     },
   ];
 
-  const content = (elem) =>
+  const content = (elem: HTMLElement) =>
     renderForm(
       elem,
       [
@@ -252,30 +263,28 @@ export function editEvent({ table, event, participants, callback } = {}) {
     );
 
   const saveEvent = () => {
-    const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
-    const eventName = context.drawer.attributes.content.eventName.value;
-    const eventType = context.drawer.attributes.content.eventType.value;
-    const startDate = context.drawer.attributes.content.startDate.value;
-    const endDate = context.drawer.attributes.content.endDate.value;
-    const gender = context.drawer.attributes.content.gender.value;
+    const ageCategoryCode = (context.drawer.attributes as any).content.ageCategoryCode.value;
+    const eventName = (context.drawer.attributes as any).content.eventName.value;
+    const eventType = (context.drawer.attributes as any).content.eventType.value;
+    const startDate = (context.drawer.attributes as any).content.startDate.value;
+    const endDate = (context.drawer.attributes as any).content.endDate.value;
+    const gender = (context.drawer.attributes as any).content.gender.value;
 
-    const eventUpdates = { eventName, eventType, gender, startDate, endDate };
+    const eventUpdates: any = { eventName, eventType, gender, startDate, endDate };
 
     if (ageCategoryCode && ageCategoryCode !== 'custom') {
       eventUpdates.category = { ...event?.category, ageCategoryCode };
     }
 
-    const postMutation = (result) => {
+    const postMutation = (result: any) => {
       table?.deselectRow();
       if (result.success) {
         const event = result.results?.[0]?.event;
         if (isFunction(callback)) callback({ ...result, event, eventUpdates });
       } else if (result.error) {
-          tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
-          if (isFunction(callback)) {
-            callback();
-          }
-        }
+        tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
+        if (isFunction(callback)) callback(result);
+      }
     };
 
     if (event) {
@@ -293,10 +302,10 @@ export function editEvent({ table, event, participants, callback } = {}) {
       ];
 
       if (participants?.length) {
-        const participantIds = participants.map(({ participantId }) => participantId);
+        const participantIds = participants.map(({ participantId }: any) => participantId);
         const entryStatus =
           participantType === INDIVIDUAL && [DOUBLES, TEAM].includes(eventType) ? UNGROUPED : DIRECT_ACCEPTANCE;
-        const method = {
+        const method: any = {
           params: { eventId, participantIds, entryStatus, entryStage: MAIN },
           method: ADD_EVENT_ENTRIES,
         };
@@ -306,7 +315,7 @@ export function editEvent({ table, event, participants, callback } = {}) {
     }
   };
 
-  const footer = (elem, close) =>
+  const footer = (elem: HTMLElement, close: () => void) =>
     renderButtons(
       elem,
       [

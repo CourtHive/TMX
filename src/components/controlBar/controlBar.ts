@@ -1,3 +1,7 @@
+/**
+ * Control bar component for tables.
+ * Dynamically generates search fields, buttons, and dropdown menus based on configuration.
+ */
 import { validator } from 'components/renderers/renderValidator';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
@@ -8,29 +12,27 @@ import { toggleOverlay } from './toggleOverlay';
 
 import { CENTER, HEADER, EMPTY_STRING, LEFT, NONE, OVERLAY, RIGHT, BUTTON_BAR, TOP } from 'constants/tmxConstants';
 
-/* controlBar can generate a search field, buttons an dropDownButtons
- * There are three locations: standard (LEFT, CENTER, RIGHT), OVERLAY, and HEADER
- * when { hide: true } an element is not generated
- * when { visible: false } an element is generated with { display: NONE }
- * { input: true } or { placeholder: true } will create an input field
- * { search: true } will create an input field and add a search icon
- * { options: [] } will create a dropDownButton
- * { selection: { options: [], actions: [], threshold }} will create either a dropDownButton or a selection modal, depending on threshold
- */
-
-export function controlBar(params) {
+export function controlBar(params: {
+  table?: any;
+  targetClassName?: string;
+  items?: any[];
+  onSelection?: (rows: any[]) => void;
+  target?: HTMLElement;
+}): { elements: Record<string, HTMLElement>; inputs: Record<string, HTMLInputElement> } {
   const { table, targetClassName, items = [], onSelection } = params;
   let { target } = params;
   const buildElement = !!target;
-  target = target || (targetClassName && document.getElementsByClassName(targetClassName)?.[0]);
-  if (!target) return;
+  if (!target && targetClassName) {
+    target = document.getElementsByClassName(targetClassName)?.[0] as HTMLElement;
+  }
+  if (!target) return { elements: {}, inputs: {} };
 
   let overlayCount = 0;
   let headerCount = 0;
 
-  const elements = {};
-  const inputs = {};
-  let focus;
+  const elements: Record<string, HTMLElement> = {};
+  const inputs: Record<string, HTMLInputElement> = {};
+  let focus: HTMLInputElement | undefined;
 
   if (buildElement) {
     removeAllChildNodes(target);
@@ -39,20 +41,20 @@ export function controlBar(params) {
     target.appendChild(result.anchor);
   }
 
-  const locations = Object.assign(
+  const locations: Record<string, HTMLElement | undefined> = Object.assign(
     {},
     ...[OVERLAY, LEFT, CENTER, RIGHT, HEADER]
       .map((location) => {
-        const elem = target.getElementsByClassName(`options_${location}`)?.[0];
+        const elem = target!.getElementsByClassName(`options_${location}`)?.[0] as HTMLElement;
         removeAllChildNodes(elem);
         return { [location]: elem };
       })
       .filter(Boolean),
   );
 
-  const stateChange = toggleOverlay({ table, target });
+  const stateChange = toggleOverlay({ table, target: target! } as any);
 
-  const onClick = (e, itemConfig) => {
+  const onClick = (e: any, itemConfig: any) => {
     if (!isFunction(itemConfig.onClick)) return;
     e.stopPropagation();
     !itemConfig.disabled && itemConfig.onClick(e, table);
@@ -61,7 +63,7 @@ export function controlBar(params) {
 
   const defaultItem = { onClick: () => {}, location: RIGHT };
   for (const item of items) {
-    const itemConfig = { ...defaultItem };
+    const itemConfig: any = { ...defaultItem };
     if (isObject(item)) Object.assign(itemConfig, item);
 
     const location = locations[itemConfig.location];
@@ -73,7 +75,7 @@ export function controlBar(params) {
     if (itemConfig.location === OVERLAY) overlayCount += 1;
     if (itemConfig.location === HEADER) {
       if (isFunction(itemConfig.headerClick)) {
-        const headerElement = target.getElementsByClassName('panelHeader')[0];
+        const headerElement = target!.getElementsByClassName('panelHeader')[0] as HTMLElement;
         if (headerElement) headerElement.onclick = itemConfig.headerClick;
       }
       headerCount += 1;
@@ -81,7 +83,7 @@ export function controlBar(params) {
 
     if (!itemConfig.hide && (itemConfig.input || itemConfig.placeholder || itemConfig.search)) {
       const elem = document.createElement('p');
-      elem.style = 'margin-right: 1em';
+      elem.style.cssText = 'margin-right: 1em';
       elem.className = `control ${itemConfig.search ? 'has-icons-left has-icons-right' : ''}`;
       const input = document.createElement('input');
       if (itemConfig.focus) focus = input;
@@ -116,7 +118,6 @@ export function controlBar(params) {
         if (isFunction(itemConfig.clearSearch)) {
           const clear = document.createElement('span');
           clear.className = 'icon is-small is-right font-medium';
-          // NOTE: "pointer-events: all" necessary to capture the onclick event
           clear.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color: #dddada; pointer-events: all; cursor: pointer"></i>`;
           clear.onclick = (e) => {
             e.stopPropagation();
@@ -168,13 +169,13 @@ export function controlBar(params) {
       const {
         selection: { options, actions },
         actionPlacement,
-        threshold = 8, // default threshold value
+        threshold = 8,
         ...rest
       } = itemConfig;
       if (options?.length < threshold) {
         if (options.length)
           actionPlacement === TOP ? options.unshift({ divider: true }) : options.push({ divider: true });
-        actions.forEach((action) => {
+        actions.forEach((action: any) => {
           const { label: text, ...attribs } = action;
           const option = { ...attribs, label: `<p style="font-weight: bold">${text}</p>` };
           actionPlacement === TOP ? options.unshift(option) : options.push(option);
@@ -197,7 +198,7 @@ export function controlBar(params) {
       elem.className = 'tabs is-toggle is-toggle-rounded';
       const ul = document.createElement('ul');
       elem.appendChild(ul);
-      itemConfig.tabs.forEach((tab) => {
+      itemConfig.tabs.forEach((tab: any) => {
         const li = document.createElement('li');
         if (tab.active) li.classList.add('is-active');
         const a = document.createElement('a');
@@ -226,11 +227,11 @@ export function controlBar(params) {
     }
   }
 
-  const panelHeader = target.getElementsByClassName('panelHeader')[0];
+  const panelHeader = target.getElementsByClassName('panelHeader')[0] as HTMLElement;
   if (panelHeader) panelHeader.style.display = headerCount ? EMPTY_STRING : NONE;
 
-  table?.on('rowSelectionChanged', (data, rows) => {
-    isFunction(onSelection) && onSelection(rows);
+  table?.on('rowSelectionChanged', (_data: any, rows: any[]) => {
+    isFunction(onSelection) && onSelection && onSelection(rows);
     overlayCount && stateChange(rows);
   });
 
@@ -240,7 +241,7 @@ export function controlBar(params) {
   return { elements, inputs };
 }
 
-function createControlElement() {
+function createControlElement(): { elements: Record<string, HTMLElement>; anchor: HTMLElement; header: HTMLElement } {
   const anchor = document.createElement('div');
   anchor.className = 'panel_container flexcol flexcenter';
   const header = document.createElement('div');
@@ -251,10 +252,8 @@ function createControlElement() {
 
   const control = document.createElement('div');
   control.className = BUTTON_BAR;
-  // control.style = 'flex-wrap: wrap-reverse;';
 
-  // IMPORTANT: order of the elements cannot be changed
-  const elements = {
+  const elements: Record<string, HTMLElement> = {
     optionsOverlay: document.createElement('div'),
     optionsLeft: document.createElement('div'),
     optionsCenter: document.createElement('div'),

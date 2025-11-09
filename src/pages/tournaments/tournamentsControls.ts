@@ -33,7 +33,8 @@ export function calendarControls(table: any): void {
   const items = [
     { label: 'Actions', options: actions, align: RIGHT },
     {
-      onKeyDown: (e: KeyboardEvent) => e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
+      onKeyDown: (e: KeyboardEvent) =>
+        e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
       onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),
@@ -44,6 +45,6 @@ export function calendarControls(table: any): void {
     },
   ];
 
-  const target = document.getElementById(TOURNAMENTS_CONTROL);
+  const target = document.getElementById(TOURNAMENTS_CONTROL) || undefined;
   controlBar({ target, items });
 }

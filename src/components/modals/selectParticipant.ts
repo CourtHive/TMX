@@ -163,7 +163,7 @@ export function selectParticipant(params: any): void {
     },
   ];
 
-  const target = document.getElementById(controlId);
+  const target = document.getElementById(controlId) || undefined;
 
   controlInputs = controlBar({ table, target, items })?.inputs;
 }
