@@ -34,6 +34,7 @@ export function tipster(params: TipsterParams): Instance | undefined {
 
   destroyTipster();
   const tippyMenu = document.createElement('div');
+  let focusElement: HTMLElement | undefined;
 
   const content = () => {
     items =
@@ -69,15 +70,25 @@ export function tipster(params: TipsterParams): Instance | undefined {
         }));
 
     const menu = [{ text: title, items }, ...menuItems];
-    const { focusElement } = (renderMenu as any)(tippyMenu, menu);
-    if (focusElement) focusElement.focus();
+    const result = (renderMenu as any)(tippyMenu, menu);
+    focusElement = result.focusElement;
 
     return tippyMenu;
   };
 
   target = target || coords?.evt?.target;
   if (target) {
-    tip = tippy(target, { content, theme: 'light-border', trigger: 'click', ...config });
+    tip = tippy(target, {
+      content,
+      theme: 'light-border',
+      trigger: 'click',
+      onShown: () => {
+        if (focusElement) {
+          setTimeout(() => focusElement?.focus(), 0);
+        }
+      },
+      ...config,
+    });
     tip.show();
     tip.setProps({ interactive: true });
   }
