@@ -44,6 +44,14 @@ export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
+  const participantLabel = view === OFFICIAL ? 'Officials' : 'Individuals';
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
+  const registration = extension?.value;
+  const state = getLoginState();
+  const canEditTennisId = state?.roles?.includes('superadmin') || state?.permissions?.includes('editTennisId');
+
+  // Callback that refreshes data and rebuilds the component after event changes
+  const refreshAfterEventChange = () => renderIndividuals({ view });
 
   const { eventOptions, events } = getEventFilter(table);
   const { sexOptions, genders } = getSexFilter(table);
@@ -60,13 +68,6 @@ export function renderIndividuals({ view }: { view: string }): void {
       showNotice: true,
     });
   };
-
-  const participantLabel = view === OFFICIAL ? 'Officials' : 'Individuals';
-  const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
-  const registration = extension?.value;
-
-  const state = getLoginState();
-  const canEditTennisId = state?.roles?.includes('superadmin') || state?.permissions?.includes('editTennisId');
 
   const actionOptions: any[] = [
     {
@@ -98,7 +99,8 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   const addToEventOptions = events
     .map((event: any) => ({
-      onClick: () => addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: replaceTableData }),
+      onClick: () =>
+        addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: refreshAfterEventChange }),
       label: event.eventName,
       close: true,
     }))
@@ -106,7 +108,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       { divider: true } as any,
       {
         label: '<p style="font-weight: bold">Create new event</p>',
-        onClick: () => eventFromParticipants(table, replaceTableData),
+        onClick: () => eventFromParticipants(table, refreshAfterEventChange),
         close: true,
       },
     ]);
@@ -141,7 +143,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       location: OVERLAY,
     },
     {
-      onClick: () => eventFromParticipants(table, replaceTableData),
+      onClick: () => eventFromParticipants(table, refreshAfterEventChange),
       label: 'Create event',
       hide: events.length,
       intent: 'is-info',
