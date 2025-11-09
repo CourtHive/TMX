@@ -22,6 +22,15 @@ export function addParticipantsToEvent({ event, participantType, table, callback
   const participantIds = selected
     .filter((p: any) => !p.events.map((e: any) => e.eventId).includes(eventId))
     .map(({ participantId }: any) => participantId);
+  
+  // Check if all selected participants are already in the event
+  if (!participantIds.length && selected.length) {
+    tmxToast({ 
+      message: `All selected participants are already in ${eventName}`, 
+      intent: 'is-info' 
+    });
+    return;
+  }
   const postAdd = ({ entryStatus, entryStage }: any = {}) => {
     table.deselectRow();
     const methods = [
