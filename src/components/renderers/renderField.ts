@@ -111,7 +111,7 @@ export function renderField(item: any): { field: HTMLDivElement; inputElement?: 
     div.style.display = 'inline-block';
     const input = document.createElement('input');
     if (isFunction(item.onChange)) input.addEventListener('change', (e) => item.onChange(e, item));
-    inputElement = div;
+    inputElement = input;  // Return the actual checkbox input, not the wrapper
     const intent = item.intent ?? 'is-success';
     input.className = `is-checkradio ${intent}`;
     input.type = 'checkbox';
