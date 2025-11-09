@@ -107,7 +107,7 @@ function setSubscriptions(): void {
       [topicConstants.MODIFY_MATCHUP]: (data: any) => {
         const matchUpId = data.matchUp?.matchUpId;
         context.matchUpsToBroadcast.push(matchUpId);
-        env.devNotes && console.log('MODIFY_MATCHUP', data);
+        if (env.devNotes) console.log('MODIFY_MATCHUP', data);
       },
     },
   });
@@ -142,7 +142,8 @@ function getDevice(): any {
 function getNavigator(): Navigator | undefined {
   try {
     return navigator || (window as any).navigator;
-  } catch (e) {
+  } catch (err) {
+    console.log(err);
     return undefined;
   }
 }

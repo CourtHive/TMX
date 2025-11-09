@@ -171,6 +171,6 @@ export function removeTournamentContent(): void {
   ids.forEach((key) => {
     const id = refMap[key];
     const element = document.getElementById(id);
-    element && removeAllChildNodes(element);
+    if (element) removeAllChildNodes(element);
   });
 }

@@ -16,7 +16,15 @@ import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 const { COMPETITOR, OFFICIAL } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
 
-export function editIndividualParticipant({ participant, view, callback }: { participant?: any; view?: string; callback?: () => void }): any {
+export function editIndividualParticipant({
+  participant,
+  view,
+  callback,
+}: {
+  participant?: any;
+  view?: string;
+  callback?: () => void;
+}): any {
   const list = fixtures.countries.map((country: any) => ({
     label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
     value: country.ioc,
@@ -152,7 +160,7 @@ export function editIndividualParticipant({ participant, view, callback }: { par
       ];
       const postMutation = (result: any) => {
         if (result.success) {
-          isFunction(callback) && callback && callback();
+          if (isFunction(callback)) callback();
         } else {
           console.log(result);
         }
@@ -178,8 +186,8 @@ export function editIndividualParticipant({ participant, view, callback }: { par
     };
 
     const postMutation = (result: any) => {
-      result.success && isFunction(callback) && callback && callback();
-      !result.success && console.log(result);
+      if (result.success && isFunction(callback)) callback();
+      if (!result.success) console.log(result);
     };
 
     const methods = [

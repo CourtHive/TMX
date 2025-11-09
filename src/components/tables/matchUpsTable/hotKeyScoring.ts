@@ -121,7 +121,7 @@ function submitScore({ outcome, callback, matchUpId, drawId }: { outcome: any; c
     },
   ];
   const mutationCallback = (result: any) => {
-    isFunction(callback) && callback({ ...result, outcome });
+    if (isFunction(callback)) callback({ ...result, outcome });
   };
   mutationRequest({ methods, callback: mutationCallback });
 }

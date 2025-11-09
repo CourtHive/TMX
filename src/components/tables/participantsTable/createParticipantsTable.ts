@@ -17,7 +17,12 @@ import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
 
-export function createParticipantsTable({ view }: { view?: string } = {}): { table: any; replaceTableData: () => void; teamParticipants: any[]; groupParticipants: any[] } {
+export function createParticipantsTable({ view }: { view?: string } = {}): {
+  table: any;
+  replaceTableData: () => void;
+  teamParticipants: any[];
+  groupParticipants: any[];
+} {
   let table: any;
   let groupParticipants: any[] = [];
   let participants: any[];
@@ -50,10 +55,10 @@ export function createParticipantsTable({ view }: { view?: string } = {}): { tab
     const tennisId = data?.some((p: any) => p.tennisId);
     const utr = data?.some((p: any) => p.ratings?.utr);
     const wtn = data?.some((p: any) => p.ratings?.wtn);
-    cityState && table?.showColumn('cityState');
-    tennisId && table?.showColumn('tennisId');
-    utr && table?.showColumn('ratings.utr.utrRating');
-    wtn && table?.showColumn('ratings.wtn.wtnRating');
+    if (cityState) table?.showColumn('cityState');
+    if (tennisId) table?.showColumn('tennisId');
+    if (utr) table?.showColumn('ratings.utr.utrRating');
+    if (wtn) table?.showColumn('ratings.wtn.wtnRating');
     const refresh = () => table.replaceData(data);
     setTimeout(refresh, ready ? 0 : 1000);
   };
@@ -93,21 +98,21 @@ export function createParticipantsTable({ view }: { view?: string } = {}): { tab
     const getHeader = (rows: any[]) => `Participants (${rows.length})`;
     table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
-      headerElement && (headerElement.innerHTML = getHeader(rows));
+      if (headerElement) headerElement.innerHTML = getHeader(rows);
       const wtns: number[] = [];
       const utrs: number[] = [];
       for (const row of rows) {
         const data = row.getData();
         const { wtn, utr } = data.ratings;
-        tools.isNumeric(utr?.utrRating) && utrs.push(parseFloat(utr.utrRating));
-        tools.isNumeric(wtn?.wtnRating) && wtns.push(parseFloat(wtn.wtnRating));
+        if (tools.isNumeric(utr?.utrRating)) utrs.push(parseFloat(utr.utrRating));
+        if (tools.isNumeric(wtn?.wtnRating)) wtns.push(parseFloat(wtn.wtnRating));
       }
       const utrTotal = utrs.reduce(simpleAddition, 0);
       const wtnTotal = wtns.reduce(simpleAddition, 0);
       const utrAverage = (utrs.length ? utrTotal / utrs.length : 0).toFixed(2);
       const wtnAverage = (wtns.length ? wtnTotal / wtns.length : 0).toFixed(2);
-      env.averages && console.log(`UTR ${utrAverage}x̄`);
-      env.averages && console.log(`WTN ${wtnAverage}x̄`);
+      if (env.averages) console.log(`UTR ${utrAverage}x̄`);
+      if (env.averages) console.log(`WTN ${wtnAverage}x̄`);
     });
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));

@@ -19,7 +19,7 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
 
   const selectProvider = () => {
     const provider = providers.find(({ value }: any) => value.organisationId === values.providerId)?.value;
-    provider && isFunction(callback) && callback && callback(provider);
+    if (provider && isFunction(callback)) callback(provider);
   };
 
   const onInput = (el: Event) => {

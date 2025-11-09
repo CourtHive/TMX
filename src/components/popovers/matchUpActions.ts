@@ -41,7 +41,7 @@ export function matchUpActions({ pointerEvent, cell, matchUp, callback }: { poin
     };
     const updateRow = () => {
       if (!cell) {
-        callback && callback({ refresh: true });
+        if (callback) callback({ refresh: true });
         return;
       }
       const row = cell.getRow();

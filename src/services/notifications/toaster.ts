@@ -95,7 +95,7 @@ export function toast(params: ToastOptions): { error?: string } | void {
 function createToast(options: ToastOptions): { element: HTMLElement } {
   const element = document.createElement('div');
 
-  options.clickClose && element.addEventListener('click', () => cleanUp(options.onClose));
+  if (options.clickClose) element.addEventListener('click', () => cleanUp(options.onClose));
   const timer = options.duration && tmxTimer(() => cleanUp(options.onClose), options.duration);
 
   if (timer && options.pauseOnHover) {

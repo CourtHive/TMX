@@ -96,8 +96,8 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
         .join(',');
     }
 
-    startDate && inputs.activeDates.datepicker.setOptions({ minDate: startDate });
-    endDate && inputs.activeDates.datepicker.setOptions({ maxDate: endDate });
+    if (startDate) inputs.activeDates.datepicker.setOptions({ minDate: startDate });
+    if (endDate) inputs.activeDates.datepicker.setOptions({ maxDate: endDate });
 
     const saveButton = document.getElementById('saveTournamentEdits');
     if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;

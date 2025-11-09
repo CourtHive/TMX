@@ -53,8 +53,8 @@ export function loginModal(callback?: () => void): void {
     const email = inputs.email.value;
     const password = inputs.password.value;
     const response = (res: any) => {
-      !res && logOut();
-      res?.status === 200 && logIn({ data: res.data, callback });
+      if (!res) logOut();
+      if (res?.status === 200) logIn({ data: res.data, callback });
     };
     systemLogin(email, password).then(response, (err: any) => console.log({ err }));
   };

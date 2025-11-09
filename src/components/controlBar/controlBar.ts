@@ -57,8 +57,8 @@ export function controlBar(params: {
   const onClick = (e: any, itemConfig: any) => {
     if (!isFunction(itemConfig.onClick)) return;
     e.stopPropagation();
-    !itemConfig.disabled && itemConfig.onClick(e, table);
-    itemConfig.stateChange && stateChange();
+    if (!itemConfig.disabled) itemConfig.onClick(e, table);
+    if (itemConfig.stateChange) stateChange();
   };
 
   const defaultItem = { onClick: () => {}, location: RIGHT };
@@ -173,12 +173,21 @@ export function controlBar(params: {
         ...rest
       } = itemConfig;
       if (options?.length < threshold) {
-        if (options.length)
-          actionPlacement === TOP ? options.unshift({ divider: true }) : options.push({ divider: true });
+        if (options.length) {
+          if (actionPlacement === TOP) {
+            options.unshift({ divider: true });
+          } else {
+            options.push({ divider: true });
+          }
+        }
         actions.forEach((action: any) => {
           const { label: text, ...attribs } = action;
           const option = { ...attribs, label: `<p style="font-weight: bold">${text}</p>` };
-          actionPlacement === TOP ? options.unshift(option) : options.push(option);
+          if (actionPlacement === TOP) {
+            options.unshift(option);
+          } else {
+            options.push(option);
+          }
         });
         const buttonConfig = { ...rest, options };
         const elem = dropDownButton({ target: location, button: buttonConfig, stateChange });
@@ -231,8 +240,8 @@ export function controlBar(params: {
   if (panelHeader) panelHeader.style.display = headerCount ? EMPTY_STRING : NONE;
 
   table?.on('rowSelectionChanged', (_data: any, rows: any[]) => {
-    isFunction(onSelection) && onSelection && onSelection(rows);
-    overlayCount && stateChange(rows);
+    if (isFunction(onSelection)) onSelection(rows);
+    if (overlayCount) stateChange(rows);
   });
 
   stateChange();

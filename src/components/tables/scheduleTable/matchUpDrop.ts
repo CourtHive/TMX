@@ -21,7 +21,7 @@ export async function matchUpDrop(ev: DragEvent, cell: any): Promise<void> {
   const data = table.getData();
   const targetRow = cell.getRow().getData();
 
-  let matchUps = table.getData().flatMap((row: any) => Object.values(row).filter((m: any) => m.matchUpId));
+  const matchUps = table.getData().flatMap((row: any) => Object.values(row).filter((m: any) => m.matchUpId));
   let sourceMatchUp = matchUps.find((matchUp: any) => matchUp.matchUpId === sourceMatchUpId);
   if (!sourceMatchUp) {
     const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
@@ -70,7 +70,7 @@ export async function matchUpDrop(ev: DragEvent, cell: any): Promise<void> {
 
   const invokeMethods = () => {
     const callback = (result: any) => {
-      !result.success && console.log({ result });
+      if (!result.success) console.log({ result });
       updateConflicts(table);
     };
     mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });

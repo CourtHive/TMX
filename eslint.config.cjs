@@ -28,6 +28,7 @@ module.exports = [
   {
     rules: {
       'no-unused-expressions': 'off',
+      'prefer-const': 'off',
       'sonarjs/cognitive-complexity': 'off',
       'sonarjs/no-commented-code': 'off',
       'sonarjs/todo-tag': 'off',

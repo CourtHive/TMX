@@ -58,7 +58,7 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
 
   const prepareExit = (rows: any[]) => {
     const tieFormat = constructTieFormat(rows);
-    isFunction(onClose) && onClose(tieFormat?.collectionDefinitions?.length && tieFormat);
+    if (isFunction(onClose)) onClose(tieFormat?.collectionDefinitions?.length && tieFormat);
   };
 
   const footer = getFooter({ table, onClose: prepareExit });
@@ -164,7 +164,7 @@ function getFooter({ table, onClose }: { table: any; onClose: (rows: any[]) => v
     e.stopPropagation();
     const data = table.getData();
     destroyTableAndClose();
-    isFunction(onClose) && onClose(data);
+    if (isFunction(onClose)) onClose(data);
   };
   close.innerHTML = 'Done';
 

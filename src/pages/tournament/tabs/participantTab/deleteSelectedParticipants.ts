@@ -8,7 +8,10 @@ export function deleteSelectedParticipants(table: any): void {
   const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
   const okAction = () => {
     const callback = (result: any) => {
-      result.success && table.deleteRow(participantIds) && table.deselectRow();
+      if (result.success) {
+        table.deleteRow(participantIds);
+        table.deselectRow();
+      }
     };
     deleteParticipants({ participantIds, callback });
   };

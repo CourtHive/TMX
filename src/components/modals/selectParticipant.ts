@@ -57,7 +57,8 @@ export function selectParticipant(params: any): void {
   if (!actionType?.targetAttribute) return;
 
   const title = params.title || actionType.title || 'Select participant';
-  let selected: any, controlInputs: any;
+  let selected: any;
+  let controlInputs: any;
 
   const onClick = () => {
     const attribute = actionType.targetAttribute;
@@ -146,8 +147,12 @@ export function selectParticipant(params: any): void {
   };
 
   const onSearchKeyDown = (e: KeyboardEvent) => {
-    e.keyCode === 8 && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter('');
-    e.key === 'Enter' && checkSelection();
+    if (e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1) {
+      setSearchFilter('');
+    }
+    if (e.key === 'Enter') {
+      checkSelection();
+    }
   };
   const items = [
     {

@@ -18,6 +18,7 @@ function getNavigator() {
   try {
     return navigator || window.navigator;
   } catch (_e) {
+    console.log(_e);
     return undefined;
   }
 }
@@ -108,7 +109,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
   };
 
   const linkKeyEvent = (evt: KeyboardEvent) => {
-    if (evt.which === 13) processLink();
+    if (evt.key === 'Enter') processLink();
   };
 
   openModal({ title: 'Location', content: html, buttons });
@@ -150,12 +151,22 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
   }
 }
 
-function locationMap({ successElement, mapElementId, coords, zoom }: { successElement: any; mapElementId: string; coords: Coords; zoom: number }): { map: any; marker: any } {
+function locationMap({
+  successElement,
+  mapElementId,
+  coords,
+  zoom,
+}: {
+  successElement: any;
+  mapElementId: string;
+  coords: Coords;
+  zoom: number;
+}): { map: any; marker: any } {
   const nav = getNavigator();
   if (!nav?.onLine) return {} as any;
 
-  zoom = zoom === undefined ? 16 : zoom;
-  if (coords.latitude !== undefined && coords.longitude !== undefined) {
+  // zoom is always a number per function signature, no need to check for undefined
+  if (coords.latitude && coords.longitude) {
     if (successElement) successElement.style.display = 'inline';
     return gpsLocation(coords.latitude, coords.longitude, zoom);
   } else {

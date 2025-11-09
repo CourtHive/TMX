@@ -6,17 +6,19 @@ export function initScrollNav(): void {
   const nav = document.getElementById('dnav');
   if (!nav) return;
 
-  const supportPageOffset = window.pageXOffset !== undefined;
+  // pageXOffset is always defined in modern browsers (returns number)
+  const supportPageOffset = window.pageXOffset != null;
   const isCSS1Compat = (document.compatMode || '') === 'CSS1Compat';
 
   let previousScrollPosition = 0;
 
   const isScrollingDown = (): boolean => {
-    const scrolledPosition = supportPageOffset
-      ? window.pageYOffset
-      : isCSS1Compat
-        ? document.documentElement.scrollTop
-        : document.body.scrollTop;
+    let scrolledPosition: number;
+    if (supportPageOffset) {
+      scrolledPosition = window.pageYOffset;
+    } else {
+      scrolledPosition = isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop;
+    }
     let isScrollDown: boolean;
 
     if (scrolledPosition > previousScrollPosition) {

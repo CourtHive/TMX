@@ -35,7 +35,7 @@ const saveVenue = (callback?: (result: any) => void) => {
   const postMutation = (result: any) => {
     if (result?.success && isFunction(callback) && callback) {
       const { venue } = tournamentEngine.findVenue({ venueId });
-      venue && callback({ ...result, venue });
+      if (venue) callback({ ...result, venue });
     }
   };
   mutationRequest({ methods, callback: postMutation });
