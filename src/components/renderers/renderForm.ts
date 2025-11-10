@@ -35,7 +35,10 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
         container.appendChild(text);
         const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
         if (datepicker) inputs[`${item.field}.date`] = datepicker;
-        if (inputElement) inputs[item.fieldPair.field] = inputElement;
+        if (inputElement) {
+          inputs[item.fieldPair.field] = inputElement;
+          if (item.fieldPair.focus) focus = inputElement as HTMLElement;
+        }
         fields[item.fieldPair.field] = pair;
         container.appendChild(pair);
         div.appendChild(container);
@@ -78,7 +81,10 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
         container.appendChild(field);
         const { field: pair, inputElement, datepicker } = renderField(item.fieldPair);
         if (datepicker) inputs[`${item.field}.date`] = datepicker;
-        if (inputElement) inputs[item.fieldPair.field] = inputElement;
+        if (inputElement) {
+          inputs[item.fieldPair.field] = inputElement;
+          if (item.fieldPair.focus) focus = inputElement as HTMLElement;
+        }
         fields[item.fieldPair.field] = pair;
         container.appendChild(pair);
         div.appendChild(container);
@@ -111,10 +117,14 @@ export function renderForm(elem: HTMLElement, items: any[], relationships?: any[
 
       if (relationship.control) {
         if (isFunction(relationship.onChange)) {
-          inputs[relationship.control].addEventListener('change', (e: Event) => relationship.onChange({ e, inputs, fields }));
+          inputs[relationship.control].addEventListener('change', (e: Event) =>
+            relationship.onChange({ e, inputs, fields }),
+          );
         }
         if (isFunction(relationship.onInput) && inputs[relationship.control]) {
-          inputs[relationship.control].addEventListener('input', (e: Event) => relationship.onInput({ e, inputs, fields }));
+          inputs[relationship.control].addEventListener('input', (e: Event) =>
+            relationship.onInput({ e, inputs, fields }),
+          );
         }
         if (isFunction(relationship.onFocusOut) && inputs[relationship.control]) {
           inputs[relationship.control].addEventListener('focusout', (e: Event) =>

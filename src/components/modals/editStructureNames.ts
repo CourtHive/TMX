@@ -17,12 +17,13 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   const structures = tournamentEngine.getEvent({ drawId })?.drawDefinition?.structures;
   if (!structures?.length) return;
 
-  const options = structures.map(({ structureName, structureId }: any) => ({
+  const options = structures.map(({ structureName, structureId }: any, index: number) => ({
     text: `${structureName}:`,
     fieldPair: {
       error: 'minimum 4 characters',
       validator: nameValidator(4),
       placeholder: structureName,
+      focus: index === 0,
       field: structureId,
       id: structureId,
     },
