@@ -1,0 +1,32 @@
+import { renderForm } from 'components/renderers/renderForm';
+import { openModal } from './baseModal/baseModal';
+
+export function editNotes({ notice, notes, callback }: { notice?: string; notes?: string; callback?: (result: any) => void }): void {
+  let inputs: any;
+  const content = (elem: HTMLElement) => {
+    inputs = renderForm(elem, [
+      {
+        placeholder: 'appears on PDF Header',
+        value: notice,
+        label: 'Schedule notice',
+        field: 'notice'
+      },
+      {
+        placeholder: 'appears on PDF Footer',
+        value: notes,
+        label: 'Umpire notes',
+        field: 'notes'
+      }
+    ]);
+  };
+  const submit = () => {
+    const updatedNotice = inputs.notice.value;
+    const updatedNotes = inputs.notes.value;
+    if (typeof callback === 'function') callback({ notice: updatedNotice, notes: updatedNotes });
+  };
+  const buttons = [
+    { label: 'Cancel', intent: 'is-nothing' },
+    { label: 'Save', intent: 'is-info', onClick: submit, close: true }
+  ];
+  openModal({ title: 'Order of play', buttons, content });
+}

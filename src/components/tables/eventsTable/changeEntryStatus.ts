@@ -1,0 +1,52 @@
+import { mutationRequest } from 'services/mutation/mutationRequest';
+
+import { OVERLAY, entryStatusMapping } from 'constants/tmxConstants';
+import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
+
+const modifyStatus = (table: any, group: string, eventId: string, drawId?: string) => {
+  const selected = table.getSelectedData();
+  const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
+  const [entryStage, entryStatus] = group.split('.');
+
+  const params = {
+    ignoreAssignment: true,
+    participantIds,
+    entryStatus,
+    entryStage,
+    eventId,
+    drawId
+  };
+
+  const callback = (result: any) => {
+    table.deselectRow();
+
+    if (result.success) {
+      const rows = table.getRows();
+      for (const row of rows) {
+        const data = row.getData();
+        if (participantIds.includes(data.participantId)) {
+          data.status = entryStatusMapping[entryStatus];
+          row.update(data);
+        }
+      }
+    } else {
+      console.log(result.error);
+    }
+  };
+
+  mutationRequest({ methods: [{ method: MODIFY_ENTRIES_STATUS, params }], callback });
+};
+
+export const changeEntryStatus = (groups: string[], eventId: string, drawId?: string) => (table: any): any => {
+  const options = groups.map((group) => ({
+    onClick: () => modifyStatus(table, group, eventId, drawId),
+    label: group,
+    value: group,
+    close: true
+  }));
+  return {
+    location: OVERLAY,
+    label: 'Change status',
+    options
+  };
+};

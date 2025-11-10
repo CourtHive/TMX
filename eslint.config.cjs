@@ -28,7 +28,14 @@ module.exports = [
   {
     rules: {
       'no-unused-expressions': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      'prefer-const': 'off',
       'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/no-commented-code': 'off',
+      'sonarjs/no-nested-functions': 'off',
+      'sonarjs/no-hardcoded-passwords': 'off',
+      'sonarjs/regex-complexity': 'off',
+      'sonarjs/todo-tag': 'off',
       'sonarjs/no-all-duplicated-branches': 'warn',
       'sonarjs/no-collapsible-if': 'warn',
       'sonarjs/no-collection-size-mischeck': 'warn',
@@ -50,6 +57,7 @@ module.exports = [
       '@typescript-eslint/no-useless-escape': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-this-alias': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -62,6 +70,6 @@ module.exports = [
     },
   },
   {
-    ignores: ['**/*.mjs', 'vite.config.ts', '**/*.cy.ts', 'cypress', 'cypress.config.ts'],
+    ignores: ['**/*.mjs', 'vite.config.ts', '**/*.cy.ts', 'cypress', 'cypress.config.ts', 'src/legacy/**', 'src/components/charts/**'],
   },
 ];

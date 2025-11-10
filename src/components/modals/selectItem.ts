@@ -57,6 +57,6 @@ export function selectItem(params) {
     },
   ];
 
-  const target = document.getElementById(controlId);
+  const target = document.getElementById(controlId) || undefined;
   controlBar({ table, target, items });
 }

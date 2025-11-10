@@ -84,7 +84,7 @@ export function routeTMX() {
 
   router.on(`/actionKey/:key`, (match) => {
     const key = match?.data?.key;
-    queueKey(key);
+    if (key) queueKey(key);
     router.navigate('/');
     showSplash();
   });
