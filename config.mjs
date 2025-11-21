@@ -31,7 +31,7 @@ const { environment } = {
       {
         message: 'Choose an environment',
         name: 'environment',
-        type: 'list',
+        type: 'select',
         choices: [
           { name: 'Local', value: 'local' },
           { name: 'Production', value: 'production' },
