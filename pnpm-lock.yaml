@@ -18,8 +18,8 @@ importers:
         specifier: ^9.14.0
         version: 9.39.1
       '@event-calendar/core':
-        specifier: 4.7.1
-        version: 4.7.1
+        specifier: 5.0.4
+        version: 5.0.4
       '@event-calendar/day-grid':
         specifier: 3.12.0
         version: 3.12.0
@@ -732,8 +732,8 @@ packages:
   '@event-calendar/core@3.12.0':
     resolution: {integrity: sha512-aKtDwEKzWHOV2PLVdhR/f843ecW3C0w5G5VhGl1f0GBEgT8dZvoYreQ7QKTBWh7B7YEtEn2P0Dn36zFYj5XEXQ==}
 
-  '@event-calendar/core@4.7.1':
-    resolution: {integrity: sha512-4tb9gB2SjODjuzzKWaZXZ2zw65CpRBXX7shNiop1F9czbOJ/ZDSbW0V9aoKd5t7GvbMg406vtrjRYTMi+UyZVQ==}
+  '@event-calendar/core@5.0.4':
+    resolution: {integrity: sha512-JvHcVPSGViF2ar4pEye8Pg2RGFjHLfck6VaYKyRlCh4bJC2KXxcocxRBWZzqFoWtPagEX4DXnzl3t17fDOKQgQ==}
 
   '@event-calendar/day-grid@3.12.0':
     resolution: {integrity: sha512-gY6XvEIlwWI9uKWsXukyanDmrEWv1UDHdhikhchpe6iZP25p3+760qXIU2kdu91tXjb+hVbpFcn7sdNPPE4u7Q==}
@@ -2073,6 +2073,9 @@ packages:
   des.js@1.1.0:
     resolution: {integrity: sha512-r17GxjhUCjSRy8aiJpr8/UadFIzMzJGexI3Nmz4ADi9LYSFx4gTBp80+NaX/YsXWWLhpZ7v/v/ubEc/bCNfKwg==}
 
+  devalue@5.6.1:
+    resolution: {integrity: sha512-jDwizj+IlEZBunHcOuuFVBnIMPAEHvTsJj0BcIp94xYguLRVBcXO853px/MyIJvbVzWdsGvrRweIUWJw8hBP7A==}
+
   dexie@4.2.1:
     resolution: {integrity: sha512-Ckej0NS6jxQ4Po3OrSQBFddayRhTCic2DoCAG5zacOfOVB9P2Q5Xc5uL/nVa7ZVs+HdMnvUPzLFCB/JwpB6Csg==}
 
@@ -2269,8 +2272,8 @@ packages:
     resolution: {integrity: sha512-YQLXUplAwJgCydQ78IMJywZCceoqk1oH01OERdSAJc/7U2AylwjhSCLDEtqwg811idIS/9fIU5GjG73IgjKMVg==}
     engines: {node: '>=0.10'}
 
-  esrap@2.1.0:
-    resolution: {integrity: sha512-yzmPNpl7TBbMRC5Lj2JlJZNPml0tzqoqP5B1JXycNUwtqma9AKCO0M2wHrdgsHcy1WRW7S9rJknAMtByg3usgA==}
+  esrap@2.2.1:
+    resolution: {integrity: sha512-GiYWG34AN/4CUyaWAgunGt0Rxvr1PTMlGC0vvEov/uOQYWne2bpN03Um+k8jT+q3op33mKouP2zeJ6OlM+qeUg==}
 
   esrecurse@4.3.0:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
@@ -3802,8 +3805,8 @@ packages:
     resolution: {integrity: sha512-IY1rnGr6izd10B0A8LqsBfmlT5OILVuZ7XsI0vdGPEvuonFV7NYEUK4dAkm9Zg2q0Um92kYjTpS1CAP3Nh/KWw==}
     engines: {node: '>=16'}
 
-  svelte@5.41.2:
-    resolution: {integrity: sha512-JetVllvRzfAqg/32ST3SWkb0+OiCpJ/sSMTe206QgiTAN6XaCR3s7nx2L+hQHoUd/1YoK+UsEblGWyKcqY7Efg==}
+  svelte@5.46.0:
+    resolution: {integrity: sha512-ZhLtvroYxUxr+HQJfMZEDRsGsmU46x12RvAv/zi9584f5KOX7bUrEbhPJ7cKFmUvZTJXi/CFZUYwDC6M1FigPw==}
     engines: {node: '>=18'}
 
   systeminformation@5.27.7:
@@ -4810,9 +4813,9 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@4.7.1':
+  '@event-calendar/core@5.0.4':
     dependencies:
-      svelte: 5.41.2
+      svelte: 5.46.0
 
   '@event-calendar/day-grid@3.12.0':
     dependencies:
@@ -5956,7 +5959,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
       '@types/estree': 1.0.8
-      acorn: 8.14.0
+      acorn: 8.15.0
       estree-walker: 3.0.3
       periscopic: 3.1.0
 
@@ -6393,6 +6396,8 @@ snapshots:
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
 
+  devalue@5.6.1: {}
+
   dexie@4.2.1: {}
 
   diff-sequences@29.6.3: {}
@@ -6723,7 +6728,7 @@ snapshots:
     dependencies:
       estraverse: 5.3.0
 
-  esrap@2.1.0:
+  esrap@2.2.1:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
@@ -7781,7 +7786,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
       estree-walker: 3.0.3
-      is-reference: 3.0.2
+      is-reference: 3.0.3
 
   picocolors@1.1.1: {}
 
@@ -8310,7 +8315,7 @@ snapshots:
       magic-string: 0.30.21
       periscopic: 3.1.0
 
-  svelte@5.41.2:
+  svelte@5.46.0:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -8320,8 +8325,9 @@ snapshots:
       aria-query: 5.3.2
       axobject-query: 4.1.0
       clsx: 2.1.1
+      devalue: 5.6.1
       esm-env: 1.2.2
-      esrap: 2.1.0
+      esrap: 2.2.1
       is-reference: 3.0.3
       locate-character: 3.0.0
       magic-string: 0.30.21
