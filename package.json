@@ -73,7 +73,7 @@
     "esm": "3.2.25",
     "globals": "16.5.0",
     "husky": "9.1.7",
-    "inquirer": "13.0.1",
+    "inquirer": "13.1.0",
     "lint-staged": "16.2.7",
     "os-browserify": "0.3.0",
     "prettier": "3.7.4",
