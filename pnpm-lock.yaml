@@ -18,8 +18,8 @@ importers:
         specifier: ^9.14.0
         version: 9.39.2
       '@event-calendar/core':
-        specifier: 5.0.4
-        version: 5.0.4
+        specifier: 5.0.5
+        version: 5.0.5
       '@event-calendar/day-grid':
         specifier: 3.12.0
         version: 3.12.0
@@ -78,8 +78,8 @@ importers:
         specifier: 3.0.19
         version: 3.0.19(leaflet@1.9.4)
       focus-trap:
-        specifier: 7.6.6
-        version: 7.6.6
+        specifier: 7.7.0
+        version: 7.7.0
       hotkeys-js:
         specifier: 3.13.15
         version: 3.13.15
@@ -129,8 +129,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.2.33
-        version: 2.2.33
+        specifier: 2.2.34
+        version: 2.2.34
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -732,8 +732,8 @@ packages:
   '@event-calendar/core@3.12.0':
     resolution: {integrity: sha512-aKtDwEKzWHOV2PLVdhR/f843ecW3C0w5G5VhGl1f0GBEgT8dZvoYreQ7QKTBWh7B7YEtEn2P0Dn36zFYj5XEXQ==}
 
-  '@event-calendar/core@5.0.4':
-    resolution: {integrity: sha512-JvHcVPSGViF2ar4pEye8Pg2RGFjHLfck6VaYKyRlCh4bJC2KXxcocxRBWZzqFoWtPagEX4DXnzl3t17fDOKQgQ==}
+  '@event-calendar/core@5.0.5':
+    resolution: {integrity: sha512-yuzNXg5NCRs/QSIx8Nk/gZipzz2Qh/VNpuZaZfriO+lbn4A+fsFlasGpP6KLEbZYOZsDzLkZz9STn4lUIoUmMw==}
 
   '@event-calendar/day-grid@3.12.0':
     resolution: {integrity: sha512-gY6XvEIlwWI9uKWsXukyanDmrEWv1UDHdhikhchpe6iZP25p3+760qXIU2kdu91tXjb+hVbpFcn7sdNPPE4u7Q==}
@@ -2394,8 +2394,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  focus-trap@7.6.6:
-    resolution: {integrity: sha512-v/Z8bvMCajtx4mEXmOo7QEsIzlIOqRXTIwgUfsFOF9gEsespdbD0AkPIka1bSXZ8Y8oZ+2IVDQZePkTfEHZl7Q==}
+  focus-trap@7.7.0:
+    resolution: {integrity: sha512-DJJDHpEgoSbP8ZE1MNeU2IzCpfFyFdNZZRilqmfH2XiQsPK6PtD8AfJqWzEBudUQB2yHwZc5iq54rjTaGQ+ljw==}
 
   follow-redirects@1.15.6:
     resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
@@ -3894,8 +3894,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.2.33:
-    resolution: {integrity: sha512-t+zepFMY0W6JLiNeDzJgWpgUAkVA4MX1OYVsFX7AozKe2iSlz2qkNCQv14vLy/2+5PwD6i8hB4e6rbn1iZbq0A==}
+  tods-competition-factory@2.2.34:
+    resolution: {integrity: sha512-UA1H3MFNwLaLowkt5Kuq5fgi8KxjuCNP9uMmCaUtyzOeBh9p96peGrhKhRzSDisUf2tB6FrQzoHhQW61agP0XA==}
     engines: {node: '>=20'}
 
   tods-competition-factory@2.2.9:
@@ -4814,7 +4814,7 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@5.0.4':
+  '@event-calendar/core@5.0.5':
     dependencies:
       svelte: 5.46.0
 
@@ -6855,7 +6855,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  focus-trap@7.6.6:
+  focus-trap@7.7.0:
     dependencies:
       tabbable: 6.3.0
 
@@ -8399,7 +8399,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.2.33: {}
+  tods-competition-factory@2.2.34: {}
 
   tods-competition-factory@2.2.9: {}
 
