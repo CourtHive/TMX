@@ -87,7 +87,7 @@
     "url": "0.11.4",
     "vite": "7.3.0",
     "vite-plugin-environment": "^1.1.3",
-    "vite-tsconfig-paths": "6.0.0",
+    "vite-tsconfig-paths": "6.0.3",
     "vitest": "4.0.16",
     "vitest-github-actions-reporter": "0.11.1",
     "vitest-sonar-reporter": "3.0.0",
