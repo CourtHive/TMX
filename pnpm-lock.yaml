@@ -18,8 +18,8 @@ importers:
         specifier: ^9.14.0
         version: 9.39.2
       '@event-calendar/core':
-        specifier: 5.0.6
-        version: 5.0.6
+        specifier: 5.1.2
+        version: 5.1.2
       '@event-calendar/day-grid':
         specifier: 3.12.0
         version: 3.12.0
@@ -732,8 +732,8 @@ packages:
   '@event-calendar/core@3.12.0':
     resolution: {integrity: sha512-aKtDwEKzWHOV2PLVdhR/f843ecW3C0w5G5VhGl1f0GBEgT8dZvoYreQ7QKTBWh7B7YEtEn2P0Dn36zFYj5XEXQ==}
 
-  '@event-calendar/core@5.0.6':
-    resolution: {integrity: sha512-m+j/zm9eWTzADROlIuUS8GdUEMF8uArs5nA/MVgDG4sWMUubIgk+jQOBc5X+CXxcpPeUoEuEP5DbdCCv/RxXgA==}
+  '@event-calendar/core@5.1.2':
+    resolution: {integrity: sha512-+Wi90ManSCCPTjgIOR1TDH4znVHswdzQE3UDaKPNcBIiLK1iRCT0BmJwGXm606/fH03Id9sJGD/HSFKbne2IwA==}
 
   '@event-calendar/day-grid@3.12.0':
     resolution: {integrity: sha512-gY6XvEIlwWI9uKWsXukyanDmrEWv1UDHdhikhchpe6iZP25p3+760qXIU2kdu91tXjb+hVbpFcn7sdNPPE4u7Q==}
@@ -3805,8 +3805,8 @@ packages:
     resolution: {integrity: sha512-IY1rnGr6izd10B0A8LqsBfmlT5OILVuZ7XsI0vdGPEvuonFV7NYEUK4dAkm9Zg2q0Um92kYjTpS1CAP3Nh/KWw==}
     engines: {node: '>=16'}
 
-  svelte@5.46.0:
-    resolution: {integrity: sha512-ZhLtvroYxUxr+HQJfMZEDRsGsmU46x12RvAv/zi9584f5KOX7bUrEbhPJ7cKFmUvZTJXi/CFZUYwDC6M1FigPw==}
+  svelte@5.46.1:
+    resolution: {integrity: sha512-ynjfCHD3nP2el70kN5Pmg37sSi0EjOm9FgHYQdC4giWG/hzO3AatzXXJJgP305uIhGQxSufJLuYWtkY8uK/8RA==}
     engines: {node: '>=18'}
 
   systeminformation@5.27.14:
@@ -4814,9 +4814,9 @@ snapshots:
     dependencies:
       svelte: 4.2.19
 
-  '@event-calendar/core@5.0.6':
+  '@event-calendar/core@5.1.2':
     dependencies:
-      svelte: 5.46.0
+      svelte: 5.46.1
 
   '@event-calendar/day-grid@3.12.0':
     dependencies:
@@ -8312,7 +8312,7 @@ snapshots:
       magic-string: 0.30.21
       periscopic: 3.1.0
 
-  svelte@5.46.0:
+  svelte@5.46.1:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
