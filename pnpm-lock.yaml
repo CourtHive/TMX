@@ -123,8 +123,8 @@ importers:
         specifier: 6.3.1
         version: 6.3.1
       timepicker-ui:
-        specifier: 2.6.1
-        version: 2.6.1
+        specifier: 4.0.2
+        version: 4.0.2
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
@@ -3845,8 +3845,8 @@ packages:
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
 
-  timepicker-ui@2.6.1:
-    resolution: {integrity: sha512-T199nYp0uyNpKTn37+1DGfgROfsdZYKg3rE6mRmQU095nKDRL0ZSz87/XoT64s6Lic2q1MwGv93jQGFFo8uLlA==}
+  timepicker-ui@4.0.2:
+    resolution: {integrity: sha512-K+o45laoZwgaaDQ7Z3H+JoSeno1rLw5KY0hwdUcznYJ8JBybWS7Y67OJye/vF4Ilds0CwB7GVLdIIPX+Hks1yw==}
 
   tiny-binary-search@1.0.3:
     resolution: {integrity: sha512-STSHX/L5nI9WTLv6wrzJbAPbO7OIISX83KFBh2GVbX1Uz/vgZOU/ANn/8iV6t35yMTpoPzzO+3OQid3mifE0CA==}
@@ -8359,7 +8359,7 @@ snapshots:
 
   through@2.3.8: {}
 
-  timepicker-ui@2.6.1: {}
+  timepicker-ui@4.0.2: {}
 
   tiny-binary-search@1.0.3: {}
 
