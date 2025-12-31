@@ -6,10 +6,10 @@ import { showTMXcalendar } from 'services/transitions/screenSlaver';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
-import Interactions from '@event-calendar/interaction';
-import { createCalendar } from '@event-calendar/core';
-import { tmx2db } from 'services/storage/tmx2db';
+import Calendar from '@event-calendar/core';
 import DayGrid from '@event-calendar/day-grid';
+import Interaction from '@event-calendar/interaction';
+import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
 
@@ -42,32 +42,35 @@ export function render(data: any[]): any {
 
   if (!calendarAnchor) return;
 
-  calendar = createCalendar(calendarAnchor, {
-    plugins: [DayGrid, Interactions],
-    options: {
-      view: 'dayGridMonth',
-      height: '800px',
-      headerToolbar: {
-        start: 'prev,next',
-        center: 'title',
-        end: '',
+  calendar = new Calendar({
+    target: calendarAnchor,
+    props: {
+      plugins: [DayGrid, Interaction],
+      options: {
+        view: 'dayGridMonth',
+        height: '800px',
+        headerToolbar: {
+          start: 'prev,next',
+          center: 'title',
+          end: '',
+        },
+        buttonText: (texts: any) => {
+          texts.resourceTimeGridWeek = 'resources';
+          return texts;
+        },
+        resources: [
+          { id: 1, title: 'Resource A' },
+          { id: 2, title: 'Resource B' },
+        ],
+        scrollTime: '09:00:00',
+        events: createEvents(data),
+        eventClick: openTournament,
+        eventMouseEnter: eventHover,
+        views: {},
+        dayMaxEvents: true,
+        nowIndicator: true,
+        selectable: true,
       },
-      buttonText: (texts: any) => {
-        texts.resourceTimeGridWeek = 'resources';
-        return texts;
-      },
-      resources: [
-        { id: 1, title: 'Resource A' },
-        { id: 2, title: 'Resource B' },
-      ],
-      scrollTime: '09:00:00',
-      events: createEvents(data),
-      eventClick: openTournament,
-      eventMouseEnter: eventHover,
-      views: {},
-      dayMaxEvents: true,
-      nowIndicator: true,
-      selectable: true,
     },
   });
 
@@ -76,7 +79,7 @@ export function render(data: any[]): any {
 
 function openTournament({ event }: any): void {
   if (event.id) {
-    calendar.destroy();
+    calendar.$destroy();
     const tournamentId = event.id;
     tournamentEngine.reset();
     const tournamentUrl = `/${TOURNAMENT}/${tournamentId}`;
