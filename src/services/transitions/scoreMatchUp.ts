@@ -5,6 +5,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { scoringModal } from 'components/modals/scoringModal';
+import { scoringModalV2 } from 'components/modals/scoringV2';
 import { tournamentEngine } from 'tods-competition-factory';
 import { scoreBoard } from 'legacy/scoring/scoreBoard';
 import { isFunction } from 'functions/typeOf';
@@ -47,9 +48,14 @@ export function enterMatchUpScore(params: { matchUpId: string; matchUp?: any; ca
   const teams = matchUp.sides.map((side: any) => side.participant);
   const existing_scores = matchUp.score?.sets || [];
 
-  if (env.scoring) {
+  if (env.scoringV2) {
+    // New TypeScript scoring modal (V2)
+    scoringModalV2({ matchUp, callback: scoreSubmitted });
+  } else if (env.scoring) {
+    // Current TypeScript scoring modal (V1)
     scoringModal({ matchUp, callback: scoreSubmitted });
   } else {
+    // Legacy JavaScript scoreBoard
     scoreBoard.setMatchScore({
       round_name: matchUp.roundName || '',
       matchFormat: matchUp.matchUpFormat,
