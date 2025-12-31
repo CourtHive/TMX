@@ -15,7 +15,7 @@ export type TidyScoreResult = {
  * Clean up a messy score string using tidyScore
  */
 export function tidyScore(scoreString: string): TidyScoreResult {
-  if (!scoreString || !scoreString.trim()) {
+  if (!scoreString?.trim()) {
     return { error: 'Score is required' };
   }
 
