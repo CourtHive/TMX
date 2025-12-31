@@ -23,6 +23,7 @@ import dragMatch from 'assets/icons/dragmatch.png';
 
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
 import '@event-calendar/core/index.css';
+import 'timepicker-ui/main.css';
 import 'styles/legacy/scoreboard.css';
 import 'styles/legacy/ddScoring.css';
 

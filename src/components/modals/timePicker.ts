@@ -12,23 +12,24 @@ type TimePickerParams = {
 };
 
 export function timePicker({ time, options, callback }: TimePickerParams = {}): void {
-  const timepicker = document.getElementById('timepicker')!;
   const timeValue = document.getElementById('timevalue') as HTMLInputElement;
   timeValue.value = regularTime(time);
   const tpu = new TimepickerUI(document.getElementById('timepicker')!, {
-    switchToMinutesAfterSelectHour: true,
-    clockType: '12h',
+    clock: { type: '12h' },
+    behavior: { autoSwitchToMinutes: true },
+    callbacks: {
+      onConfirm: () => {
+        const value = timeValue.value;
+        if (isFunction(callback) && callback) {
+          callback({ time: value });
+        }
+        tpu.destroy();
+      }
+    },
     ...options,
   });
   tpu.create();
   tpu.open();
-  timepicker.addEventListener('accept', () => {
-    const value = timeValue.value;
-    if (isFunction(callback) && callback) {
-      callback({ time: value });
-    }
-    tpu.destroy();
-  });
 }
 
 function regularTime(value?: string, env?: any): string {
