@@ -1,0 +1,184 @@
+/**
+ * Validate matchUp score against matchUpFormat
+ * 
+ * PROTOTYPE: This logic will be moved to tods-competition-factory
+ * Currently implemented in TMX for testing and refinement before factory integration
+ */
+import { matchUpFormatCode } from 'tods-competition-factory';
+
+/**
+ * Validate a single set score against matchUpFormat rules
+ */
+export function validateSetScore(
+  set: any,
+  matchUpFormat?: string,
+  isDecidingSet?: boolean,
+  allowIncomplete?: boolean,
+): { isValid: boolean; error?: string } {
+  if (!matchUpFormat) return { isValid: true }; // Can't validate without format
+
+  const parsed = matchUpFormatCode.parse(matchUpFormat);
+  if (!parsed) return { isValid: true }; // Can't validate if parse fails
+
+  const setFormat = isDecidingSet ? parsed.finalSetFormat : parsed.setFormat;
+  if (!setFormat) return { isValid: true };
+
+  const { setTo, tiebreakAt, tiebreakFormat } = setFormat;
+  const side1Score = set.side1Score || 0;
+  const side2Score = set.side2Score || 0;
+  const side1TiebreakScore = set.side1TiebreakScore;
+  const side2TiebreakScore = set.side2TiebreakScore;
+
+  const winnerScore = Math.max(side1Score, side2Score);
+  const loserScore = Math.min(side1Score, side2Score);
+  const scoreDiff = winnerScore - loserScore;
+
+  // Check for tiebreak set
+  // Either explicit tiebreak scores, OR score pattern indicates tiebreak was played
+  const hasExplicitTiebreak = side1TiebreakScore !== undefined || side2TiebreakScore !== undefined;
+  const isImplicitTiebreak = setTo && winnerScore === setTo + 1 && loserScore === setTo;
+  const hasTiebreak = hasExplicitTiebreak || isImplicitTiebreak;
+
+  if (hasTiebreak) {
+    // Tiebreak set validation
+    // Winner should have setTo+1 games, loser should have setTo games (e.g., 7-6 not 6-6)
+    if (setTo) {
+      if (winnerScore !== setTo + 1) {
+        return {
+          isValid: false,
+          error: `Tiebreak set winner must have ${setTo + 1} games, got ${winnerScore}`,
+        };
+      }
+      if (loserScore !== setTo) {
+        return {
+          isValid: false,
+          error: `Tiebreak set loser must have ${setTo} games when tied, got ${loserScore}`,
+        };
+      }
+    }
+
+    // Validate explicit tiebreak score if present and format specified
+    if (hasExplicitTiebreak && tiebreakFormat) {
+      const tbWinnerScore = Math.max(side1TiebreakScore || 0, side2TiebreakScore || 0);
+      const tbLoserScore = Math.min(side1TiebreakScore || 0, side2TiebreakScore || 0);
+      const tbDiff = tbWinnerScore - tbLoserScore;
+      const tbTo = tiebreakFormat.tiebreakTo || 7;
+
+      // Winner must reach tbTo with 2-point margin, or go past tbTo with 2-point margin
+      if (tbWinnerScore < tbTo) {
+        return {
+          isValid: false,
+          error: `Tiebreak winner must reach ${tbTo} points, got ${tbWinnerScore}`,
+        };
+      }
+      if (tbDiff < 2) {
+        return {
+          isValid: false,
+          error: `Tiebreak must be won by 2 points, got ${tbWinnerScore}-${tbLoserScore}`,
+        };
+      }
+      // If loser is at tbTo-1 or higher, winner must be exactly 2 ahead
+      if (tbLoserScore >= tbTo - 1 && tbDiff > 2) {
+        return {
+          isValid: false,
+          error: `Tiebreak score ${tbWinnerScore}-${tbLoserScore} is invalid`,
+        };
+      }
+    }
+  } else {
+    // Regular set validation (no tiebreak)
+    
+    // For incomplete scores (irregular endings), we're more lenient
+    if (allowIncomplete) {
+      // Basic validation: scores can't exceed reasonable limits
+      if (setTo && (winnerScore > setTo + 10 || loserScore > setTo + 10)) {
+        return {
+          isValid: false,
+          error: `Set score ${winnerScore}-${loserScore} exceeds expected range for ${setTo}-game sets`,
+        };
+      }
+      // Allow any incomplete score (including 6-6 for RET/WO/DEF)
+      return { isValid: true };
+    }
+
+    // Full validation for completed matches
+    // Winner must reach setTo
+    if (setTo && winnerScore < setTo) {
+      return {
+        isValid: false,
+        error: `Set winner must reach ${setTo} games, got ${winnerScore}`,
+      };
+    }
+
+    // Must have 2-game margin
+    if (scoreDiff < 2) {
+      return {
+        isValid: false,
+        error: `Set must be won by at least 2 games, got ${winnerScore}-${loserScore}`,
+      };
+    }
+
+    // Check maximum score based on tiebreak rules
+    if (tiebreakAt) {
+      // Tiebreak format: once loser reaches tiebreakAt, must go to tiebreak
+      if (loserScore >= tiebreakAt) {
+        return {
+          isValid: false,
+          error: `When tied at ${tiebreakAt}-${tiebreakAt}, must play tiebreak. Use format like ${tiebreakAt + 1}-${tiebreakAt}(5)`,
+        };
+      }
+      // Winner can be at most setTo+1 when tiebreak is available
+      if (winnerScore > setTo + 1) {
+        return {
+          isValid: false,
+          error: `With tiebreak format, set score cannot exceed ${setTo + 1}-${setTo - 1}. Got ${winnerScore}-${loserScore}`,
+        };
+      }
+    } else {
+      // No tiebreak (NOAD or advantage set): can go beyond setTo+1 with 2-game margin
+      // But check reasonable upper limit (no set should go beyond setTo+10)
+      if (winnerScore > setTo + 10) {
+        return {
+          isValid: false,
+          error: `Set score ${winnerScore}-${loserScore} exceeds reasonable limits`,
+        };
+      }
+    }
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validate all sets in a score against matchUpFormat
+ */
+export function validateMatchUpScore(
+  sets: any[],
+  matchUpFormat?: string,
+  matchUpStatus?: string,
+): { isValid: boolean; error?: string } {
+  if (!sets || sets.length === 0) {
+    return { isValid: true }; // Empty is valid (not an error, just incomplete)
+  }
+
+  // Parse matchUpFormat once
+  const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
+  const bestOfSets = bestOfMatch ? parseInt(bestOfMatch) : 3;
+
+  // Check if this is an irregular ending (allows incomplete scores)
+  const isIrregularEnding = ['RETIRED', 'WALKOVER', 'DEFAULTED'].includes(matchUpStatus || '');
+
+  // Validate each set against matchUpFormat
+  for (let i = 0; i < sets.length; i++) {
+    const isDecidingSet = sets.length === bestOfSets; // Last possible set
+    const setValidation = validateSetScore(sets[i], matchUpFormat, isDecidingSet, isIrregularEnding);
+    if (!setValidation.isValid) {
+      return {
+        isValid: false,
+        error: `Set ${i + 1}: ${setValidation.error}`,
+      };
+    }
+  }
+
+  return { isValid: true };
+}

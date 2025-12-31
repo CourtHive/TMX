@@ -251,8 +251,12 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
     // Check if irregular ending from tidyScore
     const isIrregularEnding = ['RETIRED', 'WALKOVER', 'DEFAULTED'].includes(tidyResult.matchUpStatus || '');
 
-    // Step 2: Validate the tidied score (only if not irregular, or if it is irregular to get sets)
-    const result = validateScore(tidyResult.tidyScore || scoreString, matchUp.matchUpFormat);
+    // Step 2: Validate the tidied score (pass matchUpStatus for irregular ending handling)
+    const result = validateScore(
+      tidyResult.tidyScore || scoreString,
+      matchUp.matchUpFormat,
+      tidyResult.matchUpStatus,
+    );
 
     // For irregular endings, we accept partial scores
     if (isIrregularEnding || result.isValid) {

@@ -2,6 +2,7 @@
  * Score validation utilities using tournamentEngine
  */
 import { tournamentEngine } from 'tods-competition-factory';
+import { validateMatchUpScore } from './validateMatchUpScore';
 import type { ScoreOutcome } from '../types';
 
 export type TidyScoreResult = {
@@ -42,7 +43,11 @@ export function tidyScore(scoreString: string): TidyScoreResult {
 /**
  * Validate a score string using generateOutcomeFromScoreString
  */
-export function validateScore(scoreString: string, matchUpFormat?: string): ScoreOutcome {
+export function validateScore(
+  scoreString: string,
+  matchUpFormat?: string,
+  matchUpStatus?: string,
+): ScoreOutcome {
   if (!scoreString?.trim()) {
     return {
       isValid: false,
@@ -58,6 +63,8 @@ export function validateScore(scoreString: string, matchUpFormat?: string): Scor
       matchUpFormat,
     });
 
+
+
     if (result?.error) {
       const errorMsg =
         typeof result.error === 'string' ? result.error : result.error?.message || JSON.stringify(result.error);
@@ -70,6 +77,22 @@ export function validateScore(scoreString: string, matchUpFormat?: string): Scor
 
     const sets = result?.outcome?.score?.sets || [];
     const scoreObject = result?.outcome?.score; // Full score object for renderMatchUp
+
+    // Validate sets against matchUpFormat (factory prototype)
+    const matchUpScoreValidation = validateMatchUpScore(sets, matchUpFormat, matchUpStatus);
+    if (!matchUpScoreValidation.isValid) {
+      return {
+        isValid: false,
+        sets,
+        scoreObject,
+        error: matchUpScoreValidation.error,
+      };
+    }
+
+    // Parse matchUpFormat for completeness check
+    const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
+    const bestOfSets = bestOfMatch ? parseInt(bestOfMatch) : 3;
+    const setsToWin = Math.ceil(bestOfSets / 2);
 
     // Calculate winningSide from sets
     const setsWon = { side1: 0, side2: 0 };
@@ -86,8 +109,6 @@ export function validateScore(scoreString: string, matchUpFormat?: string): Scor
     }
 
     // Check if match is complete (someone won majority of sets)
-    const bestOf = matchUpFormat?.match(/SET(\d+)/)?.[1];
-    const setsToWin = bestOf ? Math.ceil(parseInt(bestOf) / 2) : 2;
     const isComplete = setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
 
     if (!isComplete) {
@@ -118,7 +139,8 @@ export function validateScore(scoreString: string, matchUpFormat?: string): Scor
 }
 
 /**
- * Validate individual set scores
+ * Validate individual set scores (for Dynamic Sets approach in Phase 3)
+ * Currently unused - will be needed when implementing set-by-set input
  */
 export function validateSetScores(
   sets: Array<{ side1?: number; side2?: number }>,
