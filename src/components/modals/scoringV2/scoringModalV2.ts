@@ -15,6 +15,11 @@ export function scoringModalV2(params: ScoringModalParams): void {
   const container = document.createElement('div');
   container.style.padding = '1em';
   
+  // Set max width for dial pad approach
+  if (approach === 'dialPad') {
+    container.style.maxWidth = '500px';
+  }
+  
   let currentOutcome: ScoreOutcome | null = null;
   
   const handleScoreChange = (outcome: ScoreOutcome) => {
@@ -63,7 +68,6 @@ export function scoringModalV2(params: ScoringModalParams): void {
   openModal({
     title: 'Score Entry',
     content: container,
-    style: approach === 'dialPad' ? { maxWidth: '500px' } : undefined,
     buttons: [
       { 
         label: 'Cancel', 
