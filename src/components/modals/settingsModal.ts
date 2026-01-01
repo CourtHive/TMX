@@ -14,6 +14,11 @@ export function settingsModal(): void {
   const saveSettings = () => {
     const activeScale = inputs.wtn.checked ? WTN : UTR;
     env.saveLocal = inputs.saveLocal.checked;
+    
+    // Save scoring approach preference
+    const scoringApproach = inputs.dynamicSets.checked ? 'dynamicSets' : 'freeText';
+    env.scoringApproach = scoringApproach;
+    
     setActiveScale(activeScale);
   };
   const content = (elem: HTMLElement) =>
@@ -27,6 +32,17 @@ export function settingsModal(): void {
         label: 'Active rating',
         field: 'activeRating',
         id: 'activeRating',
+        radio: true,
+      },
+      {
+        options: [
+          { text: 'Dynamic Sets', field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
+          { text: 'Free Text', field: 'freeText', checked: env.scoringApproach === 'freeText' },
+        ],
+        onClick: (x: any) => console.log({ x }),
+        label: 'Scoring approach',
+        field: 'scoringApproach',
+        id: 'scoringApproach',
         radio: true,
       },
       {

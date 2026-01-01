@@ -88,6 +88,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
     matchUpContainer.innerHTML = '';
     const matchUpElement = renderMatchUp({
       matchUp: displayMatchUp,
+      isLucky: true,
       composition: {
         configuration: {
           participantDetail: 'TEAM',
@@ -103,13 +104,54 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   // Initial render
   updateMatchUpDisplay();
 
-  // Match format info
+  // Match format info (clickable to edit)
   if (matchUp.matchUpFormat) {
     const formatInfo = document.createElement('div');
     formatInfo.style.fontSize = '0.9em';
-    formatInfo.style.color = '#666';
     formatInfo.style.marginBottom = '0.5em';
-    formatInfo.textContent = `Format: ${matchUp.matchUpFormat}`;
+    formatInfo.style.display = 'flex';
+    formatInfo.style.alignItems = 'center';
+    formatInfo.style.gap = '0.5em';
+    
+    const formatLabel = document.createElement('span');
+    formatLabel.textContent = 'Format:';
+    formatLabel.style.color = '#666';
+    formatInfo.appendChild(formatLabel);
+    
+    const formatButton = document.createElement('button');
+    formatButton.textContent = matchUp.matchUpFormat;
+    formatButton.className = 'button';
+    formatButton.style.fontSize = '0.9em';
+    formatButton.style.padding = '0.2em 0.5em';
+    formatButton.style.cursor = 'pointer';
+    formatButton.title = 'Click to edit format';
+    formatButton.addEventListener('click', async () => {
+      const { getMatchUpFormat } = await import('components/modals/matchUpFormat/matchUpFormat');
+      
+      getMatchUpFormat({
+        existingMatchUpFormat: matchUp.matchUpFormat,
+        callback: (newFormat: string) => {
+          if (newFormat && newFormat !== matchUp.matchUpFormat) {
+            // Format changed - update matchUp and clear score
+            matchUp.matchUpFormat = newFormat;
+            formatButton.textContent = newFormat;
+            
+            // Clear the score input
+            const input = document.getElementById('scoreInputV2') as HTMLInputElement;
+            if (input) {
+              input.value = '';
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            
+            // Update validation message
+            validationMessage.textContent = 'Score cleared - format changed';
+            validationMessage.style.color = '#999';
+          }
+        }
+      } as any);
+    });
+    formatInfo.appendChild(formatButton);
+    
     container.appendChild(formatInfo);
   }
 
@@ -119,8 +161,8 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   instructions.style.color = '#666';
   instructions.style.marginBottom = '0.5em';
   instructions.innerHTML =
-    'Enter score<br>' +
-    '<small style="color: #999;">For irregular endings (RET/WO), select winner using radio button</small>';
+    'Enter score (e.g., 6-3 6-4)<br>' +
+    '<small style="color: #999;">For irregular endings, add RET/WO/DEF at end, then select winner</small>';
   container.appendChild(instructions);
 
   // Score input

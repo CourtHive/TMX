@@ -4,7 +4,7 @@
  */
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderFreeTextScoreEntry } from './approaches/freeTextApproach';
-// import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
+import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { env } from 'settings/env';
 
@@ -43,13 +43,11 @@ export function scoringModalV2(params: ScoringModalParams): void {
       onScoreChange: handleScoreChange,
     });
   } else if (approach === 'dynamicSets') {
-    // TODO: Implement in Phase 3
-    // renderDynamicSetsScoreEntry({
-    //   matchUp,
-    //   container,
-    //   onScoreChange: handleScoreChange,
-    // });
-    container.innerHTML = '<p>Dynamic Sets approach coming in Phase 3...</p>';
+    renderDynamicSetsScoreEntry({
+      matchUp,
+      container,
+      onScoreChange: handleScoreChange,
+    });
   } else {
     container.innerHTML = '<p>Visual approach coming soon...</p>';
   }
@@ -70,11 +68,19 @@ export function scoringModalV2(params: ScoringModalParams): void {
         disabled: true, // Initially disabled (no input yet)
         close: false, // Don't close modal when clearing
         onClick: () => {
-          const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
-          if (scoreInput) {
-            scoreInput.value = '';
-            scoreInput.dispatchEvent(new Event('input', { bubbles: true }));
-            scoreInput.focus();
+          if (approach === 'freeText') {
+            // Clear free text input
+            const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
+            if (scoreInput) {
+              scoreInput.value = '';
+              scoreInput.dispatchEvent(new Event('input', { bubbles: true }));
+              scoreInput.focus();
+            }
+          } else if (approach === 'dynamicSets') {
+            // Clear dynamic sets
+            if ((window as any).resetDynamicSets) {
+              (window as any).resetDynamicSets();
+            }
           }
         },
       },

@@ -514,7 +514,24 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   content.appendChild(finalSetConfig);
 
-  openModal({ title: 'Score format', content, buttons });
+  // Wrap content in styled container for visual differentiation when overlaid on scoring modal
+  const wrapper = document.createElement('div');
+  wrapper.style.backgroundColor = '#f8f9fa';
+  wrapper.style.border = '3px solid #0066cc';
+  wrapper.style.borderRadius = '8px';
+  wrapper.style.padding = '1em';
+  wrapper.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  wrapper.appendChild(content);
+
+  openModal({ 
+    title: 'Score format', 
+    content: wrapper, 
+    buttons,
+    config: {
+      padding: '0', // No padding since wrapper handles it
+      maxWidth: 480,
+    }
+  } as any);
 }
 
 function generateLabel({ index, finalSetLabel, label, prefix = '', suffix = '', value, pluralize }: any): string {

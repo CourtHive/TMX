@@ -1,4 +1,7 @@
-# Scoring Modal V2
+# Scoring Modal V2 ✅ **NOW DEFAULT**
+
+**Status:** Production-ready and active as the default scoring system (January 2026)  
+**Default Approach:** dynamicSets (individual set-by-set entry with real-time validation)
 
 Modern TypeScript implementation of the match score entry system.
 
@@ -8,24 +11,27 @@ This is a complete rewrite of the scoring system with:
 - ✅ **Type Safety**: Full TypeScript with proper types
 - ✅ **Modern Architecture**: Clean separation of concerns
 - ✅ **Real-time Validation**: Uses `tournamentEngine.parseScoreString()`
-- ✅ **Multiple Approaches**: Free text, dynamic sets, and visual (future)
+- ✅ **Multiple Approaches**: Free text and dynamic sets (both production-ready)
+- ✅ **Comprehensive Testing**: 69 test cases covering 15+ matchUpFormat variations
 - ✅ **No Legacy Code**: Built from scratch, doesn't touch legacy/scoring/*
 
 ## Status
 
-**Current Phase: Phase 2 Complete** ✅
+**All Phases Complete!** ✅
 - [x] Phase 1: Foundation & Toggle
 - [x] Phase 2: Free Text Approach (MVP)
-- [ ] Phase 3: Dynamic Sets Approach
-- [ ] Phase 4: Integration & Testing
+- [x] Phase 3: Dynamic Sets Approach  
+- [x] Phase 4: Integration & Testing
+- [x] **Migration Complete:** Legacy modal removed, dynamicSets is now default
 
-## How to Enable
+## How to Use
 
-### Using Free Text Approach
+The scoring modal is **automatically enabled by default**. When you click to enter a score, the V2 modal with dynamicSets approach will appear.
 
-In browser console or via settings:
+### Switching to Free Text Approach (Optional)
+
+If you prefer the free text entry method, you can change the approach:
 ```javascript
-env.scoringV2 = true;
 env.scoringApproach = 'freeText';
 ```
 

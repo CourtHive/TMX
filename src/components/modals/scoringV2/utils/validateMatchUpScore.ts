@@ -88,6 +88,26 @@ export function validateSetScore(
   } else {
     // Regular set validation (no tiebreak)
     
+    // CRITICAL VALIDATION: If there's a tiebreak format AND either side is setTo+1,
+    // the other must be >= setTo-1 (2-game margin required)
+    // This prevents invalid scores like 3-7, 4-7, etc. but allows 5-7, 6-7
+    // For advantage sets (no tiebreak), scores like 7-5, 8-6 are valid
+    if (setTo && tiebreakAt) {
+      // Only enforce this rule when tiebreak format exists
+      if (side1Score === setTo + 1 && side2Score < setTo - 1) {
+        return {
+          isValid: false,
+          error: `With tiebreak format, if side 1 has ${setTo + 1} games, side 2 must be at least ${setTo - 1}, got ${side2Score}`,
+        };
+      }
+      if (side2Score === setTo + 1 && side1Score < setTo - 1) {
+        return {
+          isValid: false,
+          error: `With tiebreak format, if side 2 has ${setTo + 1} games, side 1 must be at least ${setTo - 1}, got ${side1Score}`,
+        };
+      }
+    }
+    
     // For incomplete scores (irregular endings), we're more lenient
     if (allowIncomplete) {
       // Basic validation: scores can't exceed reasonable limits
