@@ -19,7 +19,6 @@ type EntryState = {
 };
 
 export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
-  console.log('renderDialPadScoreEntry called', params);
   const { matchUp, container, onScoreChange } = params;
 
   try {
@@ -28,9 +27,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '1em';
-
-    const scaleAttributes = env.scales[env.activeScale];
-    console.log('scaleAttributes:', scaleAttributes);
 
   // Parse match format
   const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
@@ -47,24 +43,57 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     matchUpFormat: parsedFormat,
   };
 
-  // MatchUp display container
+  // MatchUp display container (will be updated dynamically)
   const matchUpContainer = document.createElement('div');
-  matchUpContainer.style.marginBottom = '1em';
+  matchUpContainer.style.marginBottom = '0.5em';
   container.appendChild(matchUpContainer);
 
-  // Render matchUp at top (using same pattern as other approaches)
-  const matchUpElement = renderMatchUp({
-    matchUp,
-    isLucky: true,
-    composition: {
-      configuration: {
-        participantDetail: 'TEAM',
-      },
-    },
-  });
-  
-  if (matchUpElement) {
-    matchUpContainer.appendChild(matchUpElement);
+  // Match format info (clickable to edit)
+  if (matchUp.matchUpFormat) {
+    const formatDisplay = document.createElement('div');
+    formatDisplay.style.fontSize = '0.9em';
+    formatDisplay.style.marginBottom = '0.5em';
+    formatDisplay.style.display = 'flex';
+    formatDisplay.style.alignItems = 'center';
+    formatDisplay.style.gap = '0.5em';
+    
+    const formatLabel = document.createElement('span');
+    formatLabel.textContent = 'Format:';
+    formatLabel.style.color = '#666';
+    formatDisplay.appendChild(formatLabel);
+    
+    const formatButton = document.createElement('button');
+    formatButton.textContent = matchUp.matchUpFormat;
+    formatButton.className = 'button';
+    formatButton.style.fontSize = '0.9em';
+    formatButton.style.padding = '0.2em 0.5em';
+    formatButton.style.cursor = 'pointer';
+    formatButton.title = 'Click to edit format';
+    formatButton.addEventListener('click', async () => {
+      const { getMatchUpFormat } = await import('components/modals/matchUpFormat/matchUpFormat');
+      
+      getMatchUpFormat({
+        existingMatchUpFormat: matchUp.matchUpFormat,
+        callback: (newFormat: string) => {
+          if (newFormat && newFormat !== matchUp.matchUpFormat) {
+            // Format changed - update matchUp and reload dial pad
+            matchUp.matchUpFormat = newFormat;
+            formatButton.textContent = newFormat;
+            
+            // Reload the entire dial pad approach
+            container.innerHTML = '';
+            renderDialPadScoreEntry({
+              matchUp,
+              container,
+              onScoreChange,
+            });
+          }
+        }
+      } as any);
+    });
+    formatDisplay.appendChild(formatButton);
+    
+    container.appendChild(formatDisplay);
   }
 
   // Current score display (light blue)
@@ -87,6 +116,33 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   dialPadContainer.style.margin = '0 auto';
   container.appendChild(dialPadContainer);
 
+  // Helper: Update matchUp display
+  const updateMatchUpDisplay = (currentScore?: { sets?: any[]; winningSide?: number; matchUpStatus?: string }) => {
+    // Create a copy of matchUp with current score
+    const displayMatchUp = {
+      ...matchUp,
+      score: currentScore?.sets ? { sets: currentScore.sets } : matchUp.score,
+      winningSide: currentScore?.winningSide,
+      matchUpStatus: currentScore?.matchUpStatus || matchUp.matchUpStatus,
+    };
+
+    // Clear and render
+    matchUpContainer.innerHTML = '';
+    const matchUpElement = renderMatchUp({
+      matchUp: displayMatchUp,
+      isLucky: true,
+      composition: {
+        configuration: {
+          participantDetail: 'TEAM',
+        },
+      },
+    });
+    
+    if (matchUpElement) {
+      matchUpContainer.appendChild(matchUpElement);
+    }
+  };
+
   // Helper: Update score display
   const updateScoreDisplay = () => {
     const scoreString = formatCurrentScore(state);
@@ -95,29 +151,46 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Validate and notify
     const outcome = validateCurrentScore(state, matchUp);
     onScoreChange(outcome);
+    
+    // Update matchUp display with current score
+    updateMatchUpDisplay({
+      sets: state.completedSets,
+      winningSide: outcome.winningSide,
+      matchUpStatus: outcome.matchUpStatus,
+    });
+    
+    // Enable/disable clear button
+    const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
+    if (clearBtn) {
+      clearBtn.disabled = state.completedSets.length === 0 && !state.pendingDigits;
+    }
   };
 
   // Helper: Format current score for display
   function formatCurrentScore(state: EntryState): string {
     const sets: SetScore[] = [...state.completedSets];
     
-    // Add current set being entered
+    // Add current set being entered (only if we have some input)
     if (state.currentSetIndex < bestOf) {
       const currentSet: SetScore = {};
+      let hasData = false;
       
       if (state.currentPhase === 'side1') {
         if (state.pendingDigits) {
           currentSet.side1Score = parseInt(state.pendingDigits);
+          hasData = true;
         }
       } else if (state.currentPhase === 'side2') {
         // Get side1 from last completed phase
         currentSet.side1Score = getCurrentSetSide1(state);
+        hasData = true;
         if (state.pendingDigits) {
           currentSet.side2Score = parseInt(state.pendingDigits);
         }
       } else if (state.currentPhase === 'tiebreak_side1') {
         currentSet.side1Score = getCurrentSetSide1(state);
         currentSet.side2Score = getCurrentSetSide2(state);
+        hasData = true;
         if (state.pendingDigits) {
           currentSet.side1TiebreakScore = parseInt(state.pendingDigits);
         }
@@ -125,12 +198,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         currentSet.side1Score = getCurrentSetSide1(state);
         currentSet.side2Score = getCurrentSetSide2(state);
         currentSet.side1TiebreakScore = getCurrentSetTiebreakSide1(state);
+        hasData = true;
         if (state.pendingDigits) {
           currentSet.side2TiebreakScore = parseInt(state.pendingDigits);
         }
       }
       
-      sets.push(currentSet);
+      if (hasData) {
+        sets.push(currentSet);
+      }
     }
     
     // Use factory's generateMatchUpOutcomeString
@@ -216,11 +292,25 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       };
     }
 
+    // Determine winningSide from completed sets
+    let winningSide: number | undefined;
+    if (state.completedSets.length > 0) {
+      const setsWon = { side1: 0, side2: 0 };
+      state.completedSets.forEach(set => {
+        if (set.winningSide === 1) setsWon.side1++;
+        if (set.winningSide === 2) setsWon.side2++;
+      });
+      const setsToWin = Math.ceil(bestOf / 2);
+      if (setsWon.side1 >= setsToWin) winningSide = 1;
+      if (setsWon.side2 >= setsToWin) winningSide = 2;
+    }
+
     return {
       isValid: true,
       sets: state.completedSets,
       score: tidyResult.tidyScore,
       matchUpStatus: tidyResult.matchUpStatus,
+      winningSide,
       matchUpFormat: matchUp.matchUpFormat,
     };
   }
@@ -249,11 +339,16 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         state.currentPhase = 'side2';
       }
     } else if (state.currentPhase === 'side2') {
-      // Check if two digits or should advance
-      if (state.pendingDigits.length >= 2 || pendingValue >= setTo) {
-        const side1 = (state as any).tempSide1;
-        const side2 = pendingValue;
-        
+      // Auto-advance when we have enough info
+      const side1 = (state as any).tempSide1;
+      const side2 = pendingValue;
+      
+      // Check if we should advance (score is clear)
+      const shouldAdvance = state.pendingDigits.length >= 2 || 
+                           pendingValue >= setTo ||
+                           isSetComplete(side1, side2);
+      
+      if (shouldAdvance) {
         (state as any).tempSide2 = side2;
         
         // Check if tiebreak or set complete
@@ -429,9 +524,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   (window as any).cleanupDialPad = cleanup;
 
   // Initial display
+  updateMatchUpDisplay();
   updateScoreDisplay();
-  
-  console.log('Dial pad rendered successfully');
   } catch (error) {
     console.error('Error rendering dial pad:', error);
     container.innerHTML = `<p style="color: red;">Error: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
