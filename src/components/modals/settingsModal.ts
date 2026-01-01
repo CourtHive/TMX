@@ -16,11 +16,14 @@ export function settingsModal(): void {
     env.saveLocal = inputs.saveLocal.checked;
     
     // Save scoring approach preference
-    const scoringApproach = inputs.dynamicSets.checked 
-      ? 'dynamicSets' 
-      : inputs.dialPad.checked 
-      ? 'dialPad' 
-      : 'freeText';
+    let scoringApproach: string;
+    if (inputs.dynamicSets.checked) {
+      scoringApproach = 'dynamicSets';
+    } else if (inputs.dialPad.checked) {
+      scoringApproach = 'dialPad';
+    } else {
+      scoringApproach = 'freeText';
+    }
     env.scoringApproach = scoringApproach;
     
     setActiveScale(activeScale);
