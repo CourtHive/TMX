@@ -38,13 +38,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       i++;
       const val = parseInt(side1);
       
-      // Break conditions:
-      // - Always break after 2 digits
-      // - Break after 1 digit if value > setTo (7, 8, 9 in tennis)
-      // - Break after 1 digit unless it's 0 or 1 (which might be start of 10, 11, 12)
+      // Break after 2 digits OR after 1 digit unless it's 1 (for 10, 11, 12)
       if (side1.length >= 2) break;
-      if (side1.length === 1 && val > setTo) break;
-      if (side1.length === 1 && val >= 2 && val <= setTo) break;
+      if (side1.length === 1 && val !== 1) break;
     }
     
     // Parse side2
@@ -55,8 +51,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       
       // Same break conditions as side1
       if (side2.length >= 2) break;
-      if (side2.length === 1 && val > setTo) break;
-      if (side2.length === 1 && val >= 2 && val <= setTo) break;
+      if (side2.length === 1 && val !== 1) break;
     }
     
     if (!side2) {
