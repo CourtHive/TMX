@@ -75,8 +75,8 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     }
     
     // Parse side2
-    while (i < digits.length) {
-      const nextDigit = digits[i];
+    while (i < segmentDigits.length) {
+      const nextDigit = segmentDigits[i];
       const potentialValue = side2 + nextDigit;
       const val = parseInt(potentialValue);
       
