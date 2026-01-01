@@ -99,9 +99,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Dial pad
     const dialPadContainer = document.createElement('div');
     dialPadContainer.style.display = 'grid';
-    dialPadContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    dialPadContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
     dialPadContainer.style.gap = '0.5em';
-    dialPadContainer.style.maxWidth = '300px';
+    dialPadContainer.style.minWidth = '360px';
     dialPadContainer.style.margin = '0 auto';
     container.appendChild(dialPadContainer);
 
