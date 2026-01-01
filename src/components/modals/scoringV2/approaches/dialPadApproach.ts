@@ -19,15 +19,18 @@ type EntryState = {
 };
 
 export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
+  console.log('renderDialPadScoreEntry called', params);
   const { matchUp, container, onScoreChange } = params;
 
-  // Clear container
-  container.innerHTML = '';
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  container.style.gap = '1em';
+  try {
+    // Clear container
+    container.innerHTML = '';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '1em';
 
-  const scaleAttributes = env.scales[env.activeScale];
+    const scaleAttributes = env.scales[env.activeScale];
+    console.log('scaleAttributes:', scaleAttributes);
 
   // Parse match format
   const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
@@ -421,4 +424,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
   // Initial display
   updateScoreDisplay();
+  
+  console.log('Dial pad rendered successfully');
+  } catch (error) {
+    console.error('Error rendering dial pad:', error);
+    container.innerHTML = `<p style="color: red;">Error: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
+  }
 }
