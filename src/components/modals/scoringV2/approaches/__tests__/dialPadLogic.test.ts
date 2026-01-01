@@ -9,7 +9,7 @@ import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
 type TestCase = {
   name: string;
-  keySequence: number[];
+  keySequence: (number | string)[];
   expectedScoreString: string;
   matchUpFormat: string;
 };
