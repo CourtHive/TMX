@@ -6,6 +6,7 @@ import { factoryConstants, globalState, tournamentEngine } from 'tods-competitio
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { initSettingsIcon } from 'components/modals/settingsModal';
+import { loadSettings } from 'services/settings/settingsStorage';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
@@ -51,6 +52,20 @@ import 'styles/icons.css';
 import 'styles/tmx.css';
 
 export function setupTMX(): void {
+  // Load settings from localStorage before initializing
+  const savedSettings = loadSettings();
+  if (savedSettings) {
+    if (savedSettings.activeScale) {
+      env.activeScale = savedSettings.activeScale;
+    }
+    if (savedSettings.scoringApproach) {
+      env.scoringApproach = savedSettings.scoringApproach;
+    }
+    if (savedSettings.saveLocal !== undefined) {
+      env.saveLocal = savedSettings.saveLocal;
+    }
+  }
+  
   setEnv();
   setWindow();
   setContext();
