@@ -63,6 +63,7 @@ export function scoringModalV2(params: ScoringModalParams): void {
   openModal({
     title: 'Score Entry',
     content: container,
+    style: approach === 'dialPad' ? { maxWidth: '500px' } : undefined,
     buttons: [
       { 
         label: 'Cancel', 

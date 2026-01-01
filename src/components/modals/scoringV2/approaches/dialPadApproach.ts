@@ -486,7 +486,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault();
       handleDelete();
-    } else if (e.key === '-' || e.key === 'Minus') {
+    } else if (e.key === '-' || e.key === 'Minus' || e.key === '_' || e.key === '=' || e.keyCode === 189 || e.keyCode === 173) {
       e.preventDefault();
       handleMinusPress();
     }
