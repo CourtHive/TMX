@@ -5,6 +5,7 @@
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderFreeTextScoreEntry } from './approaches/freeTextApproach';
 import { renderDynamicSetsScoreEntry } from './approaches/dynamicSetsApproach';
+import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { env } from 'settings/env';
 
@@ -48,8 +49,14 @@ export function scoringModalV2(params: ScoringModalParams): void {
       container,
       onScoreChange: handleScoreChange,
     });
+  } else if (approach === 'dialPad') {
+    renderDialPadScoreEntry({
+      matchUp,
+      container,
+      onScoreChange: handleScoreChange,
+    });
   } else {
-    container.innerHTML = '<p>Visual approach coming soon...</p>';
+    container.innerHTML = '<p>Unknown scoring approach...</p>';
   }
   
   openModal({
@@ -81,6 +88,14 @@ export function scoringModalV2(params: ScoringModalParams): void {
             if ((window as any).resetDynamicSets) {
               (window as any).resetDynamicSets();
             }
+          } else if (approach === 'dialPad') {
+            // Reload dial pad approach
+            container.innerHTML = '';
+            renderDialPadScoreEntry({
+              matchUp,
+              container,
+              onScoreChange: handleScoreChange,
+            });
           }
         },
       },
