@@ -116,11 +116,29 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   container.appendChild(dialPadContainer);
 
   // Helper: Update matchUp display
-  const updateMatchUpDisplay = (currentScore?: { sets?: any[]; winningSide?: number; matchUpStatus?: string }) => {
+  const updateMatchUpDisplay = (currentScore?: { scoreString?: string; sets?: any[]; winningSide?: number; matchUpStatus?: string }) => {
+    // Parse the score string to get proper score object
+    let scoreObject = matchUp.score;
+    if (currentScore?.scoreString) {
+      try {
+        const parsed = tournamentEngine.parseScoreString({ scoreString: currentScore.scoreString });
+        if (parsed?.sets) {
+          scoreObject = { sets: parsed.sets };
+        }
+      } catch (error) {
+        // Fallback to sets array if parsing fails
+        if (currentScore.sets) {
+          scoreObject = { sets: currentScore.sets };
+        }
+      }
+    } else if (currentScore?.sets) {
+      scoreObject = { sets: currentScore.sets };
+    }
+    
     // Create a copy of matchUp with current score
     const displayMatchUp = {
       ...matchUp,
-      score: currentScore?.sets ? { sets: currentScore.sets } : matchUp.score,
+      score: scoreObject,
       winningSide: currentScore?.winningSide,
       matchUpStatus: currentScore?.matchUpStatus || matchUp.matchUpStatus,
     };
@@ -151,8 +169,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const outcome = validateCurrentScore(state, matchUp);
     onScoreChange(outcome);
     
-    // Update matchUp display with current score
+    // Update matchUp display with current score (use scoreString for proper parsing)
     updateMatchUpDisplay({
+      scoreString,
       sets: state.completedSets,
       winningSide: outcome.winningSide,
       matchUpStatus: outcome.matchUpStatus,
@@ -318,9 +337,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   const handleDigitPress = (digit: number) => {
     let value = digit;
     
-    // Smart capping: if digit > setTo, cap it
+    // Smart capping: if digit > setTo, cap it (but only for single digit entry)
     if (state.currentPhase === 'side1' || state.currentPhase === 'side2') {
-      if (digit > setTo) {
+      if (digit > setTo && state.pendingDigits.length === 0) {
         value = setTo;
       }
     }
@@ -331,8 +350,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const pendingValue = parseInt(state.pendingDigits);
     
     if (state.currentPhase === 'side1') {
-      // Advance if >= setTo or two digits entered
-      if (pendingValue >= setTo || state.pendingDigits.length >= 2) {
+      // Advance if two digits or single digit >= setTo
+      const shouldAdvance = state.pendingDigits.length >= 2 || 
+                           (state.pendingDigits.length === 1 && pendingValue >= setTo);
+      
+      if (shouldAdvance) {
         (state as any).tempSide1 = pendingValue;
         state.pendingDigits = '';
         state.currentPhase = 'side2';
