@@ -1,21 +1,27 @@
 /**
  * Shared dial pad logic - formats raw digits into score string
- * Used by both the UI and tests
+ * Parses matchUpFormat to determine boundaries
  */
 
+import { matchUpFormatCode } from 'tods-competition-factory';
+
 export type FormatOptions = {
-  setTo: number;
-  tiebreakAt: number;
+  matchUpFormat: string;
 };
 
 /**
  * Convert raw digits to formatted score string
- * Example: "6464" with setTo=6 becomes "6-4 6-4"
+ * Example: "6464" with matchUpFormat 'SET3-S:6/TB7' becomes "6-4 6-4"
  */
 export function formatScoreString(digits: string, options: FormatOptions): string {
-  const { setTo, tiebreakAt } = options;
+  const { matchUpFormat } = options;
   
   if (!digits) return '';
+  
+  // Parse matchUpFormat to get setTo and tiebreakAt
+  const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
+  const setTo = parsedFormat?.setFormat?.setTo || 6;
+  const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
   
   let result = '';
   let i = 0;

@@ -103,7 +103,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Format score string using shared logic
     const formatScore = (digits: string): string => {
-      return formatScoreString(digits, { setTo, tiebreakAt });
+      return formatScoreString(digits, { matchUpFormat: matchUp.matchUpFormat || 'SET3-S:6/TB7' });
     };
 
 

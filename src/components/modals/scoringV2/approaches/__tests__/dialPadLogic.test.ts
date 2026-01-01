@@ -10,64 +10,70 @@ type TestCase = {
   name: string;
   keySequence: number[];
   expectedScoreString: string;
-  setTo?: number;
-  tiebreakAt?: number;
+  matchUpFormat: string;
 };
 
 const testCases: TestCase[] = [
-  // Basic scores
+  // Basic SET3 scores
   {
     name: 'should handle 6-4 6-4',
     keySequence: [6, 4, 6, 4],
     expectedScoreString: '6-4 6-4',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   {
     name: 'should handle 3-6 3-6',
     keySequence: [3, 6, 3, 6],
     expectedScoreString: '3-6 3-6',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   {
     name: 'should handle 7-5 6-3',
     keySequence: [7, 5, 6, 3],
     expectedScoreString: '7-5 6-3',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   {
     name: 'should handle 6-0 6-1',
     keySequence: [6, 0, 6, 1],
     expectedScoreString: '6-0 6-1',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   
-  // Tiebreak sets (two-digit tiebreak scores: 03, 06, 07, etc.)
+  // Tiebreak sets (two-digit tiebreak scores)
   {
     name: 'should handle 6-7 with tiebreak 03-06',
     keySequence: [6, 7, 0, 3, 0, 6],
     expectedScoreString: '6-7(03-06)',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   {
     name: 'should handle 7-6 with tiebreak 05-03',
     keySequence: [7, 6, 0, 5, 0, 3],
     expectedScoreString: '7-6(05-03)',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   {
     name: 'should handle 6-6 tiebreak 07-05',
     keySequence: [6, 6, 0, 7, 0, 5],
     expectedScoreString: '6-6(07-05)',
+    matchUpFormat: 'SET3-S:6/TB7',
   },
   
-  // Multi-digit scores
+  // Single tiebreak set
   {
-    name: 'should handle 10-8',
-    keySequence: [1, 0, 8],
-    expectedScoreString: '10-8',
-    setTo: 8,
-    tiebreakAt: 8,
-  },
-  {
-    name: 'should handle 12-10',
+    name: 'should handle TB10 format 12-10',
     keySequence: [1, 2, 1, 0],
     expectedScoreString: '12-10',
-    setTo: 10,
-    tiebreakAt: 10,
+    matchUpFormat: 'SET1-S:T10',
+  },
+  
+  // SET5 format
+  {
+    name: 'should handle SET5 6-4 6-4',
+    keySequence: [6, 4, 6, 4],
+    expectedScoreString: '6-4 6-4',
+    matchUpFormat: 'SET5-S:6/TB7',
   },
 ];
 
@@ -75,10 +81,8 @@ describe('Dial Pad Score Entry Logic', () => {
   testCases.forEach(testCase => {
     it(testCase.name, () => {
       const digits = testCase.keySequence.join('');
-      const setTo = testCase.setTo || 6;
-      const tiebreakAt = testCase.tiebreakAt || 6;
       
-      const result = formatScoreString(digits, { setTo, tiebreakAt });
+      const result = formatScoreString(digits, { matchUpFormat: testCase.matchUpFormat });
       expect(result).toBe(testCase.expectedScoreString);
     });
   });
