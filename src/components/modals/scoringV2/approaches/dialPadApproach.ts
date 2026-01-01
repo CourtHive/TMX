@@ -108,7 +108,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       let i = 0;
       
       while (i < digits.length) {
-        const setStart = i;
         let side1 = '';
         let side2 = '';
         let tb1 = '';
