@@ -22,7 +22,7 @@ export const MATCH_FORMATS = {
   
   // Tiebreak-only formats
   SET1_S_TB7: 'SET1-S:T7',
-  SET1_S_TB10: 'SET1-S:T10',
+  SET1_S_TB10: 'SET1-S:TB10',
   SET1_S_TB21: 'SET1-S:T21',
   
   // Pro sets

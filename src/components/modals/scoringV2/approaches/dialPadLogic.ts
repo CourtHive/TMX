@@ -20,8 +20,15 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   
   // Parse matchUpFormat to get setTo and tiebreakAt
   const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
-  const setTo = parsedFormat?.setFormat?.setTo || 6;
+  
+  // For tiebreak-only sets (e.g., SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
+  const tiebreakSetTo = parsedFormat?.setFormat?.tiebreakSet?.tiebreakTo;
+  const regularSetTo = parsedFormat?.setFormat?.setTo;
+  
+  const setTo = tiebreakSetTo || regularSetTo || 6;
   const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
+  
+
   
   let result = '';
   let i = 0;
@@ -34,24 +41,50 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     
     // Parse side1
     while (i < digits.length) {
-      side1 += digits[i];
-      i++;
-      const val = parseInt(side1);
+      const nextDigit = digits[i];
+      const potentialValue = side1 + nextDigit;
+      const val = parseInt(potentialValue);
       
-      // Break after 2 digits OR after 1 digit unless it's 1 (for 10, 11, 12)
-      if (side1.length >= 2) break;
-      if (side1.length === 1 && val !== 1) break;
+      // Check if adding this digit would create a valid score
+      // For setTo=4: valid scores are 0-5, so if val>5 after adding digit, stop
+      // For setTo=6: valid scores are 0-7, so if val>7 after adding digit, stop
+      // For setTo=10+: need to allow 2-digit scores (10, 11, 12, etc.)
+      const maxScore = setTo + 1;
+      
+      // If we already have a digit and adding another would exceed maxScore, stop
+      if (side1.length > 0) {
+        if (val > maxScore) break;
+        // Stop at 2 digits unless setTo allows higher (TB format)
+        if (side1.length >= 2) break;
+      }
+      
+      side1 += nextDigit;
+      i++;
+      
+      // After adding, check if we should stop
+      // Stop after 1 digit unless it's 1 (could be 10+) OR maxScore >= 10
+      const currentVal = parseInt(side1);
+      if (side1.length === 1 && currentVal !== 1 && maxScore < 10) break;
     }
     
     // Parse side2
     while (i < digits.length) {
-      side2 += digits[i];
-      i++;
-      const val = parseInt(side2);
+      const nextDigit = digits[i];
+      const potentialValue = side2 + nextDigit;
+      const val = parseInt(potentialValue);
       
-      // Same break conditions as side1
-      if (side2.length >= 2) break;
-      if (side2.length === 1 && val !== 1) break;
+      const maxScore = setTo + 1;
+      
+      if (side2.length > 0) {
+        if (val > maxScore) break;
+        if (side2.length >= 2) break;
+      }
+      
+      side2 += nextDigit;
+      i++;
+      
+      const currentVal = parseInt(side2);
+      if (side2.length === 1 && currentVal !== 1 && maxScore < 10) break;
     }
     
     if (!side2) {
