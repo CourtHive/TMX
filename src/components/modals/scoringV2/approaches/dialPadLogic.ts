@@ -110,14 +110,25 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
                          (s2 === tiebreakAt + 1 && s1 === tiebreakAt);
     
     if (needsTiebreak) {
-      // Parse tiebreak scores
-      while (i < segmentDigits.length && tb1.length < 2) {
-        tb1 += segmentDigits[i];
-        i++;
-      }
-      while (i < segmentDigits.length && tb2.length < 2) {
-        tb2 += segmentDigits[i];
-        i++;
+      // Parse tiebreak scores - look for explicit separator in remaining digits
+      const remainingDigits = segmentDigits.slice(i);
+      const separatorIndex = remainingDigits.indexOf('-');
+      
+      if (separatorIndex !== -1) {
+        // Explicit separator found - use it to split tiebreak scores
+        tb1 = remainingDigits.slice(0, separatorIndex);
+        tb2 = remainingDigits.slice(separatorIndex + 1);
+        i = segmentDigits.length; // Consume all remaining digits
+      } else {
+        // No separator - parse up to 2 digits each
+        while (i < segmentDigits.length && tb1.length < 2) {
+          tb1 += segmentDigits[i];
+          i++;
+        }
+        while (i < segmentDigits.length && tb2.length < 2) {
+          tb2 += segmentDigits[i];
+          i++;
+        }
       }
       
       if (result) result += ' ';

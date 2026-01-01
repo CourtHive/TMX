@@ -192,9 +192,20 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         }
       }
       
-      // For minus, add a space separator to force moving to next element
+      // For minus, add separator
+      // If we're in a tiebreak (score ends with '('), keep the minus in the string
+      // Otherwise, add a space to force moving to next set
       if (digit === '-') {
-        state.digits += ' ';
+        const currentScore = formatScore(state.digits);
+        const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
+        
+        if (inTiebreak) {
+          // In tiebreak - keep the minus as-is for parsing
+          state.digits += '-';
+        } else {
+          // Not in tiebreak - use space as set separator
+          state.digits += ' ';
+        }
       } else {
         state.digits += digit.toString();
       }
