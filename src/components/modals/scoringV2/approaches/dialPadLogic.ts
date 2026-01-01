@@ -115,12 +115,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       const separatorIndex = remainingDigits.indexOf('-');
       
       if (separatorIndex !== -1) {
-        // Explicit separator found - use it to split tiebreak scores
+        // Explicit separator found - tiebreak is complete, just take first score
         tb1 = remainingDigits.slice(0, separatorIndex);
-        tb2 = remainingDigits.slice(separatorIndex + 1);
-        i = segmentDigits.length; // Consume all remaining digits
+        // Don't consume digits after separator - they belong to next set
+        i += separatorIndex + 1;
+        // The minus indicates tiebreak is complete - only one score entered
       } else {
-        // No separator - parse up to 2 digits each
+        // No separator - parse up to 2 digits each (old behavior for two-digit entry)
         while (i < segmentDigits.length && tb1.length < 2) {
           tb1 += segmentDigits[i];
           i++;
@@ -135,7 +136,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       if (tb2) {
         result += `${side1}-${side2}(${tb1}-${tb2})`;
       } else if (tb1) {
-        result += `${side1}-${side2}(${tb1}`;
+        result += `${side1}-${side2}(${tb1})`;
       } else {
         result += `${side1}-${side2}(`;
       }

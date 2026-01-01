@@ -295,6 +295,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         handleDelete();
+      } else if (e.key === '-') {
+        e.preventDefault();
+        handleDigitPress('-');
+      } else if (e.key === ')' || e.key === ' ') {
+        // Accept ')' or space to close tiebreak and move to next set
+        e.preventDefault();
+        const currentScore = formatScore(state.digits);
+        const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
+        if (inTiebreak) {
+          // Add minus to close tiebreak (will add ')' in formatting)
+          state.digits += '-';
+          updateDisplay();
+        }
       }
     };
 

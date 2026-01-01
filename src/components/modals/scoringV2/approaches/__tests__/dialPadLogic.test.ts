@@ -76,12 +76,21 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-4 6-4',
     matchUpFormat: MATCH_FORMATS.SET5_S6_TB7,
   },
+  
+  // Tiebreak with minus key separator
+  {
+    name: 'should handle 6-7(3) 3-6 with minus key separator',
+    keySequence: [6, 7, 3, '-', 3, 6],
+    expectedScoreString: '6-7(3) 3-6',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
   testCases.forEach(testCase => {
     it(testCase.name, () => {
-      const digits = testCase.keySequence.join('');
+      // Join keySequence, but preserve '-' as a character
+      const digits = testCase.keySequence.map(k => k.toString()).join('');
       
       const result = formatScoreString(digits, { matchUpFormat: testCase.matchUpFormat });
       expect(result).toBe(testCase.expectedScoreString);
