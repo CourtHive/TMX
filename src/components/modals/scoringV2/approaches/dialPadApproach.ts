@@ -58,7 +58,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     scaleAttributes,
     element: matchUpContainer,
     highlighted: false,
-    displayFormat: true,
+    displayFormat: false,
   });
 
   // Current score display (light blue)
