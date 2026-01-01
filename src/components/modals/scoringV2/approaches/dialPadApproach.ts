@@ -335,22 +335,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
   // Handle digit press
   const handleDigitPress = (digit: number) => {
-    let value = digit;
-    
-    // Smart capping: if digit > setTo, cap it (but only for single digit entry)
-    if (state.currentPhase === 'side1' || state.currentPhase === 'side2') {
-      if (digit > setTo && state.pendingDigits.length === 0) {
-        value = setTo;
-      }
-    }
-    
-    state.pendingDigits += value.toString();
+    state.pendingDigits += digit.toString();
     
     // Check if we should auto-advance
     const pendingValue = parseInt(state.pendingDigits);
     
     if (state.currentPhase === 'side1') {
-      // Advance if two digits or single digit >= setTo
+      // Advance if:
+      // - Two digits entered (e.g., 36, 12)
+      // - OR single digit >= setTo (e.g., 6, 7)
       const shouldAdvance = state.pendingDigits.length >= 2 || 
                            (state.pendingDigits.length === 1 && pendingValue >= setTo);
       
@@ -365,8 +358,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const side2 = pendingValue;
       
       // Check if we should advance (score is clear)
+      // - Two digits entered
+      // - OR single digit >= setTo
+      // - OR set is complete (one side won)
       const shouldAdvance = state.pendingDigits.length >= 2 || 
-                           pendingValue >= setTo ||
+                           (state.pendingDigits.length === 1 && pendingValue >= setTo) ||
                            isSetComplete(side1, side2);
       
       if (shouldAdvance) {
