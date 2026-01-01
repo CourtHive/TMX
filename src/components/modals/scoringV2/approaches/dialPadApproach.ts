@@ -3,9 +3,9 @@
  * Builds score string incrementally using matchUpFormat rules
  */
 import { renderMatchUp } from 'courthive-components';
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';
-import { tournamentEngine } from 'services/transformers/initializeEngine';
+import { env } from 'settings/env';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
 type EntryState = {
@@ -28,11 +28,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const setTo = parsedFormat?.setFormat?.setTo || 6;
     const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
     
-    // Get scale attributes for rendering
-    const scaleAttributes = tournamentEngine.getScaleAttributes({
-      matchUp,
-      scaleDate: new Date().toISOString().split('T')[0],
-    })?.scaleAttributes;
+    // Get scale attributes for rendering (same as freeText and dynamicSets)
+    const scaleAttributes = env.scales[env.activeScale];
 
     // State: just raw digits
     const state: EntryState = {
