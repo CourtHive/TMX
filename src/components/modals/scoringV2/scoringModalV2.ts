@@ -12,6 +12,10 @@ import { env } from 'settings/env';
 export function scoringModalV2(params: ScoringModalParams): void {
   const { matchUp, callback } = params;
   
+  // Choose approach based on env setting
+  const approach = env.scoringApproach || 'freeText';
+  console.log('Scoring approach:', approach);
+  
   const container = document.createElement('div');
   container.style.padding = '1em';
   
@@ -38,10 +42,6 @@ export function scoringModalV2(params: ScoringModalParams): void {
       clearBtn.disabled = !scoreInput.value.trim();
     }
   };
-  
-  // Choose approach based on env setting
-  const approach = env.scoringApproach || 'freeText';
-  console.log('Scoring approach:', approach);
   
   if (approach === 'freeText') {
     renderFreeTextScoreEntry({
