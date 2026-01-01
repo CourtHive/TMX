@@ -203,31 +203,49 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
     };
 
-    // Create dial pad buttons
+    // Create dial pad buttons (4x3 grid)
     const buttons = [
       { label: '1', value: 1 },
       { label: '2', value: 2 },
       { label: '3', value: 3 },
+      { label: 'RET', value: 'retired', isSpecial: true },
       { label: '4', value: 4 },
       { label: '5', value: 5 },
       { label: '6', value: 6 },
+      { label: 'WO', value: 'walkover', isSpecial: true },
       { label: '7', value: 7 },
       { label: '8', value: 8 },
       { label: '9', value: 9 },
+      { label: 'DEF', value: 'defaulted', isSpecial: true },
       { label: '⌫', value: 'delete', isSpecial: true },
       { label: '0', value: 0 },
       { label: '-', value: 'minus', isSpecial: true },
+      { label: '', value: 'empty', isSpecial: true, disabled: true },
     ];
 
     buttons.forEach(btn => {
       const button = document.createElement('button');
       button.className = 'button is-large';
       button.textContent = btn.label;
-      button.style.fontSize = '1.5em';
       button.style.height = '60px';
       
-      if (btn.isSpecial) {
+      // Adjust font size for longer labels
+      if (btn.label.length > 1 && !btn.isSpecial) {
+        button.style.fontSize = '1.5em';
+      } else if (btn.isSpecial && ['RET', 'WO', 'DEF'].includes(btn.label)) {
+        button.style.fontSize = '1em';
+        button.style.backgroundColor = '#ffe0b2'; // Orange-ish for irregular endings
+      } else if (btn.isSpecial) {
+        button.style.fontSize = '1.5em';
         button.style.backgroundColor = '#f0f0f0';
+      } else {
+        button.style.fontSize = '1.5em';
+      }
+      
+      // Disable and hide empty button
+      if (btn.disabled) {
+        button.disabled = true;
+        button.style.visibility = 'hidden';
       }
       
       button.onclick = () => {
@@ -235,6 +253,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           handleDelete();
         } else if (btn.value === 'minus') {
           // Minus doesn't do anything in this approach
+        } else if (btn.value === 'retired' || btn.value === 'walkover' || btn.value === 'defaulted') {
+          // TODO: Handle irregular endings
+          console.log('[DialPad] Irregular ending:', btn.value);
+        } else if (btn.value === 'empty') {
+          // Empty placeholder - do nothing
         } else {
           handleDigitPress(btn.value as number);
         }
