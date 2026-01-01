@@ -3,7 +3,7 @@
  * Builds score string incrementally using matchUpFormat rules
  */
 import { renderMatchUp } from 'courthive-components';
-import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
+import { matchUpFormatCode } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
 import { env } from 'settings/env';
@@ -150,21 +150,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
     };
 
-    // Check if match is complete
-    const isMatchComplete = (sets: any[]): boolean => {
-      if (!sets || sets.length === 0) return false;
-      
-      // Get best of from format
-      const formatMatch = matchUp.matchUpFormat?.match(/SET(\d+)/);
-      const bestOf = formatMatch ? parseInt(formatMatch[1]) : 3;
-      const setsToWin = Math.ceil(bestOf / 2);
-      
-      // Count sets won by each side
-      const side1Wins = sets.filter((s: any) => s.winningSide === 1).length;
-      const side2Wins = sets.filter((s: any) => s.winningSide === 2).length;
-      
-      return side1Wins >= setsToWin || side2Wins >= setsToWin;
-    };
+
 
     // Update display
     const updateDisplay = () => {
@@ -195,11 +181,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         console.log('[DialPad] Current validation:', {
           isValid: currentValidation.isValid,
           sets: currentValidation.sets,
-          winningSide: currentValidation.winningSide,
-          isComplete: currentValidation.isComplete
+          winningSide: currentValidation.winningSide
         });
         
-        if (currentValidation.isComplete) {
+        // Match is complete if validation shows a winningSide and is valid
+        if (currentValidation.isValid && currentValidation.winningSide) {
           console.log('[DialPad] Match already complete - blocking input');
           return;
         }
