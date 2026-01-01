@@ -41,23 +41,23 @@ const testCases: TestCase[] = [
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
   
-  // Tiebreak sets (two-digit tiebreak scores)
+  // Tiebreak sets (single digit tiebreak score)
   {
-    name: 'should handle 6-7 with tiebreak 03-06',
-    keySequence: [6, 7, 0, 3, 0, 6],
-    expectedScoreString: '6-7(03-06)',
+    name: 'should handle 6-7 with tiebreak 3',
+    keySequence: [6, 7, 3],
+    expectedScoreString: '6-7(3)',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
   {
-    name: 'should handle 7-6 with tiebreak 05-03',
-    keySequence: [7, 6, 0, 5, 0, 3],
-    expectedScoreString: '7-6(05-03)',
+    name: 'should handle 7-6 with tiebreak 5',
+    keySequence: [7, 6, 5],
+    expectedScoreString: '7-6(5)',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
   {
-    name: 'should handle 6-6 tiebreak 07-05',
-    keySequence: [6, 6, 0, 7, 0, 5],
-    expectedScoreString: '6-6(07-05)',
+    name: 'should handle 6-7 with multi-digit tiebreak 18',
+    keySequence: [6, 7, 1, 8],
+    expectedScoreString: '6-7(18)',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
   

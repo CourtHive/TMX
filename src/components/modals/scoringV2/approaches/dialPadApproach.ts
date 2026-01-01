@@ -88,7 +88,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     scoreDisplay.style.fontSize = '2em';
     scoreDisplay.style.color = '#64B5F6';
     scoreDisplay.style.textAlign = 'center';
-    scoreDisplay.style.padding = '0.5em';
+    scoreDisplay.style.padding = '0.25em 0.5em';
     scoreDisplay.style.fontWeight = 'bold';
     scoreDisplay.style.minHeight = '1.5em';
     scoreDisplay.style.maxWidth = '300px';

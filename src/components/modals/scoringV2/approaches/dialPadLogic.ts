@@ -121,15 +121,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         i += separatorIndex + 1;
         // The minus indicates tiebreak is complete - only one score entered
       } else {
-        // No separator - parse up to 2 digits each (old behavior for two-digit entry)
-        while (i < segmentDigits.length && tb1.length < 2) {
-          tb1 += segmentDigits[i];
-          i++;
-        }
-        while (i < segmentDigits.length && tb2.length < 2) {
-          tb2 += segmentDigits[i];
-          i++;
-        }
+        // No separator - consume all remaining digits as tiebreak score
+        tb1 = remainingDigits;
+        i = segmentDigits.length;
       }
       
       if (result) result += ' ';
