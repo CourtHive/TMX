@@ -100,8 +100,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const dialPadContainer = document.createElement('div');
     dialPadContainer.style.display = 'grid';
     dialPadContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    dialPadContainer.style.gap = '0.5em';
-    dialPadContainer.style.minWidth = '360px';
+    dialPadContainer.style.gap = '6px';
+    dialPadContainer.style.maxWidth = '340px';
     dialPadContainer.style.margin = '0 auto';
     container.appendChild(dialPadContainer);
 
@@ -228,10 +228,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       button.className = 'button';
       button.textContent = btn.label;
       button.style.cssText = `
-        height: 45px !important;
+        height: 50px !important;
         width: 100% !important;
         min-width: 0 !important;
-        padding: 0.25em 0.5em !important;
+        max-width: 80px !important;
+        padding: 0 !important;
+        line-height: 1 !important;
       `;
       
       // Adjust font size for longer labels
