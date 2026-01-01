@@ -5,6 +5,7 @@
 import { renderMatchUp } from 'courthive-components';
 import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';
+import { validateScore } from '../utils/scoreValidator';
 import { env } from 'settings/env';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
@@ -170,38 +171,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const scoreString = formatScore(state.digits);
       scoreDisplay.textContent = scoreString || '-';
       
-      // Get the parsed outcome from factory
-      let outcome: ScoreOutcome;
-      try {
-        const factoryOutcome = tournamentEngine.generateMatchUpOutcomeFromString({
-          matchUpFormat: matchUp.matchUpFormat,
-          scoreString,
-        });
-        
-        outcome = {
-          isValid: !!factoryOutcome?.score && scoreString.length > 0,
-          sets: factoryOutcome?.score?.sets || [],
-          score: factoryOutcome?.score,
-          matchUpStatus: factoryOutcome?.matchUpStatus,
-          winningSide: factoryOutcome?.winningSide,
-          matchUpFormat: matchUp.matchUpFormat,
-        };
-        
-        // Update matchUp display with the outcome
-        updateMatchUpDisplay(outcome);
-      } catch (error) {
-        outcome = {
-          isValid: false,
-          sets: [],
-          error: error instanceof Error ? error.message : 'Invalid score',
-          matchUpFormat: matchUp.matchUpFormat,
-        };
-        
-        // Clear matchUp display on error
-        updateMatchUpDisplay(null);
-      }
+      // Use validateScore for proper validation (like freeText does)
+      const validation = validateScore(scoreString, matchUp.matchUpFormat);
+      console.log('[DialPad] Validation result:', validation);
       
-      onScoreChange(outcome);
+      // Update matchUp display with validation result
+      updateMatchUpDisplay(validation);
+      
+      onScoreChange(validation);
       
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
       if (clearBtn) clearBtn.disabled = state.digits.length === 0;
@@ -209,36 +186,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Handle digit press
     const handleDigitPress = (digit: number) => {
-      // Check if match is already complete
+      // Check if match is already complete using validation
       const currentScoreString = formatScore(state.digits);
       console.log('[DialPad] Current score string:', currentScoreString);
       
       if (currentScoreString) {
-        try {
-          const currentOutcome = tournamentEngine.generateMatchUpOutcomeFromString({
-            matchUpFormat: matchUp.matchUpFormat,
-            scoreString: currentScoreString,
-          });
-          
-          console.log('[DialPad] Parsed outcome:', {
-            sets: currentOutcome?.score?.sets,
-            winningSide: currentOutcome?.winningSide,
-            matchUpStatus: currentOutcome?.matchUpStatus
-          });
-          
-          if (currentOutcome?.score?.sets) {
-            const complete = isMatchComplete(currentOutcome.score.sets);
-            console.log('[DialPad] Match complete?', complete);
-            
-            if (complete) {
-              console.log('[DialPad] Match already complete - blocking input');
-              // Match already complete - don't accept more input
-              return;
-            }
-          }
-        } catch (err) {
-          console.log('[DialPad] Error parsing score:', err);
-          // If parsing fails, allow input (incomplete score)
+        const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
+        console.log('[DialPad] Current validation:', {
+          isValid: currentValidation.isValid,
+          sets: currentValidation.sets,
+          winningSide: currentValidation.winningSide,
+          isComplete: currentValidation.isComplete
+        });
+        
+        if (currentValidation.isComplete) {
+          console.log('[DialPad] Match already complete - blocking input');
+          return;
         }
       }
       
