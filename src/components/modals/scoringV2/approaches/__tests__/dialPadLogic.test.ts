@@ -1,164 +1,85 @@
 /**
  * Test suite for dial pad score entry logic
- * Tests key sequences and expected score outputs
+ * Data-driven tests for key sequences and expected outputs
  */
 
 import { describe, it, expect } from 'vitest';
+import { formatScoreString } from '../dialPadLogic';
 
-type Phase = 'side1' | 'side2' | 'tiebreak_side1' | 'tiebreak_side2';
-
-type SetScore = {
-  side1Score?: number;
-  side2Score?: number;
-  side1TiebreakScore?: number;
-  side2TiebreakScore?: number;
-  winningSide?: number;
+type TestCase = {
+  name: string;
+  keySequence: number[];
+  expectedScoreString: string;
+  setTo?: number;
+  tiebreakAt?: number;
 };
 
-type EntryState = {
-  currentSetIndex: number;
-  currentPhase: Phase;
-  pendingDigits: string;
-  completedSets: SetScore[];
-  tempSide1?: number;
-  tempSide2?: number;
-  tempTiebreakSide1?: number;
-};
-
-/**
- * Process a sequence of key entries and return the resulting score string
- */
-function processKeySequence(keys: (number | '-')[], _setTo: number = 6, tiebreakAt: number = 6): string {
-  const state: EntryState = {
-    currentSetIndex: 0,
-    currentPhase: 'side1',
-    pendingDigits: '',
-    completedSets: [],
-  };
-
-  // Helper functions
-  const shouldEnterTiebreak = (side1: number, side2: number): boolean => {
-    if (side1 === tiebreakAt && side2 === tiebreakAt) return true;
-    if (side1 === tiebreakAt + 1 && side2 === tiebreakAt) return true;
-    if (side2 === tiebreakAt + 1 && side1 === tiebreakAt) return true;
-    return false;
-  };
-
-  // Process each key
-  for (const key of keys) {
-    if (key === '-') {
-      // Minus key - advance to next phase/element
-      if (state.currentPhase === 'side1' && state.pendingDigits) {
-        state.tempSide1 = parseInt(state.pendingDigits);
-        state.pendingDigits = '';
-        state.currentPhase = 'side2';
-      } else if (state.currentPhase === 'side2' && state.pendingDigits) {
-        const side1 = state.tempSide1!;
-        const side2 = parseInt(state.pendingDigits);
-        state.tempSide2 = side2;
-        state.pendingDigits = '';
-        
-        if (shouldEnterTiebreak(side1, side2)) {
-          state.currentPhase = 'tiebreak_side1';
-        } else {
-          // Complete the set
-          state.completedSets.push({
-            side1Score: side1,
-            side2Score: side2,
-            winningSide: side1 > side2 ? 1 : 2,
-          });
-          state.currentSetIndex++;
-          state.currentPhase = 'side1';
-          delete state.tempSide1;
-          delete state.tempSide2;
-        }
-      } else if (state.currentPhase === 'tiebreak_side1' && state.pendingDigits) {
-        state.tempTiebreakSide1 = parseInt(state.pendingDigits);
-        state.pendingDigits = '';
-        state.currentPhase = 'tiebreak_side2';
-      } else if (state.currentPhase === 'tiebreak_side2' && state.pendingDigits) {
-        // Complete tiebreak set
-        state.completedSets.push({
-          side1Score: state.tempSide1!,
-          side2Score: state.tempSide2!,
-          side1TiebreakScore: state.tempTiebreakSide1!,
-          side2TiebreakScore: parseInt(state.pendingDigits),
-          winningSide: state.tempTiebreakSide1! > parseInt(state.pendingDigits) ? 1 : 2,
-        });
-        state.currentSetIndex++;
-        state.currentPhase = 'side1';
-        state.pendingDigits = '';
-        delete state.tempSide1;
-        delete state.tempSide2;
-        delete state.tempTiebreakSide1;
-      }
-    } else {
-      // Number key
-      state.pendingDigits += key.toString();
-    }
-  }
-
-  // Format the score
-  return state.completedSets
-    .map(set => {
-      let str = `${set.side1Score}-${set.side2Score}`;
-      if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
-        str += `(${set.side1TiebreakScore}-${set.side2TiebreakScore})`;
-      }
-      return str;
-    })
-    .join(' ');
-}
+const testCases: TestCase[] = [
+  // Basic scores
+  {
+    name: 'should handle 6-4 6-4',
+    keySequence: [6, 4, 6, 4],
+    expectedScoreString: '6-4 6-4',
+  },
+  {
+    name: 'should handle 3-6 3-6',
+    keySequence: [3, 6, 3, 6],
+    expectedScoreString: '3-6 3-6',
+  },
+  {
+    name: 'should handle 7-5 6-3',
+    keySequence: [7, 5, 6, 3],
+    expectedScoreString: '7-5 6-3',
+  },
+  {
+    name: 'should handle 6-0 6-1',
+    keySequence: [6, 0, 6, 1],
+    expectedScoreString: '6-0 6-1',
+  },
+  
+  // Tiebreak sets (two-digit tiebreak scores: 03, 06, 07, etc.)
+  {
+    name: 'should handle 6-7 with tiebreak 03-06',
+    keySequence: [6, 7, 0, 3, 0, 6],
+    expectedScoreString: '6-7(03-06)',
+  },
+  {
+    name: 'should handle 7-6 with tiebreak 05-03',
+    keySequence: [7, 6, 0, 5, 0, 3],
+    expectedScoreString: '7-6(05-03)',
+  },
+  {
+    name: 'should handle 6-6 tiebreak 07-05',
+    keySequence: [6, 6, 0, 7, 0, 5],
+    expectedScoreString: '6-6(07-05)',
+  },
+  
+  // Multi-digit scores
+  {
+    name: 'should handle 10-8',
+    keySequence: [1, 0, 8],
+    expectedScoreString: '10-8',
+    setTo: 8,
+    tiebreakAt: 8,
+  },
+  {
+    name: 'should handle 12-10',
+    keySequence: [1, 2, 1, 0],
+    expectedScoreString: '12-10',
+    setTo: 10,
+    tiebreakAt: 10,
+  },
+];
 
 describe('Dial Pad Score Entry Logic', () => {
-  describe('Basic score entry', () => {
-    it('should handle 6-4 6-4', () => {
-      const result = processKeySequence([6, '-', 4, '-', 6, '-', 4, '-']);
-      expect(result).toBe('6-4 6-4');
-    });
-
-    it('should handle 3-6 3-6', () => {
-      const result = processKeySequence([3, '-', 6, '-', 3, '-', 6, '-']);
-      expect(result).toBe('3-6 3-6');
-    });
-
-    it('should handle 7-5 6-3', () => {
-      const result = processKeySequence([7, '-', 5, '-', 6, '-', 3, '-']);
-      expect(result).toBe('7-5 6-3');
-    });
-
-    it('should handle 6-0 6-1', () => {
-      const result = processKeySequence([6, '-', 0, '-', 6, '-', 1, '-']);
-      expect(result).toBe('6-0 6-1');
-    });
-  });
-
-  describe('Tiebreak sets', () => {
-    it('should handle 6-7(3-6) 6-3 7-6(4-2)', () => {
-      const result = processKeySequence([6, '-', 7, '-', 3, '-', 6, '-', 6, '-', 3, '-', 7, '-', 6, '-', 4, '-', 2, '-']);
-      expect(result).toBe('6-7(3-6) 6-3 7-6(4-2)');
-    });
-
-    it('should handle 7-6(5) 6-4', () => {
-      const result = processKeySequence([7, '-', 6, '-', 5, '-', 3, '-', 6, '-', 4, '-']);
-      expect(result).toBe('7-6(5-3) 6-4');
-    });
-
-    it('should handle 6-6 tiebreak', () => {
-      const result = processKeySequence([6, '-', 6, '-', 7, '-', 5, '-']);
-      expect(result).toBe('6-6(7-5)');
-    });
-  });
-
-  describe('Multi-digit scores', () => {
-    it('should handle 10-8 scores', () => {
-      const result = processKeySequence([1, 0, '-', 8, '-'], 8, 8);
-      expect(result).toBe('10-8');
-    });
-
-    it('should handle 12-10 scores', () => {
-      const result = processKeySequence([1, 2, '-', 1, 0, '-'], 10, 10);
-      expect(result).toBe('12-10');
+  testCases.forEach(testCase => {
+    it(testCase.name, () => {
+      const digits = testCase.keySequence.join('');
+      const setTo = testCase.setTo || 6;
+      const tiebreakAt = testCase.tiebreakAt || 6;
+      
+      const result = formatScoreString(digits, { setTo, tiebreakAt });
+      expect(result).toBe(testCase.expectedScoreString);
     });
   });
 });
