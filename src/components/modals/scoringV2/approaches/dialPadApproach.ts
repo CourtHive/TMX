@@ -185,8 +185,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           winningSide: currentValidation.winningSide
         });
         
+        // Check if we're in an incomplete tiebreak
+        const inTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
+        
         // Match is complete if validation shows a winningSide and is valid
-        if (currentValidation.isValid && currentValidation.winningSide) {
+        // BUT allow continuing if we're in the middle of entering a tiebreak score
+        if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
           console.log('[DialPad] Match already complete - blocking input');
           return;
         }
