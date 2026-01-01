@@ -28,7 +28,7 @@ type EntryState = {
 /**
  * Process a sequence of key entries and return the resulting score string
  */
-function processKeySequence(keys: (number | '-')[], setTo: number = 6, tiebreakAt: number = 6, bestOf: number = 3): string {
+function processKeySequence(keys: (number | '-')[], setTo: number = 6, tiebreakAt: number = 6): string {
   const state: EntryState = {
     currentSetIndex: 0,
     currentPhase: 'side1',
@@ -42,12 +42,6 @@ function processKeySequence(keys: (number | '-')[], setTo: number = 6, tiebreakA
     if (side1 === tiebreakAt + 1 && side2 === tiebreakAt) return true;
     if (side2 === tiebreakAt + 1 && side1 === tiebreakAt) return true;
     return false;
-  };
-
-  const isSetComplete = (side1: number, side2: number): boolean => {
-    const higher = Math.max(side1, side2);
-    const lower = Math.min(side1, side2);
-    return higher >= setTo && higher - lower >= 2;
   };
 
   // Process each key
@@ -140,9 +134,9 @@ describe('Dial Pad Score Entry Logic', () => {
   });
 
   describe('Tiebreak sets', () => {
-    it('should handle 6-7(3) 6-3 7-6(4)', () => {
-      const result = processKeySequence([6, '-', 7, '-', 3, '-', 6, '-', 3, '-', 7, '-', 6, '-', 4, '-']);
-      expect(result).toBe('6-7(3-6) 6-3 7-6(4)');
+    it('should handle 6-7(3-6) 6-3 7-6(4-2)', () => {
+      const result = processKeySequence([6, '-', 7, '-', 3, '-', 6, '-', 6, '-', 3, '-', 7, '-', 6, '-', 4, '-', 2, '-']);
+      expect(result).toBe('6-7(3-6) 6-3 7-6(4-2)');
     });
 
     it('should handle 7-6(5) 6-4', () => {

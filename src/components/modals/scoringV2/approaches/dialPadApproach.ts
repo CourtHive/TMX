@@ -282,13 +282,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     return false;
   }
 
-  // Helper: Check if set is complete (no tiebreak)
-  function isSetComplete(side1: number, side2: number): boolean {
-    const higher = Math.max(side1, side2);
-    const lower = Math.min(side1, side2);
-    return higher >= setTo && higher - lower >= 2;
-  }
-
   // Helper: Validate and create outcome
   function validateCurrentScore(state: EntryState, matchUp: any): ScoreOutcome {
     const scoreString = formatCurrentScore(state);
