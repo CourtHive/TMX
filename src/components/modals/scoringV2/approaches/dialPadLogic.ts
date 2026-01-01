@@ -38,7 +38,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       const val = parseInt(side1);
       i++;
       // Break if: 2 digits OR single digit > setTo
-      if (side1.length >= 2 || (side1.length === 1 && val > setTo)) break;
+      if (side1.length >= 2 || (side1.length === 1 && val >= setTo)) break;
     }
     
     // Parse side2
@@ -47,7 +47,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       const val = parseInt(side2);
       i++;
       // Break if: 2 digits OR single digit > setTo
-      if (side2.length >= 2 || (side2.length === 1 && val > setTo)) break;
+      if (side2.length >= 2 || (side2.length === 1 && val >= setTo)) break;
     }
     
     if (!side2) {
