@@ -52,14 +52,20 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   matchUpContainer.style.marginBottom = '1em';
   container.appendChild(matchUpContainer);
 
-  // Render matchUp at top
-  renderMatchUp({
+  // Render matchUp at top (using same pattern as other approaches)
+  const matchUpElement = renderMatchUp({
     matchUp,
-    scaleAttributes,
-    element: matchUpContainer,
-    highlighted: false,
-    displayFormat: false,
+    isLucky: true,
+    composition: {
+      configuration: {
+        participantDetail: 'TEAM',
+      },
+    },
   });
+  
+  if (matchUpElement) {
+    matchUpContainer.appendChild(matchUpElement);
+  }
 
   // Current score display (light blue)
   const scoreDisplay = document.createElement('div');
