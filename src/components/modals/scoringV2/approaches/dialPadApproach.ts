@@ -227,22 +227,24 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const button = document.createElement('button');
       button.className = 'button';
       button.textContent = btn.label;
-      button.style.height = '50px';
-      button.style.width = '100%';
-      button.style.minWidth = '0';
-      button.style.padding = '0.25em 0.5em';
+      button.style.cssText = `
+        height: 45px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0.25em 0.5em !important;
+      `;
       
       // Adjust font size for longer labels
       if (btn.label.length > 1 && !btn.isSpecial) {
-        button.style.fontSize = '1.2em';
+        button.style.fontSize = '1.1em';
       } else if (btn.isSpecial && ['RET', 'WO', 'DEF'].includes(btn.label)) {
-        button.style.fontSize = '0.85em';
+        button.style.fontSize = '0.8em';
         button.style.backgroundColor = '#ffe0b2'; // Orange-ish for irregular endings
       } else if (btn.isSpecial) {
-        button.style.fontSize = '1.2em';
+        button.style.fontSize = '1.1em';
         button.style.backgroundColor = '#f0f0f0';
       } else {
-        button.style.fontSize = '1.2em';
+        button.style.fontSize = '1.1em';
       }
       
       // Disable and hide empty button
