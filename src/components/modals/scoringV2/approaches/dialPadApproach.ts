@@ -228,12 +228,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       button.className = 'button is-large';
       button.textContent = btn.label;
       button.style.height = '60px';
+      button.style.width = '100%';
+      button.style.minWidth = '0';
+      button.style.padding = '0.5em';
       
       // Adjust font size for longer labels
       if (btn.label.length > 1 && !btn.isSpecial) {
         button.style.fontSize = '1.5em';
       } else if (btn.isSpecial && ['RET', 'WO', 'DEF'].includes(btn.label)) {
-        button.style.fontSize = '1em';
+        button.style.fontSize = '0.9em';
         button.style.backgroundColor = '#ffe0b2'; // Orange-ish for irregular endings
       } else if (btn.isSpecial) {
         button.style.fontSize = '1.5em';
