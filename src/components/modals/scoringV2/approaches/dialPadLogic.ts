@@ -33,15 +33,22 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   let result = '';
   let i = 0;
   
-  while (i < digits.length) {
+  // Split by spaces first (space = explicit separator from minus key)
+  const segments = digits.split(' ').filter(s => s.length > 0);
+  
+  for (const segment of segments) {
+    i = 0;
+    const segmentDigits = segment;
+    
+  while (i < segmentDigits.length) {
     let side1 = '';
     let side2 = '';
     let tb1 = '';
     let tb2 = '';
     
     // Parse side1
-    while (i < digits.length) {
-      const nextDigit = digits[i];
+    while (i < segmentDigits.length) {
+      const nextDigit = segmentDigits[i];
       const potentialValue = side1 + nextDigit;
       const val = parseInt(potentialValue);
       
@@ -104,12 +111,12 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     
     if (needsTiebreak) {
       // Parse tiebreak scores
-      while (i < digits.length && tb1.length < 2) {
-        tb1 += digits[i];
+      while (i < segmentDigits.length && tb1.length < 2) {
+        tb1 += segmentDigits[i];
         i++;
       }
-      while (i < digits.length && tb2.length < 2) {
-        tb2 += digits[i];
+      while (i < segmentDigits.length && tb2.length < 2) {
+        tb2 += segmentDigits[i];
         i++;
       }
       
@@ -127,6 +134,8 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       result += `${side1}-${side2}`;
     }
   }
+  
+  } // end for segment
   
   return result;
 }

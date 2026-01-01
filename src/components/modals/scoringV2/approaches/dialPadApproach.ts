@@ -172,7 +172,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
     // Handle digit press
-    const handleDigitPress = (digit: number) => {
+    const handleDigitPress = (digit: number | string) => {
       // Check if match is already complete using validation
       const currentScoreString = formatScore(state.digits);
       console.log('[DialPad] Current score string:', currentScoreString);
@@ -192,7 +192,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         }
       }
       
-      state.digits += digit.toString();
+      // For minus, add a space separator to force moving to next element
+      if (digit === '-') {
+        state.digits += ' ';
+      } else {
+        state.digits += digit.toString();
+      }
       updateDisplay();
     };
 
@@ -257,7 +262,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         if (btn.value === 'delete') {
           handleDelete();
         } else if (btn.value === 'minus') {
-          // Minus doesn't do anything in this approach
+          handleDigitPress('-');
         } else if (btn.value === 'retired' || btn.value === 'walkover' || btn.value === 'defaulted') {
           // TODO: Handle irregular endings
           console.log('[DialPad] Irregular ending:', btn.value);
