@@ -5,7 +5,6 @@
 import { renderMatchUp } from 'courthive-components';
 import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';
-import { env } from 'settings/env';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
 type EntryState = {
@@ -27,9 +26,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
     const setTo = parsedFormat?.setFormat?.setTo || 6;
     const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
-    
-    // Get scale attributes for rendering (same as freeText and dynamicSets)
-    const scaleAttributes = env.scales[env.activeScale];
 
     // State: just raw digits
     const state: EntryState = {
@@ -127,9 +123,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         composition: {
           configuration: {
             participantDetail: 'TEAM',
-            genderColor: true,
-            scaleAttributes,
-            flag: false,
           },
         },
       });
