@@ -4,6 +4,7 @@
  */
 import { renderForm } from 'components/renderers/renderForm';
 import { setActiveScale } from 'settings/setActiveScale';
+import { saveSettings } from 'services/settings/settingsStorage';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
 
@@ -11,12 +12,12 @@ import { UTR, WTN } from 'constants/tmxConstants';
 
 export function settingsModal(): void {
   let inputs: any;
-  const saveSettings = () => {
+  const saveSettingsHandler = () => {
     const activeScale = inputs.wtn.checked ? WTN : UTR;
     env.saveLocal = inputs.saveLocal.checked;
     
     // Save scoring approach preference
-    let scoringApproach: string;
+    let scoringApproach: 'dynamicSets' | 'freeText' | 'dialPad';
     if (inputs.dynamicSets.checked) {
       scoringApproach = 'dynamicSets';
     } else if (inputs.dialPad.checked) {
@@ -27,6 +28,13 @@ export function settingsModal(): void {
     env.scoringApproach = scoringApproach;
     
     setActiveScale(activeScale);
+    
+    // Persist to localStorage
+    saveSettings({
+      activeScale,
+      scoringApproach,
+      saveLocal: env.saveLocal,
+    });
   };
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
@@ -67,7 +75,7 @@ export function settingsModal(): void {
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Save', intent: 'is-primary', onClick: saveSettings, close: true },
+      { label: 'Save', intent: 'is-primary', onClick: saveSettingsHandler, close: true },
     ],
   });
 }
