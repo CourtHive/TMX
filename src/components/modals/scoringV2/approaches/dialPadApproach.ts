@@ -106,50 +106,30 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
 
-    // Update matchUp display using factory
-    const updateMatchUpDisplay = (scoreString: string) => {
-      if (!scoreString) {
-        matchUpContainer.innerHTML = '';
-        const matchUpElement = renderMatchUp({
-          matchUp,
-          isLucky: true,
-          composition: { configuration: { participantDetail: 'TEAM' } },
-        });
-        if (matchUpElement) matchUpContainer.appendChild(matchUpElement);
-        return;
-      }
+    // Update matchUp display with current outcome
+    const updateMatchUpDisplay = (outcome: ScoreOutcome | null) => {
+      matchUpContainer.innerHTML = '';
       
-      try {
-        const outcome = tournamentEngine.generateMatchUpOutcomeFromString({
-          matchUpFormat: matchUp.matchUpFormat,
-          scoreString,
-        });
-        
-        const displayMatchUp = {
-          ...matchUp,
-          score: outcome?.score,
-          winningSide: outcome?.winningSide,
-          matchUpStatus: outcome?.matchUpStatus || matchUp.matchUpStatus,
-        };
+      const displayMatchUp = {
+        ...matchUp,
+        score: outcome?.score || matchUp.score,
+        winningSide: outcome?.winningSide,
+        matchUpStatus: outcome?.matchUpStatus || matchUp.matchUpStatus,
+      };
 
-        matchUpContainer.innerHTML = '';
-        const matchUpElement = renderMatchUp({
-          matchUp: displayMatchUp,
-          isLucky: true,
-          composition: { configuration: { participantDetail: 'TEAM' } },
-        });
-        
-        if (matchUpElement) matchUpContainer.appendChild(matchUpElement);
-      } catch (error) {
-        console.error('Error parsing score:', error);
-      }
+      const matchUpElement = renderMatchUp({
+        matchUp: displayMatchUp,
+        isLucky: true,
+        composition: { configuration: { participantDetail: 'TEAM' } },
+      });
+      
+      if (matchUpElement) matchUpContainer.appendChild(matchUpElement);
     };
 
     // Update display
     const updateDisplay = () => {
       const scoreString = formatScore(state.digits);
       scoreDisplay.textContent = scoreString || '-';
-      updateMatchUpDisplay(scoreString);
       
       // Get the parsed outcome from factory
       let outcome: ScoreOutcome;
@@ -167,6 +147,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           winningSide: factoryOutcome?.winningSide,
           matchUpFormat: matchUp.matchUpFormat,
         };
+        
+        // Update matchUp display with the outcome
+        updateMatchUpDisplay(outcome);
       } catch (error) {
         outcome = {
           isValid: false,
@@ -174,6 +157,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           error: error instanceof Error ? error.message : 'Invalid score',
           matchUpFormat: matchUp.matchUpFormat,
         };
+        
+        // Clear matchUp display on error
+        updateMatchUpDisplay(null);
       }
       
       onScoreChange(outcome);
@@ -257,7 +243,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     (window as any).cleanupDialPad = cleanup;
 
     // Initial display
-    updateMatchUpDisplay('');
+    updateMatchUpDisplay(null);
     updateDisplay();
   } catch (error) {
     console.error('Error rendering dial pad:', error);
