@@ -3,8 +3,9 @@
  * Builds score string incrementally using matchUpFormat rules
  */
 import { renderMatchUp } from 'courthive-components';
-import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
+import { matchUpFormatCode } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';
+import { tournamentEngine } from 'services/transformers/initializeEngine';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
 type EntryState = {
