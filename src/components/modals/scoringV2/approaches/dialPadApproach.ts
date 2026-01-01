@@ -6,7 +6,6 @@ import { renderMatchUp } from 'courthive-components';
 import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
 import { tidyScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams, SetScore, ScoreOutcome } from '../types';
-import { env } from 'settings/env';
 
 type Phase = 'side1' | 'side2' | 'tiebreak_side1' | 'tiebreak_side2';
 
