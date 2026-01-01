@@ -20,7 +20,6 @@ export function loadSettings(): TMXSettings | null {
     if (!stored) return null;
     
     const settings = JSON.parse(stored) as TMXSettings;
-    console.log('Loaded settings from localStorage:', settings);
     return settings;
   } catch (error) {
     console.error('Error loading settings from localStorage:', error);
@@ -34,7 +33,6 @@ export function loadSettings(): TMXSettings | null {
 export function saveSettings(settings: TMXSettings): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    console.log('Saved settings to localStorage:', settings);
   } catch (error) {
     console.error('Error saving settings to localStorage:', error);
   }
@@ -46,7 +44,6 @@ export function saveSettings(settings: TMXSettings): void {
 export function clearSettings(): void {
   try {
     localStorage.removeItem(SETTINGS_KEY);
-    console.log('Cleared settings from localStorage');
   } catch (error) {
     console.error('Error clearing settings from localStorage:', error);
   }
