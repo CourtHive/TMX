@@ -4,7 +4,6 @@
  */
 import { renderMatchUp } from 'courthive-components';
 import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
-import { tidyScore } from '../utils/scoreValidator';
 import { formatScoreString } from './dialPadLogic';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
 
@@ -152,15 +151,30 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       scoreDisplay.textContent = scoreString || '-';
       updateMatchUpDisplay(scoreString);
       
-      const tidyResult = tidyScore(scoreString);
-      const outcome: ScoreOutcome = {
-        isValid: !tidyResult.error && scoreString.length > 0,
-        sets: [],
-        score: tidyResult.tidyScore,
-        matchUpStatus: tidyResult.matchUpStatus,
-        error: tidyResult.error,
-        matchUpFormat: matchUp.matchUpFormat,
-      };
+      // Get the parsed outcome from factory
+      let outcome: ScoreOutcome;
+      try {
+        const factoryOutcome = tournamentEngine.generateMatchUpOutcomeFromString({
+          matchUpFormat: matchUp.matchUpFormat,
+          scoreString,
+        });
+        
+        outcome = {
+          isValid: !!factoryOutcome?.score && scoreString.length > 0,
+          sets: factoryOutcome?.score?.sets || [],
+          score: factoryOutcome?.score,
+          matchUpStatus: factoryOutcome?.matchUpStatus,
+          winningSide: factoryOutcome?.winningSide,
+          matchUpFormat: matchUp.matchUpFormat,
+        };
+      } catch (error) {
+        outcome = {
+          isValid: false,
+          sets: [],
+          error: error instanceof Error ? error.message : 'Invalid score',
+          matchUpFormat: matchUp.matchUpFormat,
+        };
+      }
       
       onScoreChange(outcome);
       
