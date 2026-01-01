@@ -35,19 +35,28 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     // Parse side1
     while (i < digits.length) {
       side1 += digits[i];
-      const val = parseInt(side1);
       i++;
-      // Break if: 2 digits OR single digit > setTo
-      if (side1.length >= 2 || (side1.length === 1 && val >= setTo)) break;
+      const val = parseInt(side1);
+      
+      // Break conditions:
+      // - Always break after 2 digits
+      // - Break after 1 digit if value > setTo (7, 8, 9 in tennis)
+      // - Break after 1 digit unless it's 0 or 1 (which might be start of 10, 11, 12)
+      if (side1.length >= 2) break;
+      if (side1.length === 1 && val > setTo) break;
+      if (side1.length === 1 && val >= 2 && val <= setTo) break;
     }
     
     // Parse side2
     while (i < digits.length) {
       side2 += digits[i];
-      const val = parseInt(side2);
       i++;
-      // Break if: 2 digits OR single digit > setTo
-      if (side2.length >= 2 || (side2.length === 1 && val >= setTo)) break;
+      const val = parseInt(side2);
+      
+      // Same break conditions as side1
+      if (side2.length >= 2) break;
+      if (side2.length === 1 && val > setTo) break;
+      if (side2.length === 1 && val >= 2 && val <= setTo) break;
     }
     
     if (!side2) {
