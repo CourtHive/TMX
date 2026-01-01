@@ -103,6 +103,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   scoreDisplay.style.padding = '0.5em';
   scoreDisplay.style.fontWeight = 'bold';
   scoreDisplay.style.minHeight = '1.5em';
+  scoreDisplay.style.maxWidth = '300px';
+  scoreDisplay.style.margin = '0 auto';
   scoreDisplay.textContent = '-';
   container.appendChild(scoreDisplay);
 
@@ -336,81 +338,50 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   // Handle digit press
   const handleDigitPress = (digit: number) => {
     state.pendingDigits += digit.toString();
-    
-    // Check if we should auto-advance
-    const pendingValue = parseInt(state.pendingDigits);
-    
-    if (state.currentPhase === 'side1') {
-      // Advance if:
-      // - Two digits entered (e.g., 36, 12)
-      // - OR single digit >= setTo (e.g., 6, 7)
-      const shouldAdvance = state.pendingDigits.length >= 2 || 
-                           (state.pendingDigits.length === 1 && pendingValue >= setTo);
-      
-      if (shouldAdvance) {
-        (state as any).tempSide1 = pendingValue;
-        state.pendingDigits = '';
-        state.currentPhase = 'side2';
-      }
-    } else if (state.currentPhase === 'side2') {
-      // Auto-advance when we have enough info
-      const side1 = (state as any).tempSide1;
-      const side2 = pendingValue;
-      
-      // Check if we should advance (score is clear)
-      // - Two digits entered
-      // - OR single digit >= setTo
-      // - OR set is complete (one side won)
-      const shouldAdvance = state.pendingDigits.length >= 2 || 
-                           (state.pendingDigits.length === 1 && pendingValue >= setTo) ||
-                           isSetComplete(side1, side2);
-      
-      if (shouldAdvance) {
-        (state as any).tempSide2 = side2;
-        
-        // Check if tiebreak or set complete
-        if (shouldEnterTiebreak(side1, side2)) {
-          state.pendingDigits = '';
-          state.currentPhase = 'tiebreak_side1';
-        } else if (isSetComplete(side1, side2)) {
-          // Set complete - add to completed sets
-          state.completedSets.push({
-            side1Score: side1,
-            side2Score: side2,
-            winningSide: side1 > side2 ? 1 : 2,
-          });
-          
-          // Move to next set
-          state.currentSetIndex++;
-          state.currentPhase = 'side1';
-          state.pendingDigits = '';
-          delete (state as any).tempSide1;
-          delete (state as any).tempSide2;
-        } else {
-          state.pendingDigits = '';
-        }
-      }
-    } else if (state.currentPhase === 'tiebreak_side1') {
-      // Wait for minus key to terminate
-    } else if (state.currentPhase === 'tiebreak_side2') {
-      // Wait for minus key to terminate
-    }
-    
     updateScoreDisplay();
   };
 
-  // Handle minus key
+  // Handle minus key - always advances to next expected element
   const handleMinusPress = () => {
-    if (state.currentPhase === 'tiebreak_side1' && state.pendingDigits) {
-      (state as any).tempTiebreakSide1 = parseInt(state.pendingDigits);
+    if (!state.pendingDigits) return; // Nothing to commit
+    
+    const pendingValue = parseInt(state.pendingDigits);
+    
+    if (state.currentPhase === 'side1') {
+      (state as any).tempSide1 = pendingValue;
+      state.pendingDigits = '';
+      state.currentPhase = 'side2';
+    } else if (state.currentPhase === 'side2') {
+      const side1 = (state as any).tempSide1;
+      const side2 = pendingValue;
+      (state as any).tempSide2 = side2;
+      state.pendingDigits = '';
+      
+      // Check if tiebreak needed
+      if (shouldEnterTiebreak(side1, side2)) {
+        state.currentPhase = 'tiebreak_side1';
+      } else {
+        // Complete the set
+        state.completedSets.push({
+          side1Score: side1,
+          side2Score: side2,
+          winningSide: side1 > side2 ? 1 : 2,
+        });
+        state.currentSetIndex++;
+        state.currentPhase = 'side1';
+        delete (state as any).tempSide1;
+        delete (state as any).tempSide2;
+      }
+    } else if (state.currentPhase === 'tiebreak_side1') {
+      (state as any).tempTiebreakSide1 = pendingValue;
       state.pendingDigits = '';
       state.currentPhase = 'tiebreak_side2';
-    } else if (state.currentPhase === 'tiebreak_side2' && state.pendingDigits) {
-      // Tiebreak complete
+    } else if (state.currentPhase === 'tiebreak_side2') {
+      // Complete tiebreak set
       const side1 = (state as any).tempSide1;
       const side2 = (state as any).tempSide2;
       const tb1 = (state as any).tempTiebreakSide1;
-      const tb2 = parseInt(state.pendingDigits);
+      const tb2 = pendingValue;
       
       state.completedSets.push({
         side1Score: side1,
@@ -419,8 +390,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         side2TiebreakScore: tb2,
         winningSide: tb1 > tb2 ? 1 : 2,
       });
-      
-      // Move to next set
       state.currentSetIndex++;
       state.currentPhase = 'side1';
       state.pendingDigits = '';
