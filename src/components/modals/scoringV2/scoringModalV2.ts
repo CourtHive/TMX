@@ -36,6 +36,7 @@ export function scoringModalV2(params: ScoringModalParams): void {
   
   // Choose approach based on env setting
   const approach = env.scoringApproach || 'freeText';
+  console.log('Scoring approach:', approach);
   
   if (approach === 'freeText') {
     renderFreeTextScoreEntry({
