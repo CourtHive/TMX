@@ -112,6 +112,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Update matchUp display with current outcome
     const updateMatchUpDisplay = (outcome: ScoreOutcome | null) => {
+      console.log('[DialPad] updateMatchUpDisplay called with outcome:', outcome);
       matchUpContainer.innerHTML = '';
       
       const displayMatchUp = {
@@ -120,6 +121,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         winningSide: outcome?.winningSide,
         matchUpStatus: outcome?.matchUpStatus || matchUp.matchUpStatus,
       };
+
+      console.log('[DialPad] Rendering matchUp with:', {
+        score: displayMatchUp.score,
+        winningSide: displayMatchUp.winningSide,
+        matchUpStatus: displayMatchUp.matchUpStatus
+      });
 
       const matchUpElement = renderMatchUp({
         matchUp: displayMatchUp,
@@ -134,7 +141,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         },
       });
       
-      if (matchUpElement) matchUpContainer.appendChild(matchUpElement);
+      if (matchUpElement) {
+        matchUpContainer.appendChild(matchUpElement);
+        console.log('[DialPad] MatchUp element appended');
+      } else {
+        console.log('[DialPad] No matchUp element returned from renderMatchUp');
+      }
     };
 
     // Check if match is complete
@@ -199,6 +211,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const handleDigitPress = (digit: number) => {
       // Check if match is already complete
       const currentScoreString = formatScore(state.digits);
+      console.log('[DialPad] Current score string:', currentScoreString);
+      
       if (currentScoreString) {
         try {
           const currentOutcome = tournamentEngine.generateMatchUpOutcomeFromString({
@@ -206,11 +220,24 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
             scoreString: currentScoreString,
           });
           
-          if (currentOutcome?.score?.sets && isMatchComplete(currentOutcome.score.sets)) {
-            // Match already complete - don't accept more input
-            return;
+          console.log('[DialPad] Parsed outcome:', {
+            sets: currentOutcome?.score?.sets,
+            winningSide: currentOutcome?.winningSide,
+            matchUpStatus: currentOutcome?.matchUpStatus
+          });
+          
+          if (currentOutcome?.score?.sets) {
+            const complete = isMatchComplete(currentOutcome.score.sets);
+            console.log('[DialPad] Match complete?', complete);
+            
+            if (complete) {
+              console.log('[DialPad] Match already complete - blocking input');
+              // Match already complete - don't accept more input
+              return;
+            }
           }
-        } catch {
+        } catch (err) {
+          console.log('[DialPad] Error parsing score:', err);
           // If parsing fails, allow input (incomplete score)
         }
       }
