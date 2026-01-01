@@ -118,7 +118,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       
       const displayMatchUp = {
         ...matchUp,
-        score: outcome?.score || matchUp.score,
+        score: outcome?.scoreObject || matchUp.score,
         winningSide: outcome?.winningSide,
         matchUpStatus: outcome?.matchUpStatus || matchUp.matchUpStatus,
       };
