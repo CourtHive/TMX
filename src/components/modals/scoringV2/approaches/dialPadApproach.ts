@@ -137,6 +137,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       if (matchUpElement) matchUpContainer.appendChild(matchUpElement);
     };
 
+    // Check if match is complete
+    const isMatchComplete = (sets: any[]): boolean => {
+      if (!sets || sets.length === 0) return false;
+      
+      // Get best of from format
+      const formatMatch = matchUp.matchUpFormat?.match(/SET(\d+)/);
+      const bestOf = formatMatch ? parseInt(formatMatch[1]) : 3;
+      const setsToWin = Math.ceil(bestOf / 2);
+      
+      // Count sets won by each side
+      const side1Wins = sets.filter((s: any) => s.winningSide === 1).length;
+      const side2Wins = sets.filter((s: any) => s.winningSide === 2).length;
+      
+      return side1Wins >= setsToWin || side2Wins >= setsToWin;
+    };
+
     // Update display
     const updateDisplay = () => {
       const scoreString = formatScore(state.digits);
@@ -181,6 +197,24 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Handle digit press
     const handleDigitPress = (digit: number) => {
+      // Check if match is already complete
+      const currentScoreString = formatScore(state.digits);
+      if (currentScoreString) {
+        try {
+          const currentOutcome = tournamentEngine.generateMatchUpOutcomeFromString({
+            matchUpFormat: matchUp.matchUpFormat,
+            scoreString: currentScoreString,
+          });
+          
+          if (currentOutcome?.score?.sets && isMatchComplete(currentOutcome.score.sets)) {
+            // Match already complete - don't accept more input
+            return;
+          }
+        } catch {
+          // If parsing fails, allow input (incomplete score)
+        }
+      }
+      
       state.digits += digit.toString();
       updateDisplay();
     };
