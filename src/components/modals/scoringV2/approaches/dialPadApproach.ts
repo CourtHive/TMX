@@ -118,7 +118,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           side1 += digits[i];
           i++;
           const val = parseInt(side1);
-          if (side1.length >= 2 || val > setTo + 1) break;
+          if (side1.length >= 2 || (side1.length === 1 && val > setTo)) break;
         }
         
         // Parse side2
@@ -126,7 +126,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           side2 += digits[i];
           i++;
           const val = parseInt(side2);
-          if (side2.length >= 2 || val > setTo + 1) break;
+          if (side2.length >= 2 || (side2.length === 1 && val > setTo)) break;
         }
         
         if (!side2) {
