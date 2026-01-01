@@ -28,7 +28,7 @@ type EntryState = {
 /**
  * Process a sequence of key entries and return the resulting score string
  */
-function processKeySequence(keys: (number | '-')[], setTo: number = 6, tiebreakAt: number = 6): string {
+function processKeySequence(keys: (number | '-')[], _setTo: number = 6, tiebreakAt: number = 6): string {
   const state: EntryState = {
     currentSetIndex: 0,
     currentPhase: 'side1',
