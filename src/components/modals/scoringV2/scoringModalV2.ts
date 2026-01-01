@@ -19,8 +19,6 @@ export function scoringModalV2(params: ScoringModalParams): void {
   const container = document.createElement('div');
   container.style.padding = '1em';
   
-
-  
   let currentOutcome: ScoreOutcome | null = null;
   
   const handleScoreChange = (outcome: ScoreOutcome) => {
@@ -65,6 +63,7 @@ export function scoringModalV2(params: ScoringModalParams): void {
   openModal({
     title: 'Score Entry',
     content: container,
+    config: approach === 'dialPad' ? { maxWidth: 350 } : undefined,
     buttons: [
       { 
         label: 'Cancel', 
