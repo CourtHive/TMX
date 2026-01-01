@@ -26,6 +26,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
     const setTo = parsedFormat?.setFormat?.setTo || 6;
     const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
+    
+    // Get scale attributes for rendering
+    const scaleAttributes = tournamentEngine.getScaleAttributes({
+      matchUp,
+      scaleDate: new Date().toISOString().split('T')[0],
+    })?.scaleAttributes;
 
     // State: just raw digits
     const state: EntryState = {
@@ -120,7 +126,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const matchUpElement = renderMatchUp({
         matchUp: displayMatchUp,
         isLucky: true,
-        composition: { configuration: { participantDetail: 'TEAM' } },
+        composition: {
+          configuration: {
+            participantDetail: 'TEAM',
+            genderColor: true,
+            scaleAttributes,
+            flag: false,
+          },
+        },
       });
       
       if (matchUpElement) matchUpContainer.appendChild(matchUpElement);
