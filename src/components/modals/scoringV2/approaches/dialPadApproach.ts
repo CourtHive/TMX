@@ -100,8 +100,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const dialPadContainer = document.createElement('div');
     dialPadContainer.style.display = 'grid';
     dialPadContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    dialPadContainer.style.gap = '6px';
-    dialPadContainer.style.maxWidth = '340px';
+    dialPadContainer.style.gap = '8px';
+    dialPadContainer.style.width = '100%';
+    dialPadContainer.style.maxWidth = '320px';
     dialPadContainer.style.margin = '0 auto';
     container.appendChild(dialPadContainer);
 
@@ -228,25 +229,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       button.className = 'button';
       button.textContent = btn.label;
       button.style.cssText = `
-        height: 50px !important;
+        height: 55px !important;
         width: 100% !important;
-        min-width: 0 !important;
-        max-width: 80px !important;
-        padding: 0 !important;
-        line-height: 1 !important;
+        padding: 0.5em !important;
       `;
       
       // Adjust font size for longer labels
       if (btn.label.length > 1 && !btn.isSpecial) {
-        button.style.fontSize = '1.1em';
+        button.style.fontSize = '1.3em';
       } else if (btn.isSpecial && ['RET', 'WO', 'DEF'].includes(btn.label)) {
-        button.style.fontSize = '0.8em';
+        button.style.fontSize = '0.95em';
         button.style.backgroundColor = '#ffe0b2'; // Orange-ish for irregular endings
       } else if (btn.isSpecial) {
-        button.style.fontSize = '1.1em';
+        button.style.fontSize = '1.3em';
         button.style.backgroundColor = '#f0f0f0';
       } else {
-        button.style.fontSize = '1.1em';
+        button.style.fontSize = '1.3em';
       }
       
       // Disable and hide empty button
