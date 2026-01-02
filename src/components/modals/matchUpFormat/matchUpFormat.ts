@@ -110,6 +110,7 @@ function generateMatchUpFormat(): string {
   if (hasFinalSet) parsedMatchUpFormat.finalSetFormat = getSetFormat(1);
 
   const matchUpFormat = governors.scoreGovernor.stringifyMatchUpFormat(parsedMatchUpFormat);
+  console.log('[generateMatchUpFormat] parsedFormat:', JSON.stringify(parsedMatchUpFormat), 'result:', matchUpFormat);
   const predefined = !!matchUpFormats.find((format) => format.format === matchUpFormat);
   const elem = document.getElementById('matchUpFormatSelector') as HTMLSelectElement;
   const options = elem?.querySelectorAll('option');
@@ -298,6 +299,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
     const specifiedFormat = generateMatchUpFormat();
+    console.log('[matchUpFormat] onSelect - specifiedFormat:', specifiedFormat);
     isFunction(callback) && callback && callback(specifiedFormat);
   };
 
