@@ -121,7 +121,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
     const formatButton = document.createElement('button');
     formatButton.textContent = matchUp.matchUpFormat;
     formatButton.className = 'button';
-    formatButton.style.fontSize = '0.9em';
+    formatButton.style.fontSize = '0.75em';
     formatButton.style.padding = '0.2em 0.5em';
     formatButton.style.cursor = 'pointer';
     formatButton.title = 'Click to edit format';

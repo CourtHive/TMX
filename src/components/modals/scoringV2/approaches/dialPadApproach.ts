@@ -61,7 +61,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const formatButton = document.createElement('button');
       formatButton.textContent = matchUp.matchUpFormat;
       formatButton.className = 'button';
-      formatButton.style.fontSize = '0.9em';
+      formatButton.style.fontSize = '0.75em';
       formatButton.style.padding = '0.2em 0.5em';
       formatButton.style.cursor = 'pointer';
       formatButton.title = 'Click to edit format';
@@ -117,35 +117,35 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     const irregularEndingContainer = document.createElement('div');
     irregularEndingContainer.style.display = 'none'; // Hidden by default
-    irregularEndingContainer.style.marginBottom = '1em';
-    irregularEndingContainer.style.padding = '1em';
+    irregularEndingContainer.style.marginBottom = '0.8em';
+    irregularEndingContainer.style.padding = '0.6em';
     irregularEndingContainer.style.backgroundColor = '#fff3cd';
     irregularEndingContainer.style.border = '2px solid #ffc107';
     irregularEndingContainer.style.borderRadius = '4px';
 
     const irregularLabel = document.createElement('div');
     irregularLabel.textContent = 'Irregular Ending:';
-    irregularLabel.style.fontSize = '0.95em';
+    irregularLabel.style.fontSize = '0.8em';
     irregularLabel.style.fontWeight = '600';
-    irregularLabel.style.marginBottom = '0.5em';
+    irregularLabel.style.marginBottom = '0.3em';
     irregularLabel.style.color = '#856404';
     irregularEndingContainer.appendChild(irregularLabel);
 
     // Winner selection for irregular endings
     const winnerSelectionContainer = document.createElement('div');
-    winnerSelectionContainer.style.marginTop = '0.5em';
+    winnerSelectionContainer.style.marginTop = '0.3em';
 
     const winnerLabel = document.createElement('div');
     winnerLabel.textContent = 'Winner:';
-    winnerLabel.style.fontSize = '0.9em';
+    winnerLabel.style.fontSize = '0.75em';
     winnerLabel.style.fontWeight = '500';
-    winnerLabel.style.marginBottom = '0.3em';
+    winnerLabel.style.marginBottom = '0.2em';
     winnerLabel.style.color = '#856404';
     winnerSelectionContainer.appendChild(winnerLabel);
 
     const winnerOptions = document.createElement('div');
     winnerOptions.style.display = 'flex';
-    winnerOptions.style.gap = '1em';
+    winnerOptions.style.gap = '0.5em';
     winnerOptions.style.flexWrap = 'wrap';
 
     // Get participant info
@@ -173,7 +173,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const winnerText = document.createElement('span');
       const side = sideNum === 1 ? side1 : side2;
       winnerText.textContent = side?.participant?.participantName || `Side ${sideNum}`;
-      winnerText.style.fontSize = '0.9em';
+      winnerText.style.fontSize = '0.75em';
       winnerText.style.color = '#856404';
 
       winnerRadioLabel.appendChild(winnerRadio);
