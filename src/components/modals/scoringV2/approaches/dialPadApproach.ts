@@ -163,6 +163,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Use validateScore for proper validation (like freeText does)
       const validation = validateScore(scoreString, matchUp.matchUpFormat);
 
+      console.log('[DialPad] updateDisplay - scoreString:', scoreString, 'validation:', {
+        isValid: validation.isValid,
+        winningSide: validation.winningSide,
+        matchUpStatus: validation.matchUpStatus,
+        score: validation.score
+      });
+
       // Update matchUp display with validation result
       updateMatchUpDisplay(validation);
 
