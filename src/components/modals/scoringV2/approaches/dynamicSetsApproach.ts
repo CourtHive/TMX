@@ -530,6 +530,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     }
 
     currentSets = newSets;
+    
+    // Debug: log currentSets
+    console.log('[DynamicSets] currentSets:', JSON.stringify(currentSets, null, 2));
 
     // Remove empty trailing set rows if a prior set was cleared
     const allSetRows = setsContainer.querySelectorAll('.set-row');
@@ -560,6 +563,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         matchUp.matchUpFormat,
         selectedOutcome !== 'COMPLETED', // Allow incomplete if irregular ending
       );
+      
+      // Debug: log validation result
+      console.log('[DynamicSets] validation:', JSON.stringify(validation, null, 2));
 
       // CRITICAL: Check if match is complete based on VALIDATION result, not raw currentSets
       // The validation may have stripped winningSide from invalid sets
@@ -643,9 +649,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     
     if (showTiebreak) {
       tiebreakContainer.style.display = 'inline';
-      if (tiebreakInput && !tiebreakInput.value.trim()) {
-        setTimeout(() => tiebreakInput.focus(), 50);
-      }
+      // Don't auto-focus - let user tab to it naturally
     } else {
       tiebreakContainer.style.display = 'none';
       if (tiebreakInput) tiebreakInput.value = '';

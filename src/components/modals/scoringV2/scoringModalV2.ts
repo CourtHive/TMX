@@ -77,7 +77,7 @@ export function scoringModalV2(params: ScoringModalParams): void {
   openModal({
     title: 'Score Entry',
     content: container,
-    config: approach === 'dialPad' ? { maxWidth: 380, minWidth: 380 } : undefined,
+    config: undefined,
     buttons: [
       { 
         onClick: () => {
