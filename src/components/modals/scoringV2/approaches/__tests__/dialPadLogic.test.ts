@@ -61,11 +61,23 @@ const testCases: TestCase[] = [
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
 
-  // Single tiebreak set
+  // Single tiebreak set (TB10 format requires brackets)
   {
     name: 'should handle TB10 format 12-10',
     keySequence: [1, 2, '-', 1, 0],
-    expectedScoreString: '12-10',
+    expectedScoreString: '[12-10]',
+    matchUpFormat: MATCH_FORMATS.SET1_S_TB10,
+  },
+  {
+    name: 'should handle TB10 format 11-1 (side 1 wins)',
+    keySequence: [1, 1, '-', 1],
+    expectedScoreString: '[11-1]',
+    matchUpFormat: MATCH_FORMATS.SET1_S_TB10,
+  },
+  {
+    name: 'should handle TB10 format 11-13 (side 2 wins)',
+    keySequence: [1, 1, '-', 1, 3],
+    expectedScoreString: '[11-13]',
     matchUpFormat: MATCH_FORMATS.SET1_S_TB10,
   },
 
