@@ -70,6 +70,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               (window as any).resetDynamicSets();
             }
           }
+        },
+        config: {
+          style: {
+            border: '3px solid #0066cc',
+            borderRadius: '8px'
+          }
         }
       } as any);
     });
