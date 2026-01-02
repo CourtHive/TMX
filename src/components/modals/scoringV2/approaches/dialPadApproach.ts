@@ -185,8 +185,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       console.log('[DialPad] Current score:', JSON.stringify(currentScoreString));
       
       // Check if we're in an incomplete tiebreak
-      const inTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
-      console.log('[DialPad] In tiebreak?', inTiebreak);
+      // A tiebreak is incomplete if:
+      // 1. The formatted score has '(' but no ')', OR
+      // 2. The raw digits contain a tiebreak sequence (6-7 followed by more digits) without a space separator
+      // Since we can have unlimited tiebreak digits (e.g., 7(18-16)), we stay in tiebreak until minus/space is pressed
+      const hasOpenTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
+      const inTiebreak = hasOpenTiebreak;
+      console.log('[DialPad] In tiebreak?', inTiebreak, 'hasOpenTiebreak:', hasOpenTiebreak);
       
       // For minus in tiebreak, we'll add a space, so test with space
       const testDigits = (digit === '-' && inTiebreak) ? state.digits + ' ' : state.digits + digit.toString();

@@ -173,18 +173,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     const needsTiebreak = !wasCoerced && (scoresTied || (scoresOneApart && remainingDigitsExist));
     
     if (needsTiebreak) {
-      // Parse tiebreak scores - look for explicit separator in remaining digits
+      // Parse tiebreak scores
+      // In regular tiebreaks (not NoAD), scores can be unlimited (e.g., 18-16)
+      // The tiebreak is only "closed" when we see a space separator (next segment)
+      // For now, just consume all remaining digits as the tiebreak score
       const remainingDigits = segmentDigits.slice(i);
-      const separatorIndex = remainingDigits.indexOf('-');
       
-      if (separatorIndex !== -1) {
-        // Explicit separator found - tiebreak is complete, just take first score
-        tb1 = remainingDigits.slice(0, separatorIndex);
-        // Don't consume digits after separator - they belong to next set
-        i += separatorIndex + 1;
-        // The minus indicates tiebreak is complete - only one score entered
-      } else {
-        // No separator - consume all remaining digits as tiebreak score
+      if (remainingDigits.length > 0) {
         tb1 = remainingDigits;
         i = segmentDigits.length;
       }
