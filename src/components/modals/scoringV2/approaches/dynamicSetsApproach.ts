@@ -747,6 +747,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       input.value = value;
     }
 
+    // Get set-specific information (used in multiple places below)
+    const setIndex = parseInt(input.dataset.setIndex || '0');
+    const side = input.dataset.side || '1';
+    const setFormat = getSetFormat(setIndex);
+    const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+
     // Limit based on type
     if (isTiebreak) {
       // Tiebreak can go higher (e.g., 18-20)
@@ -755,12 +761,6 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
     } else {
       // Game scores limited based on opposite side's value
-      const setIndex = parseInt(input.dataset.setIndex || '0');
-      const side = input.dataset.side || '1';
-      
-      // Check if this specific set is a tiebreak-only set
-      const setFormat = getSetFormat(setIndex);
-      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
       
       // For tiebreak-only sets (TB10), allow continued input even after match shows complete
       // This lets users build the final score like 11-13
@@ -784,8 +784,6 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Update tiebreak visibility and opposite input max if this is a game score input
     if (!isTiebreak) {
-      const setIndex = parseInt(input.dataset.setIndex || '0');
-      const side = input.dataset.side || '1';
       updateTiebreakVisibility(setIndex);
       
       // For tiebreak-only sets (TB10), don't coerce the opposite input
