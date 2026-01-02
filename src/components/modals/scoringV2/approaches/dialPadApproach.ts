@@ -193,8 +193,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const inTiebreak = hasOpenTiebreak;
       console.log('[DialPad] In tiebreak?', inTiebreak, 'hasOpenTiebreak:', hasOpenTiebreak);
       
-      // For minus in tiebreak, we'll add a space, so test with space
-      const testDigits = (digit === '-' && inTiebreak) ? state.digits + ' ' : state.digits + digit.toString();
+      // For minus, we'll add a minus character
+      const testDigits = (digit === '-') ? state.digits + '-' : state.digits + digit.toString();
       console.log('[DialPad] Test digits:', JSON.stringify(testDigits));
       
       const testScoreString = formatScore(testDigits);
@@ -219,37 +219,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
       
       // For minus, add separator
-      // Only add minus if we're actually in a tiebreak
-      // If already advanced to side2 or next set, ignore the minus
+      // Minus is used to: 1) close tiebreaks, 2) separate side1 from side2 in TB sets, 3) separate sets
       if (digit === '-') {
-        const currentScore = formatScore(state.digits);
-        const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
-        
-        console.log('[DialPad] Minus pressed - inTiebreak:', inTiebreak);
-        
-        if (inTiebreak) {
-          // In tiebreak - add SPACE to close tiebreak and start next set
-          // The parser will detect the tiebreak is complete when there are no more digits
-          console.log('[DialPad] Adding SPACE to close tiebreak');
-          state.digits += ' ';
-        } else {
-          // Check if last character is a digit that would make a complete side score
-          // If so, we've already advanced to side2, so ignore the minus
-          const lastChar = state.digits[state.digits.length - 1];
-          if (lastChar && lastChar >= '0' && lastChar <= '9') {
-            // Check if adding minus would change the score
-            const testDigits = state.digits + ' ';
-            const testScore = formatScore(testDigits);
-            if (testScore === currentScore) {
-              // Minus wouldn't change anything - we're already on side2, ignore it
-              console.log('[DialPad] Ignoring minus - already on side2');
-              return;
-            }
-          }
-          // Not in tiebreak and not already on side2 - use space as set separator
-          console.log('[DialPad] Adding SPACE as set separator');
-          state.digits += ' ';
-        }
+        console.log('[DialPad] Minus pressed - adding minus to digits');
+        state.digits += '-';
       } else {
         state.digits += digit.toString();
       }

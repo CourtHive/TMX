@@ -40,7 +40,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-0 6-1',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
-  
+
   // Tiebreak sets (single digit tiebreak score)
   {
     name: 'should handle 6-7 with tiebreak 3',
@@ -60,7 +60,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-7(18)',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
-  
+
   // Single tiebreak set
   {
     name: 'should handle TB10 format 12-10',
@@ -68,7 +68,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '12-10',
     matchUpFormat: MATCH_FORMATS.SET1_S_TB10,
   },
-  
+
   // SET5 format
   {
     name: 'should handle SET5 6-4 6-4',
@@ -76,7 +76,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-4 6-4',
     matchUpFormat: MATCH_FORMATS.SET5_S6_TB7,
   },
-  
+
   // Tiebreak with minus key separator
   {
     name: 'should handle 6-7(3) 3-6 with minus key separator',
@@ -84,7 +84,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-7(3) 3-6',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
-  
+
   // Invalid score - incomplete first set
   {
     name: 'should not advance to second set with incomplete first set',
@@ -92,9 +92,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-3',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
-  
 
-  
   // Invalid score - side2 > setTo but side1 < setTo-1
   {
     name: 'should coerce side2 DOWN to setTo when side2 > setTo and side1 < setTo-1',
@@ -102,7 +100,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-6',
     matchUpFormat: 'SET3-S:6',
   },
-  
+
   // Invalid score - side2 exceeds setTo+1, should coerce side2 DOWN to setTo
   {
     name: 'should coerce side2 DOWN to setTo when side2 > setTo+1',
@@ -110,7 +108,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-6',
     matchUpFormat: 'SET3-S:6',
   },
-  
+
   // Invalid score - side2 equals setTo+2, should coerce side2 DOWN to setTo
   {
     name: 'should coerce side2 DOWN to setTo when side2 = setTo+2',
@@ -118,7 +116,7 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-6',
     matchUpFormat: 'SET3-S:6',
   },
-  
+
   // Minus key after side1 should be ignored (already advanced to side2)
   {
     name: 'should ignore minus after completing side1',
@@ -126,19 +124,19 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-7',
     matchUpFormat: 'SET3-S:6',
   },
-  
+
   // Minus key after tiebreak should close tiebreak and advance to next set
   // Note: In the UI, minus adds a SPACE, so this simulates that behavior
   {
-    name: 'should close tiebreak and advance to next set with space',
-    keySequence: [6, 7, 3, ' ', 6, 3],
+    name: 'should close tiebreak and advance to next set with minus',
+    keySequence: [6, 7, 3, '-', 6, 3],
     expectedScoreString: '6-7(3) 6-3',
     matchUpFormat: 'SET3-S:6',
   },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
-  testCases.forEach(testCase => {
+  testCases.forEach((testCase) => {
     it(testCase.name, () => {
       // Join keySequence - special characters need handling
       let digits = '';
@@ -151,7 +149,7 @@ describe('Dial Pad Score Entry Logic', () => {
           digits += key.toString();
         }
       }
-      
+
       const result = formatScoreString(digits, { matchUpFormat: testCase.matchUpFormat });
       expect(result).toBe(testCase.expectedScoreString);
     });

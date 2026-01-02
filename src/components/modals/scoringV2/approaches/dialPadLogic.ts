@@ -34,10 +34,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   let i = 0;
   let setCount = 0;
   
-  // Split ONLY on spaces - spaces are explicit set separators
-  // Minuses are just ignored characters (treated as if they don't exist)
-  // This way "6-7" becomes "67" and "6 7" stays as two separate sets
-  const segments = digits.split(' ').filter(s => s.length > 0);
+  // Split on spaces, slashes, or consecutive minuses as set separators
+  // Single minuses within a segment are kept for tiebreak/side separation
+  const segments = digits.split(/[\s\/]+|--+/).filter(s => s.length > 0);
   
   for (const segment of segments) {
     // Stop if we've already reached the maximum number of sets
@@ -56,10 +55,10 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     while (i < segmentDigits.length) {
       const nextDigit = segmentDigits[i];
       
-      // Skip minus characters - they're used only for tiebreak separation later
+      // Stop at minus - it separates side1 from side2
       if (nextDigit === '-') {
-        i++;
-        continue;
+        i++; // Consume the minus
+        break;
       }
       
       const potentialValue = side1 + nextDigit;
@@ -92,10 +91,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     while (i < segmentDigits.length) {
       const nextDigit = segmentDigits[i];
       
-      // Skip minus characters - they're used only for tiebreak separation later
+      // Stop at minus - it might separate side2 from next set or close tiebreak
       if (nextDigit === '-') {
-        i++;
-        continue;
+        break; // Don't consume yet - might be tiebreak separator
       }
       
       const potentialValue = side2 + nextDigit;
@@ -175,13 +173,18 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     if (needsTiebreak) {
       // Parse tiebreak scores
       // In regular tiebreaks (not NoAD), scores can be unlimited (e.g., 18-16)
-      // The tiebreak is only "closed" when we see a space separator (next segment)
-      // For now, just consume all remaining digits as the tiebreak score
-      const remainingDigits = segmentDigits.slice(i);
-      
-      if (remainingDigits.length > 0) {
-        tb1 = remainingDigits;
-        i = segmentDigits.length;
+      // Consume digits until we hit a minus (which closes the tiebreak and starts next set)
+      while (i < segmentDigits.length) {
+        const nextDigit = segmentDigits[i];
+        
+        // Stop at minus - it closes the tiebreak
+        if (nextDigit === '-') {
+          i++; // Consume the minus
+          break; // Exit tiebreak parsing, continue to next set
+        }
+        
+        tb1 += nextDigit;
+        i++;
       }
       
       if (result) result += ' ';
