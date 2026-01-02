@@ -61,24 +61,52 @@ export function validateScore(
   }
 
   try {
-    // Use generateOutcomeFromScoreString which parses and validates
-    const result = tournamentEngine.generateOutcomeFromScoreString({
+    // CRITICAL: The factory's generateOutcomeFromScoreString normalizes scores to show winner first
+    // For TMX, we want to preserve the exact order user entered (e.g., "3-6" should be side1=3, side2=6)
+    // So we parse the score directly using parseScoreString instead
+    const parsedResult = tournamentEngine.parseScoreString({
       scoreString: scoreString.trim(),
       matchUpFormat,
     });
-
-    if (result?.error) {
-      const errorMsg =
-        typeof result.error === 'string' ? result.error : result.error?.message || JSON.stringify(result.error);
+    
+    if (!parsedResult || parsedResult.length === 0) {
       return {
         isValid: false,
         sets: [],
-        error: errorMsg,
+        error: 'Invalid score format',
       };
     }
 
-    const sets = result?.outcome?.score?.sets || [];
-    const scoreObject = result?.outcome?.score; // Full score object for renderMatchUp
+    const sets = parsedResult;
+    
+    // Build scoreObject manually for renderMatchUp
+    // Generate score strings for each side
+    const scoreStringSide1 = sets.map((set: any) => {
+      let str = `${set.side1Score || 0}-${set.side2Score || 0}`;
+      if (set.side1TiebreakScore !== undefined) {
+        str += `(${set.winningSide === 1 ? set.side1TiebreakScore : set.side2TiebreakScore})`;
+      }
+      return str;
+    }).join(' ');
+    
+    const scoreStringSide2 = sets.map((set: any) => {
+      let str = `${set.side2Score || 0}-${set.side1Score || 0}`;
+      if (set.side2TiebreakScore !== undefined) {
+        str += `(${set.winningSide === 2 ? set.side2TiebreakScore : set.side1TiebreakScore})`;
+      }
+      return str;
+    }).join(' ');
+    
+    const scoreObject = {
+      sets,
+      scoreStringSide1,
+      scoreStringSide2,
+    };
+    
+    // Debug: log what we parsed
+    console.log('[validateScore] Input:', scoreString);
+    console.log('[validateScore] Parsed sets:', JSON.stringify(sets, null, 2));
+    console.log('[validateScore] ScoreObject:', JSON.stringify(scoreObject, null, 2));
 
     // POST-VALIDATION: Remove winningSide from sets that don't pass validation
     // The factory's generateOutcomeFromScoreString doesn't validate against matchUpFormat

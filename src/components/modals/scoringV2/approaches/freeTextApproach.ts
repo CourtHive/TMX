@@ -213,13 +213,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   validationMessage.style.minHeight = '1.5em';
   container.appendChild(validationMessage);
 
-  // Winner display
-  const winnerDisplay = document.createElement('div');
-  winnerDisplay.style.fontSize = '0.95em';
-  winnerDisplay.style.fontWeight = 'bold';
-  winnerDisplay.style.minHeight = '1.5em';
-  container.appendChild(winnerDisplay);
-
   // Track manual winner selection
   let manualWinningSide: number | undefined = undefined;
 
@@ -255,7 +248,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
       tidyDisplay.textContent = '';
       validationMessage.textContent = '';
       validationMessage.style.color = '';
-      winnerDisplay.textContent = '';
       // Hide radio buttons
       radioContainer.style.display = 'none';
       side1Radio.checked = false;
@@ -280,7 +272,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
       tidyDisplay.textContent = '';
       validationMessage.textContent = tidyResult.error;
       validationMessage.style.color = 'red';
-      winnerDisplay.textContent = '';
       // Hide radio buttons
       radioContainer.style.display = 'none';
       side1Radio.checked = false;
@@ -342,8 +333,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
         effectiveWinningSide = manualWinningSide;
 
         if (!effectiveWinningSide) {
-          winnerDisplay.textContent = 'Select winner above';
-          winnerDisplay.style.color = 'orange';
           // Update matchUp display with current score but no winner
           updateMatchUpDisplay({
             scoreObject: result.scoreObject,
@@ -374,16 +363,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
         effectiveWinningSide = result.winningSide;
       }
 
-      // Show winner
-      if (effectiveWinningSide) {
-        const winnerSide = matchUp.sides?.find((s: any) => s.sideNumber === effectiveWinningSide);
-        const winnerName = winnerSide?.participant?.participantName || `Side ${effectiveWinningSide}`;
-        winnerDisplay.textContent = `Winner: ${winnerName}`;
-        winnerDisplay.style.color = 'green';
-      } else {
-        winnerDisplay.textContent = '';
-      }
-
       // Update matchUp display with current score and winner
       updateMatchUpDisplay({
         scoreObject: result.scoreObject,
@@ -407,7 +386,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
         indicator.style.color = 'orange';
         validationMessage.textContent = result.error || 'Incomplete score';
         validationMessage.style.color = 'orange';
-        winnerDisplay.textContent = '';
         // Hide radio buttons for incomplete scores
         radioContainer.style.display = 'none';
         side1Radio.checked = false;
@@ -430,7 +408,6 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
         indicator.style.color = 'red';
         validationMessage.textContent = result.error || 'Invalid score';
         validationMessage.style.color = 'red';
-        winnerDisplay.textContent = '';
         // Hide radio buttons
         radioContainer.style.display = 'none';
         side1Radio.checked = false;
