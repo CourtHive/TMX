@@ -1,7 +1,7 @@
 /**
  * Score validation utilities using tournamentEngine
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { parseMatchUpFormat, tournamentEngine } from 'tods-competition-factory';
 import { validateMatchUpScore, validateSetScore } from './validateMatchUpScore';
 import type { ScoreOutcome } from '../types';
 
