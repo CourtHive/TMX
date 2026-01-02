@@ -728,19 +728,23 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const side = input.dataset.side || '1';
       updateTiebreakVisibility(setIndex);
       
-      // Recalculate and potentially adjust opposite side's value
-      const oppositeSide = side === '1' ? '2' : '1';
-      const oppositeInput = setsContainer.querySelector(
-        `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
-      ) as HTMLInputElement;
-      
-      if (oppositeInput && oppositeInput.value.trim()) {
-        const oppositeValue = parseInt(oppositeInput.value) || 0;
-        const oppositeMaxAllowed = getMaxAllowedScore(setIndex, oppositeSide);
+      // For tiebreak-only sets (TB10), don't coerce the opposite input
+      // Allow users to build scores like 33-35 without interference
+      if (!tiebreakSetTo) {
+        // Recalculate and potentially adjust opposite side's value (only for regular sets)
+        const oppositeSide = side === '1' ? '2' : '1';
+        const oppositeInput = setsContainer.querySelector(
+          `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
+        ) as HTMLInputElement;
         
-        if (oppositeValue > oppositeMaxAllowed) {
-          // Adjust opposite value to new max
-          oppositeInput.value = oppositeMaxAllowed.toString();
+        if (oppositeInput && oppositeInput.value.trim()) {
+          const oppositeValue = parseInt(oppositeInput.value) || 0;
+          const oppositeMaxAllowed = getMaxAllowedScore(setIndex, oppositeSide);
+          
+          if (oppositeValue > oppositeMaxAllowed) {
+            // Adjust opposite value to new max
+            oppositeInput.value = oppositeMaxAllowed.toString();
+          }
         }
       }
     }
