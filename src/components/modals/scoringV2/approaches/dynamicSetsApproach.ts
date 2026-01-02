@@ -486,24 +486,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       let winningSide: number | undefined;
       if (side1Value !== '' && side2Value !== '') {
         // Both sides entered - determine winner based on score difference
-        // For TB10, need to reach setTo (10) and have win-by-2
+        // For TB10, we pass scores to validation even if incomplete
+        // The factory/validateSetScore will determine validity
         if (tiebreakSetTo) {
-          // Tiebreak-only set - only assign winner if valid:
-          // 1. Winning side >= setTo (10)
-          // 2. Win by exactly 2 (if one side > setTo, other must be exactly 2 less)
-          // Examples: 10-12, 11-13, 33-35 are valid; 35-3, 11-10, 9-11 are invalid
-          const maxScore = Math.max(side1Score, side2Score);
-          const minScore = Math.min(side1Score, side2Score);
-          const scoreDiff = maxScore - minScore;
-          
-          // Valid winning conditions:
-          // - Both sides at least setTo-1 (9) AND win by exactly 2
-          // - This ensures 10-12, 11-13, 33-35 work but 35-3 doesn't
-          if (maxScore >= setTo && minScore >= setTo - 1 && scoreDiff === 2) {
-            if (side1Score > side2Score) winningSide = 1;
-            else if (side2Score > side1Score) winningSide = 2;
-          }
-          // Otherwise winningSide stays undefined (incomplete tiebreak set)
+          // For tiebreak-only sets, always assign winningSide based on who has more points
+          // Let validation determine if it's a valid winning score
+          // This allows 1-10, 3-6, 11-13, etc. to show in display and be validated
+          if (side1Score > side2Score) winningSide = 1;
+          else if (side2Score > side1Score) winningSide = 2;
         } else {
           // Regular set - simple comparison
           if (side1Score > side2Score) winningSide = 1;
