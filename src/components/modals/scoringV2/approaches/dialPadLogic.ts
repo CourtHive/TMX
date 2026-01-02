@@ -109,12 +109,15 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     
     // Coercion rule: If one side > setTo, the other must be >= setTo-1
     // Otherwise, coerce the lower side to setTo to match other scoring dialog behavior
+    let wasCoerced = false;
     if (s1 > setTo && s2 < setTo - 1) {
       s2 = setTo;
       side2 = setTo.toString();
+      wasCoerced = true;
     } else if (s2 > setTo && s1 < setTo - 1) {
       s1 = setTo;
       side1 = setTo.toString();
+      wasCoerced = true;
     }
     
     // Check if this set is valid (has a winner)
@@ -123,10 +126,10 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     const maxScore = Math.max(s1, s2);
     const hasWinner = maxScore >= setTo && scoreDiff >= 2;
     
-    // Check for tiebreak
-    const needsTiebreak = (s1 === tiebreakAt && s2 === tiebreakAt) ||
+    // Check for tiebreak - but NOT if score was coerced (coerced scores don't need tiebreaks)
+    const needsTiebreak = !wasCoerced && ((s1 === tiebreakAt && s2 === tiebreakAt) ||
                          (s1 === tiebreakAt + 1 && s2 === tiebreakAt) ||
-                         (s2 === tiebreakAt + 1 && s1 === tiebreakAt);
+                         (s2 === tiebreakAt + 1 && s1 === tiebreakAt));
     
     if (needsTiebreak) {
       // Parse tiebreak scores - look for explicit separator in remaining digits
