@@ -98,10 +98,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
               console.log('[DialPad] Format unchanged or invalid');
             }
           },
-          config: {
+          modalConfig: {
             style: {
+              fontSize: '13px', // Smaller font size for TMX
               border: '3px solid #0066cc',
-              borderRadius: '8px',
             },
           },
         } as any);
