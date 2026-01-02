@@ -429,7 +429,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     return setRow;
   };
 
-  // Function to check if a set is complete (both inputs have values and there's a winner)
+  // Function to check if a set is complete (both inputs have values and it's a valid set)
   const isSetComplete = (setIndex: number): boolean => {
     const side1Input = setsContainer.querySelector(`input[data-set-index="${setIndex}"][data-side="1"]`) as HTMLInputElement;
     const side2Input = setsContainer.querySelector(`input[data-set-index="${setIndex}"][data-side="2"]`) as HTMLInputElement;
@@ -446,10 +446,18 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const side2Score = parseInt(side2Value) || 0;
     
     // Scores can't be equal (tie is not complete)
-    // For user input purposes, we consider a set "complete" if both sides entered and not tied
-    // The factory validation will determine if it's a VALID score, but for tab navigation
-    // we just need to know if the user has finished entering this set
-    return side1Score !== side2Score;
+    if (side1Score === side2Score) return false;
+    
+    // For tab navigation and auto-expansion, we need to check if it's a VALID set score
+    // Otherwise "5-2" would be considered complete and trigger next set creation
+    // Check if this set exists in currentSets with a winningSide (meaning it passed validation)
+    if (currentSets.length > setIndex) {
+      const setData = currentSets[setIndex];
+      // Set is complete if it has a winningSide assigned (passed validation)
+      return setData.winningSide !== undefined;
+    }
+    
+    return false;
   };
 
   // Function to update score from inputs
