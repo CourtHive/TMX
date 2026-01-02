@@ -70,11 +70,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         getMatchUpFormat({
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {
+            console.log('[DialPad] Format selector callback - old:', matchUp.matchUpFormat, 'new:', newFormat);
             if (newFormat && newFormat !== matchUp.matchUpFormat) {
+              console.log('[DialPad] Format changed - re-rendering');
               matchUp.matchUpFormat = newFormat;
               formatButton.textContent = newFormat;
+              
+              // Clear state
+              state.digits = '';
+              
               container.innerHTML = '';
               renderDialPadScoreEntry({ matchUp, container, onScoreChange });
+            } else {
+              console.log('[DialPad] Format unchanged or invalid');
             }
           },
           config: {
