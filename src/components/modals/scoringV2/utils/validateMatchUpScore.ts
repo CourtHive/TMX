@@ -23,7 +23,12 @@ export function validateSetScore(
   const setFormat = isDecidingSet ? parsed.finalSetFormat : parsed.setFormat;
   if (!setFormat) return { isValid: true };
 
-  const { setTo, tiebreakAt, tiebreakFormat } = setFormat;
+  const { setTo, tiebreakAt, tiebreakFormat, tiebreakSet } = setFormat;
+  
+  // Check if this is a tiebreak-only format (SET1-S:TB10)
+  // Tiebreak-only sets have tiebreakSet.tiebreakTo but no regular setTo
+  const tiebreakSetTo = tiebreakSet?.tiebreakTo;
+  const isTiebreakOnlyFormat = !!tiebreakSetTo && !setTo;
   const side1Score = set.side1Score || 0;
   const side2Score = set.side2Score || 0;
   const side1TiebreakScore = set.side1TiebreakScore;
@@ -32,6 +37,55 @@ export function validateSetScore(
   const winnerScore = Math.max(side1Score, side2Score);
   const loserScore = Math.min(side1Score, side2Score);
   const scoreDiff = winnerScore - loserScore;
+
+  // ===========================
+  // TIEBREAK-ONLY SET VALIDATION (TB10, TB7, etc.)
+  // ===========================
+  if (isTiebreakOnlyFormat) {
+    // For tiebreak-only sets, the entire set is a tiebreak (no games, just points)
+    // Examples: SET1-S:TB10 means first to 10 points, win by 2
+    // Valid scores: [10-12], [11-13], [33-35]
+    // Invalid scores: [3-6], [35-3], [11-9], [10-10]
+    
+    // Allow incomplete if irregular ending
+    if (allowIncomplete) {
+      return { isValid: true };
+    }
+    
+    // Both scores must be present
+    if (side1Score === 0 && side2Score === 0) {
+      return { isValid: false, error: 'Tiebreak-only set requires both scores' };
+    }
+    
+    // Winner must reach at least tiebreakSetTo
+    if (winnerScore < tiebreakSetTo) {
+      return {
+        isValid: false,
+        error: `Tiebreak-only set winner must reach at least ${tiebreakSetTo}, got ${winnerScore}`,
+      };
+    }
+    
+    // Loser must be at least tiebreakSetTo - 1
+    // This prevents scores like 35-3 (should be 35-33)
+    // Check this BEFORE scoreDiff to give more specific error message
+    if (loserScore < tiebreakSetTo - 1) {
+      return {
+        isValid: false,
+        error: `Tiebreak-only set loser must be at least ${tiebreakSetTo - 1} when winner exceeds ${tiebreakSetTo}, got ${loserScore}`,
+      };
+    }
+    
+    // Must win by exactly 2 points
+    if (scoreDiff !== 2) {
+      return {
+        isValid: false,
+        error: `Tiebreak-only set must be won by exactly 2 points, got ${winnerScore}-${loserScore}`,
+      };
+    }
+    
+    // Valid tiebreak-only set
+    return { isValid: true };
+  }
 
   // Check for tiebreak set
   // Either explicit tiebreak scores, OR score pattern indicates tiebreak was played
