@@ -128,9 +128,10 @@ const testCases: TestCase[] = [
   },
   
   // Minus key after tiebreak should close tiebreak and advance to next set
+  // Note: In the UI, minus adds a SPACE, so this simulates that behavior
   {
-    name: 'should close tiebreak and advance to next set with minus',
-    keySequence: [6, 7, 3, '-', 6, 3],
+    name: 'should close tiebreak and advance to next set with space',
+    keySequence: [6, 7, 3, ' ', 6, 3],
     expectedScoreString: '6-7(3) 6-3',
     matchUpFormat: 'SET3-S:6',
   },
@@ -139,11 +140,13 @@ const testCases: TestCase[] = [
 describe('Dial Pad Score Entry Logic', () => {
   testCases.forEach(testCase => {
     it(testCase.name, () => {
-      // Join keySequence - minus needs special handling
+      // Join keySequence - special characters need handling
       let digits = '';
       for (const key of testCase.keySequence) {
         if (key === '-') {
           digits += '-';
+        } else if (key === ' ') {
+          digits += ' ';
         } else {
           digits += key.toString();
         }
