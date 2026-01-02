@@ -37,6 +37,20 @@ export function scoringModalV2(params: ScoringModalParams): void {
       clearBtn.disabled = !scoreInput.value.trim();
     }
   };
+
+  // Cleanup function to call when modal closes
+  const cleanupCurrentApproach = () => {
+    if ((window as any).cleanupDialPad) {
+      (window as any).cleanupDialPad();
+      (window as any).cleanupDialPad = undefined;
+    }
+    if ((window as any).resetDialPad) {
+      (window as any).resetDialPad = undefined;
+    }
+    if ((window as any).resetDynamicSets) {
+      (window as any).resetDynamicSets = undefined;
+    }
+  };
   
   if (approach === 'freeText') {
     renderFreeTextScoreEntry({
