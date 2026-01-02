@@ -66,6 +66,10 @@ export function scoringModalV2(params: ScoringModalParams): void {
     config: approach === 'dialPad' ? { maxWidth: 380 } : undefined,
     buttons: [
       { 
+        onClick: () => {
+          cleanupCurrentApproach();
+          callback(currentOutcome);
+        },
         label: 'Cancel', 
         intent: 'none', 
         close: true 
