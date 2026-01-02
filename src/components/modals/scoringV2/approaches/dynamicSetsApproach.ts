@@ -869,6 +869,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           ) as HTMLInputElement;
           if (side2Input) side2Input.focus();
         } else if (side === '2') {
+          // First, update score to ensure currentSets reflects the latest input
+          updateScoreFromInputs();
+          
           // Check if tiebreak input is visible
           const tiebreakInput = setsContainer.querySelector(
             `input[data-set-index="${setIndex}"][data-type="tiebreak"]`
