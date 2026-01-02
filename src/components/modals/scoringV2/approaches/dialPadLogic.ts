@@ -34,33 +34,10 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   let i = 0;
   let setCount = 0;
   
-  // Remove stray minus characters that aren't inside tiebreaks
-  // e.g., "6-7" (not in tiebreak) should become "67"
-  // but "67-3" (in tiebreak context) should stay as "67-3"
-  // Strategy: only remove minus if it's NOT preceded by a '(' somewhere earlier
-  let cleanedDigits = '';
-  let inPotentialTiebreak = false;
-  for (let idx = 0; idx < digits.length; idx++) {
-    const char = digits[idx];
-    if (char === '(') {
-      inPotentialTiebreak = true;
-      cleanedDigits += char;
-    } else if (char === ')') {
-      inPotentialTiebreak = false;
-      cleanedDigits += char;
-    } else if (char === '-') {
-      // Only keep minus if we're in a tiebreak
-      if (inPotentialTiebreak) {
-        cleanedDigits += char;
-      }
-      // Otherwise skip it (it's a stray minus after side1)
-    } else {
-      cleanedDigits += char;
-    }
-  }
-  
-  // Split by spaces first (space = explicit separator from minus key)
-  const segments = cleanedDigits.split(' ').filter(s => s.length > 0);
+  // Split ONLY on spaces - spaces are explicit set separators
+  // Minuses are just ignored characters (treated as if they don't exist)
+  // This way "6-7" becomes "67" and "6 7" stays as two separate sets
+  const segments = digits.split(' ').filter(s => s.length > 0);
   
   for (const segment of segments) {
     // Stop if we've already reached the maximum number of sets
@@ -78,6 +55,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     // Parse side1
     while (i < segmentDigits.length) {
       const nextDigit = segmentDigits[i];
+      
+      // Skip minus characters - they're used only for tiebreak separation later
+      if (nextDigit === '-') {
+        i++;
+        continue;
+      }
+      
       const potentialValue = side1 + nextDigit;
       const val = parseInt(potentialValue);
       
@@ -107,6 +91,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     // Parse side2
     while (i < segmentDigits.length) {
       const nextDigit = segmentDigits[i];
+      
+      // Skip minus characters - they're used only for tiebreak separation later
+      if (nextDigit === '-') {
+        i++;
+        continue;
+      }
+      
       const potentialValue = side2 + nextDigit;
       const val = parseInt(potentialValue);
       
