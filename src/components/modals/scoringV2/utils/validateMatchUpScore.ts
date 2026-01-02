@@ -29,10 +29,16 @@ export function validateSetScore(
   // Tiebreak-only sets have tiebreakSet.tiebreakTo but no regular setTo
   const tiebreakSetTo = tiebreakSet?.tiebreakTo;
   const isTiebreakOnlyFormat = !!tiebreakSetTo && !setTo;
-  const side1Score = set.side1Score || 0;
-  const side2Score = set.side2Score || 0;
+  
+  // For tiebreak-only sets, scores can be in side1TiebreakScore/side2TiebreakScore
+  // OR in side1Score/side2Score (legacy/main inputs)
   const side1TiebreakScore = set.side1TiebreakScore;
   const side2TiebreakScore = set.side2TiebreakScore;
+  const hasTiebreakScores = side1TiebreakScore !== undefined && side2TiebreakScore !== undefined;
+  
+  // For tiebreak-only format, prefer tiebreak scores if available
+  const side1Score = (isTiebreakOnlyFormat && hasTiebreakScores) ? side1TiebreakScore : (set.side1Score || set.side1 || 0);
+  const side2Score = (isTiebreakOnlyFormat && hasTiebreakScores) ? side2TiebreakScore : (set.side2Score || set.side2 || 0);
 
   const winnerScore = Math.max(side1Score, side2Score);
   const loserScore = Math.min(side1Score, side2Score);

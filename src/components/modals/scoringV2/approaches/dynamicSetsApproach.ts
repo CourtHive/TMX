@@ -516,7 +516,15 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         }
       }
 
-      const setData: SetScore = {
+      // CRITICAL: For tiebreak-only sets (TB10), the main inputs ARE the tiebreak scores
+      // So we need to treat side1Score/side2Score as tiebreak scores, not game scores
+      const setData: SetScore = setIsTiebreakOnly ? {
+        side1Score: 0,  // Tiebreak-only sets don't have game scores
+        side2Score: 0,
+        side1TiebreakScore: side1Score,  // The main inputs are tiebreak scores
+        side2TiebreakScore: side2Score,
+        winningSide,
+      } : {
         side1Score,
         side2Score,
         winningSide,
@@ -525,7 +533,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // Add tiebreak scores if present
       if (tiebreakScore !== undefined) {
         const loserScore = tiebreakScore;
-        const tiebreakFormat = parsedFormat?.setFormat?.tiebreakFormat;
+        const tiebreakFormat = setFormat?.tiebreakFormat;
         const tiebreakTo = tiebreakFormat?.tiebreakTo || 7;
         const isNoAd = tiebreakFormat?.noAd;
         
@@ -572,12 +580,33 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // CRITICAL: Only include COMPLETE sets (where winningSide is defined)
       // Don't pass incomplete sets like "5-0" where 0 means "no entry yet"
       const completeSets = currentSets.filter(s => s.winningSide !== undefined);
-      const setsForValidation = completeSets.map(s => ({
-        side1: s.side1Score,
-        side2: s.side2Score,
-        side1TiebreakScore: s.side1TiebreakScore,
-        side2TiebreakScore: s.side2TiebreakScore,
-      }));
+      
+      const setsForValidation = completeSets.map(s => {
+        // For tiebreak-only sets (where side1Score and side2Score are 0),
+        // don't include side1/side2 in validation data - factory expects undefined for TB-only sets
+        const isTiebreakOnlySet = s.side1Score === 0 && s.side2Score === 0 && 
+                                  (s.side1TiebreakScore !== undefined || s.side2TiebreakScore !== undefined);
+        
+        if (isTiebreakOnlySet) {
+          // Tiebreak-only set: only include tiebreak scores and winningSide
+          const result: any = {
+            side1TiebreakScore: s.side1TiebreakScore,
+            side2TiebreakScore: s.side2TiebreakScore,
+          };
+          if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+          return result;
+        } else {
+          // Regular set: include game scores, tiebreak scores (if any), and winningSide
+          const result: any = {
+            side1: s.side1Score,
+            side2: s.side2Score,
+          };
+          if (s.side1TiebreakScore !== undefined) result.side1TiebreakScore = s.side1TiebreakScore;
+          if (s.side2TiebreakScore !== undefined) result.side2TiebreakScore = s.side2TiebreakScore;
+          if (s.winningSide !== undefined) result.winningSide = s.winningSide;
+          return result;
+        }
+      });
       
       const validation = validateSetScores(
         setsForValidation,
