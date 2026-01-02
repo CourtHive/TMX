@@ -66,9 +66,13 @@ const format: FormatConfig = {
 function getSetFormat(index?: number): any {
   const which = index ? 'finalSetFormat' : 'setFormat';
   const what = format[which].what;
-  const setFormat: any = {
-    setTo: format[which].setTo,
-  };
+  const setFormat: any = {};
+  
+  // Only add setTo if it exists (not for tiebreak-only formats)
+  if (format[which].setTo !== undefined) {
+    setFormat.setTo = format[which].setTo;
+  }
+  
   if (what === SETS && format[which].advantage === NOAD) setFormat.NoAD = true;
 
   const hasTiebreak = what === SETS && (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked;
