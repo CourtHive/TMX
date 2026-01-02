@@ -4,7 +4,6 @@
  */
 import { renderMatchUp } from 'courthive-components';
 import { validateSetScores } from '../utils/scoreValidator';
-import { validateSetScore } from '../utils/validateMatchUpScore';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { env } from 'settings/env';
