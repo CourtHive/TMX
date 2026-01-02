@@ -130,7 +130,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     
     // Coercion rules to match other scoring dialog behavior:
     // 1. If side > setTo+1: coerce that side DOWN to setTo
-    // 2. If side = setTo+1 but other side < setTo-1: coerce OTHER side UP to setTo
+    // 2. If side = setTo+1 but other side < setTo-1: coerce the HIGH side DOWN to setTo
     let wasCoerced = false;
     
     // First handle > setTo+1 (coerce the excessive side DOWN)
@@ -145,14 +145,14 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       wasCoerced = true;
     }
     
-    // Then handle = setTo+1 with other side < setTo-1 (coerce other side UP)
+    // Then handle = setTo+1 with other side < setTo-1 (coerce the HIGH side DOWN to setTo)
     if (s1 === setTo + 1 && s2 < setTo - 1) {
-      s2 = setTo;
-      side2 = setTo.toString();
-      wasCoerced = true;
-    } else if (s2 === setTo + 1 && s1 < setTo - 1) {
       s1 = setTo;
       side1 = setTo.toString();
+      wasCoerced = true;
+    } else if (s2 === setTo + 1 && s1 < setTo - 1) {
+      s2 = setTo;
+      side2 = setTo.toString();
       wasCoerced = true;
     }
     
