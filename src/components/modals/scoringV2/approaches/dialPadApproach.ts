@@ -179,14 +179,21 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Handle digit press
     const handleDigitPress = (digit: number | string) => {
+      console.log('[DialPad] Key pressed:', digit, 'Current digits:', JSON.stringify(state.digits));
+      
       const currentScoreString = formatScore(state.digits);
+      console.log('[DialPad] Current score:', JSON.stringify(currentScoreString));
       
       // Check if we're in an incomplete tiebreak
       const inTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
+      console.log('[DialPad] In tiebreak?', inTiebreak);
       
       // For minus in tiebreak, we'll add a space, so test with space
       const testDigits = (digit === '-' && inTiebreak) ? state.digits + ' ' : state.digits + digit.toString();
+      console.log('[DialPad] Test digits:', JSON.stringify(testDigits));
+      
       const testScoreString = formatScore(testDigits);
+      console.log('[DialPad] Test score:', JSON.stringify(testScoreString));
       
       if (currentScoreString) {
         const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
@@ -194,12 +201,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
+          console.log('[DialPad] Match complete - blocking input');
           return;
         }
         
         // Block input if formatter didn't accept the digit (incomplete set)
         // Exception: allow if we're in a tiebreak or the test score is different (was accepted)
         if (!inTiebreak && digit !== '-' && testScoreString === currentScoreString) {
+          console.log('[DialPad] Formatter rejected - blocking input');
           return;
         }
       }
@@ -211,9 +220,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         const currentScore = formatScore(state.digits);
         const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
         
+        console.log('[DialPad] Minus pressed - inTiebreak:', inTiebreak);
+        
         if (inTiebreak) {
           // In tiebreak - add SPACE to close tiebreak and start next set
           // The parser will detect the tiebreak is complete when there are no more digits
+          console.log('[DialPad] Adding SPACE to close tiebreak');
           state.digits += ' ';
         } else {
           // Check if last character is a digit that would make a complete side score
@@ -225,15 +237,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
             const testScore = formatScore(testDigits);
             if (testScore === currentScore) {
               // Minus wouldn't change anything - we're already on side2, ignore it
+              console.log('[DialPad] Ignoring minus - already on side2');
               return;
             }
           }
           // Not in tiebreak and not already on side2 - use space as set separator
+          console.log('[DialPad] Adding SPACE as set separator');
           state.digits += ' ';
         }
       } else {
         state.digits += digit.toString();
       }
+      
+      console.log('[DialPad] After adding - digits:', JSON.stringify(state.digits));
       updateDisplay();
     };
 
