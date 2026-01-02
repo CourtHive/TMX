@@ -642,7 +642,20 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     
     const oppositeValue = parseInt(oppositeInput.value) || 0;
     
-    // Context-aware max calculation
+    // For tiebreak-only sets (NoAD format like TB10), it's win-by-2
+    // If one side is at setTo or above, other side can go up to oppositeValue + 2
+    if (tiebreakSetTo) {
+      // Win by 2 rule for tiebreak sets
+      // If opposite is 11, this can be up to 13 (11+2)
+      // If opposite is 10, this can be up to 12 (10+2)
+      if (oppositeValue >= setTo) {
+        return oppositeValue + 2;
+      }
+      // If opposite is below setTo, allow up to maxGameScore
+      return maxGameScore;
+    }
+    
+    // Context-aware max calculation for regular sets
     // If opposite side < setTo-1, this side max = setTo (can't trigger tiebreak)
     if (oppositeValue < setTo - 1) {
       return setTo;
