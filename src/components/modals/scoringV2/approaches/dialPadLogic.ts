@@ -133,32 +133,37 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       let s1 = Number.parseInt(side1);
       let s2 = Number.parseInt(side2);
 
-      // Coercion rules to match other scoring dialog behavior:
-      // 1. If side > setTo+1: coerce that side DOWN to setTo
-      // 2. If side = setTo+1 but other side < setTo-1: coerce the HIGH side DOWN to setTo
+      // Coercion rules ONLY apply to regular sets, NOT tiebreak-only sets (TB10)
+      // For tiebreak-only formats (SET1-S:TB10), accept scores as-is
       let wasCoerced = false;
 
-      // First handle > setTo+1 (coerce the excessive side DOWN)
-      if (s1 > setTo + 1) {
-        s1 = setTo;
-        side1 = setTo.toString();
-        wasCoerced = true;
-      }
-      if (s2 > setTo + 1) {
-        s2 = setTo;
-        side2 = setTo.toString();
-        wasCoerced = true;
-      }
+      if (!isTiebreakOnlyFormat) {
+        // Coercion rules to match other scoring dialog behavior:
+        // 1. If side > setTo+1: coerce that side DOWN to setTo
+        // 2. If side = setTo+1 but other side < setTo-1: coerce the HIGH side DOWN to setTo
 
-      // Then handle = setTo+1 with other side < setTo-1 (coerce the HIGH side DOWN to setTo)
-      if (s1 === setTo + 1 && s2 < setTo - 1) {
-        s1 = setTo;
-        side1 = setTo.toString();
-        wasCoerced = true;
-      } else if (s2 === setTo + 1 && s1 < setTo - 1) {
-        s2 = setTo;
-        side2 = setTo.toString();
-        wasCoerced = true;
+        // First handle > setTo+1 (coerce the excessive side DOWN)
+        if (s1 > setTo + 1) {
+          s1 = setTo;
+          side1 = setTo.toString();
+          wasCoerced = true;
+        }
+        if (s2 > setTo + 1) {
+          s2 = setTo;
+          side2 = setTo.toString();
+          wasCoerced = true;
+        }
+
+        // Then handle = setTo+1 with other side < setTo-1 (coerce the HIGH side DOWN to setTo)
+        if (s1 === setTo + 1 && s2 < setTo - 1) {
+          s1 = setTo;
+          side1 = setTo.toString();
+          wasCoerced = true;
+        } else if (s2 === setTo + 1 && s1 < setTo - 1) {
+          s2 = setTo;
+          side2 = setTo.toString();
+          wasCoerced = true;
+        }
       }
 
       // Check if this set is valid (has a winner)
