@@ -490,6 +490,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const side2Score = parseInt(side2Value) || 0;
       const tiebreakScore = tiebreakInput?.value.trim() ? parseInt(tiebreakInput.value) : undefined;
 
+      // Check if this specific set is a tiebreak-only set
+      const setFormat = getSetFormat(i);
+      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+      
       // Determine winner - ONLY if both sides have been entered AND it's a valid winning score
       // Don't assign winner to incomplete sets (e.g., 5-? where second side is empty)
       // For tiebreak-only sets (TB10), don't assign winner until score reaches valid threshold
@@ -498,7 +502,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         // Both sides entered - determine winner based on score difference
         // For TB10, we pass scores to validation even if incomplete
         // The factory/validateSetScore will determine validity
-        if (tiebreakSetTo) {
+        if (setIsTiebreakOnly) {
           // For tiebreak-only sets, always assign winningSide based on who has more points
           // Let validation determine if it's a valid winning score
           // This allows 1-10, 3-6, 11-13, etc. to show in display and be validated
