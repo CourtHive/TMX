@@ -32,9 +32,8 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   radioContainer.style.padding = '0.5em';
   radioContainer.style.backgroundColor = '#f5f5f5';
   radioContainer.style.borderRadius = '4px';
-  radioContainer.style.flexDirection = 'row';
-  radioContainer.style.gap = '1em';
-  radioContainer.style.justifyContent = 'center';
+  radioContainer.style.flexDirection = 'column';
+  radioContainer.style.gap = '0.5em';
   
   const side1RadioLabel = document.createElement('label');
   side1RadioLabel.style.display = 'flex';
@@ -49,6 +48,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   
   const side1RadioText = document.createElement('span');
   side1RadioText.textContent = side1?.participant?.participantName || 'Side 1';
+  side1RadioText.style.fontSize = '0.85em';
   
   side1RadioLabel.appendChild(side1Radio);
   side1RadioLabel.appendChild(side1RadioText);
@@ -66,6 +66,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   
   const side2RadioText = document.createElement('span');
   side2RadioText.textContent = side2?.participant?.participantName || 'Side 2';
+  side2RadioText.style.fontSize = '0.85em';
   
   side2RadioLabel.appendChild(side2Radio);
   side2RadioLabel.appendChild(side2RadioText);
