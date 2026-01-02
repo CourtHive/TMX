@@ -224,8 +224,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
         
         if (inTiebreak) {
-          // In tiebreak - keep the minus as-is for parsing
-          state.digits += '-';
+          // In tiebreak - add SPACE to close tiebreak and start next set
+          // The parser will detect the tiebreak is complete when there are no more digits
+          state.digits += ' ';
         } else {
           // Check if last character is a digit that would make a complete side score
           // If so, we've already advanced to side2, so ignore the minus
