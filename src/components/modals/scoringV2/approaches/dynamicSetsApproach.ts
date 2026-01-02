@@ -37,15 +37,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     return parsedFormat?.setFormat;
   };
   
-  // Get initial format for display (set 0)
-  const initialSetFormat = getSetFormat(0);
-  
-  // For tiebreak-only sets (SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
-  const tiebreakSetTo = initialSetFormat?.tiebreakSet?.tiebreakTo;
-  const regularSetTo = initialSetFormat?.setTo;
-  
-  const setTo = tiebreakSetTo || regularSetTo || 6;
-  const maxGameScore = setTo + 1; // e.g., 7 for standard sets, 11 for TB10
+  // Note: Set-specific format (including tiebreak-only detection) is now handled
+  // dynamically in getSetFormat() for each set, not statically at the top
 
   // MatchUp display container
   const matchUpContainer = document.createElement('div');
@@ -811,7 +804,6 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     updateClearButtonState();
 
     // Auto-expand sets if needed: only when current set is complete and we need another set
-    const setIndex = parseInt(input.dataset.setIndex || '0');
     const currentSetComplete = isSetComplete(setIndex);
     
     if (currentSetComplete) {
