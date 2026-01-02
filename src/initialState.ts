@@ -12,6 +12,7 @@ import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
+import { courthiveComponentsVersion } from 'courthive-components';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
@@ -110,8 +111,10 @@ const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered not
 function setEnv(): void {
   env.device = getDevice();
   const cfv = tournamentEngine.version();
+  const chcv = courthiveComponentsVersion();
   console.log(`%cversion: ${version}`, 'color: lightblue');
   console.log(`%cfactory: ${cfv}`, 'color: lightblue');
+  console.log(`%ccourthive-components: ${chcv}`, 'color: lightblue');
 
   eventListeners();
 }
