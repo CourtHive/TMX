@@ -66,11 +66,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       formatButton.style.cursor = 'pointer';
       formatButton.title = 'Click to edit format';
       formatButton.addEventListener('click', async () => {
-        const useExternal = import.meta.env.VITE_USE_EXTERNAL_MATCHUP_FORMAT === 'true';
-        const { getMatchUpFormat } = useExternal
-          ? await import('courthive-components')
-          : await import('components/modals/matchUpFormat/matchUpFormat');
-        getMatchUpFormat({
+        try {
+          const useExternal = import.meta.env.VITE_USE_EXTERNAL_MATCHUP_FORMAT === 'true';
+          console.log('[DialPad] Format button clicked, useExternal:', useExternal);
+          const { getMatchUpFormat } = useExternal
+            ? await import('courthive-components')
+            : await import('components/modals/matchUpFormat/matchUpFormat');
+          console.log('[DialPad] getMatchUpFormat loaded:', typeof getMatchUpFormat);
+          getMatchUpFormat({
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {
             console.log('[DialPad] Format selector callback - old:', matchUp.matchUpFormat, 'new:', newFormat);
@@ -95,6 +98,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
             },
           },
         } as any);
+        } catch (error) {
+          console.error('[DialPad] Error opening format selector:', error);
+        }
       });
       formatDisplay.appendChild(formatButton);
       container.appendChild(formatDisplay);
