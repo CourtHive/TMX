@@ -84,6 +84,14 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-7(3) 3-6',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
+  
+  // Invalid score - incomplete first set
+  {
+    name: 'should not advance to second set with incomplete first set',
+    keySequence: [3, 3, 3, 3],
+    expectedScoreString: '3-3',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {

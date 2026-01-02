@@ -104,6 +104,12 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     const s1 = parseInt(side1);
     const s2 = parseInt(side2);
     
+    // Check if this set is valid (has a winner)
+    // A set must have at least 2-game margin and reach setTo
+    const scoreDiff = Math.abs(s1 - s2);
+    const maxScore = Math.max(s1, s2);
+    const hasWinner = maxScore >= setTo && scoreDiff >= 2;
+    
     // Check for tiebreak
     const needsTiebreak = (s1 === tiebreakAt && s2 === tiebreakAt) ||
                          (s1 === tiebreakAt + 1 && s2 === tiebreakAt) ||
@@ -138,6 +144,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       // Regular set
       if (result) result += ' ';
       result += `${side1}-${side2}`;
+      
+      // If this set doesn't have a winner, stop parsing
+      // Don't continue to next iteration in the while loop
+      if (!hasWinner && i < segmentDigits.length) {
+        // More digits remain but current set is incomplete - stop here
+        break;
+      }
     }
   }
   
