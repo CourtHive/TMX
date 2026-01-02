@@ -224,8 +224,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // For minus, add separator
       // Minus is used to: 1) close tiebreaks, 2) separate side1 from side2 in TB sets, 3) separate sets
+      // BUT ignore if last character is already a minus (prevent double minus)
       if (digit === '-') {
-        state.digits += '-';
+        if (!state.digits.endsWith('-')) {
+          state.digits += '-';
+        }
       } else {
         state.digits += digit.toString();
       }
@@ -342,7 +345,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
     // Attach listener to container with focus management
-    container.setAttribute('tabindex', '0');
+    container.setAttribute('tabindex', '-1'); // -1 means focusable but not in tab order
+    container.style.outline = 'none'; // Remove blue focus outline
     container.addEventListener('keydown', handleKeyDown);
     
     // Auto-focus container so keyboard works immediately
