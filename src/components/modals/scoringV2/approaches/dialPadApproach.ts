@@ -72,9 +72,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           getMatchUpFormatModal({
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {
-            console.log('[DialPad] Format selector callback - old:', matchUp.matchUpFormat, 'new:', newFormat);
             if (newFormat && newFormat !== matchUp.matchUpFormat) {
-              console.log('[DialPad] Format changed - re-rendering');
               matchUp.matchUpFormat = newFormat;
               formatButton.textContent = newFormat;
 
@@ -83,8 +81,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
               container.innerHTML = '';
               renderDialPadScoreEntry({ matchUp, container, onScoreChange });
-            } else {
-              console.log('[DialPad] Format unchanged or invalid');
             }
           },
           modalConfig: {
@@ -95,7 +91,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           },
         } as any);
         } catch (error) {
-          console.error('[DialPad] Error opening format selector:', error);
+          console.error('Error opening format selector:', error);
         }
       });
       formatDisplay.appendChild(formatButton);
@@ -132,7 +128,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Update matchUp display with current outcome
     const updateMatchUpDisplay = (outcome: ScoreOutcome | null) => {
-      console.log('[DialPad] updateMatchUpDisplay called with outcome:', outcome);
       matchUpContainer.innerHTML = '';
 
       const displayMatchUp = {
@@ -141,12 +136,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         winningSide: outcome?.winningSide,
         matchUpStatus: outcome?.matchUpStatus || matchUp.matchUpStatus,
       };
-
-      console.log('[DialPad] Rendering matchUp with:', {
-        score: displayMatchUp.score,
-        winningSide: displayMatchUp.winningSide,
-        matchUpStatus: displayMatchUp.matchUpStatus,
-      });
 
       const matchUpElement = renderMatchUp({
         matchUp: displayMatchUp,
@@ -163,9 +152,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       if (matchUpElement) {
         matchUpContainer.appendChild(matchUpElement);
-        console.log('[DialPad] MatchUp element appended');
-      } else {
-        console.log('[DialPad] No matchUp element returned from renderMatchUp');
       }
     };
 
@@ -176,7 +162,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Use validateScore for proper validation (like freeText does)
       const validation = validateScore(scoreString, matchUp.matchUpFormat);
-      console.log('[DialPad] Validation result:', validation);
 
       // Update matchUp display with validation result
       updateMatchUpDisplay(validation);
@@ -305,7 +290,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           handleDigitPress('-');
         } else if (btn.value === 'retired' || btn.value === 'walkover' || btn.value === 'defaulted') {
           // TODO: Handle irregular endings
-          console.log('[DialPad] Irregular ending:', btn.value);
         } else if (btn.value === 'empty') {
           // Empty placeholder - do nothing
         } else {
