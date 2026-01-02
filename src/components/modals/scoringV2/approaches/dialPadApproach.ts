@@ -69,9 +69,16 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         try {
           const useExternal = import.meta.env.VITE_USE_EXTERNAL_MATCHUP_FORMAT === 'true';
           console.log('[DialPad] Format button clicked, useExternal:', useExternal);
-          const { getMatchUpFormat } = useExternal
-            ? await import('courthive-components')
-            : await import('components/modals/matchUpFormat/matchUpFormat');
+          
+          let getMatchUpFormat;
+          if (useExternal) {
+            const module = await import('courthive-components');
+            getMatchUpFormat = module.getMatchUpFormatModal;
+          } else {
+            const module = await import('components/modals/matchUpFormat/matchUpFormat');
+            getMatchUpFormat = module.getMatchUpFormat;
+          }
+          
           console.log('[DialPad] getMatchUpFormat loaded:', typeof getMatchUpFormat);
           getMatchUpFormat({
           existingMatchUpFormat: matchUp.matchUpFormat,
