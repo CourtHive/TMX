@@ -92,6 +92,14 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-3',
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
+  
+  // Invalid score - exceeds setTo+1
+  {
+    name: 'should not accept score exceeding setTo+1',
+    keySequence: [3, 8],
+    expectedScoreString: '3',
+    matchUpFormat: 'SET3-S:6',
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {

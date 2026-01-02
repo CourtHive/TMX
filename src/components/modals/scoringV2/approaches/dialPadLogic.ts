@@ -58,10 +58,11 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       // For setTo=10+: need to allow 2-digit scores (10, 11, 12, etc.)
       const maxScore = setTo + 1;
       
-      // If we already have a digit and adding another would exceed maxScore, stop
+      // Before adding any digit, check if it would exceed maxScore
+      if (val > maxScore) break;
+      
+      // If we already have a digit and adding another, stop at 2 digits
       if (side1.length > 0) {
-        if (val > maxScore) break;
-        // Stop at 2 digits unless setTo allows higher (TB format)
         if (side1.length >= 2) break;
       }
       
@@ -82,8 +83,10 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       
       const maxScore = setTo + 1;
       
+      // Before adding any digit, check if it would exceed maxScore
+      if (val > maxScore) break;
+      
       if (side2.length > 0) {
-        if (val > maxScore) break;
         if (side2.length >= 2) break;
       }
       
