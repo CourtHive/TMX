@@ -27,16 +27,20 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   
   const setTo = tiebreakSetTo || regularSetTo || 6;
   const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
-  
+  const bestOf = parsedFormat?.setFormat?.bestOf || 3;
 
   
   let result = '';
   let i = 0;
+  let setCount = 0;
   
   // Split by spaces first (space = explicit separator from minus key)
   const segments = digits.split(' ').filter(s => s.length > 0);
   
   for (const segment of segments) {
+    // Stop if we've already reached the maximum number of sets
+    if (setCount >= bestOf) break;
+    
     i = 0;
     const segmentDigits = segment;
     
@@ -83,8 +87,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       
       const maxScore = setTo + 1;
       
-      // Before adding any digit, check if it would exceed maxScore
-      if (val > maxScore) break;
+      // Block if exceeds setTo+1, UNLESS side1 >= setTo-1 (then allow setTo+1)
+      const s1Val = parseInt(side1);
+      if (val > setTo + 1) break;
       
       if (side2.length > 0) {
         if (side2.length >= 2) break;
@@ -108,7 +113,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     let s2 = parseInt(side2);
     
     // Coercion rule: If one side > setTo, the other must be >= setTo-1
-    // Otherwise, coerce the lower side to setTo to match other scoring dialog behavior
+    // Otherwise, coerce the LOWER side UP to setTo to match other scoring dialog behavior
     let wasCoerced = false;
     if (s1 > setTo && s2 < setTo - 1) {
       s2 = setTo;
@@ -151,8 +156,10 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       if (result) result += ' ';
       if (tb2) {
         result += `${side1}-${side2}(${tb1}-${tb2})`;
+        setCount++;
       } else if (tb1) {
         result += `${side1}-${side2}(${tb1})`;
+        setCount++;
       } else {
         result += `${side1}-${side2}(`;
       }
@@ -160,6 +167,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       // Regular set
       if (result) result += ' ';
       result += `${side1}-${side2}`;
+      setCount++;
       
       // If this set doesn't have a winner, stop parsing
       // Don't continue to next iteration in the while loop

@@ -103,9 +103,17 @@ const testCases: TestCase[] = [
   
   // Invalid score - side2 > setTo but side1 < setTo-1
   {
-    name: 'should coerce side1 to setTo when side2 > setTo and side1 < setTo-1',
+    name: 'should coerce side1 UP to setTo when side2 > setTo and side1 < setTo-1',
     keySequence: [3, 7],
     expectedScoreString: '6-7',
+    matchUpFormat: 'SET3-S:6',
+  },
+  
+  // Invalid score - side2 exceeds setTo+1, should coerce side1 UP to setTo
+  {
+    name: 'should coerce side1 UP to setTo when side2 > setTo+1',
+    keySequence: [3, 9],
+    expectedScoreString: '6-9',
     matchUpFormat: 'SET3-S:6',
   },
 ];
