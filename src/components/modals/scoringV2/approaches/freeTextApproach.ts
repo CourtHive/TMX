@@ -147,6 +147,12 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
             validationMessage.textContent = 'Score cleared - format changed';
             validationMessage.style.color = '#999';
           }
+        },
+        config: {
+          style: {
+            border: '3px solid #0066cc',
+            borderRadius: '8px'
+          }
         }
       } as any);
     });

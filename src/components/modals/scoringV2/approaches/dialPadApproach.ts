@@ -76,6 +76,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
               container.innerHTML = '';
               renderDialPadScoreEntry({ matchUp, container, onScoreChange });
             }
+          },
+          config: {
+            style: {
+              border: '3px solid #0066cc',
+              borderRadius: '8px'
+            }
           }
         } as any);
       });
