@@ -258,28 +258,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         }
       }
 
-      console.log('[DialPad] updateDisplay - scoreString:', scoreString);
-      console.log('[DialPad] selectedOutcome:', selectedOutcome);
-      console.log('[DialPad] selectedWinner:', selectedWinner);
-      console.log('[DialPad] validation.isValid:', validation.isValid);
-      console.log('[DialPad] validation.winningSide:', validation.winningSide);
-      console.log('[DialPad] validation.matchUpStatus:', validation.matchUpStatus);
-
       // Update matchUp display with validation result
       updateMatchUpDisplay(validation);
 
       onScoreChange(validation);
 
+      // Update button states
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
       if (clearBtn) clearBtn.disabled = state.digits.length === 0 && selectedOutcome === 'COMPLETED';
+
+      // Enable/disable RET and DEF buttons based on score presence
+      updateIrregularButtonStates();
     };
 
     // Handle digit press
     const handleDigitPress = (digit: number | string) => {
-      console.log('[DialPad] Key pressed:', digit, 'Current digits:', JSON.stringify(state.digits));
-
       const currentScoreString = formatScore(state.digits);
-      console.log('[DialPad] Current score:', JSON.stringify(currentScoreString));
 
       // Check if we're in an incomplete tiebreak (regular set tiebreak) OR
       // if we're still building a tiebreak-only set score
@@ -305,7 +299,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
-          console.log('[DialPad] Blocking input - match complete and not in tiebreak', { inTiebreak, buildingTiebreakSet, digits: state.digits });
           return;
         }
 
@@ -352,12 +345,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Expose reset function for Clear button
     (window as any).resetDialPad = resetDialPad;
 
+    // Function to update RET/DEF button states
+    const updateIrregularButtonStates = () => {
+      const retButton = dialPadContainer.querySelector('[data-button="retired"]') as HTMLButtonElement;
+      const defButton = dialPadContainer.querySelector('[data-button="defaulted"]') as HTMLButtonElement;
+      
+      const hasScore = state.digits.length > 0;
+      if (retButton) retButton.disabled = !hasScore;
+      if (defButton) defButton.disabled = !hasScore;
+    };
+
     // Create dial pad buttons (4x3 grid)
     const buttons = [
       { label: '1', value: 1 },
       { label: '2', value: 2 },
       { label: '3', value: 3 },
-      { label: 'RET', value: 'retired', isSpecial: true },
+      { label: 'RET', value: 'retired', isSpecial: true, requiresScore: true },
       { label: '4', value: 4 },
       { label: '5', value: 5 },
       { label: '6', value: 6 },
@@ -365,7 +368,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       { label: '7', value: 7 },
       { label: '8', value: 8 },
       { label: '9', value: 9 },
-      { label: 'DEF', value: 'defaulted', isSpecial: true },
+      { label: 'DEF', value: 'defaulted', isSpecial: true, requiresScore: true },
       { label: '⌫', value: 'delete', isSpecial: true },
       { label: '0', value: 0 },
       { label: '-', value: 'minus', isSpecial: true },
@@ -395,10 +398,20 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         button.style.fontSize = '1.3em';
       }
 
+      // Add data attribute for button type (for state management)
+      if (btn.value === 'retired' || btn.value === 'defaulted') {
+        button.setAttribute('data-button', btn.value);
+      }
+
       // Disable and hide empty button
       if (btn.disabled) {
         button.disabled = true;
         button.style.visibility = 'hidden';
+      }
+
+      // Initially disable RET/DEF buttons (no score yet)
+      if (btn.requiresScore) {
+        button.disabled = true;
       }
 
       button.onclick = () => {
