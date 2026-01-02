@@ -87,9 +87,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       
       const maxScore = setTo + 1;
       
-      // Block if exceeds setTo+1, UNLESS side1 >= setTo-1 (then allow setTo+1)
-      const s1Val = parseInt(side1);
-      if (val > setTo + 1) break;
+      // Allow up to setTo+3 temporarily for parsing, will coerce later if needed
+      // This allows [3,8] and [3,9] to be parsed, then coerced to [3,6]
+      if (val > setTo + 3) break;
       
       if (side2.length > 0) {
         if (side2.length >= 2) break;
@@ -112,14 +112,29 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     let s1 = parseInt(side1);
     let s2 = parseInt(side2);
     
-    // Coercion rule: If one side > setTo, the other must be >= setTo-1
-    // Otherwise, coerce the LOWER side UP to setTo to match other scoring dialog behavior
+    // Coercion rules to match other scoring dialog behavior:
+    // 1. If side > setTo+1: coerce that side DOWN to setTo
+    // 2. If side = setTo+1 but other side < setTo-1: coerce OTHER side UP to setTo
     let wasCoerced = false;
-    if (s1 > setTo && s2 < setTo - 1) {
+    
+    // First handle > setTo+1 (coerce the excessive side DOWN)
+    if (s1 > setTo + 1) {
+      s1 = setTo;
+      side1 = setTo.toString();
+      wasCoerced = true;
+    }
+    if (s2 > setTo + 1) {
       s2 = setTo;
       side2 = setTo.toString();
       wasCoerced = true;
-    } else if (s2 > setTo && s1 < setTo - 1) {
+    }
+    
+    // Then handle = setTo+1 with other side < setTo-1 (coerce other side UP)
+    if (s1 === setTo + 1 && s2 < setTo - 1) {
+      s2 = setTo;
+      side2 = setTo.toString();
+      wasCoerced = true;
+    } else if (s2 === setTo + 1 && s1 < setTo - 1) {
       s1 = setTo;
       side1 = setTo.toString();
       wasCoerced = true;
