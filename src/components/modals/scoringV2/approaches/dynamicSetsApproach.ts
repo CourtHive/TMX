@@ -134,6 +134,24 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     radio.addEventListener('change', (e) => {
       selectedOutcome = (e.target as HTMLInputElement).value as any;
       
+      // Clear all set inputs when WALKOVER is selected
+      if (selectedOutcome === 'WALKOVER') {
+        // Clear all set inputs
+        const allInputs = setsContainer.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+        allInputs.forEach(input => {
+          input.value = '';
+        });
+        
+        // Remove all set rows except the first one
+        const allSetRows = setsContainer.querySelectorAll('.set-row');
+        for (let i = allSetRows.length - 1; i > 0; i--) {
+          allSetRows[i].remove();
+        }
+        
+        // Reset currentSets
+        currentSets = [];
+      }
+      
       // Show winner selection when irregular ending selected
       winnerSelectionContainer.style.display = 'block';
       
@@ -543,10 +561,17 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const matchComplete = validation.isValid && validation.winningSide !== undefined;
 
       // Hide/show irregular ending based on validated match completion
-      // Don't hide irregular ending if validation doesn't have winningSide
-      if (matchComplete) {
+      // CRITICAL: Always show irregular ending if an irregular outcome is selected
+      // Otherwise hide it when match is complete
+      if (selectedOutcome !== 'COMPLETED') {
+        // Always show irregular ending when an irregular outcome is selected
+        irregularEndingContainer.style.display = 'block';
+        winnerSelectionContainer.style.display = 'block'; // Always show winner selection
+      } else if (matchComplete) {
+        // Hide irregular ending only when match is complete AND no irregular outcome selected
         irregularEndingContainer.style.display = 'none';
       } else {
+        // Show irregular ending when match incomplete
         irregularEndingContainer.style.display = 'block';
       }
 
