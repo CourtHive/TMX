@@ -102,11 +102,6 @@ export function validateScore(
       scoreStringSide1,
       scoreStringSide2,
     };
-    
-    // Debug: log what we parsed
-    console.log('[validateScore] Input:', scoreString);
-    console.log('[validateScore] Parsed sets:', JSON.stringify(sets, null, 2));
-    console.log('[validateScore] ScoreObject:', JSON.stringify(scoreObject, null, 2));
 
     // POST-VALIDATION: Remove winningSide from sets that don't pass validation
     // The factory's generateOutcomeFromScoreString doesn't validate against matchUpFormat
