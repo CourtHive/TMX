@@ -350,9 +350,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const retButton = dialPadContainer.querySelector('[data-button="retired"]') as HTMLButtonElement;
       const defButton = dialPadContainer.querySelector('[data-button="defaulted"]') as HTMLButtonElement;
       
-      const hasScore = state.digits.length > 0;
-      if (retButton) retButton.disabled = !hasScore;
-      if (defButton) defButton.disabled = !hasScore;
+      // Check if there's a renderable score (at least one set with both sides)
+      const scoreString = formatScore(state.digits);
+      const validation = validateScore(scoreString, matchUp.matchUpFormat);
+      
+      // Enable RET/DEF only if there's a scoreObject with sets that can be rendered
+      const hasRenderableScore = validation.scoreObject && validation.scoreObject.sets && validation.scoreObject.sets.length > 0;
+      
+      if (retButton) retButton.disabled = !hasRenderableScore;
+      if (defButton) defButton.disabled = !hasRenderableScore;
     };
 
     // Create dial pad buttons (4x3 grid)
