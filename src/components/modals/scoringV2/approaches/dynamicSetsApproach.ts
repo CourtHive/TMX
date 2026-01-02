@@ -81,10 +81,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             }
           }
         },
-        config: {
+        modalConfig: {
           style: {
+            fontSize: '12px', // Smaller base font size for TMX
             border: '3px solid #0066cc',
-            borderRadius: '8px'
           }
         }
       } as any);

@@ -158,10 +158,10 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
             validationMessage.style.color = '#999';
           }
         },
-        config: {
+        modalConfig: {
           style: {
+            fontSize: '12px', // Smaller base font size for TMX
             border: '3px solid #0066cc',
-            borderRadius: '8px'
           }
         }
       } as any);

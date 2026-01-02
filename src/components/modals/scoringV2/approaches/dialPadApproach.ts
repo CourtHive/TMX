@@ -100,7 +100,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           },
           modalConfig: {
             style: {
-              fontSize: '13px', // Smaller font size for TMX
+              fontSize: '12px', // Smaller base font size for TMX
               border: '3px solid #0066cc',
             },
           },
