@@ -520,6 +520,12 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
     buttons,
     config: {
       maxWidth: 480,
+      style: {
+        backgroundColor: '#f8f9fa',
+        border: '3px solid #0066cc',
+        borderRadius: '8px',
+        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
+      }
     }
   } as any);
 }
