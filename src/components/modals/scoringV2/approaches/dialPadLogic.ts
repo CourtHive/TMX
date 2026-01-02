@@ -225,9 +225,16 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
           result += `${side1}-${side2}(`;
         }
       } else {
-        // Regular set
+        // Regular set (or tiebreak-only set)
         if (result) result += ' ';
-        result += `${side1}-${side2}`;
+        
+        // For tiebreak-only formats, wrap the score in brackets [11-13]
+        // This tells the factory it's a tiebreak set, not a regular set
+        if (isTiebreakOnlyFormat) {
+          result += `[${side1}-${side2}]`;
+        } else {
+          result += `${side1}-${side2}`;
+        }
         setCount++;
 
         // If this set doesn't have a winner, stop parsing
