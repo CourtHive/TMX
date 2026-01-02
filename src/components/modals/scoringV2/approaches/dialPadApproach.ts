@@ -350,21 +350,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const retButton = dialPadContainer.querySelector('[data-button="retired"]') as HTMLButtonElement;
       const defButton = dialPadContainer.querySelector('[data-button="defaulted"]') as HTMLButtonElement;
       
-      // Check if there's a renderable score (at least one set with both sides having values)
+      // Check if the formatted score string has both sides (contains a minus separating them)
       const scoreString = formatScore(state.digits);
-      const validation = validateScore(scoreString, matchUp.matchUpFormat);
       
-      // Enable RET/DEF only if there's at least one set where BOTH sides have a score or tiebreak score
-      let hasRenderableScore = false;
-      if (validation.scoreObject?.sets && validation.scoreObject.sets.length > 0) {
-        hasRenderableScore = validation.scoreObject.sets.some((set: any) => {
-          const side1HasValue = (set.side1Score !== undefined && set.side1Score !== null) || 
-                                (set.side1TiebreakScore !== undefined && set.side1TiebreakScore !== null);
-          const side2HasValue = (set.side2Score !== undefined && set.side2Score !== null) || 
-                                (set.side2TiebreakScore !== undefined && set.side2TiebreakScore !== null);
-          return side1HasValue && side2HasValue;
-        });
-      }
+      // A renderable score must have at least one complete set with both sides
+      // This means the scoreString should contain a '-' (separator between sides)
+      // Examples: '3-6', '11-13', '6-3 4-2' all have '-'
+      // But '3', '11', '6' do not
+      const hasRenderableScore = scoreString.includes('-') && scoreString.length > 2; // At least 'X-Y'
       
       if (retButton) retButton.disabled = !hasRenderableScore;
       if (defButton) defButton.disabled = !hasRenderableScore;
