@@ -25,9 +25,24 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const { bestOf } = formatInfo;
   const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
   
+  // Helper function to get format for a specific set index
+  const getSetFormat = (setIndex: number) => {
+    const isDecidingSet = bestOf === 1 || (setIndex + 1) === bestOf;
+    
+    // Use finalSetFormat for deciding set if it exists
+    if (isDecidingSet && parsedFormat?.finalSetFormat) {
+      return parsedFormat.finalSetFormat;
+    }
+    
+    return parsedFormat?.setFormat;
+  };
+  
+  // Get initial format for display (set 0)
+  const initialSetFormat = getSetFormat(0);
+  
   // For tiebreak-only sets (SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
-  const tiebreakSetTo = parsedFormat?.setFormat?.tiebreakSet?.tiebreakTo;
-  const regularSetTo = parsedFormat?.setFormat?.setTo;
+  const tiebreakSetTo = initialSetFormat?.tiebreakSet?.tiebreakTo;
+  const regularSetTo = initialSetFormat?.setTo;
   
   const setTo = tiebreakSetTo || regularSetTo || 6;
   const maxGameScore = setTo + 1; // e.g., 7 for standard sets, 11 for TB10
@@ -669,49 +684,56 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`
     ) as HTMLInputElement;
     
+    // Get format for this specific set
+    const setFormat = getSetFormat(setIndex);
+    const setTiebreakSetTo = setFormat?.tiebreakSet?.tiebreakTo;
+    const setRegularSetTo = setFormat?.setTo;
+    const setSetTo = setTiebreakSetTo || setRegularSetTo || 6;
+    const setMaxGameScore = setSetTo + 1;
+    
     if (!oppositeInput || !oppositeInput.value.trim()) {
       // No opposite value yet - allow up to maxGameScore
-      return maxGameScore;
+      return setMaxGameScore;
     }
     
     const oppositeValue = parseInt(oppositeInput.value) || 0;
     
     // For tiebreak-only sets (NoAD format like TB10), it's win-by-2
     // If one side is at setTo or above, other side can go up to oppositeValue + 2
-    if (tiebreakSetTo) {
+    if (setTiebreakSetTo) {
       // Win by 2 rule for tiebreak sets
       // If opposite is 11, this can be up to 13 (11+2)
       // If opposite is 10, this can be up to 12 (10+2)
-      if (oppositeValue >= setTo) {
+      if (oppositeValue >= setSetTo) {
         return oppositeValue + 2;
       }
       // If opposite is below setTo, allow up to maxGameScore
-      return maxGameScore;
+      return setMaxGameScore;
     }
     
     // Context-aware max calculation for regular sets
     // If opposite side < setTo-1, this side max = setTo (can't trigger tiebreak)
-    if (oppositeValue < setTo - 1) {
-      return setTo;
+    if (oppositeValue < setSetTo - 1) {
+      return setSetTo;
     }
     
     // If opposite side = setTo-1, this side max = setTo+1 (could win or lose tiebreak scenario)
-    if (oppositeValue === setTo - 1) {
-      return setTo + 1;
+    if (oppositeValue === setSetTo - 1) {
+      return setSetTo + 1;
     }
     
     // If opposite side = setTo, this side max = setTo+1 (could win normally or go to tiebreak)
-    if (oppositeValue === setTo) {
-      return setTo + 1;
+    if (oppositeValue === setSetTo) {
+      return setSetTo + 1;
     }
     
     // If opposite side = setTo+1, this side must be exactly setTo (tiebreak only)
-    if (oppositeValue === setTo + 1) {
-      return setTo;
+    if (oppositeValue === setSetTo + 1) {
+      return setSetTo;
     }
     
     // Default to maxGameScore
-    return maxGameScore;
+    return setMaxGameScore;
   };
 
   // Handle input changes
@@ -736,9 +758,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const setIndex = parseInt(input.dataset.setIndex || '0');
       const side = input.dataset.side || '1';
       
+      // Check if this specific set is a tiebreak-only set
+      const setFormat = getSetFormat(setIndex);
+      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+      
       // For tiebreak-only sets (TB10), allow continued input even after match shows complete
       // This lets users build the final score like 11-13
-      const isBuildingTiebreakSet = tiebreakSetTo && setIndex === 0;
+      const isBuildingTiebreakSet = setIsTiebreakOnly;
       
       if (!isBuildingTiebreakSet) {
         const maxAllowed = getMaxAllowedScore(setIndex, side);
@@ -764,7 +790,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       
       // For tiebreak-only sets (TB10), don't coerce the opposite input
       // Allow users to build scores like 33-35 without interference
-      if (!tiebreakSetTo) {
+      if (!setIsTiebreakOnly) {
         // Recalculate and potentially adjust opposite side's value (only for regular sets)
         const oppositeSide = side === '1' ? '2' : '1';
         const oppositeInput = setsContainer.querySelector(
