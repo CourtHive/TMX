@@ -65,6 +65,7 @@ const format: FormatConfig = {
 
 function getSetFormat(index?: number): any {
   const which = index ? 'finalSetFormat' : 'setFormat';
+  console.log('[getSetFormat] format[which]:', JSON.stringify(format[which]));
   const what = format[which].what;
   const setFormat: any = {};
   
