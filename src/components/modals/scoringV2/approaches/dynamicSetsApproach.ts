@@ -892,10 +892,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               // Only create next set if current set is complete and match not complete
               const currentSetComplete = isSetComplete(setIndex);
               
-              console.log('Tab from side 2:', { setIndex, currentSetComplete, currentSets: currentSets.length });
-              
               if (!currentSetComplete) {
-                console.log('Set not complete, not creating next set');
                 return;
               }
               
@@ -905,15 +902,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               const setsWon2 = currentSets.filter(s => s.winningSide === 2).length;
               const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
               
-              console.log('Match status:', { setsWon1, setsWon2, setsNeeded, matchComplete });
-              
               if (matchComplete) {
-                console.log('Match complete, not creating next set');
                 return; // Don't create next set if match complete
               }
               
               // Create next set
-              console.log('Creating next set:', setIndex + 1);
               const newSetRow = createSetRow(setIndex + 1);
               setsContainer.appendChild(newSetRow);
               
