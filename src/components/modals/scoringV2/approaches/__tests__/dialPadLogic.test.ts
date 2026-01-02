@@ -118,13 +118,28 @@ const testCases: TestCase[] = [
     expectedScoreString: '3-6',
     matchUpFormat: 'SET3-S:6',
   },
+  
+  // Minus key after side1 should be ignored (already advanced to side2)
+  {
+    name: 'should ignore minus after completing side1',
+    keySequence: [6, '-', 7],
+    expectedScoreString: '6-7',
+    matchUpFormat: 'SET3-S:6',
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
   testCases.forEach(testCase => {
     it(testCase.name, () => {
-      // Join keySequence, but preserve '-' as a character
-      const digits = testCase.keySequence.map(k => k.toString()).join('');
+      // Join keySequence - minus needs special handling
+      let digits = '';
+      for (const key of testCase.keySequence) {
+        if (key === '-') {
+          digits += '-';
+        } else {
+          digits += key.toString();
+        }
+      }
       
       const result = formatScoreString(digits, { matchUpFormat: testCase.matchUpFormat });
       expect(result).toBe(testCase.expectedScoreString);

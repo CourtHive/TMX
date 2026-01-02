@@ -217,8 +217,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
       
       // For minus, add separator
-      // If we're in a tiebreak (score ends with '('), keep the minus in the string
-      // Otherwise, add a space to force moving to next set
+      // Only add minus if we're actually in a tiebreak
+      // If already advanced to side2 or next set, ignore the minus
       if (digit === '-') {
         const currentScore = formatScore(state.digits);
         const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
@@ -227,7 +227,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           // In tiebreak - keep the minus as-is for parsing
           state.digits += '-';
         } else {
-          // Not in tiebreak - use space as set separator
+          // Check if last character is a digit that would make a complete side score
+          // If so, we've already advanced to side2, so ignore the minus
+          const lastChar = state.digits[state.digits.length - 1];
+          if (lastChar && lastChar >= '0' && lastChar <= '9') {
+            // Check if adding minus would change the score
+            const testDigits = state.digits + ' ';
+            const testScore = formatScore(testDigits);
+            if (testScore === currentScore) {
+              // Minus wouldn't change anything - we're already on side2, ignore it
+              return;
+            }
+          }
+          // Not in tiebreak and not already on side2 - use space as set separator
           state.digits += ' ';
         }
       } else {

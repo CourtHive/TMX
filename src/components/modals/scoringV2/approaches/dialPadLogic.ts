@@ -34,8 +34,33 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   let i = 0;
   let setCount = 0;
   
+  // Remove stray minus characters that aren't inside tiebreaks
+  // e.g., "6-7" (not in tiebreak) should become "67"
+  // but "67-3" (in tiebreak context) should stay as "67-3"
+  // Strategy: only remove minus if it's NOT preceded by a '(' somewhere earlier
+  let cleanedDigits = '';
+  let inPotentialTiebreak = false;
+  for (let idx = 0; idx < digits.length; idx++) {
+    const char = digits[idx];
+    if (char === '(') {
+      inPotentialTiebreak = true;
+      cleanedDigits += char;
+    } else if (char === ')') {
+      inPotentialTiebreak = false;
+      cleanedDigits += char;
+    } else if (char === '-') {
+      // Only keep minus if we're in a tiebreak
+      if (inPotentialTiebreak) {
+        cleanedDigits += char;
+      }
+      // Otherwise skip it (it's a stray minus after side1)
+    } else {
+      cleanedDigits += char;
+    }
+  }
+  
   // Split by spaces first (space = explicit separator from minus key)
-  const segments = digits.split(' ').filter(s => s.length > 0);
+  const segments = cleanedDigits.split(' ').filter(s => s.length > 0);
   
   for (const segment of segments) {
     // Stop if we've already reached the maximum number of sets
