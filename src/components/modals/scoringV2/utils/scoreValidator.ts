@@ -1,9 +1,8 @@
 /**
  * Score validation utilities using tournamentEngine
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { matchUpFormatCode, tournamentEngine } from 'tods-competition-factory';
 import { validateMatchUpScore, validateSetScore } from './validateMatchUpScore';
-import { parseMatchUpFormat } from './setExpansionLogic';
 import type { ScoreOutcome } from '../types';
 
 export type TidyScoreResult = {
@@ -219,7 +218,7 @@ export function validateSetScores(
   let isTiebreakOnlyFormat = false;
   if (matchUpFormat) {
     try {
-      const parsed = parseMatchUpFormat(matchUpFormat);
+      const parsed = matchUpFormatCode.parse(matchUpFormat);
       const tiebreakSetTo = parsed?.setFormat?.tiebreakSet?.tiebreakTo;
       const regularSetTo = parsed?.setFormat?.setTo;
       isTiebreakOnlyFormat = !!tiebreakSetTo && !regularSetTo;
