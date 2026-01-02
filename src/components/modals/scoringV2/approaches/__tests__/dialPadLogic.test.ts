@@ -64,7 +64,7 @@ const testCases: TestCase[] = [
   // Single tiebreak set
   {
     name: 'should handle TB10 format 12-10',
-    keySequence: [1, 2, 1, 0],
+    keySequence: [1, 2, '-', 1, 0],
     expectedScoreString: '12-10',
     matchUpFormat: MATCH_FORMATS.SET1_S_TB10,
   },

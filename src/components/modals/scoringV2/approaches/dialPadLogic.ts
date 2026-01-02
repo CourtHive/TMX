@@ -24,6 +24,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   // For tiebreak-only sets (e.g., SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
   const tiebreakSetTo = parsedFormat?.setFormat?.tiebreakSet?.tiebreakTo;
   const regularSetTo = parsedFormat?.setFormat?.setTo;
+  const isTiebreakOnlyFormat = !!tiebreakSetTo && !regularSetTo;
   
   const setTo = tiebreakSetTo || regularSetTo || 6;
   const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
@@ -70,8 +71,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       // For setTo=10+: need to allow 2-digit scores (10, 11, 12, etc.)
       const maxScore = setTo + 1;
       
-      // Before adding any digit, check if it would exceed maxScore
-      if (val > maxScore) break;
+      // For tiebreak-only formats (TB10), don't enforce maxScore
+      // User must use minus to separate scores
+      if (!isTiebreakOnlyFormat && val > maxScore) break;
       
       // If we already have a digit and adding another, stop at 2 digits
       if (side1.length > 0) {
@@ -84,7 +86,14 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       // After adding, check if we should stop
       // Stop after 1 digit unless it's 1 (could be 10+) OR maxScore >= 10
       const currentVal = parseInt(side1);
-      if (side1.length === 1 && currentVal !== 1 && maxScore < 10) break;
+      if (side1.length === 1 && currentVal !== 1 && maxScore < 10) {
+        // But don't stop if next character is a minus (user explicitly separating)
+        if (i < segmentDigits.length && segmentDigits[i] === '-') {
+          // Let the next iteration handle the minus
+          continue;
+        }
+        break;
+      }
     }
     
     // Parse side2
@@ -101,9 +110,10 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       
       const maxScore = setTo + 1;
       
+      // For tiebreak-only formats (TB10), don't enforce maxScore
       // Allow up to setTo+3 temporarily for parsing, will coerce later if needed
       // This allows [3,8] and [3,9] to be parsed, then coerced to [3,6]
-      if (val > setTo + 3) break;
+      if (!isTiebreakOnlyFormat && val > setTo + 3) break;
       
       if (side2.length > 0) {
         if (side2.length >= 2) break;
