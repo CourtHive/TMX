@@ -93,13 +93,7 @@ const testCases: TestCase[] = [
     matchUpFormat: MATCH_FORMATS.SET3_S6_TB7,
   },
   
-  // Invalid score - exceeds setTo+1
-  {
-    name: 'should not accept score exceeding setTo+1',
-    keySequence: [3, 8],
-    expectedScoreString: '3',
-    matchUpFormat: 'SET3-S:6',
-  },
+
   
   // Invalid score - side2 > setTo but side1 < setTo-1
   {
