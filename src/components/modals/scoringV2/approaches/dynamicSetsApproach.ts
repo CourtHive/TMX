@@ -514,8 +514,20 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       if (tiebreakScore !== undefined) {
         const loserScore = tiebreakScore;
         const tiebreakFormat = parsedFormat?.setFormat?.tiebreakFormat;
-        const isNoAd = tiebreakFormat?.tiebreakTo && tiebreakFormat.noAd;
-        const winnerScore = isNoAd ? loserScore + 1 : loserScore + 2;
+        const tiebreakTo = tiebreakFormat?.tiebreakTo || 7;
+        const isNoAd = tiebreakFormat?.noAd;
+        
+        // Calculate winner score based on tiebreak rules
+        // If loser score < tiebreakTo-1, winner must be exactly tiebreakTo
+        // Otherwise winner is loserScore + (isNoAd ? 1 : 2)
+        let winnerScore: number;
+        if (loserScore < tiebreakTo - 1) {
+          // Normal tiebreak win: winner reaches tiebreakTo first
+          winnerScore = tiebreakTo;
+        } else {
+          // Extended tiebreak: win by margin
+          winnerScore = isNoAd ? loserScore + 1 : loserScore + 2;
+        }
         
         if (side1Score > side2Score) {
           setData.side1TiebreakScore = winnerScore;
