@@ -126,6 +126,14 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-7',
     matchUpFormat: 'SET3-S:6',
   },
+  
+  // Minus key after tiebreak should close tiebreak and advance to next set
+  {
+    name: 'should close tiebreak and advance to next set with minus',
+    keySequence: [6, 7, 3, '-', 6, 3],
+    expectedScoreString: '6-7(3) 6-3',
+    matchUpFormat: 'SET3-S:6',
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
