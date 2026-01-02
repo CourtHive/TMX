@@ -729,10 +729,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           input.value = maxAllowed.toString();
         }
       } else {
-        // For TB10, allow any reasonable value while building the score
-        // Max 2 digits (up to 99)
-        if (input.value.length > 2) {
-          input.value = input.value.slice(0, 2);
+        // For TB10, allow extended tiebreak scores (up to 3 digits)
+        // Reasonable max is 999 (extremely long tiebreaks like 99-101 are possible)
+        if (input.value.length > 3) {
+          input.value = input.value.slice(0, 3);
         }
       }
     }
