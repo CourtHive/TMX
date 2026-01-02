@@ -234,6 +234,15 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
     };
 
+    // Reset function for Clear button
+    const resetDialPad = () => {
+      state.digits = '';
+      updateDisplay();
+    };
+
+    // Expose reset function for Clear button
+    (window as any).resetDialPad = resetDialPad;
+
     // Create dial pad buttons (4x3 grid)
     const buttons = [
       { label: '1', value: 1 },

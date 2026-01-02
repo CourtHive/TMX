@@ -91,13 +91,10 @@ export function scoringModalV2(params: ScoringModalParams): void {
               (window as any).resetDynamicSets();
             }
           } else if (approach === 'dialPad') {
-            // Reload dial pad approach
-            container.innerHTML = '';
-            renderDialPadScoreEntry({
-              matchUp,
-              container,
-              onScoreChange: handleScoreChange,
-            });
+            // Clear dial pad digits
+            if ((window as any).resetDialPad) {
+              (window as any).resetDialPad();
+            }
           }
         },
       },
