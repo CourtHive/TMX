@@ -25,8 +25,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const formatInfo = parseMatchUpFormat(matchUp.matchUpFormat || 'SET3-S:6/TB7');
   const { bestOf } = formatInfo;
   const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
-  const setTo = parsedFormat?.setFormat?.setTo || 6;
-  const maxGameScore = setTo + 1; // e.g., 7 for standard sets
+  
+  // For tiebreak-only sets (SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
+  const tiebreakSetTo = parsedFormat?.setFormat?.tiebreakSet?.tiebreakTo;
+  const regularSetTo = parsedFormat?.setFormat?.setTo;
+  const isTiebreakOnlyFormat = !!tiebreakSetTo && !regularSetTo;
+  
+  const setTo = tiebreakSetTo || regularSetTo || 6;
+  const maxGameScore = setTo + 1; // e.g., 7 for standard sets, 11 for TB10
 
   // MatchUp display container
   const matchUpContainer = document.createElement('div');

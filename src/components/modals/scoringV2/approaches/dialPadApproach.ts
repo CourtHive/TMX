@@ -316,7 +316,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       dialPadContainer.appendChild(button);
     });
 
-    // Keyboard support
+    // Keyboard support - attach to container, not window
+    // This prevents interference with other scoring modals
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key >= '0' && e.key <= '9') {
         e.preventDefault();
@@ -340,11 +341,16 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    // Attach listener to container with focus management
+    container.setAttribute('tabindex', '0');
+    container.addEventListener('keydown', handleKeyDown);
+    
+    // Auto-focus container so keyboard works immediately
+    setTimeout(() => container.focus(), 100);
 
     // Cleanup
     const cleanup = () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener('keydown', handleKeyDown);
     };
 
     (window as any).cleanupDialPad = cleanup;
