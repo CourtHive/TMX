@@ -82,7 +82,7 @@ export function scoringModalV2(params: ScoringModalParams): void {
       { 
         onClick: () => {
           cleanupCurrentApproach();
-          callback(currentOutcome);
+          // Cancel button should NOT call callback - just close modal
         },
         label: 'Cancel', 
         intent: 'none', 
