@@ -29,7 +29,6 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // For tiebreak-only sets (SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
   const tiebreakSetTo = parsedFormat?.setFormat?.tiebreakSet?.tiebreakTo;
   const regularSetTo = parsedFormat?.setFormat?.setTo;
-  const isTiebreakOnlyFormat = !!tiebreakSetTo && !regularSetTo;
   
   const setTo = tiebreakSetTo || regularSetTo || 6;
   const maxGameScore = setTo + 1; // e.g., 7 for standard sets, 11 for TB10
