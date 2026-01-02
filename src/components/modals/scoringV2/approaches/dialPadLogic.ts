@@ -104,8 +104,18 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       break;
     }
     
-    const s1 = parseInt(side1);
-    const s2 = parseInt(side2);
+    let s1 = parseInt(side1);
+    let s2 = parseInt(side2);
+    
+    // Coercion rule: If one side > setTo, the other must be >= setTo-1
+    // Otherwise, coerce the lower side to setTo to match other scoring dialog behavior
+    if (s1 > setTo && s2 < setTo - 1) {
+      s2 = setTo;
+      side2 = setTo.toString();
+    } else if (s2 > setTo && s1 < setTo - 1) {
+      s1 = setTo;
+      side1 = setTo.toString();
+    }
     
     // Check if this set is valid (has a winner)
     // A set must have at least 2-game margin and reach setTo

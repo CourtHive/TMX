@@ -100,6 +100,14 @@ const testCases: TestCase[] = [
     expectedScoreString: '3',
     matchUpFormat: 'SET3-S:6',
   },
+  
+  // Invalid score - side2 > setTo but side1 < setTo-1
+  {
+    name: 'should coerce side1 to setTo when side2 > setTo and side1 < setTo-1',
+    keySequence: [3, 7],
+    expectedScoreString: '6-7',
+    matchUpFormat: 'SET3-S:6',
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
