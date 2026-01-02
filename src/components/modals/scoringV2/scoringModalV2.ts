@@ -105,6 +105,7 @@ export function scoringModalV2(params: ScoringModalParams): void {
         disabled: true,
         onClick: () => {
           if (currentOutcome && currentOutcome.isValid) {
+            cleanupCurrentApproach();
             // Pass the full outcome to callback
             callback(currentOutcome);
           }
