@@ -192,9 +192,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const hasOpenTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
       
       // For tiebreak-only sets: check if we're still building the second score
-      // Look at raw digits: if ends with '-', we're still building side2
-      // Even if formatted score shows [11-1] (complete), we might want to add more digits (11-13)
-      const buildingTiebreakSet = currentScoreString.includes('[') && state.digits.endsWith('-');
+      // After user enters minus in a tiebreak-only set, allow unlimited digits for side2
+      // Check if there's a single minus in the raw digits (one set only) and we're in a tiebreak format
+      const hasMinus = state.digits.includes('-');
+      const minusCount = (state.digits.match(/-/g) || []).length;
+      const buildingTiebreakSet = currentScoreString.includes('[') && hasMinus && minusCount === 1;
       
       const inTiebreak = hasOpenTiebreak || buildingTiebreakSet;
 
@@ -209,6 +211,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
+          console.log('[DialPad] Blocking input - match complete and not in tiebreak', { inTiebreak, buildingTiebreakSet, digits: state.digits });
           return;
         }
 
