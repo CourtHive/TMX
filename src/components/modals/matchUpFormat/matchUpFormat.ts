@@ -514,24 +514,11 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   content.appendChild(finalSetConfig);
 
-  // Wrap content with styled border for visual differentiation when overlaid on scoring modal
-  // NOTE: Ideally this border would be on the modal container itself, but cModal from
-  // courthive-components doesn't expose a way to style the outer modal frame.
-  // Future enhancement: Add className or style props to cModal.open() config
-  const wrapper = document.createElement('div');
-  wrapper.style.backgroundColor = '#f8f9fa';
-  wrapper.style.border = '3px solid #0066cc';
-  wrapper.style.borderRadius = '8px';
-  wrapper.style.padding = '1em';
-  wrapper.style.boxShadow = '0 8px 16px rgba(0, 102, 204, 0.2)';
-  wrapper.appendChild(content);
-
   return openModal({ 
     title: 'Score format', 
-    content: wrapper, 
+    content: content, 
     buttons,
     config: {
-      padding: '0', // No padding since wrapper handles it
       maxWidth: 480,
     }
   } as any);
