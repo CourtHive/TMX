@@ -186,14 +186,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Since we can have unlimited tiebreak digits (e.g., 7(18-16)), we stay in tiebreak until minus/space is pressed
       const hasOpenTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
       const inTiebreak = hasOpenTiebreak;
-      console.log('[DialPad] In tiebreak?', inTiebreak, 'hasOpenTiebreak:', hasOpenTiebreak);
 
       // For minus, we'll add a minus character
       const testDigits = digit === '-' ? state.digits + '-' : state.digits + digit.toString();
-      console.log('[DialPad] Test digits:', JSON.stringify(testDigits));
 
       const testScoreString = formatScore(testDigits);
-      console.log('[DialPad] Test score:', JSON.stringify(testScoreString));
 
       if (currentScoreString) {
         const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
@@ -201,14 +198,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
-          console.log('[DialPad] Match complete - blocking input');
           return;
         }
 
         // Block input if formatter didn't accept the digit (incomplete set)
         // Exception: allow if we're in a tiebreak or the test score is different (was accepted)
         if (!inTiebreak && digit !== '-' && testScoreString === currentScoreString) {
-          console.log('[DialPad] Formatter rejected - blocking input');
           return;
         }
       }
@@ -216,13 +211,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // For minus, add separator
       // Minus is used to: 1) close tiebreaks, 2) separate side1 from side2 in TB sets, 3) separate sets
       if (digit === '-') {
-        console.log('[DialPad] Minus pressed - adding minus to digits');
         state.digits += '-';
       } else {
         state.digits += digit.toString();
       }
 
-      console.log('[DialPad] After adding - digits:', JSON.stringify(state.digits));
       updateDisplay();
     };
 
