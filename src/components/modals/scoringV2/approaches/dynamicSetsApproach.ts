@@ -412,50 +412,27 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     return setRow;
   };
 
-  // Function to check if a set is complete (both inputs have values AND it's a valid winning set)
+  // Function to check if a set is complete (both inputs have values and there's a winner)
   const isSetComplete = (setIndex: number): boolean => {
     const side1Input = setsContainer.querySelector(`input[data-set-index="${setIndex}"][data-side="1"]`) as HTMLInputElement;
     const side2Input = setsContainer.querySelector(`input[data-set-index="${setIndex}"][data-side="2"]`) as HTMLInputElement;
-    const tiebreakInput = setsContainer.querySelector(`input[data-set-index="${setIndex}"][data-type="tiebreak"]`) as HTMLInputElement;
     
     if (!side1Input || !side2Input) return false;
     
     const side1Value = side1Input.value.trim();
     const side2Value = side2Input.value.trim();
     
+    // Both sides must have values
     if (side1Value === '' || side2Value === '') return false;
     
     const side1Score = parseInt(side1Value) || 0;
     const side2Score = parseInt(side2Value) || 0;
-    const tiebreakScore = tiebreakInput?.value.trim() ? parseInt(tiebreakInput.value) : undefined;
     
-    // Build the set object
-    const setData: any = {
-      side1Score,
-      side2Score,
-    };
-    
-    // Add tiebreak scores if present
-    if (tiebreakScore !== undefined) {
-      const loserScore = tiebreakScore;
-      const tiebreakFormat = parsedFormat?.setFormat?.tiebreakFormat;
-      const isNoAd = tiebreakFormat?.tiebreakTo && tiebreakFormat.noAd;
-      const winnerScore = isNoAd ? loserScore + 1 : loserScore + 2;
-      
-      if (side1Score > side2Score) {
-        setData.side1TiebreakScore = winnerScore;
-        setData.side2TiebreakScore = loserScore;
-      } else {
-        setData.side1TiebreakScore = loserScore;
-        setData.side2TiebreakScore = winnerScore;
-      }
-    }
-    
-    // Use factory validation to check if set is valid
-    const isDecidingSet = currentSets.length === bestOf - 1;
-    const validation = validateSetScore(setData, matchUp.matchUpFormat, isDecidingSet, false);
-    
-    return validation.isValid;
+    // Scores can't be equal (tie is not complete)
+    // For user input purposes, we consider a set "complete" if both sides entered and not tied
+    // The factory validation will determine if it's a VALID score, but for tab navigation
+    // we just need to know if the user has finished entering this set
+    return side1Score !== side2Score;
   };
 
   // Function to update score from inputs
