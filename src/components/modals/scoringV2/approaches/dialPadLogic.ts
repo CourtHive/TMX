@@ -61,6 +61,15 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
           break;
         }
 
+        // For tiebreak-only formats (TB10), user MUST use minus to separate scores
+        // So keep consuming all digits until we hit a minus
+        if (isTiebreakOnlyFormat) {
+          side1 += nextDigit;
+          i++;
+          continue;
+        }
+
+        // For regular sets, enforce maxScore bounds
         const potentialValue = side1 + nextDigit;
         const val = Number.parseInt(potentialValue);
 
@@ -70,9 +79,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         // For setTo=10+: need to allow 2-digit scores (10, 11, 12, etc.)
         const maxScore = setTo + 1;
 
-        // For tiebreak-only formats (TB10), don't enforce maxScore
-        // User must use minus to separate scores
-        if (!isTiebreakOnlyFormat && val > maxScore) break;
+        if (val > maxScore) break;
 
         // If we already have a digit and adding another, stop at 2 digits
         if (side1.length > 0 && side1.length >= 2) {
@@ -104,15 +111,23 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
           break; // Don't consume yet - might be tiebreak separator
         }
 
+        // For tiebreak-only formats (TB10), user MUST use minus to separate scores
+        // So keep consuming all digits until we hit a minus
+        if (isTiebreakOnlyFormat) {
+          side2 += nextDigit;
+          i++;
+          continue;
+        }
+
+        // For regular sets, enforce maxScore bounds
         const potentialValue = side2 + nextDigit;
         const val = Number.parseInt(potentialValue);
 
         const maxScore = setTo + 1;
 
-        // For tiebreak-only formats (TB10), don't enforce maxScore
         // Allow up to setTo+3 temporarily for parsing, will coerce later if needed
         // This allows [3,8] and [3,9] to be parsed, then coerced to [3,6]
-        if (!isTiebreakOnlyFormat && val > setTo + 3) break;
+        if (val > setTo + 3) break;
 
         if (side2.length > 0 && side2.length >= 2) break;
 
