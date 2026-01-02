@@ -480,14 +480,32 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const side2Score = parseInt(side2Value) || 0;
       const tiebreakScore = tiebreakInput?.value.trim() ? parseInt(tiebreakInput.value) : undefined;
 
-      // Determine winner - ONLY if both sides have been entered
+      // Determine winner - ONLY if both sides have been entered AND it's a valid winning score
       // Don't assign winner to incomplete sets (e.g., 5-? where second side is empty)
+      // For tiebreak-only sets (TB10), don't assign winner until score reaches valid threshold
       let winningSide: number | undefined;
       if (side1Value !== '' && side2Value !== '') {
-        // Both sides entered - determine winner
-        if (side1Score > side2Score) winningSide = 1;
-        else if (side2Score > side1Score) winningSide = 2;
-        // If equal scores, winningSide stays undefined (tie - invalid but we store it)
+        // Both sides entered - determine winner based on score difference
+        // For TB10, need to reach setTo (10) and have win-by-2
+        if (tiebreakSetTo) {
+          // Tiebreak-only set - only assign winner if both conditions met:
+          // 1. Winning side >= setTo (10)
+          // 2. Win by at least 2
+          const maxScore = Math.max(side1Score, side2Score);
+          const minScore = Math.min(side1Score, side2Score);
+          const scoreDiff = maxScore - minScore;
+          
+          if (maxScore >= setTo && scoreDiff >= 2) {
+            if (side1Score > side2Score) winningSide = 1;
+            else if (side2Score > side1Score) winningSide = 2;
+          }
+          // Otherwise winningSide stays undefined (incomplete tiebreak set)
+        } else {
+          // Regular set - simple comparison
+          if (side1Score > side2Score) winningSide = 1;
+          else if (side2Score > side1Score) winningSide = 2;
+          // If equal scores, winningSide stays undefined (tie - invalid but we store it)
+        }
       }
 
       const setData: SetScore = {
@@ -550,9 +568,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // CRITICAL: Check if match is complete based on VALIDATION result, not raw currentSets
       // The validation may have stripped winningSide from invalid sets
       // So we need to check the validated outcome, not the raw input
+      // For tiebreak-only sets (TB10), the factory won't return winningSide until the score
+      // reaches the required threshold (e.g., 10-12 or 11-13), so 3-6 is incomplete
       const matchComplete = validation.isValid && validation.winningSide !== undefined;
 
       // Hide/show irregular ending based on validated match completion
+      // Don't hide irregular ending if validation doesn't have winningSide
       if (matchComplete) {
         irregularEndingContainer.style.display = 'none';
       } else {
