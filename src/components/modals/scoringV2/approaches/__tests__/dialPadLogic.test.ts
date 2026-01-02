@@ -137,6 +137,7 @@ const testCases: TestCase[] = [
 
 describe('Dial Pad Score Entry Logic', () => {
   testCases.forEach((testCase) => {
+    // eslint-disable-next-line sonarjs/assertions-in-tests
     it(testCase.name, () => {
       // Join keySequence - special characters need handling
       let digits = '';

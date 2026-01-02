@@ -68,15 +68,16 @@ function getSetFormat(index?: number): any {
   console.log('[getSetFormat] format[which]:', JSON.stringify(format[which]));
   const what = format[which].what;
   const setFormat: any = {};
-  
+
   // Only add setTo if it exists (not for tiebreak-only formats)
   if (format[which].setTo !== undefined) {
     setFormat.setTo = format[which].setTo;
   }
-  
+
   if (what === SETS && format[which].advantage === NOAD) setFormat.NoAD = true;
 
-  const hasTiebreak = what === SETS && (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked;
+  const hasTiebreak =
+    what === SETS && (document.getElementById(index ? 'finalSetTiebreak' : 'setTiebreak') as HTMLInputElement)?.checked;
   if (hasTiebreak) {
     setFormat.tiebreakAt = format[which].tiebreakAt;
     setFormat.tiebreakFormat = {
@@ -127,6 +128,7 @@ function generateMatchUpFormat(): string {
 }
 
 function setMatchUpFormatString(value?: string): void {
+  console.log({ value });
   const matchUpFormat = value || generateMatchUpFormat();
   const matchUpFormatString = document.getElementById('matchUpFormatString')!;
   matchUpFormatString.innerHTML = matchUpFormat;
@@ -299,13 +301,16 @@ const onClicks: Record<string, (_e: Event, index: number | undefined, opt: any) 
   },
 };
 
-export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callback }: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}): void {
+export function getMatchUpFormat({
+  existingMatchUpFormat = 'SET3-S:6/TB7',
+  callback,
+}: { existingMatchUpFormat?: string; callback?: (format: string) => void } = {}): void {
   selectedMatchUpFormat = existingMatchUpFormat;
   parsedMatchUpFormat = matchUpFormatCode.parse(selectedMatchUpFormat);
   const onSelect = () => {
     const specifiedFormat = generateMatchUpFormat();
     console.log('[matchUpFormat] onSelect - specifiedFormat:', specifiedFormat);
-    isFunction(callback) && callback && callback(specifiedFormat);
+    if (isFunction(callback)) callback?.(specifiedFormat);
   };
 
   let finalSetFormat: HTMLElement;
@@ -316,7 +321,7 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   const buttons = [
     {
-      onClick: () => callback && callback(''),
+      onClick: () => callback?.(''),
       label: 'Cancel',
       intent: 'none',
       close: true,
@@ -521,9 +526,9 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
 
   content.appendChild(finalSetConfig);
 
-  return openModal({ 
-    title: 'Score format', 
-    content: content, 
+  return openModal({
+    title: 'Score format',
+    content: content,
     buttons,
     config: {
       maxWidth: 480,
@@ -531,9 +536,9 @@ export function getMatchUpFormat({ existingMatchUpFormat = 'SET3-S:6/TB7', callb
         backgroundColor: '#f8f9fa',
         border: '3px solid #0066cc',
         borderRadius: '8px',
-        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)'
-      }
-    }
+        boxShadow: '0 8px 16px rgba(0, 102, 204, 0.2)',
+      },
+    },
   } as any);
 }
 

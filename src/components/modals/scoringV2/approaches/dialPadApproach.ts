@@ -28,7 +28,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
     const setTo = parsedFormat?.setFormat?.setTo || 6;
     const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
-    
+
     // Get scale attributes for participant ratings display
     const scaleAttributes = env.scales[env.activeScale];
 
@@ -52,12 +52,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       formatDisplay.style.display = 'flex';
       formatDisplay.style.alignItems = 'center';
       formatDisplay.style.gap = '0.5em';
-      
+
       const formatLabel = document.createElement('span');
       formatLabel.textContent = 'Format:';
       formatLabel.style.color = '#666';
       formatDisplay.appendChild(formatLabel);
-      
+
       const formatButton = document.createElement('button');
       formatButton.textContent = matchUp.matchUpFormat;
       formatButton.className = 'button';
@@ -66,7 +66,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       formatButton.style.cursor = 'pointer';
       formatButton.title = 'Click to edit format';
       formatButton.addEventListener('click', async () => {
-        const { getMatchUpFormat } = await import('components/modals/matchUpFormat/matchUpFormat');
+        const useExternal = import.meta.env.VITE_USE_EXTERNAL_MATCHUP_FORMAT === 'true';
+        const { getMatchUpFormat } = useExternal
+          ? await import('courthive-components')
+          : await import('components/modals/matchUpFormat/matchUpFormat');
         getMatchUpFormat({
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {
@@ -75,10 +78,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
               console.log('[DialPad] Format changed - re-rendering');
               matchUp.matchUpFormat = newFormat;
               formatButton.textContent = newFormat;
-              
+
               // Clear state
               state.digits = '';
-              
+
               container.innerHTML = '';
               renderDialPadScoreEntry({ matchUp, container, onScoreChange });
             } else {
@@ -88,9 +91,9 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           config: {
             style: {
               border: '3px solid #0066cc',
-              borderRadius: '8px'
-            }
-          }
+              borderRadius: '8px',
+            },
+          },
         } as any);
       });
       formatDisplay.appendChild(formatButton);
@@ -125,12 +128,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       return formatScoreString(digits, { matchUpFormat: matchUp.matchUpFormat || 'SET3-S:6/TB7' });
     };
 
-
     // Update matchUp display with current outcome
     const updateMatchUpDisplay = (outcome: ScoreOutcome | null) => {
       console.log('[DialPad] updateMatchUpDisplay called with outcome:', outcome);
       matchUpContainer.innerHTML = '';
-      
+
       const displayMatchUp = {
         ...matchUp,
         score: outcome?.scoreObject || matchUp.score,
@@ -141,7 +143,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       console.log('[DialPad] Rendering matchUp with:', {
         score: displayMatchUp.score,
         winningSide: displayMatchUp.winningSide,
-        matchUpStatus: displayMatchUp.matchUpStatus
+        matchUpStatus: displayMatchUp.matchUpStatus,
       });
 
       const matchUpElement = renderMatchUp({
@@ -156,7 +158,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           },
         },
       });
-      
+
       if (matchUpElement) {
         matchUpContainer.appendChild(matchUpElement);
         console.log('[DialPad] MatchUp element appended');
@@ -165,22 +167,20 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
     };
 
-
-
     // Update display
     const updateDisplay = () => {
       const scoreString = formatScore(state.digits);
       scoreDisplay.textContent = scoreString || '-';
-      
+
       // Use validateScore for proper validation (like freeText does)
       const validation = validateScore(scoreString, matchUp.matchUpFormat);
       console.log('[DialPad] Validation result:', validation);
-      
+
       // Update matchUp display with validation result
       updateMatchUpDisplay(validation);
-      
+
       onScoreChange(validation);
-      
+
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
       if (clearBtn) clearBtn.disabled = state.digits.length === 0;
     };
@@ -188,10 +188,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Handle digit press
     const handleDigitPress = (digit: number | string) => {
       console.log('[DialPad] Key pressed:', digit, 'Current digits:', JSON.stringify(state.digits));
-      
+
       const currentScoreString = formatScore(state.digits);
       console.log('[DialPad] Current score:', JSON.stringify(currentScoreString));
-      
+
       // Check if we're in an incomplete tiebreak
       // A tiebreak is incomplete if:
       // 1. The formatted score has '(' but no ')', OR
@@ -200,24 +200,24 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const hasOpenTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
       const inTiebreak = hasOpenTiebreak;
       console.log('[DialPad] In tiebreak?', inTiebreak, 'hasOpenTiebreak:', hasOpenTiebreak);
-      
+
       // For minus, we'll add a minus character
-      const testDigits = (digit === '-') ? state.digits + '-' : state.digits + digit.toString();
+      const testDigits = digit === '-' ? state.digits + '-' : state.digits + digit.toString();
       console.log('[DialPad] Test digits:', JSON.stringify(testDigits));
-      
+
       const testScoreString = formatScore(testDigits);
       console.log('[DialPad] Test score:', JSON.stringify(testScoreString));
-      
+
       if (currentScoreString) {
         const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
-        
+
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
           console.log('[DialPad] Match complete - blocking input');
           return;
         }
-        
+
         // Block input if formatter didn't accept the digit (incomplete set)
         // Exception: allow if we're in a tiebreak or the test score is different (was accepted)
         if (!inTiebreak && digit !== '-' && testScoreString === currentScoreString) {
@@ -225,7 +225,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           return;
         }
       }
-      
+
       // For minus, add separator
       // Minus is used to: 1) close tiebreaks, 2) separate side1 from side2 in TB sets, 3) separate sets
       if (digit === '-') {
@@ -234,7 +234,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       } else {
         state.digits += digit.toString();
       }
-      
+
       console.log('[DialPad] After adding - digits:', JSON.stringify(state.digits));
       updateDisplay();
     };
@@ -267,7 +267,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       { label: '', value: 'empty', isSpecial: true, disabled: true },
     ];
 
-    buttons.forEach(btn => {
+    buttons.forEach((btn) => {
       const button = document.createElement('button');
       button.className = 'button';
       button.textContent = btn.label;
@@ -276,7 +276,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         width: 100% !important;
         padding: 0.5em !important;
       `;
-      
+
       // Adjust font size for longer labels
       if (btn.label.length > 1 && !btn.isSpecial) {
         button.style.fontSize = '1.3em';
@@ -289,13 +289,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       } else {
         button.style.fontSize = '1.3em';
       }
-      
+
       // Disable and hide empty button
       if (btn.disabled) {
         button.disabled = true;
         button.style.visibility = 'hidden';
       }
-      
+
       button.onclick = () => {
         if (btn.value === 'delete') {
           handleDelete();
@@ -310,7 +310,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           handleDigitPress(btn.value as number);
         }
       };
-      
+
       dialPadContainer.appendChild(button);
     });
 
@@ -318,7 +318,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key >= '0' && e.key <= '9') {
         e.preventDefault();
-        handleDigitPress(parseInt(e.key));
+        handleDigitPress(Number.parseInt(e.key));
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         handleDelete();
@@ -339,12 +339,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    
+
     // Cleanup
     const cleanup = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-    
+
     (window as any).cleanupDialPad = cleanup;
 
     // Initial display

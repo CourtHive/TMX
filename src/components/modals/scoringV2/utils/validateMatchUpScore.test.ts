@@ -1,9 +1,9 @@
 /**
  * Test suite for validateMatchUpScore validation functions
- * 
+ *
  * These tests validate the scoring rules that will be migrated to tods-competition-factory
  * to provide proper matchUpFormat validation in generateOutcomeFromScoreString.
- * 
+ *
  * Tests cover various matchUpFormat variations from factory project:
  * - Standard formats (SET3-S:6/TB7, SET5-S:6/TB7)
  * - Short sets (SET3-S:4/TB7, SET3-S:4/TB5@3 - Fast4)
@@ -19,7 +19,7 @@ import { validateSetScore, validateMatchUpScore } from './validateMatchUpScore';
 
 describe('validateSetScore', () => {
   const standardFormat = 'SET3-S:6/TB7';
-  
+
   describe('Valid scores', () => {
     it('should accept 6-0 (one side reached setTo)', () => {
       const set = { side1Score: 6, side2Score: 0 };
@@ -166,7 +166,7 @@ describe('validateSetScore', () => {
 
   describe('Deciding set (SET5)', () => {
     const decidingFormat = 'SET5-S:6/TB7';
-    
+
     it('should accept valid deciding set score', () => {
       const set = { side1Score: 6, side2Score: 4 };
       const result = validateSetScore(set, decidingFormat, true);
@@ -184,7 +184,7 @@ describe('validateSetScore', () => {
   describe('Edge cases', () => {
     it('should handle missing matchUpFormat', () => {
       const set = { side1Score: 6, side2Score: 4 };
-      const result = validateSetScore(set, undefined);
+      const result = validateSetScore(set);
       // Should use defaults: setTo=6, tiebreakTo=7
       expect(result.isValid).toBe(true);
     });
@@ -205,7 +205,7 @@ describe('validateSetScore', () => {
 
 describe('validateMatchUpScore', () => {
   const bestOf3Format = 'SET3-S:6/TB7';
-  
+
   describe('Valid match scores - best of 3', () => {
     it('should accept 2-0 victory (6-0 6-0)', () => {
       const sets = [
@@ -238,9 +238,7 @@ describe('validateMatchUpScore', () => {
 
   describe('Invalid match scores - incomplete match', () => {
     it('should accept 1-0 without COMPLETED status (incomplete allowed)', () => {
-      const sets = [
-        { side1Score: 6, side2Score: 0, winningSide: 1 },
-      ];
+      const sets = [{ side1Score: 6, side2Score: 0, winningSide: 1 }];
       const result = validateMatchUpScore(sets, bestOf3Format); // No matchUpStatus
       // Without COMPLETED status, incomplete matches are accepted
       expect(result.isValid).toBe(true);
@@ -268,7 +266,7 @@ describe('validateMatchUpScore', () => {
 
   describe('Valid match scores - best of 5', () => {
     const bestOf5Format = 'SET5-S:6/TB7';
-    
+
     it('should accept 3-0 victory', () => {
       const sets = [
         { side1Score: 6, side2Score: 0, winningSide: 1 },
@@ -320,9 +318,7 @@ describe('validateMatchUpScore', () => {
     });
 
     it('should accept default with partial score', () => {
-      const sets = [
-        { side1Score: 6, side2Score: 0, winningSide: 1 },
-      ];
+      const sets = [{ side1Score: 6, side2Score: 0, winningSide: 1 }];
       const result = validateMatchUpScore(sets, bestOf3Format, 'DEFAULTED');
       expect(result.isValid).toBe(true);
     });
