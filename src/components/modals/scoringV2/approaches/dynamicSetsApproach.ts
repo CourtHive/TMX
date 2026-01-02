@@ -97,19 +97,19 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   let selectedWinner: number | undefined = undefined; // For irregular endings
   
   const irregularEndingContainer = document.createElement('div');
-  irregularEndingContainer.style.marginBottom = '1em';
+  irregularEndingContainer.style.marginBottom = '0.8em';
   
   const irregularLabel = document.createElement('div');
   irregularLabel.textContent = 'Irregular Ending:';
-  irregularLabel.style.fontSize = '0.9em';
+  irregularLabel.style.fontSize = '0.75em';
   irregularLabel.style.fontWeight = '500';
-  irregularLabel.style.marginBottom = '0.5em';
+  irregularLabel.style.marginBottom = '0.3em';
   irregularLabel.style.color = '#444';
   irregularEndingContainer.appendChild(irregularLabel);
   
   const outcomeOptions = document.createElement('div');
   outcomeOptions.style.display = 'flex';
-  outcomeOptions.style.gap = '1em';
+  outcomeOptions.style.gap = '0.5em';
   outcomeOptions.style.flexWrap = 'wrap';
   
   // Only irregular endings - Completed is the default
@@ -147,7 +147,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     
     const labelText = document.createElement('span');
     labelText.textContent = outcome.label;
-    labelText.style.fontSize = '0.9em';
+    labelText.style.fontSize = '0.75em';
     
     radioLabel.appendChild(radio);
     radioLabel.appendChild(labelText);
@@ -158,7 +158,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const clearOutcomeBtn = document.createElement('button');
   clearOutcomeBtn.textContent = 'Clear';
   clearOutcomeBtn.className = 'button';
-  clearOutcomeBtn.style.fontSize = '0.85em';
+  clearOutcomeBtn.style.fontSize = '0.7em';
   clearOutcomeBtn.style.padding = '0.2em 0.5em';
   clearOutcomeBtn.addEventListener('click', () => {
     // Uncheck all radio buttons
@@ -188,21 +188,21 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Winner selection for irregular endings
   const winnerSelectionContainer = document.createElement('div');
   winnerSelectionContainer.style.display = 'none'; // Hidden by default
-  winnerSelectionContainer.style.marginTop = '0.5em';
+  winnerSelectionContainer.style.marginTop = '0.3em';
   winnerSelectionContainer.style.paddingLeft = '1em';
   winnerSelectionContainer.style.borderLeft = '3px solid #ffeb3b';
   
   const winnerLabel = document.createElement('div');
   winnerLabel.textContent = 'Winner:';
-  winnerLabel.style.fontSize = '0.9em';
+  winnerLabel.style.fontSize = '0.75em';
   winnerLabel.style.fontWeight = '500';
-  winnerLabel.style.marginBottom = '0.3em';
+  winnerLabel.style.marginBottom = '0.2em';
   winnerLabel.style.color = '#444';
   winnerSelectionContainer.appendChild(winnerLabel);
   
   const winnerOptions = document.createElement('div');
   winnerOptions.style.display = 'flex';
-  winnerOptions.style.gap = '1em';
+  winnerOptions.style.gap = '0.5em';
   
   const side1 = matchUp.sides?.[0];
   const side2 = matchUp.sides?.[1];
@@ -230,7 +230,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const winnerText = document.createElement('span');
     const side = sideNum === 1 ? side1 : side2;
     winnerText.textContent = side?.participant?.participantName || `Side ${sideNum}`;
-    winnerText.style.fontSize = '0.9em';
+    winnerText.style.fontSize = '0.75em';
     
     winnerRadioLabel.appendChild(winnerRadio);
     winnerRadioLabel.appendChild(winnerText);
