@@ -733,6 +733,12 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       expect(result.isValid).toBe(true);
     });
 
+    it('should accept 20-22 (long TB7)', () => {
+      const set = { side1Score: 20, side2Score: 22 };
+      const result = validateSetScore(set, tb7Format);
+      expect(result.isValid).toBe(true);
+    });
+
     it('should reject 5-7 (loser below setTo-1=6)', () => {
       const set = { side1Score: 5, side2Score: 7 };
       const result = validateSetScore(set, tb7Format);
@@ -745,6 +751,169 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       const result = validateSetScore(set, tb7Format);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('won by exactly 2 points');
+    });
+
+    it('should reject 3-5 (winner below setTo=7)', () => {
+      const set = { side1Score: 3, side2Score: 5 };
+      const result = validateSetScore(set, tb7Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('must reach at least 7');
+    });
+  });
+
+  describe('TB12 format (first to 12)', () => {
+    const tb12Format = 'SET1-S:TB12';
+
+    it('should accept 12-14 (minimum valid TB12)', () => {
+      const set = { side1Score: 12, side2Score: 14 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 13-15 (extended TB12)', () => {
+      const set = { side1Score: 13, side2Score: 15 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 11-13 (loser at setTo-1=11)', () => {
+      const set = { side1Score: 11, side2Score: 13 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 40-42 (very long TB12)', () => {
+      const set = { side1Score: 40, side2Score: 42 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject 10-12 (loser below setTo-1=11)', () => {
+      const set = { side1Score: 10, side2Score: 12 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('loser must be at least 11');
+    });
+
+    it('should reject 12-13 (only 1 point margin)', () => {
+      const set = { side1Score: 12, side2Score: 13 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('won by exactly 2 points');
+    });
+
+    it('should reject 11-11 (tied)', () => {
+      const set = { side1Score: 11, side2Score: 11 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(false);
+      // Error mentions winner threshold since winnerScore=11 < setTo=12
+      expect(result.error).toContain('must reach at least 12');
+    });
+
+    it('should reject 5-10 (winner below setTo=12)', () => {
+      const set = { side1Score: 5, side2Score: 10 };
+      const result = validateSetScore(set, tb12Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('must reach at least 12');
+    });
+  });
+
+  describe('TB20 format (first to 20)', () => {
+    const tb20Format = 'SET1-S:TB20';
+
+    it('should accept 20-22 (minimum valid TB20)', () => {
+      const set = { side1Score: 20, side2Score: 22 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 21-23 (extended TB20)', () => {
+      const set = { side1Score: 21, side2Score: 23 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 19-21 (loser at setTo-1=19)', () => {
+      const set = { side1Score: 19, side2Score: 21 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 50-52 (very long TB20)', () => {
+      const set = { side1Score: 50, side2Score: 52 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject 18-20 (loser below setTo-1=19)', () => {
+      const set = { side1Score: 18, side2Score: 20 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('loser must be at least 19');
+    });
+
+    it('should reject 20-21 (only 1 point margin)', () => {
+      const set = { side1Score: 20, side2Score: 21 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('won by exactly 2 points');
+    });
+
+    it('should reject 10-15 (winner below setTo=20)', () => {
+      const set = { side1Score: 10, side2Score: 15 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('must reach at least 20');
+    });
+
+    it('should reject 50-10 (loser way below threshold)', () => {
+      const set = { side1Score: 50, side2Score: 10 };
+      const result = validateSetScore(set, tb20Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('loser must be at least 19');
+    });
+  });
+
+  describe('TB5 format (first to 5 - Fast4 match tiebreak)', () => {
+    const tb5Format = 'SET1-S:TB5';
+
+    it('should accept 5-7 (minimum valid TB5)', () => {
+      const set = { side1Score: 5, side2Score: 7 };
+      const result = validateSetScore(set, tb5Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 6-8 (extended TB5)', () => {
+      const set = { side1Score: 6, side2Score: 8 };
+      const result = validateSetScore(set, tb5Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept 4-6 (loser at setTo-1=4)', () => {
+      const set = { side1Score: 4, side2Score: 6 };
+      const result = validateSetScore(set, tb5Format);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject 3-5 (loser below setTo-1=4)', () => {
+      const set = { side1Score: 3, side2Score: 5 };
+      const result = validateSetScore(set, tb5Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('loser must be at least 4');
+    });
+
+    it('should reject 5-6 (only 1 point margin)', () => {
+      const set = { side1Score: 5, side2Score: 6 };
+      const result = validateSetScore(set, tb5Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('won by exactly 2 points');
+    });
+
+    it('should reject 2-4 (winner below setTo=5)', () => {
+      const set = { side1Score: 2, side2Score: 4 };
+      const result = validateSetScore(set, tb5Format);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('must reach at least 5');
     });
   });
 });
