@@ -163,9 +163,14 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     const hasWinner = maxScore >= setTo && scoreDiff >= 2;
     
     // Check for tiebreak - but NOT if score was coerced (coerced scores don't need tiebreaks)
-    const needsTiebreak = !wasCoerced && ((s1 === tiebreakAt && s2 === tiebreakAt) ||
-                         (s1 === tiebreakAt + 1 && s2 === tiebreakAt) ||
-                         (s2 === tiebreakAt + 1 && s1 === tiebreakAt));
+    // Also, only trigger tiebreak if:
+    // 1. Scores are tied (6-6), OR
+    // 2. Scores are 6-7/7-6 AND there are remaining digits (indicating tiebreak scores)
+    const remainingDigitsExist = i < segmentDigits.length;
+    const scoresTied = s1 === tiebreakAt && s2 === tiebreakAt;
+    const scoresOneApart = (s1 === tiebreakAt + 1 && s2 === tiebreakAt) || 
+                           (s2 === tiebreakAt + 1 && s1 === tiebreakAt);
+    const needsTiebreak = !wasCoerced && (scoresTied || (scoresOneApart && remainingDigitsExist));
     
     if (needsTiebreak) {
       // Parse tiebreak scores - look for explicit separator in remaining digits
