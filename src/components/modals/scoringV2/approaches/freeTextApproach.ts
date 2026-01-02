@@ -165,6 +165,9 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
           }
         }
       } as any);
+      } catch (error) {
+        console.error('[FreeText] Error opening format selector:', error);
+      }
     });
     formatInfo.appendChild(formatButton);
     

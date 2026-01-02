@@ -88,6 +88,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           }
         }
       } as any);
+      } catch (error) {
+        console.error('[DynamicSets] Error opening format selector:', error);
+      }
     });
     formatDisplay.appendChild(formatButton);
     
