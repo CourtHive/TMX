@@ -701,11 +701,24 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // Game scores limited based on opposite side's value
       const setIndex = parseInt(input.dataset.setIndex || '0');
       const side = input.dataset.side || '1';
-      const maxAllowed = getMaxAllowedScore(setIndex, side);
-      const numValue = parseInt(input.value) || 0;
       
-      if (numValue > maxAllowed) {
-        input.value = maxAllowed.toString();
+      // For tiebreak-only sets (TB10), allow continued input even after match shows complete
+      // This lets users build the final score like 11-13
+      const isBuildingTiebreakSet = tiebreakSetTo && setIndex === 0;
+      
+      if (!isBuildingTiebreakSet) {
+        const maxAllowed = getMaxAllowedScore(setIndex, side);
+        const numValue = parseInt(input.value) || 0;
+        
+        if (numValue > maxAllowed) {
+          input.value = maxAllowed.toString();
+        }
+      } else {
+        // For TB10, allow any reasonable value while building the score
+        // Max 2 digits (up to 99)
+        if (input.value.length > 2) {
+          input.value = input.value.slice(0, 2);
+        }
       }
     }
 

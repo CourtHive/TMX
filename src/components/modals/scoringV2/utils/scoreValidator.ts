@@ -214,13 +214,31 @@ export function validateSetScores(
   
   // Actually, the caller should handle this - don't pass incomplete sets to validation
   
+  // Parse matchUpFormat to check if this is a tiebreak-only format (like SET1-S:TB10)
+  let isTiebreakOnlyFormat = false;
+  if (matchUpFormat) {
+    try {
+      const parsed = parseMatchUpFormat(matchUpFormat);
+      const tiebreakSetTo = parsed?.setFormat?.tiebreakSet?.tiebreakTo;
+      const regularSetTo = parsed?.setFormat?.setTo;
+      isTiebreakOnlyFormat = !!tiebreakSetTo && !regularSetTo;
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+  
   // Convert to score string format: "6-3 3-6 6-4" or "7-6(5) 6-4"
+  // For tiebreak-only sets (TB10), wrap in brackets: "[11-13]"
   const scoreString = sets.map((set) => {
     let setStr = `${set.side1}-${set.side2}`;
     // Add tiebreak if present
     if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
       const tbLoser = Math.min(set.side1TiebreakScore || 0, set.side2TiebreakScore || 0);
       setStr += `(${tbLoser})`;
+    }
+    // Wrap in brackets if tiebreak-only format
+    if (isTiebreakOnlyFormat) {
+      setStr = `[${setStr}]`;
     }
     return setStr;
   }).join(' ');
