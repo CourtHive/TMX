@@ -179,7 +179,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Handle digit press
     const handleDigitPress = (digit: number | string) => {
-      // Check if match is already complete using validation
+      // Try adding the digit first to see what the new score would be
+      const testDigits = digit === '-' ? state.digits + (formatScore(state.digits).includes('(') && !formatScore(state.digits).includes(')') ? '-' : ' ') : state.digits + digit.toString();
+      const testScoreString = formatScore(testDigits);
+      
+      console.log('[DialPad] Test score string:', testScoreString);
+      
+      // Check if the test score is longer than current score
+      // If not, it means the formatter rejected the new digit (incomplete set)
       const currentScoreString = formatScore(state.digits);
       console.log('[DialPad] Current score string:', currentScoreString);
       
@@ -198,6 +205,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
           console.log('[DialPad] Match already complete - blocking input');
+          return;
+        }
+        
+        // Block input if formatter didn't accept the digit (incomplete set)
+        // Exception: allow if we're in a tiebreak or the test score is different (was accepted)
+        if (!inTiebreak && digit !== '-' && testScoreString === currentScoreString) {
+          console.log('[DialPad] Formatter rejected digit - incomplete set, blocking input');
           return;
         }
       }
