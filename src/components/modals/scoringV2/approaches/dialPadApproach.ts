@@ -111,6 +111,80 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     scoreDisplay.textContent = '-';
     container.appendChild(scoreDisplay);
 
+    // Irregular ending section
+    let selectedOutcome: 'COMPLETED' | 'RETIRED' | 'WALKOVER' | 'DEFAULTED' = 'COMPLETED';
+    let selectedWinner: number | undefined = undefined;
+
+    const irregularEndingContainer = document.createElement('div');
+    irregularEndingContainer.style.display = 'none'; // Hidden by default
+    irregularEndingContainer.style.marginBottom = '1em';
+    irregularEndingContainer.style.padding = '1em';
+    irregularEndingContainer.style.backgroundColor = '#fff3cd';
+    irregularEndingContainer.style.border = '2px solid #ffc107';
+    irregularEndingContainer.style.borderRadius = '4px';
+
+    const irregularLabel = document.createElement('div');
+    irregularLabel.textContent = 'Irregular Ending:';
+    irregularLabel.style.fontSize = '0.95em';
+    irregularLabel.style.fontWeight = '600';
+    irregularLabel.style.marginBottom = '0.5em';
+    irregularLabel.style.color = '#856404';
+    irregularEndingContainer.appendChild(irregularLabel);
+
+    // Winner selection for irregular endings
+    const winnerSelectionContainer = document.createElement('div');
+    winnerSelectionContainer.style.marginTop = '0.5em';
+
+    const winnerLabel = document.createElement('div');
+    winnerLabel.textContent = 'Winner:';
+    winnerLabel.style.fontSize = '0.9em';
+    winnerLabel.style.fontWeight = '500';
+    winnerLabel.style.marginBottom = '0.3em';
+    winnerLabel.style.color = '#856404';
+    winnerSelectionContainer.appendChild(winnerLabel);
+
+    const winnerOptions = document.createElement('div');
+    winnerOptions.style.display = 'flex';
+    winnerOptions.style.gap = '1em';
+    winnerOptions.style.flexWrap = 'wrap';
+
+    // Get participant info
+    const side1 = matchUp.sides?.[0];
+    const side2 = matchUp.sides?.[1];
+
+    [1, 2].forEach((sideNum) => {
+      const winnerRadioLabel = document.createElement('label');
+      winnerRadioLabel.style.display = 'flex';
+      winnerRadioLabel.style.alignItems = 'center';
+      winnerRadioLabel.style.gap = '0.3em';
+      winnerRadioLabel.style.cursor = 'pointer';
+
+      const winnerRadio = document.createElement('input');
+      winnerRadio.type = 'radio';
+      winnerRadio.name = 'irregularWinner';
+      winnerRadio.value = sideNum.toString();
+      winnerRadio.addEventListener('change', () => {
+        if (winnerRadio.checked) {
+          selectedWinner = sideNum;
+          updateDisplay();
+        }
+      });
+
+      const winnerText = document.createElement('span');
+      const side = sideNum === 1 ? side1 : side2;
+      winnerText.textContent = side?.participant?.participantName || `Side ${sideNum}`;
+      winnerText.style.fontSize = '0.9em';
+      winnerText.style.color = '#856404';
+
+      winnerRadioLabel.appendChild(winnerRadio);
+      winnerRadioLabel.appendChild(winnerText);
+      winnerOptions.appendChild(winnerRadioLabel);
+    });
+
+    winnerSelectionContainer.appendChild(winnerOptions);
+    irregularEndingContainer.appendChild(winnerSelectionContainer);
+    container.appendChild(irregularEndingContainer);
+
     // Dial pad
     const dialPadContainer = document.createElement('div');
     dialPadContainer.style.display = 'grid';
@@ -158,18 +232,38 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Update display
     const updateDisplay = () => {
       const scoreString = formatScore(state.digits);
-      scoreDisplay.textContent = scoreString || '-';
+      
+      // Show/hide irregular ending section vs score display
+      if (selectedOutcome !== 'COMPLETED') {
+        scoreDisplay.style.display = 'none';
+        irregularEndingContainer.style.display = 'block';
+      } else {
+        scoreDisplay.style.display = 'block';
+        scoreDisplay.textContent = scoreString || '-';
+        irregularEndingContainer.style.display = 'none';
+      }
 
-      // Use validateScore for proper validation (like freeText does)
-      const validation = validateScore(scoreString, matchUp.matchUpFormat);
+      // Use validateScore for proper validation
+      let validation = validateScore(scoreString, matchUp.matchUpFormat);
+
+      // Add irregular ending info if selected
+      if (selectedOutcome !== 'COMPLETED') {
+        validation.matchUpStatus = selectedOutcome;
+        if (selectedWinner) {
+          validation.winningSide = selectedWinner;
+          validation.isValid = true;
+        } else {
+          // Need winner selection for irregular ending
+          validation.isValid = false;
+        }
+      }
 
       console.log('[DialPad] updateDisplay - scoreString:', scoreString);
+      console.log('[DialPad] selectedOutcome:', selectedOutcome);
+      console.log('[DialPad] selectedWinner:', selectedWinner);
       console.log('[DialPad] validation.isValid:', validation.isValid);
       console.log('[DialPad] validation.winningSide:', validation.winningSide);
       console.log('[DialPad] validation.matchUpStatus:', validation.matchUpStatus);
-      console.log('[DialPad] validation.scoreObject:', JSON.stringify(validation.scoreObject, null, 2));
-      console.log('[DialPad] validation.score (string):', validation.score);
-      console.log('[DialPad] Full validation object:', validation);
 
       // Update matchUp display with validation result
       updateMatchUpDisplay(validation);
@@ -177,7 +271,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       onScoreChange(validation);
 
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
-      if (clearBtn) clearBtn.disabled = state.digits.length === 0;
+      if (clearBtn) clearBtn.disabled = state.digits.length === 0 && selectedOutcome === 'COMPLETED';
     };
 
     // Handle digit press
@@ -247,6 +341,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Reset function for Clear button
     const resetDialPad = () => {
       state.digits = '';
+      selectedOutcome = 'COMPLETED';
+      selectedWinner = undefined;
+      // Clear winner radio selections
+      const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+      winnerRadios.forEach(r => r.checked = false);
       updateDisplay();
     };
 
@@ -307,8 +406,29 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           handleDelete();
         } else if (btn.value === 'minus') {
           handleDigitPress('-');
-        } else if (btn.value === 'retired' || btn.value === 'walkover' || btn.value === 'defaulted') {
-          // TODO: Handle irregular endings
+        } else if (btn.value === 'retired') {
+          selectedOutcome = 'RETIRED';
+          selectedWinner = undefined;
+          // Clear winner radio selections
+          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+          winnerRadios.forEach(r => r.checked = false);
+          updateDisplay();
+        } else if (btn.value === 'walkover') {
+          selectedOutcome = 'WALKOVER';
+          selectedWinner = undefined;
+          // Clear score for walkover
+          state.digits = '';
+          // Clear winner radio selections
+          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+          winnerRadios.forEach(r => r.checked = false);
+          updateDisplay();
+        } else if (btn.value === 'defaulted') {
+          selectedOutcome = 'DEFAULTED';
+          selectedWinner = undefined;
+          // Clear winner radio selections
+          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+          winnerRadios.forEach(r => r.checked = false);
+          updateDisplay();
         } else if (btn.value === 'empty') {
           // Empty placeholder - do nothing
         } else {
