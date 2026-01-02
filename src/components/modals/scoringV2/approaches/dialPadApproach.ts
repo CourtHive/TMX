@@ -350,12 +350,21 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const retButton = dialPadContainer.querySelector('[data-button="retired"]') as HTMLButtonElement;
       const defButton = dialPadContainer.querySelector('[data-button="defaulted"]') as HTMLButtonElement;
       
-      // Check if there's a renderable score (at least one set with both sides)
+      // Check if there's a renderable score (at least one set with both sides having values)
       const scoreString = formatScore(state.digits);
       const validation = validateScore(scoreString, matchUp.matchUpFormat);
       
-      // Enable RET/DEF only if there's a scoreObject with sets that can be rendered
-      const hasRenderableScore = validation.scoreObject && validation.scoreObject.sets && validation.scoreObject.sets.length > 0;
+      // Enable RET/DEF only if there's at least one set where BOTH sides have a score or tiebreak score
+      let hasRenderableScore = false;
+      if (validation.scoreObject?.sets && validation.scoreObject.sets.length > 0) {
+        hasRenderableScore = validation.scoreObject.sets.some((set: any) => {
+          const side1HasValue = (set.side1Score !== undefined && set.side1Score !== null) || 
+                                (set.side1TiebreakScore !== undefined && set.side1TiebreakScore !== null);
+          const side2HasValue = (set.side2Score !== undefined && set.side2Score !== null) || 
+                                (set.side2TiebreakScore !== undefined && set.side2TiebreakScore !== null);
+          return side1HasValue && side2HasValue;
+        });
+      }
       
       if (retButton) retButton.disabled = !hasRenderableScore;
       if (defButton) defButton.disabled = !hasRenderableScore;
