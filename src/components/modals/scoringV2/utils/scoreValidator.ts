@@ -67,9 +67,6 @@ export function validateScore(
       matchUpFormat,
     });
 
-    console.log('[validateScore] Input:', { scoreString: scoreString.trim(), matchUpFormat });
-    console.log('[validateScore] Factory result:', JSON.stringify(result, null, 2));
-
     if (result?.error) {
       const errorMsg =
         typeof result.error === 'string' ? result.error : result.error?.message || JSON.stringify(result.error);
