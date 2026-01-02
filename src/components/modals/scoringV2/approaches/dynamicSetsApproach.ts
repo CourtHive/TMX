@@ -56,18 +56,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     formatButton.title = 'Click to edit format';
     formatButton.addEventListener('click', async () => {
       try {
-        const useExternal = import.meta.env.VITE_USE_EXTERNAL_MATCHUP_FORMAT === 'true';
+        const { getMatchUpFormatModal } = await import('courthive-components');
         
-        let getMatchUpFormat;
-        if (useExternal) {
-          const module = await import('courthive-components');
-          getMatchUpFormat = module.getMatchUpFormatModal;
-        } else {
-          const module = await import('components/modals/matchUpFormat/matchUpFormat');
-          getMatchUpFormat = module.getMatchUpFormat;
-        }
-        
-        getMatchUpFormat({
+        getMatchUpFormatModal({
         existingMatchUpFormat: matchUp.matchUpFormat,
         callback: (newFormat: string) => {
           if (newFormat && newFormat !== matchUp.matchUpFormat) {
