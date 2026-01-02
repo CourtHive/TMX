@@ -311,6 +311,9 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
       tidyResult.matchUpStatus,
     );
 
+    // Always update matchUp display if we have sets (even if incomplete)
+    const hasSets = result.sets && result.sets.length > 0;
+    
     // For irregular endings, we accept partial scores
     if (isIrregularEnding || result.isValid) {
       indicator.textContent = '✓';
@@ -397,24 +400,51 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
         score: tidyResult.tidyScore || scoreString,
       });
     } else {
-      indicator.textContent = '✗';
-      indicator.style.color = 'red';
-      validationMessage.textContent = result.error || 'Invalid score';
-      validationMessage.style.color = 'red';
-      winnerDisplay.textContent = '';
-      // Hide radio buttons
-      radioContainer.style.display = 'none';
-      side1Radio.checked = false;
-      side2Radio.checked = false;
-      side1RadioLabel.style.fontWeight = '';
-      side1RadioLabel.style.color = '';
-      side2RadioLabel.style.fontWeight = '';
-      side2RadioLabel.style.color = '';
-      manualWinningSide = undefined;
-      // Reset matchUp display
-      updateMatchUpDisplay();
+      // Incomplete or invalid score
+      // Show partial progress if we have valid sets
+      if (hasSets && result.scoreObject) {
+        indicator.textContent = '⋯';
+        indicator.style.color = 'orange';
+        validationMessage.textContent = result.error || 'Incomplete score';
+        validationMessage.style.color = 'orange';
+        winnerDisplay.textContent = '';
+        // Hide radio buttons for incomplete scores
+        radioContainer.style.display = 'none';
+        side1Radio.checked = false;
+        side2Radio.checked = false;
+        side1RadioLabel.style.fontWeight = '';
+        side1RadioLabel.style.color = '';
+        side2RadioLabel.style.fontWeight = '';
+        side2RadioLabel.style.color = '';
+        manualWinningSide = undefined;
+        
+        // Update matchUp display with partial score
+        updateMatchUpDisplay({
+          scoreObject: result.scoreObject,
+        });
+        
+        onScoreChange(result);
+      } else {
+        // No valid sets at all - show error
+        indicator.textContent = '✗';
+        indicator.style.color = 'red';
+        validationMessage.textContent = result.error || 'Invalid score';
+        validationMessage.style.color = 'red';
+        winnerDisplay.textContent = '';
+        // Hide radio buttons
+        radioContainer.style.display = 'none';
+        side1Radio.checked = false;
+        side2Radio.checked = false;
+        side1RadioLabel.style.fontWeight = '';
+        side1RadioLabel.style.color = '';
+        side2RadioLabel.style.fontWeight = '';
+        side2RadioLabel.style.color = '';
+        manualWinningSide = undefined;
+        // Reset matchUp display
+        updateMatchUpDisplay();
 
-      onScoreChange(result);
+        onScoreChange(result);
+      }
     }
   };
 
