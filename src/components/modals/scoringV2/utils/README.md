@@ -20,7 +20,7 @@ The validation in `validateMatchUpScore.ts` and `scoreValidator.ts` provides com
 
 ### Factory Integration
 
-**Status**: TB10 support has been added to the factory (commit 0620a30ff, 2026-01-02)
+**Status**: TB10 support has been fully implemented in the factory (commits 0620a30ff, 2942ae9fa, 2026-01-02)
 
 **TODO**: Update TMX to use factory's `generateOutcomeFromScoreString` once new factory version is published
 
@@ -28,7 +28,9 @@ The factory now includes:
 - Bracket notation parsing `[11-13]` for tiebreak-only sets
 - Updated `parseScoreString` to distinguish TB10 from match tiebreaks
 - Updated `generateScoreString` to output bracket notation
-- 9 passing tests (2 skipped for future enhancements)
+- **matchUpFormat parameter** in parseScoreString for proper best-of-3 TB10 parsing
+- **WinningSide inference** when not provided (based on sets won)
+- **All 11 tests passing** (previously 9 passing, 2 skipped)
 
 **Migration Steps** (once factory is published):
 
@@ -43,6 +45,8 @@ The factory now includes:
 - Validation consistency across all applications
 - Reduced code maintenance in TMX
 - Automatic updates when factory adds new formats
+- Best-of-3 TB10 support built-in
+- WinningSide inference capability
 
 ### Test Coverage
 
@@ -50,9 +54,12 @@ The factory now includes:
   - validateMatchUpScore.test.ts: Comprehensive set validation
   - TB5, TB7, TB10, TB12, TB20 coverage
   
-- **Factory**: 11 tests (9 passing, 2 skipped)
+- **Factory**: **11 tests (all passing)**
   - generateOutcomeFromScoreString.test.ts: Score generation and parsing
-  - Documents expected behavior for TB formats
+  - TB10, TB7, TB12 format support
+  - Best-of-3 TB10 format
+  - WinningSide inference from score
+  - Extended tiebreaks (99-101, etc.)
 
 ### Related Files
 
