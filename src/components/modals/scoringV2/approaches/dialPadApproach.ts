@@ -100,7 +100,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Score display (light blue)
     const scoreDisplay = document.createElement('div');
-    scoreDisplay.style.fontSize = '1.5em';
+    scoreDisplay.style.fontSize = '1.2em';
     scoreDisplay.style.color = '#64B5F6';
     scoreDisplay.style.textAlign = 'center';
     scoreDisplay.style.padding = '0.25em 0.5em';
@@ -311,29 +311,8 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       const testScoreString = formatScore(testDigits);
 
-      // DEBUG LOGGING
-      console.log('[DialPad] handleDigitPress:', {
-        digit,
-        currentDigits: state.digits,
-        currentScore: currentScoreString,
-        testDigits,
-        testScore: testScoreString,
-        hasOpenTiebreak,
-        buildingTiebreakSet,
-        enteringTiebreakOnlySet,
-        inTiebreak,
-        completedSets,
-        bestOf,
-      });
-
       if (currentScoreString) {
         const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
-
-        console.log('[DialPad] currentValidation:', {
-          isValid: currentValidation.isValid,
-          winningSide: currentValidation.winningSide,
-          sets: currentValidation.sets,
-        });
 
         // Check if we're in the middle of entering a tiebreak
         // The factory's parseScoreString auto-completes tiebreaks for winningSide inference,
@@ -361,28 +340,17 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           lastSet.side2Score !== undefined &&
           (lastSet.side1Score === lastSet.side2Score || Math.abs(lastSet.side1Score - lastSet.side2Score) === 1);
 
-        console.log(
-          '[DialPad] lastSetNeedsTiebreak:',
-          lastSetNeedsTiebreak,
-          'tiebreakInProgress:',
-          tiebreakInProgress,
-          'lastSet:',
-          lastSet,
-        );
-
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if:
         // 1. We're in the middle of entering a tiebreak score (inTiebreak)
         // 2. The last set needs tiebreak scores (lastSetNeedsTiebreak)
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak && !lastSetNeedsTiebreak) {
-          console.log('[DialPad] BLOCKED: Match complete');
           return;
         }
 
         // Block input if formatter didn't accept the digit (incomplete set)
         // Exception: allow if we're in a tiebreak or the test score is different (was accepted)
         if (!inTiebreak && digit !== '-' && testScoreString === currentScoreString) {
-          console.log('[DialPad] BLOCKED: Formatter rejected digit');
           return;
         }
       }
