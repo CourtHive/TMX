@@ -258,7 +258,8 @@ export function validateMatchUpScore(
 
   // Validate each set against matchUpFormat
   for (let i = 0; i < sets.length; i++) {
-    const isDecidingSet = sets.length === bestOfSets; // Last possible set
+    // Check if this specific set is the deciding set (last possible set in the match)
+    const isDecidingSet = i + 1 === bestOfSets;
     const setValidation = validateSetScore(sets[i], matchUpFormat, isDecidingSet, isIrregularEnding);
     if (!setValidation.isValid) {
       return {
