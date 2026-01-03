@@ -234,13 +234,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const scoreString = formatScore(state.digits);
 
       // Show/hide irregular ending section vs score display
-      if (selectedOutcome !== 'COMPLETED') {
-        scoreDisplay.style.display = 'none';
-        irregularEndingContainer.style.display = 'block';
-      } else {
+      if (selectedOutcome === 'COMPLETED') {
         scoreDisplay.style.display = 'block';
         scoreDisplay.textContent = scoreString || '-';
         irregularEndingContainer.style.display = 'none';
+      } else {
+        scoreDisplay.style.display = 'none';
+        irregularEndingContainer.style.display = 'block';
       }
 
       // Use validateScore for proper validation
@@ -303,7 +303,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       };
 
       const enteringTiebreakOnlySet = completedSets < bestOf && isSetTiebreakOnly(completedSets + 1);
-      
+
       // Also check if we're currently in a tiebreak-only set (last set being edited)
       const inTiebreakOnlySet = completedSets > 0 && isSetTiebreakOnly(completedSets);
 
@@ -386,9 +386,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       selectedOutcome = 'COMPLETED';
       selectedWinner = undefined;
       // Clear winner radio selections
-      const winnerRadios = irregularEndingContainer.querySelectorAll(
-        'input[name="irregularWinner"]',
-      );
+      const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
       winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
       updateDisplay();
     };
@@ -482,9 +480,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           selectedOutcome = 'RETIRED';
           selectedWinner = undefined;
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll(
-            'input[name="irregularWinner"]',
-          );
+          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'walkover') {
@@ -493,18 +489,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           // Clear score for walkover
           state.digits = '';
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll(
-            'input[name="irregularWinner"]',
-          );
+          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'defaulted') {
           selectedOutcome = 'DEFAULTED';
           selectedWinner = undefined;
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll(
-            'input[name="irregularWinner"]',
-          );
+          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'empty') {

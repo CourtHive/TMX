@@ -35,7 +35,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
 
   // Split on spaces, slashes, or consecutive minuses as set separators
   // Single minuses within a segment are kept for tiebreak/side separation
-  const segments = digits.split(/[\s\/]+|--+/).filter((s) => s.length > 0);
+  const segments = digits.split(/[\s/]+|--+/).filter((s) => s.length > 0);
 
   for (const segment of segments) {
     // Stop if we've already reached the maximum number of sets
