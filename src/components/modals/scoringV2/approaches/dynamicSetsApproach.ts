@@ -942,6 +942,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               return;
             }
             
+            // Update score to ensure currentSets reflects the latest tiebreak input
+            updateScoreFromInputs();
+            
             // Check if match is already complete
             const setsNeeded = Math.ceil(bestOf / 2);
             const setsWon1 = currentSets.filter(s => s.winningSide === 1).length;
@@ -1027,45 +1030,6 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               updateClearButtonState();
             }
           }
-        } else if (isTiebreak) {
-          // From tiebreak to next set's side 1
-          const nextInput = setsContainer.querySelector(
-            `input[data-set-index="${setIndex + 1}"][data-side="1"]`
-          ) as HTMLInputElement;
-          if (nextInput) {
-            nextInput.focus();
-          } else if (setIndex + 1 < bestOf) {
-            // Only create next set if current set is valid and match not complete
-            const currentSetComplete = isSetComplete(setIndex);
-            if (!currentSetComplete) {
-              return;
-            }
-            
-            // Check if match is already complete
-            const setsNeeded = Math.ceil(bestOf / 2);
-            const setsWon1 = currentSets.filter(s => s.winningSide === 1).length;
-            const setsWon2 = currentSets.filter(s => s.winningSide === 2).length;
-            const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
-            
-            if (matchComplete) {
-              return; // Don't create next set if match complete
-            }
-            
-            // Create next set
-            const newSetRow = createSetRow(setIndex + 1);
-            setsContainer.appendChild(newSetRow);
-            
-            // Attach handlers
-            const newInputs = newSetRow.querySelectorAll('input');
-            newInputs.forEach(inp => {
-              inp.addEventListener('input', handleInput);
-              inp.addEventListener('keydown', handleKeydown);
-            });
-            
-            // Focus first input of new set
-            (newInputs[0] as HTMLInputElement).focus();
-            updateClearButtonState();
-          }
         }
       }
     }
@@ -1127,7 +1091,18 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Pre-fill with existing scores if available
   if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
+    // Check if match is already complete to avoid showing extra empty sets
+    const setsNeeded = Math.ceil(bestOf / 2);
+    let setsWon1 = 0;
+    let setsWon2 = 0;
+    let matchAlreadyComplete = false;
+    
     matchUp.score.sets.forEach((set: any, index: number) => {
+      // Check completion status BEFORE creating this set row
+      if (matchAlreadyComplete) {
+        return; // Skip creating rows after match is complete
+      }
+      
       if (index > 0) {
         const setRow = createSetRow(index);
         setsContainer.appendChild(setRow);
@@ -1150,6 +1125,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         side1Input.value = set.side1Score?.toString() || '';
         side2Input.value = set.side2Score?.toString() || '';
       }
+      
+      // Update completion tracking after filling this set
+      if (set.winningSide === 1) setsWon1++;
+      if (set.winningSide === 2) setsWon2++;
+      matchAlreadyComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
     });
     
     updateScoreFromInputs();
