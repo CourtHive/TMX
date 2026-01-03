@@ -68,8 +68,8 @@ export function submitDrawParams({
   const drawName = inputs[DRAW_NAME]?.value;
 
   const drawSizeValue = inputs[DRAW_SIZE].value || 0;
-  const groupSize = parseInt(inputs[GROUP_SIZE].value);
-  const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && parseInt(drawSizeValue);
+  const groupSize = Number.parseInt(inputs[GROUP_SIZE].value);
+  const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const drawSize =
     ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
@@ -94,7 +94,7 @@ export function submitDrawParams({
     drawId,
   };
 
-  const advancePerGroup = parseInt(inputs.advancePerGroup?.value || 0);
+  const advancePerGroup = Number.parseInt(inputs.advancePerGroup?.value || 0);
   const groupRemaining = inputs[GROUP_REMAINING]?.checked;
   const playoffType = inputs[PLAYOFF_TYPE]?.value;
   let structureOptions: any;
@@ -139,7 +139,7 @@ export function submitDrawParams({
   })?.seedsCount;
 
   const qualifiersCount =
-    (numericValidator(inputs[QUALIFIERS_COUNT].value) && parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
+    (numericValidator(inputs[QUALIFIERS_COUNT].value) && Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
 
   if (structureId) {
     const generationResult = tournamentEngine.generateQualifyingStructure({
@@ -166,8 +166,9 @@ export function submitDrawParams({
           },
         },
       ];
-      const postMutation = (result: any) =>
-        isFunction(callback) && callback && callback({ ...generationResult, ...result.results?.[0] });
+      const postMutation = (result: any) => {
+        if (isFunction(callback)) callback({ ...generationResult, ...result.results?.[0] });
+      };
       mutationRequest({ methods, callback: postMutation });
     }
 

@@ -2,7 +2,7 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
-import { getMatchUpFormat } from 'components/modals/matchUpFormat/matchUpFormat';
+import { getMatchUpFormatModal } from 'courthive-components';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { nameValidator } from 'components/validators/nameValidator';
 import { renderButtons } from 'components/renderers/renderButtons';
@@ -52,7 +52,15 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
           (submitDrawParams as any)({ event, inputs, callback, structureId, matchUpFormat, drawId, drawName, isQualifying });
         }
       };
-      (getMatchUpFormat as any)({ callback: setMatchUpFormat });
+      (getMatchUpFormatModal as any)({ 
+        callback: setMatchUpFormat,
+        modalConfig: {
+          style: {
+            fontSize: '12px',
+            border: '3px solid #0066cc',
+          }
+        }
+      });
     } else {
       (submitDrawParams as any)({ event, inputs, callback, structureId, drawId, drawName, isQualifying });
     }

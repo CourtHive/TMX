@@ -6,11 +6,13 @@ import { factoryConstants, globalState, tournamentEngine } from 'tods-competitio
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { initSettingsIcon } from 'components/modals/settingsModal';
+import { loadSettings } from 'services/settings/settingsStorage';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
+import { courthiveComponentsVersion } from 'courthive-components';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
@@ -51,6 +53,20 @@ import 'styles/icons.css';
 import 'styles/tmx.css';
 
 export function setupTMX(): void {
+  // Load settings from localStorage before initializing
+  const savedSettings = loadSettings();
+  if (savedSettings) {
+    if (savedSettings.activeScale) {
+      env.activeScale = savedSettings.activeScale;
+    }
+    if (savedSettings.scoringApproach) {
+      env.scoringApproach = savedSettings.scoringApproach;
+    }
+    if (savedSettings.saveLocal !== undefined) {
+      env.saveLocal = savedSettings.saveLocal;
+    }
+  }
+  
   setEnv();
   setWindow();
   setContext();
@@ -95,8 +111,10 @@ const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered not
 function setEnv(): void {
   env.device = getDevice();
   const cfv = tournamentEngine.version();
+  const chcv = courthiveComponentsVersion();
   console.log(`%cversion: ${version}`, 'color: lightblue');
   console.log(`%cfactory: ${cfv}`, 'color: lightblue');
+  console.log(`%ccourthive-components: ${chcv}`, 'color: lightblue');
 
   eventListeners();
 }

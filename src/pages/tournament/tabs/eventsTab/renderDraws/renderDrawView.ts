@@ -28,7 +28,13 @@ import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } fro
 
 const { DOUBLES, TEAM } = eventConstants;
 
-export function renderDrawView({ eventId, drawId, structureId, roundsView, redraw }: {
+export function renderDrawView({
+  eventId,
+  drawId,
+  structureId,
+  roundsView,
+  redraw,
+}: {
   eventId: string;
   drawId: string;
   structureId?: string;
@@ -180,7 +186,7 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
                   if (env.renderLog) console.log('condition 0');
                   const nextSibling = getTMXp(existing)?.nextSibling;
                   if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
-                    nextSibling.parentElement.removeChild(nextSibling);
+                    nextSibling.remove();
                   }
                 } else if (
                   incomingId &&
@@ -190,17 +196,17 @@ export function renderDrawView({ eventId, drawId, structureId, roundsView, redra
                   incomingIdValue !== existingIdValue
                 ) {
                   if (env.renderLog) console.log('condition 1');
-                  parentNode.removeChild(parentNode.firstChild);
+                  parentNode.firstChild.remove();
                 } else if (childNode.classList?.contains('tmx-p') && !existingId) {
                   if (env.renderLog) console.log('condition 2');
-                  parentNode.removeChild(parentNode.firstChild);
+                  parentNode.firstChild.remove();
                 } else if (
                   parentNode.firstChild?.classList?.contains('tmx-p') &&
                   parentNode.firstChild.getAttribute('id') !== 'undefined' &&
                   childNode.getAttribute('id') === 'undefined'
                 ) {
                   if (env.renderLog) console.log('condition 3');
-                  parentNode.removeChild(parentNode.firstChild);
+                  parentNode.firstChild.remove();
                 } else if (!incomingId && existingId) {
                   if (env.renderLog) console.log('condition 4');
                 } else {
