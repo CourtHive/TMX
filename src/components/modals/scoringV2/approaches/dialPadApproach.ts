@@ -336,21 +336,29 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           sets: currentValidation.sets,
         });
 
-        // Check if the last set has tiebreak scores missing or incomplete
+        // Check if we're in the middle of entering a tiebreak
+        // The factory's parseScoreString auto-completes tiebreaks for winningSide inference,
+        // so we can't rely on checking if tiebreak scores are undefined.
+        // Instead, check if the testScore is different from currentScore and if it looks like
+        // we're continuing to enter digits within a tiebreak
         const lastSet = currentValidation.sets?.[currentValidation.sets.length - 1];
-        const lastSetHasTiebreakScores = lastSet && (
-          lastSet.side1TiebreakScore !== undefined || lastSet.side2TiebreakScore !== undefined
-        );
+        
+        // Check if the testScore shows progression within a tiebreak
+        // e.g., current="6-7(1)" test="6-7(12)" means we're continuing tiebreak entry
+        const currentHasTiebreak = currentScoreString.includes('(');
+        const testHasTiebreak = testScoreString.includes('(');
+        const tiebreakInProgress = currentHasTiebreak && testHasTiebreak && 
+          testScoreString !== currentScoreString &&
+          testScoreString.startsWith(currentScoreString.substring(0, currentScoreString.lastIndexOf(')')));
+        
         const lastSetNeedsTiebreak = lastSet && (
           (lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore === undefined) ||
           (lastSet.side1TiebreakScore === null && lastSet.side2TiebreakScore === null) ||
-          // Also check if only ONE tiebreak score exists (incomplete tiebreak entry)
-          (lastSet.side1TiebreakScore !== undefined && lastSet.side2TiebreakScore === undefined) ||
-          (lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore !== undefined)
+          tiebreakInProgress
         ) && (lastSet.side1Score === lastSet.side2Score || 
              Math.abs(lastSet.side1Score - lastSet.side2Score) === 1);
 
-        console.log('[DialPad] lastSetNeedsTiebreak:', lastSetNeedsTiebreak, 'lastSet:', lastSet, 'lastSetHasTiebreakScores:', lastSetHasTiebreakScores);
+        console.log('[DialPad] lastSetNeedsTiebreak:', lastSetNeedsTiebreak, 'tiebreakInProgress:', tiebreakInProgress, 'lastSet:', lastSet);
 
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if:
