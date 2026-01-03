@@ -60,14 +60,6 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       const setTo = currentTiebreakSetTo || currentRegularSetTo || 6;
       const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
       
-      console.log('[dialPad formatScoreString] Parsing set', setCount + 1, {
-        i,
-        remaining: segmentDigits.slice(i),
-        currentSetFormat,
-        currentSetIsTiebreakOnly,
-        setCount,
-      });
-      
       let side1 = '';
       let side2 = '';
       let tb1 = '';

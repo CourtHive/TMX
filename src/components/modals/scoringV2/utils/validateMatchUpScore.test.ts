@@ -515,15 +515,47 @@ describe('validateSetScore - College Pro Set (SET1-S:8/TB7@7)', () => {
 });
 
 describe('validateMatchUpScore - Final Set Variations', () => {
-  it.skip('should accept best of 3 with final set tiebreak to 10 (SET3-S:6/TB7-F:TB10)', () => {
-    // PENDING: Final set format parsing not yet implemented
-    // F:TB10 means final set is tiebreak-only (no games), but current implementation
-    // validates it as a regular set with tiebreak
-    const format = 'SET3-S:6/TB7-F:TB10';
+  it('should accept best of 3 with final set tiebreak to 10 (SET3-S:6/TB7 F:TB10)', () => {
+    // F:TB10 means final set is tiebreak-only (no games)
+    // Third set stored as side1Score/side2Score: 0, tiebreak scores hold actual TB10 scores
+    const format = 'SET3-S:6/TB7 F:TB10';
     const sets = [
       { side1Score: 6, side2Score: 4, winningSide: 1 },
       { side1Score: 3, side2Score: 6, winningSide: 2 },
-      { side1Score: 10, side2Score: 12, winningSide: 2 }, // Should be validated as TB10 tiebreak-only
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 10, side2TiebreakScore: 12, winningSide: 2 },
+    ];
+    const result = validateMatchUpScore(sets, format);
+    expect(result.isValid).toBe(true);
+  });
+
+  it('should accept SET3 F:TB10 with extended tiebreak [13-11]', () => {
+    const format = 'SET3-S:6/TB7 F:TB10';
+    const sets = [
+      { side1Score: 6, side2Score: 4, winningSide: 1 },
+      { side1Score: 4, side2Score: 6, winningSide: 2 },
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 13, side2TiebreakScore: 11, winningSide: 1 },
+    ];
+    const result = validateMatchUpScore(sets, format);
+    expect(result.isValid).toBe(true);
+  });
+
+  it('should reject SET3 F:TB10 with insufficient margin [10-9]', () => {
+    const format = 'SET3-S:6/TB7 F:TB10';
+    const sets = [
+      { side1Score: 6, side2Score: 3, winningSide: 1 },
+      { side1Score: 3, side2Score: 6, winningSide: 2 },
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 10, side2TiebreakScore: 9, winningSide: 1 },
+    ];
+    const result = validateMatchUpScore(sets, format);
+    expect(result.isValid).toBe(false);
+  });
+
+  it('should accept SET3 F:TB7 format [7-5]', () => {
+    const format = 'SET3-S:6/TB7 F:TB7';
+    const sets = [
+      { side1Score: 6, side2Score: 3, winningSide: 1 },
+      { side1Score: 4, side2Score: 6, winningSide: 2 },
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 7, side2TiebreakScore: 5, winningSide: 1 },
     ];
     const result = validateMatchUpScore(sets, format);
     expect(result.isValid).toBe(true);
@@ -920,13 +952,38 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
 });
 
 describe('validateMatchUpScore - Various Format Combinations', () => {
-  it.skip('should accept short sets with final set tiebreak (SET3-S:4/TB7-F:TB10)', () => {
-    // PENDING: Final set format parsing not yet implemented
-    const format = 'SET3-S:4/TB7-F:TB10';
+  it('should accept short sets with final set tiebreak (SET3-S:4/TB7 F:TB10)', () => {
+    const format = 'SET3-S:4/TB7 F:TB10';
     const sets = [
       { side1Score: 4, side2Score: 2, winningSide: 1 },
       { side1Score: 2, side2Score: 4, winningSide: 2 },
-      { side1Score: 10, side2Score: 12, winningSide: 2 }, // Match tiebreak TB10
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 10, side2TiebreakScore: 12, winningSide: 2 },
+    ];
+    const result = validateMatchUpScore(sets, format);
+    expect(result.isValid).toBe(true);
+  });
+
+  it('should accept SET5 F:TB10 format', () => {
+    const format = 'SET5-S:6/TB7 F:TB10';
+    const sets = [
+      { side1Score: 6, side2Score: 4, winningSide: 1 },
+      { side1Score: 3, side2Score: 6, winningSide: 2 },
+      { side1Score: 6, side2Score: 3, winningSide: 1 },
+      { side1Score: 4, side2Score: 6, winningSide: 2 },
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 11, side2TiebreakScore: 9, winningSide: 1 },
+    ];
+    const result = validateMatchUpScore(sets, format);
+    expect(result.isValid).toBe(true);
+  });
+
+  it('should accept SET5 F:TB10 with extended final tiebreak [15-13]', () => {
+    const format = 'SET5-S:6/TB7 F:TB10';
+    const sets = [
+      { side1Score: 7, side2Score: 5, winningSide: 1 },
+      { side1Score: 5, side2Score: 7, winningSide: 2 },
+      { side1Score: 6, side2Score: 4, winningSide: 1 },
+      { side1Score: 4, side2Score: 6, winningSide: 2 },
+      { side1Score: 0, side2Score: 0, side1TiebreakScore: 15, side2TiebreakScore: 13, winningSide: 1 },
     ];
     const result = validateMatchUpScore(sets, format);
     expect(result.isValid).toBe(true);

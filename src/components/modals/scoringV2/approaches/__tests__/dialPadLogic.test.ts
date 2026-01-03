@@ -145,6 +145,73 @@ const testCases: TestCase[] = [
     expectedScoreString: '6-7(3) 6-3',
     matchUpFormat: 'SET3-S:6',
   },
+
+  // Final set tiebreak format (F:TB10) - third set is tiebreak-only
+  // Note: User MUST type minus explicitly for tiebreak-only sets
+  {
+    name: 'should handle SET3 F:TB10 complete match 3-6 6-3 [8-10]',
+    keySequence: [3, 6, 6, 3, 8, '-', 1, 0],
+    expectedScoreString: '3-6 6-3 [8-10]',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB10',
+  },
+  {
+    name: 'should handle SET3 F:TB10 complete match 6-1 7-5 [11-9]',
+    keySequence: [6, 1, 7, 5, 1, 1, '-', 9],
+    expectedScoreString: '6-1 7-5 [11-9]',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB10',
+  },
+  {
+    name: 'should handle SET3 F:TB10 incomplete third set 1-6 7-5 9',
+    keySequence: [1, 6, 7, 5, 9],
+    expectedScoreString: '1-6 7-5 9',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB10',
+  },
+  {
+    name: 'should handle SET3 F:TB10 third set with minus 1-6 7-5 9-',
+    keySequence: [1, 6, 7, 5, 9, '-'],
+    expectedScoreString: '1-6 7-5 9-',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB10',
+  },
+  {
+    name: 'should handle SET3 F:TB10 extended tiebreak 6-4 4-6 [11-13]',
+    keySequence: [6, 4, 4, 6, 1, 1, '-', 1, 3],
+    expectedScoreString: '6-4 4-6 [11-13]',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB10',
+  },
+
+  // Final set tiebreak format (F:TB7) - third set is tiebreak-only
+  {
+    name: 'should handle SET3 F:TB7 complete match 6-3 4-6 [7-5]',
+    keySequence: [6, 3, 4, 6, 7, '-', 5],
+    expectedScoreString: '6-3 4-6 [7-5]',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB7',
+  },
+  {
+    name: 'should handle SET3 F:TB7 with set tiebreaks and final TB7 [9-7]',
+    keySequence: [7, 6, 5, '-', 6, 7, 3, '-', 9, '-', 7],
+    expectedScoreString: '7-6(5) 6-7(3) [9-7]',
+    matchUpFormat: 'SET3-S:6/TB7 F:TB7',
+  },
+
+  // SET5 with final set tiebreak (F:TB10)
+  {
+    name: 'should handle SET5 F:TB10 complete match 6-4 6-7 6-3 3-6 [10-5]',
+    keySequence: [6, 4, 6, 7, 3, '-', 6, 3, 3, 6, 1, 0, '-', 5],
+    expectedScoreString: '6-4 6-7(3) 6-3 3-6 [10-5]',
+    matchUpFormat: 'SET5-S:6/TB7 F:TB10',
+  },
+  {
+    name: 'should handle SET5 F:TB10 incomplete fifth set 6-4 3-6 4-6 6-3 11',
+    keySequence: [6, 4, 3, 6, 4, 6, 6, 3, 1, 1],
+    expectedScoreString: '6-4 3-6 4-6 6-3 11',
+    matchUpFormat: 'SET5-S:6/TB7 F:TB10',
+  },
+  {
+    name: 'should handle SET5 F:TB10 fifth set extended 7-5 5-7 6-4 4-6 [13-15]',
+    keySequence: [7, 5, 5, 7, 6, 4, 4, 6, 1, 3, '-', 1, 5],
+    expectedScoreString: '7-5 5-7 6-4 4-6 [13-15]',
+    matchUpFormat: 'SET5-S:6/TB7 F:TB10',
+  },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
