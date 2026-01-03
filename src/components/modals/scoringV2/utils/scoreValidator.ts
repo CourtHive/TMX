@@ -1,7 +1,7 @@
 /**
  * Score validation utilities using tournamentEngine
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
 import { validateMatchUpScore, validateSetScore } from './validateMatchUpScore';
 import type { ScoreOutcome } from '../types';
 
@@ -23,7 +23,7 @@ export function tidyScore(scoreString: string): TidyScoreResult {
     // Factory's tidyScore now recognizes RETIRED, WALKOVER, and DEFAULTED keywords
     // No pre-processing needed - factory handles abbreviations and full keywords
     const processedScore = scoreString.trim();
-    
+
     // NOTE: The parameter is 'score', not 'scoreString'
     const result = tournamentEngine.tidyScore({ score: processedScore });
 
@@ -47,11 +47,7 @@ export function tidyScore(scoreString: string): TidyScoreResult {
 /**
  * Validate a score string using generateOutcomeFromScoreString
  */
-export function validateScore(
-  scoreString: string,
-  matchUpFormat?: string,
-  matchUpStatus?: string,
-): ScoreOutcome {
+export function validateScore(scoreString: string, matchUpFormat?: string, matchUpStatus?: string): ScoreOutcome {
   if (!scoreString?.trim()) {
     return {
       isValid: false,
@@ -68,7 +64,7 @@ export function validateScore(
       scoreString: scoreString.trim(),
       matchUpFormat,
     });
-    
+
     if (!parsedResult || parsedResult.length === 0) {
       return {
         isValid: false,
@@ -78,25 +74,29 @@ export function validateScore(
     }
 
     const sets = parsedResult;
-    
+
     // Build scoreObject manually for renderMatchUp
     // Generate score strings for each side
-    const scoreStringSide1 = sets.map((set: any) => {
-      let str = `${set.side1Score || 0}-${set.side2Score || 0}`;
-      if (set.side1TiebreakScore !== undefined) {
-        str += `(${set.winningSide === 1 ? set.side1TiebreakScore : set.side2TiebreakScore})`;
-      }
-      return str;
-    }).join(' ');
-    
-    const scoreStringSide2 = sets.map((set: any) => {
-      let str = `${set.side2Score || 0}-${set.side1Score || 0}`;
-      if (set.side2TiebreakScore !== undefined) {
-        str += `(${set.winningSide === 2 ? set.side2TiebreakScore : set.side1TiebreakScore})`;
-      }
-      return str;
-    }).join(' ');
-    
+    const scoreStringSide1 = sets
+      .map((set: any) => {
+        let str = `${set.side1Score || 0}-${set.side2Score || 0}`;
+        if (set.side1TiebreakScore !== undefined) {
+          str += `(${set.winningSide === 1 ? set.side1TiebreakScore : set.side2TiebreakScore})`;
+        }
+        return str;
+      })
+      .join(' ');
+
+    const scoreStringSide2 = sets
+      .map((set: any) => {
+        let str = `${set.side2Score || 0}-${set.side1Score || 0}`;
+        if (set.side2TiebreakScore !== undefined) {
+          str += `(${set.winningSide === 2 ? set.side2TiebreakScore : set.side1TiebreakScore})`;
+        }
+        return str;
+      })
+      .join(' ');
+
     const scoreObject = {
       sets,
       scoreStringSide1,
@@ -107,24 +107,61 @@ export function validateScore(
     // The factory's generateOutcomeFromScoreString doesn't validate against matchUpFormat
     // so it assigns winningSide to invalid sets like "5-0"
     // We need to strip winningSide from sets that fail our validation
-    
+
     // Determine bestOf to check for deciding set
     const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
-    const bestOfSets = bestOfMatch ? parseInt(bestOfMatch) : 3;
-    
+    const bestOfSets = bestOfMatch ? Number.parseInt(bestOfMatch) : 3;
+
+    // VALIDATE SET TYPES: Check that bracket notation matches format expectations
+    // Split score string into individual sets, preserving tiebreak notation
+    const setStrings = scoreString.trim().match(/\S+/g) || [];
+    const parsed = matchUpFormatCode.parse(matchUpFormat);
+    const finalSetIsTiebreakOnly = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsed?.finalSetFormat?.setTo;
+    const allSetsAreTiebreakOnly = parsed?.setFormat?.tiebreakSet?.tiebreakTo && !parsed?.setFormat?.setTo;
+
+    for (let i = 0; i < setStrings.length; i++) {
+      const setString = setStrings[i];
+      const setNumber = i + 1;
+      const isDecidingSet = setNumber === bestOfSets;
+      const hasBrackets = setString.startsWith('[') && setString.endsWith(']');
+
+      // Check if this set should be tiebreak-only based on format
+      const shouldBeTiebreakOnly = allSetsAreTiebreakOnly || (isDecidingSet && finalSetIsTiebreakOnly);
+      const shouldBeRegular = !shouldBeTiebreakOnly;
+
+      // Validate bracket notation matches format
+      if (shouldBeRegular && hasBrackets) {
+        return {
+          isValid: false,
+          sets,
+          scoreObject,
+          error: `Set ${setNumber}: Format expects regular set (e.g., 6-4), but got tiebreak-only set ${setString}`,
+        };
+      }
+
+      if (shouldBeTiebreakOnly && !hasBrackets) {
+        return {
+          isValid: false,
+          sets,
+          scoreObject,
+          error: `Set ${setNumber}: Format expects tiebreak-only set (e.g., [10-8]), but got regular set ${setString}`,
+        };
+      }
+    }
+
     let anySetInvalidated = false;
     const validatedSets = sets.map((set: any, index: number) => {
       // Check if this is the deciding set (last possible set in the match)
       const isDecidingSet = index + 1 === bestOfSets;
       const validation = validateSetScore(set, matchUpFormat, isDecidingSet, false);
-      
+
       if (!validation.isValid) {
         anySetInvalidated = true;
         // Clone the set but remove winningSide
-        const { winningSide, ...setWithoutWinner } = set;
+        const { ...setWithoutWinner } = set;
         return setWithoutWinner;
       }
-      
+
       return set;
     });
 
@@ -152,7 +189,7 @@ export function validateScore(
     // (unless there's an irregular ending, which is handled separately by the caller)
     let winningSide: number | undefined;
     let isComplete = false;
-    
+
     if (anySetInvalidated) {
       // If any set was invalidated, match is incomplete - no winningSide
       winningSide = undefined;
@@ -170,7 +207,7 @@ export function validateScore(
       } else if (setsWon.side2 >= setsToWin) {
         winningSide = 2;
       }
-      
+
       // Check if match is complete (someone won majority of sets)
       isComplete = setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
     }
@@ -240,20 +277,20 @@ export function validateSetScores(
   // But we don't have access to the original strings here...
   // The issue is that "5-0" gets passed here but 5-0 where 0 means "no entry" is incomplete
   // We should not include sets in the validation if they don't have winningSide
-  
+
   // Actually, the caller should handle this - don't pass incomplete sets to validation
-  
+
   // Note: We check per-set whether it's tiebreak-only when building score string
-  
+
   // Validate each set using our validateSetScore function
   // This provides TB10/TB7/etc validation that the factory may not have yet
   const validatedSets: any[] = [];
   let anyInvalid = false;
-  
+
   // Determine bestOf to check for deciding set
   const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
-  const bestOfSets = bestOfMatch ? parseInt(bestOfMatch) : 3;
-  
+  const bestOfSets = bestOfMatch ? Number.parseInt(bestOfMatch) : 3;
+
   for (let i = 0; i < sets.length; i++) {
     const setData = {
       side1Score: sets[i].side1,
@@ -261,30 +298,30 @@ export function validateSetScores(
       side1TiebreakScore: sets[i].side1TiebreakScore,
       side2TiebreakScore: sets[i].side2TiebreakScore,
     };
-    
+
     // Check if this is the deciding set (last possible set in the match)
     const isDecidingSet = i + 1 === bestOfSets;
-    
+
     const setValidation = validateSetScore(setData, matchUpFormat, isDecidingSet, allowIncomplete);
-    
-    if (!setValidation.isValid) {
-      anyInvalid = true;
-      // Don't return early - collect all sets but mark as invalid
-      validatedSets.push({ ...setData, winningSide: undefined });
-    } else {
+
+    if (setValidation.isValid) {
       // Set is valid - determine winningSide
       // For tiebreak-only sets, compare tiebreak scores; for regular sets, compare game scores
       const hasTiebreakScores = sets[i].side1TiebreakScore !== undefined && sets[i].side2TiebreakScore !== undefined;
-      const side1 = hasTiebreakScores ? (sets[i].side1TiebreakScore || 0) : (sets[i].side1 || 0);
-      const side2 = hasTiebreakScores ? (sets[i].side2TiebreakScore || 0) : (sets[i].side2 || 0);
+      const side1 = hasTiebreakScores ? sets[i].side1TiebreakScore || 0 : sets[i].side1 || 0;
+      const side2 = hasTiebreakScores ? sets[i].side2TiebreakScore || 0 : sets[i].side2 || 0;
       let winningSide: number | undefined;
       if (side1 > side2) winningSide = 1;
       else if (side2 > side1) winningSide = 2;
-      
+
       validatedSets.push({ ...setData, winningSide });
+    } else {
+      anyInvalid = true;
+      // Don't return early - collect all sets but mark as invalid
+      validatedSets.push({ ...setData, winningSide: undefined });
     }
   }
-  
+
   // If any set is invalid, return invalid result
   if (anyInvalid && !allowIncomplete) {
     return {
@@ -293,44 +330,46 @@ export function validateSetScores(
       error: 'One or more sets have invalid scores',
     };
   }
-  
+
   // Calculate match winningSide based on sets won
   const setsToWin = Math.ceil(bestOfSets / 2);
-  
+
   const setsWon = { side1: 0, side2: 0 };
   validatedSets.forEach((set) => {
     if (set.winningSide === 1) setsWon.side1++;
     else if (set.winningSide === 2) setsWon.side2++;
   });
-  
+
   let matchWinningSide: number | undefined;
   if (setsWon.side1 >= setsToWin) matchWinningSide = 1;
   else if (setsWon.side2 >= setsToWin) matchWinningSide = 2;
-  
+
   // Build score string for factory (still useful for scoreObject)
-  const scoreString = sets.map((set) => {
-    // Check if THIS specific set is tiebreak-only (no regular scores, only tiebreak scores)
-    const setHasRegularScores = set.side1 !== undefined && set.side2 !== undefined;
-    const setHasTiebreakScores = set.side1TiebreakScore !== undefined && set.side2TiebreakScore !== undefined;
-    const setIsTiebreakOnly = !setHasRegularScores && setHasTiebreakScores;
-    
-    if (setIsTiebreakOnly) {
-      // Tiebreak-only set: format as [9-11]
-      return `[${set.side1TiebreakScore}-${set.side2TiebreakScore}]`;
-    } else {
-      // Regular set: format as 6-3 or 7-6(5)
-      let setStr = `${set.side1}-${set.side2}`;
-      if (setHasTiebreakScores) {
-        const tbLoser = Math.min(set.side1TiebreakScore || 0, set.side2TiebreakScore || 0);
-        setStr += `(${tbLoser})`;
+  const scoreString = sets
+    .map((set) => {
+      // Check if THIS specific set is tiebreak-only (no regular scores, only tiebreak scores)
+      const setHasRegularScores = set.side1 !== undefined && set.side2 !== undefined;
+      const setHasTiebreakScores = set.side1TiebreakScore !== undefined && set.side2TiebreakScore !== undefined;
+      const setIsTiebreakOnly = !setHasRegularScores && setHasTiebreakScores;
+
+      if (setIsTiebreakOnly) {
+        // Tiebreak-only set: format as [9-11]
+        return `[${set.side1TiebreakScore}-${set.side2TiebreakScore}]`;
+      } else {
+        // Regular set: format as 6-3 or 7-6(5)
+        let setStr = `${set.side1}-${set.side2}`;
+        if (setHasTiebreakScores) {
+          const tbLoser = Math.min(set.side1TiebreakScore || 0, set.side2TiebreakScore || 0);
+          setStr += `(${tbLoser})`;
+        }
+        return setStr;
       }
-      return setStr;
-    }
-  }).join(' ');
-  
+    })
+    .join(' ');
+
   // Call factory validation to get scoreObject (but use our winningSide determination)
   const factoryValidation = validateScore(scoreString, matchUpFormat);
-  
+
   return {
     isValid: matchWinningSide !== undefined,
     sets: validatedSets,

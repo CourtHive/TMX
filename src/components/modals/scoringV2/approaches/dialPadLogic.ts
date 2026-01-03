@@ -22,16 +22,12 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
 
   const bestOf = parsedFormat?.setFormat?.bestOf || 3;
-  
+
   // Helper to get format for a specific set (checking finalSetFormat for deciding set)
   const getSetFormat = (setNumber: number) => {
     const isDecidingSet = setNumber === bestOf;
-    return isDecidingSet && parsedFormat?.finalSetFormat 
-      ? parsedFormat.finalSetFormat 
-      : parsedFormat?.setFormat;
+    return isDecidingSet && parsedFormat?.finalSetFormat ? parsedFormat.finalSetFormat : parsedFormat?.setFormat;
   };
-  
-
 
   let result = '';
   let i = 0;
@@ -51,19 +47,18 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
     while (i < segmentDigits.length) {
       // Check format for the CURRENT set being parsed (re-check each time through the loop)
       if (setCount >= bestOf) break;
-      
+
       const currentSetFormat = getSetFormat(setCount + 1);
       const currentTiebreakSetTo = currentSetFormat?.tiebreakSet?.tiebreakTo;
       const currentRegularSetTo = currentSetFormat?.setTo;
       const currentSetIsTiebreakOnly = !!currentTiebreakSetTo && !currentRegularSetTo;
-      
+
       const setTo = currentTiebreakSetTo || currentRegularSetTo || 6;
       const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
-      
+
       let side1 = '';
       let side2 = '';
       let tb1 = '';
-      let tb2 = '';
 
       // Parse side1
       while (i < segmentDigits.length) {
@@ -216,7 +211,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         // For regular set tiebreaks, we ONLY enter the LOSING score (low score)
         // The winning score is inferred (must win by 2+ points)
         // Examples: 6-7(3) means tiebreak was 7-3 or 7-5, etc.
-        
+
         // Parse tb1 (the losing tiebreak score - all digits until minus or end)
         while (i < segmentDigits.length) {
           const nextDigit = segmentDigits[i];
@@ -245,7 +240,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       } else {
         // Regular set (or tiebreak-only set)
         if (result) result += ' ';
-        
+
         // For tiebreak-only formats, wrap the score in brackets [11-13]
         // This tells the factory it's a tiebreak set, not a regular set
         if (currentSetIsTiebreakOnly) {

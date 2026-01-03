@@ -20,7 +20,8 @@ export function validateSetScore(
   const parsed = matchUpFormatCode.parse(matchUpFormat);
   if (!parsed) return { isValid: true }; // Can't validate if parse fails
 
-  const setFormat = isDecidingSet ? parsed.finalSetFormat : parsed.setFormat;
+  // Use finalSetFormat for deciding set if available, otherwise fall back to setFormat
+  const setFormat = (isDecidingSet && parsed.finalSetFormat) ? parsed.finalSetFormat : parsed.setFormat;
   if (!setFormat) return { isValid: true };
 
   const { setTo, tiebreakAt, tiebreakFormat, tiebreakSet } = setFormat;
@@ -35,6 +36,10 @@ export function validateSetScore(
   const side1TiebreakScore = set.side1TiebreakScore;
   const side2TiebreakScore = set.side2TiebreakScore;
   const hasTiebreakScores = side1TiebreakScore !== undefined && side2TiebreakScore !== undefined;
+  
+  // Note: Set type validation (tiebreak-only vs regular) is handled at the freeText level
+  // where bracket notation [10-8] can be inspected. At this level, we can't reliably distinguish
+  // because tiebreak-only sets can have any scores (3-6, 10-12, etc.)
   
   // For tiebreak-only format, prefer tiebreak scores if available
   const side1Score = (isTiebreakOnlyFormat && hasTiebreakScores) ? side1TiebreakScore : (set.side1Score || set.side1 || 0);
