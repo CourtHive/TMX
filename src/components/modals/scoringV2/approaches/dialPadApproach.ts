@@ -68,28 +68,28 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       formatButton.addEventListener('click', async () => {
         try {
           const { getMatchUpFormatModal } = await import('courthive-components');
-          
+
           getMatchUpFormatModal({
-          existingMatchUpFormat: matchUp.matchUpFormat,
-          callback: (newFormat: string) => {
-            if (newFormat && newFormat !== matchUp.matchUpFormat) {
-              matchUp.matchUpFormat = newFormat;
-              formatButton.textContent = newFormat;
+            existingMatchUpFormat: matchUp.matchUpFormat,
+            callback: (newFormat: string) => {
+              if (newFormat && newFormat !== matchUp.matchUpFormat) {
+                matchUp.matchUpFormat = newFormat;
+                formatButton.textContent = newFormat;
 
-              // Clear state
-              state.digits = '';
+                // Clear state
+                state.digits = '';
 
-              container.innerHTML = '';
-              renderDialPadScoreEntry({ matchUp, container, onScoreChange });
-            }
-          },
-          modalConfig: {
-            style: {
-              fontSize: '12px', // Smaller base font size for TMX
-              border: '3px solid #0066cc',
+                container.innerHTML = '';
+                renderDialPadScoreEntry({ matchUp, container, onScoreChange });
+              }
             },
-          },
-        } as any);
+            modalConfig: {
+              style: {
+                fontSize: '12px', // Smaller base font size for TMX
+                border: '3px solid #0066cc',
+              },
+            },
+          } as any);
         } catch (error) {
           console.error('Error opening format selector:', error);
         }
@@ -232,7 +232,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Update display
     const updateDisplay = () => {
       const scoreString = formatScore(state.digits);
-      
+
       // Show/hide irregular ending section vs score display
       if (selectedOutcome !== 'COMPLETED') {
         scoreDisplay.style.display = 'none';
@@ -278,40 +278,39 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Check if we're in an incomplete tiebreak (regular set tiebreak) OR
       // if we're still building a tiebreak-only set score
       const hasOpenTiebreak = currentScoreString.includes('(') && !currentScoreString.includes(')');
-      
+
       // For tiebreak-only sets: check if we're still building the second score
       // After user enters minus in a tiebreak-only set, allow unlimited digits for side2
       // Check if there's a single minus in the raw digits (one set only) and we're in a tiebreak format
       const hasMinus = state.digits.includes('-');
       const minusCount = (state.digits.match(/-/g) || []).length;
       const buildingTiebreakSet = currentScoreString.includes('[') && hasMinus && minusCount === 1;
-      
+
       // Also check if we're about to ENTER a tiebreak-only set (all previous sets complete, next is tiebreak-only)
       const currentValidation = currentScoreString ? validateScore(currentScoreString, matchUp.matchUpFormat) : null;
       const completedSets = currentValidation?.sets?.length || 0;
       const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat);
       const bestOf = parsedFormat?.setFormat?.bestOf || 3;
-      
+
       // Helper to check if a specific set is tiebreak-only
       const isSetTiebreakOnly = (setNumber: number) => {
         const isDecidingSet = setNumber === bestOf;
-        const setFormat = isDecidingSet && parsedFormat?.finalSetFormat 
-          ? parsedFormat.finalSetFormat 
-          : parsedFormat?.setFormat;
+        const setFormat =
+          isDecidingSet && parsedFormat?.finalSetFormat ? parsedFormat.finalSetFormat : parsedFormat?.setFormat;
         const tiebreakSetTo = setFormat?.tiebreakSet?.tiebreakTo;
         const regularSetTo = setFormat?.setTo;
         return !!tiebreakSetTo && !regularSetTo;
       };
-      
+
       const enteringTiebreakOnlySet = completedSets < bestOf && isSetTiebreakOnly(completedSets + 1);
-      
+
       const inTiebreak = hasOpenTiebreak || buildingTiebreakSet || enteringTiebreakOnlySet;
 
       // For minus, we'll add a minus character
       const testDigits = digit === '-' ? state.digits + '-' : state.digits + digit.toString();
 
       const testScoreString = formatScore(testDigits);
-      
+
       // DEBUG LOGGING
       console.log('[DialPad] handleDigitPress:', {
         digit,
@@ -342,23 +341,34 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Instead, check if the testScore is different from currentScore and if it looks like
         // we're continuing to enter digits within a tiebreak
         const lastSet = currentValidation.sets?.[currentValidation.sets.length - 1];
-        
+
         // Check if the testScore shows progression within a tiebreak
         // e.g., current="6-7(1)" test="6-7(12)" means we're continuing tiebreak entry
         const currentHasTiebreak = currentScoreString.includes('(');
         const testHasTiebreak = testScoreString.includes('(');
-        const tiebreakInProgress = currentHasTiebreak && testHasTiebreak && 
+        const tiebreakInProgress =
+          currentHasTiebreak &&
+          testHasTiebreak &&
           testScoreString !== currentScoreString &&
           testScoreString.startsWith(currentScoreString.substring(0, currentScoreString.lastIndexOf(')')));
-        
-        const lastSetNeedsTiebreak = lastSet && (
-          (lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore === undefined) ||
-          (lastSet.side1TiebreakScore === null && lastSet.side2TiebreakScore === null) ||
-          tiebreakInProgress
-        ) && (lastSet.side1Score === lastSet.side2Score || 
-             Math.abs(lastSet.side1Score - lastSet.side2Score) === 1);
 
-        console.log('[DialPad] lastSetNeedsTiebreak:', lastSetNeedsTiebreak, 'tiebreakInProgress:', tiebreakInProgress, 'lastSet:', lastSet);
+        const lastSetNeedsTiebreak =
+          lastSet &&
+          ((lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore === undefined) ||
+            (lastSet.side1TiebreakScore == null && lastSet.side2TiebreakScore == null) ||
+            tiebreakInProgress) &&
+          lastSet.side1Score !== undefined &&
+          lastSet.side2Score !== undefined &&
+          (lastSet.side1Score === lastSet.side2Score || Math.abs(lastSet.side1Score - lastSet.side2Score) === 1);
+
+        console.log(
+          '[DialPad] lastSetNeedsTiebreak:',
+          lastSetNeedsTiebreak,
+          'tiebreakInProgress:',
+          tiebreakInProgress,
+          'lastSet:',
+          lastSet,
+        );
 
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if:
@@ -405,28 +415,30 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       selectedOutcome = 'COMPLETED';
       selectedWinner = undefined;
       // Clear winner radio selections
-      const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
-      winnerRadios.forEach(r => r.checked = false);
+      const winnerRadios = irregularEndingContainer.querySelectorAll(
+        'input[name="irregularWinner"]',
+      );
+      winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
       updateDisplay();
     };
 
     // Expose reset function for Clear button
-    (window as any).resetDialPad = resetDialPad;
+    (globalThis as any).resetDialPad = resetDialPad;
 
     // Function to update RET/DEF button states
     const updateIrregularButtonStates = () => {
       const retButton = dialPadContainer.querySelector('[data-button="retired"]') as HTMLButtonElement;
       const defButton = dialPadContainer.querySelector('[data-button="defaulted"]') as HTMLButtonElement;
-      
+
       // Check if the formatted score string has both sides (contains a minus separating them)
       const scoreString = formatScore(state.digits);
-      
+
       // A renderable score must have at least one complete set with both sides
       // This means the scoreString should contain a '-' (separator between sides)
       // Examples: '3-6', '11-13', '6-3 4-2' all have '-'
       // But '3', '11', '6' do not
       const hasRenderableScore = scoreString.includes('-') && scoreString.length > 2; // At least 'X-Y'
-      
+
       if (retButton) retButton.disabled = !hasRenderableScore;
       if (defButton) defButton.disabled = !hasRenderableScore;
     };
@@ -476,7 +488,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Add data attribute for button type (for state management)
       if (btn.value === 'retired' || btn.value === 'defaulted') {
-        button.setAttribute('data-button', btn.value);
+        button.dataset.button = btn.value;
       }
 
       // Disable and hide empty button
@@ -499,8 +511,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           selectedOutcome = 'RETIRED';
           selectedWinner = undefined;
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
-          winnerRadios.forEach(r => r.checked = false);
+          const winnerRadios = irregularEndingContainer.querySelectorAll(
+            'input[name="irregularWinner"]',
+          );
+          winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'walkover') {
           selectedOutcome = 'WALKOVER';
@@ -508,15 +522,19 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           // Clear score for walkover
           state.digits = '';
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
-          winnerRadios.forEach(r => r.checked = false);
+          const winnerRadios = irregularEndingContainer.querySelectorAll(
+            'input[name="irregularWinner"]',
+          );
+          winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'defaulted') {
           selectedOutcome = 'DEFAULTED';
           selectedWinner = undefined;
           // Clear winner radio selections
-          const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
-          winnerRadios.forEach(r => r.checked = false);
+          const winnerRadios = irregularEndingContainer.querySelectorAll(
+            'input[name="irregularWinner"]',
+          );
+          winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'empty') {
           // Empty placeholder - do nothing
@@ -557,7 +575,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     container.setAttribute('tabindex', '-1'); // -1 means focusable but not in tab order
     container.style.outline = 'none'; // Remove blue focus outline
     container.addEventListener('keydown', handleKeyDown);
-    
+
     // Auto-focus container so keyboard works immediately
     setTimeout(() => container.focus(), 100);
 
@@ -566,7 +584,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       container.removeEventListener('keydown', handleKeyDown);
     };
 
-    (window as any).cleanupDialPad = cleanup;
+    (globalThis as any).cleanupDialPad = cleanup;
 
     // Initial display
     updateMatchUpDisplay(null);
