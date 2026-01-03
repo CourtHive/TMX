@@ -311,19 +311,23 @@ export function validateSetScores(
 
     if (setValidation.isValid) {
       // Set is valid - determine winningSide
-      // ONLY assign winningSide if:
-      // 1. Set already had winningSide (tiebreak-only sets), OR
-      // 2. Set passed strict validation (not just allowIncomplete)
       let winningSide: number | undefined = sets[i].winningSide;
       
-      // If set didn't have winningSide but passed validation without allowIncomplete, assign it now
-      if (winningSide === undefined && !allowIncompleteForSet) {
-        // For tiebreak-only sets, compare tiebreak scores; for regular sets, compare game scores
-        const hasTiebreakScores = sets[i].side1TiebreakScore !== undefined && sets[i].side2TiebreakScore !== undefined;
-        const side1 = hasTiebreakScores ? sets[i].side1TiebreakScore || 0 : sets[i].side1 || 0;
-        const side2 = hasTiebreakScores ? sets[i].side2TiebreakScore || 0 : sets[i].side2 || 0;
-        if (side1 > side2) winningSide = 1;
-        else if (side2 > side1) winningSide = 2;
+      // If set didn't have winningSide, check if it would pass strict validation
+      // If so, assign winningSide (it's a truly complete set, not just allowed incomplete)
+      if (winningSide === undefined) {
+        // Test with strict validation (no allowIncomplete)
+        const strictValidation = validateSetScore(setData, matchUpFormat, isDecidingSet, false);
+        
+        if (strictValidation.isValid) {
+          // Set passes strict validation - assign winningSide
+          const hasTiebreakScores = sets[i].side1TiebreakScore !== undefined && sets[i].side2TiebreakScore !== undefined;
+          const side1 = hasTiebreakScores ? sets[i].side1TiebreakScore || 0 : sets[i].side1 || 0;
+          const side2 = hasTiebreakScores ? sets[i].side2TiebreakScore || 0 : sets[i].side2 || 0;
+          if (side1 > side2) winningSide = 1;
+          else if (side2 > side1) winningSide = 2;
+        }
+        // Otherwise winningSide stays undefined (incomplete set)
       }
 
       validatedSets.push({ ...setData, winningSide });
