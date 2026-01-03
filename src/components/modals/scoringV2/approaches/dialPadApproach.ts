@@ -303,8 +303,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       };
 
       const enteringTiebreakOnlySet = completedSets < bestOf && isSetTiebreakOnly(completedSets + 1);
+      
+      // Also check if we're currently in a tiebreak-only set (last set being edited)
+      const inTiebreakOnlySet = completedSets > 0 && isSetTiebreakOnly(completedSets);
 
-      const inTiebreak = hasOpenTiebreak || buildingTiebreakSet || enteringTiebreakOnlySet;
+      const inTiebreak = hasOpenTiebreak || buildingTiebreakSet || enteringTiebreakOnlySet || inTiebreakOnlySet;
 
       // For minus, we'll add a minus character
       const testDigits = digit === '-' ? state.digits + '-' : state.digits + digit.toString();
