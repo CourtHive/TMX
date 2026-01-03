@@ -672,7 +672,7 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       const set = { side1Score: 11, side2Score: 12 };
       const result = validateSetScore(set, tb10Format);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('exactly 2 points');
+      expect(result.error).toContain('at least 2 points');
     });
 
     it('should reject 10-13 (3 point margin, must be exactly 2)', () => {
