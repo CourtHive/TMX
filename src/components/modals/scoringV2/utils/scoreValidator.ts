@@ -107,9 +107,15 @@ export function validateScore(
     // The factory's generateOutcomeFromScoreString doesn't validate against matchUpFormat
     // so it assigns winningSide to invalid sets like "5-0"
     // We need to strip winningSide from sets that fail our validation
+    
+    // Determine bestOf to check for deciding set
+    const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
+    const bestOfSets = bestOfMatch ? parseInt(bestOfMatch) : 3;
+    
     let anySetInvalidated = false;
-    const validatedSets = sets.map((set: any) => {
-      const isDecidingSet = false; // We'll determine this properly later
+    const validatedSets = sets.map((set: any, index: number) => {
+      // Check if this is the deciding set (last possible set in the match)
+      const isDecidingSet = index + 1 === bestOfSets;
       const validation = validateSetScore(set, matchUpFormat, isDecidingSet, false);
       
       if (!validation.isValid) {
@@ -139,9 +145,7 @@ export function validateScore(
       };
     }
 
-    // Parse matchUpFormat for completeness check
-    const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
-    const bestOfSets = bestOfMatch ? parseInt(bestOfMatch) : 3;
+    // Parse matchUpFormat for completeness check (bestOfSets already defined above)
     const setsToWin = Math.ceil(bestOfSets / 2);
 
     // CRITICAL: If we removed winningSide from any set, the match cannot have a winningSide
