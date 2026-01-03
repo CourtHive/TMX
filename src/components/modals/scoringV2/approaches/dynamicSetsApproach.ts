@@ -456,13 +456,26 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Scores can't be equal (tie is not complete)
     if (side1Score === side2Score) return false;
     
-    // For tab navigation and auto-expansion, we need to check if it's a VALID set score
-    // Otherwise "5-2" would be considered complete and trigger next set creation
-    // Check if this set exists in currentSets with a winningSide (meaning it passed validation)
+    // For tab navigation and auto-expansion, check if the set is "complete enough" to move on
+    // A set is complete enough if:
+    // 1. Both scores are entered (already checked above)
+    // 2. One score is clearly winning (for tiebreak sets: has winningSide, for regular sets: basic completion)
     if (currentSets.length > setIndex) {
       const setData = currentSets[setIndex];
-      // Set is complete if it has a winningSide assigned (passed validation)
-      return setData.winningSide !== undefined;
+      
+      // Check if this is a tiebreak-only set
+      const setFormat = getSetFormat(setIndex);
+      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+      
+      if (setIsTiebreakOnly) {
+        // For tiebreak-only sets, require winningSide (validation determines if score is valid)
+        return setData.winningSide !== undefined;
+      } else {
+        // For regular sets, if both scores are entered and not equal, allow expansion
+        // This allows incomplete scores like 5-0 to trigger next set creation
+        // Validation will determine if it's truly valid
+        return side1Score !== side2Score;
+      }
     }
     
     return false;
@@ -496,24 +509,20 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       
       // Determine winner - ONLY if both sides have been entered AND it's a valid winning score
       // Don't assign winner to incomplete sets (e.g., 5-? where second side is empty)
-      // For tiebreak-only sets (TB10), don't assign winner until score reaches valid threshold
+      // For regular sets, don't assign winner until validation passes (allows in-progress rendering)
       let winningSide: number | undefined;
       if (side1Value !== '' && side2Value !== '') {
-        // Both sides entered - determine winner based on score difference
-        // For TB10, we pass scores to validation even if incomplete
-        // The factory/validateSetScore will determine validity
+        // Both sides entered
         if (setIsTiebreakOnly) {
           // For tiebreak-only sets, always assign winningSide based on who has more points
           // Let validation determine if it's a valid winning score
           // This allows 1-10, 3-6, 11-13, etc. to show in display and be validated
           if (side1Score > side2Score) winningSide = 1;
           else if (side2Score > side1Score) winningSide = 2;
-        } else {
-          // Regular set - simple comparison
-          if (side1Score > side2Score) winningSide = 1;
-          else if (side2Score > side1Score) winningSide = 2;
-          // If equal scores, winningSide stays undefined (tie - invalid but we store it)
         }
+        // For regular sets, DON'T assign winningSide yet - let validation determine
+        // if the score is complete. This allows incomplete scores like 5-0 to render
+        // without being marked as "complete" and failing validation.
       }
 
       // CRITICAL: For tiebreak-only sets (TB10), the main inputs ARE the tiebreak scores
@@ -577,11 +586,15 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Validate and update display
     if (currentSets.length > 0 || selectedOutcome !== 'COMPLETED') {
       // Build sets data with tiebreak scores for validation
-      // CRITICAL: Only include COMPLETE sets (where winningSide is defined)
-      // Don't pass incomplete sets like "5-0" where 0 means "no entry yet"
-      const completeSets = currentSets.filter(s => s.winningSide !== undefined);
+      // For in-progress matches, include all sets (even without winningSide)
+      // A match is "in progress" if:
+      // 1. selectedOutcome is not COMPLETED (irregular ending), OR
+      // 2. Some sets don't have winningSide (incomplete/invalid regular sets)
+      const hasIncompleteSets = currentSets.some(s => s.winningSide === undefined);
+      const matchInProgress = selectedOutcome !== 'COMPLETED' || hasIncompleteSets;
+      const setsToValidate = matchInProgress ? currentSets : currentSets.filter(s => s.winningSide !== undefined);
       
-      const setsForValidation = completeSets.map(s => {
+      const setsForValidation = setsToValidate.map(s => {
         // For tiebreak-only sets (where side1Score and side2Score are 0),
         // don't include side1/side2 in validation data - factory expects undefined for TB-only sets
         const isTiebreakOnlySet = s.side1Score === 0 && s.side2Score === 0 && 

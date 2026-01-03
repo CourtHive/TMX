@@ -244,7 +244,7 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
  * Currently unused - will be needed when implementing set-by-set input
  */
 export function validateSetScores(
-  sets: Array<{ side1?: number; side2?: number; side1TiebreakScore?: number; side2TiebreakScore?: number }>,
+  sets: Array<{ side1?: number; side2?: number; side1TiebreakScore?: number; side2TiebreakScore?: number; winningSide?: number }>,
   matchUpFormat?: string,
   allowIncomplete?: boolean,
 ): ScoreOutcome {
@@ -302,17 +302,29 @@ export function validateSetScores(
     // Check if this is the deciding set (last possible set in the match)
     const isDecidingSet = i + 1 === bestOfSets;
 
-    const setValidation = validateSetScore(setData, matchUpFormat, isDecidingSet, allowIncomplete);
+    // Allow incomplete per-set: if set has no winningSide, it's incomplete
+    // Otherwise use the global allowIncomplete flag
+    const setHasWinner = sets[i].winningSide !== undefined;
+    const allowIncompleteForSet = allowIncomplete || !setHasWinner;
+
+    const setValidation = validateSetScore(setData, matchUpFormat, isDecidingSet, allowIncompleteForSet);
 
     if (setValidation.isValid) {
       // Set is valid - determine winningSide
-      // For tiebreak-only sets, compare tiebreak scores; for regular sets, compare game scores
-      const hasTiebreakScores = sets[i].side1TiebreakScore !== undefined && sets[i].side2TiebreakScore !== undefined;
-      const side1 = hasTiebreakScores ? sets[i].side1TiebreakScore || 0 : sets[i].side1 || 0;
-      const side2 = hasTiebreakScores ? sets[i].side2TiebreakScore || 0 : sets[i].side2 || 0;
-      let winningSide: number | undefined;
-      if (side1 > side2) winningSide = 1;
-      else if (side2 > side1) winningSide = 2;
+      // ONLY assign winningSide if:
+      // 1. Set already had winningSide (tiebreak-only sets), OR
+      // 2. Set passed strict validation (not just allowIncomplete)
+      let winningSide: number | undefined = sets[i].winningSide;
+      
+      // If set didn't have winningSide but passed validation without allowIncomplete, assign it now
+      if (winningSide === undefined && !allowIncompleteForSet) {
+        // For tiebreak-only sets, compare tiebreak scores; for regular sets, compare game scores
+        const hasTiebreakScores = sets[i].side1TiebreakScore !== undefined && sets[i].side2TiebreakScore !== undefined;
+        const side1 = hasTiebreakScores ? sets[i].side1TiebreakScore || 0 : sets[i].side1 || 0;
+        const side2 = hasTiebreakScores ? sets[i].side2TiebreakScore || 0 : sets[i].side2 || 0;
+        if (side1 > side2) winningSide = 1;
+        else if (side2 > side1) winningSide = 2;
+      }
 
       validatedSets.push({ ...setData, winningSide });
     } else {

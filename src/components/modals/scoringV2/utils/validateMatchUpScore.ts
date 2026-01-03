@@ -261,9 +261,20 @@ export function validateMatchUpScore(
 
   // Validate each set against matchUpFormat
   for (let i = 0; i < sets.length; i++) {
+    const set = sets[i];
+    
     // Check if this specific set is the deciding set (last possible set in the match)
     const isDecidingSet = i + 1 === bestOfSets;
-    const setValidation = validateSetScore(sets[i], matchUpFormat, isDecidingSet, isIrregularEnding);
+    
+    // Allow incomplete scores when:
+    // 1. matchUpStatus is undefined AND set has no winningSide (in progress, not claiming completion)
+    // 2. matchUpStatus is an irregular ending (RETIRED, WALKOVER, DEFAULTED)
+    const setHasWinner = set.winningSide !== undefined;
+    const matchInProgress = matchUpStatus === undefined;
+    const allowIncomplete = isIrregularEnding || (matchInProgress && !setHasWinner);
+    
+    const setValidation = validateSetScore(set, matchUpFormat, isDecidingSet, allowIncomplete);
+
     if (!setValidation.isValid) {
       return {
         isValid: false,
