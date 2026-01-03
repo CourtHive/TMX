@@ -153,9 +153,9 @@ const testCases: TestCase[] = [
     matchUpFormat: 'SET3-S:6',
   },
   {
-    name: 'should parse tb2 when next digit is high (tiebreak score)',
-    keySequence: [7, 6, 8, '-', 10],
-    expectedScoreString: '7-6(8-10)',
+    name: 'should allow multi-digit tiebreak scores',
+    keySequence: [7, 6, 1, 2, '-', 4, 6],
+    expectedScoreString: '7-6(12) 4-6',
     matchUpFormat: 'SET3-S:6',
   },
 
