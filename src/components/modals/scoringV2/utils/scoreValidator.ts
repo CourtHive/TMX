@@ -1,11 +1,11 @@
 /**
  * Score validation utilities using tournamentEngine
  */
-import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
-import { validateMatchUpScore, validateSetScore } from './validateMatchUpScore';
+import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants, governors } from 'tods-competition-factory';
 import type { ScoreOutcome } from '../types';
 
 const { COMPLETED } = matchUpStatusConstants;
+const { validateMatchUpScore, validateSetScore } = governors.scoreGovernor;
 
 export type TidyScoreResult = {
   tidyScore?: string;

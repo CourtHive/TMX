@@ -16,10 +16,10 @@
 
 /* eslint-disable sonarjs/assertions-in-tests */
 import { describe, it, expect } from 'vitest';
-import { validateSetScore, validateMatchUpScore } from './validateMatchUpScore';
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, governors } from 'tods-competition-factory';
 
 const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
+const { validateSetScore, validateMatchUpScore } = governors.scoreGovernor;
 
 describe('validateSetScore', () => {
   const standardFormat = 'SET3-S:6/TB7';
