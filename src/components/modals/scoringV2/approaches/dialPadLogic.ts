@@ -161,13 +161,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       }
 
       if (!side2) {
-        // Incomplete set
-        // For tiebreak-only sets, don't show incomplete score - user needs minus separator
-        if (currentSetIsTiebreakOnly) {
-          // Don't add anything - tiebreak-only sets require explicit minus (e.g., "9-11")
-          break;
-        }
-        // For regular sets, show incomplete score
+        // Incomplete set - show the partial score
         if (result) result += ' ';
         result += side1;
         break;
