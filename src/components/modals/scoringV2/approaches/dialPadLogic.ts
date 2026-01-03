@@ -233,31 +233,65 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
           i++;
         }
 
-        // After the minus, check if we should parse tb2 or close the tiebreak
-        // Look ahead: if next character is a digit that could start a new set, close tiebreak
-        // Otherwise, parse tb2
+        // After the first minus, look ahead to determine if we should parse tb2
+        // or close the tiebreak and start a new set
+        // Strategy: Look at the next 2-3 characters to see if they look like a set score (e.g., "67" or "63")
+        // vs a single tiebreak score (e.g., "10")
+        
         if (i < segmentDigits.length) {
-          const nextChar = segmentDigits[i];
+          const remainingDigits = segmentDigits.substring(i);
           
-          // If next char is a digit, we need to determine if it's:
-          // a) The start of tb2 (if it's a valid tiebreak score continuation)
-          // b) The start of a new set (if it looks like a set score)
+          // Check if the next characters look like a set score pattern
+          // Set scores typically have: digit, digit, (optional more digits)
+          // Examples: "67" (6-7), "63" (6-3), "46" (4-6)
+          // Tiebreak scores: "10", "8", "12", etc.
           
-          // Check if we're about to enter the final set (which might be tiebreak-only)
-          // Note: setCount hasn't been incremented for the current set yet,
-          // so nextSetNumber is actually the set AFTER the current one
-          const nextSetNumber = setCount + 2;
-          const isNextSetDeciding = nextSetNumber === bestOf;
+          // Extract up to 3 characters to analyze
+          const lookAhead = remainingDigits.substring(0, 3);
+          
+          // Try to detect if this looks like two separate scores (side1 side2 for new set)
+          // vs a single tiebreak score (tb2)
+          let looksLikeNewSet = false;
+          
+          // First check: is the NEXT set going to be tiebreak-only?
+          // If so, ANY digit should be treated as the start of that set
+          const nextSetNumber = setCount + 2; // +1 for current set being formatted, +1 for next
           const nextSetFormat = getSetFormat(nextSetNumber);
           const nextSetIsTiebreakOnly = !!nextSetFormat?.tiebreakSet?.tiebreakTo && !nextSetFormat?.setTo;
           
-          const nextDigitVal = Number.parseInt(nextChar);
+          if (nextSetIsTiebreakOnly) {
+            // Next set is tiebreak-only, so close this tiebreak and let the digits start the final set
+            looksLikeNewSet = true;
+          } else if (lookAhead.length >= 1) {
+            const firstDigit = Number.parseInt(lookAhead[0]);
+            
+            if (!isNaN(firstDigit)) {
+              // If first digit is a '1' and there's a second digit '0'-'9', it might be "10", "11", "12" etc (tiebreak score)
+              // Otherwise, if first digit is 0-7, it's likely the start of a new set
+              if (firstDigit === 1 && lookAhead.length >= 2) {
+                const secondDigit = Number.parseInt(lookAhead[1]);
+                // Check if it forms a 2-digit number like 10, 11, 12
+                if (!isNaN(secondDigit)) {
+                  // This looks like a 2-digit tiebreak score, NOT a new set
+                  looksLikeNewSet = false;
+                } else {
+                  // "1" followed by non-digit, likely new set starting with 1
+                  looksLikeNewSet = true;
+                }
+              } else if (firstDigit >= 0 && firstDigit <= setTo + 1) {
+                // Single digit in game range, likely new set
+                looksLikeNewSet = true;
+              } else {
+                // First digit > setTo+1, likely a tiebreak score
+                looksLikeNewSet = false;
+              }
+            }
+          }
           
-          // If next set is tiebreak-only OR next digit looks like a new set score, close tiebreak
-          // New set scores: 0-setTo (for regular sets) or any digit (for tiebreak-only sets)
-          const looksLikeNewSet = !isNaN(nextDigitVal) && (nextSetIsTiebreakOnly || (nextDigitVal <= setTo && tb1.length > 0));
-          
-          if (!looksLikeNewSet) {
+          if (looksLikeNewSet) {
+            // Close tiebreak, don't parse tb2
+            // The remaining digits will be parsed as the next set in the outer loop
+          } else {
             // Parse tb2
             while (i < segmentDigits.length) {
               const digit = segmentDigits[i];

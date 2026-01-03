@@ -137,12 +137,25 @@ const testCases: TestCase[] = [
     matchUpFormat: 'SET3-S:6',
   },
 
-  // Minus key after tiebreak should close tiebreak and advance to next set
-  // Note: In the UI, minus adds a SPACE, so this simulates that behavior
+  // Minus key after tiebreak - smart detection of new set vs tb2
+  // If next digits look like the start of a new set (e.g., 6-7), close tiebreak
+  // Otherwise, parse as tb2
   {
-    name: 'should close tiebreak and advance to next set with minus',
+    name: 'should close tiebreak when next digits look like new set 6-7',
+    keySequence: [6, 7, 3, '-', 6, 7, 3],
+    expectedScoreString: '6-7(3) 6-7(3)',
+    matchUpFormat: 'SET3-S:6',
+  },
+  {
+    name: 'should close tiebreak when next digits look like new set 6-3',
     keySequence: [6, 7, 3, '-', 6, 3],
     expectedScoreString: '6-7(3) 6-3',
+    matchUpFormat: 'SET3-S:6',
+  },
+  {
+    name: 'should parse tb2 when next digit is high (tiebreak score)',
+    keySequence: [7, 6, 8, '-', 10],
+    expectedScoreString: '7-6(8-10)',
     matchUpFormat: 'SET3-S:6',
   },
 
