@@ -194,22 +194,22 @@ const testCases: TestCase[] = [
   },
 
   // SET5 with final set tiebreak (F:TB10)
-  // Note: For 5-set matches, user must add minuses to separate non-tiebreak sets
+  // Note: For 5-set matches with multiple sets, use spaces to separate (split into segments)
   {
     name: 'should handle SET5 F:TB10 complete match 6-4 6-7 6-3 3-6 [10-5]',
-    keySequence: [6, 4, 6, 7, 3, '-', 6, 3, '-', 3, 6, '-', 1, 0, '-', 5],
+    keySequence: [6, 4, ' ', 6, 7, 3, '-', ' ', 6, 3, ' ', 3, 6, ' ', 1, 0, '-', 5],
     expectedScoreString: '6-4 6-7(3) 6-3 3-6 [10-5]',
     matchUpFormat: 'SET5-S:6/TB7-F:TB10',
   },
   {
     name: 'should handle SET5 F:TB10 incomplete fifth set 6-4 3-6 4-6 6-3 11',
-    keySequence: [6, 4, 3, 6, 4, 6, '-', 6, 3, 1, 1],
+    keySequence: [6, 4, ' ', 3, 6, ' ', 4, 6, ' ', 6, 3, ' ', 1, 1],
     expectedScoreString: '6-4 3-6 4-6 6-3 11',
     matchUpFormat: 'SET5-S:6/TB7-F:TB10',
   },
   {
     name: 'should handle SET5 F:TB10 fifth set extended 7-5 5-7 6-4 4-6 [13-15]',
-    keySequence: [7, 5, 5, 7, 6, 4, '-', 4, 6, '-', 1, 3, '-', 1, 5],
+    keySequence: [7, 5, ' ', 5, 7, ' ', 6, 4, ' ', 4, 6, ' ', 1, 3, '-', 1, 5],
     expectedScoreString: '7-5 5-7 6-4 4-6 [13-15]',
     matchUpFormat: 'SET5-S:6/TB7-F:TB10',
   },
