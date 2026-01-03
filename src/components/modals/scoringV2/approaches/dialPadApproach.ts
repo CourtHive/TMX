@@ -336,15 +336,21 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           sets: currentValidation.sets,
         });
 
-        // Check if the last set has tiebreak scores missing
+        // Check if the last set has tiebreak scores missing or incomplete
         const lastSet = currentValidation.sets?.[currentValidation.sets.length - 1];
+        const lastSetHasTiebreakScores = lastSet && (
+          lastSet.side1TiebreakScore !== undefined || lastSet.side2TiebreakScore !== undefined
+        );
         const lastSetNeedsTiebreak = lastSet && (
           (lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore === undefined) ||
-          (lastSet.side1TiebreakScore === null && lastSet.side2TiebreakScore === null)
+          (lastSet.side1TiebreakScore === null && lastSet.side2TiebreakScore === null) ||
+          // Also check if only ONE tiebreak score exists (incomplete tiebreak entry)
+          (lastSet.side1TiebreakScore !== undefined && lastSet.side2TiebreakScore === undefined) ||
+          (lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore !== undefined)
         ) && (lastSet.side1Score === lastSet.side2Score || 
              Math.abs(lastSet.side1Score - lastSet.side2Score) === 1);
 
-        console.log('[DialPad] lastSetNeedsTiebreak:', lastSetNeedsTiebreak, 'lastSet:', lastSet);
+        console.log('[DialPad] lastSetNeedsTiebreak:', lastSetNeedsTiebreak, 'lastSet:', lastSet, 'lastSetHasTiebreakScores:', lastSetHasTiebreakScores);
 
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if:
