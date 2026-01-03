@@ -311,6 +311,21 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const testDigits = digit === '-' ? state.digits + '-' : state.digits + digit.toString();
 
       const testScoreString = formatScore(testDigits);
+      
+      // DEBUG LOGGING
+      console.log('[DialPad] handleDigitPress:', {
+        digit,
+        currentDigits: state.digits,
+        currentScore: currentScoreString,
+        testDigits,
+        testScore: testScoreString,
+        hasOpenTiebreak,
+        buildingTiebreakSet,
+        enteringTiebreakOnlySet,
+        inTiebreak,
+        completedSets,
+        bestOf,
+      });
 
       if (currentScoreString) {
         const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
