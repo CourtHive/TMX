@@ -526,11 +526,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         handleDelete();
-      } else if (e.key === '-') {
+      } else if (e.key === '-' || e.key === ' ' || e.key === '/') {
+        // Treat minus, space, and slash as separators
         e.preventDefault();
         handleDigitPress('-');
-      } else if (e.key === ')' || e.key === ' ') {
-        // Accept ')' or space to close tiebreak and move to next set
+      } else if (e.key === ')') {
+        // Accept ')' to close tiebreak and move to next set
         e.preventDefault();
         const currentScore = formatScore(state.digits);
         const inTiebreak = currentScore.includes('(') && !currentScore.includes(')');
