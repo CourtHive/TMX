@@ -653,11 +653,10 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject 8-10 (loser below setTo-1=9)', () => {
+    it('should accept 8-10 (loser at setTo-2=8, valid 2-point margin)', () => {
       const set = { side1Score: 8, side2Score: 10 };
       const result = validateSetScore(set, tb10Format);
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('requires playing past 10');
+      expect(result.isValid).toBe(true);
     });
   });
 
@@ -772,11 +771,10 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject 5-7 (loser below setTo-1=6)', () => {
+    it('should accept 5-7 (loser at setTo-2=5, valid 2-point margin)', () => {
       const set = { side1Score: 5, side2Score: 7 };
       const result = validateSetScore(set, tb7Format);
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('requires playing past 7');
+      expect(result.isValid).toBe(true);
     });
 
     it('should reject 7-8 (only 1 point margin)', () => {
@@ -821,11 +819,10 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject 10-12 (loser below setTo-1=11)', () => {
+    it('should accept 10-12 (loser at setTo-2=10, valid 2-point margin)', () => {
       const set = { side1Score: 10, side2Score: 12 };
       const result = validateSetScore(set, tb12Format);
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('requires playing past 12');
+      expect(result.isValid).toBe(true);
     });
 
     it('should reject 12-13 (only 1 point margin)', () => {
@@ -878,11 +875,10 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject 18-20 (loser below setTo-1=19)', () => {
+    it('should accept 18-20 (loser at setTo-2=18, valid 2-point margin)', () => {
       const set = { side1Score: 18, side2Score: 20 };
       const result = validateSetScore(set, tb20Format);
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('requires playing past 20');
+      expect(result.isValid).toBe(true);
     });
 
     it('should reject 20-21 (only 1 point margin)', () => {
@@ -928,11 +924,10 @@ describe('validateSetScore - Tiebreak-Only Sets (TB10)', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject 3-5 (loser below setTo-1=4)', () => {
+    it('should accept 3-5 (loser at setTo-2=3, valid 2-point margin)', () => {
       const set = { side1Score: 3, side2Score: 5 };
       const result = validateSetScore(set, tb5Format);
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('requires playing past 5');
+      expect(result.isValid).toBe(true);
     });
 
     it('should reject 5-6 (only 1 point margin)', () => {
