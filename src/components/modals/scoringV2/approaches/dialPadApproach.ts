@@ -336,9 +336,21 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           sets: currentValidation.sets,
         });
 
+        // Check if the last set has tiebreak scores missing
+        const lastSet = currentValidation.sets?.[currentValidation.sets.length - 1];
+        const lastSetNeedsTiebreak = lastSet && (
+          (lastSet.side1TiebreakScore === undefined && lastSet.side2TiebreakScore === undefined) ||
+          (lastSet.side1TiebreakScore === null && lastSet.side2TiebreakScore === null)
+        ) && (lastSet.side1Score === lastSet.side2Score || 
+             Math.abs(lastSet.side1Score - lastSet.side2Score) === 1);
+
+        console.log('[DialPad] lastSetNeedsTiebreak:', lastSetNeedsTiebreak, 'lastSet:', lastSet);
+
         // Match is complete if validation shows a winningSide and is valid
-        // BUT allow continuing if we're in the middle of entering a tiebreak score
-        if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
+        // BUT allow continuing if:
+        // 1. We're in the middle of entering a tiebreak score (inTiebreak)
+        // 2. The last set needs tiebreak scores (lastSetNeedsTiebreak)
+        if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak && !lastSetNeedsTiebreak) {
           console.log('[DialPad] BLOCKED: Match complete');
           return;
         }
