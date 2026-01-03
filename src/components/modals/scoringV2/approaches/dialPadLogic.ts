@@ -21,14 +21,17 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   // Parse matchUpFormat to get setTo and tiebreakAt
   const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
 
-  // For tiebreak-only sets (e.g., SET1-S:TB10), setTo comes from tiebreakSet.tiebreakTo
-  const tiebreakSetTo = parsedFormat?.setFormat?.tiebreakSet?.tiebreakTo;
-  const regularSetTo = parsedFormat?.setFormat?.setTo;
-  const isTiebreakOnlyFormat = !!tiebreakSetTo && !regularSetTo;
-
-  const setTo = tiebreakSetTo || regularSetTo || 6;
-  const tiebreakAt = parsedFormat?.setFormat?.tiebreakAt || setTo;
   const bestOf = parsedFormat?.setFormat?.bestOf || 3;
+  
+  // Helper to get format for a specific set (checking finalSetFormat for deciding set)
+  const getSetFormat = (setNumber: number) => {
+    const isDecidingSet = setNumber === bestOf;
+    return isDecidingSet && parsedFormat?.finalSetFormat 
+      ? parsedFormat.finalSetFormat 
+      : parsedFormat?.setFormat;
+  };
+  
+
 
   let result = '';
   let i = 0;
@@ -41,6 +44,15 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   for (const segment of segments) {
     // Stop if we've already reached the maximum number of sets
     if (setCount >= bestOf) break;
+    
+    // Get format for the NEXT set we're about to parse (setCount is 0-based, add 1 for set number)
+    const currentSetFormat = getSetFormat(setCount + 1);
+    const currentTiebreakSetTo = currentSetFormat?.tiebreakSet?.tiebreakTo;
+    const currentRegularSetTo = currentSetFormat?.setTo;
+    const currentSetIsTiebreakOnly = !!currentTiebreakSetTo && !currentRegularSetTo;
+    
+    const setTo = currentTiebreakSetTo || currentRegularSetTo || 6;
+    const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
 
     i = 0;
     const segmentDigits = segment;
@@ -63,7 +75,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
 
         // For tiebreak-only formats (TB10), user MUST use minus to separate scores
         // So keep consuming all digits until we hit a minus
-        if (isTiebreakOnlyFormat) {
+        if (currentSetIsTiebreakOnly) {
           side1 += nextDigit;
           i++;
           continue;
@@ -113,7 +125,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
 
         // For tiebreak-only formats (TB10), user MUST use minus to separate scores
         // So keep consuming all digits until we hit a minus
-        if (isTiebreakOnlyFormat) {
+        if (currentSetIsTiebreakOnly) {
           side2 += nextDigit;
           i++;
           continue;
@@ -152,7 +164,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       // For tiebreak-only formats (SET1-S:TB10), accept scores as-is
       let wasCoerced = false;
 
-      if (!isTiebreakOnlyFormat) {
+      if (!currentSetIsTiebreakOnly) {
         // Coercion rules to match other scoring dialog behavior:
         // 1. If side > setTo+1: coerce that side DOWN to setTo
         // 2. If side = setTo+1 but other side < setTo-1: coerce the HIGH side DOWN to setTo
@@ -230,7 +242,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         
         // For tiebreak-only formats, wrap the score in brackets [11-13]
         // This tells the factory it's a tiebreak set, not a regular set
-        if (isTiebreakOnlyFormat) {
+        if (currentSetIsTiebreakOnly) {
           result += `[${side1}-${side2}]`;
         } else {
           result += `${side1}-${side2}`;
