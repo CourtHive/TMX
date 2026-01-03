@@ -1,14 +1,12 @@
 /**
- * Enter matchUp score with modal or legacy scoreBoard.
+ * Enter matchUp score with V2 scoring modal (dynamicSets approach).
  * Handles score submission, parsing, and mutation with callback propagation.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
-import { scoringModal } from 'components/modals/scoringModal';
+import { scoringModalV2 } from 'components/modals/scoringV2';
 import { tournamentEngine } from 'tods-competition-factory';
-import { scoreBoard } from 'legacy/scoring/scoreBoard';
 import { isFunction } from 'functions/typeOf';
-import { env } from 'settings/env';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
@@ -44,19 +42,7 @@ export function enterMatchUpScore(params: { matchUpId: string; matchUp?: any; ca
     mutationRequest({ methods, callback: mutationCallback });
   };
 
-  const teams = matchUp.sides.map((side: any) => side.participant);
-  const existing_scores = matchUp.score?.sets || [];
-
-  if (env.scoring) {
-    scoringModal({ matchUp, callback: scoreSubmitted });
-  } else {
-    scoreBoard.setMatchScore({
-      round_name: matchUp.roundName || '',
-      matchFormat: matchUp.matchUpFormat,
-      callback: scoreSubmitted,
-      muid: matchUp.matchUpId,
-      existing_scores,
-      teams,
-    });
-  }
+  // Always use V2 scoring modal (dynamicSets is now the default approach)
+  // Legacy scoringModal and scoreBoard are deprecated
+  scoringModalV2({ matchUp, callback: scoreSubmitted });
 }

@@ -88,6 +88,8 @@ export const env: any = {
   activeScale: 'wtn',
   hotkeys: false,
   scoring: false,
+  scoringV2: true, // New TypeScript scoring modal (now default)
+  scoringApproach: 'dynamicSets', // 'freeText' | 'dynamicSets' - dynamicSets is now default
 
   scales: {
     utr: {

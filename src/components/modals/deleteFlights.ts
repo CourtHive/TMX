@@ -51,6 +51,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   const items = [
     {
       text: `Please provide a reason for draw deletion.`,
+      style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
     {
       placeholder: 'Explanation',
@@ -62,6 +63,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     },
     {
       text: `This action cannot be undone!`,
+      style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
   ];
   const enableSubmit = ({ inputs }: any) => {

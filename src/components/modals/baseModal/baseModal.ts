@@ -13,12 +13,13 @@ type OpenModal = {
   footer?: string;
   title: string;
   content: any;
+  config?: any; // Allow custom config to be passed through
 };
 
 export function openModal(params: OpenModal) {
-  const { title, content, buttons, footer, onClose } = params;
+  const { title, content, buttons, footer, onClose, config: customConfig } = params;
   const noPadding = !title && !buttons;
-  const config = { padding: noPadding ? '' : '.5', maxWidth: 500 };
+  const config = customConfig || { padding: noPadding ? '' : '.5', maxWidth: 500 };
   return cModal.open({ title, content, footer, buttons, config, onClose });
 }
 
