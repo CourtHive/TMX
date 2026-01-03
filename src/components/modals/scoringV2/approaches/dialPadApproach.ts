@@ -330,15 +330,23 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       if (currentScoreString) {
         const currentValidation = validateScore(currentScoreString, matchUp.matchUpFormat);
 
+        console.log('[DialPad] currentValidation:', {
+          isValid: currentValidation.isValid,
+          winningSide: currentValidation.winningSide,
+          sets: currentValidation.sets,
+        });
+
         // Match is complete if validation shows a winningSide and is valid
         // BUT allow continuing if we're in the middle of entering a tiebreak score
         if (currentValidation.isValid && currentValidation.winningSide && !inTiebreak) {
+          console.log('[DialPad] BLOCKED: Match complete');
           return;
         }
 
         // Block input if formatter didn't accept the digit (incomplete set)
         // Exception: allow if we're in a tiebreak or the test score is different (was accepted)
         if (!inTiebreak && digit !== '-' && testScoreString === currentScoreString) {
+          console.log('[DialPad] BLOCKED: Formatter rejected digit');
           return;
         }
       }
