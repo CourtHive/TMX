@@ -29,6 +29,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   const items = [
     {
       text: `Please provide a reason for resetting draws.`,
+      style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
     {
       placeholder: 'Explanation',
@@ -40,6 +41,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     },
     {
       text: `This action cannot be undone!`,
+      style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
   ];
   const enableSubmit = ({ inputs }: any) => {
