@@ -214,18 +214,64 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       if (needsTiebreak) {
         // Parse tiebreak scores
         // In regular tiebreaks (not NoAD), scores can be unlimited (e.g., 18-16)
-        // Consume digits until we hit a minus (which closes the tiebreak and starts next set)
+        // Strategy:
+        // - Collect all digits until we hit a minus
+        // - If minus is followed by a digit that could start a valid set score, close tiebreak
+        // - Otherwise, treat minus as separator between tb1 and tb2
+        
+        // Parse tb1 (all digits until minus)
         while (i < segmentDigits.length) {
           const nextDigit = segmentDigits[i];
 
-          // Stop at minus - it closes the tiebreak
+          // Stop at minus
           if (nextDigit === '-') {
             i++; // Consume the minus
-            break; // Exit tiebreak parsing, continue to next set
+            break;
           }
 
           tb1 += nextDigit;
           i++;
+        }
+
+        // After the minus, check if we should parse tb2 or close the tiebreak
+        // Look ahead: if next character is a digit that could start a new set, close tiebreak
+        // Otherwise, parse tb2
+        if (i < segmentDigits.length) {
+          const nextChar = segmentDigits[i];
+          
+          // If next char is a digit, we need to determine if it's:
+          // a) The start of tb2 (if it's a valid tiebreak score continuation)
+          // b) The start of a new set (if it looks like a set score)
+          
+          // Check if we're about to enter the final set (which might be tiebreak-only)
+          // Note: setCount hasn't been incremented for the current set yet,
+          // so nextSetNumber is actually the set AFTER the current one
+          const nextSetNumber = setCount + 2;
+          const isNextSetDeciding = nextSetNumber === bestOf;
+          const nextSetFormat = getSetFormat(nextSetNumber);
+          const nextSetIsTiebreakOnly = !!nextSetFormat?.tiebreakSet?.tiebreakTo && !nextSetFormat?.setTo;
+          
+          const nextDigitVal = Number.parseInt(nextChar);
+          
+          // If next set is tiebreak-only OR next digit looks like a new set score, close tiebreak
+          // New set scores: 0-setTo (for regular sets) or any digit (for tiebreak-only sets)
+          const looksLikeNewSet = !isNaN(nextDigitVal) && (nextSetIsTiebreakOnly || (nextDigitVal <= setTo && tb1.length > 0));
+          
+          if (!looksLikeNewSet) {
+            // Parse tb2
+            while (i < segmentDigits.length) {
+              const digit = segmentDigits[i];
+
+              // Stop at minus - it closes the tiebreak
+              if (digit === '-') {
+                i++; // Consume the minus
+                break;
+              }
+
+              tb2 += digit;
+              i++;
+            }
+          }
         }
 
         if (result) result += ' ';
