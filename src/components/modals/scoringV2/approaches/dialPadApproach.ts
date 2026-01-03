@@ -286,7 +286,26 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const minusCount = (state.digits.match(/-/g) || []).length;
       const buildingTiebreakSet = currentScoreString.includes('[') && hasMinus && minusCount === 1;
       
-      const inTiebreak = hasOpenTiebreak || buildingTiebreakSet;
+      // Also check if we're about to ENTER a tiebreak-only set (all previous sets complete, next is tiebreak-only)
+      const currentValidation = currentScoreString ? validateScore(currentScoreString, matchUp.matchUpFormat) : null;
+      const completedSets = currentValidation?.sets?.length || 0;
+      const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat);
+      const bestOf = parsedFormat?.setFormat?.bestOf || 3;
+      
+      // Helper to check if a specific set is tiebreak-only
+      const isSetTiebreakOnly = (setNumber: number) => {
+        const isDecidingSet = setNumber === bestOf;
+        const setFormat = isDecidingSet && parsedFormat?.finalSetFormat 
+          ? parsedFormat.finalSetFormat 
+          : parsedFormat?.setFormat;
+        const tiebreakSetTo = setFormat?.tiebreakSet?.tiebreakTo;
+        const regularSetTo = setFormat?.setTo;
+        return !!tiebreakSetTo && !regularSetTo;
+      };
+      
+      const enteringTiebreakOnlySet = completedSets < bestOf && isSetTiebreakOnly(completedSets + 1);
+      
+      const inTiebreak = hasOpenTiebreak || buildingTiebreakSet || enteringTiebreakOnlySet;
 
       // For minus, we'll add a minus character
       const testDigits = digit === '-' ? state.digits + '-' : state.digits + digit.toString();

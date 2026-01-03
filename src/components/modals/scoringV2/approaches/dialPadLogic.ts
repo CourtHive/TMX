@@ -44,20 +44,30 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
   for (const segment of segments) {
     // Stop if we've already reached the maximum number of sets
     if (setCount >= bestOf) break;
-    
-    // Get format for the NEXT set we're about to parse (setCount is 0-based, add 1 for set number)
-    const currentSetFormat = getSetFormat(setCount + 1);
-    const currentTiebreakSetTo = currentSetFormat?.tiebreakSet?.tiebreakTo;
-    const currentRegularSetTo = currentSetFormat?.setTo;
-    const currentSetIsTiebreakOnly = !!currentTiebreakSetTo && !currentRegularSetTo;
-    
-    const setTo = currentTiebreakSetTo || currentRegularSetTo || 6;
-    const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
 
     i = 0;
     const segmentDigits = segment;
 
     while (i < segmentDigits.length) {
+      // Check format for the CURRENT set being parsed (re-check each time through the loop)
+      if (setCount >= bestOf) break;
+      
+      const currentSetFormat = getSetFormat(setCount + 1);
+      const currentTiebreakSetTo = currentSetFormat?.tiebreakSet?.tiebreakTo;
+      const currentRegularSetTo = currentSetFormat?.setTo;
+      const currentSetIsTiebreakOnly = !!currentTiebreakSetTo && !currentRegularSetTo;
+      
+      const setTo = currentTiebreakSetTo || currentRegularSetTo || 6;
+      const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
+      
+      console.log('[dialPad formatScoreString] Parsing set', setCount + 1, {
+        i,
+        remaining: segmentDigits.slice(i),
+        currentSetFormat,
+        currentSetIsTiebreakOnly,
+        setCount,
+      });
+      
       let side1 = '';
       let side2 = '';
       let tb1 = '';
