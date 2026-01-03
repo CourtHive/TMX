@@ -7,7 +7,9 @@ import { validateSetScores } from '../utils/scoreValidator';
 import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic';
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { env } from 'settings/env';
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
 export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
@@ -101,7 +103,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   }
   
   // Irregular ending selector
-  let selectedOutcome: 'COMPLETED' | 'RETIRED' | 'WALKOVER' | 'DEFAULTED' = 'COMPLETED';
+  let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
   let selectedWinner: number | undefined = undefined; // For irregular endings
   
   const irregularEndingContainer = document.createElement('div');
@@ -122,9 +124,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   
   // Only irregular endings - Completed is the default
   const outcomes = [
-    { value: 'RETIRED', label: 'Retired' },
-    { value: 'WALKOVER', label: 'Walkover' },
-    { value: 'DEFAULTED', label: 'Defaulted' },
+    { value: RETIRED, label: 'Retired' },
+    { value: WALKOVER, label: 'Walkover' },
+    { value: DEFAULTED, label: 'Defaulted' },
   ];
   
   outcomes.forEach(outcome => {
@@ -143,7 +145,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       selectedOutcome = (e.target as HTMLInputElement).value as any;
       
       // Clear all set inputs when WALKOVER is selected
-      if (selectedOutcome === 'WALKOVER') {
+      if (selectedOutcome === WALKOVER) {
         // Clear all set inputs
         const allInputs = setsContainer.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
         allInputs.forEach(input => {
@@ -192,7 +194,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     radios.forEach(r => r.checked = false);
     
     // Reset to COMPLETED
-    selectedOutcome = 'COMPLETED';
+    selectedOutcome = COMPLETED;
     selectedWinner = undefined;
     winnerSelectionContainer.style.display = 'none';
     
@@ -584,14 +586,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     }
 
     // Validate and update display
-    if (currentSets.length > 0 || selectedOutcome !== 'COMPLETED') {
+    if (currentSets.length > 0 || selectedOutcome !== COMPLETED) {
       // Build sets data with tiebreak scores for validation
       // For in-progress matches, include all sets (even without winningSide)
       // A match is "in progress" if:
       // 1. selectedOutcome is not COMPLETED (irregular ending), OR
       // 2. Some sets don't have winningSide (incomplete/invalid regular sets)
       const hasIncompleteSets = currentSets.some(s => s.winningSide === undefined);
-      const matchInProgress = selectedOutcome !== 'COMPLETED' || hasIncompleteSets;
+      const matchInProgress = selectedOutcome !== COMPLETED || hasIncompleteSets;
       const setsToValidate = matchInProgress ? currentSets : currentSets.filter(s => s.winningSide !== undefined);
       
       const setsForValidation = setsToValidate.map(s => {
@@ -624,7 +626,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       const validation = validateSetScores(
         setsForValidation,
         matchUp.matchUpFormat,
-        selectedOutcome !== 'COMPLETED', // Allow incomplete if irregular ending
+        selectedOutcome !== COMPLETED, // Allow incomplete if irregular ending
       );
 
       // CRITICAL: Check if match is complete based on VALIDATION result, not raw currentSets
@@ -637,7 +639,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // Hide/show irregular ending based on validated match completion
       // CRITICAL: Always show irregular ending if an irregular outcome is selected
       // Otherwise hide it when match is complete
-      if (selectedOutcome !== 'COMPLETED') {
+      if (selectedOutcome !== COMPLETED) {
         // Always show irregular ending when an irregular outcome is selected
         irregularEndingContainer.style.display = 'block';
         winnerSelectionContainer.style.display = 'block'; // Always show winner selection
@@ -650,7 +652,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       }
 
       // Add matchUpStatus and winningSide if irregular ending
-      if (selectedOutcome !== 'COMPLETED') {
+      if (selectedOutcome !== COMPLETED) {
         validation.matchUpStatus = selectedOutcome;
         // Override winningSide if manually selected
         if (selectedWinner) {

@@ -4,7 +4,9 @@
  * PROTOTYPE: This logic will be moved to tods-competition-factory
  * Currently implemented in TMX for testing and refinement before factory integration
  */
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+
+const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
 /**
  * Validate a single set score against matchUpFormat rules
@@ -257,7 +259,7 @@ export function validateMatchUpScore(
   const bestOfSets = bestOfMatch ? Number.parseInt(bestOfMatch) : 3;
 
   // Check if this is an irregular ending (allows incomplete scores)
-  const isIrregularEnding = ['RETIRED', 'WALKOVER', 'DEFAULTED'].includes(matchUpStatus || '');
+  const isIrregularEnding = [RETIRED, WALKOVER, DEFAULTED].includes(matchUpStatus || '');
 
   // Validate each set against matchUpFormat
   for (let i = 0; i < sets.length; i++) {

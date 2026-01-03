@@ -1,9 +1,11 @@
 /**
  * Score validation utilities using tournamentEngine
  */
-import { tournamentEngine, matchUpFormatCode } from 'tods-competition-factory';
+import { tournamentEngine, matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { validateMatchUpScore, validateSetScore } from './validateMatchUpScore';
 import type { ScoreOutcome } from '../types';
+
+const { COMPLETED } = matchUpStatusConstants;
 
 export type TidyScoreResult = {
   tidyScore?: string;
@@ -226,7 +228,7 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
       sets: validatedSets,
       scoreObject: validatedScoreObject, // Include full score object
       winningSide,
-      matchUpStatus: 'COMPLETED',
+      matchUpStatus: COMPLETED,
       matchUpFormat,
       score: scoreString.trim(),
     };
@@ -391,7 +393,7 @@ export function validateSetScores(
     sets: validatedSets,
     scoreObject: factoryValidation.scoreObject,
     winningSide: matchWinningSide,
-    matchUpStatus: matchWinningSide ? 'COMPLETED' : undefined,
+    matchUpStatus: matchWinningSide ? COMPLETED : undefined,
     matchUpFormat,
     score: scoreString,
   };

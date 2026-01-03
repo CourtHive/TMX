@@ -6,6 +6,9 @@ import { renderMatchUp } from 'courthive-components';
 import { validateScore, tidyScore } from '../utils/scoreValidator';
 import type { RenderScoreEntryParams } from '../types';
 import { env } from 'settings/env';
+import { matchUpStatusConstants } from 'tods-competition-factory';
+
+const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
 export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
@@ -293,7 +296,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
     }
 
     // Check if irregular ending from tidyScore
-    const isIrregularEnding = ['RETIRED', 'WALKOVER', 'DEFAULTED'].includes(tidyResult.matchUpStatus || '');
+    const isIrregularEnding = [RETIRED, WALKOVER, DEFAULTED].includes(tidyResult.matchUpStatus || '');
 
     // Step 2: Validate the tidied score (pass matchUpStatus for irregular ending handling)
     const result = validateScore(
@@ -312,11 +315,11 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
 
       // Show match status
       let statusText = 'Valid score';
-      if (tidyResult.matchUpStatus === 'RETIRED') {
+      if (tidyResult.matchUpStatus === RETIRED) {
         statusText = 'Valid score - RETIRED';
-      } else if (tidyResult.matchUpStatus === 'WALKOVER') {
+      } else if (tidyResult.matchUpStatus === WALKOVER) {
         statusText = 'Valid score - WALKOVER';
-      } else if (tidyResult.matchUpStatus === 'DEFAULTED') {
+      } else if (tidyResult.matchUpStatus === DEFAULTED) {
         statusText = 'Valid score - DEFAULTED';
       }
       validationMessage.textContent = statusText;

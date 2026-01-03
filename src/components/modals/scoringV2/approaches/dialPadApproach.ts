@@ -3,11 +3,13 @@
  * Builds score string incrementally using matchUpFormat rules
  */
 import { renderMatchUp } from 'courthive-components';
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { formatScoreString } from './dialPadLogic';
 import { validateScore } from '../utils/scoreValidator';
 import { env } from 'settings/env';
 import type { RenderScoreEntryParams, ScoreOutcome } from '../types';
+
+const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
 type EntryState = {
   digits: string; // Raw digits: "36366" becomes "3-6 3-6 6"
@@ -112,7 +114,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     container.appendChild(scoreDisplay);
 
     // Irregular ending section
-    let selectedOutcome: 'COMPLETED' | 'RETIRED' | 'WALKOVER' | 'DEFAULTED' = 'COMPLETED';
+    let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
     let selectedWinner: number | undefined = undefined;
 
     const irregularEndingContainer = document.createElement('div');
@@ -234,7 +236,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const scoreString = formatScore(state.digits);
 
       // Show/hide irregular ending section vs score display
-      if (selectedOutcome === 'COMPLETED') {
+      if (selectedOutcome === COMPLETED) {
         scoreDisplay.style.display = 'block';
         scoreDisplay.textContent = scoreString || '-';
         irregularEndingContainer.style.display = 'none';
@@ -247,7 +249,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       let validation = validateScore(scoreString, matchUp.matchUpFormat);
 
       // Add irregular ending info if selected
-      if (selectedOutcome !== 'COMPLETED') {
+      if (selectedOutcome !== COMPLETED) {
         validation.matchUpStatus = selectedOutcome;
         if (selectedWinner) {
           validation.winningSide = selectedWinner;
@@ -265,7 +267,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
       // Update button states
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
-      if (clearBtn) clearBtn.disabled = state.digits.length === 0 && selectedOutcome === 'COMPLETED';
+      if (clearBtn) clearBtn.disabled = state.digits.length === 0 && selectedOutcome === COMPLETED;
 
       // Enable/disable RET and DEF buttons based on score presence
       updateIrregularButtonStates();
@@ -383,7 +385,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Reset function for Clear button
     const resetDialPad = () => {
       state.digits = '';
-      selectedOutcome = 'COMPLETED';
+      selectedOutcome = COMPLETED;
       selectedWinner = undefined;
       // Clear winner radio selections
       const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
@@ -477,14 +479,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         } else if (btn.value === 'minus') {
           handleDigitPress('-');
         } else if (btn.value === 'retired') {
-          selectedOutcome = 'RETIRED';
+          selectedOutcome = RETIRED;
           selectedWinner = undefined;
           // Clear winner radio selections
           const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'walkover') {
-          selectedOutcome = 'WALKOVER';
+          selectedOutcome = WALKOVER;
           selectedWinner = undefined;
           // Clear score for walkover
           state.digits = '';
@@ -493,7 +495,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
           updateDisplay();
         } else if (btn.value === 'defaulted') {
-          selectedOutcome = 'DEFAULTED';
+          selectedOutcome = DEFAULTED;
           selectedWinner = undefined;
           // Clear winner radio selections
           const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
