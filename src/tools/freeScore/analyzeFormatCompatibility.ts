@@ -62,6 +62,10 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
                                lastSet?.side2TiebreakScore !== undefined &&
                                lastSet?.side2Score === undefined;
       
+      // Check if number of sets is compatible with bestOf
+      const bestOf = parsedFormat.bestOf || 1;
+      const isDecidingSet = sets.length === bestOf;
+      
       // If score has a match tiebreak, format must have a finalSetFormat with tiebreak
       if (hasMatchTiebreak) {
         const hasFinalSetTiebreak = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo ||
@@ -70,9 +74,17 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
           continue; // Score requires match tiebreak but format doesn't have one
         }
       }
-
-      // Check if number of sets is compatible with bestOf
-      const bestOf = parsedFormat.bestOf || 1;
+      
+      // If format requires match tiebreak for deciding set, score must have one
+      // Assume COMPLETED unless explicitly stated otherwise  
+      const isCompleted = !expectedMatchUpStatus || expectedMatchUpStatus === 'COMPLETED';
+      if (isCompleted && isDecidingSet && !hasMatchTiebreak) {
+        const finalSetIsTiebreakOnly = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo &&
+                                        !parsedFormat.finalSetFormat?.setTo;
+        if (finalSetIsTiebreakOnly) {
+          continue; // Format requires match tiebreak but score has regular set
+        }
+      }
       const minSetsRequired = Math.ceil(bestOf / 2); // e.g., bestOf 3 needs at least 2 sets
       const maxSetsAllowed = bestOf; // e.g., bestOf 3 can have at most 3 sets
       
