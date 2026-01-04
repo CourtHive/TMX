@@ -83,21 +83,30 @@ A parsed matchUpFormat contains:
 
 **Rules:**
 - No game scores, only tiebreak points (shown in brackets: [10-8])
-- Winner reaches `tiebreakTo`, win-by-2 required
+- Winner reaches `tiebreakTo`, win-by-2 required (unless NoAD)
 - Used for match tiebreaks (3rd set tiebreak to 10)
 - Notation: brackets indicate tiebreak-only set
 
-**Examples:**
-- `tiebreakSet: { tiebreakTo: 10 }` → Valid: [10-8], [11-9], [12-10]
+**NoAD in Tiebreak-Only Sets:**
+- `tiebreakSet: { tiebreakTo: 10, NoAD: true }` → First to 10 wins (winBy = 1, not 2)
+- Valid scores: [10-9], [10-8], [10-0] - winner just needs to reach tiebreakTo
+- Invalid: [11-10], [12-11] - these require win-by-2 (NoAD removes this)
+- Example format: `SET3-S:6/TB7@5-F:TB10NOAD` - final set first to 10
+
+**Examples (without NoAD):**
+- `tiebreakSet: { tiebreakTo: 10 }` → Valid: [10-8], [11-9], [12-10] (win-by-2)
 - Score [10-8] requires format with tiebreak-only final set
 
 **Validation:**
 - Sets with game scores cannot match tiebreak-only formats
 - For completed matches, at least one side must reach `tiebreakTo`
+- With NoAD: winner reaches exactly `tiebreakTo` (no higher scores valid)
+- Without NoAD: winner reaches `tiebreakTo` OR higher with win-by-2
 
 **Input Handling (dynamicSets):**
-- For tiebreak-only sets: `max = opposite + 2` (win-by-2 rule)
-- Example: If opposite = 11, this side max = 13
+- For tiebreak-only sets without NoAD: `max = opposite + 2` (win-by-2 rule)
+- For tiebreak-only sets with NoAD: `max = tiebreakTo` (first to reach wins)
+- Example: If opposite = 11, this side max = 13 (no NoAD) or max = 10 (NoAD)
 - No coercion applied (user builds extended tiebreak scores like 33-35)
 
 ### Timed Sets (setFormat.timed)
@@ -119,7 +128,9 @@ A parsed matchUpFormat contains:
 
 **Important Distinction:**
 - **Game-level NoAD**: Applies to point scoring within games (no deuce/advantage)
-- **Tiebreak-level NoAD**: If applied to tiebreaks, means first to reach `tiebreakTo` wins (no win-by-2)
+- **Tiebreak-level NoAD**: Changes tiebreak winBy from 2 to 1 (first to `tiebreakTo` wins)
+  - Standard: reach 10 AND win by 2 → [10-8], [11-9], [12-10]
+  - With NoAD: reach 10 wins immediately → [10-9], [10-8], [10-0]
 
 **Rules:**
 - At deuce (40-40), the next point wins the game (no advantage)

@@ -158,15 +158,36 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
           
           // For tiebreak-only formats, the set must have scores reaching tiebreakTo
           // For completed matches, at least one side must have reached tiebreakTo
-          const side1 = set.side1Score || 0;
-          const side2 = set.side2Score || 0;
+          const side1 = set.side1TiebreakScore || 0;
+          const side2 = set.side2TiebreakScore || 0;
           const maxScore = Math.max(side1, side2);
+          const minScore = Math.min(side1, side2);
           const tiebreakTo = setFormat.tiebreakSet.tiebreakTo;
+          const isNoAd = setFormat.tiebreakSet.NoAD;
           
           if (isCompleted && maxScore < tiebreakTo) {
             // Score doesn't reach tiebreak-only format requirement
             setsCompatible = false;
             break;
+          }
+          
+          // Check NoAD constraint for tiebreak-only sets
+          if (isNoAd) {
+            // NoAD: first to tiebreakTo wins (winBy = 1)
+            // Valid: [10-9], [10-8]; Invalid: [11-10], [12-10]
+            if (maxScore > tiebreakTo) {
+              // Score exceeds tiebreakTo (only valid without NoAD for win-by-2)
+              setsCompatible = false;
+              break;
+            }
+          } else {
+            // Standard: win-by-2 required
+            // Valid: [10-8], [11-9], [12-10]
+            if (maxScore >= tiebreakTo && maxScore - minScore < 2) {
+              // Doesn't meet win-by-2 requirement
+              setsCompatible = false;
+              break;
+            }
           }
         } else if (setFormat?.setTo) {
           // For regular sets, check if scores are compatible with setTo
