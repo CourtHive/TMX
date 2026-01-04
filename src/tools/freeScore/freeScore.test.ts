@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { runAnalysis, analyzeAllTestCases, analyzeTestCase } from './analyzeFormatCompatibility';
+import { runAnalysis, analyzeAllTestCases } from './analyzeFormatCompatibility';
 import { governors, matchUpFormatCode } from 'tods-competition-factory';
+import { describe, it, expect } from 'vitest';
 
 const { parseScoreString } = governors.scoreGovernor;
 
@@ -9,13 +9,13 @@ describe('FreeScore Parser - Format Analysis', () => {
     const testCase = { input: '6-2;2-6;10-2', expectedScore: '6-2 2-6 [10-2]' };
     const format1 = 'SET3-S:6/TB7';
     const format2 = 'SET3-S:4/TB5';
-    
+
     const { validateMatchUpScore } = governors.scoreGovernor;
-    
+
     console.log('\nDEBUG:');
     console.log('Input:', testCase.input);
     console.log('Expected:', testCase.expectedScore);
-    
+
     // Test with SET3-S:6/TB7 format (should match - sets go to 6)
     const parsedFormat1 = matchUpFormatCode.parse(format1);
     const parsedScore1 = parseScoreString({
@@ -30,7 +30,7 @@ describe('FreeScore Parser - Format Analysis', () => {
       matchUpFormat: parsedFormat1,
     });
     console.log('Validation result:', validation1);
-    
+
     // Test with SET3-S:4/TB5 format (should NOT match - sets go to 6, not 4)
     const parsedFormat2 = matchUpFormatCode.parse(format2);
     const parsedScore2 = parseScoreString({
@@ -49,10 +49,10 @@ describe('FreeScore Parser - Format Analysis', () => {
 
   it('should analyze tidyScore test cases for format compatibility', () => {
     const { results, patternGroups } = analyzeAllTestCases();
-    
+
     expect(results.length).toBeGreaterThan(0);
     expect(Object.keys(patternGroups).length).toBeGreaterThan(0);
-    
+
     console.log(`\nAnalyzed ${results.length} test cases`);
     console.log('Format compatibility distribution:');
     Object.keys(patternGroups).forEach((key) => {
