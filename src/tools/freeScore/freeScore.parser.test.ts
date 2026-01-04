@@ -75,11 +75,31 @@ describe('freeScore Parser', () => {
       });
     });
 
-    it('should parse match tiebreak without brackets', () => {
-      const result = parseScore('64 46 107', 'SET3-S:6/TB7-F:TB10');
+    it('should parse match tiebreak with separator between scores', () => {
+      // Tiebreaks require separator between side1 and side2 scores
+      // Cannot reliably parse "107" as "10-7" vs "1-07" without separator
+      const result = parseScore('64 46 10-7', 'SET3-S:6/TB7-F:TB10');
       
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-4 4-6 [10-7]');
+    });
+
+    it('should handle extended tiebreaks with explicit separators', () => {
+      // Extended tiebreak scenario: brackets + explicit dash separator
+      const result = parseScore('6-4 4-6 [200-202]', 'SET3-S:6/TB7-F:TB10');
+      
+      expect(result.valid).toBe(true);
+      expect(result.sets).toHaveLength(3);
+      // With separator present, parser correctly reads full numbers
+      expect(result.sets[2]).toMatchObject({
+        setNumber: 3,
+        side1TiebreakScore: 200,
+        side2TiebreakScore: 202,
+        winningSide: 2,
+      });
+      // Verify it's a tiebreak-only set (match tiebreak)
+      expect(result.sets[2].side1Score).toBe(0);
+      expect(result.sets[2].side2Score).toBe(0);
     });
   });
 
@@ -201,8 +221,11 @@ describe('freeScore Parser', () => {
       expect(result.formattedScore).toBe('6-3 6-7(3) 6-0');
     });
 
-    it('should parse "67(6)64106" (no separators)', () => {
-      const result = parseScore('67(6)64106', 'SET3-S:6/TB7-F:TB10');
+    it('should parse "67(6)6410-6" (tiebreak with separator)', () => {
+      // freeScore requires separator in tiebreaks for unambiguous parsing
+      // Unlike tidyScore (cleanup after fact), freeScore is interactive
+      // so users can provide minimal formatting like dash in tiebreak
+      const result = parseScore('67(6)6410-6', 'SET3-S:6/TB7-F:TB10');
       
       expect(result.valid).toBe(true);
       expect(result.formattedScore).toBe('6-7(6) 6-4 [10-6]');

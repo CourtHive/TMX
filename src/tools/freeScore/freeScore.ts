@@ -671,14 +671,29 @@ function handleGameDigit(state: ParserState, char: string, setFormat: any): void
 }
 
 /**
- * Check if we should keep buffering or transition to side2
+ * Check if we should keep buffering or transition to side2 in tiebreak parsing
+ * 
+ * CRITICAL: Tiebreaks REQUIRE separators between side1 and side2 scores!
+ * We cannot reliably parse "107" as "10-7" vs "1-07" without the dash.
+ * 
+ * This function is ONLY for the no-separator edge case when parsing sets,
+ * and should return TRUE (keep buffering) for tiebreaks since we'll wait
+ * for the separator to make the transition.
+ * 
+ * Strategy:
+ * - Keep buffering until we hit a non-digit (which will be the separator)
+ * - Only exception: absurdly large numbers (sanity check)
  */
 function shouldContinueBufferingTiebreakSide1(
   currentValue: number,
   twoDigitValue: number,
-  tiebreakLimit: number
 ): boolean {
-  return currentValue < tiebreakLimit && twoDigitValue <= tiebreakLimit + 10;
+  // Sanity check: don't buffer ridiculously large numbers
+  // This catches typos/errors, but allows extended tiebreaks
+  const absurdMax = 999;
+  
+  // Keep buffering until we hit separator, unless absurdly large
+  return twoDigitValue <= absurdMax;
 }
 
 /**
@@ -686,8 +701,7 @@ function shouldContinueBufferingTiebreakSide1(
  */
 function handleTiebreakSide1Digit(
   state: ParserState,
-  char: string,
-  tiebreakLimit: number
+  char: string
 ): void {
   state.currentTiebreakSide1Buffer += char;
   
@@ -698,7 +712,7 @@ function handleTiebreakSide1Digit(
     const nextDigit = state.input[nextPos];
     const twoDigitValue = Number.parseInt(state.currentTiebreakSide1Buffer + nextDigit);
     
-    if (!shouldContinueBufferingTiebreakSide1(currentValue, twoDigitValue, tiebreakLimit)) {
+    if (!shouldContinueBufferingTiebreakSide1(currentValue, twoDigitValue)) {
       state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
     }
   } else {
@@ -714,21 +728,27 @@ function handleTiebreakSide1Digit(
 function handleTiebreakSide2Digit(
   state: ParserState,
   char: string,
-  setFormat: any,
-  tiebreakLimit: number
+  setFormat: any
 ): void {
   state.currentTiebreakSide2Buffer += char;
   
+  const currentValue = Number.parseInt(state.currentTiebreakSide2Buffer);
   const nextPos = state.position + 1;
   
   if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
     const nextDigit = state.input[nextPos];
     const twoDigitValue = Number.parseInt(state.currentTiebreakSide2Buffer + nextDigit);
     
-    if (twoDigitValue > tiebreakLimit + 10) {
-      const side1 = Number.parseInt(state.currentTiebreakSide1Buffer);
-      const side2 = Number.parseInt(state.currentTiebreakSide2Buffer);
-      
+    // Check if we should finalize based on the same logic as side1
+    // If two-digit would be unreasonable, current value is complete
+    const side1 = Number.parseInt(state.currentTiebreakSide1Buffer);
+    
+    // Sanity check: absurdly large numbers indicate error or end of tiebreak
+    const absurdMax = 999;
+    const shouldFinalize = twoDigitValue > absurdMax;
+    
+    if (shouldFinalize) {
+      const side2 = currentValue;
       const isComplete = isTiebreakComplete(side1, side2, setFormat);
       if (!isComplete) {
         state.warnings.push(`Tiebreak may be incomplete: ${side1}-${side2}`);
@@ -744,15 +764,13 @@ function handleTiebreakSide2Digit(
  * Handle digit in tiebreak score context
  */
 function handleTiebreakDigit(state: ParserState, char: string, setFormat: any): void {
-  const tiebreakLimit = getTiebreakLimit(setFormat);
-  
   if (state.state === TokenizerState.PARSING_TIEBREAK_SIDE1) {
-    handleTiebreakSide1Digit(state, char, tiebreakLimit);
+    handleTiebreakSide1Digit(state, char);
     return;
   }
   
   if (state.state === TokenizerState.PARSING_TIEBREAK_SIDE2) {
-    handleTiebreakSide2Digit(state, char, setFormat, tiebreakLimit);
+    handleTiebreakSide2Digit(state, char, setFormat);
     return;
   }
   
