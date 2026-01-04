@@ -126,9 +126,18 @@ A parsed matchUpFormat contains:
 
 **NoAD**: Boolean indicating no-advantage scoring
 
+**⚠️ Non-Standard Extension Warning**
+
+The use of `NOAD` in tiebreak formats (e.g., `TB10NOAD`) is a **non-standard extension** for recreational use and is **NOT part of the official ITF Tennis Open Data Standards (TODS)**.
+
+- Official TODS only defines `NOAD` for game-level scoring
+- Standard tennis tiebreaks always require win-by-2
+- Not recognized by ITF, ATP, WTA, or USTA official formats
+- For recreational/club play only
+
 **Important Distinction:**
-- **Game-level NoAD**: Applies to point scoring within games (no deuce/advantage)
-- **Tiebreak-level NoAD**: Changes tiebreak winBy from 2 to 1 (first to `tiebreakTo` wins)
+- **Game-level NoAD** (Standard TODS): Applies to point scoring within games (no deuce/advantage)
+- **Tiebreak-level NoAD** (Non-Standard Extension): Changes tiebreak winBy from 2 to 1 (first to `tiebreakTo` wins)
   - Standard: reach 10 AND win by 2 → [10-8], [11-9], [12-10]
   - With NoAD: reach 10 wins immediately → [10-9], [10-8], [10-0]
 
