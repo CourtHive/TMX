@@ -62,11 +62,12 @@ A parsed matchUpFormat contains:
 - Score 7-6(10) only matches formats with `tiebreakAt: 6`, not `tiebreakAt: 8`
 
 **Explicit tiebreakAt Specification:**
-- Use `@` symbol to specify when tiebreak occurs: `SET3-S:4/TB5@3`
-- `SET3-S:4/TB5@3` → Sets to 4, tiebreak (to 5) occurs at 3-3
-- `SET1-S:8/TB7@7` → Set to 8, tiebreak (to 7) occurs at 7-7
-- Without `@`, tiebreakAt defaults to `setTo` (e.g., `SET3-S:6/TB7` means TB at 6-6)
-- With `@`, can have tiebreak before reaching setTo (e.g., Fast4: tiebreak at 3-3 in sets to 4)
+- Default: tiebreakAt = `setTo` (e.g., `SET3-S:6/TB7` means tiebreak at 6-6)
+- Use `@` symbol ONLY when tiebreakAt differs from setTo (typically `setTo - 1`)
+- `SET3-S:4/TB5@3` → Sets to 4, tiebreak (to 5) at 3-3 (not default 4-4)
+- `SET3-S:6/TB7@5` → Sets to 6, tiebreak (to 7) at 5-5 (not default 6-6)
+- `SET1-S:8/TB7@7` → Sets to 8, tiebreak (to 7) at 7-7 (not default 8-8)
+- Most common use: tiebreak at `setTo - 1` to shorten matches
 
 ### Tiebreak-Only Sets (setFormat.tiebreakSet)
 
