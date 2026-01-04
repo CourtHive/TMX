@@ -61,6 +61,13 @@ A parsed matchUpFormat contains:
 - If set has tiebreak scores, game scores must be `(tiebreakAt + 1) - tiebreakAt`
 - Score 7-6(10) only matches formats with `tiebreakAt: 6`, not `tiebreakAt: 8`
 
+**Explicit tiebreakAt Specification:**
+- Use `@` symbol to specify when tiebreak occurs: `SET3-S:4/TB5@3`
+- `SET3-S:4/TB5@3` → Sets to 4, tiebreak (to 5) occurs at 3-3
+- `SET1-S:8/TB7@7` → Set to 8, tiebreak (to 7) occurs at 7-7
+- Without `@`, tiebreakAt defaults to `setTo` (e.g., `SET3-S:6/TB7` means TB at 6-6)
+- With `@`, can have tiebreak before reaching setTo (e.g., Fast4: tiebreak at 3-3 in sets to 4)
+
 ### Tiebreak-Only Sets (setFormat.tiebreakSet)
 
 **tiebreakSet.tiebreakTo**: Points required to win (no regular games)
@@ -101,15 +108,21 @@ A parsed matchUpFormat contains:
 
 **NoAD**: Boolean indicating no-advantage scoring
 
-**Rules:**
-- No deuce - winner determined at first opportunity
+**Important Distinction:**
+- **Game-level NoAD**: Applies to point scoring within games (no deuce/advantage)
+- **Tiebreak-level NoAD**: If applied to tiebreaks, means first to reach `tiebreakTo` wins (no win-by-2)
+
+**Rules for Set Scores:**
+- No deuce at game level - winner determined at first opportunity
 - Maximum winner score: `setTo`
 - Maximum loser score: `setTo - 1`
-- Cannot exceed setTo (match ends immediately when setTo is reached)
+- Cannot exceed setTo (set ends immediately when setTo is reached)
 
 **Examples:**
-- `setTo: 6, NoAD: true` → Valid: 6-0, 6-4, 6-5
+- `setTo: 6, NoAD: true` → Valid game scores: 6-0, 6-4, 6-5
 - `setTo: 6, NoAD: true` → Invalid: 7-5, 7-6 (cannot exceed setTo)
+- `setTo: 4, NoAD: true` → Game scores max 4-3, then tiebreak at 3-3 if specified
+- `tiebreakTo: 10, NoAD: true` → Tiebreak ends at 10-9 (no win-by-2 required)
 
 ## Final Set Format (finalSetFormat)
 
