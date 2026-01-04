@@ -5,6 +5,7 @@
 
 import { analyzeAllTestCases } from './analyzeFormatCompatibility';
 import { tidyScoreTestCases } from './extractTidyScoreData';
+import { MATCH_FORMATS } from '../../constants/matchUpFormats';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,6 +13,12 @@ import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Create reverse mapping from format code to constant name
+const formatToConstant: Record<string, string> = {};
+for (const [key, value] of Object.entries(MATCH_FORMATS)) {
+  formatToConstant[value] = `MATCH_FORMATS.${key}`;
+}
 
 export function populateFormatMatches() {
   console.log('Analyzing test cases and populating format matches...\n');
@@ -49,6 +56,8 @@ function generateFileContent(): string {
  * to inform freeScore parser development
  */
 
+import { MATCH_FORMATS } from '../../constants/matchUpFormats';
+
 export interface TidyScoreTestCase {
   input: string;
   expectedScore?: string;
@@ -72,7 +81,11 @@ ${tidyScoreTestCases.map(tc => {
     parts.push(`expectedMatchUpStatus: '${tc.expectedMatchUpStatus}'`);
   }
   if (tc.matchesMatchUpFormats && tc.matchesMatchUpFormats.length > 0) {
-    parts.push(`matchesMatchUpFormats: ${JSON.stringify(tc.matchesMatchUpFormats)}`);
+    // Convert format codes to constant references
+    const formatRefs = tc.matchesMatchUpFormats
+      .map(format => formatToConstant[format] || `'${format}'`)
+      .join(', ');
+    parts.push(`matchesMatchUpFormats: [${formatRefs}]`);
   }
   return `  { ${parts.join(', ')} }`;
 }).join(',\n')}
