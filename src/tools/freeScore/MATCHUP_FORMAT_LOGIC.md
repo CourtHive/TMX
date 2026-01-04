@@ -108,14 +108,19 @@ Applied to the deciding set when `sets.length === bestOf`
 
 ## Best Of (bestOf)
 
-**Rules:**
+**Rules (COMPLETED matches only):**
 - Minimum sets: `Math.ceil(bestOf / 2)` (e.g., bestOf:3 needs ≥ 2 sets)
 - Maximum sets: `bestOf` (e.g., bestOf:3 allows ≤ 3 sets)
 - Deciding set: when `sets.length === bestOf`
 
-**Examples:**
+**Examples (COMPLETED):**
 - `bestOf: 3` → Valid: 2 or 3 sets; Invalid: 1 or 4 sets
 - `bestOf: 5` → Valid: 3, 4, or 5 sets
+
+**Irregular Endings (RETIRED, WALKOVER, DEFAULTED):**
+- Any number of sets allowed (including zero)
+- `bestOf: 3, RETIRED` → Valid: 0, 1, 2, or 3 sets
+- `bestOf: 3, WALKOVER` → Valid: 0 sets (no play occurred)
 
 ## Match Status Assumptions
 
