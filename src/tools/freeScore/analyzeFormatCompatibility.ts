@@ -5,23 +5,20 @@
 
 import { governors, matchUpFormatCode } from 'tods-competition-factory';
 import { tidyScoreTestCases, type TidyScoreTestCase } from './extractTidyScoreData';
+import { MATCH_FORMATS } from '../../constants/matchUpFormats';
 
-const { validateMatchUpScore, parseScoreString } = governors.scoreGovernor;
+const { validateMatchUpScore, parseScoreString, generateOutcomeFromScoreString } = governors.scoreGovernor;
 
 /**
- * Common matchUpFormats to test against
+ * Common matchUpFormats to test against (pre-parsed for efficiency)
  */
 const commonFormats = [
-  'SET3-S:6/TB7', // Standard 3-set
-  'SET3-S:6/TB7-F:TB10', // 3-set with match tiebreak
-  'SET5-S:6/TB7', // 5-set
-  'SET5-S:6/TB7-F:TB7', // 5-set with final set tiebreak
-  'SET1-S:6/TB7', // 1-set
-  'SET1-S:8/TB7', // College pro set
-  'SET1-S:9/TB7', // Extended pro set
-  'SET1-S:4/TB7', // Short set
-  'SET3-S:4/TB5', // Fast4 format
-  'SET1-S:T20', // Timed set
+  { key: 'SET3_S6_TB7', code: MATCH_FORMATS.SET3_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7) },
+  { key: 'SET3_S6_TB7_F_TB10', code: MATCH_FORMATS.SET3_S6_TB7_F_TB10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7_F_TB10) },
+  { key: 'SET1_S6_TB7', code: MATCH_FORMATS.SET1_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S6_TB7) },
+  { key: 'SET1_S8_TB7', code: MATCH_FORMATS.SET1_S8_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S8_TB7) },
+  { key: 'SET1_S4_TB7', code: MATCH_FORMATS.SET1_S4_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S4_TB7) },
+  { key: 'SET1_S_TB10', code: MATCH_FORMATS.SET1_S_TB10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S_TB10) },
 ];
 
 export interface FormatAnalysis {
@@ -47,7 +44,7 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
   }
 
   for (const format of commonFormats) {
-    const parsedFormat = matchUpFormatCode.parse(format);
+    const { key, code, parsed: parsedFormat } = format;
     
     try {
       // Parse the score string into sets array
@@ -57,6 +54,22 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
       });
 
       if (!sets || !Array.isArray(sets)) continue;
+      
+      // Check if score has a match tiebreak (final set with only tiebreak scores)
+      const lastSet = sets[sets.length - 1];
+      const hasMatchTiebreak = lastSet?.side1TiebreakScore !== undefined &&
+                               lastSet?.side1Score === undefined &&
+                               lastSet?.side2TiebreakScore !== undefined &&
+                               lastSet?.side2Score === undefined;
+      
+      // If score has a match tiebreak, format must have a finalSetFormat with tiebreak
+      if (hasMatchTiebreak) {
+        const hasFinalSetTiebreak = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo ||
+                                     parsedFormat.finalSetFormat?.tiebreakFormat?.tiebreakTo;
+        if (!hasFinalSetTiebreak) {
+          continue; // Score requires match tiebreak but format doesn't have one
+        }
+      }
 
       // Check if number of sets is compatible with bestOf
       const bestOf = parsedFormat.bestOf || 1;
@@ -133,7 +146,7 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
 
       if (validation.isValid) {
         compatibleFormats.push({
-          format,
+          format: code,
           parsed: parsedFormat,
           validation,
         });
