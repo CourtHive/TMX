@@ -559,70 +559,88 @@ function handleGameDigit(state: ParserState, char: string, setFormat: any): void
 }
 
 /**
+ * Check if we should keep buffering or transition to side2
+ */
+function shouldContinueBufferingTiebreakSide1(
+  currentValue: number,
+  twoDigitValue: number,
+  tiebreakLimit: number
+): boolean {
+  return currentValue < tiebreakLimit && twoDigitValue <= tiebreakLimit + 10;
+}
+
+/**
+ * Handle digit in tiebreak side1 context
+ */
+function handleTiebreakSide1Digit(
+  state: ParserState,
+  char: string,
+  tiebreakLimit: number
+): void {
+  state.currentTiebreakSide1Buffer += char;
+  
+  const currentValue = Number.parseInt(state.currentTiebreakSide1Buffer);
+  const nextPos = state.position + 1;
+  
+  if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
+    const nextDigit = state.input[nextPos];
+    const twoDigitValue = Number.parseInt(state.currentTiebreakSide1Buffer + nextDigit);
+    
+    if (!shouldContinueBufferingTiebreakSide1(currentValue, twoDigitValue, tiebreakLimit)) {
+      state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
+    }
+  } else {
+    state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
+  }
+  
+  state.position++;
+}
+
+/**
+ * Handle digit in tiebreak side2 context
+ */
+function handleTiebreakSide2Digit(
+  state: ParserState,
+  char: string,
+  setFormat: any,
+  tiebreakLimit: number
+): void {
+  state.currentTiebreakSide2Buffer += char;
+  
+  const nextPos = state.position + 1;
+  
+  if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
+    const nextDigit = state.input[nextPos];
+    const twoDigitValue = Number.parseInt(state.currentTiebreakSide2Buffer + nextDigit);
+    
+    if (twoDigitValue > tiebreakLimit + 10) {
+      const side1 = Number.parseInt(state.currentTiebreakSide1Buffer);
+      const side2 = Number.parseInt(state.currentTiebreakSide2Buffer);
+      
+      const isComplete = isTiebreakComplete(side1, side2, setFormat);
+      if (!isComplete) {
+        state.warnings.push(`Tiebreak may be incomplete: ${side1}-${side2}`);
+      }
+      finalizeSet(state);
+    }
+  }
+  
+  state.position++;
+}
+
+/**
  * Handle digit in tiebreak score context
  */
 function handleTiebreakDigit(state: ParserState, char: string, setFormat: any): void {
   const tiebreakLimit = getTiebreakLimit(setFormat);
   
   if (state.state === TokenizerState.PARSING_TIEBREAK_SIDE1) {
-    state.currentTiebreakSide1Buffer += char;
-    
-    // Check if we should auto-transition to side2
-    const currentValue = Number.parseInt(state.currentTiebreakSide1Buffer);
-    const nextPos = state.position + 1;
-    
-    if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
-      const nextDigit = state.input[nextPos];
-      const twoDigitValue = Number.parseInt(state.currentTiebreakSide1Buffer + nextDigit);
-      
-      // Strategy: decide if current buffer is complete or should continue
-      // For TB10: "1" + "0" = "10" (valid side1), "10" + "6" = "106" (too big, so "10" is complete)
-      
-      if (currentValue < tiebreakLimit && twoDigitValue <= tiebreakLimit + 10) {
-        // Current value hasn't reached minimum and two-digit is still reasonable
-        // Keep buffering - don't transition
-        // This handles "1" + "0" = "10" for TB10
-      } else {
-        // Either current >= tiebreakLimit, or two-digit exceeds reasonable limit
-        // Transition to side2
-        state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
-      }
-    } else {
-      // No more digits or separator next - current buffer completes side1
-      state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
-    }
-    
-    state.position++;
+    handleTiebreakSide1Digit(state, char, tiebreakLimit);
     return;
   }
   
   if (state.state === TokenizerState.PARSING_TIEBREAK_SIDE2) {
-    state.currentTiebreakSide2Buffer += char;
-    
-    const nextPos = state.position + 1;
-    
-    // Check if we should auto-finalize the tiebreak
-    if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
-      const nextDigit = state.input[nextPos];
-      const twoDigitValue = Number.parseInt(state.currentTiebreakSide2Buffer + nextDigit);
-      
-      if (twoDigitValue > tiebreakLimit + 10) {
-        // Current buffer completes side2, check if tiebreak is complete
-        const side1 = Number.parseInt(state.currentTiebreakSide1Buffer);
-        const side2 = Number.parseInt(state.currentTiebreakSide2Buffer);
-        
-        // Finalize tiebreak (complete or hit limit)
-        const isComplete = isTiebreakComplete(side1, side2, setFormat);
-        if (!isComplete) {
-          state.warnings.push(`Tiebreak may be incomplete: ${side1}-${side2}`);
-        }
-        finalizeSet(state);
-      }
-    } else {
-      // End of input or separator - will be handled by finalizeCurrentScore or separator handler
-    }
-    
-    state.position++;
+    handleTiebreakSide2Digit(state, char, setFormat, tiebreakLimit);
     return;
   }
   
@@ -630,89 +648,111 @@ function handleTiebreakDigit(state: ParserState, char: string, setFormat: any): 
 }
 
 /**
- * Finalize current set and move to next
+ * Create a tiebreak-only set (match tiebreak)
  */
-function finalizeSet(state: ParserState): void {
-  const currentSetFormat = getSetFormat(state.parsedFormat, state.setIndex);
-  const isTiebreakOnly = isTiebreakOnlySet(currentSetFormat);
-  
-  // For tiebreak-only sets, we only have tiebreak scores
-  if (isTiebreakOnly) {
-    if (!state.currentTiebreakSide1Buffer || !state.currentTiebreakSide2Buffer) {
-      return; // Incomplete tiebreak
-    }
-    
-    const tb1 = Number.parseInt(state.currentTiebreakSide1Buffer);
-    const tb2 = Number.parseInt(state.currentTiebreakSide2Buffer);
-    
-    const set: ParsedSet = {
-      side1Score: 0, // No game scores for tiebreak-only
-      side2Score: 0,
-      side1TiebreakScore: tb1,
-      side2TiebreakScore: tb2,
-      setNumber: state.setIndex + 1,
-      winningSide: tb1 > tb2 ? 1 : 2,
-    };
-    
-    state.sets.push(set);
-  } else {
-    // Regular set with optional tiebreak
-    if (!state.currentSide1Buffer || !state.currentSide2Buffer) {
-      return; // Incomplete set
-    }
-    
-    const side1Score = Number.parseInt(state.currentSide1Buffer);
-    const side2Score = Number.parseInt(state.currentSide2Buffer);
-    
-    const set: ParsedSet = {
-      side1Score,
-      side2Score,
-      setNumber: state.setIndex + 1,
-    };
-    
-    // Add tiebreak scores if present
-    // Handle case where only one tiebreak score is provided (the losing score)
-    if (state.currentTiebreakSide1Buffer || state.currentTiebreakSide2Buffer) {
-      const tb1Str = state.currentTiebreakSide1Buffer;
-      const tb2Str = state.currentTiebreakSide2Buffer;
-      
-      if (tb1Str && tb2Str) {
-        // Both scores provided
-        set.side1TiebreakScore = Number.parseInt(tb1Str);
-        set.side2TiebreakScore = Number.parseInt(tb2Str);
-      } else if (tb1Str || tb2Str) {
-        // Only one score provided - this is the LOSING tiebreak score
-        const losingScore = Number.parseInt(tb1Str || tb2Str);
-        const tiebreakLimit = getTiebreakLimit(currentSetFormat);
-        const isNoAd = currentSetFormat?.tiebreakFormat?.NoAD;
-        
-        // Infer winning score (must be at least tiebreakTo and win by 2, unless NoAD)
-        const minWinningScore = isNoAd ? tiebreakLimit : Math.max(tiebreakLimit, losingScore + 2);
-        
-        // Determine which side won based on game scores
-        if (side1Score > side2Score) {
-          // Side 1 won, so tb2Str is losing score
-          set.side1TiebreakScore = minWinningScore;
-          set.side2TiebreakScore = losingScore;
-        } else {
-          // Side 2 won, so tb1Str is losing score
-          set.side1TiebreakScore = losingScore;
-          set.side2TiebreakScore = minWinningScore;
-        }
-      }
-    }
-    
-    // Determine winner from game scores
-    if (side1Score > side2Score) {
-      set.winningSide = 1;
-    } else if (side2Score > side1Score) {
-      set.winningSide = 2;
-    }
-    
-    state.sets.push(set);
+function createTiebreakOnlySet(state: ParserState): ParsedSet | null {
+  if (!state.currentTiebreakSide1Buffer || !state.currentTiebreakSide2Buffer) {
+    return null; // Incomplete tiebreak
   }
   
-  // Reset for next set
+  const tb1 = Number.parseInt(state.currentTiebreakSide1Buffer);
+  const tb2 = Number.parseInt(state.currentTiebreakSide2Buffer);
+  
+  return {
+    side1Score: 0, // No game scores for tiebreak-only
+    side2Score: 0,
+    side1TiebreakScore: tb1,
+    side2TiebreakScore: tb2,
+    setNumber: state.setIndex + 1,
+    winningSide: tb1 > tb2 ? 1 : 2,
+  };
+}
+
+/**
+ * Add tiebreak scores to a regular set
+ */
+function addTiebreakScores(
+  set: ParsedSet,
+  state: ParserState,
+  currentSetFormat: any
+): void {
+  const tb1Str = state.currentTiebreakSide1Buffer;
+  const tb2Str = state.currentTiebreakSide2Buffer;
+  
+  if (tb1Str && tb2Str) {
+    // Both scores provided
+    set.side1TiebreakScore = Number.parseInt(tb1Str);
+    set.side2TiebreakScore = Number.parseInt(tb2Str);
+  } else if (tb1Str || tb2Str) {
+    // Only one score provided - infer the other
+    inferMissingTiebreakScore(set, tb1Str, tb2Str, currentSetFormat);
+  }
+}
+
+/**
+ * Infer missing tiebreak score when only one is provided
+ */
+function inferMissingTiebreakScore(
+  set: ParsedSet,
+  tb1Str: string,
+  tb2Str: string,
+  setFormat: any
+): void {
+  const losingScore = Number.parseInt(tb1Str || tb2Str);
+  const tiebreakLimit = getTiebreakLimit(setFormat);
+  const isNoAd = setFormat?.tiebreakFormat?.NoAD;
+  
+  // Infer winning score (must be at least tiebreakTo and win by 2, unless NoAD)
+  const minWinningScore = isNoAd ? tiebreakLimit : Math.max(tiebreakLimit, losingScore + 2);
+  
+  // Determine which side won based on game scores
+  if (set.side1Score! > set.side2Score!) {
+    // Side 1 won, so tb2Str is losing score
+    set.side1TiebreakScore = minWinningScore;
+    set.side2TiebreakScore = losingScore;
+  } else {
+    // Side 2 won, so tb1Str is losing score
+    set.side1TiebreakScore = losingScore;
+    set.side2TiebreakScore = minWinningScore;
+  }
+}
+
+/**
+ * Create a regular set with game scores
+ */
+function createRegularSet(state: ParserState, currentSetFormat: any): ParsedSet | null {
+  if (!state.currentSide1Buffer || !state.currentSide2Buffer) {
+    return null; // Incomplete set
+  }
+  
+  const side1Score = Number.parseInt(state.currentSide1Buffer);
+  const side2Score = Number.parseInt(state.currentSide2Buffer);
+  
+  const set: ParsedSet = {
+    side1Score,
+    side2Score,
+    setNumber: state.setIndex + 1,
+  };
+  
+  // Add tiebreak scores if present
+  if (state.currentTiebreakSide1Buffer || state.currentTiebreakSide2Buffer) {
+    addTiebreakScores(set, state, currentSetFormat);
+  }
+  
+  // Determine winner from game scores
+  if (side1Score > side2Score) {
+    set.winningSide = 1;
+  } else if (side2Score > side1Score) {
+    set.winningSide = 2;
+  }
+  
+  return set;
+}
+
+/**
+ * Reset state buffers and prepare for next set
+ */
+function resetStateForNextSet(state: ParserState): void {
   state.currentSide1Buffer = '';
   state.currentSide2Buffer = '';
   state.currentTiebreakSide1Buffer = '';
@@ -727,6 +767,28 @@ function finalizeSet(state: ParserState): void {
     state.inTiebreak = true;
     state.state = TokenizerState.PARSING_TIEBREAK_SIDE1;
   }
+}
+
+/**
+ * Finalize current set and move to next
+ */
+function finalizeSet(state: ParserState): void {
+  const currentSetFormat = getSetFormat(state.parsedFormat, state.setIndex);
+  const isTiebreakOnly = isTiebreakOnlySet(currentSetFormat);
+  
+  let set: ParsedSet | null = null;
+  
+  if (isTiebreakOnly) {
+    set = createTiebreakOnlySet(state);
+  } else {
+    set = createRegularSet(state, currentSetFormat);
+  }
+  
+  if (set) {
+    state.sets.push(set);
+  }
+  
+  resetStateForNextSet(state);
 }
 
 /**
