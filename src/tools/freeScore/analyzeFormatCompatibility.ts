@@ -119,8 +119,24 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
           continue;
         }
 
-        // For regular sets, check if scores are compatible with setTo
-        if (setFormat?.setTo) {
+        // Check if format is tiebreak-only (e.g., SET1-S:TB10)
+        const isTiebreakOnlyFormat = setFormat?.tiebreakSet?.tiebreakTo && !setFormat?.setTo;
+        
+        if (isTiebreakOnlyFormat) {
+          // For tiebreak-only formats, the set must have scores reaching tiebreakTo
+          // For completed matches, at least one side must have reached tiebreakTo
+          const side1 = set.side1Score || 0;
+          const side2 = set.side2Score || 0;
+          const maxScore = Math.max(side1, side2);
+          const tiebreakTo = setFormat.tiebreakSet.tiebreakTo;
+          
+          if (isCompleted && maxScore < tiebreakTo) {
+            // Score doesn't reach tiebreak-only format requirement
+            setsCompatible = false;
+            break;
+          }
+        } else if (setFormat?.setTo) {
+          // For regular sets, check if scores are compatible with setTo
           const side1 = set.side1Score || 0;
           const side2 = set.side2Score || 0;
           const maxScore = Math.max(side1, side2);
