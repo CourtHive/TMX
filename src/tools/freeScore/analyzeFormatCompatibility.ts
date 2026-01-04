@@ -14,7 +14,11 @@ const { validateMatchUpScore, parseScoreString } = governors.scoreGovernor;
  */
 const commonFormats = [
   { key: 'SET3_S6_TB7', code: MATCH_FORMATS.SET3_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7) },
-  { key: 'SET3_S6_TB7_F_TB10', code: MATCH_FORMATS.SET3_S6_TB7_F_TB10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7_F_TB10) },
+  {
+    key: 'SET3_S6_TB7_F_TB10',
+    code: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
+    parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7_F_TB10),
+  },
   { key: 'SET1_S6_TB7', code: MATCH_FORMATS.SET1_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S6_TB7) },
   { key: 'SET1_S8_TB7', code: MATCH_FORMATS.SET1_S8_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S8_TB7) },
   { key: 'SET1_S4_TB7', code: MATCH_FORMATS.SET1_S4_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S4_TB7) },
@@ -45,7 +49,7 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
 
   for (const format of commonFormats) {
     const { code, parsed: parsedFormat } = format;
-    
+
     try {
       // Parse the score string into sets array
       const sets = parseScoreString({
@@ -54,40 +58,42 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
       });
 
       if (!sets || !Array.isArray(sets)) continue;
-      
+
       // Check if score has a match tiebreak (final set with only tiebreak scores)
       const lastSet = sets[sets.length - 1];
-      const hasMatchTiebreak = lastSet?.side1TiebreakScore !== undefined &&
-                               lastSet?.side1Score === undefined &&
-                               lastSet?.side2TiebreakScore !== undefined &&
-                               lastSet?.side2Score === undefined;
-      
+      const hasMatchTiebreak =
+        lastSet?.side1TiebreakScore !== undefined &&
+        lastSet?.side1Score === undefined &&
+        lastSet?.side2TiebreakScore !== undefined &&
+        lastSet?.side2Score === undefined;
+
       // Check if number of sets is compatible with bestOf
       const bestOf = parsedFormat.bestOf || 1;
       const isDecidingSet = sets.length === bestOf;
-      
+
       // If score has a match tiebreak, format must have a finalSetFormat with tiebreak
       if (hasMatchTiebreak) {
-        const hasFinalSetTiebreak = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo ||
-                                     parsedFormat.finalSetFormat?.tiebreakFormat?.tiebreakTo;
+        const hasFinalSetTiebreak =
+          parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo ||
+          parsedFormat.finalSetFormat?.tiebreakFormat?.tiebreakTo;
         if (!hasFinalSetTiebreak) {
           continue; // Score requires match tiebreak but format doesn't have one
         }
       }
-      
+
       // If format requires match tiebreak for deciding set, score must have one
-      // Assume COMPLETED unless explicitly stated otherwise  
+      // Assume COMPLETED unless explicitly stated otherwise
       const isCompleted = !expectedMatchUpStatus || expectedMatchUpStatus === 'COMPLETED';
       if (isCompleted && isDecidingSet && !hasMatchTiebreak) {
-        const finalSetIsTiebreakOnly = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo &&
-                                        !parsedFormat.finalSetFormat?.setTo;
+        const finalSetIsTiebreakOnly =
+          parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsedFormat.finalSetFormat?.setTo;
         if (finalSetIsTiebreakOnly) {
           continue; // Format requires match tiebreak but score has regular set
         }
       }
       const minSetsRequired = Math.ceil(bestOf / 2); // e.g., bestOf 3 needs at least 2 sets
       const maxSetsAllowed = bestOf; // e.g., bestOf 3 can have at most 3 sets
-      
+
       if (sets.length < minSetsRequired || sets.length > maxSetsAllowed) {
         continue; // Incompatible number of sets
       }
@@ -97,50 +103,52 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
       for (let i = 0; i < sets.length; i++) {
         const set = sets[i];
         const isDecidingSet = i === sets.length - 1 && sets.length === bestOf;
-        const setFormat = isDecidingSet && parsedFormat.finalSetFormat 
-          ? parsedFormat.finalSetFormat 
-          : parsedFormat.setFormat;
-        
+        const setFormat =
+          isDecidingSet && parsedFormat.finalSetFormat ? parsedFormat.finalSetFormat : parsedFormat.setFormat;
+
         // Check if this is a tiebreak-only set (match tiebreak in bracket notation)
-        const isTiebreakOnlySet = set.side1TiebreakScore !== undefined && 
-                                  set.side1Score === undefined &&
-                                  set.side2TiebreakScore !== undefined &&
-                                  set.side2Score === undefined;
-        
+        const isTiebreakOnlySet =
+          set.side1TiebreakScore !== undefined &&
+          set.side1Score === undefined &&
+          set.side2TiebreakScore !== undefined &&
+          set.side2Score === undefined;
+
         if (isTiebreakOnlySet) {
           // For tiebreak-only sets, we can't validate against setTo
           // This is typically a match tiebreak [10-8]
           continue;
         }
-        
+
         // For regular sets, check if scores are compatible with setTo
         if (setFormat?.setTo) {
           const side1 = set.side1Score || 0;
           const side2 = set.side2Score || 0;
           const maxScore = Math.max(side1, side2);
           const minScore = Math.min(side1, side2);
-          
+
           // Maximum possible score is setTo + 1 (e.g., 7-5 in a set to 6)
           // unless it went to tiebreak (scores tied at setTo)
           const maxAllowed = setFormat.setTo + 1;
-          
+
           if (maxScore > maxAllowed) {
             // Score exceeds format limits
             setsCompatible = false;
             break;
           }
-          
+
           // If scores are tied at setTo, must have tiebreak scores
-          if (maxScore === setFormat.setTo && 
-              minScore === setFormat.setTo && 
-              !set.side1TiebreakScore && 
-              !set.side2TiebreakScore) {
+          if (
+            maxScore === setFormat.setTo &&
+            minScore === setFormat.setTo &&
+            !set.side1TiebreakScore &&
+            !set.side2TiebreakScore
+          ) {
             setsCompatible = false;
             break;
           }
         }
       }
-      
+
       if (!setsCompatible) {
         continue;
       }
@@ -200,18 +208,18 @@ export function analyzeAllTestCases() {
  */
 export function runAnalysis() {
   console.log('Analyzing tidyScore test cases for format compatibility...\n');
-  
+
   const { results, patternGroups } = analyzeAllTestCases();
-  
+
   // Summary statistics
   console.log('=== SUMMARY ===');
   console.log(`Total test cases: ${results.length}`);
   console.log(`\nFormat compatibility distribution:`);
-  
+
   Object.keys(patternGroups)
     .sort((a, b) => {
-      const aNum = parseInt(a);
-      const bNum = parseInt(b);
+      const aNum = Number.parseInt(a);
+      const bNum = Number.parseInt(b);
       return bNum - aNum;
     })
     .forEach((key) => {
@@ -220,7 +228,7 @@ export function runAnalysis() {
 
   // Example cases by format count
   console.log('\n=== EXAMPLES BY COMPATIBILITY ===');
-  
+
   // Cases with single format match (most specific)
   const singleFormat = patternGroups['1 formats']?.slice(0, 5);
   if (singleFormat?.length) {
