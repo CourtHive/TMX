@@ -82,11 +82,14 @@ A parsed matchUpFormat contains:
 **NoAD**: Boolean indicating no-advantage scoring
 
 **Rules:**
-- Deuce rule does not apply
-- Any score allowed as long as ≤ `setTo + 1`
+- No deuce - winner determined at first opportunity
+- Maximum winner score: `setTo`
+- Maximum loser score: `setTo - 1`
+- Cannot exceed setTo (match ends immediately when setTo is reached)
 
 **Examples:**
-- `setTo: 6, NoAD: true` → Valid: 9-6 (no deuce rule constraint)
+- `setTo: 6, NoAD: true` → Valid: 6-0, 6-4, 6-5
+- `setTo: 6, NoAD: true` → Invalid: 7-5, 7-6 (cannot exceed setTo)
 
 ## Final Set Format (finalSetFormat)
 

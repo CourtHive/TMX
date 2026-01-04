@@ -175,24 +175,34 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
           const maxScore = Math.max(side1, side2);
           const minScore = Math.min(side1, side2);
 
-          // Maximum possible score is setTo + 1 (e.g., 7-5 in a set to 6)
-          // unless it went to tiebreak (scores tied at setTo)
-          const maxAllowed = setFormat.setTo + 1;
-
-          if (maxScore > maxAllowed) {
-            // Score exceeds format limits
-            setsCompatible = false;
-            break;
-          }
-
-          // If winner score is > setTo, loser must be >= setTo-1
-          // This is the deuce rule: 9-7 is valid for setTo:8, but 9-6 is not
-          // Exception: NOAD formats don't have this constraint
+          // Check format-specific constraints
           const isNoAd = setFormat.NoAD;
-          if (!isNoAd && maxScore > setFormat.setTo && minScore < setFormat.setTo - 1) {
-            // Score violates deuce rule
-            setsCompatible = false;
-            break;
+          
+          if (isNoAd) {
+            // NoAD: Cannot exceed setTo (match ends at first opportunity)
+            // Valid: 6-0, 6-4, 6-5; Invalid: 7-5, 7-6
+            if (maxScore > setFormat.setTo) {
+              setsCompatible = false;
+              break;
+            }
+          } else {
+            // Regular (Advantage): Maximum possible score is setTo + 1
+            // unless it went to tiebreak (scores tied at setTo)
+            const maxAllowed = setFormat.setTo + 1;
+
+            if (maxScore > maxAllowed) {
+              // Score exceeds format limits
+              setsCompatible = false;
+              break;
+            }
+
+            // Deuce rule: If winner score is > setTo, loser must be >= setTo-1
+            // Example: 9-7 is valid for setTo:8, but 9-6 is not
+            if (maxScore > setFormat.setTo && minScore < setFormat.setTo - 1) {
+              // Score violates deuce rule
+              setsCompatible = false;
+              break;
+            }
           }
 
           // If scores are tied at setTo, must have tiebreak scores
