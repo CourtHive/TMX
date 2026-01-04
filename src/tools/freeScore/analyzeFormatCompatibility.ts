@@ -176,6 +176,16 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
             break;
           }
 
+          // If winner score is > setTo, loser must be >= setTo-1
+          // This is the deuce rule: 9-7 is valid for setTo:8, but 9-6 is not
+          // Exception: NOAD formats don't have this constraint
+          const isNoAd = setFormat.NoAD;
+          if (!isNoAd && maxScore > setFormat.setTo && minScore < setFormat.setTo - 1) {
+            // Score violates deuce rule
+            setsCompatible = false;
+            break;
+          }
+
           // If scores are tied at setTo, must have tiebreak scores
           if (
             maxScore === setFormat.setTo &&
