@@ -15,20 +15,25 @@ export function settingsModal(): void {
   const saveSettingsHandler = () => {
     const activeScale = inputs.wtn.checked ? WTN : UTR;
     env.saveLocal = inputs.saveLocal.checked;
-    
+
     // Save scoring approach preference
-    let scoringApproach: 'dynamicSets' | 'freeText' | 'dialPad';
+    let scoringApproach: 'dynamicSets' | 'tidyScore' | 'freeScore' | 'dialPad';
     if (inputs.dynamicSets.checked) {
       scoringApproach = 'dynamicSets';
     } else if (inputs.dialPad.checked) {
       scoringApproach = 'dialPad';
+    } else if (inputs.tidyScore.checked) {
+      scoringApproach = 'tidyScore';
+    } else if (inputs.freeScore.checked) {
+      scoringApproach = 'freeScore';
     } else {
-      scoringApproach = 'freeText';
+      // Default fallback
+      scoringApproach = 'dynamicSets';
     }
     env.scoringApproach = scoringApproach;
-    
+
     setActiveScale(activeScale);
-    
+
     // Persist to localStorage
     saveSettings({
       activeScale,
@@ -52,8 +57,9 @@ export function settingsModal(): void {
       {
         options: [
           { text: 'Dynamic Sets', field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
-          { text: 'Free Text', field: 'freeText', checked: env.scoringApproach === 'freeText' },
           { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
+          { text: 'Free Score', field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
+          { text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' },
         ],
         onClick: (x: any) => console.log({ x }),
         label: 'Scoring approach',

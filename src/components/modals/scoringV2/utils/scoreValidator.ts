@@ -50,7 +50,20 @@ export function tidyScore(scoreString: string): TidyScoreResult {
  * Validate a score string using generateOutcomeFromScoreString
  */
 export function validateScore(scoreString: string, matchUpFormat?: string, matchUpStatus?: string): ScoreOutcome {
+  // For irregular endings that remove score (WALKOVER, CANCELLED, DEAD_RUBBER), empty score is valid
+  const { WALKOVER, CANCELLED, DEAD_RUBBER } = matchUpStatusConstants;
+  const scoresRemovedStatuses = [WALKOVER, CANCELLED, DEAD_RUBBER];
+  
   if (!scoreString?.trim()) {
+    if (matchUpStatus && scoresRemovedStatuses.includes(matchUpStatus)) {
+      // Valid irregular ending without score
+      return {
+        isValid: true,
+        sets: [],
+        matchUpStatus,
+        scoreObject: undefined, // No score for these statuses
+      };
+    }
     return {
       isValid: false,
       sets: [],

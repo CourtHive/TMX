@@ -1,16 +1,17 @@
 /**
- * Free text score entry approach
- * Single input field with real-time validation
+ * TidyScore approach - cleanup messy scores after the fact
+ * Single input field with real-time validation using tidyScore
  */
 import { renderMatchUp } from 'courthive-components';
 import { validateScore, tidyScore } from '../utils/scoreValidator';
+import { formatExistingScore } from '../utils/scoreFormatters';
 import type { RenderScoreEntryParams } from '../types';
 import { env } from 'settings/env';
 import { matchUpStatusConstants } from 'tods-competition-factory';
 
 const { RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
-export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
+export function renderTidyScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
 
   // Clear container
@@ -79,13 +80,13 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   container.appendChild(radioContainer);
 
   // Function to render/update the matchUp display
-  const updateMatchUpDisplay = (currentScore?: { scoreObject?: any; winningSide?: number; matchUpStatus?: string }) => {
+  const updateMatchUpDisplay = (currentScore?: { scoreObject?: any; winningSide?: number; matchUpStatus?: string; clearAll?: boolean }) => {
     // Create a copy of matchUp with current score
     const displayMatchUp = {
       ...matchUp,
-      score: currentScore?.scoreObject || matchUp.score,
-      winningSide: currentScore?.winningSide,
-      matchUpStatus: currentScore?.matchUpStatus || matchUp.matchUpStatus,
+      score: currentScore?.clearAll ? undefined : (currentScore?.scoreObject || matchUp.score),
+      winningSide: currentScore?.clearAll ? undefined : currentScore?.winningSide,
+      matchUpStatus: currentScore?.clearAll ? undefined : (currentScore?.matchUpStatus || matchUp.matchUpStatus),
     };
 
     // Clear and render
@@ -161,7 +162,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
         }
       } as any);
       } catch (error) {
-        console.error('[FreeText] Error opening format selector:', error);
+        console.error('[TidyScore] Error opening format selector:', error);
       }
     });
     formatInfo.appendChild(formatButton);
@@ -217,7 +218,7 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
   container.appendChild(validationMessage);
 
   // Track manual winner selection
-  let manualWinningSide: number | undefined = undefined;
+  let manualWinningSide: number | undefined = matchUp.winningSide; // Initialize with existing winner
 
   const handleWinnerSelection = () => {
     if (side1Radio.checked) {
@@ -260,8 +261,8 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
       side2RadioLabel.style.fontWeight = '';
       side2RadioLabel.style.color = '';
       manualWinningSide = undefined;
-      // Reset matchUp display
-      updateMatchUpDisplay();
+      // Reset matchUp display - clear score and winningSide
+      updateMatchUpDisplay({ clearAll: true });
       onScoreChange({ isValid: false, sets: [] });
       return;
     }
@@ -439,15 +440,28 @@ export function renderFreeTextScoreEntry(params: RenderScoreEntryParams): void {
     }
   });
 
-  // Focus input
-  setTimeout(() => input.focus(), 100);
-
-  // Pre-fill with existing score if available
-  if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
-    const existingScore = matchUp.score.sets
-      .map((set: any) => `${set.side1Score || 0}-${set.side2Score || 0}`)
-      .join(' ');
+  // Initialize with existing score if available
+  if (matchUp.score) {
+    const existingScore = formatExistingScore(matchUp.score, matchUp.matchUpStatus);
     input.value = existingScore;
-    handleInput();
   }
+
+  // Initialize radio buttons with existing winner if present
+  if (matchUp.winningSide === 1) {
+    side1Radio.checked = true;
+    side1RadioLabel.style.fontWeight = 'bold';
+    side1RadioLabel.style.color = '#22c55e';
+  } else if (matchUp.winningSide === 2) {
+    side2Radio.checked = true;
+    side2RadioLabel.style.fontWeight = 'bold';
+    side2RadioLabel.style.color = '#22c55e';
+  }
+
+  // Focus input and trigger validation if there's an existing score
+  setTimeout(() => {
+    input.focus();
+    if (input.value) {
+      handleInput(); // Trigger validation for pre-populated score
+    }
+  }, 100);
 }

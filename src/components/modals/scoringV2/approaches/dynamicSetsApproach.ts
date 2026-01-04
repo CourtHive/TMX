@@ -1134,9 +1134,42 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       matchAlreadyComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
     });
     
-    updateScoreFromInputs();
   } else {
     updateMatchUpDisplay();
+  }
+  
+  // Initialize irregular ending and winner if present
+  if (matchUp.matchUpStatus && matchUp.matchUpStatus !== COMPLETED) {
+    selectedOutcome = matchUp.matchUpStatus as any;
+    
+    // Check the appropriate irregular ending radio button
+    const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]') as NodeListOf<HTMLInputElement>;
+    outcomeRadios.forEach(radio => {
+      if (radio.value === matchUp.matchUpStatus) {
+        radio.checked = true;
+      }
+    });
+    
+    // Initialize winner if present
+    if (matchUp.winningSide) {
+      selectedWinner = matchUp.winningSide;
+      
+      // Check the appropriate winner radio button
+      const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+      winnerRadios.forEach(radio => {
+        if (parseInt(radio.value) === matchUp.winningSide) {
+          radio.checked = true;
+        }
+      });
+      
+      // Show winner selection container
+      winnerSelectionContainer.style.display = 'block';
+    }
+  }
+  
+  // Trigger final update after all initialization
+  if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
+    updateScoreFromInputs();
   }
 
   // Focus first input

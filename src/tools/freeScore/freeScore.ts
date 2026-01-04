@@ -120,56 +120,58 @@ export interface ParseResult {
 function detectIrregularEnding(input: string, startPos: number): { ending?: string; endPos: number } {
   const remaining = input.substring(startPos).trim().toLowerCase();
   
-  // RETIRED: 'ret', 'RET', 'retired', or any part of 'retired'
-  const retiredPattern = /^ret(ired?)?/i;
-  if (retiredPattern.exec(remaining)) {
-    return { ending: RETIRED, endPos: input.length };
-  }
+  // Check for longer/more-specific patterns first to avoid ambiguity
   
-  // WALKOVER: 'wo', 'WO', 'w/o', 'walkover', or any part of 'walkover'
-  const walkoverPattern = /^(wo|w\/o|walk(over?)?)/i;
-  if (walkoverPattern.exec(remaining)) {
-    return { ending: WALKOVER, endPos: input.length };
-  }
-  
-  // DEFAULTED: 'def', 'DEF', 'defaulted', or any part of 'defaulted'
-  const defaultedPattern = /^def(aulted?)?/i;
-  if (defaultedPattern.exec(remaining)) {
-    return { ending: DEFAULTED, endPos: input.length };
-  }
-  
-  // SUSPENDED: 'susp', 'SUSP', 'suspended', or any part of 'suspended'
-  const suspendedPattern = /^susp(ended?)?/i;
-  if (suspendedPattern.exec(remaining)) {
-    return { ending: SUSPENDED, endPos: input.length };
-  }
-  
-  // CANCELLED: 'canc', 'CANC', 'cancelled', 'canceled', or any part
-  const cancelledPattern = /^canc(ell?ed?)?/i;
-  if (cancelledPattern.exec(remaining)) {
-    return { ending: CANCELLED, endPos: input.length };
-  }
-  
-  // INCOMPLETE: 'inc', 'INC', 'incomplete', or any part of 'incomplete'
-  const incompletePattern = /^inc(omplete?)?/i;
-  if (incompletePattern.exec(remaining)) {
-    return { ending: INCOMPLETE, endPos: input.length };
-  }
-  
-  // DEAD RUBBER: 'dead', 'DEAD', 'dead rubber', or any part
-  const deadRubberPattern = /^dead(\s*rubber)?/i;
-  if (deadRubberPattern.exec(remaining)) {
-    return { ending: DEAD_RUBBER, endPos: input.length };
-  }
-  
-  // IN PROGRESS: 'in prog', 'IN PROGRESS', or any part
-  const inProgressPattern = /^in\s*(prog(ress)?)?/i;
+  // IN PROGRESS: 'in', 'inp', 'in prog', 'in progress' (check first to catch "in " patterns)
+  const inProgressPattern = /^in(\s+p(rog(ress)?)?)?$/i;
   if (inProgressPattern.exec(remaining)) {
     return { ending: IN_PROGRESS, endPos: input.length };
   }
   
-  // AWAITING RESULT: 'await', 'AWAITING', 'awaiting result', or any part
-  const awaitingPattern = /^await(ing(\s*result)?)?/i;
+  // INCOMPLETE: 'inc', 'incomp', 'incomplete' (requires 'inc' minimum to avoid conflict with 'in')
+  const incompletePattern = /^inc(omp(lete?)?)?/i;
+  if (incompletePattern.exec(remaining)) {
+    return { ending: INCOMPLETE, endPos: input.length };
+  }
+  
+  // DEAD RUBBER: 'dr', 'dead', 'dead r', 'dead rubber' (check before DEFAULTED since both start with 'd')
+  const deadRubberPattern = /^(dr|dead(\s*r(ubber)?)?)/i;
+  if (deadRubberPattern.exec(remaining)) {
+    return { ending: DEAD_RUBBER, endPos: input.length };
+  }
+  
+  // RETIRED: 'r', 'ret', 'retired'
+  const retiredPattern = /^r(et(ired?)?)?/i;
+  if (retiredPattern.exec(remaining)) {
+    return { ending: RETIRED, endPos: input.length };
+  }
+  
+  // WALKOVER: 'w', 'wo', 'w/o', 'walkover'
+  const walkoverPattern = /^(w(\/o|o|alk(over?)?)?)/i;
+  if (walkoverPattern.exec(remaining)) {
+    return { ending: WALKOVER, endPos: input.length };
+  }
+  
+  // DEFAULTED: 'd', 'def', 'defaulted'
+  const defaultedPattern = /^d(ef(aulted?)?)?/i;
+  if (defaultedPattern.exec(remaining)) {
+    return { ending: DEFAULTED, endPos: input.length };
+  }
+  
+  // SUSPENDED: 's', 'susp', 'suspended'
+  const suspendedPattern = /^s(usp(ended?)?)?/i;
+  if (suspendedPattern.exec(remaining)) {
+    return { ending: SUSPENDED, endPos: input.length };
+  }
+  
+  // CANCELLED: 'c', 'canc', 'cancelled', 'canceled'
+  const cancelledPattern = /^c(anc(ell?ed?)?)?/i;
+  if (cancelledPattern.exec(remaining)) {
+    return { ending: CANCELLED, endPos: input.length };
+  }
+  
+  // AWAITING RESULT: 'a', 'await', 'awaiting', 'awaiting result'
+  const awaitingPattern = /^a(wait(ing(\s*r(esult)?)?)?)?/i;
   if (awaitingPattern.exec(remaining)) {
     return { ending: AWAITING_RESULT, endPos: input.length };
   }
@@ -504,17 +506,40 @@ function handleSeparator(state: ParserState): void {
   }
   
   if (state.state === TokenizerState.PARSING_SIDE2 && state.currentSide2Buffer) {
-    // Check if set is complete or needs tiebreak
+    // Check if set requires a tiebreak
+    const side1Score = Number.parseInt(state.currentSide1Buffer);
+    const side2Score = Number.parseInt(state.currentSide2Buffer);
+    const currentSetFormat = getSetFormat(state.parsedFormat, state.setIndex);
+    
+    if (requiresTiebreak(side1Score, side2Score, currentSetFormat)) {
+      // Transition to tiebreak parsing - next digits are the tiebreak score
+      state.inTiebreak = true;
+      state.state = TokenizerState.PARSING_TIEBREAK_SIDE1;
+      state.position++;
+      return;
+    }
+    
+    // Otherwise finalize the set normally
     finalizeSet(state);
     state.position++;
     return;
   }
   
   if (state.state === TokenizerState.PARSING_TIEBREAK_SIDE1 && state.currentTiebreakSide1Buffer) {
-    // Transition to tiebreak side2
-    state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
-    state.position++;
-    return;
+    // Check if this is a set tiebreak (has game scores) or match tiebreak (tiebreak-only)
+    const isSetTiebreak = state.currentSide1Buffer && state.currentSide2Buffer;
+    
+    if (isSetTiebreak) {
+      // Set tiebreak: only need one score (the losing score) - finalize the set
+      finalizeSet(state);
+      state.position++;
+      return;
+    } else {
+      // Match tiebreak: need both scores - transition to side2
+      state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
+      state.position++;
+      return;
+    }
   }
   
   // Just skip separator
@@ -635,6 +660,18 @@ function handleGameDigit(state: ParserState, char: string, setFormat: any): void
   if (state.state === TokenizerState.PARSING_SIDE2) {
     state.currentSide2Buffer += char;
     
+    // CRITICAL: Check if we've reached a tiebreak condition (e.g., 6-7)
+    const side1 = Number.parseInt(state.currentSide1Buffer);
+    const side2 = Number.parseInt(state.currentSide2Buffer);
+    
+    if (requiresTiebreak(side1, side2, setFormat)) {
+      // We've reached 6-7 or 7-6 - next digits should be tiebreak score
+      state.inTiebreak = true;
+      state.state = TokenizerState.PARSING_TIEBREAK_SIDE1;
+      state.position++;
+      return;
+    }
+    
     // Check if we should auto-finalize the set
     const nextPos = state.position + 1;
     
@@ -646,8 +683,6 @@ function handleGameDigit(state: ParserState, char: string, setFormat: any): void
       if (twoDigitValue > maxGameScore) {
         // Current buffer completes side2
         // Check if this makes a valid set
-        const side1 = Number.parseInt(state.currentSide1Buffer);
-        const side2 = Number.parseInt(state.currentSide2Buffer);
         
         // Valid set or hit digit limit - finalize and continue
         // Validation will catch issues if set is invalid
@@ -670,31 +705,7 @@ function handleGameDigit(state: ParserState, char: string, setFormat: any): void
   state.position++;
 }
 
-/**
- * Check if we should keep buffering or transition to side2 in tiebreak parsing
- * 
- * CRITICAL: Tiebreaks REQUIRE separators between side1 and side2 scores!
- * We cannot reliably parse "107" as "10-7" vs "1-07" without the dash.
- * 
- * This function is ONLY for the no-separator edge case when parsing sets,
- * and should return TRUE (keep buffering) for tiebreaks since we'll wait
- * for the separator to make the transition.
- * 
- * Strategy:
- * - Keep buffering until we hit a non-digit (which will be the separator)
- * - Only exception: absurdly large numbers (sanity check)
- */
-function shouldContinueBufferingTiebreakSide1(
-  currentValue: number,
-  twoDigitValue: number,
-): boolean {
-  // Sanity check: don't buffer ridiculously large numbers
-  // This catches typos/errors, but allows extended tiebreaks
-  const absurdMax = 999;
-  
-  // Keep buffering until we hit separator, unless absurdly large
-  return twoDigitValue <= absurdMax;
-}
+
 
 /**
  * Handle digit in tiebreak side1 context
@@ -705,20 +716,8 @@ function handleTiebreakSide1Digit(
 ): void {
   state.currentTiebreakSide1Buffer += char;
   
-  const currentValue = Number.parseInt(state.currentTiebreakSide1Buffer);
-  const nextPos = state.position + 1;
-  
-  if (nextPos < state.input.length && isDigit(state.input[nextPos])) {
-    const nextDigit = state.input[nextPos];
-    const twoDigitValue = Number.parseInt(state.currentTiebreakSide1Buffer + nextDigit);
-    
-    if (!shouldContinueBufferingTiebreakSide1(currentValue, twoDigitValue)) {
-      state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
-    }
-  } else {
-    state.state = TokenizerState.PARSING_TIEBREAK_SIDE2;
-  }
-  
+  // Just keep buffering - separator will finalize
+  // Don't try to be smart about when to stop
   state.position++;
 }
 
@@ -848,6 +847,19 @@ function inferMissingTiebreakScore(
 }
 
 /**
+ * Check if set scores require a tiebreak based on format rules
+ */
+function requiresTiebreak(side1Score: number, side2Score: number, setFormat: any): boolean {
+  const tiebreakAt = setFormat.tiebreakAt || setFormat.setTo || 6;
+  
+  // Check if both scores are at tiebreakAt and differ by exactly 1
+  const atTiebreak = (side1Score === tiebreakAt && side2Score === tiebreakAt + 1) ||
+                     (side2Score === tiebreakAt && side1Score === tiebreakAt + 1);
+  
+  return atTiebreak;
+}
+
+/**
  * Create a regular set with game scores
  */
 function createRegularSet(state: ParserState, currentSetFormat: any): ParsedSet | null {
@@ -857,6 +869,13 @@ function createRegularSet(state: ParserState, currentSetFormat: any): ParsedSet 
   
   const side1Score = Number.parseInt(state.currentSide1Buffer);
   const side2Score = Number.parseInt(state.currentSide2Buffer);
+  
+  // CRITICAL: Check if this set requires a tiebreak but doesn't have one yet
+  if (requiresTiebreak(side1Score, side2Score, currentSetFormat) && 
+      !state.currentTiebreakSide1Buffer && !state.currentTiebreakSide2Buffer) {
+    // Set is incomplete - needs tiebreak score
+    return null;
+  }
   
   const set: ParsedSet = {
     side1Score,
@@ -888,6 +907,7 @@ function resetStateForNextSet(state: ParserState): void {
   state.currentTiebreakSide1Buffer = '';
   state.currentTiebreakSide2Buffer = '';
   state.setIndex++;
+  state.inTiebreak = false; // Reset tiebreak flag
   state.state = TokenizerState.PARSING_SIDE1;
   
   // Check if next set is tiebreak-only
