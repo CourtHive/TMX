@@ -122,8 +122,11 @@ A parsed matchUpFormat contains:
 **Examples:**
 - `setTo: 6, NoAD: true` → Valid game scores: 6-0, 6-4, 6-5
 - `setTo: 6, NoAD: true` → Invalid: 7-5, 7-6 (cannot exceed setTo)
-- `setTo: 4, NoAD: true` → Game scores max 4-3, then tiebreak at 3-3 if specified
 - `tiebreakTo: 10, NoAD: true` → Tiebreak ends at 10-9 (no win-by-2 required)
+
+**Achieving Specific Game Score Ranges:**
+- To get max 4-5: use `setTo: 4` with tiebreak at 4-4 (default `@4`)
+- To get max 3-4: use `setTo: 4` with tiebreak at 3-3 (explicit `@3`)
 
 ## Final Set Format (finalSetFormat)
 
