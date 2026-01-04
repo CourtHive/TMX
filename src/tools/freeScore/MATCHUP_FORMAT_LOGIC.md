@@ -19,14 +19,27 @@ A parsed matchUpFormat contains:
 - Winner reaches `setTo` with at least 2-game margin, OR
 - Winner reaches `setTo + 1` with exactly `setTo - 1` for loser (deuce rule)
 - Maximum allowed score: `setTo + 1`
+- Win-by-2 required: score difference must be ≥ 2
 
 **Examples:**
 - `setTo: 6` → Valid: 6-0, 6-4, 7-5, 7-6(with tiebreak)
-- `setTo: 6` → Invalid: 8-6 (exceeds setTo + 1), 9-6 (violates deuce rule)
+- `setTo: 6` → Invalid: 8-6 (exceeds setTo + 1), 9-6 (violates deuce rule), 6-5 (not win-by-2)
 
 **Deuce Rule (non-NOAD):**
 - If winner > `setTo`, loser must be ≥ `setTo - 1`
 - Example: 9-7 valid for setTo:8, but 9-6 invalid (requires setTo:9)
+
+**Score Coercion (dialPad implementation):**
+- If score > `setTo + 1`: coerce DOWN to `setTo`
+- If score = `setTo + 1` but opposite < `setTo - 1`: coerce DOWN to `setTo`
+- Example: "6-9" with setTo:6 coerces to "6-6"
+
+**Context-Aware Input Limits (dynamicSets implementation):**
+- Maximum allowed score depends on opposite side's value
+- If opposite < `setTo - 1`: this side max = `setTo` (can't trigger tiebreak)
+- If opposite = `setTo - 1`: this side max = `setTo + 1` (could win 7-5 or go to tiebreak)
+- If opposite = `setTo`: this side max = `setTo + 1` (could win normally or go to tiebreak)
+- If opposite = `setTo + 1`: this side must = `setTo` (tiebreak scenario only)
 
 ### Tiebreaks (setFormat.tiebreakFormat)
 
@@ -37,7 +50,8 @@ A parsed matchUpFormat contains:
 **Rules:**
 - Tiebreak occurs when games tied at `tiebreakAt`
 - Final game score: `(tiebreakAt + 1) - tiebreakAt`
-- Tiebreak score: winner ≥ `tiebreakTo`, margin ≥ 2
+- Tiebreak score: winner ≥ `tiebreakTo`, win-by-2 required
+- Notation: only losing tiebreak score shown in parentheses
 
 **Examples:**
 - `setTo: 6, tiebreakAt: 6` → Score 7-6(10) means tied at 6-6, tiebreak 12-10
@@ -53,8 +67,9 @@ A parsed matchUpFormat contains:
 
 **Rules:**
 - No game scores, only tiebreak points (shown in brackets: [10-8])
-- Winner reaches `tiebreakTo` with margin ≥ 2
+- Winner reaches `tiebreakTo`, win-by-2 required
 - Used for match tiebreaks (3rd set tiebreak to 10)
+- Notation: brackets indicate tiebreak-only set
 
 **Examples:**
 - `tiebreakSet: { tiebreakTo: 10 }` → Valid: [10-8], [11-9], [12-10]
@@ -63,6 +78,11 @@ A parsed matchUpFormat contains:
 **Validation:**
 - Sets with game scores cannot match tiebreak-only formats
 - For completed matches, at least one side must reach `tiebreakTo`
+
+**Input Handling (dynamicSets):**
+- For tiebreak-only sets: `max = opposite + 2` (win-by-2 rule)
+- Example: If opposite = 11, this side max = 13
+- No coercion applied (user builds extended tiebreak scores like 33-35)
 
 ### Timed Sets (setFormat.timed)
 
