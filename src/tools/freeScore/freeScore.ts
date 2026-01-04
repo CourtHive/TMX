@@ -12,8 +12,20 @@
  * - Support incomplete scores (user typing in real-time)
  */
 
-import { matchUpFormatCode } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import type { ParsedFormat } from 'tods-competition-factory';
+
+const {
+  RETIRED,
+  WALKOVER,
+  DEFAULTED,
+  SUSPENDED,
+  CANCELLED,
+  INCOMPLETE,
+  DEAD_RUBBER,
+  IN_PROGRESS,
+  AWAITING_RESULT,
+} = matchUpStatusConstants;
 
 // ============================================================================
 // Types
@@ -48,6 +60,10 @@ export interface ParserState {
   state: TokenizerState;
   inTiebreak: boolean;
   expectingTiebreakOnly: boolean; // For match tiebreak formats
+  
+  // Irregular endings (matchUpStatus)
+  irregularEnding?: string;
+  irregularEndingPosition?: number;
   
   // Validation
   isValid: boolean;
@@ -90,11 +106,76 @@ export interface ParseResult {
   suggestions: string[];
   incomplete: boolean;
   matchComplete: boolean;
+  matchUpStatus?: string; // Uses matchUpStatusConstants from factory
 }
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Detect irregular ending patterns in remaining input
+ * Returns the matchUpStatus constant and the position where it was detected
+ */
+function detectIrregularEnding(input: string, startPos: number): { ending?: string; endPos: number } {
+  const remaining = input.substring(startPos).trim().toLowerCase();
+  
+  // RETIRED: 'ret', 'RET', 'retired', or any part of 'retired'
+  const retiredPattern = /^ret(ired?)?/i;
+  if (retiredPattern.exec(remaining)) {
+    return { ending: RETIRED, endPos: input.length };
+  }
+  
+  // WALKOVER: 'wo', 'WO', 'w/o', 'walkover', or any part of 'walkover'
+  const walkoverPattern = /^(wo|w\/o|walk(over?)?)/i;
+  if (walkoverPattern.exec(remaining)) {
+    return { ending: WALKOVER, endPos: input.length };
+  }
+  
+  // DEFAULTED: 'def', 'DEF', 'defaulted', or any part of 'defaulted'
+  const defaultedPattern = /^def(aulted?)?/i;
+  if (defaultedPattern.exec(remaining)) {
+    return { ending: DEFAULTED, endPos: input.length };
+  }
+  
+  // SUSPENDED: 'susp', 'SUSP', 'suspended', or any part of 'suspended'
+  const suspendedPattern = /^susp(ended?)?/i;
+  if (suspendedPattern.exec(remaining)) {
+    return { ending: SUSPENDED, endPos: input.length };
+  }
+  
+  // CANCELLED: 'canc', 'CANC', 'cancelled', 'canceled', or any part
+  const cancelledPattern = /^canc(ell?ed?)?/i;
+  if (cancelledPattern.exec(remaining)) {
+    return { ending: CANCELLED, endPos: input.length };
+  }
+  
+  // INCOMPLETE: 'inc', 'INC', 'incomplete', or any part of 'incomplete'
+  const incompletePattern = /^inc(omplete?)?/i;
+  if (incompletePattern.exec(remaining)) {
+    return { ending: INCOMPLETE, endPos: input.length };
+  }
+  
+  // DEAD RUBBER: 'dead', 'DEAD', 'dead rubber', or any part
+  const deadRubberPattern = /^dead(\s*rubber)?/i;
+  if (deadRubberPattern.exec(remaining)) {
+    return { ending: DEAD_RUBBER, endPos: input.length };
+  }
+  
+  // IN PROGRESS: 'in prog', 'IN PROGRESS', or any part
+  const inProgressPattern = /^in\s*(prog(ress)?)?/i;
+  if (inProgressPattern.exec(remaining)) {
+    return { ending: IN_PROGRESS, endPos: input.length };
+  }
+  
+  // AWAITING RESULT: 'await', 'AWAITING', 'awaiting result', or any part
+  const awaitingPattern = /^await(ing(\s*result)?)?/i;
+  if (awaitingPattern.exec(remaining)) {
+    return { ending: AWAITING_RESULT, endPos: input.length };
+  }
+  
+  return { endPos: startPos };
+}
 
 /**
  * Get the set format for a specific set index
@@ -316,8 +397,26 @@ export function parseScore(
   // Finalize any incomplete set
   finalizeCurrentScore(state);
   
+  // Handle irregular endings
+  let finalSets = state.sets;
+  let matchUpStatus: string | undefined;
+  
+  if (state.irregularEnding) {
+    matchUpStatus = state.irregularEnding;
+    
+    // Remove score for statuses where match didn't start or wasn't played
+    if (
+      state.irregularEnding === WALKOVER ||
+      state.irregularEnding === CANCELLED ||
+      state.irregularEnding === DEAD_RUBBER
+    ) {
+      finalSets = [];
+    }
+    // Keep score for other statuses (RETIRED, DEFAULTED, SUSPENDED, INCOMPLETE, IN_PROGRESS, AWAITING_RESULT)
+  }
+  
   // Check if match is complete
-  const matchComplete = checkMatchComplete(state);
+  const matchComplete = state.irregularEnding ? false : checkMatchComplete(state);
   
   // Format output
   const formattedScore = formatScore(state);
@@ -325,14 +424,15 @@ export function parseScore(
   return {
     valid: state.isValid && state.errors.length === 0,
     formattedScore,
-    sets: state.sets,
+    sets: finalSets,
     confidence: state.confidence,
     errors: state.errors,
     warnings: state.warnings,
     ambiguities: state.ambiguities,
     suggestions: state.suggestions,
-    incomplete: !matchComplete && state.sets.length > 0,
+    incomplete: !matchComplete && finalSets.length > 0,
     matchComplete,
+    matchUpStatus,
   };
 }
 
@@ -341,6 +441,18 @@ export function parseScore(
  */
 function processCharacter(state: ParserState): void {
   const char = state.input[state.position];
+  
+  // Check for irregular endings (RET, WO, DEF, etc.)
+  // These can appear after a score or by themselves
+  if (!isDigit(char) && !isTiebreakIndicator(char) && !isTiebreakCloser(char)) {
+    const detection = detectIrregularEnding(state.input, state.position);
+    if (detection.ending) {
+      state.irregularEnding = detection.ending;
+      state.irregularEndingPosition = state.position;
+      state.position = detection.endPos; // Skip to end of input
+      return;
+    }
+  }
   
   // Skip whitespace and separators in certain contexts
   if (isSeparator(char)) {
