@@ -7,7 +7,7 @@ import { governors, matchUpFormatCode } from 'tods-competition-factory';
 import { tidyScoreTestCases, type TidyScoreTestCase } from './extractTidyScoreData';
 import { MATCH_FORMATS } from '../../constants/matchUpFormats';
 
-const { validateMatchUpScore, parseScoreString, generateOutcomeFromScoreString } = governors.scoreGovernor;
+const { validateMatchUpScore, parseScoreString } = governors.scoreGovernor;
 
 /**
  * Common matchUpFormats to test against (pre-parsed for efficiency)
@@ -44,7 +44,7 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
   }
 
   for (const format of commonFormats) {
-    const { key, code, parsed: parsedFormat } = format;
+    const { code, parsed: parsedFormat } = format;
     
     try {
       // Parse the score string into sets array
@@ -118,17 +118,13 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
             break;
           }
           
-          // If winner has exactly setTo, loser must be < setTo - 1 (normal win)
-          // OR loser is exactly setTo (went to tiebreak)
-          // OR winner is setTo + 1 and loser is setTo - 1 (deuce set)
-          if (maxScore === setFormat.setTo) {
-            if (minScore === setFormat.setTo) {
-              // Went to tiebreak, should have tiebreak scores
-              if (!set.side1TiebreakScore && !set.side2TiebreakScore) {
-                setsCompatible = false;
-                break;
-              }
-            }
+          // If scores are tied at setTo, must have tiebreak scores
+          if (maxScore === setFormat.setTo && 
+              minScore === setFormat.setTo && 
+              !set.side1TiebreakScore && 
+              !set.side2TiebreakScore) {
+            setsCompatible = false;
+            break;
           }
         }
       }
@@ -151,7 +147,7 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
           validation,
         });
       }
-    } catch (error) {
+    } catch {
       // Format incompatible, skip
     }
   }
