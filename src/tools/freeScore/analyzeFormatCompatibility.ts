@@ -147,6 +147,15 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
         const isTiebreakOnlyFormat = setFormat?.tiebreakSet?.tiebreakTo && !setFormat?.setTo;
         
         if (isTiebreakOnlyFormat) {
+          // Tiebreak-only formats should not have regular game scores
+          // If set has game scores (not in bracket notation), it's not tiebreak-only
+          const hasGameScores = set.side1Score !== undefined || set.side2Score !== undefined;
+          if (hasGameScores) {
+            // Set has game scores but format is tiebreak-only
+            setsCompatible = false;
+            break;
+          }
+          
           // For tiebreak-only formats, the set must have scores reaching tiebreakTo
           // For completed matches, at least one side must have reached tiebreakTo
           const side1 = set.side1Score || 0;
@@ -195,6 +204,19 @@ export function analyzeTestCase(testCase: TidyScoreTestCase): FormatAnalysis {
           ) {
             setsCompatible = false;
             break;
+          }
+
+          // If set has tiebreak scores, games must have been tied at tiebreakAt
+          // For example: 7-6(10) means tied at 6-6 (tiebreakAt must be 6)
+          if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
+            const tiebreakAt = setFormat.tiebreakAt || setFormat.setTo;
+            // The score before tiebreak should be tiebreakAt-tiebreakAt
+            // After tiebreak, winner gets one more game: (tiebreakAt+1)-tiebreakAt
+            if (maxScore !== tiebreakAt + 1 || minScore !== tiebreakAt) {
+              // Tiebreak occurred at wrong score for this format
+              setsCompatible = false;
+              break;
+            }
           }
         }
       }
