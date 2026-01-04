@@ -10,19 +10,43 @@ import { MATCH_FORMATS } from '../../constants/matchUpFormats';
 const { validateMatchUpScore, parseScoreString } = governors.scoreGovernor;
 
 /**
- * Common matchUpFormats to test against (pre-parsed for efficiency)
+ * All matchUpFormats to test against (pre-parsed for efficiency)
  */
 const commonFormats = [
+  // Best of 3 sets
   { key: 'SET3_S6_TB7', code: MATCH_FORMATS.SET3_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7) },
   {
     key: 'SET3_S6_TB7_F_TB10',
     code: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB7_F_TB10),
   },
+  { key: 'SET3_S6_TB10', code: MATCH_FORMATS.SET3_S6_TB10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET3_S6_TB10) },
+  
+  // Best of 5 sets
+  { key: 'SET5_S6_TB7', code: MATCH_FORMATS.SET5_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET5_S6_TB7) },
+  {
+    key: 'SET5_S6_TB7_F_TB10',
+    code: MATCH_FORMATS.SET5_S6_TB7_F_TB10,
+    parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET5_S6_TB7_F_TB10),
+  },
+  
+  // Single set formats
   { key: 'SET1_S6_TB7', code: MATCH_FORMATS.SET1_S6_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S6_TB7) },
+  { key: 'SET1_S6_TB10', code: MATCH_FORMATS.SET1_S6_TB10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S6_TB10) },
   { key: 'SET1_S8_TB7', code: MATCH_FORMATS.SET1_S8_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S8_TB7) },
   { key: 'SET1_S4_TB7', code: MATCH_FORMATS.SET1_S4_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S4_TB7) },
+  
+  // Tiebreak-only formats
+  { key: 'SET1_S_TB7', code: MATCH_FORMATS.SET1_S_TB7, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S_TB7) },
   { key: 'SET1_S_TB10', code: MATCH_FORMATS.SET1_S_TB10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S_TB10) },
+  { key: 'SET1_S_TB21', code: MATCH_FORMATS.SET1_S_TB21, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S_TB21) },
+  
+  // Pro sets
+  { key: 'SET1_S8', code: MATCH_FORMATS.SET1_S8, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S8) },
+  { key: 'SET1_S10', code: MATCH_FORMATS.SET1_S10, parsed: matchUpFormatCode.parse(MATCH_FORMATS.SET1_S10) },
+  
+  // Fast4 format
+  { key: 'FAST4', code: MATCH_FORMATS.FAST4, parsed: matchUpFormatCode.parse(MATCH_FORMATS.FAST4) },
 ];
 
 export interface FormatAnalysis {
