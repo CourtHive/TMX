@@ -461,22 +461,39 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // For tab navigation and auto-expansion, check if the set is "complete enough" to move on
     // A set is complete enough if:
     // 1. Both scores are entered (already checked above)
-    // 2. One score is clearly winning (for tiebreak sets: has winningSide, for regular sets: basic completion)
+    // 2. The set meets completion criteria based on format
     if (currentSets.length > setIndex) {
       const setData = currentSets[setIndex];
       
       // Check if this is a tiebreak-only set
       const setFormat = getSetFormat(setIndex);
       const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+      const setTo = setFormat?.setTo || 6;
+      const tiebreakAt = setFormat?.tiebreakAt || setTo;
       
       if (setIsTiebreakOnly) {
         // For tiebreak-only sets, require winningSide (validation determines if score is valid)
         return setData.winningSide !== undefined;
       } else {
-        // For regular sets, if both scores are entered and not equal, allow expansion
-        // This allows incomplete scores like 5-0 to trigger next set creation
-        // Validation will determine if it's truly valid
-        return side1Score !== side2Score;
+        // For regular sets, check if the set is actually complete:
+        // 1. One side won by 2+ games AND reached at least setTo, OR
+        // 2. Won via tiebreak (tiebreakAt+1 vs tiebreakAt with tiebreak entered)
+        //    Examples: 7-6(tb) for S:6/TB7, 9-8(tb) for S:8/TB7, 8-7(tb) for S:8/TB7@7
+        const maxScore = Math.max(side1Score, side2Score);
+        const minScore = Math.min(side1Score, side2Score);
+        const scoreDiff = maxScore - minScore;
+        
+        // Check if someone won by 2+ margin and reached setTo
+        // Examples: 8-6, 9-7, 10-8 for setTo=8
+        const wonByMargin = maxScore >= setTo && scoreDiff >= 2;
+        
+        // Check if won via tiebreak (score is tiebreakAt+1 vs tiebreakAt with tiebreak entered)
+        // Examples: 7-6(3) for S:6/TB7, 9-8(5) for S:8/TB7, 6-5(2) for S:6/TB5@5
+        const wonViaTiebreak = 
+          maxScore === tiebreakAt + 1 && minScore === tiebreakAt &&
+          (setData.side1TiebreakScore !== undefined || setData.side2TiebreakScore !== undefined);
+        
+        return wonByMargin || wonViaTiebreak;
       }
     }
     
@@ -706,8 +723,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const side1Score = parseInt(side1Input.value) || 0;
     const side2Score = parseInt(side2Input.value) || 0;
     
-    // Show tiebreak input if score is 7-6 or 6-7
-    const showTiebreak = (side1Score === 7 && side2Score === 6) || (side1Score === 6 && side2Score === 7);
+    // Get the format for this specific set to determine tiebreakAt
+    const setFormat = getSetFormat(setIndex);
+    const tiebreakAt = setFormat?.tiebreakAt || 6;
+    
+    // Show tiebreak input if scores are at tiebreak threshold (e.g., 7-6, 6-7 for tiebreakAt=6, or 9-8, 8-9 for tiebreakAt=8)
+    const showTiebreak = 
+      (side1Score === tiebreakAt + 1 && side2Score === tiebreakAt) || 
+      (side1Score === tiebreakAt && side2Score === tiebreakAt + 1);
     
     if (showTiebreak) {
       tiebreakContainer.style.display = 'inline';
