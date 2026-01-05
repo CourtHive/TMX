@@ -10,7 +10,15 @@ import { env } from 'settings/env';
 
 import { ADD_DRAW_DEFINITION } from 'constants/mutationConstants';
 
-export function generateDraw({ eventId, drawOptions, callback }: { eventId: string; drawOptions: any; callback?: (result: any) => void }): void {
+export function generateDraw({
+  eventId,
+  drawOptions,
+  callback,
+}: {
+  eventId: string;
+  drawOptions: any;
+  callback?: (result: any) => void;
+}): void {
   const scale = env.scales[env.activeScale?.toLowerCase()];
   const adHocConfig = {
     scaleAccessor: scale?.accessor,
@@ -21,7 +29,7 @@ export function generateDraw({ eventId, drawOptions, callback }: { eventId: stri
   if (result.success) {
     const drawDefinition = result.drawDefinition;
     const methods = [{ method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true } }];
-    const postMutation = (result: any) => isFunction(callback) && callback && callback({ drawDefinition, ...result });
+    const postMutation = (result: any) => isFunction(callback) && callback({ drawDefinition, ...result });
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {
     tmxToast({

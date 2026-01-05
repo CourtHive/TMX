@@ -17,6 +17,43 @@ type EntryState = {
   tiebreakAt: number;
 };
 
+/**
+ * Convert score object back to digit string for dialPad
+ * Example: { sets: [{ side1Score: 6, side2Score: 3 }] } → "63"
+ */
+function scoreToDigits(scoreObject: any): string {
+  if (!scoreObject?.sets || scoreObject.sets.length === 0) return '';
+  
+  const digitParts: string[] = [];
+  
+  scoreObject.sets.forEach((set: any, index: number) => {
+    // Add separator between sets (use space for simplicity)
+    if (index > 0) {
+      digitParts.push(' ');
+    }
+    
+    // Add game scores
+    digitParts.push(set.side1Score?.toString() || '0');
+    digitParts.push(set.side2Score?.toString() || '0');
+    
+    // Add tiebreak scores if present
+    if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
+      // For dialPad, we use minus to separate tiebreak
+      // The losing score is what we track
+      const losingScore = set.winningSide === 1 
+        ? set.side2TiebreakScore 
+        : set.side1TiebreakScore;
+      
+      if (losingScore !== undefined) {
+        digitParts.push('-');
+        digitParts.push(losingScore.toString());
+      }
+    }
+  });
+  
+  return digitParts.join('');
+}
+
 export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
   const { matchUp, container, onScoreChange } = params;
 
@@ -40,6 +77,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       setTo,
       tiebreakAt,
     };
+    
+    // Initialize state with existing score if available
+    if (matchUp.score) {
+      state.digits = scoreToDigits(matchUp.score);
+    }
 
     // MatchUp display container
     const matchUpContainer = document.createElement('div');
@@ -551,6 +593,35 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
     (globalThis as any).cleanupDialPad = cleanup;
+
+    // Initialize irregular ending and winner if present
+    if (matchUp.matchUpStatus && matchUp.matchUpStatus !== COMPLETED) {
+      selectedOutcome = matchUp.matchUpStatus as any;
+      
+      // Check the appropriate irregular ending radio button
+      const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]') as NodeListOf<HTMLInputElement>;
+      outcomeRadios.forEach(radio => {
+        if (radio.value === matchUp.matchUpStatus) {
+          radio.checked = true;
+        }
+      });
+      
+      // Initialize winner if present
+      if (matchUp.winningSide) {
+        selectedWinner = matchUp.winningSide;
+        
+        // Check the appropriate winner radio button
+        const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
+        winnerRadios.forEach(radio => {
+          if (parseInt(radio.value) === matchUp.winningSide) {
+            radio.checked = true;
+          }
+        });
+        
+        // Show winner selection container
+        winnerSelectionContainer.style.display = 'block';
+      }
+    }
 
     // Initial display
     updateMatchUpDisplay(null);

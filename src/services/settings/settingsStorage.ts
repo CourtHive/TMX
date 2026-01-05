@@ -7,7 +7,7 @@ const SETTINGS_KEY = 'tmx_settings';
 
 export type TMXSettings = {
   activeScale?: 'wtn' | 'utr';
-  scoringApproach?: 'dynamicSets' | 'freeText' | 'dialPad';
+  scoringApproach?: 'dynamicSets' | 'tidyScore' | 'freeScore' | 'dialPad';
   saveLocal?: boolean;
 };
 
