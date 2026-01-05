@@ -29,6 +29,9 @@ dist-ssr
 
 # misc
 
+# Storybook
+storybook-static
+
 # Editor directories and files
 .DS_Store
 .vscode/*
