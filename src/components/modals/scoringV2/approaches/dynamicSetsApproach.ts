@@ -314,8 +314,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       input.addEventListener('keydown', handleKeydown);
     });
     
-    // Update display and validation
-    updateMatchUpDisplay();
+    // Update display and validation - explicitly clear everything
+    updateMatchUpDisplay({ clearAll: true });
     onScoreChange({ isValid: false, sets: [] });
     
     // Focus first input
@@ -333,9 +333,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     // Create temporary matchUp with current sets
     const displayMatchUp = {
       ...matchUp,
-      score: validationResult?.scoreObject || (currentSets.length > 0 ? { sets: currentSets } : matchUp.score),
-      winningSide: validationResult?.winningSide,
-      matchUpStatus: validationResult?.matchUpStatus,
+      score: validationResult?.clearAll ? undefined : (validationResult?.scoreObject || (currentSets.length > 0 ? { sets: currentSets } : matchUp.score)),
+      winningSide: validationResult?.clearAll ? undefined : validationResult?.winningSide,
+      matchUpStatus: validationResult?.clearAll ? undefined : validationResult?.matchUpStatus,
     };
 
     const matchUpElement = renderMatchUp({

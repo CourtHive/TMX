@@ -245,14 +245,14 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
     // Update matchUp display with current outcome
-    const updateMatchUpDisplay = (outcome: ScoreOutcome | null) => {
+    const updateMatchUpDisplay = (outcome: ScoreOutcome | null | { clearAll?: boolean }) => {
       matchUpContainer.innerHTML = '';
 
       const displayMatchUp = {
         ...matchUp,
-        score: outcome?.scoreObject || matchUp.score,
-        winningSide: outcome?.winningSide,
-        matchUpStatus: outcome?.matchUpStatus || matchUp.matchUpStatus,
+        score: (outcome as any)?.clearAll ? undefined : ((outcome as ScoreOutcome)?.scoreObject || matchUp.score),
+        winningSide: (outcome as any)?.clearAll ? undefined : (outcome as ScoreOutcome)?.winningSide,
+        matchUpStatus: (outcome as any)?.clearAll ? undefined : ((outcome as ScoreOutcome)?.matchUpStatus || matchUp.matchUpStatus),
       };
 
       const matchUpElement = renderMatchUp({
@@ -274,17 +274,30 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     };
 
     // Update display
-    const updateDisplay = () => {
+    const updateDisplay = (clearAll = false) => {
       const scoreString = formatScore(state.digits);
 
-      // Show/hide irregular ending section vs score display
-      if (selectedOutcome === COMPLETED) {
+      // Show score display if there's a score
+      if (scoreString) {
         scoreDisplay.style.display = 'block';
-        scoreDisplay.textContent = scoreString || '-';
-        irregularEndingContainer.style.display = 'none';
+        scoreDisplay.textContent = scoreString;
       } else {
-        scoreDisplay.style.display = 'none';
+        scoreDisplay.style.display = 'block';
+        scoreDisplay.textContent = '-';
+      }
+      
+      // Show irregular ending section when non-COMPLETED outcome selected
+      if (selectedOutcome !== COMPLETED) {
         irregularEndingContainer.style.display = 'block';
+      } else {
+        irregularEndingContainer.style.display = 'none';
+      }
+
+      // If clearAll flag is set, explicitly clear matchUp display
+      if (clearAll) {
+        updateMatchUpDisplay({ clearAll: true });
+        onScoreChange({ isValid: false, sets: [] });
+        return;
       }
 
       // Use validateScore for proper validation
@@ -432,7 +445,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Clear winner radio selections
       const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]');
       winnerRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
-      updateDisplay();
+      // Clear irregular ending radio selections
+      const outcomeRadios = irregularEndingContainer.querySelectorAll('input[name="matchOutcome"]');
+      outcomeRadios.forEach((r) => ((r as HTMLInputElement).checked = false));
+      // Update with clearAll flag to reset matchUp display
+      updateDisplay(true); // Pass clearAll flag
     };
 
     // Expose reset function for Clear button
