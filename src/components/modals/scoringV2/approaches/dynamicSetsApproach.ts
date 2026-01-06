@@ -9,6 +9,16 @@ import type { RenderScoreEntryParams, SetScore } from '../types';
 import { env } from 'settings/env';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import { loadSettings } from 'services/settings/settingsStorage';
+import {
+  isMatchComplete as isMatchCompleteLogic,
+  isSetComplete as isSetCompleteLogic,
+  getSetFormatForIndex,
+  shouldShowTiebreak as shouldShowTiebreakLogic,
+  getMaxAllowedScore as getMaxAllowedScoreLogic,
+  shouldApplySmartComplement,
+  buildSetScore,
+  type MatchConfig,
+} from '../logic/dynamicSetsLogic';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
@@ -24,20 +34,29 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const scaleAttributes = env.scales[env.activeScale];
 
   // Parse match format
-  const formatInfo = parseMatchUpFormat(matchUp.matchUpFormat || 'SET3-S:6/TB7');
-  const { bestOf } = formatInfo;
-  const parsedFormat = matchUpFormatCode.parse(matchUp.matchUpFormat || 'SET3-S:6/TB7');
+  // NOTE: These are wrapped in a function to allow dynamic re-parsing when format changes
+  let currentMatchUpFormat = matchUp.matchUpFormat || 'SET3-S:6/TB7';
+  
+  const getMatchConfig = (): MatchConfig => {
+    const formatInfo = parseMatchUpFormat(currentMatchUpFormat);
+    const parsedFormat = matchUpFormatCode.parse(currentMatchUpFormat);
+    return {
+      bestOf: formatInfo.bestOf,
+      setFormat: parsedFormat?.setFormat,
+      finalSetFormat: parsedFormat?.finalSetFormat,
+    };
+  };
+  
+  // Create matchConfig that always uses current format
+  // This ensures format changes are immediately reflected
+  let matchConfig = getMatchConfig();
+  const getBestOf = () => matchConfig.bestOf;
 
   // Helper function to get format for a specific set index
+  // NOTE: Keeping this closure for backward compatibility during migration
+  // Eventually will be replaced by direct calls to getSetFormatForIndex()
   const getSetFormat = (setIndex: number) => {
-    const isDecidingSet = bestOf === 1 || setIndex + 1 === bestOf;
-
-    // Use finalSetFormat for deciding set if it exists
-    if (isDecidingSet && parsedFormat?.finalSetFormat) {
-      return parsedFormat.finalSetFormat;
-    }
-
-    return parsedFormat?.setFormat;
+    return getSetFormatForIndex(setIndex, matchConfig);
   };
 
   // Note: Set-specific format (including tiebreak-only detection) is now handled
@@ -77,9 +96,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           existingMatchUpFormat: matchUp.matchUpFormat,
           callback: (newFormat: string) => {
             if (newFormat && newFormat !== matchUp.matchUpFormat) {
-              // Format changed - update matchUp and reset everything
+              // Format changed - update matchUp and regenerate config
               matchUp.matchUpFormat = newFormat;
+              currentMatchUpFormat = newFormat;
               formatButton.textContent = newFormat;
+
+              // Regenerate matchConfig with new format
+              matchConfig = getMatchConfig();
 
               // Clear all sets and reset
               if ((globalThis as any).resetDynamicSets) {
@@ -108,8 +131,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   let selectedWinner: number | undefined = undefined; // For irregular endings
   
   // Track which sets have had smart complement applied (for efficiency feature)
-  // Key is setIndex, value is true if complement has been applied
-  const setsWithSmartComplement = new Map<number, boolean>();
+  // REFACTORED: Changed from Map to Set for compatibility with pure logic
+  const setsWithSmartComplement = new Set<number>();
 
   const irregularEndingContainer = document.createElement('div');
   irregularEndingContainer.style.marginBottom = '0.8em';
@@ -464,12 +487,16 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   };
 
   // Function to check if a set is complete (both inputs have values and it's a valid set)
+  // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
   const isSetComplete = (setIndex: number): boolean => {
     const side1Input = setsContainer.querySelector(
       `input[data-set-index="${setIndex}"][data-side="1"]`,
     ) as HTMLInputElement;
     const side2Input = setsContainer.querySelector(
       `input[data-set-index="${setIndex}"][data-side="2"]`,
+    ) as HTMLInputElement;
+    const tiebreakInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex}"][data-type="tiebreak"]`,
     ) as HTMLInputElement;
 
     if (!side1Input || !side2Input) return false;
@@ -482,51 +509,14 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     const side1Score = Number.parseInt(side1Value) || 0;
     const side2Score = Number.parseInt(side2Value) || 0;
+    const tiebreakScore = tiebreakInput?.value.trim() ? Number.parseInt(tiebreakInput.value) : undefined;
 
-    // Scores can't be equal (tie is not complete)
-    if (side1Score === side2Score) return false;
-
-    // For tab navigation and auto-expansion, check if the set is "complete enough" to move on
-    // A set is complete enough if:
-    // 1. Both scores are entered (already checked above)
-    // 2. The set meets completion criteria based on format
-    if (currentSets.length > setIndex) {
-      const setData = currentSets[setIndex];
-
-      // Check if this is a tiebreak-only set
-      const setFormat = getSetFormat(setIndex);
-      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
-      const setTo = setFormat?.setTo || 6;
-      const tiebreakAt = setFormat?.tiebreakAt || setTo;
-
-      if (setIsTiebreakOnly) {
-        // For tiebreak-only sets, require winningSide (validation determines if score is valid)
-        return setData.winningSide !== undefined;
-      } else {
-        // For regular sets, check if the set is actually complete:
-        // 1. One side won by 2+ games AND reached at least setTo, OR
-        // 2. Won via tiebreak (tiebreakAt+1 vs tiebreakAt with tiebreak entered)
-        //    Examples: 7-6(tb) for S:6/TB7, 9-8(tb) for S:8/TB7, 8-7(tb) for S:8/TB7@7
-        const maxScore = Math.max(side1Score, side2Score);
-        const minScore = Math.min(side1Score, side2Score);
-        const scoreDiff = maxScore - minScore;
-
-        // Check if someone won by 2+ margin and reached setTo
-        // Examples: 8-6, 9-7, 10-8 for setTo=8
-        const wonByMargin = maxScore >= setTo && scoreDiff >= 2;
-
-        // Check if won via tiebreak (score is tiebreakAt+1 vs tiebreakAt with tiebreak entered)
-        // Examples: 7-6(3) for S:6/TB7, 9-8(5) for S:8/TB7, 6-5(2) for S:6/TB5@5
-        const wonViaTiebreak =
-          maxScore === tiebreakAt + 1 &&
-          minScore === tiebreakAt &&
-          (setData.side1TiebreakScore !== undefined || setData.side2TiebreakScore !== undefined);
-
-        return wonByMargin || wonViaTiebreak;
-      }
-    }
-
-    return false;
+    // Use pure logic function
+    return isSetCompleteLogic(
+      setIndex,
+      { side1: side1Score, side2: side2Score, tiebreak: tiebreakScore },
+      matchConfig,
+    );
   };
 
   // Function to update score from inputs
@@ -540,7 +530,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const newSets: SetScore[] = [];
 
     // Parse all set inputs
-    for (let i = 0; i < bestOf; i++) {
+    for (let i = 0; i < getBestOf(); i++) {
       const side1Input = setsContainer.querySelector(`input[data-set-index="${i}"][data-side="1"]`) as HTMLInputElement;
       const side2Input = setsContainer.querySelector(`input[data-set-index="${i}"][data-side="2"]`) as HTMLInputElement;
       const tiebreakInput = setsContainer.querySelector(
@@ -555,106 +545,58 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // If both are empty, stop here
       if (side1Value === '' && side2Value === '') break;
 
-      const side1Score = Number.parseInt(side1Value) || 0;
-      const side2Score = Number.parseInt(side2Value) || 0;
-      const tiebreakScore = tiebreakInput?.value.trim() ? Number.parseInt(tiebreakInput.value) : undefined;
+      const tiebreakValue = tiebreakInput?.value.trim();
 
-      // Check if this specific set is a tiebreak-only set
-      const setFormat = getSetFormat(i);
-      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
-
-      // Determine winner - ONLY if both sides have been entered AND it's a valid winning score
-      // Don't assign winner to incomplete sets (e.g., 5-? where second side is empty)
-      let winningSide: number | undefined;
-      if (side1Value !== '' && side2Value !== '') {
-        // Both sides entered
-        if (setIsTiebreakOnly) {
-          // For tiebreak-only sets, always assign winningSide based on who has more points
-          // Let validation determine if it's a valid winning score
-          // This allows 1-10, 3-6, 11-13, etc. to show in display and be validated
-          if (side1Score > side2Score) winningSide = 1;
-          else if (side2Score > side1Score) winningSide = 2;
-        } else {
-          // For regular sets, assign winningSide if the set is actually complete
-          // This is CRITICAL for auto-expand logic to work correctly
-          const setTo = setFormat?.setTo || 6;
-          const tiebreakAt = setFormat?.tiebreakAt || setTo;
-          const maxScore = Math.max(side1Score, side2Score);
-          const minScore = Math.min(side1Score, side2Score);
-          const scoreDiff = Math.abs(side1Score - side2Score);
-          
-          // Set is complete if:
-          // 1. Winner reached setTo with 2+ game margin, OR
-          // 2. Score reached tiebreakAt+1 vs tiebreakAt (e.g., 7-6) AND tiebreak entered
-          const reachedSetTo = maxScore >= setTo && scoreDiff >= 2;
-          const atTiebreakScore = maxScore === tiebreakAt + 1 && minScore === tiebreakAt;
-          const hasTiebreak = tiebreakScore !== undefined;
-          
-          if (reachedSetTo || (atTiebreakScore && hasTiebreak)) {
-            // Set is complete, assign winner
-            if (side1Score > side2Score) winningSide = 1;
-            else if (side2Score > side1Score) winningSide = 2;
-          }
-          // Otherwise winningSide remains undefined (incomplete set)
-        }
-      }
-
-      // CRITICAL: For tiebreak-only sets (TB10), the main inputs ARE the tiebreak scores
-      // So we need to treat side1Score/side2Score as tiebreak scores, not game scores
-      const setData: SetScore = setIsTiebreakOnly
-        ? {
-            side1Score: 0, // Tiebreak-only sets don't have game scores
-            side2Score: 0,
-            side1TiebreakScore: side1Score, // The main inputs are tiebreak scores
-            side2TiebreakScore: side2Score,
-            winningSide,
-          }
-        : {
-            side1Score,
-            side2Score,
-            winningSide,
-          };
-
-      // Add tiebreak scores if present
-      if (tiebreakScore !== undefined) {
-        const loserScore = tiebreakScore;
-        const tiebreakFormat = setFormat?.tiebreakFormat;
-        const tiebreakTo = tiebreakFormat?.tiebreakTo || 7;
-        const isNoAd = tiebreakFormat?.noAd;
-
-        // Calculate winner score based on tiebreak rules
-        // If loser score < tiebreakTo-1, winner must be exactly tiebreakTo
-        // Otherwise winner is loserScore + (isNoAd ? 1 : 2)
-        let winnerScore: number;
-        if (loserScore < tiebreakTo - 1) {
-          // Normal tiebreak win: winner reaches tiebreakTo first
-          winnerScore = tiebreakTo;
-        } else {
-          // Extended tiebreak: win by margin
-          winnerScore = isNoAd ? loserScore + 1 : loserScore + 2;
-        }
-
-        if (side1Score > side2Score) {
-          setData.side1TiebreakScore = winnerScore;
-          setData.side2TiebreakScore = loserScore;
-        } else {
-          setData.side1TiebreakScore = loserScore;
-          setData.side2TiebreakScore = winnerScore;
-        }
-      }
+      // REFACTORED: Use pure logic function to build SetScore object
+      // This handles all the complexity of:
+      // - Tiebreak-only sets vs regular sets
+      // - Winner determination based on completion rules
+      // - Tiebreak score calculation and assignment
+      const setData = buildSetScore(
+        i,
+        side1Value,
+        side2Value,
+        tiebreakValue,
+        matchConfig,
+      );
 
       newSets.push(setData);
     }
 
     currentSets = newSets;
 
-    // Remove empty trailing set rows if a prior set was cleared
+    // CRITICAL: Remove unnecessary set rows
+    // This handles both:
+    // 1. Empty trailing rows when a set is cleared
+    // 2. Extra rows when match becomes complete
+    // 3. Extra rows when a set becomes incomplete (e.g., removing tiebreak score)
     const allSetRows = setsContainer.querySelectorAll('.set-row');
-    const lastSetWithData = currentSets.length;
+    
+    // Determine how many rows we should have
+    // If match is complete, only keep completed sets
+    // If match is incomplete, keep one extra row for next set
+    const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+    
+    let rowsToKeep: number;
+    if (matchComplete) {
+      // Match complete: only keep rows with complete sets
+      const completeSetsCount = currentSets.filter(s => s.winningSide !== undefined).length;
+      rowsToKeep = Math.max(1, completeSetsCount);
+    } else {
+      // Match incomplete: keep current sets + 1 empty row (if not at bestOf limit)
+      const lastSetIndex = currentSets.length - 1;
+      const lastSetComplete = lastSetIndex >= 0 && currentSets[lastSetIndex].winningSide !== undefined;
+      
+      if (lastSetComplete && currentSets.length < getBestOf()) {
+        // Last set complete and we can add more: keep +1 for next set
+        rowsToKeep = currentSets.length + 1;
+      } else {
+        // Either last set incomplete or at bestOf limit: just keep current sets
+        rowsToKeep = Math.max(1, currentSets.length);
+      }
+    }
 
-    // Keep at least one set row, and keep one extra empty row if last set is complete
-    const rowsToKeep = Math.max(1, lastSetWithData + 1);
-
+    // Remove excess rows
     for (let i = allSetRows.length - 1; i >= rowsToKeep; i--) {
       allSetRows[i].remove();
     }
@@ -775,6 +717,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   };
 
   // Function to show/hide tiebreak input based on score
+  // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
   const updateTiebreakVisibility = (setIndex: number) => {
     const side1Input = setsContainer.querySelector(
       `input[data-set-index="${setIndex}"][data-side="1"]`,
@@ -794,14 +737,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const side1Score = Number.parseInt(side1Input.value) || 0;
     const side2Score = Number.parseInt(side2Input.value) || 0;
 
-    // Get the format for this specific set to determine tiebreakAt
-    const setFormat = getSetFormat(setIndex);
-    const tiebreakAt = setFormat?.tiebreakAt || 6;
-
-    // Show tiebreak input if scores are at tiebreak threshold (e.g., 7-6, 6-7 for tiebreakAt=6, or 9-8, 8-9 for tiebreakAt=8)
-    const showTiebreak =
-      (side1Score === tiebreakAt + 1 && side2Score === tiebreakAt) ||
-      (side1Score === tiebreakAt && side2Score === tiebreakAt + 1);
+    // Use pure logic function
+    const showTiebreak = shouldShowTiebreakLogic(
+      setIndex,
+      { side1: side1Score, side2: side2Score },
+      matchConfig,
+    );
 
     if (showTiebreak) {
       tiebreakContainer.style.display = 'inline';
@@ -813,62 +754,27 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   };
 
   // Calculate max allowed value for an input based on opposite side's value
+  // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
   const getMaxAllowedScore = (setIndex: number, side: string): number => {
     const oppositeSide = side === '1' ? '2' : '1';
     const oppositeInput = setsContainer.querySelector(
       `input[data-set-index="${setIndex}"][data-side="${oppositeSide}"]`,
     ) as HTMLInputElement;
 
-    // Get format for this specific set
-    const setFormat = getSetFormat(setIndex);
-    const setTiebreakSetTo = setFormat?.tiebreakSet?.tiebreakTo;
-    const setRegularSetTo = setFormat?.setTo;
-    const setSetTo = setTiebreakSetTo || setRegularSetTo || 6;
-    const setMaxGameScore = setSetTo + 1;
+    const ownInput = setsContainer.querySelector(
+      `input[data-set-index="${setIndex}"][data-side="${side}"]`,
+    ) as HTMLInputElement;
 
-    if (!oppositeInput?.value.trim()) {
-      // No opposite value yet - allow up to maxGameScore
-      return setMaxGameScore;
-    }
+    const ownValue = Number.parseInt(ownInput?.value) || 0;
+    const oppositeValue = Number.parseInt(oppositeInput?.value) || 0;
 
-    const oppositeValue = Number.parseInt(oppositeInput.value) || 0;
-
-    // For tiebreak-only sets (NoAD format like TB10), it's win-by-2
-    // If one side is at setTo or above, other side can go up to oppositeValue + 2
-    if (setTiebreakSetTo) {
-      // Win by 2 rule for tiebreak sets
-      // If opposite is 11, this can be up to 13 (11+2)
-      // If opposite is 10, this can be up to 12 (10+2)
-      if (oppositeValue >= setSetTo) {
-        return oppositeValue + 2;
-      }
-      // If opposite is below setTo, allow up to maxGameScore
-      return setMaxGameScore;
-    }
-
-    // Context-aware max calculation for regular sets
-    // If opposite side < setTo-1, this side max = setTo (can't trigger tiebreak)
-    if (oppositeValue < setSetTo - 1) {
-      return setSetTo;
-    }
-
-    // If opposite side = setTo-1, this side max = setTo+1 (could win or lose tiebreak scenario)
-    if (oppositeValue === setSetTo - 1) {
-      return setSetTo + 1;
-    }
-
-    // If opposite side = setTo, this side max = setTo+1 (could win normally or go to tiebreak)
-    if (oppositeValue === setSetTo) {
-      return setSetTo + 1;
-    }
-
-    // If opposite side = setTo+1, this side must be exactly setTo (tiebreak only)
-    if (oppositeValue === setSetTo + 1) {
-      return setSetTo;
-    }
-
-    // Default to maxGameScore
-    return setMaxGameScore;
+    // Use pure logic function
+    return getMaxAllowedScoreLogic(
+      setIndex,
+      side === '1' ? 1 : 2,
+      { side1: side === '1' ? ownValue : oppositeValue, side2: side === '2' ? ownValue : oppositeValue },
+      matchConfig,
+    );
   };
 
   // Handle input changes
@@ -949,11 +855,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const currentSetComplete = isSetComplete(setIndex);
 
     if (currentSetComplete) {
-      // Check if match is already complete
-      const setsNeeded = Math.ceil(bestOf / 2);
-      const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
-      const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
-      const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+      // REFACTORED: Use pure logic function for match completion check
+      const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
 
       // Only expand if match not complete and we should expand
       if (!matchComplete && shouldExpandSets(currentSets, matchUp.matchUpFormat)) {
@@ -962,7 +865,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         const nextSetExists = setsContainer.querySelector(`input[data-set-index="${nextSetIndex}"]`);
 
         // Only add if we're within bestOf limit and row doesn't exist
-        if (nextSetIndex < bestOf && !nextSetExists) {
+        if (nextSetIndex < getBestOf() && !nextSetExists) {
           const newSetRow = createSetRow(nextSetIndex);
           setsContainer.appendChild(newSetRow);
 
@@ -987,139 +890,95 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const isTiebreak = input.dataset.type === 'tiebreak';
 
     // SMART COMPLEMENT ENTRY FEATURE
+    // REFACTORED: Now uses pure logic from dynamicSetsLogic.ts
     // Only enabled if user has turned it on in settings
     const settings = loadSettings();
     const smartComplementsEnabled = settings?.smartComplements === true;
     
-    // If in side1 field of a regular set (not tiebreak-only), handle smart complement
-    if (smartComplementsEnabled && side === '1' && !isTiebreak && !setsWithSmartComplement.get(setIndex)) {
-      const setFormat = getSetFormat(setIndex);
-      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
-      
-      if (!setIsTiebreakOnly) {
-        const setTo = setFormat?.setTo || 6;
-        const tiebreakAt = setFormat?.tiebreakAt || setTo;
+    // If in side1 field, handle smart complement using pure logic
+    if (side === '1' && !isTiebreak) {
+      // Handle number keys (0-9)
+      // Use event.code to detect digit keys even when Shift is pressed (event.key would be @ for Shift+2)
+      const digitMatch = event.code.match(/^Digit(\d)$/);
+      if (digitMatch) {
+        const digit = Number.parseInt(digitMatch[1]);
+        const currentValue = input.value;
         
-        // Handle number keys (0-9)
-        // Use event.code to detect digit keys even when Shift is pressed (event.key would be @ for Shift+2)
-        const digitMatch = event.code.match(/^Digit(\d)$/);
-        if (digitMatch) {
-          const digit = Number.parseInt(digitMatch[1]);
-          const currentValue = input.value;
+        // Only apply smart complement if field is empty (first entry for this set)
+        if (currentValue === '') {
           const isShiftPressed = event.shiftKey;
           
-          // Only apply smart complement if field is empty or will become a valid single digit
-          if (currentValue === '' || (currentValue.length === 1 && input.selectionStart === input.selectionEnd && input.selectionStart === 1)) {
+          // Use pure logic function to determine if/how to apply complement
+          const result = shouldApplySmartComplement(
+            digit,
+            isShiftPressed,
+            setIndex,
+            currentSets,
+            matchConfig,
+            setsWithSmartComplement,
+            smartComplementsEnabled,
+          );
+          
+          if (result.shouldApply) {
+            event.preventDefault();
             
-            // CRITICAL: Check if match is already complete before applying smart complement
-            // This prevents creating invalid sets (e.g., typing "2 2 2" would create 3 sets when only 2 are needed)
-            const setsNeeded = Math.ceil(bestOf / 2);
-            const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
-            const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
-            const matchAlreadyComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+            // Apply the calculated complement values
+            input.value = result.field1Value.toString();
             
-            if (matchAlreadyComplete) {
-              // Match is already complete, don't apply smart complement
-              // Let normal input handling take over
-              return;
+            const side2Input = setsContainer.querySelector(
+              `input[data-set-index="${setIndex}"][data-side="2"]`,
+            ) as HTMLInputElement;
+            if (side2Input) {
+              side2Input.value = result.field2Value.toString();
             }
             
-            // Calculate potential complement
-            let complement: number | null = null;
+            // Mark this set as having smart complement applied
+            setsWithSmartComplement.add(setIndex);
             
-            // Determine if this score can have a predictable complement
-            if (digit < setTo) {
-              // Score is below setTo - complement depends on whether it equals tiebreakAt-1
-              if (digit === tiebreakAt - 1 && tiebreakAt < setTo) {
-                // e.g., S:6/TB7@3: 2 → complement is 4 (setTo + 2-game margin)
-                // e.g., S:8/TB7@7: 6 → complement is 8
-                complement = tiebreakAt + 1;
-              } else if (digit < setTo - 1) {
-                // Normal case: complement is setTo
-                complement = setTo;
-              } else {
-                // digit === setTo - 1: complement is setTo + 1
-                complement = setTo + 1;
-              }
-            }
-            // If digit >= setTo, no complement (score is tied or winning)
+            // Trigger input events to update validation
+            input.dispatchEvent(new Event('input', { bubbles: true }));
             
-            if (complement !== null) {
-              event.preventDefault();
+            // Move to next set's side1 field (if needed)
+            // Need to wait for validation to complete to check if match is complete
+            setTimeout(() => {
+              // Force update to ensure currentSets is updated with the new values
+              updateScoreFromInputs();
               
-              if (isShiftPressed) {
-                // Shift+digit: put digit in side2, complement in side1
-                input.value = complement.toString();
-                
-                const side2Input = setsContainer.querySelector(
-                  `input[data-set-index="${setIndex}"][data-side="2"]`,
-                ) as HTMLInputElement;
-                if (side2Input) {
-                  side2Input.value = digit.toString();
-                }
-              } else {
-                // Just digit: put digit in side1, complement in side2
-                input.value = digit.toString();
-                
-                const side2Input = setsContainer.querySelector(
-                  `input[data-set-index="${setIndex}"][data-side="2"]`,
-                ) as HTMLInputElement;
-                if (side2Input) {
-                  side2Input.value = complement.toString();
-                }
+              // REFACTORED: Use pure logic function for match completion check
+              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
+              
+              if (matchComplete) {
+                // Match is complete, don't create next set or move focus
+                return;
               }
               
-              // Mark this set as having smart complement applied
-              setsWithSmartComplement.set(setIndex, true);
+              // Match not complete, check if next set exists or needs to be created
+              const nextSetSide1 = setsContainer.querySelector(
+                `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
+              ) as HTMLInputElement;
               
-              // Trigger input events to update validation
-              input.dispatchEvent(new Event('input', { bubbles: true }));
-              
-              // Move to next set's side1 field (if needed)
-              // Need to wait for validation to complete to check if match is complete
-              setTimeout(() => {
-                // Force update to ensure currentSets is updated with the new values
-                updateScoreFromInputs();
+              if (nextSetSide1) {
+                nextSetSide1.focus();
+              } else if (setIndex + 1 < getBestOf()) {
+                // Create next set
+                const newSetRow = createSetRow(setIndex + 1);
+                setsContainer.appendChild(newSetRow);
                 
-                // Now check if match is complete
-                const setsNeeded = Math.ceil(bestOf / 2);
-                const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
-                const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
-                const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+                const newInputs = newSetRow.querySelectorAll('input');
+                newInputs.forEach((inp) => {
+                  inp.addEventListener('input', handleInput);
+                  inp.addEventListener('keydown', handleKeydown);
+                });
                 
-                if (matchComplete) {
-                  // Match is complete, don't create next set or move focus
-                  return;
+                const firstInput = newInputs[0];
+                if (firstInput instanceof HTMLInputElement) {
+                  firstInput.focus();
                 }
-                
-                // Match not complete, check if next set exists or needs to be created
-                const nextSetSide1 = setsContainer.querySelector(
-                  `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
-                ) as HTMLInputElement;
-                
-                if (nextSetSide1) {
-                  nextSetSide1.focus();
-                } else if (setIndex + 1 < bestOf) {
-                  // Create next set
-                  const newSetRow = createSetRow(setIndex + 1);
-                  setsContainer.appendChild(newSetRow);
-                  
-                  const newInputs = newSetRow.querySelectorAll('input');
-                  newInputs.forEach((inp) => {
-                    inp.addEventListener('input', handleInput);
-                    inp.addEventListener('keydown', handleKeydown);
-                  });
-                  
-                  const firstInput = newInputs[0];
-                  if (firstInput instanceof HTMLInputElement) {
-                    firstInput.focus();
-                  }
-                  updateClearButtonState();
-                }
-              }, 10);
-              
-              return; // Don't process the key further
-            }
+                updateClearButtonState();
+              }
+            }, 10);
+            
+            return; // Don't process the key further
           }
         }
       }
@@ -1170,7 +1029,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           ) as HTMLInputElement;
           if (nextInput) {
             nextInput.focus();
-          } else if (setIndex + 1 < bestOf) {
+          } else if (setIndex + 1 < getBestOf()) {
             // Only create next set if current set is valid and match not complete
             const currentSetComplete = isSetComplete(setIndex);
             if (!currentSetComplete) {
@@ -1180,11 +1039,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             // Update score to ensure currentSets reflects the latest tiebreak input
             updateScoreFromInputs();
 
-            // Check if match is already complete
-            const setsNeeded = Math.ceil(bestOf / 2);
-            const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
-            const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
-            const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+            // REFACTORED: Use pure logic function for match completion check
+            const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
 
             if (matchComplete) {
               return; // Don't create next set if match complete
@@ -1234,7 +1090,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
             ) as HTMLInputElement;
             if (nextInput) {
               nextInput.focus();
-            } else if (setIndex + 1 < bestOf) {
+            } else if (setIndex + 1 < getBestOf()) {
               // Only create next set if current set is complete and match not complete
               const currentSetComplete = isSetComplete(setIndex);
 
@@ -1242,11 +1098,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
                 return;
               }
 
-              // Check if match is already complete
-              const setsNeeded = Math.ceil(bestOf / 2);
-              const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
-              const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
-              const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+              // REFACTORED: Use pure logic function for match completion check
+              const matchComplete = isMatchCompleteLogic(currentSets, getBestOf());
 
               if (matchComplete) {
                 return; // Don't create next set if match complete
@@ -1330,7 +1183,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Pre-fill with existing scores if available
   if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
     // Check if match is already complete to avoid showing extra empty sets
-    const setsNeeded = Math.ceil(bestOf / 2);
+    const setsNeeded = Math.ceil(getBestOf() / 2);
     let setsWon1 = 0;
     let setsWon2 = 0;
     let matchAlreadyComplete = false;
