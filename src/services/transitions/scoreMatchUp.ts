@@ -1,10 +1,10 @@
 /**
- * Enter matchUp score with V2 scoring modal (dynamicSets approach).
+ * Enter matchUp score with scoring modal.
  * Handles score submission, parsing, and mutation with callback propagation.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
-import { scoringModalV2 } from 'components/modals/scoringV2';
+import { scoringModal } from 'components/modals/scoringV2';
 import { tournamentEngine } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 
@@ -42,7 +42,5 @@ export function enterMatchUpScore(params: { matchUpId: string; matchUp?: any; ca
     mutationRequest({ methods, callback: mutationCallback });
   };
 
-  // Always use V2 scoring modal (dynamicSets is now the default approach)
-  // Legacy scoringModal and scoreBoard are deprecated
-  scoringModalV2({ matchUp, callback: scoreSubmitted });
+  scoringModal({ matchUp, callback: scoreSubmitted });
 }

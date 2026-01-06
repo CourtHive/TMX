@@ -1,5 +1,5 @@
 /**
- * Modern TypeScript scoring modal (V2)
+ * Modern TypeScript scoring modal
  * Supports multiple scoring approaches with validation
  */
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -10,7 +10,7 @@ import { renderDialPadScoreEntry } from './approaches/dialPadApproach';
 import type { ScoringModalParams, ScoreOutcome } from './types';
 import { env } from 'settings/env';
 
-export function scoringModalV2(params: ScoringModalParams): void {
+export function scoringModal(params: ScoringModalParams): void {
   const { matchUp, callback } = params;
   
   // Choose approach based on env setting
@@ -20,15 +20,27 @@ export function scoringModalV2(params: ScoringModalParams): void {
   const container = document.createElement('div');
   container.style.padding = '1em';
   
+  // Track if matchUp had an existing score/status
+  const hadExistingScore = !!(matchUp.score?.sets?.length || matchUp.matchUpStatus);
   let currentOutcome: ScoreOutcome | null = null;
+  let wasCleared = false; // Track if user has cleared the score
   
   const handleScoreChange = (outcome: ScoreOutcome) => {
     currentOutcome = outcome;
     
+    // If user enters anything after clearing, mark as no longer cleared
+    if (wasCleared && (outcome.sets?.length > 0 || outcome.score)) {
+      wasCleared = false;
+    }
+    
     // Enable/disable submit button based on validity
     const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
     if (submitBtn) {
-      submitBtn.disabled = !outcome.isValid;
+      // Submit should be enabled if:
+      // 1. Score is valid (normal case), OR
+      // 2. User cleared an existing score (wasCleared=true and hadExistingScore=true)
+      const canSubmit = outcome.isValid || (wasCleared && hadExistingScore);
+      submitBtn.disabled = !canSubmit;
     }
     
     // Enable/disable clear button based on whether there's input
@@ -109,6 +121,9 @@ export function scoringModalV2(params: ScoringModalParams): void {
         disabled: true, // Initially disabled (no input yet)
         close: false, // Don't close modal when clearing
         onClick: () => {
+          // Mark that user has cleared the score
+          wasCleared = true;
+          
           if (approach === 'tidyScore' || approach === 'freeScore') {
             // Clear text input (both tidyScore and freeScore use same input ID)
             const scoreInput = document.getElementById('scoreInputV2') as HTMLInputElement;
@@ -136,7 +151,12 @@ export function scoringModalV2(params: ScoringModalParams): void {
         intent: 'is-primary',
         disabled: true,
         onClick: () => {
-          if (currentOutcome && currentOutcome.isValid) {
+          // Allow submission if:
+          // 1. Score is valid, OR
+          // 2. User cleared an existing score (to remove it)
+          const canSubmit = currentOutcome && (currentOutcome.isValid || (wasCleared && hadExistingScore));
+          
+          if (canSubmit) {
             cleanupCurrentApproach();
             // Pass the full outcome to callback
             callback(currentOutcome);

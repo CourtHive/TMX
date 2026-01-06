@@ -23,7 +23,7 @@ export type ScoreOutcome = {
 
 export type ScoringModalParams = {
   matchUp: any;
-  callback: (outcome: any) => void; // Callback expects legacy format from scoreBoard
+  callback: (outcome: any) => void;
 };
 
 export type ScoreChangeHandler = (outcome: ScoreOutcome) => void;

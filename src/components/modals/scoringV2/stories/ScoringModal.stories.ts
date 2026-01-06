@@ -1,4 +1,4 @@
-import { scoringModalV2 } from '../scoringModalV2';
+import { scoringModal } from '../scoringModal';
 
 // Mock matchUp data
 const mockMatchUp = {
@@ -65,7 +65,7 @@ export const EmptyMatch = {
     div.innerHTML = '<button id="open-modal">Open Scoring Modal (Empty Match)</button>';
     
     div.querySelector('#open-modal')?.addEventListener('click', () => {
-      scoringModalV2({
+      scoringModal({
         matchUp: mockMatchUp,
         callback: (outcome) => {
           console.log('Score submitted:', outcome);
@@ -85,7 +85,7 @@ export const MatchWithScore = {
     div.innerHTML = '<button id="open-modal">Open Scoring Modal (With Score)</button>';
     
     div.querySelector('#open-modal')?.addEventListener('click', () => {
-      scoringModalV2({
+      scoringModal({
         matchUp: mockMatchUpWithScore,
         callback: (outcome) => {
           console.log('Score submitted:', outcome);
@@ -105,7 +105,7 @@ export const RetiredMatch = {
     div.innerHTML = '<button id="open-modal">Open Scoring Modal (Retired)</button>';
     
     div.querySelector('#open-modal')?.addEventListener('click', () => {
-      scoringModalV2({
+      scoringModal({
         matchUp: mockMatchUpRetired,
         callback: (outcome) => {
           console.log('Score submitted:', outcome);
