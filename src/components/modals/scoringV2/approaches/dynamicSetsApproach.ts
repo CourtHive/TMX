@@ -8,6 +8,7 @@ import { parseMatchUpFormat, shouldExpandSets } from '../utils/setExpansionLogic
 import type { RenderScoreEntryParams, SetScore } from '../types';
 import { env } from 'settings/env';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
+import { loadSettings } from 'services/settings/settingsStorage';
 
 const { COMPLETED, RETIRED, WALKOVER, DEFAULTED } = matchUpStatusConstants;
 
@@ -105,6 +106,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Irregular ending selector
   let selectedOutcome: typeof COMPLETED | typeof RETIRED | typeof WALKOVER | typeof DEFAULTED = COMPLETED;
   let selectedWinner: number | undefined = undefined; // For irregular endings
+  
+  // Track which sets have had smart complement applied (for efficiency feature)
+  // Key is setIndex, value is true if complement has been applied
+  const setsWithSmartComplement = new Map<number, boolean>();
 
   const irregularEndingContainer = document.createElement('div');
   irregularEndingContainer.style.marginBottom = '0.8em';
@@ -289,6 +294,9 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
     // Reset state
     currentSets = [];
+    
+    // Reset smart complement tracking
+    setsWithSmartComplement.clear();
 
     // Reset irregular ending
     selectedOutcome = COMPLETED;
@@ -557,7 +565,6 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
       // Determine winner - ONLY if both sides have been entered AND it's a valid winning score
       // Don't assign winner to incomplete sets (e.g., 5-? where second side is empty)
-      // For regular sets, don't assign winner until validation passes (allows in-progress rendering)
       let winningSide: number | undefined;
       if (side1Value !== '' && side2Value !== '') {
         // Both sides entered
@@ -567,10 +574,29 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
           // This allows 1-10, 3-6, 11-13, etc. to show in display and be validated
           if (side1Score > side2Score) winningSide = 1;
           else if (side2Score > side1Score) winningSide = 2;
+        } else {
+          // For regular sets, assign winningSide if the set is actually complete
+          // This is CRITICAL for auto-expand logic to work correctly
+          const setTo = setFormat?.setTo || 6;
+          const tiebreakAt = setFormat?.tiebreakAt || setTo;
+          const maxScore = Math.max(side1Score, side2Score);
+          const minScore = Math.min(side1Score, side2Score);
+          const scoreDiff = Math.abs(side1Score - side2Score);
+          
+          // Set is complete if:
+          // 1. Winner reached setTo with 2+ game margin, OR
+          // 2. Score reached tiebreakAt+1 vs tiebreakAt (e.g., 7-6) AND tiebreak entered
+          const reachedSetTo = maxScore >= setTo && scoreDiff >= 2;
+          const atTiebreakScore = maxScore === tiebreakAt + 1 && minScore === tiebreakAt;
+          const hasTiebreak = tiebreakScore !== undefined;
+          
+          if (reachedSetTo || (atTiebreakScore && hasTiebreak)) {
+            // Set is complete, assign winner
+            if (side1Score > side2Score) winningSide = 1;
+            else if (side2Score > side1Score) winningSide = 2;
+          }
+          // Otherwise winningSide remains undefined (incomplete set)
         }
-        // For regular sets, DON'T assign winningSide yet - let validation determine
-        // if the score is complete. This allows incomplete scores like 5-0 to render
-        // without being marked as "complete" and failing validation.
       }
 
       // CRITICAL: For tiebreak-only sets (TB10), the main inputs ARE the tiebreak scores
@@ -959,6 +985,145 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const setIndex = Number.parseInt(input.dataset.setIndex || '0');
     const side = input.dataset.side || '1';
     const isTiebreak = input.dataset.type === 'tiebreak';
+
+    // SMART COMPLEMENT ENTRY FEATURE
+    // Only enabled if user has turned it on in settings
+    const settings = loadSettings();
+    const smartComplementsEnabled = settings?.smartComplements === true;
+    
+    // If in side1 field of a regular set (not tiebreak-only), handle smart complement
+    if (smartComplementsEnabled && side === '1' && !isTiebreak && !setsWithSmartComplement.get(setIndex)) {
+      const setFormat = getSetFormat(setIndex);
+      const setIsTiebreakOnly = setFormat?.tiebreakSet?.tiebreakTo !== undefined;
+      
+      if (!setIsTiebreakOnly) {
+        const setTo = setFormat?.setTo || 6;
+        const tiebreakAt = setFormat?.tiebreakAt || setTo;
+        
+        // Handle number keys (0-9)
+        // Use event.code to detect digit keys even when Shift is pressed (event.key would be @ for Shift+2)
+        const digitMatch = event.code.match(/^Digit(\d)$/);
+        if (digitMatch) {
+          const digit = Number.parseInt(digitMatch[1]);
+          const currentValue = input.value;
+          const isShiftPressed = event.shiftKey;
+          
+          // Only apply smart complement if field is empty or will become a valid single digit
+          if (currentValue === '' || (currentValue.length === 1 && input.selectionStart === input.selectionEnd && input.selectionStart === 1)) {
+            
+            // CRITICAL: Check if match is already complete before applying smart complement
+            // This prevents creating invalid sets (e.g., typing "2 2 2" would create 3 sets when only 2 are needed)
+            const setsNeeded = Math.ceil(bestOf / 2);
+            const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
+            const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
+            const matchAlreadyComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+            
+            if (matchAlreadyComplete) {
+              // Match is already complete, don't apply smart complement
+              // Let normal input handling take over
+              return;
+            }
+            
+            // Calculate potential complement
+            let complement: number | null = null;
+            
+            // Determine if this score can have a predictable complement
+            if (digit < setTo) {
+              // Score is below setTo - complement depends on whether it equals tiebreakAt-1
+              if (digit === tiebreakAt - 1 && tiebreakAt < setTo) {
+                // e.g., S:6/TB7@3: 2 → complement is 4 (setTo + 2-game margin)
+                // e.g., S:8/TB7@7: 6 → complement is 8
+                complement = tiebreakAt + 1;
+              } else if (digit < setTo - 1) {
+                // Normal case: complement is setTo
+                complement = setTo;
+              } else {
+                // digit === setTo - 1: complement is setTo + 1
+                complement = setTo + 1;
+              }
+            }
+            // If digit >= setTo, no complement (score is tied or winning)
+            
+            if (complement !== null) {
+              event.preventDefault();
+              
+              if (isShiftPressed) {
+                // Shift+digit: put digit in side2, complement in side1
+                input.value = complement.toString();
+                
+                const side2Input = setsContainer.querySelector(
+                  `input[data-set-index="${setIndex}"][data-side="2"]`,
+                ) as HTMLInputElement;
+                if (side2Input) {
+                  side2Input.value = digit.toString();
+                }
+              } else {
+                // Just digit: put digit in side1, complement in side2
+                input.value = digit.toString();
+                
+                const side2Input = setsContainer.querySelector(
+                  `input[data-set-index="${setIndex}"][data-side="2"]`,
+                ) as HTMLInputElement;
+                if (side2Input) {
+                  side2Input.value = complement.toString();
+                }
+              }
+              
+              // Mark this set as having smart complement applied
+              setsWithSmartComplement.set(setIndex, true);
+              
+              // Trigger input events to update validation
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+              
+              // Move to next set's side1 field (if needed)
+              // Need to wait for validation to complete to check if match is complete
+              setTimeout(() => {
+                // Force update to ensure currentSets is updated with the new values
+                updateScoreFromInputs();
+                
+                // Now check if match is complete
+                const setsNeeded = Math.ceil(bestOf / 2);
+                const setsWon1 = currentSets.filter((s) => s.winningSide === 1).length;
+                const setsWon2 = currentSets.filter((s) => s.winningSide === 2).length;
+                const matchComplete = setsWon1 >= setsNeeded || setsWon2 >= setsNeeded;
+                
+                if (matchComplete) {
+                  // Match is complete, don't create next set or move focus
+                  return;
+                }
+                
+                // Match not complete, check if next set exists or needs to be created
+                const nextSetSide1 = setsContainer.querySelector(
+                  `input[data-set-index="${setIndex + 1}"][data-side="1"]`,
+                ) as HTMLInputElement;
+                
+                if (nextSetSide1) {
+                  nextSetSide1.focus();
+                } else if (setIndex + 1 < bestOf) {
+                  // Create next set
+                  const newSetRow = createSetRow(setIndex + 1);
+                  setsContainer.appendChild(newSetRow);
+                  
+                  const newInputs = newSetRow.querySelectorAll('input');
+                  newInputs.forEach((inp) => {
+                    inp.addEventListener('input', handleInput);
+                    inp.addEventListener('keydown', handleKeydown);
+                  });
+                  
+                  const firstInput = newInputs[0];
+                  if (firstInput instanceof HTMLInputElement) {
+                    firstInput.focus();
+                  }
+                  updateClearButtonState();
+                }
+              }, 10);
+              
+              return; // Don't process the key further
+            }
+          }
+        }
+      }
+    }
 
     // Tab: move to next input (with proper forward/backward handling)
     if (event.key === 'Tab') {

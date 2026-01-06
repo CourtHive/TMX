@@ -375,6 +375,35 @@ export function validateSetScores(
   if (setsWon.side1 >= setsToWin) matchWinningSide = 1;
   else if (setsWon.side2 >= setsToWin) matchWinningSide = 2;
 
+  // CRITICAL: Check for unnecessary sets
+  // If match is already decided (one side has won enough sets), 
+  // any subsequent sets with winningSide are invalid
+  if (matchWinningSide !== undefined && !allowIncomplete) {
+    let setsWonBySide1 = 0;
+    let setsWonBySide2 = 0;
+    let matchDecidedAtSet = -1;
+
+    for (let i = 0; i < validatedSets.length; i++) {
+      const set = validatedSets[i];
+      if (set.winningSide === 1) setsWonBySide1++;
+      else if (set.winningSide === 2) setsWonBySide2++;
+
+      // Check if match was decided at this set
+      if (matchDecidedAtSet === -1 && (setsWonBySide1 >= setsToWin || setsWonBySide2 >= setsToWin)) {
+        matchDecidedAtSet = i;
+      }
+
+      // If we're past the deciding set and this set has a winningSide, it's invalid
+      if (matchDecidedAtSet !== -1 && i > matchDecidedAtSet && set.winningSide !== undefined) {
+        return {
+          isValid: false,
+          sets: validatedSets,
+          error: `Unnecessary set ${i + 1}: match was already decided after set ${matchDecidedAtSet + 1}`,
+        };
+      }
+    }
+  }
+
   // Build score string for factory (still useful for scoreObject)
   const scoreString = sets
     .map((set) => {

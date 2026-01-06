@@ -4,7 +4,7 @@
  */
 import { renderForm } from 'components/renderers/renderForm';
 import { setActiveScale } from 'settings/setActiveScale';
-import { saveSettings } from 'services/settings/settingsStorage';
+import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
 
@@ -12,6 +12,8 @@ import { UTR, WTN } from 'constants/tmxConstants';
 
 export function settingsModal(): void {
   let inputs: any;
+  const currentSettings = loadSettings();
+
   const saveSettingsHandler = () => {
     const activeScale = inputs.wtn.checked ? WTN : UTR;
     env.saveLocal = inputs.saveLocal.checked;
@@ -39,6 +41,7 @@ export function settingsModal(): void {
       activeScale,
       scoringApproach,
       saveLocal: env.saveLocal,
+      smartComplements: inputs.smartComplements?.checked || false,
     });
   };
   const content = (elem: HTMLElement) =>
@@ -66,6 +69,13 @@ export function settingsModal(): void {
         field: 'scoringApproach',
         id: 'scoringApproach',
         radio: true,
+      },
+      {
+        label: 'Smart complements (Dynamic Sets only)',
+        checked: currentSettings?.smartComplements || false,
+        field: 'smartComplements',
+        id: 'smartComplements',
+        checkbox: true,
       },
       {
         label: 'Save local copies',
