@@ -9,6 +9,7 @@ export type TMXSettings = {
   activeScale?: 'wtn' | 'utr';
   scoringApproach?: 'dynamicSets' | 'tidyScore' | 'freeScore' | 'dialPad';
   saveLocal?: boolean;
+  smartComplements?: boolean; // Enable smart complement entry in dynamicSets (default: false)
 };
 
 /**
