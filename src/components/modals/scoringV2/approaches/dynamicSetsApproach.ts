@@ -289,7 +289,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     currentSets = [];
     
     // Reset irregular ending
-    selectedOutcome = 'COMPLETED';
+    selectedOutcome = COMPLETED;
     selectedWinner = undefined;
     
     // Uncheck all irregular ending radios
@@ -502,6 +502,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Function to update score from inputs
   const updateScoreFromInputs = () => {
+    // CRITICAL: Start by hiding winner selection unless irregular ending is selected
+    // This prevents it from appearing when user types in score fields
+    if (selectedOutcome === COMPLETED) {
+      winnerSelectionContainer.style.display = 'none';
+    }
+    
     const newSets: SetScore[] = [];
 
     // Parse all set inputs
@@ -660,12 +666,18 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
         // Always show irregular ending when an irregular outcome is selected
         irregularEndingContainer.style.display = 'block';
         winnerSelectionContainer.style.display = 'block'; // Always show winner selection
-      } else if (matchComplete) {
-        // Hide irregular ending only when match is complete AND no irregular outcome selected
-        irregularEndingContainer.style.display = 'none';
       } else {
-        // Show irregular ending when match incomplete
-        irregularEndingContainer.style.display = 'block';
+        // When COMPLETED (no irregular ending selected)
+        // Hide winner selection always
+        winnerSelectionContainer.style.display = 'none';
+        
+        if (matchComplete) {
+          // Hide irregular ending only when match is complete AND no irregular outcome selected
+          irregularEndingContainer.style.display = 'none';
+        } else {
+          // Show irregular ending when match incomplete
+          irregularEndingContainer.style.display = 'block';
+        }
       }
 
       // Add matchUpStatus and winningSide if irregular ending
@@ -1162,7 +1174,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   }
   
   // Initialize irregular ending and winner if present
-  if (matchUp.matchUpStatus && matchUp.matchUpStatus !== COMPLETED) {
+  // Only set selectedOutcome if it's an actual irregular ending (not TO_BE_PLAYED)
+  if (matchUp.matchUpStatus && 
+      matchUp.matchUpStatus !== COMPLETED && 
+      [RETIRED, WALKOVER, DEFAULTED].includes(matchUp.matchUpStatus)) {
     selectedOutcome = matchUp.matchUpStatus as any;
     
     // Check the appropriate irregular ending radio button
@@ -1193,6 +1208,12 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   // Trigger final update after all initialization
   if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
     updateScoreFromInputs();
+  } else {
+    // For fresh matchUp with no score, ensure winner selection is hidden
+    // This prevents it from appearing on first input
+    if (selectedOutcome === COMPLETED) {
+      winnerSelectionContainer.style.display = 'none';
+    }
   }
 
   // Focus first input
