@@ -1,6 +1,6 @@
 /**
- * Scoring Modal V2 - Modern TypeScript implementation
- * Entry point for the new scoring system
+ * Scoring Modal - Modern TypeScript implementation
+ * Entry point for the scoring system
  */
-export { scoringModalV2 } from './scoringModalV2';
+export { scoringModal } from './scoringModal';
 export * from './types';

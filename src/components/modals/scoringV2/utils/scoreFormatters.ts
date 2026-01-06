@@ -26,10 +26,12 @@ export function formatExistingScore(scoreObject: any, matchUpStatus?: string): s
     })
     .join(' ');
   
-  // Append matchUpStatus abbreviation if present
-  if (matchUpStatus && matchUpStatus !== 'COMPLETED') {
+  // Append matchUpStatus abbreviation if present (but not for TO_BE_PLAYED or COMPLETED)
+  if (matchUpStatus && matchUpStatus !== 'COMPLETED' && matchUpStatus !== 'TO_BE_PLAYED') {
     const statusAbbrev = getStatusAbbreviation(matchUpStatus);
-    return scoreString ? `${scoreString} ${statusAbbrev}` : statusAbbrev;
+    if (statusAbbrev) {
+      return scoreString ? `${scoreString} ${statusAbbrev}` : statusAbbrev;
+    }
   }
   
   return scoreString;
@@ -37,6 +39,7 @@ export function formatExistingScore(scoreObject: any, matchUpStatus?: string): s
 
 /**
  * Get short abbreviation for matchUpStatus
+ * Returns empty string for unknown or unhandled statuses
  */
 export function getStatusAbbreviation(status: string): string {
   const abbrevMap: Record<string, string> = {
@@ -50,5 +53,5 @@ export function getStatusAbbreviation(status: string): string {
     'IN_PROGRESS': 'in',
     'AWAITING_RESULT': 'await',
   };
-  return abbrevMap[status] || status.toLowerCase();
+  return abbrevMap[status] || '';
 }

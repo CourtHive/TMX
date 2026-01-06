@@ -488,8 +488,52 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     }
   };
 
+  // Track if match is complete to prevent further input
+  let matchComplete = false;
+
   // Attach listeners
-  input.addEventListener('input', handleInput);
+  input.addEventListener('input', () => {
+    handleInput();
+    
+    // IMPORTANT: Use raw value (not trimmed) to detect trailing separator
+    const rawValue = input.value;
+    const scoreString = rawValue.trim();
+    
+    if (!matchComplete && scoreString) {
+      // Not yet locked - check if we should lock it
+      const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
+      const validation = parseResult.formattedScore
+        ? validateScore(parseResult.formattedScore, matchUp.matchUpFormat, parseResult.matchUpStatus)
+        : { isValid: false, winningSide: undefined };
+      
+      // Check if score is valid and has a winner
+      const hasWinner = validation.isValid && validation.winningSide !== undefined;
+      
+      // Check if the RAW value ends with a separator (space, dash, etc.)
+      // This is critical - we check rawValue, not scoreString (which is trimmed)
+      const endsWithSeparator = rawValue.length > 0 && /[\s\-]$/.test(rawValue);
+      
+      // Lock if it has a winner AND ends with a separator
+      if (hasWinner && endsWithSeparator) {
+        matchComplete = true;
+      }
+    } else if (matchComplete) {
+      // Already locked - check if we should unlock it
+      // Unlock if: user cleared everything OR no longer ends with separator
+      const endsWithSeparator = rawValue.length > 0 && /[\s\-]$/.test(rawValue);
+      if (scoreString.length === 0 || !endsWithSeparator) {
+        matchComplete = false;
+      }
+    }
+  });
+  
+  // Prevent further input if match is complete
+  input.addEventListener('keydown', (e) => {
+    if (matchComplete && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+      e.preventDefault();
+    }
+  });
+  
   input.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
