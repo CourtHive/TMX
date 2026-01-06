@@ -81,8 +81,8 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
               formatButton.textContent = newFormat;
 
               // Clear all sets and reset
-              if ((window as any).resetDynamicSets) {
-                (window as any).resetDynamicSets();
+              if ((globalThis as any).resetDynamicSets) {
+                (globalThis as any).resetDynamicSets();
               }
             }
           },
@@ -525,16 +525,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   const updateScoreFromInputs = () => {
     // CRITICAL: Start by hiding winner selection unless irregular ending is selected
     // This prevents it from appearing when user types in score fields
-    console.log(
-      '[dynamicSets] updateScoreFromInputs - selectedOutcome:',
-      selectedOutcome,
-      'COMPLETED:',
-      COMPLETED,
-      'equal?:',
-      selectedOutcome === COMPLETED,
-    );
     if (selectedOutcome === COMPLETED) {
-      console.log('[dynamicSets] Hiding winner selection at start');
       winnerSelectionContainer.style.display = 'none';
     }
 
@@ -698,21 +689,13 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
       // Hide/show irregular ending based on validated match completion
       // CRITICAL: Always show irregular ending if an irregular outcome is selected
       // Otherwise hide it when match is complete
-      console.log(
-        '[dynamicSets] Before show/hide logic - selectedOutcome:',
-        selectedOutcome,
-        'matchComplete:',
-        matchComplete,
-      );
       if (selectedOutcome !== COMPLETED) {
         // Always show irregular ending when an irregular outcome is selected
-        console.log('[dynamicSets] Showing winner selection (irregular outcome selected)');
         irregularEndingContainer.style.display = 'block';
         winnerSelectionContainer.style.display = 'block'; // Always show winner selection
       } else {
         // When COMPLETED (no irregular ending selected)
         // Hide winner selection always
-        console.log('[dynamicSets] Hiding winner selection (COMPLETED mode)');
         winnerSelectionContainer.style.display = 'none';
 
         if (matchComplete) {
@@ -817,7 +800,7 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
     const setSetTo = setTiebreakSetTo || setRegularSetTo || 6;
     const setMaxGameScore = setSetTo + 1;
 
-    if (!oppositeInput || !oppositeInput.value.trim()) {
+    if (!oppositeInput?.value.trim()) {
       // No opposite value yet - allow up to maxGameScore
       return setMaxGameScore;
     }
@@ -1227,9 +1210,11 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
 
   // Initialize irregular ending and winner if present
   // Only set selectedOutcome if it's an actual irregular ending (not TO_BE_PLAYED)
-  if (matchUp.matchUpStatus && 
-      matchUp.matchUpStatus !== COMPLETED && 
-      [RETIRED, WALKOVER, DEFAULTED].includes(matchUp.matchUpStatus)) {
+  if (
+    matchUp.matchUpStatus &&
+    matchUp.matchUpStatus !== COMPLETED &&
+    [RETIRED, WALKOVER, DEFAULTED].includes(matchUp.matchUpStatus)
+  ) {
     selectedOutcome = matchUp.matchUpStatus;
 
     // Check the appropriate irregular ending radio button
