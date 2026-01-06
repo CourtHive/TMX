@@ -10,7 +10,11 @@ import { isFunction } from 'functions/typeOf';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
-export function enterMatchUpScore(params: { matchUpId: string; matchUp?: any; callback?: (result: any) => void }): void {
+export function enterMatchUpScore(params: {
+  matchUpId: string;
+  matchUp?: any;
+  callback?: (result: any) => void;
+}): void {
   const { matchUpId, callback } = params;
   const participantsProfile = { withScaleValues: true };
   const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId }).matchUp;
@@ -37,7 +41,7 @@ export function enterMatchUpScore(params: { matchUpId: string; matchUp?: any; ca
     ];
     const mutationCallback = (result: any) => {
       closeModal();
-      isFunction(callback) && callback && callback({ ...result, outcome });
+      isFunction(callback) && callback({ ...result, outcome });
     };
     mutationRequest({ methods, callback: mutationCallback });
   };
