@@ -276,7 +276,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Update display
     const updateDisplay = (clearAll = false) => {
-      console.log('[DialPad updateDisplay] selectedOutcome:', selectedOutcome, 'COMPLETED:', COMPLETED);
       const scoreString = formatScore(state.digits);
 
       // Show score display if there's a score
@@ -292,12 +291,10 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // This should only happen when RET/WO/DEF buttons are clicked
       const isIrregularEnding = selectedOutcome === RETIRED || selectedOutcome === WALKOVER || selectedOutcome === DEFAULTED;
       if (isIrregularEnding) {
-        console.log('[DialPad] Showing irregular ending (explicit irregular outcome)');
         irregularEndingContainer.style.display = 'block';
         // Show winner selection when irregular ending is active
         winnerSelectionContainer.style.display = 'block';
       } else {
-        console.log('[DialPad] Hiding irregular ending (normal/completed)');
         irregularEndingContainer.style.display = 'none';
         winnerSelectionContainer.style.display = 'none';
       }
@@ -649,7 +646,6 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       }
     } else {
       // For fresh matchUp with no irregular ending, call resetDialPad to ensure clean state
-      console.log('[DialPad] Fresh matchUp - calling resetDialPad()');
       resetDialPad();
     }
 
