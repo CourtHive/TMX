@@ -1264,9 +1264,10 @@ export function renderDynamicSetsScoreEntry(params: RenderScoreEntryParams): voi
   if (matchUp.score?.sets && matchUp.score.sets.length > 0) {
     updateScoreFromInputs();
   } else {
-    // For fresh matchUp with no score, ensure winner selection is hidden
-    // This prevents it from appearing on first input
+    // For fresh matchUp with no score, hide irregular ending section
+    // It will be shown automatically when user starts entering incomplete scores
     if (selectedOutcome === COMPLETED) {
+      irregularEndingContainer.style.display = 'none';
       winnerSelectionContainer.style.display = 'none';
     }
   }

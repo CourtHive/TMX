@@ -62,7 +62,8 @@ export function settingsModal(): void {
           { text: 'Dynamic Sets', field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
           { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
           { text: 'Free Score', field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
-          { text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' },
+          // Tidy Score only visible when dev mode is enabled
+          ...((window as any).dev ? [{ text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' }] : []),
         ],
         onClick: (x: any) => console.log({ x }),
         label: 'Scoring approach',
