@@ -636,7 +636,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Check the appropriate winner radio button
         const winnerRadios = irregularEndingContainer.querySelectorAll('input[name="irregularWinner"]') as NodeListOf<HTMLInputElement>;
         winnerRadios.forEach(radio => {
-          if (parseInt(radio.value) === matchUp.winningSide) {
+          if (Number.parseInt(radio.value) === matchUp.winningSide) {
             radio.checked = true;
           }
         });

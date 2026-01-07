@@ -19,7 +19,7 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
 
   // Try to extract SET number from format string
   const setMatch = matchUpFormat.match(/SET(\d+)/);
-  const bestOf = setMatch ? parseInt(setMatch[1], 10) : 3;
+  const bestOf = setMatch ? Number.parseInt(setMatch[1], 10) : 3;
   const setsToWin = Math.ceil(bestOf / 2);
 
   return { bestOf, setsToWin };
