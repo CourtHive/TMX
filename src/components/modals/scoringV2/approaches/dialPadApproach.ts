@@ -177,6 +177,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Winner selection for irregular endings
     const winnerSelectionContainer = document.createElement('div');
+    winnerSelectionContainer.style.display = 'none'; // Hidden by default, shown only when irregular ending selected
     winnerSelectionContainer.style.marginTop = '0.3em';
 
     const winnerLabel = document.createElement('div');
@@ -275,6 +276,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
 
     // Update display
     const updateDisplay = (clearAll = false) => {
+      console.log('[DialPad updateDisplay] selectedOutcome:', selectedOutcome, 'COMPLETED:', COMPLETED);
       const scoreString = formatScore(state.digits);
 
       // Show score display if there's a score
@@ -286,11 +288,18 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         scoreDisplay.textContent = '-';
       }
       
-      // Show irregular ending section when non-COMPLETED outcome selected
-      if (selectedOutcome !== COMPLETED) {
+      // Show irregular ending section ONLY when non-COMPLETED outcome explicitly selected
+      // This should only happen when RET/WO/DEF buttons are clicked
+      const isIrregularEnding = selectedOutcome === RETIRED || selectedOutcome === WALKOVER || selectedOutcome === DEFAULTED;
+      if (isIrregularEnding) {
+        console.log('[DialPad] Showing irregular ending (explicit irregular outcome)');
         irregularEndingContainer.style.display = 'block';
+        // Show winner selection when irregular ending is active
+        winnerSelectionContainer.style.display = 'block';
       } else {
+        console.log('[DialPad] Hiding irregular ending (normal/completed)');
         irregularEndingContainer.style.display = 'none';
+        winnerSelectionContainer.style.display = 'none';
       }
 
       // If clearAll flag is set, explicitly clear matchUp display
@@ -638,11 +647,16 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
         // Show winner selection container
         winnerSelectionContainer.style.display = 'block';
       }
+    } else {
+      // For fresh matchUp with no irregular ending, call resetDialPad to ensure clean state
+      console.log('[DialPad] Fresh matchUp - calling resetDialPad()');
+      resetDialPad();
     }
 
-    // Initial display
-    updateMatchUpDisplay(null);
-    updateDisplay();
+    // Initial display (if not already called by resetDialPad)
+    if (!matchUp.matchUpStatus || matchUp.matchUpStatus === COMPLETED) {
+      updateMatchUpDisplay(null);
+    }
   } catch (error) {
     console.error('Error rendering dial pad:', error);
     container.innerHTML = `<p style="color: red;">Error: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
