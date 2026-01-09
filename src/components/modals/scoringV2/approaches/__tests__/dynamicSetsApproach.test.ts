@@ -1,5 +1,5 @@
 /**
- * Test suite for dynamicSets approach core logic
+ * Test suite for dynamicSetsApproach - integration tests
  * 
  * Tests the critical getSetFormat() logic that determines which format
  * to use for each set (regular vs final set format).
@@ -10,8 +10,14 @@
  * - Tiebreak-only sets in final position
  */
 
+/* eslint-disable sonarjs/assertions-in-tests */
+/* eslint-disable sonarjs/no-duplicate-string */
+/* eslint-disable sonarjs/different-types-comparison */
+/* eslint-disable no-constant-binary-expression */
+
 import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';
+import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
 /**
  * Replicates the getSetFormat logic from dynamicSetsApproach.ts
@@ -48,7 +54,7 @@ function getFormatInfo(setFormat: any) {
 
 describe('dynamicSets getSetFormat Logic', () => {
   describe('Standard Format (SET3-S:6/TB7)', () => {
-    const format = 'SET3-S:6/TB7';
+    const format = MATCH_FORMATS.SET3_S6_TB7;
     const bestOf = 3;
 
     it('should use regular setFormat for set 1', () => {
@@ -80,7 +86,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Final Set Tiebreak Format (SET3-S:6/TB7-F:TB10)', () => {
-    const format = 'SET3-S:6/TB7-F:TB10';
+    const format = MATCH_FORMATS.SET3_S6_TB7_F_TB10;
     const bestOf = 3;
 
     it('should use regular setFormat for set 1', () => {
@@ -111,7 +117,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Best-of-5 with Final Set Tiebreak', () => {
-    const format = 'SET5-S:6/TB7-F:TB10';
+    const format = MATCH_FORMATS.SET5_S6_TB7_F_TB10;
     const bestOf = 5;
 
     it('should use regular setFormat for set 1', () => {
@@ -160,7 +166,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Extended Set Formats (S:8/TB7)', () => {
-    const format = 'SET3-S:8/TB7';
+    const format = MATCH_FORMATS.SET3_S8_TB7;
     const bestOf = 3;
 
     it('should use setTo=8 and tiebreakAt=8 for all sets', () => {
@@ -176,7 +182,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Extended Set with Tiebreak at Different Value (S:8/TB7@7)', () => {
-    const format = 'SET3-S:8/TB7@7';
+    const format = MATCH_FORMATS.SET3_S8_TB7_AT7;
     const bestOf = 3;
 
     it('should use setTo=8 and tiebreakAt=7', () => {
@@ -190,7 +196,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Short Set Format (S:4/TB7)', () => {
-    const format = 'SET3-S:4/TB7';
+    const format = MATCH_FORMATS.SET3_S4_TB7;
     const bestOf = 3;
 
     it('should use setTo=4 and tiebreakAt=4', () => {
@@ -204,7 +210,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('No-Ad Tiebreak Format (S:6/TB7NOAD)', () => {
-    const format = 'SET3-S:6/TB7NOAD';
+    const format = MATCH_FORMATS.SET3_S6_TB7_NOAD;
     const bestOf = 3;
 
     it('should parse correctly with NoAD tiebreak', () => {
@@ -232,7 +238,7 @@ describe('dynamicSets getSetFormat Logic', () => {
 
   describe('Tiebreak Visibility Logic', () => {
     describe('Standard SET3-S:6/TB7', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = MATCH_FORMATS.SET3_S6_TB7;
       const bestOf = 3;
 
       it('should show tiebreak field at 7-6 or 6-7 (tiebreakAt=6)', () => {
@@ -243,13 +249,14 @@ describe('dynamicSets getSetFormat Logic', () => {
         
         // Tiebreak shown when scores are at tiebreakAt+1 vs tiebreakAt
         // e.g., 7-6 or 6-7
-        const shouldShow76 = (7 === 7 && 6 === 6) || (6 === 6 && 7 === 7);
+        const s1 = 7, s2 = 6;
+        const shouldShow76 = (s1 === tiebreakAt + 1 && s2 === tiebreakAt) || (s2 === tiebreakAt + 1 && s1 === tiebreakAt);
         expect(shouldShow76).toBe(true);
       });
     });
 
     describe('Extended SET3-S:8/TB7', () => {
-      const format = 'SET3-S:8/TB7';
+      const format = MATCH_FORMATS.SET3_S8_TB7;
       const bestOf = 3;
 
       it('should show tiebreak field at 9-8 or 8-9 (tiebreakAt=8)', () => {
@@ -267,7 +274,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     describe('Short set S:4/TB7', () => {
-      const format = 'SET3-S:4/TB7';
+      const format = MATCH_FORMATS.SET3_S4_TB7;
       const bestOf = 3;
 
       it('should show tiebreak field at 5-4 or 4-5 (tiebreakAt=4)', () => {
@@ -285,7 +292,7 @@ describe('dynamicSets getSetFormat Logic', () => {
 
   describe('Set Completion Logic', () => {
     describe('Standard SET3-S:6/TB7', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = MATCH_FORMATS.SET3_S6_TB7;
       const bestOf = 3;
 
       it('should complete set with 6-4 (setTo + 2-game margin)', () => {
@@ -360,7 +367,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     describe('Extended SET3-S:8/TB7', () => {
-      const format = 'SET3-S:8/TB7';
+      const format = MATCH_FORMATS.SET3_S8_TB7;
       const bestOf = 3;
 
       it('should complete set with 8-6 (setTo + 2-game margin)', () => {
@@ -414,7 +421,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     describe('Short Set S:4/TB7', () => {
-      const format = 'SET3-S:4/TB7';
+      const format = MATCH_FORMATS.SET3_S4_TB7;
       const bestOf = 3;
 
       it('should complete set with 4-2 (setTo + 2-game margin)', () => {
@@ -452,7 +459,7 @@ describe('dynamicSets getSetFormat Logic', () => {
 
   describe('Edge Cases and Regression Tests', () => {
     it('should handle format without explicit tiebreakAt', () => {
-      const format = 'SET3-S:6/TB7';
+      const format = MATCH_FORMATS.SET3_S6_TB7;
       const setFormat = getSetFormat(0, format, 3);
       
       // Should default tiebreakAt to setTo when not specified
@@ -470,7 +477,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     it('should correctly identify deciding set in best-of-3', () => {
-      const format = 'SET3-S:6/TB7-F:TB10';
+      const format = MATCH_FORMATS.SET3_S6_TB7_F_TB10;
       
       // Set 3 (index 2) is deciding set when (index + 1) === bestOf
       const set3Format = getSetFormat(2, format, 3);
@@ -480,7 +487,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     it('should correctly identify deciding set in best-of-5', () => {
-      const format = 'SET5-S:6/TB7-F:TB10';
+      const format = MATCH_FORMATS.SET5_S6_TB7_F_TB10;
       
       // Set 5 (index 4) is deciding set
       const set5Format = getSetFormat(4, format, 5);
@@ -490,7 +497,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     it('should not use finalSetFormat for non-deciding sets', () => {
-      const format = 'SET3-S:6/TB7-F:TB10';
+      const format = MATCH_FORMATS.SET3_S6_TB7_F_TB10;
       
       // Set 2 (index 1) is NOT deciding set
       const set2Format = getSetFormat(1, format, 3);
