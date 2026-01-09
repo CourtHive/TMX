@@ -58,5 +58,5 @@ export function initScrollNav(): void {
     if (mediaQuery && !mediaQuery.matches) {
       throttle(handleNavScroll, 250);
     }
-  });
+  }, { passive: true });
 }

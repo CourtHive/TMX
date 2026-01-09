@@ -82,27 +82,43 @@ export function getMaxAllowedScore(
 
   const oppScore = side === 1 ? currentScores.side2 : currentScores.side1;
 
-  // If opponent hasn't entered score yet, allow up to setTo + 2
+  // Determine absolute max based on tiebreakAt position
+  // - If tiebreakAt === setTo (or not specified): max is setTo + 1 (e.g., S:6 allows 7-6)
+  // - If tiebreakAt < setTo: max is setTo (e.g., S:6@5 allows 6-5 max, S:5@4 allows 5-4 max)
+  const absoluteMax = tiebreakAt === setTo ? setTo + 1 : setTo;
+  
+  // If opponent hasn't entered score yet, allow up to absoluteMax
   if (oppScore === 0) {
-    return setTo + 2;
+    return absoluteMax;
   }
 
-  // Calculate max based on tennis scoring rules
-  if (oppScore < setTo - 1) {
-    // Opponent far from setTo: max is setTo
+  // Standard tennis scoring rules
+  if (oppScore < tiebreakAt) {
+    // Opponent below tiebreak threshold: max is setTo (win before tiebreak)
     return setTo;
-  } else if (oppScore === setTo - 1) {
-    // Opponent at setTo-1: max is setTo+1 (can win setTo-(setTo-1))
-    return setTo + 1;
+  } else if (oppScore === tiebreakAt) {
+    // Opponent at tiebreakAt: could go to tiebreak or win at setTo
+    // Max is absoluteMax (setTo+1 if tiebreakAt===setTo, otherwise setTo)
+    return absoluteMax;
+  } else if (oppScore > tiebreakAt && oppScore < setTo) {
+    // Opponent between tiebreakAt and setTo: max is setTo
+    return setTo;
   } else if (oppScore === setTo) {
-    // Opponent at setTo: max is setTo+2 (can win setTo+2 to setTo with 2-game margin)
-    return setTo + 2;
-  } else if (oppScore >= tiebreakAt) {
-    // At or past tiebreak threshold: max is oppScore + 2 (win by 2 margin)
+    // Opponent at setTo: depends on format
+    if (tiebreakAt === setTo) {
+      // Standard format (S:6@6): deuce territory, max is setTo + 2
+      return setTo + 2;
+    } else {
+      // Format like S:5@4: opponent won after tiebreak, my max is tiebreakAt
+      return tiebreakAt;
+    }
+  } else if (oppScore > setTo) {
+    // Opponent above setTo: match is in extended play (only when tiebreakAt === setTo)
+    // Max is oppScore + 2 (win by 2 margin)
     return oppScore + 2;
   } else {
-    // Between setTo and tiebreakAt: max is setTo + 2
-    return setTo + 2;
+    // Fallback
+    return absoluteMax;
   }
 }
 
@@ -140,8 +156,14 @@ export function isSetComplete(
     return true;
   }
 
-  // 2. Score at tiebreak threshold (e.g., 7-6 for TB@6) with tiebreak score entered
-  if (maxScore === tiebreakAt + 1 && minScore === tiebreakAt && scores.tiebreak !== undefined) {
+  // 2. Score indicates tiebreak was played, with tiebreak score entered
+  // - If tiebreakAt === setTo: tiebreak at (setTo+1) vs setTo (e.g., 7-6 for S:6@6)
+  // - If tiebreakAt < setTo: tiebreak at setTo vs tiebreakAt (e.g., 5-4 for S:5@4)
+  const tiebreakScorePattern = tiebreakAt === setTo
+    ? maxScore === tiebreakAt + 1 && minScore === tiebreakAt
+    : maxScore === setTo && minScore === tiebreakAt;
+  
+  if (tiebreakScorePattern && scores.tiebreak !== undefined) {
     return true;
   }
 
@@ -209,26 +231,32 @@ export function getMatchWinner(sets: SetScore[], bestOf: number): 1 | 2 | undefi
  */
 export function calculateComplement(digit: number, setFormat?: SetFormat): number | null {
   const setTo = setFormat?.setTo || 6;
-  const tiebreakAt = setFormat?.tiebreakAt || setTo;
 
   // No complement for digits >= setTo (score is tied or winning)
   if (digit >= setTo) {
     return null;
   }
 
-  // Special case: digit at tiebreakAt-1 when tiebreakAt < setTo
-  // e.g., S:6/TB7@3: 2 → complement is 4 (tiebreakAt + 1)
-  if (digit === tiebreakAt - 1 && tiebreakAt < setTo) {
-    return tiebreakAt + 1;
-  }
+  // Smart complements work for all standard formats:
+  // - S:6/TB7@6 (tiebreakAt === setTo): entering 2 → complement is 6
+  // - S:6/TB7@5 (tiebreakAt === setTo-1): entering 2 → complement is 6
+  // - S:5/TB9@4 (tiebreakAt === setTo-1): entering 2 → complement is 5
+  // NOTE: tiebreakAt can ONLY be setTo or setTo-1 (never less)
+  
+  const tiebreakAt = setFormat?.tiebreakAt || setTo;
 
-  // Normal cases
+  // When digit < setTo - 1: complement is setTo (winning before tiebreak)
   if (digit < setTo - 1) {
-    // Below setTo-1: complement is setTo
     return setTo;
-  } else {
-    // digit === setTo - 1: complement is setTo + 1
+  }
+  
+  // When digit === setTo - 1: depends on format
+  // - If tiebreakAt === setTo: complement is setTo + 1 (e.g., 5 → 7 for S:6@6)
+  // - If tiebreakAt < setTo: complement is setTo (e.g., 4 → 5 for S:5@4)
+  if (tiebreakAt === setTo) {
     return setTo + 1;
+  } else {
+    return setTo;
   }
 }
 
@@ -338,13 +366,21 @@ export function shouldShowTiebreak(
     return false;
   }
 
-  const tiebreakAt = setFormat?.tiebreakAt || setFormat?.setTo || 6;
+  const setTo = setFormat?.setTo || 6;
+  const tiebreakAt = setFormat?.tiebreakAt || setTo;
   const maxScore = Math.max(scores.side1, scores.side2);
   const minScore = Math.min(scores.side1, scores.side2);
 
-  // Show tiebreak when scores are at tiebreakAt+1 vs tiebreakAt
-  // e.g., 7-6 or 6-7 for TB@6, 9-8 or 8-9 for TB@8
-  return maxScore === tiebreakAt + 1 && minScore === tiebreakAt;
+  // Show tiebreak based on format:
+  // - If tiebreakAt === setTo: show at (setTo+1) vs setTo (e.g., 7-6 for S:6@6)
+  // - If tiebreakAt < setTo: show at setTo vs tiebreakAt (e.g., 5-4 for S:5@4)
+  if (tiebreakAt === setTo) {
+    // Standard format: tiebreak at 7-6, 8-7, etc.
+    return maxScore === tiebreakAt + 1 && minScore === tiebreakAt;
+  } else {
+    // Format like S:5@4: tiebreak at 5-4 or 4-5
+    return maxScore === setTo && minScore === tiebreakAt;
+  }
 }
 
 /**

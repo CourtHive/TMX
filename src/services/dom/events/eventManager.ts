@@ -160,8 +160,8 @@ export const eventManager = (function () {
       }
     }
 
-    document.addEventListener('touchstart', addtouchclass, false);
-    document.addEventListener('mouseover', removetouchclass, false);
+    document.addEventListener('touchstart', addtouchclass, { passive: true });
+    document.addEventListener('mouseover', removetouchclass, { passive: true });
   })();
 
   return em;
