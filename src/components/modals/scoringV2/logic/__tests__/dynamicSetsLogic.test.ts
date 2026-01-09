@@ -3,6 +3,9 @@
  * These tests verify business logic without any DOM dependencies
  */
 
+/* eslint-disable sonarjs/assertions-in-tests */
+/* eslint-disable sonarjs/no-duplicate-string */
+
 import { describe, it, expect } from 'vitest';
 import {
   getSetFormatForIndex,
@@ -18,33 +21,39 @@ import {
   shouldCreateNextSet,
   buildSetScore,
   type MatchConfig,
-  type SetFormat,
 } from '../dynamicSetsLogic';
 import type { SetScore } from '../../types';
+import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
+import { matchUpFormatCode } from 'tods-competition-factory';
+
+// Helper to create MatchConfig from format string
+function parseFormat(formatString: string): MatchConfig {
+  const parsed = matchUpFormatCode.parse(formatString);
+  const regex = /SET(\d+)/;
+  const bestOfMatch = regex.exec(formatString);
+  const bestOf = bestOfMatch ? Number.parseInt(bestOfMatch[1]) : 3;
+  
+  return {
+    bestOf,
+    setFormat: parsed?.setFormat,
+    finalSetFormat: parsed?.finalSetFormat,
+  };
+}
 
 describe('dynamicSetsLogic - Pure Functions', () => {
-  // Standard configurations
-  const standardBestOf3: MatchConfig = {
-    bestOf: 3,
-    setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
-  };
-
+  // Use constants and parse them dynamically
+  const standardBestOf3 = parseFormat(MATCH_FORMATS.SET3_S6_TB7);
+  
+  // Note: Can't parse this format cleanly because F:TB10 creates tiebreakSet (tiebreak-only) not tiebreakFormat
+  // Using inline config to match original test expectations
   const standardBestOf5: MatchConfig = {
     bestOf: 5,
     setFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 7 } },
     finalSetFormat: { setTo: 6, tiebreakAt: 6, tiebreakFormat: { tiebreakTo: 10 } },
   };
-
-  const set8Config: MatchConfig = {
-    bestOf: 3,
-    setFormat: { setTo: 8, tiebreakAt: 8, tiebreakFormat: { tiebreakTo: 7 } },
-  };
-
-  const tb10Config: MatchConfig = {
-    bestOf: 3,
-    setFormat: { setTo: 6, tiebreakAt: 6 },
-    finalSetFormat: { tiebreakSet: { tiebreakTo: 10 } },
-  };
+  
+  const set8Config = parseFormat(MATCH_FORMATS.SET1_S8_TB7);
+  const tb10Config = parseFormat(MATCH_FORMATS.SET3_S6_TB7_F_TB10);
 
   describe('getSetFormatForIndex', () => {
     it('returns standard format for first set of best-of-3', () => {
@@ -58,11 +67,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     it('returns finalSetFormat for deciding set of best-of-3', () => {
-      const config: MatchConfig = {
-        bestOf: 3,
-        setFormat: { setTo: 6, tiebreakAt: 6 },
-        finalSetFormat: { tiebreakSet: { tiebreakTo: 10 } },
-      };
+      const config = parseFormat(MATCH_FORMATS.SET3_S6_F_TB10);
       const format = getSetFormatForIndex(2, config);
       expect(format?.tiebreakSet?.tiebreakTo).toBe(10);
     });
@@ -88,7 +93,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     it('returns false for undefined format', () => {
-      expect(isSetTiebreakOnly(undefined)).toBe(false);
+      expect(isSetTiebreakOnly()).toBe(false);
     });
   });
 
@@ -121,10 +126,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     describe('S:5/TB9@4 format (tiebreakAt === setTo - 1)', () => {
-      const s5at4Config: MatchConfig = {
-        bestOf: 1,
-        setFormat: { setTo: 5, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 9 } },
-      };
+      const s5at4Config = parseFormat(MATCH_FORMATS.SET1_S5_TB9_AT4);
 
       it('allows up to setTo when opponent has no score (absoluteMax = setTo)', () => {
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 0 }, s5at4Config);
@@ -242,10 +244,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     describe('S:5/TB9@4 format (tiebreakAt < setTo)', () => {
-      const s5at4Config: MatchConfig = {
-        bestOf: 1,
-        setFormat: { setTo: 5, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 9 } },
-      };
+      const s5at4Config = parseFormat(MATCH_FORMATS.SET1_S5_TB9_AT4);
 
       it('recognizes 5-0 as complete', () => {
         expect(isSetComplete(0, { side1: 5, side2: 0 }, s5at4Config)).toBe(true);
@@ -382,8 +381,8 @@ describe('dynamicSetsLogic - Pure Functions', () => {
   });
 
   describe('calculateComplement', () => {
-    const s6Format: SetFormat = { setTo: 6, tiebreakAt: 6 };
-    const s8Format: SetFormat = { setTo: 8, tiebreakAt: 8 };
+    const s6Format = parseFormat(MATCH_FORMATS.SET1_S6_TB7).setFormat!;
+    const s8Format = parseFormat(MATCH_FORMATS.SET1_S8_TB7).setFormat!;
 
     it('returns 6 for digit 0 with S:6', () => {
       expect(calculateComplement(0, s6Format)).toBe(6);
@@ -422,7 +421,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     describe('S:5/TB9@4 format (tiebreakAt = setTo - 1)', () => {
-      const s5at4Format: SetFormat = { setTo: 5, tiebreakAt: 4 };
+      const s5at4Format = parseFormat(MATCH_FORMATS.SET1_S5_TB9_AT4).setFormat!;
 
       it('returns 5 for digit 0 with S:5@4', () => {
         expect(calculateComplement(0, s5at4Format)).toBe(5);
@@ -450,7 +449,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     describe('S:6/TB7@5 format (tiebreakAt = setTo - 1)', () => {
-      const s6at5Format: SetFormat = { setTo: 6, tiebreakAt: 5 };
+      const s6at5Format = parseFormat(MATCH_FORMATS.SET1_S6_TB7_AT5).setFormat!;
 
       it('returns 6 for digit 2 with S:6@5', () => {
         expect(calculateComplement(2, s6at5Format)).toBe(6);
@@ -561,10 +560,7 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     describe('S:5/TB9@4 format (tiebreakAt < setTo)', () => {
-      const s5at4Config: MatchConfig = {
-        bestOf: 1,
-        setFormat: { setTo: 5, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 9 } },
-      };
+      const s5at4Config = parseFormat(MATCH_FORMATS.SET1_S5_TB9_AT4);
 
       it('shows tiebreak when scores are 5-4', () => {
         expect(shouldShowTiebreak(0, { side1: 5, side2: 4 }, s5at4Config)).toBe(true);
