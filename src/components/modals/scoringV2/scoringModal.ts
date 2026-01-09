@@ -15,7 +15,6 @@ export function scoringModal(params: ScoringModalParams): void {
   
   // Choose approach based on env setting
   const approach = env.scoringApproach || 'tidyScore';
-  console.log('Scoring approach:', approach);
   
   const container = document.createElement('div');
   container.style.padding = '1em';

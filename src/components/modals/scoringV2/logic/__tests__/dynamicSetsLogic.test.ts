@@ -93,34 +93,80 @@ describe('dynamicSetsLogic - Pure Functions', () => {
   });
 
   describe('getMaxAllowedScore', () => {
-    it('allows up to setTo+2 when opponent has no score', () => {
-      const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 0 }, standardBestOf3);
-      expect(max).toBe(8); // 6 + 2
+    describe('Standard S:6/TB7@6 format (tiebreakAt === setTo)', () => {
+      it('allows up to setTo+1 when opponent has no score', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 0 }, standardBestOf3);
+        expect(max).toBe(7); // 6 + 1 (absoluteMax for tiebreakAt===setTo)
+      });
+
+      it('allows up to setTo when opponent below tiebreakAt', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 3 }, standardBestOf3);
+        expect(max).toBe(6);
+      });
+
+      it('allows up to setTo+1 when opponent at tiebreakAt', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 6 }, standardBestOf3);
+        expect(max).toBe(7);
+      });
+
+      it('allows up to setTo+2 when opponent at setTo (deuce)', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 6 }, standardBestOf3);
+        expect(max).toBe(7); // At tiebreakAt, max is absoluteMax (7)
+      });
+
+      it('allows opponent+2 when past setTo (extended play)', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 7 }, standardBestOf3);
+        expect(max).toBe(9);
+      });
     });
 
-    it('allows up to setTo when opponent below setTo-1', () => {
-      const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 3 }, standardBestOf3);
-      expect(max).toBe(6);
+    describe('S:5/TB9@4 format (tiebreakAt === setTo - 1)', () => {
+      const s5at4Config: MatchConfig = {
+        bestOf: 1,
+        setFormat: { setTo: 5, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 9 } },
+      };
+
+      it('allows up to setTo when opponent has no score (absoluteMax = setTo)', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 0 }, s5at4Config);
+        expect(max).toBe(5); // absoluteMax is setTo because tiebreakAt < setTo
+      });
+
+      it('allows up to setTo when opponent below tiebreakAt', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 2 }, s5at4Config);
+        expect(max).toBe(5);
+      });
+
+      it('allows up to setTo when opponent at tiebreakAt', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 4 }, s5at4Config);
+        expect(max).toBe(5); // Can win 5-4 after tiebreak
+      });
+
+      it('allows up to tiebreakAt when opponent at setTo (opponent won)', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 5 }, s5at4Config);
+        expect(max).toBe(4); // Opponent won, my max is tiebreakAt (4)
+      });
+
+      it('allows up to setTo when opponent at 3 (below tiebreakAt)', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 3 }, s5at4Config);
+        expect(max).toBe(5); // Can win at setTo
+      });
+
+      it('enforces max of 5 when opponent is 0', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 0 }, s5at4Config);
+        expect(max).toBe(5); // absoluteMax for S:5@4 is 5
+      });
     });
 
-    it('allows up to setTo+1 when opponent at setTo-1', () => {
-      const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 5 }, standardBestOf3);
-      expect(max).toBe(7);
-    });
+    describe('S:8 format', () => {
+      it('allows up to setTo when opponent below tiebreakAt', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 7 }, set8Config);
+        expect(max).toBe(8); // Opponent at 7 (< tiebreakAt 8), max is setTo (8)
+      });
 
-    it('allows up to setTo+2 when opponent at setTo', () => {
-      const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 6 }, standardBestOf3);
-      expect(max).toBe(8);
-    });
-
-    it('allows opponent+2 when past tiebreak threshold', () => {
-      const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 7 }, standardBestOf3);
-      expect(max).toBe(9);
-    });
-
-    it('handles S:8 format correctly', () => {
-      const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 7 }, set8Config);
-      expect(max).toBe(9); // 8 + 1
+      it('allows up to setTo+1 when opponent at tiebreakAt', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 8 }, set8Config);
+        expect(max).toBe(9); // 8 + 1 (absoluteMax for tiebreakAt===setTo)
+      });
     });
   });
 
@@ -192,6 +238,41 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
       it('recognizes 0-0 as incomplete', () => {
         expect(isSetComplete(2, { side1: 0, side2: 0 }, tb10Config)).toBe(false);
+      });
+    });
+
+    describe('S:5/TB9@4 format (tiebreakAt < setTo)', () => {
+      const s5at4Config: MatchConfig = {
+        bestOf: 1,
+        setFormat: { setTo: 5, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 9 } },
+      };
+
+      it('recognizes 5-0 as complete', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 0 }, s5at4Config)).toBe(true);
+      });
+
+      it('recognizes 5-3 as complete', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 3 }, s5at4Config)).toBe(true);
+      });
+
+      it('recognizes 5-4 with tiebreak as complete', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 4, tiebreak: 7 }, s5at4Config)).toBe(true);
+      });
+
+      it('recognizes 4-5 with tiebreak as complete', () => {
+        expect(isSetComplete(0, { side1: 4, side2: 5, tiebreak: 7 }, s5at4Config)).toBe(true);
+      });
+
+      it('recognizes 5-4 without tiebreak as incomplete', () => {
+        expect(isSetComplete(0, { side1: 5, side2: 4 }, s5at4Config)).toBe(false);
+      });
+
+      it('recognizes 4-4 as incomplete', () => {
+        expect(isSetComplete(0, { side1: 4, side2: 4 }, s5at4Config)).toBe(false);
+      });
+
+      it('recognizes 4-3 as incomplete', () => {
+        expect(isSetComplete(0, { side1: 4, side2: 3 }, s5at4Config)).toBe(false);
       });
     });
   });
@@ -340,9 +421,52 @@ describe('dynamicSetsLogic - Pure Functions', () => {
       expect(calculateComplement(8, s8Format)).toBeNull();
     });
 
-    it('handles tiebreakAt edge case (S:6/TB7@3)', () => {
-      const format: SetFormat = { setTo: 6, tiebreakAt: 3 };
-      expect(calculateComplement(2, format)).toBe(4); // tiebreakAt + 1
+    describe('S:5/TB9@4 format (tiebreakAt = setTo - 1)', () => {
+      const s5at4Format: SetFormat = { setTo: 5, tiebreakAt: 4 };
+
+      it('returns 5 for digit 0 with S:5@4', () => {
+        expect(calculateComplement(0, s5at4Format)).toBe(5);
+      });
+
+      it('returns 5 for digit 1 with S:5@4', () => {
+        expect(calculateComplement(1, s5at4Format)).toBe(5);
+      });
+
+      it('returns 5 for digit 2 with S:5@4', () => {
+        expect(calculateComplement(2, s5at4Format)).toBe(5);
+      });
+
+      it('returns 5 for digit 3 with S:5@4', () => {
+        expect(calculateComplement(3, s5at4Format)).toBe(5);
+      });
+
+      it('returns 5 for digit 4 with S:5@4 (setTo-1, tiebreakAt < setTo)', () => {
+        expect(calculateComplement(4, s5at4Format)).toBe(5);
+      });
+
+      it('returns null for digit 5 with S:5@4 (at setTo)', () => {
+        expect(calculateComplement(5, s5at4Format)).toBeNull();
+      });
+    });
+
+    describe('S:6/TB7@5 format (tiebreakAt = setTo - 1)', () => {
+      const s6at5Format: SetFormat = { setTo: 6, tiebreakAt: 5 };
+
+      it('returns 6 for digit 2 with S:6@5', () => {
+        expect(calculateComplement(2, s6at5Format)).toBe(6);
+      });
+
+      it('returns 6 for digit 4 with S:6@5', () => {
+        expect(calculateComplement(4, s6at5Format)).toBe(6);
+      });
+
+      it('returns 6 for digit 5 with S:6@5 (setTo-1, tiebreakAt < setTo)', () => {
+        expect(calculateComplement(5, s6at5Format)).toBe(6);
+      });
+
+      it('returns null for digit 6 with S:6@5 (at setTo)', () => {
+        expect(calculateComplement(6, s6at5Format)).toBeNull();
+      });
     });
   });
 
@@ -434,6 +558,33 @@ describe('dynamicSetsLogic - Pure Functions', () => {
 
     it('does not show tiebreak for tiebreak-only sets', () => {
       expect(shouldShowTiebreak(2, { side1: 5, side2: 5 }, tb10Config)).toBe(false);
+    });
+
+    describe('S:5/TB9@4 format (tiebreakAt < setTo)', () => {
+      const s5at4Config: MatchConfig = {
+        bestOf: 1,
+        setFormat: { setTo: 5, tiebreakAt: 4, tiebreakFormat: { tiebreakTo: 9 } },
+      };
+
+      it('shows tiebreak when scores are 5-4', () => {
+        expect(shouldShowTiebreak(0, { side1: 5, side2: 4 }, s5at4Config)).toBe(true);
+      });
+
+      it('shows tiebreak when scores are 4-5', () => {
+        expect(shouldShowTiebreak(0, { side1: 4, side2: 5 }, s5at4Config)).toBe(true);
+      });
+
+      it('does not show tiebreak when scores are 4-4', () => {
+        expect(shouldShowTiebreak(0, { side1: 4, side2: 4 }, s5at4Config)).toBe(false);
+      });
+
+      it('does not show tiebreak when scores are 5-3', () => {
+        expect(shouldShowTiebreak(0, { side1: 5, side2: 3 }, s5at4Config)).toBe(false);
+      });
+
+      it('does not show tiebreak when scores are 5-0', () => {
+        expect(shouldShowTiebreak(0, { side1: 5, side2: 0 }, s5at4Config)).toBe(false);
+      });
     });
   });
 
