@@ -15,6 +15,7 @@ type EntryState = {
   digits: string; // Raw digits: "36366" becomes "3-6 3-6 6"
   setTo: number;
   tiebreakAt: number;
+  isMatchComplete: boolean; // Track if current score represents a complete match
 };
 
 /**
@@ -76,11 +77,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       digits: '',
       setTo,
       tiebreakAt,
+      isMatchComplete: false,
     };
     
     // Initialize state with existing score if available
     if (matchUp.score) {
       state.digits = scoreToDigits(matchUp.score);
+      
+      // CRITICAL: Validate initial score to set isMatchComplete
+      // This prevents RET/DEF from being enabled when score is already complete
+      const initialScoreString = formatScoreString(state.digits, { matchUpFormat: matchUp.matchUpFormat || 'SET3-S:6/TB7' });
+      if (initialScoreString && initialScoreString.includes('-')) {
+        const initialValidation = validateScore(initialScoreString, matchUp.matchUpFormat);
+        state.isMatchComplete = initialValidation.isValid && 
+                               initialValidation.winningSide !== undefined && 
+                               (initialValidation.matchUpStatus === COMPLETED || initialValidation.matchUpStatus === undefined);
+      }
     }
 
     // MatchUp display container
@@ -309,6 +321,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // Use validateScore for proper validation
       let validation = validateScore(scoreString, matchUp.matchUpFormat);
 
+      // Track if match is complete (validation returns isComplete for completed matches)
+      // Match is complete if validation has winningSide and matchUpStatus is COMPLETED
+      state.isMatchComplete = validation.isValid && 
+                             validation.winningSide !== undefined && 
+                             (validation.matchUpStatus === COMPLETED || validation.matchUpStatus === undefined);
+
       // Add irregular ending info if selected
       if (selectedOutcome !== COMPLETED) {
         validation.matchUpStatus = selectedOutcome;
@@ -317,8 +335,11 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
           validation.isValid = true;
         } else {
           // Need winner selection for irregular ending
+          // BUT: Keep the score/sets that were entered (for RETIRED/DEFAULTED)
           validation.isValid = false;
         }
+        // Irregular endings mean match is "complete" in a different way
+        state.isMatchComplete = false; // Allow RET/DEF since irregular ending was selected
       }
 
       // Update matchUp display with validation result
@@ -330,7 +351,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       const clearBtn = document.getElementById('clearScoreV2') as HTMLButtonElement;
       if (clearBtn) clearBtn.disabled = state.digits.length === 0 && selectedOutcome === COMPLETED;
 
-      // Enable/disable RET and DEF buttons based on score presence
+      // Enable/disable RET and DEF buttons based on score presence and match completion
       updateIrregularButtonStates();
     };
 
@@ -446,6 +467,7 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     // Reset function for Clear button
     const resetDialPad = () => {
       state.digits = '';
+      state.isMatchComplete = false; // Reset match completion state
       selectedOutcome = COMPLETED;
       selectedWinner = undefined;
       // Clear winner radio selections
@@ -475,8 +497,13 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       // But '3', '11', '6' do not
       const hasRenderableScore = scoreString.includes('-') && scoreString.length > 2; // At least 'X-Y'
 
-      if (retButton) retButton.disabled = !hasRenderableScore;
-      if (defButton) defButton.disabled = !hasRenderableScore;
+      // CRITICAL: Disable RET/DEF if:
+      // 1. No renderable score (can't retire with no score)
+      // 2. Match is already complete (can't retire after match ends)
+      const shouldDisable = !hasRenderableScore || state.isMatchComplete;
+
+      if (retButton) retButton.disabled = shouldDisable;
+      if (defButton) defButton.disabled = shouldDisable;
     };
 
     // Create dial pad buttons (4x3 grid)
@@ -618,7 +645,12 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     (globalThis as any).cleanupDialPad = cleanup;
 
     // Initialize irregular ending and winner if present
-    if (matchUp.matchUpStatus && matchUp.matchUpStatus !== COMPLETED) {
+    // Only set selectedOutcome for ACTUAL irregular endings (RETIRED, WALKOVER, DEFAULTED)
+    // Don't treat TO_BE_PLAYED as irregular
+    const isActualIrregularEnding = matchUp.matchUpStatus === RETIRED || 
+                                    matchUp.matchUpStatus === WALKOVER || 
+                                    matchUp.matchUpStatus === DEFAULTED;
+    if (isActualIrregularEnding) {
       selectedOutcome = matchUp.matchUpStatus as any;
       
       // Check the appropriate irregular ending radio button
@@ -649,9 +681,20 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
       resetDialPad();
     }
 
-    // Initial display (if not already called by resetDialPad)
-    if (!matchUp.matchUpStatus || matchUp.matchUpStatus === COMPLETED) {
-      updateMatchUpDisplay(null);
+    // Initial display
+    // For fresh matchUps with no score/status, resetDialPad already called above
+    const isFreshMatchUp = !matchUp.score && (!matchUp.matchUpStatus || matchUp.matchUpStatus === 'TO_BE_PLAYED');
+    if (!isFreshMatchUp) {
+      // Has existing score or status - display it
+      if (state.digits) {
+        const initialScoreString = formatScore(state.digits);
+        scoreDisplay.textContent = initialScoreString || '-';
+        
+        // Call updateDisplay to validate and set button states properly
+        updateDisplay();
+      } else {
+        updateMatchUpDisplay(null);
+      }
     }
   } catch (error) {
     console.error('Error rendering dial pad:', error);
