@@ -31,7 +31,6 @@ import 'styles/legacy/ddScoring.css';
 
 import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
 import 'bulma-switch/dist/css/bulma-switch.min.css';
-import 'awesomplete/awesomplete.css';
 import 'animate.css/animate.min.css';
 import 'quill/dist/quill.snow.css';
 import 'pikaday/css/pikaday.css';
@@ -69,7 +68,7 @@ export function setupTMX(): void {
       env.pdfPrinting = savedSettings.pdfPrinting;
     }
   }
-  
+
   setEnv();
   setWindow();
   setContext();

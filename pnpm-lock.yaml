@@ -32,9 +32,6 @@ importers:
       animate.css:
         specifier: 4.1.1
         version: 4.1.1
-      awesomplete:
-        specifier: 1.1.7
-        version: 1.1.7
       axios:
         specifier: 1.13.2
         version: 1.13.2
