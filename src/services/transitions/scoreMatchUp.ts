@@ -20,9 +20,16 @@ export function enterMatchUpScore(params: {
   const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId }).matchUp;
 
   const scoreSubmitted = (outcome: any) => {
-    const { matchUpStatus, matchUpFormat, winningSide, score } = outcome;
-    const parsedSets = score && tournamentEngine.parseScoreString({ scoreString: score });
-    const sets = parsedSets || [];
+    const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets } = outcome;
+    
+    // Use sets directly from outcome if available (e.g., from dialPad/dynamicSets with irregular endings)
+    // Otherwise parse the score string (e.g., from tidyScore/freeScore)
+    let sets = outcomeSets || [];
+    if (!sets.length && score) {
+      const parsedSets = tournamentEngine.parseScoreString({ scoreString: score });
+      sets = parsedSets || [];
+    }
+    
     const methods = [
       {
         method: SET_MATCHUP_STATUS,

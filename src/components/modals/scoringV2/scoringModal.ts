@@ -50,9 +50,13 @@ export function scoringModal(params: ScoringModalParams): void {
       if (scoreInput) {
         clearBtn.disabled = !scoreInput.value.trim();
       } else {
-        // For other approaches (dynamicSets, dialPad), check if there are sets
+        // For other approaches (dynamicSets, dialPad), check if there are sets OR irregular ending status
         const hasSets = outcome.sets && outcome.sets.length > 0;
-        clearBtn.disabled = !hasSets;
+        const hasIrregularStatus = outcome.matchUpStatus && 
+                                   outcome.matchUpStatus !== 'COMPLETED' && 
+                                   outcome.matchUpStatus !== 'TO_BE_PLAYED';
+        const hasContentToClear = hasSets || hasIrregularStatus;
+        clearBtn.disabled = !hasContentToClear;
       }
     }
   };
@@ -172,6 +176,11 @@ export function scoringModal(params: ScoringModalParams): void {
     if (clearButton) {
       clearButton.style.backgroundColor = '#ffeb3b';
       clearButton.style.color = '#333';
+      
+      // Enable Clear button if matchUp has existing score or irregular status
+      if (hadExistingScore) {
+        clearButton.disabled = false;
+      }
       
       // Update button states if we have an initial outcome
       if (currentOutcome) {
