@@ -2,7 +2,7 @@
  * Modify group name modal.
  * Renders form to update bracket/group name.
  */
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
 

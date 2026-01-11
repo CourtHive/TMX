@@ -4,7 +4,7 @@
  */
 import { fetchTournamentDetails } from 'services/apis/servicesApi';
 import { addTournament } from 'services/storage/importTournaments';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';

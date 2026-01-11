@@ -2,7 +2,7 @@
  * Select provider modal with type-ahead search.
  * Allows selection of organization provider from available providers list.
  */
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { getProviders } from 'services/apis/servicesApi';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';

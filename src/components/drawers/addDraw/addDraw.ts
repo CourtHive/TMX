@@ -5,8 +5,8 @@
 import { getMatchUpFormatModal } from 'courthive-components';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'components/renderers/renderButtons';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderButtons } from 'courthive-components';
+import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';

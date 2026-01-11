@@ -1,4 +1,4 @@
-import { renderMenu } from 'components/renderers/renderMenu';
+import { renderMenu } from 'courthive-components';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 

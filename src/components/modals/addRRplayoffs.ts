@@ -6,9 +6,9 @@ import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-fact
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderOptions } from 'components/renderers/renderField';
+import { renderOptions } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 

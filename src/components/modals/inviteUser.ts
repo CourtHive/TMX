@@ -1,6 +1,6 @@
 import { emailValidator } from 'components/validators/emailValidator';
 import { inviteUser } from 'services/authentication/authApi';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 

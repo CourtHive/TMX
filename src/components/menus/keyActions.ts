@@ -2,7 +2,7 @@
  * Display key actions menu for provider keys.
  * Allows entry of new keys or selection from stored provider keys.
  */
-import { renderMenu } from 'components/renderers/renderMenu';
+import { renderMenu } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { stringSort } from 'functions/sorting/sorting';
 import { emitTmx } from 'services/messaging/socketIo';

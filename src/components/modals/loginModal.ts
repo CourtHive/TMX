@@ -5,7 +5,7 @@
 import { emailValidator } from 'components/validators/emailValidator';
 import { logIn, logOut } from 'services/authentication/loginState';
 import { systemLogin } from 'services/authentication/authApi';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 export function loginModal(callback?: () => void): void {
