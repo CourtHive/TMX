@@ -4,7 +4,7 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { addRRplayoffs } from './addRRplayoffs';

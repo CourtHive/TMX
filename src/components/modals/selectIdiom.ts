@@ -2,7 +2,7 @@
  * Select language/locale idiom modal.
  * Allows country selection with type-ahead and flag display for language switching.
  */
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 // import { getIdioms } from 'services/apis/servicesApi';
 import { fixtures } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';

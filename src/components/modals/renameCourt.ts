@@ -3,7 +3,7 @@
  * Updates court name via mutation and refreshes column title.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 import { MODIFY_COURT } from 'constants/mutationConstants';

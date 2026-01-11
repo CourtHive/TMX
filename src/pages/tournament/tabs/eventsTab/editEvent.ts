@@ -4,8 +4,8 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'components/renderers/renderButtons';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderButtons } from 'courthive-components';
+import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';

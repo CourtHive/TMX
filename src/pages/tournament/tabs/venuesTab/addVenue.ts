@@ -5,9 +5,9 @@
 import { getVenueFormValues, venueForm } from 'components/forms/venue';
 import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderButtons } from 'components/renderers/renderButtons';
+import { renderButtons } from 'courthive-components';
 import { tournamentEngine, tools } from 'tods-competition-factory';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';

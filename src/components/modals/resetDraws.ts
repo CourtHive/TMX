@@ -5,7 +5,7 @@
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { wordValidator } from 'components/validators/wordValidator';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';

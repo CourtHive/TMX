@@ -5,7 +5,7 @@
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
 import { findAncestor } from 'services/dom/parentAndChild';

@@ -3,7 +3,7 @@
  * Removes matchUps based on completion status (empty, unscored, completed).
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';

@@ -2,7 +2,7 @@
  * Settings modal for active rating scale and local storage preferences.
  * Allows selection between WTN/UTR and toggling local tournament saves.
  */
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
 import { openModal } from './baseModal/baseModal';

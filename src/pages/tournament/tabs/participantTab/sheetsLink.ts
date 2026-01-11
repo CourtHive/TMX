@@ -5,7 +5,7 @@
 import { incomingParticipants } from 'services/data/incomingParticipants';
 import { fetchGoogleSheet } from 'services/sheets/fetchGoogleSheet';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { lang } from 'services/translator';
