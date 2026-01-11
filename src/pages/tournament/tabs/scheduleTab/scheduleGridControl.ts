@@ -62,6 +62,17 @@ export function scheduleGridControl({
       align: LEFT,
     },
     {
+      visible: !!courtsCount,
+      onClick: () => {
+        // TODO: Import and call printSchedule modal
+        console.log('Print schedule clicked');
+      },
+      label: 'Print',
+      id: 'printSchedule',
+      intent: 'is-info',
+      location: RIGHT,
+    },
+    {
       visible: !!courtsCount && !schedulingActive,
       onClick: toggleUnscheduled,
       label: 'Schedule matches',
