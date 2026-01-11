@@ -13,6 +13,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
+import { env } from 'settings/env';
 
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
@@ -63,6 +64,7 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
       close: true,
     },
     {
+      hide: !env.pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => printDraw({ drawId, eventId, structureId }),
       label: 'Print draw',
       close: true,

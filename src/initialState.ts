@@ -65,6 +65,9 @@ export function setupTMX(): void {
     if (savedSettings.saveLocal !== undefined) {
       env.saveLocal = savedSettings.saveLocal;
     }
+    if (savedSettings.pdfPrinting !== undefined) {
+      env.pdfPrinting = savedSettings.pdfPrinting;
+    }
   }
   
   setEnv();

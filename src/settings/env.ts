@@ -110,6 +110,8 @@ export const env: any = {
 
   serverFirst: true,
   version,
+  
+  pdfPrinting: false, // Beta feature flag for PDF generation
 
   ioc: 'gbr',
   locations: {

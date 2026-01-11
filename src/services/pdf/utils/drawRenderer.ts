@@ -47,14 +47,14 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
   document.body.appendChild(offscreenContainer);
 
   try {
-    // Create empty event handlers for PDF rendering (no interactivity needed)
+    // Create event handlers for PDF rendering - omit scoreClick to prevent Score buttons from rendering
     const eventHandlers = {
       roundClick: () => {},
       scheduleClick: () => {},
       venueClick: () => {},
       participantClick: () => {},
       matchUpClick: () => {},
-      scoreClick: () => {},
+      // scoreClick intentionally omitted - no scoring in PDF printouts
     };
 
 
@@ -75,8 +75,6 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
       }),
       theme: composition.theme,
     });
-
-    console.log('Draw structure rendered, content:', content);
 
     offscreenContainer.appendChild(content);
 
@@ -147,7 +145,6 @@ export function canRenderDraw(drawId: string, structureId?: string): boolean {
 
     return (matchUpsResult?.matchUps?.length || 0) > 0;
   } catch (error) {
-    console.error('Error checking if draw can be rendered:', error);
     return false;
   }
 }

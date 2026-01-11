@@ -31,16 +31,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
     drawDefinition = drawResult?.drawDefinition;
   }
 
-  console.log('Print draw data:', { tournament, event, drawDefinition, drawId, eventId });
-
   if (!event || !drawDefinition) {
-    console.error('Missing required data for print draw', {
-      hasTournament: !!tournament,
-      hasEvent: !!event,
-      hasDrawDefinition: !!drawDefinition,
-      drawId,
-      eventId
-    });
     return;
   }
   
@@ -140,8 +131,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
             action: 'open',
           });
         } catch (error) {
-          console.error('Error generating PDF:', error);
-          alert('Failed to generate PDF. Check console for details.');
+          alert('Failed to generate PDF.');
         }
       },
       close: true,
@@ -160,8 +150,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
             action: 'download',
           });
         } catch (error) {
-          console.error('Error generating PDF:', error);
-          alert('Failed to generate PDF. Check console for details.');
+          alert('Failed to generate PDF.');
         }
       },
       close: true,
