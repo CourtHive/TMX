@@ -21,6 +21,7 @@
     "config": "node config.mjs",
     "prepublishOnly": "./addVersion $npm_package_version",
     "docs:publish": "pnpm build:prod && git checkout docs && rm -rf docs/* && cp -r dist/* docs && git add docs && git commit -m 'docs: update' && git push && git checkout main",
+    "docs:minor": "pnpm build:minor && git checkout docs && rm -rf docs/* && cp -r dist/* docs && git add docs && git commit -m 'docs: update' && git push && git checkout main",
     "format": "prettier --write src",
     "lint": "eslint src --fix --cache",
     "lint:staged": "TZ=UTC lint-staged",
