@@ -4,7 +4,9 @@
  */
 import { competitionEngine, tools } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
+import { printSchedule } from 'components/modals/printSchedule';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 import dayjs from 'dayjs';
 
 import { LEFT, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
@@ -15,6 +17,7 @@ type ScheduleGridControlParams = {
   controlAnchor?: HTMLElement;
   scheduledDate?: string;
   courtsCount?: number;
+  table?: any;
 };
 
 export function scheduleGridControl({
@@ -60,6 +63,34 @@ export function scheduleGridControl({
       id: 'highlightTeam',
       location: LEFT,
       align: LEFT,
+    },
+    {
+      visible: !!courtsCount && env.pdfPrinting, // Only show if PDF printing beta feature is enabled
+      onClick: () => {
+        // Get schedule data from competitionEngine with grid rows
+        const matchUpFilters = { localPerspective: true, scheduledDate };
+        const result = competitionEngine.competitionScheduleMatchUps({
+          courtCompletedMatchUps: true,
+          withCourtGridRows: true,
+          minCourtGridRows: 10,
+          nextMatchUps: true, // Include potentialParticipants for upcoming matches
+          matchUpFilters,
+        });
+        
+        const { courtsData = [], rows = [] } = result;
+        
+
+        
+        printSchedule({
+          scheduledDate: scheduledDate || startDate,
+          courts: courtsData,
+          rows,
+        });
+      },
+      label: 'Print',
+      id: 'printSchedule',
+      intent: 'is-info',
+      location: RIGHT,
     },
     {
       visible: !!courtsCount && !schedulingActive,

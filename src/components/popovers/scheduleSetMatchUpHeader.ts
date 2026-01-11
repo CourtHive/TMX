@@ -6,6 +6,7 @@ import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings'
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { timeItemConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tipster } from 'components/popovers/tipster';
 import { timePicker } from '../modals/timePicker';
 import { isFunction } from 'functions/typeOf';
@@ -74,6 +75,17 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
   const matchUp = Object.values(cell.getData()).find((c: any) => c?.matchUpId === matchUpId) as any;
   const readyToScore = matchUp?.readyToScore || matchUp?.winningSide || matchUp?.score?.sets;
 
+  const viewDraw = () => {
+    if (!matchUp?.drawId || !matchUp?.eventId) return;
+    
+    // Navigate to the draw view for this matchUp using the proper navigation function
+    navigateToEvent({
+      eventId: matchUp.eventId,
+      drawId: matchUp.drawId,
+      renderDraw: true,
+    });
+  };
+
   const options = [
     {
       option: setMatchTimeText,
@@ -106,6 +118,10 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
     {
       option: `Clear time settings`,
       onClick: clearTimeSettings,
+    },
+    matchUp?.drawId && {
+      option: 'View draw',
+      onClick: viewDraw,
     },
   ].filter(Boolean);
 

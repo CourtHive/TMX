@@ -17,6 +17,7 @@ export function settingsModal(): void {
   const saveSettingsHandler = () => {
     const activeScale = inputs.wtn.checked ? WTN : UTR;
     env.saveLocal = inputs.saveLocal.checked;
+    env.pdfPrinting = inputs.pdfPrinting?.checked || false;
 
     // Save scoring approach preference
     let scoringApproach: 'dynamicSets' | 'tidyScore' | 'freeScore' | 'dialPad';
@@ -42,6 +43,7 @@ export function settingsModal(): void {
       scoringApproach,
       saveLocal: env.saveLocal,
       smartComplements: inputs.smartComplements?.checked || false,
+      pdfPrinting: env.pdfPrinting,
     });
   };
   const content = (elem: HTMLElement) =>
@@ -58,6 +60,10 @@ export function settingsModal(): void {
         radio: true,
       },
       {
+        text: 'Scoring approach',
+        class: 'section-title',
+      },
+      {
         options: [
           { text: 'Dynamic Sets', field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
           { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
@@ -66,7 +72,6 @@ export function settingsModal(): void {
           ...((window as any).dev ? [{ text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' }] : []),
         ],
         onClick: (x: any) => console.log({ x }),
-        label: 'Scoring approach',
         field: 'scoringApproach',
         id: 'scoringApproach',
         radio: true,
@@ -79,10 +84,25 @@ export function settingsModal(): void {
         checkbox: true,
       },
       {
+        text: 'Storage',
+        class: 'section-title',
+      },
+      {
         label: 'Save local copies',
         checked: env.saveLocal,
         field: 'saveLocal',
         id: 'saveLocal',
+        checkbox: true,
+      },
+      {
+        text: 'Beta features',
+        class: 'section-title',
+      },
+      {
+        label: 'PDF printing',
+        checked: env.pdfPrinting || false,
+        field: 'pdfPrinting',
+        id: 'pdfPrinting',
         checkbox: true,
       },
     ]));
