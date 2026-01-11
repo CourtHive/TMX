@@ -5,7 +5,7 @@
 import { positionActionConstants, tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
 import { isFunction } from 'functions/typeOf';

@@ -3,7 +3,7 @@
  * Provides server connection controls and authentication options.
  */
 import { getLoginState, logOut } from 'services/authentication/loginState';
-import { renderMenu } from 'components/renderers/renderMenu';
+import { renderMenu } from 'courthive-components';
 import { loginModal } from 'components/modals/loginModal';
 
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';

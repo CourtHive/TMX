@@ -3,7 +3,7 @@
  * Renders checkbox list of flights with enabled/disabled delete button based on selection.
  */
 import { deleteFlights } from 'components/modals/deleteFlights';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 import { NONE } from 'constants/tmxConstants';

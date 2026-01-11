@@ -3,7 +3,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { compositions, renderMatchUp } from 'courthive-components';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { env } from 'settings/env';
 

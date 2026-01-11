@@ -3,9 +3,9 @@
  * Configures participant avoidance rules (country, club, etc.) via policy attachments.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderButtons } from 'components/renderers/renderButtons';
+import { renderButtons } from 'courthive-components';
 import { getAvoidanceFormItems } from './getAvoidanceFormItems';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { avoidanceRules } from './avoidanceRules';

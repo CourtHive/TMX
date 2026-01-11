@@ -7,7 +7,7 @@ import { numericValidator } from 'components/validators/numericValidator';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { nameValidator } from 'components/validators/nameValidator';
 import { numericRange } from 'components/validators/numericRange';
-import { renderOptions } from 'components/renderers/renderField';
+import { renderOptions } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 

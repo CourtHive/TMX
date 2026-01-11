@@ -1,7 +1,7 @@
 import { passwordValidator } from 'components/validators/passwordValidator';
 import { nameValidator } from 'components/validators/nameValidator';
 import { systemRegister } from 'services/authentication/authApi';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';

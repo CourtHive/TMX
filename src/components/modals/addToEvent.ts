@@ -3,7 +3,7 @@
  * Allows selection of entry stage (main/qualifying) and status (direct acceptance/alternate/wildcard/ungrouped).
  */
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import {

@@ -2,7 +2,7 @@
  * Remove approved participants modal.
  * Allows selection of team(s) to remove approved participants from.
  */
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { lang } from 'services/translator';
 

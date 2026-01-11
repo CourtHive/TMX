@@ -2,7 +2,7 @@
  * Tippy.js-based popover menu renderer.
  * Creates interactive popup menus with items, options, and callbacks.
  */
-import { renderMenu } from 'components/renderers/renderMenu';
+import { renderMenu } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
 

@@ -4,7 +4,7 @@
  */
 import { genderConstants, factoryConstants, mocksEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;

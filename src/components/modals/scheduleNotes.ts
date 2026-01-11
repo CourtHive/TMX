@@ -1,4 +1,4 @@
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 export function editNotes({ notice, notes, callback }: { notice?: string; notes?: string; callback?: (result: any) => void }): void {

@@ -1,5 +1,5 @@
 import { nameValidator } from 'components/validators/nameValidator';
-import { renderForm } from 'components/renderers/renderForm';
+import { renderForm } from 'courthive-components';
 import { addProvider, modifyProvider } from 'services/apis/servicesApi';
 import { openModal } from './baseModal/baseModal';
 import { tools } from 'tods-competition-factory';

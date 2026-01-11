@@ -2,7 +2,7 @@
  * Control bar component for tables.
  * Dynamically generates search fields, buttons, and dropdown menus based on configuration.
  */
-import { validator } from 'components/renderers/renderValidator';
+import { validator } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
 import { selectItem } from 'components/modals/selectItem';
