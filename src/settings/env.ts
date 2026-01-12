@@ -180,6 +180,7 @@ export const env: any = {
     completed_matches_in_search: false,
     max_matches_per_court: 14,
     court_identifiers: true,
+    minCourtGridRows: 10,
   },
   messages: [],
   device: {},
