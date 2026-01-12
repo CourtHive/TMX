@@ -52,8 +52,8 @@
     "*": "prettier --ignore-unknown --write"
   },
   "devDependencies": {
-    "@babel/core": "7.28.5",
-    "@babel/plugin-syntax-flow": "7.27.1",
+    "@babel/core": "7.28.6",
+    "@babel/plugin-syntax-flow": "7.28.6",
     "@babel/preset-typescript": "7.28.5",
     "@commitlint/cli": "20.3.1",
     "@commitlint/config-conventional": "20.3.1",
@@ -102,7 +102,7 @@
     "yargs": "18.0.0"
   },
   "dependencies": {
-    "@babel/plugin-transform-private-property-in-object": "7.27.1",
+    "@babel/plugin-transform-private-property-in-object": "7.28.6",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.14.0",
     "@event-calendar/core": "3.12.0",
