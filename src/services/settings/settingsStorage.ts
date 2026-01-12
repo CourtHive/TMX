@@ -11,6 +11,7 @@ export type TMXSettings = {
   saveLocal?: boolean;
   smartComplements?: boolean; // Enable smart complement entry in dynamicSets (default: false)
   pdfPrinting?: boolean; // Beta feature flag for PDF generation
+  minCourtGridRows?: number; // Minimum schedule grid rows (default: 10)
 };
 
 /**

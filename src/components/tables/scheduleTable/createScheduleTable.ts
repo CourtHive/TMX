@@ -11,7 +11,14 @@ import { updateConflicts } from './updateConflicts';
 
 import { TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
 
-export function createScheduleTable({ scheduledDate }: { scheduledDate?: string } = {}): { table: any; replaceTableData: (params?: any) => void; courtsCount: number } {
+export function createScheduleTable({
+  minCourtGridRows = 10,
+  scheduledDate,
+}: { scheduledDate?: string; minCourtGridRows?: number } = {}): {
+  table: any;
+  replaceTableData: (params?: any) => void;
+  courtsCount: number;
+} {
   let ready: boolean, table: any, awaitingUpdate: boolean;
   let existingCourtIds: string[] = [];
 
@@ -20,8 +27,8 @@ export function createScheduleTable({ scheduledDate }: { scheduledDate?: string 
     const result = competitionEngine.competitionScheduleMatchUps({
       courtCompletedMatchUps: true,
       withCourtGridRows: true,
-      minCourtGridRows: 10,
       nextMatchUps: true,
+      minCourtGridRows,
       matchUpFilters,
     });
     const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows, groupInfo } = result;

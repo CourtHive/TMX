@@ -5,6 +5,7 @@
 import { renderForm } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
+import { numericRange } from 'components/validators/numericRange';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
 
@@ -35,6 +36,12 @@ export function settingsModal(): void {
     }
     env.scoringApproach = scoringApproach;
 
+    // Save minimum schedule grid rows
+    const minCourtGridRowsValue = inputs.minCourtGridRows.value;
+    if (numericRange(1, 100)(minCourtGridRowsValue)) {
+      env.schedule.minCourtGridRows = Number.parseInt(minCourtGridRowsValue, 10);
+    }
+
     setActiveScale(activeScale);
 
     // Persist to localStorage
@@ -44,17 +51,21 @@ export function settingsModal(): void {
       saveLocal: env.saveLocal,
       smartComplements: inputs.smartComplements?.checked || false,
       pdfPrinting: env.pdfPrinting,
+      minCourtGridRows: env.schedule.minCourtGridRows,
     });
   };
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
+      {
+        text: 'Active rating',
+        class: 'section-title',
+      },
       {
         options: [
           { text: 'WTN', field: 'wtn', checked: env.activeScale === WTN },
           { text: 'UTR', field: 'utr', checked: env.activeScale === UTR },
         ],
         onClick: (x: any) => console.log({ x }),
-        label: 'Active rating',
         field: 'activeRating',
         id: 'activeRating',
         radio: true,
@@ -69,7 +80,9 @@ export function settingsModal(): void {
           { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
           { text: 'Free Score', field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
           // Tidy Score only visible when dev mode is enabled
-          ...((window as any).dev ? [{ text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' }] : []),
+          ...((window as any).dev
+            ? [{ text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' }]
+            : []),
         ],
         onClick: (x: any) => console.log({ x }),
         field: 'scoringApproach',
@@ -95,6 +108,25 @@ export function settingsModal(): void {
         checkbox: true,
       },
       {
+        text: 'Scheduling',
+        class: 'section-title',
+      },
+      {
+        label: 'Minimum schedule grid rows',
+        value: currentSettings?.minCourtGridRows ?? env.schedule.minCourtGridRows,
+        field: 'minCourtGridRows',
+        id: 'minCourtGridRows',
+        validator: numericRange(1, 100),
+        error: 'Must be a number between 1 and 100',
+        selectOnFocus: true,
+        onInput: () => {
+          const saveButton = document.getElementById('saveSettingsButton') as HTMLButtonElement;
+          const value = inputs.minCourtGridRows.value;
+          const valid = numericRange(1, 100)(value);
+          if (saveButton) saveButton.disabled = !valid;
+        },
+      },
+      {
         text: 'Beta features',
         class: 'section-title',
       },
@@ -112,9 +144,23 @@ export function settingsModal(): void {
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Save', intent: 'is-primary', onClick: saveSettingsHandler, close: true },
+      {
+        id: 'saveSettingsButton',
+        label: 'Save',
+        intent: 'is-primary',
+        onClick: saveSettingsHandler,
+        close: true,
+      },
     ],
   });
+
+  // Initialize button state based on initial validation
+  setTimeout(() => {
+    const saveButton = document.getElementById('saveSettingsButton') as HTMLButtonElement;
+    const value = inputs?.minCourtGridRows?.value ?? env.schedule.minCourtGridRows;
+    const valid = numericRange(1, 100)(value);
+    if (saveButton) saveButton.disabled = !valid;
+  }, 0);
 }
 
 export function initSettingsIcon(id: string): void {
