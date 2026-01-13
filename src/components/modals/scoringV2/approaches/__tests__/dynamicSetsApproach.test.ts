@@ -19,6 +19,11 @@ import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';
 import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
+// Aggregate scoring formats with conditional TB
+const SET3X_T10A_TB1 = 'SET3X-S:T10A-F:TB1';
+const SET3X_T10A_TB1_NOAD = 'SET3X-S:T10A-F:TB1NOAD';
+const SET4X_T10A_TB1 = 'SET4X-S:T10A-F:TB1';
+
 /**
  * Replicates the getSetFormat logic from dynamicSetsApproach.ts
  * This function determines which format to use for a specific set index.
@@ -509,7 +514,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Aggregate Scoring with Conditional TB (SET3X-S:T10A-F:TB1)', () => {
-    const format = 'SET3X-S:T10A-F:TB1';
+    const format = SET3X_T10A_TB1;
     const bestOf = 3;
 
     it('should use timed setFormat for set 1', () => {
@@ -543,7 +548,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     it('should handle SET3X-S:T10A-F:TB1NOAD', () => {
-      const formatNOAD = 'SET3X-S:T10A-F:TB1NOAD';
+      const formatNOAD = SET3X_T10A_TB1_NOAD;
       const finalSetFormat = getSetFormat(2, formatNOAD, bestOf);
       const info = getFormatInfo(finalSetFormat);
       
@@ -554,7 +559,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Aggregate Scoring SET4X (SET4X-S:T10A-F:TB1)', () => {
-    const format = 'SET4X-S:T10A-F:TB1';
+    const format = SET4X_T10A_TB1;
     const bestOf = 4;
 
     it('should use timed setFormat for sets 1-3', () => {

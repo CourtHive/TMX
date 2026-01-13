@@ -13,6 +13,11 @@ import {
 } from '../setExpansionLogic';
 import type { SetScore } from '../../types';
 
+// Aggregate scoring formats with conditional TB
+const SET3X_T10A_TB1 = 'SET3X-S:T10A-F:TB1';
+const SET3X_T10A_TB1_NOAD = 'SET3X-S:T10A-F:TB1NOAD';
+const SET4X_T10A_TB1 = 'SET4X-S:T10A-F:TB1';
+
 describe('setExpansionLogic', () => {
   describe('parseMatchUpFormat', () => {
     it('should parse SET3 format', () => {
@@ -440,7 +445,7 @@ describe('setExpansionLogic', () => {
 
   describe('Aggregate Scoring with Conditional TB', () => {
     describe('SET3X-S:T10A-F:TB1', () => {
-      const format = 'SET3X-S:T10A-F:TB1';
+      const format = SET3X_T10A_TB1;
 
       it('should NOT expand after 2 sets when aggregate not tied (match complete)', () => {
         const sets: SetScore[] = [
@@ -505,7 +510,7 @@ describe('setExpansionLogic', () => {
     });
 
     describe('SET4X-S:T10A-F:TB1', () => {
-      const format = 'SET4X-S:T10A-F:TB1';
+      const format = SET4X_T10A_TB1;
 
       it('should NOT expand after 3 sets when aggregate not tied', () => {
         const sets: SetScore[] = [
@@ -559,7 +564,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 50, side2Score: 100 },
         ];
         // Aggregate: 150-150, tied
-        const result = shouldExpandSets(sets, 'SET3X-S:T10A-F:TB1');
+        const result = shouldExpandSets(sets, SET3X_T10A_TB1);
         expect(result).toBe(true);
       });
 
@@ -569,7 +574,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 0, side2Score: 0 },
         ];
         // Aggregate: 0-0, tied
-        const result = shouldExpandSets(sets, 'SET3X-S:T10A-F:TB1');
+        const result = shouldExpandSets(sets, SET3X_T10A_TB1);
         expect(result).toBe(true);
       });
 
@@ -579,7 +584,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 0, side2Score: 40 },
         ];
         // Aggregate: 50-40
-        const result = determineWinningSide(sets, 'SET3X-S:T10A-F:TB1');
+        const result = determineWinningSide(sets, SET3X_T10A_TB1);
         expect(result).toBe(1);
       });
     });
