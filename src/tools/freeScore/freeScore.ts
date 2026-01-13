@@ -380,16 +380,6 @@ function parseTimedExactlyScore(
     
     // For final TB set, expect "1-0" or "0-1" only
     if (isTBSet) {
-      if (setString !== '1-0' && setString !== '0-1') {
-        errors.push({
-          position: 0,
-          message: `Final set TB: Invalid score "${setString}". TB1 only accepts "1-0" or "0-1"`,
-          expected: '1-0 or 0-1',
-          got: setString,
-        });
-        continue;
-      }
-      
       const side1 = setString === '1-0' ? 1 : 0;
       const side2 = setString === '0-1' ? 1 : 0;
       
@@ -398,6 +388,32 @@ function parseTimedExactlyScore(
         side2TiebreakScore: side2,
         setNumber,
         winningSide: side1 > side2 ? 1 : 2,
+      });
+    } else if (conditionalFinalTB && isFinalSetPosition && !matchesTBPattern) {
+      // Final set position with conditional TB, but score doesn't match TB pattern
+      // This could be an error (user provided wrong score) or just a regular set
+      // We'll treat it as regular set but flag if it causes validation issues
+      const match = setString.match(/^(\d+)-(\d+)$/);
+      
+      if (!match) {
+        errors.push({
+          position: 0,
+          message: `Final set: Invalid format "${setString}". Expected TB format "1-0" or "0-1", or regular "#-#"`,
+          expected: '1-0, 0-1, or #-#',
+          got: setString,
+        });
+        continue;
+      }
+      
+      // It's a valid numeric score, but in final set position
+      // We'll accept it as a timed set and validate later
+      const side1 = parseInt(match[1], 10);
+      const side2 = parseInt(match[2], 10);
+      
+      sets.push({
+        side1Score: side1,
+        side2Score: side2,
+        setNumber,
       });
     } else {
       // Regular timed set: Expect simple "#-#" format
@@ -430,9 +446,9 @@ function parseTimedExactlyScore(
     const timedSets = sets.filter(s => s.side1Score !== undefined);
     const hasTBSet = sets.some(s => s.side1TiebreakScore !== undefined);
     
-    // Only validate if we have the required number of timed sets
+    // Only validate if we have at least the required number of timed sets
     if (timedSets.length >= timedSetsCount) {
-      // Calculate aggregate from timed sets only
+      // Calculate aggregate from first N timed sets only
       const aggregateTotals = timedSets.slice(0, timedSetsCount).reduce(
         (totals, set) => {
           totals.side1 += set.side1Score || 0;
@@ -444,21 +460,37 @@ function parseTimedExactlyScore(
       
       const aggregateTied = aggregateTotals.side1 === aggregateTotals.side2;
       
-      if (aggregateTied && !hasTBSet && sets.length === timedSetsCount) {
-        // Aggregate tied but no TB provided
-        errors.push({
-          position: 0,
-          message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB required`,
-        });
+      // Check if there's a timed set in final position (should be TB)
+      const finalSetIsTimed = timedSets.length > timedSetsCount;
+      
+      if (aggregateTied && !hasTBSet) {
+        // Aggregate tied but no valid TB provided
+        if (finalSetIsTimed) {
+          // User provided a score in final position but it's not valid TB format
+          const finalSet = timedSets[timedSetsCount];
+          errors.push({
+            position: 0,
+            message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}). Final set score "${finalSet.side1Score}-${finalSet.side2Score}" invalid. TB1 only accepts "1-0" or "0-1"`,
+          });
+        } else {
+          // No TB provided at all
+          errors.push({
+            position: 0,
+            message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB required`,
+          });
+        }
       } else if (!aggregateTied && hasTBSet) {
         // Aggregate not tied but TB provided
         errors.push({
           position: 0,
           message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB not allowed`,
         });
-      } else if (aggregateTied && hasTBSet && sets.length === expectedSetCount) {
-        // Valid: aggregate tied and TB provided
-        // This is the expected case
+      } else if (!aggregateTied && finalSetIsTimed) {
+        // Aggregate not tied but extra timed sets provided (in final position)
+        errors.push({
+          position: 0,
+          message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), extra sets not allowed`,
+        });
       }
     }
   }

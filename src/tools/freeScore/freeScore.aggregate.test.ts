@@ -91,7 +91,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors[0].message).toContain('Too many sets');
+      expect(result.errors[0].message).toMatch(/Too many|extra sets/i);
     });
 
     it('should mark as incomplete with only 1 set', () => {
@@ -117,17 +117,20 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
 
     it('should accept 4 sets with TB when aggregate tied', () => {
-      const result = parseScore('30-25 20-30 25-25 1-0', format);
+      const result = parseScore('30-25 20-30 30-30 1-0', format);
       
-      // Aggregate: 75-75, TB decides
-      expect(result.valid).toBe(true);
-      expect(result.sets.length).toBe(4);
-      expect(result.matchComplete).toBe(true);
-      expect(result.sets[3].side1TiebreakScore).toBe(1);
+      // Aggregate: 80-85... wait, let me recalculate: 30+20+30=80 vs 25+30+30=85
+      // Need a proper tie: 30-30, 20-20, 25-25 → 75-75
+      const result2 = parseScore('30-30 20-20 25-25 1-0', format);
+      
+      expect(result2.valid).toBe(true);
+      expect(result2.sets.length).toBe(4);
+      expect(result2.matchComplete).toBe(true);
+      expect(result2.sets[3].side1TiebreakScore).toBe(1);
     });
 
     it('should reject 3 sets when aggregate tied (missing TB)', () => {
-      const result = parseScore('30-25 20-30 25-25', format);
+      const result = parseScore('30-30 20-20 25-25', format);
       
       // Aggregate: 75-75, TB required
       expect(result.valid).toBe(false);
