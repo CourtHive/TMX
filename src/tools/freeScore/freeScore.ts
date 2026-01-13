@@ -552,7 +552,7 @@ function parseTimedExactlyScore(
      (conditionalFinalTB && sets.length === timedSetsCount)) && 
     errors.length === 0;
   
-  // Format output
+  // Format output - all scores are points in timed sets, no brackets needed
   const formattedScore = sets.map(s => 
     s.side1TiebreakScore !== undefined 
       ? `${s.side1TiebreakScore}-${s.side2TiebreakScore}`
@@ -1241,7 +1241,7 @@ function formatScore(state: ParserState): string {
   const parts: string[] = [];
   
   for (const set of state.sets) {
-    // Check if this is a tiebreak-only set (no game scores, or games are 0-0)
+    // Check if this is a tiebreak-only set (no game scores, only tiebreak scores)
     const isTiebreakOnly = (!set.side1Score || set.side1Score === 0) && 
                           (!set.side2Score || set.side2Score === 0) &&
                           (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined);
