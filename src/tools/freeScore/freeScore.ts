@@ -235,7 +235,19 @@ function getTiebreakLimit(setFormat: any): number {
  * Check if character is a digit
  */
 function isDigit(char: string): boolean {
-  return /^\d$/.test(char);
+  return char >= '0' && char <= '9';
+}
+
+/**
+ * Check if string contains only digits
+ */
+function isAllDigits(str: string): boolean {
+  for (let i = 0; i < str.length; i++) {
+    if (!isDigit(str[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -393,9 +405,23 @@ function parseTimedExactlyScore(
       // Final set position with conditional TB, but score doesn't match TB pattern
       // This could be an error (user provided wrong score) or just a regular set
       // We'll treat it as regular set but flag if it causes validation issues
-      const match = setString.match(/^(\d+)-(\d+)$/);
+      const dashIndex = setString.indexOf('-');
       
-      if (!match) {
+      if (dashIndex === -1) {
+        errors.push({
+          position: 0,
+          message: `Final set: Invalid format "${setString}". Expected TB format "1-0" or "0-1", or regular "#-#"`,
+          expected: '1-0, 0-1, or #-#',
+          got: setString,
+        });
+        continue;
+      }
+      
+      const side1Str = setString.slice(0, dashIndex);
+      const side2Str = setString.slice(dashIndex + 1);
+      
+      // Validate both parts are numeric
+      if (!side1Str || !side2Str || !isAllDigits(side1Str) || !isAllDigits(side2Str)) {
         errors.push({
           position: 0,
           message: `Final set: Invalid format "${setString}". Expected TB format "1-0" or "0-1", or regular "#-#"`,
@@ -407,8 +433,8 @@ function parseTimedExactlyScore(
       
       // It's a valid numeric score, but in final set position
       // We'll accept it as a timed set and validate later
-      const side1 = parseInt(match[1], 10);
-      const side2 = parseInt(match[2], 10);
+      const side1 = parseInt(side1Str, 10);
+      const side2 = parseInt(side2Str, 10);
       
       sets.push({
         side1Score: side1,
@@ -417,9 +443,9 @@ function parseTimedExactlyScore(
       });
     } else {
       // Regular timed set: Expect simple "#-#" format
-      const match = setString.match(/^(\d+)-(\d+)$/);
+      const dashIndex = setString.indexOf('-');
       
-      if (!match) {
+      if (dashIndex === -1) {
         errors.push({
           position: 0,
           message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
@@ -429,8 +455,22 @@ function parseTimedExactlyScore(
         continue;
       }
       
-      const side1 = parseInt(match[1], 10);
-      const side2 = parseInt(match[2], 10);
+      const side1Str = setString.slice(0, dashIndex);
+      const side2Str = setString.slice(dashIndex + 1);
+      
+      // Validate both parts are numeric
+      if (!side1Str || !side2Str || !isAllDigits(side1Str) || !isAllDigits(side2Str)) {
+        errors.push({
+          position: 0,
+          message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
+          expected: '#-#',
+          got: setString,
+        });
+        continue;
+      }
+      
+      const side1 = parseInt(side1Str, 10);
+      const side2 = parseInt(side2Str, 10);
       
       sets.push({
         side1Score: side1,

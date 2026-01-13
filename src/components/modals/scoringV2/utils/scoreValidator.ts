@@ -125,7 +125,7 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
 
     // VALIDATE SET TYPES: Check that bracket notation matches format expectations
     // Split score string into individual sets, preserving tiebreak notation
-    const setStrings = scoreString.trim().match(/\S+/g) || [];
+    const setStrings = scoreString.trim().split(/\s+/).filter(s => s.length > 0);
     const parsed = matchUpFormatCode.parse(matchUpFormat);
     
     // Determine bestOf to check for deciding set
@@ -375,8 +375,9 @@ export function validateSetScores(
   let anyInvalid = false;
 
   // Determine bestOf to check for deciding set
-  const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
-  const bestOfSets = bestOfMatch ? Number.parseInt(bestOfMatch) : 3;
+  // Use parsed format to get exactly or bestOf value
+  const parsedFormat = matchUpFormatCode.parse(matchUpFormat);
+  const bestOfSets = parsedFormat?.exactly || parsedFormat?.bestOf || 3;
 
   for (let i = 0; i < sets.length; i++) {
     const setData = {
