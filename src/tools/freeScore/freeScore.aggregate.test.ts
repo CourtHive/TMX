@@ -222,4 +222,26 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       expect(result.incomplete).toBe(true);
     });
   });
+
+  describe('Realistic score examples', () => {
+    it('should accept 10-11 11-10 1-0 for SET3X-S:T10A-F:TB1', () => {
+      const result = parseScore('10-11 11-10 1-0', 'SET3X-S:T10A-F:TB1');
+      
+      // Aggregate: 21-21, tied → TB decides
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(3);
+      expect(result.matchComplete).toBe(true);
+    });
+
+    it('should accept 10-11 11-11 11-10 1-0 for SET4X-S:T10A-F:TB1', () => {
+      const result = parseScore('10-11 11-11 11-10 1-0', 'SET4X-S:T10A-F:TB1');
+      
+      // Aggregate: 32-32, tied → TB decides
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(4);
+      expect(result.matchComplete).toBe(true);
+      expect(result.sets[3].side1TiebreakScore).toBe(1);
+      expect(result.sets[3].side2TiebreakScore).toBe(0);
+    });
+  });
 });

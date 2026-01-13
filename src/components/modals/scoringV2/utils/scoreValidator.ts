@@ -123,28 +123,38 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
     // so it assigns winningSide to invalid sets like "5-0"
     // We need to strip winningSide from sets that fail our validation
 
-    // Determine bestOf to check for deciding set
-    const bestOfMatch = matchUpFormat?.match(/SET(\d+)/)?.[1];
-    const bestOfSets = bestOfMatch ? Number.parseInt(bestOfMatch) : 3;
-
     // VALIDATE SET TYPES: Check that bracket notation matches format expectations
     // Split score string into individual sets, preserving tiebreak notation
     const setStrings = scoreString.trim().match(/\S+/g) || [];
     const parsed = matchUpFormatCode.parse(matchUpFormat);
+    
+    // Determine bestOf to check for deciding set
+    // For exactly formats (SET3X, SET4X), use the exactly value
+    // For bestOf formats (SET3, SET5), use the bestOf value
+    const bestOfSets = parsed?.exactly || parsed?.bestOf || 3;
     const finalSetIsTiebreakOnly = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo && !parsed?.finalSetFormat?.setTo;
     const allSetsAreTiebreakOnly = parsed?.setFormat?.tiebreakSet?.tiebreakTo && !parsed?.setFormat?.setTo;
+    
+    // Check if this is a TB1 format (tiebreak to 1)
+    const finalSetIsTB1 = parsed?.finalSetFormat?.tiebreakSet?.tiebreakTo === 1;
+    const allSetsAreTB1 = parsed?.setFormat?.tiebreakSet?.tiebreakTo === 1;
 
     for (let i = 0; i < setStrings.length; i++) {
       const setString = setStrings[i];
       const setNumber = i + 1;
       const isDecidingSet = setNumber === bestOfSets;
       const hasBrackets = setString.startsWith('[') && setString.endsWith(']');
+      
+      // TB1 scores ("1-0" or "0-1") are allowed without brackets
+      // They're unambiguous and this is the natural notation for timed set aggregate scoring
+      const isTB1Score = (setString === '1-0' || setString === '0-1') && 
+                        ((isDecidingSet && finalSetIsTB1) || allSetsAreTB1);
 
       // Check if this set should be tiebreak-only based on format
       const shouldBeTiebreakOnly = allSetsAreTiebreakOnly || (isDecidingSet && finalSetIsTiebreakOnly);
       const shouldBeRegular = !shouldBeTiebreakOnly;
 
-      // Validate bracket notation matches format
+      // Validate bracket notation matches format (with TB1 exception)
       if (shouldBeRegular && hasBrackets) {
         return {
           isValid: false,
@@ -154,7 +164,7 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
         };
       }
 
-      if (shouldBeTiebreakOnly && !hasBrackets) {
+      if (shouldBeTiebreakOnly && !hasBrackets && !isTB1Score) {
         return {
           isValid: false,
           sets,
