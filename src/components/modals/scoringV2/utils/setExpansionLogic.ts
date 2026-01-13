@@ -26,11 +26,9 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
   const parsed = matchUpFormatCode.parse(matchUpFormat);
   
   if (!parsed) {
-    // Fallback to simple parsing if factory fails
-    const setMatch = matchUpFormat.match(/SET(\d+)/);
-    const bestOf = setMatch ? Number.parseInt(setMatch[1], 10) : 3;
-    const setsToWin = Math.ceil(bestOf / 2);
-    return { bestOf, setsToWin, isTimed: false, isExactlyFormat: false };
+    // If factory parse fails, return default SET3 format
+    // Never use regex to parse matchUpFormat strings!
+    return { bestOf: 3, setsToWin: 2, isTimed: false, isExactlyFormat: false };
   }
 
   // Check if this is a timed set format

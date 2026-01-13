@@ -45,9 +45,10 @@ describe('setExpansionLogic', () => {
       expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
-    it('should parse SET7 format (hypothetical)', () => {
+    it('should default to SET3 for unsupported formats (SET7)', () => {
+      // Factory parser doesn't support SET7, should default to SET3
       const result = parseMatchUpFormat('SET7-S:6/TB7');
-      expect(result).toMatchObject({ bestOf: 7, setsToWin: 4 });
+      expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
   });
 
