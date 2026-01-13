@@ -12,26 +12,22 @@ import {
   determineWinningSide,
 } from '../setExpansionLogic';
 import type { SetScore } from '../../types';
-
-// Aggregate scoring formats with conditional TB
-const SET3X_T10A_TB1 = 'SET3X-S:T10A-F:TB1';
-const SET3X_T10A_TB1_NOAD = 'SET3X-S:T10A-F:TB1NOAD';
-const SET4X_T10A_TB1 = 'SET4X-S:T10A-F:TB1';
+import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
 describe('setExpansionLogic', () => {
   describe('parseMatchUpFormat', () => {
     it('should parse SET3 format', () => {
-      const result = parseMatchUpFormat('SET3-S:6/TB7');
+      const result = parseMatchUpFormat(MATCH_FORMATS.SET3_S6_TB7);
       expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
     it('should parse SET5 format', () => {
-      const result = parseMatchUpFormat('SET5-S:6/TB7');
+      const result = parseMatchUpFormat(MATCH_FORMATS.SET5_S6_TB7);
       expect(result).toMatchObject({ bestOf: 5, setsToWin: 3 });
     });
 
     it('should parse SET1 format', () => {
-      const result = parseMatchUpFormat('SET1-S:TB10');
+      const result = parseMatchUpFormat(MATCH_FORMATS.SET1_S_TB10);
       expect(result).toMatchObject({ bestOf: 1, setsToWin: 1 });
     });
 
@@ -46,7 +42,7 @@ describe('setExpansionLogic', () => {
     });
 
     it('should parse complex format with finalSetFormat', () => {
-      const result = parseMatchUpFormat('SET3-S:6/TB7-F:TB10');
+      const result = parseMatchUpFormat(MATCH_FORMATS.SET3_S6_TB7_F_TB10);
       expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
@@ -445,7 +441,7 @@ describe('setExpansionLogic', () => {
 
   describe('Aggregate Scoring with Conditional TB', () => {
     describe('SET3X-S:T10A-F:TB1', () => {
-      const format = SET3X_T10A_TB1;
+      const format = MATCH_FORMATS.SET3X_T10A_TB1;
 
       it('should NOT expand after 2 sets when aggregate not tied (match complete)', () => {
         const sets: SetScore[] = [
@@ -510,7 +506,7 @@ describe('setExpansionLogic', () => {
     });
 
     describe('SET4X-S:T10A-F:TB1', () => {
-      const format = SET4X_T10A_TB1;
+      const format = MATCH_FORMATS.SET4X_T10A_TB1;
 
       it('should NOT expand after 3 sets when aggregate not tied', () => {
         const sets: SetScore[] = [
@@ -564,7 +560,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 50, side2Score: 100 },
         ];
         // Aggregate: 150-150, tied
-        const result = shouldExpandSets(sets, SET3X_T10A_TB1);
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3X_T10A_TB1);
         expect(result).toBe(true);
       });
 
@@ -574,7 +570,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 0, side2Score: 0 },
         ];
         // Aggregate: 0-0, tied
-        const result = shouldExpandSets(sets, SET3X_T10A_TB1);
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3X_T10A_TB1);
         expect(result).toBe(true);
       });
 
@@ -584,7 +580,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 0, side2Score: 40 },
         ];
         // Aggregate: 50-40
-        const result = determineWinningSide(sets, SET3X_T10A_TB1);
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3X_T10A_TB1);
         expect(result).toBe(1);
       });
     });

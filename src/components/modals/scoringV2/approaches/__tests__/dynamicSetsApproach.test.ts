@@ -19,11 +19,6 @@ import { describe, it, expect } from 'vitest';
 import { matchUpFormatCode } from 'tods-competition-factory';
 import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
-// Aggregate scoring formats with conditional TB
-const SET3X_T10A_TB1 = 'SET3X-S:T10A-F:TB1';
-const SET3X_T10A_TB1_NOAD = 'SET3X-S:T10A-F:TB1NOAD';
-const SET4X_T10A_TB1 = 'SET4X-S:T10A-F:TB1';
-
 /**
  * Replicates the getSetFormat logic from dynamicSetsApproach.ts
  * This function determines which format to use for a specific set index.
@@ -514,7 +509,7 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Aggregate Scoring with Conditional TB (SET3X-S:T10A-F:TB1)', () => {
-    const format = SET3X_T10A_TB1;
+    const format = MATCH_FORMATS.SET3X_T10A_TB1;
     const bestOf = 3;
 
     it('should use timed setFormat for set 1', () => {
@@ -548,7 +543,7 @@ describe('dynamicSets getSetFormat Logic', () => {
     });
 
     it('should handle SET3X-S:T10A-F:TB1NOAD', () => {
-      const formatNOAD = SET3X_T10A_TB1_NOAD;
+      const formatNOAD = MATCH_FORMATS.SET3X_T10A_TB1_NOAD;
       const finalSetFormat = getSetFormat(2, formatNOAD, bestOf);
       const info = getFormatInfo(finalSetFormat);
       
@@ -559,16 +554,27 @@ describe('dynamicSets getSetFormat Logic', () => {
   });
 
   describe('Aggregate Scoring SET4X (SET4X-S:T10A-F:TB1)', () => {
-    const format = SET4X_T10A_TB1;
+    const format = MATCH_FORMATS.SET4X_T10A_TB1;
     const bestOf = 4;
 
     it('should use timed setFormat for sets 1-3', () => {
-      for (let i = 0; i < 3; i++) {
-        const setFormat = getSetFormat(i, format, bestOf);
-        expect(setFormat?.timed).toBe(true);
-        expect(setFormat?.minutes).toBe(10);
-        expect(setFormat?.based).toBe('A');
-      }
+      // Test set 1
+      const setFormat0 = getSetFormat(0, format, bestOf);
+      expect(setFormat0?.timed).toBe(true);
+      expect(setFormat0?.minutes).toBe(10);
+      expect(setFormat0?.based).toBe('A');
+      
+      // Test set 2
+      const setFormat1 = getSetFormat(1, format, bestOf);
+      expect(setFormat1?.timed).toBe(true);
+      expect(setFormat1?.minutes).toBe(10);
+      expect(setFormat1?.based).toBe('A');
+      
+      // Test set 3
+      const setFormat2 = getSetFormat(2, format, bestOf);
+      expect(setFormat2?.timed).toBe(true);
+      expect(setFormat2?.minutes).toBe(10);
+      expect(setFormat2?.based).toBe('A');
     });
 
     it('should use finalSetFormat (TB1) for set 4', () => {
