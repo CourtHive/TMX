@@ -507,4 +507,71 @@ describe('dynamicSets getSetFormat Logic', () => {
       expect(info.setTo).toBe(6);
     });
   });
+
+  describe('Aggregate Scoring with Conditional TB (SET3X-S:T10A-F:TB1)', () => {
+    const format = 'SET3X-S:T10A-F:TB1';
+    const bestOf = 3;
+
+    it('should use timed setFormat for set 1', () => {
+      const setFormat = getSetFormat(0, format, bestOf);
+      const info = getFormatInfo(setFormat);
+      
+      expect(setFormat?.timed).toBe(true);
+      expect(setFormat?.minutes).toBe(10);
+      expect(setFormat?.based).toBe('A'); // Aggregate scoring
+      expect(info.isTiebreakOnly).toBe(false);
+    });
+
+    it('should use timed setFormat for set 2', () => {
+      const setFormat = getSetFormat(1, format, bestOf);
+      const info = getFormatInfo(setFormat);
+      
+      expect(setFormat?.timed).toBe(true);
+      expect(setFormat?.minutes).toBe(10);
+      expect(setFormat?.based).toBe('A');
+      expect(info.isTiebreakOnly).toBe(false);
+    });
+
+    it('should use finalSetFormat (TB1) for set 3', () => {
+      const setFormat = getSetFormat(2, format, bestOf);
+      const info = getFormatInfo(setFormat);
+      
+      // Set 3 is the final/deciding set, should use finalSetFormat
+      expect(info.isTiebreakOnly).toBe(true);
+      expect(info.tiebreakTo).toBe(1);
+      // Final set is TB only, no timed configuration
+    });
+
+    it('should handle SET3X-S:T10A-F:TB1NOAD', () => {
+      const formatNOAD = 'SET3X-S:T10A-F:TB1NOAD';
+      const finalSetFormat = getSetFormat(2, formatNOAD, bestOf);
+      const info = getFormatInfo(finalSetFormat);
+      
+      expect(info.isTiebreakOnly).toBe(true);
+      expect(info.tiebreakTo).toBe(1);
+      expect(finalSetFormat?.tiebreakSet?.NoAD).toBe(true);
+    });
+  });
+
+  describe('Aggregate Scoring SET4X (SET4X-S:T10A-F:TB1)', () => {
+    const format = 'SET4X-S:T10A-F:TB1';
+    const bestOf = 4;
+
+    it('should use timed setFormat for sets 1-3', () => {
+      for (let i = 0; i < 3; i++) {
+        const setFormat = getSetFormat(i, format, bestOf);
+        expect(setFormat?.timed).toBe(true);
+        expect(setFormat?.minutes).toBe(10);
+        expect(setFormat?.based).toBe('A');
+      }
+    });
+
+    it('should use finalSetFormat (TB1) for set 4', () => {
+      const setFormat = getSetFormat(3, format, bestOf);
+      const info = getFormatInfo(setFormat);
+      
+      expect(info.isTiebreakOnly).toBe(true);
+      expect(info.tiebreakTo).toBe(1);
+    });
+  });
 });
