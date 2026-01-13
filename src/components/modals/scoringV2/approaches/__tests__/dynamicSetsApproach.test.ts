@@ -10,7 +10,7 @@
  * - Tiebreak-only sets in final position
  */
 
-/* eslint-disable sonarjs/assertions-in-tests */
+ 
 /* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable sonarjs/different-types-comparison */
 /* eslint-disable no-constant-binary-expression */

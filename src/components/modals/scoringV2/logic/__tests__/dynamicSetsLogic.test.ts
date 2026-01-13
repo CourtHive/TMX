@@ -3,7 +3,7 @@
  * These tests verify business logic without any DOM dependencies
  */
 
-/* eslint-disable sonarjs/assertions-in-tests */
+ 
 /* eslint-disable sonarjs/no-duplicate-string */
 
 import { describe, it, expect } from 'vitest';

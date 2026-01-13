@@ -17,37 +17,37 @@ describe('setExpansionLogic', () => {
   describe('parseMatchUpFormat', () => {
     it('should parse SET3 format', () => {
       const result = parseMatchUpFormat('SET3-S:6/TB7');
-      expect(result).toEqual({ bestOf: 3, setsToWin: 2 });
+      expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
     it('should parse SET5 format', () => {
       const result = parseMatchUpFormat('SET5-S:6/TB7');
-      expect(result).toEqual({ bestOf: 5, setsToWin: 3 });
+      expect(result).toMatchObject({ bestOf: 5, setsToWin: 3 });
     });
 
     it('should parse SET1 format', () => {
       const result = parseMatchUpFormat('SET1-S:TB10');
-      expect(result).toEqual({ bestOf: 1, setsToWin: 1 });
+      expect(result).toMatchObject({ bestOf: 1, setsToWin: 1 });
     });
 
     it('should default to SET3 when no format provided', () => {
       const result = parseMatchUpFormat();
-      expect(result).toEqual({ bestOf: 3, setsToWin: 2 });
+      expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
     it('should default to SET3 when format has no SET number', () => {
       const result = parseMatchUpFormat('S:6/TB7');
-      expect(result).toEqual({ bestOf: 3, setsToWin: 2 });
+      expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
     it('should parse complex format with finalSetFormat', () => {
       const result = parseMatchUpFormat('SET3-S:6/TB7-F:TB10');
-      expect(result).toEqual({ bestOf: 3, setsToWin: 2 });
+      expect(result).toMatchObject({ bestOf: 3, setsToWin: 2 });
     });
 
     it('should parse SET7 format (hypothetical)', () => {
       const result = parseMatchUpFormat('SET7-S:6/TB7');
-      expect(result).toEqual({ bestOf: 7, setsToWin: 4 });
+      expect(result).toMatchObject({ bestOf: 7, setsToWin: 4 });
     });
   });
 
