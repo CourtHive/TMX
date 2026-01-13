@@ -436,4 +436,151 @@ describe('setExpansionLogic', () => {
       });
     });
   });
+
+  describe('Aggregate Scoring with Conditional TB', () => {
+    describe('SET3X-S:T10A-F:TB1', () => {
+      const format = 'SET3X-S:T10A-F:TB1';
+
+      it('should NOT expand after 2 sets when aggregate not tied (match complete)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 }, // Set 1
+          { side1Score: 20, side2Score: 30 }, // Set 2
+        ];
+        // Aggregate: 50-55, side 2 wins
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(false);
+      });
+
+      it('should expand after 2 sets when aggregate tied (TB required)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 }, // Set 1
+          { side1Score: 25, side2Score: 30 }, // Set 2
+        ];
+        // Aggregate: 55-55, tied → need TB
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(true);
+      });
+
+      it('should NOT expand after 3 sets with TB (match complete)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 }, // Set 1
+          { side1Score: 25, side2Score: 30 }, // Set 2
+          { side1TiebreakScore: 1, side2TiebreakScore: 0 }, // Set 3 TB
+        ];
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(false);
+      });
+
+      it('should determine winningSide based on aggregate (not sets won)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 20, side2Score: 30 },
+        ];
+        // Aggregate: 50-55, side 2 wins (even though sets are 1-1)
+        const result = determineWinningSide(sets, format);
+        expect(result).toBe(2);
+      });
+
+      it('should determine winningSide from TB when aggregate tied', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 25, side2Score: 30 },
+          { side1TiebreakScore: 1, side2TiebreakScore: 0 },
+        ];
+        // Aggregate: 55-55, TB decides → side 1 wins
+        const result = determineWinningSide(sets, format);
+        expect(result).toBe(1);
+      });
+
+      it('should return undefined when aggregate tied but no TB yet', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 25, side2Score: 30 },
+        ];
+        // Aggregate: 55-55, tied, no TB yet
+        const result = determineWinningSide(sets, format);
+        expect(result).toBeUndefined();
+      });
+    });
+
+    describe('SET4X-S:T10A-F:TB1', () => {
+      const format = 'SET4X-S:T10A-F:TB1';
+
+      it('should NOT expand after 3 sets when aggregate not tied', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 20, side2Score: 30 },
+          { side1Score: 45, side2Score: 50 },
+        ];
+        // Aggregate: 95-105, side 2 wins
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(false);
+      });
+
+      it('should expand after 3 sets when aggregate tied', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 30 },
+          { side1Score: 20, side2Score: 20 },
+          { side1Score: 25, side2Score: 25 },
+        ];
+        // Aggregate: 75-75, tied → need TB
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(true);
+      });
+
+      it('should NOT expand after 4 sets with TB', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 30 },
+          { side1Score: 20, side2Score: 20 },
+          { side1Score: 25, side2Score: 25 },
+          { side1TiebreakScore: 0, side2TiebreakScore: 1 },
+        ];
+        const result = shouldExpandSets(sets, format);
+        expect(result).toBe(false);
+      });
+
+      it('should determine winningSide from aggregate', () => {
+        const sets: SetScore[] = [
+          { side1Score: 30, side2Score: 25 },
+          { side1Score: 20, side2Score: 30 },
+          { side1Score: 45, side2Score: 50 },
+        ];
+        // Aggregate: 95-105
+        const result = determineWinningSide(sets, format);
+        expect(result).toBe(2);
+      });
+    });
+
+    describe('Edge Cases', () => {
+      it('should handle high aggregate scores (100+ points)', () => {
+        const sets: SetScore[] = [
+          { side1Score: 100, side2Score: 50 },
+          { side1Score: 50, side2Score: 100 },
+        ];
+        // Aggregate: 150-150, tied
+        const result = shouldExpandSets(sets, 'SET3X-S:T10A-F:TB1');
+        expect(result).toBe(true);
+      });
+
+      it('should handle aggregate ties at zero', () => {
+        const sets: SetScore[] = [
+          { side1Score: 0, side2Score: 0 },
+          { side1Score: 0, side2Score: 0 },
+        ];
+        // Aggregate: 0-0, tied
+        const result = shouldExpandSets(sets, 'SET3X-S:T10A-F:TB1');
+        expect(result).toBe(true);
+      });
+
+      it('should handle one-sided aggregate wins', () => {
+        const sets: SetScore[] = [
+          { side1Score: 50, side2Score: 0 },
+          { side1Score: 0, side2Score: 40 },
+        ];
+        // Aggregate: 50-40
+        const result = determineWinningSide(sets, 'SET3X-S:T10A-F:TB1');
+        expect(result).toBe(1);
+      });
+    });
+  });
 });
