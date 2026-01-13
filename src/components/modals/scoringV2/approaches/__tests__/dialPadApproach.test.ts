@@ -5,7 +5,7 @@
  * These tests cover the extractable pure logic that was fixed today.
  */
 
-/* eslint-disable sonarjs/assertions-in-tests */
+ 
 
 import { describe, it, expect } from 'vitest';
 

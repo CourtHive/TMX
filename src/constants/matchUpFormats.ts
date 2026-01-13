@@ -40,6 +40,11 @@ export const MATCH_FORMATS = {
   
   // Fast4 format
   FAST4: 'SET5-S:4/NOAD',
+  
+  // Timed sets with aggregate scoring and conditional TB
+  SET3X_T10A_TB1: 'SET3X-S:T10A-F:TB1',
+  SET3X_T10A_TB1_NOAD: 'SET3X-S:T10A-F:TB1NOAD',
+  SET4X_T10A_TB1: 'SET4X-S:T10A-F:TB1',
 } as const;
 
 // Type helper for format values
