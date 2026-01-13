@@ -1,16 +1,12 @@
 /**
  * Test suite for set expansion logic
- * 
+ *
  * Tests the logic that determines when to expand set inputs in dynamicSets approach.
  * Critical for proper match progression and winner determination.
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  parseMatchUpFormat,
-  shouldExpandSets,
-  determineWinningSide,
-} from '../setExpansionLogic';
+import { parseMatchUpFormat, shouldExpandSets, determineWinningSide } from '../setExpansionLogic';
 import type { SetScore } from '../../types';
 import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
@@ -57,15 +53,13 @@ describe('setExpansionLogic', () => {
     describe('Basic Expansion Logic', () => {
       it('should expand when no sets exist (initial state)', () => {
         const sets: SetScore[] = [];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(true);
       });
 
       it('should expand after first set is complete', () => {
-        const sets: SetScore[] = [
-          { side1Score: 6, side2Score: 4 },
-        ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const sets: SetScore[] = [{ side1Score: 6, side2Score: 4 }];
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(true);
       });
 
@@ -74,7 +68,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 4, side2Score: 6 },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(true);
       });
 
@@ -83,7 +77,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false);
       });
 
@@ -93,7 +87,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 4, side2Score: 6 },
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false);
       });
 
@@ -103,7 +97,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 4, side2Score: 6 },
           { side1Score: 3, side2Score: 4 },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false); // Already at 3 sets (bestOf)
       });
     });
@@ -114,7 +108,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 3, side2Score: undefined },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false);
       });
 
@@ -123,7 +117,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: null as any, side2Score: 4 },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false);
       });
 
@@ -132,7 +126,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 4, side2Score: null as any },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false);
       });
 
@@ -141,17 +135,15 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: undefined, side2Score: undefined },
         ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(false);
       });
     });
 
     describe('Best-of-5 Matches', () => {
       it('should expand after 1-0 in best-of-5', () => {
-        const sets: SetScore[] = [
-          { side1Score: 6, side2Score: 4 },
-        ];
-        const result = shouldExpandSets(sets, 'SET5-S:6/TB7');
+        const sets: SetScore[] = [{ side1Score: 6, side2Score: 4 }];
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(true);
       });
 
@@ -160,7 +152,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 4, side2Score: 6 },
         ];
-        const result = shouldExpandSets(sets, 'SET5-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(true);
       });
 
@@ -170,7 +162,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 4, side2Score: 6 },
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = shouldExpandSets(sets, 'SET5-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(true);
       });
 
@@ -181,7 +173,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 3 },
           { side1Score: 3, side2Score: 6 },
         ];
-        const result = shouldExpandSets(sets, 'SET5-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(true);
       });
 
@@ -191,7 +183,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 3 },
           { side1Score: 6, side2Score: 2 },
         ];
-        const result = shouldExpandSets(sets, 'SET5-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(false);
       });
 
@@ -203,12 +195,12 @@ describe('setExpansionLogic', () => {
           { side1Score: 3, side2Score: 6 },
           { side1Score: 6, side2Score: 4 },
         ];
-        const result = shouldExpandSets(sets, 'SET5-S:6/TB7');
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(false);
       });
     });
 
-    describe('Edge Cases', () => {
+    describe('Edge Cases 1', () => {
       it('should handle empty sets array', () => {
         const sets: SetScore[] = [];
         const result = shouldExpandSets(sets);
@@ -226,10 +218,8 @@ describe('setExpansionLogic', () => {
       });
 
       it('should handle 0-0 scores as complete', () => {
-        const sets: SetScore[] = [
-          { side1Score: 0, side2Score: 0 },
-        ];
-        const result = shouldExpandSets(sets, 'SET3-S:6/TB7');
+        const sets: SetScore[] = [{ side1Score: 0, side2Score: 0 }];
+        const result = shouldExpandSets(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(true); // 0-0 is technically complete (both filled)
       });
     });
@@ -242,7 +232,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(1);
       });
 
@@ -251,7 +241,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 4, side2Score: 6 },
           { side1Score: 3, side2Score: 6 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(2);
       });
 
@@ -261,7 +251,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 4, side2Score: 6 },
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(1);
       });
 
@@ -271,7 +261,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 3, side2Score: 6 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(2);
       });
 
@@ -280,15 +270,13 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 4 },
           { side1Score: 4, side2Score: 6 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined();
       });
 
       it('should return undefined after only 1 set', () => {
-        const sets: SetScore[] = [
-          { side1Score: 6, side2Score: 4 },
-        ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const sets: SetScore[] = [{ side1Score: 6, side2Score: 4 }];
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined();
       });
     });
@@ -300,7 +288,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 3 },
           { side1Score: 6, side2Score: 2 },
         ];
-        const result = determineWinningSide(sets, 'SET5-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(1);
       });
 
@@ -311,7 +299,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 3, side2Score: 6 },
           { side1Score: 2, side2Score: 6 },
         ];
-        const result = determineWinningSide(sets, 'SET5-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(2);
       });
 
@@ -323,7 +311,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 3, side2Score: 6 },
           { side1Score: 6, side2Score: 4 },
         ];
-        const result = determineWinningSide(sets, 'SET5-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBe(1);
       });
 
@@ -334,7 +322,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: 3 },
           { side1Score: 3, side2Score: 6 },
         ];
-        const result = determineWinningSide(sets, 'SET5-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBeUndefined();
       });
 
@@ -344,7 +332,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 4, side2Score: 6 },
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = determineWinningSide(sets, 'SET5-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET5_S6_TB7);
         expect(result).toBeUndefined();
       });
     });
@@ -355,7 +343,7 @@ describe('setExpansionLogic', () => {
           { side1Score: 7, side2Score: 6 }, // side1 wins with tiebreak
           { side1Score: 6, side2Score: 3 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(1);
       });
 
@@ -365,25 +353,25 @@ describe('setExpansionLogic', () => {
           { side1Score: 3, side2Score: 6 },
           { side1Score: 7, side2Score: 5 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:8/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S8_TB7);
         expect(result).toBe(1);
       });
     });
 
-    describe('Edge Cases', () => {
+    describe('Edge Cases 2', () => {
       it('should return undefined for empty sets', () => {
         const sets: SetScore[] = [];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined();
       });
 
       it('should return undefined for null sets', () => {
-        const result = determineWinningSide(null as any, 'SET3-S:6/TB7');
+        const result = determineWinningSide(null as any, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined();
       });
 
       it('should return undefined for undefined sets', () => {
-        const result = determineWinningSide(undefined as any, 'SET3-S:6/TB7');
+        const result = determineWinningSide(undefined as any, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined();
       });
 
@@ -391,15 +379,13 @@ describe('setExpansionLogic', () => {
         const sets: SetScore[] = [
           { side1Score: 6, side2Score: 6 }, // Invalid but test handling
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined(); // No winner
       });
 
       it('should handle 0-0 scores', () => {
-        const sets: SetScore[] = [
-          { side1Score: 0, side2Score: 0 },
-        ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const sets: SetScore[] = [{ side1Score: 0, side2Score: 0 }];
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined(); // No winner in tied sets
       });
 
@@ -408,7 +394,7 @@ describe('setExpansionLogic', () => {
           { side1Score: undefined, side2Score: undefined },
           { side1Score: 6, side2Score: 4 },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBeUndefined(); // Only 1 complete set
       });
 
@@ -417,23 +403,21 @@ describe('setExpansionLogic', () => {
           { side1Score: 6, side2Score: null as any },
           { side1Score: 6, side2Score: null as any },
         ];
-        const result = determineWinningSide(sets, 'SET3-S:6/TB7');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET3_S6_TB7);
         expect(result).toBe(1); // side1 wins 2-0 (treating null as 0)
       });
     });
 
     describe('Best-of-1 (Tiebreak Match)', () => {
       it('should determine winner in best-of-1', () => {
-        const sets: SetScore[] = [
-          { side1Score: 10, side2Score: 8 },
-        ];
-        const result = determineWinningSide(sets, 'SET1-S:TB10');
+        const sets: SetScore[] = [{ side1Score: 10, side2Score: 8 }];
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET1_S_TB10);
         expect(result).toBe(1);
       });
 
       it('should return undefined for incomplete best-of-1', () => {
         const sets: SetScore[] = [];
-        const result = determineWinningSide(sets, 'SET1-S:TB10');
+        const result = determineWinningSide(sets, MATCH_FORMATS.SET1_S_TB10);
         expect(result).toBeUndefined();
       });
     });
@@ -553,7 +537,7 @@ describe('setExpansionLogic', () => {
       });
     });
 
-    describe('Edge Cases', () => {
+    describe('Edge Cases 3', () => {
       it('should handle high aggregate scores (100+ points)', () => {
         const sets: SetScore[] = [
           { side1Score: 100, side2Score: 50 },

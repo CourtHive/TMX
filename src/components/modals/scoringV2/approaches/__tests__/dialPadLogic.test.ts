@@ -163,33 +163,33 @@ const testCases: TestCase[] = [
   // Note: User MUST type minus explicitly for tiebreak-only sets
   {
     name: 'should handle SET3 F:TB10 complete match 3-6 6-3 [8-10]',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     keySequence: [3, 6, 6, 3, 8, '-', 1, 0],
     expectedScoreString: '3-6 6-3 [8-10]',
-    matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   },
   {
     name: 'should handle SET3 F:TB10 complete match 6-1 7-5 [11-9]',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     keySequence: [6, 1, 7, 5, 1, 1, '-', 9],
     expectedScoreString: '6-1 7-5 [11-9]',
-    matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   },
   {
     name: 'should handle SET3 F:TB10 incomplete third set 1-6 7-5 9',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     keySequence: [1, 6, 7, 5, 9],
     expectedScoreString: '1-6 7-5 9',
-    matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   },
   {
     name: 'should handle SET3 F:TB10 third set with minus (trailing minus not shown)',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     keySequence: [1, 6, 7, 5, 9, '-'],
     expectedScoreString: '1-6 7-5 9',
-    matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   },
   {
     name: 'should handle SET3 F:TB10 extended tiebreak 6-4 4-6 [11-13]',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     keySequence: [6, 4, 4, 6, 1, 1, '-', 1, 3],
     expectedScoreString: '6-4 4-6 [11-13]',
-    matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   },
 
   // Final set tiebreak format (F:TB7) - third set is tiebreak-only
@@ -211,15 +211,14 @@ const testCases: TestCase[] = [
   // These tests verify compact digit sequences work correctly
   {
     name: 'should handle SET3 F:TB10 (simpler case) 6-4 4-6 [10-8]',
+    matchUpFormat: MATCH_FORMATS.SET3_S6_TB7_F_TB10,
     keySequence: [6, 4, 4, 6, 1, 0, '-', 8],
     expectedScoreString: '6-4 4-6 [10-8]',
-    matchUpFormat: 'SET3-S:6/TB7-F:TB10',
   },
 ];
 
 describe('Dial Pad Score Entry Logic', () => {
   testCases.forEach((testCase) => {
-     
     it(testCase.name, () => {
       // Join keySequence - special characters need handling
       let digits = '';
