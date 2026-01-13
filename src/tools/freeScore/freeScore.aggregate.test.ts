@@ -12,7 +12,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 2 sets when aggregate not tied (side 2 wins)', () => {
       const result = parseScore('30-25 20-30', format);
-      
+
       // Aggregate: 50-55, side 2 wins, no TB needed
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(2);
@@ -22,7 +22,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 2 sets when aggregate not tied (side 1 wins)', () => {
       const result = parseScore('30-25 45-55', format);
-      
+
       // Aggregate: 75-80, side 2 wins
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(2);
@@ -31,7 +31,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 3 sets with TB when aggregate tied', () => {
       const result = parseScore('30-25 25-30 1-0', format);
-      
+
       // Aggregate: 55-55, TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -42,7 +42,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 3 sets with TB score 0-1', () => {
       const result = parseScore('30-25 25-30 0-1', format);
-      
+
       // Aggregate: 55-55, TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -52,7 +52,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject 2 sets when aggregate tied (missing TB)', () => {
       const result = parseScore('30-25 25-30', format);
-      
+
       // Aggregate: 55-55, TB required
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -62,7 +62,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject 3 sets when aggregate not tied (TB not allowed)', () => {
       const result = parseScore('30-25 20-30 1-0', format);
-      
+
       // Aggregate: 50-55, side 2 wins, TB not allowed
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -72,7 +72,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject invalid TB scores (2-0)', () => {
       const result = parseScore('30-25 25-30 2-0', format);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].message).toContain('TB1 only accepts "1-0" or "0-1"');
@@ -80,7 +80,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject invalid TB scores (7-5)', () => {
       const result = parseScore('30-25 25-30 7-5', format);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].message).toContain('TB1 only accepts');
@@ -88,7 +88,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject 4 sets (too many)', () => {
       const result = parseScore('30-25 20-30 25-25 1-0', format);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].message).toMatch(/Too many|extra sets/i);
@@ -96,7 +96,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should mark as incomplete with only 1 set', () => {
       const result = parseScore('30-25', format);
-      
+
       expect(result.valid).toBe(false);
       expect(result.incomplete).toBe(true);
       expect(result.matchComplete).toBe(false);
@@ -109,7 +109,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 3 sets when aggregate not tied', () => {
       const result = parseScore('30-25 20-30 45-50', format);
-      
+
       // Aggregate: 95-105, side 2 wins
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -118,11 +118,13 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 4 sets with TB when aggregate tied', () => {
       const result = parseScore('30-25 20-30 30-30 1-0', format);
-      
+      expect(result.errors.length).toBe(1);
+      expect(result.valid).toBe(false);
+
       // Aggregate: 80-85... wait, let me recalculate: 30+20+30=80 vs 25+30+30=85
       // Need a proper tie: 30-30, 20-20, 25-25 → 75-75
       const result2 = parseScore('30-30 20-20 25-25 1-0', format);
-      
+
       expect(result2.valid).toBe(true);
       expect(result2.sets.length).toBe(4);
       expect(result2.matchComplete).toBe(true);
@@ -131,7 +133,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject 3 sets when aggregate tied (missing TB)', () => {
       const result = parseScore('30-30 20-20 25-25', format);
-      
+
       // Aggregate: 75-75, TB required
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('Aggregate tied');
@@ -139,7 +141,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should reject 4 sets when aggregate not tied (TB not allowed)', () => {
       const result = parseScore('30-25 20-30 30-20 1-0', format);
-      
+
       // Aggregate: 80-75, TB not allowed
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('not tied');
@@ -147,7 +149,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should mark as incomplete with only 2 sets', () => {
       const result = parseScore('30-25 20-30', format);
-      
+
       expect(result.valid).toBe(false);
       expect(result.incomplete).toBe(true);
       expect(result.matchComplete).toBe(false);
@@ -159,14 +161,14 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept TB with NoAD format (same validation as TB1)', () => {
       const result = parseScore('30-25 25-30 1-0', format);
-      
+
       expect(result.valid).toBe(true);
       expect(result.sets[2].side1TiebreakScore).toBe(1);
     });
 
     it('should reject invalid TB scores for NoAD', () => {
       const result = parseScore('30-25 25-30 2-1', format);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('TB1 only accepts');
     });
@@ -177,7 +179,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should handle aggregate tied at 0-0', () => {
       const result = parseScore('0-0 0-1', format);
-      
+
       // Aggregate: 0-1, side 2 wins
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(2);
@@ -185,7 +187,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should handle high aggregate scores', () => {
       const result = parseScore('100-50 50-100 1-0', format);
-      
+
       // Aggregate: 150-150, TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -193,7 +195,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should handle one-sided match (50-0 0-40)', () => {
       const result = parseScore('50-0 0-40', format);
-      
+
       // Aggregate: 50-40, side 1 wins
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(2);
@@ -205,7 +207,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     it('should still work for SET3X-S:T10 (no aggregate)', () => {
       const format = 'SET3X-S:T10';
       const result = parseScore('30-25 20-30 35-30', format);
-      
+
       // Regular timed, all 3 sets required
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -214,7 +216,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     it('should reject 2 sets for SET3X-S:T10 (no conditional logic)', () => {
       const format = 'SET3X-S:T10';
       const result = parseScore('30-25 20-30', format);
-      
+
       // Not aggregate, so all 3 sets required
       expect(result.valid).toBe(false);
       expect(result.incomplete).toBe(true);
