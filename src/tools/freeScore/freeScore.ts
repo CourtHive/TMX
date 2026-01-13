@@ -328,6 +328,9 @@ function isTiebreakComplete(
 /**
  * Simple parser for timed sets with exactly format
  * For formats like SET3X-S:T10, expects exactly N sets in "#-#" format
+ * For aggregate with conditional TB (SET3X-S:T10A-F:TB1):
+ *   - Accepts N-1 sets if aggregate not tied (match ends early)
+ *   - Requires N sets with final TB if aggregate tied
  * No smart logic - just parse literal "#-# #-# #-#" patterns
  */
 function parseTimedExactlyScore(
@@ -336,6 +339,12 @@ function parseTimedExactlyScore(
 ): ParseResult {
   const expectedSetCount = parsedFormat.exactly || parsedFormat.bestOf || 1;
   const trimmedInput = input.trim();
+  
+  // Check if this is aggregate scoring with conditional final TB
+  const isAggregateScoring = 
+    parsedFormat.setFormat?.based === 'A' || parsedFormat.finalSetFormat?.based === 'A';
+  const hasFinalTiebreak = parsedFormat.finalSetFormat?.tiebreakSet?.tiebreakTo !== undefined;
+  const conditionalFinalTB = isAggregateScoring && hasFinalTiebreak;
   
   if (!trimmedInput) {
     return {
@@ -346,7 +355,9 @@ function parseTimedExactlyScore(
       errors: [],
       warnings: [],
       ambiguities: [],
-      suggestions: [`Enter ${expectedSetCount} sets in format: #-# #-# ...`],
+      suggestions: conditionalFinalTB 
+        ? [`Enter ${expectedSetCount - 1} timed sets (final TB only if tied)`]
+        : [`Enter ${expectedSetCount} sets in format: #-# #-# ...`],
       incomplete: true,
       matchComplete: false,
     };
@@ -356,51 +367,128 @@ function parseTimedExactlyScore(
   const setStrings = trimmedInput.split(/\s+/);
   const sets: ParsedSet[] = [];
   const errors: ParseError[] = [];
+  const timedSetsCount = conditionalFinalTB ? expectedSetCount - 1 : expectedSetCount;
   
   for (let i = 0; i < setStrings.length; i++) {
     const setString = setStrings[i];
     const setNumber = i + 1;
+    // For conditional TB: Only the set at position expectedSetCount can be TB
+    // AND it must match the TB pattern (1-0 or 0-1)
+    const isFinalSetPosition = setNumber === expectedSetCount;
+    const matchesTBPattern = setString === '1-0' || setString === '0-1';
+    const isTBSet = conditionalFinalTB && isFinalSetPosition && matchesTBPattern;
     
-    // Expect simple "#-#" format (no tiebreaks for timed sets)
-    const match = setString.match(/^(\d+)-(\d+)$/);
-    
-    if (!match) {
-      errors.push({
-        position: 0,
-        message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
-        expected: '#-#',
-        got: setString,
+    // For final TB set, expect "1-0" or "0-1" only
+    if (isTBSet) {
+      if (setString !== '1-0' && setString !== '0-1') {
+        errors.push({
+          position: 0,
+          message: `Final set TB: Invalid score "${setString}". TB1 only accepts "1-0" or "0-1"`,
+          expected: '1-0 or 0-1',
+          got: setString,
+        });
+        continue;
+      }
+      
+      const side1 = setString === '1-0' ? 1 : 0;
+      const side2 = setString === '0-1' ? 1 : 0;
+      
+      sets.push({
+        side1TiebreakScore: side1,
+        side2TiebreakScore: side2,
+        setNumber,
+        winningSide: side1 > side2 ? 1 : 2,
       });
-      continue;
+    } else {
+      // Regular timed set: Expect simple "#-#" format
+      const match = setString.match(/^(\d+)-(\d+)$/);
+      
+      if (!match) {
+        errors.push({
+          position: 0,
+          message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
+          expected: '#-#',
+          got: setString,
+        });
+        continue;
+      }
+      
+      const side1 = parseInt(match[1], 10);
+      const side2 = parseInt(match[2], 10);
+      
+      sets.push({
+        side1Score: side1,
+        side2Score: side2,
+        setNumber,
+        // No winningSide for timed sets - determined externally
+      });
     }
+  }
+  
+  // For aggregate with conditional TB, validate logic
+  if (conditionalFinalTB && errors.length === 0) {
+    const timedSets = sets.filter(s => s.side1Score !== undefined);
+    const hasTBSet = sets.some(s => s.side1TiebreakScore !== undefined);
     
-    const side1 = parseInt(match[1], 10);
-    const side2 = parseInt(match[2], 10);
-    
-    sets.push({
-      side1Score: side1,
-      side2Score: side2,
-      setNumber,
-      // No winningSide for timed sets - determined externally
-    });
+    // Only validate if we have the required number of timed sets
+    if (timedSets.length >= timedSetsCount) {
+      // Calculate aggregate from timed sets only
+      const aggregateTotals = timedSets.slice(0, timedSetsCount).reduce(
+        (totals, set) => {
+          totals.side1 += set.side1Score || 0;
+          totals.side2 += set.side2Score || 0;
+          return totals;
+        },
+        { side1: 0, side2: 0 }
+      );
+      
+      const aggregateTied = aggregateTotals.side1 === aggregateTotals.side2;
+      
+      if (aggregateTied && !hasTBSet && sets.length === timedSetsCount) {
+        // Aggregate tied but no TB provided
+        errors.push({
+          position: 0,
+          message: `Aggregate tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB required`,
+        });
+      } else if (!aggregateTied && hasTBSet) {
+        // Aggregate not tied but TB provided
+        errors.push({
+          position: 0,
+          message: `Aggregate not tied (${aggregateTotals.side1}-${aggregateTotals.side2}), final TB not allowed`,
+        });
+      } else if (aggregateTied && hasTBSet && sets.length === expectedSetCount) {
+        // Valid: aggregate tied and TB provided
+        // This is the expected case
+      }
+    }
   }
   
   // Validate set count
-  if (sets.length > expectedSetCount) {
+  const minSets = conditionalFinalTB ? timedSetsCount : expectedSetCount;
+  const maxSets = expectedSetCount;
+  
+  if (sets.length > maxSets) {
     errors.push({
       position: 0,
-      message: `Too many sets: got ${sets.length}, expected exactly ${expectedSetCount}`,
+      message: `Too many sets: got ${sets.length}, expected ${conditionalFinalTB ? `${minSets}-${maxSets}` : maxSets}`,
     });
   }
   
-  const incomplete = sets.length < expectedSetCount && errors.length === 0;
-  const matchComplete = sets.length === expectedSetCount && errors.length === 0;
+  const incomplete = sets.length < minSets && errors.length === 0;
+  const matchComplete = 
+    (sets.length === expectedSetCount || 
+     (conditionalFinalTB && sets.length === timedSetsCount)) && 
+    errors.length === 0;
   
   // Format output
-  const formattedScore = sets.map(s => `${s.side1Score}-${s.side2Score}`).join(' ');
+  const formattedScore = sets.map(s => 
+    s.side1TiebreakScore !== undefined 
+      ? `${s.side1TiebreakScore}-${s.side2TiebreakScore}`
+      : `${s.side1Score}-${s.side2Score}`
+  ).join(' ');
   
   return {
-    valid: errors.length === 0 && sets.length === expectedSetCount,
+    valid: errors.length === 0 && (sets.length === minSets || sets.length === maxSets),
     formattedScore,
     sets,
     confidence: errors.length === 0 ? 1.0 : 0.0,
@@ -408,7 +496,10 @@ function parseTimedExactlyScore(
     warnings: [],
     ambiguities: [],
     suggestions: incomplete ? 
-      [`Need ${expectedSetCount - sets.length} more set${expectedSetCount - sets.length === 1 ? '' : 's'}`] : [],
+      conditionalFinalTB
+        ? [`Enter ${minSets - sets.length} more timed set${minSets - sets.length === 1 ? '' : 's'} (or final TB if aggregate tied)`]
+        : [`Need ${expectedSetCount - sets.length} more set${expectedSetCount - sets.length === 1 ? '' : 's'}`]
+      : [],
     incomplete,
     matchComplete,
   };
