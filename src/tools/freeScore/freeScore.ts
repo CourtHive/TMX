@@ -325,6 +325,95 @@ function isTiebreakComplete(
   return maxScore - minScore >= 2;
 }
 
+/**
+ * Simple parser for timed sets with exactly format
+ * For formats like SET3X-S:T10, expects exactly N sets in "#-#" format
+ * No smart logic - just parse literal "#-# #-# #-#" patterns
+ */
+function parseTimedExactlyScore(
+  input: string,
+  parsedFormat: ParsedFormat
+): ParseResult {
+  const expectedSetCount = parsedFormat.exactly || parsedFormat.bestOf || 1;
+  const trimmedInput = input.trim();
+  
+  if (!trimmedInput) {
+    return {
+      valid: false,
+      formattedScore: '',
+      sets: [],
+      confidence: 1.0,
+      errors: [],
+      warnings: [],
+      ambiguities: [],
+      suggestions: [`Enter ${expectedSetCount} sets in format: #-# #-# ...`],
+      incomplete: true,
+      matchComplete: false,
+    };
+  }
+  
+  // Split by whitespace to get individual set scores
+  const setStrings = trimmedInput.split(/\s+/);
+  const sets: ParsedSet[] = [];
+  const errors: ParseError[] = [];
+  
+  for (let i = 0; i < setStrings.length; i++) {
+    const setString = setStrings[i];
+    const setNumber = i + 1;
+    
+    // Expect simple "#-#" format (no tiebreaks for timed sets)
+    const match = setString.match(/^(\d+)-(\d+)$/);
+    
+    if (!match) {
+      errors.push({
+        position: 0,
+        message: `Set ${setNumber}: Invalid format "${setString}". Expected "#-#" (e.g., "5-3")`,
+        expected: '#-#',
+        got: setString,
+      });
+      continue;
+    }
+    
+    const side1 = parseInt(match[1], 10);
+    const side2 = parseInt(match[2], 10);
+    
+    sets.push({
+      side1Score: side1,
+      side2Score: side2,
+      setNumber,
+      // No winningSide for timed sets - determined externally
+    });
+  }
+  
+  // Validate set count
+  if (sets.length > expectedSetCount) {
+    errors.push({
+      position: 0,
+      message: `Too many sets: got ${sets.length}, expected exactly ${expectedSetCount}`,
+    });
+  }
+  
+  const incomplete = sets.length < expectedSetCount && errors.length === 0;
+  const matchComplete = sets.length === expectedSetCount && errors.length === 0;
+  
+  // Format output
+  const formattedScore = sets.map(s => `${s.side1Score}-${s.side2Score}`).join(' ');
+  
+  return {
+    valid: errors.length === 0 && sets.length === expectedSetCount,
+    formattedScore,
+    sets,
+    confidence: errors.length === 0 ? 1.0 : 0.0,
+    errors,
+    warnings: [],
+    ambiguities: [],
+    suggestions: incomplete ? 
+      [`Need ${expectedSetCount - sets.length} more set${expectedSetCount - sets.length === 1 ? '' : 's'}`] : [],
+    incomplete,
+    matchComplete,
+  };
+}
+
 // ============================================================================
 // Main Parser Function
 // ============================================================================
@@ -357,6 +446,15 @@ export function parseScore(
       incomplete: false,
       matchComplete: false,
     };
+  }
+  
+  // IMPORTANT: For timed sets with exactly format, use simple parsing
+  // No smart logic, just expect exact number of "#-#" entries
+  const isTimed = !!(parsedFormat.setFormat?.timed || parsedFormat.finalSetFormat?.timed);
+  const isExactlyFormat = !!parsedFormat.exactly || parsedFormat.bestOf === 1;
+  
+  if (isTimed && isExactlyFormat) {
+    return parseTimedExactlyScore(input, parsedFormat);
   }
   
   // Initialize state

@@ -271,6 +271,68 @@ export function validateSetScores(
     };
   }
 
+  // IMPORTANT: Handle timed sets with exactly/bestOf:1 format
+  // For these formats, scores don't need relationships - any values are valid
+  const parsed = matchUpFormatCode.parse(matchUpFormat);
+  const isTimed = !!(parsed?.setFormat?.timed || parsed?.finalSetFormat?.timed);
+  const isExactlyFormat = !!parsed?.exactly || parsed?.bestOf === 1;
+  
+  if (isTimed && isExactlyFormat) {
+    // For timed exactly/bestOf:1 formats, validation is simpler:
+    // 1. All sets must have both scores
+    // 2. Number of sets must match the expected count
+    const expectedSetCount = parsed.exactly || parsed.bestOf || 1;
+    
+    // Check if all sets have both scores
+    const incompleteSets = sets.filter((set) => {
+      return set.side1 === undefined || set.side2 === undefined;
+    });
+    
+    if (incompleteSets.length > 0 && !allowIncomplete) {
+      return {
+        isValid: false,
+        sets: [],
+        error: 'All sets must have scores for both sides',
+      };
+    }
+    
+    // For timed sets, we don't determine a winner based on scores
+    // The winner is determined by other means (total points, etc.)
+    // Just validate that all sets are filled
+    const allSetsFilled = sets.every(set => 
+      set.side1 !== undefined && set.side2 !== undefined
+    );
+    
+    if (allSetsFilled && sets.length === expectedSetCount) {
+      // Valid - all sets filled with expected count
+      return {
+        isValid: true,
+        sets: sets.map(set => ({
+          side1Score: set.side1,
+          side2Score: set.side2,
+          // No winningSide for timed sets - determined externally
+        })),
+        matchUpStatus: COMPLETED,
+        matchUpFormat,
+      };
+    } else if (allowIncomplete) {
+      // Incomplete but allowed
+      return {
+        isValid: true,
+        sets: sets.map(set => ({
+          side1Score: set.side1,
+          side2Score: set.side2,
+        })),
+      };
+    } else {
+      return {
+        isValid: false,
+        sets: [],
+        error: `Expected ${expectedSetCount} sets, got ${sets.length}`,
+      };
+    }
+  }
+
   // Check if all sets have both scores
   // For tiebreak-only sets, scores can be in side1TiebreakScore/side2TiebreakScore instead
   const incompleteSets = sets.filter((set) => {

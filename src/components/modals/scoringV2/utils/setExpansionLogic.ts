@@ -1,28 +1,57 @@
 /**
  * Logic for determining when to expand set inputs dynamically
  */
+import { matchUpFormatCode } from 'tods-competition-factory';
 import type { SetScore } from '../types';
 
 type MatchUpFormatInfo = {
   bestOf: number;
+  exactly?: number;
   setsToWin: number;
+  isTimed: boolean;
+  isExactlyFormat: boolean;
 };
 
 /**
  * Parse match format string to extract best-of information
  * Examples: "SET3-S:6/TB7" → bestOf=3, "SET5-S:6/TB7" → bestOf=5
+ * Examples: "SET3X-S:T10" → exactly=3, isTimed=true
  */
 export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
   if (!matchUpFormat) {
-    return { bestOf: 3, setsToWin: 2 };
+    return { bestOf: 3, setsToWin: 2, isTimed: false, isExactlyFormat: false };
   }
 
-  // Try to extract SET number from format string
-  const setMatch = matchUpFormat.match(/SET(\d+)/);
-  const bestOf = setMatch ? Number.parseInt(setMatch[1], 10) : 3;
-  const setsToWin = Math.ceil(bestOf / 2);
+  // Parse using factory to get detailed information
+  const parsed = matchUpFormatCode.parse(matchUpFormat);
+  
+  if (!parsed) {
+    // Fallback to simple parsing if factory fails
+    const setMatch = matchUpFormat.match(/SET(\d+)/);
+    const bestOf = setMatch ? Number.parseInt(setMatch[1], 10) : 3;
+    const setsToWin = Math.ceil(bestOf / 2);
+    return { bestOf, setsToWin, isTimed: false, isExactlyFormat: false };
+  }
 
-  return { bestOf, setsToWin };
+  // Check if this is a timed set format
+  const isTimed = !!(parsed.setFormat?.timed || parsed.finalSetFormat?.timed);
+  
+  // Determine if this is an "exactly" format (exactly:N or bestOf:1)
+  // Note: bestOf:1 is functionally the same as exactly:1
+  const isExactlyFormat = !!parsed.exactly || parsed.bestOf === 1;
+  const setCount = parsed.exactly || parsed.bestOf || 3;
+  
+  // For exactly formats or bestOf:1, we know the exact number of sets
+  // For bestOf, calculate sets needed to win
+  const setsToWin = isExactlyFormat ? setCount : Math.ceil(setCount / 2);
+
+  return {
+    bestOf: parsed.bestOf || setCount,
+    exactly: parsed.exactly,
+    setsToWin,
+    isTimed,
+    isExactlyFormat,
+  };
 }
 
 /**
@@ -31,8 +60,23 @@ export function parseMatchUpFormat(matchUpFormat?: string): MatchUpFormatInfo {
 export function shouldExpandSets(sets: SetScore[], matchUpFormat?: string): boolean {
   if (!sets || sets.length === 0) return true;
 
-  const { bestOf, setsToWin } = parseMatchUpFormat(matchUpFormat);
+  const formatInfo = parseMatchUpFormat(matchUpFormat);
+  const { bestOf, isExactlyFormat, setsToWin } = formatInfo;
+  const totalSets = formatInfo.exactly || bestOf;
 
+  // For "exactly" formats (exactly:N or bestOf:1), show all sets immediately
+  // This is because we know the exact number of sets that will be played
+  // For timed sets, scores don't determine winners, so all sets must be played
+  if (isExactlyFormat) {
+    // Don't expand beyond the exact number of sets
+    if (sets.length >= totalSets) {
+      return false;
+    }
+    // Always show all sets for exactly formats
+    return true;
+  }
+
+  // For regular bestOf formats, use dynamic expansion based on scores
   // Calculate sets won per side
   const setsWon = { side1: 0, side2: 0 };
   

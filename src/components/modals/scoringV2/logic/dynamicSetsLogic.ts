@@ -20,6 +20,8 @@ export type SetFormat = {
     tiebreakTo?: number;
     noAd?: boolean;
   };
+  timed?: boolean;
+  minutes?: number;
 };
 
 /**
@@ -67,8 +69,17 @@ export function isSetTiebreakOnly(format?: SetFormat): boolean {
 }
 
 /**
+ * Check if a set format is timed (e.g., T10, T20)
+ */
+export function isSetTimed(format?: SetFormat): boolean {
+  return format?.timed === true && format?.minutes !== undefined;
+}
+
+/**
  * Calculate the maximum allowed score for a regular set game score
  * based on the opponent's score and set rules
+ * 
+ * For timed sets, returns Infinity (no maximum) since scores don't need relationships
  */
 export function getMaxAllowedScore(
   setIndex: number,
@@ -77,6 +88,13 @@ export function getMaxAllowedScore(
   config: MatchConfig,
 ): number {
   const setFormat = getSetFormatForIndex(setIndex, config);
+  
+  // IMPORTANT: For timed sets, there is no maximum score
+  // Scores don't need any relationship to each other
+  if (isSetTimed(setFormat)) {
+    return Infinity;
+  }
+  
   const setTo = setFormat?.setTo || 6;
   const tiebreakAt = setFormat?.tiebreakAt || setTo;
 
@@ -135,6 +153,13 @@ export function isSetComplete(
   config: MatchConfig,
 ): boolean {
   const setFormat = getSetFormatForIndex(setIndex, config);
+
+  // For timed sets, a set is complete when both sides have values
+  // Scores don't need any relationship - any values are valid
+  if (isSetTimed(setFormat)) {
+    return scores.side1 !== undefined && scores.side1 !== null && 
+           scores.side2 !== undefined && scores.side2 !== null;
+  }
 
   // Check if this is a tiebreak-only set
   if (isSetTiebreakOnly(setFormat)) {
@@ -360,6 +385,11 @@ export function shouldShowTiebreak(
   config: MatchConfig,
 ): boolean {
   const setFormat = getSetFormatForIndex(setIndex, config);
+
+  // Timed sets never have tiebreaks
+  if (isSetTimed(setFormat)) {
+    return false;
+  }
 
   // Tiebreak-only sets don't have separate tiebreak input
   if (isSetTiebreakOnly(setFormat)) {
