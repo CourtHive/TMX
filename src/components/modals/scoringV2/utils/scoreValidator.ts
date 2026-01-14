@@ -238,6 +238,16 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
 
         if (aggregateTotals.side1 > aggregateTotals.side2) winningSide = 1;
         else if (aggregateTotals.side2 > aggregateTotals.side1) winningSide = 2;
+        else {
+          // Aggregate is tied - check for final tiebreak
+          const finalSet = validatedSets[validatedSets.length - 1];
+          if (finalSet?.side1TiebreakScore !== undefined || finalSet?.side2TiebreakScore !== undefined) {
+            const tb1 = finalSet.side1TiebreakScore || 0;
+            const tb2 = finalSet.side2TiebreakScore || 0;
+            if (tb1 > tb2) winningSide = 1;
+            else if (tb2 > tb1) winningSide = 2;
+          }
+        }
         
         // For aggregate, match is complete when all required sets are played
         isComplete = validatedSets.length >= bestOfSets && winningSide !== undefined;

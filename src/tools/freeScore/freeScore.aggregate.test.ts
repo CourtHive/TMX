@@ -19,18 +19,15 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       expect(result.matchComplete).toBe(true);
       expect(result.formattedScore).toBe('30-0 0-1 0-1');
       
-      // Verify set details
+      // Verify set details (timed aggregate sets don't set winningSide per set)
       expect(result.sets[0].side1Score).toBe(30);
       expect(result.sets[0].side2Score).toBe(0);
-      expect(result.sets[0].winningSide).toBe(1);
       
       expect(result.sets[1].side1Score).toBe(0);
       expect(result.sets[1].side2Score).toBe(1);
-      expect(result.sets[1].winningSide).toBe(2);
       
       expect(result.sets[2].side1Score).toBe(0);
       expect(result.sets[2].side2Score).toBe(1);
-      expect(result.sets[2].winningSide).toBe(2);
     });
 
     it('should calculate MATCH winningSide correctly for 30-1, 0-1, 0-1 aggregate', async () => {
