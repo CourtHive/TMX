@@ -6,6 +6,7 @@ import { renderMatchUp } from 'courthive-components';
 import { parseScore } from '../../../../tools/freeScore/freeScore';
 import { validateScore } from '../utils/scoreValidator';
 import { formatExistingScore } from '../utils/scoreFormatters';
+import { determineWinningSide } from '../utils/setExpansionLogic';
 import type { RenderScoreEntryParams } from '../types';
 import { env } from 'settings/env';
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
@@ -430,7 +431,9 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
         manualWinningSide = undefined;
 
         // Use winner from validated result
-        effectiveWinningSide = result.winningSide;
+        // CRITICAL: For aggregate scoring, recalculate winningSide using TMX logic
+        // Factory's validation may use sets-won instead of aggregate totals
+        effectiveWinningSide = determineWinningSide(parseResult.sets, matchUp.matchUpFormat) || result.winningSide;
       }
 
       // MatchUp already rendered above, pass validated result with effective winner
