@@ -492,9 +492,9 @@ export function validateSetScores(
   // any subsequent sets with winningSide are invalid
   // For aggregate scoring, all sets must be played (no "unnecessary sets")
   // For exactly formats, all sets must be played regardless
-  const isExactlyFormat = parsedFormat?.exactly !== undefined;
+  const isExactlyFormatCheck = parsedFormat?.exactly !== undefined;
   
-  if (matchWinningSide !== undefined && !allowIncomplete && !isAggregateScoring && !isExactlyFormat) {
+  if (matchWinningSide !== undefined && !allowIncomplete && !isAggregateScoring && !isExactlyFormatCheck) {
     const setsToWin = Math.ceil(bestOfSets / 2);
     let setsWonBySide1 = 0;
     let setsWonBySide2 = 0;
