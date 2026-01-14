@@ -222,21 +222,42 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
       // If any set was invalidated, match is incomplete - no winningSide
       winningSide = undefined;
     } else {
-      // All sets are valid - calculate winningSide from factory result
-      const setsWon = { side1: 0, side2: 0 };
-      validatedSets.forEach((set: any) => {
-        if (set.winningSide === 1) setsWon.side1++;
-        else if (set.winningSide === 2) setsWon.side2++;
-      });
+      // All sets are valid - calculate winningSide based on scoring format
+      const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
 
-      if (setsWon.side1 >= setsToWin) {
-        winningSide = 1;
-      } else if (setsWon.side2 >= setsToWin) {
-        winningSide = 2;
+      if (isAggregateScoring) {
+        // Aggregate scoring: sum all scores across all sets
+        const aggregateTotals = validatedSets.reduce(
+          (totals: any, set: any) => {
+            if (set.side1Score !== undefined) totals.side1 += set.side1Score;
+            if (set.side2Score !== undefined) totals.side2 += set.side2Score;
+            return totals;
+          },
+          { side1: 0, side2: 0 }
+        );
+
+        if (aggregateTotals.side1 > aggregateTotals.side2) winningSide = 1;
+        else if (aggregateTotals.side2 > aggregateTotals.side1) winningSide = 2;
+        
+        // For aggregate, match is complete when all required sets are played
+        isComplete = validatedSets.length >= bestOfSets && winningSide !== undefined;
+      } else {
+        // Standard scoring: count sets won
+        const setsWon = { side1: 0, side2: 0 };
+        validatedSets.forEach((set: any) => {
+          if (set.winningSide === 1) setsWon.side1++;
+          else if (set.winningSide === 2) setsWon.side2++;
+        });
+
+        if (setsWon.side1 >= setsToWin) {
+          winningSide = 1;
+        } else if (setsWon.side2 >= setsToWin) {
+          winningSide = 2;
+        }
+
+        // Check if match is complete (someone won majority of sets)
+        isComplete = setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
       }
-
-      // Check if match is complete (someone won majority of sets)
-      isComplete = setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
     }
 
     if (!isComplete) {
