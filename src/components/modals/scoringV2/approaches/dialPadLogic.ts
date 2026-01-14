@@ -162,6 +162,8 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         // Incomplete set - show the partial score
         if (result) result += ' ';
         result += side1;
+        // Don't increment setCount for incomplete sets
+        // This prevents the match from appearing complete
         break;
       }
 
@@ -260,13 +262,19 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         } else {
           result += `${side1}-${side2}`;
         }
-        setCount++;
-
-        // If this set doesn't have a winner, stop parsing
-        // Don't continue to next iteration in the while loop
-        if (!hasWinner && i < segmentDigits.length) {
-          // More digits remain but current set is incomplete - stop here
-          break;
+        
+        // Only increment setCount if the set has a winner
+        // For timed sets, having both scores means it's complete
+        // For regular sets, must meet traditional winner criteria
+        if (hasWinner) {
+          setCount++;
+        } else {
+          // Set doesn't have a winner - stop parsing
+          // Don't continue to next iteration in the while loop
+          if (i < segmentDigits.length) {
+            // More digits remain but current set is incomplete - stop here
+            break;
+          }
         }
       }
     }
