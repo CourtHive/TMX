@@ -47,7 +47,7 @@ export function tidyScore(scoreString: string): TidyScoreResult {
 }
 
 /**
- * Validate a score string using generateOutcomeFromScoreString
+ * Validate a score string using generateOutcomeFromScoreString with preserveSideOrder
  */
 export function validateScore(scoreString: string, matchUpFormat?: string, matchUpStatus?: string): ScoreOutcome {
   // For irregular endings that remove score (WALKOVER, CANCELLED, DEAD_RUBBER), empty score is valid
@@ -72,56 +72,29 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
   }
 
   try {
-    // CRITICAL: The factory's generateOutcomeFromScoreString normalizes scores to show winner first
-    // For TMX, we want to preserve the exact order user entered (e.g., "3-6" should be side1=3, side2=6)
-    // So we parse the score directly using parseScoreString instead
-    const parsedResult = tournamentEngine.parseScoreString({
+    // Use factory's generateOutcomeFromScoreString with preserveSideOrder=true
+    // This preserves the exact order user entered (e.g., "3-6" stays as side1=3, side2=6)
+    // and correctly calculates winningSide for both aggregate and standard scoring
+    const { outcome, error: generateError } = tournamentEngine.generateOutcomeFromScoreString({
       scoreString: scoreString.trim(),
       matchUpFormat,
+      preserveSideOrder: true,
     });
 
-    if (!parsedResult || parsedResult.length === 0) {
+    if (generateError || !outcome?.score?.sets) {
       return {
         isValid: false,
         sets: [],
-        error: 'Invalid score format',
+        error: generateError || 'Invalid score format',
       };
     }
 
-    const sets = parsedResult;
-
-    // Build scoreObject manually for renderMatchUp
-    // Generate score strings for each side
-    const scoreStringSide1 = sets
-      .map((set: any) => {
-        let str = `${set.side1Score || 0}-${set.side2Score || 0}`;
-        if (set.side1TiebreakScore !== undefined) {
-          str += `(${set.winningSide === 1 ? set.side1TiebreakScore : set.side2TiebreakScore})`;
-        }
-        return str;
-      })
-      .join(' ');
-
-    const scoreStringSide2 = sets
-      .map((set: any) => {
-        let str = `${set.side2Score || 0}-${set.side1Score || 0}`;
-        if (set.side2TiebreakScore !== undefined) {
-          str += `(${set.winningSide === 2 ? set.side2TiebreakScore : set.side1TiebreakScore})`;
-        }
-        return str;
-      })
-      .join(' ');
-
-    const scoreObject = {
-      sets,
-      scoreStringSide1,
-      scoreStringSide2,
-    };
+    const sets = outcome.score.sets;
+    const scoreObject = outcome.score;
 
     // POST-VALIDATION: Remove winningSide from sets that don't pass validation
-    // The factory's generateOutcomeFromScoreString doesn't validate against matchUpFormat
-    // so it assigns winningSide to invalid sets like "5-0"
-    // We need to strip winningSide from sets that fail our validation
+    // Validate each set against the matchUpFormat to ensure scores are legal
+    // Strip winningSide from sets that fail validation (e.g., "5-0" in SET format)
 
     // VALIDATE SET TYPES: Check that bracket notation matches format expectations
     // Split score string into individual sets, preserving tiebreak notation
@@ -213,59 +186,25 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
     // Parse matchUpFormat for completeness check (bestOfSets already defined above)
     const setsToWin = Math.ceil(bestOfSets / 2);
 
-    // CRITICAL: If we removed winningSide from any set, the match cannot have a winningSide
-    // (unless there's an irregular ending, which is handled separately by the caller)
-    let winningSide: number | undefined;
+    // Use factory's winningSide calculation (already handles aggregate and standard scoring)
+    // If any set was invalidated, override to undefined (match is incomplete)
+    let winningSide: number | undefined = anySetInvalidated ? undefined : outcome.winningSide;
+    
+    // Check if match is complete
     let isComplete = false;
-
-    if (anySetInvalidated) {
-      // If any set was invalidated, match is incomplete - no winningSide
-      winningSide = undefined;
-    } else {
-      // All sets are valid - calculate winningSide based on scoring format
+    if (!anySetInvalidated && winningSide !== undefined) {
       const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
-
+      
       if (isAggregateScoring) {
-        // Aggregate scoring: sum all scores across all sets
-        const aggregateTotals = validatedSets.reduce(
-          (totals: any, set: any) => {
-            if (set.side1Score !== undefined) totals.side1 += set.side1Score;
-            if (set.side2Score !== undefined) totals.side2 += set.side2Score;
-            return totals;
-          },
-          { side1: 0, side2: 0 }
-        );
-
-        if (aggregateTotals.side1 > aggregateTotals.side2) winningSide = 1;
-        else if (aggregateTotals.side2 > aggregateTotals.side1) winningSide = 2;
-        else {
-          // Aggregate is tied - check for final tiebreak
-          const finalSet = validatedSets[validatedSets.length - 1];
-          if (finalSet?.side1TiebreakScore !== undefined || finalSet?.side2TiebreakScore !== undefined) {
-            const tb1 = finalSet.side1TiebreakScore || 0;
-            const tb2 = finalSet.side2TiebreakScore || 0;
-            if (tb1 > tb2) winningSide = 1;
-            else if (tb2 > tb1) winningSide = 2;
-          }
-        }
-        
         // For aggregate, match is complete when all required sets are played
-        isComplete = validatedSets.length >= bestOfSets && winningSide !== undefined;
+        isComplete = validatedSets.length >= bestOfSets;
       } else {
-        // Standard scoring: count sets won
+        // For standard scoring, match is complete when someone won majority
         const setsWon = { side1: 0, side2: 0 };
         validatedSets.forEach((set: any) => {
           if (set.winningSide === 1) setsWon.side1++;
           else if (set.winningSide === 2) setsWon.side2++;
         });
-
-        if (setsWon.side1 >= setsToWin) {
-          winningSide = 1;
-        } else if (setsWon.side2 >= setsToWin) {
-          winningSide = 2;
-        }
-
-        // Check if match is complete (someone won majority of sets)
         isComplete = setsWon.side1 >= setsToWin || setsWon.side2 >= setsToWin;
       }
     }
