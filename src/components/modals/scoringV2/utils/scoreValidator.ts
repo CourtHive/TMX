@@ -442,23 +442,60 @@ export function validateSetScores(
     };
   }
 
-  // Calculate match winningSide based on sets won
-  const setsToWin = Math.ceil(bestOfSets / 2);
-
-  const setsWon = { side1: 0, side2: 0 };
-  validatedSets.forEach((set) => {
-    if (set.winningSide === 1) setsWon.side1++;
-    else if (set.winningSide === 2) setsWon.side2++;
-  });
+  // Calculate match winningSide based on format type
+  // For aggregate scoring (based='A'), use total scores across all sets
+  // For standard scoring, use sets won
+  const isAggregateScoring = 
+    parsedFormat?.setFormat?.based === 'A' || parsedFormat?.finalSetFormat?.based === 'A';
 
   let matchWinningSide: number | undefined;
-  if (setsWon.side1 >= setsToWin) matchWinningSide = 1;
-  else if (setsWon.side2 >= setsToWin) matchWinningSide = 2;
+
+  if (isAggregateScoring) {
+    // Aggregate scoring: sum all scores across all sets
+    const aggregateTotals = validatedSets.reduce(
+      (totals, set) => {
+        if (set.side1Score !== undefined) totals.side1 += set.side1Score;
+        if (set.side2Score !== undefined) totals.side2 += set.side2Score;
+        return totals;
+      },
+      { side1: 0, side2: 0 }
+    );
+
+    if (aggregateTotals.side1 > aggregateTotals.side2) matchWinningSide = 1;
+    else if (aggregateTotals.side2 > aggregateTotals.side1) matchWinningSide = 2;
+    // If tied, check for final tiebreak set
+    else {
+      const finalSet = validatedSets[validatedSets.length - 1];
+      if (finalSet?.side1TiebreakScore !== undefined || finalSet?.side2TiebreakScore !== undefined) {
+        const tb1 = finalSet.side1TiebreakScore ?? 0;
+        const tb2 = finalSet.side2TiebreakScore ?? 0;
+        if (tb1 > tb2) matchWinningSide = 1;
+        else if (tb2 > tb1) matchWinningSide = 2;
+      }
+    }
+  } else {
+    // Standard scoring: count sets won
+    const setsToWin = Math.ceil(bestOfSets / 2);
+
+    const setsWon = { side1: 0, side2: 0 };
+    validatedSets.forEach((set) => {
+      if (set.winningSide === 1) setsWon.side1++;
+      else if (set.winningSide === 2) setsWon.side2++;
+    });
+
+    if (setsWon.side1 >= setsToWin) matchWinningSide = 1;
+    else if (setsWon.side2 >= setsToWin) matchWinningSide = 2;
+  }
 
   // CRITICAL: Check for unnecessary sets
-  // If match is already decided (one side has won enough sets),
+  // For standard scoring (non-aggregate), if match is already decided (one side has won enough sets),
   // any subsequent sets with winningSide are invalid
-  if (matchWinningSide !== undefined && !allowIncomplete) {
+  // For aggregate scoring, all sets must be played (no "unnecessary sets")
+  // For exactly formats, all sets must be played regardless
+  const isExactlyFormat = parsedFormat?.exactly !== undefined;
+  
+  if (matchWinningSide !== undefined && !allowIncomplete && !isAggregateScoring && !isExactlyFormat) {
+    const setsToWin = Math.ceil(bestOfSets / 2);
     let setsWonBySide1 = 0;
     let setsWonBySide2 = 0;
     let matchDecidedAtSet = -1;
