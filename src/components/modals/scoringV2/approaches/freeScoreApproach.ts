@@ -8,7 +8,7 @@ import { validateScore } from '../utils/scoreValidator';
 import { formatExistingScore } from '../utils/scoreFormatters';
 import type { RenderScoreEntryParams } from '../types';
 import { env } from 'settings/env';
-import { matchUpStatusConstants } from 'tods-competition-factory';
+import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
   matchUpStatusConstants;
@@ -333,16 +333,10 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
     // Use manualWinningSide if available (for irregular endings), otherwise use validated result
     const displayWinningSide = manualWinningSide || result.winningSide;
 
-    if (hasSets && result.scoreObject) {
+    if ((hasSets && result.scoreObject) || isIrregularEnding) {
+      // Update for both: scores with sets OR irregular endings (like WALKOVER)
       updateMatchUpDisplay({
-        scoreObject: result.scoreObject,
-        winningSide: displayWinningSide,
-        matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
-      });
-    } else if (isIrregularEnding) {
-      // For irregular endings without sets (WALKOVER, CANCELLED, DEAD_RUBBER), update with status
-      updateMatchUpDisplay({
-        scoreObject: result.scoreObject, // May be undefined for WALKOVER
+        scoreObject: result.scoreObject, // May be undefined for WALKOVER/CANCELLED/DEAD_RUBBER
         winningSide: displayWinningSide,
         matchUpStatus: result.matchUpStatus || parseResult.matchUpStatus,
       });
@@ -494,46 +488,53 @@ export function renderFreeScoreEntry(params: RenderScoreEntryParams): void {
   // Attach listeners
   input.addEventListener('input', () => {
     handleInput();
-    
+
     // IMPORTANT: Use raw value (not trimmed) to detect trailing separator
     const rawValue = input.value;
     const scoreString = rawValue.trim();
-    
+
     if (!matchComplete && scoreString) {
       // Not yet locked - check if we should lock it
       const parseResult = parseScore(scoreString, matchUp.matchUpFormat);
       const validation = parseResult.formattedScore
         ? validateScore(parseResult.formattedScore, matchUp.matchUpFormat, parseResult.matchUpStatus)
         : { isValid: false, winningSide: undefined };
-      
+
       // Check if score is valid and has a winner
       const hasWinner = validation.isValid && validation.winningSide !== undefined;
-      
+
       // Check if the RAW value ends with a separator (space, dash, etc.)
       // This is critical - we check rawValue, not scoreString (which is trimmed)
-      const endsWithSeparator = rawValue.length > 0 && /[\s\-]$/.test(rawValue);
-      
+      const endsWithSeparator = rawValue.length > 0 && /[\s-]$/.test(rawValue);
+
+      // For exactly formats (SET3X), check if all sets have been entered
+      const parsed = matchUpFormatCode.parse(matchUp.matchUpFormat);
+      const isExactlyFormat = !!parsed?.exactly || parsed?.bestOf === 1;
+      const expectedSetCount = parsed?.exactly || parsed?.bestOf || 3;
+      const allSetsEntered = parseResult.sets?.length >= expectedSetCount;
+
       // Lock if it has a winner AND ends with a separator
-      if (hasWinner && endsWithSeparator) {
+      // BUT for exactly formats, also require all sets to be entered
+      if (hasWinner && endsWithSeparator && (!isExactlyFormat || allSetsEntered)) {
         matchComplete = true;
       }
     } else if (matchComplete) {
       // Already locked - check if we should unlock it
       // Unlock if: user cleared everything OR no longer ends with separator
-      const endsWithSeparator = rawValue.length > 0 && /[\s\-]$/.test(rawValue);
+      const endsWithSeparator = rawValue.length > 0 && /[\s-]$/.test(rawValue);
       if (scoreString.length === 0 || !endsWithSeparator) {
         matchComplete = false;
       }
     }
   });
-  
+
   // Prevent further input if match is complete
   input.addEventListener('keydown', (e) => {
     if (matchComplete && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
       e.preventDefault();
     }
   });
-  
+
   input.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       const submitBtn = document.getElementById('submitScoreV2') as HTMLButtonElement;
