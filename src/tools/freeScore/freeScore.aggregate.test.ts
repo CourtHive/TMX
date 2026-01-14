@@ -18,14 +18,14 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       expect(result.sets.length).toBe(3);
       expect(result.matchComplete).toBe(true);
       expect(result.formattedScore).toBe('30-0 0-1 0-1');
-      
+
       // Verify set details (timed aggregate sets don't set winningSide per set)
       expect(result.sets[0].side1Score).toBe(30);
       expect(result.sets[0].side2Score).toBe(0);
-      
+
       expect(result.sets[1].side1Score).toBe(0);
       expect(result.sets[1].side2Score).toBe(1);
-      
+
       expect(result.sets[2].side1Score).toBe(0);
       expect(result.sets[2].side2Score).toBe(1);
     });
@@ -38,29 +38,11 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
       // Winner should be side 1 (aggregate)
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
-      
+
       // Now test with determineWinningSide
       const { determineWinningSide } = await import('../../components/modals/scoringV2/utils/setExpansionLogic');
       const matchWinningSide = determineWinningSide(result.sets, format);
-      
-      console.log('[TEST] Aggregate 30-1, 0-1, 0-1:', {
-        format,
-        sets: result.sets.map(s => ({ 
-          side1Score: s.side1Score, 
-          side2Score: s.side2Score, 
-          winningSide: s.winningSide 
-        })),
-        matchWinningSide,
-        aggregate: {
-          side1: result.sets.reduce((sum, s) => sum + (s.side1Score || 0), 0),
-          side2: result.sets.reduce((sum, s) => sum + (s.side2Score || 0), 0)
-        },
-        setsWon: {
-          side1: result.sets.filter(s => s.winningSide === 1).length,
-          side2: result.sets.filter(s => s.winningSide === 2).length
-        }
-      });
-      
+
       expect(matchWinningSide).toBe(1); // Should be side 1 based on aggregate (30 > 3)
     });
 
@@ -251,8 +233,6 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-
-
   describe('Edge Cases', () => {
     const format = 'SET3X-S:T10A-F:TB1';
 
@@ -305,7 +285,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   describe('Realistic score examples', () => {
     it('should accept 10-11 11-10 1-0 for SET3X-S:T10A-F:TB1', () => {
       const result = parseScore('10-11 11-10 1-0', 'SET3X-S:T10A-F:TB1');
-      
+
       // Aggregate: 21-21, tied → TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -314,7 +294,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 10-11 11-11 11-10 1-0 for SET4X-S:T10A-F:TB1', () => {
       const result = parseScore('10-11 11-11 11-10 1-0', 'SET4X-S:T10A-F:TB1');
-      
+
       // Aggregate: 32-32, tied → TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(4);
