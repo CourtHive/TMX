@@ -84,8 +84,8 @@ importers:
         specifier: 1.9.4
         version: 1.9.4
       morphdom:
-        specifier: 2.7.7
-        version: 2.7.7
+        specifier: 2.7.8
+        version: 2.7.8
       navigo:
         specifier: 8.11.1
         version: 8.11.1
@@ -2815,8 +2815,8 @@ packages:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
 
-  morphdom@2.7.7:
-    resolution: {integrity: sha512-04GmsiBcalrSCNmzfo+UjU8tt3PhZJKzcOy+r1FlGA7/zri8wre3I1WkYN9PT3sIeIKfW9bpyElA+VzOg2E24g==}
+  morphdom@2.7.8:
+    resolution: {integrity: sha512-D/fR4xgGUyVRbdMGU6Nejea1RFzYxYtyurG4Fbv2Fi/daKlWKuXGLOdXtl+3eIwL110cI2hz1ZojGICjjFLgTg==}
 
   mrmime@2.0.0:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
@@ -6589,7 +6589,7 @@ snapshots:
 
   minipass@7.1.2: {}
 
-  morphdom@2.7.7: {}
+  morphdom@2.7.8: {}
 
   mrmime@2.0.0: {}
 
