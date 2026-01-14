@@ -7,6 +7,65 @@ import { describe, it, expect } from 'vitest';
 import { parseScore } from './freeScore';
 
 describe('freeScore - Aggregate Scoring with Conditional TB', () => {
+  describe('SET3X-S:T10A (3 sets, aggregate, no conditional TB)', () => {
+    const format = 'SET3X-S:T10A';
+
+    it('should accept 3 sets with highly uneven scores (30-0, 0-1, 0-1)', () => {
+      const result = parseScore('30-0 0-1 0-1', format);
+
+      // Aggregate: 30-2, side 1 wins decisively
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(3);
+      expect(result.matchComplete).toBe(true);
+      expect(result.formattedScore).toBe('30-0 0-1 0-1');
+
+      // Verify set details (timed aggregate sets don't set winningSide per set)
+      expect(result.sets[0].side1Score).toBe(30);
+      expect(result.sets[0].side2Score).toBe(0);
+
+      expect(result.sets[1].side1Score).toBe(0);
+      expect(result.sets[1].side2Score).toBe(1);
+
+      expect(result.sets[2].side1Score).toBe(0);
+      expect(result.sets[2].side2Score).toBe(1);
+    });
+
+    it('should calculate MATCH winningSide correctly for 30-1, 0-1, 0-1 aggregate', async () => {
+      const result = parseScore('30-1 0-1 0-1', format);
+
+      // Aggregate: 30-3, side 1 wins
+      // Sets won: 1-2, side 2 wins
+      // Winner should be side 1 (aggregate)
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(3);
+
+      // Now test with determineWinningSide
+      const { determineWinningSide } = await import('../../components/modals/scoringV2/utils/setExpansionLogic');
+      const matchWinningSide = determineWinningSide(result.sets, format);
+
+      expect(matchWinningSide).toBe(1); // Should be side 1 based on aggregate (30 > 3)
+    });
+
+    it('should require all 3 sets even when one side dominates aggregate (no conditional TB)', () => {
+      const result = parseScore('50-0 0-1', format);
+
+      // Incomplete - need all 3 sets for exactly format without conditional TB
+      expect(result.valid).toBe(false);
+      expect(result.incomplete).toBe(true);
+      expect(result.sets.length).toBe(2);
+      expect(result.matchComplete).toBe(false);
+    });
+
+    it('should calculate aggregate correctly with balanced scores', () => {
+      const result = parseScore('10-11 11-10 22-21', format);
+
+      // Aggregate: 43-42, side 1 wins by 1 point
+      expect(result.valid).toBe(true);
+      expect(result.sets.length).toBe(3);
+      expect(result.matchComplete).toBe(true);
+    });
+  });
+
   describe('SET3X-S:T10A-F:TB1 (3 sets, aggregate, conditional TB1)', () => {
     const format = 'SET3X-S:T10A-F:TB1';
 
@@ -174,8 +233,6 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
     });
   });
 
-
-
   describe('Edge Cases', () => {
     const format = 'SET3X-S:T10A-F:TB1';
 
@@ -228,7 +285,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
   describe('Realistic score examples', () => {
     it('should accept 10-11 11-10 1-0 for SET3X-S:T10A-F:TB1', () => {
       const result = parseScore('10-11 11-10 1-0', 'SET3X-S:T10A-F:TB1');
-      
+
       // Aggregate: 21-21, tied → TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(3);
@@ -237,7 +294,7 @@ describe('freeScore - Aggregate Scoring with Conditional TB', () => {
 
     it('should accept 10-11 11-11 11-10 1-0 for SET4X-S:T10A-F:TB1', () => {
       const result = parseScore('10-11 11-11 11-10 1-0', 'SET4X-S:T10A-F:TB1');
-      
+
       // Aggregate: 32-32, tied → TB decides
       expect(result.valid).toBe(true);
       expect(result.sets.length).toBe(4);

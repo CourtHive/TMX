@@ -123,8 +123,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.2.42
-        version: 2.2.42
+        specifier: 2.2.47
+        version: 2.2.47
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -3423,16 +3423,12 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.2.42:
-    resolution: {integrity: sha512-HSNCP/tVI2Y5FmHbVJsgaKozcrC+imfw5bCwfEgHn/Bg0+vObKc7aAwYhEGX5YlPyxYciGJcwBsa7ErB6URdMg==}
-    engines: {node: '>=20'}
-
   tods-competition-factory@2.2.43:
     resolution: {integrity: sha512-2cHImP7q58vW9AJgfNiIKEJOo6euTWnMBR1EMByfH5JBC4mb6deT/CXeBAUkxaoHk8T9B60JFepPAuXMqzOzQg==}
     engines: {node: '>=20'}
 
-  tods-competition-factory@2.2.42:
-    resolution: {integrity: sha512-HSNCP/tVI2Y5FmHbVJsgaKozcrC+imfw5bCwfEgHn/Bg0+vObKc7aAwYhEGX5YlPyxYciGJcwBsa7ErB6URdMg==}
+  tods-competition-factory@2.2.47:
+    resolution: {integrity: sha512-61P4wEpqhrHj9Wjh+zlZKJp4ZCHuhwhwGwAijhRQpmFIC/mt92RoWCJDei0lAWlFLc24pecvqDJfKCEhBYnoIw==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -7281,11 +7277,9 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.2.42: {}
-
   tods-competition-factory@2.2.43: {}
 
-  tods-competition-factory@2.2.42: {}
+  tods-competition-factory@2.2.47: {}
 
   totalist@3.0.1: {}
 
