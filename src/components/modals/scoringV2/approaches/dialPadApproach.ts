@@ -100,6 +100,22 @@ export function renderDialPadScoreEntry(params: RenderScoreEntryParams): void {
     matchUpContainer.style.marginBottom = '0.5em';
     container.appendChild(matchUpContainer);
 
+    // Show aggregate scoring indicator if format uses aggregate
+    const isAggregateScoring = parsedFormat?.setFormat?.based === 'A' || parsedFormat?.finalSetFormat?.based === 'A';
+    if (isAggregateScoring) {
+      const aggregateIndicator = document.createElement('div');
+      aggregateIndicator.style.fontSize = '0.75em';
+      aggregateIndicator.style.color = '#666';
+      aggregateIndicator.style.marginTop = '0.25em';
+      aggregateIndicator.style.marginBottom = '0.5em';
+      aggregateIndicator.style.padding = '0.25em 0.5em';
+      aggregateIndicator.style.backgroundColor = '#fff3cd';
+      aggregateIndicator.style.border = '1px solid #ffc107';
+      aggregateIndicator.style.borderRadius = '3px';
+      aggregateIndicator.textContent = '⚠️ Aggregate Scoring: Winner determined by total points across all sets';
+      container.appendChild(aggregateIndicator);
+    }
+
     // Match format selector
     if (matchUp.matchUpFormat) {
       const formatDisplay = document.createElement('div');

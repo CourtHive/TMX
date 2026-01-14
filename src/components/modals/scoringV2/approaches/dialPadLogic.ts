@@ -52,8 +52,13 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
       const currentTiebreakSetTo = currentSetFormat?.tiebreakSet?.tiebreakTo;
       const currentRegularSetTo = currentSetFormat?.setTo;
       const currentSetIsTiebreakOnly = !!currentTiebreakSetTo && !currentRegularSetTo;
+      const currentSetIsTimed = currentSetFormat?.timed === true;
 
-      const setTo = currentTiebreakSetTo || currentRegularSetTo || 6;
+      // For timed sets, allow effectively unlimited scores (up to 999)
+      // For regular sets, use normal boundaries
+      const setTo = currentSetIsTimed 
+        ? 999 
+        : (currentTiebreakSetTo || currentRegularSetTo || 6);
       const tiebreakAt = currentSetFormat?.tiebreakAt || setTo;
 
       let side1 = '';
@@ -70,9 +75,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
           break;
         }
 
-        // For tiebreak-only formats (TB10), user MUST use minus to separate scores
+        // For tiebreak-only formats (TB10) or timed sets, user MUST use minus to separate scores
         // So keep consuming all digits until we hit a minus
-        if (currentSetIsTiebreakOnly) {
+        if (currentSetIsTiebreakOnly || currentSetIsTimed) {
           side1 += nextDigit;
           i++;
           continue;
@@ -86,7 +91,8 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         // For setTo=4: valid scores are 0-5, so if val>5 after adding digit, stop
         // For setTo=6: valid scores are 0-7, so if val>7 after adding digit, stop
         // For setTo=10+: need to allow 2-digit scores (10, 11, 12, etc.)
-        const maxScore = setTo + 1;
+        // For timed sets: effectively unlimited (999)
+        const maxScore = currentSetIsTimed ? 999 : (setTo + 1);
 
         if (val > maxScore) break;
 
@@ -120,9 +126,9 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
           break; // Don't consume yet - might be tiebreak separator
         }
 
-        // For tiebreak-only formats (TB10), user MUST use minus to separate scores
+        // For tiebreak-only formats (TB10) or timed sets, user MUST use minus to separate scores
         // So keep consuming all digits until we hit a minus
-        if (currentSetIsTiebreakOnly) {
+        if (currentSetIsTiebreakOnly || currentSetIsTimed) {
           side2 += nextDigit;
           i++;
           continue;
@@ -132,7 +138,7 @@ export function formatScoreString(digits: string, options: FormatOptions): strin
         const potentialValue = side2 + nextDigit;
         const val = Number.parseInt(potentialValue);
 
-        const maxScore = setTo + 1;
+        const maxScore = currentSetIsTimed ? 999 : (setTo + 1);
 
         // Allow up to setTo+3 temporarily for parsing, will coerce later if needed
         // This allows [3,8] and [3,9] to be parsed, then coerced to [3,6]
