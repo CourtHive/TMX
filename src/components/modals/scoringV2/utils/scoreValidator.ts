@@ -196,8 +196,14 @@ export function validateScore(scoreString: string, matchUpFormat?: string, match
       const isAggregateScoring = parsed?.setFormat?.based === 'A' || parsed?.finalSetFormat?.based === 'A';
       
       if (isAggregateScoring) {
-        // For aggregate, match is complete when all required sets are played
-        isComplete = validatedSets.length >= bestOfSets;
+        // For aggregate with exactly format, ALL sets must be complete (both scores)
+        // Count only sets with both side1Score and side2Score defined
+        const completeSets = validatedSets.filter(s => 
+          s.side1Score !== undefined && s.side2Score !== undefined
+        ).length;
+        
+        // Match is complete when all required complete sets are played
+        isComplete = completeSets >= bestOfSets;
       } else {
         // For standard scoring, match is complete when someone won majority
         const setsWon = { side1: 0, side2: 0 };
