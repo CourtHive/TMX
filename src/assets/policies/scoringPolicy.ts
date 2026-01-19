@@ -85,7 +85,7 @@ export const POLICY_SCORING = {
       },
       {
         description: 'Timed 20 minute game - game based',
-        matchUpFormat: 'SET1-S:T20G',
+        matchUpFormat: 'SET1-S:T20',
       },
       {
         description: 'Timed 20 minute game - point based',
