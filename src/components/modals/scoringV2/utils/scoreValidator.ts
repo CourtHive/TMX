@@ -273,7 +273,11 @@ export function validateSetScores(
       const side2 = set.side2 ?? '';
       
       // Handle tiebreak-only sets (bracket notation)
-      if (set.side1TiebreakScore !== undefined && set.side2TiebreakScore !== undefined) {
+      // CRITICAL: Check if this is truly a tiebreak-only set (no game scores or both are 0)
+      const isTiebreakOnlySet = (!side1 || side1 === 0) && (!side2 || side2 === 0);
+      if (isTiebreakOnlySet && 
+          set.side1TiebreakScore !== undefined && 
+          set.side2TiebreakScore !== undefined) {
         return `[${set.side1TiebreakScore}-${set.side2TiebreakScore}]`;
       }
       
@@ -286,8 +290,11 @@ export function validateSetScores(
       if (set.side1TiebreakScore !== undefined || set.side2TiebreakScore !== undefined) {
         const tb1 = set.side1TiebreakScore ?? 0;
         const tb2 = set.side2TiebreakScore ?? 0;
-        const tbWinner = tb1 > tb2 ? tb1 : tb2;
-        return `${side1}-${side2}(${tbWinner})`;
+        // Tennis notation shows the LOSER's tiebreak score
+        // Determine which side won the set (by game score)
+        const side1WonSet = Number(side1) > Number(side2);
+        const loserTiebreakScore = side1WonSet ? tb2 : tb1;
+        return `${side1}-${side2}(${loserTiebreakScore})`;
       }
       
       return `${side1}-${side2}`;

@@ -104,9 +104,14 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(max).toBe(7); // 6 + 1 (absoluteMax for tiebreakAt===setTo)
       });
 
-      it('allows up to setTo when opponent below tiebreakAt', () => {
+      it('allows up to setTo when opponent well below tiebreakAt', () => {
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 3 }, standardBestOf3);
         expect(max).toBe(6);
+      });
+
+      it('allows up to setTo+1 when opponent at tiebreakAt-1 (5)', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 5 }, standardBestOf3);
+        expect(max).toBe(7); // Can win 7-5
       });
 
       it('allows up to setTo+1 when opponent at tiebreakAt', () => {
@@ -133,9 +138,14 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(max).toBe(5); // absoluteMax is setTo because tiebreakAt < setTo
       });
 
-      it('allows up to setTo when opponent below tiebreakAt', () => {
+      it('allows up to setTo when opponent well below tiebreakAt', () => {
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 2 }, s5at4Config);
         expect(max).toBe(5);
+      });
+
+      it('allows up to setTo when opponent at tiebreakAt-1 (3) for S:5@4', () => {
+        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 3 }, s5at4Config);
+        expect(max).toBe(5); // Max is setTo (5) since tiebreakAt < setTo, can win 5-3
       });
 
       it('allows up to setTo when opponent at tiebreakAt', () => {
@@ -148,11 +158,6 @@ describe('dynamicSetsLogic - Pure Functions', () => {
         expect(max).toBe(4); // Opponent won, my max is tiebreakAt (4)
       });
 
-      it('allows up to setTo when opponent at 3 (below tiebreakAt)', () => {
-        const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 3 }, s5at4Config);
-        expect(max).toBe(5); // Can win at setTo
-      });
-
       it('enforces max of 5 when opponent is 0', () => {
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 0 }, s5at4Config);
         expect(max).toBe(5); // absoluteMax for S:5@4 is 5
@@ -160,9 +165,9 @@ describe('dynamicSetsLogic - Pure Functions', () => {
     });
 
     describe('S:8 format', () => {
-      it('allows up to setTo when opponent below tiebreakAt', () => {
+      it('allows up to setTo+1 when opponent at tiebreakAt-1 (7)', () => {
         const max = getMaxAllowedScore(0, 1, { side1: 0, side2: 7 }, set8Config);
-        expect(max).toBe(8); // Opponent at 7 (< tiebreakAt 8), max is setTo (8)
+        expect(max).toBe(9); // Can win 9-7 (opponent at tiebreakAt-1, need win by 2)
       });
 
       it('allows up to setTo+1 when opponent at tiebreakAt', () => {
