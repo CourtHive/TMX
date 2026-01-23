@@ -111,9 +111,14 @@ export function getMaxAllowedScore(
   }
 
   // Standard tennis scoring rules
-  if (oppScore < tiebreakAt) {
-    // Opponent below tiebreak threshold: max is setTo (win before tiebreak)
+  if (oppScore < tiebreakAt - 1) {
+    // Opponent well below tiebreak threshold: max is setTo (win before tiebreak)
     return setTo;
+  } else if (oppScore === tiebreakAt - 1) {
+    // Opponent at tiebreakAt - 1: special case
+    // - If tiebreakAt === setTo (standard format like S:6@6): can go to setTo + 1 to win by 2 (e.g., 7-5)
+    // - If tiebreakAt < setTo (format like S:5@4): max is setTo (e.g., 5-3 wins, no need for 6)
+    return tiebreakAt === setTo ? setTo + 1 : setTo;
   } else if (oppScore === tiebreakAt) {
     // Opponent at tiebreakAt: could go to tiebreak or win at setTo
     // Max is absoluteMax (setTo+1 if tiebreakAt===setTo, otherwise setTo)
