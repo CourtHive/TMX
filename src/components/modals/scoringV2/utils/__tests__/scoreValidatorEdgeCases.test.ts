@@ -369,4 +369,46 @@ describe('scoreValidator - Edge Cases', () => {
       expect(result).toBeDefined();
     });
   });
+
+  describe('Regression: dynamicSets Tiebreak Rendering (Issue #7-5-tiebreak)', () => {
+    it('should correctly render 7-6(3) not as 7-3', () => {
+      // This tests the fix for tiebreak-only set detection
+      const result = validateScore('7-6(3) 6-4', MATCH_FORMATS.SET3_S6_TB7);
+      expect(result.isValid).toBe(true);
+      expect(result.score).toBe('7-6(3) 6-4');
+    });
+
+    it('should complete match with 7-5 final set after tiebreak set', () => {
+      // Regression test: 7-5 in final set should complete match even with prior tiebreak
+      const result = validateScore('7-6(3) 4-6 7-5', MATCH_FORMATS.SET3_S6_TB7);
+      expect(result.isValid).toBe(true);
+      expect(result.winningSide).toBe(1);
+      expect(result.matchUpStatus).toBe('COMPLETED');
+    });
+
+    it('should complete match with 5-7 final set after tiebreak set', () => {
+      const result = validateScore('6-4 6-7(5) 5-7', MATCH_FORMATS.SET3_S6_TB7);
+      expect(result.isValid).toBe(true);
+      expect(result.winningSide).toBe(2);
+      expect(result.matchUpStatus).toBe('COMPLETED');
+    });
+
+    it('should distinguish tiebreak-only sets from regular sets with tiebreaks', () => {
+      // TB10 (tiebreak-only) should use brackets: [10-8]
+      const tbOnlyResult = validateScore('6-4 4-6 [10-8]', 'SET3-S:6/TB7-F:TB10');
+      expect(tbOnlyResult.isValid).toBe(true);
+      expect(tbOnlyResult.score).toBe('6-4 4-6 [10-8]');
+
+      // Regular set with tiebreak should use parentheses: 7-6(3)
+      const regularResult = validateScore('7-6(3) 6-4', MATCH_FORMATS.SET3_S6_TB7);
+      expect(regularResult.isValid).toBe(true);
+      expect(regularResult.score).toBe('7-6(3) 6-4');
+    });
+
+    it('should handle multiple tiebreak sets followed by 7-5', () => {
+      const result = validateScore('7-6(3) 6-7(8) 7-5', MATCH_FORMATS.SET3_S6_TB7);
+      expect(result.isValid).toBe(true);
+      expect(result.winningSide).toBe(1);
+    });
+  });
 });

@@ -26,10 +26,10 @@ export function settingsModal(): void {
       scoringApproach = 'dynamicSets';
     } else if (inputs.dialPad.checked) {
       scoringApproach = 'dialPad';
-    } else if (inputs.tidyScore.checked) {
-      scoringApproach = 'tidyScore';
     } else if (inputs.freeScore.checked) {
       scoringApproach = 'freeScore';
+    } else if (inputs.tidyScore?.checked) {
+      scoringApproach = 'tidyScore';
     } else {
       // Default fallback
       scoringApproach = 'dynamicSets';
@@ -80,7 +80,7 @@ export function settingsModal(): void {
           { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
           { text: 'Free Score', field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
           // Tidy Score only visible when dev mode is enabled
-          ...((window as any).dev
+          ...((globalThis as any).dev?.tidyScore
             ? [{ text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' }]
             : []),
         ],
