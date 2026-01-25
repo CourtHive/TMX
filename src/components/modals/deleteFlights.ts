@@ -7,7 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { wordValidator } from 'components/validators/wordValidator';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
-import { env } from 'settings/env';
+import { isDev } from 'functions/isDev';
 
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
@@ -22,9 +22,9 @@ type DeleteFlightsParams = {
 export function deleteFlights(params: DeleteFlightsParams): void {
   const { eventData, drawIds, callback } = params;
   const eventId = params.eventId ?? eventData.eventInfo.eventId;
-  
+
   // Skip reason modal if env.skipReason is true
-  if (env.skipReason) {
+  if (isDev()) {
     const auditData = { auditReason: 'Reason skipped' };
     const methods = drawIds.map((drawId) => ({
       params: { eventId, drawId, auditData, force: true },
@@ -34,8 +34,9 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     mutationRequest({ methods, callback: postMutation });
     return;
   }
-  
-  const drawName = drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
+
+  const drawName =
+    drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
   const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
 
   let inputs: any;

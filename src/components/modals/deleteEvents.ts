@@ -6,21 +6,21 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { wordValidator } from 'components/validators/wordValidator';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
-import { env } from 'settings/env';
+import { isDev } from 'functions/isDev';
 
 import { DELETE_EVENTS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
 export function deleteEvents(params: { eventIds: string[]; callback?: (result: any) => void }): void {
   const { eventIds, callback } = params;
-  
+
   // Skip reason modal if env.skipReason is true
-  if (env.skipReason) {
+  if (isDev()) {
     const auditData = { auditReason: 'Reason skipped' };
     mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds, auditData } }], callback });
     return;
   }
-  
+
   const modalTitle = eventIds.length > 1 ? `Delete Events` : 'Delete Event';
 
   let inputs: any;

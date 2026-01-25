@@ -11,15 +11,23 @@ const { QUALIFYING } = drawDefinitionConstants;
 
 type MapEntryParams = {
   entry: any;
-  derivedDrawInfo: any;
+  derivedDrawInfo?: any;
   participants?: any[];
   participant?: any;
   eventType: string;
-  categoryName: string;
+  categoryName?: string;
   eventId: string;
 };
 
-export function mapEntry({ entry, derivedDrawInfo, participants, participant, eventType, categoryName, eventId }: MapEntryParams): any {
+export function mapEntry({
+  entry,
+  derivedDrawInfo,
+  participants,
+  participant,
+  eventType,
+  categoryName,
+  eventId,
+}: MapEntryParams): any {
   participant = participant || participants?.find((p) => p.participantId === entry.participantId);
   const flights =
     participant?.draws
@@ -33,7 +41,9 @@ export function mapEntry({ entry, derivedDrawInfo, participants, participant, ev
   const utr = participant?.ratings?.[ratingType]?.find((rating: any) => rating.scaleName === UTR)?.scaleValue;
   const ratings = { wtn, utr };
 
-  const ranking = participant?.rankings?.[eventType]?.find((ranking: any) => ranking.scaleName === categoryName)?.scaleValue;
+  const ranking = participant?.rankings?.[eventType]?.find(
+    (ranking: any) => ranking.scaleName === categoryName,
+  )?.scaleValue;
 
   const scaleName = entry.entryStage === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const seedNumber = participant?.seedings?.[eventType]?.find(

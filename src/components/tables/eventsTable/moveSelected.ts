@@ -27,18 +27,20 @@ const moveTo = (table: any, group: string, eventId: string, drawId?: string): vo
   modifyEntriesStatus({ participantIds, group, eventId, drawId, callback });
 };
 
-export const moveSelected = (groups: string[], eventId: string, drawId?: string) => (table: any): any => {
-  const options = groups.map((group) => ({
-    onClick: () => moveTo(table, group, eventId, drawId),
-    stateChange: true,
-    label: group,
-    value: group,
-    close: true,
-  }));
+export const moveSelected =
+  (groups: string[], eventId: string, drawId?: string) =>
+  (table: any): any => {
+    const options = groups.map((group) => ({
+      onClick: () => moveTo(table, group, eventId, drawId),
+      stateChange: true,
+      label: group,
+      value: group,
+      close: true,
+    }));
 
-  return {
-    label: 'Move participants',
-    location: OVERLAY,
-    options,
+    return {
+      label: 'Move participants',
+      location: OVERLAY,
+      options,
+    };
   };
-};

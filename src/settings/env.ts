@@ -53,7 +53,6 @@
  * USER INTERFACE:
  * - env.hotkeys: Enable keyboard shortcuts for match scoring
  * - env.scoring: Enable scoring modal (vs direct score entry)
- * - env.skipReason: Skip audit reason modal when deleting events/draws
  *
  * DATA STORAGE:
  * - env.messages: Array of application messages - Accumulates throughout session
@@ -68,10 +67,6 @@
  * @example
  * // Enable verbose logging
  * env.log = { verbose: true };
- *
- * @example
- * // Skip deletion reason prompts
- * env.skipReason = true;
  *
  * @example
  * // Execute mutations locally first (offline mode)
@@ -110,7 +105,7 @@ export const env: any = {
 
   serverFirst: true,
   version,
-  
+
   pdfPrinting: false, // Beta feature flag for PDF generation
 
   ioc: 'gbr',

@@ -46,42 +46,54 @@ export const createPair = (event: any, addOnPairing = true): any => {
       },
     ];
 
+    const handleSuccessfulPairing = (result: any) => {
+      table.deleteRow(selectedParticipantids);
+      table.clearFilter();
+
+      const parentElement = getParent(table.element, 'tableClass');
+      if (parentElement) {
+        const controlBar = getChildrenByClassName(parentElement, 'controlBar')?.[0];
+        if (controlBar) {
+          const search = getChildrenByClassName(controlBar, 'search');
+          Array.from(search).forEach((el: any) => (el.value = ''));
+        }
+      }
+
+      const participantIds = result.results[0].newParticipantIds;
+      const {
+        participants: [participant],
+        derivedDrawInfo,
+      } = tournamentEngine.getParticipants({
+        participantFilters: { participantIds },
+        withIndividualParticipants: true,
+        withScaleValues: true,
+        withDraws: true,
+        withISO2: true,
+      });
+
+      if (participant) {
+        const { event } = tournamentEngine.getEvent({ eventId });
+        const categoryName = event?.category?.categoryName ?? event?.category?.ageCategoryCode;
+        const newEntry = mapEntry({
+          entry: { participantId: participant.participantId, entryStatus: ALTERNATE, entryStage: MAIN },
+          derivedDrawInfo,
+          eventType: DOUBLES,
+          categoryName,
+          participant,
+          eventId,
+        });
+        context.tables[ALTERNATE]?.updateOrAddData([newEntry]);
+        const tableClass = getParent(e.target, 'tableClass');
+        const controlBar = tableClass?.parent?.getElementsByClassName('controlBar')?.[0] as HTMLElement;
+        if (controlBar) setTimeout(() => toggleOverlay({ target: controlBar })(), 100);
+      } else {
+        console.log('participant not found', { participantIds, methods, result });
+      }
+    };
+
     const callback = (result: any) => {
       if (result.success) {
-        table.deleteRow(selectedParticipantids);
-        table.clearFilter();
-
-        const parentElement = getParent(table.element, 'tableClass');
-        if (parentElement) {
-          const controlBar = getChildrenByClassName(parentElement, 'controlBar')?.[0];
-          if (controlBar) {
-            const search = getChildrenByClassName(controlBar, 'search');
-            Array.from(search).forEach((el: any) => (el.value = ''));
-          }
-        }
-
-        const participantIds = result.results[0].newParticipantIds;
-        const {
-          participants: [participant],
-        } = tournamentEngine.getParticipants({
-          participantFilters: { participantIds },
-          withIndividualParticipants: true,
-          withISO2: true,
-        });
-
-        if (participant) {
-          const newEntry = mapEntry({
-            entry: { participantId: participant.participantId, entryStatus: ALTERNATE },
-            eventType: DOUBLES,
-            participant,
-          } as any);
-          context.tables[ALTERNATE].updateOrAddData([newEntry]);
-          const tableClass = getParent(e.target, 'tableClass');
-          const controlBar = tableClass?.parent?.getElementsByClassName('controlBar')?.[0] as HTMLElement;
-          if (controlBar) setTimeout(() => toggleOverlay({ target: controlBar })(), 100);
-        } else {
-          console.log('participant not found', { participantIds, methods, result });
-        }
+        handleSuccessfulPairing(result);
       } else if (result.error?.code === 'ERR_INVALID_PARTICIPANT_IDS') {
         const message = gender === 'MIXED' ? 'Genders must be mixed' : 'Invalid pairing';
         tmxToast({ intent: 'is-danger', message });
