@@ -6,10 +6,10 @@ export function getParent(elem, className): { parent: HTMLElement; index: number
 
 export function findAncestor(el, className): HTMLElement | null {
   if (!el) return null;
-  if (el.classList && Array.from(el.classList).indexOf(className) >= 0) return el;
+  if (el.classList && Array.from(el.classList).includes(className)) return el;
   while (el.parentNode) {
     el = el.parentNode;
-    if (el.classList && Array.from(el.classList).indexOf(className) >= 0) return el;
+    if (el.classList && Array.from(el.classList).includes(className)) return el;
   }
   return null;
 }
@@ -23,9 +23,9 @@ export function getChildrenByClassName(elem, className): HTMLElement[] {
   const matches: HTMLElement[] = [];
 
   function traverse(node) {
-    node.childNodes.forEach((child) => {
-      if (child.childNodes.length > 0) traverse(child);
-      if (child.classList && Array.from(child.classList).indexOf(className) >= 0) matches.push(child);
+    node?.childNodes?.forEach((child) => {
+      if (child?.childNodes?.length > 0) traverse(child);
+      if (child?.classList && Array.from(child.classList).includes(className)) matches.push(child);
     });
   }
 

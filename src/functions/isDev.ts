@@ -1,6 +1,6 @@
 function getWindow(): any {
   try {
-    return window;
+    return globalThis;
   } catch {
     // Window not available (e.g., server-side rendering)
     return undefined;
