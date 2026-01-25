@@ -9,7 +9,7 @@ export const POLICY_SEEDING = {
     validSeedPositions: { ignore: true },
     duplicateSeedNumbers: true,
     drawSizeProgression: true,
-    seedingProfile: SEPARATE,
+    seedingProfile: { positioning: SEPARATE },
     policyName: SEEDING,
 
     seedsCountThresholds: [
@@ -18,9 +18,9 @@ export const POLICY_SEEDING = {
       { drawSize: 32, minimumParticipantCount: 24, seedsCount: 8 },
       { drawSize: 64, minimumParticipantCount: 48, seedsCount: 16 },
       { drawSize: 128, minimumParticipantCount: 96, seedsCount: 32 },
-      { drawSize: 256, minimumParticipantCount: 192, seedsCount: 64 }
-    ]
-  }
+      { drawSize: 256, minimumParticipantCount: 192, seedsCount: 64 },
+    ],
+  },
 };
 
 export default POLICY_SEEDING;

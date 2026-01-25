@@ -45,9 +45,9 @@ const { TEAM } = eventConstants;
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
 
 // Seeding policy constants
-const ADJACENT = 'ADJACENT';
-const SEPARATED = 'SEPARATED';
-const INHERITED = 'INHERITED';
+const CLUSTER = 'CLUSTER';
+const SEPARATE = 'SEPARATE';
+const INHERIT = 'INHERIT';
 
 interface DrawFormParams {
   event: any;
@@ -103,9 +103,9 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   ];
 
   const seedingPolicyOptions = [
-    ...(hasExistingPolicy ? [{ label: 'Inherited', value: INHERITED, selected: true }] : []),
-    { label: 'Separated (USTA)', value: SEPARATED, selected: !hasExistingPolicy },
-    { label: 'Adjacent (ITF)', value: ADJACENT },
+    ...(hasExistingPolicy ? [{ label: 'Inherited', value: INHERIT, selected: true }] : []),
+    { label: 'Separated (USTA)', value: SEPARATE, selected: !hasExistingPolicy },
+    { label: 'Adjacent (ITF)', value: CLUSTER },
   ];
 
   const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });

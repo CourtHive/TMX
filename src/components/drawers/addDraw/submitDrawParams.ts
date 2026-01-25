@@ -36,16 +36,14 @@ import {
   TOP_FINISHERS,
 } from 'constants/tmxConstants';
 
-const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
+const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
   drawDefinitionConstants;
 const { TIME_TENNIS_PRO_CIRCUIT } = factoryConstants.tieFormatConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { POLICY_TYPE_ROUND_NAMING, POLICY_TYPE_SEEDING } = policyConstants;
 
 // Seeding policy constants
-const ADJACENT = 'ADJACENT';
-const SEPARATED = 'SEPARATED';
-const INHERITED = 'INHERITED';
+const INHERIT = 'INHERIT';
 
 // Seeding policy definitions matching factory defaults
 const POLICY_SEEDING_DEFAULT = {
@@ -58,7 +56,7 @@ const POLICY_SEEDING_DEFAULT = {
         [ROUND_ROBIN_WITH_PLAYOFF]: { positioning: factoryConstants.drawDefinitionConstants.WATERFALL },
         [ROUND_ROBIN]: { positioning: factoryConstants.drawDefinitionConstants.WATERFALL },
       },
-      positioning: 'SEPARATE',
+      positioning: SEPARATE,
     },
     policyName: 'USTA SEEDING',
     seedsCountThresholds: [
@@ -74,7 +72,7 @@ const POLICY_SEEDING_DEFAULT = {
 
 const POLICY_SEEDING_ITF = {
   [POLICY_TYPE_SEEDING]: {
-    seedingProfile: { positioning: 'CLUSTER' },
+    seedingProfile: { positioning: CLUSTER },
     validSeedPositions: { ignore: true },
     duplicateSeedNumbers: true,
     drawSizeProgression: true,
@@ -144,11 +142,11 @@ function getStructureOptions(drawType: string, inputs: any): any {
 }
 
 function getSeedingPolicyDefinition(selectedSeedingPolicy: string): any {
-  if (selectedSeedingPolicy === SEPARATED) {
+  if (selectedSeedingPolicy === SEPARATE) {
     return POLICY_SEEDING_DEFAULT;
-  } else if (selectedSeedingPolicy === ADJACENT) {
+  } else if (selectedSeedingPolicy === CLUSTER) {
     return POLICY_SEEDING_ITF;
-  } else if (selectedSeedingPolicy === INHERITED) {
+  } else if (selectedSeedingPolicy === INHERIT) {
     return undefined;
   }
   return POLICY_SEEDING_DEFAULT;
