@@ -186,6 +186,7 @@ export const ADVANCE_PER_GROUP = 'advancePerGroup';
 export const QUALIFIERS_COUNT = 'qualifiersCount';
 export const GROUP_REMAINING = 'groupRemaining';
 export const MATCHUP_FORMAT = 'matchUpFormat';
+export const SEEDING_POLICY = 'seedingPolicy';
 export const STRUCTURE_NAME = 'structureName';
 export const PLAYOFF_TYPE = 'playoffType';
 export const GROUP_SIZE = 'groupSize';

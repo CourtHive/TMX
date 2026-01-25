@@ -31,6 +31,7 @@ import {
   PLAYOFF_TYPE,
   POSITIONS,
   QUALIFIERS_COUNT,
+  SEEDING_POLICY,
   STRUCTURE_NAME,
   TOP_FINISHERS,
   WINNERS,
@@ -38,10 +39,15 @@ import {
 
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
-const { POLICY_TYPE_SCORING } = policyConstants;
+const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
 const { TEAM } = eventConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
+
+// Seeding policy constants
+const ADJACENT = 'ADJACENT';
+const SEPARATED = 'SEPARATED';
+const INHERITED = 'INHERITED';
 
 interface DrawFormParams {
   event: any;
@@ -50,7 +56,10 @@ interface DrawFormParams {
   structureId?: string;
 }
 
-export function getDrawFormItems({ event, drawId, isQualifying, structureId }: DrawFormParams): { items: any[]; structurePositionAssignments: any } {
+export function getDrawFormItems({ event, drawId, isQualifying, structureId }: DrawFormParams): {
+  items: any[];
+  structurePositionAssignments: any;
+} {
   const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0;
   const drawType = SINGLE_ELIMINATION;
@@ -66,6 +75,12 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
 
   const drawSize = structurePositionAssignments?.length || tools.nextPowerOf2(acceptedEntriesCount(event, stage));
   const maxDrawSize = Math.max(drawSize, 512); // Allow at least 512, or the next power of 2 above entries
+
+  // Check for existing seeding policy at event or tournament level
+  const tournamentRecord = tournamentEngine.getTournamentInfo()?.tournamentRecord;
+  const existingEventPolicy = event?.policyDefinitions?.[POLICY_TYPE_SEEDING];
+  const existingTournamentPolicy = tournamentRecord?.policyDefinitions?.[POLICY_TYPE_SEEDING];
+  const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
 
   const scoreFormatOptions = [
     {
@@ -85,6 +100,12 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     { label: 'College Default', value: COLLEGE_DEFAULT },
     { label: 'Laver Cup', value: LAVER_CUP },
     { label: 'Custom', value: CUSTOM },
+  ];
+
+  const seedingPolicyOptions = [
+    ...(hasExistingPolicy ? [{ label: 'Inherited', value: INHERITED, selected: true }] : []),
+    { label: 'Separated (USTA)', value: SEPARATED, selected: !hasExistingPolicy },
+    { label: 'Adjacent (ITF)', value: ADJACENT },
   ];
 
   const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
@@ -179,6 +200,12 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       options: scoreFormatOptions,
       field: MATCHUP_FORMAT,
       label: 'Score format',
+      value: '',
+    },
+    {
+      options: seedingPolicyOptions,
+      field: SEEDING_POLICY,
+      label: 'Seeding policy',
       value: '',
     },
     {
