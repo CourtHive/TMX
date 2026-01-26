@@ -21,15 +21,13 @@ export function settingsModal(): void {
     env.pdfPrinting = inputs.pdfPrinting?.checked || false;
 
     // Save scoring approach preference
-    let scoringApproach: 'dynamicSets' | 'tidyScore' | 'freeScore' | 'dialPad';
+    let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
     if (inputs.dynamicSets.checked) {
       scoringApproach = 'dynamicSets';
     } else if (inputs.dialPad.checked) {
       scoringApproach = 'dialPad';
     } else if (inputs.freeScore.checked) {
       scoringApproach = 'freeScore';
-    } else if (inputs.tidyScore?.checked) {
-      scoringApproach = 'tidyScore';
     } else {
       // Default fallback
       scoringApproach = 'dynamicSets';
@@ -79,10 +77,6 @@ export function settingsModal(): void {
           { text: 'Dynamic Sets', field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
           { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
           { text: 'Free Score', field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
-          // Tidy Score only visible when dev mode is enabled
-          ...((globalThis as any).dev?.tidyScore
-            ? [{ text: 'Tidy Score', field: 'tidyScore', checked: env.scoringApproach === 'tidyScore' }]
-            : []),
         ],
         onClick: (x: any) => console.log({ x }),
         field: 'scoringApproach',

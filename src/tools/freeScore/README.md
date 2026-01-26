@@ -9,14 +9,18 @@ The freeScore parser accepts free-form score input and intelligently interprets 
 ## Key Features
 
 ### 1. **Format-Aware Parsing**
+
 Uses `matchUpFormat` (from `tods-competition-factory`) to:
+
 - Determine valid score ranges (setTo, tiebreakAt, tiebreakTo)
 - Apply correct tiebreak rules (TB7, TB10, TB12)
 - Handle final set formats (F:TB10, F:TB7, etc.)
 - Support specialized formats (Fast4, pro sets, short sets)
 
 ### 2. **Flexible Input Notation**
+
 Accepts scores with or without separators:
+
 - `"6-4 6-3"` (standard with dashes)
 - `"6463"` (no separators - auto-detects boundaries)
 - `"6 4 6 3"` (spaces only)
@@ -24,13 +28,16 @@ Accepts scores with or without separators:
 - `"67(5)64"` (embedded tiebreaks)
 
 ### 3. **Intelligent Lookahead**
+
 - Auto-detects set boundaries based on format constraints
 - Prevents invalid two-digit combinations (e.g., "10" when max is 7)
 - Handles tiebreak-only sets (match tiebreaks)
 - Infers tiebreak scores when only losing score provided
 
 ### 4. **Irregular Ending Detection**
+
 Recognizes 9 matchUpStatus types using `matchUpStatusConstants` from factory:
+
 - **RETIRED** - Player couldn't continue (score preserved)
 - **WALKOVER** - Match didn't start (score removed)
 - **DEFAULTED** - Player disqualified (score preserved)
@@ -44,6 +51,7 @@ Recognizes 9 matchUpStatus types using `matchUpStatusConstants` from factory:
 See [IRREGULAR_ENDINGS.md](./IRREGULAR_ENDINGS.md) for full details.
 
 ### 5. **Real-Time Parsing**
+
 - Handles incomplete scores (user typing)
 - Provides confidence scores
 - Identifies ambiguities
@@ -52,10 +60,12 @@ See [IRREGULAR_ENDINGS.md](./IRREGULAR_ENDINGS.md) for full details.
 ## Architecture
 
 ### State Machine
+
 Character-by-character processing with states:
+
 - `START` - Initial state
 - `PARSING_SIDE1` - Reading first player's score
-- `PARSING_SIDE2` - Reading second player's score  
+- `PARSING_SIDE2` - Reading second player's score
 - `PARSING_TIEBREAK_SIDE1` - Reading tiebreak score 1
 - `PARSING_TIEBREAK_SIDE2` - Reading tiebreak score 2
 - `SET_COMPLETE` - Set finalized
@@ -65,28 +75,34 @@ Character-by-character processing with states:
 ### Key Components
 
 #### 1. **Format Detection**
+
 ```typescript
-function getSetFormat(parsedFormat: ParsedFormat, setIndex: number)
+function getSetFormat(parsedFormat: ParsedFormat, setIndex: number);
 ```
+
 - Determines format for specific set
 - Handles `finalSetFormat` for deciding sets
 - Returns set-specific rules (setTo, tiebreakAt, tiebreakTo)
 
 #### 2. **Lookahead Logic**
+
 ```typescript
 // In PARSING_SIDE1
 if (currentBuffer + nextDigit > maxGameScore) {
   // Current buffer complete, transition to PARSING_SIDE2
 }
 ```
+
 - Checks if next digit would exceed format limits
 - Auto-transitions between states
 - Enables parsing without explicit separators
 
 #### 3. **Set Finalization**
+
 ```typescript
-function finalizeSet(state: ParserState)
+function finalizeSet(state: ParserState);
 ```
+
 - Creates `ParsedSet` with scores
 - Determines winning side
 - Infers tiebreak scores if needed
@@ -94,9 +110,11 @@ function finalizeSet(state: ParserState)
 - Resets buffers for next set
 
 #### 4. **Irregular Ending Detection**
+
 ```typescript
-function detectIrregularEnding(input: string, startPos: number)
+function detectIrregularEnding(input: string, startPos: number);
 ```
+
 - Pattern matching for status keywords
 - Returns `matchUpStatusConstants` values
 - Case-insensitive, supports partial words
@@ -167,23 +185,25 @@ const result = parseScore('6-4 3-2 ret', 'SET3-S:6/TB7');
 ### parseScore(input, matchUpFormat)
 
 **Parameters:**
+
 - `input: string` - Free-form score string
 - `matchUpFormat: string | ParsedFormat` - Format code or parsed format object
 
 **Returns:** `ParseResult`
+
 ```typescript
 interface ParseResult {
-  valid: boolean;              // Parse succeeded
-  formattedScore: string;      // Normalized score string
-  sets: ParsedSet[];           // Array of set objects
-  confidence: number;          // 0.0 to 1.0
-  errors: ParseError[];        // Parse errors with position
-  warnings: string[];          // Warnings (e.g., exceeds max)
-  ambiguities: string[];       // Ambiguous interpretations
-  suggestions: string[];       // Alternative interpretations
-  incomplete: boolean;         // Score incomplete
-  matchComplete: boolean;      // Match finished normally
-  matchUpStatus?: string;      // Irregular ending (uses matchUpStatusConstants)
+  valid: boolean; // Parse succeeded
+  formattedScore: string; // Normalized score string
+  sets: ParsedSet[]; // Array of set objects
+  confidence: number; // 0.0 to 1.0
+  errors: ParseError[]; // Parse errors with position
+  warnings: string[]; // Warnings (e.g., exceeds max)
+  ambiguities: string[]; // Ambiguous interpretations
+  suggestions: string[]; // Alternative interpretations
+  incomplete: boolean; // Score incomplete
+  matchComplete: boolean; // Match finished normally
+  matchUpStatus?: string; // Irregular ending (uses matchUpStatusConstants)
 }
 ```
 
@@ -195,7 +215,7 @@ interface ParsedSet {
   side2Score?: number;
   side1TiebreakScore?: number;
   side2TiebreakScore?: number;
-  winningSide?: number;        // 1 or 2
+  winningSide?: number; // 1 or 2
   setNumber: number;
 }
 ```
@@ -203,6 +223,7 @@ interface ParsedSet {
 ## Validation
 
 The parser provides warnings for:
+
 - Scores exceeding format limits (e.g., "10-2" when setTo:6)
 - Incomplete tiebreaks
 - Invalid set combinations
@@ -213,32 +234,37 @@ Warnings don't invalidate the parse - they inform about potential issues.
 ## Examples
 
 ### Pro Set
+
 ```typescript
-parseScore('8-6', 'SET1-S:8/TB7')
+parseScore('8-6', 'SET1-S:8/TB7');
 // Single set to 8 games
 ```
 
 ### Fast4 Format
+
 ```typescript
-parseScore('4-3(5) 4-2', 'SET3-S:4/TB5@3')
+parseScore('4-3(5) 4-2', 'SET3-S:4/TB5@3');
 // Sets to 4, tiebreak at 3-3, TB5
 ```
 
 ### Best of 5
+
 ```typescript
-parseScore('6-4 4-6 6-3 4-6 6-2', 'SET5-S:6/TB7')
+parseScore('6-4 4-6 6-3 4-6 6-2', 'SET5-S:6/TB7');
 // Standard best of 5
 ```
 
 ### Short Sets
+
 ```typescript
-parseScore('4-2 2-4 4-3', 'SET3-S:4/TB7')
+parseScore('4-2 2-4 4-3', 'SET3-S:4/TB7');
 // Sets to 4 games
 ```
 
 ## Integration with Factory
 
 The freeScore parser uses several factory exports:
+
 - `matchUpFormatCode` - For parsing format codes
 - `matchUpStatusConstants` - For irregular endings (RETIRED, WALKOVER, etc.)
 - `ParsedFormat` type - For format structure
@@ -250,6 +276,7 @@ This ensures consistency with the rest of the TMX/Factory ecosystem.
 Comprehensive test coverage across 3 test files:
 
 ### freeScore.parser.test.ts (24 tests)
+
 - Basic score parsing with/without separators
 - Tiebreak parsing (regular and match tiebreaks)
 - Format-aware disambiguation
@@ -257,6 +284,7 @@ Comprehensive test coverage across 3 test files:
 - Confidence scoring
 
 ### freeScore.irregular.test.ts (41 tests)
+
 - All 9 irregular ending types
 - Uppercase/lowercase/partial words
 - Score preservation vs removal logic
@@ -264,8 +292,8 @@ Comprehensive test coverage across 3 test files:
 - Multi-word phrases
 
 ### freeScore.test.ts (3 tests)
+
 - Format compatibility analysis
-- Integration with tidyScore test cases
 
 **Total: 68/68 tests passing ✅**
 
@@ -285,6 +313,7 @@ Comprehensive test coverage across 3 test files:
 ## Future Enhancements
 
 Potential additions:
+
 1. **Confidence scoring** - Currently always 1.0, could analyze ambiguities
 2. **Suggestions** - Provide alternative interpretations for ambiguous input
 3. **Error recovery** - Continue parsing after errors to provide partial results
@@ -297,12 +326,11 @@ Potential additions:
 - `freeScore.parser.test.ts` - Parser tests
 - `freeScore.irregular.test.ts` - Irregular ending tests
 - `freeScore.test.ts` - Format analysis tests
-- `analyzeFormatCompatibility.ts` - Format compatibility tools
-- `extractTidyScoreData.ts` - Test data extraction
 
 ## Contributing
 
 When extending the parser:
+
 1. Add tests first (TDD approach)
 2. Maintain backward compatibility
 3. Update documentation

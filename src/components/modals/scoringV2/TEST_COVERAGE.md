@@ -426,7 +426,7 @@ function getSetFormat(setIndex: number, matchUpFormat: string, bestOf: number) {
 - NoAD format
 - Mixed formats with finalSetFormat
 
-#### tidyScore Function (8 tests)
+#### Score Parsing Functions (8 tests)
 
 - Tidy messy score: "64 63" → "6-4 6-3"
 - Handle score with status keyword
@@ -569,16 +569,16 @@ All 234 tests complete in ~180ms, enabling rapid development feedback.
 
 ### Potential Additional Coverage
 
-1. **tidyScoreApproach.ts** - Full component testing (will be deprecated)
-2. **freeScoreApproach.ts** - DOM interaction testing
-3. **dynamicSetsApproach.ts** - Full component testing (partial coverage exists)
-4. **Integration tests** - Multi-component workflows
-5. **E2E tests** - Full user journey testing via Storybook
+1. **dynamicSetsApproach.ts** - Full component testing
+2. **dialPadApproach.ts** - Full component testing
+3. **freeScoreApproach.ts** - Format-aware parsing testing
+4. **scoreBoard.ts** - Integration testing with approaches
 
-### Not Planned
+## Notes
 
-- tidyScore approach will be deprecated once freeScore is fully robust
-- Full DOM testing requires more complex setup (Storybook or E2E framework)
+- freeScore approach covers most edge cases through format-aware parsing
+- dynamicSets provides additional validation layer
+- All three scoring approaches are fully supported and production-ready
 
 ## Conclusion
 
