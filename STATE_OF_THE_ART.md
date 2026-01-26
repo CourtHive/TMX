@@ -47,7 +47,7 @@ TMX (Tournament Management eXtreme / eXtensible Tournament Manager) is a Progres
 
 ### Repository Structure
 
-```
+```text
 TMX/
 ├── src/
 │   ├── components/       # UI components
@@ -65,7 +65,7 @@ TMX/
 
 ### Data Flow
 
-```
+```text
 User Input
     ↓
 UI Components (TMX)
@@ -88,9 +88,11 @@ The scoring system was completely rebuilt in January 2026 with three distinct in
 ### Scoring Approaches
 
 #### 1. Dynamic Sets (Default)
+
 **Best for:** Standard match entry, visual feedback
 
 **Features:**
+
 - Individual set-by-set input fields
 - Real-time validation
 - Auto-expansion as sets complete
@@ -99,6 +101,7 @@ The scoring system was completely rebuilt in January 2026 with three distinct in
 - Context-aware input limiting
 
 **Format Support:**
+
 - Standard (SET3-S:6/TB7, SET5-S:6/TB7)
 - Short Sets (SET3-S:4/TB7, Fast4)
 - Pro Sets (SET1-S:8/TB7)
@@ -107,9 +110,11 @@ The scoring system was completely rebuilt in January 2026 with three distinct in
 - Final Set Variations (ATP, Wimbledon, Australian Open)
 
 #### 2. Free Score
+
 **Best for:** Rapid entry, flexible input
 
 **Features:**
+
 - Free-form text input
 - Intelligent parsing of various formats
 - Accepts: `6-4 6-3`, `6463`, `67(5)64`
@@ -117,9 +122,11 @@ The scoring system was completely rebuilt in January 2026 with three distinct in
 - Smart tiebreak detection
 
 #### 3. Dial Pad
+
 **Best for:** Mobile/touch devices
 
 **Features:**
+
 - Touch-friendly numeric keypad
 - Visual score building
 - Clear/backspace support
@@ -132,6 +139,7 @@ The scoring system was completely rebuilt in January 2026 with three distinct in
 **Test Coverage:** 69/69 tests passing (100%)
 
 **Validates:**
+
 - Match format compliance
 - Set/game score relationships
 - Tiebreak rules per format
@@ -154,6 +162,7 @@ Supports all TODS matchUpStatus constants:
 **Format:** `SET3X-S:T10` (exactly 3 sets, 10 minutes each)
 
 **Behavior:**
+
 - No score relationship requirements
 - Any numeric values allowed (0-infinity)
 - All sets shown immediately
@@ -161,6 +170,7 @@ Supports all TODS matchUpStatus constants:
 - Winner determined externally
 
 **Scoring Methods (Future):**
+
 - `T10G` - Games-based (count periods won)
 - `T10A` - Aggregate (sum all scores)
 - `T10P` - Points-based (regular tennis scoring)
@@ -176,26 +186,31 @@ Comprehensive participant management system with panel-based organization.
 ### Entry Status Panels
 
 #### 1. Accepted
+
 - Main draw participants
 - Seeding before draw creation
 - Move to: Alternates, Withdrawn
 
 #### 2. Qualifying
+
 - Qualifying round participants
 - Separate from main draw
 - Move to: Accepted, Alternates, Withdrawn
 
 #### 3. Alternates
+
 - Backup participants
 - Can replace withdrawn participants
 - **Doubles:** Destroy pairs feature
 
 #### 4. Ungrouped (Doubles Only)
+
 - Individual participants not yet paired
 - **Auto Pair toggle** for rapid pairing
 - Search-driven workflow for fast pairing
 
 #### 5. Withdrawn
+
 - Withdrawn participants
 - **Singles:** Move to Alternates
 - **Doubles:** Move to Ungrouped (must re-pair)
@@ -203,12 +218,14 @@ Comprehensive participant management system with panel-based organization.
 ### Doubles Pairing Workflow
 
 **Auto Pair ON (Default):**
+
 1. Select first participant
 2. Select second participant
 3. Pair created automatically
 4. Moved to Alternates
 
 **Search-Driven (Fastest):**
+
 1. Type partial name → Press Enter
 2. Type next partial name → Press Enter
 3. Pair created automatically
@@ -234,7 +251,7 @@ PDF generation system ported from TMX-Suite-Legacy, using pdfMake.
 
 ### Architecture
 
-```
+```text
 PDF Generation Flow:
 1. Create directive (document type + options)
 2. Fetch images (logos, QR codes)
@@ -271,17 +288,17 @@ See: `src/services/pdf/TODS_DATA_MODEL.md`
 
 ```typescript
 // Tournament management
-tournamentEngine.newTournamentRecord()
-tournamentEngine.addEvent()
-tournamentEngine.generateDrawDefinition()
+tournamentEngine.newTournamentRecord();
+tournamentEngine.addEvent();
+tournamentEngine.generateDrawDefinition();
 
 // Match scoring
-tournamentEngine.setMatchUpStatus()
-tournamentEngine.setMatchUpScore()
+tournamentEngine.setMatchUpStatus();
+tournamentEngine.setMatchUpScore();
 
 // Format parsing
-matchUpFormatCode.parse('SET3-S:6/TB7')
-matchUpFormatCode.stringify(formatObject)
+matchUpFormatCode.parse('SET3-S:6/TB7');
+matchUpFormatCode.stringify(formatObject);
 ```
 
 ### Integration Points
@@ -304,6 +321,7 @@ matchUpFormatCode.stringify(formatObject)
 ### Factory Updates Required
 
 **Timed Sets Scoring Methods:**
+
 - Need to implement G/A/P notation in factory
 - Parse `T10G` (games), `T10A` (aggregate), `T10P` (points)
 - Update winner determination logic
@@ -331,12 +349,14 @@ See: `DEVPLAN.md` for full implementation plan
 ### Recent Migrations
 
 **Scoring System (Jan 2026):**
+
 - All scoring modals moved to courthive-components
 - Three approaches: Dynamic Sets, Free Score, Dial Pad
 - Composition support (Australian, Wimbledon, French, etc.)
 - Smart Complements feature for rapid entry
 
 **Button Styling Fix (Jan 2026):**
+
 - Added `footer.style` support to cModal
 - Cancel button now has proper white background
 - Customizable button styling via config
@@ -350,7 +370,7 @@ import { scoringModal, setScoringConfig } from 'courthive-components';
 setScoringConfig({
   scoringApproach: 'dynamicSets',
   smartComplements: true,
-  composition: 'Australian'
+  composition: 'Australian',
 });
 
 // Open modal
@@ -358,13 +378,14 @@ scoringModal({
   matchUp: todsMatchUp,
   callback: (outcome) => {
     // Handle score submission
-  }
+  },
 });
 ```
 
 ### Customization
 
 TMX can customize components via:
+
 - CSS overrides
 - `footer.style` property for buttons
 - Composition selection
@@ -379,10 +400,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 ### High Priority
 
 #### 1. Factory: Timed Sets Scoring Methods
+
 **Timeline:** 2-3 days  
 **Status:** Planned
 
 **Tasks:**
+
 - [ ] Implement T10G/T10A/T10P notation parsing in factory
 - [ ] Add `timedScoringMethod` to SetFormat type
 - [ ] Implement winner determination for each method
@@ -393,32 +416,38 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 **Reference:** `DEVPLAN.md`
 
 #### 2. Modal Stacking Issue
+
 **Timeline:** 1-2 days  
 **Status:** In Progress
 
 **Problem:** Clicking scoring button multiple times creates overlapping modals
 
 **Solution:** Fix inside cModal itself, not at story level
+
 - [ ] Investigate cModal singleton pattern
 - [ ] Add guard to prevent multiple instances
 - [ ] Test in Storybook
 - [ ] Test in TMX integration
 
 #### 3. courthive-components: Update After Factory Publish
+
 **Timeline:** 1 day  
 **Status:** Blocked by Factory
 
 **Tasks:**
+
 - [ ] Update factory dependency
 - [ ] Add scoring method selector UI
 - [ ] Test with new timed sets notation
 - [ ] Publish components to npm
 
 #### 4. TMX: Integrate Updated Components
+
 **Timeline:** 1 day  
 **Status:** Blocked by Components
 
 **Tasks:**
+
 - [ ] Update courthive-components dependency
 - [ ] Update factory dependency
 - [ ] Test all scoring approaches
@@ -427,10 +456,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 ### Medium Priority
 
 #### 5. Documentation Cleanup
+
 **Timeline:** 2-3 hours  
 **Status:** Not Started
 
 **Tasks:**
+
 - [x] Consolidate markdown files into STATE_OF_THE_ART.md
 - [ ] Archive historical docs to `/docs/archive/`
 - [ ] Update README.md to reference STATE_OF_THE_ART.md
@@ -438,10 +469,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - [ ] Keep only: README, STATE_OF_THE_ART, component-specific docs
 
 #### 6. Validation Migration to Factory
+
 **Timeline:** 3-5 days  
 **Status:** Future
 
 **Tasks:**
+
 - [ ] Move `scoreValidator.ts` to factory
 - [ ] Use test suite as specification
 - [ ] Integrate with `generateOutcomeFromScoreString`
@@ -449,10 +482,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - [ ] Remove TMX validation code
 
 #### 7. PDF Generation Enhancements
+
 **Timeline:** 1-2 weeks  
 **Status:** Future
 
 **Tasks:**
+
 - [ ] Add customizable tournament logos
 - [ ] Implement schedule templates
 - [ ] Add court assignment views
@@ -462,10 +497,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 ### Low Priority
 
 #### 8. Accessibility Audit
+
 **Timeline:** 1 week  
 **Status:** Future
 
 **Tasks:**
+
 - [ ] Keyboard navigation testing
 - [ ] Screen reader compatibility
 - [ ] ARIA labels audit
@@ -473,10 +510,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - [ ] Focus management review
 
 #### 9. Performance Optimization
+
 **Timeline:** Ongoing  
 **Status:** Monitoring
 
 **Tasks:**
+
 - [ ] Bundle size analysis
 - [ ] Code splitting opportunities
 - [ ] Lazy loading for PDF generation
@@ -484,10 +523,12 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - [ ] Caching strategies
 
 #### 10. Testing Infrastructure
+
 **Timeline:** 2-3 weeks  
 **Status:** Future
 
 **Tasks:**
+
 - [ ] Set up E2E testing (Playwright/Cypress)
 - [ ] Add visual regression testing
 - [ ] Implement CI/CD pipeline
@@ -497,6 +538,7 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 ### Future Enhancements
 
 #### 11. Advanced Scoring Features
+
 - Point-by-point scoring
 - Live scoring with WebSocket support
 - Match timeline visualization
@@ -504,6 +546,7 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - Match replay functionality
 
 #### 12. Mobile App
+
 - Native iOS/Android apps
 - Offline-first architecture
 - Push notifications
@@ -511,6 +554,7 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - QR code scanning
 
 #### 13. Cloud Integration
+
 - Tournament data sync
 - Multi-device support
 - Backup and restore
@@ -518,6 +562,7 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - API for third-party integrations
 
 #### 14. Reporting System
+
 - Custom report builder
 - Export to Excel/CSV
 - Player statistics
@@ -547,6 +592,7 @@ npm test
 ### Code Organization
 
 **Conventions:**
+
 - TypeScript for all new code
 - No frameworks (vanilla JS/TS)
 - Factory for business logic
@@ -554,6 +600,7 @@ npm test
 - Services for app-specific features
 
 **Naming:**
+
 - camelCase for variables/functions
 - PascalCase for classes/types
 - kebab-case for file names
@@ -561,7 +608,7 @@ npm test
 
 ### Commit Guidelines
 
-```
+```text
 feat: Add timed sets support to dynamic sets modal
 fix: Correct button styling in cModal
 docs: Update STATE_OF_THE_ART.md with latest changes
@@ -579,6 +626,7 @@ test: Add tests for timed sets validation
 ### Publishing
 
 **Factory:**
+
 ```bash
 cd factory
 npm version minor
@@ -587,6 +635,7 @@ git push --tags
 ```
 
 **courthive-components:**
+
 ```bash
 cd courthive-components
 npm version minor
@@ -600,19 +649,20 @@ git push --tags
 
 ### Documentation
 
-- **TODS Spec:** https://itftennis.atlassian.net/wiki/spaces/TODS/overview
-- **Factory Docs:** https://courthive.github.io/tods-competition-factory/
-- **Online Demo:** https://courthive.github.io/TMX
+- **TODS Spec:** <https://itftennis.atlassian.net/wiki/spaces/TODS/overview>
+- **Factory Docs:** <https://courthive.github.io/tods-competition-factory/>
+- **Online Demo:** <https://courthive.github.io/TMX>
 
 ### Related Repositories
 
-- **Factory:** https://github.com/CourtHive/tods-competition-factory
-- **Components:** https://github.com/CourtHive/courthive-components
-- **TMX:** https://github.com/CourtHive/TMX
+- **Factory:** <https://github.com/CourtHive/tods-competition-factory>
+- **Components:** <https://github.com/CourtHive/courthive-components>
+- **TMX:** <https://github.com/CourtHive/TMX>
 
 ### Historical Documents (Archived)
 
 The following documents have been consolidated into this file:
+
 - DEVPLAN.md - Timed sets implementation plan
 - SCORING-V2-SUMMARY.md - Scoring system migration
 - ENTRIES_TABLES_GUIDE.md - Entry management guide
