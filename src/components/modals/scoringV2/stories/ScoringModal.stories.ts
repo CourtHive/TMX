@@ -50,7 +50,7 @@ const meta = {
   argTypes: {
     approach: {
       control: 'select',
-      options: ['tidyScore', 'freeScore', 'dynamicSets', 'dialPad'],
+      options: ['freeScore', 'dynamicSets', 'dialPad'],
       description: 'Scoring approach to use',
     },
   },

@@ -7,7 +7,7 @@ const SETTINGS_KEY = 'tmx_settings';
 
 export type TMXSettings = {
   activeScale?: 'wtn' | 'utr';
-  scoringApproach?: 'dynamicSets' | 'tidyScore' | 'freeScore' | 'dialPad';
+  scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad';
   saveLocal?: boolean;
   smartComplements?: boolean; // Enable smart complement entry in dynamicSets (default: false)
   pdfPrinting?: boolean; // Beta feature flag for PDF generation

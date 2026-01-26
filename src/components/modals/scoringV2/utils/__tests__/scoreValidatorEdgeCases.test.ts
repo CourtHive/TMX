@@ -1,6 +1,6 @@
 /**
  * Test suite for scoreValidator edge cases and regression tests
- * 
+ *
  * Extends the existing freeTextValidation.test.ts with additional coverage:
  * - Extended tiebreak scores
  * - Invalid score combinations
@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { validateScore, tidyScore } from '../scoreValidator';
+import { validateScore } from '../scoreValidator';
 import { MATCH_FORMATS } from '../../../../../constants/matchUpFormats';
 
 describe('scoreValidator - Edge Cases', () => {
@@ -266,53 +266,6 @@ describe('scoreValidator - Edge Cases', () => {
     it('should handle mixed formats with finalSetFormat', () => {
       const result = validateScore('6-4 4-6 [10-8]', 'SET3-S:6/TB7-F:TB10');
       expect(result.isValid).toBe(true);
-    });
-  });
-
-  describe('tidyScore Function', () => {
-    it('should tidy messy score string', () => {
-      const result = tidyScore('64 63');
-      expect(result.tidyScore).toBe('6-4 6-3');
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should handle score with status keyword', () => {
-      const result = tidyScore('64 32 ret');
-      expect(result.matchUpStatus).toBe('RETIRED');
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should handle walkover', () => {
-      const result = tidyScore('wo');
-      expect(result.matchUpStatus).toBe('WALKOVER');
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should handle defaulted', () => {
-      const result = tidyScore('64 def');
-      expect(result.matchUpStatus).toBe('DEFAULTED');
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should return error for empty string', () => {
-      const result = tidyScore('');
-      expect(result.error).toBeDefined();
-      expect(result.tidyScore).toBeUndefined();
-    });
-
-    it('should return error for whitespace only', () => {
-      const result = tidyScore('   ');
-      expect(result.error).toBeDefined();
-    });
-
-    it('should handle tiebreak scores', () => {
-      const result = tidyScore('76(3) 64');
-      expect(result.tidyScore).toBe('7-6(3) 6-4');
-    });
-
-    it('should handle extended tiebreaks', () => {
-      const result = tidyScore('76(102) 64');
-      expect(result.tidyScore).toBe('7-6(102) 6-4');
     });
   });
 

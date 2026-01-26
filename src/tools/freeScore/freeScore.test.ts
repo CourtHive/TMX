@@ -1,6 +1,5 @@
-import { runAnalysis, analyzeAllTestCases } from './analyzeFormatCompatibility';
 import { governors, matchUpFormatCode } from 'tods-competition-factory';
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'vitest';
 
 const { parseScoreString } = governors.scoreGovernor;
 
@@ -45,24 +44,5 @@ describe('FreeScore Parser - Format Analysis', () => {
       matchUpFormat: parsedFormat2,
     });
     console.log('Validation result:', validation2);
-  });
-
-  it('should analyze tidyScore test cases for format compatibility', () => {
-    const { results, patternGroups } = analyzeAllTestCases();
-
-    expect(results.length).toBeGreaterThan(0);
-    expect(Object.keys(patternGroups).length).toBeGreaterThan(0);
-
-    console.log(`\nAnalyzed ${results.length} test cases`);
-    console.log('Format compatibility distribution:');
-    Object.keys(patternGroups).forEach((key) => {
-      console.log(`  ${key}: ${patternGroups[key].length} cases`);
-    });
-  });
-
-  it('should run full analysis and output results', () => {
-    const results = runAnalysis();
-    expect(results).toBeDefined();
-    expect(results.length).toBeGreaterThan(0);
   });
 });
