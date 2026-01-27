@@ -83,8 +83,11 @@ export const env: any = {
   activeScale: 'wtn',
   hotkeys: false,
   scoring: false,
-  scoringV2: true, // New TypeScript scoring modal (now default)
-  scoringApproach: 'dynamicSets', // 'freeText' | 'dynamicSets' - dynamicSets is now default
+  
+  // Scoring modal configuration (courthive-components)
+  scoringApproach: 'dynamicSets', // 'freeScore' | 'dynamicSets' | 'dialPad'
+  smartComplements: false, // Auto-fill complement scores (6 → 6-4, Shift+6 → 4-6)
+  composition: undefined, // Set dynamically by display settings modal or draw extension
 
   scales: {
     utr: {
