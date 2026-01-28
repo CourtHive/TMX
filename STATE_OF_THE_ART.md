@@ -569,6 +569,16 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - Tournament summaries
 - Historical data analysis
 
+#### 15. Notes
+
+- Tournament Tab - Set Categories for the tournament
+- Tournament Tab - define the type of scheduling that will be used
+- Schedule Tab to support two views: Follow By and Garman
+- Tournament Tab - or new Scheduling View - set matchUp Daily Limits
+- Category Filter on participants tab to filter participants before generating event
+- Category Selector in create event will flag if selected players are ineligible
+- On Draws View ability to modifyMatchUpFormatTiming
+
 ---
 
 ## Development Workflow
