@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Bar Test</title>
+  
+  <!-- Bulma CSS -->
+  <link rel="stylesheet" href="node_modules/bulma/css/versions/bulma-no-dark-mode.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="src/styles/fa.min.css">
+  <!-- Tabulator CSS -->
+  <link rel="stylesheet" href="src/styles/tabulator.css">
+  <!-- TMX CSS -->
+  <link rel="stylesheet" href="src/styles/tmx.css">
+  
+  <style>
+    body {
+      padding: 2rem;
+    }
+    .test-section {
+      margin-bottom: 2rem;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Control Bar Component Test</h1>
+    
+    <div class="test-section">
+      <h2 class="subtitle">Test 1: Basic Control Bar</h2>
+      <div id="test-1"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="subtitle">Test 2: With Search and Buttons</h2>
+      <div id="test-2"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="subtitle">Test 3: All Locations</h2>
+      <div class="panelHeader" style="padding: 1rem; background: #f5f5f5; font-weight: bold;">
+        Header (Clickable)
+      </div>
+      <div id="test-3"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { controlBar } from './src/components/controlBar/controlBar.ts';
+    
+    // Test 1: Basic
+    const test1Items = [
+      {
+        placeholder: 'Search...',
+        location: 'LEFT',
+        search: true,
+        clearSearch: () => console.log('Clear'),
+        onKeyUp: (e) => console.log('Search:', e.target.value),
+      },
+      {
+        label: 'Add Item',
+        location: 'RIGHT',
+        intent: 'is-primary',
+        onClick: () => alert('Add clicked!'),
+      },
+    ];
+    
+    controlBar({ 
+      target: document.getElementById('test-1'), 
+      items: test1Items 
+    });
+    
+    // Test 2: With dropdown
+    const test2Items = [
+      {
+        placeholder: 'Search items...',
+        location: 'LEFT',
+        search: true,
+        clearSearch: () => console.log('Clear search'),
+        onKeyUp: (e) => console.log('Searching:', e.target.value),
+      },
+      {
+        label: 'Filter',
+        location: 'LEFT',
+        modifyLabel: true,
+        selection: true,
+        options: [
+          {
+            label: '<span style="font-weight: bold">All Items</span>',
+            onClick: () => console.log('Show all'),
+            close: true
+          },
+          { divider: true },
+          { label: 'Active', onClick: () => console.log('Filter active'), close: true },
+          { label: 'Inactive', onClick: () => console.log('Filter inactive'), close: true },
+        ],
+      },
+      {
+        label: 'Actions',
+        location: 'RIGHT',
+        options: [
+          { heading: 'Bulk Actions' },
+          { label: 'Export', onClick: () => alert('Export'), close: true },
+          { label: 'Import', onClick: () => alert('Import'), close: true },
+          { divider: true },
+          { label: 'Settings', onClick: () => alert('Settings'), close: true },
+        ],
+      },
+      {
+        label: 'Add',
+        location: 'RIGHT',
+        intent: 'is-primary',
+        onClick: () => alert('Add new item'),
+      },
+    ];
+    
+    controlBar({ 
+      target: document.getElementById('test-2'), 
+      items: test2Items 
+    });
+    
+    // Test 3: All locations
+    const test3Items = [
+      {
+        location: 'HEADER',
+        headerClick: () => alert('Header clicked!'),
+      },
+      {
+        text: 'Overlay Item',
+        location: 'OVERLAY',
+        onClick: () => alert('Overlay clicked'),
+      },
+      {
+        label: 'Left',
+        location: 'LEFT',
+        onClick: () => alert('Left clicked'),
+      },
+      {
+        label: 'Center',
+        location: 'CENTER',
+        onClick: () => alert('Center clicked'),
+      },
+      {
+        label: 'Right',
+        location: 'RIGHT',
+        intent: 'is-info',
+        onClick: () => alert('Right clicked'),
+      },
+    ];
+    
+    controlBar({ 
+      target: document.getElementById('test-3'), 
+      items: test3Items 
+    });
+    
+    console.log('Control Bar tests initialized!');
+  </script>
+</body>
+</html>
