@@ -34,7 +34,7 @@ export function createScheduleTable({
     const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows, groupInfo } = result;
     const matchUps = dateMatchUps.concat(...completedMatchUps);
 
-    const columns = getScheduleColumns({ courtsData, courtPrefix });
+    const columns = getScheduleColumns({ courtsData, courtPrefix, updateScheduleTable: replaceTableData });
 
     rows?.forEach((row: any, i: number) => {
       row.rowId = `rowId-${i + 1}`;

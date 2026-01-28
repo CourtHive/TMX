@@ -7,28 +7,29 @@ import { tipster } from 'components/popovers/tipster';
 import { context } from 'services/context';
 import { RIGHT } from 'constants/tmxConstants';
 
-export function scheduleEmptyCellMenu({ e, cell }: { e: Event; cell: any }): void {
-  console.log('scheduleEmptyCellMenu called');
-  
+export function scheduleEmptyCellMenu({
+  e,
+  cell,
+  updateScheduleTable,
+}: {
+  e: Event;
+  cell: any;
+  updateScheduleTable?: (params: { scheduledDate: string }) => void;
+}): void {
   const rowData = cell.getRow().getData();
   const field = cell.getColumn().getDefinition().field;
   const cellData = rowData[field];
-  console.log('Empty cell data:', { rowData, field, cellData });
-  
+
   const { courtId, courtOrder } = cellData?.schedule || {};
-  console.log('Extracted data:', { courtId, courtOrder });
-  
+
   // Only show menu if we have the necessary data
   if (!courtId || !courtOrder) {
-    console.warn('Missing courtId or courtOrder, cannot show menu');
     return;
   }
-  
+
   const blockCourt = (rowCount: number, bookingType: string = 'BLOCKED') => {
     const scheduledDate = context.displayed.selectedScheduleDate;
-    
-    console.log('blockCourt called:', { courtId, scheduledDate, courtOrder, rowCount, bookingType });
-    
+
     const methods = [
       {
         method: 'addCourtGridBooking',
@@ -41,20 +42,17 @@ export function scheduleEmptyCellMenu({ e, cell }: { e: Event; cell: any }): voi
         },
       },
     ];
-    
+
     const postMutation = (result: any) => {
-      console.log('addCourtGridBooking result:', result);
-      if (result.success) {
-        // Refresh the schedule grid
-        window.location.reload();
-      } else if (result.error) {
-        console.error('Failed to block court:', result.error);
+      // Refresh the schedule table without reloading the page
+      if (result.success && updateScheduleTable && scheduledDate) {
+        updateScheduleTable({ scheduledDate });
       }
     };
-    
+
     mutationRequest({ methods, callback: postMutation });
   };
-  
+
   const options = [
     {
       option: 'Block court (1 row)',
@@ -77,7 +75,7 @@ export function scheduleEmptyCellMenu({ e, cell }: { e: Event; cell: any }): voi
       onClick: () => blockCourt(1, 'MAINTENANCE'),
     },
   ].filter(Boolean);
-  
+
   const target = e.target as HTMLElement;
   tipster({ options, target, config: { placement: RIGHT } });
 }

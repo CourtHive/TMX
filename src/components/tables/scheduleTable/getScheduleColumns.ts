@@ -13,27 +13,31 @@ import { getControlColumn } from './getControlColumn';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 
-export function getScheduleColumns({ courtsData, courtPrefix }: { courtsData: any[]; courtPrefix: string }): any[] {
+export function getScheduleColumns({
+  courtsData,
+  courtPrefix,
+  updateScheduleTable,
+}: {
+  courtsData: any[];
+  courtPrefix: string;
+  updateScheduleTable?: (params: { scheduledDate: string }) => void;
+}): any[] {
   const scheduleCellActions = (e: any, cell: any) => {
     const field = cell.getColumn().getDefinition().field;
     const cellData = cell.getData()[field];
-    
-    console.log('scheduleCellActions:', { field, cellData, isBlocked: cellData?.isBlocked, hasMatchUpId: !!cellData?.matchUpId });
-    
+
     // Handle blocked cells
     if (cellData?.isBlocked) {
-      console.log('Routing to scheduleBlockedCellMenu');
-      scheduleBlockedCellMenu({ e, cell, booking: cellData.booking });
+      scheduleBlockedCellMenu({ e, cell, booking: cellData.booking, updateScheduleTable });
       return;
     }
-    
+
     // Handle empty cells
     if (!cellData?.matchUpId) {
-      console.log('Routing to scheduleEmptyCellMenu');
-      scheduleEmptyCellMenu({ e, cell });
+      scheduleEmptyCellMenu({ e, cell, updateScheduleTable });
       return;
     }
-    
+
     // Handle matchUp cells (existing code)
     console.log('Routing to scheduleSetMatchUpHeader');
     const { drawId, matchUpId } = cellData;
