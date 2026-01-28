@@ -3406,6 +3406,10 @@ packages:
     resolution: {integrity: sha512-9CsXjyGDcCZLEg+3fCb782/2FdicsGzWdpkA3qjhXDt+iLMw/P+ZykPqRBiMj5gBYLMuyUo/llSDqH2WcSbMEw==}
     engines: {node: '>=20'}
 
+  tods-competition-factory@2.3.2:
+    resolution: {integrity: sha512-9CsXjyGDcCZLEg+3fCb782/2FdicsGzWdpkA3qjhXDt+iLMw/P+ZykPqRBiMj5gBYLMuyUo/llSDqH2WcSbMEw==}
+    engines: {node: '>=20'}
+
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
@@ -7232,6 +7236,8 @@ snapshots:
       is-number: 7.0.0
 
   tods-competition-factory@2.3.1: {}
+
+  tods-competition-factory@2.3.2: {}
 
   tods-competition-factory@2.3.2: {}
 
