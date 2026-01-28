@@ -250,7 +250,7 @@ export const ParticipantsPage: Story = {
       controlBar({ table, target, items, onSelection: (rows) => {
         console.log('Selected rows:', rows.length);
       }});
-    }, 0);
+    });
 
     return container;
   },
@@ -319,7 +319,7 @@ export const EventsPage: Story = {
       ];
 
       controlBar({ table, target, items });
-    }, 0);
+    });
 
     return container;
   },
@@ -405,7 +405,7 @@ export const MatchUpsPage: Story = {
       ];
 
       controlBar({ table, target, items });
-    }, 0);
+    });
 
     return container;
   },
@@ -444,7 +444,7 @@ export const VenuesPage: Story = {
       ];
 
       controlBar({ table, target, items });
-    }, 0);
+    });
 
     return container;
   },
@@ -489,7 +489,7 @@ export const WithTabs: Story = {
       ];
 
       controlBar({ target, items });
-    }, 0);
+    });
 
     return container;
   },
@@ -534,7 +534,7 @@ export const WithValidation: Story = {
       ];
 
       controlBar({ target, items });
-    }, 0);
+    });
 
     return container;
   },
@@ -587,7 +587,7 @@ export const AllLocations: Story = {
       ];
 
       controlBar({ target, items });
-    }, 0);
+    });
 
     return container;
   },
