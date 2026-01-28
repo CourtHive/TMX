@@ -123,8 +123,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.3.0
-        version: 2.3.0
+        specifier: 2.3.1
+        version: 2.3.1
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -3411,6 +3411,10 @@ packages:
 
   tods-competition-factory@2.3.0:
     resolution: {integrity: sha512-paeUYVu19KhtbV1gG/xzel10Sxn5mOcIqVVBdm4ymVEAMrxpnp16zeEC/6hVmkagxGc6AYNBQToFaealYS2YPg==}
+    engines: {node: '>=20'}
+
+  tods-competition-factory@2.3.1:
+    resolution: {integrity: sha512-zO5HjzRFM6146j2fA9/BgBDR2+QhmJQgbmzluqa3//LCxGqPX0n0BTG5z4YdUWaeGS7luUR2ixBt8bAIgI6pYQ==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -7239,6 +7243,8 @@ snapshots:
       is-number: 7.0.0
 
   tods-competition-factory@2.3.0: {}
+
+  tods-competition-factory@2.3.1: {}
 
   totalist@3.0.1: {}
 
