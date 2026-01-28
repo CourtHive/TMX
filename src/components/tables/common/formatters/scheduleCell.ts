@@ -18,6 +18,38 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   }
 
   const value = cell.getValue();
+
+  // Handle blocked cells
+  if (value?.isBlocked) {
+    const booking = value.booking;
+    content.className = 'schedule-cell blocked-cell';
+    content.setAttribute('data-booking-type', booking.bookingType || 'BLOCKED');
+    
+    const blockLabel = document.createElement('div');
+    blockLabel.className = 'block-label';
+    
+    const blockType = document.createElement('div');
+    blockType.className = 'block-type';
+    blockType.textContent = booking.bookingType || 'BLOCKED';
+    blockLabel.appendChild(blockType);
+    
+    if (booking.rowCount && booking.rowCount > 1) {
+      const rowInfo = document.createElement('div');
+      rowInfo.className = 'block-rows';
+      rowInfo.textContent = `${booking.rowCount} rows`;
+      blockLabel.appendChild(rowInfo);
+    }
+    
+    if (booking.notes) {
+      const notes = document.createElement('div');
+      notes.className = 'block-notes';
+      notes.textContent = booking.notes;
+      blockLabel.appendChild(notes);
+    }
+    
+    content.appendChild(blockLabel);
+    return content;
+  }
   const {
     potentialParticipants,
     eventName = '',
