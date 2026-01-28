@@ -325,7 +325,7 @@ export const FullParticipantsExample: Story = {
             {
               label: '<span style="font-weight: bold">All Genders</span>',
               close: true,
-              onClick: (e: Event, item: any) => {
+              onClick: (e: Event) => {
                 setGenderFilter('');
                 const button = (e.target as HTMLElement).closest('button');
                 if (button) button.innerHTML = '<span>All Genders</span>';
@@ -479,7 +479,7 @@ export const FullParticipantsExample: Story = {
           console.log(`${rows.length} rows selected`);
         },
       });
-    }, 0);
+    });
 
     return container;
   },
@@ -560,7 +560,7 @@ export const MinimalExample: Story = {
       table.on('tableBuilt', () => {
         header.innerHTML = `Items (${table.getData().length})`;
       });
-    }, 0);
+    });
 
     return container;
   },
