@@ -2,6 +2,8 @@
  * Schedule table columns configuration.
  * Generates columns for courts with matchUp scheduling and click handlers.
  */
+import { scheduleBlockedCellMenu } from 'components/popovers/scheduleBlockedCellMenu';
+import { scheduleEmptyCellMenu } from 'components/popovers/scheduleEmptyCellMenu';
 import { scheduleSetMatchUpHeader } from 'components/popovers/scheduleSetMatchUpHeader';
 import { setScheduleColumnHeader } from 'components/popovers/scheduleColumnHeader';
 import { scheduleCell } from '../common/formatters/scheduleCell';
@@ -11,10 +13,34 @@ import { getControlColumn } from './getControlColumn';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 
-export function getScheduleColumns({ courtsData, courtPrefix }: { courtsData: any[]; courtPrefix: string }): any[] {
+export function getScheduleColumns({
+  courtsData,
+  courtPrefix,
+  updateScheduleTable,
+}: {
+  courtsData: any[];
+  courtPrefix: string;
+  updateScheduleTable?: (params: { scheduledDate: string }) => void;
+}): any[] {
   const scheduleCellActions = (e: any, cell: any) => {
     const field = cell.getColumn().getDefinition().field;
-    const { drawId, matchUpId } = cell.getData()[field];
+    const cellData = cell.getData()[field];
+
+    // Handle blocked cells
+    if (cellData?.isBlocked) {
+      scheduleBlockedCellMenu({ e, cell, booking: cellData.booking, updateScheduleTable });
+      return;
+    }
+
+    // Handle empty cells
+    if (!cellData?.matchUpId) {
+      scheduleEmptyCellMenu({ e, cell, updateScheduleTable });
+      return;
+    }
+
+    // Handle matchUp cells (existing code)
+    console.log('Routing to scheduleSetMatchUpHeader');
+    const { drawId, matchUpId } = cellData;
     const callback = () => {
       const matchUp = tournamentEngine.allTournamentMatchUps({
         matchUpFilters: { drawIds: [drawId], matchUpIds: [matchUpId] },
