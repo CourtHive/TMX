@@ -169,12 +169,6 @@ Supports all TODS matchUpStatus constants:
 - No tiebreak inputs
 - Winner determined externally
 
-**Scoring Methods (Future):**
-
-- `T10G` - Games-based (count periods won)
-- `T10A` - Aggregate (sum all scores)
-- `T10P` - Points-based (regular tennis scoring)
-
 ---
 
 ## Entry Management
@@ -233,49 +227,6 @@ Comprehensive participant management system with panel-based organization.
 
 ---
 
-## PDF Generation
-
-### Current Status
-
-PDF generation system ported from TMX-Suite-Legacy, using pdfMake.
-
-**Location:** `src/services/pdf/`
-
-### Supported Documents
-
-1. **Draw Sheets** - Elimination/tree draws with brackets
-2. **Match Lists** - Complete match listings
-3. **Schedule Sheets** - Time-based schedules
-4. **Sign-In Sheets** - Player check-in forms
-5. **Dual Match Sheets** - Team match formats
-
-### Architecture
-
-```text
-PDF Generation Flow:
-1. Create directive (document type + options)
-2. Fetch images (logos, QR codes)
-3. Generate SVG draw (if needed)
-4. Convert SVG → PNG (via Canvas)
-5. Build docDefinition (pdfMake format)
-6. Execute action (open/save/download)
-```
-
-### Key Components
-
-- **pdfMake** - Client-side PDF generation
-- **D3.js** - SVG rendering for draws
-- **HTML5 Canvas** - SVG to PNG conversion
-- **Image Handling** - Logo and QR code embedding
-
-### Data Model
-
-Uses **TODS Data Model** for tournament/event/matchUp structure.
-
-See: `src/services/pdf/TODS_DATA_MODEL.md`
-
----
-
 ## Factory Integration
 
 ### Competition Factory
@@ -318,17 +269,6 @@ matchUpFormatCode.stringify(formatObject);
    - Determines set/tiebreak rules
    - Handles specialized formats
 
-### Factory Updates Required
-
-**Timed Sets Scoring Methods:**
-
-- Need to implement G/A/P notation in factory
-- Parse `T10G` (games), `T10A` (aggregate), `T10P` (points)
-- Update winner determination logic
-- Support TB1 for set-level tiebreaks
-
-See: `DEVPLAN.md` for full implementation plan
-
 ---
 
 ## courthive-components Integration
@@ -346,42 +286,6 @@ See: `DEVPLAN.md` for full implementation plan
 3. **Scoring Modals** - Full scoring system (migrated to components)
 4. **Drawer** - Side panel component
 
-### Recent Migrations
-
-**Scoring System (Jan 2026):**
-
-- All scoring modals moved to courthive-components
-- Three approaches: Dynamic Sets, Free Score, Dial Pad
-- Composition support (Australian, Wimbledon, French, etc.)
-- Smart Complements feature for rapid entry
-
-**Button Styling Fix (Jan 2026):**
-
-- Added `footer.style` support to cModal
-- Cancel button now has proper white background
-- Customizable button styling via config
-
-### Integration Pattern
-
-```typescript
-import { scoringModal, setScoringConfig } from 'courthive-components';
-
-// Configure
-setScoringConfig({
-  scoringApproach: 'dynamicSets',
-  smartComplements: true,
-  composition: 'Australian',
-});
-
-// Open modal
-scoringModal({
-  matchUp: todsMatchUp,
-  callback: (outcome) => {
-    // Handle score submission
-  },
-});
-```
-
 ### Customization
 
 TMX can customize components via:
@@ -395,138 +299,6 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 
 ---
 
-## TODO
-
-### High Priority
-
-#### 1. Factory: Timed Sets Scoring Methods
-
-**Timeline:** 2-3 days  
-**Status:** Planned
-
-**Tasks:**
-
-- [ ] Implement T10G/T10A/T10P notation parsing in factory
-- [ ] Add `timedScoringMethod` to SetFormat type
-- [ ] Implement winner determination for each method
-- [ ] Add TB1 support for set-level tiebreaks
-- [ ] Write tests for all combinations
-- [ ] Publish factory to npm
-
-**Reference:** `DEVPLAN.md`
-
-#### 2. Modal Stacking Issue
-
-**Timeline:** 1-2 days  
-**Status:** In Progress
-
-**Problem:** Clicking scoring button multiple times creates overlapping modals
-
-**Solution:** Fix inside cModal itself, not at story level
-
-- [ ] Investigate cModal singleton pattern
-- [ ] Add guard to prevent multiple instances
-- [ ] Test in Storybook
-- [ ] Test in TMX integration
-
-#### 3. courthive-components: Update After Factory Publish
-
-**Timeline:** 1 day  
-**Status:** Blocked by Factory
-
-**Tasks:**
-
-- [ ] Update factory dependency
-- [ ] Add scoring method selector UI
-- [ ] Test with new timed sets notation
-- [ ] Publish components to npm
-
-#### 4. TMX: Integrate Updated Components
-
-**Timeline:** 1 day  
-**Status:** Blocked by Components
-
-**Tasks:**
-
-- [ ] Update courthive-components dependency
-- [ ] Update factory dependency
-- [ ] Test all scoring approaches
-- [ ] Deploy to production
-
-### Medium Priority
-
-#### 5. Documentation Cleanup
-
-**Timeline:** 2-3 hours  
-**Status:** Not Started
-
-**Tasks:**
-
-- [x] Consolidate markdown files into STATE_OF_THE_ART.md
-- [ ] Archive historical docs to `/docs/archive/`
-- [ ] Update README.md to reference STATE_OF_THE_ART.md
-- [ ] Remove duplicate information
-- [ ] Keep only: README, STATE_OF_THE_ART, component-specific docs
-
-#### 6. Validation Migration to Factory
-
-**Timeline:** 3-5 days  
-**Status:** Future
-
-**Tasks:**
-
-- [ ] Move `scoreValidator.ts` to factory
-- [ ] Use test suite as specification
-- [ ] Integrate with `generateOutcomeFromScoreString`
-- [ ] Update TMX to use factory validation
-- [ ] Remove TMX validation code
-
-#### 7. PDF Generation Enhancements
-
-**Timeline:** 1-2 weeks  
-**Status:** Future
-
-**Tasks:**
-
-- [ ] Add customizable tournament logos
-- [ ] Implement schedule templates
-- [ ] Add court assignment views
-- [ ] Support custom page sizes
-- [ ] Add print preview mode
-
-### Low Priority
-
-#### 8. Accessibility Audit
-
-**Timeline:** 1 week  
-**Status:** Future
-
-**Tasks:**
-
-- [ ] Keyboard navigation testing
-- [ ] Screen reader compatibility
-- [ ] ARIA labels audit
-- [ ] Color contrast verification
-- [ ] Focus management review
-
-#### 9. Performance Optimization
-
-**Timeline:** Ongoing  
-**Status:** Monitoring
-
-**Tasks:**
-
-- [ ] Bundle size analysis
-- [ ] Code splitting opportunities
-- [ ] Lazy loading for PDF generation
-- [ ] Image optimization
-- [ ] Caching strategies
-
-#### 10. Testing Infrastructure
-
-**Timeline:** 2-3 weeks  
-**Status:** Future
-
 **Tasks:**
 
 - [ ] Set up E2E testing (Playwright/Cypress)
@@ -537,7 +309,7 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 
 ### Future Enhancements
 
-#### 11. Advanced Scoring Features
+#### 1. Advanced Scoring Features
 
 - Point-by-point scoring
 - Live scoring with WebSocket support
@@ -545,31 +317,7 @@ See: `courthive-components/src/components/scoring/TMX_INTEGRATION.md`
 - Score statistics/analytics
 - Match replay functionality
 
-#### 12. Mobile App
-
-- Native iOS/Android apps
-- Offline-first architecture
-- Push notifications
-- Camera integration for court photos
-- QR code scanning
-
-#### 13. Cloud Integration
-
-- Tournament data sync
-- Multi-device support
-- Backup and restore
-- Shared tournament management
-- API for third-party integrations
-
-#### 14. Reporting System
-
-- Custom report builder
-- Export to Excel/CSV
-- Player statistics
-- Tournament summaries
-- Historical data analysis
-
-#### 15. Notes
+#### 2. Notes
 
 - Tournament Tab - Set Categories for the tournament
 - Tournament Tab - define the type of scheduling that will be used
@@ -616,42 +364,12 @@ npm test
 - kebab-case for file names
 - UPPER_CASE for constants
 
-### Commit Guidelines
-
-```text
-feat: Add timed sets support to dynamic sets modal
-fix: Correct button styling in cModal
-docs: Update STATE_OF_THE_ART.md with latest changes
-refactor: Simplify score validation logic
-test: Add tests for timed sets validation
-```
-
 ### Branch Strategy
 
 - `main` - Production-ready code
 - `feature/*` - New features
 - `fix/*` - Bug fixes
 - `docs/*` - Documentation updates
-
-### Publishing
-
-**Factory:**
-
-```bash
-cd factory
-npm version minor
-npm publish
-git push --tags
-```
-
-**courthive-components:**
-
-```bash
-cd courthive-components
-npm version minor
-npm publish
-git push --tags
-```
 
 ---
 
@@ -669,23 +387,6 @@ git push --tags
 - **Components:** <https://github.com/CourtHive/courthive-components>
 - **TMX:** <https://github.com/CourtHive/TMX>
 
-### Historical Documents (Archived)
-
-The following documents have been consolidated into this file:
-
-- DEVPLAN.md - Timed sets implementation plan
-- SCORING-V2-SUMMARY.md - Scoring system migration
-- ENTRIES_TABLES_GUIDE.md - Entry management guide
-- TIMED_SETS_SUPPORT.md - Timed sets documentation
-- COURTHIVE-COMPONENTS-ENHANCEMENT.md - Component suggestions
-- PDF_GENERATION_ASSESSMENT.md - PDF system porting notes
-
-**Note:** Original files preserved in repository for historical reference.
-
 ---
-
-## Contact
-
-For questions, issues, or contributions, please refer to the GitHub repository or contact the development team.
 
 **Last Updated:** January 26, 2026
