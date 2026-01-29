@@ -3,9 +3,8 @@
  * Configures participant avoidance rules (country, club, etc.) via policy attachments.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderButtons } from 'courthive-components';
+import { renderButtons, renderForm } from 'courthive-components';
 import { getAvoidanceFormItems } from './getAvoidanceFormItems';
-import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { avoidanceRules } from './avoidanceRules';
@@ -33,9 +32,9 @@ export function editAvoidances({ eventId }: { eventId: string }): void {
         params: {
           policyDefinitions: { avoidance: { policyAttributes } },
           allowReplacement: true,
-          eventId
-        }
-      }
+          eventId,
+        },
+      },
     ];
     const postMutation = (result: any) => {
       if (result.success) {
@@ -56,7 +55,7 @@ export function editAvoidances({ eventId }: { eventId: string }): void {
   };
   const buttons = [
     { label: 'Cancel', intent: NONE, close: true },
-    { label: 'Save', id: 'setAvoidances', intent: 'is-info', onClick: getChecked, close: isValid }
+    { label: 'Save', id: 'setAvoidances', intent: 'is-info', onClick: getChecked, close: isValid },
   ];
   const title = `Set avoidances`;
 
