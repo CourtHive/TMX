@@ -20,22 +20,6 @@ TMX is a Progressive Web App for tennis tournament management built on the TODS 
 
 Try TMX in your browser - import players from Google Sheets or TODS tournament files.
 
-## Documentation
-
-📖 **[STATE_OF_THE_ART.md](./STATE_OF_THE_ART.md)** - Complete technical documentation including:
-- Current architecture and features
-- Scoring system details
-- Entry management guide
-- Factory and component integration
-- Development roadmap and TODO list
-
-### Quick Links
-
-- **Scoring System:** See STATE_OF_THE_ART.md > Scoring System
-- **Entry Management:** See STATE_OF_THE_ART.md > Entry Management
-- **PDF Generation:** See STATE_OF_THE_ART.md > PDF Generation
-- **Development TODO:** See STATE_OF_THE_ART.md > TODO
-
 ## Getting Started
 
 ```bash
