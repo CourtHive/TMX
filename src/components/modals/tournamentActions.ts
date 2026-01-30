@@ -169,8 +169,16 @@ export function tournamentActions(): void {
   });
 }
 
-function changeOnlineState({ postMutation, state, offline }: { postMutation?: (result: any) => void; state: any; offline: boolean }): void {
-  const itemValue = { ...(tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem ?? {}).itemValue };
+function changeOnlineState({
+  postMutation,
+  state,
+  offline,
+}: {
+  postMutation?: (result: any) => void;
+  state: any;
+  offline: boolean;
+}): void {
+  const itemValue = { ...tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem?.itemValue };
   if (offline) {
     itemValue.offline = { email: state.email };
   } else {

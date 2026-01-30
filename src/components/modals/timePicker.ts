@@ -24,7 +24,7 @@ export function timePicker({ time, options, callback }: TimePickerParams = {}): 
           callback({ time: value });
         }
         tpu.destroy();
-      }
+      },
     },
     ...options,
   });
@@ -49,13 +49,12 @@ function regularTime(value?: string, env?: any): string {
   return `${time.hours || '12'}:${time.minutes || '00'} ${time.ampm}`;
 }
 
-function splitTime(value?: string): { hours: string; minutes: string; ampm?: string } {
-  value = value || '00:00';
+function splitTime(value: string = '00:00'): { hours: string; minutes: string; ampm?: string } {
   const parts = value?.split(' ') || [];
   const timeParts = parts[0]?.split(':') || [];
   return {
     hours: timeParts[0] || '00',
     minutes: timeParts[1] || '00',
-    ampm: parts[1]
+    ampm: parts[1],
   };
 }

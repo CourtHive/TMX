@@ -44,13 +44,13 @@ interface FormInteractionParams {
 
 export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }: FormRelationshipParams): any[] {
   const stage = isQualifying ? QUALIFYING : MAIN;
-  
+
   const checkCreationMethod = ({ fields, inputs }: FormInteractionParams) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
-    const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
+    const drawSize = numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
     const entriesCount = acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
-    const qualifiersCount = numericValidator(qualifiersValue) ? parseInt(qualifiersValue) : 0;
+    const qualifiersCount = numericValidator(qualifiersValue) ? Number.parseInt(qualifiersValue) : 0;
     const manualOnly =
       maxQualifiers || (isQualifying && drawSize < entriesCount) || drawSize < entriesCount + qualifiersCount;
     if (manualOnly) inputs[AUTOMATED].value = MANUAL;
@@ -66,8 +66,10 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
   const updateDrawSize = ({ drawType, fields, inputs }: FormInteractionParams): number => {
     const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount(event, stage);
     const qualifiersValue = inputs['qualifiersCount'].value || 1;
-    const qualifiersCount = (numericValidator(qualifiersValue) && parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
-    const drawSizeInteger = isQualifying && !maxQualifiers ? entriesCount : parseInt(entriesCount) + qualifiersCount;
+    const qualifiersCount =
+      (numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
+    const drawSizeInteger =
+      isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const drawSize =
       ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType!)) &&
         drawSizeInteger) ||
@@ -79,16 +81,16 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
   };
 
   const qualifiersCountChange = ({ fields, inputs }: FormInteractionParams) => {
-    let drawSize = parseInt(inputs[DRAW_SIZE].value);
+    let drawSize = Number.parseInt(inputs[DRAW_SIZE].value);
     const enteredValue = inputs['qualifiersCount'].value;
-    if (numericValidator(enteredValue) && parseInt(enteredValue) < 1) {
+    if (numericValidator(enteredValue) && Number.parseInt(enteredValue) < 1) {
       inputs['qualifiersCount'].value = maxQualifiers ? 1 : 0;
     }
     const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
     let qualifiersValue = inputs['qualifiersCount'].value;
     if (generateButton) generateButton.disabled = false;
 
-    if (maxQualifiers && numericValidator(qualifiersValue) && parseInt(qualifiersValue) > maxQualifiers) {
+    if (maxQualifiers && numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue) > maxQualifiers) {
       inputs['qualifiersCount'].value = maxQualifiers;
     } else if (!maxQualifiers) {
       const drawType = inputs[DRAW_TYPE].value;
@@ -96,7 +98,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
     }
 
     qualifiersValue = inputs['qualifiersCount'].value;
-    if (generateButton && (!numericValidator(qualifiersValue) || drawSize <= parseInt(qualifiersValue))) {
+    if (generateButton && (!numericValidator(qualifiersValue) || drawSize <= Number.parseInt(qualifiersValue))) {
       generateButton.disabled = true;
     }
   };
@@ -120,7 +122,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
   const drawSizeChange = ({ fields, inputs }: FormInteractionParams) => {
     const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
-    const drawSize = numericValidator(drawSizeValue) ? parseInt(drawSizeValue) : 0;
+    const drawSize = numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
     const entriesCount = acceptedEntriesCount(event, stage);
     const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount), 512);
     const valid = numericRange(2, maxDrawSize)(drawSizeValue);
@@ -143,9 +145,9 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
   };
 
   const groupSizeChange = ({ inputs }: FormInteractionParams) => {
-    const newGroupSize = parseInt(inputs[GROUP_SIZE].value);
+    const newGroupSize = Number.parseInt(inputs[GROUP_SIZE].value);
     const existingOptions = inputs[ADVANCE_PER_GROUP].options;
-    const existingValues = Array.from(existingOptions).map((o: any) => parseInt(o.value));
+    const existingValues = Array.from(existingOptions).map((o: any) => Number.parseInt(o.value));
     const maxValue = Math.max(...existingValues);
     if (maxValue > newGroupSize) {
       tools

@@ -55,11 +55,11 @@ export function fetchTournamentDetailsModal({ table }: { table: any }): void {
     const tournamentRecord = result?.data?.tournamentRecord;
     const tournamentId = result?.data?.tournamentId;
     const exists = tournamentIds.includes(tournamentId);
-    if (!exists) {
+    if (exists) {
+      console.log({ exists });
+    } else {
       const callback = () => {};
       addTournament({ tournamentRecord, tournamentIds, table, callback });
-    } else {
-      console.log({ exists });
     }
   };
 

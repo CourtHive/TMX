@@ -95,17 +95,16 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       participantFilters: { participantIds },
     }).participants;
 
-    const lastRoundParticipantIds = !lastRoundNumber
-      ? []
-      : matchUps
+    const lastRoundParticipantIds = lastRoundNumber
+      ? matchUps
           .filter(
             ({ roundNumber, sides }: any) =>
               roundNumber === lastRoundNumber && sides?.some(({ participantId }: any) => participantId),
           )
-          .map(({ sides }: any) => sides.map(({ participantId }: any) => participantId))
-          .flat();
+          .flatMap(({ sides }: any) => sides.map(({ participantId }: any) => participantId))
+      : [];
 
-    const selectedParticipantIds = !lastRoundParticipantIds.length ? participantIds : lastRoundParticipantIds;
+    const selectedParticipantIds = lastRoundParticipantIds.length ? lastRoundParticipantIds : participantIds;
 
     const action = {
       type: ASSIGN_PARTICIPANT,

@@ -18,7 +18,13 @@ type AddAdHocMatchUpsParams = {
   callback?: (params: any) => void;
 };
 
-export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, callback }: AddAdHocMatchUpsParams = {}): void {
+export function addAdHocMatchUps({
+  drawId,
+  structure,
+  structureId,
+  roundNumber,
+  callback,
+}: AddAdHocMatchUpsParams = {}): void {
   structureId = structureId || structure?.structureId;
 
   const matchUps =
@@ -42,8 +48,9 @@ export function addAdHocMatchUps({ drawId, structure, structureId, roundNumber, 
   let inputs: any;
 
   const addMatchUps = () => {
-    const selectedRoundNumber = parseInt(inputs.roundNumber.value);
-    const matchUpsCount = inputs.matchUpsCount.value === 'Auto' ? undefined : parseInt(inputs.matchUpsCount.value);
+    const selectedRoundNumber = Number.parseInt(inputs.roundNumber.value);
+    const matchUpsCount =
+      inputs.matchUpsCount.value === 'Auto' ? undefined : Number.parseInt(inputs.matchUpsCount.value);
 
     const result = tournamentEngine.generateAdHocMatchUps({
       roundNumber: selectedRoundNumber,

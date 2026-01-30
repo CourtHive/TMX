@@ -98,7 +98,7 @@ export function addRRplayoffs({
     };
 
     if (drawType === ROUND_ROBIN) {
-      const groupSize = parseInt(inputs[GROUP_SIZE].value);
+      const groupSize = Number.parseInt(inputs[GROUP_SIZE].value);
       playoffGroup.structureOptions = { groupSize };
     }
 
@@ -112,7 +112,7 @@ export function addRRplayoffs({
     const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Structure added', intent: 'is-success' });
-        isFunction(callback) && callback && callback();
+        isFunction(callback) && callback?.();
       } else {
         console.log({ result });
         tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
@@ -127,8 +127,7 @@ export function addRRplayoffs({
   const checkFinishingPositions = () => {
     const finishingPositions = playoffFinishingPositionRanges
       .filter(({ finishingPosition }: any) => inputs[getId(finishingPosition)]?.checked)
-      .map(({ finishingPositions }: any) => finishingPositions)
-      .flat();
+      .flatMap(({ finishingPositions }: any) => finishingPositions);
     const checkStatus = playoffFinishingPositionRanges.map(
       ({ finishingPosition }: any) => inputs[getId(finishingPosition)].checked,
     );

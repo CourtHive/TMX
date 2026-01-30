@@ -12,7 +12,15 @@ import { isFunction } from 'functions/typeOf';
 import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function editGroupNames({ drawId, structure, callback }: { drawId: string; structure: any; callback?: (result: any) => void }): void {
+export function editGroupNames({
+  drawId,
+  structure,
+  callback,
+}: {
+  drawId: string;
+  structure: any;
+  callback?: (result: any) => void;
+}): void {
   const matchUps = Object.values(structure.roundMatchUps).flat();
   const groups = matchUps.reduce((groups: Record<string, any>, matchUp: any) => {
     const { structureName, structureId } = matchUp;
@@ -47,7 +55,7 @@ export function editGroupNames({ drawId, structure, callback }: { drawId: string
     const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Groups renamed', intent: 'is-success' });
-        isFunction(callback) && callback && callback(result);
+        isFunction(callback) && callback?.(result);
       }
     };
     mutationRequest({ methods, callback: postMutation });

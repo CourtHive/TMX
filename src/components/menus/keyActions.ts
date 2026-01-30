@@ -57,14 +57,15 @@ export function displayKeyActions(): void {
       },
     });
   });
+}
 
-  function submitKey(keyid: string) {
-    (emitTmx as any)({ data: { action: SEND_KEY, payload: { key: keyid.trim() } } });
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key && e.key === 'Enter') {
+    submitKey((e.target as HTMLInputElement).value);
+    context.drawer.close();
   }
-  function onKeyDown(e: KeyboardEvent) {
-    if (e.key && e.key === 'Enter') {
-      submitKey((e.target as HTMLInputElement).value);
-      context.drawer.close();
-    }
-  }
+}
+
+function submitKey(keyid: string) {
+  (emitTmx as any)({ data: { action: SEND_KEY, payload: { key: keyid.trim() } } });
 }

@@ -28,7 +28,7 @@ export function mockParticipants({ callback }: { callback?: () => void }): void 
     ].filter(Boolean);
 
     const { participants } = mocksEngine.generateParticipants({
-      participantsCount: parseInt(count),
+      participantsCount: Number.parseInt(count),
       scaleAllParticipants: true,
       categories,
       sex,

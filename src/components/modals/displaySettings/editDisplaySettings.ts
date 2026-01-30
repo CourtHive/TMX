@@ -1,9 +1,8 @@
 import { mocksEngine, queryGovernor, tournamentEngine, tools, extensionConstants } from 'tods-competition-factory';
+import { compositions, renderMatchUp, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { compositions, renderMatchUp } from 'courthive-components';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderForm } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { env } from 'settings/env';
 
@@ -23,7 +22,7 @@ export function editDisplaySettings(params) {
   // support there being multiple "scopes", e.g. admin, public, etc.
   const scopedValue = storedValue?.admin ?? storedValue;
 
-  const noScheduleInfo = ['Wimbledon', 'French', 'ITF'];
+  const noScheduleInfo = new Set(['Wimbledon', 'French', 'ITF']);
   const saveId = 'saveDisplaySettings';
   const selections: any = {
     compositionName: scopedValue?.compositionName ?? env.composition?.compositionName ?? 'Australian',
@@ -119,7 +118,7 @@ export function editDisplaySettings(params) {
   const onChange = () => {
     selections.compositionName = selections.inputs.composition.value;
     selections.configuration.scheduleInfo =
-      !noScheduleInfo.includes(selections.compositionName) && selections.inputs.showSchedule.checked;
+      !noScheduleInfo.has(selections.compositionName) && selections.inputs.showSchedule.checked;
     selections.configuration.participantDetail = selections.inputs.detail.value;
     render(selections);
   };
@@ -132,7 +131,7 @@ export function editDisplaySettings(params) {
       onChange,
     },
     {
-      controlVisible: !noScheduleInfo.includes(selections.compositionName),
+      controlVisible: !noScheduleInfo.has(selections.compositionName),
       checked: selections.configuration.scheduleInfo,
       controlId: 'scheduleToggle',
       label: 'Show Schedule',
@@ -153,7 +152,7 @@ export function editDisplaySettings(params) {
   const relationships = [
     {
       onChange: ({ e }) => {
-        const display = !noScheduleInfo.includes(e.target.value);
+        const display = !noScheduleInfo.has(e.target.value);
         const elem = document.getElementById('scheduleToggle');
         if (elem) elem.style.display = display ? 'block' : NONE;
       },
