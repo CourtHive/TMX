@@ -111,7 +111,10 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
   });
 
   // Open modal
-  const modalTitle = `${drawName || 'Draw'} Entries${eventName ? ` - ${eventName}` : ''}`;
+  const modalTitle =
+    (drawName || 'Draw') +
+    ' Entries' +
+    (eventName ? ' - ' + eventName : '');
 
   // Clean up table when modal closes to prevent errors
   const onClose = () => {
