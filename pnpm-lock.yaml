@@ -51,8 +51,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.8
-        version: 0.9.8
+        specifier: 0.9.10
+        version: 0.9.10
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -1722,8 +1722,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.9.8:
-    resolution: {integrity: sha512-dC+xBvDx/0D0/m8MNvythQXP8KSwrmkG2B/HGV1EtLO7h5Ocp41MpKPp/5L3uHPUzX97kEiwTm3CzuSRUqkn5g==}
+  courthive-components@0.9.10:
+    resolution: {integrity: sha512-ImWQmW/wG8ikNjiiOLLHE9hFFeb4qXFudCIhpssEiAXoKb23XncPOY4InGwwhG/RkUigwF2yZJ/0qaEyLd7lWg==}
     engines: {node: '>=16.16.0 < 25'}
 
   create-ecdh@4.0.4:
@@ -2182,9 +2182,6 @@ packages:
 
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
-
-  focus-trap@7.8.0:
-    resolution: {integrity: sha512-/yNdlIkpWbM0ptxno3ONTuf+2g318kh2ez3KSeZN5dZ8YC6AAmgeWz+GasYYiBJPFaYcSAPeu4GfhUaChzIJXA==}
 
   focus-trap@8.0.0:
     resolution: {integrity: sha512-Aa84FOGHs99vVwufDMdq2qgOwXPC2e9U66GcqBhn1/jEHPDhJaP8PYhkIbqG9lhfL5Kddk/567lj46LLHYCRUw==}
@@ -3411,10 +3408,6 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
-
-  tods-competition-factory@2.3.1:
-    resolution: {integrity: sha512-zO5HjzRFM6146j2fA9/BgBDR2+QhmJQgbmzluqa3//LCxGqPX0n0BTG5z4YdUWaeGS7luUR2ixBt8bAIgI6pYQ==}
-    engines: {node: '>=20'}
 
   tods-competition-factory@2.3.3:
     resolution: {integrity: sha512-a/eNPKKiygmoThcuxZLCov5aV+uNL2ml4dd86z1Rgu0Hq7xBDr47ixrMPr82B/QR9CjstYyFauTarshVXaE3wA==}
@@ -5325,7 +5318,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  courthive-components@0.9.8:
+  courthive-components@0.9.10:
     dependencies:
       '@stitches/core': 1.2.8
       awesomplete: 1.1.7
@@ -5335,9 +5328,9 @@ snapshots:
       class-variance-authority: 0.7.1
       classnames: 2.5.1
       dayjs: 1.11.19
-      focus-trap: 7.8.0
+      focus-trap: 8.0.0
       tippy.js: 6.3.7
-      tods-competition-factory: 2.3.1
+      tods-competition-factory: 2.3.3
       vanillajs-datepicker: 1.3.4
 
   create-ecdh@4.0.4:
@@ -5968,10 +5961,6 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.3: {}
-
-  focus-trap@7.8.0:
-    dependencies:
-      tabbable: 6.4.0
 
   focus-trap@8.0.0:
     dependencies:
@@ -7248,8 +7237,6 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
-
-  tods-competition-factory@2.3.1: {}
 
   tods-competition-factory@2.3.3: {}
 
