@@ -84,9 +84,7 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
       tableEl.style.display = '';
 
       if (eventRow) {
-        if (!eventRow.matchUpsCount) {
-          navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
-        } else {
+        if (eventRow.matchUpsCount) {
           const matchUps = tournamentEngine.allDrawMatchUps({
             drawId: result.drawDefinition.drawId,
             inContext: false,
@@ -94,6 +92,8 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
           }).matchUps;
           eventRow.matchUpsCount += matchUps?.length || 0;
           eventRow.drawsCount += 1;
+        } else {
+          navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
         }
       }
     }
