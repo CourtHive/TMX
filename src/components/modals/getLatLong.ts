@@ -44,18 +44,18 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
 
   const map_style = 'width: 100%; height: 100%; min-width: 350px; min-height: 350px;';
   const html = `
-         <div style='min-height: 150px'>
-         <h2 class='tmx-title'>Enter map URL</h2>
-         <div class='flexcenter'>${lang.tr('phrases.addgooglemap')}</div>
-         <div class='flexcenter flexcol'>
-            <input id='${ids.link}' value='' style='text-align: center; width: 25em; margin: 1em;'>
-            <div class='flexrow' style='margin-top: 1em; margin-bottom: 1em;'>
-            </div>
-         </div>
-         <div class='location_detail_body' style='min-width: 350px; min-height: 350px;'>
-            <div id='${ids.map}' class='location_map' style='${map_style}'>
-         </div>
-      `;
+    <div style='min-height: 150px'>
+    <h2 class='tmx-title'>Enter map URL</h2>
+    <div class='flexcenter'>${lang.tr('phrases.addgooglemap')}</div>
+    <div class='flexcenter flexcol'>
+      <input id='${ids.link}' value='' style='text-align: center; width: 25em; margin: 1em;'>
+      <div class='flexrow' style='margin-top: 1em; margin-bottom: 1em;'>
+      </div>
+    </div>
+    <div class='location_detail_body' style='min-width: 350px; min-height: 350px;'>
+      <div id='${ids.map}' class='location_map' style='${map_style}'>
+    </div>
+  </div>`;
 
   const viewLocation = () => {
     if (!coords!.latitude || !coords!.longitude) {
@@ -175,7 +175,7 @@ function locationMap({
   }
 
   function gpsLocation(lat: number, lng: number, zoom: number): { map: any; marker: any } {
-    if (isNaN(lat) || isNaN(lng)) return {} as any;
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return {} as any;
     const view = env.locations.map_view || 'map';
     const layer = L.tileLayer(env.leaflet[view].tileLayer, {
       attribution: env.leaflet[view].attribution,

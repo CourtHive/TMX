@@ -6,9 +6,8 @@ import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-fact
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderOptions } from 'courthive-components';
+import { renderOptions, renderForm } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 
@@ -17,7 +16,17 @@ import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 
 const { ROUND_ROBIN, SINGLE_ELIMINATION } = drawDefinitionConstants;
 
-export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingPositionRanges }: { callback?: () => void; drawId: string; structureId: string; playoffFinishingPositionRanges: any[] }): void {
+export function addRRplayoffs({
+  callback,
+  drawId,
+  structureId,
+  playoffFinishingPositionRanges,
+}: {
+  callback?: () => void;
+  drawId: string;
+  structureId: string;
+  playoffFinishingPositionRanges: any[];
+}): void {
   const getId = (finishingPosition: number) => `finishingPosition-${finishingPosition}`;
   const fields = playoffFinishingPositionRanges.map(({ finishingPosition, finishingPositionRange }: any) => ({
     field: getId(finishingPosition),
@@ -69,9 +78,9 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     text: 'Select group finishing positions. Selections must be sequential',
   };
 
-  const options = ([playoffStructureName, playoffDrawType, groupSizeSelector, selectedPlayoffRange, admonition] as any[]).concat(
-    fields,
-  );
+  const options = (
+    [playoffStructureName, playoffDrawType, groupSizeSelector, selectedPlayoffRange, admonition] as any[]
+  ).concat(fields);
 
   let inputs: any;
 
@@ -89,7 +98,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     };
 
     if (drawType === ROUND_ROBIN) {
-      const groupSize = parseInt(inputs[GROUP_SIZE].value);
+      const groupSize = Number.parseInt(inputs[GROUP_SIZE].value);
       playoffGroup.structureOptions = { groupSize };
     }
 
@@ -103,7 +112,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
     const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Structure added', intent: 'is-success' });
-        isFunction(callback) && callback && callback();
+        isFunction(callback) && callback?.();
       } else {
         console.log({ result });
         tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
@@ -118,8 +127,7 @@ export function addRRplayoffs({ callback, drawId, structureId, playoffFinishingP
   const checkFinishingPositions = () => {
     const finishingPositions = playoffFinishingPositionRanges
       .filter(({ finishingPosition }: any) => inputs[getId(finishingPosition)]?.checked)
-      .map(({ finishingPositions }: any) => finishingPositions)
-      .flat();
+      .flatMap(({ finishingPositions }: any) => finishingPositions);
     const checkStatus = playoffFinishingPositionRanges.map(
       ({ finishingPosition }: any) => inputs[getId(finishingPosition)].checked,
     );

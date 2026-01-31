@@ -15,7 +15,7 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
     label: value.organisationName,
     value: value.organisationId,
   }));
-  const names = providers.map(({ value }: any) => value.organisationName);
+  const names = new Set(providers.map(({ value }: any) => value.organisationName));
 
   const selectProvider = () => {
     const provider = providers.find(({ value }: any) => value.organisationId === values.providerId)?.value;
@@ -24,7 +24,7 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
 
   const onInput = (el: Event) => {
     const value = (el.target as HTMLInputElement).value;
-    const enable = value === '' || names.includes(value);
+    const enable = value === '' || names.has(value);
     const selectButton = document.getElementById('selectButton') as HTMLButtonElement;
     selectButton.disabled = !enable;
     values.providerId = enable ? value : '';

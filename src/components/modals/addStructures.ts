@@ -13,7 +13,15 @@ import { isFunction } from 'functions/typeOf';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 
-export function addStructures({ drawId, structureId, callback }: { drawId: string; structureId: string; callback?: () => void }): void {
+export function addStructures({
+  drawId,
+  structureId,
+  callback,
+}: {
+  drawId: string;
+  structureId: string;
+  callback?: () => void;
+}): void {
   const result = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
   const sum = (p: any) => p.finishingPositions.reduce((a: number, b: number) => (a || 0) + (b || 0));
 
@@ -62,7 +70,9 @@ export function addStructures({ drawId, structureId, callback }: { drawId: strin
   let inputs: any;
 
   const onClick = () => {
-    const checkedRanges = result.playoffRoundsRanges.filter((range: any) => inputs[range.finishingPositionRange]?.checked);
+    const checkedRanges = result.playoffRoundsRanges.filter(
+      (range: any) => inputs[range.finishingPositionRange]?.checked,
+    );
 
     const playoffStructureNameBase = inputs.nameBase.value;
     const playoffAttributes: any = {};
@@ -82,7 +92,7 @@ export function addStructures({ drawId, structureId, callback }: { drawId: strin
     const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Structure(s) added', intent: 'is-success' });
-        isFunction(callback) && callback && callback();
+        isFunction(callback) && callback?.();
       } else {
         tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
       }
@@ -91,7 +101,9 @@ export function addStructures({ drawId, structureId, callback }: { drawId: strin
   };
 
   const checkValid = () => {
-    const checkedRanges = result.playoffRoundsRanges.filter((range: any) => inputs[range.finishingPositionRange]?.checked);
+    const checkedRanges = result.playoffRoundsRanges.filter(
+      (range: any) => inputs[range.finishingPositionRange]?.checked,
+    );
     const addButton = document.getElementById('addStructure');
     if (addButton) (addButton as HTMLButtonElement).disabled = !checkedRanges.length;
   };

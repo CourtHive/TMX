@@ -51,7 +51,7 @@ export function renderScorecard({ matchUp }: { matchUp: any }): HTMLDivElement {
   const overview = getTeamVs({ side1, side2, side1Score, side2Score });
   contentContaner.appendChild(overview);
 
-  if (!context.collectionTables) context.collectionTables = [];
+  context.collectionTables ??= [];
 
   const collectionDefinitions =
     matchUp.tieFormat.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || [];
@@ -148,12 +148,12 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   close.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    while (context.collectionTables && context.collectionTables.length) {
+    while (context.collectionTables?.length) {
       const table = context.collectionTables.pop();
       table.destroy();
     }
     closeOverlay();
-    isFunction(onClose) && onClose && onClose();
+    isFunction(onClose) && onClose?.();
   };
   close.innerHTML = 'Done';
 

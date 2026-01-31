@@ -8,9 +8,8 @@ import { getProvider, sendTournament } from 'services/apis/servicesApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { dateValidator } from 'components/validators/dateValidator';
 import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'courthive-components';
+import { renderButtons, renderForm } from 'courthive-components';
 import { getLoginState } from 'services/authentication/loginState';
-import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
@@ -87,10 +86,9 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
     if (activeDates) {
       inputs['activeDates'].value = activeDates
         .split(',')
-        .filter((d: string) =>
-          (startDate && new Date(d) < new Date(startDate)) || (endDate && new Date(d) > new Date(endDate))
-            ? false
-            : true,
+        .filter(
+          (d: string) =>
+            !((startDate && new Date(d) < new Date(startDate)) || (endDate && new Date(d) > new Date(endDate))),
         )
         .filter(Boolean)
         .join(',');
@@ -145,7 +143,21 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
     const startDate = inputs.startDate.value;
     const endDate = inputs.endDate.value;
 
-    if (!tournamentRecord) {
+    if (tournamentRecord) {
+      const updatedTournamentRecord = { ...tournamentRecord, tournamentName, activeDates, startDate, endDate };
+      const postMutation = (result: any) => {
+        if (result.success) {
+          table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
+        } else {
+          console.log({ result });
+        }
+      };
+      const methods = [
+        { method: SET_TOURNAMENT_DATES, params: { activeDates, startDate, endDate } },
+        { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
+      ];
+      mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
+    } else {
       const result = tournamentEngine.newTournamentRecord({ tournamentName, startDate, endDate });
       if (result.success) {
         const state = getLoginState();
@@ -165,20 +177,6 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
           completeTournamentAdd({ tournamentRecord: newTournamentRecord, table });
         }
       }
-    } else {
-      const updatedTournamentRecord = { ...tournamentRecord, tournamentName, activeDates, startDate, endDate };
-      const postMutation = (result: any) => {
-        if (result.success) {
-          table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
-        } else {
-          console.log({ result });
-        }
-      };
-      const methods = [
-        { method: SET_TOURNAMENT_DATES, params: { activeDates, startDate, endDate } },
-        { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
-      ];
-      mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
     }
   };
 

@@ -10,7 +10,19 @@ import { isFunction } from 'functions/typeOf';
 
 import { MODIFY_TIE_FORMAT } from 'constants/mutationConstants';
 
-export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callback }: { matchUpId?: string; structureId?: string; eventId?: string; drawId?: string; callback?: () => void }): void {
+export function updateTieFormat({
+  matchUpId,
+  structureId,
+  eventId,
+  drawId,
+  callback,
+}: {
+  matchUpId?: string;
+  structureId?: string;
+  eventId?: string;
+  drawId?: string;
+  callback?: () => void;
+}): void {
   const { tieFormat } = tournamentEngine.getTieFormat({
     structureId,
     matchUpId,
@@ -50,7 +62,7 @@ export function updateTieFormat({ matchUpId, structureId, eventId, drawId, callb
       const postMutation = (result: any) => {
         if (result.success) {
           tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
-          return isFunction(callback) && callback && callback();
+          return isFunction(callback) && callback?.();
         } else {
           return tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error' });
         }

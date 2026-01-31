@@ -11,10 +11,8 @@
 2. [Architecture](#architecture)
 3. [Scoring System](#scoring-system)
 4. [Entry Management](#entry-management)
-5. [PDF Generation](#pdf-generation)
-6. [Factory Integration](#factory-integration)
-7. [courthive-components Integration](#courthive-components-integration)
-8. [TODO](#todo)
+5. [Factory Integration](#factory-integration)
+6. [courthive-components Integration](#courthive-components-integration)
 
 ---
 

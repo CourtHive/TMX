@@ -1,6 +1,9 @@
 packages:
-  - '.'
+  - .
 
 ignoredBuiltDependencies:
   - cypress
   - esbuild
+
+overrides:
+  courthive-components: link:../courthive-components

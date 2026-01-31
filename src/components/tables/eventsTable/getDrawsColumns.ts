@@ -7,6 +7,7 @@ import { visiblityFormatter } from '../common/formatters/visibility';
 import { drawActions } from 'components/popovers/drawActions';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
+import { drawEntriesClick } from './drawEntriesClick';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT, UTR, WTN } from 'constants/tmxConstants';
@@ -49,6 +50,7 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
     { title: 'Draw Type', field: DRAW_TYPE, cellClick: drawDetail },
     {
       title: '<div class="event_icon opponents_header" />',
+      cellClick: drawEntriesClick(eventRow),
       field: 'entries',
       width: 50,
     },

@@ -108,7 +108,7 @@ function removeParticipant(params: any): void {
   const { action, callback, clickedParticipantId } = params;
   action.payload.participantId = clickedParticipantId;
   const methods = [{ method: action.method, params: action.payload }];
-  const postMutation = (result: any) => isFunction(callback) && callback && callback(result);
+  const postMutation = (result: any) => isFunction(callback) && callback?.(result);
   mutationRequest({ methods, callback: postMutation });
 }
 
@@ -143,7 +143,7 @@ function assignOrReplace(params: any): void {
       });
 
       const postMutation = (result: any) => {
-        isFunction(callback) && callback && callback(result);
+        isFunction(callback) && callback?.(result);
       };
       mutationRequest({ methods, callback: postMutation });
     }

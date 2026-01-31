@@ -8,7 +8,7 @@ import tippy, { Instance } from 'tippy.js';
 
 let tip: Instance | undefined;
 
-export function destroyTipster(target?: HTMLElement | any): void {
+export function destroyTipster(target?: any): void {
   if (tip) {
     (tip as any)?.destroy(true);
     tip = undefined;

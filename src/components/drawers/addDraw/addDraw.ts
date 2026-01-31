@@ -2,11 +2,9 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
-import { getMatchUpFormatModal } from 'courthive-components';
+import { getMatchUpFormatModal, renderButtons, renderForm } from 'courthive-components';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'courthive-components';
-import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
@@ -49,17 +47,26 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
     } else if (inputs.matchUpFormat?.value === CUSTOM) {
       const setMatchUpFormat = (matchUpFormat: string) => {
         if (matchUpFormat) {
-          (submitDrawParams as any)({ event, inputs, callback, structureId, matchUpFormat, drawId, drawName, isQualifying });
+          (submitDrawParams as any)({
+            event,
+            inputs,
+            callback,
+            structureId,
+            matchUpFormat,
+            drawId,
+            drawName,
+            isQualifying,
+          });
         }
       };
-      (getMatchUpFormatModal as any)({ 
+      (getMatchUpFormatModal as any)({
         callback: setMatchUpFormat,
         modalConfig: {
           style: {
             fontSize: '12px',
             border: '3px solid #0066cc',
-          }
-        }
+          },
+        },
       });
     } else {
       (submitDrawParams as any)({ event, inputs, callback, structureId, drawId, drawName, isQualifying });

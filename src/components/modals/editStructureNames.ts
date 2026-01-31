@@ -46,7 +46,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
     const postMutation = (result: any) => {
       if (result.success) {
         tmxToast({ message: 'Structure renamed', intent: 'is-success' });
-        isFunction(callback) && callback && callback();
+        isFunction(callback) && callback?.();
       }
     };
     mutationRequest({ methods, callback: postMutation });

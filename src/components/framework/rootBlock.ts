@@ -46,7 +46,7 @@ export function rootBlock(): HTMLElement {
 
   const drawer = document.createElement('section');
   drawer.className = 'drawer drawer--left';
-  drawer.setAttribute('data-drawer-target', '');
+  drawer.dataset.drawerTarget = '';
   drawer.id = TMX_DRAWER;
   drawer.innerHTML = `
       <div class="drawer__overlay" data-drawer-close tabIndex="-1"></div>

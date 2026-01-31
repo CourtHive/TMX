@@ -4,7 +4,7 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'courthive-components';
+import { getCategoryModal, renderButtons } from 'courthive-components';
 import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
@@ -113,6 +113,73 @@ export function editEvent({
     genderOptions = [ANY, MALE, MIXED, FEMALE];
   }
 
+  // Get tournament categories for dropdown
+  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentCategories = tournamentRecord?.tournamentCategories || [];
+
+  // Build category options from tournament categories
+  const buildCategoryOptions = () => {
+    const options = [
+      {
+        selected: ['', undefined].includes(values.ageCategoryCode),
+        label: '------------',
+        value: '',
+      },
+    ];
+
+    // Add tournament-defined categories first
+    if (tournamentCategories.length > 0) {
+      tournamentCategories.forEach((cat: any) => {
+        const label = cat.ageCategoryCode 
+          ? `${cat.categoryName} (${cat.ageCategoryCode})`
+          : cat.categoryName;
+        options.push({
+          selected: values.ageCategoryCode === (cat.ageCategoryCode || cat.categoryName),
+          label,
+          value: cat.ageCategoryCode || cat.categoryName,
+        });
+      });
+    } else {
+      // Fallback to default categories if tournament has none defined
+      options.push(
+        {
+          selected: values.ageCategoryCode === 'U10',
+          label: '10 and Under',
+          value: 'U10',
+        },
+        {
+          selected: values.ageCategoryCode === 'U12',
+          label: '12 and Under',
+          value: 'U12',
+        },
+        {
+          selected: values.ageCategoryCode === 'U14',
+          label: '14 and Under',
+          value: 'U14',
+        },
+        {
+          selected: values.ageCategoryCode === 'U16',
+          label: '16 and Under',
+          value: 'U16',
+        },
+        {
+          selected: values.ageCategoryCode === 'U18',
+          label: '18 and Under',
+          value: 'U18',
+        },
+      );
+    }
+
+    // Always add Custom option at the end
+    options.push({
+      selected: false,
+      label: 'Custom',
+      value: 'custom',
+    });
+
+    return options;
+  };
+
   const valueChange = () => {
     // Placeholder for future functionality
   };
@@ -126,8 +193,11 @@ export function editEvent({
     },
   ];
 
-  const content = (elem: HTMLElement) =>
-    renderForm(
+  // Store formInputs for programmatic access
+  let formInputs: any;
+
+  const content = (elem: HTMLElement) => {
+    formInputs = renderForm(
       elem,
       [
         {
@@ -203,43 +273,7 @@ export function editEvent({
           value: values.ageCategoryCode,
           field: 'ageCategoryCode',
           label: 'Category',
-          options: [
-            {
-              selected: ['', undefined].includes(values.ageCategoryCode),
-              label: '------------',
-              value: '',
-            },
-            {
-              selected: values.ageCategoryCode === 'U10',
-              label: '10 and Under',
-              value: 'U10',
-            },
-            {
-              selected: values.ageCategoryCode === 'U12',
-              label: '12 and Under',
-              value: 'U12',
-            },
-            {
-              selected: values.ageCategoryCode === 'U14',
-              label: '14 and Under',
-              value: 'U14',
-            },
-            {
-              selected: values.ageCategoryCode === 'U16',
-              label: '16 and Under',
-              value: 'U16',
-            },
-            {
-              selected: values.ageCategoryCode === 'U18',
-              label: '18 and Under',
-              value: 'U18',
-            },
-            {
-              label: 'Custom',
-              value: 'custom',
-              disabled: true,
-            },
-          ],
+          options: buildCategoryOptions(),
           onChange: valueChange,
         },
         {
@@ -261,9 +295,89 @@ export function editEvent({
       ],
       relationships,
     );
+    return formInputs;
+  };
 
   const saveEvent = () => {
     const ageCategoryCode = (context.drawer.attributes as any).content.ageCategoryCode.value;
+    const eventName = (context.drawer.attributes as any).content.eventName.value;
+    const startDate = (context.drawer.attributes as any).content.startDate.value;
+
+    // Validation
+    if (!eventName || eventName.length < 5) {
+      tmxToast({ message: 'Event name must be at least 5 characters', intent: 'is-danger' });
+      return;
+    }
+
+    // Check if Custom category is selected
+    if (ageCategoryCode === 'custom') {
+      const setCategory = (categoryResult: any) => {
+        if (categoryResult && categoryResult.ageCategoryCode) {
+          // Phase 3 & 4: Add custom category to tournament categories
+          const existing = tournamentRecord?.tournamentCategories || [];
+          
+          // Check if category already exists
+          const isDuplicate = existing.some((cat: any) => 
+            cat.ageCategoryCode === categoryResult.ageCategoryCode ||
+            cat.categoryName === categoryResult.categoryName
+          );
+          
+          if (!isDuplicate) {
+            // Add new category to tournament
+            const updatedCategories = [...existing, categoryResult];
+            const result = tournamentEngine.setTournamentCategories({ categories: updatedCategories });
+            
+            if (result.success) {
+              // Phase 2: Add category to dropdown programmatically
+              if (formInputs?.ageCategoryCode) {
+                const label = categoryResult.ageCategoryCode 
+                  ? `${categoryResult.categoryName} (${categoryResult.ageCategoryCode})`
+                  : categoryResult.categoryName;
+                const value = categoryResult.ageCategoryCode || categoryResult.categoryName;
+                
+                // Add new option before "Custom"
+                const customIndex = formInputs.ageCategoryCode.options.length - 1;
+                const newOption = new Option(label, value);
+                formInputs.ageCategoryCode.options.add(newOption, customIndex);
+                
+                // Select the new option
+                formInputs.ageCategoryCode.value = value;
+              }
+            } else {
+              tmxToast({ 
+                message: 'Category saved to event but not added to tournament categories', 
+                intent: 'is-warning' 
+              });
+            }
+          }
+          
+          // Update the drawer attribute and proceed with save
+          (context.drawer.attributes as any).content.ageCategoryCode.value = categoryResult.ageCategoryCode;
+          proceedWithSave(categoryResult);
+        }
+      };
+
+      (getCategoryModal as any)({
+        existingCategory: event?.category || {},
+        editorConfig: {
+          defaultConsideredDate: startDate || tournamentInfo.startDate,
+        },
+        callback: setCategory,
+        modalConfig: {
+          style: {
+            fontSize: '12px',
+            border: '3px solid #0066cc',
+          },
+        },
+      });
+      return;
+    }
+
+    proceedWithSave();
+  };
+
+  const proceedWithSave = (category?: any) => {
+    const ageCategoryCode = category?.ageCategoryCode || (context.drawer.attributes as any).content.ageCategoryCode.value;
     const eventName = (context.drawer.attributes as any).content.eventName.value;
     const eventType = (context.drawer.attributes as any).content.eventType.value;
     const startDate = (context.drawer.attributes as any).content.startDate.value;
@@ -272,7 +386,9 @@ export function editEvent({
 
     const eventUpdates: any = { eventName, eventType, gender, startDate, endDate };
 
-    if (ageCategoryCode && ageCategoryCode !== 'custom') {
+    if (category) {
+      eventUpdates.category = category;
+    } else if (ageCategoryCode && ageCategoryCode !== 'custom') {
       eventUpdates.category = { ...event?.category, ageCategoryCode };
     }
 
@@ -292,11 +408,11 @@ export function editEvent({
       const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
       mutationRequest({ methods, callback: postMutation });
     } else {
-      const category = ageCategoryCode && ageCategoryCode !== 'custom' ? { ageCategoryCode } : undefined;
+      const eventCategory = category || (ageCategoryCode && ageCategoryCode !== 'custom' ? { ageCategoryCode } : undefined);
       const eventId = tools.UUID();
       const methods = [
         {
-          params: { event: { category, eventId, eventName, eventType, gender, startDate, endDate } },
+          params: { event: { category: eventCategory, eventId, eventName, eventType, gender, startDate, endDate } },
           method: ADD_EVENT,
         },
       ];
@@ -315,12 +431,22 @@ export function editEvent({
     }
   };
 
+  const isValidForSave = () => {
+    const eventName = (context.drawer.attributes as any).content.eventName.value;
+    return eventName && eventName.length >= 5;
+  };
+
+  const shouldClose = () => {
+    const ageCategoryCode = (context.drawer.attributes as any).content.ageCategoryCode.value;
+    return ageCategoryCode !== 'custom' && isValidForSave();
+  };
+
   const footer = (elem: HTMLElement, close: () => void) =>
     renderButtons(
       elem,
       [
         { label: 'Cancel', onClick: () => table?.deselectRow(), close: true },
-        { label: 'Save', onClick: saveEvent, close: true, intent: 'is-info' },
+        { label: 'Save', onClick: saveEvent, close: shouldClose, intent: 'is-info' },
       ],
       close,
     );

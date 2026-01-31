@@ -8,7 +8,15 @@ import { RIGHT } from 'constants/tmxConstants';
 
 const FONT_MEDIUM = 'font-medium';
 
-export function dropDownButton({ target, button, stateChange }: { target?: HTMLElement; button: any; stateChange?: () => void }): HTMLDivElement {
+export function dropDownButton({
+  target,
+  button,
+  stateChange,
+}: {
+  target?: HTMLElement;
+  button: any;
+  stateChange?: () => void;
+}): HTMLDivElement {
   let i = 0;
   const genericItem = () => {
     i += 1;
@@ -106,13 +114,13 @@ export function dropDownButton({ target, button, stateChange }: { target?: HTMLE
       if (option.close) closeDropDown();
       const active = isActive(anchor);
       clearActive();
-      if (!active) {
+      if (active) {
+        label.innerHTML = button.label;
+      } else {
         if (button.selection) activeState(anchor);
         if (button.modifyLabel && option.modifyLabel !== false) {
           label.innerHTML = `${button.append ? button.label + ': ' : ''}${option?.label || genericItem()}`;
         }
-      } else {
-        label.innerHTML = button.label;
       }
     };
     anchor.innerHTML = option?.label || genericItem();
@@ -123,14 +131,12 @@ export function dropDownButton({ target, button, stateChange }: { target?: HTMLE
     if (option.heading) {
       const heading = document.createElement('div');
       heading.style.cssText = 'font-weight: bold';
-      heading.classList.add('dropdown-item');
-      heading.classList.add(FONT_MEDIUM);
+      heading.classList.add('dropdown-item', FONT_MEDIUM);
       heading.innerHTML = option.heading;
       content.appendChild(heading);
     } else if (option.divider) {
       const item = document.createElement('hr');
-      item.classList.add('dropdown-divider');
-      item.classList.add(FONT_MEDIUM);
+      item.classList.add('dropdown-divider', FONT_MEDIUM);
       content.appendChild(item);
     } else if (!option.hide) content.appendChild(createAnchor(option));
   }

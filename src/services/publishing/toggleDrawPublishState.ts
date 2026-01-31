@@ -8,7 +8,7 @@ import { PUBLISH_EVENT } from 'constants/mutationConstants';
 export const toggleDrawPublishState = (eventRow) => (_, cell) => {
   const row = cell.getRow().getData();
   const drawIdsToRemove = row.published ? [row.drawId] : undefined;
-  const drawIdsToAdd = !row.published ? [row.drawId] : undefined;
+  const drawIdsToAdd = row.published ? undefined : [row.drawId];
 
   const method = PUBLISH_EVENT;
   const methods = [
