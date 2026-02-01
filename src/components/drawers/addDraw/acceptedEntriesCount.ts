@@ -1,10 +1,24 @@
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
-import { drawDefinitionConstants } from 'tods-competition-factory';
+import { factoryConstants } from 'tods-competition-factory';
 
-const { MAIN } = drawDefinitionConstants;
+const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
+const { MAIN } = factoryConstants.drawDefinitionConstants;
 
-export function acceptedEntriesCount(event: any, stage: string = MAIN): number {
-  return event.entries.filter(({ entryStage = MAIN, entryStatus }: any) =>
-    acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`)
+export function acceptedEntriesCount({
+  stage = MAIN,
+  drawId,
+  event,
+}: {
+  drawId?: string;
+  event: any;
+  stage?: string;
+}): number {
+  const flightProfile = event?.extensions.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
+
+  const entriesCount = (flight?.drawEntries || event?.entries || []).filter(({ entryStage = MAIN, entryStatus }: any) =>
+    acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`),
   ).length;
+
+  return entriesCount;
 }

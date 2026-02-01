@@ -2,18 +2,47 @@
  * Map event data with matchUps, draws, and entries.
  * Supports light mode to skip resource-intensive calculations for large event counts.
  */
-import { tournamentEngine, publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { mapDrawDefinition } from './mapDrawDefinition';
+import {
+  tournamentEngine,
+  publishingGovernor,
+  drawDefinitionConstants,
+  extensionConstants,
+} from 'tods-competition-factory';
 
 const { MAIN } = drawDefinitionConstants;
 
-export function mapEvent({ event, scaleValues, lightMode = false }: { event: any; scaleValues?: any; lightMode?: boolean }): any {
-  const { drawDefinitions = [], eventName, entries, eventId } = event;
+export function mapEvent({
+  lightMode = false,
+  scaleValues,
+  event,
+}: {
+  lightMode?: boolean;
+  scaleValues?: any;
+  event: any;
+}): any {
+  const { drawDefinitions = [], eventName, entries, eventId, extensions } = event;
+
+  const ungeneratedFlights: any = [];
+  const flightProfile = extensions.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  flightProfile?.flights?.forEach((flight: any) => {
+    const drawDefinition = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
+    if (drawDefinition) {
+      drawDefinition.flightNumber = flight.flightNumber;
+    } else {
+      ungeneratedFlights.push({
+        flightNumber: flight.flightNumber,
+        entries: flight.drawEntries,
+        drawName: flight.drawName,
+        drawId: flight.drawId,
+      });
+    }
+  });
 
   const publishState = publishingGovernor.getPublishState({ event }).publishState;
   const drawsCount = drawDefinitions.length;
-  
+
   const entriesCount =
     entries.filter(({ entryStage = MAIN, entryStatus }: any) =>
       acceptedEntryStatuses(MAIN).includes(`${entryStage}.${entryStatus}`),
@@ -30,13 +59,13 @@ export function mapEvent({ event, scaleValues, lightMode = false }: { event: any
     scheduledMatchUpsCount =
       matchUps?.filter(({ winningSide, schedule }: any) => !winningSide && schedule?.scheduledTime)?.length || 0;
     completedMatchUpsCount = matchUps.filter(({ winningSide }: any) => winningSide)?.length || 0;
-    drawDefs = drawDefinitions.map((drawDefinition: any) =>
+    drawDefs = [...drawDefinitions, ...ungeneratedFlights].map((drawDefinition: any) =>
       mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] }),
     );
   }
 
   const searchText = [eventName]
-    .concat(drawDefinitions.map(({ drawName }: any) => drawName || ''))
+    .concat([...drawDefinitions, ...ungeneratedFlights].map(({ drawName }: any) => drawName || ''))
     .join(' ')
     .toLowerCase();
 

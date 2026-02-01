@@ -3,8 +3,9 @@
  * Validates word count and resets draw to initial state with mutation.
  */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { validators, renderForm, openModal } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openModal } from 'components/modals/baseModal/baseModal';
+import { validators, renderForm } from 'courthive-components';
 
 import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';

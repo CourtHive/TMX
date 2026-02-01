@@ -38,6 +38,7 @@ import {
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
+const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
 const { TEAM } = eventConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
@@ -55,11 +56,11 @@ interface DrawFormParams {
 }
 
 export function getDrawFormItems({ event, drawId, isQualifying, structureId }: DrawFormParams): {
-  items: any[];
   structurePositionAssignments: any;
+  items: any[];
 } {
   const stage = isQualifying ? QUALIFYING : MAIN;
-  const drawsCount = event.drawDefinitions?.length || 0;
+  const drawsCount = event.drawDefinitions?.length || 0; // need to take into consideration flightProfile.flights
   const drawType = SINGLE_ELIMINATION;
 
   const drawDefinition = drawId && event.drawDefinitions?.find((def: any) => def.drawId === drawId);
@@ -71,7 +72,8 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
 
-  const drawSize = structurePositionAssignments?.length || tools.nextPowerOf2(acceptedEntriesCount(event, stage));
+  const drawSize =
+    structurePositionAssignments?.length || tools.nextPowerOf2(acceptedEntriesCount({ drawId, event, stage }));
   const maxDrawSize = Math.max(drawSize, 512); // Allow at least 512, or the next power of 2 above entries
 
   // Check for existing seeding policy at event or tournament level
@@ -79,6 +81,9 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const existingEventPolicy = event?.policyDefinitions?.[POLICY_TYPE_SEEDING];
   const existingTournamentPolicy = tournamentRecord?.policyDefinitions?.[POLICY_TYPE_SEEDING];
   const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
+
+  const flightProfile = event?.extensions.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const scoreFormatOptions = [
     {
@@ -138,7 +143,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     {
       error: 'minimum of 4 characters',
       placeholder: 'Display name of the draw',
-      value: `Draw ${drawsCount + 1}`,
+      value: flight?.drawName || `Draw ${drawsCount + 1}`,
       validator: validators.nameValidator(4),
       selectOnFocus: true,
       hide: isQualifying,

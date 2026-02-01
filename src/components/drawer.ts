@@ -18,7 +18,7 @@ export const drawer = (): any => {
     visibleClass: 'is-visible',
     activeClass: 'is-active',
     speedClose: 350,
-    speedOpen: 50
+    speedOpen: 50,
   };
 
   const attributes: any = {};
@@ -123,7 +123,23 @@ export const drawer = (): any => {
     }, settings.speedOpen);
   };
 
-  const open = ({ title, content, side, width, footer, callback, onClose }: { title?: string; content?: any; side?: string; width?: string; footer?: any; callback?: () => void; onClose?: () => boolean | void } = {}) => {
+  const open = ({
+    title,
+    content,
+    side,
+    width,
+    footer,
+    callback,
+    onClose,
+  }: {
+    title?: string;
+    content?: any;
+    side?: string;
+    width?: string;
+    footer?: any;
+    callback?: () => void;
+    onClose?: () => boolean | void;
+  } = {}) => {
     if (content) setContent(content);
     if (onClose) setOnClose(onClose);
     if (title) setTitle(title);

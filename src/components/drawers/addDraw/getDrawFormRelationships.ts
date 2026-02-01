@@ -26,26 +26,35 @@ import {
 } from 'constants/tmxConstants';
 
 interface FormRelationshipParams {
-  event: any;
   isQualifying?: boolean;
   maxQualifiers?: number;
+  drawId?: string;
+  event: any;
 }
 
 interface FormInteractionParams {
   fields?: Record<string, HTMLElement>;
   inputs: Record<string, any>;
-  e?: Event;
-  name?: string;
   drawType?: string;
+  drawId?: string;
+  stage?: string;
+  name?: string;
+  event?: any;
+  e?: Event;
 }
 
-export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }: FormRelationshipParams): any[] {
+export function getDrawFormRelationships({
+  isQualifying,
+  maxQualifiers,
+  drawId,
+  event,
+}: FormRelationshipParams): any[] {
   const stage = isQualifying ? QUALIFYING : MAIN;
 
   const checkCreationMethod = ({ fields, inputs }: FormInteractionParams) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
-    const entriesCount = acceptedEntriesCount(event, stage);
+    const entriesCount = acceptedEntriesCount({ drawId, event, stage });
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = validators.numericValidator(qualifiersValue) ? Number.parseInt(qualifiersValue) : 0;
     const manualOnly =
@@ -60,15 +69,15 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
     }
   };
 
-  const updateDrawSize = ({ drawType, fields, inputs }: FormInteractionParams): number => {
-    const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount(event, stage);
+  const updateDrawSize = ({ drawType, drawId, fields, inputs }: FormInteractionParams): number => {
+    const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount({ drawId, event, stage });
     const qualifiersValue = inputs['qualifiersCount'].value || 1;
     const qualifiersCount =
       (validators.numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
     const drawSizeInteger =
       isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const drawSize =
-      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType!)) &&
+      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) &&
         drawSizeInteger) ||
       tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
@@ -87,15 +96,22 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
     let qualifiersValue = inputs['qualifiersCount'].value;
     if (generateButton) generateButton.disabled = false;
 
-    if (maxQualifiers && validators.numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue) > maxQualifiers) {
+    if (
+      maxQualifiers &&
+      validators.numericValidator(qualifiersValue) &&
+      Number.parseInt(qualifiersValue) > maxQualifiers
+    ) {
       inputs['qualifiersCount'].value = maxQualifiers;
     } else if (!maxQualifiers) {
       const drawType = inputs[DRAW_TYPE].value;
-      drawSize = updateDrawSize({ drawType, fields, inputs });
+      drawSize = updateDrawSize({ drawId, drawType, fields, inputs });
     }
 
     qualifiersValue = inputs['qualifiersCount'].value;
-    if (generateButton && (!validators.numericValidator(qualifiersValue) || drawSize <= Number.parseInt(qualifiersValue))) {
+    if (
+      generateButton &&
+      (!validators.numericValidator(qualifiersValue) || drawSize <= Number.parseInt(qualifiersValue))
+    ) {
       generateButton.disabled = true;
     }
   };
@@ -104,7 +120,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const drawType = (e!.target as HTMLSelectElement).value;
 
-    if (!maxQualifiers) updateDrawSize({ drawType, fields, inputs });
+    if (!maxQualifiers) updateDrawSize({ drawId, drawType, fields, inputs });
     checkCreationMethod({ fields, inputs });
 
     if (fields) {
@@ -120,7 +136,7 @@ export function getDrawFormRelationships({ event, isQualifying, maxQualifiers }:
     const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
-    const entriesCount = acceptedEntriesCount(event, stage);
+    const entriesCount = acceptedEntriesCount({ drawId, event, stage });
     const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount), 512);
     const valid = validators.numericRange(2, maxDrawSize)(drawSizeValue);
     if (generateButton) generateButton.disabled = !valid;

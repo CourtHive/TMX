@@ -341,6 +341,11 @@ export function submitDrawParams({
   const matchUpFormat = providedMatchUpFormat || inputs[MATCHUP_FORMAT]?.value;
   const selectedSeedingPolicy = inputs[SEEDING_POLICY]?.value;
 
+  const flightProfile = event?.extensions.find(
+    (ext: any) => ext.name === factoryConstants.extensionConstants.FLIGHT_PROFILE,
+  )?.value;
+  const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
+
   const structureName = inputs[STRUCTURE_NAME]?.value;
   const tieFormatName = inputs.tieFormatName?.value;
   const drawName = inputs[DRAW_NAME]?.value;
@@ -356,7 +361,8 @@ export function submitDrawParams({
   const drawEntries =
     isQualifying && qualifyingEntries.length
       ? qualifyingEntries
-      : event.entries.filter(
+      : flight?.drawEntries ||
+        event.entries.filter(
           ({ entryStage, entryStatus }: any) =>
             (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
         );
