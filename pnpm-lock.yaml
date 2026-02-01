@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  courthive-components: link:../courthive-components
+
 importers:
 
   .:
@@ -51,8 +54,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.11
-        version: 0.9.11
+        specifier: link:../courthive-components
+        version: link:../courthive-components
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -117,8 +120,8 @@ importers:
         specifier: 6.3.1
         version: 6.3.1
       timepicker-ui:
-        specifier: 4.1.0
-        version: 4.1.0
+        specifier: 4.1.1
+        version: 4.1.1
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
@@ -176,7 +179,7 @@ importers:
         version: 8.54.0(eslint@9.39.2(jiti@2.4.1))(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: 4.0.18
-        version: 4.0.18(vitest@4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1))
+        version: 4.0.18(vitest@4.0.18)
       '@vitest/ui':
         specifier: 4.0.18
         version: 4.0.18(vitest@4.0.18)
@@ -263,10 +266,10 @@ importers:
         version: 4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)
       vitest-github-actions-reporter:
         specifier: 0.11.1
-        version: 0.11.1(vitest@4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1))
+        version: 0.11.1(vitest@4.0.18)
       vitest-sonar-reporter:
         specifier: 3.0.0
-        version: 3.0.0(vitest@4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1))
+        version: 3.0.0(vitest@4.0.18)
       yargs:
         specifier: 18.0.0
         version: 18.0.0
@@ -994,56 +997,67 @@ packages:
     resolution: {integrity: sha512-PsNAbcyv9CcecAUagQefwX8fQn9LQ4nZkpDboBOttmyffnInRy8R8dSg6hxxl2Re5QhHBf6FYIDhIj5v982ATQ==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.52.5':
     resolution: {integrity: sha512-Fw4tysRutyQc/wwkmcyoqFtJhh0u31K+Q6jYjeicsGJJ7bbEq8LwPWV/w0cnzOqR2m694/Af6hpFayLJZkG2VQ==}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.52.5':
     resolution: {integrity: sha512-a+3wVnAYdQClOTlyapKmyI6BLPAFYs0JM8HRpgYZQO02rMR09ZcV9LbQB+NL6sljzG38869YqThrRnfPMCDtZg==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.52.5':
     resolution: {integrity: sha512-AvttBOMwO9Pcuuf7m9PkC1PUIKsfaAJ4AYhy944qeTJgQOqJYJ9oVl2nYgY7Rk0mkbsuOpCAYSs6wLYB2Xiw0Q==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.52.5':
     resolution: {integrity: sha512-DkDk8pmXQV2wVrF6oq5tONK6UHLz/XcEVow4JTTerdeV1uqPeHxwcg7aFsfnSm9L+OO8WJsWotKM2JJPMWrQtA==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-gnu@4.52.5':
     resolution: {integrity: sha512-W/b9ZN/U9+hPQVvlGwjzi+Wy4xdoH2I8EjaCkMvzpI7wJUs8sWJ03Rq96jRnHkSrcHTpQe8h5Tg3ZzUPGauvAw==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-gnu@4.52.5':
     resolution: {integrity: sha512-sjQLr9BW7R/ZiXnQiWPkErNfLMkkWIoCz7YMn27HldKsADEKa5WYdobaa1hmN6slu9oWQbB6/jFpJ+P2IkVrmw==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.52.5':
     resolution: {integrity: sha512-hq3jU/kGyjXWTvAh2awn8oHroCbrPm8JqM7RUpKjalIRWWXE01CQOf/tUNWNHjmbMHg/hmNCwc/Pz3k1T/j/Lg==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.52.5':
     resolution: {integrity: sha512-gn8kHOrku8D4NGHMK1Y7NA7INQTRdVOntt1OCYypZPRt6skGbddska44K8iocdpxHTMMNui5oH4elPH4QOLrFQ==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.52.5':
     resolution: {integrity: sha512-hXGLYpdhiNElzN770+H2nlx+jRog8TyynpTVzdlc6bndktjKWyZyiCsuDAlpd+j+W+WNqfcyAWz9HxxIGfZm1Q==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.52.5':
     resolution: {integrity: sha512-arCGIcuNKjBoKAXD+y7XomR9gY6Mw7HnFBv5Rw7wQRvwYLR7gBAgV7Mb2QTyjXfTveBNFAtPt46/36vV9STLNg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-openharmony-arm64@4.52.5':
     resolution: {integrity: sha512-QoFqB6+/9Rly/RiPjaomPLmR/13cgkIGfA40LHly9zcH1S0bN2HVFYk3a1eAyHQyjs3ZJYlXvIGtcCs5tko9Cw==}
@@ -1423,9 +1437,6 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  awesomplete@1.1.7:
-    resolution: {integrity: sha512-hwClzFReIIfheoMWpoJ7juLp1o6Q7YjTtEdZIGfXvhRHA9ewKM03VS4ZoK+OEFIKM066PfQt9pzRIGV1TguRBw==}
-
   axe-core@4.10.0:
     resolution: {integrity: sha512-Mr2ZakwQ7XUAjp7pAwQWRhhK8mQQ6JAaNWSjmjxil0R8BPioMtQsTLOolGYkji1rcL++3dCqZA3zWqpT+9Ew6g==}
     engines: {node: '>=4'}
@@ -1591,9 +1602,6 @@ packages:
   cipher-base@1.0.4:
     resolution: {integrity: sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==}
 
-  class-variance-authority@0.7.1:
-    resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
-
   classnames@2.5.1:
     resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
 
@@ -1620,10 +1628,6 @@ packages:
   clone@2.1.2:
     resolution: {integrity: sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w==}
     engines: {node: '>=0.8'}
-
-  clsx@2.1.1:
-    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
-    engines: {node: '>=6'}
 
   code-red@1.0.4:
     resolution: {integrity: sha512-7qJWqItLA8/VPVlKJlFXU+NBlo/qyfs39aJcuMT/2ere32ZqvF5OSxgdM5xOfJJ7O429gg2HM47y8v9P+9wrNw==}
@@ -1690,10 +1694,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  courthive-components@0.9.11:
-    resolution: {integrity: sha512-P2S9AN42X9c5Odn6n0mWkwe4wc3gAGryveg1limG378eb8kK0oWz9FrQRZpp5Twf8WFcQ/WU9TMbdnG3Op4PUw==}
-    engines: {node: '>=16.16.0 < 25'}
 
   create-ecdh@4.0.4:
     resolution: {integrity: sha512-mf+TCx8wWc9VpuxfP2ht0iSISLZnt0JgWlrOKZiNqyUZWnjIaCIVNQArMHnCZKfEYRg6IM7A+NeJoN8gf/Ws0A==}
@@ -3295,8 +3295,8 @@ packages:
   text-segmentation@1.0.3:
     resolution: {integrity: sha512-iOiPUo/BGnZ6+54OsWxZidGCsdU8YbE4PSpdPinp7DeMtUJNJBoJ/ouUSTJjHkh1KntHaltHl/gDs2FC4i5+Nw==}
 
-  timepicker-ui@4.1.0:
-    resolution: {integrity: sha512-nJLmReVlXafxRJagjWMopQdKMqXh7WY9hBlhC5erZYsPQj5PNQ1eIUzPZ8qH+z1kV9RQxkrXYJrw/gXUE2yIpA==}
+  timepicker-ui@4.1.1:
+    resolution: {integrity: sha512-htdmAnlGEOgvUCTK4B5bYFMhWY6+9eaglKCqwPKdga30Gh/8g41TvDGC7LvaIlv46eeOsO8RMYi7gfegrndZsA==}
 
   tiny-binary-search@1.0.3:
     resolution: {integrity: sha512-STSHX/L5nI9WTLv6wrzJbAPbO7OIISX83KFBh2GVbX1Uz/vgZOU/ANn/8iV6t35yMTpoPzzO+3OQid3mifE0CA==}
@@ -4544,7 +4544,7 @@ snapshots:
 
   '@testing-library/dom@10.4.1':
     dependencies:
-      '@babel/code-frame': 7.28.6
+      '@babel/code-frame': 7.29.0
       '@babel/runtime': 7.28.6
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
@@ -4695,7 +4695,7 @@ snapshots:
       '@typescript-eslint/types': 8.54.0
       eslint-visitor-keys: 4.2.1
 
-  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1))':
+  '@vitest/coverage-v8@4.0.18(vitest@4.0.18)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.18
@@ -4908,8 +4908,6 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  awesomplete@1.1.7: {}
-
   axe-core@4.10.0: {}
 
   axios@1.13.4:
@@ -5105,10 +5103,6 @@ snapshots:
       inherits: 2.0.4
       safe-buffer: 5.2.1
 
-  class-variance-authority@0.7.1:
-    dependencies:
-      clsx: 2.1.1
-
   classnames@2.5.1: {}
 
   cli-cursor@5.0.0:
@@ -5135,8 +5129,6 @@ snapshots:
       wrap-ansi: 9.0.0
 
   clone@2.1.2: {}
-
-  clsx@2.1.1: {}
 
   code-red@1.0.4:
     dependencies:
@@ -5200,21 +5192,6 @@ snapshots:
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.9.3
-
-  courthive-components@0.9.11:
-    dependencies:
-      '@stitches/core': 1.2.8
-      awesomplete: 1.1.7
-      bulma: 1.0.4
-      bulma-checkradio: 2.1.3
-      bulma-switch: 2.0.4
-      class-variance-authority: 0.7.1
-      classnames: 2.5.1
-      dayjs: 1.11.19
-      focus-trap: 8.0.0
-      tippy.js: 6.3.7
-      tods-competition-factory: 2.3.4
-      vanillajs-datepicker: 1.3.4
 
   create-ecdh@4.0.4:
     dependencies:
@@ -7054,7 +7031,7 @@ snapshots:
     dependencies:
       utrie: 1.0.2
 
-  timepicker-ui@4.1.0: {}
+  timepicker-ui@4.1.1: {}
 
   tiny-binary-search@1.0.3: {}
 
@@ -7245,12 +7222,12 @@ snapshots:
       sass: 1.76.0
       yaml: 2.8.1
 
-  vitest-github-actions-reporter@0.11.1(vitest@4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)):
+  vitest-github-actions-reporter@0.11.1(vitest@4.0.18):
     dependencies:
       '@actions/core': 1.10.1
       vitest: 4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)
 
-  vitest-sonar-reporter@3.0.0(vitest@4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)):
+  vitest-sonar-reporter@3.0.0(vitest@4.0.18):
     dependencies:
       vitest: 4.0.18(@types/node@24.10.9)(@vitest/ui@4.0.18)(jiti@2.4.1)(sass@1.76.0)(yaml@2.8.1)
 
