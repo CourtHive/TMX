@@ -6,13 +6,13 @@ import { factoryConstants, globalState, tournamentEngine } from 'tods-competitio
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { initSettingsIcon } from 'components/modals/settingsModal';
+import { courthiveComponentsVersion } from 'courthive-components';
 import { loadSettings } from 'services/settings/settingsStorage';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
-import { courthiveComponentsVersion } from 'courthive-components';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';

@@ -5,6 +5,7 @@
 import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
 import { visiblityFormatter } from '../common/formatters/visibility';
 import { drawActions } from 'components/popovers/drawActions';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { drawEntriesClick } from './drawEntriesClick';
@@ -13,9 +14,26 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT, UTR, WTN } from 'constants/tmxConstants';
 
 export function getDrawsColumns(data: any[], eventRow: any): any[] {
-  const drawDetail = (_: any, cell: any) => {
-    const { eventId, drawId } = cell.getRow().getData();
-    navigateToEvent({ eventId, drawId, renderDraw: true });
+  const flightDetail = (_: any, cell: any) => {
+    const drawData = cell.getRow().getData();
+    const { eventId, drawId, flightNumber } = drawData;
+    const drawAdded = (result: any) => {
+      if (result.success) {
+        navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
+      }
+    };
+    // const callback = (data) => console.log('update draws table', { data }); // or go directly to draw view
+    addDraw({ eventId, drawId, flightNumber, callback: drawAdded });
+  };
+  const drawDetail = (e: any, cell: any) => {
+    e.stopPropagation();
+    const drawData = cell.getRow().getData();
+    const { eventId, drawId, generated } = drawData;
+    if (generated) {
+      navigateToEvent({ eventId, drawId, renderDraw: true });
+    } else {
+      flightDetail(e, cell);
+    }
   };
 
   const utrAvg = data.find((d) => d.utrAvg);
@@ -48,6 +66,7 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
     },
     { title: 'Draw Name', field: DRAW_NAME, cellClick: drawDetail },
     { title: 'Draw Type', field: DRAW_TYPE, cellClick: drawDetail },
+    { title: 'Flight', field: 'flightNumber', width: 70, headerSort: false, hozAlign: CENTER },
     {
       title: '<div class="event_icon opponents_header" />',
       cellClick: drawEntriesClick(eventRow),

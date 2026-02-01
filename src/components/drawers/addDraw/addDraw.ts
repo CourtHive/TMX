@@ -10,18 +10,28 @@ import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
 import { context } from 'services/context';
 
+// constants
 import { CUSTOM, DRAW_NAME, NONE, RIGHT, STRUCTURE_NAME } from 'constants/tmxConstants';
 
 type AddDrawParams = {
-  eventId: string;
   callback?: (result: any) => void;
-  drawId?: string;
+  isQualifying?: boolean;
+  flightNumber?: number;
   drawName?: string;
   structureId?: string;
-  isQualifying?: boolean;
+  eventId: string;
+  drawId?: string;
 };
 
-export function addDraw({ eventId, callback, drawId, drawName, structureId, isQualifying }: AddDrawParams): void {
+export function addDraw({
+  isQualifying,
+  flightNumber,
+  structureId,
+  callback,
+  drawName,
+  eventId,
+  drawId,
+}: AddDrawParams): void {
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
@@ -29,6 +39,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   const relationships = getDrawFormRelationships({
     maxQualifiers: structurePositionAssignments?.length,
     isQualifying,
+    drawId,
     event,
   });
 
@@ -40,7 +51,7 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   const isValid = () =>
     isQualifying
       ? validators.nameValidator(4)(inputs[STRUCTURE_NAME].value)
-      : validators.nameValidator(4)(inputs[DRAW_NAME].value);
+      : validators.nameValidator(3)(inputs[DRAW_NAME].value);
 
   const checkParams = () => {
     if (!isValid()) {
@@ -78,7 +89,8 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
     { label: 'Cancel', intent: NONE, close: true },
     { label: 'Generate', id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid },
   ];
-  const title = `Configure draw`;
+
+  const title = flightNumber ? `Configure flight` : `Configure draw`;
 
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });

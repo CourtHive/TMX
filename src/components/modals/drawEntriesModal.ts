@@ -2,15 +2,15 @@
  * Draw Entries Modal - displays participants assigned to a specific draw
  * Shows table similar to Event Entries 'Accepted' panel with optional seeding functionality
  */
-import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'components/controlBar/controlBar';
-import { tournamentEngine } from 'tods-competition-factory';
-import { getDrawEntriesColumns } from './drawEntriesColumns/getDrawEntriesColumns';
 import { drawEntriesSeedingSelector } from './drawEntriesColumns/seeding/drawEntriesSeedingSelector';
 import { cancelManualSeeding } from 'components/tables/eventsTable/seeding/canceManuallSeeding';
+import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
+import { getDrawEntriesColumns } from './drawEntriesColumns/getDrawEntriesColumns';
+import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 import { saveSeeding } from 'components/tables/eventsTable/seeding/saveSeeding';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { controlBar } from 'components/controlBar/controlBar';
 import { isFunction } from 'functions/typeOf';
 import { cModal } from 'courthive-components';
 
@@ -25,15 +25,21 @@ export interface DrawEntriesModalParams {
 
 export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawEntriesModalParams): void {
   // Get draw and event data
-  const { event, drawDefinition } = tournamentEngine.getEvent({ eventId, drawId });
+  const { event, drawDefinition: drawDef } = tournamentEngine.getEvent({ eventId, drawId });
+  if (!event) {
+    console.error('Event not found', { eventId });
+    return;
+  }
+  const flightProfile = event?.extensions.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const drawInfo = drawDef || flightProfile?.flights?.find((flight: any) => flight.drawId === drawId);
 
-  if (!event || !drawDefinition) {
-    console.error('Event or draw not found', { eventId, drawId });
+  if (!drawInfo) {
+    console.error('Draw not found', { eventId, drawId });
     return;
   }
 
   // Determine draw stage (MAIN or QUALIFYING) for seeding
-  const drawStage = drawDefinition.stage || 'MAIN';
+  const drawStage = drawInfo.stage || 'MAIN';
 
   const { participants, derivedDrawInfo } =
     tournamentEngine.getParticipants({
@@ -45,7 +51,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
     }) ?? {};
 
   // Get entries for this specific draw
-  const drawEntries = drawDefinition.entries || [];
+  const drawEntries = drawInfo.entries || drawInfo.drawEntries || [];
   const categoryName = event.category?.categoryName ?? event.category?.ageCategoryCode;
 
   // Map entries to include participant details, ratings, rankings, seeding
@@ -111,10 +117,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
   });
 
   // Open modal
-  const modalTitle =
-    (drawName || 'Draw') +
-    ' Entries' +
-    (eventName ? ' - ' + eventName : '');
+  const modalTitle = (drawName || 'Draw') + ' Entries' + (eventName ? ' - ' + eventName : '');
 
   // Clean up table when modal closes to prevent errors
   const onClose = () => {

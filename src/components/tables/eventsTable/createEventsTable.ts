@@ -33,9 +33,9 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
 
     return eventData?.events?.map((event: any) =>
       mapEvent({
-        event,
         scaleValues: eventData.eventScaleValues?.[event.eventId],
         lightMode,
+        event,
       }),
     );
   };

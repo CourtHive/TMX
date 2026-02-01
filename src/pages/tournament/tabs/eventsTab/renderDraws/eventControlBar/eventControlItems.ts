@@ -52,7 +52,8 @@ export function getEventControlItems({
 
   return [
     {
-      onKeyDown: (e: KeyboardEvent) => e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1 && updateParticipantFilter(''),
+      onKeyDown: (e: KeyboardEvent) =>
+        e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1 && updateParticipantFilter(''),
       onChange: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       clearSearch: () => updateParticipantFilter(''),
