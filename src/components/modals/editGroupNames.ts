@@ -3,9 +3,8 @@
  * Allows renaming of group structures with minimum character validation.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { nameValidator } from 'components/validators/nameValidator';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'courthive-components';
+import { validators, renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 
@@ -31,7 +30,7 @@ export function editGroupNames({
     text: `${structureName}:`,
     fieldPair: {
       error: 'minimum 4 characters',
-      validator: nameValidator(4),
+      validator: validators.nameValidator(4),
       placeholder: structureName,
       field: structureId,
       id: structureId,
@@ -64,7 +63,7 @@ export function editGroupNames({
     const nameValues = Object.values(groups)
       .map(({ structureId }: any) => inputs[structureId]?.value)
       .filter(Boolean);
-    const validValues = nameValues.every(nameValidator(4));
+    const validValues = nameValues.every(validators.nameValidator(4));
     const renameButton = document.getElementById('renameGroups');
     const valid = nameValues.length && validValues;
     if (renameButton) (renameButton as HTMLButtonElement).disabled = !valid;

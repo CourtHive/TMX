@@ -2,10 +2,9 @@
  * Login modal with email and password validation.
  * Authenticates user credentials and updates login state on success.
  */
-import { emailValidator } from 'components/validators/emailValidator';
 import { logIn, logOut } from 'services/authentication/loginState';
+import { renderForm, validators } from 'courthive-components';
 import { systemLogin } from 'services/authentication/authApi';
-import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 export function loginModal(callback?: () => void): void {
@@ -13,7 +12,7 @@ export function loginModal(callback?: () => void): void {
 
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['email'].value;
-    const isValid = emailValidator(value);
+    const isValid = validators.emailValidator(value);
     const inviteButton = document.getElementById('loginButton');
     if (inviteButton) (inviteButton as HTMLButtonElement).disabled = !isValid;
   };
@@ -32,7 +31,7 @@ export function loginModal(callback?: () => void): void {
         {
           iconLeft: 'fa-regular fa-envelope',
           placeholder: 'valid@email.com',
-          validator: emailValidator,
+          validator: validators.emailValidator,
           autocomplete: 'email',
           label: 'Email',
           field: 'email',

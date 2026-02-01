@@ -2,7 +2,7 @@
  * Select position action popover for draw assignments.
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
-import { numericValidator } from 'components/validators/numericValidator';
+import { validators } from 'courthive-components';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -82,7 +82,7 @@ function assignSeed({ target, action, callback }: { target: HTMLElement; action:
   const menuItems = [
     {
       label: 'Assign seed number ',
-      validator: numericValidator,
+      validator: validators.numericValidator,
       placeholder: 'Seed number',
       field: 'seedNumber',
       id: 'seedNumber',

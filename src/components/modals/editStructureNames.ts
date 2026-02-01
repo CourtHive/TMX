@@ -3,9 +3,8 @@
  * Allows renaming of draw structures with minimum character validation.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { nameValidator } from 'components/validators/nameValidator';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'courthive-components';
+import { validators, renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
@@ -21,7 +20,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
     text: `${structureName}:`,
     fieldPair: {
       error: 'minimum 4 characters',
-      validator: nameValidator(4),
+      validator: validators.nameValidator(4),
       placeholder: structureName,
       focus: index === 0,
       field: structureId,
@@ -53,7 +52,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   };
   const checkValid = () => {
     const nameValues = structures.map(({ structureId }: any) => inputs[structureId]?.value).filter(Boolean);
-    const validValues = nameValues.every(nameValidator(4));
+    const validValues = nameValues.every(validators.nameValidator(4));
     const renameButton = document.getElementById('renameStructures');
     const valid = nameValues.length && validValues;
     if (renameButton) (renameButton as HTMLButtonElement).disabled = !valid;

@@ -3,10 +3,8 @@
  * Allows creating or editing individual participant details.
  */
 import { participantConstants, participantRoles, fixtures, tools } from 'tods-competition-factory';
+import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'courthive-components';
-import { renderForm } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -42,7 +40,7 @@ export function editIndividualParticipant({
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
   const validValues = ({ firstName, lastName }: any) =>
-    nameValidator(2)(firstName || '') && nameValidator(2)(lastName || '');
+    validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
 
   const enableSubmit = ({ inputs }: any) => {
     const valid = validValues({
@@ -71,7 +69,7 @@ export function editIndividualParticipant({
         {
           error: 'Please enter a name of at least 3 characters',
           value: values.firstName || '',
-          validator: nameValidator(2),
+          validator: validators.nameValidator(2),
           placeholder: 'Given name',
           label: 'First name',
           field: 'firstName',
@@ -80,7 +78,7 @@ export function editIndividualParticipant({
         {
           error: 'Please enter a name of at least 3 characters',
           value: values.lastName || '',
-          validator: nameValidator(2),
+          validator: validators.nameValidator(2),
           placeholder: 'Family name',
           label: 'Last name',
           field: 'lastName',
@@ -142,9 +140,7 @@ export function editIndividualParticipant({
   });
 
   function saveParticipant(): void {
-    if (!participant?.participantId) {
-      addParticipant();
-    } else {
+    if (participant?.participantId) {
       const person = {
         nationalityCode: inputs.nationalityCode.value,
         standardFamilyName: inputs.lastName.value,
@@ -166,6 +162,8 @@ export function editIndividualParticipant({
         }
       };
       mutationRequest({ methods, callback: postMutation });
+    } else {
+      addParticipant();
     }
   }
 

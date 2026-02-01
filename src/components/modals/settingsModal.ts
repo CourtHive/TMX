@@ -2,10 +2,9 @@
  * Settings modal for active rating scale and local storage preferences.
  * Allows selection between WTN/UTR and toggling local tournament saves.
  */
-import { renderForm } from 'courthive-components';
-import { setActiveScale } from 'settings/setActiveScale';
 import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
-import { numericRange } from 'components/validators/numericRange';
+import { renderForm, validators } from 'courthive-components';
+import { setActiveScale } from 'settings/setActiveScale';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
 
@@ -36,7 +35,7 @@ export function settingsModal(): void {
 
     // Save minimum schedule grid rows
     const minCourtGridRowsValue = inputs.minCourtGridRows.value;
-    if (numericRange(1, 100)(minCourtGridRowsValue)) {
+    if (validators.numericRange(1, 100)(minCourtGridRowsValue)) {
       env.schedule.minCourtGridRows = Number.parseInt(minCourtGridRowsValue, 10);
     }
 
@@ -110,13 +109,13 @@ export function settingsModal(): void {
         value: currentSettings?.minCourtGridRows ?? env.schedule.minCourtGridRows,
         field: 'minCourtGridRows',
         id: 'minCourtGridRows',
-        validator: numericRange(1, 100),
+        validator: validators.numericRange(1, 100),
         error: 'Must be a number between 1 and 100',
         selectOnFocus: true,
         onInput: () => {
           const saveButton = document.getElementById('saveSettingsButton') as HTMLButtonElement;
           const value = inputs.minCourtGridRows.value;
-          const valid = numericRange(1, 100)(value);
+          const valid = validators.numericRange(1, 100)(value);
           if (saveButton) saveButton.disabled = !valid;
         },
       },
@@ -152,7 +151,7 @@ export function settingsModal(): void {
   setTimeout(() => {
     const saveButton = document.getElementById('saveSettingsButton') as HTMLButtonElement;
     const value = inputs?.minCourtGridRows?.value ?? env.schedule.minCourtGridRows;
-    const valid = numericRange(1, 100)(value);
+    const valid = validators.numericRange(1, 100)(value);
     if (saveButton) saveButton.disabled = !valid;
   }, 0);
 }

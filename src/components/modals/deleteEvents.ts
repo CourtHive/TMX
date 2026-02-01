@@ -3,8 +3,7 @@
  * Validates minimum word count before allowing deletion with mutation.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { wordValidator } from 'components/validators/wordValidator';
-import { renderForm } from 'courthive-components';
+import { validators, renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isDev } from 'functions/isDev';
 
@@ -35,7 +34,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
     {
       placeholder: 'Explanation',
       field: 'eventDeletionReason',
-      validator: wordValidator(5),
+      validator: validators.wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
       focus: true,
@@ -46,7 +45,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   ];
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['eventDeletionReason'].value;
-    const isValid = wordValidator(5)(value);
+    const isValid = validators.wordValidator(5)(value);
     const deleteButton = document.getElementById('deleteEvent');
     if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
   };
