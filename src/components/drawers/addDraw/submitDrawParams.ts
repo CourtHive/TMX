@@ -3,9 +3,9 @@
  * Handles draw creation, qualifying structures, and tie format configuration.
  */
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
-import { numericValidator } from 'components/validators/numericValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { validators } from 'courthive-components';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
 import {
@@ -386,7 +386,8 @@ export function submitDrawParams({
   })?.seedsCount;
 
   const qualifiersCount =
-    (numericValidator(inputs[QUALIFIERS_COUNT].value) && Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
+    (validators.numericValidator(inputs[QUALIFIERS_COUNT].value) && Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) ||
+    0;
 
   if (structureId && drawId) {
     handleQualifyingStructure({

@@ -2,9 +2,8 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
-import { getCategoryModal, renderButtons, renderForm } from 'courthive-components';
+import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { nameValidator } from 'components/validators/nameValidator';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -199,7 +198,7 @@ export function editEvent({
       [
         {
           error: 'minimum of 5 characters',
-          validator: nameValidator(5),
+          validator: validators.nameValidator(5),
           placeholder: 'Event name',
           value: values.eventName,
           onChange: valueChange,

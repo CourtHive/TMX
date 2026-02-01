@@ -2,9 +2,8 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
-import { getMatchUpFormatModal, renderButtons, renderForm } from 'courthive-components';
+import { getMatchUpFormatModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
-import { nameValidator } from 'components/validators/nameValidator';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
@@ -39,7 +38,9 @@ export function addDraw({ eventId, callback, drawId, drawName, structureId, isQu
   };
 
   const isValid = () =>
-    isQualifying ? nameValidator(4)(inputs[STRUCTURE_NAME].value) : nameValidator(4)(inputs[DRAW_NAME].value);
+    isQualifying
+      ? validators.nameValidator(4)(inputs[STRUCTURE_NAME].value)
+      : validators.nameValidator(4)(inputs[DRAW_NAME].value);
 
   const checkParams = () => {
     if (!isValid()) {

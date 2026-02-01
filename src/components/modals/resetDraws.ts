@@ -3,17 +3,16 @@
  * Validates word count and resets draw to initial state with mutation.
  */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { validators, renderForm, openModal } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { wordValidator } from 'components/validators/wordValidator';
-import { renderForm } from 'courthive-components';
-import { openModal } from './baseModal/baseModal';
 
 import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
 export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: string[] }): void {
   const eventId = eventData.eventInfo.eventId;
-  const drawName = drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
+  const drawName =
+    drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
   const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
 
   let inputs: any;
@@ -34,7 +33,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     {
       placeholder: 'Explanation',
       field: 'drawDeletionReason',
-      validator: wordValidator(5),
+      validator: validators.wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
       focus: true,
@@ -46,7 +45,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   ];
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['drawDeletionReason'].value;
-    const isValid = wordValidator(5)(value);
+    const isValid = validators.wordValidator(5)(value);
     const deleteButton = document.getElementById('deleteDraw');
     if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
   };

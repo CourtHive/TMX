@@ -1,6 +1,5 @@
-import { nameValidator } from 'components/validators/nameValidator';
-import { renderForm } from 'courthive-components';
 import { addProvider, modifyProvider } from 'services/apis/servicesApi';
+import { validators, renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
@@ -41,9 +40,9 @@ export function editProviderModal(params) {
   const enableSubmit = ({ inputs }) => {
     const isValid =
       (imageLoaded || !inputs.tournamentImage.value || imageLoaded === undefined) &&
-      nameValidator(10)(inputs.providerName.value) &&
-      nameValidator(3)(inputs.providerAbbr.value) &&
-      (!inputs.providerId.value.length || nameValidator(36)(inputs.providerId.value));
+      validators.nameValidator(10)(inputs.providerName.value) &&
+      validators.nameValidator(3)(inputs.providerAbbr.value) &&
+      (!inputs.providerId.value.length || validators.nameValidator(36)(inputs.providerId.value));
     const createButton: any = document.getElementById('createButton');
     if (createButton) createButton.disabled = !isValid;
   };
@@ -70,7 +69,7 @@ export function editProviderModal(params) {
         {
           value: values.organisationName,
           placeholder: 'Provider name',
-          validator: nameValidator(10),
+          validator: validators.nameValidator(10),
           label: 'Provider Name',
           field: 'providerName',
           autocomplete: 'off',
@@ -78,7 +77,7 @@ export function editProviderModal(params) {
         {
           value: values.organisationAbbreviation,
           placeholder: 'Abbreviation',
-          validator: nameValidator(3),
+          validator: validators.nameValidator(3),
           label: 'Abbreviation',
           field: 'providerAbbr',
           autocomplete: 'off',
