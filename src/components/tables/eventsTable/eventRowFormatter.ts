@@ -12,6 +12,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTipster } from 'components/popovers/tipster';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { getFlightProfileModal } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -136,6 +137,12 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
       onClick: () => addDraw({ eventId, callback: drawAdded }),
       intent: 'is-primary',
       label: 'Add draw',
+      location: RIGHT,
+    },
+    {
+      onClick: () => getFlightProfileModal({ eventId, callback: (foo) => console.log(foo) }),
+      label: 'Add flights',
+      intent: 'is-info',
       location: RIGHT,
     },
   ];
