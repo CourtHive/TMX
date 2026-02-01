@@ -117,8 +117,8 @@ importers:
         specifier: 6.3.1
         version: 6.3.1
       timepicker-ui:
-        specifier: 4.0.3
-        version: 4.0.3
+        specifier: 4.1.0
+        version: 4.1.0
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
@@ -3295,8 +3295,8 @@ packages:
   text-segmentation@1.0.3:
     resolution: {integrity: sha512-iOiPUo/BGnZ6+54OsWxZidGCsdU8YbE4PSpdPinp7DeMtUJNJBoJ/ouUSTJjHkh1KntHaltHl/gDs2FC4i5+Nw==}
 
-  timepicker-ui@4.0.3:
-    resolution: {integrity: sha512-9A1sOnR9wcvSMULlUIAik9pKVIN3nCQpndMd3XOWwCzVWeKgy0+iXkB1u/I/T4e7yiMlZtWN9dcz7SzEnOS9zA==}
+  timepicker-ui@4.1.0:
+    resolution: {integrity: sha512-nJLmReVlXafxRJagjWMopQdKMqXh7WY9hBlhC5erZYsPQj5PNQ1eIUzPZ8qH+z1kV9RQxkrXYJrw/gXUE2yIpA==}
 
   tiny-binary-search@1.0.3:
     resolution: {integrity: sha512-STSHX/L5nI9WTLv6wrzJbAPbO7OIISX83KFBh2GVbX1Uz/vgZOU/ANn/8iV6t35yMTpoPzzO+3OQid3mifE0CA==}
@@ -7054,7 +7054,7 @@ snapshots:
     dependencies:
       utrie: 1.0.2
 
-  timepicker-ui@4.0.3: {}
+  timepicker-ui@4.1.0: {}
 
   tiny-binary-search@1.0.3: {}
 
