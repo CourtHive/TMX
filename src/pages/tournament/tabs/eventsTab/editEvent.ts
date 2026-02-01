@@ -2,10 +2,8 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
+import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { nameValidator } from 'components/validators/nameValidator';
-import { getCategoryModal, renderButtons } from 'courthive-components';
-import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -86,12 +84,12 @@ export function editEvent({
       ? [participant.person.sex]
       : participant.individualParticpants?.map((p: any) => p.person?.sex) || [];
     enteredParticipantGenders.push(genders);
-    return !types.includes(participant.participantType) ? types.concat(participant.participantType) : types;
+    return types.includes(participant.participantType) ? types : types.concat(participant.participantType);
   }, []);
 
   const participantAgeCategories: any[] = [];
   for (const participant of [...enteredParticipants, ...(participants || []).map((p: any) => p.participant)].filter(
-    (p: any) => p,
+    Boolean,
   )) {
     const rankings = participant.timeItems
       ?.filter(({ itemType }: any) => itemType?.startsWith(`SCALE.RANKING.${values.eventType}`))
@@ -103,7 +101,7 @@ export function editEvent({
 
   if (enteredParticipantGenders.length) {
     genderOptions = [ANY];
-    if (event.gender && !event.gender === ANY) genderOptions.push(event.gender);
+    if (event.gender && event.gender !== ANY) genderOptions.push(event.gender);
     if (event.eventType === DOUBLES && !genderOptions.includes(MIXED)) genderOptions.push(MIXED);
     const uniqueEnteredGenders = tools.unique(...enteredParticipantGenders);
     if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
@@ -130,9 +128,7 @@ export function editEvent({
     // Add tournament-defined categories first
     if (tournamentCategories.length > 0) {
       tournamentCategories.forEach((cat: any) => {
-        const label = cat.ageCategoryCode 
-          ? `${cat.categoryName} (${cat.ageCategoryCode})`
-          : cat.categoryName;
+        const label = cat.ageCategoryCode ? `${cat.categoryName} (${cat.ageCategoryCode})` : cat.categoryName;
         options.push({
           selected: values.ageCategoryCode === (cat.ageCategoryCode || cat.categoryName),
           label,
@@ -202,7 +198,7 @@ export function editEvent({
       [
         {
           error: 'minimum of 5 characters',
-          validator: nameValidator(5),
+          validator: validators.nameValidator(5),
           placeholder: 'Event name',
           value: values.eventName,
           onChange: valueChange,
@@ -299,9 +295,9 @@ export function editEvent({
   };
 
   const saveEvent = () => {
-    const ageCategoryCode = (context.drawer.attributes as any).content.ageCategoryCode.value;
-    const eventName = (context.drawer.attributes as any).content.eventName.value;
-    const startDate = (context.drawer.attributes as any).content.startDate.value;
+    const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
+    const eventName = context.drawer.attributes.content.eventName.value;
+    const startDate = context.drawer.attributes.content.startDate.value;
 
     // Validation
     if (!eventName || eventName.length < 5) {
@@ -312,52 +308,53 @@ export function editEvent({
     // Check if Custom category is selected
     if (ageCategoryCode === 'custom') {
       const setCategory = (categoryResult: any) => {
-        if (categoryResult && categoryResult.ageCategoryCode) {
+        if (categoryResult?.ageCategoryCode) {
           // Phase 3 & 4: Add custom category to tournament categories
           const existing = tournamentRecord?.tournamentCategories || [];
-          
+
           // Check if category already exists
-          const isDuplicate = existing.some((cat: any) => 
-            cat.ageCategoryCode === categoryResult.ageCategoryCode ||
-            cat.categoryName === categoryResult.categoryName
+          const isDuplicate = existing.some(
+            (cat: any) =>
+              cat.ageCategoryCode === categoryResult.ageCategoryCode ||
+              cat.categoryName === categoryResult.categoryName,
           );
-          
+
           if (!isDuplicate) {
             // Add new category to tournament
             const updatedCategories = [...existing, categoryResult];
             const result = tournamentEngine.setTournamentCategories({ categories: updatedCategories });
-            
+
             if (result.success) {
               // Phase 2: Add category to dropdown programmatically
               if (formInputs?.ageCategoryCode) {
-                const label = categoryResult.ageCategoryCode 
+                const label = categoryResult.ageCategoryCode
                   ? `${categoryResult.categoryName} (${categoryResult.ageCategoryCode})`
                   : categoryResult.categoryName;
                 const value = categoryResult.ageCategoryCode || categoryResult.categoryName;
-                
+
                 // Add new option before "Custom"
                 const customIndex = formInputs.ageCategoryCode.options.length - 1;
                 const newOption = new Option(label, value);
                 formInputs.ageCategoryCode.options.add(newOption, customIndex);
-                
+
                 // Select the new option
                 formInputs.ageCategoryCode.value = value;
               }
             } else {
-              tmxToast({ 
-                message: 'Category saved to event but not added to tournament categories', 
-                intent: 'is-warning' 
+              tmxToast({
+                message: 'Category saved to event but not added to tournament categories',
+                intent: 'is-warning',
               });
             }
           }
-          
+
           // Update the drawer attribute and proceed with save
-          (context.drawer.attributes as any).content.ageCategoryCode.value = categoryResult.ageCategoryCode;
+          context.drawer.attributes.content.ageCategoryCode.value = categoryResult.ageCategoryCode;
           proceedWithSave(categoryResult);
         }
       };
 
-      (getCategoryModal as any)({
+      getCategoryModal({
         existingCategory: event?.category || {},
         editorConfig: {
           defaultConsideredDate: startDate || tournamentInfo.startDate,
@@ -377,12 +374,12 @@ export function editEvent({
   };
 
   const proceedWithSave = (category?: any) => {
-    const ageCategoryCode = category?.ageCategoryCode || (context.drawer.attributes as any).content.ageCategoryCode.value;
-    const eventName = (context.drawer.attributes as any).content.eventName.value;
-    const eventType = (context.drawer.attributes as any).content.eventType.value;
-    const startDate = (context.drawer.attributes as any).content.startDate.value;
-    const endDate = (context.drawer.attributes as any).content.endDate.value;
-    const gender = (context.drawer.attributes as any).content.gender.value;
+    const ageCategoryCode = category?.ageCategoryCode || context.drawer.attributes.content.ageCategoryCode.value;
+    const eventName = context.drawer.attributes.content.eventName.value;
+    const eventType = context.drawer.attributes.content.eventType.value;
+    const startDate = context.drawer.attributes.content.startDate.value;
+    const endDate = context.drawer.attributes.content.endDate.value;
+    const gender = context.drawer.attributes.content.gender.value;
 
     const eventUpdates: any = { eventName, eventType, gender, startDate, endDate };
 
@@ -408,7 +405,8 @@ export function editEvent({
       const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
       mutationRequest({ methods, callback: postMutation });
     } else {
-      const eventCategory = category || (ageCategoryCode && ageCategoryCode !== 'custom' ? { ageCategoryCode } : undefined);
+      const eventCategory =
+        category || (ageCategoryCode && ageCategoryCode !== 'custom' ? { ageCategoryCode } : undefined);
       const eventId = tools.UUID();
       const methods = [
         {
@@ -422,7 +420,14 @@ export function editEvent({
         const entryStatus =
           participantType === INDIVIDUAL && [DOUBLES, TEAM].includes(eventType) ? UNGROUPED : DIRECT_ACCEPTANCE;
         const method: any = {
-          params: { eventId, participantIds, entryStatus, entryStage: MAIN },
+          params: {
+            enforceCategory: true,
+            enforceGender: true,
+            entryStage: MAIN,
+            participantIds,
+            entryStatus,
+            eventId,
+          },
           method: ADD_EVENT_ENTRIES,
         };
         methods.push(method);
@@ -432,12 +437,12 @@ export function editEvent({
   };
 
   const isValidForSave = () => {
-    const eventName = (context.drawer.attributes as any).content.eventName.value;
+    const eventName = context.drawer.attributes.content.eventName.value;
     return eventName && eventName.length >= 5;
   };
 
   const shouldClose = () => {
-    const ageCategoryCode = (context.drawer.attributes as any).content.ageCategoryCode.value;
+    const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
     return ageCategoryCode !== 'custom' && isValidForSave();
   };
 

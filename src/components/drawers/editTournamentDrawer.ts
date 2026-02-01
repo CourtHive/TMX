@@ -3,12 +3,10 @@
  * Allows creating new tournaments or editing existing tournament details.
  */
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
+import { renderButtons, renderForm, validators } from 'courthive-components';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getProvider, sendTournament } from 'services/apis/servicesApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { dateValidator } from 'components/validators/dateValidator';
-import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons, renderForm } from 'courthive-components';
 import { getLoginState } from 'services/authentication/loginState';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getParent } from 'services/dom/parentAndChild';
@@ -31,7 +29,7 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
       error: 'minimum of 5 characters',
       placeholder: 'Tournament name',
       value: values.tournamentName,
-      validator: nameValidator(5),
+      validator: validators.nameValidator(5),
       label: 'Tournament name',
       field: 'tournamentName',
       focus: true,
@@ -70,7 +68,11 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
   ];
 
   const validValues = ({ tournamentName, startDate, endDate }: any) => {
-    return nameValidator(5)(tournamentName) && dateValidator(startDate) && dateValidator(endDate);
+    return (
+      validators.nameValidator(5)(tournamentName) &&
+      validators.dateValidator(startDate) &&
+      validators.dateValidator(endDate)
+    );
   };
 
   const enableSubmit = ({ inputs }: any) => {
@@ -136,7 +138,7 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
     inputs.activeDates?.datepicker?.update();
   };
 
-  const isValid = () => nameValidator(5)(inputs.drawName.value);
+  const isValid = () => validators.nameValidator(5)(inputs.drawName.value);
   const submit = () => {
     const activeDates = inputs.activeDates.value?.split(',').filter(Boolean);
     const tournamentName = inputs.tournamentName.value?.trim();

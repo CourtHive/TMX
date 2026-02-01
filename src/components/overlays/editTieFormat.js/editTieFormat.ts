@@ -4,7 +4,7 @@
  */
 import { createTieFormatTable } from 'components/tables/tieFormat/createTieFormatTable';
 import { tools, tournamentEngine } from 'tods-competition-factory';
-import { nameValidator } from 'components/validators/nameValidator';
+import { validators } from 'courthive-components';
 import { controlBar } from 'components/controlBar/controlBar';
 import { closeOverlay, openOverlay } from '../overlay';
 import { isFunction } from 'functions/typeOf';
@@ -96,7 +96,7 @@ function renderEditor({ tieFormat }: { tieFormat: any }): {
       value: tieFormat?.tieFormatName || 'Custom scorecard',
       error: 'minimum of 5 characters',
       placeholder: 'Scorecard name',
-      validator: nameValidator(5),
+      validator: validators.nameValidator(5),
       field: 'tieFormatName',
       id: 'tieFormatName',
       location: LEFT,

@@ -2,11 +2,9 @@
  * Draw form items configuration.
  * Generates form field definitions for draw creation with validation and options.
  */
-import { numericValidator } from 'components/validators/numericValidator';
-import { nameValidator } from 'components/validators/nameValidator';
-import { numericRange } from 'components/validators/numericRange';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { validators } from 'courthive-components';
 import {
   factoryConstants,
   drawDefinitionConstants,
@@ -130,7 +128,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     {
       error: 'minimum of 4 characters',
       placeholder: 'Display name of the structure',
-      validator: nameValidator(4),
+      validator: validators.nameValidator(4),
       label: 'Structure name',
       value: structureName,
       field: STRUCTURE_NAME,
@@ -141,7 +139,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       error: 'minimum of 4 characters',
       placeholder: 'Display name of the draw',
       value: `Draw ${drawsCount + 1}`,
-      validator: nameValidator(4),
+      validator: validators.nameValidator(4),
       selectOnFocus: true,
       hide: isQualifying,
       label: 'Draw name',
@@ -156,7 +154,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     },
     {
       error: `Must be in range 2-${maxDrawSize}`,
-      validator: numericRange(2, maxDrawSize),
+      validator: validators.numericRange(2, maxDrawSize),
       selectOnFocus: true,
       label: 'Draw size',
       value: drawSize,
@@ -217,7 +215,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     },
     {
       disabled: isQualifying && !structureId,
-      validator: numericValidator,
+      validator: validators.numericValidator,
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,
       selectOnFocus: true,

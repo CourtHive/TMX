@@ -1,7 +1,5 @@
-import { passwordValidator } from 'components/validators/passwordValidator';
-import { nameValidator } from 'components/validators/nameValidator';
 import { systemRegister } from 'services/authentication/authApi';
-import { renderForm } from 'courthive-components';
+import { validators, renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
@@ -16,9 +14,9 @@ export function registrationModal(params) {
     if (registerButton) {
       const isValid =
         passwordMatch(inputs['passwordConfirm'].value) &&
-        passwordValidator(inputs['password'].value) &&
-        nameValidator(2)(inputs['givenName'].value) &&
-        nameValidator(2)(inputs['lastName'].value);
+        validators.passwordValidator(inputs['password'].value) &&
+        validators.nameValidator(2)(inputs['givenName'].value) &&
+        validators.nameValidator(2)(inputs['lastName'].value);
 
       if (isValid) {
         registerButton.removeAttribute('disabled');
@@ -42,7 +40,7 @@ export function registrationModal(params) {
         {
           error: 'First name must be at least 2 characters long',
           iconLeft: 'fa-regular fa-user',
-          validator: nameValidator(2),
+          validator: validators.nameValidator(2),
           placeholder: 'First name',
           autocomplete: 'off',
           label: 'First Name',
@@ -50,7 +48,7 @@ export function registrationModal(params) {
         },
         {
           error: 'Last name must be at least 2 characters long',
-          validator: nameValidator(2),
+          validator: validators.nameValidator(2),
           placeholder: 'Last name',
           autocomplete: 'off',
           label: 'Last name',
@@ -60,7 +58,7 @@ export function registrationModal(params) {
           error: 'Must contain upper/lower, number, and special character',
           placeholder: 'minimum 8 characters',
           iconLeft: 'fa-solid fa-lock',
-          validator: passwordValidator,
+          validator: validators.passwordValidator,
           autocomplete: 'off',
           label: 'Password',
           field: 'password',

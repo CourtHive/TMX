@@ -3,10 +3,8 @@
  * Allows creating or editing team/group participants.
  */
 import { participantConstants, participantRoles } from 'tods-competition-factory';
+import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { nameValidator } from 'components/validators/nameValidator';
-import { renderButtons } from 'courthive-components';
-import { renderForm } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -45,7 +43,7 @@ export function editGroupingParticipant({
         error: 'Please enter a name of at least 3 characters',
         placeholder: 'Participant name',
         value: values[PARTICIPANT_NAME] || '',
-        validator: nameValidator(3),
+        validator: validators.nameValidator(3),
         field: PARTICIPANT_NAME,
         onChange: valueChange,
         label: 'Name',
@@ -74,10 +72,10 @@ export function editGroupingParticipant({
 
   function saveParticipant(): void {
     table?.deselectRow();
-    if (!participant?.participantId) {
-      addParticipant();
-    } else {
+    if (participant?.participantId) {
       console.log('update existing');
+    } else {
+      addParticipant();
     }
   }
 
@@ -92,7 +90,7 @@ export function editGroupingParticipant({
 
     const postMutation = (result: any) => {
       if (result.success) {
-        isFunction(refresh) && refresh && refresh();
+        isFunction(refresh) && refresh?.();
       } else {
         console.log({ result });
       }

@@ -2,12 +2,10 @@
  * Add venue drawer with form validation.
  * Creates venue with name, abbreviation, and court count via mutation.
  */
+import { validators, renderButtons, renderForm } from 'courthive-components';
 import { getVenueFormValues, venueForm } from 'components/forms/venue';
-import { nameValidator } from 'components/validators/nameValidator';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderButtons } from 'courthive-components';
 import { tournamentEngine, tools } from 'tods-competition-factory';
-import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -49,9 +47,9 @@ export function addVenue(callback?: (result: any) => void): void {
   const numberValidator = (value: string) => value && !isNaN(Number(value));
   const enableSubmit = ({ inputs }: any) => {
     const isValid = !!(
-      nameValidator(2, 6)(inputs['venueAbbreviation'].value) &&
+      validators.nameValidator(2, 6)(inputs['venueAbbreviation'].value) &&
       numberValidator(inputs['courtsCount'].value) &&
-      nameValidator(5)(inputs['venueName'].value)
+      validators.nameValidator(5)(inputs['venueName'].value)
     );
     const saveButton = document.getElementById('addVenueButton');
     if (saveButton) (saveButton as HTMLButtonElement).disabled = !isValid;

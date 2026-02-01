@@ -4,8 +4,7 @@
  */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { wordValidator } from 'components/validators/wordValidator';
-import { renderForm } from 'courthive-components';
+import { validators, renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isDev } from 'functions/isDev';
 
@@ -57,7 +56,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     {
       placeholder: 'Explanation',
       field: 'drawDeletionReason',
-      validator: wordValidator(5),
+      validator: validators.wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
       focus: true,
@@ -69,7 +68,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   ];
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['drawDeletionReason'].value;
-    const isValid = wordValidator(5)(value);
+    const isValid = validators.wordValidator(5)(value);
     const deleteButton = document.getElementById('deleteDraw');
     if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
   };

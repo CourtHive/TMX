@@ -1,6 +1,5 @@
-import { emailValidator } from 'components/validators/emailValidator';
+import { validators, renderForm } from 'courthive-components';
 import { inviteUser } from 'services/authentication/authApi';
-import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 
@@ -18,7 +17,7 @@ export function inviteModal(callback, providers = []) {
 
   const enableSubmit = ({ inputs }) => {
     const value = inputs['email'].value;
-    const isValid = emailValidator(value);
+    const isValid = validators.emailValidator(value);
     const inviteButton: any = document.getElementById('inviteUser');
     if (inviteButton) inviteButton.disabled = !isValid;
   };
@@ -37,7 +36,7 @@ export function inviteModal(callback, providers = []) {
         {
           iconLeft: 'fa-regular fa-envelope',
           placeholder: 'valid@email.com',
-          validator: emailValidator,
+          validator: validators.emailValidator,
           autocomplete: 'off',
           label: 'Email',
           field: 'email',
