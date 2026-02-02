@@ -33,6 +33,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
             flag: false,
           },
         },
+        sideContainer: elem,
         matchUp: data.matchUp,
         participant,
         placeholder,

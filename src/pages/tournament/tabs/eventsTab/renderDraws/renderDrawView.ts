@@ -109,6 +109,11 @@ export function renderDrawView({
     compositions[compositionName] ||
     env.composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
+  
+  if (!composition.configuration) {
+    composition.configuration = {};
+  }
+  
   composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 
@@ -159,9 +164,13 @@ export function renderDrawView({
         content: renderStructure({
           context: { drawId, structureId },
           searchActive: participantFilter,
-          matchUps: displayMatchUps,
+          matchUps: displayMatchUps as any,
           eventHandlers,
           composition,
+          selectedMatchUpId: undefined,
+          structureId,
+          finalColumn: undefined,
+          minWidth: undefined,
         }),
         theme: composition.theme,
       });
