@@ -32,7 +32,15 @@ import {
   TMX_TABLE,
 } from 'constants/tmxConstants';
 
-export function createEntriesPanels({ eventId, drawId, headerElement }: { eventId: string; drawId?: string; headerElement?: HTMLElement }): void {
+export function createEntriesPanels({
+  headerElement,
+  eventId,
+  drawId,
+}: {
+  headerElement?: HTMLElement;
+  eventId: string;
+  drawId?: string;
+}): void {
   if (!eventId || eventId === 'undefined') context.router.navigate('/');
 
   let searchFilter: ((rowData: any) => boolean) | undefined;

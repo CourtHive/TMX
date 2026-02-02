@@ -25,7 +25,7 @@ export function mapEvent({
   const { drawDefinitions = [], eventName, entries, eventId, extensions } = event;
 
   const ungeneratedFlights: any = [];
-  const flightProfile = extensions.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const flightProfile = extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
   flightProfile?.flights?.forEach((flight: any) => {
     const drawDefinition = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
     if (drawDefinition) {

@@ -18,6 +18,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawsColumns } from './getDrawsColumns';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
+import { addFlights } from 'components/modals/addFlights/addFlights';
 
 export const eventRowFormatter = (setTable: (eventId: string, table: any) => void) => (row: any) => {
   const holderEl = document.createElement('div');
@@ -136,6 +137,12 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
       onClick: () => addDraw({ eventId, callback: drawAdded }),
       intent: 'is-primary',
       label: 'Add draw',
+      location: RIGHT,
+    },
+    {
+      onClick: () => addFlights({ eventId, callback: (foo) => console.log('update draws table rows', foo) }),
+      label: 'Add flights',
+      intent: 'is-info',
       location: RIGHT,
     },
   ];
