@@ -72,6 +72,10 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
         composition,
         searchActive: false,
         eventHandlers,
+        selectedMatchUpId: undefined,
+        structureId,
+        finalColumn: undefined,
+        minWidth: undefined,
       }),
       theme: composition.theme,
     });
