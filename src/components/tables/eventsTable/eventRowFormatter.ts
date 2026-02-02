@@ -6,6 +6,7 @@ import { mapDrawDefinition } from 'pages/tournament/tabs/eventsTab/mapDrawDefini
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
+import { addFlights } from 'components/modals/addFlights/addFlights';
 import { eventTabDeleteDraws } from '../common/eventTabDeleteDraws';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -18,7 +19,6 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawsColumns } from './getDrawsColumns';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
-import { addFlights } from 'components/modals/addFlights/addFlights';
 
 export const eventRowFormatter = (setTable: (eventId: string, table: any) => void) => (row: any) => {
   const holderEl = document.createElement('div');
@@ -76,6 +76,21 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
       eventTabDeleteDraws({ eventRow: row, drawsTable, drawIds });
     };
     deleteFlights({ eventId, drawIds, callback });
+  };
+
+  const flightsAdded = (result: any) => {
+    if (result.generated) {
+      const drawInfo = result.result?.flightProfile?.flights?.map((flight: any) => ({
+        flightNumber: flight.flightNumber,
+        entries: flight.drawEntries,
+        drawName: flight.drawName,
+        drawId: flight.drawId,
+      }));
+      const drawRows = drawInfo?.map((drawDefinition: any) => mapDrawDefinition(eventId)({ drawDefinition }));
+      drawRows?.forEach((updatedDraw: any) => {
+        drawsTable.updateOrAddData([updatedDraw]);
+      });
+    }
   };
 
   const drawAdded = (result: any) => {
@@ -140,7 +155,7 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
       location: RIGHT,
     },
     {
-      onClick: () => addFlights({ eventId, callback: (foo) => console.log('update draws table rows', foo) }),
+      onClick: () => addFlights({ eventId, callback: flightsAdded }),
       label: 'Add flights',
       intent: 'is-info',
       location: RIGHT,
