@@ -1,5 +1,6 @@
 import { factoryConstants, matchUpTypes, tools, tournamentEngine } from 'tods-competition-factory';
 import { getFlightProfileModal } from 'courthive-components';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 
 import { ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
@@ -32,7 +33,13 @@ export function addFlights({ eventId, callback }) {
       const method = ADD_EVENT_EXTENSION;
       const methods = [{ method, params: { eventId, extension } }];
       const postMutation = (mutationResult: any) => {
-        if (isFunction(callback)) callback({ generated: true, result: mutationResult });
+        if (mutationResult.success) {
+          tmxToast({ message: 'Flights generated', intent: 'is-success' });
+          if (isFunction(callback)) callback({ generated: true, result });
+        } else {
+          tmxToast({ message: 'Flight profile generation failed', intent: 'is-danger' });
+          if (isFunction(callback)) callback({ generated: false, result: mutationResult });
+        }
       };
       mutationRequest({ methods, callback: postMutation });
     } else if (isFunction(callback)) {
