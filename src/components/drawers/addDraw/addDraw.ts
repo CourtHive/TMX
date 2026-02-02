@@ -90,7 +90,7 @@ export function addDraw({
     { label: 'Generate', id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid },
   ];
 
-  const title = flightNumber ? `Configure flight` : `Configure draw`;
+  const title = flightNumber ? `Generate flight` : `Configure draw`;
 
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
