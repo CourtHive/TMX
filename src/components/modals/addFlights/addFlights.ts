@@ -1,10 +1,10 @@
 import { factoryConstants, matchUpTypes, tools, tournamentEngine } from 'tods-competition-factory';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getFlightProfileModal } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 
 import { ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 
 const { SINGLES } = matchUpTypes;
 
@@ -12,15 +12,17 @@ export function addFlights({ eventId, callback }) {
   const event = tournamentEngine.getEvent({ eventId }).event;
 
   const generateFlightProfile = (values: any) => {
+    const scaleAttributes = {
+      eventType: event.eventType || SINGLES, // Add eventType from event context
+      ...values.scaleAttributes,
+    };
     const generateParams = {
+      // scaledParticipants: could be added in future
       uuids: tools.UUIDS(values.flightsCount),
       flightsCount: values.flightsCount,
       splitMethod: values.splitMethod,
       drawNames: values.drawNames,
-      scaleAttributes: {
-        ...values.scaleAttributes,
-        eventType: event.eventType || SINGLES, // Add eventType from event context
-      },
+      scaleAttributes,
       eventId,
     };
     const result = tournamentEngine.generateFlightProfile(generateParams);
