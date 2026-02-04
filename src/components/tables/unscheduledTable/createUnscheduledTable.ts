@@ -15,7 +15,11 @@ import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 
 const { SINGLES, DOUBLES } = eventConstants;
 
-export function createUnscheduledTable({ scheduledDate: specifiedDate }: { scheduledDate?: string } = {}): { table: any; replaceTableData: (params?: { scheduledDate?: string }) => { unscheduledMatchUps: any[] }; unscheduledMatchUps: any[] } {
+export function createUnscheduledTable({ scheduledDate: specifiedDate }: { scheduledDate?: string } = {}): {
+  table: any;
+  replaceTableData: (params?: { scheduledDate?: string }) => { unscheduledMatchUps: any[] };
+  unscheduledMatchUps: any[];
+} {
   const scheduledDate = specifiedDate;
   let unscheduledMatchUps: any[] = [];
   let ready: boolean;

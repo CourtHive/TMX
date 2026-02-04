@@ -9,7 +9,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 
-import { ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT } from 'constants/tmxConstants';
+import { ALL_GENDERS, ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function unscheduledGridControl({
   updateUnscheduledTable,
@@ -21,6 +21,7 @@ export function unscheduledGridControl({
   eventIdFilter,
   scheduledDate,
   matchUps = [],
+  genderFilter,
   table,
 }: {
   updateUnscheduledTable: () => boolean;
@@ -30,6 +31,7 @@ export function unscheduledGridControl({
   roundNameFilter?: string;
   controlAnchor: HTMLElement;
   eventIdFilter?: string;
+  genderFilter?: string;
   scheduledDate: string;
   matchUps?: any[];
   table: any;
@@ -50,6 +52,21 @@ export function unscheduledGridControl({
     events.map((event: any) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
+      close: true,
+    })),
+  );
+
+  const genderFilterFx = (rowData: any) => rowData.gender === genderFilter;
+  const updateGenderFilter = (gender?: string) => {
+    table.removeFilter(genderFilterFx);
+    genderFilter = gender;
+    if (gender) table.addFilter(genderFilterFx);
+  };
+  const allGenders = { label: ALL_GENDERS, onClick: () => updateGenderFilter(), close: true };
+  const genderOptions = [allGenders].concat(
+    tools.unique(events.map((event: any) => event.gender)).map((gender: any) => ({
+      onClick: () => updateGenderFilter(gender),
+      label: gender,
       close: true,
     })),
   );
@@ -134,6 +151,15 @@ export function unscheduledGridControl({
       placeholder: 'Search participants',
       location: LEFT,
       search: true,
+    },
+    {
+      hide: genderOptions.length < 2,
+      options: genderOptions,
+      id: 'genderOptions',
+      label: ALL_GENDERS,
+      modifyLabel: true,
+      location: LEFT,
+      selection: true,
     },
     {
       hide: eventOptions.length < 2,
