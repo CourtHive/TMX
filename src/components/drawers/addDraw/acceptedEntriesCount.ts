@@ -13,7 +13,7 @@ export function acceptedEntriesCount({
   event: any;
   stage?: string;
 }): number {
-  const flightProfile = event?.extensions.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const flightProfile = event?.extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const entriesCount = (flight?.drawEntries || event?.entries || []).filter(({ entryStage = MAIN, entryStatus }: any) =>

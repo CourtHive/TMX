@@ -82,7 +82,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const existingTournamentPolicy = tournamentRecord?.policyDefinitions?.[POLICY_TYPE_SEEDING];
   const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
 
-  const flightProfile = event?.extensions.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const flightProfile = event?.extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const scoreFormatOptions = [
