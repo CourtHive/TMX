@@ -12,7 +12,9 @@ const {
   WILDCARD
 } = entryStatusConstants;
 
+export const ALL_MATCHUP_TYPES = 'All matchUp types';
 export const ALL_PARTICIPANTS = 'All participants';
+export const ALL_EVENT_TYPES = 'All event types';
 export const ALL_STATUSES = 'All statuses';
 export const ALL_GENDERS = 'All genders';
 export const ALL_FLIGHTS = 'All flights';
