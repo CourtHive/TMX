@@ -30,7 +30,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
     console.error('Event not found', { eventId });
     return;
   }
-  const flightProfile = event?.extensions.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const flightProfile = event?.extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
   const drawInfo = drawDef || flightProfile?.flights?.find((flight: any) => flight.drawId === drawId);
 
   if (!drawInfo) {
