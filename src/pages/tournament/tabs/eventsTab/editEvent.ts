@@ -80,9 +80,10 @@ export function editEvent({
 
   const enteredParticipantGenders: any[] = [];
   const enteredParticipantTypes = enteredParticipants.reduce((types: any[], participant: any) => {
-    const genders = participant.person?.sex
-      ? [participant.person.sex]
-      : participant.individualParticpants?.map((p: any) => p.person?.sex) || [];
+    const genders =
+      participant.participantType === INDIVIDUAL
+        ? [participant.person.sex]
+        : tools.unique(participant.individualParticipants?.map((p: any) => p.person?.sex) || []);
     enteredParticipantGenders.push(genders);
     return types.includes(participant.participantType) ? types : types.concat(participant.participantType);
   }, []);
@@ -107,9 +108,12 @@ export function editEvent({
     if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
       genderOptions.push(...uniqueEnteredGenders);
     }
+    console.log({ uniqueEnteredGenders, enteredParticipantGenders });
   } else if (event) {
     genderOptions = [ANY, MALE, MIXED, FEMALE];
   }
+
+  console.log({ genderOptions });
 
   // Get tournament categories for dropdown
   const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
