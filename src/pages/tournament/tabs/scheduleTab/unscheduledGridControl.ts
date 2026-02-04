@@ -9,12 +9,13 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 
-import { ALL_GENDERS, ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT } from 'constants/tmxConstants';
+import { ALL_GENDERS, ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT, ALL_EVENT_TYPES } from 'constants/tmxConstants';
 
 export function unscheduledGridControl({
   updateUnscheduledTable,
   updateScheduleTable,
   toggleUnscheduled,
+  eventTypeFilter,
   flightNameFilter,
   roundNameFilter,
   controlAnchor,
@@ -27,9 +28,10 @@ export function unscheduledGridControl({
   updateUnscheduledTable: () => boolean;
   updateScheduleTable: (params: { scheduledDate: string }) => void;
   toggleUnscheduled: () => void;
+  eventTypeFilter?: string;
+  controlAnchor: HTMLElement;
   flightNameFilter?: string;
   roundNameFilter?: string;
-  controlAnchor: HTMLElement;
   eventIdFilter?: string;
   genderFilter?: string;
   scheduledDate: string;
@@ -56,19 +58,38 @@ export function unscheduledGridControl({
     })),
   );
 
+  const eventTypeFilterFx = (rowData: any) => rowData.matchUpType === eventTypeFilter;
+  const updateEventTypeFilter = (eventType?: string) => {
+    table.removeFilter(eventTypeFilterFx);
+    eventTypeFilter = eventType;
+    if (eventType) table.addFilter(eventTypeFilterFx);
+  };
+  const allEventTypes = { label: ALL_EVENT_TYPES, onClick: () => updateEventTypeFilter(), close: true };
+  const eventTypeOptions = [allEventTypes].concat(
+    tools.unique(events.map((event: any) => event.eventType)).map((eventType: any) => ({
+      onClick: () => updateEventTypeFilter(eventType),
+      label: eventType,
+      close: true,
+    })),
+  );
+
   const genderFilterFx = (rowData: any) => rowData.gender === genderFilter;
   const updateGenderFilter = (gender?: string) => {
+    console.log({ gender });
     table.removeFilter(genderFilterFx);
     genderFilter = gender;
     if (gender) table.addFilter(genderFilterFx);
   };
   const allGenders = { label: ALL_GENDERS, onClick: () => updateGenderFilter(), close: true };
   const genderOptions = [allGenders].concat(
-    tools.unique(events.map((event: any) => event.gender)).map((gender: any) => ({
-      onClick: () => updateGenderFilter(gender),
-      label: gender,
-      close: true,
-    })),
+    tools
+      .unique(events.map((event: any) => event.gender))
+      .map((gender: any) => ({
+        onClick: () => updateGenderFilter(gender),
+        label: gender,
+        close: true,
+      }))
+      .filter((i) => i.gender),
   );
 
   const roundFilter = (rowData: any) => rowData.roundName === roundNameFilter;
@@ -153,10 +174,10 @@ export function unscheduledGridControl({
       search: true,
     },
     {
-      hide: genderOptions.length < 2,
-      options: genderOptions,
-      id: 'genderOptions',
-      label: ALL_GENDERS,
+      hide: eventTypeOptions.length < 2,
+      options: eventTypeOptions,
+      label: ALL_EVENT_TYPES,
+      id: 'eventTypeOptions',
       modifyLabel: true,
       location: LEFT,
       selection: true,
@@ -171,19 +192,28 @@ export function unscheduledGridControl({
       selection: true,
     },
     {
-      hide: roundOptions.length < 2,
-      options: roundOptions,
-      id: 'roundOptions',
-      label: ALL_ROUNDS,
+      hide: flightOptions.length < 2,
+      options: flightOptions,
+      id: 'flightOptions',
+      label: ALL_FLIGHTS,
       modifyLabel: true,
       location: LEFT,
       selection: true,
     },
     {
-      hide: flightOptions.length < 2,
-      options: flightOptions,
-      id: 'flightOptions',
-      label: ALL_FLIGHTS,
+      hide: genderOptions.length < 2,
+      options: genderOptions,
+      id: 'genderOptions',
+      label: ALL_GENDERS,
+      modifyLabel: true,
+      location: LEFT,
+      selection: true,
+    },
+    {
+      hide: roundOptions.length < 2,
+      options: roundOptions,
+      id: 'roundOptions',
+      label: ALL_ROUNDS,
       modifyLabel: true,
       location: LEFT,
       selection: true,
