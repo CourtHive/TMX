@@ -108,12 +108,9 @@ export function editEvent({
     if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
       genderOptions.push(...uniqueEnteredGenders);
     }
-    console.log({ uniqueEnteredGenders, enteredParticipantGenders });
   } else if (event) {
     genderOptions = [ANY, MALE, MIXED, FEMALE];
   }
-
-  console.log({ genderOptions });
 
   // Get tournament categories for dropdown
   const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
