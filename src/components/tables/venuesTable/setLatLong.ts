@@ -10,10 +10,10 @@ export function setLatLong(_e: any, cell: any): void {
     if (!rowData.address) rowData.address = {};
     const venue = rowData.venue;
     if (!venue.addresses) venue.addresses = [];
-    if (!venue.addresses.length) {
-      venue.addresses.push({ latitude: value.latitude, longitude: value.longitude });
-    } else {
+    if (venue.addresses.length) {
       Object.assign(venue.addresses[0], { latitude: value.latitude, longitude: value.longitude });
+    } else {
+      venue.addresses.push({ latitude: value.latitude, longitude: value.longitude });
     }
 
     const postMutation = (result: any) => {

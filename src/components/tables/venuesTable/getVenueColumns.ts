@@ -1,4 +1,5 @@
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
+import { venueActions } from '../../popovers/venueActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 import { setLatLong } from './setLatLong';
@@ -6,7 +7,6 @@ import { setLatLong } from './setLatLong';
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function getVenuesColumns(): any[] {
-  const venueActions = () => console.log('Venue actions');
   const locationFormatter = (cell: any): string => {
     const value = cell.getValue();
     const undef = `?`;
@@ -102,7 +102,7 @@ export function getVenuesColumns(): any[] {
       width: 20
     },
     {
-      cellClick: venueActions,
+      cellClick: venueActions(),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
