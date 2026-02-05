@@ -15,6 +15,7 @@ export function unscheduledGridControl({
   updateUnscheduledTable,
   updateScheduleTable,
   toggleUnscheduled,
+  minCourtGridRows,
   eventTypeFilter,
   flightNameFilter,
   roundNameFilter,
@@ -28,8 +29,9 @@ export function unscheduledGridControl({
   updateUnscheduledTable: () => boolean;
   updateScheduleTable: (params: { scheduledDate: string }) => void;
   toggleUnscheduled: () => void;
-  eventTypeFilter?: string;
   controlAnchor: HTMLElement;
+  minCourtGridRows: number;
+  eventTypeFilter?: string;
   flightNameFilter?: string;
   roundNameFilter?: string;
   eventIdFilter?: string;
@@ -143,7 +145,13 @@ export function unscheduledGridControl({
 
   const setSearchFilter = createSearchFilter(table);
   const autoScheduler = () =>
-    autoScheduleMatchUps({ scheduledDate: currentScheduledDate, table, updateScheduleTable, updateUnscheduledTable });
+    autoScheduleMatchUps({
+      scheduledDate: currentScheduledDate,
+      updateUnscheduledTable,
+      updateScheduleTable,
+      minCourtGridRows,
+      table,
+    });
 
   const actionOptions = [
     {

@@ -64,6 +64,7 @@ export function renderScheduleTab(params: { scheduledDate?: string }): void {
   });
 
   (unscheduledGridControl as any)({
+    minCourtGridRows: env.schedule.minCourtGridRows,
     controlAnchor: unscheduldControlAnchor,
     matchUps: unscheduledMatchUps,
     table: unscheduledTable,
