@@ -4,6 +4,7 @@
  */
 import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -18,7 +19,12 @@ export function editVenue({
   const values: any = {
     venueName: venue?.venueName || '',
     venueAbbreviation: venue?.venueAbbreviation || '',
+    updateCourtNames: false,
   };
+
+  // Get current venue details including courts
+  const { venue: venueDetails } = tournamentEngine.findVenue({ venueId: venue.venueId });
+  const courts = venueDetails?.courts || [];
 
   const valueChange = () => {
     // Placeholder for future functionality
@@ -69,6 +75,13 @@ export function editVenue({
           label: 'Abbreviation',
           field: 'venueAbbreviation',
         },
+        {
+          label: 'Update court names',
+          field: 'updateCourtNames',
+          id: 'updateCourtNames',
+          checkbox: true,
+          checked: values.updateCourtNames,
+        },
       ],
       relationships,
     );
@@ -76,6 +89,7 @@ export function editVenue({
   const saveVenue = () => {
     const venueName = context.drawer.attributes.content.venueName.value;
     const venueAbbreviation = context.drawer.attributes.content.venueAbbreviation.value;
+    const updateCourtNames = context.drawer.attributes.content.updateCourtNames.checked;
 
     // Validation
     if (!venueName || venueName.length < 5) {
@@ -90,9 +104,21 @@ export function editVenue({
 
     const venueUpdates: any = { venueName, venueAbbreviation };
 
+    // Check if abbreviation changed and checkbox is selected
+    const abbreviationChanged = venueAbbreviation !== venue.venueAbbreviation;
+    if (updateCourtNames && abbreviationChanged && courts.length > 0) {
+      // Build courts array with updated names based on new abbreviation
+      venueUpdates.courts = courts.map((court: any, index: number) => ({
+        courtId: court.courtId,
+        courtName: `${venueAbbreviation} ${index + 1}`,
+      }));
+    }
+
+    const courtsUpdated = updateCourtNames && abbreviationChanged && courts.length > 0;
+
     const postMutation = (result: any) => {
       if (result.success) {
-        if (isFunction(callback)) callback({ ...result, venueUpdates });
+        if (isFunction(callback)) callback({ ...result, venueUpdates, courtsUpdated });
       } else if (result.error) {
         tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
         if (isFunction(callback)) callback(result);

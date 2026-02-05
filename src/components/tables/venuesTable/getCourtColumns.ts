@@ -1,18 +1,17 @@
+import { courtActions } from '../../popovers/courtActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
+function lightsFormatter(cell: any): string {
+  const value = cell.getValue();
+  const hasLights = `<i class="fa-solid fa-check" style="color: green"></i>`;
+  const noLights = `<i class="fa-solid fa-xmark"></i>`;
+  return value ? hasLights : noLights;
+}
+
 export function getCourtColumns(): any[] {
-  function lightsFormatter(cell: any): string {
-    const value = cell.getValue();
-    const hasLights = `<i class="fa-solid fa-check" style="color: green"></i>`;
-    const noLights = `<i class="fa-solid fa-xmark"></i>`;
-    return value ? hasLights : noLights;
-  }
-
-  const courtActions = () => console.log('Court actions');
-
   return [
     {
       cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
@@ -21,14 +20,14 @@ export function getCourtColumns(): any[] {
       headerSort: false,
       responsive: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
       headerMenu: headerMenu({ floodlit: 'Lights' }),
       formatter: 'rownum',
       headerSort: false,
       hozAlign: CENTER,
-      width: 55
+      width: 55,
     },
     { title: 'Court Name', field: 'courtName', editor: true },
     { title: 'Scheduled Time', field: 'scheduledTime' },
@@ -40,15 +39,15 @@ export function getCourtColumns(): any[] {
       formatter: lightsFormatter,
       headerTooltip: 'Lights',
       field: 'floodlit',
-      width: 50
+      width: 50,
     },
     {
-      cellClick: courtActions,
+      cellClick: courtActions(),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
-      width: 50
-    }
+      width: 50,
+    },
   ];
 }

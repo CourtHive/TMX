@@ -8,7 +8,7 @@ import { getCourtColumns } from './getCourtColumns';
 import { NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 import { MODIFY_COURT } from 'constants/mutationConstants';
 
-export function venueRowFormatter(row: any): void {
+export const venueRowFormatter = (setTable: (venueId: string, table: any) => void) => (row: any): void => {
   const holderEl = document.createElement('div');
   const controlEl = document.createElement('div');
   controlEl.className = 'tableControl';
@@ -65,6 +65,9 @@ export function venueRowFormatter(row: any): void {
     maxHeight: 400,
     columns
   });
+
+  const venueId = row.getData().venueId;
+  setTable(venueId, courtsTable);
 
   controlBar({ table: courtsTable, target: controlEl, items });
 

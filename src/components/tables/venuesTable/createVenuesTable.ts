@@ -15,6 +15,12 @@ type CreateVenuesTableResult = {
 };
 
 export function createVenuesTable({ table }: { table?: any } = {}): CreateVenuesTableResult {
+  const nestedTables = new Map();
+  const setNestedTable = (venueId: string, courtsTable: any) => {
+    if (nestedTables.has(venueId)) return;
+    nestedTables.set(venueId, courtsTable);
+  };
+
   const getTableData = () => {
     const { venues } = competitionEngine.getVenuesAndCourts();
     const rows = venues.map(mapVenue);
@@ -26,7 +32,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
     table?.replaceData(rows);
   };
 
-  const columns = getVenuesColumns();
+  const columns = getVenuesColumns(nestedTables);
 
   if (!table) {
     destroyTable({ anchorId: TOURNAMENT_VENUES });
@@ -42,7 +48,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
         'venueName',
       ]),
       minHeight: window.innerHeight * 0.81,
-      rowFormatter: venueRowFormatter,
+      rowFormatter: venueRowFormatter(setNestedTable),
       placeholder: 'No venues',
       layout: 'fitColumns',
       reactiveData: true,

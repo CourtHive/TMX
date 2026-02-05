@@ -6,7 +6,7 @@ import { setLatLong } from './setLatLong';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getVenuesColumns(): any[] {
+export function getVenuesColumns(nestedTables: any): any[] {
   const locationFormatter = (cell: any): string => {
     const value = cell.getValue();
     const undef = `?`;
@@ -102,7 +102,7 @@ export function getVenuesColumns(): any[] {
       width: 20
     },
     {
-      cellClick: venueActions(),
+      cellClick: venueActions(nestedTables),
       formatter: threeDots,
       responsive: false,
       headerSort: false,
