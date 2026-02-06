@@ -51,8 +51,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.16
-        version: 0.9.16
+        specifier: 0.9.18
+        version: 0.9.18
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -1675,8 +1675,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.9.16:
-    resolution: {integrity: sha512-FkincXpmK14T5SKBtbXYtaCOXyWUy6ih88Pj01/rT43k6N/nLC1isVT5IUKUiROw23J2qdKK9mXZ+npdsK2oyw==}
+  courthive-components@0.9.18:
+    resolution: {integrity: sha512-bcv+R3tR61V2ZvS+H0a+qD1e7Vo+arbwt+QBdYwWixTbyKDrQel7aRshVwQQthMQjn9/faMOpGXJmE2eiwA9Sw==}
     engines: {node: '>=16.16.0 < 25'}
 
   create-ecdh@4.0.4:
@@ -5128,7 +5128,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  courthive-components@0.9.16:
+  courthive-components@0.9.18:
     dependencies:
       '@stitches/core': 1.2.8
       awesomplete: 1.1.7
