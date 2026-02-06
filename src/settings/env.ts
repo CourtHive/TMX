@@ -110,6 +110,7 @@ export const env: any = {
   version,
 
   pdfPrinting: false, // Beta feature flag for PDF generation
+  persistInputFields: true, // Keep input fields visible after participant assignment (default ON)
 
   ioc: 'gbr',
   locations: {

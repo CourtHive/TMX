@@ -13,6 +13,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
+import { enterParticipantAssignmentMode } from './participantAssignmentMode';
 import { env } from 'settings/env';
 
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
@@ -34,6 +35,13 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
   const structure = drawData.structures?.find((structure: any) => structure.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
 
+  // Check if draw has any scores
+  const hasScores = structure?.roundMatchUps
+    ? Object.values(structure.roundMatchUps)
+        .flat()
+        .some((matchUp: any) => tournamentEngine.checkScoreHasValue(matchUp))
+    : false;
+
   const scorecardUpdated = () => {
     const matchUpId = dualMatchUp.matchUpId;
     const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
@@ -44,6 +52,12 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
   };
 
   const options = [
+    {
+      hide: hasScores || eventData.eventInfo.eventType === TEAM, // Hide if scores exist or TEAM event
+      onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
+      label: 'Assign participants',
+      close: true,
+    },
     {
       hide: eventData.eventInfo.eventType !== TEAM,
       onClick: () =>

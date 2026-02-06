@@ -23,6 +23,7 @@ import { SPLASH, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
+import 'courthive-components/dist/courthive-components.css';
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
 import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
