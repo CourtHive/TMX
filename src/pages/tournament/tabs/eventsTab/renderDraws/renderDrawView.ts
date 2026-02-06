@@ -20,6 +20,7 @@ import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { drawControlBar } from './drawControlBar';
+import { isAssignmentMode } from './participantAssignmentMode';
 import { context } from 'services/context';
 import { env } from 'settings/env';
 import morphdom from 'morphdom';
@@ -41,6 +42,11 @@ export function renderDrawView({
   roundsView?: string;
   redraw?: boolean;
 }): void {
+  // Early return if in assignment mode (handled by participantAssignmentMode)
+  if (isAssignmentMode()) {
+    return;
+  }
+
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
   let isAdHoc: boolean;
@@ -163,7 +169,7 @@ export function renderDrawView({
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
-          searchActive: participantFilter,
+          searchActive: !!participantFilter,
           matchUps: displayMatchUps as any,
           eventHandlers,
           composition,
