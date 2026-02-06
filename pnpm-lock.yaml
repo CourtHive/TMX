@@ -51,8 +51,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.18
-        version: 0.9.18
+        specifier: 0.9.20
+        version: 0.9.20
       d3:
         specifier: 5.16.0
         version: 5.16.0
@@ -1675,8 +1675,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.9.18:
-    resolution: {integrity: sha512-bcv+R3tR61V2ZvS+H0a+qD1e7Vo+arbwt+QBdYwWixTbyKDrQel7aRshVwQQthMQjn9/faMOpGXJmE2eiwA9Sw==}
+  courthive-components@0.9.20:
+    resolution: {integrity: sha512-QYLjKryUPNJE+DRx9K/8d7HCvkSPU6l6Q622XT8BG98VpqxLgYkB33MWHgQts8+kXC6nJ8THJvEYNmWdx91Ezg==}
     engines: {node: '>=16.16.0 < 25'}
 
   create-ecdh@4.0.4:
@@ -3332,6 +3332,10 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  tods-competition-factory@2.3.10:
+    resolution: {integrity: sha512-5TaCD3p332U6EObPJGrsJ+EitCXPdYemVH85vNrOfMLnWiBiMEJMlkGFjfRBOKc2rOT4lY+k7yFa2QkLUMJ+LQ==}
+    engines: {node: '>=20'}
 
   tods-competition-factory@2.3.9:
     resolution: {integrity: sha512-SpQhujhlYIDyqAsSSrREaxPVuvGdRcNRh779qzH9rg9ww3NKWeoqsJQ+aqkf0tDdjD4aac4c+3jFHLPXRZiEIQ==}
@@ -5128,7 +5132,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  courthive-components@0.9.18:
+  courthive-components@0.9.20:
     dependencies:
       '@stitches/core': 1.2.8
       awesomplete: 1.1.7
@@ -5140,7 +5144,7 @@ snapshots:
       dayjs: 1.11.19
       focus-trap: 8.0.0
       tippy.js: 6.3.7
-      tods-competition-factory: 2.3.9
+      tods-competition-factory: 2.3.10
       vanillajs-datepicker: 1.3.4
 
   create-ecdh@4.0.4:
@@ -7066,6 +7070,8 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  tods-competition-factory@2.3.10: {}
 
   tods-competition-factory@2.3.9: {}
 

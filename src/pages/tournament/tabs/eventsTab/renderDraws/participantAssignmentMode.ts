@@ -83,34 +83,26 @@ function createTMXStateManager(
 
   // Override assignParticipant to use TMX mutations
   const originalAssignParticipant = baseManager.assignParticipant.bind(baseManager);
-  baseManager.assignParticipant = ({ drawPosition, participantId, replaceExisting = false }) => {
-    const methods: any[] = [];
-
-    // Remove existing if needed
-    if (replaceExisting) {
-      methods.push({
-        method: 'removeDrawPositionAssignment',
-        params: { drawId, drawPosition, structureId },
-      });
-    }
-
-    // Assign new participant
-    methods.push({
-      method: 'assignDrawPosition',
-      params: {
-        drawId,
-        structureId,
-        drawPosition,
-        participantId,
+  baseManager.assignParticipant = ({ drawPosition, participantId }) => {
+    // Direct assignment - factory handles replacement automatically
+    const methods = [
+      {
+        method: 'assignDrawPosition',
+        params: {
+          drawId,
+          structureId,
+          drawPosition,
+          participantId,
+        },
       },
-    });
+    ];
 
     mutationRequest({
       methods,
       callback: (result: any) => {
         if (result.success) {
           // Update local state and trigger re-render
-          originalAssignParticipant({ drawPosition, participantId, replaceExisting: false });
+          originalAssignParticipant({ drawPosition, participantId });
         }
         return result;
       },
@@ -121,33 +113,83 @@ function createTMXStateManager(
 
   // Override assignBye to use TMX mutations
   const originalAssignBye = baseManager.assignBye.bind(baseManager);
-  baseManager.assignBye = ({ drawPosition, replaceExisting = false }) => {
-    const methods: any[] = [];
-
-    // Remove existing if needed
-    if (replaceExisting) {
-      methods.push({
-        method: 'removeDrawPositionAssignment',
-        params: { drawId, drawPosition, structureId },
-      });
-    }
-
-    // Assign BYE
-    methods.push({
-      method: 'assignDrawPositionBye',
-      params: {
-        drawId,
-        structureId,
-        drawPosition,
+  baseManager.assignBye = ({ drawPosition }) => {
+    // Direct assignment - factory handles replacement automatically
+    const methods = [
+      {
+        method: 'assignDrawPositionBye',
+        params: {
+          drawId,
+          structureId,
+          drawPosition,
+        },
       },
-    });
+    ];
 
     mutationRequest({
       methods,
       callback: (result: any) => {
         if (result.success) {
           // Update local state and trigger re-render
-          originalAssignBye({ drawPosition, replaceExisting: false });
+          originalAssignBye({ drawPosition });
+        }
+        return result;
+      },
+    });
+
+    return { success: true };
+  };
+
+  // Override assignQualifier to use TMX mutations
+  const originalAssignQualifier = baseManager.assignQualifier.bind(baseManager);
+  baseManager.assignQualifier = ({ drawPosition }) => {
+    // Assign qualifier placeholder using factory
+    const methods = [
+      {
+        method: 'assignDrawPosition',
+        params: {
+          drawId,
+          structureId,
+          drawPosition,
+          qualifier: true,
+        },
+      },
+    ];
+
+    mutationRequest({
+      methods,
+      callback: (result: any) => {
+        if (result.success) {
+          // Update local state and trigger re-render
+          originalAssignQualifier({ drawPosition });
+        }
+        return result;
+      },
+    });
+
+    return { success: true };
+  };
+
+  // Override removeAssignment to use TMX mutations
+  const originalRemoveAssignment = baseManager.removeAssignment.bind(baseManager);
+  baseManager.removeAssignment = ({ drawPosition }) => {
+    const methods = [
+      {
+        method: 'removeDrawPositionAssignment',
+        params: {
+          drawId,
+          structureId,
+          drawPosition,
+        },
+      },
+    ];
+
+    mutationRequest({
+      methods,
+      callback: (result: any) => {
+        if (result.success) {
+          // Update local state and trigger re-render
+          originalRemoveAssignment({ drawPosition });
         }
         return result;
       },
@@ -178,6 +220,9 @@ function renderAssignmentView({
   const compositionName = display?.compositionName;
   const composition = compositions[compositionName] || compositions.National;
 
+  // Check if draw has qualifying structure
+  const hasQualifying = drawData?.structures?.some((s: any) => s.stage === 'QUALIFYING');
+
   // Configure for inline assignment with persist mode
   const assignmentComposition = {
     ...composition,
@@ -185,6 +230,7 @@ function renderAssignmentView({
       ...composition.configuration,
       inlineAssignment: true,
       persistInputFields: env.persistInputFields, // From settings
+      hasQualifying, // Enable QUALIFIER option if qualifying structure exists
       participantProvider: () => stateManager!.getAvailableParticipants(),
     },
   };
@@ -195,13 +241,10 @@ function renderAssignmentView({
       const drawPosition = side?.drawPosition;
       if (!drawPosition) return;
 
-      const hasExisting = side?.participant?.participantId || side?.bye;
-      const replaceExisting = env.persistInputFields && hasExisting;
-
+      // Direct assignment - factory handles replacement automatically
       const result = stateManager!.assignParticipant({
         drawPosition,
         participantId: participant.participantId,
-        replaceExisting,
       });
 
       if (!result.success) {
@@ -212,16 +255,39 @@ function renderAssignmentView({
       const drawPosition = side?.drawPosition;
       if (!drawPosition) return;
 
-      const hasExisting = side?.participant?.participantId || side?.bye;
-      const replaceExisting = env.persistInputFields && hasExisting;
-
+      // Direct assignment - factory handles replacement automatically
       const result = stateManager!.assignBye({
         drawPosition,
-        replaceExisting,
       });
 
       if (!result.success) {
         console.error('Failed to assign BYE:', result.error);
+      }
+    },
+    assignQualifier: ({ side }: any) => {
+      const drawPosition = side?.drawPosition;
+      if (!drawPosition) return;
+
+      // Assign qualifier placeholder
+      const result = stateManager!.assignQualifier({
+        drawPosition,
+      });
+
+      if (!result.success) {
+        console.error('Failed to assign QUALIFIER:', result.error);
+      }
+    },
+    removeAssignment: ({ side }: any) => {
+      const drawPosition = side?.drawPosition;
+      if (!drawPosition) return;
+
+      // Remove assignment when user clears the field
+      const result = stateManager!.removeAssignment({
+        drawPosition,
+      });
+
+      if (!result.success) {
+        console.error('Failed to remove assignment:', result.error);
       }
     },
   };
