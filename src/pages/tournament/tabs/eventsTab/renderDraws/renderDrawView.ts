@@ -115,11 +115,9 @@ export function renderDrawView({
     compositions[compositionName] ||
     env.composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
-  
-  if (!composition.configuration) {
-    composition.configuration = {};
-  }
-  
+
+  composition.configuration ??= {};
+
   composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 
