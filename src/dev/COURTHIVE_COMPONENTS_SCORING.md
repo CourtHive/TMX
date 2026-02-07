@@ -2,7 +2,7 @@
 
 Feature flag implementation for using courthive-components scoring modals in TMX.
 
-**For comprehensive testing guidelines, see:** [courthive-components/SCORING_MODAL_TESTING_GUIDE.md](../courthive-components/SCORING_MODAL_TESTING_GUIDE.md)
+**For comprehensive testing guidelines, see:** [courthive-components/SCORING_MODAL_TESTING_GUIDE.md](../../../courthive-components/SCORING_MODAL_TESTING_GUIDE.md)
 
 ## Overview
 
@@ -35,14 +35,14 @@ The setting persists in `localStorage` under key `tmx_useComponentsScoring`.
 
 When toggling:
 
-```
+```text
 ✓ Components Scoring: ENABLED
 ⚠ Reload the page to apply changes
 ```
 
 When using courthive-components (in console):
 
-```
+```text
 ✓ Using courthive-components scoring {
   approach: "dynamicSets",
   composition: "Wimbledon",
@@ -230,6 +230,7 @@ type ScoreOutcome = {
    - Verify composition in console output
 
 4. **Test feature toggle**
+
    ```javascript
    window.dev.toggleComponentsScoring(); // Disable
    // Reload page
