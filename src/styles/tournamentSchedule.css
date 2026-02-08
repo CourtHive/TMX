@@ -29,6 +29,13 @@ body {
 .matchup-conflict {
   background: var(--sch-conflict) !important;
 }
+.matchup-double-booking {
+  border: 2px dotted red !important;
+  color: red !important;
+}
+.matchup-double-booking * {
+  color: red !important;
+}
 .matchup-warning {
   background: var(--sch-warning) !important;
 }
