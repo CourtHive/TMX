@@ -6,6 +6,15 @@ import { timeFormat } from 'functions/timeStrings';
 import { SCHEDULE_ISSUE, timeModifierDisplay } from 'constants/tmxConstants';
 
 const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT } = factoryConstants.scheduleConstants;
+const {
+  ABANDONED,
+  CANCELLED,
+  DEFAULTED,
+  DOUBLE_DEFAULT,
+  DOUBLE_WALKOVER,
+  IN_PROGRESS,
+  WALKOVER,
+} = factoryConstants.matchUpStatusConstants;
 
 export function scheduleCell(cell: any): HTMLSpanElement {
   const content = document.createElement('span');
@@ -73,11 +82,17 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     content.draggable = true;
     content.id = matchUpId;
 
-    if (winningSide) {
+    if (matchUpStatus === ABANDONED) {
+      content.classList.add('matchup-abandoned');
+    } else if (matchUpStatus === CANCELLED) {
+      content.classList.add('matchup-cancelled');
+    } else if (matchUpStatus === DOUBLE_WALKOVER || matchUpStatus === DOUBLE_DEFAULT) {
+      content.classList.add('matchup-double-walkover-default');
+    } else if (winningSide) {
       content.classList.add('matchup-complete');
     } else {
       const scheduleState = schedule[SCHEDULE_STATE];
-      if (matchUpStatus === 'IN_PROGRESS') {
+      if (matchUpStatus === IN_PROGRESS) {
         content.classList.add('matchup-inprogress');
       } else if (scheduleState === SCHEDULE_CONFLICT) {
         content.classList.add('matchup-conflict');
@@ -148,7 +163,18 @@ export function scheduleCell(cell: any): HTMLSpanElement {
 
   if (winningSide) {
     const scoreLine = document.createElement('div');
-    scoreLine.innerHTML = value.score?.scoreStringSide1 || '';
+    scoreLine.className = 'match_status';
+    
+    // Check if the match was won by WALKOVER or DEFAULTED
+    if (matchUpStatus === WALKOVER) {
+      scoreLine.innerHTML = 'WALKOVER';
+    } else if (matchUpStatus === DEFAULTED) {
+      scoreLine.innerHTML = 'DEFAULTED';
+    } else {
+      // Display normal score
+      scoreLine.innerHTML = value.score?.scoreStringSide1 || '';
+    }
+    
     scheduledTeams.appendChild(scoreLine);
   }
 
