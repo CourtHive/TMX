@@ -55,6 +55,8 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
   if (data?.length) {
     table.updateData(data);
   }
+
+  // Update row control cells
   const controlCells = table.getColumns()[0].getCells();
   if (rowIssues?.length) {
     rowIssues.forEach((issues: any[], rowIndex: number) => {
@@ -76,6 +78,52 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
         }
       } else {
         console.log('control cell not found', { rowNumber });
+      }
+    });
+  }
+
+  // Update column headers with court issues
+  if (courtIssues && Object.keys(courtIssues).length) {
+    const columns = table.getColumns();
+    
+    // Skip the first column (control column) and iterate through court columns
+    columns.slice(1).forEach((column: any) => {
+      const columnDef = column.getDefinition();
+      const courtId = columnDef.courtId;
+      const headerElement = column.getElement().querySelector('.tabulator-col-content');
+      
+      if (!headerElement) return;
+      
+      // Clear existing matchup classes
+      headerElement.classList.forEach((c: string) => {
+        if (c.startsWith('matchup')) headerElement.classList.remove(c);
+      });
+      
+      // Apply issue class if court has issues
+      if (courtId && courtIssues[courtId]) {
+        const issues = courtIssues[courtId];
+        if (issues.length) {
+          issues.sort(scheduleIssueSort);
+          const issueClass = (scheduleClass as any)[issues[0].issue];
+          if (issueClass) {
+            headerElement.classList.add(issueClass);
+          }
+        }
+      } else {
+        // Reset background if no issues
+        headerElement.style.backgroundColor = '';
+      }
+    });
+  } else {
+    // Clear all column header issues if no court issues exist
+    const columns = table.getColumns();
+    columns.slice(1).forEach((column: any) => {
+      const headerElement = column.getElement().querySelector('.tabulator-col-content');
+      if (headerElement) {
+        headerElement.classList.forEach((c: string) => {
+          if (c.startsWith('matchup')) headerElement.classList.remove(c);
+        });
+        headerElement.style.backgroundColor = '';
       }
     });
   }
