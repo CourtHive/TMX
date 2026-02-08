@@ -12,6 +12,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
+import { isAssignmentMode } from './participantAssignmentMode';
 import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
@@ -41,6 +42,11 @@ export function renderDrawView({
   roundsView?: string;
   redraw?: boolean;
 }): void {
+  // Early return if in assignment mode (handled by participantAssignmentMode)
+  if (isAssignmentMode()) {
+    return;
+  }
+
   const events = tournamentEngine.getEvents().events;
   if (!events?.length) return;
   let isAdHoc: boolean;
@@ -109,11 +115,9 @@ export function renderDrawView({
     compositions[compositionName] ||
     env.composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
-  
-  if (!composition.configuration) {
-    composition.configuration = {};
-  }
-  
+
+  composition.configuration ??= {};
+
   composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 
@@ -163,7 +167,7 @@ export function renderDrawView({
       const content = renderContainer({
         content: renderStructure({
           context: { drawId, structureId },
-          searchActive: participantFilter,
+          searchActive: !!participantFilter,
           matchUps: displayMatchUps as any,
           eventHandlers,
           composition,

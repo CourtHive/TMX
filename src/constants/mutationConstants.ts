@@ -52,6 +52,7 @@ export const RESET_MATCHUP_LINEUPS = 'resetMatchUpLinesUps';
 export const RESET_SCORECARD = 'resetScorecard';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
+export const SET_POSITION_ASSIGNMENTS = 'setPositionAssignments';
 export const SET_PARTICIPANT_SCALE_ITEMS = 'setParticipantScaleItems';
 export const SET_TOURNAMENT_DATES = 'setTournamentDates';
 export const SET_TOURNAMENT_NAME = 'setTournamentName';

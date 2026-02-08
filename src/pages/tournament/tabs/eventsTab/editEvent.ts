@@ -361,12 +361,6 @@ export function editEvent({
           defaultConsideredDate: startDate || tournamentInfo.startDate,
         },
         callback: setCategory,
-        modalConfig: {
-          style: {
-            fontSize: '12px',
-            border: '3px solid #0066cc',
-          },
-        },
       });
       return;
     }

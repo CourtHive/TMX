@@ -2,8 +2,9 @@
  * Action options for draw structures.
  * Provides menu options for editing, removing, and resetting draw structures.
  */
+import { tournamentEngine, eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
-import { tournamentEngine, eventConstants } from 'tods-competition-factory';
+import { enterParticipantAssignmentMode } from './participantAssignmentMode';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -15,9 +16,12 @@ import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
 import { env } from 'settings/env';
 
+// constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 
+const { POLICY_TYPE_SCORING } = policyConstants;
+const { MAIN } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
 
 interface ActionOptionsParams {
@@ -29,10 +33,35 @@ interface ActionOptionsParams {
   drawId: string;
 }
 
-export function getActionOptions({ structureName, dualMatchUp, structureId, eventData, drawData, drawId }: ActionOptionsParams): any[] {
+export function getActionOptions({
+  structureName,
+  dualMatchUp,
+  structureId,
+  eventData,
+  drawData,
+  drawId,
+}: ActionOptionsParams): any[] {
   const hasQualifying = drawData.structures?.find((structure: any) => structure.stage === QUALIFYING);
   const structure = drawData.structures?.find((structure: any) => structure.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
+
+  // Get scoring policy to check if participant assignment should be blocked
+  const scoringPolicy = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });
+  const requireParticipants = scoringPolicy?.requireParticipantsForScoring;
+
+  // Check if draw has any scores
+  const hasScores = structure?.roundMatchUps
+    ? Object.values(structure.roundMatchUps)
+        .flat()
+        .some((matchUp: any) => tournamentEngine.checkScoreHasValue(matchUp))
+    : false;
+
+  // Only block assignment if scoring policy requires participants AND scores exist
+  const blockAssignment = requireParticipants && hasScores;
+
+  // IMPORTANT: Only allow participant assignment for MAIN stage with stageSequence 1
+  // to avoid propagation issues with qualifying or playoff structures
+  const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
 
   const scorecardUpdated = () => {
     const matchUpId = dualMatchUp.matchUpId;
@@ -44,6 +73,13 @@ export function getActionOptions({ structureName, dualMatchUp, structureId, even
   };
 
   const options = [
+    {
+      // Only show for MAIN stage with stageSequence 1, and when not blocked by scores or TEAM event
+      hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM,
+      onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
+      label: 'Assign participants',
+      close: true,
+    },
     {
       hide: eventData.eventInfo.eventType !== TEAM,
       onClick: () =>

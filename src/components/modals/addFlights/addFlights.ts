@@ -48,5 +48,5 @@ export function addFlights({ eventId, callback }) {
       callback({ generated: false, result });
     }
   };
-  getFlightProfileModal({ eventId, callback: generateFlightProfile });
+  getFlightProfileModal({ callback: generateFlightProfile });
 }

@@ -25,6 +25,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
           },
         },
         composition: {
+          theme: 'default',
           configuration: {
             participantDetail: 'TEAM', // ['ADDRESS', 'TEAM'] // TODO: pass display into formatParticipant, or use env
             genderColor: true,
@@ -33,11 +34,11 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
             flag: false,
           },
         },
-        sideContainer: elem,
+        sideContainer: elem ? true : undefined,
         matchUp: data.matchUp,
         participant,
         placeholder,
-        sideNumber,
+        sideNumber: sideNumber || undefined,
       });
     };
 

@@ -39,6 +39,9 @@ export function settingsModal(): void {
       env.schedule.minCourtGridRows = Number.parseInt(minCourtGridRowsValue, 10);
     }
 
+    // Save participant assignment settings
+    env.persistInputFields = inputs.persistInputFields?.checked ?? true;
+
     setActiveScale(activeScale);
 
     // Persist to localStorage
@@ -49,6 +52,7 @@ export function settingsModal(): void {
       smartComplements: inputs.smartComplements?.checked || false,
       pdfPrinting: env.pdfPrinting,
       minCourtGridRows: env.schedule.minCourtGridRows,
+      persistInputFields: env.persistInputFields,
     });
   };
   const content = (elem: HTMLElement) =>
@@ -118,6 +122,17 @@ export function settingsModal(): void {
           const valid = validators.numericRange(1, 100)(value);
           if (saveButton) saveButton.disabled = !valid;
         },
+      },
+      {
+        text: 'Participant Assignment',
+        class: 'section-title',
+      },
+      {
+        label: 'Keep input fields after assignment (Persist mode)',
+        checked: currentSettings?.persistInputFields ?? true, // Default true
+        field: 'persistInputFields',
+        id: 'persistInputFields',
+        checkbox: true,
       },
       {
         text: 'Beta features',

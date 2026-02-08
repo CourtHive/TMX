@@ -1,6 +1,6 @@
 # Quick Start: Courthive-Components Scoring
 
-**For comprehensive testing, see:** [courthive-components/SCORING_MODAL_TESTING_GUIDE.md](../courthive-components/SCORING_MODAL_TESTING_GUIDE.md)
+**For comprehensive testing, see:** [courthive-components/SCORING_MODAL_TESTING_GUIDE.md](../../../courthive-components/SCORING_MODAL_TESTING_GUIDE.md)
 
 ## Enable Feature
 
@@ -85,7 +85,7 @@ env.smartComplements = true;
 
 When enabled:
 
-```
+```text
 ✓ Using courthive-components scoring {
   approach: "dynamicSets",
   composition: "Wimbledon",
@@ -95,7 +95,7 @@ When enabled:
 
 When toggling:
 
-```
+```text
 ✓ Components Scoring: ENABLED
 ⚠ Reload the page to apply changes
 ```
