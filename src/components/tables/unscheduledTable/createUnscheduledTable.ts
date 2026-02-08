@@ -15,6 +15,15 @@ import { UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 
 const { SINGLES, DOUBLES } = eventConstants;
 
+function initDragDrop(row: any) {
+  const element = row.getElement();
+  const matchUp = row.getData().matchUp;
+  const matchUpId = matchUp.matchUpId;
+  element.id = matchUpId;
+  element.addEventListener('dragstart', (e) => matchUpDragStart(e, true));
+  element.draggable = true;
+}
+
 export function createUnscheduledTable({ scheduledDate: specifiedDate }: { scheduledDate?: string } = {}): {
   table: any;
   replaceTableData: (params?: { scheduledDate?: string }) => { unscheduledMatchUps: any[] };
@@ -24,15 +33,6 @@ export function createUnscheduledTable({ scheduledDate: specifiedDate }: { sched
   let unscheduledMatchUps: any[] = [];
   let ready: boolean;
   let table: any;
-
-  function initDragDrop(row: any) {
-    const element = row.getElement();
-    const matchUp = row.getData().matchUp;
-    const matchUpId = matchUp.matchUpId;
-    element.id = matchUpId;
-    element.addEventListener('dragstart', (e) => matchUpDragStart(e, true));
-    element.draggable = true;
-  }
 
   function getTableData({ scheduledDate: specifiedDate }: { scheduledDate?: string }) {
     const matchUpsWithNoCourt =

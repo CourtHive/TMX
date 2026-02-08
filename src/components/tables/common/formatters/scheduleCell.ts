@@ -174,6 +174,11 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     statusLine.className = 'match_status';
     statusLine.innerHTML = matchUpStatus === DOUBLE_DEFAULT ? 'DBL DEFAULT' : 'DBL WALKOVER';
     scheduledTeams.appendChild(statusLine);
+  } else if ([ABANDONED, CANCELLED].includes(matchUpStatus)) {
+    const statusLine = document.createElement('div');
+    statusLine.className = 'match_status';
+    statusLine.innerHTML = matchUpStatus;
+    scheduledTeams.appendChild(statusLine);
   }
 
   content.appendChild(scheduledTeams);
