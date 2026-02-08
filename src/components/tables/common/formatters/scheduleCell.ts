@@ -3,7 +3,7 @@ import { matchUpDrop } from 'components/tables/scheduleTable/matchUpDrop';
 import { factoryConstants } from 'tods-competition-factory';
 import { timeFormat } from 'functions/timeStrings';
 
-import { SCHEDULE_ISSUE, timeModifierDisplay } from 'constants/tmxConstants';
+import { CONFLICT_COURT_DOUBLE_BOOKING, SCHEDULE_ISSUE, timeModifierDisplay } from 'constants/tmxConstants';
 
 const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT } = factoryConstants.scheduleConstants;
 const { ABANDONED, CANCELLED, DEFAULTED, DOUBLE_DEFAULT, DOUBLE_WALKOVER, IN_PROGRESS, WALKOVER } =
@@ -61,6 +61,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     winningSide,
     matchUpId,
     sides,
+    issueType,
   } = value || {};
 
   const { courtOrder = '', scheduledTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
@@ -88,7 +89,12 @@ export function scheduleCell(cell: any): HTMLSpanElement {
       if (matchUpStatus === IN_PROGRESS) {
         content.classList.add('matchup-inprogress');
       } else if (scheduleState === SCHEDULE_CONFLICT) {
-        content.classList.add('matchup-conflict');
+        // Check for specific conflict type (use destructured issueType)
+        if (issueType === CONFLICT_COURT_DOUBLE_BOOKING) {
+          content.classList.add('matchup-double-booking');
+        } else {
+          content.classList.add('matchup-conflict');
+        }
       } else if (scheduleState === SCHEDULE_ISSUE) {
         content.classList.add('matchup-issue');
       } else if (scheduleState === SCHEDULE_WARNING) {

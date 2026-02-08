@@ -3,22 +3,58 @@
  * Analyzes matchUp scheduling conflicts and highlights rows with issues.
  */
 import { scheduleIssueSort } from 'functions/sorting/sorting';
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine, factoryConstants } from 'tods-competition-factory';
 import { isObject } from 'functions/typeOf';
 
 import { scheduleClass } from 'constants/tmxConstants';
 
-export function updateConflicts(table: any): void {
+const { scheduleConstants } = factoryConstants;
+
+export function updateConflicts(table: any, matchUps?: any[]): void {
   const data = table.getData();
-  const rowItems = data.flatMap((row: any) => Object.values(row).filter(isObject)).filter((item: any) => item.matchUpId);
-  const { courtIssues, rowIssues } = competitionEngine.proConflicts({ matchUps: rowItems });
+  const rowItems = data
+    .flatMap((row: any) => Object.values(row).filter(isObject))
+    .filter((item: any) => item.matchUpId);
+
+  const { courtIssues, rowIssues } = competitionEngine.proConflicts({ matchUps: matchUps ?? rowItems });
 
   if ((courtIssues && Object.keys(courtIssues)?.length) || rowIssues) {
     // TODO: upper left corner alert icon; clicking on it scrolls and pans to issues
     // <i class="fa-solid fa-triangle-exclamation"></i> or <i class="fa-solid fa-triangle-exclamation" style="color: #f5220a;"></i>
   }
 
-  if (data?.length) table.updateData(data);
+  // Create a map of matchUpId to issueType for easy lookup
+  const matchUpIssueTypes = new Map<string, string>();
+  if (rowIssues) {
+    const allIssues = rowIssues.flat();
+
+    allIssues.forEach((issue: any) => {
+      if (issue.matchUpId && issue.issueType) {
+        matchUpIssueTypes.set(issue.matchUpId, issue.issueType);
+      }
+    });
+  }
+
+  // Annotate matchUp data with issueType for cell formatting
+  rowItems.forEach((item: any) => {
+    if (item.matchUpId && matchUpIssueTypes.has(item.matchUpId)) {
+      const issueType = matchUpIssueTypes.get(item.matchUpId);
+      item.issueType = issueType;
+
+      // Also set the SCHEDULE_STATE so the cell formatter can detect the conflict
+      if (!item.schedule) item.schedule = {};
+      item.schedule[scheduleConstants.SCHEDULE_STATE] = scheduleConstants.SCHEDULE_CONFLICT;
+    } else {
+      delete item.issueType; // Clear any previous issueType
+      if (item.schedule) {
+        delete item.schedule[scheduleConstants.SCHEDULE_STATE];
+      }
+    }
+  });
+
+  if (data?.length) {
+    table.updateData(data);
+  }
   const controlCells = table.getColumns()[0].getCells();
   if (rowIssues?.length) {
     rowIssues.forEach((issues: any[], rowIndex: number) => {

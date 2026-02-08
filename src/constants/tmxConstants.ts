@@ -69,6 +69,7 @@ export const MINIMUM_SCHEDULE_COLUMNS = 10;
 
 export const CONFLICT_PARTICIPANTS = 'participantConflict';
 export const CONFLICT_MATCHUP_ORDER = 'matchUpConflict';
+export const CONFLICT_COURT_DOUBLE_BOOKING = 'courtDoubleBooking';
 export const SCHEDULE_ISSUE_IDS = 'ISSUE_IDS';
 export const SCHEDULE_ISSUE = 'ISSUE';
 

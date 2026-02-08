@@ -21,6 +21,7 @@ export function createScheduleTable({
 } {
   let ready: boolean, table: any, awaitingUpdate: boolean;
   let existingCourtIds: string[] = [];
+  let matchUps: any[] = [];
 
   const getTableData = ({ scheduledDate }: { scheduledDate?: string }) => {
     const matchUpFilters = { localPerspective: true, scheduledDate };
@@ -32,7 +33,7 @@ export function createScheduleTable({
       matchUpFilters,
     });
     const { dateMatchUps = [], completedMatchUps = [], courtsData, courtPrefix = 'C|', rows, groupInfo } = result;
-    const matchUps = dateMatchUps.concat(...completedMatchUps);
+    matchUps = dateMatchUps.concat(...completedMatchUps);
 
     const columns = getScheduleColumns({ courtsData, courtPrefix, updateScheduleTable: replaceTableData });
 
@@ -56,7 +57,7 @@ export function createScheduleTable({
       }
       awaitingUpdate = true;
       table?.replaceData(rows);
-      (table as any).matchUps = matchUps;
+      table.matchUps = matchUps;
     };
 
     setTimeout(refresh, ready ? 0 : 1000);
@@ -79,7 +80,7 @@ export function createScheduleTable({
 
   table.on('scrollVertical', destroyTipster);
   table.on('tableBuilt', () => {
-    updateConflicts(table);
+    updateConflicts(table, matchUps);
     ready = true;
   });
   table.on('dataProcessed', () => {
