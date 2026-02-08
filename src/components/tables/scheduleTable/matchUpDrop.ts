@@ -76,7 +76,10 @@ export async function matchUpDrop(ev: DragEvent, cell: any): Promise<void> {
     mutationRequest({ methods, engine: COMPETITION_ENGINE, callback });
   };
 
-  const updateSourceMatchUp = ({ scheduledTime = '', timeModifiers = [] }: { scheduledTime?: string; timeModifiers?: any[] } = {}) => {
+  const updateSourceMatchUp = ({
+    scheduledTime = '',
+    timeModifiers = [],
+  }: { scheduledTime?: string; timeModifiers?: any[] } = {}) => {
     const updatedSourceSchedule = {
       courtOrder: targetCourtOrder,
       scheduledDate: selectedDate,
@@ -130,15 +133,8 @@ export async function matchUpDrop(ev: DragEvent, cell: any): Promise<void> {
 
   // CASE: dropped onto an empty cell
   if (targetMatchUpId === '') {
-    // CASE: dragged from unscheduled
-    if (!sourceRow) {
-      const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
-      unscheduledTable.deleteRow(sourceMatchUpId);
-      updateSourceMatchUp();
-
-      targetRow[targetColumnKey!] = sourceMatchUp;
-      table.updateData([targetRow]);
-    } else {
+    // CASE: dragged from scheduled
+    if (sourceRow) {
       updateSourceMatchUp();
 
       sourceRow[sourceColumnKey!] = {
@@ -156,6 +152,14 @@ export async function matchUpDrop(ev: DragEvent, cell: any): Promise<void> {
         targetRow[targetColumnKey!] = sourceMatchUp;
         table.updateData([sourceRow, targetRow]);
       }
+    } else {
+      // CASE: dragged from unscheduled
+      const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
+      unscheduledTable.deleteRow(sourceMatchUpId);
+      updateSourceMatchUp();
+
+      targetRow[targetColumnKey!] = sourceMatchUp;
+      table.updateData([targetRow]);
     }
   } else if (!sourceRow && targetMatchUp) {
     const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
