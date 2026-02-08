@@ -1,35 +1,53 @@
-const { FlatCompat } = require('@eslint/eslintrc');
-const js = require('@eslint/js');
-const eslintPluginSonarjs = require('eslint-plugin-sonarjs');
-const typescriptEslintParser = require('@typescript-eslint/parser');
-const globals = require('globals');
+import js from '@eslint/js';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+import sonarjs from 'eslint-plugin-sonarjs';
+import globals from 'globals';
 
-const compat = new FlatCompat({
-  recommendedConfig: js.configs.recommended,
-  baseDirectory: __dirname,
-});
-
-module.exports = [
-  js.configs.recommended,
-  ...compat.extends('plugin:@typescript-eslint/recommended', 'plugin:sonarjs/recommended-legacy'),
-  { plugins: { sonarjs: eslintPluginSonarjs } },
+export default [
   {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'storybook-static/**',
+      '**/*.mjs',
+      'vite.config.ts',
+      '**/*.cy.ts',
+      'cypress/**',
+      'cypress.config.ts',
+      'src/legacy/**',
+      'src/components/charts/**',
+    ],
+  },
+  js.configs.recommended,
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     languageOptions: {
-      parser: typescriptEslintParser,
-      parserOptions: { project: ['tsconfig.json'] },
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: ['tsconfig.json'],
+      },
       globals: {
-        ...globals.node,
         ...globals.browser,
-        ...globals.es6,
+        ...globals.node,
+        ...globals.es2021,
         ...globals.jest,
+        NodeJS: 'readonly',
       },
     },
-  },
-  {
+    plugins: {
+      '@typescript-eslint': tseslint,
+      sonarjs: sonarjs,
+    },
     rules: {
+      ...tseslint.configs.recommended.rules,
       'no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
+      'no-useless-assignment': 'warn',
+      'preserve-caught-error': 'off',
       'prefer-const': 'off',
+      'no-prototype-builtins': 'off',
       'sonarjs/cognitive-complexity': 'off',
       'sonarjs/no-commented-code': 'off',
       'sonarjs/no-nested-functions': 'off',
@@ -62,14 +80,11 @@ module.exports = [
       '@typescript-eslint/no-this-alias': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-use-before-define': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
       'import/no-named-as-default': 'off',
       'import/no-named-as-default-member': 'off',
       'import/no-unresolved': 'off',
-      'no-prototype-builtins': 'off',
     },
-  },
-  {
-    ignores: ['**/*.mjs', 'vite.config.ts', '**/*.cy.ts', 'cypress', 'cypress.config.ts', 'src/legacy/**', 'src/components/charts/**'],
   },
 ];
