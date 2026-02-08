@@ -23,29 +23,31 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
     // <i class="fa-solid fa-triangle-exclamation"></i> or <i class="fa-solid fa-triangle-exclamation" style="color: #f5220a;"></i>
   }
 
-  // Create a map of matchUpId to issueType for easy lookup
-  const matchUpIssueTypes = new Map<string, string>();
+  // Create a map of matchUpId to issue details for easy lookup
+  const matchUpIssues = new Map<string, any>();
   if (rowIssues) {
     const allIssues = rowIssues.flat();
 
     allIssues.forEach((issue: any) => {
-      if (issue.matchUpId && issue.issueType) {
-        matchUpIssueTypes.set(issue.matchUpId, issue.issueType);
+      if (issue.matchUpId) {
+        matchUpIssues.set(issue.matchUpId, issue);
       }
     });
   }
 
-  // Annotate matchUp data with issueType for cell formatting
+  // Annotate matchUp data with issue details for cell formatting
   rowItems.forEach((item: any) => {
-    if (item.matchUpId && matchUpIssueTypes.has(item.matchUpId)) {
-      const issueType = matchUpIssueTypes.get(item.matchUpId);
-      item.issueType = issueType;
+    if (item.matchUpId && matchUpIssues.has(item.matchUpId)) {
+      const issue = matchUpIssues.get(item.matchUpId);
+      item.issueType = issue.issueType;
+      item.issueIds = issue.issueIds; // Store related matchUpIds for hover highlighting
 
-      // Also set the SCHEDULE_STATE so the cell formatter can detect the conflict
+      // Set the SCHEDULE_STATE based on the actual issue type (WARNING, ERROR, CONFLICT, ISSUE)
       if (!item.schedule) item.schedule = {};
-      item.schedule[scheduleConstants.SCHEDULE_STATE] = scheduleConstants.SCHEDULE_CONFLICT;
+      item.schedule[scheduleConstants.SCHEDULE_STATE] = issue.issue;
     } else {
       delete item.issueType; // Clear any previous issueType
+      delete item.issueIds;
       if (item.schedule) {
         delete item.schedule[scheduleConstants.SCHEDULE_STATE];
       }
@@ -76,8 +78,6 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
           controlCell.getElement().style.backgroundColor = 'white';
           data.issues = [];
         }
-      } else {
-        console.log('control cell not found', { rowNumber });
       }
     });
   }
@@ -85,20 +85,20 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
   // Update column headers with court issues
   if (courtIssues && Object.keys(courtIssues).length) {
     const columns = table.getColumns();
-    
+
     // Skip the first column (control column) and iterate through court columns
     columns.slice(1).forEach((column: any) => {
       const columnDef = column.getDefinition();
       const courtId = columnDef.courtId;
       const headerElement = column.getElement().querySelector('.tabulator-col-content');
-      
+
       if (!headerElement) return;
-      
+
       // Clear existing matchup classes
       headerElement.classList.forEach((c: string) => {
         if (c.startsWith('matchup')) headerElement.classList.remove(c);
       });
-      
+
       // Apply issue class if court has issues
       if (courtId && courtIssues[courtId]) {
         const issues = courtIssues[courtId];

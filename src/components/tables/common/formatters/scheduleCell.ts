@@ -3,11 +3,12 @@ import { matchUpDrop } from 'components/tables/scheduleTable/matchUpDrop';
 import { factoryConstants } from 'tods-competition-factory';
 import { timeFormat } from 'functions/timeStrings';
 
-import { CONFLICT_COURT_DOUBLE_BOOKING, SCHEDULE_ISSUE, timeModifierDisplay } from 'constants/tmxConstants';
+import { CONFLICT_COURT_DOUBLE_BOOKING, timeModifierDisplay } from 'constants/tmxConstants';
 
-const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT } = factoryConstants.scheduleConstants;
+const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT, SCHEDULE_ISSUE } = factoryConstants.scheduleConstants;
 const { ABANDONED, CANCELLED, DEFAULTED, DOUBLE_DEFAULT, DOUBLE_WALKOVER, IN_PROGRESS, WALKOVER } =
   factoryConstants.matchUpStatusConstants;
+const { completedMatchUpStatuses } = factoryConstants;
 
 export function scheduleCell(cell: any): HTMLSpanElement {
   const content = document.createElement('span');
@@ -62,6 +63,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     matchUpId,
     sides,
     issueType,
+    issueIds,
   } = value || {};
 
   const { courtOrder = '', scheduledTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
@@ -107,6 +109,35 @@ export function scheduleCell(cell: any): HTMLSpanElement {
 
   content.addEventListener('drop', (e) => matchUpDrop(e, cell));
   content.addEventListener('dragstart', matchUpDragStart);
+
+  // Add hover handlers for highlighting related conflict cells
+  // Only enable if there's an actual schedule conflict/warning/error/issue
+  // AND the matchUp is not completed
+  const scheduleState = schedule[SCHEDULE_STATE];
+  const isCompleted = matchUpStatus && completedMatchUpStatuses.includes(matchUpStatus);
+  const hasConflict = scheduleState && [SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ERROR, SCHEDULE_ISSUE].includes(scheduleState);
+  
+  if (matchUpId && issueIds && issueIds.length > 0 && hasConflict && !isCompleted) {
+    content.addEventListener('mouseenter', () => {
+      // Highlight all cells with matchUpIds in the issueIds array
+      issueIds.forEach((relatedId: string) => {
+        const relatedCell = document.getElementById(relatedId);
+        if (relatedCell) {
+          relatedCell.classList.add('conflict-highlight');
+        }
+      });
+    });
+
+    content.addEventListener('mouseleave', () => {
+      // Remove highlight from all related cells
+      issueIds.forEach((relatedId: string) => {
+        const relatedCell = document.getElementById(relatedId);
+        if (relatedCell) {
+          relatedCell.classList.remove('conflict-highlight');
+        }
+      });
+    });
+  }
 
   if (!matchUpId) {
     return content;

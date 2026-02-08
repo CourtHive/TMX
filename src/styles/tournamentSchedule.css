@@ -22,6 +22,11 @@ body {
 
 .matchup-error {
   background: var(--sch-error) !important;
+  border: 2px dotted white !important;
+  color: white !important;
+}
+.matchup-error * {
+  color: white !important;
 }
 .matchup-complete {
   background: var(--sch-complete);
@@ -60,6 +65,15 @@ body {
   border: 2px dotted blue !important;
   color: black;
 }
+
+/* Conflict highlight on hover */
+.conflict-highlight {
+  box-shadow: 0 0 10px 3px rgba(255, 215, 0, 0.8) !important;
+  border: 4px solid gold !important;
+  z-index: 100;
+  position: relative;
+}
+
 .schedule-cell .complete,
 .schedule-cell .match_status {
   font-weight: 700;
@@ -203,7 +217,7 @@ body {
   padding: 10px;
   text-align: center;
   color: #666;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .block-type {
@@ -232,17 +246,17 @@ body {
 }
 
 /* Different colors for different booking types */
-.blocked-cell[data-booking-type="PRACTICE"] {
+.blocked-cell[data-booking-type='PRACTICE'] {
   background-color: #e3f2fd;
   border-color: #2196f3 !important;
 }
 
-.blocked-cell[data-booking-type="MAINTENANCE"] {
+.blocked-cell[data-booking-type='MAINTENANCE'] {
   background-color: #fff3e0;
   border-color: #ff9800 !important;
 }
 
-.blocked-cell[data-booking-type="BLOCKED"] {
+.blocked-cell[data-booking-type='BLOCKED'] {
   background-color: #ffebee;
   border-color: #f44336 !important;
 }
