@@ -75,7 +75,7 @@ export function controlBar(params: {
     if (itemConfig.location === OVERLAY) overlayCount += 1;
     if (itemConfig.location === HEADER) {
       if (isFunction(itemConfig.headerClick)) {
-        const headerElement = target!.getElementsByClassName('panelHeader')[0] as HTMLElement;
+        const headerElement = target.getElementsByClassName('panelHeader')[0] as HTMLElement;
         if (headerElement) headerElement.onclick = itemConfig.headerClick;
       }
       headerCount += 1;
