@@ -39,7 +39,6 @@ export function getScheduleColumns({
     }
 
     // Handle matchUp cells (existing code)
-    console.log('Routing to scheduleSetMatchUpHeader');
     const { drawId, matchUpId } = cellData;
     const callback = () => {
       const matchUp = tournamentEngine.allTournamentMatchUps({

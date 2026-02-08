@@ -38,6 +38,21 @@ body {
 .matchup-inprogress {
   background: var(--sch-inprogress);
 }
+.matchup-abandoned {
+  background: #e8e8e8;
+  border: 2px dotted black !important;
+  color: black;
+}
+.matchup-cancelled {
+  background: #e8e8e8;
+  border: 2px dotted red !important;
+  color: black;
+}
+.matchup-double-walkover-default {
+  background: #e8e8e8;
+  border: 2px dotted blue !important;
+  color: black;
+}
 .schedule-cell .complete,
 .schedule-cell .match_status {
   font-weight: 700;
