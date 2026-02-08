@@ -6,15 +6,8 @@ import { timeFormat } from 'functions/timeStrings';
 import { SCHEDULE_ISSUE, timeModifierDisplay } from 'constants/tmxConstants';
 
 const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT } = factoryConstants.scheduleConstants;
-const {
-  ABANDONED,
-  CANCELLED,
-  DEFAULTED,
-  DOUBLE_DEFAULT,
-  DOUBLE_WALKOVER,
-  IN_PROGRESS,
-  WALKOVER,
-} = factoryConstants.matchUpStatusConstants;
+const { ABANDONED, CANCELLED, DEFAULTED, DOUBLE_DEFAULT, DOUBLE_WALKOVER, IN_PROGRESS, WALKOVER } =
+  factoryConstants.matchUpStatusConstants;
 
 export function scheduleCell(cell: any): HTMLSpanElement {
   const content = document.createElement('span');
@@ -33,29 +26,29 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     const booking = value.booking;
     content.className = 'schedule-cell blocked-cell';
     content.setAttribute('data-booking-type', booking.bookingType || 'BLOCKED');
-    
+
     const blockLabel = document.createElement('div');
     blockLabel.className = 'block-label';
-    
+
     const blockType = document.createElement('div');
     blockType.className = 'block-type';
     blockType.textContent = booking.bookingType || 'BLOCKED';
     blockLabel.appendChild(blockType);
-    
+
     if (booking.rowCount && booking.rowCount > 1) {
       const rowInfo = document.createElement('div');
       rowInfo.className = 'block-rows';
       rowInfo.textContent = `${booking.rowCount} rows`;
       blockLabel.appendChild(rowInfo);
     }
-    
+
     if (booking.notes) {
       const notes = document.createElement('div');
       notes.className = 'block-notes';
       notes.textContent = booking.notes;
       blockLabel.appendChild(notes);
     }
-    
+
     content.appendChild(blockLabel);
     return content;
   }
@@ -67,7 +60,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     matchUpStatus,
     winningSide,
     matchUpId,
-    sides
+    sides,
   } = value || {};
 
   const { courtOrder = '', scheduledTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
@@ -119,7 +112,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   const potentials = potentialParticipants?.map((potential: any) =>
     potential
       ?.map((participant: any) => `<span class='potential nowrap'>${getPotentialName(participant)}</span>`)
-      .join('<span style="font-weight: bold">&nbsp;or&nbsp;</span>')
+      .join('<span style="font-weight: bold">&nbsp;or&nbsp;</span>'),
   );
   const getParticiapntName = (sideNumber: number) => {
     const participantName = sides?.find((side: any) => sideNumber === side.sideNumber)?.participant?.participantName;
@@ -164,7 +157,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   if (winningSide) {
     const scoreLine = document.createElement('div');
     scoreLine.className = 'match_status';
-    
+
     // Check if the match was won by WALKOVER or DEFAULTED
     if (matchUpStatus === WALKOVER) {
       scoreLine.innerHTML = 'WALKOVER';
@@ -174,8 +167,13 @@ export function scheduleCell(cell: any): HTMLSpanElement {
       // Display normal score
       scoreLine.innerHTML = value.score?.scoreStringSide1 || '';
     }
-    
+
     scheduledTeams.appendChild(scoreLine);
+  } else if ([DOUBLE_DEFAULT, DOUBLE_WALKOVER].includes(matchUpStatus)) {
+    const statusLine = document.createElement('div');
+    statusLine.className = 'match_status';
+    statusLine.innerHTML = matchUpStatus === DOUBLE_DEFAULT ? 'DBL DEFAULT' : 'DBL WALKOVER';
+    scheduledTeams.appendChild(statusLine);
   }
 
   content.appendChild(scheduledTeams);
