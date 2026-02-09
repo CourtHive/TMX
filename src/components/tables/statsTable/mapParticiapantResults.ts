@@ -1,5 +1,5 @@
-const sum = (values: number[]) => values.reduce((total, value) => total + parseFloat(value.toString()), 0);
-const avg = (values: number[]) => parseFloat((sum(values) / values.length).toFixed(2));
+const sum = (values: number[]) => values.reduce((total, value) => total + Number.parseFloat(value.toString()), 0);
+const avg = (values: number[]) => Number.parseFloat((sum(values) / values.length).toFixed(2));
 
 type MapParticipantResultsParams = {
   participantResult?: any;
@@ -8,7 +8,12 @@ type MapParticipantResultsParams = {
   participantMap?: Record<string, any>;
 };
 
-export function mapParticipantResults({ participantResult, drawPosition, participantId, participantMap }: MapParticipantResultsParams = {}): any {
+export function mapParticipantResults({
+  participantResult,
+  drawPosition,
+  participantId,
+  participantMap,
+}: MapParticipantResultsParams = {}): any {
   const pointsResult = `${participantResult?.pointsWon || 0}/${participantResult?.pointsLost || 0}`;
   const gamesResult = `${participantResult?.gamesWon || 0}/${participantResult?.gamesLost || 0}`;
   const setsResult = `${participantResult?.setsWon || 0}/${participantResult?.setsLost || 0}`;
