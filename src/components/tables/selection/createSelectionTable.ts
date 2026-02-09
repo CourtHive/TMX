@@ -58,5 +58,10 @@ export function createSelectionTable(params: CreateSelectionTableParams): { tabl
     isFunction(onSelected) && onSelected?.(values);
   });
 
+  // Fix double-click issue: prevent input blur from interfering with row clicks
+  element?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+  });
+
   return { table };
 }
