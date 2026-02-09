@@ -14,22 +14,26 @@ import { getStatsColumns } from './getStatsColumns';
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';
 
 type CreateStatsTableParams = {
+  structureId: string;
   eventId: string;
   drawId: string;
-  structureId: string;
 };
 
 type CreateStatsTableResult = {
-  table: any;
   replaceTableData: (params?: { participantFilter?: string }) => void;
+  table: any;
 };
 
-export async function createStatsTable({ eventId, drawId, structureId }: CreateStatsTableParams): Promise<CreateStatsTableResult> {
-  let table: any;
-  let structure: any;
+export async function createStatsTable({
+  structureId,
+  eventId,
+  drawId,
+}: CreateStatsTableParams): Promise<CreateStatsTableResult> {
   let participantFilter: string | undefined;
   let participantMap: Record<string, any>;
-  
+  let structure: any;
+  let table: any;
+
   const getParticipantMap = (participants: any[]) =>
     (participants ?? []).reduce((map: Record<string, any>, participant: any) => {
       map[participant.participantId] = participant;
@@ -40,12 +44,14 @@ export async function createStatsTable({ eventId, drawId, structureId }: CreateS
 
   const getParticipantResults = () => {
     const { participants, eventData } = tournamentEngine.getEventData({
+      participantFilters: { eventIds: [eventId], positionedParticipants: true },
       participantsProfile: { withScaleValues: true },
       allParticipantResults: true,
       pressureRating: true,
       refreshResults: true,
       eventId,
     });
+    console.log('participants count', participants?.length);
     const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
@@ -75,14 +81,16 @@ export async function createStatsTable({ eventId, drawId, structureId }: CreateS
       .sort((a: any, b: any) => orderSorter(a.order, b.order));
 
   const updateTableData = () =>
-    getParticipantResults()?.map((participantInfo: any) => mapParticipantResults({ ...participantInfo, participantMap }));
+    getParticipantResults()?.map((participantInfo: any) =>
+      mapParticipantResults({ ...participantInfo, participantMap }),
+    );
   const replaceTableData = (params?: { participantFilter?: string }) => {
     if (params?.participantFilter !== undefined) participantFilter = params.participantFilter;
     table.replaceData(updateTableData());
   };
 
   const data = getTableData();
-  const columns = getStatsColumns();
+  const columns = getStatsColumns({ eventId, drawId, structureId });
 
   const render = (data: any[]) => {
     destroyTable({ anchorId: DRAWS_VIEW });

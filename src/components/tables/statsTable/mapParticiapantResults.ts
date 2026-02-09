@@ -10,9 +10,9 @@ type MapParticipantResultsParams = {
 
 export function mapParticipantResults({
   participantResult,
-  drawPosition,
-  participantId,
   participantMap,
+  participantId,
+  drawPosition,
 }: MapParticipantResultsParams = {}): any {
   const pointsResult = `${participantResult?.pointsWon || 0}/${participantResult?.pointsLost || 0}`;
   const gamesResult = `${participantResult?.gamesWon || 0}/${participantResult?.gamesLost || 0}`;
@@ -21,6 +21,7 @@ export function mapParticipantResults({
   const averagePressure = participantResult?.pressureScores?.length ? avg(participantResult.pressureScores) : 0;
   const averageVariation = participantResult?.ratingVariation?.length ? avg(participantResult.ratingVariation) : 0;
   const participant = participantMap?.[participantId || ''];
+  const ties = participantResult?.ties || 0;
 
   return {
     participantName: participant?.participantName,
@@ -35,5 +36,6 @@ export function mapParticipantResults({
     gamesResult,
     setsResult,
     order,
+    ties,
   };
 }

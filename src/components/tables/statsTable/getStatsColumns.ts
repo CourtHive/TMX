@@ -2,12 +2,52 @@ import { formatParticipant } from '../common/formatters/participantFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { percentSorter } from '../common/sorters/percentSorter';
+import { tournamentEngine } from 'tods-competition-factory';
 import { orderSorter } from '../common/sorters/orderSorter';
 import { headerMenu } from '../common/headerMenu';
 
+import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
 import { CENTER, LEFT } from 'constants/tmxConstants';
 
-export function getStatsColumns(): any[] {
+function findStructureById(structures: any[], structureId: string) {
+  return structures?.find((s) => s.structureId === structureId);
+}
+
+function hasDrawPosition(positionAssignments: any[], drawPosition: number) {
+  return positionAssignments?.some((pa) => pa.drawPosition === drawPosition);
+}
+
+function findBracket(structure: any, drawPosition: number) {
+  return structure.structures?.find((s) => hasDrawPosition(s.positionAssignments, drawPosition));
+}
+
+function filterTiedAssignments(positionAssignments: any[], order: any) {
+  return positionAssignments
+    ?.filter((pa) => pa.extensions?.find((ex) => ex.name === 'tally')?.value?.groupOrder === order)
+    .map((pa) => ({ drawPosition: pa.drawPosition, participantId: pa.participantId }));
+}
+
+export function getStatsColumns({ eventId, drawId, structureId }): any[] {
+  const orderActions =
+    () =>
+    (_: MouseEvent, cell: any): void => {
+      const row = cell.getRow();
+      const playerRow = row?.getData();
+      const ties = playerRow?.ties;
+      if (ties) {
+        const { drawDefinition } = tournamentEngine.getEvent({ eventId, drawId, structureId });
+        if (drawDefinition) {
+          const structure = findStructureById(drawDefinition.structures, structureId);
+          const bracket = findBracket(structure, playerRow.drawPosition);
+          const tiedAssignments = filterTiedAssignments(bracket.positionAssignments, playerRow.order);
+          const participantIds = tiedAssignments.map((ta) => ta.participantId);
+          const participants = tournamentEngine.getParticipants({
+            participantFilters: { participantIds },
+          })?.participants;
+          console.log(tiedAssignments, participants);
+        }
+      }
+    };
   return [
     {
       headerMenu: headerMenu({}),
@@ -132,11 +172,13 @@ export function getStatsColumns(): any[] {
       maxWidth: 80,
     },
     {
+      formatter: groupOrderFormatter,
+      cellClick: orderActions(),
       headerHozAlign: CENTER,
       sorter: orderSorter,
       hozAlign: CENTER,
       title: 'Order',
-      field: 'order',
+      field: 'order', // render with icon fir ties if present
       maxWidth: 80,
     },
     {

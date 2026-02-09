@@ -57,7 +57,6 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
 
       return div;
     };
-    /* return layout === 'sideBySide' && participant.individualParticipants?.length === 2 */
     return layout === 'sideBySide' && participant.participantType === PAIR
       ? renderPairParticipant(participant)
       : rendered(participant);
