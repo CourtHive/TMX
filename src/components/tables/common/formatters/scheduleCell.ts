@@ -5,7 +5,8 @@ import { timeFormat } from 'functions/timeStrings';
 
 import { CONFLICT_COURT_DOUBLE_BOOKING, timeModifierDisplay } from 'constants/tmxConstants';
 
-const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT, SCHEDULE_ISSUE } = factoryConstants.scheduleConstants;
+const { SCHEDULE_STATE, SCHEDULE_ERROR, SCHEDULE_WARNING, SCHEDULE_CONFLICT, SCHEDULE_ISSUE } =
+  factoryConstants.scheduleConstants;
 const { ABANDONED, CANCELLED, DEFAULTED, DOUBLE_DEFAULT, DOUBLE_WALKOVER, IN_PROGRESS, WALKOVER } =
   factoryConstants.matchUpStatusConstants;
 const { completedMatchUpStatuses } = factoryConstants;
@@ -26,7 +27,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   if (value?.isBlocked) {
     const booking = value.booking;
     content.className = 'schedule-cell blocked-cell';
-    content.setAttribute('data-booking-type', booking.bookingType || 'BLOCKED');
+    content.dataset.bookingType = booking.bookingType || 'BLOCKED';
 
     const blockLabel = document.createElement('div');
     blockLabel.className = 'block-label';
@@ -115,8 +116,9 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   // AND the matchUp is not completed
   const scheduleState = schedule[SCHEDULE_STATE];
   const isCompleted = matchUpStatus && completedMatchUpStatuses.includes(matchUpStatus);
-  const hasConflict = scheduleState && [SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ERROR, SCHEDULE_ISSUE].includes(scheduleState);
-  
+  const hasConflict =
+    scheduleState && [SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ERROR, SCHEDULE_ISSUE].includes(scheduleState);
+
   if (matchUpId && issueIds && issueIds.length > 0 && hasConflict && !isCompleted) {
     content.addEventListener('mouseenter', () => {
       // Highlight all cells with matchUpIds in the issueIds array

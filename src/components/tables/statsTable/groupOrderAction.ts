@@ -32,7 +32,7 @@ export const groupOrderAction =
         if (resultPositions.has(data.drawPosition)) {
           const groupOrder = result?.find((r) => r.drawPosition === data.drawPosition)?.groupOrder || data.groupOrder;
           Object.assign(data, { groupOrder });
-          row.update(data);
+          row.update(data); // trigger update to refresh the cell display with new groupOrder value => NOT WORKING!
         }
       }
     };
