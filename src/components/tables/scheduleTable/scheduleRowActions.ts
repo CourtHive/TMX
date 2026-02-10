@@ -22,9 +22,9 @@ export function rowActions(e: any, cell: any): void {
         Object.values(targetRow).forEach((c: any) => {
           if (c?.matchUpId && c?.schedule) {
             if ((schedule as any).scheduledTime) {
-              (c.schedule as any).scheduledTime = timeFormat((schedule as any).scheduledTime);
-              if ((c.schedule as any).timeModifiers?.[0] !== NOT_BEFORE) {
-                (c.schedule as any).timeModifiers = [];
+              c.schedule.scheduledTime = timeFormat((schedule as any).scheduledTime);
+              if (c.schedule.timeModifiers?.[0] !== NOT_BEFORE) {
+                c.schedule.timeModifiers = [];
               }
             }
 
@@ -32,7 +32,7 @@ export function rowActions(e: any, cell: any): void {
               if (c.schedule?.scheduledTime && (schedule as any).timeModifiers[0] !== NOT_BEFORE) {
                 c.schedule.scheduledTime = '';
               }
-              if (c.schedule) (c.schedule as any).timeModifiers = (schedule as any).timeModifiers;
+              if (c.schedule) c.schedule.timeModifiers = (schedule as any).timeModifiers;
             }
           }
         });
