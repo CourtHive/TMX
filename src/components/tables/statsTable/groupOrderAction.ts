@@ -1,3 +1,4 @@
+import { orderResolutionModal } from 'components/modals/orderResolutionModal';
 import { tournamentEngine } from 'tods-competition-factory';
 
 function findStructureById(structures: any[], structureId: string) {
@@ -17,10 +18,24 @@ function filterTiedAssignments(positionAssignments: any[], order: any) {
     ?.filter((pa) => pa.extensions?.find((ex) => ex.name === 'tally')?.value?.groupOrder === order)
     .map((pa) => ({ drawPosition: pa.drawPosition, participantId: pa.participantId }));
 }
+
 export const groupOrderAction =
   ({ eventId, drawId, structureId }) =>
   (_: MouseEvent, cell: any): void => {
     const row = cell.getRow();
+    const callback = (result) => {
+      const table = cell.getTable();
+      // get all rows relevant to the drawPositions in the result and update their groupOrder value
+      const rows = table.getRows();
+      const resultPositions = new Set(result.map((r) => r.drawPosition));
+      for (const row of rows) {
+        const data = row.getData();
+        if (resultPositions.has(data.drawPosition)) {
+          data.groupOrder = result?.find((r) => r.drawPosition === data.drawPosition)?.groupOrder || data.groupOrder;
+          row.update(data);
+        }
+      }
+    };
     const playerRow = row?.getData();
     const ties = playerRow?.ties;
     if (ties) {
@@ -30,10 +45,24 @@ export const groupOrderAction =
         const bracket = findBracket(structure, playerRow.drawPosition);
         const tiedAssignments = filterTiedAssignments(bracket.positionAssignments, playerRow.order);
         const participantIds = tiedAssignments.map((ta) => ta.participantId);
-        const participants = tournamentEngine.getParticipants({
-          participantFilters: { participantIds },
-        })?.participants;
-        console.log(tiedAssignments, participants);
+        const participants =
+          tournamentEngine
+            .getParticipants({
+              participantFilters: { participantIds },
+            })
+            ?.participants?.sort((a, b) => {
+              const aPosition = tiedAssignments.find((ta) => ta.participantId === a.participantId)?.drawPosition || 0;
+              const bPosition = tiedAssignments.find((ta) => ta.participantId === b.participantId)?.drawPosition || 0;
+              return aPosition - bPosition;
+            }) || [];
+
+        orderResolutionModal({
+          tiedAssignments,
+          participants,
+          structureId,
+          callback,
+          drawId,
+        });
       }
     }
   };

@@ -8,7 +8,9 @@ export const groupOrderFormatter = (cell) => {
   const ties = playerRow?.ties;
 
   if (ties) {
-    elem.innerHTML = `<span style='font-weight: bold; color: red'>[${isObject(value) ? (value as any).groupOrder : value}]</span>`;
+    const subOrder = playerRow?.subOrder;
+    const color = subOrder ? 'blue' : 'red';
+    elem.innerHTML = `<span style='font-weight: bold; color: ${color}'>[${isObject(value) ? (value as any).groupOrder : value}]</span>`;
   } else {
     elem.innerHTML = (isObject(value) ? (value as any).groupOrder : value) || '';
   }

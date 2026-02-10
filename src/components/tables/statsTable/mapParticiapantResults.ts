@@ -21,6 +21,7 @@ export function mapParticipantResults({
   const averagePressure = participantResult?.pressureScores?.length ? avg(participantResult.pressureScores) : 0;
   const averageVariation = participantResult?.ratingVariation?.length ? avg(participantResult.ratingVariation) : 0;
   const participant = participantMap?.[participantId || ''];
+  const subOrder = participantResult?.subOrder || 0;
   const ties = participantResult?.ties || 0;
 
   return {
@@ -35,6 +36,7 @@ export function mapParticipantResults({
     participant,
     gamesResult,
     setsResult,
+    subOrder,
     order,
     ties,
   };
