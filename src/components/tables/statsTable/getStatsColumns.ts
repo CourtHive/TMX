@@ -10,7 +10,7 @@ import { headerMenu } from '../common/headerMenu';
 // constants
 import { CENTER, LEFT } from 'constants/tmxConstants';
 
-export function getStatsColumns({ eventId, drawId, structureId }): any[] {
+export function getStatsColumns({ eventId, drawId, structureId, table }): any[] {
   return [
     {
       headerMenu: headerMenu({}),
@@ -135,7 +135,7 @@ export function getStatsColumns({ eventId, drawId, structureId }): any[] {
       maxWidth: 80,
     },
     {
-      cellClick: groupOrderAction({ eventId, drawId, structureId }),
+      cellClick: groupOrderAction({ eventId, drawId, structureId, table }),
       formatter: groupOrderFormatter,
       headerHozAlign: CENTER,
       sorter: orderSorter,

@@ -89,7 +89,7 @@ export async function createStatsTable({
   };
 
   const data = getTableData();
-  const columns = getStatsColumns({ eventId, drawId, structureId });
+  const columns = getStatsColumns({ eventId, drawId, structureId, table });
 
   const render = (data: any[]) => {
     destroyTable({ anchorId: DRAWS_VIEW });
