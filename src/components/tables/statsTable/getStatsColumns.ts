@@ -1,13 +1,16 @@
+import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { percentSorter } from '../common/sorters/percentSorter';
 import { orderSorter } from '../common/sorters/orderSorter';
+import { groupOrderAction } from './groupOrderAction';
 import { headerMenu } from '../common/headerMenu';
 
+// constants
 import { CENTER, LEFT } from 'constants/tmxConstants';
 
-export function getStatsColumns(): any[] {
+export function getStatsColumns({ eventId, drawId, structureId, table }): any[] {
   return [
     {
       headerMenu: headerMenu({}),
@@ -132,11 +135,13 @@ export function getStatsColumns(): any[] {
       maxWidth: 80,
     },
     {
+      cellClick: groupOrderAction({ eventId, drawId, structureId, table }),
+      formatter: groupOrderFormatter,
       headerHozAlign: CENTER,
       sorter: orderSorter,
       hozAlign: CENTER,
       title: 'Order',
-      field: 'order',
+      field: 'order', // render with icon fir ties if present
       maxWidth: 80,
     },
     {

@@ -15,10 +15,7 @@ import { RIGHT } from 'constants/tmxConstants';
 const { surfaceConstants } = factoryConstants;
 const EMPTY_OPTION = '------------';
 
-export function editCourt({
-  court,
-  callback,
-}: { court?: any; callback?: (result: any) => void } = {}): void {
+export function editCourt({ court, callback }: { court?: any; callback?: (result: any) => void } = {}): void {
   const values: any = {
     courtName: court?.courtName || '',
     indoorOutdoor: court?.indoorOutdoor || '',
@@ -30,7 +27,7 @@ export function editCourt({
   };
 
   const enableSubmit = ({ inputs }: any) => {
-    const isValid = !!(validators.nameValidator(1)(inputs['courtName'].value));
+    const isValid = !!validators.nameValidator(1)(inputs['courtName'].value);
     const saveButton = document.getElementById('saveCourtButton');
     if (saveButton) (saveButton as HTMLButtonElement).disabled = !isValid;
   };
@@ -105,14 +102,14 @@ export function editCourt({
     }
 
     const courtUpdates: any = { courtName };
-    
+
     // Handle indoorOutdoor: set to value if selected, undefined if cleared
     if (indoorOutdoor && indoorOutdoor !== EMPTY_OPTION && indoorOutdoor !== '') {
       courtUpdates.indoorOutdoor = indoorOutdoor;
     } else {
       courtUpdates.indoorOutdoor = undefined;
     }
-    
+
     // Handle surfaceType: set to value if selected, undefined if cleared
     if (surfaceType && surfaceType !== EMPTY_OPTION && surfaceType !== '') {
       courtUpdates.surfaceType = surfaceType;
