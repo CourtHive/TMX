@@ -51,7 +51,6 @@ export async function createStatsTable({
       refreshResults: true,
       eventId,
     });
-    console.log('participants count', participants?.length);
     const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
