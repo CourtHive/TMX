@@ -134,8 +134,21 @@ function requestAcknowledgement({
   uuid?: string;
   callback: (ack: any) => void;
 }): void {
-  if (ackId) ackRequests[ackId] = callback;
-  if (uuid) ackRequests[uuid] = callback;
+  const cleanup = () => {
+    if (ackId) delete ackRequests[ackId];
+    if (uuid) delete ackRequests[uuid];
+  };
+
+  const timeoutMs = (env.serverTimeout ?? 10000) * 3;
+  const timerId = setTimeout(cleanup, timeoutMs);
+
+  const wrappedCallback = (ack: any) => {
+    clearTimeout(timerId);
+    callback(ack);
+  };
+
+  if (ackId) ackRequests[ackId] = wrappedCallback;
+  if (uuid) ackRequests[uuid] = wrappedCallback;
 }
 
 function receiveAcknowledgement(ack: any): void {
