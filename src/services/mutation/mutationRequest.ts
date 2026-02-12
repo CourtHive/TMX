@@ -82,7 +82,7 @@ function queryDateRange({
 }: {
   state: any;
   providerIds: string[];
-  mutate: (saveLocal?: boolean) => void;
+  mutate: (saveLocal?: boolean) => Promise<void>;
 }): void {
   const onClick = () => (providerIds?.length ? checkPermissions({ state, providerIds, mutate }) : mutate());
   return tmxToast({
@@ -101,7 +101,7 @@ function checkPermissions({
 }: {
   state: any;
   providerIds: string[];
-  mutate: (saveLocal?: boolean) => void;
+  mutate: (saveLocal?: boolean) => Promise<void>;
 }): void {
   if (!state) {
     context.provider = undefined;
@@ -133,7 +133,7 @@ function checkPermissions({
   }
 
   const saveLocal = !isProvider && !(isSuperAdmin && impersonating);
-  return mutate(saveLocal);
+  mutate(saveLocal);
 }
 
 function engineExecution({ factoryEngine, methods }: { factoryEngine: any; methods: any[] }): any {
@@ -187,13 +187,15 @@ async function makeMutation({
   }
 
   if (hasProvider && (factoryResult?.success || env.serverFirst)) {
-    const ackCallback = async (ack: any) => {
+    const ackCallback = (ack: any) => {
       const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
       if (env.serverFirst && (ack?.success || missingTournament)) {
-        factoryResult = engineExecution({ factoryEngine, methods });
-        if (factoryResult.error) return completion(factoryResult);
-        await localSave(saveLocal || missingTournament);
-        return completion(factoryResult);
+        (async () => {
+          factoryResult = engineExecution({ factoryEngine, methods });
+          if (factoryResult.error) return completion(factoryResult);
+          await localSave(saveLocal || missingTournament);
+          return completion(factoryResult);
+        })();
       }
     };
     if (env.log?.verbose) console.log('%c invoking remote', 'color: lightblue');
