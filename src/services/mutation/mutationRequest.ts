@@ -188,7 +188,9 @@ async function makeMutation({
 
   if (hasProvider && (factoryResult?.success || env.serverFirst)) {
     let ackReceived = false;
+    let timedOut = false;
     const ackCallback = (ack: any) => {
+      if (timedOut) return;
       ackReceived = true;
       const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
       if (env.serverFirst && (ack?.success || missingTournament)) {
@@ -212,6 +214,7 @@ async function makeMutation({
     } else {
       setTimeout(() => {
         if (ackReceived) return;
+        timedOut = true;
         tmxToast({ message: 'Server not responding', intent: 'is-danger' });
         completion({ error: { message: 'Server not responding' } });
       }, env.serverTimeout ?? 10000);
