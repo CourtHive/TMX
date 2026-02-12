@@ -28,6 +28,7 @@
  * - env.serverFirst: (default true) Execute mutations on server first, then locally
  *                    If false, executes locally first, then sends to server
  * - env.saveLocal: Auto-save tournament records to IndexedDB after mutations
+ * - env.serverTimeout: (default 10000) Milliseconds to wait for server ack before reporting failure
  *
  * RATING SCALES:
  * - env.activeScale: Current rating scale ('wtn' or 'utr') - Changed by user or programmatically

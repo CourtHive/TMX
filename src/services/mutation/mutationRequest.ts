@@ -187,7 +187,9 @@ async function makeMutation({
   }
 
   if (hasProvider && (factoryResult?.success || env.serverFirst)) {
+    let ackReceived = false;
     const ackCallback = (ack: any) => {
+      ackReceived = true;
       const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
       if (env.serverFirst && (ack?.success || missingTournament)) {
         (async () => {
@@ -196,6 +198,8 @@ async function makeMutation({
           await localSave(saveLocal || missingTournament);
           return completion(factoryResult);
         })();
+      } else if (env.serverFirst && !executeLocalFirst) {
+        completion(ack?.error ? ack : { error: { message: 'Server rejected mutation' } });
       }
     };
     if (env.log?.verbose) console.log('%c invoking remote', 'color: lightblue');
@@ -203,7 +207,15 @@ async function makeMutation({
       data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
       ackCallback,
     });
-    if (executeLocalFirst) await localSave(saveLocal || false);
+    if (executeLocalFirst) {
+      await localSave(saveLocal || false);
+    } else {
+      setTimeout(() => {
+        if (ackReceived) return;
+        tmxToast({ message: 'Server not responding', intent: 'is-danger' });
+        completion({ error: { message: 'Server not responding' } });
+      }, env.serverTimeout ?? 10000);
+    }
   }
 
   if (executeLocalFirst) return completion(factoryResult);
