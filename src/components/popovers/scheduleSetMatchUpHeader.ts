@@ -7,12 +7,15 @@ import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { timeItemConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
+import { updateConflicts } from 'components/tables/scheduleTable/updateConflicts';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tipster } from 'components/popovers/tipster';
 import { timePicker } from '../modals/timePicker';
 import { isFunction } from 'functions/typeOf';
 
-import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
-import { timeModifierText, RIGHT } from 'constants/tmxConstants';
+import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import { timeModifierText, RIGHT, COMPETITION_ENGINE, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
@@ -86,6 +89,68 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
     });
   };
 
+  const removeFromSchedule = () => {
+    if (!matchUp?.matchUpId || !matchUp?.schedule?.courtId) return;
+
+    const scheduleTable = cell.getTable();
+    const { courtId, courtOrder, venueId } = matchUp.schedule;
+    
+    const updatedSchedule = { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' };
+    const methods = [
+      {
+        method: ADD_MATCHUP_SCHEDULE_ITEMS,
+        params: {
+          tournamentId: matchUp.tournamentId,
+          matchUpId: matchUp.matchUpId,
+          schedule: updatedSchedule,
+          drawId: matchUp.drawId,
+          removePriorValues: true,
+        },
+      },
+    ];
+
+    const postMutation = (result: any) => {
+      if (result.success) {
+        matchUp.schedule = updatedSchedule;
+        
+        // Update the schedule table row to clear the matchUp
+        const tableRows = scheduleTable.getRows();
+        let sourceColumnKey: string | undefined;
+        let sourceRow: any;
+        const tabulatorRow = tableRows.find((row: any) => {
+          sourceRow = row.getData();
+          sourceColumnKey = Object.keys(sourceRow).find((key) => {
+            const cellData = sourceRow[key];
+            return cellData && typeof cellData === 'object' && cellData.matchUpId === matchUp.matchUpId;
+          });
+          return sourceColumnKey;
+        });
+
+        if (tabulatorRow && sourceRow && sourceColumnKey) {
+          sourceRow[sourceColumnKey] = {
+            schedule: {
+              courtOrder,
+              courtId,
+              venueId,
+            },
+          };
+          scheduleTable.updateData([sourceRow]);
+        }
+
+        // Add to unscheduled table
+        const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)[0];
+        if (unscheduledTable) {
+          const newRow = mapMatchUp(matchUp);
+          unscheduledTable.addRow(newRow, true);
+        }
+
+        updateConflicts(scheduleTable);
+      }
+    };
+
+    mutationRequest({ methods, engine: COMPETITION_ENGINE, callback: postMutation });
+  };
+
   const options = [
     {
       option: setMatchTimeText,
@@ -118,6 +183,10 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
     {
       option: `Clear time settings`,
       onClick: clearTimeSettings,
+    },
+    matchUp?.schedule?.courtId && {
+      option: 'Remove from schedule',
+      onClick: removeFromSchedule,
     },
     matchUp?.drawId && {
       option: 'View draw',
