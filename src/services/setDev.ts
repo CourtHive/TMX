@@ -7,6 +7,7 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { loadTournament } from 'pages/tournament/tournamentDisplay';
+import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
 import * as factory from 'tods-competition-factory';
@@ -14,7 +15,6 @@ import { tmxToast } from './notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
-import { baseApi } from './apis/baseApi';
 import { env } from 'settings/env';
 import dayjs from 'dayjs';
 
@@ -126,6 +126,20 @@ export function setDev(): void {
   addDev({ connectSocket, disconnectSocket, emitTmx });
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
+
+  addDev({
+    setServer: (url: string) => {
+      setBaseURL(url);
+      env.socketPath = url;
+      disconnectSocket();
+      console.log(`[dev] server set to: ${url} — call dev.connectSocket() after logging in`);
+    },
+    goLocal: (port = 8383) => {
+      const url = `http://localhost:${port}`;
+      (window as any).dev.setServer(url);
+    },
+    getServer: () => getBaseURL(),
+  });
 
   factory.globalState.setSubscriptions({ subscriptions });
 }

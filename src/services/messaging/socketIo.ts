@@ -42,7 +42,7 @@ export function connectSocket(callback?: () => void): void {
     timeout: 20000,
   };
   if (!oi.socket) {
-    const socketPath = env.socketPath || process.env.SERVER || '';
+    const socketPath = env.socketPath || process.env.SERVER || window.location.origin;
     const connectionString = `${socketPath}/tmx`;
     oi.socket = io(connectionString, connectionOptions);
     oi.socket.on('ack', receiveAcknowledgement);
