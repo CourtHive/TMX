@@ -4,8 +4,11 @@
  */
 import { tournamentInfoBlock } from './infoiBlock';
 import { initScrollNav } from './initScrollNav';
+import { context } from 'services/context';
 import { eventBlock } from './eventBlock';
-import { TMXlogo } from './courtHiveLogo';
+
+// SVG/D3 version
+import { animateLogoFlyThrough, TMXlogoSVG as TMXlogo } from './courtHiveLogoSVG';
 
 import {
   SPLASH,
@@ -25,12 +28,26 @@ export function rootBlock(): HTMLElement {
   const root = document.getElementById('root')!;
   root.appendChild(newBlock());
 
+  const logo = TMXlogo();
   const splash = document.createElement('div');
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
   splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: none;';
-  splash.appendChild(TMXlogo());
+  splash.appendChild(logo);
   root.appendChild(splash);
+
+  const isRootUrl = !globalThis.location.hash || globalThis.location.hash === '#/' || globalThis.location.hash === '#';
+  if (isRootUrl) {
+    animateLogoFlyThrough(logo, {
+      delay: 2000, // 2s static display
+      duration: 2000, // 2s fly-through
+      courtLineFade: 2000, // 2s fade of court lines starting at fly-through start
+      onComplete: () => {
+        splash.style.display = NONE;
+        context.router.navigate(`/${TMX_TOURNAMENTS}`);
+      },
+    });
+  }
 
   const tp = document.createElement('div');
   tp.style.display = NONE;

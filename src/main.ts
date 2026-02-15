@@ -3,20 +3,18 @@ import { rootBlock } from 'components/framework/rootBlock';
 import * as serviceWorker from './serviceWorker';
 import { setupTMX } from './initialState';
 
-// @ts-expect-error window
-if (window.attachEvent) {
-  // @ts-expect-error window
-  window.attachEvent('onload', setupTMX);
-} else if (window.onload) {
-  const curronload = window.onload;
+if (globalThis.attachEvent) {
+  globalThis.attachEvent('onload', setupTMX);
+} else if (globalThis.onload) {
+  const curronload = globalThis.onload;
   const newonload = (evt) => {
-    // @ts-expect-error window
+    // @ts-expect-error globalThis
     curronload(evt);
     setupTMX();
   };
-  window.onload = newonload;
+  globalThis.onload = newonload;
 } else {
-  window.onload = setupTMX;
+  globalThis.onload = setupTMX;
 }
 
 function onUpdate() {
@@ -27,5 +25,5 @@ rootBlock();
 
 // NOTE: serviceWorker.unregister() is used for development; serviceWorker.register() is used for production
 // pehaps an environment variable could be used to determine which to use
-// @ts-expect-error window
+// @ts-expect-error globalThis
 serviceWorker.unregister({ onUpdate });

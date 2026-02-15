@@ -99,7 +99,7 @@ function tmxReady(): void {
 
   const splashElement = document.getElementById(SPLASH);
   if (splashElement) {
-    splashElement.onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
+    // splashElement.onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
   }
   routeTMX();
   tmxNavigation();
