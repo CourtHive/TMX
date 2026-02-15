@@ -91,7 +91,7 @@ importers:
         version: 2.6.0
       pdfmake:
         specifier: ^0.3.2
-        version: 0.3.3
+        version: 0.3.4
       pikaday:
         specifier: 1.8.2
         version: 1.8.2
@@ -3008,8 +3008,8 @@ packages:
   pdfkit@0.17.2:
     resolution: {integrity: sha512-UnwF5fXy08f0dnp4jchFYAROKMNTaPqb/xgR8GtCzIcqoTnbOqtp3bwKvO4688oHI6vzEEs8Q6vqqEnC5IUELw==}
 
-  pdfmake@0.3.3:
-    resolution: {integrity: sha512-jSnF8rVLkbLLX37bnXWRFhEDO48quE7OIg7lgWBa6ihAbpCxASaBLWFOXNxSDeLBNt92304SBwpYcPkJnIArlA==}
+  pdfmake@0.3.4:
+    resolution: {integrity: sha512-zbGBox6pgNeGdG7tlLVBbQJlYIlTHtXo5q8+dNhCb2O0Q2+Nc5bcpsgNzbzqfzlcJ0gX9f+ZBv1z4FuJjUHwVA==}
     engines: {node: '>=20'}
 
   periscopic@3.1.0:
@@ -6782,7 +6782,7 @@ snapshots:
       linebreak: 1.1.0
       png-js: 1.0.0
 
-  pdfmake@0.3.3:
+  pdfmake@0.3.4:
     dependencies:
       linebreak: 1.1.0
       pdfkit: 0.17.2
