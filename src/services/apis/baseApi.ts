@@ -3,7 +3,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import axios from 'axios';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
-const baseURL = process.env.SERVER;
+const baseURL = process.env.SERVER || window.location.origin;
+console.log('[baseApi] server URL:', baseURL);
 const axiosInstance = axios.create({ baseURL });
 
 axiosInstance.interceptors.request.use(
@@ -43,6 +44,15 @@ const addAuthorization = () => {
 const removeAuthorization = () => {
   axiosInstance.defaults.headers.common.Authorization = undefined;
 };
+
+export function setBaseURL(url: string): void {
+  axiosInstance.defaults.baseURL = url;
+  console.log(`[baseApi] server URL changed to: ${url}`);
+}
+
+export function getBaseURL(): string {
+  return axiosInstance.defaults.baseURL ?? '';
+}
 
 export const baseApi: any = {
   ...axiosInstance,
