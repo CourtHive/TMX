@@ -28,8 +28,8 @@ function resolveSmartComplements(): boolean {
     return env.smartComplements;
   }
 
-  // Default: false
-  return false;
+  // Default: true
+  return true;
 }
 
 /**

@@ -224,7 +224,12 @@ function getStatusOptions({ matchUpFilters, table }: any): any[] {
   const statusFilter = (rowData: any) => {
     const currentFilter = matchUpFilters.get('matchUpStatusFilter');
     if (currentFilter === 'readyToScore') {
-      return rowData.scoreDetail.readyToScore && !rowData.scoreDetail.score && !rowData.scoreDetail.winningSide;
+      return (
+        rowData.scoreDetail.readyToScore &&
+        !rowData.scoreDetail.score &&
+        !rowData.scoreDetail.winningSide &&
+        !['DOUBLE_WALKOVER', 'DOUBLE_DEFAULT', 'CANCELLED', 'ABANDONED'].includes(rowData.scoreDetail.matchUpStatus)
+      );
     } else if (currentFilter === 'complete') {
       return (
         rowData.scoreDetail.winningSide ||
