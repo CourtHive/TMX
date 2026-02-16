@@ -19,8 +19,6 @@ import { initConfig } from 'config/config';
 import { version } from 'config/version';
 import { env } from 'settings/env';
 
-import { SPLASH } from 'constants/tmxConstants';
-
 import dragMatch from 'assets/icons/dragmatch.png';
 
 import 'courthive-components/dist/courthive-components.css';
