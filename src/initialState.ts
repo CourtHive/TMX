@@ -19,7 +19,7 @@ import { initConfig } from 'config/config';
 import { version } from 'config/version';
 import { env } from 'settings/env';
 
-import { SPLASH, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { SPLASH } from 'constants/tmxConstants';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
@@ -96,11 +96,6 @@ function tmxReady(): void {
   console.log('%c TMX ready', 'color: lightgreen');
   setDev();
   setSubscriptions();
-
-  const splashElement = document.getElementById(SPLASH);
-  if (splashElement) {
-    // splashElement.onclick = () => context.router.navigate(`/${TMX_TOURNAMENTS}`);
-  }
   routeTMX();
   tmxNavigation();
 }
@@ -139,7 +134,7 @@ function setSubscriptions(): void {
 }
 
 function eventListeners(): void {
-  window.addEventListener('error', (e) => {
+  globalThis.addEventListener('error', (e) => {
     if ([RESIZE_LOOP, RESIZE_NOTIFICATIONS].includes(e.message)) {
       const resizeObserverErrDiv = document.getElementById('webpack-dev-server-client-overlay-div');
       const resizeObserverErr = document.getElementById('webpack-dev-server-client-overlay');
@@ -166,7 +161,7 @@ function getDevice(): any {
 
 function getNavigator(): Navigator | undefined {
   try {
-    return navigator || (window as any).navigator;
+    return navigator || (globalThis as any).navigator;
   } catch (err) {
     console.log(err);
     return undefined;
