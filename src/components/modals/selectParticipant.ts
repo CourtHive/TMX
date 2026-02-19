@@ -8,55 +8,57 @@ import { positionActionConstants } from 'tods-competition-factory';
 import { controlBar } from 'components/controlBar/controlBar';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { LEFT } from 'constants/tmxConstants';
 
 const { ALTERNATE_PARTICIPANT, ASSIGN_PARTICIPANT, LUCKY_PARTICIPANT, QUALIFYING_PARTICIPANT, SWAP_PARTICIPANTS } =
   positionActionConstants;
 
-const actionTypes: Record<string, any> = {
+const getActionTypes = (): Record<string, any> => ({
   [ALTERNATE_PARTICIPANT]: {
     selections: 'availableAlternates',
     targetAttribute: 'participantId',
     param: 'alternateParticipantId',
-    title: 'Assign alternate',
+    title: t('modals.selectParticipant.assignAlternate'),
   },
   [ASSIGN_PARTICIPANT]: {
     selections: 'participantsAvailable',
     targetAttribute: 'participantId',
-    title: 'Select participant',
+    title: t('modals.selectParticipant.selectParticipant'),
   },
   [LUCKY_PARTICIPANT]: {
     selections: 'availableLuckyLosers',
     targetAttribute: 'participantId',
     param: 'luckyLoserParticipantId',
-    title: 'Assign lucky loser',
+    title: t('modals.selectParticipant.assignLuckyLoser'),
   },
   [QUALIFYING_PARTICIPANT]: {
     selections: 'qualifyingParticipants',
     targetAttribute: 'participantId',
     param: 'qualifyingParticipantId',
-    title: 'Assign qualifier',
+    title: t('modals.selectParticipant.assignQualifier'),
   },
   [SWAP_PARTICIPANTS]: {
     selections: ['availableAssignments', 'swappableParticipants'],
     targetAttribute: 'drawPosition',
-    title: 'Swap draw positions',
+    title: t('modals.selectParticipant.swapDrawPositions'),
     param: 'drawPositions',
   },
   selectParticipants: {
     selections: 'participantsAvailable',
     targetAttribute: 'participantId',
-    title: 'Select participants',
+    title: t('modals.selectParticipant.selectParticipants'),
   },
-};
+});
 
 export function selectParticipant(params: any): void {
   const { selectedParticipantIds, selectionLimit, activeOnEnter, selectOnEnter, onSelection, update, action } = params;
+  const actionTypes = getActionTypes();
   const actionType = actionTypes[action.type];
   if (!actionType?.targetAttribute) return;
 
-  const title = params.title || actionType.title || 'Select participant';
+  const title = params.title || actionType.title || t('modals.selectParticipant.selectParticipant');
   let selected: any;
   let controlInputs: any;
 
@@ -81,8 +83,8 @@ export function selectParticipant(params: any): void {
   const controlId = 'selectionControl';
   const anchorId = 'selectionTable';
   const buttons = [
-    { label: 'Cancel', intent: 'is-none', close: true },
-    { hide: selectionLimit === 1, label: 'Select', intent: 'is-info', onClick, close: true },
+    { label: t('common.cancel'), intent: 'is-none', close: true },
+    { hide: selectionLimit === 1, label: t('select'), intent: 'is-info', onClick, close: true },
   ];
   const onClose = () => {
     const table = context.tables['selectionTable'];
@@ -160,7 +162,7 @@ export function selectParticipant(params: any): void {
       onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search entries',
+      placeholder: t('modals.selectParticipant.searchEntries'),
       id: 'participantSearch',
       location: LEFT,
       search: true,

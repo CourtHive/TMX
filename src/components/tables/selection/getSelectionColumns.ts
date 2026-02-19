@@ -1,4 +1,5 @@
 import { genderedText } from '../common/formatters/genderedText';
+import { t } from 'i18n';
 
 export function getSelectionColumns(data: any[]): any[] {
   const drawPositions = data.some((item) => item.drawPosition);
@@ -7,7 +8,7 @@ export function getSelectionColumns(data: any[]): any[] {
     {
       visible: drawPositions,
       field: 'drawPosition',
-      title: 'Position',
+      title: t('tables.selection.position'),
       headerSort: false,
       responsive: false,
       editor: false,
@@ -16,7 +17,7 @@ export function getSelectionColumns(data: any[]): any[] {
     {
       formatter: genderedText,
       field: 'participantName',
-      title: 'Participant',
+      title: t('tables.selection.participant'),
       responsive: false,
       minWidth: 200,
       widthGrow: 2

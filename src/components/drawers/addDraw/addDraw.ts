@@ -9,6 +9,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 // constants
 import { CUSTOM, DRAW_NAME, NONE, RIGHT, STRUCTURE_NAME } from 'constants/tmxConstants';
@@ -55,7 +56,7 @@ export function addDraw({
 
   const checkParams = () => {
     if (!isValid()) {
-      tmxToast({ message: 'Missing Draw name', intent: 'is-danger' });
+      tmxToast({ message: t('drawers.addDraw.missingName'), intent: 'is-danger' });
     } else if (inputs.matchUpFormat?.value === CUSTOM) {
       const setMatchUpFormat = (matchUpFormat: string) => {
         if (matchUpFormat) {
@@ -86,11 +87,11 @@ export function addDraw({
   };
 
   const buttons = [
-    { label: 'Cancel', intent: NONE, close: true },
-    { label: 'Generate', id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid },
+    { label: t('common.cancel'), intent: NONE, close: true },
+    { label: t('drawers.addDraw.generate'), id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid },
   ];
 
-  const title = flightNumber ? `Generate flight` : `Configure draw`;
+  const title = flightNumber ? t('drawers.addDraw.generateFlight') : t('drawers.addDraw.configureDraw');
 
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });

@@ -2,14 +2,16 @@
  * Control bar component for tables.
  * Dynamically generates search fields, buttons, and dropdown menus based on configuration.
  */
-import { validator } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { dropDownButton } from '../buttons/dropDownButton';
 import { selectItem } from 'components/modals/selectItem';
 import { barButton } from 'components/buttons/barButton';
 import { isFunction, isObject } from 'functions/typeOf';
+import { validator } from 'courthive-components';
 import { toggleOverlay } from './toggleOverlay';
+import { t } from 'i18n';
 
+// constants
 import { CENTER, HEADER, EMPTY_STRING, LEFT, NONE, OVERLAY, RIGHT, BUTTON_BAR, TOP } from 'constants/tmxConstants';
 
 export function controlBar(params: {
@@ -45,14 +47,14 @@ export function controlBar(params: {
     {},
     ...[OVERLAY, LEFT, CENTER, RIGHT, HEADER]
       .map((location) => {
-        const elem = target!.getElementsByClassName(`options_${location}`)?.[0] as HTMLElement;
+        const elem = target.getElementsByClassName(`options_${location}`)?.[0] as HTMLElement;
         removeAllChildNodes(elem);
         return { [location]: elem };
       })
       .filter(Boolean),
   );
 
-  const stateChange = toggleOverlay({ table, target: target! } as any);
+  const stateChange = toggleOverlay({ table, target: target } as any);
 
   const onClick = (e: any, itemConfig: any) => {
     if (!isFunction(itemConfig.onClick)) return;
@@ -197,7 +199,7 @@ export function controlBar(params: {
         const elem = barButton(itemConfig);
         elem.onclick = (e) => {
           e.stopPropagation();
-          selectItem({ title: 'Select team', options });
+          selectItem({ title: t('modals.selectTeam'), options });
         };
         if (itemConfig.id) elements[itemConfig.id] = elem;
         location?.appendChild(elem);

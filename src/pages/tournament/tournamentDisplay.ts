@@ -16,6 +16,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
+import { t } from 'i18n';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
@@ -65,7 +66,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
 
   const notFound = () => {
     tmxToast({
-      message: 'Tournament not found',
+      message: t('toasts.tournamentNotFound'),
       onClose: () => {
         context.router.navigate('/tournaments');
       },

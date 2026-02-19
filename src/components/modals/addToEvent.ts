@@ -6,6 +6,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -32,20 +33,20 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
   const ungroupedOnly = [TEAM, DOUBLES].includes(eventType as any) && participantType === INDIVIDUAL;
 
   if (!participantIds?.length) {
-    tmxToast({ message: 'Nothing to do', intent: 'is-info' });
+    tmxToast({ message: t('modals.addToEvent.nothingToDo'), intent: 'is-info' });
     return;
   }
 
   const entryStages = [
-    { label: 'Main', value: MAIN, selected: true },
-    { label: 'Qualifying', value: QUALIFYING }
+    { label: t('modals.addToEvent.main'), value: MAIN, selected: true },
+    { label: t('modals.addToEvent.qualifying'), value: QUALIFYING }
   ];
   const stageOptions = entryStages.map(({ label, value, selected }) => ({ selected, label, value }));
   const entryStatusOptions = [
-    { hide: ungroupedOnly, label: 'Direct Acceptance', value: DIRECT_ACCEPTANCE, selected: true },
-    { hide: ungroupedOnly, label: 'Alternate', value: ALTERNATE },
-    { hide: ungroupedOnly, label: 'Wildcard', value: WILDCARD },
-    { hide: participantType === TEAM, label: 'Ungrouped', value: UNGROUPED, selected: ungroupedOnly }
+    { hide: ungroupedOnly, label: t('modals.addToEvent.directAcceptance'), value: DIRECT_ACCEPTANCE, selected: true },
+    { hide: ungroupedOnly, label: t('modals.addToEvent.alternate'), value: ALTERNATE },
+    { hide: ungroupedOnly, label: t('modals.addToEvent.wildcard'), value: WILDCARD },
+    { hide: participantType === TEAM, label: t('modals.addToEvent.ungrouped'), value: UNGROUPED, selected: ungroupedOnly }
   ];
 
   let inputs: any;
@@ -63,24 +64,24 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
       },
       {
         options: stageOptions,
-        label: 'Event stage',
+        label: t('modals.addToEvent.eventStage'),
         field: 'entryStage',
         value: MAIN
       },
       {
         options: entryStatusOptions,
         value: DIRECT_ACCEPTANCE,
-        label: 'Entry status',
+        label: t('modals.addToEvent.entryStatus'),
         field: 'entryStatus'
       }
     ]));
 
   openModal({
-    title: `Add to event`,
+    title: t('modals.addToEvent.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', intent: 'is-info', close: true, onClick }
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('add'), intent: 'is-info', close: true, onClick }
     ]
   });
 }

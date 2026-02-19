@@ -13,6 +13,7 @@ import {
   SCORE_VALUE,
   SET_VALUE
 } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getCollectionDefinitionColumns(): any[] {
   const editMatchUpFormat = (_e: Event, cell: any) => {
@@ -58,7 +59,7 @@ export function getCollectionDefinitionColumns(): any[] {
       editorParams: { selectContents: true },
       field: 'collectionName',
       minWidth: 200,
-      title: 'Name',
+      title: t('tables.tieFormat.name'),
       editor: true
     },
     {
@@ -79,13 +80,13 @@ export function getCollectionDefinitionColumns(): any[] {
     {
       field: 'matchUpType',
       editor: 'list',
-      title: 'Type',
+      title: t('tables.tieFormat.type'),
       width: 100,
 
       editorParams: { values: ['Singles', 'Doubles'] }
     },
     {
-      title: 'Gender',
+      title: t('tables.tieFormat.gender'),
       field: 'gender',
       editor: 'list',
       width: 100,
@@ -94,12 +95,12 @@ export function getCollectionDefinitionColumns(): any[] {
     },
     {
       cellClick: editMatchUpFormat,
-      title: 'Score format',
+      title: t('tables.tieFormat.scoreFormat'),
       field: MATCHUP_FORMAT,
       minWidth: 150
     },
     {
-      title: 'Award type',
+      title: t('tables.tieFormat.awardType'),
       field: 'awardType',
       editor: 'list',
       width: 150,
@@ -109,7 +110,7 @@ export function getCollectionDefinitionColumns(): any[] {
     {
       field: 'awardValue',
       editor: 'number',
-      title: 'Value',
+      title: t('tables.tieFormat.value'),
       width: 70,
       editorParams: {
         elementAttributes: { maxlength: 2 },

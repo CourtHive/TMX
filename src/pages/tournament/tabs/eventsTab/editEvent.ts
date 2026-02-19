@@ -7,6 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -170,7 +171,7 @@ export function editEvent({
     // Always add Custom option at the end
     options.push({
       selected: false,
-      label: 'Custom',
+      label: t('pages.events.editEvent.custom'),
       value: 'custom',
     });
 
@@ -198,13 +199,13 @@ export function editEvent({
       elem,
       [
         {
-          error: 'minimum of 5 characters',
+          error: t('pages.events.editEvent.eventNameError'),
           validator: validators.nameValidator(5),
-          placeholder: 'Event name',
+          placeholder: t('pages.events.editEvent.eventNamePlaceholder'),
           value: values.eventName,
           onChange: valueChange,
           selectOnFocus: true,
-          label: 'Event name',
+          label: t('pages.events.editEvent.eventNameLabel'),
           field: 'eventName',
           focus: true,
         },
@@ -212,24 +213,24 @@ export function editEvent({
           disabled: enteredParticipantTypes.length,
           value: values.eventType,
           field: 'eventType',
-          label: 'Format',
+          label: t('fmt'),
           options: [
             {
               hide: eventTypeOptions && !eventTypeOptions.includes(SINGLES),
               selected: values.eventType === SINGLES,
-              label: 'Singles',
+              label: t('sgl'),
               value: SINGLES,
             },
             {
               hide: eventTypeOptions && !eventTypeOptions.includes(DOUBLES),
               selected: values.eventType === DOUBLES,
-              label: 'Doubles',
+              label: t('dbl'),
               value: DOUBLES,
             },
             {
               hide: eventTypeOptions && !eventTypeOptions.includes(TEAM),
               selected: values.eventType === TEAM,
-              label: 'Team',
+              label: t('team'),
               value: TEAM,
             },
           ],
@@ -237,30 +238,30 @@ export function editEvent({
         },
         {
           value: values.gender,
-          label: 'Gender',
+          label: t('gdr'),
           field: 'gender',
           options: [
             {
               hide: genderOptions && !genderOptions.includes(MALE),
               selected: values.gender === MALE,
-              label: 'Male',
+              label: t('genders.male'),
               value: MALE,
             },
             {
               hide: genderOptions && !genderOptions.includes(FEMALE),
               selected: values.gender === FEMALE,
-              label: 'Female',
+              label: t('genders.female'),
               value: FEMALE,
             },
             {
               selected: values.gender === ANY,
-              label: 'Any',
+              label: t('pages.events.editEvent.any'),
               value: ANY,
             },
             {
               hide: genderOptions && !genderOptions.includes(MIXED),
               selected: values.gender === MIXED,
-              label: 'Mixed',
+              label: t('genders.mixed'),
               value: MIXED,
             },
           ],
@@ -269,20 +270,20 @@ export function editEvent({
         {
           value: values.ageCategoryCode,
           field: 'ageCategoryCode',
-          label: 'Category',
+          label: t('cat'),
           options: buildCategoryOptions(),
           onChange: valueChange,
         },
         {
           value: event?.startDate ?? tournamentInfo.startDate,
           placeholder: 'YYYY-MM-DD',
-          label: 'Start date',
+          label: t('start'),
           field: 'startDate',
         },
         {
           value: event?.endDate ?? tournamentInfo.endDate,
           placeholder: 'YYYY-MM-DD',
-          label: 'End date',
+          label: t('end'),
           field: 'endDate',
         },
         {
@@ -302,7 +303,7 @@ export function editEvent({
 
     // Validation
     if (!eventName || eventName.length < 5) {
-      tmxToast({ message: 'Event name must be at least 5 characters', intent: 'is-danger' });
+      tmxToast({ message: t('pages.events.editEvent.eventNameRequired'), intent: 'is-danger' });
       return;
     }
 
@@ -343,7 +344,7 @@ export function editEvent({
               }
             } else {
               tmxToast({
-                message: 'Category saved to event but not added to tournament categories',
+                message: t('pages.events.editEvent.categorySaveWarning'),
                 intent: 'is-warning',
               });
             }
@@ -390,7 +391,7 @@ export function editEvent({
         const event = result.results?.[0]?.event;
         if (isFunction(callback)) callback({ ...result, event, eventUpdates });
       } else if (result.error) {
-        tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
+        tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
         if (isFunction(callback)) callback(result);
       }
     };
@@ -445,13 +446,13 @@ export function editEvent({
     renderButtons(
       elem,
       [
-        { label: 'Cancel', onClick: () => table?.deselectRow(), close: true },
-        { label: 'Save', onClick: saveEvent, close: shouldClose, intent: 'is-info' },
+        { label: t('common.cancel'), onClick: () => table?.deselectRow(), close: true },
+        { label: t('common.save'), onClick: saveEvent, close: shouldClose, intent: 'is-info' },
       ],
       close,
     );
 
-  const title = event?.eventId ? 'Edit event' : 'Add event';
+  const title = event?.eventId ? t('pages.events.editEvent.titleEdit') : t('pages.events.editEvent.titleAdd');
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
     onClose: () => table?.deselectRow(),

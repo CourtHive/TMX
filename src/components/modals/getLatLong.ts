@@ -16,7 +16,7 @@ import * as L from 'leaflet';
 
 function getNavigator() {
   try {
-    return navigator || window.navigator;
+    return navigator || globalThis.navigator;
   } catch (e) {
     // Navigator not available
     console.log(e);
@@ -45,7 +45,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
   const map_style = 'width: 100%; height: 100%; min-width: 350px; min-height: 350px;';
   const html = `
     <div style='min-height: 150px'>
-    <h2 class='tmx-title'>Enter map URL</h2>
+    <h2 class='tmx-title'>${t('modals.getLatLong.enterMapUrl')}</h2>
     <div class='flexcenter'>${t('phrases.addgooglemap')}</div>
     <div class='flexcenter flexcol'>
       <input id='${ids.link}' value='' style='text-align: center; width: 25em; margin: 1em;'>
@@ -61,7 +61,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
     if (!coords!.latitude || !coords!.longitude) {
       processLink();
     } else {
-      updateCoords(coords!);
+      updateCoords(coords);
     }
   };
 
@@ -74,25 +74,25 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
 
   const buttons = [
     {
-      label: 'Cancel',
+      label: t('common.cancel'),
       intent: 'none',
       close: true,
     },
     {
       onClick: updateCoords,
       intent: 'is-warning',
-      label: 'Clear',
+      label: t('clr'),
     },
     {
       onClick: viewLocation,
       intent: 'is-primary',
-      label: 'View',
+      label: t('view'),
       close: false,
     },
     {
       onClick: submitLink,
       intent: 'is-info',
-      label: 'Submit',
+      label: t('common.submit'),
       close: true,
     },
   ];
@@ -105,7 +105,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
     if (parsedCoords.latitude) {
       updateCoords(parsedCoords as any);
     } else if (link && parsedCoords.latitude === undefined) {
-      tmxToast({ message: 'Invalid URL' });
+      tmxToast({ message: t('modals.getLatLong.invalidUrl') });
     }
   };
 
@@ -113,7 +113,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
     if (evt.key === 'Enter') processLink();
   };
 
-  openModal({ title: 'Location', content: html, buttons });
+  openModal({ title: t('modals.getLatLong.title'), content: html, buttons });
 
   const container = idObj(ids);
   const { map, marker } = locationMap({

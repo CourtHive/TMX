@@ -17,7 +17,7 @@ export function removeApproved({ teams, callback }: { teams: any[]; callback: (p
     renderForm(elem, [
       {
         value: NO_SELECTION,
-        label: 'Select team(s) to remove',
+        label: t('modals.removeApproved.selectTeams'),
         field: 'selection',
         options
       }
@@ -29,11 +29,11 @@ export function removeApproved({ teams, callback }: { teams: any[]; callback: (p
   };
 
   openModal({
-    title: 'Remove approved',
+    title: t('modals.removeApproved.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Remove', intent: 'is-danger', onClick: removeSelection as any, close: true }
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('remove'), intent: 'is-danger', onClick: removeSelection as any, close: true }
     ],
     onClose: () => console.log('update approved')
   });

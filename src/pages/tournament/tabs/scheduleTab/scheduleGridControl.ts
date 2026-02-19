@@ -7,6 +7,7 @@ import { controlBar } from 'components/controlBar/controlBar';
 import { printSchedule } from 'components/modals/printSchedule';
 import { context } from 'services/context';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 import dayjs from 'dayjs';
 
 import { LEFT, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
@@ -50,7 +51,7 @@ export function scheduleGridControl({
   const items = [
     {
       clearSearch: () => setSearchFilter(),
-      placeholder: 'Search participants',
+      placeholder: t('pages.schedule.searchParticipants'),
       id: 'searchParticipants',
       visible: !!courtsCount,
       location: LEFT,
@@ -58,7 +59,7 @@ export function scheduleGridControl({
     },
     {
       options: [{ label: 'Team ', onClick: () => console.log('team clicked'), close: true }],
-      label: 'Highlight team',
+      label: t('pages.schedule.highlightTeam'),
       visible: !!courtsCount,
       id: 'highlightTeam',
       location: LEFT,
@@ -87,7 +88,7 @@ export function scheduleGridControl({
           rows,
         });
       },
-      label: 'Print',
+      label: t('pages.schedule.print'),
       id: 'printSchedule',
       intent: 'is-info',
       location: RIGHT,
@@ -95,7 +96,7 @@ export function scheduleGridControl({
     {
       visible: !!courtsCount && !schedulingActive,
       onClick: toggleUnscheduled,
-      label: 'Schedule matches',
+      label: t('pages.schedule.scheduleMatches'),
       id: 'scheduleMatchUps',
       intent: 'is-primary',
       location: RIGHT,

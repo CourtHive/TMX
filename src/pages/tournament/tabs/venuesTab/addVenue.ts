@@ -9,6 +9,7 @@ import { tournamentEngine, tools } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { ADD_COURTS, ADD_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -18,7 +19,7 @@ const saveVenue = (callback?: (result: any) => void) => {
   const { venueName, venueAbbreviation, courtsCount } = values;
   const venueId = tools.UUID();
   if (!venueName || !venueAbbreviation || !courtsCount) {
-    tmxToast({ message: 'Invalid values', intent: 'is-danger' });
+    tmxToast({ message: t('pages.venues.invalidValues'), intent: 'is-danger' });
     return;
   }
 
@@ -27,7 +28,7 @@ const saveVenue = (callback?: (result: any) => void) => {
       params: { venue: { venueName, venueAbbreviation, venueId }, returnDetails: true },
       method: ADD_VENUE,
     },
-    { params: { courtsCount: parseInt(courtsCount), venueId, venueAbbreviationRoot: true }, method: ADD_COURTS },
+    { params: { courtsCount: Number.parseInt(courtsCount), venueId, venueAbbreviationRoot: true }, method: ADD_COURTS },
   ];
 
   const postMutation = (result: any) => {
@@ -40,11 +41,9 @@ const saveVenue = (callback?: (result: any) => void) => {
 };
 
 export function addVenue(callback?: (result: any) => void): void {
-  const valueChange = () => {
-    // console.log('value change');
-  };
+  const valueChange = () => {};
 
-  const numberValidator = (value: string) => value && !isNaN(Number(value));
+  const numberValidator = (value: string) => value && !Number.isNaN(Number(value));
   const enableSubmit = ({ inputs }: any) => {
     const isValid = !!(
       validators.nameValidator(2, 6)(inputs['venueAbbreviation'].value) &&
@@ -74,13 +73,13 @@ export function addVenue(callback?: (result: any) => void): void {
     renderButtons(
       elem,
       [
-        { label: 'Cancel', close: true },
+        { label: t('common.cancel'), close: true },
         {
           onClick: () => saveVenue(callback),
           id: 'addVenueButton',
           intent: 'is-info',
           disabled: true,
-          label: 'Add',
+          label: t('add'),
           close: true,
         },
       ],
@@ -88,7 +87,7 @@ export function addVenue(callback?: (result: any) => void): void {
     );
 
   context.drawer.open({
-    title: `<b style='larger'>Add venue</b>`,
+    title: `<b style='larger'>${t('pages.venues.addVenue.title')}</b>`,
     width: '300px',
     side: RIGHT,
     content,

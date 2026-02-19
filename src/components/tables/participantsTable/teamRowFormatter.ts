@@ -9,6 +9,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const xa = tools.extractAttributes;
@@ -70,9 +71,9 @@ export const teamRowFormatter = (row: any): void => {
         hozAlign: LEFT,
         width: 5,
       },
-      { title: 'Order', headerSort: false, field: 'order', width: 70 },
-      { title: 'Name', field: 'participantName', formatter: formatParticipant(undefined) },
-      { title: 'Gender', field: 'person.sex', width: 100 },
+      { title: t('tables.teamRow.order'), headerSort: false, field: 'order', width: 70 },
+      { title: t('tables.teamRow.name'), field: 'participantName', formatter: formatParticipant(undefined) },
+      { title: t('tables.teamRow.gender'), field: 'person.sex', width: 100 },
     ],
   });
   ipTable.on('scrollVertical', destroyTipster);
@@ -156,7 +157,7 @@ export const teamRowFormatter = (row: any): void => {
     };
 
     selectParticipant({
-      title: 'Select players to add',
+      title: t('tables.teamRow.selectPlayersToAdd'),
       activeOnEnter: true,
       selectionLimit: 99,
       onSelection,

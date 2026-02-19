@@ -1,5 +1,6 @@
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import Quill from 'quill';
+import { t } from 'i18n';
 
 export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (html: string) => void }): void {
   const content = document.createElement('div');
@@ -48,12 +49,12 @@ export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (ht
   };
 
   openModal({
-    title: 'Edit Overview',
+    title: t('modals.notesEditor.title'),
     content,
     config: { maxWidth: 800, padding: '1' },
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Save', intent: 'is-primary', onClick: handleSave },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('common.save'), intent: 'is-primary', onClick: handleSave },
     ],
   });
 }

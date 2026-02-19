@@ -4,6 +4,7 @@ import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 export function loadTournamentById({ table }) {
   const tournamentIds = table.getData().map((t) => t.tournamentId);
@@ -14,7 +15,7 @@ export function loadTournamentById({ table }) {
       {
         iconLeft: 'fa-solid fa-fingerprint',
         placeholder: 'tournamentId',
-        label: 'Tournament Id',
+        label: t('modals.loadTournament.tournamentIdLabel'),
         field: 'tournamentId',
       },
     ]));
@@ -22,7 +23,7 @@ export function loadTournamentById({ table }) {
   const notFound = () => {
     tmxToast({
       onClose: () => context.router.navigate('/tournaments'),
-      message: 'Tournament not found',
+      message: t('modals.loadTournament.notFound'),
       intent: 'is-warning',
       pauseOnHover: true,
       action: 'show',
@@ -42,11 +43,11 @@ export function loadTournamentById({ table }) {
   };
 
   openModal({
-    title: 'Load tournament',
+    title: t('modals.loadTournament.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Load', intent: 'is-primary', onClick: loadTournament, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('modals.loadTournament.load'), intent: 'is-primary', onClick: loadTournament, close: true },
     ],
   });
 }

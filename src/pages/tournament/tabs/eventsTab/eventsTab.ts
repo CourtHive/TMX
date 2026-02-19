@@ -16,7 +16,7 @@ import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
-import { EVENTS_TAB, ROUNDS_BRACKET, ROUNDS_STATS, ROUNDS_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
+import { EVENTS_TAB, ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
 type RenderEventsTabParams = {
@@ -28,15 +28,17 @@ type RenderEventsTabParams = {
 };
 
 export function renderEventsTab(params: RenderEventsTabParams): void {
-  let { eventId, drawId, structureId, renderDraw, roundsView = 'roundsColumns' } = params;
+  let { eventId, drawId, structureId, renderDraw, roundsView } = params;
 
-  // Default to Grid (bracket) view for round robin draws
-  if (roundsView === 'roundsColumns' && drawId) {
+  // Resolve structureId from draw data when not provided; default to Grid view for round robin draws
+  if (drawId) {
     const eventData = tournamentEngine.getEventData({ eventId })?.eventData;
     const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
-    const sid = structureId || drawData?.structures?.[0]?.structureId;
-    const struct = drawData?.structures?.find((s: any) => s.structureId === sid);
-    if (struct?.structureType === CONTAINER) roundsView = ROUNDS_BRACKET;
+    if (!structureId) structureId = drawData?.structures?.[0]?.structureId;
+    if (!roundsView) {
+      const struct = drawData?.structures?.find((s: any) => s.structureId === structureId);
+      roundsView = struct?.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
+    }
   }
   highlightTab(EVENTS_TAB);
   destroyTables();

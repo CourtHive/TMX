@@ -14,6 +14,7 @@
 
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
 import type { ParsedFormat } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
   matchUpStatusConstants;
@@ -654,7 +655,7 @@ export function parseScore(input: string, matchUpFormat: string | ParsedFormat):
       errors: [
         {
           position: 0,
-          message: 'Invalid matchUpFormat',
+          message: t('toasts.invalidMatchUpFormat'),
         },
       ],
       warnings: [],

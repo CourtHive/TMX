@@ -11,7 +11,9 @@ import { isFunction, isObject } from 'functions/typeOf';
 import { version as tmxVersion } from 'config/version';
 import { io } from 'socket.io-client';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 
+// constants
 import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
 
 function getAuthorization(): { authorization: string } | undefined {
@@ -53,7 +55,7 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = new Date().getTime() - data.timestamp));
     oi.socket.on('connect_error', (data: any) => {
       console.log('connection error:', { data });
-      tmxToast({ message: 'Connection error', intent: 'is-danger' });
+      tmxToast({ message: t('toasts.connectionError'), intent: 'is-danger' });
       disconnectSocket();
     });
   } else {

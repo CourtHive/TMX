@@ -1,9 +1,10 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
-import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 
 // constants
 import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
@@ -51,9 +52,9 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
         onChange: () => {
           return inputs.tournamentImage.value ? attemptLoad() : clearImage();
         },
-        label: 'Web address of online image',
+        label: t('modals.tournamentImage.imageLabel'),
         value: tournamentImageURL,
-        placeholder: 'Image URL',
+        placeholder: t('modals.tournamentImage.imagePlaceholder'),
         field: 'tournamentImage',
         autocomplete: 'off',
       },
@@ -78,7 +79,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
     };
     const postMutation = (result) => {
       if (result.success) {
-        tmxToast({ message: 'Tournament image updated', intent: 'is-success' });
+        tmxToast({ message: t('modals.tournamentImage.updated'), intent: 'is-success' });
         if (isFunction(callback)) callback(url);
       }
     };
@@ -89,16 +90,16 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   };
 
   openModal({
-    title: 'Tournament image',
+    title: t('modals.tournamentImage.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       {
         onClick: submitImage,
         intent: 'is-primary',
         id: 'createButton',
         disabled: true,
-        label: 'Save',
+        label: t('common.save'),
         close: true,
       },
     ],

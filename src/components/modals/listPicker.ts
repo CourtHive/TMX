@@ -1,6 +1,7 @@
 import { renderMenu } from 'courthive-components';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 type ListPickerParams = {
   callback?: (result: { selection: any }) => void;
@@ -14,5 +15,5 @@ export function listPicker({ callback, options = [], closeOnSelect = true }: Lis
   };
   const items = options.map((opt) => ({ ...opt, onClick: () => selectionMade({ selection: opt }), close: true }));
   const content = (elem: HTMLElement) => renderMenu(elem, [{ items }], () => closeOnSelect && closeModal());
-  openModal({ title: 'Select', content, buttons: [] });
+  openModal({ title: t('modals.listPicker.title'), content, buttons: [] });
 }

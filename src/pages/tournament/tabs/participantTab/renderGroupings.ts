@@ -3,6 +3,7 @@
  * Displays team participants with filtering and management options.
  */
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
+import { t } from 'i18n';
 import { createTeamsTable } from 'components/tables/participantsTable/createTeamsTable';
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
@@ -26,8 +27,8 @@ export function renderGroupings({ view }: { view: string }): void {
   const { eventOptions, events } = getEventFilter(table);
 
   const actionOptions = [
-    { label: 'New team', onClick: () => editGroupingParticipant({ title: 'New team', refresh: replaceTableData }) },
-    { label: 'Generate teams', onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) },
+    { label: t('pages.participants.newTeam'), onClick: () => editGroupingParticipant({ title: t('pages.participants.newTeam'), refresh: replaceTableData }) },
+    { label: t('pages.participants.generateTeams'), onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) },
   ];
 
   const createNewEvent = {

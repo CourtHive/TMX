@@ -8,6 +8,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { validators } from 'courthive-components';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -289,7 +290,7 @@ function handleDrawGeneration(params: {
         generateDraw({ drawOptions, eventId, callback });
       }
     };
-    editTieFormat({ title: 'Custom scorecard', tieFormat: undefined, onClose: setTieFormat });
+    editTieFormat({ title: t('drawers.addDraw.customScorecard'), tieFormat: undefined, onClose: setTieFormat });
   } else {
     drawOptions.tieFormatName = tieFormatName;
 
@@ -431,7 +432,7 @@ export function submitDrawParams({
     handleDrawGeneration({ drawOptions, tieFormatName, seedingPolicyDefinition, eventId, callback });
   } else {
     tmxToast({
-      message: 'Invalid draw size',
+      message: t('drawers.addDraw.invalidDrawSize'),
       intent: 'is-warning',
       pauseOnHover: true,
     });

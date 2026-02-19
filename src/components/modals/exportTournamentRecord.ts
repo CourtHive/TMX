@@ -18,14 +18,14 @@ export function exportTournamentRecord(): void {
     if (tournamentRecord) {
       downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
     } else {
-      tmxToast({ message: 'Error' });
+      tmxToast({ message: t('common.error') });
     }
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none' },
+    { label: t('common.cancel'), intent: 'none' },
     { label: UTR, intent: 'is-warning', onClick: downloadUTRmatches, close: true },
-    { label: 'TODS', intent: 'is-primary', onClick: exportTODS, close: true },
+    { label: t('modals.exportTournament.tods'), intent: 'is-primary', onClick: exportTODS, close: true },
   ];
   const title = `${t('phrases.export')}: ${t('trn')}`;
 

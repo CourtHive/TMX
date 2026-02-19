@@ -7,7 +7,7 @@ import { renderForm, validators } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
-import { t } from 'i18n';
+import { i18next, t } from 'i18n';
 
 import { UTR, WTN } from 'constants/tmxConstants';
 
@@ -43,6 +43,10 @@ export function settingsModal(): void {
     // Save participant assignment settings
     env.persistInputFields = inputs.persistInputFields?.checked ?? true;
 
+    // Detect language change
+    const language = inputs.language.value;
+    const languageChanged = language !== i18next.language;
+
     setActiveScale(activeScale);
 
     // Persist to localStorage
@@ -54,10 +58,28 @@ export function settingsModal(): void {
       pdfPrinting: env.pdfPrinting,
       minCourtGridRows: env.schedule.minCourtGridRows,
       persistInputFields: env.persistInputFields,
+      language,
     });
+
+    // Reload page after saving if language changed so all UI text updates
+    if (languageChanged) {
+      window.location.reload();
+    }
   };
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
+      {
+        text: t('modals.settings.language'),
+        class: 'section-title',
+      },
+      {
+        options: [
+          { value: 'en', label: 'English', selected: i18next.language === 'en' },
+          { value: 'fr', label: 'Français', selected: i18next.language === 'fr' },
+        ],
+        field: 'language',
+        id: 'language',
+      },
       {
         text: t('modals.settings.activeRating'),
         class: 'section-title',

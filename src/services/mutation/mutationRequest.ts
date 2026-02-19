@@ -10,8 +10,10 @@ import * as factory from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 import dayjs from 'dayjs';
 
+// constants
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 
 interface MutationParams {
@@ -30,7 +32,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
     if (callback && isFunction(callback)) {
       callback(result);
     } else if (result?.error) {
-      tmxToast({ message: result.error.message ?? 'Error', intent: 'is-danger' });
+      tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
     }
   };
 
@@ -49,12 +51,12 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const offlineValues = Object.values(tournamentRecords)?.map(getOffline).filter(Boolean);
   const invalidOffline =
     offlineValues.length > 1 && !offlineValues.every((v: any) => !v.email || v.email === offlineValues[0].email);
-  if (invalidOffline) return tmxToast({ message: 'Not all linked tournaments are offline', intent: 'is-danger' });
+  if (invalidOffline) return tmxToast({ message: t('toasts.notAllOffline'), intent: 'is-danger' });
   const offline = offlineValues.length;
 
   const tournamentIds = Object.values(tournamentRecords)?.map((record: any) => record.tournamentId);
   const providerIds = factory.tools.unique(Object.values(tournamentRecords)?.map(getProviderId)).filter(Boolean);
-  if (providerIds.length > 1) return tmxToast({ message: 'Multiple providers', intent: 'is-danger' });
+  if (providerIds.length > 1) return tmxToast({ message: t('toasts.multipleProviders'), intent: 'is-danger' });
 
   const now = new Date().getTime();
   const inDateRange = Object.values(tournamentRecords).every((record: any) => {
@@ -87,7 +89,7 @@ function queryDateRange({
   const onClick = () => (providerIds?.length ? checkPermissions({ state, providerIds, mutate }) : mutate());
   return tmxToast({
     action: { onClick, text: 'Modify?' },
-    message: 'Not in date range',
+    message: t('toasts.notInDateRange'),
     intent: 'is-danger',
     pauseOnHover: true,
     duration: 8000,
@@ -106,7 +108,7 @@ function checkPermissions({
   if (!state) {
     context.provider = undefined;
     styleLogin(false);
-    return tmxToast({ message: 'Not logged in', intent: 'is-warning' });
+    return tmxToast({ message: t('toasts.notLoggedIn'), intent: 'is-warning' });
   }
 
   const isProvider = !!(
@@ -115,7 +117,7 @@ function checkPermissions({
   const isSuperAdmin = state?.roles?.includes(SUPER_ADMIN);
   const impersonating = context.provider?.organisationId === providerIds[0];
 
-  if (!isProvider && !isSuperAdmin) return tmxToast({ message: 'Not authorized', intent: 'is-danger' });
+  if (!isProvider && !isSuperAdmin) return tmxToast({ message: t('toasts.notAuthorized'), intent: 'is-danger' });
   if (!isProvider && isSuperAdmin && !impersonating) {
     const impersonateProvider = () => {
       context.provider = { organisationId: providerIds[0] };
@@ -127,7 +129,7 @@ function checkPermissions({
         onClick: impersonateProvider,
         text: 'Impersonate?',
       },
-      message: 'Super Admin',
+      message: t('toasts.superAdmin'),
       intent: 'is-danger',
     });
   }
@@ -215,7 +217,7 @@ async function makeMutation({
       setTimeout(() => {
         if (ackReceived) return;
         timedOut = true;
-        tmxToast({ message: 'Server not responding', intent: 'is-danger' });
+        tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
         completion({ error: { message: 'Server not responding' } });
       }, env.serverTimeout ?? 10000);
     }

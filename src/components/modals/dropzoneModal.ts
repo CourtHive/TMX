@@ -4,31 +4,29 @@
  */
 import { closeModal, openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import 'styles/dropzone.css';
 
-export function dropzoneModal({ callback, autoClose = true }: { callback?: (data: string) => void; autoClose?: boolean } = {}): void {
-  const loadFile = (file: File) => {
+export function dropzoneModal({
+  callback,
+  autoClose = true,
+}: { callback?: (data: string) => void; autoClose?: boolean } = {}): void {
+  const loadFile = async (file: File) => {
     const ending = file.name.split('.').reverse()[0];
-    const reader = new FileReader();
-
-    reader.onload = function (evt) {
-      if (evt.target?.error) {
-        console.log('file error', evt.target.error);
-        return;
-      }
-
-      const fileContent = evt.target?.result as string;
-      if (!fileContent.length) return;
-      if (isFunction(callback) && callback) {
-        callback(fileContent);
-      } else {
-        console.log(fileContent);
-      }
-    };
 
     if (['csv', 'json'].includes(ending)) {
-      reader.readAsText(file);
+      try {
+        const fileContent = await file.text();
+        if (!fileContent.length) return;
+        if (isFunction(callback)) {
+          callback(fileContent);
+        } else {
+          console.log(fileContent);
+        }
+      } catch (error) {
+        console.log('file error', error);
+      }
     } else {
       console.log('not loaded');
     }
@@ -40,7 +38,7 @@ export function dropzoneModal({ callback, autoClose = true }: { callback?: (data
 
   const label = document.createElement('label');
   label.className = 'dzx-inputLabel';
-  label.innerHTML = 'Drag and Drop files into this zone';
+  label.innerHTML = t('phrases.draganddrop');
 
   const dropzone_input = document.createElement('input');
   dropzone_input.className = 'dzx-input';
@@ -50,9 +48,9 @@ export function dropzoneModal({ callback, autoClose = true }: { callback?: (data
   dropzone.appendChild(label);
 
   openModal({
-    buttons: [{ label: 'Cancel', intent: 'none', close: true }, { label: 'Done' }],
-    title: 'Import tournament records',
-    content: dropzone
+    buttons: [{ label: t('common.cancel'), intent: 'none', close: true }, { label: t('actions.done') }],
+    title: t('modals.dropzone.title'),
+    content: dropzone,
   });
 
   ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach((dragEvent) => {
@@ -68,7 +66,7 @@ export function dropzoneModal({ callback, autoClose = true }: { callback?: (data
     function () {
       this.classList.add(DRAGGING);
     },
-    false
+    false,
   );
 
   dropzone.addEventListener(
@@ -76,7 +74,7 @@ export function dropzoneModal({ callback, autoClose = true }: { callback?: (data
     function () {
       this.classList.remove(DRAGGING);
     },
-    false
+    false,
   );
 
   dropzone.addEventListener(
@@ -94,6 +92,6 @@ export function dropzoneModal({ callback, autoClose = true }: { callback?: (data
       Array.from(filesToBeAdded).forEach(loadFile);
       if (autoClose) closeModal();
     },
-    false
+    false,
   );
 }

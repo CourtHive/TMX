@@ -5,6 +5,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
+import { t } from 'i18n';
 
 import { MODIFY_COURT } from 'constants/mutationConstants';
 
@@ -30,17 +31,17 @@ export function renameCourt({ column, courtInfo }: { column: any; courtInfo: any
     renderForm(elem, [
       {
         value: courtInfo.courtName,
-        label: 'Court Name',
+        label: t('modals.renameCourt.courtNameLabel'),
         field: 'courtName',
       },
     ]);
 
   openModal({
-    title: 'Rename Court',
+    title: t('modals.renameCourt.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Rename', intent: 'is-primary', onClick: setNewName as any, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('rename'), intent: 'is-primary', onClick: setNewName as any, close: true },
     ],
   });
 }

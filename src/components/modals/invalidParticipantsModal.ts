@@ -5,6 +5,7 @@
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'tods-competition-factory';
 import { cModal } from 'courthive-components';
+import { t } from 'i18n';
 
 export interface InvalidParticipant {
   participantId: string;
@@ -116,13 +117,13 @@ export function invalidParticipantsModal({ invalidParticipants }: InvalidPartici
   // Define table columns
   const columns = [
     {
-      title: 'Participant',
+      title: t('tables.invalidParticipants.participant'),
       field: 'participantName',
       widthGrow: 2,
       headerSort: false,
     },
     {
-      title: 'Reason',
+      title: t('tables.invalidParticipants.reason'),
       field: 'reasons',
       widthGrow: 3,
       headerSort: false,
@@ -145,7 +146,7 @@ export function invalidParticipantsModal({ invalidParticipants }: InvalidPartici
 
   // Open modal
   cModal.open({
-    title: 'Invalid Participants',
+    title: t('modals.invalidParticipants.title'),
     content,
     buttons: [
       {

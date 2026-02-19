@@ -832,7 +832,8 @@
       "participantAssignment": "Participant Assignment",
       "persistInputFields": "Keep input fields after assignment (Persist mode)",
       "betaFeatures": "Beta features",
-      "pdfPrinting": "PDF printing"
+      "pdfPrinting": "PDF printing",
+      "language": "Language"
     },
     "editTournamentName": {
       "title": "Edit Tournament Name",
@@ -844,7 +845,222 @@
       "title": "Edit Dates",
       "startDateLabel": "Start Date",
       "endDateLabel": "End Date"
-    }
+    },
+    "invalidParticipants": {
+      "title": "Invalid Participants"
+    },
+    "loadTournament": {
+      "title": "Load tournament",
+      "tournamentIdLabel": "Tournament Id",
+      "notFound": "Tournament not found",
+      "load": "Load"
+    },
+    "selectProvider": {
+      "title": "Select provider",
+      "providerLabel": "Provider",
+      "placeholder": "Type provider name"
+    },
+    "dropzone": {
+      "title": "Import tournament records"
+    },
+    "addMatches": {
+      "title": "Add matches",
+      "roundNumber": "Round number:",
+      "numberToAdd": "Number to add:"
+    },
+    "scheduleNotes": {
+      "title": "Order of play",
+      "headerPlaceholder": "appears on PDF Header",
+      "footerPlaceholder": "appears on PDF Footer"
+    },
+    "editProvider": {
+      "title": "Create provider",
+      "nameLabel": "Provider Name",
+      "namePlaceholder": "Provider name",
+      "abbreviationLabel": "Abbreviation",
+      "abbreviationPlaceholder": "Abbreviation",
+      "idLabel": "Provider ID",
+      "idPlaceholder": "NOT REQUIRED - automatically generated",
+      "imageLabel": "Web address of online image",
+      "imagePlaceholder": "Image URL",
+      "update": "Update",
+      "create": "Create"
+    },
+    "addRound": {
+      "title": "Add round",
+      "confirmSelection": "Confirm player selection",
+      "addRound": "Add round",
+      "levelOfPlay": "Level of play"
+    },
+    "selectParticipant": {
+      "assignAlternate": "Assign alternate",
+      "selectParticipant": "Select participant",
+      "assignLuckyLoser": "Assign lucky loser",
+      "assignQualifier": "Assign qualifier",
+      "swapDrawPositions": "Swap draw positions",
+      "selectParticipants": "Select participants",
+      "searchEntries": "Search entries"
+    },
+    "renameCourt": {
+      "title": "Rename Court",
+      "courtNameLabel": "Court Name"
+    },
+    "printSchedule": {
+      "title": "Print Schedule",
+      "generatePdf": "Generate a PDF of the schedule for",
+      "includeHeader": "Include header",
+      "includeFooter": "Include footer",
+      "landscapeOrientation": "Landscape orientation (recommended for 5+ courts)",
+      "fullCourtNames": "Full court names",
+      "shortCourtNames": "Short court names (first word)",
+      "rows": "Rows",
+      "generateError": "Failed to generate schedule PDF. Check console for details."
+    },
+    "tournamentImage": {
+      "title": "Tournament image",
+      "imageLabel": "Web address of online image",
+      "imagePlaceholder": "Image URL",
+      "updated": "Tournament image updated"
+    },
+    "deleteMatches": {
+      "title": "Delete matches",
+      "roundNumber": "Round number",
+      "removeEmpty": "Remove empty (TBD) matches",
+      "removeIncomplete": "Remove incomplete/unscored matches",
+      "removeCompleted": "Remove completed matches"
+    },
+    "orderResolution": {
+      "title": "Order Resolution",
+      "updated": "Order assignments updated",
+      "updateFailed": "Failed to update order assignments"
+    },
+    "printDraw": {
+      "title": "Print Draw",
+      "drawTitle": "Draw Title",
+      "drawTitlePlaceholder": "Enter draw title",
+      "options": "Options",
+      "includeSeeding": "Include seeding",
+      "includeRankings": "Include rankings",
+      "includeTimestamp": "Include timestamp",
+      "includeOrganizers": "Include organizers",
+      "generateError": "Failed to generate PDF."
+    },
+    "listPicker": {
+      "title": "Select"
+    },
+    "tournamentActions": {
+      "title": "Tournament actions",
+      "selectAction": "-- select action --",
+      "uploadTournament": "Upload tournament",
+      "deleteTournament": "Delete tournament",
+      "claimTournament": "Claim tournament",
+      "goOffline": "Go offline - standalone mode",
+      "goOnline": "Go online - exit standalone mode",
+      "exportUtr": "Export UTR matches",
+      "exportTods": "Export TODS file",
+      "noActions": "No actions available",
+      "replaceTournament": "Replace tournament on server",
+      "go": "Go",
+      "tournamentClaimed": "Tournament claimed",
+      "notClaimed": "Not claimed",
+      "offline": "Offline",
+      "online": "Online"
+    },
+    "inviteUser": {
+      "title": "Invite user",
+      "roles": "Roles",
+      "client": "Client",
+      "director": "Director",
+      "admin": "Admin",
+      "official": "Official",
+      "scoring": "Scoring",
+      "developer": "Developer",
+      "generate": "Generate",
+      "provider": "Provider",
+      "permissions": "Permissions",
+      "deleteTournaments": "Delete Tournaments",
+      "editWtid": "Edit WTID",
+      "devMode": "Dev mode",
+      "services": "Services",
+      "tournamentProfiles": "Tournament Profiles (fetch)",
+      "invite": "Invite"
+    },
+    "fetchTournament": {
+      "title": "Fetch tournament details",
+      "notFound": "Tournament not found",
+      "fetch": "Fetch"
+    },
+    "addStructures": {
+      "title": "Add playoff structures",
+      "noPlayoffPositions": "No playoff positions available",
+      "nameBase": "Name base",
+      "structuresAdded": "Structure(s) added"
+    },
+    "editGroupNames": {
+      "title": "Edit group names",
+      "minChars": "minimum 4 characters",
+      "groupsRenamed": "Groups renamed"
+    },
+    "addFlights": {
+      "flightsGenerated": "Flights generated",
+      "generationFailed": "Flight profile generation failed"
+    },
+    "addRRplayoffs": {
+      "title": "Add playoff structure",
+      "createsPlayoff": "Creates playoff for positions",
+      "noPlayoffPositions": "No playoff positions available",
+      "playoffName": "Playoff name",
+      "groupSize": "Group size",
+      "positionsToBePlayedOff": "Positions to be played off:",
+      "selectPositions": "Select group finishing positions. Selections must be sequential",
+      "structureAdded": "Structure added"
+    },
+    "addToEvent": {
+      "title": "Add to event",
+      "nothingToDo": "Nothing to do",
+      "main": "Main",
+      "qualifying": "Qualifying",
+      "directAcceptance": "Direct Acceptance",
+      "alternate": "Alternate",
+      "wildcard": "Wildcard",
+      "ungrouped": "Ungrouped",
+      "eventStage": "Event stage",
+      "entryStatus": "Entry status"
+    },
+    "editStructureNames": {
+      "title": "Edit structure names",
+      "minChars": "minimum 4 characters",
+      "structureRenamed": "Structure renamed"
+    },
+    "removeApproved": {
+      "title": "Remove approved",
+      "selectTeams": "Select team(s) to remove"
+    },
+    "createTeam": {
+      "title": "Create Team",
+      "selectAttribute": "Select attribute",
+      "create": "Create"
+    },
+    "getLatLong": {
+      "title": "Location",
+      "enterMapUrl": "Enter map URL",
+      "invalidUrl": "Invalid URL"
+    },
+    "exportTournament": {
+      "tods": "TODS"
+    },
+    "notesEditor": {
+      "title": "Edit Overview"
+    },
+    "deleteParticipants": {
+      "title": "Delete participants",
+      "content": "Delete {{count}} participants?"
+    },
+    "removeStructure": {
+      "title": "Remove structure",
+      "warning": "Structure will be removed!"
+    },
+    "selectTeam": "Select team"
   },
 
   "drawers": {
@@ -858,13 +1074,40 @@
       "endDateLabel": "End date",
       "selectActiveDates": "Select active dates",
       "activeDates": "Active Dates"
+    },
+    "addDraw": {
+      "missingName": "Missing Draw name",
+      "generate": "Generate",
+      "generateFlight": "Generate flight",
+      "configureDraw": "Configure draw",
+      "customScorecard": "Custom scorecard",
+      "invalidDrawSize": "Invalid draw size"
     }
   },
 
   "toasts": {
     "copiedToClipboard": "Copied to clipboard",
     "loggedIn": "Log in successful",
-    "userRemoved": "User removed"
+    "userRemoved": "User removed",
+    "tournamentNotFound": "Tournament not found",
+    "connectionError": "Connection error",
+    "noConnection": "No connection",
+    "offlineMustConnect": "Offline: must be connected to internet",
+    "addedParticipants": "Added {{count}} participant(s)",
+    "noNewParticipants": "No new participants found",
+    "tmxClassicNotConverted": "TMX Classic file not converted",
+    "calendarReceived": "Calendar Received",
+    "notAllOffline": "Not all linked tournaments are offline",
+    "multipleProviders": "Multiple providers",
+    "notInDateRange": "Not in date range",
+    "notLoggedIn": "Not logged in",
+    "notAuthorized": "Not authorized",
+    "superAdmin": "Super Admin",
+    "serverNotResponding": "Server not responding",
+    "invalidMatchUpFormat": "Invalid matchUpFormat",
+    "missingMethodsArray": "Missing methods array",
+    "missingTournament": "Missing tournament",
+    "devVariableError": "An error occurred while adding dev variables"
   },
 
   "loginMenu": {
@@ -891,6 +1134,283 @@
       "side1": "Side 1",
       "side2": "Side 2",
       "scoringFormat": "Scoring Format"
+    },
+    "rounds": {
+      "flight": "Flight",
+      "date": "Date",
+      "court": "Court",
+      "time": "Time",
+      "side1": "Side 1",
+      "side2": "Side 2",
+      "score": "Score",
+      "profile": "Profile",
+      "status": "Status"
+    },
+    "groupings": {
+      "name": "Name",
+      "events": "Events",
+      "representing": "Representing"
+    },
+    "courts": {
+      "courtName": "Court Name",
+      "scheduledTime": "Scheduled Time",
+      "unscheduledTime": "Unscheduled Time",
+      "inOut": "In/Out",
+      "surface": "Surface"
+    },
+    "entries": {
+      "name": "Name",
+      "rank": "Rank",
+      "teams": "Teams",
+      "cityState": "City/State",
+      "seed": "Seed",
+      "flights": "Flights",
+      "status": "Status"
+    },
+    "teamRow": {
+      "order": "Order",
+      "name": "Name",
+      "gender": "Gender",
+      "selectPlayersToAdd": "Select players to add"
+    },
+    "venues": {
+      "abbr": "Abbr",
+      "venue": "Venue",
+      "scheduled": "Scheduled",
+      "time": "Time"
+    },
+    "draws": {
+      "drawName": "Draw Name",
+      "drawType": "Draw Type",
+      "flight": "Flight"
+    },
+    "selection": {
+      "position": "Position",
+      "participant": "Participant"
+    },
+    "participants": {
+      "name": "Name",
+      "wtid": "WTID",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "country": "Country",
+      "penalties": "Penalties",
+      "club": "Club",
+      "events": "Events",
+      "teams": "Teams",
+      "cityState": "City/State"
+    },
+    "bracket": {
+      "participant": "Participant",
+      "winLoss": "W/L",
+      "winPct": "Win%",
+      "setPct": "Set%",
+      "pos": "Pos"
+    },
+    "events": {
+      "event": "Event",
+      "type": "Type",
+      "gender": "Gender"
+    },
+    "stats": {
+      "name": "Name",
+      "matchWinLoss": "Match W/L",
+      "matchWinPct": "Match Win%",
+      "setsWinLoss": "Sets W/L",
+      "setWinPct": "Set Win%",
+      "gamesWinLoss": "Games W/L",
+      "gameWinPct": "Game Win%",
+      "pointsWinLoss": "Points W/L",
+      "pointsWinPct": "Points Win%",
+      "rv": "RV",
+      "ps": "PS",
+      "psNum": "PS#",
+      "group": "Group"
+    },
+    "collection": {
+      "score": "Score",
+      "status": "Status"
+    },
+    "tieFormat": {
+      "name": "Name",
+      "type": "Type",
+      "gender": "Gender",
+      "scoreFormat": "Score format",
+      "awardType": "Award type",
+      "value": "Value"
+    },
+    "matchUps": {
+      "event": "Event",
+      "flight": "Flight",
+      "type": "Type",
+      "round": "Round",
+      "date": "Date",
+      "court": "Court",
+      "time": "Time",
+      "side1": "Side 1",
+      "side2": "Side 2",
+      "score": "Score",
+      "profile": "Profile",
+      "status": "Status"
+    },
+    "tournaments": {
+      "open": "Open"
+    },
+    "drawEntries": {
+      "name": "Name",
+      "rank": "Rank",
+      "cityState": "City/State",
+      "seed": "Seed"
+    },
+    "invalidParticipants": {
+      "participant": "Participant",
+      "reason": "Reason"
+    }
+  },
+
+  "pages": {
+    "events": {
+      "addEvent": "Add event",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "deleteSelected": "Delete selected",
+      "searchEvents": "Search events"
+    },
+    "matchUps": {
+      "schedule": "Schedule",
+      "searchMatches": "Search matches",
+      "allEvents": "All events",
+      "allFlights": "All flights",
+      "allTeams": "All teams",
+      "allStatuses": "All statuses",
+      "allTypes": "All Types",
+      "readyToScore": "Ready to score",
+      "complete": "Complete",
+      "singles": "Singles",
+      "doubles": "Doubles",
+      "team": "Team",
+      "opponents": "Opponents"
+    },
+    "schedule": {
+      "searchParticipants": "Search participants",
+      "highlightTeam": "Highlight team",
+      "scheduleMatches": "Schedule matches",
+      "print": "Print"
+    },
+    "venues": {
+      "invalidValues": "Invalid values",
+      "addVenue": {
+        "title": "Add venue"
+      },
+      "editCourt": {
+        "title": "Edit court",
+        "courtNameLabel": "Court name",
+        "courtNamePlaceholder": "Court name",
+        "courtNameError": "minimum of 1 character",
+        "courtNameRequired": "Court name must be at least 1 character",
+        "inOutLabel": "In / Out",
+        "surfaceLabel": "Surface"
+      },
+      "editVenue": {
+        "title": "Edit venue",
+        "venueNameLabel": "Venue name",
+        "venueNamePlaceholder": "Venue name",
+        "venueNameError": "minimum of 5 characters",
+        "venueNameRequired": "Venue name must be at least 5 characters",
+        "abbreviationLabel": "Abbreviation",
+        "abbreviationPlaceholder": "Abbreviation",
+        "abbreviationError": "minimum of 2 characters, maximum of 6",
+        "abbreviationRequired": "Abbreviation must be 2-6 characters",
+        "updateCourtNames": "Update court names"
+      }
+    },
+    "events": {
+      "editEvent": {
+        "titleEdit": "Edit event",
+        "titleAdd": "Add event",
+        "eventNameLabel": "Event name",
+        "eventNamePlaceholder": "Event name",
+        "eventNameError": "minimum of 5 characters",
+        "eventNameRequired": "Event name must be at least 5 characters",
+        "any": "Any",
+        "custom": "Custom",
+        "categorySaveWarning": "Category saved to event but not added to tournament categories"
+      },
+      "editFormat": {
+        "noChanges": "No changes",
+        "scoringChanged": "Scoring changed"
+      },
+      "actionOptions": {
+        "assignParticipants": "Assign participants",
+        "editScorecard": "Edit scorecard",
+        "editScoring": "Edit {{name}} scoring",
+        "removeStructure": "Remove structure",
+        "printDraw": "Print draw",
+        "deleteDraw": "Delete draw",
+        "resetDraw": "Reset draw",
+        "cannotRemoveScores": "Cannot remove when scores are present",
+        "removePlayers": "Remove players",
+        "clearResults": "Clear results"
+      }
+    },
+    "participants": {
+      "title": "Participants",
+      "individuals": "Individuals",
+      "officials": "Officials",
+      "groups": "Groups",
+      "teams": "Teams",
+      "allEvents": "All events",
+      "noEvents": "No events",
+      "allGenders": "All genders",
+      "anyTeam": "Any team",
+      "actions": "Actions",
+      "searchParticipants": "Search participants",
+      "addToEvent": {
+        "label": "Add to event",
+        "alreadyInEvent": "All selected participants are already in {{eventName}}",
+        "invalidGender": "Invalid gender",
+        "errorAdding": "Error adding participants"
+      },
+      "addToTeam": "Add to team",
+      "addToGroup": "Add to group",
+      "createEvent": "Create event",
+      "createNewEvent": "Create new event",
+      "signIn": "Sign in",
+      "deleteSelected": "Delete selected",
+      "saveWTID": "Save WTID",
+      "saveRatings": "Save ratings",
+      "signOutUnapproved": "Sign out players not approved for events",
+      "editRatings": "Edit ratings",
+      "editWTID": "Edit WTID",
+      "addParticipants": "Add participants",
+      "generateMock": "Generate mock participants",
+      "importGoogleSheet": "Import from Google sheet",
+      "newParticipant": "New participant",
+      "newTeam": "New team",
+      "generateTeams": "Generate teams",
+      "sheetsLink": {
+        "title": "Import participants",
+        "description": "Pull participants from a Google Sheet which has a shared link",
+        "urlPlaceholder": "URL of Google Sheet",
+        "urlLabel": "Sheet URL",
+        "urlUnchanged": "URL unchanged",
+        "instructionsTitle": "Google Sheets Import Instructions",
+        "enter": "Enter",
+        "info": "Info"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female",
+        "unknown": "Unknown"
+      }
+    }
+  },
+
+  "overlays": {
+    "tieFormat": {
+      "editScorecard": "Edit scorecard",
+      "noChanges": "No changes",
+      "scorecardUpdated": "Scorecard updated"
     }
   }
 }

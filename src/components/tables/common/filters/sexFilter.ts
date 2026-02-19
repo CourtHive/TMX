@@ -1,6 +1,5 @@
 import { genderConstants } from 'tods-competition-factory';
-
-import { ALL_GENDERS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { FEMALE, MALE, ANY } = genderConstants;
 
@@ -14,7 +13,11 @@ export function getSexFilter(table: any): { sexOptions: any[]; genders: Record<s
     if (sex) table.addFilter(sexFilter);
   };
   const sexes = [MALE, FEMALE];
-  const genders: Record<string, string> = { [MALE]: 'Male', [FEMALE]: 'Female', [ANY]: ALL_GENDERS };
+  const genders: Record<string, string> = {
+    [MALE]: t('pages.participants.gender.male'),
+    [FEMALE]: t('pages.participants.gender.female'),
+    [ANY]: t('pages.participants.allGenders'),
+  };
   const allSexes = {
     label: `<span style='font-weight: bold'>${genders[ANY]}</span>`,
     onClick: () => updateSexFilter(),

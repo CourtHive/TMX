@@ -18,6 +18,7 @@ import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
 import { LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
@@ -60,32 +61,38 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       resizable: false,
       minWidth: 200,
       widthGrow: 2,
-      title: 'Name',
+      title: t('tables.participants.name'),
     },
     {
       editor: idEditor({ field: 'tennisId' }),
       visible: tennisId,
       field: 'tennisId',
       editable: false,
-      title: 'WTID',
+      title: t('tables.participants.wtid'),
       width: 120,
     },
     {
       headerFilter: 'input',
-      title: 'First Name',
+      title: t('tables.participants.firstName'),
       field: 'firstName',
       visible: false,
       width: 150,
     },
     {
       headerFilter: 'input',
-      title: 'Last Name',
+      title: t('tables.participants.lastName'),
       field: 'lastName',
       visible: false,
       width: 150,
     },
     {
       title: '<i class="fa-solid fa-venus-mars" />',
+      formatter: (cell: any) => {
+        const value = cell.getValue();
+        if (value === 'Male') return t('pages.participants.gender.male');
+        if (value === 'Female') return t('pages.participants.gender.female');
+        return value || t('pages.participants.gender.unknown');
+      },
       field: 'sex',
       hozAlign: LEFT,
       editor: 'list',
@@ -93,13 +100,13 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       editorParams: {
         itemFormatter: (_: any, value: any) => value,
         values: {
-          Male: MALE,
-          Female: FEMALE,
-          '': 'Unknown',
+          [t('pages.participants.gender.male')]: MALE,
+          [t('pages.participants.gender.female')]: FEMALE,
+          '': t('pages.participants.gender.unknown'),
         },
       },
     },
-    { title: 'Country', field: 'ioc', width: 130, visible: false, headerFilter: 'input' },
+    { title: t('tables.participants.country'), field: 'ioc', width: 130, visible: false, headerFilter: 'input' },
     {
       title: `<div class='fa-solid fa-check' style='color: green' />`,
       cellClick: toggleSignInStatus,
@@ -113,7 +120,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
     {
       sorter: (a: any, b: any) => (a.length || 0) - (b?.length || 0),
       formatter: arrayLengthFormatter,
-      title: 'Penalties',
+      title: t('tables.participants.penalties'),
       field: 'penalties',
       hozAlign: LEFT,
       visible: false,
@@ -121,7 +128,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
     },
     {
       headerFilter: 'input',
-      title: 'Club',
+      title: t('tables.participants.club'),
       field: 'club',
       hozAlign: LEFT,
       minWidth: 70,
@@ -132,7 +139,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
       visible: columnIsVisible('events'),
-      title: 'Events',
+      title: t('tables.participants.events'),
       field: 'events',
       hozAlign: LEFT,
       minWidth: 200,
@@ -143,7 +150,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
       formatter: teamsFormatter(() => console.log('boo')),
       visible: columnIsVisible('teams'),
-      title: 'Teams',
+      title: t('tables.participants.teams'),
       field: 'teams',
       hozAlign: LEFT,
       minWidth: 200,
@@ -152,7 +159,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
     },
     {
       visible: !!cityState,
-      title: 'City/State',
+      title: t('tables.participants.cityState'),
       field: 'cityState',
       minWidth: 110,
     },

@@ -9,13 +9,9 @@ import { dropDownButton } from 'components/buttons/dropDownButton';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { controlBar } from 'components/controlBar/controlBar';
 import { setActiveScale } from 'settings/setActiveScale';
+import { t } from 'i18n';
 
 import {
-  ALL_EVENTS,
-  ALL_FLIGHTS,
-  ALL_STATUSES,
-  ALL_TEAMS,
-  ALL_TYPES,
   LEFT,
   MATCHUPS_CONTROL,
   NONE,
@@ -64,7 +60,7 @@ export function renderMatchUpTab(): void {
   const items = [
     {
       onClick: () => table?.deselectRow(),
-      label: 'Schedule',
+      label: t('pages.matchUps.schedule'),
       stateChange: true,
       location: OVERLAY,
     },
@@ -76,7 +72,7 @@ export function renderMatchUpTab(): void {
         matchUpFilters.set('searchText', '');
         table?.removeFilter();
       },
-      placeholder: 'Search matches',
+      placeholder: t('pages.matchUps.searchMatches'),
       location: LEFT,
       search: true,
     },
@@ -84,7 +80,7 @@ export function renderMatchUpTab(): void {
       hide: eventOptions.length < 4,
       options: eventOptions,
       id: 'eventOptions',
-      label: ALL_EVENTS,
+      label: t('pages.matchUps.allEvents'),
       modifyLabel: true,
       selection: true,
       location: LEFT,
@@ -92,7 +88,7 @@ export function renderMatchUpTab(): void {
     {
       options: components.options.flight.flightOptions,
       hide: !matchUpFilters.get('eventIdFilter') || components.options.flight.flightOptions.length < 3,
-      label: ALL_FLIGHTS,
+      label: t('pages.matchUps.allFlights'),
       id: 'flightOptions',
       modifyLabel: true,
       selection: true,
@@ -102,13 +98,13 @@ export function renderMatchUpTab(): void {
       hide: teamOptions.length < 3,
       options: teamOptions,
       modifyLabel: true,
-      label: ALL_TEAMS,
+      label: t('pages.matchUps.allTeams'),
       location: LEFT,
       selection: true,
     },
     {
       options: statusOptions,
-      label: ALL_STATUSES,
+      label: t('pages.matchUps.allStatuses'),
       modifyLabel: true,
       selection: true,
       location: LEFT,
@@ -117,7 +113,7 @@ export function renderMatchUpTab(): void {
       hide: typeOptions.length < 4,
       options: typeOptions,
       modifyLabel: true,
-      label: ALL_TYPES,
+      label: t('pages.matchUps.allTypes'),
       selection: true,
       location: LEFT,
     },
@@ -157,7 +153,7 @@ function getTypeOptions({ table, matchUpFilters, data }: any): any[] {
     if (type) table?.addFilter(typeFilter);
   };
   const allTypes = {
-    label: `<span style='font-weight: bold'>${ALL_TYPES}</span>`,
+    label: `<span style='font-weight: bold'>${t('pages.matchUps.allTypes')}</span>`,
     onClick: () => updateTypeFilter(),
     close: true,
   };
@@ -168,9 +164,9 @@ function getTypeOptions({ table, matchUpFilters, data }: any): any[] {
   return [
     allTypes,
     { divider: true },
-    matchUpTypes.includes(SINGLES) && { label: 'Singles', close: true, onClick: () => updateTypeFilter(SINGLES) },
-    matchUpTypes.includes(DOUBLES) && { label: 'Doubles', close: true, onClick: () => updateTypeFilter(DOUBLES) },
-    matchUpTypes.includes(TEAM_EVENT) && { label: 'Team', close: true, onClick: () => updateTypeFilter(TEAM_EVENT) },
+    matchUpTypes.includes(SINGLES) && { label: t('pages.matchUps.singles'), close: true, onClick: () => updateTypeFilter(SINGLES) },
+    matchUpTypes.includes(DOUBLES) && { label: t('pages.matchUps.doubles'), close: true, onClick: () => updateTypeFilter(DOUBLES) },
+    matchUpTypes.includes(TEAM_EVENT) && { label: t('pages.matchUps.team'), close: true, onClick: () => updateTypeFilter(TEAM_EVENT) },
   ].filter(Boolean);
 }
 
@@ -192,7 +188,7 @@ function getTeamOptions({ table, matchUpFilters, statsPanel }: any): any[] {
       if (teamStats?.participantName) {
         statsPanel.style.display = '';
         const side1 = getSide({ participantName: teamStats.participantName, justify: 'end' });
-        const side2 = getSide({ participantName: 'Opponents', justify: 'start' });
+        const side2 = getSide({ participantName: t('pages.matchUps.opponents'), justify: 'start' });
         const sets = [{ side1Score: teamStats.matchUps[0], side2Score: teamStats.matchUps[1] }];
         const side1Score = getSideScore({ sets, sideNumber: 1 });
         const side2Score = getSideScore({ sets, sideNumber: 2 });
@@ -204,7 +200,7 @@ function getTeamOptions({ table, matchUpFilters, statsPanel }: any): any[] {
     }
   };
   const allTeams = {
-    label: `<span style='font-weight: bold'>${ALL_TEAMS}</span>`,
+    label: `<span style='font-weight: bold'>${t('pages.matchUps.allTeams')}</span>`,
     onClick: () => updateTeamFilter(),
     close: true,
   };
@@ -243,15 +239,15 @@ function getStatusOptions({ matchUpFilters, table }: any): any[] {
     if (status) table?.addFilter(statusFilter);
   };
   const allStatuses = {
-    label: `<span style='font-weight: bold'>${ALL_STATUSES}</span>`,
+    label: `<span style='font-weight: bold'>${t('pages.matchUps.allStatuses')}</span>`,
     onClick: () => updateStatusFilter(),
     close: true,
   };
   return [
     allStatuses,
     { divider: true },
-    { label: 'Ready to score', close: true, onClick: () => updateStatusFilter('readyToScore') },
-    { label: 'Complete', close: true, onClick: () => updateStatusFilter('complete') },
+    { label: t('pages.matchUps.readyToScore'), close: true, onClick: () => updateStatusFilter('readyToScore') },
+    { label: t('pages.matchUps.complete'), close: true, onClick: () => updateStatusFilter('complete') },
   ];
 }
 
@@ -263,7 +259,7 @@ function getFlightOptions({ matchUpFilters, events, table }: any): any {
     if (drawId) table?.addFilter(flightFilter);
   };
   const allFlights = {
-    label: `<span style='font-weight: bold'>${ALL_FLIGHTS}</span>`,
+    label: `<span style='font-weight: bold'>${t('pages.matchUps.allFlights')}</span>`,
     onClick: () => updateFlightFilter(),
     close: true,
   };
@@ -292,7 +288,7 @@ function getEventOptions({ matchUpFilters, table, events, components }: any): an
 
       const flightButton = {
         options: components.options.flight.flightOptions,
-        label: ALL_FLIGHTS,
+        label: t('pages.matchUps.allFlights'),
         id: 'flightOptions',
         modifyLabel: true,
         selection: true,
@@ -307,7 +303,7 @@ function getEventOptions({ matchUpFilters, table, events, components }: any): an
     }
   };
   const allEvents = {
-    label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
+    label: `<span style='font-weight: bold'>${t('pages.matchUps.allEvents')}</span>`,
     onClick: () => updateEventFilter(),
     close: true,
   };

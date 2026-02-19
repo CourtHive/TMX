@@ -4,11 +4,12 @@
  */
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
 import { ratingFormatter } from 'components/tables/common/formatters/ratingFormatter';
-import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
 import { numericEditor } from 'components/tables/common/editors/numericEditor';
+import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
 import { factoryConstants } from 'tods-competition-factory';
 
 import { CENTER, LEFT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
@@ -44,14 +45,14 @@ export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesC
       responsive: false,
       minWidth: 250,
       widthGrow: 3,
-      title: 'Name',
+      title: t('tables.drawEntries.name'),
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
       visible: !!ranking,
       sorter: 'number',
       field: 'ranking',
-      title: 'Rank',
+      title: t('tables.drawEntries.rank'),
       widthGrow: 1,
       minWidth: 80,
     },
@@ -75,7 +76,7 @@ export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesC
     },
     {
       visible: !!cityState,
-      title: 'City/State',
+      title: t('tables.drawEntries.cityState'),
       field: 'cityState',
       responsive: false,
       minWidth: 150,
@@ -89,7 +90,7 @@ export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesC
       hozAlign: CENTER,
       sorter: 'number',
       editable: false,
-      title: 'Seed',
+      title: t('tables.drawEntries.seed'),
       maxWidth: 70,
     },
   ].filter(({ field }) => Array.isArray(exclude) && !exclude?.includes(field || ''));
