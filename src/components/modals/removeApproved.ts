@@ -4,12 +4,12 @@
  */
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 const NO_SELECTION = '-';
 
 export function removeApproved({ teams, callback }: { teams: any[]; callback: (params: any) => void }): void {
-  const options = ([{ label: lang.tr('allteams'), value: NO_SELECTION }] as any[]).concat(
+  const options = ([{ label: t('allteams'), value: NO_SELECTION }] as any[]).concat(
     teams.map((t) => ({ label: t.name, value: t.id || t.uuid }))
   );
 
@@ -17,7 +17,7 @@ export function removeApproved({ teams, callback }: { teams: any[]; callback: (p
     renderForm(elem, [
       {
         value: NO_SELECTION,
-        label: 'Select team(s) to remove',
+        label: t('modals.removeApproved.selectTeams'),
         field: 'selection',
         options
       }
@@ -29,11 +29,11 @@ export function removeApproved({ teams, callback }: { teams: any[]; callback: (p
   };
 
   openModal({
-    title: 'Remove approved',
+    title: t('modals.removeApproved.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Remove', intent: 'is-danger', onClick: removeSelection as any, close: true }
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('remove'), intent: 'is-danger', onClick: removeSelection as any, close: true }
     ],
     onClose: () => console.log('update approved')
   });

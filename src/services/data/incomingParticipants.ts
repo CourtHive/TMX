@@ -7,6 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { hashCode } from 'functions/hashCode';
+import { t } from 'i18n';
 
 import { ADD_PARTICIPANTS, ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 import { REGISTRATION } from 'constants/tmxConstants';
@@ -24,19 +25,24 @@ const modelParticipant = {
   },
 };
 
-export function incomingParticipants({ data, sheetId, callback }: { data: any[]; sheetId: string; callback?: () => void }): void {
+export function incomingParticipants({
+  data,
+  sheetId,
+  callback,
+}: {
+  data: any[];
+  sheetId: string;
+  callback?: () => void;
+}): void {
   const existingParticipants = tournamentEngine.getParticipants().participants;
-  const participantIds = existingParticipants.map(({ participantId }: any) => participantId);
+  const participantIds = new Set(existingParticipants.map(({ participantId }: any) => participantId));
 
-  const validNationalityCodes = fixtures.countries
-    .map((f: any) => [f.ioc, f.iso])
-    .flat()
-    .filter(Boolean);
+  const validNationalityCodes = new Set(fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean));
 
   const participants: any[] = [];
 
   const getAttributes = (attrs: string[]) =>
-    attrs.map((attr) => [attr.toLowerCase(), attr.toLowerCase().split(' ').join('')]).flat();
+    attrs.flatMap((attr) => [attr.toLowerCase(), attr.toLowerCase().split(' ').join('')]);
   const findAttr =
     (row: any) =>
     (attrs: string[] = []) => {
@@ -46,7 +52,7 @@ export function incomingParticipants({ data, sheetId, callback }: { data: any[];
       const partial =
         !match &&
         keys.filter((key) => attributes.find((a) => a.startsWith('*') && key.toLowerCase().includes(a.slice(1))));
-      return match || row[partial[0]];
+      return match ?? row[partial[0]];
     };
 
   for (const row of data || []) {
@@ -74,7 +80,7 @@ export function incomingParticipants({ data, sheetId, callback }: { data: any[];
     if (city || state) participant.person.addresses = [{ city, state }];
 
     const nationalityCode = rowParser(modelParticipant.person.nationalityCode);
-    if (nationalityCode && validNationalityCodes.includes(nationalityCode.toUpperCase())) {
+    if (nationalityCode && validNationalityCodes.has(nationalityCode.toUpperCase())) {
       participant.person.nationalityCode = nationalityCode;
     }
 
@@ -136,7 +142,7 @@ export function incomingParticipants({ data, sheetId, callback }: { data: any[];
     participant.participantId =
       rowParser(modelParticipant.participantId) || `XXX-${hashCode(participant.participantName)}`;
 
-    const participantExists = participantIds.includes(participant.participantId);
+    const participantExists = participantIds.has(participant.participantId);
     if (!participantExists) {
       participants.push(tools.definedAttributes(participant));
     }
@@ -158,7 +164,10 @@ export function incomingParticipants({ data, sheetId, callback }: { data: any[];
 
     const postMutation = (result: any) => {
       if (result.success) {
-        tmxToast({ message: `Added ${result.results[0].addedCount} participant(s)`, intent: 'is-success' });
+        tmxToast({
+          message: t('toasts.addedParticipants', { count: result.results[0].addedCount }),
+          intent: 'is-success',
+        });
         isFunction(callback) && callback && callback();
       } else {
         console.log(result);
@@ -166,7 +175,7 @@ export function incomingParticipants({ data, sheetId, callback }: { data: any[];
     };
     mutationRequest({ methods, callback: postMutation });
   } else {
-    tmxToast({ message: 'No new participants found', intent: 'is-primary' });
+    tmxToast({ message: t('toasts.noNewParticipants'), intent: 'is-primary' });
   }
 
   isFunction(callback) && callback && callback();

@@ -8,7 +8,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { REGISTRATION } from 'constants/tmxConstants';
 
@@ -57,18 +57,18 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, [
       {
-        text: 'Pull participants from a Google Sheet which has a shared link',
+        text: t('pages.participants.sheetsLink.description'),
       },
       {
-        placeholder: 'URL of Google Sheet',
+        placeholder: t('pages.participants.sheetsLink.urlPlaceholder'),
         value: existingLink,
-        label: 'Sheet URL',
+        label: t('pages.participants.sheetsLink.urlLabel'),
         field: 'url',
       },
     ]);
   };
 
-  const title = 'Import participants';
+  const title = t('pages.participants.sheetsLink.title');
   const { update } = openModal({ title, buttons: [], content });
 
   const submit = () => {
@@ -83,13 +83,13 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
       const validBits = existingLink || (parts.indexOf('docs.google.com') > 0 && parts.indexOf('spreadsheets') > 0);
       const sheetId = newURL ? registered : existingLink;
       if (!validBits) {
-        const message = lang.tr('phrases.invalidsheeturl');
+        const message = t('phrases.invalidsheeturl');
         tmxToast({ message, intent: 'is-danger' });
         inputs.url.value = '';
       } else if (validBits) {
         fetchGoogleSheet({ sheetId }).then((data: any) => incomingParticipants({ data, sheetId, callback }));
       } else {
-        tmxToast({ message: 'URL unchanged', intent: 'is-info' });
+        tmxToast({ message: t('pages.participants.sheetsLink.urlUnchanged'), intent: 'is-info' });
       }
     }
   };
@@ -99,18 +99,18 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
   const getInfo = () => {
     update({
       buttons: [
-        { label: 'Close', intent: 'is-nothing', close: true },
-        { label: 'Enter', intent: 'is-primary', onClick: enterLink, close: false },
+        { label: t('common.close'), intent: 'is-nothing', close: true },
+        { label: t('pages.participants.sheetsLink.enter'), intent: 'is-primary', onClick: enterLink, close: false },
       ],
-      title: 'Google Sheets Import Instructions',
+      title: t('pages.participants.sheetsLink.instructionsTitle'),
       content: instructions,
     });
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'is-nothing' },
-    { label: 'Info', intent: 'is-info', onClick: getInfo, close: false },
-    { label: 'Submit', intent: 'is-primary', onClick: submit, close: true },
+    { label: t('common.cancel'), intent: 'is-nothing' },
+    { label: t('pages.participants.sheetsLink.info'), intent: 'is-info', onClick: getInfo, close: false },
+    { label: t('common.submit'), intent: 'is-primary', onClick: submit, close: true },
   ];
   update({ buttons });
 }

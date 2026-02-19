@@ -11,6 +11,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 
@@ -95,7 +96,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
       data,
     });
 
-    const getHeader = (rows: any[]) => `Participants (${rows.length})`;
+    const getHeader = (rows: any[]) => `${t('pages.participants.title')} (${rows.length})`;
     table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       if (headerElement) headerElement.innerHTML = getHeader(rows);

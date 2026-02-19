@@ -23,6 +23,7 @@ import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
 import { LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { data: any[]; replaceTableData: () => void; setFocusData?: (data: any) => void }): any[] {
   const matchUpScheduleClick = (_e: Event, cell: any) => {
@@ -96,13 +97,13 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
     {
       formatter: eventFormatter(navigateToEvent),
       field: 'eventId',
-      title: 'Event',
+      title: t('tables.matchUps.event'),
       visible: true,
       minWidth: 200,
       widthGrow: 1,
     },
     {
-      title: 'Flight',
+      title: t('tables.matchUps.flight'),
       visible: false,
       minWidth: 150,
       field: 'flight',
@@ -111,33 +112,33 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
     {
       field: 'matchUpType',
       titleFormatter,
-      title: 'Type',
+      title: t('tables.matchUps.type'),
       minWidth: 90,
     },
     {
       field: 'roundName',
-      title: 'Round',
+      title: t('tables.matchUps.round'),
       titleFormatter,
       minWidth: 90,
     },
     {
       cellClick: matchUpScheduleClick,
       field: 'scheduledDate',
-      title: 'Date',
+      title: t('tables.matchUps.date'),
       width: 110,
     },
     {
       cellClick: matchUpScheduleClick,
       visible: !!showCourts,
       field: 'courtName',
-      title: 'Court',
+      title: t('tables.matchUps.court'),
       width: 100,
     },
     {
       cellClick: matchUpTimeClick,
       field: 'scheduledTime',
       visible: true,
-      title: 'Time',
+      title: t('tables.matchUps.time'),
       width: 70,
     },
     {
@@ -145,7 +146,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
-      title: 'Side 1',
+      title: t('tables.matchUps.side1'),
       minWidth: 180,
       field: 'side1',
       widthGrow: 1,
@@ -155,7 +156,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
-      title: 'Side 2',
+      title: t('tables.matchUps.side2'),
       minWidth: 180,
       field: 'side2',
       widthGrow: 1,
@@ -166,7 +167,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       sorter: scoreSorter,
       field: 'scoreDetail',
       responsive: false,
-      title: 'Score',
+      title: t('tables.matchUps.score'),
       width: 140,
     },
     {
@@ -174,7 +175,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       formatter: profileFormatter,
       field: 'competitiveProfile',
       responsive: false,
-      title: 'Profile',
+      title: t('tables.matchUps.profile'),
       visible: false,
       width: 140,
     },
@@ -188,7 +189,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
     },
     {
       field: 'matchUp.matchUpStatus',
-      title: 'Status',
+      title: t('tables.matchUps.status'),
       width: 150,
     },
     {

@@ -51,9 +51,21 @@ export function mapEvent({
   let matchUpsCount = 0;
   let scheduledMatchUpsCount = 0;
   let completedMatchUpsCount = 0;
-  let drawDefs: any[] = [];
 
-  if (!lightMode) {
+  let drawDefs: any[];
+
+  if (lightMode) {
+    drawDefs = [...drawDefinitions, ...ungeneratedFlights].map(
+      ({ drawId, drawName, drawType, flightNumber, structures }: any) => ({
+        generated: structures?.length > 0,
+        flightNumber,
+        drawName,
+        drawType,
+        eventId,
+        drawId,
+      }),
+    );
+  } else {
     const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
     matchUpsCount = matchUps?.length || 0;
     scheduledMatchUpsCount =

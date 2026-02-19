@@ -7,6 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { editTieFormat } from './editTieFormat';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { MODIFY_TIE_FORMAT } from 'constants/mutationConstants';
 
@@ -42,7 +43,7 @@ export function updateTieFormat({
       })?.different;
 
       if (!different) {
-        tmxToast({ intent: 'is-info', message: 'No changes' });
+        tmxToast({ intent: 'is-info', message: t('overlays.tieFormat.noChanges') });
         return;
       }
 
@@ -61,15 +62,15 @@ export function updateTieFormat({
 
       const postMutation = (result: any) => {
         if (result.success) {
-          tmxToast({ intent: 'is-success', message: 'Scorecard updated' });
+          tmxToast({ intent: 'is-success', message: t('overlays.tieFormat.scorecardUpdated') });
           return isFunction(callback) && callback?.();
         } else {
-          return tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error' });
+          return tmxToast({ intent: 'is-danger', message: result.error?.message || t('common.error') });
         }
       };
       mutationRequest({ methods, callback: postMutation });
     }
   };
 
-  editTieFormat({ title: 'Edit scorecard', tieFormat, onClose: updateTieFormat });
+  editTieFormat({ title: t('overlays.tieFormat.editScorecard'), tieFormat, onClose: updateTieFormat });
 }

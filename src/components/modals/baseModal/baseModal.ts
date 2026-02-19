@@ -1,5 +1,5 @@
 import { cModal } from 'courthive-components';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';
 
@@ -44,5 +44,5 @@ export function confirmModal({ title, query, okAction, cancelAction, okIntent })
     },
   ].filter(Boolean);
 
-  return cModal.open({ title: title || lang.tr('act'), content: query, buttons });
+  return cModal.open({ title: title || t('act'), content: query, buttons });
 }

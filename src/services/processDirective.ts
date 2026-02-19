@@ -3,6 +3,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import * as safeJSON from 'utilities/safeJSON';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { PROVIDER_CALENDAR } from 'constants/comsConstants';
 
@@ -17,7 +18,7 @@ export function processDirective(data: string): void {
           onClick: () => loadCalendar({ providerId: content.providerId, calendar: content.calendar }),
           text: 'Load',
         },
-        message: 'Calendar Received',
+        message: t('toasts.calendarReceived'),
         duration: false,
       });
     }

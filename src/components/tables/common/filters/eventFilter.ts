@@ -1,6 +1,7 @@
 import { tournamentEngine } from 'tods-competition-factory';
+import { t } from 'i18n';
 
-import { ALL_EVENTS, NONE, NO_EVENTS } from 'constants/tmxConstants';
+import { NONE } from 'constants/tmxConstants';
 
 export function getEventFilter(table: any): {
   events: { eventId: string; eventName: string }[];
@@ -16,13 +17,15 @@ export function getEventFilter(table: any): {
     if (eventId) table.addFilter(eventFilter);
   };
   const events = tournamentEngine.getEvents().events || [];
+  const allEventsLabel = t('pages.participants.allEvents');
+  const noEventsLabel = t('pages.participants.noEvents');
   const allEvents = {
-    label: `<span style='font-weight: bold'>${ALL_EVENTS}</span>`,
+    label: `<span style='font-weight: bold'>${allEventsLabel}</span>`,
     onClick: () => updateEventFilter(),
     close: true,
   };
   const noEvents = {
-    label: `<span style='font-weight: bold'>${NO_EVENTS}</span>`,
+    label: `<span style='font-weight: bold'>${noEventsLabel}</span>`,
     onClick: () => updateEventFilter(NONE),
     close: true,
   };

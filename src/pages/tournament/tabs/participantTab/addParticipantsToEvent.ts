@@ -7,6 +7,7 @@ import { addToEvent } from 'components/modals/addToEvent';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 import { invalidParticipantsModal } from 'components/modals/invalidParticipantsModal';
+import { t } from 'i18n';
 
 import { ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -33,7 +34,7 @@ export function addParticipantsToEvent({
   // Check if all selected participants are already in the event
   if (!participantIds.length && selected.length) {
     tmxToast({
-      message: `All selected participants are already in ${eventName}`,
+      message: t('pages.participants.addToEvent.alreadyInEvent', { eventName }),
       intent: 'is-info',
     });
     return;
@@ -117,9 +118,9 @@ export function addParticipantsToEvent({
             invalidParticipantsModal({ invalidParticipants });
           }, 100);
         } else if (result.misMatchedGender) {
-          tmxToast({ intent: 'is-danger', message: 'Invalid gender' });
+          tmxToast({ intent: 'is-danger', message: t('pages.participants.addToEvent.invalidGender') });
         } else {
-          tmxToast({ intent: 'is-danger', message: result.error?.message || 'Error adding participants' });
+          tmxToast({ intent: 'is-danger', message: result.error?.message || t('pages.participants.addToEvent.errorAdding') });
         }
       }
     };

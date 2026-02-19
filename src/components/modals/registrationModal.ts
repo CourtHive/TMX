@@ -3,6 +3,7 @@ import { validators, renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 export function registrationModal(params) {
   let inputs;
@@ -38,37 +39,37 @@ export function registrationModal(params) {
       elem,
       [
         {
-          error: 'First name must be at least 2 characters long',
+          error: t('modals.registration.firstNameError'),
           iconLeft: 'fa-regular fa-user',
           validator: validators.nameValidator(2),
-          placeholder: 'First name',
+          placeholder: t('modals.registration.firstNamePlaceholder'),
           autocomplete: 'off',
-          label: 'First Name',
+          label: t('modals.registration.firstNameLabel'),
           field: 'givenName',
         },
         {
-          error: 'Last name must be at least 2 characters long',
+          error: t('modals.registration.lastNameError'),
           validator: validators.nameValidator(2),
-          placeholder: 'Last name',
+          placeholder: t('modals.registration.lastNamePlaceholder'),
           autocomplete: 'off',
-          label: 'Last name',
+          label: t('modals.registration.lastNameLabel'),
           field: 'lastName',
         },
         {
-          error: 'Must contain upper/lower, number, and special character',
-          placeholder: 'minimum 8 characters',
+          error: t('modals.registration.passwordError'),
+          placeholder: t('modals.registration.passwordPlaceholder'),
           iconLeft: 'fa-solid fa-lock',
           validator: validators.passwordValidator,
           autocomplete: 'off',
-          label: 'Password',
+          label: t('modals.registration.passwordLabel'),
           field: 'password',
           type: 'password',
         },
         {
-          placeholder: 'minimum 8 characters',
-          error: 'Passwords do not match',
+          placeholder: t('modals.registration.passwordPlaceholder'),
+          error: t('modals.registration.confirmPasswordError'),
           iconLeft: 'fa-solid fa-lock',
-          label: 'Re-enter Password',
+          label: t('modals.registration.confirmPasswordLabel'),
           validator: passwordMatch,
           field: 'passwordConfirm',
           autocomplete: 'off',
@@ -85,7 +86,7 @@ export function registrationModal(params) {
     const code = params?.data?.inviteKey;
 
     const success = () => {
-      tmxToast({ message: 'Success', intent: 'is-success ' });
+      tmxToast({ message: t('common.success'), intent: 'is-success ' });
     };
     const handleError = (err) => {
       tmxToast({ message: err?.message, intent: 'is-danger' });
@@ -97,15 +98,15 @@ export function registrationModal(params) {
   };
 
   openModal({
-    title: 'Register',
+    title: t('modals.registration.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       {
         onClick: submitRegistration,
         intent: 'is-primary',
         id: 'registerButton',
-        label: 'Register',
+        label: t('modals.registration.register'),
         disabled: true,
         close: true,
       },

@@ -1,4 +1,4 @@
-import { lang } from '../translator';
+import { t } from 'i18n';
 import { tmxToast } from './tmxToast';
 
 export function updateReady(): void {
@@ -7,6 +7,6 @@ export function updateReady(): void {
 }
 
 export function popupsBlocked(): void {
-  const message = `${lang.tr('phrases.blocked')}. ${lang.tr('phrases.enablepopups')}`;
+  const message = `${t('phrases.blocked')}. ${t('phrases.enablepopups')}`;
   tmxToast({ intent: 'is-danger', message });
 }

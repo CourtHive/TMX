@@ -7,7 +7,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 import { UTR } from 'constants/tmxConstants';
 
 export function exportTournamentRecord(): void {
@@ -18,16 +18,16 @@ export function exportTournamentRecord(): void {
     if (tournamentRecord) {
       downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
     } else {
-      tmxToast({ message: 'Error' });
+      tmxToast({ message: t('common.error') });
     }
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none' },
+    { label: t('common.cancel'), intent: 'none' },
     { label: UTR, intent: 'is-warning', onClick: downloadUTRmatches, close: true },
-    { label: 'TODS', intent: 'is-primary', onClick: exportTODS, close: true },
+    { label: t('modals.exportTournament.tods'), intent: 'is-primary', onClick: exportTODS, close: true },
   ];
-  const title = `${lang.tr('phrases.export')}: ${lang.tr('trn')}`;
+  const title = `${t('phrases.export')}: ${t('trn')}`;
 
   openModal({ title, content: tournamentRecord.tournamentName, buttons });
 }

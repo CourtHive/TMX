@@ -11,6 +11,8 @@ import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
+
 const { GROUP } = participantConstants;
 
 export function getGroupingsColumns({ view, replaceTableData }: { view?: string; replaceTableData: () => void }): any[] {
@@ -53,7 +55,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
     {
       cellClick: (e: Event, cell: any) => openCloseToggle(e, cell),
       field: 'participantName',
-      title: 'Name',
+      title: t('tables.groupings.name'),
       minWidth: 200,
       widthGrow: 1,
     },
@@ -63,7 +65,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       visible: view !== GROUP,
       hozAlign: LEFT,
       field: 'events',
-      title: 'Events',
+      title: t('tables.groupings.events'),
       minWidth: 300,
       editor: false,
       widthGrow: 2,
@@ -100,7 +102,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
     },
     {
       field: 'representing',
-      title: 'Representing',
+      title: t('tables.groupings.representing'),
       visible: false,
       minWidth: 200,
     },

@@ -15,6 +15,7 @@ import { entryActions } from '../../popovers/entryActions';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { WTN, UTR } = factoryConstants.ratingConstants;
 
@@ -59,7 +60,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       resizable: false,
       minWidth: 200,
       widthGrow: 1,
-      title: 'Name',
+      title: t('tables.entries.name'),
     },
     {
       sorterParams: { alignEmptyValues: 'bottom' },
@@ -67,7 +68,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       resizable: false,
       sorter: 'number',
       field: 'ranking',
-      title: 'Rank',
+      title: t('tables.entries.rank'),
       width: 70,
     },
     {
@@ -93,14 +94,14 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       formatter: teamsFormatter(() => console.log('boo')),
       field: 'participant.teams',
       visible: !!teams,
-      title: 'Teams',
+      title: t('tables.entries.teams'),
       responsive: false,
       resizable: false,
       minWidth: 100,
     },
     {
       visible: !!cityState,
-      title: 'City/State',
+      title: t('tables.entries.cityState'),
       field: 'cityState',
       responsive: false,
       resizable: false,
@@ -115,12 +116,12 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       resizable: false,
       sorter: 'number',
       editable: false,
-      title: 'Seed',
+      title: t('tables.entries.seed'),
       maxWidth: 70,
     },
     {
       formatter: flightsFormatter(navigateToEvent),
-      title: 'Flights',
+      title: t('tables.entries.flights'),
       responsive: true,
       field: 'flights',
       minWidth: 100,
@@ -129,7 +130,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
     {
       responsive: false,
       resizable: false,
-      title: 'Status',
+      title: t('tables.entries.status'),
       field: 'status',
       maxWidth: 80,
     },

@@ -1,11 +1,12 @@
 import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
-import { bracketScoreFormatter } from './bracketScoreFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { groupOrderAction } from '../statsTable/groupOrderAction';
+import { bracketScoreFormatter } from './bracketScoreFormatter';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
 
 import { CENTER, LEFT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type GroupParticipant = {
   drawPosition: number;
@@ -36,8 +37,7 @@ const statsHeaderMenu = () => (_: any, column: any) => {
     if (!def.title || !STATS_FIELDS.has(def.field)) continue;
 
     const icon = document.createElement('i');
-    icon.classList.add('fas');
-    icon.classList.add(col.isVisible() ? CHECKBOX : 'fa-square');
+    icon.classList.add('fas', col.isVisible() ? CHECKBOX : 'fa-square');
 
     const label = document.createElement('span');
     const title = document.createElement('span');
@@ -120,7 +120,7 @@ export function getBracketColumns({
     },
     {
       field: 'participantName',
-      title: 'Participant',
+      title: t('tables.bracket.participant'),
       cellClick: participantClick,
       headerSort: false,
       hozAlign: LEFT,
@@ -151,7 +151,7 @@ export function getBracketColumns({
     {
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'W/L',
+      title: t('tables.bracket.winLoss'),
       field: 'result',
       hozAlign: CENTER,
       maxWidth: 70,
@@ -161,7 +161,7 @@ export function getBracketColumns({
       formatter: percentFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Win%',
+      title: t('tables.bracket.winPct'),
       field: 'matchUpsPct',
       hozAlign: CENTER,
       maxWidth: 70,
@@ -171,7 +171,7 @@ export function getBracketColumns({
       formatter: percentFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Set%',
+      title: t('tables.bracket.setPct'),
       field: 'setsPct',
       hozAlign: CENTER,
       maxWidth: 70,
@@ -182,7 +182,7 @@ export function getBracketColumns({
       formatter: groupOrderFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Pos',
+      title: t('tables.bracket.pos'),
       field: 'order',
       hozAlign: CENTER,
       maxWidth: 70,

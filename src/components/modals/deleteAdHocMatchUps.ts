@@ -7,6 +7,7 @@ import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 
@@ -76,14 +77,14 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Delete', intent: 'is-danger', close: true, onClick: deleteRound },
+    { label: t('common.cancel'), intent: 'none', close: true },
+    { label: t('common.delete'), intent: 'is-danger', close: true, onClick: deleteRound },
   ];
 
   const roundNumberOptions = roundNumbers.map((rn) => ({ label: rn, value: rn }));
 
   const roundNumberSelection = {
-    text: 'Round number',
+    text: t('modals.deleteMatches.roundNumber'),
     fieldPair: {
       options: roundNumberOptions,
       field: 'roundNumber',
@@ -95,7 +96,7 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
     roundNumberSelection,
     { spacer: true },
     {
-      label: 'Remove empty (TBD) matches',
+      label: t('modals.deleteMatches.removeEmpty'),
       intent: 'is-success',
       checkbox: true,
       field: 'empties',
@@ -103,14 +104,14 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       id: 'empties',
     },
     {
-      label: 'Remove incomplete/unscored matches',
+      label: t('modals.deleteMatches.removeIncomplete'),
       intent: 'is-danger',
       field: 'unscored',
       checkbox: true,
       id: 'unscored',
     },
     {
-      label: 'Remove completed matches',
+      label: t('modals.deleteMatches.removeCompleted'),
       intent: 'is-danger',
       field: 'completed',
       id: 'completed',
@@ -121,5 +122,5 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
 
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
 
-  openModal({ title: 'Delete matches', content, buttons });
+  openModal({ title: t('modals.deleteMatches.title'), content, buttons });
 }

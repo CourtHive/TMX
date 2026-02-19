@@ -1,10 +1,10 @@
 import { renameCourt } from 'components/modals/renameCourt';
 import { tipster } from 'components/popovers/tipster';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): void {
   const courtIdentifiers = true;
-  const addremove = courtIdentifiers ? lang.tr('remove') : lang.tr('add');
+  const addremove = courtIdentifiers ? t('remove') : t('add');
 
   const options = [
     {
@@ -12,7 +12,7 @@ export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): vo
       onClick: toggleCourtIdentifiers,
     },
     {
-      option: lang.tr('rename'),
+      option: t('rename'),
       onClick: () => renameCourt({ column, courtInfo }),
     },
   ];

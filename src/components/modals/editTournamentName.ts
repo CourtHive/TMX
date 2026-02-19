@@ -3,6 +3,7 @@ import { tournamentHeader } from 'components/popovers/tournamentHeader';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 // connstants
 import { SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
@@ -22,11 +23,11 @@ export function openEditTournamentNameModal(): void {
 
   const items = [
     {
-      error: 'minimum of 5 characters',
-      placeholder: 'Tournament name',
+      error: t('modals.editTournamentName.nameError'),
+      placeholder: t('modals.editTournamentName.namePlaceholder'),
       value: tournamentName,
       validator: validators.nameValidator(5),
-      label: 'Tournament name',
+      label: t('modals.editTournamentName.nameLabel'),
       field: 'tournamentName',
       focus: true,
     },
@@ -53,11 +54,11 @@ export function openEditTournamentNameModal(): void {
   const valid = validators.nameValidator(5)(tournamentName);
 
   openModal({
-    title: 'Edit Tournament Name',
+    title: t('modals.editTournamentName.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Save', id: 'saveTournamentName', disabled: !valid, intent: 'is-primary', onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('common.save'), id: 'saveTournamentName', disabled: !valid, intent: 'is-primary', onClick },
     ],
   });
 }

@@ -4,7 +4,7 @@
  */
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 export function modifyGroupName({ bracket }: { bracket: any }): void {
   const value = bracket?.name || '';
@@ -24,7 +24,7 @@ export function modifyGroupName({ bracket }: { bracket: any }): void {
     ]);
 
   openModal({
-    title: lang.tr('nm'),
+    title: t('nm'),
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },

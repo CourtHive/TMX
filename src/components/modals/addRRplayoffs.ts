@@ -10,6 +10,7 @@ import { renderOptions, renderForm } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { DRAW_TYPE, GROUP_SIZE, NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
@@ -34,19 +35,19 @@ export function addRRplayoffs({
     label: finishingPosition,
     checkbox: true,
     fieldPair: {
-      text: `Creates playoff for positions ${finishingPositionRange}`,
+      text: `${t('modals.addRRplayoffs.createsPlayoff')} ${finishingPositionRange}`,
       width: '400px',
     },
   }));
 
   if (!fields || fields.length < 1) {
-    tmxToast({ message: 'No playoff positions available', intent: 'is-danger' });
+    tmxToast({ message: t('modals.addRRplayoffs.noPlayoffPositions'), intent: 'is-danger' });
     return;
   }
 
   const playoffStructureName = {
     value: PLAYOFF_NAME_BASE,
-    label: 'Playoff name',
+    label: t('modals.addRRplayoffs.playoffName'),
     field: 'structureName',
     id: 'structureName',
   };
@@ -54,7 +55,7 @@ export function addRRplayoffs({
   const playoffDrawType = {
     value: SINGLE_ELIMINATION,
     options: drawTypeOptions,
-    label: 'Draw type',
+    label: t('dtp'),
     field: DRAW_TYPE,
     id: DRAW_TYPE,
   };
@@ -63,19 +64,19 @@ export function addRRplayoffs({
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
   const groupSizeSelector = {
     options: roundRobinOptions,
-    label: 'Group size',
+    label: t('modals.addRRplayoffs.groupSize'),
     field: GROUP_SIZE,
     visible: false,
     value: 4,
   };
 
-  const positionsToBePlayedOff = 'Positions to be played off:';
+  const positionsToBePlayedOff = t('modals.addRRplayoffs.positionsToBePlayedOff');
   const selectedPlayoffRange = {
     text: `${positionsToBePlayedOff} None`,
     id: 'selectedPlayoffRange',
   };
   const admonition = {
-    text: 'Select group finishing positions. Selections must be sequential',
+    text: t('modals.addRRplayoffs.selectPositions'),
   };
 
   const options = (
@@ -111,7 +112,7 @@ export function addRRplayoffs({
 
     const postMutation = (result: any) => {
       if (result.success) {
-        tmxToast({ message: 'Structure added', intent: 'is-success' });
+        tmxToast({ message: t('modals.addRRplayoffs.structureAdded'), intent: 'is-success' });
         isFunction(callback) && callback?.();
       } else {
         console.log({ result });
@@ -181,11 +182,11 @@ export function addRRplayoffs({
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
   openModal({
-    title: `Add playoff structure`,
+    title: t('modals.addRRplayoffs.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', id: 'addStructure', intent: 'is-info', disabled: true, close: true, onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('add'), id: 'addStructure', intent: 'is-info', disabled: true, close: true, onClick },
     ],
   });
 }

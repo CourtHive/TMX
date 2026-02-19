@@ -7,6 +7,7 @@ import { renderForm, validators } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { openModal } from './baseModal/baseModal';
 import { env } from 'settings/env';
+import { i18next, t } from 'i18n';
 
 import { UTR, WTN } from 'constants/tmxConstants';
 
@@ -42,6 +43,10 @@ export function settingsModal(): void {
     // Save participant assignment settings
     env.persistInputFields = inputs.persistInputFields?.checked ?? true;
 
+    // Detect language change
+    const language = inputs.language.value;
+    const languageChanged = language !== i18next.language;
+
     setActiveScale(activeScale);
 
     // Persist to localStorage
@@ -53,12 +58,30 @@ export function settingsModal(): void {
       pdfPrinting: env.pdfPrinting,
       minCourtGridRows: env.schedule.minCourtGridRows,
       persistInputFields: env.persistInputFields,
+      language,
     });
+
+    // Reload page after saving if language changed so all UI text updates
+    if (languageChanged) {
+      window.location.reload();
+    }
   };
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
       {
-        text: 'Active rating',
+        text: t('modals.settings.language'),
+        class: 'section-title',
+      },
+      {
+        options: [
+          { value: 'en', label: 'English', selected: i18next.language === 'en' },
+          { value: 'fr', label: 'Français', selected: i18next.language === 'fr' },
+        ],
+        field: 'language',
+        id: 'language',
+      },
+      {
+        text: t('modals.settings.activeRating'),
         class: 'section-title',
       },
       {
@@ -72,14 +95,14 @@ export function settingsModal(): void {
         radio: true,
       },
       {
-        text: 'Scoring approach',
+        text: t('modals.settings.scoringApproach'),
         class: 'section-title',
       },
       {
         options: [
-          { text: 'Dynamic Sets', field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
-          { text: 'Dial Pad', field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
-          { text: 'Free Score', field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
+          { text: t('modals.settings.dynamicSets'), field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
+          { text: t('modals.settings.dialPad'), field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
+          { text: t('modals.settings.freeScore'), field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
         ],
         onClick: (x: any) => console.log({ x }),
         field: 'scoringApproach',
@@ -87,34 +110,34 @@ export function settingsModal(): void {
         radio: true,
       },
       {
-        label: 'Smart complements (Dynamic Sets only)',
+        label: t('modals.settings.smartComplements'),
         checked: currentSettings?.smartComplements || false,
         field: 'smartComplements',
         id: 'smartComplements',
         checkbox: true,
       },
       {
-        text: 'Storage',
+        text: t('modals.settings.storage'),
         class: 'section-title',
       },
       {
-        label: 'Save local copies',
+        label: t('modals.settings.saveLocalCopies'),
         checked: env.saveLocal,
         field: 'saveLocal',
         id: 'saveLocal',
         checkbox: true,
       },
       {
-        text: 'Scheduling',
+        text: t('modals.settings.scheduling'),
         class: 'section-title',
       },
       {
-        label: 'Minimum schedule grid rows',
+        label: t('modals.settings.minScheduleGridRows'),
         value: currentSettings?.minCourtGridRows ?? env.schedule.minCourtGridRows,
         field: 'minCourtGridRows',
         id: 'minCourtGridRows',
         validator: validators.numericRange(1, 100),
-        error: 'Must be a number between 1 and 100',
+        error: t('modals.settings.minScheduleGridRowsError'),
         selectOnFocus: true,
         onInput: () => {
           const saveButton = document.getElementById('saveSettingsButton') as HTMLButtonElement;
@@ -124,22 +147,22 @@ export function settingsModal(): void {
         },
       },
       {
-        text: 'Participant Assignment',
+        text: t('modals.settings.participantAssignment'),
         class: 'section-title',
       },
       {
-        label: 'Keep input fields after assignment (Persist mode)',
+        label: t('modals.settings.persistInputFields'),
         checked: currentSettings?.persistInputFields ?? true, // Default true
         field: 'persistInputFields',
         id: 'persistInputFields',
         checkbox: true,
       },
       {
-        text: 'Beta features',
+        text: t('modals.settings.betaFeatures'),
         class: 'section-title',
       },
       {
-        label: 'PDF printing',
+        label: t('modals.settings.pdfPrinting'),
         checked: env.pdfPrinting || false,
         field: 'pdfPrinting',
         id: 'pdfPrinting',
@@ -148,13 +171,13 @@ export function settingsModal(): void {
     ]));
 
   openModal({
-    title: 'Settings',
+    title: t('modals.settings.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       {
         id: 'saveSettingsButton',
-        label: 'Save',
+        label: t('common.save'),
         intent: 'is-primary',
         onClick: saveSettingsHandler,
         close: true,

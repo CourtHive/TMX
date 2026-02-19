@@ -8,6 +8,7 @@ import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 export function fetchTournamentDetailsModal({ table }: { table: any }): void {
   const tournamentIds = table.getData().map((t: any) => t.tournamentId);
@@ -44,7 +45,7 @@ export function fetchTournamentDetailsModal({ table }: { table: any }): void {
   const notFound = () => {
     tmxToast({
       onClose: () => context.router.navigate('/tournaments'),
-      message: 'Tournament not found',
+      message: t('modals.fetchTournament.notFound'),
       intent: 'is-warning',
       pauseOnHover: true,
       action: 'show',
@@ -69,11 +70,11 @@ export function fetchTournamentDetailsModal({ table }: { table: any }): void {
   };
 
   openModal({
-    title: 'Fetch tournament details',
+    title: t('modals.fetchTournament.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Fetch', id: 'fetchButton', disabled: true, intent: 'is-primary', onClick: loadTournament, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('modals.fetchTournament.fetch'), id: 'fetchButton', disabled: true, intent: 'is-primary', onClick: loadTournament, close: true },
     ],
   });
 }

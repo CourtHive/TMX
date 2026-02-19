@@ -31,8 +31,9 @@ import {
   tournamentEngine,
   extensionConstants,
 } from 'tods-competition-factory';
+import { t } from 'i18n';
 
-import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
+import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
 const { OFFICIAL } = participantRoles;
@@ -44,7 +45,7 @@ export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
-  const participantLabel = view === OFFICIAL ? 'Officials' : 'Individuals';
+  const participantLabel = view === OFFICIAL ? t('pages.participants.officials') : t('pages.participants.individuals');
   const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
   const registration = extension?.value;
   const state = getLoginState();
@@ -72,27 +73,27 @@ export function renderIndividuals({ view }: { view: string }): void {
   const actionOptions: any[] = [
     {
       onClick: () => signOutUnapproved(replaceTableData),
-      label: 'Sign out players not approved for events',
+      label: t('pages.participants.signOutUnapproved'),
       close: true,
     },
     {
       onClick: (e: any) => enableManualRatings(e, table),
-      label: 'Edit ratings',
+      label: t('pages.participants.editRatings'),
       close: true,
     },
     {
       onClick: (e: any) => enableEditWTID(e, table),
       hide: !canEditTennisId,
-      label: 'Edit WTID',
+      label: t('pages.participants.editWTID'),
       close: true,
     },
     { divider: true } as any,
-    { heading: 'Add participants' } as any,
-    { hide: registration, label: 'Generate mock participants', onClick: synchronizePlayers, close: true },
-    { label: 'Import from Google sheet', onClick: editRegistrationLink, close: true },
+    { heading: t('pages.participants.addParticipants') } as any,
+    { hide: registration, label: t('pages.participants.generateMock'), onClick: synchronizePlayers, close: true },
+    { label: t('pages.participants.importGoogleSheet'), onClick: editRegistrationLink, close: true },
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
-      label: 'New participant',
+      label: t('pages.participants.newParticipant'),
       close: true,
     },
   ];
@@ -107,7 +108,7 @@ export function renderIndividuals({ view }: { view: string }): void {
     .concat([
       { divider: true } as any,
       {
-        label: '<p style="font-weight: bold">Create new event</p>',
+        label: `<p style="font-weight: bold">${t('pages.participants.createNewEvent')}</p>`,
         onClick: () => eventFromParticipants(table, refreshAfterEventChange),
         close: true,
       },
@@ -131,33 +132,33 @@ export function renderIndividuals({ view }: { view: string }): void {
       onChange: (e: any) => setSearchFilter(e.target.value),
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search participants',
+      placeholder: t('pages.participants.searchParticipants'),
       location: OVERLAY,
       search: true,
     },
     {
       options: addToEventOptions,
-      label: 'Add to event',
+      label: t('pages.participants.addToEvent.label'),
       hide: !events.length,
       intent: 'is-none',
       location: OVERLAY,
     },
     {
       onClick: () => eventFromParticipants(table, refreshAfterEventChange),
-      label: 'Create event',
+      label: t('pages.participants.createEvent'),
       hide: events.length,
       intent: 'is-info',
       location: OVERLAY,
     },
     {
       selection: addToTeam,
-      label: 'Add to team',
+      label: t('pages.participants.addToTeam'),
       intent: 'is-none',
       location: OVERLAY,
     },
     {
       selection: addToGroup,
-      label: 'Add to group',
+      label: t('pages.participants.addToGroup'),
       intent: 'is-none',
       location: OVERLAY,
     },
@@ -165,11 +166,11 @@ export function renderIndividuals({ view }: { view: string }): void {
       onClick: () => signInParticipants(table),
       intent: isPrimary,
       location: OVERLAY,
-      label: 'Sign in',
+      label: t('pages.participants.signIn'),
     },
     {
       onClick: () => deleteSelectedParticipants(table),
-      label: 'Delete selected',
+      label: t('pages.participants.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
       location: OVERLAY,
@@ -182,19 +183,20 @@ export function renderIndividuals({ view }: { view: string }): void {
       onChange: (e: any) => setSearchFilter(e.target.value),
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search participants',
+      placeholder: t('pages.participants.searchParticipants'),
       location: LEFT,
       search: true,
     },
     {
       hide: (events || []).length < 1,
       options: eventOptions,
-      label: ALL_EVENTS,
+      label: t('pages.participants.allEvents'),
       modifyLabel: true,
       selection: true,
       location: LEFT,
     },
     {
+      hide: !teamParticipants?.length,
       label: (teamOptions[0] as any)?.label || '',
       options: teamOptions,
       modifyLabel: true,
@@ -219,7 +221,7 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     {
       options: actionOptions,
-      label: 'Actions',
+      label: t('pages.participants.actions'),
       selection: false,
       location: RIGHT,
       align: RIGHT,
@@ -228,13 +230,13 @@ export function renderIndividuals({ view }: { view: string }): void {
       onClick: (e: any) => saveWTID(e, table),
       class: 'saveTennisId',
       intent: isPrimary,
-      label: 'Save WTID',
+      label: t('pages.participants.saveWTID'),
       location: RIGHT,
       visible: false,
     },
     {
       onClick: (e: any) => saveRatings(e, table),
-      label: 'Save ratings',
+      label: t('pages.participants.saveRatings'),
       intent: isPrimary,
       class: 'saveRatings',
       location: RIGHT,

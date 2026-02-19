@@ -11,6 +11,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -26,29 +27,29 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
   let inputs: any;
   const items = [
     {
-      error: 'minimum of 5 characters',
-      placeholder: 'Tournament name',
+      error: t('drawers.editTournament.nameError'),
+      placeholder: t('drawers.editTournament.namePlaceholder'),
       value: values.tournamentName,
       validator: validators.nameValidator(5),
-      label: 'Tournament name',
+      label: t('drawers.editTournament.nameLabel'),
       field: 'tournamentName',
       focus: true,
     },
     {
       placeholder: 'YYYY-MM-DD',
       value: values.startDate,
-      label: 'Start date',
+      label: t('drawers.editTournament.startDateLabel'),
       field: 'startDate',
     },
     {
       placeholder: 'YYYY-MM-DD',
       value: values.endDate,
-      label: 'End date',
+      label: t('drawers.editTournament.endDateLabel'),
       field: 'endDate',
     },
     {
       visible: !values.activeDates.length,
-      label: 'Select active dates',
+      label: t('drawers.editTournament.selectActiveDates'),
       field: 'activeDateSelector',
       id: 'activeDateSelector',
       checkbox: true,
@@ -59,7 +60,7 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
       placeholder: '[datesArray]',
       minDate: values.startDate,
       maxDate: values.endDate,
-      label: 'Active Dates',
+      label: t('drawers.editTournament.activeDates'),
       maxNumberOfDates: 10,
       field: 'activeDates',
       id: 'activeDates',
@@ -182,9 +183,9 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
     }
   };
 
-  const actionButton = tournamentRecord ? 'Save' : 'Add';
+  const actionButton = tournamentRecord ? t('common.save') : t('add');
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
+    { label: t('common.cancel'), intent: 'none', close: true },
     {
       disabled: !validValues(values),
       id: 'saveTournamentEdits',
@@ -196,7 +197,7 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
   ];
 
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
-  const title = tournamentRecord ? `Edit tournament` : `New tournament`;
+  const title = tournamentRecord ? t('drawers.editTournament.titleEdit') : t('drawers.editTournament.titleNew');
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }
 

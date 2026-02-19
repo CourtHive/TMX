@@ -9,6 +9,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as safeJSON from 'utilities/safeJSON';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 export function importTournaments({ table }: { table: any }): void {
   const tournamentIds = table.getData().map((t: any) => t.tournamentId);
@@ -21,7 +22,7 @@ export function importTournaments({ table }: { table: any }): void {
         if (tournament.tournamentId && tournament.startDate) {
           tournamentRecord = tournament;
         } else if (tournament.tuid && tournament.start) {
-          tmxToast({ message: 'TMX Classic file not converted' });
+          tmxToast({ message: t('toasts.tmxClassicNotConverted') });
         }
 
         result = tournamentEngine.setState(tournamentRecord);
@@ -36,7 +37,17 @@ export function importTournaments({ table }: { table: any }): void {
   });
 }
 
-export function addTournament({ tournamentRecord, tournamentIds, table, callback }: { tournamentRecord: any; tournamentIds?: string[]; table?: any; callback?: () => void }): void {
+export function addTournament({
+  tournamentRecord,
+  tournamentIds,
+  table,
+  callback,
+}: {
+  tournamentRecord: any;
+  tournamentIds?: string[];
+  table?: any;
+  callback?: () => void;
+}): void {
   const rowData = mapTournamentRecord(tournamentRecord);
   const existsInCalendar = tournamentIds?.includes(tournamentRecord.tournamentId);
   if (existsInCalendar) {
@@ -45,5 +56,5 @@ export function addTournament({ tournamentRecord, tournamentIds, table, callback
     table?.addData([rowData], true);
   }
   addOrUpdateTournament({ tournamentRecord });
-  isFunction(callback) && callback && callback();
+  isFunction(callback) && callback?.();
 }

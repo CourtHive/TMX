@@ -2,9 +2,10 @@
  * Print Schedule Modal
  * Provides options for generating a PDF of the schedule for a specific date
  */
-import { openModal } from './baseModal/baseModal';
 import { generateSchedulePDF } from 'services/pdf/generators/scheduleGenerator';
 import { competitionEngine } from 'tods-competition-factory';
+import { openModal } from './baseModal/baseModal';
+import { t } from 'i18n';
 
 interface PrintScheduleOptions {
   scheduledDate: string;
@@ -18,49 +19,49 @@ export function printSchedule(options: PrintScheduleOptions): void {
 
   const content = `
     <div style="padding: 20px;">
-      <h3 class="title is-5">Print Schedule</h3>
-      <p class="mb-4">Generate a PDF of the schedule for ${scheduledDate}</p>
-      
+      <h3 class="title is-5">${t('modals.printSchedule.title')}</h3>
+      <p class="mb-4">${t('modals.printSchedule.generatePdf')} ${scheduledDate}</p>
+
       <form id="printScheduleForm">
         <div class="field">
           <label class="checkbox">
             <input type="checkbox" id="includeHeader" checked>
-            Include header
+            ${t('modals.printSchedule.includeHeader')}
           </label>
         </div>
-        
+
         <div class="field">
           <label class="checkbox">
             <input type="checkbox" id="includeFooter" checked>
-            Include footer
+            ${t('modals.printSchedule.includeFooter')}
           </label>
         </div>
-        
+
         <div class="field">
           <label class="checkbox">
             <input type="checkbox" id="landscapeOrientation" ${courts.length >= 5 ? 'checked' : ''}>
-            Landscape orientation (recommended for ${courts.length}+ courts)
+            ${t('modals.printSchedule.landscapeOrientation')}
           </label>
         </div>
-        
+
         <div class="field">
-          <label class="label">Court identifiers</label>
+          <label class="label">${t('settings.courtidentifiers')}</label>
           <div class="control">
             <label class="radio">
               <input type="radio" name="courtIdentifiers" value="full" checked>
-              Full court names
+              ${t('modals.printSchedule.fullCourtNames')}
             </label>
             <label class="radio">
               <input type="radio" name="courtIdentifiers" value="short">
-              Short court names (first word)
+              ${t('modals.printSchedule.shortCourtNames')}
             </label>
           </div>
         </div>
-        
+
         <div class="notification is-info is-light mt-4">
-          <p><strong>Schedule:</strong> ${scheduledDate}</p>
-          <p><strong>Courts:</strong> ${courts.length}</p>
-          <p><strong>Rows:</strong> ${rows.length}</p>
+          <p><strong>${t('sch')}:</strong> ${scheduledDate}</p>
+          <p><strong>${t('crt')}:</strong> ${courts.length}</p>
+          <p><strong>${t('modals.printSchedule.rows')}:</strong> ${rows.length}</p>
         </div>
       </form>
     </div>
@@ -68,17 +69,18 @@ export function printSchedule(options: PrintScheduleOptions): void {
 
   const buttons = [
     {
-      label: 'Cancel',
+      label: t('common.cancel'),
       close: true,
     },
     {
-      label: 'View',
+      label: t('view'),
       intent: 'is-info',
       onClick: async () => {
         const includeHeader = (document.getElementById('includeHeader') as HTMLInputElement).checked;
         const includeFooter = (document.getElementById('includeFooter') as HTMLInputElement).checked;
         const landscape = (document.getElementById('landscapeOrientation') as HTMLInputElement).checked;
-        const courtIdentifiers = (document.querySelector('input[name="courtIdentifiers"]:checked') as HTMLInputElement).value;
+        const courtIdentifiers = (document.querySelector('input[name="courtIdentifiers"]:checked') as HTMLInputElement)
+          .value;
 
         try {
           await generateSchedulePDF({
@@ -96,18 +98,19 @@ export function printSchedule(options: PrintScheduleOptions): void {
           });
         } catch (error) {
           console.error('Error generating schedule PDF:', error);
-          alert('Failed to generate schedule PDF. Check console for details.');
+          alert(t('modals.printSchedule.generateError'));
         }
       },
     },
     {
-      label: 'Download',
+      label: t('dl'),
       intent: 'is-primary',
       onClick: async () => {
         const includeHeader = (document.getElementById('includeHeader') as HTMLInputElement).checked;
         const includeFooter = (document.getElementById('includeFooter') as HTMLInputElement).checked;
         const landscape = (document.getElementById('landscapeOrientation') as HTMLInputElement).checked;
-        const courtIdentifiers = (document.querySelector('input[name="courtIdentifiers"]:checked') as HTMLInputElement).value;
+        const courtIdentifiers = (document.querySelector('input[name="courtIdentifiers"]:checked') as HTMLInputElement)
+          .value;
 
         try {
           await generateSchedulePDF({
@@ -125,11 +128,11 @@ export function printSchedule(options: PrintScheduleOptions): void {
           });
         } catch (error) {
           console.error('Error generating schedule PDF:', error);
-          alert('Failed to generate schedule PDF. Check console for details.');
+          alert(t('modals.printSchedule.generateError'));
         }
       },
     },
   ];
 
-  openModal({ title: 'Print Schedule', content, buttons });
+  openModal({ title: t('modals.printSchedule.title'), content, buttons });
 }

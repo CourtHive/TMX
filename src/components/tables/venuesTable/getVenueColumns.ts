@@ -5,6 +5,7 @@ import { headerMenu } from '../common/headerMenu';
 import { setLatLong } from './setLatLong';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getVenuesColumns(nestedTables: any): any[] {
   const locationFormatter = (cell: any): string => {
@@ -39,14 +40,14 @@ export function getVenuesColumns(nestedTables: any): any[] {
     {
       cellClick: toggleOpenClose,
       field: 'venueAbbreviation',
-      title: 'Abbr',
+      title: t('tables.venues.abbr'),
       visible: true,
       width: 120
     },
     {
       cellClick: toggleOpenClose,
       field: 'venueName',
-      title: 'Venue',
+      title: t('tables.venues.venue'),
       visible: true,
       minWidth: 200,
       widthGrow: 3
@@ -62,7 +63,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       width: 50
     },
     {
-      title: 'Scheduled',
+      title: t('tables.venues.scheduled'),
       headerTooltip: 'Scheduled matches',
       field: 'scheduledMatchUpsCount',
       headerHozAlign: CENTER,
@@ -72,7 +73,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       minWidth: 120
     },
     {
-      title: 'Time',
+      title: t('tables.venues.time'),
       headerHozAlign: CENTER,
       field: 'availableTime',
       headerSort: true,

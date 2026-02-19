@@ -5,6 +5,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'components/controlBar/controlBar';
 import { addVenue } from './addVenue';
+import { t } from 'i18n';
 
 import { DELETE_VENUES } from 'constants/mutationConstants';
 import { OVERLAY, RIGHT } from 'constants/tmxConstants';
@@ -28,13 +29,13 @@ export function venueControl({ table, updateVenueRow, controlAnchor }: VenueCont
   const items = [
     {
       onClick: deleteVenues,
-      label: 'Delete selected',
+      label: t('pages.events.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
       location: OVERLAY
     },
     {
-      label: 'Add venue',
+      label: t('pages.venues.addVenue.title'),
       onClick: () => addVenue(updateVenueRow),
       location: RIGHT,
       id: 'addVenue',

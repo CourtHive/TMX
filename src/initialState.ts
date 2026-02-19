@@ -8,6 +8,7 @@ import { initLoginToggle } from 'services/authentication/loginState';
 import { initSettingsIcon } from 'components/modals/settingsModal';
 import { courthiveComponentsVersion } from 'courthive-components';
 import { loadSettings } from 'services/settings/settingsStorage';
+import { i18next } from 'i18n';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
@@ -68,6 +69,9 @@ export function setupTMX(): void {
     }
     if (savedSettings.minCourtGridRows !== undefined) {
       env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;
+    }
+    if (savedSettings.language) {
+      i18next.changeLanguage(savedSettings.language);
     }
   }
 

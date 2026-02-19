@@ -8,6 +8,7 @@ import { factoryConstants } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { MODIFY_COURT } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -58,29 +59,29 @@ export function editCourt({ court, callback }: { court?: any; callback?: (result
       elem,
       [
         {
-          error: 'minimum of 1 character',
+          error: t('pages.venues.editCourt.courtNameError'),
           validator: validators.nameValidator(1),
-          placeholder: 'Court name',
+          placeholder: t('pages.venues.editCourt.courtNamePlaceholder'),
           value: values.courtName,
           onChange: valueChange,
           selectOnFocus: true,
-          label: 'Court name',
+          label: t('pages.venues.editCourt.courtNameLabel'),
           field: 'courtName',
           focus: true,
         },
         {
-          label: 'In / Out',
+          label: t('pages.venues.editCourt.inOutLabel'),
           field: 'indoorOutdoor',
           value: values.indoorOutdoor,
           onChange: valueChange,
           options: [
             { value: '', label: EMPTY_OPTION, selected: !values.indoorOutdoor },
-            { value: 'INDOOR', label: 'Indoor', selected: values.indoorOutdoor === 'INDOOR' },
-            { value: 'OUTDOOR', label: 'Outdoor', selected: values.indoorOutdoor === 'OUTDOOR' },
+            { value: 'INDOOR', label: t('indoors'), selected: values.indoorOutdoor === 'INDOOR' },
+            { value: 'OUTDOOR', label: t('outdoors'), selected: values.indoorOutdoor === 'OUTDOOR' },
           ],
         },
         {
-          label: 'Surface',
+          label: t('pages.venues.editCourt.surfaceLabel'),
           field: 'surfaceType',
           value: values.surfaceType,
           onChange: valueChange,
@@ -97,7 +98,7 @@ export function editCourt({ court, callback }: { court?: any; callback?: (result
 
     // Validation
     if (!courtName || courtName.length < 1) {
-      tmxToast({ message: 'Court name must be at least 1 character', intent: 'is-danger' });
+      tmxToast({ message: t('pages.venues.editCourt.courtNameRequired'), intent: 'is-danger' });
       return;
     }
 
@@ -121,7 +122,7 @@ export function editCourt({ court, callback }: { court?: any; callback?: (result
       if (result.success) {
         if (isFunction(callback)) callback({ ...result, courtUpdates });
       } else if (result.error) {
-        tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
+        tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
         if (isFunction(callback)) callback(result);
       }
     };
@@ -140,13 +141,13 @@ export function editCourt({ court, callback }: { court?: any; callback?: (result
     renderButtons(
       elem,
       [
-        { label: 'Cancel', close: true },
+        { label: t('common.cancel'), close: true },
         {
           onClick: saveCourt,
           id: 'saveCourtButton',
           intent: 'is-info',
           disabled: !isValidForSave(),
-          label: 'Save',
+          label: t('common.save'),
           close: true,
         },
       ],
@@ -154,7 +155,7 @@ export function editCourt({ court, callback }: { court?: any; callback?: (result
     );
 
   context.drawer.open({
-    title: `<b style='larger'>Edit court</b>`,
+    title: `<b style='larger'>${t('pages.venues.editCourt.title')}</b>`,
     width: '300px',
     side: RIGHT,
     content,

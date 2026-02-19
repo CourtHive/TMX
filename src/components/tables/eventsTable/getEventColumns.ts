@@ -11,6 +11,7 @@ import { eventActions } from '../../popovers/eventActions';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getEventColumns(nestedTables: any, getLightMode?: () => boolean): any[] {
   const isLightMode = typeof getLightMode === 'function' ? getLightMode() : false;
@@ -59,19 +60,19 @@ export function getEventColumns(nestedTables: any, getLightMode?: () => boolean)
     {
       field: 'event.eventName',
       cellClick: nameClick,
-      title: 'Event',
+      title: t('tables.events.event'),
       minWidth: 200,
       visible: true,
       widthGrow: 3,
     },
     {
       field: 'event.eventType',
-      title: 'Type',
+      title: t('tables.events.type'),
       visible: true,
     },
     {
       field: 'event.gender',
-      title: 'Gender',
+      title: t('tables.events.gender'),
       visible: true,
     },
     {

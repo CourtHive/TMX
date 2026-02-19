@@ -4,6 +4,7 @@
  */
 import { genderConstants } from 'tods-competition-factory';
 import { isObject } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { CENTER } from 'constants/tmxConstants';
 
@@ -53,19 +54,19 @@ export function getUnscheduledColumns(unscheduledMatchUps: any[]): any[] {
       formatter: formatCell,
       field: 'eventName',
       resizable: false,
-      title: 'Event',
+      title: t('tables.unscheduled.event'),
       visible: true,
       minWidth: 250,
     },
     {
-      title: 'Flight',
+      title: t('tables.unscheduled.flight'),
       field: 'flight',
     },
     {
       formatter: formatCell,
       field: 'roundName',
       resizable: false,
-      title: 'Round',
+      title: t('tables.unscheduled.round'),
       minWidth: 90,
     },
     {
@@ -73,7 +74,7 @@ export function getUnscheduledColumns(unscheduledMatchUps: any[]): any[] {
       sorter: participantSorter,
       responsive: false,
       resizable: false,
-      title: 'Side 1',
+      title: t('tables.unscheduled.side1'),
       minWidth: 120,
       field: 'side1',
     },
@@ -82,13 +83,13 @@ export function getUnscheduledColumns(unscheduledMatchUps: any[]): any[] {
       sorter: participantSorter,
       responsive: false,
       resizable: false,
-      title: 'Side 2',
+      title: t('tables.unscheduled.side2'),
       minWidth: 120,
       field: 'side2',
     },
     {
       field: 'matchUp.matchUpFormat',
-      title: 'Scoring Format',
+      title: t('tables.unscheduled.scoringFormat'),
       formatter: formatCell,
       responsive: false,
       resizable: false,

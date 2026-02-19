@@ -2,6 +2,7 @@ import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 // constants
 import { SET_TOURNAMENT_DATES } from 'constants/mutationConstants';
@@ -25,13 +26,13 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
     {
       placeholder: 'YYYY-MM-DD',
       value: startDate,
-      label: 'Start date',
+      label: t('modals.editDates.startDateLabel'),
       field: 'startDate',
     },
     {
       placeholder: 'YYYY-MM-DD',
       value: endDate,
-      label: 'End date',
+      label: t('modals.editDates.endDateLabel'),
       field: 'endDate',
     },
   ];
@@ -62,11 +63,11 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
   const valid = validators.dateValidator(startDate) && validators.dateValidator(endDate);
 
   openModal({
-    title: 'Edit Dates',
+    title: t('modals.editDates.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Save', id: 'saveDatesEdits', disabled: !valid, intent: 'is-primary', onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('common.save'), id: 'saveDatesEdits', disabled: !valid, intent: 'is-primary', onClick },
     ],
   });
 }
