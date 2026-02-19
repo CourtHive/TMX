@@ -1,7 +1,9 @@
-import { removeAllChildNodes } from 'services/dom/transformers';
 import { createImagePanel, createNotesPanel, createStatCard, createSunburstPanel } from './dashboardPanels';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 
+// constants
 import { TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
 
 const STYLE_ID = 'dashboard-responsive-styles';
@@ -71,7 +73,14 @@ export function renderOverview(): void {
   // Row 2+: Stats (2 left cols) + Sunburst (3 right cols)
   const statsContainer = document.createElement('div');
   statsContainer.className = 'dash-stats';
-  statsContainer.appendChild(createStatCard('Dates', `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`, 'fa-calendar'));
+  const datesCard = createStatCard(
+    'Dates',
+    `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`,
+    'fa-calendar',
+  );
+  datesCard.style.cursor = 'pointer';
+  datesCard.addEventListener('click', () => openEditDatesModal({ onSave: () => renderOverview() }));
+  statsContainer.appendChild(datesCard);
   statsContainer.appendChild(createStatCard('Events', data.eventCount, 'fa-trophy'));
   statsContainer.appendChild(createStatCard('Players', data.participantCount, 'fa-users'));
   statsContainer.appendChild(createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis'));
