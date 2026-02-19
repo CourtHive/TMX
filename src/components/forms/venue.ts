@@ -3,6 +3,7 @@
  * Provides form fields for venue name, abbreviation, and court count with validation.
  */
 import { validators } from 'courthive-components';
+import { t } from 'i18n';
 
 export function venueForm({ values, valueChange, isValid }: { values: any; valueChange: (e: Event) => void; isValid?: boolean }): any[] {
   if (isValid) {
@@ -13,28 +14,28 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
 
   return [
     {
-      error: 'Please enter a name of at least 5 characters',
-      placeholder: 'Venue name',
+      error: t('pages.venues.addVenue.venueNameError'),
+      placeholder: t('pages.venues.addVenue.venueName'),
       value: values.venueName || '',
       validator: validators.nameValidator(5),
-      label: 'Venue name',
+      label: t('pages.venues.addVenue.venueName'),
       field: 'venueName',
       focus: true,
       onChange,
     },
     {
-      error: 'Please enter an abbreviation of 2-6 characters',
+      error: t('pages.venues.addVenue.abbreviationError'),
       value: values.venueAbbreviation || '',
       validator: validators.nameValidator(2, 6),
       field: 'venueAbbreviation',
-      label: 'Abbreviation',
+      label: t('pages.venues.addVenue.abbreviation'),
       onChange,
     },
     {
-      error: 'Must be a whole number',
+      error: t('pages.venues.addVenue.numberOfCourtsError'),
       value: values.courtsCount || '',
       validator: numberValidator,
-      label: 'Number of courts',
+      label: t('pages.venues.addVenue.numberOfCourts'),
       field: 'courtsCount',
       onChange,
     },

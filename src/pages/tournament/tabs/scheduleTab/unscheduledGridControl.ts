@@ -8,8 +8,9 @@ import { autoScheduleMatchUps } from './autoScheduleMatchUps';
 import { controlBar } from 'components/controlBar/controlBar';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
+import { t } from 'i18n';
 
-import { ALL_GENDERS, ALL_EVENTS, ALL_ROUNDS, ALL_FLIGHTS, LEFT, RIGHT, ALL_EVENT_TYPES } from 'constants/tmxConstants';
+import { LEFT, RIGHT } from 'constants/tmxConstants';
 
 export function unscheduledGridControl({
   updateUnscheduledTable,
@@ -51,7 +52,7 @@ export function unscheduledGridControl({
     if (eventId) table.addFilter(eventFilter);
   };
   const events = tournamentEngine.getEvents().events || [];
-  const allEvents = { label: ALL_EVENTS, onClick: () => updateEventFilter(), close: true };
+  const allEvents = { label: t('pages.schedule.allEvents'), onClick: () => updateEventFilter(), close: true };
   const eventOptions = [allEvents].concat(
     events.map((event: any) => ({
       onClick: () => updateEventFilter(event.eventId),
@@ -66,7 +67,7 @@ export function unscheduledGridControl({
     eventTypeFilter = eventType;
     if (eventType) table.addFilter(eventTypeFilterFx);
   };
-  const allEventTypes = { label: ALL_EVENT_TYPES, onClick: () => updateEventTypeFilter(), close: true };
+  const allEventTypes = { label: t('pages.schedule.allEventTypes'), onClick: () => updateEventTypeFilter(), close: true };
   const eventTypeOptions = [allEventTypes].concat(
     tools.unique(events.map((event: any) => event.eventType)).map((eventType: any) => ({
       onClick: () => updateEventTypeFilter(eventType),
@@ -82,7 +83,7 @@ export function unscheduledGridControl({
     genderFilter = gender;
     if (gender) table.addFilter(genderFilterFx);
   };
-  const allGenders = { label: ALL_GENDERS, onClick: () => updateGenderFilter(), close: true };
+  const allGenders = { label: t('pages.schedule.allGenders'), onClick: () => updateGenderFilter(), close: true };
   const genderOptions = [allGenders].concat(
     tools
       .unique(events.map((event: any) => event.gender))
@@ -101,7 +102,7 @@ export function unscheduledGridControl({
     roundNameFilter = roundName;
     if (roundName) table.addFilter(roundFilter);
   };
-  const allRounds = { label: ALL_ROUNDS, onClick: () => updateRoundFilter(), close: true };
+  const allRounds = { label: t('pages.schedule.allRounds'), onClick: () => updateRoundFilter(), close: true };
   const roundOptions = [allRounds].concat(
     roundNames.map((roundName: string) => ({
       onClick: () => updateRoundFilter(roundName),
@@ -117,7 +118,7 @@ export function unscheduledGridControl({
     flightNameFilter = flightName;
     if (flightName) table.addFilter(flightFilter);
   };
-  const allFlights = { label: ALL_FLIGHTS, onClick: () => updateFlightFilter(), close: true };
+  const allFlights = { label: t('pages.schedule.allFlights'), onClick: () => updateFlightFilter(), close: true };
   const flightOptions = [allFlights].concat(
     flightNames.map((flightName: string) => ({
       onClick: () => updateFlightFilter(flightName),
@@ -156,13 +157,13 @@ export function unscheduledGridControl({
   const actionOptions = [
     {
       onClick: autoScheduler,
-      label: 'Auto schedule',
+      label: t('pages.schedule.autoSchedule'),
       intent: 'is-primary',
       id: 'autoSchedule',
       close: true,
     },
     {
-      label: 'Clear schedule',
+      label: t('pages.schedule.clearSchedule'),
       onClick: scheduleClear,
       intent: 'is-warning',
       id: 'clearSchedule',
@@ -177,14 +178,14 @@ export function unscheduledGridControl({
       onChange: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => setSearchFilter((e.target as HTMLInputElement).value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search participants',
+      placeholder: t('pages.schedule.searchParticipants'),
       location: LEFT,
       search: true,
     },
     {
       hide: eventTypeOptions.length < 2,
       options: eventTypeOptions,
-      label: ALL_EVENT_TYPES,
+      label: t('pages.schedule.allEventTypes'),
       id: 'eventTypeOptions',
       modifyLabel: true,
       location: LEFT,
@@ -194,7 +195,7 @@ export function unscheduledGridControl({
       hide: eventOptions.length < 2,
       options: eventOptions,
       id: 'eventOptions',
-      label: ALL_EVENTS,
+      label: t('pages.schedule.allEvents'),
       modifyLabel: true,
       location: LEFT,
       selection: true,
@@ -203,7 +204,7 @@ export function unscheduledGridControl({
       hide: flightOptions.length < 2,
       options: flightOptions,
       id: 'flightOptions',
-      label: ALL_FLIGHTS,
+      label: t('pages.schedule.allFlights'),
       modifyLabel: true,
       location: LEFT,
       selection: true,
@@ -212,7 +213,7 @@ export function unscheduledGridControl({
       hide: genderOptions.length < 2,
       options: genderOptions,
       id: 'genderOptions',
-      label: ALL_GENDERS,
+      label: t('pages.schedule.allGenders'),
       modifyLabel: true,
       location: LEFT,
       selection: true,
@@ -221,14 +222,14 @@ export function unscheduledGridControl({
       hide: roundOptions.length < 2,
       options: roundOptions,
       id: 'roundOptions',
-      label: ALL_ROUNDS,
+      label: t('pages.schedule.allRounds'),
       modifyLabel: true,
       location: LEFT,
       selection: true,
     },
     {
       options: actionOptions,
-      label: 'Actions',
+      label: t('pages.schedule.actions'),
       selection: false,
       location: RIGHT,
       align: RIGHT,
@@ -237,7 +238,7 @@ export function unscheduledGridControl({
       onClick: toggleUnscheduled,
       id: 'doneScheduling',
       intent: 'is-info',
-      label: 'Done',
+      label: t('pages.schedule.done'),
     },
   ];
 
