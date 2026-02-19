@@ -6,6 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { validators, renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isDev } from 'functions/isDev';
+import { t } from 'i18n';
 
 import { DELETE_EVENTS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
@@ -20,7 +21,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
     return;
   }
 
-  const modalTitle = eventIds.length > 1 ? `Delete Events` : 'Delete Event';
+  const modalTitle = eventIds.length > 1 ? t('modals.deleteEvents.titleOther') : t('modals.deleteEvents.titleOne');
 
   let inputs: any;
   const deleteAction = () => {
@@ -29,18 +30,18 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   };
   const items = [
     {
-      text: `Please provide a reason for event deletion.`,
+      text: t('modals.deleteEvents.reasonPrompt'),
     },
     {
       placeholder: 'Explanation',
       field: 'eventDeletionReason',
       validator: validators.wordValidator(5),
-      error: 'Five word minimum',
+      error: t('modals.deleteEvents.fiveWordMinimum'),
       autocomplete: 'on',
       focus: true,
     },
     {
-      text: `This action cannot be undone!`,
+      text: t('common.cannotBeUndone'),
     },
   ];
   const enableSubmit = ({ inputs }: any) => {
@@ -61,8 +62,8 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
     title: modalTitle,
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteEvent', disabled: true, intent: 'is-danger', close: true, onClick: deleteAction },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('common.delete'), id: 'deleteEvent', disabled: true, intent: 'is-danger', close: true, onClick: deleteAction },
     ],
   });
 }

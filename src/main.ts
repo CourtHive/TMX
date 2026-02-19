@@ -1,3 +1,4 @@
+import 'i18n/i18n';
 import { updateReady } from 'services/notifications/statusMessages';
 import { rootBlock } from 'components/framework/rootBlock';
 import * as serviceWorker from './serviceWorker';

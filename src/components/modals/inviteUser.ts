@@ -2,6 +2,7 @@ import { validators, renderForm } from 'courthive-components';
 import { inviteUser } from 'services/authentication/authApi';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 export function inviteModal(callback, providers = []) {
   const noProvider: any = { value: { organisationName: 'None' }, key: '' };
@@ -38,54 +39,54 @@ export function inviteModal(callback, providers = []) {
           placeholder: 'valid@email.com',
           validator: validators.emailValidator,
           autocomplete: 'off',
-          label: 'Email',
+          label: t('email'),
           field: 'email',
         },
         {
-          text: 'Roles',
+          text: t('modals.inviteUser.roles'),
           header: true,
         },
         {
-          label: 'Client',
+          label: t('modals.inviteUser.client'),
           field: 'client',
           checkbox: true,
           width: '50%',
           id: 'client',
           fieldPair: {
-            label: 'Director',
+            label: t('modals.inviteUser.director'),
             field: 'director',
             id: 'director',
             checkbox: true,
           },
         },
         {
-          label: 'Admin',
+          label: t('modals.inviteUser.admin'),
           checkbox: true,
           field: 'admin',
           width: '50%',
           id: 'admin',
           fieldPair: {
-            label: 'Official',
+            label: t('modals.inviteUser.official'),
             field: 'official',
             id: 'official',
             checkbox: true,
           },
         },
         {
-          label: 'Scoring',
+          label: t('modals.inviteUser.scoring'),
           field: 'score',
           width: '50%',
           id: 'score',
           checkbox: true,
           fieldPair: {
-            label: 'Developer',
+            label: t('modals.inviteUser.developer'),
             field: 'developer',
             id: 'developer',
             checkbox: true,
           },
         },
         {
-          label: 'Generate',
+          label: t('modals.inviteUser.generate'),
           field: 'generate',
           checkbox: true,
           id: 'generate',
@@ -101,38 +102,38 @@ export function inviteModal(callback, providers = []) {
         {
           typeAhead: { list: providerList, callback: setProviderId },
           value: values.providerId || '',
-          placeholder: 'None',
+          placeholder: t('none'),
           field: 'providerId',
-          label: 'Provider',
+          label: t('modals.inviteUser.provider'),
         },
         {
-          text: 'Permissions',
+          text: t('modals.inviteUser.permissions'),
           header: true,
         },
         {
-          label: 'Delete Tournaments',
+          label: t('modals.inviteUser.deleteTournaments'),
           field: 'deleteTournament',
           checkbox: true,
           id: 'delete',
         },
         {
           field: 'editTennisId',
-          label: 'Edit WTID',
+          label: t('modals.inviteUser.editWtid'),
           id: 'editTennisId',
           checkbox: true,
         },
         {
-          label: 'Dev mode',
+          label: t('modals.inviteUser.devMode'),
           field: 'devMode',
           checkbox: true,
           id: 'devmode',
         },
         {
-          text: 'Services',
+          text: t('modals.inviteUser.services'),
           header: true,
         },
         {
-          label: 'Tournament Profiles (fetch)',
+          label: t('modals.inviteUser.tournamentProfiles'),
           field: 'tournamentProfile',
           id: 'tournamentProfile',
           checkbox: true,
@@ -157,11 +158,11 @@ export function inviteModal(callback, providers = []) {
   };
 
   openModal({
-    title: 'Invite user',
+    title: t('modals.inviteUser.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Invite', intent: 'is-primary', id: 'inviteUser', disabled: true, onClick: submitInvite, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('modals.inviteUser.invite'), intent: 'is-primary', id: 'inviteUser', disabled: true, onClick: submitInvite, close: true },
     ],
   });
 }

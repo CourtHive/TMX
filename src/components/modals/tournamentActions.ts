@@ -5,7 +5,6 @@
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
-import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
 import { findAncestor } from 'services/dom/parentAndChild';
@@ -14,9 +13,11 @@ import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { ADD_TOURNAMENT_TIMEITEM } from 'constants/mutationConstants';
 import { ADMIN } from 'constants/tmxConstants';
@@ -39,7 +40,7 @@ export function tournamentActions(): void {
           onClick: () => sendTournament({ tournamentRecord }).then(success, failure),
           text: 'Send??',
         },
-        message: 'Upload tournament',
+        message: t('modals.tournamentActions.uploadTournament'),
         intent: 'is-danger',
       });
     }
@@ -53,13 +54,13 @@ export function tournamentActions(): void {
           tmx2db.deleteTournament(tournamentRecord.tournamentId);
           context.router.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
           tmxToast({
-            message: 'Tournament claimed',
+            message: t('modals.tournamentActions.tournamentClaimed'),
             intent: 'is-info',
           });
         };
         const failureClaim = (error: any) => {
           tmxToast({
-            message: error.message || 'Not claimed',
+            message: error.message || t('modals.tournamentActions.notClaimed'),
             intent: 'is-danger',
           });
         };
@@ -73,7 +74,7 @@ export function tournamentActions(): void {
           saveTournamentRecord();
           const dnav = document.getElementById('dnav');
           if (dnav) dnav.style.backgroundColor = 'lightyellow';
-          tmxToast({ message: 'Offline', intent: 'is-info' });
+          tmxToast({ message: t('modals.tournamentActions.offline'), intent: 'is-info' });
         }
       };
       changeOnlineState({ postMutation, state, offline: true });
@@ -86,7 +87,7 @@ export function tournamentActions(): void {
             tmx2db.deleteTournament(tournamentRecord.tournamentId);
             const dnav = document.getElementById('dnav');
             if (dnav) dnav.style.backgroundColor = '';
-            tmxToast({ message: 'Online', intent: 'is-info' });
+            tmxToast({ message: t('modals.tournamentActions.online'), intent: 'is-info' });
           };
           const failureOnline = (err: any) => {
             console.log({ err });
@@ -105,7 +106,7 @@ export function tournamentActions(): void {
       if (tournamentRecord) {
         downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
       } else {
-        tmxToast({ message: 'Error' });
+        tmxToast({ message: t('common.error') });
       }
     }
   };
@@ -131,25 +132,32 @@ export function tournamentActions(): void {
   ];
 
   const options = [
-    { label: '-- select action --', close: true },
-    providerId && { label: 'Upload tournament', value: 'upload', close: true },
-    tournamentRecord && { label: 'Delete tournament', disabled: !canDelete, value: 'delete', close: true },
-    tournamentRecord && !providerId && state?.provider && { label: 'Claim tournament', value: 'claim', close: true },
-    providerId && !offline && { label: 'Go offline - standalone mode', value: 'goOffline', close: true },
-    providerId && offline && { label: 'Go online - exit standalone mode', value: 'goOnline', close: true },
-    tournamentRecord && admin && { label: 'Export UTR matches', value: 'utrExport' },
-    tournamentRecord && admin && { label: 'Export TODS file', value: 'todsExport' },
+    { label: t('modals.tournamentActions.selectAction'), close: true },
+    providerId && { label: t('modals.tournamentActions.uploadTournament'), value: 'upload', close: true },
+    tournamentRecord && {
+      label: t('modals.tournamentActions.deleteTournament'),
+      disabled: !canDelete,
+      value: 'delete',
+      close: true,
+    },
+    tournamentRecord &&
+      !providerId &&
+      state?.provider && { label: t('modals.tournamentActions.claimTournament'), value: 'claim', close: true },
+    providerId && !offline && { label: t('modals.tournamentActions.goOffline'), value: 'goOffline', close: true },
+    providerId && offline && { label: t('modals.tournamentActions.goOnline'), value: 'goOnline', close: true },
+    tournamentRecord && admin && { label: t('modals.tournamentActions.exportUtr'), value: 'utrExport' },
+    tournamentRecord && admin && { label: t('modals.tournamentActions.exportTods'), value: 'todsExport' },
   ].filter(Boolean);
 
-  if (options.length < 2) return tmxToast({ message: 'No actions available' });
+  if (options.length < 2) return tmxToast({ message: t('modals.tournamentActions.noActions') });
 
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(
       elem,
       [
-        { label: 'Action', field: 'action', options },
+        { label: t('act'), field: 'action', options },
         {
-          label: 'Replace tournament on server',
+          label: t('modals.tournamentActions.replaceTournament'),
           field: 'replace',
           visible: false,
           checkbox: true,
@@ -160,11 +168,18 @@ export function tournamentActions(): void {
     ));
 
   openModal({
-    title: 'Tournament actions',
+    title: t('modals.tournamentActions.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Go', id: 'go', intent: 'is-danger', disabled: true, onClick: takeAction, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      {
+        label: t('modals.tournamentActions.go'),
+        id: 'go',
+        intent: 'is-danger',
+        disabled: true,
+        onClick: takeAction,
+        close: true,
+      },
     ],
   });
 }

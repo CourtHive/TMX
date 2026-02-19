@@ -4,6 +4,7 @@
  */
 import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'pages/tournament/destroyTable';
@@ -14,7 +15,9 @@ import { renderDrawPanel } from './renderDrawPanel';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
-import { EVENTS_TAB, ROUNDS_STATS, ROUNDS_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
+import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { EVENTS_TAB, ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
+const { CONTAINER } = drawDefinitionConstants;
 
 type RenderEventsTabParams = {
   eventId?: string;
@@ -25,7 +28,18 @@ type RenderEventsTabParams = {
 };
 
 export function renderEventsTab(params: RenderEventsTabParams): void {
-  const { eventId, drawId, structureId, renderDraw, roundsView = 'roundsColumns' } = params;
+  let { eventId, drawId, structureId, renderDraw, roundsView } = params;
+
+  // Resolve structureId from draw data when not provided; default to Grid view for round robin draws
+  if (drawId) {
+    const eventData = tournamentEngine.getEventData({ eventId })?.eventData;
+    const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
+    if (!structureId) structureId = drawData?.structures?.[0]?.structureId;
+    if (!roundsView) {
+      const struct = drawData?.structures?.find((s: any) => s.structureId === structureId);
+      roundsView = struct?.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
+    }
+  }
   highlightTab(EVENTS_TAB);
   destroyTables();
   cleanupDrawPanel();
@@ -41,6 +55,8 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
           (createRoundsTable as any)({ eventId: eventId!, drawId, structureId, roundsView });
         } else if (roundsView === ROUNDS_STATS) {
           (createStatsTable as any)({ eventId: eventId!, drawId, structureId, roundsView });
+        } else if (roundsView === ROUNDS_BRACKET) {
+          (createBracketTable as any)({ eventId: eventId!, drawId, structureId, roundsView });
         } else {
           (renderDrawView as any)({ eventId: eventId!, drawId, structureId, redraw: true, roundsView });
         }

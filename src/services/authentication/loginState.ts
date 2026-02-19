@@ -16,6 +16,7 @@ import { copyClick } from 'services/dom/copyClick';
 import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { INVITE, SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
@@ -52,7 +53,7 @@ export function logIn({ data, callback }) {
   const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
   if (valid) {
     setToken(data.token);
-    tmxToast({ intent: 'is-success', message: 'Log in successful' });
+    tmxToast({ intent: 'is-success', message: t('toasts.loggedIn') });
     disconnectSocket();
     if (!tournamentInState) tournamentEngine.reset();
     styleLogin(valid);
@@ -76,12 +77,12 @@ export function impersonate() {
       };
     });
 
-    if (options) selectItem({ title: 'Select Provider', options, selectionLimit: 1 });
+    if (options) selectItem({ title: t('loginMenu.selectProvider'), options, selectionLimit: 1 });
   });
 }
 
 function handleUserRemoval(value) {
-  return () => removeUser(value).then(() => tmxToast({ message: 'User removed' }));
+  return () => removeUser(value).then(() => tmxToast({ message: t('toasts.userRemoved') }));
 }
 
 export function removeUserDialog() {
@@ -93,7 +94,7 @@ export function removeUserDialog() {
       };
     });
 
-    if (options) selectItem({ title: 'Select User', options, selectionLimit: 1 });
+    if (options) selectItem({ title: t('loginMenu.selectUser'), options, selectionLimit: 1 });
   });
 }
 
@@ -129,55 +130,55 @@ export function initLoginToggle(id) {
       const items = [
         {
           onClick: () => tmxToast({ message: 'TBD: Registration Modal' }),
-          text: 'Register',
+          text: t('loginMenu.register'),
           hide: loggedIn,
         },
         {
           onClick: () => loginModal(),
           hide: loggedIn,
-          text: 'Log in',
+          text: t('loginMenu.logIn'),
         },
         {
           style: 'text-decoration: line-through;',
           hide: !superAdmin || !impersonating,
           onClick: cancelImpersonation,
-          text: 'Impersonate',
+          text: t('loginMenu.impersonate'),
         },
         {
           hide: !superAdmin || impersonating,
           onClick: impersonate,
-          text: 'Impersonate',
+          text: t('loginMenu.impersonate'),
         },
         {
           onClick: editProviderModal,
-          text: 'Create provider',
+          text: t('loginMenu.createProvider'),
           hide: !superAdmin,
         },
         {
           onClick: () => selectProviderModal({ callback: providerSelected }),
-          text: 'Edit provider',
+          text: t('loginMenu.editProvider'),
           hide: !superAdmin,
         },
         {
           onClick: removeUserDialog,
-          text: 'Remove user',
+          text: t('loginMenu.removeUser'),
           hide: !superAdmin,
         },
         {
           onClick: () =>
             getProviders().then(({ data }) => inviteModal(processInviteResult, data?.providers), handleError),
           hide: !superAdmin && !impersonating,
-          text: 'Invite User',
+          text: t('loginMenu.inviteUser'),
         },
         {
-          text: 'Log out',
+          text: t('loginMenu.logOut'),
           hide: !loggedIn,
           onClick: logOut,
         },
         { hide: !admin, divider: true },
         {
           onClick: tournamentActions,
-          heading: 'Actions',
+          heading: t('loginMenu.actions'),
           hide: !admin,
         },
         {
@@ -185,11 +186,11 @@ export function initLoginToggle(id) {
         },
         {
           onClick: settingsModal,
-          heading: 'Settings',
+          heading: t('loginMenu.settings'),
         },
       ];
 
-      tipster({ target: el, title: 'Authorization', items });
+      tipster({ target: el, title: t('loginMenu.authorization'), items });
     });
   }
 }

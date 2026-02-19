@@ -10,6 +10,7 @@ import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
 import { isFunction } from 'functions/typeOf';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 
 import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
 import { AUTOMATED, MANUAL, UTR, WTN } from 'constants/tmxConstants';
@@ -117,7 +118,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     };
 
     selectParticipant({
-      title: 'Confirm player selection',
+      title: t('modals.addRound.confirmSelection'),
       selectedParticipantIds,
       activeOnEnter: true,
       selectionLimit: 99,
@@ -152,8 +153,8 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Add round', intent: 'is-success', close: false, onClick: addMatchUps },
+    { label: t('common.cancel'), intent: 'none', close: true },
+    { label: t('modals.addRound.addRound'), intent: 'is-success', close: false, onClick: addMatchUps },
   ];
 
   const options = [
@@ -172,7 +173,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
         { text: 'None', field: 'none', checked: !env.activeScale },
       ],
       onClick: (x: any) => console.log({ x }),
-      label: 'Level of play',
+      label: t('modals.addRound.levelOfPlay'),
       field: 'levelOfPlay',
       id: 'levelOfPlay',
       radio: true,
@@ -181,5 +182,5 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
 
-  update = (openModal as any)({ title: 'Add round', content, structure, buttons }).update;
+  update = (openModal as any)({ title: t('modals.addRound.title'), content, structure, buttons }).update;
 }

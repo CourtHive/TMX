@@ -1,4 +1,4 @@
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 export const tmxNotes = (() => {
   const fx: any = {};
@@ -15,7 +15,7 @@ export const tmxNotes = (() => {
     return `<div>
             <H3>Email</H3>
             <div>
-               ${lang.tr('phrases.feedback')}:
+               ${t('phrases.feedback')}:
                <p><b>support @ courthive.com</b></p>
             </div>
          </div>`;

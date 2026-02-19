@@ -3,6 +3,7 @@ import { validators, renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 // constants
 import { NONE } from 'constants/tmxConstants';
@@ -68,25 +69,25 @@ export function editProviderModal(params) {
       [
         {
           value: values.organisationName,
-          placeholder: 'Provider name',
+          placeholder: t('modals.editProvider.namePlaceholder'),
           validator: validators.nameValidator(10),
-          label: 'Provider Name',
+          label: t('modals.editProvider.nameLabel'),
           field: 'providerName',
           autocomplete: 'off',
         },
         {
           value: values.organisationAbbreviation,
-          placeholder: 'Abbreviation',
+          placeholder: t('modals.editProvider.abbreviationPlaceholder'),
           validator: validators.nameValidator(3),
-          label: 'Abbreviation',
+          label: t('modals.editProvider.abbreviationLabel'),
           field: 'providerAbbr',
           autocomplete: 'off',
         },
         {
-          placeholder: 'NOT REQUIRED - automatically generated',
+          placeholder: t('modals.editProvider.idPlaceholder'),
           value: params?.provider?.organisationId ?? '',
           disabled: params?.provider?.organisationId,
-          label: 'Provider ID',
+          label: t('modals.editProvider.idLabel'),
           autocomplete: 'off',
           field: 'providerId',
         },
@@ -95,9 +96,9 @@ export function editProviderModal(params) {
           onChange: () => {
             return inputs.tournamentImage.value ? attemptLoad() : clearImage();
           },
-          label: 'Web address of online image',
+          label: t('modals.editProvider.imageLabel'),
           value: providerImage?.identifier,
-          placeholder: 'Image URL',
+          placeholder: t('modals.editProvider.imagePlaceholder'),
           field: 'tournamentImage',
           autocomplete: 'off',
         },
@@ -138,12 +139,12 @@ export function editProviderModal(params) {
   };
 
   openModal({
-    title: 'Create provider',
+    title: t('modals.editProvider.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       {
-        label: params?.provider ? 'Update' : 'Create',
+        label: params?.provider ? t('modals.editProvider.update') : t('modals.editProvider.create'),
         onClick: submitProvider,
         id: 'createButton',
         intent: 'is-info',

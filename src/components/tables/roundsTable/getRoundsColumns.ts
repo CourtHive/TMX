@@ -17,6 +17,7 @@ import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
 
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getRoundsColumns({ data, replaceTableData }: { data: any[]; replaceTableData: () => void }): any[] {
   const matchUpScheduleClick = (_e: Event, cell: any) => {
@@ -76,7 +77,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       width: 55,
     },
     {
-      title: 'Flight',
+      title: t('tables.rounds.flight'),
       visible: false,
       minWidth: 150,
       field: 'flight',
@@ -85,14 +86,14 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
     {
       cellClick: matchUpScheduleClick,
       field: 'scheduledDate',
-      title: 'Date',
+      title: t('tables.rounds.date'),
       width: 110,
     },
     {
       cellClick: matchUpScheduleClick,
       visible: !!showCourts,
       field: 'courtName',
-      title: 'Court',
+      title: t('tables.rounds.court'),
       width: 100,
     },
     {
@@ -100,7 +101,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       field: 'scheduleTime',
       headerSort: false,
       visible: false,
-      title: 'Time',
+      title: t('tables.rounds.time'),
       width: 70,
     },
     {
@@ -108,7 +109,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
-      title: 'Side 1',
+      title: t('tables.rounds.side1'),
       minWidth: 180,
       field: 'side1',
       widthGrow: 1,
@@ -118,7 +119,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       cellClick: handleSideClick,
       sorter: participantSorter,
       responsive: false,
-      title: 'Side 2',
+      title: t('tables.rounds.side2'),
       minWidth: 180,
       field: 'side2',
       widthGrow: 1,
@@ -129,7 +130,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       sorter: scoreSorter,
       field: 'scoreDetail',
       responsive: false,
-      title: 'Score',
+      title: t('tables.rounds.score'),
       width: 140,
     },
     {
@@ -137,7 +138,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       formatter: profileFormatter,
       field: 'competitiveProfile',
       responsive: false,
-      title: 'Profile',
+      title: t('tables.rounds.profile'),
       visible: false,
       width: 140,
     },
@@ -151,7 +152,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
     },
     {
       field: 'matchUp.matchUpStatus',
-      title: 'Status',
+      title: t('tables.rounds.status'),
       width: 150,
     },
     {

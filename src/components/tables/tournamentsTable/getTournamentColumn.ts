@@ -4,6 +4,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
 import { RIGHT, TOURNAMENT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getTournamentColumns(replaceTableData: () => void): any[] {
   const isMobile = /Mobile/.test(navigator.userAgent);
@@ -28,11 +29,11 @@ export function getTournamentColumns(replaceTableData: () => void): any[] {
       widthGrow: 3,
     },
     {
-      formatter: () => `<div class="button font-medium">Open</div>`,
+      formatter: () => `<div class="button font-medium">${t('tables.tournaments.open')}</div>`,
       cellClick: openTournament,
       vertAlign: 'middle',
       visible: !isMobile,
-      title: 'Open',
+      title: t('tables.tournaments.open'),
       width: 90,
     },
     {

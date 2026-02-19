@@ -3,6 +3,7 @@
  * Provides menu options for editing, removing, and resetting draw structures.
  */
 import { tournamentEngine, eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
+import { t } from 'i18n';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
@@ -77,41 +78,41 @@ export function getActionOptions({
       // Only show for MAIN stage with stageSequence 1, and when not blocked by scores or TEAM event
       hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM,
       onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
-      label: 'Assign participants',
+      label: t('pages.events.actionOptions.assignParticipants'),
       close: true,
     },
     {
       hide: eventData.eventInfo.eventType !== TEAM,
       onClick: () =>
         updateTieFormat({ matchUpId: dualMatchUp.matchUpId, structureId, eventId, drawId, callback: scorecardUpdated }),
-      label: 'Edit scorecard',
+      label: t('pages.events.actionOptions.editScorecard'),
       close: true,
     },
     {
       hide: eventData.eventInfo.eventType === TEAM,
       onClick: () => editMatchUpFormat({ structureId, drawId }),
-      label: `Edit ${structureName} scoring`,
+      label: t('pages.events.actionOptions.editScoring', { name: structureName }),
       close: true,
     },
     {
       hide: structure?.stage === 'MAIN' && structure.stageSequence === 1 && !hasQualifying,
       onClick: () => removeStructure({ drawId, eventId, structureId }),
-      label: 'Remove structure',
+      label: t('pages.events.actionOptions.removeStructure'),
       close: true,
     },
     {
       hide: !env.pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => printDraw({ drawId, eventId, structureId }),
-      label: 'Print draw',
+      label: t('pages.events.actionOptions.printDraw'),
       close: true,
     },
     {
       onClick: () => deleteFlights({ eventData, drawIds: [drawId] }),
-      label: 'Delete draw',
+      label: t('pages.events.actionOptions.deleteDraw'),
     },
     {
       onClick: () => resetDraws({ eventData, drawIds: [drawId] }),
-      label: 'Reset draw',
+      label: t('pages.events.actionOptions.resetDraw'),
     },
   ];
 
@@ -128,7 +129,7 @@ export function getActionOptions({
       const resultsPresent = currentMatchUp.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
       if (resultsPresent) {
         tmxToast({
-          message: 'Cannot remove when scores are present',
+          message: t('pages.events.actionOptions.cannotRemoveScores'),
           intent: 'is-warning',
           pauseOnHover: true,
         });
@@ -143,7 +144,7 @@ export function getActionOptions({
       }
     };
     const removeParticipantsButton = {
-      label: 'Remove players',
+      label: t('pages.events.actionOptions.removePlayers'),
       onClick: removePlayers,
       close: true,
     } as any;
@@ -159,7 +160,7 @@ export function getActionOptions({
       mutationRequest({ methods, callback: postMutation });
     };
     const clearResultsButton = {
-      label: 'Clear results',
+      label: t('pages.events.actionOptions.clearResults'),
       onClick: clearResults,
       close: true,
     } as any;

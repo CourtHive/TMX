@@ -7,6 +7,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 // constants
 import { SET_SUB_ORDER } from 'constants/mutationConstants';
@@ -148,12 +149,12 @@ export function orderResolutionModal({
 
     const postMutation = (result: any) => {
       if (result.success) {
-        tmxToast({ message: 'Order assignments updated', intent: 'is-success' });
+        tmxToast({ message: t('modals.orderResolution.updated'), intent: 'is-success' });
         if (isFunction(callback)) {
           callback(selectedOrders);
         }
       } else {
-        tmxToast({ message: 'Failed to update order assignments', intent: 'is-error' });
+        tmxToast({ message: t('modals.orderResolution.updateFailed'), intent: 'is-error' });
       }
     };
 
@@ -163,11 +164,11 @@ export function orderResolutionModal({
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
   openModal({
-    title: 'Order Resolution',
+    title: t('modals.orderResolution.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Submit', id: 'submitOrder', disabled: true, intent: 'is-info', close: true, onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('common.submit'), id: 'submitOrder', disabled: true, intent: 'is-info', close: true, onClick },
     ],
   });
 }

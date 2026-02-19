@@ -2,10 +2,11 @@
  * Select provider modal with type-ahead search.
  * Allows selection of organization provider from available providers list.
  */
-import { renderForm } from 'courthive-components';
 import { getProviders } from 'services/apis/servicesApi';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 export async function selectProviderModal({ callback }: { callback?: (provider: any) => void }): Promise<void> {
   const values = { providerId: '' };
@@ -40,8 +41,8 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
     renderForm(elem, [
       {
         typeAhead: { list, callback: typeAheadCallback },
-        placeholder: 'Type provider name',
-        label: 'Provider',
+        placeholder: t('modals.selectProvider.placeholder'),
+        label: t('modals.selectProvider.providerLabel'),
         field: 'provider',
         width: '100%',
         onInput,
@@ -49,15 +50,15 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
     ]);
   };
   openModal({
-    title: 'Select provider',
+    title: t('modals.selectProvider.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       {
         onClick: selectProvider,
         intent: 'is-primary',
         id: 'selectButton',
-        label: 'Select',
+        label: t('select'),
         disabled: true,
         close: true,
       },

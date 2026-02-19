@@ -1,4 +1,4 @@
-import { ANY_TEAM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getTeamFilter({ table, teamParticipants }) {
   let filterValue;
@@ -8,8 +8,9 @@ export function getTeamFilter({ table, teamParticipants }) {
     filterValue = participantId;
     if (participantId) table.addFilter(teamFilter);
   };
+  const anyTeamLabel = t('pages.participants.anyTeam');
   const allTeams = {
-    label: `<span style='font-weight: bold'>${ANY_TEAM}</span>`,
+    label: `<span style='font-weight: bold'>${anyTeamLabel}</span>`,
     onClick: () => updateTeamFilter(),
     close: true,
   };

@@ -16,6 +16,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
+import { t } from 'i18n';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
@@ -52,8 +53,7 @@ export function routeTo(config: any): void {
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });
-    if (selectedTab === TOURNAMENT_OVERVIEW)
-      renderOverview({ tournamentName: tournamentEngine.getTournamentInfo().tournamentInfo?.tournamentName });
+    if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
     if (selectedTab === VENUES_TAB) renderVenueTab();
@@ -66,7 +66,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
 
   const notFound = () => {
     tmxToast({
-      message: 'Tournament not found',
+      message: t('toasts.tournamentNotFound'),
       onClose: () => {
         context.router.navigate('/tournaments');
       },

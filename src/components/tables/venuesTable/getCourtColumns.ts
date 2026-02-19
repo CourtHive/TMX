@@ -3,6 +3,7 @@ import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 function lightsFormatter(cell: any): string {
   const value = cell.getValue();
@@ -29,11 +30,11 @@ export function getCourtColumns(): any[] {
       hozAlign: CENTER,
       width: 55,
     },
-    { title: 'Court Name', field: 'courtName', editor: true },
-    { title: 'Scheduled Time', field: 'scheduledTime' },
-    { title: 'Unscheduled Time', field: 'unscheduledTime' },
-    { title: 'In/Out', field: 'indoorOutdoor' },
-    { title: 'Surface', field: 'surfaceType' },
+    { title: t('tables.courts.courtName'), field: 'courtName', editor: true },
+    { title: t('tables.courts.scheduledTime'), field: 'scheduledTime' },
+    { title: t('tables.courts.unscheduledTime'), field: 'unscheduledTime' },
+    { title: t('tables.courts.inOut'), field: 'indoorOutdoor' },
+    { title: t('tables.courts.surface'), field: 'surfaceType' },
     {
       title: `<i class="fa-regular fa-lightbulb"></i>`,
       formatter: lightsFormatter,

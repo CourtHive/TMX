@@ -8,6 +8,7 @@ import { validators, renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
@@ -19,7 +20,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   const options = structures.map(({ structureName, structureId }: any, index: number) => ({
     text: `${structureName}:`,
     fieldPair: {
-      error: 'minimum 4 characters',
+      error: t('modals.editStructureNames.minChars'),
       validator: validators.nameValidator(4),
       placeholder: structureName,
       focus: index === 0,
@@ -44,7 +45,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
     ];
     const postMutation = (result: any) => {
       if (result.success) {
-        tmxToast({ message: 'Structure renamed', intent: 'is-success' });
+        tmxToast({ message: t('modals.editStructureNames.structureRenamed'), intent: 'is-success' });
         isFunction(callback) && callback?.();
       }
     };
@@ -63,11 +64,11 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   }));
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
   openModal({
-    title: `Edit structure names`,
+    title: t('modals.editStructureNames.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Rename', id: 'renameStructures', disabled: true, intent: 'is-info', close: true, onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('rename'), id: 'renameStructures', disabled: true, intent: 'is-info', close: true, onClick },
     ],
   });
 }

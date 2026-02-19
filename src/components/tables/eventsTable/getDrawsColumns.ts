@@ -12,6 +12,7 @@ import { drawEntriesClick } from './drawEntriesClick';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, RIGHT, UTR, WTN } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getDrawsColumns(data: any[], eventRow: any): any[] {
   const flightDetail = (_: any, cell: any) => {
@@ -22,7 +23,6 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
         navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
       }
     };
-    // const callback = (data) => console.log('update draws table', { data }); // or go directly to draw view
     addDraw({ eventId, drawId, flightNumber, callback: drawAdded });
   };
   const drawDetail = (e: any, cell: any) => {
@@ -64,9 +64,9 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
       field: 'published',
       width: 55,
     },
-    { title: 'Draw Name', field: DRAW_NAME, cellClick: drawDetail },
-    { title: 'Draw Type', field: DRAW_TYPE, cellClick: drawDetail },
-    { title: 'Flight', field: 'flightNumber', width: 70, headerSort: false, hozAlign: CENTER },
+    { title: t('tables.draws.drawName'), field: DRAW_NAME, cellClick: drawDetail },
+    { title: t('tables.draws.drawType'), field: DRAW_TYPE, cellClick: drawDetail },
+    { title: t('tables.draws.flight'), field: 'flightNumber', width: 70, headerSort: false, hozAlign: CENTER },
     {
       title: '<div class="event_icon opponents_header" />',
       cellClick: drawEntriesClick(eventRow),

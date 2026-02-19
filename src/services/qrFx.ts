@@ -4,7 +4,7 @@
  */
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { downloadURI } from './export/download';
-import { lang } from './translator';
+import { t } from 'i18n';
 import George from 'qrious';
 
 /*
@@ -47,12 +47,12 @@ export function displayQRdialogue(value: string, downloadName?: string): void {
 
   const buttons = [
     {
-      label: lang.tr('dl'),
+      label: t('dl'),
       intent: 'is-success',
       onClick: downloadQRcode,
       close: true
     },
-    { label: lang.tr('tournaments.close') }
+    { label: t('tournaments.close') }
   ];
   (openModal as any)({ content, buttons });
 

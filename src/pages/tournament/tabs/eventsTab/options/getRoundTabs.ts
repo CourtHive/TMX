@@ -1,6 +1,6 @@
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
-import { ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
+import { ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
 export function getRoundTabs({ callback, structure, existingView }) {
@@ -15,10 +15,18 @@ export function getRoundTabs({ callback, structure, existingView }) {
     close: boolean;
   }> = [];
 
+  if (isRoundRobin)
+    actionOptions.push({
+      active: !existingView || existingView === ROUNDS_BRACKET,
+      onClick: () => displayUpdate(ROUNDS_BRACKET),
+      label: 'Grid',
+      close: true,
+    });
+
   actionOptions.push({
-    active: !existingView || existingView === ROUNDS_COLUMNS,
+    active: isRoundRobin ? existingView === ROUNDS_COLUMNS : !existingView || existingView === ROUNDS_COLUMNS,
     onClick: () => displayUpdate(ROUNDS_COLUMNS),
-    label: isAdHoc ? 'Columns' : 'Draw',
+    label: isAdHoc ? 'Columns' : 'Cards',
     close: true,
   });
 

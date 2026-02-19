@@ -7,6 +7,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 
@@ -83,13 +84,13 @@ export function addAdHocMatchUps({
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
-    { label: 'Add', intent: 'is-success', close: true, onClick: addMatchUps },
+    { label: t('common.cancel'), intent: 'none', close: true },
+    { label: t('add'), intent: 'is-success', close: true, onClick: addMatchUps },
   ];
 
   const roundNumberOptions = roundNumbers.map((rn) => ({ label: rn, value: rn }));
   const roundNumberSelection = {
-    text: 'Round number:',
+    text: t('modals.addMatches.roundNumber'),
     fieldPair: {
       options: roundNumberOptions,
       field: 'roundNumber',
@@ -99,7 +100,7 @@ export function addAdHocMatchUps({
   };
   const matchUpCountOptions = ['Auto', 1, 5, 10].map((rn) => ({ label: rn, value: rn }));
   const matchUpCountSelection = {
-    text: 'Number to add:',
+    text: t('modals.addMatches.numberToAdd'),
     fieldPair: {
       options: matchUpCountOptions,
       field: 'matchUpsCount',
@@ -112,5 +113,5 @@ export function addAdHocMatchUps({
 
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
 
-  openModal({ title: 'Add matches', content, buttons });
+  openModal({ title: t('modals.addMatches.title'), content, buttons });
 }

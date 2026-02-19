@@ -9,6 +9,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { addRRplayoffs } from './addRRplayoffs';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
@@ -45,7 +46,7 @@ export function addStructures({
     }));
 
   if (!fields || fields.length < 1) {
-    tmxToast({ message: 'No playoff positions available', intent: 'is-danger' });
+    tmxToast({ message: t('modals.addStructures.noPlayoffPositions'), intent: 'is-danger' });
     return;
   }
 
@@ -60,7 +61,7 @@ export function addStructures({
     onChange: (e: Event) => modifyPlaceholders((e.target as HTMLInputElement).value),
     onKeyDown: (e: KeyboardEvent) => e.key === 'Tab' && modifyPlaceholders((e.target as HTMLInputElement).value),
     value: PLAYOFF_NAME_BASE,
-    label: 'Name base',
+    label: t('modals.addStructures.nameBase'),
     field: 'nameBase',
     id: 'nameBase',
   };
@@ -91,7 +92,7 @@ export function addStructures({
     ];
     const postMutation = (result: any) => {
       if (result.success) {
-        tmxToast({ message: 'Structure(s) added', intent: 'is-success' });
+        tmxToast({ message: t('modals.addStructures.structuresAdded'), intent: 'is-success' });
         isFunction(callback) && callback?.();
       } else {
         tmxToast({ message: result.error?.message || 'Error', intent: 'is-danger' });
@@ -114,11 +115,11 @@ export function addStructures({
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
   openModal({
-    title: `Add playoff structures`,
+    title: t('modals.addStructures.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Add', id: 'addStructure', disabled: true, intent: 'is-info', close: true, onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('add'), id: 'addStructure', disabled: true, intent: 'is-info', close: true, onClick },
     ],
   });
 }

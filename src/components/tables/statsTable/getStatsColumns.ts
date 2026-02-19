@@ -1,16 +1,15 @@
-import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { percentSorter } from '../common/sorters/percentSorter';
 import { orderSorter } from '../common/sorters/orderSorter';
-import { groupOrderAction } from './groupOrderAction';
 import { headerMenu } from '../common/headerMenu';
 
 // constants
 import { CENTER, LEFT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
-export function getStatsColumns({ eventId, drawId, structureId, table }): any[] {
+export function getStatsColumns(): any[] {
   return [
     {
       headerMenu: headerMenu({}),
@@ -38,12 +37,12 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       maxWidth: 400,
       minWidth: 200,
       widthGrow: 2,
-      title: 'Name',
+      title: t('tables.stats.name'),
     },
     {
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Match W/L',
+      title: t('tables.stats.matchWinLoss'),
       hozAlign: CENTER,
       maxWidth: 80,
       field: 'result',
@@ -53,7 +52,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       headerHozAlign: CENTER,
       headerWordWrap: true,
       field: 'matchUpsPct',
-      title: 'Match Win%',
+      title: t('tables.stats.matchWinPct'),
       hozAlign: CENTER,
       maxWidth: 80,
     },
@@ -61,7 +60,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       headerHozAlign: CENTER,
       headerWordWrap: true,
       field: 'setsResult',
-      title: 'Sets W/L',
+      title: t('tables.stats.setsWinLoss'),
       hozAlign: CENTER,
       maxWidth: 80,
     },
@@ -69,7 +68,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       formatter: percentFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Set Win%',
+      title: t('tables.stats.setWinPct'),
       hozAlign: CENTER,
       field: 'setsPct',
       maxWidth: 80,
@@ -78,7 +77,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       headerHozAlign: CENTER,
       headerWordWrap: true,
       field: 'gamesResult',
-      title: 'Games W/L',
+      title: t('tables.stats.gamesWinLoss'),
       hozAlign: CENTER,
       maxWidth: 80,
     },
@@ -86,7 +85,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       formatter: percentFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Game Win%',
+      title: t('tables.stats.gameWinPct'),
       hozAlign: CENTER,
       field: 'gamesPct',
       maxWidth: 80,
@@ -95,7 +94,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       headerHozAlign: CENTER,
       headerWordWrap: true,
       field: 'pointsResult',
-      title: 'Points W/L',
+      title: t('tables.stats.pointsWinLoss'),
       hozAlign: CENTER,
       maxWidth: 80,
     },
@@ -103,7 +102,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       formatter: percentFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: 'Points Win%',
+      title: t('tables.stats.pointsWinPct'),
       field: 'pointsPct',
       hozAlign: CENTER,
       maxWidth: 80,
@@ -115,7 +114,7 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       sorter: percentSorter,
       hozAlign: CENTER,
       maxWidth: 70,
-      title: 'RV',
+      title: t('tables.stats.rv'),
     },
     {
       formatter: percentFormatter,
@@ -124,30 +123,20 @@ export function getStatsColumns({ eventId, drawId, structureId, table }): any[] 
       sorter: percentSorter,
       hozAlign: CENTER,
       maxWidth: 70,
-      title: 'PS',
+      title: t('tables.stats.ps'),
     },
     {
       headerHozAlign: CENTER,
       field: 'pressureOrder',
       sorter: orderSorter,
-      title: 'PS#',
+      title: t('tables.stats.psNum'),
       hozAlign: CENTER,
-      maxWidth: 80,
-    },
-    {
-      cellClick: groupOrderAction({ eventId, drawId, structureId, table }),
-      formatter: groupOrderFormatter,
-      headerHozAlign: CENTER,
-      sorter: orderSorter,
-      hozAlign: CENTER,
-      title: 'Order',
-      field: 'order', // render with icon fir ties if present
       maxWidth: 80,
     },
     {
       field: 'groupName',
       visible: false,
-      title: 'Group',
+      title: t('tables.stats.group'),
     },
   ];
 }

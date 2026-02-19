@@ -7,6 +7,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
@@ -29,7 +30,7 @@ export function editGroupNames({
   const options = Object.values(groups).map(({ structureName, structureId }: any) => ({
     text: `${structureName}:`,
     fieldPair: {
-      error: 'minimum 4 characters',
+      error: t('modals.editGroupNames.minChars'),
       validator: validators.nameValidator(4),
       placeholder: structureName,
       field: structureId,
@@ -53,7 +54,7 @@ export function editGroupNames({
     ];
     const postMutation = (result: any) => {
       if (result.success) {
-        tmxToast({ message: 'Groups renamed', intent: 'is-success' });
+        tmxToast({ message: t('modals.editGroupNames.groupsRenamed'), intent: 'is-success' });
         isFunction(callback) && callback?.(result);
       }
     };
@@ -74,11 +75,11 @@ export function editGroupNames({
   }));
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
   openModal({
-    title: `Edit group names`,
+    title: t('modals.editGroupNames.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Rename', id: 'renameGroups', disabled: true, intent: 'is-info', close: true, onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('rename'), id: 'renameGroups', disabled: true, intent: 'is-info', close: true, onClick },
     ],
   });
 }

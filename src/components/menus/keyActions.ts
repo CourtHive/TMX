@@ -8,7 +8,7 @@ import { stringSort } from 'functions/sorting/sorting';
 import { emitTmx } from 'services/messaging/socketIo';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { SEND_KEY } from 'constants/comsConstants';
 
@@ -28,7 +28,7 @@ export function displayKeyActions(): void {
       const menu = [
         {
           label: 'Enter new key',
-          placeholder: lang.tr('phrases.submitkey'),
+          placeholder: t('phrases.submitkey'),
           id: 'keyEntryField',
           type: 'input',
           focus: true,
@@ -45,7 +45,7 @@ export function displayKeyActions(): void {
       focusElement = (renderMenu as any)(elem, menu, close).focusElement;
     };
     context.drawer.open({
-      title: lang.tr('keys'),
+      title: t('keys'),
       width: '200px',
       content: ctx,
       callback: () => {

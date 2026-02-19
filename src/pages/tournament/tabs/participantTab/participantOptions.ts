@@ -1,5 +1,6 @@
 import { tournamentEngine, participantConstants, participantRoles } from 'tods-competition-factory';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { PARTICIPANTS } from 'constants/tmxConstants';
 
@@ -8,10 +9,10 @@ const { OFFICIAL } = participantRoles;
 
 export const participantOptions = (view: string): any[] =>
   [
-    { label: 'Individuals', value: INDIVIDUAL, isActive: view === INDIVIDUAL, close: true },
-    { label: 'Officials', value: OFFICIAL, isActive: view === OFFICIAL, close: true },
-    { label: 'Groups', value: GROUP, isActive: view === GROUP, close: true },
-    { label: 'Teams', value: TEAM, isActive: view === TEAM, close: true }
+    { label: t('pages.participants.individuals'), value: INDIVIDUAL, isActive: view === INDIVIDUAL, close: true },
+    { label: t('pages.participants.officials'), value: OFFICIAL, isActive: view === OFFICIAL, close: true },
+    { label: t('pages.participants.groups'), value: GROUP, isActive: view === GROUP, close: true },
+    { label: t('pages.participants.teams'), value: TEAM, isActive: view === TEAM, close: true }
   ].map((option) => ({
     ...option,
     onClick: () => {

@@ -6,7 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
@@ -17,8 +17,8 @@ const valueKey: Record<string, any> = {
 
 export function createTeamsFromAttribute({ callback }: { callback?: () => void } = {}): void {
   const options = [
-    { label: lang.tr('cnt'), value: 'country' },
-    { label: 'City', value: 'city' },
+    { label: t('cnt'), value: 'country' },
+    { label: t('cty'), value: 'city' },
   ];
 
   const NO_SELECTION = '-';
@@ -26,8 +26,8 @@ export function createTeamsFromAttribute({ callback }: { callback?: () => void }
   const content = (elem: HTMLElement) =>
     renderForm(elem, [
       {
-        options: [{ label: 'Select attribute', value: NO_SELECTION }, ...options],
-        label: 'Attribute',
+        options: [{ label: t('modals.createTeam.selectAttribute'), value: NO_SELECTION }, ...options],
+        label: t('attr'),
         field: 'selection',
         value: '',
       },
@@ -51,11 +51,11 @@ export function createTeamsFromAttribute({ callback }: { callback?: () => void }
   };
 
   openModal({
-    title: 'Create Team',
+    title: t('modals.createTeam.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Create', intent: 'is-primary', onClick: createTeam as any, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('modals.createTeam.create'), intent: 'is-primary', onClick: createTeam as any, close: true },
     ],
     onClose: () => {},
   });

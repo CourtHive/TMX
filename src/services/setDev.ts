@@ -16,6 +16,7 @@ import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 import dayjs from 'dayjs';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
@@ -63,25 +64,25 @@ export function setDev(): void {
   const help = () => console.log('set window.socketURL for messaging');
   const modifyTournament = (methods: any[]) => {
     if (!Array.isArray(methods)) {
-      tmxToast({ message: 'missing methods array', intent: 'is-danger' });
+      tmxToast({ message: t('toasts.missingMethodsArray'), intent: 'is-danger' });
       return;
     }
     const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
     if (tournamentId) {
       const callback = (result: any) => {
         if (result?.success) {
-          tmxToast({ message: 'success', intent: 'is-success' });
+          tmxToast({ message: t('common.success'), intent: 'is-success' });
           const tournamentRecord = factory.tournamentEngine.getTournament().tournamentRecord;
           loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
         } else {
-          tmxToast({ message: result?.error?.message ?? 'error', intent: 'is-danger' });
+          tmxToast({ message: result?.error?.message ?? t('common.error'), intent: 'is-danger' });
           console.log({ result });
         }
       };
 
       mutationRequest({ methods, callback });
     } else {
-      tmxToast({ message: 'missing tournament', intent: 'is-danger' });
+      tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
     }
   };
 
@@ -150,7 +151,7 @@ function addDev(variable: Record<string, any>): void {
   try {
     Object.keys(variable).forEach((key) => ((window as any).dev[key] = variable[key]));
   } catch (err) {
-    tmxToast({ message: 'An error occurred while adding dev variables', intent: 'is-danger' });
+    tmxToast({ message: t('toasts.devVariableError'), intent: 'is-danger' });
     console.error('Error adding dev variables:', err);
   }
 }

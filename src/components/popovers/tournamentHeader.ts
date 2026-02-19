@@ -1,3 +1,4 @@
+import { openEditTournamentNameModal } from 'components/modals/editTournamentName';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
@@ -15,7 +16,9 @@ export function tournamentHeader(): void {
   const tournamentElement = document.getElementById('pageTitle');
   if (tournamentElement && tournamentInfo?.tournamentName) {
     removeAllChildNodes(tournamentElement);
-    tournamentElement.innerHTML = `<div class='tmx-title'>${tournamentInfo?.tournamentName}</div>`;
+    tournamentElement.innerHTML = `<div class='tmx-title' style='cursor:pointer'>${tournamentInfo?.tournamentName}</div>`;
+    const titleDiv = tournamentElement.querySelector('.tmx-title');
+    if (titleDiv) titleDiv.addEventListener('click', () => openEditTournamentNameModal());
   } else {
     context.router.navigate('/tournaments');
   }

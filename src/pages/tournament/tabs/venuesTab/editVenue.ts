@@ -8,6 +8,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { MODIFY_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -55,28 +56,28 @@ export function editVenue({
       elem,
       [
         {
-          error: 'minimum of 5 characters',
+          error: t('pages.venues.editVenue.venueNameError'),
           validator: validators.nameValidator(5),
-          placeholder: 'Venue name',
+          placeholder: t('pages.venues.editVenue.venueNamePlaceholder'),
           value: values.venueName,
           onChange: valueChange,
           selectOnFocus: true,
-          label: 'Venue name',
+          label: t('pages.venues.editVenue.venueNameLabel'),
           field: 'venueName',
           focus: true,
         },
         {
-          error: 'minimum of 2 characters, maximum of 6',
+          error: t('pages.venues.editVenue.abbreviationError'),
           validator: validators.nameValidator(2, 6),
-          placeholder: 'Abbreviation',
+          placeholder: t('pages.venues.editVenue.abbreviationPlaceholder'),
           value: values.venueAbbreviation,
           onChange: valueChange,
           selectOnFocus: true,
-          label: 'Abbreviation',
+          label: t('pages.venues.editVenue.abbreviationLabel'),
           field: 'venueAbbreviation',
         },
         {
-          label: 'Update court names',
+          label: t('pages.venues.editVenue.updateCourtNames'),
           field: 'updateCourtNames',
           id: 'updateCourtNames',
           checkbox: true,
@@ -93,12 +94,12 @@ export function editVenue({
 
     // Validation
     if (!venueName || venueName.length < 5) {
-      tmxToast({ message: 'Venue name must be at least 5 characters', intent: 'is-danger' });
+      tmxToast({ message: t('pages.venues.editVenue.venueNameRequired'), intent: 'is-danger' });
       return;
     }
 
     if (!venueAbbreviation || venueAbbreviation.length < 2 || venueAbbreviation.length > 6) {
-      tmxToast({ message: 'Abbreviation must be 2-6 characters', intent: 'is-danger' });
+      tmxToast({ message: t('pages.venues.editVenue.abbreviationRequired'), intent: 'is-danger' });
       return;
     }
 
@@ -120,7 +121,7 @@ export function editVenue({
       if (result.success) {
         if (isFunction(callback)) callback({ ...result, venueUpdates, courtsUpdated });
       } else if (result.error) {
-        tmxToast({ intent: 'is-warning', message: result.error?.message || 'Error' });
+        tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
         if (isFunction(callback)) callback(result);
       }
     };
@@ -146,13 +147,13 @@ export function editVenue({
     renderButtons(
       elem,
       [
-        { label: 'Cancel', close: true },
+        { label: t('common.cancel'), close: true },
         {
           onClick: saveVenue,
           id: 'saveVenueButton',
           intent: 'is-info',
           disabled: !isValidForSave(),
-          label: 'Save',
+          label: t('common.save'),
           close: true,
         },
       ],
@@ -160,7 +161,7 @@ export function editVenue({
     );
 
   context.drawer.open({
-    title: `<b style='larger'>Edit venue</b>`,
+    title: `<b style='larger'>${t('pages.venues.editVenue.title')}</b>`,
     width: '300px',
     side: RIGHT,
     content,

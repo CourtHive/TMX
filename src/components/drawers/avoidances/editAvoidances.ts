@@ -9,6 +9,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { avoidanceRules } from './avoidanceRules';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { ATTACH_POLICIES } from 'constants/mutationConstants';
 import { NONE, RIGHT } from 'constants/tmxConstants';
@@ -48,14 +49,14 @@ export function editAvoidances({ eventId }: { eventId: string }): void {
           }
         }
       } else {
-        tmxToast({ message: 'Error', intent: 'is-danger' });
+        tmxToast({ message: t('common.error'), intent: 'is-danger' });
       }
     };
     mutationRequest({ methods, callback: postMutation });
   };
   const buttons = [
-    { label: 'Cancel', intent: NONE, close: true },
-    { label: 'Save', id: 'setAvoidances', intent: 'is-info', onClick: getChecked, close: isValid },
+    { label: t('common.cancel'), intent: NONE, close: true },
+    { label: t('common.save'), id: 'setAvoidances', intent: 'is-info', onClick: getChecked, close: isValid },
   ];
   const title = `Set avoidances`;
 

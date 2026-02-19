@@ -6,6 +6,7 @@ import { collectionParticipantFormatter } from '../common/formatters/collectionP
 import { scoreFormatter } from 'components/tables/common/formatters/scoreFormatter';
 import { handleSideClick } from './collectionSideClick';
 import { scoreHandler } from './collectionScoreHandler';
+import { t } from 'i18n';
 
 export function getCollectionColumns({ matchUp }: { matchUp: any }): any[] {
   const side1Participant =
@@ -39,13 +40,13 @@ export function getCollectionColumns({ matchUp }: { matchUp: any }): any[] {
       formatter: scoreFormatter,
       cellClick: scoreHandler,
       responsive: false,
-      title: 'Score',
+      title: t('tables.collection.score'),
       field: 'score',
       width: 140
     },
     {
       field: 'matchUpStatus',
-      title: 'Status',
+      title: t('tables.collection.status'),
       width: 150
     }
   ];

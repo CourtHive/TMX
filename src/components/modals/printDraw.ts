@@ -6,6 +6,7 @@ import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { generateDrawPDF } from 'services/pdf/generators/drawGenerator';
 import { tournamentEngine } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 interface PrintDrawParams {
   drawId: string;
@@ -17,10 +18,10 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
   // Get tournament info using getTournamentInfo (TODS format)
   const tournamentInfoResult = tournamentEngine.getTournamentInfo();
   const tournament = tournamentInfoResult?.tournamentInfo;
-  
+
   const eventResult = tournamentEngine.getEvent({ eventId });
   const event = eventResult?.event;
-  
+
   // Get draw definition
   let drawDefinition;
   if (event?.drawDefinitions) {
@@ -34,7 +35,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
   if (!event || !drawDefinition) {
     return;
   }
-  
+
   // Tournament is optional - use fallback values if not available
 
   // Get draw name (use structure name if structureId provided)
@@ -57,35 +58,35 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
 
   const formItems = [
     {
-      label: 'Draw Title',
+      label: t('modals.printDraw.drawTitle'),
       field: 'drawTitle',
       value: printOptions.drawTitle,
-      placeholder: 'Enter draw title',
+      placeholder: t('modals.printDraw.drawTitlePlaceholder'),
     },
     {
-      text: 'Options',
+      text: t('modals.printDraw.options'),
       class: 'itemTitle',
     },
     {
-      label: 'Include seeding',
+      label: t('modals.printDraw.includeSeeding'),
       field: 'includeSeeding',
       checkbox: true,
       checked: printOptions.includeSeeding,
     },
     {
-      label: 'Include rankings',
+      label: t('modals.printDraw.includeRankings'),
       field: 'includeRankings',
       checkbox: true,
       checked: printOptions.includeRankings,
     },
     {
-      label: 'Include timestamp',
+      label: t('modals.printDraw.includeTimestamp'),
       field: 'includeTimestamp',
       checkbox: true,
       checked: printOptions.includeTimestamp,
     },
     {
-      label: 'Include organizers',
+      label: t('modals.printDraw.includeOrganizers'),
       field: 'includeOrganizers',
       checkbox: true,
       checked: printOptions.includeOrganizers,
@@ -101,7 +102,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
   content.addEventListener('change', (e: Event) => {
     const target = e.target as HTMLInputElement;
     const field = target.getAttribute('field');
-    
+
     if (field) {
       if (target.type === 'checkbox') {
         (printOptions as any)[field] = target.checked;
@@ -113,12 +114,12 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
 
   const buttons = [
     {
-      label: 'Cancel',
+      label: t('common.cancel'),
       intent: 'none',
       close: true,
     },
     {
-      label: 'View',
+      label: t('view'),
       intent: 'is-info',
       onClick: async () => {
         try {
@@ -130,14 +131,12 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
             options: printOptions,
             action: 'open',
           });
-        } catch (error) {
-          alert('Failed to generate PDF.');
-        }
+        } catch (_error) {}
       },
       close: true,
     },
     {
-      label: 'Download',
+      label: t('dl'),
       intent: 'is-primary',
       onClick: async () => {
         try {
@@ -149,16 +148,14 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
             options: printOptions,
             action: 'download',
           });
-        } catch (error) {
-          alert('Failed to generate PDF.');
-        }
+        } catch (_error) {}
       },
       close: true,
     },
   ];
 
   openModal({
-    title: 'Print Draw',
+    title: t('modals.printDraw.title'),
     content,
     buttons,
   });

@@ -3,6 +3,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getFlightProfileModal } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 
@@ -36,10 +37,10 @@ export function addFlights({ eventId, callback }) {
       const methods = [{ method, params: { eventId, extension } }];
       const postMutation = (mutationResult: any) => {
         if (mutationResult.success) {
-          tmxToast({ message: 'Flights generated', intent: 'is-success' });
+          tmxToast({ message: t('modals.addFlights.flightsGenerated'), intent: 'is-success' });
           if (isFunction(callback)) callback({ generated: true, result });
         } else {
-          tmxToast({ message: 'Flight profile generation failed', intent: 'is-danger' });
+          tmxToast({ message: t('modals.addFlights.generationFailed'), intent: 'is-danger' });
           if (isFunction(callback)) callback({ generated: false, result: mutationResult });
         }
       };
