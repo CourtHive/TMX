@@ -1,4 +1,4 @@
-import { tournamentEngine, drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine, competitionEngine, drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
 
 const { CONTAINER, ROUND_ROBIN } = drawDefinitionConstants;
 const { completedMatchUpStatuses } = factoryConstants;
@@ -59,7 +59,8 @@ export function getDashboardData(): DashboardData {
   const completed = nonByeMatchUps.filter(
     (m: any) => completedMatchUpStatuses.includes(m.matchUpStatus) || m.winningSide,
   ).length;
-  const scheduled = nonByeMatchUps.filter((m: any) => m.schedule?.scheduledDate && m.schedule?.scheduledTime).length;
+  const { dateMatchUps = [] } = competitionEngine.competitionScheduleMatchUps() || {};
+  const scheduled = dateMatchUps.length;
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   // Gather structures for sunburst (filter out ROUND_ROBIN and CONTAINER)

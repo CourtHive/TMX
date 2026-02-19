@@ -71,12 +71,12 @@ export function renderOverview(): void {
   // Row 2+: Stats (2 left cols) + Sunburst (3 right cols)
   const statsContainer = document.createElement('div');
   statsContainer.className = 'dash-stats';
-  statsContainer.appendChild(createStatCard('Players', data.participantCount, 'fa-users'));
+  statsContainer.appendChild(createStatCard('Dates', `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`, 'fa-calendar'));
   statsContainer.appendChild(createStatCard('Events', data.eventCount, 'fa-trophy'));
+  statsContainer.appendChild(createStatCard('Players', data.participantCount, 'fa-users'));
   statsContainer.appendChild(createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis'));
   statsContainer.appendChild(createStatCard('Scheduled', data.matchUpStats.scheduled, 'fa-clock'));
   statsContainer.appendChild(createStatCard('Complete', `${data.matchUpStats.percentComplete}%`, 'fa-chart-pie'));
-  statsContainer.appendChild(createStatCard('Dates', `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`, 'fa-calendar'));
   grid.appendChild(statsContainer);
 
   if (data.structures.length) {
