@@ -7,7 +7,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -58,7 +58,7 @@ export const tournamentActionFormatter =
         },
         { label: 'Cancel' },
       ];
-      openModal({ title: lang.tr('actions.delete_tournament'), buttons, content });
+      openModal({ title: t('actions.delete_tournament'), buttons, content });
     };
 
     const tournamentEdit = () => getTournament({ table: cell.getTable(), tournamentId, replaceTableData });

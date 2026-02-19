@@ -9,7 +9,7 @@ import { parseHereWeGo } from 'functions/parsing/parseHereWeGo';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 import { idObj } from 'services/dom/idObj';
 import { env } from 'settings/env';
 import * as L from 'leaflet';
@@ -46,7 +46,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
   const html = `
     <div style='min-height: 150px'>
     <h2 class='tmx-title'>Enter map URL</h2>
-    <div class='flexcenter'>${lang.tr('phrases.addgooglemap')}</div>
+    <div class='flexcenter'>${t('phrases.addgooglemap')}</div>
     <div class='flexcenter flexcol'>
       <input id='${ids.link}' value='' style='text-align: center; width: 25em; margin: 1em;'>
       <div class='flexrow' style='margin-top: 1em; margin-bottom: 1em;'>

@@ -6,6 +6,7 @@ import { logIn, logOut } from 'services/authentication/loginState';
 import { renderForm, validators } from 'courthive-components';
 import { systemLogin } from 'services/authentication/authApi';
 import { openModal } from './baseModal/baseModal';
+import { t } from 'i18n';
 
 export function loginModal(callback?: () => void): void {
   let inputs: any;
@@ -30,17 +31,17 @@ export function loginModal(callback?: () => void): void {
       [
         {
           iconLeft: 'fa-regular fa-envelope',
-          placeholder: 'valid@email.com',
+          placeholder: t('modals.login.emailPlaceholder'),
           validator: validators.emailValidator,
           autocomplete: 'email',
-          label: 'Email',
+          label: t('modals.login.emailLabel'),
           field: 'email',
         },
         {
-          placeholder: 'minimum 8 characters',
+          placeholder: t('modals.login.passwordPlaceholder'),
           autocomplete: 'current-password',
           iconLeft: 'fa-solid fa-lock',
-          label: 'Password',
+          label: t('modals.login.passwordLabel'),
           field: 'password',
           type: 'password',
         },
@@ -59,16 +60,16 @@ export function loginModal(callback?: () => void): void {
   };
 
   openModal({
-    title: 'Log in',
+    title: t('modals.login.title'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       {
         onClick: submitCredentials,
         intent: 'is-primary',
         id: 'loginButton',
         disabled: true,
-        label: 'Login',
+        label: t('modals.login.loginButton'),
         close: true,
       },
     ],

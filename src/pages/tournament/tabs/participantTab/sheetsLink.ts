@@ -8,7 +8,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { REGISTRATION } from 'constants/tmxConstants';
 
@@ -83,7 +83,7 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
       const validBits = existingLink || (parts.indexOf('docs.google.com') > 0 && parts.indexOf('spreadsheets') > 0);
       const sheetId = newURL ? registered : existingLink;
       if (!validBits) {
-        const message = lang.tr('phrases.invalidsheeturl');
+        const message = t('phrases.invalidsheeturl');
         tmxToast({ message, intent: 'is-danger' });
         inputs.url.value = '';
       } else if (validBits) {

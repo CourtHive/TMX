@@ -6,7 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
@@ -17,7 +17,7 @@ const valueKey: Record<string, any> = {
 
 export function createTeamsFromAttribute({ callback }: { callback?: () => void } = {}): void {
   const options = [
-    { label: lang.tr('cnt'), value: 'country' },
+    { label: t('cnt'), value: 'country' },
     { label: 'City', value: 'city' },
   ];
 

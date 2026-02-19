@@ -1,15 +1,15 @@
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 import { listPicker } from './listPicker';
 
 export function scheduleSetMatchUpStatus({ callback }: { callback?: (result: any) => void }): void {
   const options = [
-    { label: lang.tr('schedule.called'), value: 'called' },
-    { label: lang.tr('schedule.oncourt'), value: 'oncourt' },
-    { label: lang.tr('schedule.warmingup'), value: 'warmingup' },
-    { label: lang.tr('schedule.suspended'), value: 'suspended' },
-    { label: lang.tr('schedule.abandoned'), value: 'abandoned' },
-    { label: lang.tr('schedule.raindelay'), value: 'raindelay' },
-    { label: lang.tr('schedule.clear'), value: 'clear' },
+    { label: t('schedule.called'), value: 'called' },
+    { label: t('schedule.oncourt'), value: 'oncourt' },
+    { label: t('schedule.warmingup'), value: 'warmingup' },
+    { label: t('schedule.suspended'), value: 'suspended' },
+    { label: t('schedule.abandoned'), value: 'abandoned' },
+    { label: t('schedule.raindelay'), value: 'raindelay' },
+    { label: t('schedule.clear'), value: 'clear' },
   ];
   listPicker({ options, callback, isOpen: true } as any);
 }

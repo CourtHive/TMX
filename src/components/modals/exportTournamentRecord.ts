@@ -7,7 +7,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 import { UTR } from 'constants/tmxConstants';
 
 export function exportTournamentRecord(): void {
@@ -27,7 +27,7 @@ export function exportTournamentRecord(): void {
     { label: UTR, intent: 'is-warning', onClick: downloadUTRmatches, close: true },
     { label: 'TODS', intent: 'is-primary', onClick: exportTODS, close: true },
   ];
-  const title = `${lang.tr('phrases.export')}: ${lang.tr('trn')}`;
+  const title = `${t('phrases.export')}: ${t('trn')}`;
 
   openModal({ title, content: tournamentRecord.tournamentName, buttons });
 }

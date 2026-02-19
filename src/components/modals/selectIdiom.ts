@@ -3,54 +3,100 @@
  * Allows country selection with type-ahead and flag display for language switching.
  */
 import { renderForm } from 'courthive-components';
-// import { getIdioms } from 'services/apis/servicesApi';
 import { fixtures } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
-import { context } from 'services/context';
-import { lang } from 'services/translator';
+import { i18next, t } from 'i18n';
 import { env } from 'settings/env';
 
+// IOC country code to BCP47 language tag mapping
+const iocToLang: Record<string, string> = {
+  GBR: 'en',
+  USA: 'en',
+  AUS: 'en',
+  FRA: 'fr',
+  ESP: 'es',
+  DEU: 'de',
+  ITA: 'it',
+  BRA: 'pt',
+  POR: 'pt',
+  NLD: 'nl',
+  RUS: 'ru',
+  JPN: 'ja',
+  CHN: 'zh',
+  KOR: 'ko',
+  SWE: 'sv',
+  NOR: 'no',
+  DEN: 'da',
+  FIN: 'fi',
+  POL: 'pl',
+  CZE: 'cs',
+  HUN: 'hu',
+  ROU: 'ro',
+  HRV: 'hr',
+  SRB: 'sr',
+  GRE: 'el',
+  TUR: 'tr',
+  IND: 'hi',
+  ARG: 'es',
+  MEX: 'es',
+  COL: 'es',
+  CAN: 'en',
+};
+
 export function selectIdiom(): void {
-  // const response = (foo: any) => console.log({ foo });
-  // getIdioms().then(response, (err: any) => console.log({ err }));
+  // Build list of available languages from i18next resources
+  const availableLanguages = Object.keys(i18next.options?.resources || {});
+  const availableSet = new Set(availableLanguages);
 
-  const validOptions = Object.keys((context as any).available_idioms || []).map((i) => ({
-    ioc: i.toUpperCase(),
-  }));
-  const valid_iocs = validOptions.reduce((p: string[], c) => (c.ioc && p.indexOf(c.ioc) < 0 ? p.concat(c.ioc) : p), []);
-  const valid_isos = validOptions.reduce((p: string[], c) => ((c as any).iso && p.indexOf((c as any).iso) < 0 ? p.concat((c as any).iso) : p), []);
-  const filteredCountries =
-    validOptions.length &&
-    fixtures.countries.filter((c: any) => valid_iocs.indexOf(c.ioc) >= 0 || valid_isos.indexOf(c.iso) >= 0);
-  const list = (filteredCountries || []).map((country: any) => ({
-    label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
-    value: country.ioc,
-  }));
+  // Filter countries to those that have translations available
+  const list = fixtures.countries
+    .filter((c: any) => {
+      const ioc = c.ioc?.toUpperCase();
+      const lang = iocToLang[ioc];
+      return lang && availableSet.has(lang);
+    })
+    .map((country: any) => ({
+      label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
+      value: country.ioc?.toUpperCase(),
+    }));
 
-  let newIdiom: any;
-  const typeAheadCallback = (value: any) => (newIdiom = value.value);
+  // If no translations are loaded beyond 'en', show all mapped countries
+  const displayList =
+    list.length > 0
+      ? list
+      : fixtures.countries
+          .filter((c: any) => iocToLang[c.ioc?.toUpperCase()])
+          .map((country: any) => ({
+            label: fixtures.countryToFlag(country.iso || '') + ' ' + country.label,
+            value: country.ioc?.toUpperCase(),
+          }));
+
+  let selectedIoc: string | undefined;
+  const typeAheadCallback = (value: any) => (selectedIoc = value.value);
 
   const content = (elem: HTMLElement) => {
     renderForm(elem, [
       {
-        typeAhead: { list, callback: typeAheadCallback, currentValue: env.ioc?.toUpperCase() || 'GBR' },
-        placeholder: 'Country of origin',
-        label: 'Country',
+        typeAhead: { list: displayList, callback: typeAheadCallback, currentValue: env.ioc?.toUpperCase() || 'GBR' },
+        placeholder: t('phrases.selectlanguage'),
+        label: t('cnt'),
         field: 'ioc',
       },
     ]);
   };
 
-  const saveIdiom = () => {
-    if (newIdiom) {
-      context.ee.emit('changeIdiom', { ioc: newIdiom });
+  const saveLanguage = () => {
+    if (selectedIoc) {
+      const lang = iocToLang[selectedIoc] || 'en';
+      i18next.changeLanguage(lang);
     }
   };
+
   openModal({
-    title: lang.tr('phrases.selectlanguage'),
+    title: t('phrases.selectlanguage'),
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Save', onClick: saveIdiom, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('common.save'), onClick: saveLanguage, close: true },
     ],
     content,
   });

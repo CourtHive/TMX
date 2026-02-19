@@ -4,12 +4,12 @@
  */
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
-import { lang } from 'services/translator';
+import { t } from 'i18n';
 
 const NO_SELECTION = '-';
 
 export function removeApproved({ teams, callback }: { teams: any[]; callback: (params: any) => void }): void {
-  const options = ([{ label: lang.tr('allteams'), value: NO_SELECTION }] as any[]).concat(
+  const options = ([{ label: t('allteams'), value: NO_SELECTION }] as any[]).concat(
     teams.map((t) => ({ label: t.name, value: t.id || t.uuid }))
   );
 
