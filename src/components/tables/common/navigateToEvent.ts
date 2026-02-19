@@ -7,6 +7,7 @@ import {
   EVENT,
   STRUCTURE,
   TOURNAMENT,
+  ROUNDS_BRACKET,
   ROUNDS_COLUMNS,
   ROUNDS_TABLE,
   ROUNDS_STATS,
@@ -47,7 +48,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, part
     if (structureId) {
       route += `/${STRUCTURE}/${structureId}`;
     }
-    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS].includes(view || '')) {
+    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET].includes(view || '')) {
       route += `/${VIEW}/${view}`;
     }
   } else if (drawId) {
