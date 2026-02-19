@@ -20,9 +20,10 @@ function filterTiedAssignments(positionAssignments: any[], order: any) {
 }
 
 export const groupOrderAction =
-  ({ eventId, drawId, structureId, table }) =>
+  ({ eventId, drawId, structureId }) =>
   (_: MouseEvent, cell: any): void => {
     const row = cell.getRow();
+    const table = cell.getTable();
     const callback = (result) => {
       // get all rows relevant to the drawPositions in the result and update their groupOrder value
       const rows = table.getRows();

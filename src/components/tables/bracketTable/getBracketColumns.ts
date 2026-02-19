@@ -20,10 +20,9 @@ type GetBracketColumnsParams = {
   eventId: string;
   drawId: string;
   structureId: string;
-  table: any;
 };
 
-const STATS_FIELDS = new Set(['result', 'setsResult', 'matchUpsPct', 'gamesResult', 'setsPct', 'order']);
+const STATS_FIELDS = new Set(['result', 'matchUpsPct', 'setsPct', 'order']);
 const CHECKBOX = 'fa-check-square';
 
 // Header menu that only shows stats columns as toggleable options
@@ -103,7 +102,6 @@ export function getBracketColumns({
   eventId,
   drawId,
   structureId,
-  table,
 }: GetBracketColumnsParams): any[] {
   // Build a name lookup for headerTooltip attachment
   const nameByField: Record<string, string> = {};
@@ -160,29 +158,11 @@ export function getBracketColumns({
       headerSort: false,
     },
     {
-      headerHozAlign: CENTER,
-      headerWordWrap: true,
-      title: 'Sets W/L',
-      field: 'setsResult',
-      hozAlign: CENTER,
-      maxWidth: 70,
-      headerSort: false,
-    },
-    {
       formatter: percentFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
       title: 'Win%',
       field: 'matchUpsPct',
-      hozAlign: CENTER,
-      maxWidth: 70,
-      headerSort: false,
-    },
-    {
-      headerHozAlign: CENTER,
-      headerWordWrap: true,
-      title: 'Games W/L',
-      field: 'gamesResult',
       hozAlign: CENTER,
       maxWidth: 70,
       headerSort: false,
@@ -198,7 +178,7 @@ export function getBracketColumns({
       headerSort: false,
     },
     {
-      cellClick: groupOrderAction({ eventId, drawId, structureId, table }),
+      cellClick: groupOrderAction({ eventId, drawId, structureId }),
       formatter: groupOrderFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,

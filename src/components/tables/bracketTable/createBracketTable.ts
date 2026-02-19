@@ -83,12 +83,31 @@ export async function createBracketTable({
   };
 
   // Re-fetch data and update specific rows in place by drawPosition
-  const updateRows = (drawPositions: number[]) => {
+  const updateRows = async (drawPositions: number[]) => {
     const posSet = new Set(drawPositions);
     const groups = getData();
     for (const group of groups) {
       const table = tablesByGroup[group.groupId];
       if (!table) continue;
+
+      // Update column headers for participants whose names may have changed
+      const participantByField: Record<string, { participantName: string }> = {};
+      for (const p of group.participants) {
+        participantByField[`opponent_${p.participantId}`] = p;
+      }
+      for (const col of table.getColumns()) {
+        const def = col.getDefinition();
+        const p = participantByField[def.field];
+        if (p) {
+          const newTitle = p.participantName || String(def.title);
+          if (def.title !== newTitle) {
+            const updatedCol = await table.updateColumnDefinition(def.field, { title: newTitle });
+            if (updatedCol && p.participantName) {
+              attachHeaderTooltip(updatedCol, p.participantName);
+            }
+          }
+        }
+      }
 
       const newRowMap: Record<number, any> = {};
       for (const row of group.rows) {
@@ -104,20 +123,26 @@ export async function createBracketTable({
     }
   };
 
-  // After scoring, find the two rows referencing that matchUp and update them
-  const updateRowsAfterScore = (matchUpId: string) => {
-    // Identify affected drawPositions from current table data before re-fetch
-    const affectedPositions: number[] = [];
-    for (const table of Object.values(tablesByGroup)) {
+  // After scoring, update all rows in the affected group (stats change for everyone)
+  const updateGroupAfterScore = (matchUpId: string) => {
+    // Find which group contains this matchUp and update all its rows
+    for (const [, table] of Object.entries(tablesByGroup)) {
+      const allPositions: number[] = [];
+      let found = false;
       for (const row of table.getRows()) {
         const data = row.getData();
-        const hasMatchUp = Object.keys(data).some(
-          (key) => key.startsWith('opponent_') && data[key]?.matchUpId === matchUpId,
-        );
-        if (hasMatchUp) affectedPositions.push(data.drawPosition);
+        allPositions.push(data.drawPosition);
+        if (!found) {
+          found = Object.keys(data).some(
+            (key) => key.startsWith('opponent_') && data[key]?.matchUpId === matchUpId,
+          );
+        }
+      }
+      if (found) {
+        updateRows(allPositions);
+        return;
       }
     }
-    updateRows(affectedPositions);
   };
 
   const scoreClick = (_: any, cell: any) => {
@@ -129,7 +154,7 @@ export async function createBracketTable({
         matchUpId: value.matchUpId,
         callback: (result: any) => {
           if (result.success) {
-            updateRowsAfterScore(value.matchUpId);
+            updateGroupAfterScore(value.matchUpId);
           }
         },
       });
@@ -207,7 +232,6 @@ export async function createBracketTable({
         eventId,
         drawId,
         structureId,
-        table: null,
       });
       const table = new Tabulator(tableDiv, {
         height: groups.length > 1 ? undefined : window.innerHeight * 0.85,
