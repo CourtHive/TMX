@@ -202,6 +202,7 @@ export const WINNERS = 'winners';
 export const ROUNDS_COLUMNS = 'roundsColumns';
 export const ROUNDS_STATS = 'roundsStats';
 export const ROUNDS_TABLE = 'roundsTable';
+export const ROUNDS_BRACKET = 'roundsBracket';
 
 export const UTR = 'utr';
 export const WTN = 'wtn';

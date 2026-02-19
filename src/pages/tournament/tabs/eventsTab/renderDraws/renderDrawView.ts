@@ -6,6 +6,7 @@ import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHigh
 import { compositions, renderContainer, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools } from 'tods-competition-factory';
+import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -25,7 +26,7 @@ import { context } from 'services/context';
 import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
-import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -163,6 +164,8 @@ export function renderDrawView({
       (createRoundsTable as any)({ matchUps: displayMatchUps, eventData });
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId: structureId! });
+    } else if (roundsView === ROUNDS_BRACKET) {
+      createBracketTable({ eventId, drawId, structureId: structureId! });
     } else {
       const content = renderContainer({
         content: renderStructure({

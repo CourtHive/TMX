@@ -52,8 +52,7 @@ export function routeTo(config: any): void {
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });
-    if (selectedTab === TOURNAMENT_OVERVIEW)
-      renderOverview({ tournamentName: tournamentEngine.getTournamentInfo().tournamentInfo?.tournamentName });
+    if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
     if (selectedTab === VENUES_TAB) renderVenueTab();
