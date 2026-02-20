@@ -77,7 +77,7 @@ export function getDrawFormRelationships({
     const drawSizeInteger =
       isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const drawSize =
-      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType)) &&
+      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType as string)) &&
         drawSizeInteger) ||
       tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;

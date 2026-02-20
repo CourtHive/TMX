@@ -67,7 +67,7 @@ export function editEvent({
     if (participantType === TEAM) eventTypeOptions = [TEAM];
 
     const sexes =
-      participantType === INDIVIDUAL && tools.unique(participants.map((p: any) => p.participant?.person?.sex));
+      participantType === INDIVIDUAL ? tools.unique(participants.map((p: any) => p.participant?.person?.sex)) : [];
 
     genderOptions = [ANY];
     if (sexes.length === 1) {
@@ -98,14 +98,14 @@ export function editEvent({
       .map(({ itemType }: any) => itemType?.split('.').pop());
     participantAgeCategories.push(rankings);
   }
-  const categories = tools.unique(...participantAgeCategories);
+  const categories = tools.unique(participantAgeCategories.flat());
   if (categories.length === 1) values.ageCategoryCode = categories[0];
 
   if (enteredParticipantGenders.length) {
     genderOptions = [ANY];
     if (event.gender && event.gender !== ANY) genderOptions.push(event.gender);
     if (event.eventType === DOUBLES && !genderOptions.includes(MIXED)) genderOptions.push(MIXED);
-    const uniqueEnteredGenders = tools.unique(...enteredParticipantGenders);
+    const uniqueEnteredGenders = tools.unique(enteredParticipantGenders.flat());
     if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
       genderOptions.push(...uniqueEnteredGenders);
     }

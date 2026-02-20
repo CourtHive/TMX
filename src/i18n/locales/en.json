@@ -1295,12 +1295,30 @@
       "searchParticipants": "Search participants",
       "highlightTeam": "Highlight team",
       "scheduleMatches": "Schedule matches",
-      "print": "Print"
+      "print": "Print",
+      "allEventTypes": "All event types",
+      "allEvents": "All events",
+      "allFlights": "All flights",
+      "allGenders": "All genders",
+      "allRounds": "All rounds",
+      "actions": "Actions",
+      "done": "Done",
+      "autoSchedule": "Auto schedule",
+      "clearSchedule": "Clear schedule",
+      "clearScheduledMatches": "Clear scheduled matches",
+      "clearAllMatches": "Clear all matches",
+      "clearAllDays": "Clear all days"
     },
     "venues": {
       "invalidValues": "Invalid values",
       "addVenue": {
-        "title": "Add venue"
+        "title": "Add venue",
+        "venueName": "Venue name",
+        "venueNameError": "Please enter a name of at least 5 characters",
+        "abbreviation": "Abbreviation",
+        "abbreviationError": "Please enter an abbreviation of 2-6 characters",
+        "numberOfCourts": "Number of courts",
+        "numberOfCourtsError": "Must be a whole number"
       },
       "editCourt": {
         "title": "Edit court",
@@ -1386,6 +1404,20 @@
       "generateMock": "Generate mock participants",
       "importGoogleSheet": "Import from Google sheet",
       "newParticipant": "New participant",
+      "editParticipant": {
+        "newParticipantTitle": "New participant",
+        "editParticipantTitle": "Edit participant",
+        "firstName": "First name",
+        "firstNamePlaceholder": "Given name",
+        "lastName": "Last name",
+        "lastNamePlaceholder": "Family name",
+        "nameError": "Please enter a name of at least 3 characters",
+        "sex": "Sex",
+        "dateOfBirth": "Date of birth",
+        "birthdayPlaceholder": "Birthday",
+        "country": "Country",
+        "countryPlaceholder": "Country of origin"
+      },
       "newTeam": "New team",
       "generateTeams": "Generate teams",
       "sheetsLink": {

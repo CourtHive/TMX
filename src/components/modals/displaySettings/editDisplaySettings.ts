@@ -78,7 +78,7 @@ export function editDisplaySettings(params) {
     startDate,
   }).tournamentRecord;
 
-  const matchUps = queryGovernor.allTournamentMatchUps({ tournamentRecord }).matchUps;
+  const matchUps = queryGovernor.allTournamentMatchUps({ tournamentRecord }).matchUps ?? [];
   const matchUp = matchUps.find((matchUp) => matchUp.matchUpType === 'SINGLES');
 
   const content = document.createElement('div');
@@ -94,7 +94,7 @@ export function editDisplaySettings(params) {
 
     selections.composition.genderColor = true;
     selections.composition.compositionName = compositionName;
-    const renderedMatchUp = renderMatchUp({ isLucky: true, composition: selections.composition, matchUp });
+    const renderedMatchUp = renderMatchUp({ isLucky: true, composition: selections.composition, matchUp: matchUp as any });
     matchUpNode.appendChild(renderedMatchUp);
   };
 

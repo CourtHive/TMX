@@ -6,6 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionEngine } from 'tods-competition-factory';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
@@ -38,17 +39,17 @@ export function clearSchedule({
   const options = [
     {
       disabled: !selectedDateMatchUps.length,
-      option: 'Clear scheduled matches',
+      option: t('pages.schedule.clearScheduledMatches'),
       onClick: clearScheduleDay,
     },
     {
       disabled: !selectedDateMatchUps.length,
-      option: 'Clear all matches',
+      option: t('pages.schedule.clearAllMatches'),
       onClick: clearCompleted,
     },
     {
       disabled: !scheduledMatchUps.length,
-      option: 'Clear all days',
+      option: t('pages.schedule.clearAllDays'),
       onClick: resetSchedule,
     },
   ];

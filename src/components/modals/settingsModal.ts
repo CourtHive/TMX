@@ -63,7 +63,7 @@ export function settingsModal(): void {
 
     // Reload page after saving if language changed so all UI text updates
     if (languageChanged) {
-      window.location.reload();
+      globalThis.location.reload();
     }
   };
   const content = (elem: HTMLElement) =>
@@ -76,6 +76,10 @@ export function settingsModal(): void {
         options: [
           { value: 'en', label: 'English', selected: i18next.language === 'en' },
           { value: 'fr', label: 'Français', selected: i18next.language === 'fr' },
+          { value: 'es', label: 'Español', selected: i18next.language === 'es' },
+          { value: 'pt-BR', label: 'Português (Brasil)', selected: i18next.language === 'pt-BR' },
+          { value: 'de', label: 'Deutsch', selected: i18next.language === 'de' },
+          { value: 'ar', label: 'العربية', selected: i18next.language === 'ar' },
         ],
         field: 'language',
         id: 'language',
@@ -100,7 +104,11 @@ export function settingsModal(): void {
       },
       {
         options: [
-          { text: t('modals.settings.dynamicSets'), field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
+          {
+            text: t('modals.settings.dynamicSets'),
+            field: 'dynamicSets',
+            checked: env.scoringApproach === 'dynamicSets',
+          },
           { text: t('modals.settings.dialPad'), field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
           { text: t('modals.settings.freeScore'), field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
         ],

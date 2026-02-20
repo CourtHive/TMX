@@ -57,7 +57,6 @@ export function getEventHandlers({ callback, drawId, eventData }: EventHandlersP
           matchUpId: matchUp?.matchUpId,
           drawId: matchUp?.drawId,
           policyDefinitions: {
-            positionActions: {},
             ...fixtures.policies.POLICY_POSITION_ACTIONS_UNRESTRICTED,
           },
         })) ||

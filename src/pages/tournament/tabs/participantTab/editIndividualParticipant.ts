@@ -7,6 +7,7 @@ import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
@@ -67,45 +68,45 @@ export function editIndividualParticipant({
       elem,
       [
         {
-          error: 'Please enter a name of at least 3 characters',
+          error: t('pages.participants.editParticipant.nameError'),
           value: values.firstName || '',
           validator: validators.nameValidator(2),
-          placeholder: 'Given name',
-          label: 'First name',
+          placeholder: t('pages.participants.editParticipant.firstNamePlaceholder'),
+          label: t('pages.participants.editParticipant.firstName'),
           field: 'firstName',
           focus: true,
         },
         {
-          error: 'Please enter a name of at least 3 characters',
+          error: t('pages.participants.editParticipant.nameError'),
           value: values.lastName || '',
           validator: validators.nameValidator(2),
-          placeholder: 'Family name',
-          label: 'Last name',
+          placeholder: t('pages.participants.editParticipant.lastNamePlaceholder'),
+          label: t('pages.participants.editParticipant.lastName'),
           field: 'lastName',
         },
         {
           value: undefined,
-          label: 'Sex',
+          label: t('pages.participants.editParticipant.sex'),
           field: 'sex',
           options: [
-            { label: 'Unknown', value: undefined, selected: !values.sex },
-            { label: 'Male', value: 'MALE', selected: values.sex === 'MALE' },
-            { label: 'Female', value: 'FEMALE', selected: values.sex === 'FEMALE' },
+            { label: t('pages.participants.gender.unknown'), value: undefined, selected: !values.sex },
+            { label: t('pages.participants.gender.male'), value: 'MALE', selected: values.sex === 'MALE' },
+            { label: t('pages.participants.gender.female'), value: 'FEMALE', selected: values.sex === 'FEMALE' },
           ],
         },
         {
-          placeholder: 'Birthday',
+          placeholder: t('pages.participants.editParticipant.birthdayPlaceholder'),
           value: values.birthDate || '',
-          label: 'Date of birth',
+          label: t('pages.participants.editParticipant.dateOfBirth'),
           field: 'birthday',
           date: true,
         },
         {
           typeAhead: { list, callback: nationalityCodeValue },
-          placeholder: 'Country of origin',
+          placeholder: t('pages.participants.editParticipant.countryPlaceholder'),
           value: values.nationalityCode || '',
           field: 'nationalityCode',
-          label: 'Country',
+          label: t('pages.participants.editParticipant.country'),
         },
       ],
       relationships,
@@ -116,22 +117,24 @@ export function editIndividualParticipant({
     renderButtons(
       elem,
       [
-        { label: 'Cancel', close: true },
+        { label: t('common.cancel'), close: true },
         {
           disabled: !validValues(values),
           onClick: saveParticipant,
           id: 'saveParticipant',
           intent: 'is-info',
-          label: 'Save',
+          label: t('common.save'),
           close: true,
         },
       ],
       close,
     );
 
-  const action = participant ? 'Edit' : 'New';
+  const drawerTitle = participant
+    ? t('pages.participants.editParticipant.editParticipantTitle')
+    : t('pages.participants.editParticipant.newParticipantTitle');
   context.drawer.open({
-    title: `<b style='larger'>${action} participant</b>`,
+    title: `<b style='larger'>${drawerTitle}</b>`,
     callback: () => {},
     width: '300px',
     side: RIGHT,

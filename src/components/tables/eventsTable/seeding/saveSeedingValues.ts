@@ -2,7 +2,8 @@ import { drawDefinitionConstants, scaleConstants } from 'tods-competition-factor
 import { setParticipantScaleItems } from './setParticipantScaleItems';
 
 const { QUALIFYING } = drawDefinitionConstants;
-const { SEEDING, MANUAL } = scaleConstants;
+const { SEEDING } = scaleConstants;
+const MANUAL = 'MANUAL';
 
 type SaveSeedingValuesParams = {
   event: any;

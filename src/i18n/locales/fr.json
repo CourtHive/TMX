@@ -1295,12 +1295,30 @@
       "searchParticipants": "Rechercher des participants",
       "highlightTeam": "Mettre en évidence l'équipe",
       "scheduleMatches": "Programmer les matchs",
-      "print": "Imprimer"
+      "print": "Imprimer",
+      "allEventTypes": "Tous les types d'épreuves",
+      "allEvents": "Toutes les épreuves",
+      "allFlights": "Tous les tableaux",
+      "allGenders": "Tous les sexes",
+      "allRounds": "Tous les tours",
+      "actions": "Actions",
+      "done": "Terminé",
+      "autoSchedule": "Programmation auto",
+      "clearSchedule": "Effacer la programmation",
+      "clearScheduledMatches": "Effacer les matchs programmés",
+      "clearAllMatches": "Effacer tous les matchs",
+      "clearAllDays": "Effacer tous les jours"
     },
     "venues": {
       "invalidValues": "Valeurs invalides",
       "addVenue": {
-        "title": "Ajouter un lieu"
+        "title": "Ajouter un lieu",
+        "venueName": "Nom du lieu",
+        "venueNameError": "Veuillez entrer un nom d'au moins 5 caractères",
+        "abbreviation": "Abréviation",
+        "abbreviationError": "Veuillez entrer une abréviation de 2 à 6 caractères",
+        "numberOfCourts": "Nombre de courts",
+        "numberOfCourtsError": "Doit être un nombre entier"
       },
       "editCourt": {
         "title": "Modifier le court",
@@ -1386,6 +1404,20 @@
       "generateMock": "Générer des participants fictifs",
       "importGoogleSheet": "Importer depuis Google Sheet",
       "newParticipant": "Nouveau participant",
+      "editParticipant": {
+        "newParticipantTitle": "Nouveau participant",
+        "editParticipantTitle": "Modifier le participant",
+        "firstName": "Prénom",
+        "firstNamePlaceholder": "Prénom",
+        "lastName": "Nom de famille",
+        "lastNamePlaceholder": "Nom de famille",
+        "nameError": "Veuillez entrer un nom d'au moins 3 caractères",
+        "sex": "Sexe",
+        "dateOfBirth": "Date de naissance",
+        "birthdayPlaceholder": "Date de naissance",
+        "country": "Pays",
+        "countryPlaceholder": "Pays d'origine"
+      },
       "newTeam": "Nouvelle équipe",
       "generateTeams": "Générer des équipes",
       "sheetsLink": {

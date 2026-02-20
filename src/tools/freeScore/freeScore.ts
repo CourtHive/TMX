@@ -13,7 +13,8 @@
  */
 
 import { matchUpFormatCode, matchUpStatusConstants } from 'tods-competition-factory';
-import type { ParsedFormat } from 'tods-competition-factory';
+
+type ParsedFormat = NonNullable<ReturnType<typeof matchUpFormatCode.parse>>;
 import { t } from 'i18n';
 
 const { RETIRED, WALKOVER, DEFAULTED, SUSPENDED, CANCELLED, INCOMPLETE, DEAD_RUBBER, IN_PROGRESS, AWAITING_RESULT } =
