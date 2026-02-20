@@ -187,7 +187,6 @@ export async function createBracketTable({
         drawPosition,
         sideNumber,
         policyDefinitions: {
-          positionActions: {},
           ...fixtures.policies.POLICY_POSITION_ACTIONS_UNRESTRICTED,
         },
       }) || {};

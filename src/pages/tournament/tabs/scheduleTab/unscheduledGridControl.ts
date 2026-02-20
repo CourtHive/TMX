@@ -92,7 +92,7 @@ export function unscheduledGridControl({
         label: gender,
         close: true,
       }))
-      .filter((i) => i.gender),
+      .filter((i) => i.label),
   );
 
   const roundFilter = (rowData: any) => rowData.roundName === roundNameFilter;

@@ -1,7 +1,7 @@
 import { tools } from 'tods-competition-factory';
 
 export function timeFormat(time: string, militaryTime?: boolean): string {
-  return time ? tools.dateTime.convertTime(time, militaryTime) : '';
+  return time ? (tools.dateTime.convertTime(time, militaryTime) ?? '') : '';
 }
 
 export function timeStringToSeconds(timeString: string): number {
