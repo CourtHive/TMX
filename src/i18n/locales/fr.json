@@ -1269,13 +1269,6 @@
   },
 
   "pages": {
-    "events": {
-      "addEvent": "Ajouter une épreuve",
-      "publish": "Publier",
-      "unpublish": "Dépublier",
-      "deleteSelected": "Supprimer la sélection",
-      "searchEvents": "Rechercher des épreuves"
-    },
     "matchUps": {
       "schedule": "Programmer",
       "searchMatches": "Rechercher des matchs",
@@ -1343,6 +1336,11 @@
       }
     },
     "events": {
+      "addEvent": "Ajouter une épreuve",
+      "publish": "Publier",
+      "unpublish": "Dépublier",
+      "deleteSelected": "Supprimer la sélection",
+      "searchEvents": "Rechercher des épreuves",
       "editEvent": {
         "titleEdit": "Modifier l'épreuve",
         "titleAdd": "Ajouter une épreuve",
