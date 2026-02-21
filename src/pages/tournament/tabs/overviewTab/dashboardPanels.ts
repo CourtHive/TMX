@@ -1,6 +1,7 @@
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
+import { tournamentEngine } from 'tods-competition-factory';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
 import { renderOverview } from './renderOverview';
@@ -115,10 +116,16 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     const info = structures.find((s) => s.structureId === structureId);
     if (!info) return;
 
+    // Fetch event data lazily — only for the selected event, not all events
+    const eventData = tournamentEngine.getEventData({ eventId: info.eventId })?.eventData;
+    const drawData = eventData?.drawsData
+      ?.find((d: any) => d.drawId === info.drawId)
+      ?.structures?.find((s: any) => s.structureId === structureId);
+    if (!drawData) return;
+
     chartDiv.innerHTML = '';
-    const drawData = fromFactoryDrawData(info.structure);
     const title = `${info.eventName} — ${info.drawName}`;
-    burstChart({ width: 500, height: 500 }).render(chartDiv, drawData, title);
+    burstChart({ width: 500, height: 500 }).render(chartDiv, fromFactoryDrawData(drawData), title);
   };
 
   select.addEventListener('change', () => renderStructure(select.value));
