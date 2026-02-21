@@ -26,34 +26,27 @@ interface ScheduleGeneratorOptions {
 export async function generateSchedulePDF(params: ScheduleGeneratorOptions): Promise<void> {
   const { tournament, scheduledDate, courts, rows, options, action } = params;
 
-
-
   // Determine orientation based on court count and user preference
-  const pageOrientation = (courts.length >= 5 || options.landscape) ? 'landscape' : 'portrait';
+  const pageOrientation = courts.length >= 5 || options.landscape ? 'landscape' : 'portrait';
   const portrait = pageOrientation === 'portrait';
 
   // Create column headers for courts
   const columnHeaders = createColumnHeaders(courts, options.fullCourtNames);
-  
+
   // Convert grid rows to PDF rows (rows already organized by competitionEngine)
   const allPdfRows = convertGridRowsToPDFRows(rows, courts);
-  
-  // Filter out completely empty rows (rows with no matchUps at all)
-  const pdfRows = allPdfRows.filter(row => 
-    row.some(cell => cell && Object.keys(cell).length > 0 && cell.matchUpId)
-  );
-  
 
+  // Filter out completely empty rows (rows with no matchUps at all)
+  const pdfRows = allPdfRows.filter((row) =>
+    row.some((cell) => cell && Object.keys(cell).length > 0 && cell.matchUpId),
+  );
 
   // Build the schedule table
   const scheduleTable = {
     table: {
       widths: ['*'],
       headerRows: 1,
-      body: [
-        [createHeaderRow(columnHeaders)],
-        ...pdfRows.map((row, index) => [createMatchRow(index + 1, row)]),
-      ],
+      body: [[createHeaderRow(columnHeaders)], ...pdfRows.map((row, index) => [createMatchRow(index + 1, row)])],
     },
     layout: 'noBorders',
   };
@@ -73,13 +66,9 @@ export async function generateSchedulePDF(params: ScheduleGeneratorOptions): Pro
 
     content,
 
-    header: options.includeHeader
-      ? () => createScheduleHeader(tournament, scheduledDate)
-      : undefined,
+    header: options.includeHeader ? () => createScheduleHeader(tournament, scheduledDate) : undefined,
 
-    footer: options.includeFooter
-      ? createScheduleFooter(tournament, scheduledDate)
-      : undefined,
+    footer: options.includeFooter ? createScheduleFooter(tournament, scheduledDate) : undefined,
 
     styles: {
       docTitle: { fontSize: 12, bold: true },
@@ -128,29 +117,27 @@ function convertGridRowsToPDFRows(gridRows: any[], courts: any[]): any[][] {
 function createColumnHeaders(courts: any[], fullNames: boolean): string[] {
   const minimumColumns = courts.length < 5 ? 1 : 8;
   const headers = new Array(Math.max(minimumColumns, courts.length)).fill('');
-  
+
   courts.forEach((court, index) => {
     headers[index] = fullNames
-      ? (court.courtName || court.name || '')
+      ? court.courtName || court.name || ''
       : (court.courtName || court.name || '').split(' ')[0];
   });
 
   return headers;
 }
 
-
-
 /**
  * Create header row with court names
  */
 function createHeaderRow(courtNames: string[]): any {
-  const headerCells = courtNames.map(name => ({
-      table: {
-        widths: ['*'],
-        body: [[{ text: name || ' ', style: 'centeredTableHeader', margin: [0, 0, 0, 0] }]],
-      },
-      layout: 'noBorders',
-    }));
+  const headerCells = courtNames.map((name) => ({
+    table: {
+      widths: ['*'],
+      body: [[{ text: name || ' ', style: 'centeredTableHeader', margin: [0, 0, 0, 0] }]],
+    },
+    layout: 'noBorders',
+  }));
 
   const cells = [{ text: ' ', width: 30 }, ...headerCells];
   const widths = [30, ...courtNames.map(() => '*' as const)];
@@ -168,7 +155,7 @@ function createHeaderRow(courtNames: string[]): any {
  * Create a match row
  */
 function createMatchRow(roundNumber: number, cells: any[]): any {
-  const cellsArray = cells.map(matchUp => createMatchCell(matchUp));
+  const cellsArray = cells.map((matchUp) => createMatchCell(matchUp));
   const matchCells = [{ stack: [createMatchCell({ oop: roundNumber })], width: 30 }, ...cellsArray];
   const widths = [30, ...cells.map(() => '*' as const)];
 
@@ -184,7 +171,7 @@ function createMatchRow(roundNumber: number, cells: any[]): any {
       paddingTop: () => 0,
       paddingBottom: () => 0,
       // All borders
-      hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 1 : 0,
+      hLineWidth: (i, node) => (i === 0 || i === node.table.body.length ? 1 : 0),
       vLineWidth: () => 1, // All vertical lines
       hLineColor: () => '#999999',
       vLineColor: () => '#999999',
@@ -201,9 +188,7 @@ function createMatchCell(matchUp: any): any {
     return {
       table: {
         widths: ['*'],
-        body: [
-          [{ text: matchUp.oop || ' ', style: 'centeredText', margin: [0, 0, 0, 0] }],
-        ],
+        body: [[{ text: matchUp.oop || ' ', style: 'centeredText', margin: [0, 0, 0, 0] }]],
       },
       layout: {
         paddingLeft: () => 0,
@@ -215,15 +200,13 @@ function createMatchCell(matchUp: any): any {
       },
     };
   }
-  
+
   // Empty cell - no matchUpId means no match scheduled
   if (!matchUp?.matchUpId) {
     return {
       table: {
         widths: ['*'],
-        body: [
-          [{ text: ' ', style: 'centeredText', margin: [0, 0, 0, 0] }],
-        ],
+        body: [[{ text: ' ', style: 'centeredText', margin: [0, 0, 0, 0] }]],
       },
       layout: {
         paddingLeft: () => 0,
@@ -240,66 +223,91 @@ function createMatchCell(matchUp: any): any {
   const scheduledTime = matchUp.schedule?.scheduledTime || '';
   const timeModifiers = matchUp.schedule?.timeModifiers || [];
   const timeModifierText = timeModifiers[0] || '';
-  
+
   // Format time display
   let timeDisplay = '';
   if (timeModifierText) {
     // Map time modifier codes to display text
     const modifierMap: Record<string, string> = {
-      'FOLLOWED_BY': 'Followed by',
-      'NOT_BEFORE': 'Not before',
-      'AFTER_REST': 'After rest',
+      FOLLOWED_BY: 'Followed by',
+      NOT_BEFORE: 'Not before',
+      AFTER_REST: 'After rest',
     };
     const modifierDisplay = modifierMap[timeModifierText] || timeModifierText;
     timeDisplay = scheduledTime ? `${modifierDisplay} ${scheduledTime}` : modifierDisplay;
   } else {
     timeDisplay = scheduledTime;
   }
-  
+
   const roundName = matchUp.roundName || '';
   const eventName = matchUp.eventName || '';
   const category = matchUp.category?.categoryName || '';
-  
+
   // Get participant names - handle both actual participants and potentials
   const getPotentialName = (participant: any) =>
     participant?.person?.standardFamilyName?.toUpperCase() || participant?.participantName || '';
-  
+
   const potentialParticipants = matchUp.potentialParticipants || [];
-  
+
   // Create array of potential strings for each side
   const potentialsArray = potentialParticipants.map((potential: any) => {
     if (!potential || !Array.isArray(potential)) return '';
     const names = potential.map(getPotentialName).filter(Boolean);
     return names.join(' or ');
   });
-  
+
   const getParticipantName = (sideNumber: number) => {
     const side = matchUp.sides?.find((s: any) => s.sideNumber === sideNumber);
     return side?.participant?.participantName || '';
   };
-  
+
   const side1 = getParticipantName(1) || potentialsArray[0] || 'TBD';
   const side2 = getParticipantName(2) || potentialsArray[1] || 'TBD';
-  
+
   // Check if participants contain "or" (are potentials)
   const side1HasOr = side1.includes(' or ');
   const side2HasOr = side2.includes(' or ');
-  
+
   const score = matchUp.score?.scoreStringSide1 || '';
   const x = ' ';
-  
+
   // If we have a matchUpId, we always render (even if no participants yet)
-  
+
+  const name = eventName && roundName ? `${eventName} ${roundName}` : undefined;
+
   return {
     table: {
       widths: ['*'],
       body: [
         [{ text: timeDisplay || x, style: 'centeredText', margin: [0, 1, 0, 1], border: [false, false, false, false] }],
-        [{ text: `${eventName} ${roundName}` || x, style: 'centeredItalic', margin: [0, 1, 0, 1], border: [false, false, false, false] }],
+        [{ text: name || x, style: 'centeredItalic', margin: [0, 1, 0, 1], border: [false, false, false, false] }],
         [{ text: category || x, style: 'centeredText', margin: [0, 1, 0, 1], border: [false, false, false, false] }],
-        [{ text: side1 || x, style: 'teamName', margin: [0, 1, 0, 1], border: [false, false, false, false], color: side1HasOr ? '#555555' : undefined }],
-        [{ text: (side1 && side2) ? 'vs.' : x, style: 'centeredText', margin: [0, 1, 0, 1], border: [false, false, false, false] }],
-        [{ text: side2 || x, style: 'teamName', margin: [0, 1, 0, 1], border: [false, false, false, false], color: side2HasOr ? '#555555' : undefined }],
+        [
+          {
+            text: side1 || x,
+            style: 'teamName',
+            margin: [0, 1, 0, 1],
+            border: [false, false, false, false],
+            color: side1HasOr ? '#555555' : undefined,
+          },
+        ],
+        [
+          {
+            text: side1 && side2 ? 'vs.' : x,
+            style: 'centeredText',
+            margin: [0, 1, 0, 1],
+            border: [false, false, false, false],
+          },
+        ],
+        [
+          {
+            text: side2 || x,
+            style: 'teamName',
+            margin: [0, 1, 0, 1],
+            border: [false, false, false, false],
+            color: side2HasOr ? '#555555' : undefined,
+          },
+        ],
         [{ text: x, style: 'centeredText', margin: [0, 0, 0, 0], border: [false, false, false, false] }],
         [{ text: score || x, style: 'centeredText', margin: [0, 1, 0, 1], border: [false, false, false, false] }],
       ],
@@ -321,33 +329,17 @@ function createMatchCell(matchUp: any): any {
 function createScheduleHeader(tournament: any, scheduledDate: string): any {
   const tournamentName = tournament.tournamentName || '';
   const organization = tournament.organizationName || '';
-  
+
   return {
     margin: [20, 10, 20, 10],
     fontSize: 10,
     table: {
       widths: ['*', '*', '*'],
       body: [
-        [
-          { text: tournamentName, colSpan: 3, style: 'docTitle', margin: [0, 0, 0, 5] },
-          {},
-          {},
-        ],
-        [
-          { text: 'Order of Play', colSpan: 3, style: 'docName', margin: [0, 0, 0, 5] },
-          {},
-          {},
-        ],
-        [
-          { text: scheduledDate, colSpan: 3, style: 'centeredText', margin: [0, 0, 0, 5] },
-          {},
-          {},
-        ],
-        [
-          { text: organization || '', style: 'tableData' },
-          {},
-          {},
-        ],
+        [{ text: tournamentName, colSpan: 3, style: 'docTitle', margin: [0, 0, 0, 5] }, {}, {}],
+        [{ text: 'Order of Play', colSpan: 3, style: 'docName', margin: [0, 0, 0, 5] }, {}, {}],
+        [{ text: scheduledDate, colSpan: 3, style: 'centeredText', margin: [0, 0, 0, 5] }, {}, {}],
+        [{ text: organization || '', style: 'tableData' }, {}, {}],
       ],
     },
     layout: 'noBorders',

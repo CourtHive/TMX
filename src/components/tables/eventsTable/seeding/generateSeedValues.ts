@@ -30,7 +30,7 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
   });
 
   const [scaleType, rating] = field.split('.');
-  const reversed = rating ? !ratingsParameters[rating.toUpperCase()].ascending : false;
+  const reversed = rating ? ratingsParameters[rating.toUpperCase()].ascending : false;
   const accessor = ratingsParameters[rating.toUpperCase()].accessor;
   const getRating = (participant: any) => participant.ratings?.[rating] || { confidence: 0, [accessor]: Infinity };
   const getRatingValue = (participant: any) => getRating(participant)?.[accessor] || 0;

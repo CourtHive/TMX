@@ -21,6 +21,14 @@ export function bracketScoreFormatter(cell: any): string | HTMLElement {
     return '';
   }
 
+  // BYE position: show "BYE" label
+  if (value.bye) {
+    const span = document.createElement('span');
+    span.style.color = '#999';
+    span.textContent = 'BYE';
+    return span;
+  }
+
   const el = cell.getElement();
   const matchUpStatus = value.matchUp?.matchUpStatus;
   const statusLabel = matchUpStatus && STATUS_DISPLAY[matchUpStatus];
