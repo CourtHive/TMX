@@ -11,7 +11,9 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { eventRowFormatter } from './eventRowFormatter';
 import { getEventColumns } from './getEventColumns';
+import { env } from 'settings/env';
 
+// constants
 import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
 
 const EVENT_COUNT_THRESHOLD = 15;
@@ -64,7 +66,7 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
         'drawsCount',
       ]),
       rowFormatter: eventRowFormatter(setNestedTable),
-      height: window.innerHeight * 0.8,
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No events',
       layout: 'fitColumns',
       reactiveData: true,

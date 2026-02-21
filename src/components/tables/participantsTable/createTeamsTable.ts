@@ -9,12 +9,13 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { getGroupingsColumns } from './getGroupingsColumns';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { teamRowFormatter } from './teamRowFormatter';
-import { getGroupingsColumns } from './getGroupingsColumns';
+import { env } from 'settings/env';
 
+// constants
 import { TOURNAMENT_TEAMS } from 'constants/tmxConstants';
-
 const { TEAM } = participantConstants;
 
 export function createTeamsTable({ view }: { view?: string } = {}): { table: any; replaceTableData: () => void } {
@@ -49,8 +50,8 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
       headerSortElement: headerSortElement(['events', 'membersCount', 'matchUpsCount', 'winLoss']),
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
-      minHeight: window.innerHeight * 0.81,
-      height: window.innerHeight * 0.86,
+      minHeight: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No team participants',
       rowFormatter: teamRowFormatter,
       responsiveLayout: 'collapse',

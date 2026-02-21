@@ -8,7 +8,9 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { getScheduleColumns } from './getScheduleColumns';
 import { updateConflicts } from './updateConflicts';
+import { env } from 'settings/env';
 
+// constants
 import { TOURNAMENT_SCHEDULE } from 'constants/tmxConstants';
 
 export function createScheduleTable({
@@ -70,7 +72,7 @@ export function createScheduleTable({
   existingCourtIds = columns.map((col: any) => col?.courtId).filter(Boolean);
 
   table = new Tabulator(element, {
-    height: window.innerHeight * 0.84,
+    height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
     renderHorizontal: 'virtual',
     placeholder: 'No courts',
     index: 'rowId',

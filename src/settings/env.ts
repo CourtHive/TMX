@@ -52,6 +52,9 @@
  * - env.devNotes: Log matchUp modifications
  *
  * USER INTERFACE:
+ * - env.tableHeightMultiplier: (default 0.85) Multiplier for Tabulator table height
+ *                              (window.innerHeight * N). Values > 1.0 extend tables beyond
+ *                              the viewport so users can scroll the page header off screen.
  * - env.hotkeys: Enable keyboard shortcuts for match scoring
  * - env.scoring: Enable scoring modal (vs direct score entry)
  *
@@ -109,6 +112,8 @@ export const env: any = {
 
   serverFirst: true,
   version,
+
+  tableHeightMultiplier: 0.85, // Multiplier for Tabulator table height (window.innerHeight * N)
 
   pdfPrinting: false, // Beta feature flag for PDF generation
   persistInputFields: true, // Keep input fields visible after participant assignment (default ON)

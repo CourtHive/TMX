@@ -14,11 +14,25 @@ import { roundGroupingHeader } from './roundGroupingHeader';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { getRoundsColumns } from './getRoundsColumns';
 import { mapRound } from './mapRound';
+import { env } from 'settings/env';
 
+// constants
 import { DRAWS_VIEW, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
-export async function createRoundsTable({ eventId, drawId, structureId, matchUps, eventData }: { eventId: string; drawId: string; structureId: string; matchUps?: any[]; eventData?: any }): Promise<{ table: any; replaceTableData: (params?: { participantFilter?: string }) => void }> {
+export async function createRoundsTable({
+  eventId,
+  drawId,
+  structureId,
+  matchUps,
+  eventData,
+}: {
+  eventId: string;
+  drawId: string;
+  structureId: string;
+  matchUps?: any[];
+  eventData?: any;
+}): Promise<{ table: any; replaceTableData: (params?: { participantFilter?: string }) => void }> {
   let table: any;
   let structure: any;
   let participantFilter: string;
@@ -75,7 +89,7 @@ export async function createRoundsTable({ eventId, drawId, structureId, matchUps
       groupHeader: [roundGroupingHeader, (value: any) => value],
       headerSortElement: headerSortElement(['complete', 'duration', 'score']),
       responsiveLayoutCollapseStartOpen: false,
-      height: window.innerHeight * 0.85,
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       responsiveLayout: 'collapse',
       placeholder: 'No matches',
       layout: 'fitColumns',

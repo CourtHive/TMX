@@ -10,7 +10,9 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 import { hotKeyScoring } from './hotKeyScoring';
+import { env } from 'settings/env';
 
+// constants
 import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
 export function createMatchUpsTable(): { table: any; data: any[]; replaceTableData: () => void } {
@@ -26,7 +28,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
       }).matchUps || []
     ).filter(({ matchUpStatus }: any) => matchUpStatus !== 'BYE');
 
-    return matchUps.map((mapMatchUp as any));
+    return matchUps.map(mapMatchUp as any);
   };
 
   const replaceTableData = () => {
@@ -43,7 +45,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['complete', 'duration', 'score', 'scheduledTime']),
-      height: window.innerHeight * 0.85,
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No matches',
       layout: 'fitColumns',
       reactiveData: true,

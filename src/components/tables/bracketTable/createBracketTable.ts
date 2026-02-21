@@ -1,16 +1,18 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/eventControlBar';
-import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
+import { tournamentEngine, scoreGovernor, fixtures } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
+import { selectPositionAction } from 'components/popovers/selectPositionAction';
+import { getBracketColumns, attachHeaderTooltip } from './getBracketColumns';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine, scoreGovernor, fixtures } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { getBracketColumns, attachHeaderTooltip } from './getBracketColumns';
 import { getBracketData } from './getBracketData';
+import { env } from 'settings/env';
 
+// constants
 import { DRAWS_VIEW, ROUNDS_BRACKET } from 'constants/tmxConstants';
 
 const BRACKET_STYLE_ID = 'bracket-table-style';
@@ -133,9 +135,7 @@ export async function createBracketTable({
         const data = row.getData();
         allPositions.push(data.drawPosition);
         if (!found) {
-          found = Object.keys(data).some(
-            (key) => key.startsWith('opponent_') && data[key]?.matchUpId === matchUpId,
-          );
+          found = Object.keys(data).some((key) => key.startsWith('opponent_') && data[key]?.matchUpId === matchUpId);
         }
       }
       if (found) {
@@ -233,7 +233,7 @@ export async function createBracketTable({
         structureId,
       });
       const table = new Tabulator(tableDiv, {
-        height: groups.length > 1 ? undefined : window.innerHeight * 0.85,
+        height: groups.length > 1 ? undefined : window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
         placeholder: 'No participants',
         layout: 'fitData',
         headerSort: false,

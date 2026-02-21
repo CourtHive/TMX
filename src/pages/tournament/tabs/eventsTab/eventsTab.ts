@@ -15,8 +15,17 @@ import { renderDrawPanel } from './renderDrawPanel';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
+// constants
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
-import { EVENTS_TAB, ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE, TOURNAMENT_EVENTS } from 'constants/tmxConstants';
+import {
+  EVENTS_TAB,
+  ROUNDS_BRACKET,
+  ROUNDS_COLUMNS,
+  ROUNDS_STATS,
+  ROUNDS_TABLE,
+  TOURNAMENT_EVENTS,
+} from 'constants/tmxConstants';
+
 const { CONTAINER } = drawDefinitionConstants;
 
 type RenderEventsTabParams = {
