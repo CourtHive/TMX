@@ -73,9 +73,19 @@ export function getBracketData({ structure, participantMap, participantResults, 
   // Build position-to-participantId map from matchUp sides (covers assigned positions)
   // Also build drawPosition-to-structureId map
   const positionParticipant: Record<string, Record<number, string>> = {}; // groupId → { drawPosition → participantId }
+  // Track draw positions that are BYEs (from matchUps with matchUpStatus === 'BYE')
+  const byePositions: Record<string, Set<number>> = {}; // groupId → Set of BYE drawPositions
   for (const matchUp of allMatchUps) {
     const gId = matchUp.structureId;
     if (!positionParticipant[gId]) positionParticipant[gId] = {};
+    if (matchUp.matchUpStatus === 'BYE') {
+      if (!byePositions[gId]) byePositions[gId] = new Set();
+      for (const side of matchUp.sides ?? []) {
+        if (side.drawPosition && !side.participantId) {
+          byePositions[gId].add(side.drawPosition);
+        }
+      }
+    }
     for (const side of matchUp.sides ?? []) {
       if (side.drawPosition) {
         if (side.participantId) {
@@ -97,14 +107,17 @@ export function getBracketData({ structure, participantMap, participantResults, 
       matchUps.flatMap((mu: any) => (mu.sides ?? []).map((s: any) => s.drawPosition).filter(Boolean)),
     )].sort((a: number, b: number) => a - b);
 
+    const groupByePositions = byePositions[groupId];
+
     // Build participants array: one entry per draw position
     const participants: GroupParticipant[] = drawPositions.map((dp: number) => {
       const pid = posMap[dp];
+      const isBye = groupByePositions?.has(dp);
       const p = pid ? participantMap[pid] : undefined;
       return {
         drawPosition: dp,
         participantId: pid || `dp_${dp}`,
-        participantName: p?.participantName || '',
+        participantName: isBye ? 'BYE' : (p?.participantName || ''),
       };
     });
 
@@ -134,6 +147,9 @@ export function getBracketData({ structure, participantMap, participantResults, 
       for (const colP of participants) {
         if (colP.drawPosition === rowP.drawPosition) {
           row[`opponent_${colP.participantId}`] = { self: true };
+        } else if (groupByePositions?.has(rowP.drawPosition) || groupByePositions?.has(colP.drawPosition)) {
+          // Either this row or the column is a BYE position
+          row[`opponent_${colP.participantId}`] = { bye: true };
         } else if (isAssigned && !!posMap[colP.drawPosition]) {
           // Both positions assigned — look up h2h
           const key = `${posMap[rowP.drawPosition]}_${posMap[colP.drawPosition]}`;
