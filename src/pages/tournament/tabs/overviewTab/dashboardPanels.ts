@@ -2,9 +2,10 @@ import { editTournamentImage } from 'components/modals/tournamentImage';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { openNotesEditor } from './notesEditorModal';
-import { renderOverview } from './renderOverview';
 import type { StructureInfo } from './dashboardData';
+import { renderOverview } from './renderOverview';
 
+// constants
 import { SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
 
 export function createImagePanel(imageUrl?: string): HTMLElement {
@@ -22,7 +23,8 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
   } else {
     const placeholder = document.createElement('div');
     placeholder.style.cssText = 'text-align:center; color:#999; padding:24px;';
-    placeholder.innerHTML = '<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament image';
+    placeholder.innerHTML =
+      '<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament image';
     panel.appendChild(placeholder);
   }
 
@@ -67,8 +69,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
 
 export function createStatCard(label: string, value: string | number, icon?: string): HTMLElement {
   const card = document.createElement('div');
-  card.style.cssText =
-    'border-radius:8px; border:1px solid #e0e0e0; padding:12px 16px; min-width:0; background:#fff;';
+  card.style.cssText = 'border-radius:8px; border:1px solid #e0e0e0; padding:12px 16px; min-width:0; background:#fff;';
 
   const valueEl = document.createElement('div');
   valueEl.style.cssText = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
