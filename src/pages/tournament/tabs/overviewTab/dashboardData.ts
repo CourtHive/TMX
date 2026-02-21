@@ -1,4 +1,9 @@
-import { tournamentEngine, competitionEngine, drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
+import {
+  tournamentEngine,
+  competitionEngine,
+  drawDefinitionConstants,
+  factoryConstants,
+} from 'tods-competition-factory';
 
 const { CONTAINER, ROUND_ROBIN } = drawDefinitionConstants;
 const { completedMatchUpStatuses } = factoryConstants;
@@ -51,7 +56,7 @@ export function getDashboardData(): DashboardData {
   const eventCount = events.length;
 
   // MatchUp stats
-  const { matchUps: allMatchUps = [] } = tournamentEngine.allTournamentMatchUps() || {};
+  const { matchUps: allMatchUps = [] } = tournamentEngine.allTournamentMatchUps({ inContext: false }) || {};
   const nonByeMatchUps = allMatchUps.filter((m: any) => m.matchUpStatus !== 'BYE');
   const total = nonByeMatchUps.length;
   const completed = nonByeMatchUps.filter(
