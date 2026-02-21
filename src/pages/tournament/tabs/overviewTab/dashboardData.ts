@@ -10,7 +10,6 @@ export type StructureInfo = {
   drawName: string;
   eventName: string;
   eventId: string;
-  structure: any;
 };
 
 export type MatchUpStats = {
@@ -46,10 +45,9 @@ export function getDashboardData(): DashboardData {
   const notes = tournamentRecord?.notes;
 
   const participantCount =
-    tournamentEngine.getParticipants({ participantFilters: { participantTypes: ['INDIVIDUAL'] } }).participants
-      ?.length || 0;
+    tournamentRecord?.participants?.filter((p: any) => p.participantType === 'INDIVIDUAL').length || 0;
 
-  const events = tournamentEngine.getEvents().events || [];
+  const events = tournamentRecord?.events || [];
   const eventCount = events.length;
 
   // MatchUp stats
@@ -63,23 +61,19 @@ export function getDashboardData(): DashboardData {
   const scheduled = dateMatchUps.length;
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  // Gather structures for sunburst (filter out ROUND_ROBIN and CONTAINER)
+  // Gather structures for sunburst selector by walking tournamentRecord directly
   const structures: StructureInfo[] = [];
   for (const event of events) {
-    const eventData = tournamentEngine.getEventData({ eventId: event.eventId })?.eventData;
-    if (!eventData?.drawsData) continue;
-
-    for (const draw of eventData.drawsData) {
-      for (const structure of draw.structures || []) {
+    for (const drawDefinition of event.drawDefinitions || []) {
+      for (const structure of drawDefinition.structures || []) {
         if (structure.structureType === ROUND_ROBIN || structure.structureType === CONTAINER) continue;
         structures.push({
           structureId: structure.structureId,
           structureName: structure.structureName || structure.stage || 'Main',
-          drawId: draw.drawId,
-          drawName: draw.drawName || '',
-          eventName: eventData.eventInfo?.eventName || '',
+          drawId: drawDefinition.drawId,
+          drawName: drawDefinition.drawName || '',
+          eventName: event.eventName || '',
           eventId: event.eventId,
-          structure,
         });
       }
     }

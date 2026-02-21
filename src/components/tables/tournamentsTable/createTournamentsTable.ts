@@ -8,7 +8,9 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { getCalendar } from 'services/apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 
+// constants
 import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
 export function createTournamentsTable(): { table: any } {
@@ -24,7 +26,7 @@ export function createTournamentsTable(): { table: any } {
     const calendarAnchor = document.getElementById(TOURNAMENTS_TABLE);
 
     table = new Tabulator(calendarAnchor, {
-      height: window.innerHeight * 0.85,
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No tournaments',
       layout: 'fitColumns',
       index: 'tournamentId',
@@ -47,16 +49,16 @@ export function createTournamentsTable(): { table: any } {
       (a, b) => new Date(b.tournament.startDate).getTime() - new Date(a.tournament.startDate).getTime(),
     );
     const tableData = sortedTournaments.map((t) => {
-        const offline = t.tournament.timeItemValues?.TMX?.offline;
-        t.tournament.offline = offline;
-        const tournamentImageURL = t.tournament.onlineResources?.find(
-          ({ name, resourceType }: any) => name === 'tournamentImage' && resourceType === 'URL',
-        )?.identifier;
-        if (tournamentImageURL) {
-          t.tournament.tournamentImageURL = tournamentImageURL;
-        }
-        return { ...t, provider };
-      });
+      const offline = t.tournament.timeItemValues?.TMX?.offline;
+      t.tournament.offline = offline;
+      const tournamentImageURL = t.tournament.onlineResources?.find(
+        ({ name, resourceType }: any) => name === 'tournamentImage' && resourceType === 'URL',
+      )?.identifier;
+      if (tournamentImageURL) {
+        t.tournament.tournamentImageURL = tournamentImageURL;
+      }
+      return { ...t, provider };
+    });
     renderTable(tableData);
   };
   const loginState = getLoginState();

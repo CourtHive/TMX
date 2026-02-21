@@ -1269,13 +1269,6 @@
   },
 
   "pages": {
-    "events": {
-      "addEvent": "Add event",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
-      "deleteSelected": "Delete selected",
-      "searchEvents": "Search events"
-    },
     "matchUps": {
       "schedule": "Schedule",
       "searchMatches": "Search matches",
@@ -1343,6 +1336,11 @@
       }
     },
     "events": {
+      "addEvent": "Add event",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "deleteSelected": "Delete selected",
+      "searchEvents": "Search events",
       "editEvent": {
         "titleEdit": "Edit event",
         "titleAdd": "Add event",

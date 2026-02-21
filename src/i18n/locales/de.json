@@ -1269,13 +1269,6 @@
   },
 
   "pages": {
-    "events": {
-      "addEvent": "Bewerb hinzufügen",
-      "publish": "Veröffentlichen",
-      "unpublish": "Zurückziehen",
-      "deleteSelected": "Ausgewählte löschen",
-      "searchEvents": "Bewerbe suchen"
-    },
     "matchUps": {
       "schedule": "Spielplan",
       "searchMatches": "Spiele suchen",
@@ -1343,6 +1336,11 @@
       }
     },
     "events": {
+      "addEvent": "Bewerb hinzufügen",
+      "publish": "Veröffentlichen",
+      "unpublish": "Zurückziehen",
+      "deleteSelected": "Ausgewählte löschen",
+      "searchEvents": "Bewerbe suchen",
       "editEvent": {
         "titleEdit": "Bewerb bearbeiten",
         "titleAdd": "Bewerb hinzufügen",

@@ -6,7 +6,9 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { venueRowFormatter } from './venueRowFormatter';
 import { getVenuesColumns } from './getVenueColumns';
+import { env } from 'settings/env';
 
+// constants
 import { TOURNAMENT_VENUES } from 'constants/tmxConstants';
 
 type CreateVenuesTableResult = {
@@ -47,7 +49,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
         'courtsCount',
         'venueName',
       ]),
-      minHeight: window.innerHeight * 0.81,
+      minHeight: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       rowFormatter: venueRowFormatter(setNestedTable),
       placeholder: 'No venues',
       layout: 'fitColumns',

@@ -10,7 +10,9 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { orderSorter } from '../common/sorters/orderSorter';
 import { getStatsColumns } from './getStatsColumns';
+import { env } from 'settings/env';
 
+// constants
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';
 
 type CreateStatsTableParams = {
@@ -113,7 +115,7 @@ export async function createStatsTable({
         'order',
       ]),
       responsiveLayoutCollapseStartOpen: false,
-      height: window.innerHeight * 0.85,
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       groupHeader: [(value: string) => value],
       placeholder: 'No participants',
       responsiveLayout: 'collapse',

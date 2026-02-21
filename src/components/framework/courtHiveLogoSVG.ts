@@ -1,4 +1,4 @@
-import { create as d3Create, select as d3Select, easeCubicIn } from 'd3';
+import { create as d3Create, select as d3Select } from 'd3-selection';
 
 export interface CourtHiveLogoOptions {
   maxWidth?: string;
@@ -161,6 +161,29 @@ export interface FlyThroughOptions {
   onComplete?: () => void;
 }
 
+// Cubic ease-in: t^3 (equivalent to d3.easeCubicIn)
+function easeCubicIn(t: number): number {
+  return t * t * t;
+}
+
+// Animate an SVG viewBox from startVB to targetVB over duration ms with easing
+function animateViewBox(svg: SVGSVGElement, startVB: number[], targetVB: number[], duration: number): void {
+  const startTime = performance.now();
+
+  function tick(now: number) {
+    const elapsed = now - startTime;
+    const rawT = Math.min(elapsed / duration, 1);
+    const t = easeCubicIn(rawT);
+
+    const currentVB = startVB.map((s, i) => s + (targetVB[i] - s) * t).join(' ');
+    svg.setAttribute('viewBox', currentVB);
+
+    if (rawT < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
 export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOptions): void {
   const { delay = 2000, duration = 1500, courtLineFade = 900, onComplete } = options ?? {};
 
@@ -170,7 +193,7 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
   const vb = (sel.attr('viewBox') ?? '').split(/\s+/).map(Number);
   const [, , vbW] = vb;
   const zoom = 300;
-  const targetVB = vb.map((v) => v / zoom).join(' ');
+  const targetVB = vb.map((v) => v / zoom);
 
   // After the static display period, go fullscreen and animate the viewBox zoom
   setTimeout(() => {
@@ -190,13 +213,13 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
       -logoCenterY / vbScale, // y: logo center stays at its original vertical position
       winW / vbScale, // width:  covers full window at original logo scale
       winH / vbScale, // height: covers full window at original logo scale
-    ].join(' ');
+    ];
 
     // Move SVG to body and make it fullscreen immediately — no size transition
     // means no intermediate clipping boundary smaller than the window.
     document.body.appendChild(svg);
     sel
-      .attr('viewBox', startVB)
+      .attr('viewBox', startVB.join(' '))
       .style('position', 'fixed')
       .style('top', '0px')
       .style('left', '0px')
@@ -206,29 +229,27 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
       .style('z-index', '9999')
       .style('pointer-events', 'none');
 
-    // Fade court markings + net line
-    sel
-      .selectAll('.court-marking')
-      .transition()
-      .duration(courtLineFade)
-      .style('opacity', '0');
+    // Fade court markings + net line (Web Animations API)
+    svg.querySelectorAll('.court-marking').forEach((el) => {
+      (el as HTMLElement).animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: courtLineFade,
+        fill: 'forwards',
+      });
+    });
 
-    // Animate only the viewBox zoom — hex edges fly off the real window edges
-    sel
-      .transition('flythrough')
-      .duration(duration)
-      .ease(easeCubicIn)
-      .attr('viewBox', targetVB);
+    // Animate the viewBox zoom — hex edges fly off the real window edges
+    animateViewBox(svg, startVB, targetVB, duration);
 
     // Fade to transparent at the tail end for a clean exit
-    sel
-      .transition('fade')
-      .delay(duration * 0.75)
-      .duration(duration * 0.25)
-      .style('opacity', '0')
-      .on('end', () => {
-        svg.remove();
-        onComplete?.();
-      });
+    const fadeAnim = svg.animate([{ opacity: 1 }, { opacity: 0 }], {
+      delay: duration * 0.75,
+      duration: duration * 0.25,
+      fill: 'forwards',
+    });
+
+    fadeAnim.onfinish = () => {
+      svg.remove();
+      onComplete?.();
+    };
   }, delay);
 }

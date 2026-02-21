@@ -1269,13 +1269,6 @@
   },
 
   "pages": {
-    "events": {
-      "addEvent": "Adicionar evento",
-      "publish": "Publicar",
-      "unpublish": "Despublicar",
-      "deleteSelected": "Excluir selecionados",
-      "searchEvents": "Buscar eventos"
-    },
     "matchUps": {
       "schedule": "Programação",
       "searchMatches": "Buscar partidas",
@@ -1343,6 +1336,11 @@
       }
     },
     "events": {
+      "addEvent": "Adicionar evento",
+      "publish": "Publicar",
+      "unpublish": "Despublicar",
+      "deleteSelected": "Excluir selecionados",
+      "searchEvents": "Buscar eventos",
       "editEvent": {
         "titleEdit": "Editar evento",
         "titleAdd": "Adicionar evento",

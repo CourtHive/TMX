@@ -13,6 +13,7 @@ import { findAncestor } from 'services/dom/parentAndChild';
 import { env } from 'settings/env';
 import { t } from 'i18n';
 
+// constants
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
 
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
@@ -87,7 +88,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
         'cityState',
         'tennisId',
       ]),
-      height: window.innerHeight * 0.86,
+      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No participants',
       index: 'participantId',
       layout: 'fitColumns',
