@@ -24,6 +24,15 @@ function ensureStyles(): void {
     .dash-stats   { grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
     .dash-burst   { grid-column: 3 / 6; }
 
+    .dash-panel {
+      border-radius: 8px;
+      padding: 16px;
+      border-left: 4px solid;
+    }
+    .dash-panel-blue   { border-color: #4a90d9; background: #eef4fb; }
+    .dash-panel-notes  { border-color: #333; background: transparent; }
+    .dash-panel-green  { border-color: #48c774; background: #effaf3; }
+
     /* Tablet — stack to single column */
     @media (max-width: 900px) {
       .dash-grid   { grid-template-columns: 1fr; }
@@ -67,7 +76,7 @@ export function renderOverview(): void {
   grid.appendChild(imagePanel);
 
   const notesPanel = createNotesPanel(data.notes);
-  notesPanel.className = 'dash-notes';
+  notesPanel.classList.add('dash-notes');
   grid.appendChild(notesPanel);
 
   // Row 2+: Stats (2 left cols) + Sunburst (3 right cols)
@@ -90,7 +99,7 @@ export function renderOverview(): void {
 
   if (data.structures.length) {
     const sunburstPanel = createSunburstPanel(data.structures);
-    sunburstPanel.className = 'dash-burst';
+    sunburstPanel.classList.add('dash-burst');
     grid.appendChild(sunburstPanel);
   }
 

@@ -17,6 +17,7 @@ import {
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
   VENUES_TAB,
+  SETTINGS_TAB,
 } from 'constants/tmxConstants';
 
 const routeMap: Record<string, string> = {
@@ -26,6 +27,7 @@ const routeMap: Record<string, string> = {
   'm-route': MATCHUPS_TAB,
   's-route': SCHEDULE_TAB,
   'v-route': VENUES_TAB,
+  'c-route': SETTINGS_TAB,
 };
 
 const tips: Record<string, string> = {
@@ -35,6 +37,7 @@ const tips: Record<string, string> = {
   'm-route': 'MatchUps',
   's-route': 'Schedule',
   'v-route': 'Venues',
+  'c-route': 'Settings',
 };
 
 export function tmxNavigation(): void {
@@ -47,6 +50,7 @@ export function tmxNavigation(): void {
       <span class="features-item-text">Matches</span>
       <span class="features-item-text">Schedule</span>
       <span class="features-item-text">Venues</span>
+      <span class="features-item-text">Settings</span>
     </ul>
   </div>
 `;

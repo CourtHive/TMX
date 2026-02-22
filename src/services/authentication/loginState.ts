@@ -4,7 +4,7 @@ import { tournamentActions } from 'components/modals/tournamentActions';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { editProviderModal } from 'components/modals/editProvider';
-import { settingsModal } from 'components/modals/settingsModal';
+
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
 import { inviteModal } from 'components/modals/inviteUser';
@@ -18,7 +18,7 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-import { INVITE, SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { INVITE, SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS, TOURNAMENT, SETTINGS_TAB } from 'constants/tmxConstants';
 
 export function styleLogin(valid) {
   const el = document.getElementById('login');
@@ -185,7 +185,12 @@ export function initLoginToggle(id) {
           divider: true,
         },
         {
-          onClick: settingsModal,
+          onClick: () => {
+            const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+            if (tournamentId) {
+              context.router.navigate(`/${TOURNAMENT}/${tournamentId}/${SETTINGS_TAB}`);
+            }
+          },
           heading: t('loginMenu.settings'),
         },
       ];

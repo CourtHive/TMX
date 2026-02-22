@@ -5,7 +5,7 @@
 import { factoryConstants, globalState, tournamentEngine } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { initLoginToggle } from 'services/authentication/loginState';
-import { initSettingsIcon } from 'components/modals/settingsModal';
+
 import { courthiveComponentsVersion } from 'courthive-components';
 import { loadSettings } from 'services/settings/settingsStorage';
 import { i18next } from 'i18n';
@@ -81,8 +81,6 @@ export function setupTMX(): void {
   tournamentContent();
   initLoginToggle('login');
   initLoginToggle('burger');
-  initSettingsIcon('config');
-
   if (!(Array.prototype as any).toSorted) {
     (Array.prototype as any).toSorted = function (compareFn?: (a: any, b: any) => number) {
       return this.slice().sort(compareFn);

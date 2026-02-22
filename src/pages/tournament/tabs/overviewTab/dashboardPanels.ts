@@ -13,7 +13,7 @@ import { SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
 export function createImagePanel(imageUrl?: string): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText =
-    'border-radius:8px; overflow:hidden; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height:200px; background:#f5f5f5;';
+    'border-radius:8px; overflow:hidden; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height:200px;';
 
   if (imageUrl) {
     const img = document.createElement('img');
@@ -41,8 +41,8 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
 
 export function createNotesPanel(notes?: string): HTMLElement {
   const panel = document.createElement('div');
-  panel.style.cssText =
-    'position:relative; min-height:200px; border:1px solid #e0e0e0; border-radius:8px; padding:16px; overflow:auto; max-height:300px;';
+  panel.className = 'dash-panel dash-panel-notes';
+  panel.style.cssText = 'position:relative; min-height:200px; overflow:auto; max-height:300px;';
 
   const notesView = document.createElement('div');
   notesView.className = 'ql-container ql-snow content';
@@ -72,7 +72,8 @@ export function createNotesPanel(notes?: string): HTMLElement {
 
 export function createStatCard(label: string, value: string | number, icon?: string): HTMLElement {
   const card = document.createElement('div');
-  card.style.cssText = 'border-radius:8px; border:1px solid #e0e0e0; padding:12px 16px; min-width:0; background:#fff;';
+  card.className = 'dash-panel dash-panel-blue';
+  card.style.cssText = 'padding:12px 16px; min-width:0;';
 
   const valueEl = document.createElement('div');
   valueEl.style.cssText = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
@@ -95,7 +96,7 @@ export function createStatCard(label: string, value: string | number, icon?: str
 
 export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   const panel = document.createElement('div');
-  panel.style.cssText = 'border-radius:8px; border:1px solid #e0e0e0; padding:16px;';
+  panel.className = 'dash-panel dash-panel-green';
 
   // Dropdown selector
   const select = document.createElement('select');
