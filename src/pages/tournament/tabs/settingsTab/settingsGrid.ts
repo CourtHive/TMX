@@ -7,13 +7,14 @@ import { i18next, t } from 'i18n';
 import { UTR, WTN } from 'constants/tmxConstants';
 
 function persistAll(
-  generalInputs: any,
+  languageInputs: any,
+  ratingInputs: any,
   scoringInputs: any,
   schedulingInputs: any,
   storageInputs: any,
   displayInputs: any,
 ): void {
-  const activeScale = generalInputs.wtn.checked ? WTN : UTR;
+  const activeScale = ratingInputs.wtn.checked ? WTN : UTR;
   env.saveLocal = storageInputs.saveLocal.checked;
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
   env.persistInputFields = storageInputs.persistInputFields?.checked ?? true;
@@ -35,7 +36,7 @@ function persistAll(
     env.schedule.minCourtGridRows = Number.parseInt(minCourtGridRowsValue, 10);
   }
 
-  const language = generalInputs.language.value;
+  const language = languageInputs.language.value;
   const languageChanged = language !== i18next.language;
 
   setActiveScale(activeScale);
@@ -60,25 +61,26 @@ export function renderSettingsGrid(container: HTMLElement): void {
   const currentSettings = loadSettings();
 
   // These are populated after renderForm calls; persist closure captures the refs.
-  let generalInputs: any;
+  let languageInputs: any;
+  let ratingInputs: any;
   let scoringInputs: any;
   let schedulingInputs: any;
   let storageInputs: any;
   let displayInputs: any;
 
-  const persist = () => persistAll(generalInputs, scoringInputs, schedulingInputs, storageInputs, displayInputs);
+  const persist = () =>
+    persistAll(languageInputs, ratingInputs, scoringInputs, schedulingInputs, storageInputs, displayInputs);
 
   const grid = document.createElement('div');
   grid.className = 'settings-grid';
 
-  // --- General panel (blue, cols 1-2) ---
-  const generalPanel = document.createElement('div');
-  generalPanel.className = 'settings-panel panel-blue';
-  generalPanel.style.gridColumn = '1 / 3';
-  generalPanel.innerHTML = `<h3><i class="fa-solid fa-globe"></i> ${t('modals.settings.language')}</h3>`;
+  // --- Language panel (blue, 1 col) ---
+  const languagePanel = document.createElement('div');
+  languagePanel.className = 'settings-panel panel-blue';
+  languagePanel.innerHTML = `<h3><i class="fa-solid fa-globe"></i> ${t('modals.settings.language')}</h3>`;
 
-  const generalForm = document.createElement('div');
-  generalInputs = renderForm(generalForm, [
+  const languageForm = document.createElement('div');
+  languageInputs = renderForm(languageForm, [
     {
       options: [
         { value: 'en', label: 'English', selected: i18next.language === 'en' },
@@ -92,10 +94,17 @@ export function renderSettingsGrid(container: HTMLElement): void {
       field: 'language',
       id: 'language',
     },
-    {
-      text: t('modals.settings.activeRating'),
-      class: 'section-title',
-    },
+  ]);
+  languagePanel.appendChild(languageForm);
+  grid.appendChild(languagePanel);
+
+  // --- Active Rating panel (blue, 1 col) ---
+  const ratingPanel = document.createElement('div');
+  ratingPanel.className = 'settings-panel panel-blue';
+  ratingPanel.innerHTML = `<h3><i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}</h3>`;
+
+  const ratingForm = document.createElement('div');
+  ratingInputs = renderForm(ratingForm, [
     {
       options: [
         { text: 'WTN', field: 'wtn', checked: env.activeScale === WTN },
@@ -108,10 +117,10 @@ export function renderSettingsGrid(container: HTMLElement): void {
     },
   ]);
   // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
-  generalInputs.wtn.addEventListener('change', persist);
-  generalInputs.utr.addEventListener('change', persist);
-  generalPanel.appendChild(generalForm);
-  grid.appendChild(generalPanel);
+  ratingInputs.wtn.addEventListener('change', persist);
+  ratingInputs.utr.addEventListener('change', persist);
+  ratingPanel.appendChild(ratingForm);
+  grid.appendChild(ratingPanel);
 
   // --- Scoring panel (green, cols 3-4) ---
   const scoringPanel = document.createElement('div');
@@ -201,10 +210,9 @@ export function renderSettingsGrid(container: HTMLElement): void {
   storagePanel.appendChild(storageForm);
   grid.appendChild(storagePanel);
 
-  // --- Display panel (teal, cols 1-2) ---
+  // --- Beta Features panel (teal, 1 col) ---
   const displayPanel = document.createElement('div');
   displayPanel.className = 'settings-panel panel-teal';
-  displayPanel.style.gridColumn = '1 / 3';
   displayPanel.innerHTML = `<h3><i class="fa-solid fa-display"></i> ${t('modals.settings.betaFeatures')}</h3>`;
 
   const displayForm = document.createElement('div');

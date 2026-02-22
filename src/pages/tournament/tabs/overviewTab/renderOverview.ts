@@ -1,10 +1,17 @@
 import { createImagePanel, createNotesPanel, createStatCard, createSunburstPanel } from './dashboardPanels';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { tournamentEngine } from 'tods-competition-factory';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
+import { context } from 'services/context';
 
 // constants
-import { TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
+import { EVENTS_TAB, MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, TOURNAMENT, TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
+
+function navigateToTab(tab: string): void {
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  context.router.navigate(`/${TOURNAMENT}/${tournamentId}/${tab}`);
+}
 
 const STYLE_ID = 'dashboard-responsive-styles';
 
@@ -27,7 +34,7 @@ function ensureStyles(): void {
     .dash-panel {
       border-radius: 8px;
       padding: 16px;
-      border-left: 4px solid;
+      border-top: 4px solid;
     }
     .dash-panel-blue   { border-color: #4a90d9; background: #eef4fb; }
     .dash-panel-notes  { border-color: #333; background: transparent; }
@@ -90,10 +97,25 @@ export function renderOverview(): void {
   datesCard.style.cursor = 'pointer';
   datesCard.addEventListener('click', () => openEditDatesModal({ onSave: () => renderOverview() }));
   statsContainer.appendChild(datesCard);
-  statsContainer.appendChild(createStatCard('Events', data.eventCount, 'fa-trophy'));
-  statsContainer.appendChild(createStatCard('Players', data.participantCount, 'fa-users'));
-  statsContainer.appendChild(createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis'));
-  statsContainer.appendChild(createStatCard('Scheduled', data.matchUpStats.scheduled, 'fa-clock'));
+  const eventsCard = createStatCard('Events', data.eventCount, 'fa-trophy');
+  eventsCard.style.cursor = 'pointer';
+  eventsCard.addEventListener('click', () => navigateToTab(EVENTS_TAB));
+  statsContainer.appendChild(eventsCard);
+
+  const playersCard = createStatCard('Players', data.participantCount, 'fa-users');
+  playersCard.style.cursor = 'pointer';
+  playersCard.addEventListener('click', () => navigateToTab(PARTICIPANTS));
+  statsContainer.appendChild(playersCard);
+
+  const matchUpsCard = createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis');
+  matchUpsCard.style.cursor = 'pointer';
+  matchUpsCard.addEventListener('click', () => navigateToTab(MATCHUPS_TAB));
+  statsContainer.appendChild(matchUpsCard);
+
+  const scheduledCard = createStatCard('Scheduled', data.matchUpStats.scheduled, 'fa-clock');
+  scheduledCard.style.cursor = 'pointer';
+  scheduledCard.addEventListener('click', () => navigateToTab(SCHEDULE_TAB));
+  statsContainer.appendChild(scheduledCard);
   statsContainer.appendChild(createStatCard('Complete', `${data.matchUpStats.percentComplete}%`, 'fa-chart-pie'));
   grid.appendChild(statsContainer);
 
