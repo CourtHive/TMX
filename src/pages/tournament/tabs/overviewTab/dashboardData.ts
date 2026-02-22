@@ -31,19 +31,11 @@ export type DashboardData = {
 };
 
 export function getDashboardData(): DashboardData {
-  const { tournamentRecord } = tournamentEngine.getTournament();
-
-  const imageUrl = tournamentRecord?.onlineResources?.find(
-    (r: any) => r.name === 'tournamentImage' && r.resourceType === 'URL',
-  )?.identifier;
-
   const tournamentInfo = tournamentEngine.getTournamentInfo({
     withStructureDetails: true,
     withPublishState: true,
     withMatchUpStats: true,
   }).tournamentInfo;
-
-  const local = { imageUrl };
 
   const structures = (tournamentInfo?.structures || []).filter(
     (s: any) => s.structureType !== CONTAINER && s.structureType !== ROUND_ROBIN,
@@ -55,10 +47,10 @@ export function getDashboardData(): DashboardData {
     matchUpStats: tournamentInfo?.matchUpStats,
     eventCount: tournamentInfo?.eventCount,
     startDate: tournamentInfo?.startDate,
+    imageUrl: tournamentInfo?.imageUrl,
     endDate: tournamentInfo?.endDate,
     notes: tournamentInfo?.notes,
     structures,
-    ...local,
   };
 
   return info;

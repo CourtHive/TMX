@@ -4,9 +4,11 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { competitionEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { venueRowFormatter } from './venueRowFormatter';
 import { getVenuesColumns } from './getVenueColumns';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT_VENUES } from 'constants/tmxConstants';
@@ -39,7 +41,11 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
   if (!table) {
     destroyTable({ anchorId: TOURNAMENT_VENUES });
     const element = document.getElementById(TOURNAMENT_VENUES);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
     const { rows: data } = getTableData();
+
+    const getHeader = (rows: any[]) => `${t('pages.venues.title')} (${rows.length})`;
+    if (headerElement) headerElement.innerHTML = getHeader(data);
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement([
@@ -59,6 +65,10 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
       data,
     });
 
+    table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
+    table.on('dataFiltered', (_filters: any, rows: any[]) => {
+      if (headerElement) headerElement.innerHTML = getHeader(rows);
+    });
     table.on('scrollVertical', destroyTipster);
     table.on('cellEdited', (cell: any) => {
       const def = cell.getColumn().getDefinition();

@@ -1270,6 +1270,7 @@
 
   "pages": {
     "matchUps": {
+      "title": "Matches",
       "schedule": "Schedule",
       "searchMatches": "Search matches",
       "allEvents": "All events",
@@ -1303,6 +1304,7 @@
       "clearAllDays": "Clear all days"
     },
     "venues": {
+      "title": "Venues",
       "invalidValues": "Invalid values",
       "addVenue": {
         "title": "Add venue",
@@ -1336,6 +1338,7 @@
       }
     },
     "events": {
+      "title": "Events",
       "addEvent": "Add event",
       "publish": "Publish",
       "unpublish": "Unpublish",

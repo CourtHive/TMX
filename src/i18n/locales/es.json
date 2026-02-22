@@ -1270,6 +1270,7 @@
 
   "pages": {
     "matchUps": {
+      "title": "Partidos",
       "schedule": "Programación",
       "searchMatches": "Buscar partidos",
       "allEvents": "Todos los eventos",
@@ -1303,6 +1304,7 @@
       "clearAllDays": "Limpiar todos los días"
     },
     "venues": {
+      "title": "Sedes",
       "invalidValues": "Valores inválidos",
       "addVenue": {
         "title": "Agregar sede",
@@ -1336,6 +1338,7 @@
       }
     },
     "events": {
+      "title": "Eventos",
       "addEvent": "Agregar evento",
       "publish": "Publicar",
       "unpublish": "Despublicar",

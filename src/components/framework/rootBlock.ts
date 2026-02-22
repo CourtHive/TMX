@@ -154,9 +154,9 @@ function newBlock(): HTMLDivElement {
       <i id='m-route' class="nav-icon fa-solid fa-table-tennis-paddle-ball"></i>
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
+      <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
     </div>
     <div class="navbar-item" style="font-size: 1em">
-      <i id="config" class="fa-solid fa-sliders"></i>
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
     </div>
   </div>

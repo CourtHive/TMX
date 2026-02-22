@@ -6,6 +6,7 @@ import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/parti
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
+import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderVenueTab } from 'pages/tournament/tabs/scheduleTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
@@ -29,6 +30,7 @@ import {
   VENUES_TAB,
   EVENTS_TAB,
   TOURNAMENT_OVERVIEW,
+  SETTINGS_TAB,
 } from 'constants/tmxConstants';
 
 export function displayTournament({ config }: { config?: any } = {}): void {
@@ -57,6 +59,7 @@ export function routeTo(config: any): void {
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
     if (selectedTab === VENUES_TAB) renderVenueTab();
+    if (selectedTab === SETTINGS_TAB) renderSettingsTab();
   }
 }
 

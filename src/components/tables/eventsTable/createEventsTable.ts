@@ -12,6 +12,7 @@ import { findAncestor } from 'services/dom/parentAndChild';
 import { eventRowFormatter } from './eventRowFormatter';
 import { getEventColumns } from './getEventColumns';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
@@ -52,8 +53,9 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     const element = document.getElementById(TOURNAMENT_EVENTS)!;
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
+    const getHeader = (rows: any[]) => `${t('pages.events.title')} (${rows.length})`;
     if (headerElement?.innerHTML) {
-      headerElement.innerHTML = `Events (${data.length})`;
+      headerElement.innerHTML = getHeader(data);
     }
 
     table = new Tabulator(element, {
@@ -77,12 +79,12 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
     table.on('scrollVertical', destroyTipster);
     table.on('dataChanged', (rows: any[]) => {
       if (headerElement) {
-        headerElement.innerHTML = `Events (${rows.length})`;
+        headerElement.innerHTML = getHeader(rows);
       }
     });
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       if (headerElement) {
-        headerElement.innerHTML = `Events (${rows.length})`;
+        headerElement.innerHTML = getHeader(rows);
       }
     });
   };

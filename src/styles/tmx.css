@@ -387,7 +387,6 @@ img {
 @media (max-width: 767px) {
   .nav-icon { font-size: .8em; }
   #pageTitle { display: none; }
-  #config { display: none; }
   #content { padding: 0; }
   body { margin: 2px; }
 }

@@ -37,6 +37,9 @@ import {
   EVENTS_TAB,
   TOURNAMENT_OVERVIEW,
   TEAM_STATS,
+  SETTINGS_TAB,
+  SETTINGS_CONTROL,
+  TOURNAMENT_SETTINGS,
 } from 'constants/tmxConstants';
 
 const refMap: Record<string, string> = {
@@ -46,6 +49,7 @@ const refMap: Record<string, string> = {
   [MATCHUPS_TAB]: 'm-tab',
   [SCHEDULE_TAB]: 's-tab',
   [VENUES_TAB]: 'v-tab',
+  [SETTINGS_TAB]: 'c-tab',
 };
 
 export function tournamentContent(): void {
@@ -102,11 +106,21 @@ export function tournamentContent(): void {
         </div>
         `;
 
+  const settingsTab = `
+        <div class='tab_section settings_tab'>
+            <div class='section' style='min-height: auto;'>
+              <div id='${SETTINGS_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_SETTINGS}'></div>
+            </div>
+        </div>
+        `;
+
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's-tab': scheduleTab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
+    'c-tab': settingsTab,
   };
 
   const contentContainer = document.getElementById(TOURNAMENT_CONTAINER)!;

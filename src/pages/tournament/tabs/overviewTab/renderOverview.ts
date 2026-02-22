@@ -1,10 +1,17 @@
 import { createImagePanel, createNotesPanel, createStatCard, createSunburstPanel } from './dashboardPanels';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { tournamentEngine } from 'tods-competition-factory';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
+import { context } from 'services/context';
 
 // constants
-import { TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
+import { EVENTS_TAB, MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, TOURNAMENT, TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
+
+function navigateToTab(tab: string): void {
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  context.router.navigate(`/${TOURNAMENT}/${tournamentId}/${tab}`);
+}
 
 const STYLE_ID = 'dashboard-responsive-styles';
 
@@ -23,6 +30,15 @@ function ensureStyles(): void {
     .dash-notes   { grid-column: 3 / 6; }
     .dash-stats   { grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
     .dash-burst   { grid-column: 3 / 6; }
+
+    .dash-panel {
+      border-radius: 8px;
+      padding: 16px;
+      border-top: 4px solid;
+    }
+    .dash-panel-blue   { border-color: #4a90d9; background: #eef4fb; }
+    .dash-panel-notes  { border-color: #333; background: transparent; }
+    .dash-panel-green  { border-color: #48c774; background: #effaf3; }
 
     /* Tablet — stack to single column */
     @media (max-width: 900px) {
@@ -67,7 +83,7 @@ export function renderOverview(): void {
   grid.appendChild(imagePanel);
 
   const notesPanel = createNotesPanel(data.notes);
-  notesPanel.className = 'dash-notes';
+  notesPanel.classList.add('dash-notes');
   grid.appendChild(notesPanel);
 
   // Row 2+: Stats (2 left cols) + Sunburst (3 right cols)
@@ -81,16 +97,31 @@ export function renderOverview(): void {
   datesCard.style.cursor = 'pointer';
   datesCard.addEventListener('click', () => openEditDatesModal({ onSave: () => renderOverview() }));
   statsContainer.appendChild(datesCard);
-  statsContainer.appendChild(createStatCard('Events', data.eventCount, 'fa-trophy'));
-  statsContainer.appendChild(createStatCard('Players', data.participantCount, 'fa-users'));
-  statsContainer.appendChild(createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis'));
-  statsContainer.appendChild(createStatCard('Scheduled', data.matchUpStats.scheduled, 'fa-clock'));
+  const eventsCard = createStatCard('Events', data.eventCount, 'fa-trophy');
+  eventsCard.style.cursor = 'pointer';
+  eventsCard.addEventListener('click', () => navigateToTab(EVENTS_TAB));
+  statsContainer.appendChild(eventsCard);
+
+  const playersCard = createStatCard('Players', data.participantCount, 'fa-users');
+  playersCard.style.cursor = 'pointer';
+  playersCard.addEventListener('click', () => navigateToTab(PARTICIPANTS));
+  statsContainer.appendChild(playersCard);
+
+  const matchUpsCard = createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis');
+  matchUpsCard.style.cursor = 'pointer';
+  matchUpsCard.addEventListener('click', () => navigateToTab(MATCHUPS_TAB));
+  statsContainer.appendChild(matchUpsCard);
+
+  const scheduledCard = createStatCard('Scheduled', data.matchUpStats.scheduled, 'fa-clock');
+  scheduledCard.style.cursor = 'pointer';
+  scheduledCard.addEventListener('click', () => navigateToTab(SCHEDULE_TAB));
+  statsContainer.appendChild(scheduledCard);
   statsContainer.appendChild(createStatCard('Complete', `${data.matchUpStats.percentComplete}%`, 'fa-chart-pie'));
   grid.appendChild(statsContainer);
 
   if (data.structures.length) {
     const sunburstPanel = createSunburstPanel(data.structures);
-    sunburstPanel.className = 'dash-burst';
+    sunburstPanel.classList.add('dash-burst');
     grid.appendChild(sunburstPanel);
   }
 
