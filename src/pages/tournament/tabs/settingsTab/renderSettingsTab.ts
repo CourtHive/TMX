@@ -1,3 +1,4 @@
+import { renderSystemTab } from './systemTab/renderSystemTab';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderSettingsGrid } from './settingsGrid';
@@ -9,7 +10,7 @@ import { SETTINGS_CONTROL, TOURNAMENT_SETTINGS, SUPER_ADMIN, ADMIN, LEFT } from 
 
 const STYLE_ID = 'settings-tab-styles';
 
-let currentView: 'settings' | 'admin' = 'settings';
+let currentView: 'settings' | 'admin' | 'system' = 'settings';
 
 function ensureStyles(): void {
   if (document.getElementById(STYLE_ID)) return;
@@ -62,8 +63,13 @@ function isAdmin(): boolean {
   return false;
 }
 
-function getSettingsTabs(callback: (view: 'settings' | 'admin') => void) {
-  return [
+function isSuperAdmin(): boolean {
+  const state = getLoginState();
+  return !!state?.roles?.includes(SUPER_ADMIN);
+}
+
+function getSettingsTabs(callback: (view: 'settings' | 'admin' | 'system') => void) {
+  const tabs = [
     {
       active: currentView === 'settings',
       onClick: () => callback('settings'),
@@ -77,6 +83,17 @@ function getSettingsTabs(callback: (view: 'settings' | 'admin') => void) {
       close: true,
     },
   ];
+
+  if (isSuperAdmin()) {
+    tabs.push({
+      active: currentView === 'system',
+      onClick: () => callback('system'),
+      label: 'System',
+      close: true,
+    });
+  }
+
+  return tabs;
 }
 
 export function renderSettingsTab(): void {
@@ -91,7 +108,7 @@ export function renderSettingsTab(): void {
     removeAllChildNodes(settingsControl);
 
     if (isAdmin()) {
-      const switchView = (view: 'settings' | 'admin') => {
+      const switchView = (view: 'settings' | 'admin' | 'system') => {
         if (view === currentView) return;
         currentView = view;
         renderSettingsTab();
@@ -107,7 +124,9 @@ export function renderSettingsTab(): void {
 
   if (currentView === 'settings') {
     renderSettingsGrid(settingsContent);
-  } else {
+  } else if (currentView === 'admin') {
     renderAdminGrid(settingsContent);
+  } else if (currentView === 'system') {
+    renderSystemTab(settingsContent);
   }
 }

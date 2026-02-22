@@ -37,6 +37,10 @@ export async function removeUser({ email }) {
   return await baseApi.post('/auth/remove', { email });
 }
 
+export async function modifyUser({ email, providerId, roles, permissions, services }) {
+  return await baseApi.post('/auth/modify', { email, providerId, roles, permissions, services });
+}
+
 export async function sendTournament({ tournamentRecord }) {
   return await baseApi.post('/factory/save', { tournamentRecord });
 }
