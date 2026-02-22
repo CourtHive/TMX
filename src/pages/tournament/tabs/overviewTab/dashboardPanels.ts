@@ -44,7 +44,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
     'position:relative; min-height:200px; border:1px solid #e0e0e0; border-radius:8px; padding:16px; overflow:auto; max-height:300px;';
 
   const notesView = document.createElement('div');
-  notesView.className = 'ql-container ql-snow';
+  notesView.className = 'ql-container ql-snow content';
   notesView.style.border = 'none';
   notesView.innerHTML = notes ?? '';
   panel.appendChild(notesView);
@@ -55,6 +55,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = 'Edit notes';
   editBtn.addEventListener('click', () => {
+    const notes = tournamentEngine.getTournamentInfo()?.tournamentInfo?.notes || '';
     openNotesEditor({
       notes,
       onSave: (html) => {
