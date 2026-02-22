@@ -1,12 +1,6 @@
-import {
-  tournamentEngine,
-  competitionEngine,
-  drawDefinitionConstants,
-  factoryConstants,
-} from 'tods-competition-factory';
+import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
 const { CONTAINER, ROUND_ROBIN } = drawDefinitionConstants;
-const { completedMatchUpStatuses } = factoryConstants;
 
 export type StructureInfo = {
   structureId: string;
@@ -66,8 +60,6 @@ export function getDashboardData(): DashboardData {
     structures,
     ...local,
   };
-
-  console.log({ tournamentInfo, local, info });
 
   return info;
 }
