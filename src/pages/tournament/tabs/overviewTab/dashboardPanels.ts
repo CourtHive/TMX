@@ -127,7 +127,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     if (!drawData) return;
 
     chartDiv.innerHTML = '';
-    const title = `${info.eventName} — ${info.drawName}`;
+    const title = `${info.eventName}\n${info.drawName}`;
     const eventHandlers = {
       clickSegment: (data: any) => {
         const matchUp = data?.matchUp;
