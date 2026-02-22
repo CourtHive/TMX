@@ -3,7 +3,7 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
-import { compositions, renderContainer, renderStructure } from 'courthive-components';
+import { compositions, controlBar, renderContainer, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools } from 'tods-competition-factory';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
@@ -14,7 +14,6 @@ import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
-import { controlBar } from 'components/controlBar/controlBar';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';

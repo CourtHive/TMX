@@ -5,7 +5,7 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { autoScheduleMatchUps } from './autoScheduleMatchUps';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { clearSchedule } from './clearSchedule';
 import { t } from 'i18n';

@@ -22,7 +22,8 @@ import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
+import { selectItem } from 'components/modals/selectItem';
 import { participantOptions } from './participantOptions';
 import {
   participantConstants,
@@ -152,12 +153,14 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     {
       selection: addToTeam,
+      selectionTitle: t('pages.participants.addToTeam'),
       label: t('pages.participants.addToTeam'),
       intent: 'is-none',
       location: OVERLAY,
     },
     {
       selection: addToGroup,
+      selectionTitle: t('pages.participants.addToGroup'),
       label: t('pages.participants.addToGroup'),
       intent: 'is-none',
       location: OVERLAY,
@@ -245,5 +248,5 @@ export function renderIndividuals({ view }: { view: string }): void {
   ];
 
   const participantControl = document.getElementById(PARTICIPANT_CONTROL) || undefined;
-  controlBar({ table, target: participantControl, items });
+  controlBar({ table, target: participantControl, items, selectItemFn: selectItem });
 }

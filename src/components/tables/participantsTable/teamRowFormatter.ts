@@ -4,7 +4,7 @@ import { formatParticipant } from '../common/formatters/participantFormatter';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { destroyTipster } from 'components/popovers/tipster';
 
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';

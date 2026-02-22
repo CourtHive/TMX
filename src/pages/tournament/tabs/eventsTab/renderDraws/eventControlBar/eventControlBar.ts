@@ -3,7 +3,7 @@
  * Renders control bar with search and actions for event draw views.
  */
 import { tournamentEngine, tools } from 'tods-competition-factory';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { getEventControlItems } from './eventControlItems';
 import { context } from 'services/context';
 

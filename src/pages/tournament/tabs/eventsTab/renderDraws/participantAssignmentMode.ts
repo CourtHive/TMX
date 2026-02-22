@@ -4,8 +4,7 @@
  * Uses DrawStateManager from courthive-components with TMX mutation layer.
  */
 import { tournamentEngine } from 'tods-competition-factory';
-import { renderStructure, renderContainer, compositions, DrawStateManager } from 'courthive-components';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar, renderStructure, renderContainer, compositions, DrawStateManager } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderDrawView } from './renderDrawView';
 import { env } from 'settings/env';

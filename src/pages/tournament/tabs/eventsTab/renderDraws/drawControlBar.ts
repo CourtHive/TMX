@@ -5,7 +5,7 @@
 import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { getRoundTabs } from '../options/getRoundTabs';
 import { tmxToast } from 'services/notifications/tmxToast';
 

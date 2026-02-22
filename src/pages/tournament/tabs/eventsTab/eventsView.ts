@@ -7,7 +7,7 @@ import { createEventsTable } from 'components/tables/eventsTable/createEventsTab
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { deleteEvents } from 'components/modals/deleteEvents';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { editEvent } from './editEvent';
 import { t } from 'i18n';
