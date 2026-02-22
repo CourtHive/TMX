@@ -11,6 +11,7 @@ import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 import { hotKeyScoring } from './hotKeyScoring';
 import { env } from 'settings/env';
+import { t } from 'i18n';
 
 // constants
 import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
@@ -55,7 +56,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
     });
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
-      headerElement && (headerElement.innerHTML = `Matches (${matchUps.length})`);
+      headerElement && (headerElement.innerHTML = `${t('pages.matchUps.title')} (${matchUps.length})`);
       const predictiveWTN = document.getElementById('wtnPredictiveAccuracy')!;
       const wtn = tournamentEngine.getPredictiveAccuracy({
         valueAccessor: 'wtnRating',

@@ -1270,6 +1270,7 @@
 
   "pages": {
     "matchUps": {
+      "title": "Spiele",
       "schedule": "Spielplan",
       "searchMatches": "Spiele suchen",
       "allEvents": "Alle Bewerbe",
@@ -1303,6 +1304,7 @@
       "clearAllDays": "Alle Tage löschen"
     },
     "venues": {
+      "title": "Anlagen",
       "invalidValues": "Ungültige Werte",
       "addVenue": {
         "title": "Anlage hinzufügen",
@@ -1336,6 +1338,7 @@
       }
     },
     "events": {
+      "title": "Bewerbe",
       "addEvent": "Bewerb hinzufügen",
       "publish": "Veröffentlichen",
       "unpublish": "Zurückziehen",

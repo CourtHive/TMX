@@ -1270,6 +1270,7 @@
 
   "pages": {
     "matchUps": {
+      "title": "Matchs",
       "schedule": "Programmer",
       "searchMatches": "Rechercher des matchs",
       "allEvents": "Toutes les épreuves",
@@ -1303,6 +1304,7 @@
       "clearAllDays": "Effacer tous les jours"
     },
     "venues": {
+      "title": "Sites",
       "invalidValues": "Valeurs invalides",
       "addVenue": {
         "title": "Ajouter un lieu",
@@ -1336,6 +1338,7 @@
       }
     },
     "events": {
+      "title": "Épreuves",
       "addEvent": "Ajouter une épreuve",
       "publish": "Publier",
       "unpublish": "Dépublier",

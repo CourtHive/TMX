@@ -1237,6 +1237,7 @@
   },
   "pages": {
     "matchUps": {
+      "title": "المباريات",
       "schedule": "الجدول",
       "searchMatches": "البحث عن مباريات",
       "allEvents": "جميع الأحداث",
@@ -1270,6 +1271,7 @@
       "clearAllDays": "مسح جميع الأيام"
     },
     "venues": {
+      "title": "الأماكن",
       "invalidValues": "قيم غير صالحة",
       "addVenue": {
         "title": "إضافة مكان",
@@ -1303,6 +1305,7 @@
       }
     },
     "events": {
+      "title": "الأحداث",
       "addEvent": "إضافة حدث",
       "publish": "نشر",
       "unpublish": "إلغاء النشر",
