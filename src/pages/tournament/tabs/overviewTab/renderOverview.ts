@@ -1,4 +1,5 @@
-import { createImagePanel, createNotesPanel, createStatCard, createSunburstPanel } from './dashboardPanels';
+import { createActionsPanel, createImagePanel, createNotesPanel, createStatCard, createSunburstPanel } from './dashboardPanels';
+import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openEditDatesModal } from './editDatesModal';
@@ -6,7 +7,7 @@ import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
 
 // constants
-import { EVENTS_TAB, MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, TOURNAMENT, TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
+import { ADMIN, EVENTS_TAB, MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, SUPER_ADMIN, TOURNAMENT, TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
 
 function navigateToTab(tab: string): void {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
@@ -28,7 +29,7 @@ function ensureStyles(): void {
     }
     .dash-image   { grid-column: 1 / 3; }
     .dash-notes   { grid-column: 3 / 6; }
-    .dash-stats   { grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
+    .dash-stats   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
     .dash-burst   { grid-column: 3 / 6; }
 
     .dash-panel {
@@ -39,13 +40,36 @@ function ensureStyles(): void {
     .dash-panel-blue   { border-color: #4a90d9; background: #eef4fb; }
     .dash-panel-notes  { border-color: #333; background: transparent; }
     .dash-panel-green  { border-color: #48c774; background: #effaf3; }
+    .dash-panel-red    { border-color: #ff6b6b; background: #fef0f0; }
+    .dash-left   { grid-column: 1 / 3; display: flex; flex-direction: column; gap: 16px; }
+
+    .dash-action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .dash-action-btn {
+      padding: 6px 14px;
+      border: 1px solid #e0b4b4;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+    .dash-action-btn:hover {
+      background: #fde8e8;
+    }
+    .dash-action-btn i {
+      margin-right: 4px;
+    }
 
     /* Tablet — stack to single column */
     @media (max-width: 900px) {
       .dash-grid   { grid-template-columns: 1fr; }
       .dash-image,
       .dash-notes,
-      .dash-stats,
+      .dash-left,
       .dash-burst  { grid-column: 1 / -1; }
       .dash-stats  { grid-template-columns: 1fr 1fr 1fr; }
     }
@@ -86,7 +110,10 @@ export function renderOverview(): void {
   notesPanel.classList.add('dash-notes');
   grid.appendChild(notesPanel);
 
-  // Row 2+: Stats (2 left cols) + Sunburst (3 right cols)
+  // Row 2+: Left column (stats + actions) + Sunburst (3 right cols)
+  const leftColumn = document.createElement('div');
+  leftColumn.className = 'dash-left';
+
   const statsContainer = document.createElement('div');
   statsContainer.className = 'dash-stats';
   const datesCard = createStatCard(
@@ -117,7 +144,16 @@ export function renderOverview(): void {
   scheduledCard.addEventListener('click', () => navigateToTab(SCHEDULE_TAB));
   statsContainer.appendChild(scheduledCard);
   statsContainer.appendChild(createStatCard('Complete', `${data.matchUpStats.percentComplete}%`, 'fa-chart-pie'));
-  grid.appendChild(statsContainer);
+  leftColumn.appendChild(statsContainer);
+
+  const state = getLoginState();
+  const isAdmin =
+    state?.roles?.includes(SUPER_ADMIN) || (state?.roles?.includes(ADMIN) && context?.provider);
+  if (isAdmin) {
+    leftColumn.appendChild(createActionsPanel());
+  }
+
+  grid.appendChild(leftColumn);
 
   if (data.structures.length) {
     const sunburstPanel = createSunburstPanel(data.structures);

@@ -51,7 +51,7 @@ function renderTournament({ config }: { config: any }): void {
 }
 
 export function routeTo(config: any): void {
-  const { selectedTab = PARTICIPANTS } = config;
+  const { selectedTab = TOURNAMENT_OVERVIEW } = config;
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });
