@@ -4,7 +4,7 @@
  */
 import { getChildrenByClassName, getParent } from 'services/dom/parentAndChild';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { toggleOverlay } from 'components/controlBar/toggleOverlay';
+import { toggleOverlay } from 'courthive-components';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';

@@ -8,9 +8,10 @@ import { importTournaments } from '../../services/storage/importTournaments';
 import { loadTournamentById } from 'components/modals/loadTournamentById';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { getLoginState } from 'services/authentication/loginState';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { mockTournaments } from './mockTournaments';
 
+// constants
 import { LEFT, RIGHT, SUPER_ADMIN, TOURNAMENTS_CONTROL } from 'constants/tmxConstants';
 
 export function calendarControls(table: any): void {

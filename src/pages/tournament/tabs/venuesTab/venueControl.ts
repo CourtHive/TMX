@@ -3,7 +3,7 @@
  * Manages venue operations from the venues table.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { addVenue } from './addVenue';
 import { t } from 'i18n';
 

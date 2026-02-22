@@ -5,7 +5,7 @@
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { positionActionConstants } from 'tods-competition-factory';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 import { t } from 'i18n';

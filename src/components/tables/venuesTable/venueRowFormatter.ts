@@ -1,7 +1,7 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCourtColumns } from './getCourtColumns';
 

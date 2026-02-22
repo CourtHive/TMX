@@ -1,6 +1,6 @@
 import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { context } from 'services/context';
 

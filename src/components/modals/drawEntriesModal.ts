@@ -10,9 +10,8 @@ import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 import { saveSeeding } from 'components/tables/eventsTable/seeding/saveSeeding';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'components/controlBar/controlBar';
 import { isFunction } from 'functions/typeOf';
-import { cModal } from 'courthive-components';
+import { cModal, controlBar } from 'courthive-components';
 
 import { LEFT } from 'constants/tmxConstants';
 

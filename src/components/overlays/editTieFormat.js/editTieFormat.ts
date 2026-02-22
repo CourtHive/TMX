@@ -4,8 +4,7 @@
  */
 import { createTieFormatTable } from 'components/tables/tieFormat/createTieFormatTable';
 import { tools, tournamentEngine } from 'tods-competition-factory';
-import { validators } from 'courthive-components';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar, validators } from 'courthive-components';
 import { closeOverlay, openOverlay } from '../overlay';
 import { isFunction } from 'functions/typeOf';
 

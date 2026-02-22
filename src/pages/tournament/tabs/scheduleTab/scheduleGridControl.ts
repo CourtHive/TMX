@@ -3,7 +3,7 @@
  * Provides date selection, search, team highlighting, and schedule activation toggle.
  */
 import { competitionEngine, tools } from 'tods-competition-factory';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { printSchedule } from 'components/modals/printSchedule';
 import { context } from 'services/context';
 import { env } from 'settings/env';

@@ -12,7 +12,7 @@ import { editGroupingParticipant } from './editGroupingParticipant';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
-import { controlBar } from 'components/controlBar/controlBar';
+import { controlBar } from 'courthive-components';
 import { participantOptions } from './participantOptions';
 
 import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';

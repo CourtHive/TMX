@@ -5,22 +5,13 @@
 import { tournamentEngine, participantConstants, eventConstants } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
-import { dropDownButton } from 'components/buttons/dropDownButton';
+import { controlBar, dropDownButton } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { controlBar } from 'components/controlBar/controlBar';
 import { setActiveScale } from 'settings/setActiveScale';
 import { t } from 'i18n';
 
-import {
-  LEFT,
-  MATCHUPS_CONTROL,
-  NONE,
-  OVERLAY,
-  RIGHT,
-  TEAM_STATS,
-  UTR,
-  WTN,
-} from 'constants/tmxConstants';
+// constants
+import { LEFT, MATCHUPS_CONTROL, NONE, OVERLAY, RIGHT, TEAM_STATS, UTR, WTN } from 'constants/tmxConstants';
 
 const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
 const { TEAM } = participantConstants;
@@ -164,9 +155,21 @@ function getTypeOptions({ table, matchUpFilters, data }: any): any[] {
   return [
     allTypes,
     { divider: true },
-    matchUpTypes.includes(SINGLES) && { label: t('pages.matchUps.singles'), close: true, onClick: () => updateTypeFilter(SINGLES) },
-    matchUpTypes.includes(DOUBLES) && { label: t('pages.matchUps.doubles'), close: true, onClick: () => updateTypeFilter(DOUBLES) },
-    matchUpTypes.includes(TEAM_EVENT) && { label: t('pages.matchUps.team'), close: true, onClick: () => updateTypeFilter(TEAM_EVENT) },
+    matchUpTypes.includes(SINGLES) && {
+      label: t('pages.matchUps.singles'),
+      close: true,
+      onClick: () => updateTypeFilter(SINGLES),
+    },
+    matchUpTypes.includes(DOUBLES) && {
+      label: t('pages.matchUps.doubles'),
+      close: true,
+      onClick: () => updateTypeFilter(DOUBLES),
+    },
+    matchUpTypes.includes(TEAM_EVENT) && {
+      label: t('pages.matchUps.team'),
+      close: true,
+      onClick: () => updateTypeFilter(TEAM_EVENT),
+    },
   ].filter(Boolean);
 }
 
