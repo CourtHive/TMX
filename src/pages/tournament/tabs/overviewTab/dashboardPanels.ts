@@ -1,6 +1,7 @@
 import { editTournamentImage } from 'components/modals/tournamentImage';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
@@ -126,7 +127,15 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
     chartDiv.innerHTML = '';
     const title = `${info.eventName} — ${info.drawName}`;
-    burstChart({ width: 500, height: 500 }).render(chartDiv, fromFactoryDrawData(drawData), title);
+    const eventHandlers = {
+      clickSegment: (data: any) => {
+        const matchUp = data?.matchUp;
+        if (matchUp?.readyToScore || matchUp?.scoreString) {
+          enterMatchUpScore({ matchUpId: matchUp.matchUpId, callback: () => renderStructure(select.value) });
+        }
+      },
+    };
+    burstChart({ width: 500, height: 500, eventHandlers }).render(chartDiv, fromFactoryDrawData(drawData), title);
   };
 
   select.addEventListener('change', () => renderStructure(select.value));
