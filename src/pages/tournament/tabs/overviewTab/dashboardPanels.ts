@@ -55,6 +55,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = 'Edit notes';
   editBtn.addEventListener('click', () => {
+    const notes = tournamentEngine.getTournamentInfo()?.tournamentInfo?.notes || '';
     openNotesEditor({
       notes,
       onSave: (html) => {
