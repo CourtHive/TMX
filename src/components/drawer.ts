@@ -170,6 +170,7 @@ export const drawer = (): any => {
     if (!drawerId) return;
     const target = pointerEvent.target as HTMLElement;
     const parent = document.querySelector('.drawer__wrapper') as HTMLElement;
+    if (target.closest('.tp-ui-modal, .tp-ui-wrapper')) return;
     if (!isDescendant(parent, target) || target.classList.contains('drawer__close')) close();
   };
 

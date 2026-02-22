@@ -1308,12 +1308,16 @@
       "invalidValues": "Invalid values",
       "addVenue": {
         "title": "Add venue",
+        "externalLookup": "External lookup",
         "venueName": "Venue name",
         "venueNameError": "Please enter a name of at least 5 characters",
         "abbreviation": "Abbreviation",
         "abbreviationError": "Please enter an abbreviation of 2-6 characters",
         "numberOfCourts": "Number of courts",
-        "numberOfCourtsError": "Must be a whole number"
+        "numberOfCourtsError": "Must be a whole number",
+        "openingTime": "Opening Time",
+        "closingTime": "Closing Time",
+        "timeOrderError": "Opening time must be before closing time"
       },
       "editCourt": {
         "title": "Edit court",
@@ -1334,7 +1338,10 @@
         "abbreviationPlaceholder": "Abbreviation",
         "abbreviationError": "minimum of 2 characters, maximum of 6",
         "abbreviationRequired": "Abbreviation must be 2-6 characters",
-        "updateCourtNames": "Update court names"
+        "updateCourtNames": "Update court names",
+        "openingTime": "Opening Time",
+        "closingTime": "Closing Time",
+        "timeOrderError": "Opening time must be before closing time"
       }
     },
     "events": {

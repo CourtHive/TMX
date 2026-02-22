@@ -109,3 +109,12 @@
 .drawer.is-visible .drawer__overlay {
   opacity: 0.5;
 }
+
+/* Ensure timepicker-ui renders above the drawer when opened from a drawer context */
+.tp-ui-modal {
+  z-index: 10000 !important;
+}
+.tp-ui-wrapper,
+.tp-ui-wrapper.mobile {
+  z-index: 10001 !important;
+}
