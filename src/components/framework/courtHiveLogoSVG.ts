@@ -187,7 +187,12 @@ function animateViewBox(svg: SVGSVGElement, startVB: number[], targetVB: number[
   requestAnimationFrame(tick);
 }
 
-export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOptions): void {
+/**
+ * Animate the logo fly-through. Returns a skip function that immediately
+ * cancels the animation and calls onComplete — wire this to click handlers
+ * so users can bypass the animation if it gets stuck or they're impatient.
+ */
+export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOptions): () => void {
   const { delay = 2000, duration = 1500, courtLineFade = 900, onComplete } = options ?? {};
 
   const sel = d3Select(svg);
@@ -198,8 +203,29 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
   const zoom = 300;
   const targetVB = vb.map((v) => v / zoom);
 
+  let completed = false;
+  let overlay: HTMLDivElement | undefined;
+
+  const finish = () => {
+    if (completed) return;
+    completed = true;
+    clearTimeout(delayTimer);
+    clearTimeout(safetyTimer);
+    // Cancel all running Web Animations on the SVG and its children
+    svg.getAnimations().forEach((a) => a.cancel());
+    svg.querySelectorAll('*').forEach((el) => {
+      (el as SVGElement).getAnimations?.().forEach((a: Animation) => a.cancel());
+    });
+    svg.remove();
+    overlay?.remove();
+    onComplete?.();
+  };
+
+  // Safety net: force-finish if animation hasn't completed after the expected total time + margin
+  const safetyTimer = setTimeout(finish, delay + duration + 2000) as unknown as number;
+
   // After the static display period, go fullscreen and animate the viewBox zoom
-  setTimeout(() => {
+  const delayTimer = setTimeout(() => {
     // Snapshot current screen position before moving
     const rect = svg.getBoundingClientRect();
     const winW = window.innerWidth;
@@ -232,6 +258,13 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
       .style('z-index', '9999')
       .style('pointer-events', 'none');
 
+    // Transparent click overlay above the SVG so users can click to skip
+    overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10000; cursor:pointer;';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', finish);
+
     // Fade court markings + net line (Web Animations API)
     svg.querySelectorAll('.court-marking').forEach((el) => {
       (el as HTMLElement).animate([{ opacity: 1 }, { opacity: 0 }], {
@@ -250,9 +283,8 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
       fill: 'forwards',
     });
 
-    fadeAnim.onfinish = () => {
-      svg.remove();
-      onComplete?.();
-    };
-  }, delay);
+    fadeAnim.onfinish = finish;
+  }, delay) as unknown as number;
+
+  return finish;
 }

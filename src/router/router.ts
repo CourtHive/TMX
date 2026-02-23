@@ -16,6 +16,7 @@ import {
   EVENT,
   TMX_TOURNAMENTS,
   PARTICIPANTS,
+  SPLASH,
   STRUCTURE,
   TOURNAMENT,
   EVENTS_TAB,
@@ -85,15 +86,20 @@ export function routeTMX() {
   router.on(`/actionKey/:key`, (match) => {
     const key = match?.data?.key;
     if (key) queueKey(key);
-    router.navigate('/');
-    showSplash();
+    router.navigate(`/${TMX_TOURNAMENTS}`);
   });
   router.on('/', () => {
-    showSplash();
+    // During initial load the splash animation is active — show it.
+    // On any subsequent navigation to root, go straight to tournaments.
+    const splash = document.getElementById(SPLASH);
+    if (splash?.dataset.animating) {
+      showSplash();
+    } else {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+    }
   });
   router.notFound(() => {
-    router.navigate('/');
-    showSplash();
+    router.navigate(`/${TMX_TOURNAMENTS}`);
   });
   router.resolve();
 

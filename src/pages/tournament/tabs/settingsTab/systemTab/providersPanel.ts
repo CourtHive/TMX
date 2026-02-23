@@ -1,6 +1,7 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { editProviderModal } from 'components/modals/editProvider';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { inviteModal } from 'components/modals/inviteUser';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -87,7 +88,7 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
   table.on('rowSelectionChanged', (_data, rows) => {
     const selected = rows?.[0]?.getData();
     if (selected) {
-      renderProviderDetail({ detailPane, provider: selected, users, onRefresh });
+      renderProviderDetail({ detailPane, provider: selected, providers, users, onRefresh });
     } else {
       detailPane.innerHTML = `<div class="system-no-selection">${t('system.selectProvider')}</div>`;
     }
@@ -104,11 +105,12 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
 type RenderProviderDetailParams = {
   detailPane: HTMLElement;
   provider: any;
+  providers: any[];
   users: any[];
   onRefresh: () => void;
 };
 
-function renderProviderDetail({ detailPane, provider, users, onRefresh }: RenderProviderDetailParams): void {
+function renderProviderDetail({ detailPane, provider, providers, users, onRefresh }: RenderProviderDetailParams): void {
   detailPane.innerHTML = '';
 
   // Header
@@ -148,8 +150,19 @@ function renderProviderDetail({ detailPane, provider, users, onRefresh }: Render
     editProviderModal({ provider: providerValue, callback: () => onRefresh() });
   });
 
+  const inviteBtn = document.createElement('button');
+  inviteBtn.className = 'btn-invite';
+  inviteBtn.textContent = t('system.inviteUser');
+  inviteBtn.addEventListener('click', () => {
+    const processInviteResult = (result: any) => {
+      if (result?.success) onRefresh();
+    };
+    inviteModal(processInviteResult, providers as any, provider.organisationId);
+  });
+
   actions.appendChild(impersonateBtn);
   actions.appendChild(editBtn);
+  actions.appendChild(inviteBtn);
   detailPane.appendChild(actions);
 
   // Associated users

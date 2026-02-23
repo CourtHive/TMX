@@ -4,7 +4,7 @@ import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
-export function inviteModal(callback, providers = []) {
+export function inviteModal(callback, providers = [], selectedProviderId?: string) {
   const noProvider: any = { value: { organisationName: 'None' }, key: '' };
   const providerList = [noProvider, ...providers].map(({ key, value }) => ({
     label: value?.organisationName,
@@ -12,7 +12,10 @@ export function inviteModal(callback, providers = []) {
   }));
   let inputs;
 
-  const values = { providerId: '' };
+  const values = { providerId: selectedProviderId || '' };
+  const selectedProviderLabel = selectedProviderId
+    ? providerList.find((p) => p.value === selectedProviderId)?.label || ''
+    : '';
 
   const setProviderId = (value) => (values.providerId = value);
 
@@ -101,7 +104,7 @@ export function inviteModal(callback, providers = []) {
         */
         {
           typeAhead: { list: providerList, callback: setProviderId },
-          value: values.providerId || '',
+          value: selectedProviderLabel || values.providerId || '',
           placeholder: t('none'),
           field: 'providerId',
           label: t('modals.inviteUser.provider'),

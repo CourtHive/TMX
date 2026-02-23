@@ -309,7 +309,9 @@ export function createActionsPanel(): HTMLElement {
               label: t('common.send'),
               intent: 'is-danger',
               close: true,
-              onClick: () => sendTournament({ tournamentRecord: record }).then(success, failure),
+              onClick: () => {
+                sendTournament({ tournamentRecord: record }).then(success, failure);
+              },
             },
           ],
         });

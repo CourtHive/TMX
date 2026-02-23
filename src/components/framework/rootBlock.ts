@@ -40,15 +40,22 @@ export function rootBlock(): HTMLElement {
 
   const isRootUrl = !globalThis.location.hash || globalThis.location.hash === '#/' || globalThis.location.hash === '#';
   if (isRootUrl) {
-    animateLogoFlyThrough(logo, {
+    splash.dataset.animating = 'true';
+
+    const skipAnimation = animateLogoFlyThrough(logo, {
       delay: 2000, // 2s static display
       duration: 2000, // 2s fly-through
       courtLineFade: 2000, // 2s fade of court lines starting at fly-through start
       onComplete: () => {
+        delete splash.dataset.animating;
         splash.style.display = NONE;
         context.router?.navigate(`/${TMX_TOURNAMENTS}`);
       },
     });
+
+    // Click splash during static phase to skip animation
+    splash.style.cursor = 'pointer';
+    splash.addEventListener('click', skipAnimation);
   }
 
   const tp = document.createElement('div');
