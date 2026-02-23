@@ -257,6 +257,12 @@
   filter: invert(1);
 }
 
+/* --- CourtHive logo dark override --- */
+[data-theme='dark'] .courthive-logo path,
+[data-theme='dark'] .courthive-logo line {
+  stroke: #ffffff;
+}
+
 /* --- Radio button / checkradio dark overrides --- */
 /* courthive-components renderForm() puts span as sibling of label.radio with inline color: #000 */
 [data-theme='dark'] label.radio + span {
