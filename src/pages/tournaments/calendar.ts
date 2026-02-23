@@ -83,7 +83,7 @@ function openTournament({ event }: any): void {
     const tournamentId = event.id;
     tournamentEngine.reset();
     const tournamentUrl = `/${TOURNAMENT}/${tournamentId}`;
-    context.router.navigate(tournamentUrl);
+    context.router?.navigate(tournamentUrl);
   }
 }
 

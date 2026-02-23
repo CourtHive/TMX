@@ -87,7 +87,7 @@ export function tmxNavigation(): void {
       arrow: false,
     });
 
-    if (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === PARTICIPANTS)) {
+    if (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === TOURNAMENT_OVERVIEW)) {
       element.style.color = 'blue';
     }
 
@@ -97,7 +97,7 @@ export function tmxNavigation(): void {
 
       const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;
-      context.router.navigate(route);
+      context.router?.navigate(route);
     };
   });
 }
@@ -108,7 +108,7 @@ export function highlightTab(selectedTab: string): void {
   const ids = Object.keys(routeMap);
   ids.forEach((id) => {
     const element = document.getElementById(id);
-    if (element && (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === PARTICIPANTS))) {
+    if (element && (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === TOURNAMENT_OVERVIEW))) {
       element.style.color = 'blue';
     }
   });

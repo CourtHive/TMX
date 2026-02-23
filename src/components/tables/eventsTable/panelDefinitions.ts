@@ -67,6 +67,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
     return false;
   };
 
+  const DATA_ENABLED = 'data-enabled';
   const handleUngroupedSelection = (selectedRows: any[]) => {
     // Clear LEFT search fields and focus OVERLAY search when selection occurs
     if (selectedRows?.length) {
@@ -87,11 +88,11 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
     const autoPairToggle = document.getElementById('auto-pair-toggle');
     
     // Initialize data-enabled attribute if not set
-    if (autoPairToggle && !autoPairToggle.hasAttribute('data-enabled')) {
-      autoPairToggle.setAttribute('data-enabled', 'true');
+    if (autoPairToggle && !autoPairToggle.hasAttribute(DATA_ENABLED)) {
+      autoPairToggle.setAttribute(DATA_ENABLED, 'true');
     }
     
-    const isAutoPairEnabled = autoPairToggle?.getAttribute('data-enabled') === 'true';
+    const isAutoPairEnabled = autoPairToggle?.getAttribute(DATA_ENABLED) === 'true';
     const twoSelected = selectedRows?.length === 2;
     
     // Handle pair creation based on auto-pair state
@@ -183,9 +184,9 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
           hide: event?.eventType !== DOUBLES,
           onClick: (e: any) => {
             const button = e.target.closest('button');
-            const isEnabled = button.getAttribute('data-enabled') === 'true';
+            const isEnabled = button.getAttribute(DATA_ENABLED) === 'true';
             const newState = !isEnabled;
-            button.setAttribute('data-enabled', String(newState));
+            button.setAttribute(DATA_ENABLED, String(newState));
             button.innerHTML = `Auto Pair: ${newState ? 'ON' : 'OFF'}`;
             
             // Hide create pair button if auto-pair is enabled

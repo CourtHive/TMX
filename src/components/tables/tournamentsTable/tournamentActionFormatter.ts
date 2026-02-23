@@ -97,7 +97,7 @@ export function getTournament({
     tmxToast({
       message: 'Tournament not found',
       onClose: () => {
-        context.router.navigate('/tournaments');
+        context.router?.navigate('/tournaments');
       },
       intent: 'is-warning',
       pauseOnHover: true,

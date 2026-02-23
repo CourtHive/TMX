@@ -38,7 +38,7 @@ export function scheduleGridControl({
   const dateOptions = dateRange.map((dateString: string) => ({
     onClick: () => {
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo.tournamentId;
-      context.router.navigate(`/tournament/${tournamentId}/schedule/${dateString}`);
+      context.router?.navigate(`/tournament/${tournamentId}/schedule/${dateString}`);
     },
     isActive: dateString === scheduledDate,
     label: formatDate(dateString),

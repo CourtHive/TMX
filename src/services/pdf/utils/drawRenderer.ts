@@ -148,7 +148,7 @@ export function canRenderDraw(drawId: string, structureId?: string): boolean {
     });
 
     return (matchUpsResult?.matchUps?.length || 0) > 0;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

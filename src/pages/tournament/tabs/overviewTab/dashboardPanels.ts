@@ -242,7 +242,7 @@ export function createActionsPanel(): HTMLElement {
         const provId = state?.providerId || providerId;
         const navigateAway = () => {
           if (provId) removeProviderTournament({ tournamentId, providerId: provId });
-          context.router.navigate(`/${TMX_TOURNAMENTS}`);
+          context.router?.navigate(`/${TMX_TOURNAMENTS}`);
         };
         const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
 
@@ -274,7 +274,7 @@ export function createActionsPanel(): HTMLElement {
           sendTournament({ tournamentRecord: record }).then(
             () => {
               tmx2db.deleteTournament(record.tournamentId);
-              context.router.navigate(`/tournament/${record.tournamentId}/detail`);
+              context.router?.navigate(`/tournament/${record.tournamentId}/detail`);
               tmxToast({ message: t('modals.tournamentActions.tournamentClaimed'), intent: 'is-info' });
             },
             (error: any) => {

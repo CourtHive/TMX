@@ -11,7 +11,7 @@ import { ADMIN, EVENTS_TAB, MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, SUPER_ADMI
 
 function navigateToTab(tab: string): void {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
-  context.router.navigate(`/${TOURNAMENT}/${tournamentId}/${tab}`);
+  context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${tab}`);
 }
 
 const STYLE_ID = 'dashboard-responsive-styles';

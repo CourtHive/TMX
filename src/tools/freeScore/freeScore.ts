@@ -1226,13 +1226,9 @@ function finalizeSet(state: ParserState): void {
   const currentSetFormat = getSetFormat(state.parsedFormat, state.setIndex);
   const isTiebreakOnly = isTiebreakOnlySet(currentSetFormat);
 
-  let set: ParsedSet | null = null;
-
-  if (isTiebreakOnly) {
-    set = createTiebreakOnlySet(state);
-  } else {
-    set = createRegularSet(state, currentSetFormat);
-  }
+  const set = isTiebreakOnly
+    ? createTiebreakOnlySet(state)
+    : createRegularSet(state, currentSetFormat);
 
   if (set) {
     state.sets.push(set);

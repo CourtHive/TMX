@@ -131,7 +131,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
             options: printOptions,
             action: 'open',
           });
-        } catch (_error) {}
+        } catch { /* PDF open may fail silently */ }
       },
       close: true,
     },
@@ -148,7 +148,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
             options: printOptions,
             action: 'download',
           });
-        } catch (_error) {}
+        } catch { /* PDF download may fail silently */ }
       },
       close: true,
     },

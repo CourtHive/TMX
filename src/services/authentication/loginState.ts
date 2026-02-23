@@ -11,12 +11,14 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+import type { LoginState } from 'types/tmx';
+
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
-export function styleLogin(valid) {
+export function styleLogin(valid: LoginState | undefined | false): void {
   const el = document.getElementById('login');
   const impersonating = context?.provider;
-  const admin = valid?.roles?.includes(SUPER_ADMIN);
+  const admin = valid && valid.roles?.includes(SUPER_ADMIN);
   if (!el) return;
   if (!valid) {
     el.style.color = '';
@@ -25,24 +27,24 @@ export function styleLogin(valid) {
   }
 }
 
-export function getLoginState() {
+export function getLoginState(): LoginState | undefined {
   const token = getToken();
   const valid = validateToken(token);
   if (valid) styleLogin(valid);
   return valid;
 }
 
-export function logOut() {
+export function logOut(): void {
   removeToken();
   checkDevState();
   disconnectSocket();
   context.provider = undefined; // clear provider
-  context.router.navigate(`/${TMX_TOURNAMENTS}/logout`);
+  context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
 }
 
-export function logIn({ data, callback }) {
-  const valid: any = validateToken(data.token);
+export function logIn({ data, callback }: { data: { token: string }; callback?: () => void }): void {
+  const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
   if (valid) {
     setToken(data.token);
@@ -53,22 +55,22 @@ export function logIn({ data, callback }) {
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {
-      context.router.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
+      context.router?.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
     }
   }
 }
 
-export function cancelImpersonation() {
+export function cancelImpersonation(): void {
   context.provider = undefined;
-  context.router.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
+  context.router?.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
 }
 
-export function initLoginToggle(id) {
+export function initLoginToggle(id: string): void {
   const el = document.getElementById(id);
 
   if (el) {
     el.addEventListener('click', () => {
-      const loggedIn: any = getLoginState();
+      const loggedIn = getLoginState();
       const superAdmin = loggedIn?.roles?.includes(SUPER_ADMIN);
       const impersonating = context?.provider;
 
@@ -76,11 +78,11 @@ export function initLoginToggle(id) {
         {
           onClick: () => tmxToast({ message: 'TBD: Registration Modal' }),
           text: t('loginMenu.register'),
-          hide: loggedIn,
+          hide: !!loggedIn,
         },
         {
           onClick: () => loginModal(),
-          hide: loggedIn,
+          hide: !!loggedIn,
           text: t('loginMenu.logIn'),
         },
         {

@@ -3,7 +3,7 @@ import { resetTournament } from './resetTournament';
 import { context } from 'services/context';
 
 export function goHome(): void {
-  context.router.navigate('/');
+  context.router?.navigate('/');
   resetTournament();
   showSplash();
 }

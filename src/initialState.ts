@@ -113,9 +113,10 @@ function setEnv(): void {
   env.device = getDevice();
   const cfv = tournamentEngine.version();
   const chcv = courthiveComponentsVersion();
-  console.log(`%cversion: ${version}`, 'color: lightblue');
-  console.log(`%cfactory: ${cfv}`, 'color: lightblue');
-  console.log(`%ccourthive-components: ${chcv}`, 'color: lightblue');
+  const logStyle = 'color: lightblue';
+  console.log(`%cversion: ${version}`, logStyle);
+  console.log(`%cfactory: ${cfv}`, logStyle);
+  console.log(`%ccourthive-components: ${chcv}`, logStyle);
 
   eventListeners();
 }

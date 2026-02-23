@@ -71,7 +71,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     tmxToast({
       message: t('toasts.tournamentNotFound'),
       onClose: () => {
-        context.router.navigate('/tournaments');
+        context.router?.navigate('/tournaments');
       },
       intent: 'is-warning',
       pauseOnHover: true,

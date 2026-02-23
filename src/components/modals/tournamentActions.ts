@@ -52,7 +52,7 @@ export function tournamentActions(): void {
         tournamentEngine.setState(tournamentRecord);
         const successClaim = () => {
           tmx2db.deleteTournament(tournamentRecord.tournamentId);
-          context.router.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
+          context.router?.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
           tmxToast({
             message: t('modals.tournamentActions.tournamentClaimed'),
             intent: 'is-info',
