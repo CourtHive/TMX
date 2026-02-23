@@ -15,7 +15,7 @@ export function generateEmptyColumns({ courtsData, count }: { courtsData: any[];
     if (index) return '';
 
     return courtsData?.length || 0
-      ? `<p style='font-weight: normal; color: lightblue'>Add venue</p>`
+      ? `<p style='font-weight: normal; color: var(--tmx-accent-blue)'>Add venue</p>`
       : `<button class='button is-danger'>Add venue</button>`;
   };
   return count > 0

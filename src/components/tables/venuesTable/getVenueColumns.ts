@@ -11,7 +11,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
   const locationFormatter = (cell: any): string => {
     const value = cell.getValue();
     const undef = `?`;
-    const def = `<i class="fa-sharp fa-solid fa-location-dot" style="color: blue"></i>`;
+    const def = `<i class="fa-sharp fa-solid fa-location-dot" style="color: var(--tmx-accent-blue)"></i>`;
     return value ? def : undef;
   };
 

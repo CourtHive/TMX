@@ -107,6 +107,21 @@ function tmxReady(): void {
 function setContext(): void {
   context.dragMatch = new Image();
   context.dragMatch.src = dragMatch;
+
+  // Create inverted (light) version for dark mode
+  context.dragMatch.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = context.dragMatch.width;
+    canvas.height = context.dragMatch.height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.filter = 'invert(1)';
+      ctx.drawImage(context.dragMatch, 0, 0);
+      context.dragMatchLight = new Image();
+      context.dragMatchLight.src = canvas.toDataURL();
+    }
+  };
+
   context.ee = new EventEmitter();
 }
 

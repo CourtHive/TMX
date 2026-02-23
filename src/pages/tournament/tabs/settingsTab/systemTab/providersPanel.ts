@@ -28,7 +28,7 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
   searchInput.placeholder = t('system.searchProviders');
-  searchInput.style.cssText = 'padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; min-width: 200px;';
+  searchInput.style.cssText = 'padding: 6px 10px; border: 1px solid var(--tmx-border-primary); border-radius: 4px; font-size: 0.85rem; min-width: 200px;';
 
   const toolbarActions = document.createElement('div');
   toolbarActions.className = 'toolbar-actions';

@@ -33,7 +33,7 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
       },
     },
     {
-      text: "<div style='color: red'><i class='fas fa-check-square'></i> Delete participant</div>",
+      text: "<div style='color: var(--tmx-accent-red)'><i class='fas fa-check-square'></i> Delete participant</div>",
       onClick: () => {
         const callback = (result: any) => {
           if (result.success) {

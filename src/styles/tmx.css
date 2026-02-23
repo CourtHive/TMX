@@ -36,7 +36,7 @@ body {
   background: var(--tmx-bg-tertiary);
   font-size: 15px;
   padding: 8px;
-  border: 1px solid rgb(203, 248, 203);
+  border: 1px solid var(--tmx-border-primary);
 }
 
 .event-pill {

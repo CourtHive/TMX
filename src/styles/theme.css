@@ -157,3 +157,90 @@
   color: var(--tmx-text-primary);
   border-color: var(--tmx-border-primary);
 }
+
+/* --- Quill editor dark overrides --- */
+[data-theme='dark'] .ql-toolbar {
+  background-color: var(--tmx-bg-secondary);
+  border-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .ql-container {
+  background-color: var(--tmx-bg-primary);
+  border-color: var(--tmx-border-primary);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .ql-editor.ql-blank::before {
+  color: var(--tmx-text-muted);
+}
+[data-theme='dark'] .ql-toolbar .ql-stroke {
+  stroke: var(--tmx-text-primary);
+}
+[data-theme='dark'] .ql-toolbar .ql-fill {
+  fill: var(--tmx-text-primary);
+}
+[data-theme='dark'] .ql-toolbar .ql-picker-label {
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .ql-toolbar .ql-picker-options {
+  background-color: var(--tmx-bg-elevated);
+  border-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .ql-snow .ql-tooltip {
+  background-color: var(--tmx-bg-elevated);
+  border-color: var(--tmx-border-primary);
+  color: var(--tmx-text-primary);
+}
+
+/* --- Tippy.js light-border theme dark overrides --- */
+[data-theme='dark'] .tippy-box[data-theme~='light-border'] .tippy-arrow::before {
+  border-top-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'] .tippy-arrow::after {
+  border-top-color: var(--tmx-bg-elevated);
+}
+
+/* --- Pikaday datepicker dark overrides --- */
+[data-theme='dark'] .pika-single {
+  background: var(--tmx-bg-elevated);
+  border-color: var(--tmx-border-primary);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .pika-title {
+  background: var(--tmx-bg-secondary);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .pika-label {
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .pika-button {
+  color: var(--tmx-text-primary);
+  background: transparent;
+}
+[data-theme='dark'] .pika-button:hover {
+  background: var(--tmx-bg-tertiary);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .pika-table th {
+  color: var(--tmx-text-secondary);
+}
+[data-theme='dark'] .is-selected .pika-button {
+  background: var(--tmx-accent-blue);
+  color: var(--tmx-text-inverse);
+}
+
+/* --- @event-calendar dark overrides --- */
+[data-theme='dark'] .ec {
+  --ec-bg-color: var(--tmx-bg-primary);
+  --ec-text-color: var(--tmx-text-primary);
+  --ec-border-color: var(--tmx-border-primary);
+  --ec-active-bg-color: var(--tmx-accent-blue);
+}
+
+/* --- Scoreboard dark overrides --- */
+[data-theme='dark'] .scoreboard {
+  border: 1px solid var(--tmx-border-secondary);
+}
+
+/* --- Drawer close button dark override --- */
+[data-theme='dark'] .drawer__close {
+  filter: invert(1);
+}

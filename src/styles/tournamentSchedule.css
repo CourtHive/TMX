@@ -52,7 +52,7 @@ body {
 }
 .matchup-abandoned {
   background: var(--tmx-bg-tertiary);
-  border: 2px dotted black !important;
+  border: 2px dotted var(--tmx-text-primary) !important;
   color: var(--tmx-text-primary);
 }
 .matchup-cancelled {
@@ -140,7 +140,7 @@ body {
   align-items: center;
 }
 .schedule-cell .match_umpire {
-  color: red;
+  color: var(--tmx-accent-red);
 }
 .schedule-cell .match_score,
 .schedule-cell .match_umpire,
@@ -158,7 +158,7 @@ body {
 
 .schedule-cell .potential {
   white-space: nowrap;
-  color: gray;
+  color: var(--tmx-text-muted);
   font-style: italic;
 }
 
@@ -199,7 +199,7 @@ body {
     rgba(0, 0, 0, 0.05) 10px,
     rgba(0, 0, 0, 0.05) 20px
   );
-  border: 2px dashed #999 !important;
+  border: 2px dashed var(--tmx-border-primary) !important;
   opacity: 0.8;
   cursor: pointer;
   display: flex;
@@ -247,16 +247,16 @@ body {
 
 /* Different colors for different booking types */
 .blocked-cell[data-booking-type='PRACTICE'] {
-  background-color: #e3f2fd;
-  border-color: #2196f3 !important;
+  background-color: var(--tmx-panel-blue-bg);
+  border-color: var(--tmx-accent-blue) !important;
 }
 
 .blocked-cell[data-booking-type='MAINTENANCE'] {
-  background-color: #fff3e0;
-  border-color: #ff9800 !important;
+  background-color: var(--tmx-panel-orange-bg);
+  border-color: var(--tmx-accent-orange) !important;
 }
 
 .blocked-cell[data-booking-type='BLOCKED'] {
-  background-color: #ffebee;
-  border-color: #f44336 !important;
+  background-color: var(--tmx-panel-red-bg);
+  border-color: var(--tmx-accent-red) !important;
 }
