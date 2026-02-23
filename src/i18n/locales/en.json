@@ -817,7 +817,8 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "required": "Required"
+    "required": "Required",
+    "send": "Send"
   },
 
   "modals": {
@@ -998,7 +999,8 @@
       "tournamentClaimed": "Tournament claimed",
       "notClaimed": "Not claimed",
       "offline": "Offline",
-      "online": "Online"
+      "online": "Online",
+      "uploadWarning": "Warning: This action will replace the tournament record on the server"
     },
     "inviteUser": {
       "title": "Invite user",
