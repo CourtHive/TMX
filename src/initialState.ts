@@ -16,6 +16,7 @@ import { context } from 'services/context';
 import { drawer } from 'components/drawer';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
+import { initTheme } from 'services/theme/themeService';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
 import { env } from 'settings/env';
@@ -41,7 +42,8 @@ import 'tippy.js/dist/tippy.css';
 
 import 'styles/tabulator.css';
 
-import 'bulma/css/versions/bulma-no-dark-mode.min.css';
+import 'bulma/css/bulma.min.css';
+import 'styles/theme.css';
 
 import 'styles/tournamentContainer.css';
 import 'styles/tournamentSchedule.css';
@@ -74,6 +76,8 @@ export function setupTMX(): void {
       i18next.changeLanguage(savedSettings.language);
     }
   }
+
+  initTheme();
 
   setEnv();
   setWindow();

@@ -33,12 +33,12 @@ export function ensureSettingsStyles(): void {
       font-size: 0.9rem;
     }
 
-    .panel-blue   { border-color: #4a90d9; background: #eef4fb; }
-    .panel-green  { border-color: #48c774; background: #effaf3; }
-    .panel-orange { border-color: #ff9f43; background: #fff5eb; }
-    .panel-purple { border-color: #b86bff; background: #f5eeff; }
-    .panel-teal   { border-color: #00b8a9; background: #e6faf8; }
-    .panel-red    { border-color: #ff6b6b; background: #fef0f0; }
+    .panel-blue   { border-color: var(--tmx-panel-blue-border); background: var(--tmx-panel-blue-bg); }
+    .panel-green  { border-color: var(--tmx-panel-green-border); background: var(--tmx-panel-green-bg); }
+    .panel-orange { border-color: var(--tmx-panel-orange-border); background: var(--tmx-panel-orange-bg); }
+    .panel-purple { border-color: var(--tmx-panel-purple-border); background: var(--tmx-panel-purple-bg); }
+    .panel-teal   { border-color: var(--tmx-panel-teal-border); background: var(--tmx-panel-teal-bg); }
+    .panel-red    { border-color: var(--tmx-panel-red-border); background: var(--tmx-panel-red-bg); }
 
     @media (max-width: 900px) {
       .settings-grid { grid-template-columns: 1fr; }

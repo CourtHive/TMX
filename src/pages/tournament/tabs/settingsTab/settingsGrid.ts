@@ -1,3 +1,4 @@
+import { applyTheme, getThemePreference } from 'services/theme/themeService';
 import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
 import { renderForm, validators } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
@@ -228,6 +229,40 @@ export function renderSettingsGrid(container: HTMLElement): void {
   ]);
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
+
+  // --- Theme panel (red, 1 col) ---
+  const themePanel = document.createElement('div');
+  themePanel.className = 'settings-panel panel-red';
+  themePanel.innerHTML = `<h3><i class="fa-solid fa-circle-half-stroke"></i> ${t('modals.settings.theme')}</h3>`;
+
+  const currentTheme = getThemePreference();
+  const themeForm = document.createElement('div');
+  const themeInputs = renderForm(themeForm, [
+    {
+      options: [
+        { text: 'Light', field: 'light', checked: currentTheme === 'light' },
+        { text: 'Dark', field: 'dark', checked: currentTheme === 'dark' },
+        { text: 'System', field: 'system', checked: currentTheme === 'system' },
+      ],
+      onChange: () => {
+        const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
+        applyTheme(pref);
+      },
+      field: 'theme',
+      id: 'theme',
+      radio: true,
+    },
+  ]);
+  // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
+  const themeChange = () => {
+    const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
+    applyTheme(pref);
+  };
+  themeInputs.light.addEventListener('change', themeChange);
+  themeInputs.dark.addEventListener('change', themeChange);
+  themeInputs.system.addEventListener('change', themeChange);
+  themePanel.appendChild(themeForm);
+  grid.appendChild(themePanel);
 
   container.appendChild(grid);
 }

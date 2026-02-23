@@ -1,0 +1,142 @@
+/* ===== Light theme (default) ===== */
+:root {
+  /* Backgrounds */
+  --tmx-bg-primary: #ffffff;
+  --tmx-bg-secondary: #f5f5f5;
+  --tmx-bg-tertiary: #e7e6e7;
+  --tmx-bg-elevated: #ffffff;
+  --tmx-bg-highlight: lightyellow;
+  --tmx-bg-panel-header: rgb(192, 193, 211);
+
+  /* Text */
+  --tmx-text-primary: #363636;
+  --tmx-text-secondary: #666666;
+  --tmx-text-muted: #999999;
+  --tmx-text-inverse: #ffffff;
+
+  /* Borders */
+  --tmx-border-primary: #dbdbdb;
+  --tmx-border-secondary: #e0e0e0;
+  --tmx-border-focus: #4a90d9;
+
+  /* Accents */
+  --tmx-accent-blue: #4a90d9;
+  --tmx-accent-green: #48c774;
+  --tmx-accent-purple: #b86bff;
+  --tmx-accent-red: #ff6b6b;
+  --tmx-accent-orange: #ff9f43;
+  --tmx-accent-teal: #00b8a9;
+
+  /* Status */
+  --tmx-status-success: #48c774;
+  --tmx-status-warning: #ffdd57;
+  --tmx-status-error: #f14668;
+  --tmx-status-info: #3e8ed0;
+
+  /* Panels */
+  --tmx-panel-blue-bg: #eef4fb;
+  --tmx-panel-blue-border: #4a90d9;
+  --tmx-panel-green-bg: #effaf3;
+  --tmx-panel-green-border: #48c774;
+  --tmx-panel-red-bg: #fef0f0;
+  --tmx-panel-red-border: #ff6b6b;
+  --tmx-panel-purple-bg: #f5eeff;
+  --tmx-panel-purple-border: #b86bff;
+  --tmx-panel-orange-bg: #fff5eb;
+  --tmx-panel-orange-border: #ff9f43;
+  --tmx-panel-teal-bg: #e6faf8;
+  --tmx-panel-teal-border: #00b8a9;
+
+  /* Tabulator */
+  --tmx-tab-bg: #ffffff;
+  --tmx-tab-header-bg: #f5f5f5;
+  --tmx-tab-row-alt-bg: #fafafa;
+  --tmx-tab-row-hover-bg: #f0f0f0;
+  --tmx-tab-text: #363636;
+  --tmx-tab-text-muted: #bbbbbb;
+  --tmx-tab-border: #dbdbdb;
+  --tmx-tab-selected-bg: #e7e6e7;
+  --tmx-tab-selected-text: #363636;
+}
+
+/* ===== Dark theme ===== */
+[data-theme='dark'] {
+  /* Backgrounds */
+  --tmx-bg-primary: #1a1a2e;
+  --tmx-bg-secondary: #16213e;
+  --tmx-bg-tertiary: #0f3460;
+  --tmx-bg-elevated: #222244;
+  --tmx-bg-highlight: #3a3a1a;
+  --tmx-bg-panel-header: #2a2a4e;
+
+  /* Text */
+  --tmx-text-primary: #e0e0e0;
+  --tmx-text-secondary: #b0b0b0;
+  --tmx-text-muted: #808080;
+  --tmx-text-inverse: #1a1a2e;
+
+  /* Borders */
+  --tmx-border-primary: #444444;
+  --tmx-border-secondary: #333333;
+  --tmx-border-focus: #5b9bd5;
+
+  /* Accents */
+  --tmx-accent-blue: #5b9bd5;
+  --tmx-accent-green: #5cb878;
+  --tmx-accent-purple: #c88aff;
+  --tmx-accent-red: #ff8a8a;
+  --tmx-accent-orange: #ffb366;
+  --tmx-accent-teal: #33c9bb;
+
+  /* Status */
+  --tmx-status-success: #5cb878;
+  --tmx-status-warning: #e6c84e;
+  --tmx-status-error: #e85d7a;
+  --tmx-status-info: #5ba3d9;
+
+  /* Panels */
+  --tmx-panel-blue-bg: #1a2a4e;
+  --tmx-panel-blue-border: #5b9bd5;
+  --tmx-panel-green-bg: #1a3a2a;
+  --tmx-panel-green-border: #5cb878;
+  --tmx-panel-red-bg: #3a1a1a;
+  --tmx-panel-red-border: #ff8a8a;
+  --tmx-panel-purple-bg: #2a1a3e;
+  --tmx-panel-purple-border: #c88aff;
+  --tmx-panel-orange-bg: #3a2a1a;
+  --tmx-panel-orange-border: #ffb366;
+  --tmx-panel-teal-bg: #1a3a38;
+  --tmx-panel-teal-border: #33c9bb;
+
+  /* Tabulator */
+  --tmx-tab-bg: #1a1a2e;
+  --tmx-tab-header-bg: #16213e;
+  --tmx-tab-row-alt-bg: #1e1e3a;
+  --tmx-tab-row-hover-bg: #222244;
+  --tmx-tab-text: #e0e0e0;
+  --tmx-tab-text-muted: #666666;
+  --tmx-tab-border: #444444;
+  --tmx-tab-selected-bg: #0f3460;
+  --tmx-tab-selected-text: #ffffff;
+
+  /* Schedule overrides */
+  --sch-neutral: #222244;
+  --sch-complete: #1a3a5c;
+  --sch-inprogress: #1a4a2a;
+  --sch-warning: #4a3a1a;
+  --sch-error: #8b2020;
+  --sch-conflict: #5c2a2a;
+  --sch-issue: #5c3a1a;
+  --sch-abandoned: #5c4a2a;
+
+  /* Dropdown scoring overrides */
+  --dd-active: #666666;
+  --dd-active-color: #e0e0e0;
+  --dd-notactive-color: #1a1a2e;
+  --dd-span-background: #2a2a4e;
+  --dd-span-hover: #3a3a5e;
+  --dd-li-background: #222244;
+  --dd-label-color: #e0e0e0;
+  --dd-hasvalue: #c0c0c0;
+  --dd-novalue: #222244;
+}
