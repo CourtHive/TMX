@@ -1,6 +1,6 @@
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
-const { CONTAINER, ROUND_ROBIN } = drawDefinitionConstants;
+const { CONTAINER, ROUND_ROBIN, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
 
 export type StructureInfo = {
   structureId: string;
@@ -40,7 +40,7 @@ export function getDashboardData(): DashboardData {
   }).tournamentInfo;
 
   const structures = (tournamentInfo?.structures || []).filter(
-    (s: any) => s.structureType !== CONTAINER && s.structureType !== ROUND_ROBIN,
+    (s: any) => s.structureType !== CONTAINER && ![ROUND_ROBIN, LUCKY_DRAW, AD_HOC].includes(s.structureType),
   );
 
   const info = {
