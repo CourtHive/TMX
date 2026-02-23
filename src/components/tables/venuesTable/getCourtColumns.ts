@@ -7,7 +7,7 @@ import { t } from 'i18n';
 
 function lightsFormatter(cell: any): string {
   const value = cell.getValue();
-  const hasLights = `<i class="fa-solid fa-check" style="color: green"></i>`;
+  const hasLights = `<i class="fa-solid fa-check" style="color: var(--tmx-accent-green)"></i>`;
   const noLights = `<i class="fa-solid fa-xmark"></i>`;
   return value ? hasLights : noLights;
 }

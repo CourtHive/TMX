@@ -30,8 +30,8 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
   holderEl.appendChild(controlEl);
 
   const tableEl = document.createElement('div');
-  tableEl.style.backgroundColor = 'white';
-  const borderStyle = '1px solid #333';
+  tableEl.style.backgroundColor = 'var(--tmx-bg-primary)';
+  const borderStyle = '1px solid var(--tmx-border-primary)';
   tableEl.style.border = borderStyle;
   tableEl.style.width = '99%';
 

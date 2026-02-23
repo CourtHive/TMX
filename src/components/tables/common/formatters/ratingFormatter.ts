@@ -16,9 +16,9 @@ export const ratingFormatter =
     const content = document.createElement('span');
 
     const colorMap: Record<string, string> = {
-      medium: 'darkgreen',
-      low: 'lightblue',
-      high: 'blue',
+      medium: 'var(--tmx-accent-green)',
+      low: 'var(--tmx-accent-teal)',
+      high: 'var(--tmx-accent-blue)',
     };
 
     content.style.color = colorMap[band];

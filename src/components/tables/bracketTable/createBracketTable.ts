@@ -22,10 +22,10 @@ function ensureBracketStyles() {
   style.id = BRACKET_STYLE_ID;
   style.textContent = `
     .bracket-table .tabulator-cell {
-      border-right: 1px solid #ddd;
+      border-right: 1px solid var(--tmx-tab-border);
     }
     .bracket-table .tabulator-col {
-      border-right: 1px solid #ddd;
+      border-right: 1px solid var(--tmx-tab-border);
     }
   `;
   document.head.appendChild(style);

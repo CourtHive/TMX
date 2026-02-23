@@ -23,7 +23,7 @@ export function styleLogin(valid: LoginState | undefined | false): void {
   if (!valid) {
     el.style.color = '';
   } else {
-    el.style.color = (impersonating && 'red') || (admin && 'green') || 'blue';
+    el.style.color = (impersonating && 'var(--tmx-accent-red)') || (admin && 'var(--tmx-accent-green)') || 'var(--tmx-accent-blue)';
   }
 }
 

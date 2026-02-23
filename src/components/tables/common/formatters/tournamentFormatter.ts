@@ -7,7 +7,7 @@ export const tournamentFormatter = (isMobile: boolean) => (cell: any): HTMLSpanE
   const rowTabletr = document.createElement('tr');
   if (values.offline) {
     const rowElement = cell.getRow().getElement();
-    rowElement.style.backgroundColor = 'lightyellow';
+    rowElement.style.backgroundColor = 'var(--tmx-bg-highlight)';
   }
   const img = values.tournamentImageURL
     ? `<img src='${values.tournamentImageURL}' style='width: ${imageSize}' alt=''>`

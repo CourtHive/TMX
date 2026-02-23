@@ -16,6 +16,7 @@ import { context } from 'services/context';
 import { drawer } from 'components/drawer';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
+import { initTheme } from 'services/theme/themeService';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
 import { env } from 'settings/env';
@@ -26,8 +27,6 @@ import 'courthive-components/dist/courthive-components.css';
 import 'vanillajs-datepicker/css/datepicker-bulma.css';
 import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
-import 'styles/legacy/scoreboard.css';
-import 'styles/legacy/ddScoring.css';
 
 import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
 import 'bulma-switch/dist/css/bulma-switch.min.css';
@@ -41,7 +40,8 @@ import 'tippy.js/dist/tippy.css';
 
 import 'styles/tabulator.css';
 
-import 'bulma/css/versions/bulma-no-dark-mode.min.css';
+import 'bulma/css/bulma.min.css';
+import 'styles/theme.css';
 
 import 'styles/tournamentContainer.css';
 import 'styles/tournamentSchedule.css';
@@ -75,6 +75,8 @@ export function setupTMX(): void {
     }
   }
 
+  initTheme();
+
   setEnv();
   setWindow();
   setContext();
@@ -103,6 +105,21 @@ function tmxReady(): void {
 function setContext(): void {
   context.dragMatch = new Image();
   context.dragMatch.src = dragMatch;
+
+  // Create inverted (light) version for dark mode
+  context.dragMatch.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = context.dragMatch.width;
+    canvas.height = context.dragMatch.height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.filter = 'invert(1)';
+      ctx.drawImage(context.dragMatch, 0, 0);
+      context.dragMatchLight = new Image();
+      context.dragMatchLight.src = canvas.toDataURL();
+    }
+  };
+
   context.ee = new EventEmitter();
 }
 

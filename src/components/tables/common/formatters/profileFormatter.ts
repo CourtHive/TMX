@@ -7,9 +7,9 @@ export function profileFormatter(cell): HTMLSpanElement {
   const { competitiveProfile, score } = data;
 
   const colorMap = {
-    COMPETITIVE: 'green',
-    DECISIVE: 'magenta',
-    ROUTINE: 'blue',
+    COMPETITIVE: 'var(--tmx-accent-green)',
+    DECISIVE: 'var(--tmx-accent-purple)',
+    ROUTINE: 'var(--tmx-accent-blue)',
   };
 
   if (score) {
