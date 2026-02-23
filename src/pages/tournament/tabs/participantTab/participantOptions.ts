@@ -19,7 +19,7 @@ export const participantOptions = (view: string): any[] =>
       if (option.value !== view) {
         const tournamentId = tournamentEngine.getTournament().tournamentRecord.tournamentId;
         const route = `/tournament/${tournamentId}/${PARTICIPANTS}/${option.value}`;
-        context.router.navigate(route);
+        context.router?.navigate(route);
       }
     }
   }));

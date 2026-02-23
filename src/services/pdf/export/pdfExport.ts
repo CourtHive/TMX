@@ -75,21 +75,17 @@ export async function savePDF({
  * @param docDefinition - pdfMake document definition
  * @returns Promise resolving to base64 string
  */
-export async function getPDFBase64({ 
-  docDefinition 
-}: { 
-  docDefinition: TDocumentDefinitions 
+export async function getPDFBase64({
+  docDefinition
+}: {
+  docDefinition: TDocumentDefinitions
 }): Promise<string> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const pdfMake = await loadPdfMake();
-      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-      pdfDocGenerator.getBase64((data) => {
-        resolve(data);
-      });
-    } catch (error) {
-      reject(error);
-    }
+  const pdfMake = await loadPdfMake();
+  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+  return new Promise((resolve) => {
+    pdfDocGenerator.getBase64((data) => {
+      resolve(data);
+    });
   });
 }
 
@@ -98,21 +94,17 @@ export async function getPDFBase64({
  * @param docDefinition - pdfMake document definition
  * @returns Promise resolving to Blob
  */
-export async function getPDFBlob({ 
-  docDefinition 
-}: { 
-  docDefinition: TDocumentDefinitions 
+export async function getPDFBlob({
+  docDefinition
+}: {
+  docDefinition: TDocumentDefinitions
 }): Promise<Blob> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const pdfMake = await loadPdfMake();
-      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-      pdfDocGenerator.getBlob((blob) => {
-        resolve(blob);
-      });
-    } catch (error) {
-      reject(error);
-    }
+  const pdfMake = await loadPdfMake();
+  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+  return new Promise((resolve) => {
+    pdfDocGenerator.getBlob((blob) => {
+      resolve(blob);
+    });
   });
 }
 

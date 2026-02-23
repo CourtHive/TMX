@@ -44,7 +44,7 @@ export function rootBlock(): HTMLElement {
       courtLineFade: 2000, // 2s fade of court lines starting at fly-through start
       onComplete: () => {
         splash.style.display = NONE;
-        context.router.navigate(`/${TMX_TOURNAMENTS}`);
+        context.router?.navigate(`/${TMX_TOURNAMENTS}`);
       },
     });
   }

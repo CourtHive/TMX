@@ -1,8 +1,9 @@
 /**
  * Edit venue drawer with form validation.
- * Modifies venue name and abbreviation via mutation.
+ * Modifies venue name, abbreviation, and operating hours via mutation.
  */
 import { validators, renderButtons, renderForm } from 'courthive-components';
+import { toDisplayTime } from 'components/forms/venue';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -10,6 +11,7 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+import { attachTimePicker, createTimeOrderValidator, toMilitaryTime } from './venueTimeHelpers';
 import { MODIFY_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
@@ -17,42 +19,47 @@ export function editVenue({
   venue,
   callback,
 }: { venue?: any; callback?: (result: any) => void } = {}): void {
+  // Get current venue details including courts and times
+  const { venue: venueDetails } = tournamentEngine.findVenue({ venueId: venue.venueId });
+  const courts = venueDetails?.courts || [];
+
   const values: any = {
     venueName: venue?.venueName || '',
     venueAbbreviation: venue?.venueAbbreviation || '',
+    defaultStartTime: venueDetails?.defaultStartTime || '',
+    defaultEndTime: venueDetails?.defaultEndTime || '',
     updateCourtNames: false,
   };
-
-  // Get current venue details including courts
-  const { venue: venueDetails } = tournamentEngine.findVenue({ venueId: venue.venueId });
-  const courts = venueDetails?.courts || [];
 
   const valueChange = () => {
     // Placeholder for future functionality
   };
 
   const enableSubmit = ({ inputs }: any) => {
-    const isValid = !!(
-      validators.nameValidator(2, 6)(inputs['venueAbbreviation'].value) &&
-      validators.nameValidator(5)(inputs['venueName'].value)
-    );
+    const timeError =
+      inputs?.defaultStartTime?.classList.contains('is-danger') ||
+      inputs?.defaultEndTime?.classList.contains('is-danger');
+    const isValid =
+      !timeError &&
+      !!(
+        validators.nameValidator(2, 6)(inputs['venueAbbreviation'].value) &&
+        validators.nameValidator(5)(inputs['venueName'].value)
+      );
     const saveButton = document.getElementById('saveVenueButton');
     if (saveButton) (saveButton as HTMLButtonElement).disabled = !isValid;
   };
 
+  const validateTimeOrder = createTimeOrderValidator(enableSubmit);
+
   const relationships = [
-    {
-      control: 'venueAbbreviation',
-      onInput: enableSubmit,
-    },
-    {
-      control: 'venueName',
-      onInput: enableSubmit,
-    },
+    { control: 'venueAbbreviation', onInput: enableSubmit },
+    { control: 'venueName', onInput: enableSubmit },
+    { control: 'defaultStartTime', onInput: validateTimeOrder },
+    { control: 'defaultEndTime', onInput: validateTimeOrder },
   ];
 
-  const content = (elem: HTMLElement) =>
-    renderForm(
+  const content = (elem: HTMLElement) => {
+    const inputs = renderForm(
       elem,
       [
         {
@@ -83,14 +90,38 @@ export function editVenue({
           checkbox: true,
           checked: values.updateCourtNames,
         },
+        {
+          error: t('pages.venues.editVenue.timeOrderError'),
+          value: toDisplayTime(values.defaultStartTime) || '8:00 AM',
+          label: t('pages.venues.editVenue.openingTime'),
+          placeholder: t('pages.venues.editVenue.openingTime'),
+          field: 'defaultStartTime',
+          onChange: valueChange,
+        },
+        {
+          error: t('pages.venues.editVenue.timeOrderError'),
+          value: toDisplayTime(values.defaultEndTime) || '8:00 PM',
+          label: t('pages.venues.editVenue.closingTime'),
+          placeholder: t('pages.venues.editVenue.closingTime'),
+          field: 'defaultEndTime',
+          onChange: valueChange,
+        },
       ],
       relationships,
     );
+
+    if (inputs?.defaultStartTime) attachTimePicker(inputs.defaultStartTime as HTMLInputElement);
+    if (inputs?.defaultEndTime) attachTimePicker(inputs.defaultEndTime as HTMLInputElement);
+
+    return inputs;
+  };
 
   const saveVenue = () => {
     const venueName = context.drawer.attributes.content.venueName.value;
     const venueAbbreviation = context.drawer.attributes.content.venueAbbreviation.value;
     const updateCourtNames = context.drawer.attributes.content.updateCourtNames.checked;
+    const defaultStartTime = context.drawer.attributes.content.defaultStartTime?.value;
+    const defaultEndTime = context.drawer.attributes.content.defaultEndTime?.value;
 
     // Validation
     if (!venueName || venueName.length < 5) {
@@ -104,6 +135,9 @@ export function editVenue({
     }
 
     const venueUpdates: any = { venueName, venueAbbreviation };
+
+    if (defaultStartTime) venueUpdates.defaultStartTime = toMilitaryTime(defaultStartTime);
+    if (defaultEndTime) venueUpdates.defaultEndTime = toMilitaryTime(defaultEndTime);
 
     // Check if abbreviation changed and checkbox is selected
     const abbreviationChanged = venueAbbreviation !== venue.venueAbbreviation;

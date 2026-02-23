@@ -41,7 +41,7 @@ export function createEntriesPanels({
   eventId: string;
   drawId?: string;
 }): void {
-  if (!eventId || eventId === 'undefined') context.router.navigate('/');
+  if (!eventId || eventId === 'undefined') context.router?.navigate('/');
 
   let searchFilter: ((rowData: any) => boolean) | undefined;
   const setSearchFilter = (value: string) => {

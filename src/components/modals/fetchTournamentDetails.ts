@@ -44,7 +44,7 @@ export function fetchTournamentDetailsModal({ table }: { table: any }): void {
 
   const notFound = () => {
     tmxToast({
-      onClose: () => context.router.navigate('/tournaments'),
+      onClose: () => context.router?.navigate('/tournaments'),
       message: t('modals.fetchTournament.notFound'),
       intent: 'is-warning',
       pauseOnHover: true,

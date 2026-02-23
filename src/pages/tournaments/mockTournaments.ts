@@ -3,7 +3,9 @@
  * Creates sample tournaments with various draw types and categories.
  */
 import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
-import { addTournament } from 'services/storage/importTournaments';
+import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
+import { getLoginState } from 'services/authentication/loginState';
 
 import { SUCCESS } from 'constants/tmxConstants';
 
@@ -12,12 +14,28 @@ const { MALE, FEMALE } = factoryConstants.genderConstants;
 const { DOUBLES } = factoryConstants.eventConstants;
 const { WTN } = factoryConstants.ratingConstants;
 
-export function mockTournaments(table: any): any {
-  const tournamentIds = table.getData().map((t: any) => t.tournamentId);
+export function mockTournaments(table?: any, onComplete?: () => void): any {
+  const tournamentIds = table?.getData().map((t: any) => t.tournamentId) ?? [];
   const tournamentRecords = generateTournamentRecords();
+  const provider = getLoginState()?.provider;
+
+  const savePromises: Promise<void>[] = [];
 
   for (const tournamentRecord of tournamentRecords) {
-    addTournament({ tournamentRecord, tournamentIds, table });
+    const rowData = mapTournamentRecord(tournamentRecord);
+    const existsInCalendar = tournamentIds.includes(tournamentRecord.tournamentId);
+    if (existsInCalendar) {
+      table?.updateOrAddData([rowData], true);
+    } else {
+      table?.addData([rowData], true);
+    }
+
+    if (provider && !tournamentRecord.parentOrganisation) tournamentRecord.parentOrganisation = provider;
+    savePromises.push(saveTournamentRecord({ tournamentRecord }));
+  }
+
+  if (onComplete) {
+    Promise.all(savePromises).then(onComplete);
   }
 
   return { ...SUCCESS };

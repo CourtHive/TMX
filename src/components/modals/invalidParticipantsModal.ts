@@ -19,15 +19,18 @@ export interface InvalidParticipantsModalParams {
   invalidParticipants: InvalidParticipant[];
 }
 
+const AGE_OUTSIDE_RANGE = 'Age outside category range';
+const RATING_OUTSIDE_RANGE = 'Rating outside category range';
+
 // Map error codes to human-readable messages with optional context
 function getErrorMessage(error: any): string {
   if (typeof error === 'string') {
     const errorMessages: Record<string, string> = {
       mismatchedGender: 'Gender does not match event requirements',
-      invalidAge: 'Age outside category range',
-      invalidRating: 'Rating outside category range',
-      age: 'Age outside category range',
-      rating: 'Rating outside category range',
+      invalidAge: AGE_OUTSIDE_RANGE,
+      invalidRating: RATING_OUTSIDE_RANGE,
+      age: AGE_OUTSIDE_RANGE,
+      rating: RATING_OUTSIDE_RANGE,
     };
     return errorMessages[error] || error;
   }
@@ -44,10 +47,10 @@ function getErrorMessage(error: any): string {
       return `Gender mismatch: ${error.sex} participant in ${error.expectedGender} event`;
     case 'age':
     case 'invalidAge':
-      return error.reason || 'Age outside category range';
+      return error.reason || AGE_OUTSIDE_RANGE;
     case 'rating':
     case 'invalidRating':
-      return error.reason || 'Rating outside category range';
+      return error.reason || RATING_OUTSIDE_RANGE;
     default:
       return error.message || errorCode || 'Validation error';
   }

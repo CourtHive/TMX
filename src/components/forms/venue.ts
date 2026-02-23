@@ -1,6 +1,6 @@
 /**
  * Venue form configuration and value extraction.
- * Provides form fields for venue name, abbreviation, and court count with validation.
+ * Provides form fields for venue name, abbreviation, court count, and operating hours with validation.
  */
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
@@ -39,13 +39,46 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
       field: 'courtsCount',
       onChange,
     },
+    {
+      error: t('pages.venues.addVenue.timeOrderError'),
+      value: toDisplayTime(values.defaultStartTime) || '8:00 AM',
+      label: t('pages.venues.addVenue.openingTime'),
+      placeholder: t('pages.venues.addVenue.openingTime'),
+      field: 'defaultStartTime',
+      id: 'venueStartTime',
+      onChange,
+    },
+    {
+      error: t('pages.venues.addVenue.timeOrderError'),
+      value: toDisplayTime(values.defaultEndTime) || '8:00 PM',
+      label: t('pages.venues.addVenue.closingTime'),
+      placeholder: t('pages.venues.addVenue.closingTime'),
+      field: 'defaultEndTime',
+      id: 'venueEndTime',
+      onChange,
+    },
   ];
 }
 
 export function getVenueFormValues(content: any): any {
   return {
     venueAbbreviation: content?.venueAbbreviation.value,
+    defaultStartTime: content?.defaultStartTime?.value,
+    defaultEndTime: content?.defaultEndTime?.value,
     courtsCount: content?.courtsCount.value,
     venueName: content?.venueName.value,
   };
+}
+
+/** Convert military time (e.g. "08:00", "20:00") to 12h display (e.g. "8:00 AM", "8:00 PM"). */
+export function toDisplayTime(value?: string): string {
+  if (!value) return '';
+  const parts = value.split(':');
+  const hours = Number(parts[0]);
+  const minutes = parts[1] || '00';
+  if (isNaN(hours)) return value;
+  if (hours === 0) return `12:${minutes} AM`;
+  if (hours === 12) return `12:${minutes} PM`;
+  if (hours > 12) return `${hours - 12}:${minutes} PM`;
+  return `${hours}:${minutes} AM`;
 }

@@ -12,8 +12,12 @@ import { t } from 'i18n';
 import { BOTTOM } from 'constants/tmxConstants';
 
 const handleDeleteCompletion = (row: any, tournamentId: string, providerId: string) => {
+  const table = row.getTable();
   row.delete();
   if (providerId) removeProviderTournament({ tournamentId, providerId });
+  if (table.getDataCount() === 0) {
+    context.router?.navigate(`/tournaments/${Date.now()}`);
+  }
 };
 
 const performLocalDelete = (tournamentId: string, onComplete: () => void) => {
@@ -97,7 +101,7 @@ export function getTournament({
     tmxToast({
       message: 'Tournament not found',
       onClose: () => {
-        context.router.navigate('/tournaments');
+        context.router?.navigate('/tournaments');
       },
       intent: 'is-warning',
       pauseOnHover: true,

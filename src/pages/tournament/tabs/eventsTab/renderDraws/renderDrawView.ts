@@ -17,7 +17,6 @@ import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
-import { findAncestor } from 'services/dom/parentAndChild';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { drawControlBar } from './drawControlBar';
@@ -181,57 +180,24 @@ export function renderDrawView({
         theme: composition.theme,
       });
 
-      const getTMXp = (node: any) => {
-        if (node?.classList?.contains('tmx-p')) return node;
-        return findAncestor(node, 'tmx-p');
-      };
+      const isParticipantEl = (node: any) =>
+        node instanceof HTMLElement &&
+        (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
+
       const targetNode = drawsView?.firstChild;
       if (targetNode) {
         morphdom(targetNode, content, {
-          addChild: function (parentNode: any, childNode: any) {
-            if (childNode.classList) {
-              const existing = parentNode.firstChild;
-              const incomingIdValue = childNode.getAttribute('id');
-              const incomingId = ![null, 'undefined', undefined].includes(incomingIdValue);
-              const existingIdValue = parentNode.firstChild?.getAttribute?.('id');
-              const existingId = ![null, 'undefined', undefined].includes(existingIdValue);
+          getNodeKey(node: any) {
+            // Participant wrappers (tmx-p) and info elements (tmx-i) share
+            // participant UUIDs as their id attribute.  The duplicate keys
+            // cause morphdom's lookup to lose track of the outer element,
+            // leading to stale nodes when participants are removed.
+            // Returning undefined forces positional matching instead.
+            if (isParticipantEl(node)) return undefined;
 
-              try {
-                if (!incomingId && !existingId) {
-                  if (env.renderLog) console.log('condition 0');
-                  const nextSibling = getTMXp(existing)?.nextSibling;
-                  if (nextSibling?.getAttribute('id') && getTMXp(existing)?.getAttribute('id')) {
-                    nextSibling.remove();
-                  }
-                } else if (
-                  incomingId &&
-                  existingId &&
-                  incomingIdValue &&
-                  existingIdValue &&
-                  incomingIdValue !== existingIdValue
-                ) {
-                  if (env.renderLog) console.log('condition 1');
-                  parentNode.firstChild.remove();
-                } else if (childNode.classList?.contains('tmx-p') && !existingId) {
-                  if (env.renderLog) console.log('condition 2');
-                  parentNode.firstChild.remove();
-                } else if (
-                  parentNode.firstChild?.classList?.contains('tmx-p') &&
-                  parentNode.firstChild.getAttribute('id') !== 'undefined' &&
-                  childNode.getAttribute('id') === 'undefined'
-                ) {
-                  if (env.renderLog) console.log('condition 3');
-                  parentNode.firstChild.remove();
-                } else if (!incomingId && existingId) {
-                  if (env.renderLog) console.log('condition 4');
-                } else {
-                  console.log({ incomingId, existingId, incomingIdValue, existingIdValue });
-                }
-              } catch (err) {
-                console.log({ err });
-              }
-            }
-            parentNode.appendChild(childNode);
+            const id = node.getAttribute?.('id');
+            if (id && id !== 'undefined' && id !== '') return id;
+            return undefined;
           },
         });
       } else if (drawsView) {

@@ -14,7 +14,7 @@ export function getTournamentColumns(replaceTableData: () => void): any[] {
     if (tournamentId) {
       tournamentEngine.reset();
       const tournamentUrl = `/${TOURNAMENT}/${tournamentId}`;
-      context.router.navigate(tournamentUrl);
+      context.router?.navigate(tournamentUrl);
     }
   };
 

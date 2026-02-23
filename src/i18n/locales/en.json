@@ -262,6 +262,39 @@
     "courtidentifiers": "court identifiers"
   },
 
+  "system": {
+    "title": "System",
+    "providers": "Providers",
+    "users": "Users",
+    "loadError": "Failed to load system data",
+    "noProviders": "No providers found",
+    "noUsers": "No users found",
+    "providerName": "Provider Name",
+    "providerAbbr": "Abbreviation",
+    "selectProvider": "Select a provider to view details",
+    "impersonate": "Impersonate",
+    "editProvider": "Edit Provider",
+    "createProvider": "Create Provider",
+    "providerUpdated": "Provider updated",
+    "associatedUsers": "Associated Users",
+    "noUsersForProvider": "No users associated with this provider",
+    "userName": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "provider": "Provider",
+    "roles": "Roles",
+    "searchUsers": "Search users...",
+    "inviteUser": "Invite User",
+    "editUser": "Edit User",
+    "editUserTitle": "Edit User",
+    "removeUser": "Remove User",
+    "selectUserFirst": "Select a user first",
+    "userUpdated": "User updated",
+    "inviteCopied": "Invite link copied to clipboard",
+    "confirmRemoveUser": "Remove User",
+    "removeUserConfirm": "Are you sure you want to remove"
+  },
+
   "round_names": {
     "F": "Final",
     "SF": "Semifinal",
@@ -1308,12 +1341,16 @@
       "invalidValues": "Invalid values",
       "addVenue": {
         "title": "Add venue",
+        "externalLookup": "External lookup",
         "venueName": "Venue name",
         "venueNameError": "Please enter a name of at least 5 characters",
         "abbreviation": "Abbreviation",
         "abbreviationError": "Please enter an abbreviation of 2-6 characters",
         "numberOfCourts": "Number of courts",
-        "numberOfCourtsError": "Must be a whole number"
+        "numberOfCourtsError": "Must be a whole number",
+        "openingTime": "Opening Time",
+        "closingTime": "Closing Time",
+        "timeOrderError": "Opening time must be before closing time"
       },
       "editCourt": {
         "title": "Edit court",
@@ -1334,7 +1371,10 @@
         "abbreviationPlaceholder": "Abbreviation",
         "abbreviationError": "minimum of 2 characters, maximum of 6",
         "abbreviationRequired": "Abbreviation must be 2-6 characters",
-        "updateCourtNames": "Update court names"
+        "updateCourtNames": "Update court names",
+        "openingTime": "Opening Time",
+        "closingTime": "Closing Time",
+        "timeOrderError": "Opening time must be before closing time"
       }
     },
     "events": {

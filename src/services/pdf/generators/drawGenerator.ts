@@ -38,7 +38,6 @@ export async function generateDrawPDF({
   const {
     drawTitle = drawDefinition.drawName || event.eventName,
     includeSeeding = true,
-    includeRankings = true,
     includeTimestamp = true,
     includeOrganizers = true,
   } = options;
@@ -141,7 +140,7 @@ export async function generateDrawPDF({
           ]),
 
       // Seeding information (if enabled)
-      ...(includeSeeding ? getSeededPlayersContent(drawDefinition, includeRankings) : []),
+      ...(includeSeeding ? getSeededPlayersContent() : []),
 
       // Footer information
       ...(includeTimestamp
@@ -209,7 +208,7 @@ export async function generateDrawPDF({
 /**
  * Get seeded players content for PDF
  */
-function getSeededPlayersContent(_drawDefinition: any, _includeRankings: boolean): any[] {
+function getSeededPlayersContent(): any[] {
   // TODO: Extract seeded participants from drawDefinition
   // For now, return placeholder
   

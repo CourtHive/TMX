@@ -225,7 +225,7 @@ function createMatchCell(matchUp: any): any {
   const timeModifierText = timeModifiers[0] || '';
 
   // Format time display
-  let timeDisplay = '';
+  let timeDisplay;
   if (timeModifierText) {
     // Map time modifier codes to display text
     const modifierMap: Record<string, string> = {

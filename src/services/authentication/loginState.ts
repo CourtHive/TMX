@@ -1,29 +1,24 @@
-import { getProviders, getUsers, removeUser } from 'services/apis/servicesApi';
-import { selectProviderModal } from 'components/modals/selectProviderModal';
-import { tournamentActions } from 'components/modals/tournamentActions';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
-import { editProviderModal } from 'components/modals/editProvider';
 
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
-import { inviteModal } from 'components/modals/inviteUser';
 import { loginModal } from 'components/modals/loginModal';
-import { selectItem } from 'components/modals/selectItem';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tipster } from 'components/popovers/tipster';
-import { copyClick } from 'services/dom/copyClick';
 import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-import { INVITE, SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS, TOURNAMENT, SETTINGS_TAB } from 'constants/tmxConstants';
+import type { LoginState } from 'types/tmx';
 
-export function styleLogin(valid) {
+import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+
+export function styleLogin(valid: LoginState | undefined | false): void {
   const el = document.getElementById('login');
   const impersonating = context?.provider;
-  const admin = valid?.roles?.includes(SUPER_ADMIN);
+  const admin = valid && valid.roles?.includes(SUPER_ADMIN);
   if (!el) return;
   if (!valid) {
     el.style.color = '';
@@ -32,24 +27,24 @@ export function styleLogin(valid) {
   }
 }
 
-export function getLoginState() {
+export function getLoginState(): LoginState | undefined {
   const token = getToken();
   const valid = validateToken(token);
   if (valid) styleLogin(valid);
   return valid;
 }
 
-export function logOut() {
+export function logOut(): void {
   removeToken();
   checkDevState();
   disconnectSocket();
   context.provider = undefined; // clear provider
-  context.router.navigate(`/${TMX_TOURNAMENTS}/logout`);
+  context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
 }
 
-export function logIn({ data, callback }) {
-  const valid: any = validateToken(data.token);
+export function logIn({ data, callback }: { data: { token: string }; callback?: () => void }): void {
+  const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
   if (valid) {
     setToken(data.token);
@@ -60,82 +55,34 @@ export function logIn({ data, callback }) {
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {
-      context.router.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
+      context.router?.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
     }
   }
 }
 
-export function impersonate() {
-  getProviders().then(({ data }) => {
-    const options = data?.providers?.map(({ value }) => {
-      return {
-        onClick: () => {
-          context.provider = value;
-          context.router.navigate(`/${TMX_TOURNAMENTS}/${value.organisationAbbreviation}`);
-        },
-        participantName: value.organisationName,
-      };
-    });
-
-    if (options) selectItem({ title: t('loginMenu.selectProvider'), options, selectionLimit: 1 });
-  });
-}
-
-function handleUserRemoval(value) {
-  return () => removeUser(value).then(() => tmxToast({ message: t('toasts.userRemoved') }));
-}
-
-export function removeUserDialog() {
-  getUsers().then(({ data }) => {
-    const options = data?.users?.map(({ value }) => {
-      return {
-        participantName: `${value.firstName} ${value.lastName} (${value.email})`,
-        onClick: handleUserRemoval(value),
-      };
-    });
-
-    if (options) selectItem({ title: t('loginMenu.selectUser'), options, selectionLimit: 1 });
-  });
-}
-
-export function cancelImpersonation() {
+export function cancelImpersonation(): void {
   context.provider = undefined;
-  context.router.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
+  context.router?.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
 }
 
-export function initLoginToggle(id) {
+export function initLoginToggle(id: string): void {
   const el = document.getElementById(id);
-  const handleError = (error) => tmxToast({ intent: 'is-danger', message: error?.data?.message || 'Error' });
 
   if (el) {
-    const processInviteResult = (inviteResult) => {
-      const inviteCode = inviteResult?.data.inviteCode;
-      if (inviteCode) {
-        const inviteURL = `${window.location.origin}${window.location.pathname}/#/${INVITE}/${inviteCode}`;
-        copyClick(inviteURL);
-        console.log({ inviteCode, inviteURL });
-      } else {
-        handleError(inviteResult);
-      }
-    };
-
-    const providerSelected = (provider) => setTimeout(() => editProviderModal({ provider }), 200);
-
     el.addEventListener('click', () => {
-      const loggedIn: any = getLoginState();
+      const loggedIn = getLoginState();
       const superAdmin = loggedIn?.roles?.includes(SUPER_ADMIN);
-      const admin = loggedIn?.roles?.includes(ADMIN);
       const impersonating = context?.provider;
 
       const items = [
         {
           onClick: () => tmxToast({ message: 'TBD: Registration Modal' }),
           text: t('loginMenu.register'),
-          hide: loggedIn,
+          hide: !!loggedIn,
         },
         {
           onClick: () => loginModal(),
-          hide: loggedIn,
+          hide: !!loggedIn,
           text: t('loginMenu.logIn'),
         },
         {
@@ -145,53 +92,9 @@ export function initLoginToggle(id) {
           text: t('loginMenu.impersonate'),
         },
         {
-          hide: !superAdmin || impersonating,
-          onClick: impersonate,
-          text: t('loginMenu.impersonate'),
-        },
-        {
-          onClick: editProviderModal,
-          text: t('loginMenu.createProvider'),
-          hide: !superAdmin,
-        },
-        {
-          onClick: () => selectProviderModal({ callback: providerSelected }),
-          text: t('loginMenu.editProvider'),
-          hide: !superAdmin,
-        },
-        {
-          onClick: removeUserDialog,
-          text: t('loginMenu.removeUser'),
-          hide: !superAdmin,
-        },
-        {
-          onClick: () =>
-            getProviders().then(({ data }) => inviteModal(processInviteResult, data?.providers), handleError),
-          hide: !superAdmin && !impersonating,
-          text: t('loginMenu.inviteUser'),
-        },
-        {
           text: t('loginMenu.logOut'),
           hide: !loggedIn,
           onClick: logOut,
-        },
-        { hide: !admin, divider: true },
-        {
-          onClick: tournamentActions,
-          heading: t('loginMenu.actions'),
-          hide: !admin,
-        },
-        {
-          divider: true,
-        },
-        {
-          onClick: () => {
-            const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
-            if (tournamentId) {
-              context.router.navigate(`/${TOURNAMENT}/${tournamentId}/${SETTINGS_TAB}`);
-            }
-          },
-          heading: t('loginMenu.settings'),
         },
       ];
 
