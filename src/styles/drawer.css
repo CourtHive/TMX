@@ -27,7 +27,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--tmx-border-primary);
 }
 
 .drawer__footer {
@@ -36,7 +36,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--tmx-border-primary);
 }
 
 .drawer__close {
@@ -66,7 +66,7 @@
 
   transition: transform 0.3s;
   will-change: transform;
-  background-color: #fff;
+  background-color: var(--tmx-bg-primary);
 
   display: flex;
   flex-direction: column;
