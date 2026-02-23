@@ -26,6 +26,7 @@
   --tmx-accent-red: #ff6b6b;
   --tmx-accent-orange: #ff9f43;
   --tmx-accent-teal: #00b8a9;
+  --tmx-accent-pink: #AA336A;
 
   /* Status */
   --tmx-status-success: #48c774;
@@ -46,6 +47,16 @@
   --tmx-panel-orange-border: #ff9f43;
   --tmx-panel-teal-bg: #e6faf8;
   --tmx-panel-teal-border: #00b8a9;
+
+  /* Schedule cell states */
+  --sch-neutral: white;
+  --sch-error: #c01a1a;
+  --sch-issue: #faa774;
+  --sch-conflict: #f5a9a9;
+  --sch-warning: lightyellow;
+  --sch-complete: #e0ecf8;
+  --sch-inprogress: #cef6ce;
+  --sch-abandoned: #f7be81;
 
   /* Tabulator */
   --tmx-tab-bg: #ffffff;
@@ -87,6 +98,7 @@
   --tmx-accent-red: #ff8a8a;
   --tmx-accent-orange: #ffb366;
   --tmx-accent-teal: #33c9bb;
+  --tmx-accent-pink: #CC4488;
 
   /* Status */
   --tmx-status-success: #5cb878;
@@ -243,4 +255,26 @@
 /* --- Drawer close button dark override --- */
 [data-theme='dark'] .drawer__close {
   filter: invert(1);
+}
+
+/* --- Radio button / checkradio dark overrides --- */
+/* courthive-components renderForm() puts span as sibling of label.radio with inline color: #000 */
+[data-theme='dark'] label.radio + span {
+  color: var(--tmx-text-primary) !important;
+}
+[data-theme='dark'] label.radio {
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .is-checkradio[type='radio'] + label {
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .is-checkradio[type='radio'] + label::before {
+  border-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .is-checkradio[type='radio']:hover:not([disabled]) + label::before {
+  border-color: var(--tmx-accent-teal);
+}
+[data-theme='dark'] .is-checkradio[type='radio']:checked + label::after {
+  background-color: var(--tmx-accent-teal);
+  border-color: var(--tmx-accent-teal);
 }

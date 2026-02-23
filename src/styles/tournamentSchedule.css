@@ -1,15 +1,3 @@
-/* CELL colors */
-body {
-  --sch-neutral: white;
-  --sch-error: #c01a1a;
-  --sch-issue: #faa774;
-  --sch-conflict: #f5a9a9;
-  --sch-warning: lightyellow;
-  --sch-complete: #e0ecf8;
-  --sch-inprogress: #cef6ce;
-  --sch-abandoned: #f7be81;
-}
-
 #unscheduledMatchUps .tabulator-header,
 #unscheduledMatchUps .tabulator-row {
   font-size: 0.7em;
@@ -30,25 +18,30 @@ body {
 }
 .matchup-complete {
   background: var(--sch-complete);
+  color: var(--tmx-text-primary);
 }
 .matchup-conflict {
   background: var(--sch-conflict) !important;
+  color: var(--tmx-text-primary);
 }
 .matchup-double-booking {
-  border: 2px dotted red !important;
-  color: red !important;
+  border: 2px dotted var(--tmx-accent-red) !important;
+  color: var(--tmx-accent-red) !important;
 }
 .matchup-double-booking * {
-  color: red !important;
+  color: var(--tmx-accent-red) !important;
 }
 .matchup-warning {
   background: var(--sch-warning) !important;
+  color: var(--tmx-text-primary);
 }
 .matchup-issue {
   background: var(--sch-issue) !important;
+  color: var(--tmx-text-primary);
 }
 .matchup-inprogress {
   background: var(--sch-inprogress);
+  color: var(--tmx-text-primary);
 }
 .matchup-abandoned {
   background: var(--tmx-bg-tertiary);
@@ -57,12 +50,12 @@ body {
 }
 .matchup-cancelled {
   background: var(--tmx-bg-tertiary);
-  border: 2px dotted red !important;
+  border: 2px dotted var(--tmx-accent-red) !important;
   color: var(--tmx-text-primary);
 }
 .matchup-double-walkover-default {
   background: var(--tmx-bg-tertiary);
-  border: 2px dotted blue !important;
+  border: 2px dotted var(--tmx-accent-blue) !important;
   color: var(--tmx-text-primary);
 }
 
