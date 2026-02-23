@@ -13,7 +13,7 @@ import { t } from 'i18n';
 
 import type { LoginState } from 'types/tmx';
 
-import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 export function styleLogin(valid: LoginState | undefined | false): void {
   const el = document.getElementById('login');
@@ -90,6 +90,16 @@ export function initLoginToggle(id: string): void {
           hide: !superAdmin || !impersonating,
           onClick: cancelImpersonation,
           text: t('loginMenu.impersonate'),
+        },
+        {
+          text: t('loginMenu.admin'),
+          hide: !(superAdmin || (loggedIn?.roles?.includes(ADMIN) && context?.provider)),
+          onClick: () => context.router?.navigate('/admin'),
+        },
+        {
+          text: t('loginMenu.system'),
+          hide: !superAdmin,
+          onClick: () => context.router?.navigate('/system'),
         },
         {
           text: t('loginMenu.logOut'),

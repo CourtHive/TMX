@@ -22,6 +22,8 @@ import {
   NONE,
   TOURNAMENT_CONTAINER,
   TOURNAMENTS_CALENDAR,
+  TMX_ADMIN,
+  TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 export function rootBlock(): HTMLElement {
@@ -132,6 +134,20 @@ export function rootBlock(): HTMLElement {
   calendar.id = TOURNAMENTS_CALENDAR;
 
   main.appendChild(calendar);
+
+  const admin = document.createElement('div');
+  admin.className = 'flexcol flexgrow';
+  admin.style.display = NONE;
+  admin.id = TMX_ADMIN;
+
+  main.appendChild(admin);
+
+  const system = document.createElement('div');
+  system.className = 'flexcol flexgrow';
+  system.style.display = NONE;
+  system.id = TMX_SYSTEM;
+
+  main.appendChild(system);
 
   initScrollNav();
 

@@ -1156,7 +1156,9 @@
     "selectProvider": "Select Provider",
     "selectUser": "Select User",
     "actions": "Actions",
-    "settings": "Settings"
+    "settings": "Settings",
+    "admin": "Admin",
+    "system": "System"
   },
 
   "tables": {

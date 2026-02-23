@@ -1,18 +1,11 @@
-import { renderSystemTab } from './systemTab/renderSystemTab';
-import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderSettingsGrid } from './settingsGrid';
-import { renderAdminGrid } from './adminGrid';
-import { controlBar } from 'courthive-components';
-import { context } from 'services/context';
 
-import { SETTINGS_CONTROL, TOURNAMENT_SETTINGS, SUPER_ADMIN, ADMIN, LEFT } from 'constants/tmxConstants';
+import { TOURNAMENT_SETTINGS } from 'constants/tmxConstants';
 
 const STYLE_ID = 'settings-tab-styles';
 
-let currentView: 'settings' | 'admin' | 'system' = 'settings';
-
-function ensureStyles(): void {
+export function ensureSettingsStyles(): void {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement('style');
   style.id = STYLE_ID;
@@ -55,78 +48,11 @@ function ensureStyles(): void {
   document.head.appendChild(style);
 }
 
-function isAdmin(): boolean {
-  const state = getLoginState();
-  if (!state) return false;
-  if (state.roles?.includes(SUPER_ADMIN)) return true;
-  if (state.roles?.includes(ADMIN) && context?.provider) return true;
-  return false;
-}
-
-function isSuperAdmin(): boolean {
-  const state = getLoginState();
-  return !!state?.roles?.includes(SUPER_ADMIN);
-}
-
-function getSettingsTabs(callback: (view: 'settings' | 'admin' | 'system') => void) {
-  const tabs = [
-    {
-      active: currentView === 'settings',
-      onClick: () => callback('settings'),
-      label: 'Settings',
-      close: true,
-    },
-    {
-      active: currentView === 'admin',
-      onClick: () => callback('admin'),
-      label: 'Admin',
-      close: true,
-    },
-  ];
-
-  if (isSuperAdmin()) {
-    tabs.push({
-      active: currentView === 'system',
-      onClick: () => callback('system'),
-      label: 'System',
-      close: true,
-    });
-  }
-
-  return tabs;
-}
-
 export function renderSettingsTab(): void {
-  const settingsControl = document.getElementById(SETTINGS_CONTROL);
   const settingsContent = document.getElementById(TOURNAMENT_SETTINGS);
   if (!settingsContent) return;
 
-  ensureStyles();
+  ensureSettingsStyles();
   removeAllChildNodes(settingsContent);
-
-  if (settingsControl) {
-    removeAllChildNodes(settingsControl);
-
-    if (isAdmin()) {
-      const switchView = (view: 'settings' | 'admin' | 'system') => {
-        if (view === currentView) return;
-        currentView = view;
-        renderSettingsTab();
-      };
-
-      const tabs = getSettingsTabs(switchView);
-      controlBar({
-        target: settingsControl,
-        items: [{ id: 'settingsTabs', location: LEFT, tabs }],
-      });
-    }
-  }
-
-  if (currentView === 'settings') {
-    renderSettingsGrid(settingsContent);
-  } else if (currentView === 'admin') {
-    renderAdminGrid(settingsContent);
-  } else if (currentView === 'system') {
-    renderSystemTab(settingsContent);
-  }
+  renderSettingsGrid(settingsContent);
 }

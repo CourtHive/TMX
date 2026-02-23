@@ -4,6 +4,8 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderCalendar } from 'pages/tournaments/calendar';
+import { renderAdminPage } from 'pages/admin/renderAdminPage';
+import { renderSystemPage } from 'pages/system/renderSystemPage';
 import { queueKey } from 'services/messaging/socketIo';
 import { context } from 'services/context';
 import Navigo from 'navigo';
@@ -77,6 +79,8 @@ export function routeTMX() {
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
   router.on(`/calendar`, renderCalendar);
+  router.on('/admin', renderAdminPage);
+  router.on('/system', renderSystemPage);
 
   router.on(`/actionKey/:key`, (match) => {
     const key = match?.data?.key;

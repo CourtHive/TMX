@@ -2,7 +2,7 @@
  * Screen state management for main content areas.
  * Controls visibility of splash, content, tournaments, and calendar views.
  */
-import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR } from 'constants/tmxConstants';
+import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_ADMIN, TMX_SYSTEM } from 'constants/tmxConstants';
 
 let content: string | undefined;
 
@@ -11,10 +11,12 @@ function selectDisplay(which: string): void {
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
   setState(TOURNAMENTS_CALENDAR, which);
+  setState(TMX_ADMIN, which);
+  setState(TMX_SYSTEM, which);
 
   const trnynav = document.getElementById('trnynav');
   const dnav = document.getElementById('dnav');
-  if ([TMX_CONTENT, TMX_TOURNAMENTS].includes(which)) {
+  if ([TMX_CONTENT, TMX_TOURNAMENTS, TMX_ADMIN, TMX_SYSTEM].includes(which)) {
     if (trnynav) trnynav.style.display = which === TMX_CONTENT ? '' : NONE;
     if (dnav) dnav.style.display = '';
   } else {
@@ -56,6 +58,22 @@ export const showTMXtournaments = (): void => {
 };
 export const showTMXcalendar = (): void => {
   content = TOURNAMENTS_CALENDAR;
+  selectDisplay(content);
+};
+export const showTMXadmin = (): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>Admin</div>`;
+  }
+  content = TMX_ADMIN;
+  selectDisplay(content);
+};
+export const showTMXsystem = (): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>System</div>`;
+  }
+  content = TMX_SYSTEM;
   selectDisplay(content);
 };
 export const splashActive = (): boolean => isActive(SPLASH);
