@@ -77,7 +77,7 @@ export function addDraw({
         modalConfig: {
           style: {
             fontSize: '12px',
-            border: '3px solid #0066cc',
+            border: '3px solid var(--tmx-border-focus)',
           },
         },
       });

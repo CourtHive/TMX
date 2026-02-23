@@ -477,7 +477,7 @@
 }
 
 .tabulator .tabulator-footer .tabulator-page.active {
-  color: #d00;
+  color: var(--tmx-status-error);
 }
 
 .tabulator .tabulator-footer .tabulator-page:disabled {
@@ -487,7 +487,7 @@
 .tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {
   cursor: pointer;
   background: rgba(0, 0, 0, 0.2);
-  color: #fff;
+  color: var(--tmx-text-inverse);
 }
 
 .tabulator .tabulator-col-resize-handle {
@@ -538,8 +538,8 @@
 }
 
 .tabulator .tabulator-alert .tabulator-alert-msg.tabulator-alert-state-error {
-  border: 4px solid #d00;
-  color: #590000;
+  border: 4px solid var(--tmx-status-error);
+  color: var(--tmx-status-error);
 }
 
 .tabulator-row {
@@ -563,11 +563,11 @@
 }
 
 .tabulator-row.tabulator-selected {
-  background-color: #00d1b25c;
+  background-color: rgba(0, 209, 178, 0.36);
 }
 
 .tabulator-row.tabulator-selected:hover {
-  background-color: #00d1b275;
+  background-color: rgba(0, 209, 178, 0.46);
   cursor: pointer;
 }
 
@@ -652,7 +652,7 @@
 }
 
 .tabulator-row .tabulator-cell.tabulator-editing {
-  border: 1px solid #1d68cd;
+  border: 1px solid var(--tmx-border-focus);
   outline: none;
   padding: 0;
 }
@@ -665,14 +665,14 @@
 }
 
 .tabulator-row .tabulator-cell.tabulator-validation-fail {
-  border: 1px solid #dd0000;
+  border: 1px solid var(--tmx-status-error);
 }
 
 .tabulator-row .tabulator-cell.tabulator-validation-fail input,
 .tabulator-row .tabulator-cell.tabulator-validation-fail select {
   border: 1px;
   background: transparent;
-  color: #dd0000;
+  color: var(--tmx-status-error);
 }
 
 .tabulator-row .tabulator-cell.tabulator-row-handle {
@@ -774,7 +774,7 @@
   height: 15px;
   width: 15px;
   border-radius: 20px;
-  background: #97c7f7;
+  background: var(--tmx-accent-blue);
   color: transparent;
   font-weight: bold;
   font-size: 1.1em;
@@ -822,17 +822,17 @@
 
 /* ------------ START Sticky groupBy ------------ */
 .tabulator-row.tabulator-group.tabulator-group-level-0 {
-  background-color: rgb(204, 216, 251);
+  background-color: var(--tmx-panel-blue-bg);
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 .tabulator-row.tabulator-group.tabulator-group-level-1 {
-  background-color: rgb(249, 234, 233);
+  background-color: var(--tmx-panel-red-bg);
 }
 .tabulator-row.tabulator-group.tabulator-group-level-0:hover {
   /* background: #eaeaea; /* Default hover background has an opacity: rgba(0,0,0,.1) */
-  background: gray; /* Default hover background has an opacity: rgba(0,0,0,.1) */
+  background: var(--tmx-bg-tertiary); /* Default hover background has an opacity: rgba(0,0,0,.1) */
 }
 /* ------------ END Sticky groupBy ------------ */
 
@@ -887,7 +887,7 @@
 
 .tabulator-row.tabulator-group span {
   margin-left: 10px;
-  color: #d00;
+  color: var(--tmx-status-error);
 }
 
 .tabulator-popup-container {
@@ -947,7 +947,7 @@
   content: '';
   border-width: 1px 1px 0 0;
   border-style: solid;
-  border-color: #aaa;
+  border-color: var(--tmx-tab-border);
   vertical-align: top;
   transform: rotate(45deg);
 }
@@ -971,7 +971,7 @@
 
 .tabulator-edit-list .tabulator-edit-list-item.active {
   color: transparent;
-  background: #1d68cd;
+  background: var(--tmx-accent-blue);
 }
 
 .tabulator-edit-list .tabulator-edit-list-item.active.focused {
@@ -985,7 +985,7 @@
 .tabulator-edit-list .tabulator-edit-list-item:hover {
   cursor: pointer;
   color: transparent;
-  background: #1d68cd;
+  background: var(--tmx-accent-blue);
 }
 
 .tabulator-edit-list .tabulator-edit-list-placeholder {
@@ -1181,7 +1181,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 
 .tabulator-print-table .tabulator-print-table-group span {
   margin-left: 10px;
-  color: #d00;
+  color: var(--tmx-status-error);
 }
 
 .tabulator-print-table .tabulator-data-tree-control {
@@ -1315,14 +1315,14 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator .tabulator-footer .tabulator-page.active {
-  border-color: #4a4a4a;
+  border-color: var(--tmx-text-secondary);
   color: var(--tmx-tab-text);
   font-weight: bold;
 }
 
 .tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {
   cursor: pointer;
-  border-color: #b5b5b5;
+  border-color: var(--tmx-tab-border);
   background: inherit;
   color: inherit;
 }

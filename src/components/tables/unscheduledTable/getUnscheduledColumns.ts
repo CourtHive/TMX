@@ -14,7 +14,7 @@ export function getUnscheduledColumns(unscheduledMatchUps: any[]): any[] {
   function genderedParticipant(cell: any): HTMLDivElement {
     const elem = document.createElement('div');
     const value = cell.getValue();
-    const color = (isObject(value) && (value as any)?.sex === MALE && '#2E86C1') || ((value as any)?.sex === FEMALE && '#AA336A') || '';
+    const color = (isObject(value) && (value as any)?.sex === MALE && 'var(--tmx-accent-blue)') || ((value as any)?.sex === FEMALE && '#AA336A') || '';
     elem.style.color = color;
     elem.innerHTML = (isObject(value) ? (value as any).participantName : value) || '';
     return elem;
