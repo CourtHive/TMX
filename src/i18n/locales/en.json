@@ -292,7 +292,8 @@
     "userUpdated": "User updated",
     "inviteCopied": "Invite link copied to clipboard",
     "confirmRemoveUser": "Remove User",
-    "removeUserConfirm": "Are you sure you want to remove"
+    "removeUserConfirm": "Are you sure you want to remove",
+    "searchProviders": "Search providers..."
   },
 
   "round_names": {
@@ -816,7 +817,8 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "required": "Required"
+    "required": "Required",
+    "send": "Send"
   },
 
   "modals": {
@@ -866,7 +868,8 @@
       "persistInputFields": "Keep input fields after assignment (Persist mode)",
       "betaFeatures": "Beta features",
       "pdfPrinting": "PDF printing",
-      "language": "Language"
+      "language": "Language",
+      "theme": "Theme"
     },
     "editTournamentName": {
       "title": "Edit Tournament Name",
@@ -997,7 +1000,8 @@
       "tournamentClaimed": "Tournament claimed",
       "notClaimed": "Not claimed",
       "offline": "Offline",
-      "online": "Online"
+      "online": "Online",
+      "uploadWarning": "Warning: This action will replace the tournament record on the server"
     },
     "inviteUser": {
       "title": "Invite user",
@@ -1156,7 +1160,9 @@
     "selectProvider": "Select Provider",
     "selectUser": "Select User",
     "actions": "Actions",
-    "settings": "Settings"
+    "settings": "Settings",
+    "admin": "Admin",
+    "system": "System"
   },
 
   "tables": {

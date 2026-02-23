@@ -8,7 +8,7 @@ export function renderAdminGrid(container: HTMLElement): void {
   policyPanel.style.gridColumn = '1 / 3';
   policyPanel.innerHTML = `
     <h3><i class="fa-solid fa-shield-halved"></i> Policy Definitions</h3>
-    <p style="color: #666; font-size: 0.9rem;">Policy editor coming soon.</p>
+    <p style="color: var(--tmx-text-secondary); font-size: 0.9rem;">Policy editor coming soon.</p>
   `;
   grid.appendChild(policyPanel);
 
@@ -18,7 +18,7 @@ export function renderAdminGrid(container: HTMLElement): void {
   providerPanel.style.gridColumn = '3 / 5';
   providerPanel.innerHTML = `
     <h3><i class="fa-solid fa-building"></i> Provider Settings</h3>
-    <p style="color: #666; font-size: 0.9rem;">Provider-specific options coming soon.</p>
+    <p style="color: var(--tmx-text-secondary); font-size: 0.9rem;">Provider-specific options coming soon.</p>
   `;
   grid.appendChild(providerPanel);
 

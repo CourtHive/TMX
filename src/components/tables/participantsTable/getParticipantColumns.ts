@@ -108,7 +108,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
     },
     { title: t('tables.participants.country'), field: 'ioc', width: 130, visible: false, headerFilter: 'input' },
     {
-      title: `<div class='fa-solid fa-check' style='color: green' />`,
+      title: `<div class='fa-solid fa-check' style='color: var(--tmx-accent-green)' />`,
       cellClick: toggleSignInStatus,
       formatter: 'tickCross',
       resizable: false,

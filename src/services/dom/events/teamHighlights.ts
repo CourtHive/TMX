@@ -3,7 +3,7 @@ export function highlightTeam(element: HTMLElement): void {
     (x) => x.innerHTML === element.innerHTML
   ) as HTMLElement[]) {
     team.style.fontWeight = 'bold';
-    team.style.color = '#ed0c76';
+    team.style.color = 'var(--tmx-accent-red)';
   }
 }
 

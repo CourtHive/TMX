@@ -1092,7 +1092,9 @@
     "selectProvider": "اختيار مزود",
     "selectUser": "اختيار مستخدم",
     "actions": "إجراءات",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "admin": "Admin",
+    "system": "System"
   },
   "tables": {
     "unscheduled": {

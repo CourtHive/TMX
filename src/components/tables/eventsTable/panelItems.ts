@@ -27,7 +27,7 @@ export const togglePanel = ({ target, table, close }: { target: HTMLElement; tab
       const open = close || toggle.innerHTML.charCodeAt(0) === 9660;
       buttonBar.style.display = open ? NONE : EMPTY_STRING;
       tmxTable.style.display = open ? NONE : EMPTY_STRING;
-      (toggle.parentNode as HTMLElement).innerHTML = `<span class='toggle' style='color: white'>${
+      (toggle.parentNode as HTMLElement).innerHTML = `<span class='toggle' style='color: var(--tmx-text-inverse)'>${
         open ? closedFilled : openedFilled
       }</span>`;
 
@@ -40,7 +40,7 @@ export const panelCollapse = (table: any): any => {
   const onClick = (e: Event) => togglePanel({ target: e.target as HTMLElement, table });
   return {
     headerClick: onClick,
-    text: `<span class='toggle' style='color: white'>${openedFilled}</span>`,
+    text: `<span class='toggle' style='color: var(--tmx-text-inverse)'>${openedFilled}</span>`,
     location: HEADER,
     onClick
   };

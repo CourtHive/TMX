@@ -44,6 +44,8 @@ export const COMPETITION_ENGINE = 'competitionEngine';
 export const TOURNAMENT_ENGINE = 'tournamentEngine';
 
 export const TMX_TOURNAMENTS = 'tournaments';
+export const TMX_ADMIN = 'tmxAdmin';
+export const TMX_SYSTEM = 'tmxSystem';
 export const DRAW_ENTRIES = 'drawEntries';
 export const TOURNAMENT = 'tournament';
 export const STRUCTURE = 'structure';

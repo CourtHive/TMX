@@ -20,27 +20,27 @@ function ensureStyles(): void {
       border-radius: 8px;
       padding: 24px;
       border-top: 4px solid;
-      background: #fff;
+      background: var(--tmx-bg-primary);
     }
     .welcome-panel-hero {
-      border-color: #48c774;
-      background: #effaf3;
+      border-color: var(--tmx-accent-green);
+      background: var(--tmx-panel-green-bg);
       text-align: center;
       padding: 32px 24px;
     }
     .welcome-panel-feature {
-      border-color: #4a90d9;
-      background: #eef4fb;
+      border-color: var(--tmx-accent-blue);
+      background: var(--tmx-panel-blue-bg);
     }
     .welcome-panel i.welcome-icon {
       font-size: 2rem;
       margin-bottom: 12px;
       display: block;
-      color: #555;
+      color: var(--tmx-text-secondary);
     }
     .welcome-panel-hero i.welcome-icon {
       font-size: 2.5rem;
-      color: #48c774;
+      color: var(--tmx-accent-green);
     }
     .welcome-panel h3 {
       margin: 0 0 8px 0;
@@ -49,7 +49,7 @@ function ensureStyles(): void {
     .welcome-panel p {
       margin: 0;
       font-size: 0.9rem;
-      color: #555;
+      color: var(--tmx-text-secondary);
       line-height: 1.4;
     }
     .welcome-btn-group {
@@ -61,45 +61,44 @@ function ensureStyles(): void {
     }
     .welcome-generate-btn {
       padding: 10px 28px;
-      border: 2px solid #48c774;
+      border: 2px solid var(--tmx-accent-green);
       border-radius: 6px;
-      background: #48c774;
-      color: #fff;
+      background: var(--tmx-accent-green);
+      color: var(--tmx-text-inverse);
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
     }
     .welcome-generate-btn:hover {
-      background: #3db868;
-      border-color: #3db868;
+      opacity: 0.85;
     }
     .welcome-create-btn {
       padding: 10px 28px;
-      border: 2px solid #48c774;
+      border: 2px solid var(--tmx-accent-green);
       border-radius: 6px;
-      background: #fff;
-      color: #48c774;
+      background: var(--tmx-bg-primary);
+      color: var(--tmx-accent-green);
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
     .welcome-create-btn:hover {
-      background: #effaf3;
-      color: #3db868;
+      background: var(--tmx-panel-green-bg);
+      opacity: 0.85;
     }
     .welcome-back-link {
       margin-top: 12px;
       display: inline-block;
-      color: #666;
+      color: var(--tmx-text-secondary);
       font-size: 0.9rem;
       cursor: pointer;
       text-decoration: underline;
       transition: color 0.15s;
     }
     .welcome-back-link:hover {
-      color: #333;
+      color: var(--tmx-text-primary);
     }
 
     @media (max-width: 600px) {

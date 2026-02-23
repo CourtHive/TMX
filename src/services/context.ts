@@ -20,6 +20,7 @@ export const context: {
   provider?: ProviderValue;
   quill?: any;
   dragMatch?: any;
+  dragMatchLight?: any;
 } = {
   matchUpsToBroadcast: [],
   tables: [],

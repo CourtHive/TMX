@@ -37,10 +37,10 @@ function ensureStyles(): void {
       padding: 16px;
       border-top: 4px solid;
     }
-    .dash-panel-blue   { border-color: #4a90d9; background: #eef4fb; }
-    .dash-panel-notes  { border-color: #333; background: transparent; }
-    .dash-panel-green  { border-color: #48c774; background: #effaf3; }
-    .dash-panel-red    { border-color: #ff6b6b; background: #fef0f0; }
+    .dash-panel-blue   { border-color: var(--tmx-panel-blue-border); background: var(--tmx-panel-blue-bg); }
+    .dash-panel-notes  { border-color: var(--tmx-text-primary); background: transparent; }
+    .dash-panel-green  { border-color: var(--tmx-panel-green-border); background: var(--tmx-panel-green-bg); }
+    .dash-panel-red    { border-color: var(--tmx-panel-red-border); background: var(--tmx-panel-red-bg); }
     .dash-left   { grid-column: 1 / 3; display: flex; flex-direction: column; gap: 16px; }
 
     .dash-action-buttons {
@@ -50,15 +50,16 @@ function ensureStyles(): void {
     }
     .dash-action-btn {
       padding: 6px 14px;
-      border: 1px solid #e0b4b4;
+      border: 1px solid var(--tmx-panel-red-border);
       border-radius: 4px;
-      background: #fff;
+      background: var(--tmx-bg-primary);
+      color: var(--tmx-text-primary);
       cursor: pointer;
       font-size: 0.85rem;
       transition: background 0.15s;
     }
     .dash-action-btn:hover {
-      background: #fde8e8;
+      background: var(--tmx-panel-red-bg);
     }
     .dash-action-btn i {
       margin-right: 4px;

@@ -1123,7 +1123,9 @@
     "selectProvider": "Anbieter auswählen",
     "selectUser": "Benutzer auswählen",
     "actions": "Aktionen",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "admin": "Admin",
+    "system": "System"
   },
 
   "tables": {

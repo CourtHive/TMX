@@ -22,6 +22,8 @@ import {
   NONE,
   TOURNAMENT_CONTAINER,
   TOURNAMENTS_CALENDAR,
+  TMX_ADMIN,
+  TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 export function rootBlock(): HTMLElement {
@@ -38,15 +40,22 @@ export function rootBlock(): HTMLElement {
 
   const isRootUrl = !globalThis.location.hash || globalThis.location.hash === '#/' || globalThis.location.hash === '#';
   if (isRootUrl) {
-    animateLogoFlyThrough(logo, {
+    splash.dataset.animating = 'true';
+
+    const skipAnimation = animateLogoFlyThrough(logo, {
       delay: 2000, // 2s static display
       duration: 2000, // 2s fly-through
       courtLineFade: 2000, // 2s fade of court lines starting at fly-through start
       onComplete: () => {
+        delete splash.dataset.animating;
         splash.style.display = NONE;
         context.router?.navigate(`/${TMX_TOURNAMENTS}`);
       },
     });
+
+    // Click splash during static phase to skip animation
+    splash.style.cursor = 'pointer';
+    splash.addEventListener('click', skipAnimation);
   }
 
   const tp = document.createElement('div');
@@ -133,6 +142,20 @@ export function rootBlock(): HTMLElement {
 
   main.appendChild(calendar);
 
+  const admin = document.createElement('div');
+  admin.className = 'flexcol flexgrow';
+  admin.style.display = NONE;
+  admin.id = TMX_ADMIN;
+
+  main.appendChild(admin);
+
+  const system = document.createElement('div');
+  system.className = 'flexcol flexgrow';
+  system.style.display = NONE;
+  system.id = TMX_SYSTEM;
+
+  main.appendChild(system);
+
   initScrollNav();
 
   return root;
@@ -149,7 +172,7 @@ function newBlock(): HTMLDivElement {
     </div>
     <div id='trnynav' class="navbar-item" style="display: flex; flex-direction: row;">
       <i id='o-route' class="nav-icon fa-solid fa-trophy"></i>
-      <i id='p-route' class="nav-icon fa-solid fa-user-group" style="color: blue"></i>
+      <i id='p-route' class="nav-icon fa-solid fa-user-group"></i>
       <i id='e-route' class="nav-icon fa-solid fa-diagram-project"></i>
       <i id='m-route' class="nav-icon fa-solid fa-table-tennis-paddle-ball"></i>
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>

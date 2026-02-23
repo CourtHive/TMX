@@ -1,5 +1,7 @@
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { editProviderModal } from 'components/modals/editProvider';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { inviteModal } from 'components/modals/inviteUser';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -18,6 +20,29 @@ type RenderProvidersPanelParams = {
 
 export function renderProvidersPanel({ container, providers, users, onRefresh }: RenderProvidersPanelParams): void {
   container.innerHTML = '';
+
+  // Toolbar (matches usersPanel pattern)
+  const toolbar = document.createElement('div');
+  toolbar.className = 'system-users-toolbar';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = t('system.searchProviders');
+  searchInput.style.cssText = 'padding: 6px 10px; border: 1px solid var(--tmx-border-primary); border-radius: 4px; font-size: 0.85rem; min-width: 200px;';
+
+  const toolbarActions = document.createElement('div');
+  toolbarActions.className = 'toolbar-actions';
+
+  const createBtn = document.createElement('button');
+  createBtn.className = 'btn-invite';
+  createBtn.textContent = t('system.createProvider');
+  createBtn.addEventListener('click', () => editProviderModal({ callback: () => onRefresh() }));
+
+  toolbarActions.appendChild(createBtn);
+
+  toolbar.appendChild(searchInput);
+  toolbar.appendChild(toolbarActions);
+  container.appendChild(toolbar);
 
   const layout = document.createElement('div');
   layout.className = 'system-providers-layout';
@@ -63,21 +88,29 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
   table.on('rowSelectionChanged', (_data, rows) => {
     const selected = rows?.[0]?.getData();
     if (selected) {
-      renderProviderDetail({ detailPane, provider: selected, users, onRefresh });
+      renderProviderDetail({ detailPane, provider: selected, providers, users, onRefresh });
     } else {
       detailPane.innerHTML = `<div class="system-no-selection">${t('system.selectProvider')}</div>`;
     }
+  });
+
+  // Search filter
+  const setSearchFilter = createSearchFilter(table);
+  searchInput.addEventListener('input', (e: any) => setSearchFilter(e.target.value));
+  searchInput.addEventListener('keydown', (e: any) => {
+    if (e.keyCode === 8 && e.target.value.length === 1) setSearchFilter('');
   });
 }
 
 type RenderProviderDetailParams = {
   detailPane: HTMLElement;
   provider: any;
+  providers: any[];
   users: any[];
   onRefresh: () => void;
 };
 
-function renderProviderDetail({ detailPane, provider, users, onRefresh }: RenderProviderDetailParams): void {
+function renderProviderDetail({ detailPane, provider, providers, users, onRefresh }: RenderProviderDetailParams): void {
   detailPane.innerHTML = '';
 
   // Header
@@ -117,8 +150,19 @@ function renderProviderDetail({ detailPane, provider, users, onRefresh }: Render
     editProviderModal({ provider: providerValue, callback: () => onRefresh() });
   });
 
+  const inviteBtn = document.createElement('button');
+  inviteBtn.className = 'btn-invite';
+  inviteBtn.textContent = t('system.inviteUser');
+  inviteBtn.addEventListener('click', () => {
+    const processInviteResult = (result: any) => {
+      if (result?.success) onRefresh();
+    };
+    inviteModal(processInviteResult, providers as any, provider.organisationId);
+  });
+
   actions.appendChild(impersonateBtn);
   actions.appendChild(editBtn);
+  actions.appendChild(inviteBtn);
   detailPane.appendChild(actions);
 
   // Associated users

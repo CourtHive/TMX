@@ -63,10 +63,10 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
   }
   if (hasWinner) {
     const winningSide = def.field === data.winningSide;
-    elem.style.color = winningSide ? 'green' : 'red';
+    elem.style.color = winningSide ? 'var(--tmx-accent-green)' : 'var(--tmx-accent-red)';
   } else {
     const sex = value?.sex || data?.person?.sex;
-    const color = (sex === MALE && '#2E86C1') || (sex === FEMALE && '#AA336A') || '';
+    const color = (sex === MALE && 'var(--tmx-accent-blue)') || (sex === FEMALE && 'var(--tmx-accent-pink)') || '';
     elem.style.color = color;
   }
 

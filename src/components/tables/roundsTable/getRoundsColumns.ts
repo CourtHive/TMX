@@ -143,7 +143,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       width: 140,
     },
     {
-      title: `<div class='fa-solid fa-check' style='color: green' />`,
+      title: `<div class='fa-solid fa-check' style='color: var(--tmx-accent-green)' />`,
       formatter: 'tickCross',
       field: 'complete',
       hozAlign: LEFT,
@@ -156,7 +156,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       width: 150,
     },
     {
-      title: `<div class='fa-solid fa-clock' style='color: blue' />`,
+      title: `<div class='fa-solid fa-clock' style='color: var(--tmx-accent-blue)' />`,
       headerSort: false,
       field: 'duration',
       visible: false,

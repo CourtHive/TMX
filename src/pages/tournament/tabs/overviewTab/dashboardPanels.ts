@@ -1,12 +1,14 @@
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { getLoginState } from 'services/authentication/loginState';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { removeTournament, sendTournament } from 'services/apis/servicesApi';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
@@ -37,7 +39,7 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
     panel.style.background = '';
   } else {
     const placeholder = document.createElement('div');
-    placeholder.style.cssText = 'text-align:center; color:#999; padding:24px; font-size:0.95rem;';
+    placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); padding:24px; font-size:0.95rem;';
     placeholder.innerHTML =
       '<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament image';
     panel.appendChild(placeholder);
@@ -67,7 +69,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   } else {
     const placeholder = document.createElement('div');
     placeholder.style.cssText =
-      'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:#999; text-align:center; font-size:0.95rem;';
+      'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:var(--tmx-text-muted); text-align:center; font-size:0.95rem;';
     placeholder.innerHTML =
       '<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament information</div>';
     notesView.appendChild(placeholder);
@@ -76,7 +78,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
 
   const editBtn = document.createElement('button');
   editBtn.style.cssText =
-    'position:absolute; bottom:8px; right:8px; background:#fff; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px;';
+    'position:absolute; bottom:8px; right:8px; background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px;';
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = 'Edit notes';
   editBtn.addEventListener('click', () => {
@@ -105,7 +107,7 @@ export function createStatCard(label: string, value: string | number, icon?: str
   card.appendChild(valueEl);
 
   const labelEl = document.createElement('div');
-  labelEl.style.cssText = 'font-size:0.85rem; color:#666;';
+  labelEl.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
   if (icon) {
     const iconEl = document.createElement('i');
     iconEl.className = `fa ${icon}`;
@@ -118,9 +120,7 @@ export function createStatCard(label: string, value: string | number, icon?: str
   return card;
 }
 
-export function createDualStatCard(
-  stats: { label: string; value: string | number; icon?: string }[],
-): HTMLElement {
+export function createDualStatCard(stats: { label: string; value: string | number; icon?: string }[]): HTMLElement {
   const card = document.createElement('div');
   card.className = 'dash-panel dash-panel-blue';
   card.style.cssText = 'padding:12px 16px; min-width:0; display:flex; gap:16px;';
@@ -134,7 +134,7 @@ export function createDualStatCard(
     group.appendChild(valueEl);
 
     const labelEl = document.createElement('div');
-    labelEl.style.cssText = 'font-size:0.85rem; color:#666;';
+    labelEl.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
     if (stat.icon) {
       const iconEl = document.createElement('i');
       iconEl.className = `fa ${stat.icon}`;
@@ -156,7 +156,7 @@ export function createSunburstPlaceholder(): HTMLElement {
   panel.style.cssText += 'display:flex; align-items:center; justify-content:center; min-height:200px;';
 
   const placeholder = document.createElement('div');
-  placeholder.style.cssText = 'text-align:center; color:#999; font-size:0.95rem;';
+  placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); font-size:0.95rem;';
   placeholder.innerHTML =
     '<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>No draws';
   panel.appendChild(placeholder);
@@ -170,7 +170,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
   // Dropdown selector
   const select = document.createElement('select');
-  select.style.cssText = 'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid #ccc;';
+  select.style.cssText = 'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
 
   for (const s of structures) {
     const option = document.createElement('option');
@@ -204,6 +204,14 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
         if (matchUp?.readyToScore || matchUp?.scoreString) {
           enterMatchUpScore({ matchUpId: matchUp.matchUpId, callback: () => renderStructure(select.value) });
         }
+      },
+      clickCenter: () => {
+        navigateToEvent({
+          eventId: info.eventId,
+          drawId: info.drawId,
+          structureId: info.structureId,
+          renderDraw: true,
+        });
       },
     };
     burstChart({ width: 500, height: 500, eventHandlers }).render(chartDiv, fromFactoryDrawData(drawData), title);
@@ -254,7 +262,8 @@ export function createActionsPanel(): HTMLElement {
   panel.className = 'dash-panel dash-panel-red';
 
   const header = document.createElement('div');
-  header.style.cssText = 'font-size:1rem; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:12px;';
+  header.style.cssText =
+    'font-size:1rem; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:12px;';
   const headerIcon = document.createElement('i');
   headerIcon.className = 'fa fa-bolt';
   headerIcon.style.fontSize = '0.9rem';
@@ -276,17 +285,35 @@ export function createActionsPanel(): HTMLElement {
   const admin = superAdmin || state?.roles?.includes(ADMIN);
   const activeProvider = context.provider || state?.provider;
 
+  if (tournamentRecord && admin) {
+    btnContainer.appendChild(
+      createActionButton(t('modals.tournamentActions.exportUtr'), 'fa-download', () => downloadUTRmatches()),
+    );
+    btnContainer.appendChild(
+      createActionButton(t('modals.tournamentActions.exportTods'), 'fa-download', () => {
+        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+      }),
+    );
+  }
+
   if (providerId) {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.uploadTournament'), 'fa-upload', () => {
         const record = tournamentEngine.getTournament().tournamentRecord;
-        tmxToast({
-          action: {
-            onClick: () => sendTournament({ tournamentRecord: record }).then(success, failure),
-            text: 'Send??',
-          },
-          message: t('modals.tournamentActions.uploadTournament'),
-          intent: 'is-danger',
+        openModal({
+          title: t('modals.tournamentActions.uploadTournament'),
+          content: t('modals.tournamentActions.uploadWarning'),
+          buttons: [
+            { label: t('common.cancel'), close: true },
+            {
+              label: t('common.send'),
+              intent: 'is-danger',
+              close: true,
+              onClick: () => {
+                sendTournament({ tournamentRecord: record }).then(success, failure);
+              },
+            },
+          ],
         });
       }),
     );
@@ -353,7 +380,7 @@ export function createActionsPanel(): HTMLElement {
             if (result?.success) {
               saveTournamentRecord();
               const dnav = document.getElementById('dnav');
-              if (dnav) dnav.style.backgroundColor = 'lightyellow';
+              if (dnav) dnav.style.backgroundColor = 'var(--tmx-bg-highlight)';
               tmxToast({ message: t('modals.tournamentActions.offline'), intent: 'is-info' });
               renderOverview();
             }
@@ -392,20 +419,9 @@ export function createActionsPanel(): HTMLElement {
     );
   }
 
-  if (tournamentRecord && admin) {
-    btnContainer.appendChild(
-      createActionButton(t('modals.tournamentActions.exportUtr'), 'fa-download', () => downloadUTRmatches()),
-    );
-    btnContainer.appendChild(
-      createActionButton(t('modals.tournamentActions.exportTods'), 'fa-download', () => {
-        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
-      }),
-    );
-  }
-
   if (!btnContainer.children.length) {
     const noActions = document.createElement('div');
-    noActions.style.cssText = 'font-size:0.85rem; color:#666; font-style:italic;';
+    noActions.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary); font-style:italic;';
     noActions.textContent = t('modals.tournamentActions.noActions');
     btnContainer.appendChild(noActions);
   }

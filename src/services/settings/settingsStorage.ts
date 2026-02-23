@@ -14,6 +14,7 @@ export type TMXSettings = {
   minCourtGridRows?: number; // Minimum schedule grid rows (default: 10)
   persistInputFields?: boolean; // Keep input fields visible after participant assignment (default: true)
   language?: string; // UI language code (e.g. 'en', 'fr')
+  theme?: 'light' | 'dark' | 'system'; // UI theme preference
 };
 
 /**

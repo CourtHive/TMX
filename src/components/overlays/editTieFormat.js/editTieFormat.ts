@@ -73,7 +73,7 @@ function renderEditor({ tieFormat }: { tieFormat: any }): {
 } {
   const contentContainer = document.createElement('div');
   contentContainer.className = 'overlay-content-container';
-  contentContainer.style.backgroundColor = 'white';
+  contentContainer.style.backgroundColor = 'var(--tmx-bg-primary)';
 
   const tableElement = document.createElement('div');
   const { table } = (createTieFormatTable as any)({ tieFormat, tableElement });

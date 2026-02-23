@@ -1,5 +1,5 @@
 .dzx-dropzone {
-  outline: #92b0b3 dashed 2px;
+  outline: var(--tmx-border-primary) dashed 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,13 +10,13 @@
   position: relative;
   box-sizing: border-box;
   transition: all 0.15s linear;
-  border: 2px solid #d9d9d9;
+  border: 2px solid var(--tmx-border-primary);
   border-radius: 4px;
 }
 
 .dzx-dropzoneActive {
-  background-color: #12a552;
-  border-color: #2484ff;
+  background-color: var(--tmx-status-success);
+  border-color: var(--tmx-border-focus);
 }
 
 .dzx-dropzoneDisabled {
@@ -43,7 +43,7 @@
   font-family: 'Helvetica', sans-serif;
   font-size: 20px;
   font-weight: 600;
-  color: #2484ff;
+  color: var(--tmx-accent-blue);
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   cursor: pointer;
@@ -56,8 +56,8 @@
   align-self: flex-start;
   padding: 0 14px;
   min-height: 32px;
-  background-color: #e6e6e6;
-  color: #2484ff;
+  background-color: var(--tmx-bg-tertiary);
+  color: var(--tmx-accent-blue);
   border: none;
   font-family: 'Helvetica', sans-serif;
   border-radius: 4px;
@@ -80,7 +80,7 @@
   width: 100%;
   min-height: 60px;
   z-index: 1;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--tmx-border-secondary);
   box-sizing: border-box;
 }
 
@@ -93,7 +93,7 @@
   font-family: 'Helvetica', sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: #333333;
+  color: var(--tmx-text-primary);
 }
 
 .dzx-previewImage {
@@ -122,20 +122,20 @@
 .dzx-submitButton {
   padding: 0 14px;
   min-height: 32px;
-  background-color: #2484ff;
+  background-color: var(--tmx-accent-blue);
   border: none;
   border-radius: 4px;
   font-family: 'Helvetica', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--tmx-text-inverse);
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   cursor: pointer;
 }
 
 .dzx-submitButton:disabled {
-  background-color: #e6e6e6;
-  color: #333333;
+  background-color: var(--tmx-bg-tertiary);
+  color: var(--tmx-text-primary);
   cursor: unset;
 }
