@@ -175,6 +175,6 @@ function generateMockTournament(params: any): void {
 
 function addAndDisplay(tournamentRecord: any): void {
   const tournamentId = tournamentRecord?.tournamentId;
-  const displayTournament = () => context.router.navigate(`/${TOURNAMENT}/${tournamentId}`);
+  const displayTournament = () => context.router?.navigate(`/${TOURNAMENT}/${tournamentId}`);
   addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
 }

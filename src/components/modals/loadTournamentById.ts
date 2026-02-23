@@ -22,7 +22,7 @@ export function loadTournamentById({ table }) {
 
   const notFound = () => {
     tmxToast({
-      onClose: () => context.router.navigate('/tournaments'),
+      onClose: () => context.router?.navigate('/tournaments'),
       message: t('modals.loadTournament.notFound'),
       intent: 'is-warning',
       pauseOnHover: true,

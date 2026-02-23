@@ -1,3 +1,5 @@
+import type { ProviderValue } from 'types/tmx';
+
 export const context: {
   matchUpsToBroadcast: any[];
   tables: any;
@@ -14,8 +16,8 @@ export const context: {
   };
   columns: Record<string, any>;
   collectionTables?: any[];
-  router?: any;
-  provider?: any;
+  router?: { navigate: (path: string) => void; resolve: () => void; current: any[] | null };
+  provider?: ProviderValue;
   quill?: any;
   dragMatch?: any;
 } = {

@@ -25,7 +25,9 @@ export type DashboardData = {
   imageUrl?: string;
   notes?: string;
   participantCount: number;
+  teamParticipantCount: number;
   eventCount: number;
+  drawDefinitionCount: number;
   matchUpStats: MatchUpStats;
   structures: StructureInfo[];
 };
@@ -43,6 +45,8 @@ export function getDashboardData(): DashboardData {
 
   const info = {
     participantCount: tournamentInfo?.participantCount || tournamentInfo?.individualParticipantCount || 0,
+    teamParticipantCount: tournamentInfo?.teamParticipantCount || 0,
+    drawDefinitionCount: tournamentInfo?.eventInfo?.drawDefinitionCount || 0,
     tournamentName: tournamentInfo?.tournamentName,
     matchUpStats: tournamentInfo?.matchUpStats,
     eventCount: tournamentInfo?.eventCount,

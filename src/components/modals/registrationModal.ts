@@ -111,6 +111,6 @@ export function registrationModal(params) {
         close: true,
       },
     ],
-    onClose: () => context.router.navigate('/'),
+    onClose: () => context.router?.navigate('/'),
   });
 }

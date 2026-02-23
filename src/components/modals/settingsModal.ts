@@ -66,11 +66,12 @@ export function settingsModal(): void {
       globalThis.location.reload();
     }
   };
+  const SECTION_TITLE = 'section-title';
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
       {
         text: t('modals.settings.language'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         options: [
@@ -86,7 +87,7 @@ export function settingsModal(): void {
       },
       {
         text: t('modals.settings.activeRating'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         options: [
@@ -100,7 +101,7 @@ export function settingsModal(): void {
       },
       {
         text: t('modals.settings.scoringApproach'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         options: [
@@ -126,7 +127,7 @@ export function settingsModal(): void {
       },
       {
         text: t('modals.settings.storage'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         label: t('modals.settings.saveLocalCopies'),
@@ -137,7 +138,7 @@ export function settingsModal(): void {
       },
       {
         text: t('modals.settings.scheduling'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         label: t('modals.settings.minScheduleGridRows'),
@@ -156,7 +157,7 @@ export function settingsModal(): void {
       },
       {
         text: t('modals.settings.participantAssignment'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         label: t('modals.settings.persistInputFields'),
@@ -167,7 +168,7 @@ export function settingsModal(): void {
       },
       {
         text: t('modals.settings.betaFeatures'),
-        class: 'section-title',
+        class: SECTION_TITLE,
       },
       {
         label: t('modals.settings.pdfPrinting'),

@@ -73,12 +73,15 @@ export function TMXlogoSVG(options: CourtHiveLogoOptions = {}): SVGSVGElement {
 
   const g = svg.append('g').attr('class', 'logo-group');
 
+  const STROKE_WIDTH = 'stroke-width';
+  const COURT_MARKING = 'court-marking';
+
   // --- Hex outlines (open paths, thick boundary strokes) ---
   g.append('path')
     .attr('d', leftHexPath)
     .attr('fill', fill)
     .attr('stroke', color)
-    .attr('stroke-width', strokeWidth)
+    .attr(STROKE_WIDTH, strokeWidth)
     .attr('stroke-linejoin', 'miter')
     .attr('stroke-linecap', 'round');
 
@@ -86,70 +89,70 @@ export function TMXlogoSVG(options: CourtHiveLogoOptions = {}): SVGSVGElement {
     .attr('d', rightHexPath)
     .attr('fill', fill)
     .attr('stroke', color)
-    .attr('stroke-width', strokeWidth)
+    .attr(STROKE_WIDTH, strokeWidth)
     .attr('stroke-linejoin', 'miter')
     .attr('stroke-linecap', 'round');
 
   // --- Net line (shared center edge, fades with court markings) ---
   g.append('line')
-    .attr('class', 'court-marking')
+    .attr('class', COURT_MARKING)
     .attr('x1', 0)
     .attr('y1', -Rh)
     .attr('x2', 0)
     .attr('y2', Rh)
     .attr('stroke', color)
-    .attr('stroke-width', strokeWidth);
+    .attr(STROKE_WIDTH, strokeWidth);
 
   // --- Court markings (thinner lines, classed for animation) ---
 
   // Left service line (vertical)
   g.append('line')
-    .attr('class', 'court-marking')
+    .attr('class', COURT_MARKING)
     .attr('x1', leftSLineX)
     .attr('y1', sLineYTop)
     .attr('x2', leftSLineX)
     .attr('y2', sLineYBot)
     .attr('stroke', color)
-    .attr('stroke-width', courtLine);
+    .attr(STROKE_WIDTH, courtLine);
 
   // Right service line (vertical)
   g.append('line')
-    .attr('class', 'court-marking')
+    .attr('class', COURT_MARKING)
     .attr('x1', rightSLineX)
     .attr('y1', sLineYTop)
     .attr('x2', rightSLineX)
     .attr('y2', sLineYBot)
     .attr('stroke', color)
-    .attr('stroke-width', courtLine);
+    .attr(STROKE_WIDTH, courtLine);
 
   // Center horizontal line between the two service lines
   g.append('line')
-    .attr('class', 'court-marking')
+    .attr('class', COURT_MARKING)
     .attr('x1', leftSLineX)
     .attr('y1', 0)
     .attr('x2', rightSLineX)
     .attr('y2', 0)
     .attr('stroke', color)
-    .attr('stroke-width', courtLine);
+    .attr(STROKE_WIDTH, courtLine);
 
   // Center marks: short dashes on the inside of each flat edge
   g.append('line')
-    .attr('class', 'court-marking')
+    .attr('class', COURT_MARKING)
     .attr('x1', -RS3)
     .attr('y1', 0)
     .attr('x2', -RS3 + centerMarkLength)
     .attr('y2', 0)
     .attr('stroke', color)
-    .attr('stroke-width', courtLine);
+    .attr(STROKE_WIDTH, courtLine);
 
   g.append('line')
-    .attr('class', 'court-marking')
+    .attr('class', COURT_MARKING)
     .attr('x1', RS3 - centerMarkLength)
     .attr('y1', 0)
     .attr('x2', RS3)
     .attr('y2', 0)
     .attr('stroke', color)
-    .attr('stroke-width', courtLine);
+    .attr(STROKE_WIDTH, courtLine);
 
   return svg.node() as SVGSVGElement;
 }

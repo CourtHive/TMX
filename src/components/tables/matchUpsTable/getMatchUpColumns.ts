@@ -33,7 +33,7 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
     if (courtName && scheduledDate) {
       const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
-      context.router.navigate(route);
+      context.router?.navigate(route);
       highlightTab(SCHEDULE_TAB);
     }
   };

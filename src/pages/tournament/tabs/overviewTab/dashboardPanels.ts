@@ -37,7 +37,7 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
     panel.style.background = '';
   } else {
     const placeholder = document.createElement('div');
-    placeholder.style.cssText = 'text-align:center; color:#999; padding:24px;';
+    placeholder.style.cssText = 'text-align:center; color:#999; padding:24px; font-size:0.95rem;';
     placeholder.innerHTML =
       '<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament image';
     panel.appendChild(placeholder);
@@ -60,7 +60,18 @@ export function createNotesPanel(notes?: string): HTMLElement {
   const notesView = document.createElement('div');
   notesView.className = 'ql-container ql-snow content';
   notesView.style.border = 'none';
-  notesView.innerHTML = notes ?? '';
+
+  const hasContent = notes && notes.replace(/<[^>]*>/g, '').trim().length > 0;
+  if (hasContent) {
+    notesView.innerHTML = notes;
+  } else {
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText =
+      'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:#999; text-align:center; font-size:0.95rem;';
+    placeholder.innerHTML =
+      '<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament information</div>';
+    notesView.appendChild(placeholder);
+  }
   panel.appendChild(notesView);
 
   const editBtn = document.createElement('button');
@@ -105,6 +116,52 @@ export function createStatCard(label: string, value: string | number, icon?: str
   card.appendChild(labelEl);
 
   return card;
+}
+
+export function createDualStatCard(
+  stats: { label: string; value: string | number; icon?: string }[],
+): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'dash-panel dash-panel-blue';
+  card.style.cssText = 'padding:12px 16px; min-width:0; display:flex; gap:16px;';
+
+  for (const stat of stats) {
+    const group = document.createElement('div');
+
+    const valueEl = document.createElement('div');
+    valueEl.style.cssText = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
+    valueEl.textContent = String(stat.value);
+    group.appendChild(valueEl);
+
+    const labelEl = document.createElement('div');
+    labelEl.style.cssText = 'font-size:0.85rem; color:#666;';
+    if (stat.icon) {
+      const iconEl = document.createElement('i');
+      iconEl.className = `fa ${stat.icon}`;
+      iconEl.style.marginRight = '4px';
+      labelEl.appendChild(iconEl);
+    }
+    labelEl.appendChild(document.createTextNode(stat.label));
+    group.appendChild(labelEl);
+
+    card.appendChild(group);
+  }
+
+  return card;
+}
+
+export function createSunburstPlaceholder(): HTMLElement {
+  const panel = document.createElement('div');
+  panel.className = 'dash-panel dash-panel-green';
+  panel.style.cssText += 'display:flex; align-items:center; justify-content:center; min-height:200px;';
+
+  const placeholder = document.createElement('div');
+  placeholder.style.cssText = 'text-align:center; color:#999; font-size:0.95rem;';
+  placeholder.innerHTML =
+    '<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>No draws';
+  panel.appendChild(placeholder);
+
+  return panel;
 }
 
 export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
@@ -242,7 +299,7 @@ export function createActionsPanel(): HTMLElement {
         const provId = state?.providerId || providerId;
         const navigateAway = () => {
           if (provId) removeProviderTournament({ tournamentId, providerId: provId });
-          context.router.navigate(`/${TMX_TOURNAMENTS}`);
+          context.router?.navigate(`/${TMX_TOURNAMENTS}`);
         };
         const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
 
@@ -274,7 +331,7 @@ export function createActionsPanel(): HTMLElement {
           sendTournament({ tournamentRecord: record }).then(
             () => {
               tmx2db.deleteTournament(record.tournamentId);
-              context.router.navigate(`/tournament/${record.tournamentId}/detail`);
+              context.router?.navigate(`/tournament/${record.tournamentId}/detail`);
               tmxToast({ message: t('modals.tournamentActions.tournamentClaimed'), intent: 'is-info' });
             },
             (error: any) => {

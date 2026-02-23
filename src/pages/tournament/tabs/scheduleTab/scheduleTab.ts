@@ -24,7 +24,7 @@ export function renderScheduleTab(params: { scheduledDate?: string }): void {
   if (!params.scheduledDate) {
     const scheduledDate = nowInRange ? today : fallback;
     const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
-    context.router.navigate(`/tournament/${tournamentId}/schedule/${scheduledDate}`);
+    context.router?.navigate(`/tournament/${tournamentId}/schedule/${scheduledDate}`);
   }
   const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
   context.displayed.selectedScheduleDate = scheduledDate;

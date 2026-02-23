@@ -12,7 +12,7 @@ export function tournamentHeader(): void {
   }
 
   const tmxButton = document.getElementById('provider');
-  if (tmxButton) tmxButton.onclick = () => context.router.navigate('/tournaments');
+  if (tmxButton) tmxButton.onclick = () => context.router?.navigate('/tournaments');
   const tournamentElement = document.getElementById('pageTitle');
   if (tournamentElement && tournamentInfo?.tournamentName) {
     removeAllChildNodes(tournamentElement);
@@ -20,6 +20,6 @@ export function tournamentHeader(): void {
     const titleDiv = tournamentElement.querySelector('.tmx-title');
     if (titleDiv) titleDiv.addEventListener('click', () => openEditTournamentNameModal());
   } else {
-    context.router.navigate('/tournaments');
+    context.router?.navigate('/tournaments');
   }
 }
