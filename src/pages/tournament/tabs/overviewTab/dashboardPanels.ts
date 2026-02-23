@@ -60,7 +60,18 @@ export function createNotesPanel(notes?: string): HTMLElement {
   const notesView = document.createElement('div');
   notesView.className = 'ql-container ql-snow content';
   notesView.style.border = 'none';
-  notesView.innerHTML = notes ?? '';
+
+  const hasContent = notes && notes.replace(/<[^>]*>/g, '').trim().length > 0;
+  if (hasContent) {
+    notesView.innerHTML = notes;
+  } else {
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText =
+      'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:#999; text-align:center;';
+    placeholder.innerHTML =
+      '<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament information</div>';
+    notesView.appendChild(placeholder);
+  }
   panel.appendChild(notesView);
 
   const editBtn = document.createElement('button');
