@@ -1,5 +1,8 @@
+import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
+import { renderWelcomeView } from 'pages/tournaments/welcomeView';
+import { mockTournaments } from 'pages/tournaments/mockTournaments';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getTournamentColumns } from './getTournamentColumn';
@@ -11,7 +14,7 @@ import { context } from 'services/context';
 import { env } from 'settings/env';
 
 // constants
-import { TOURNAMENTS_TABLE } from 'constants/tmxConstants';
+import { TOURNAMENTS_CONTROL, TOURNAMENTS_TABLE } from 'constants/tmxConstants';
 
 export function createTournamentsTable(): { table: any } {
   const handleError = (error: any) => console.log('db Error', { error });
@@ -24,6 +27,18 @@ export function createTournamentsTable(): { table: any } {
   const renderTable = (tableData: any[]) => {
     destroyTable({ anchorId: TOURNAMENTS_TABLE });
     const calendarAnchor = document.getElementById(TOURNAMENTS_TABLE);
+    if (!calendarAnchor) return;
+
+    if (tableData.length === 0) {
+      const controlEl = document.getElementById(TOURNAMENTS_CONTROL);
+      if (controlEl) controlEl.innerHTML = '';
+
+      renderWelcomeView(calendarAnchor, {
+        onGenerate: () => mockTournaments(undefined, () => createTournamentsTable()),
+        onCreate: () => editTournament({ onCreated: () => createTournamentsTable() }),
+      });
+      return;
+    }
 
     table = new Tabulator(calendarAnchor, {
       height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),

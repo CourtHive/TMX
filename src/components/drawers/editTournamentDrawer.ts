@@ -2,6 +2,7 @@
  * Tournament editor drawer component.
  * Allows creating new tournaments or editing existing tournament details.
  */
+import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
 import { renderButtons, renderForm, validators } from 'courthive-components';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
@@ -16,7 +17,15 @@ import { t } from 'i18n';
 import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
-export function editTournament({ table, tournamentRecord }: { table?: any; tournamentRecord?: any }): void {
+export function editTournament({
+  table,
+  tournamentRecord,
+  onCreated,
+}: {
+  table?: any;
+  tournamentRecord?: any;
+  onCreated?: () => void;
+}): void {
   const values = {
     activeDates: (tournamentRecord?.activeDates || []).join(','),
     tournamentName: tournamentRecord?.tournamentName || '',
@@ -173,11 +182,11 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
               const report = (result: any) => console.log('sendTournament', result);
               sendTournament({ tournamentRecord: newTournamentRecord }).then(() => {}, report);
             }
-            completeTournamentAdd({ tournamentRecord: newTournamentRecord, table });
+            completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
           };
           getProvider({ providerId: state.providerId }).then(addProvider);
         } else {
-          completeTournamentAdd({ tournamentRecord: newTournamentRecord, table });
+          completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
         }
       }
     }
@@ -201,7 +210,19 @@ export function editTournament({ table, tournamentRecord }: { table?: any; tourn
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }
 
-function completeTournamentAdd({ tournamentRecord, table }: { tournamentRecord: any; table?: any }): void {
-  const refresh = () => table?.addData([mapTournamentRecord(tournamentRecord)], true);
-  tournamentAdd({ tournamentRecord, callback: refresh });
+function completeTournamentAdd({
+  tournamentRecord,
+  table,
+  onCreated,
+}: {
+  tournamentRecord: any;
+  table?: any;
+  onCreated?: () => void;
+}): void {
+  if (table) {
+    const refresh = () => table.addData([mapTournamentRecord(tournamentRecord)], true);
+    tournamentAdd({ tournamentRecord, callback: refresh });
+  } else {
+    addOrUpdateTournament({ tournamentRecord, callback: onCreated });
+  }
 }

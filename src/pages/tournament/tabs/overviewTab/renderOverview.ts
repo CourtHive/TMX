@@ -1,4 +1,4 @@
-import { createActionsPanel, createImagePanel, createNotesPanel, createStatCard, createSunburstPanel } from './dashboardPanels';
+import { createActionsPanel, createDualStatCard, createImagePanel, createNotesPanel, createStatCard, createSunburstPanel, createSunburstPlaceholder } from './dashboardPanels';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -124,12 +124,18 @@ export function renderOverview(): void {
   datesCard.style.cursor = 'pointer';
   datesCard.addEventListener('click', () => openEditDatesModal({ onSave: () => renderOverview() }));
   statsContainer.appendChild(datesCard);
-  const eventsCard = createStatCard('Events', data.eventCount, 'fa-trophy');
+  const eventsCard = createDualStatCard([
+    { label: 'Events', value: data.eventCount, icon: 'fa-trophy' },
+    { label: 'Draws', value: data.drawDefinitionCount, icon: 'fa-sitemap' },
+  ]);
   eventsCard.style.cursor = 'pointer';
   eventsCard.addEventListener('click', () => navigateToTab(EVENTS_TAB));
   statsContainer.appendChild(eventsCard);
 
-  const playersCard = createStatCard('Players', data.participantCount, 'fa-users');
+  const playersCard = createDualStatCard([
+    { label: 'Players', value: data.participantCount, icon: 'fa-users' },
+    { label: 'Teams', value: data.teamParticipantCount, icon: 'fa-people-group' },
+  ]);
   playersCard.style.cursor = 'pointer';
   playersCard.addEventListener('click', () => navigateToTab(PARTICIPANTS));
   statsContainer.appendChild(playersCard);
@@ -159,6 +165,10 @@ export function renderOverview(): void {
     const sunburstPanel = createSunburstPanel(data.structures);
     sunburstPanel.classList.add('dash-burst');
     grid.appendChild(sunburstPanel);
+  } else {
+    const placeholder = createSunburstPlaceholder();
+    placeholder.classList.add('dash-burst');
+    grid.appendChild(placeholder);
   }
 
   element.appendChild(grid);
