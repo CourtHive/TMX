@@ -8,7 +8,7 @@ export function tournamentHeader(): void {
   const offline = tournamentInfo?.timeItemValues?.TMX?.offline;
   if (offline) {
     const dnav = document.getElementById('dnav');
-    if (dnav) dnav.style.backgroundColor = 'lightyellow';
+    if (dnav) dnav.style.backgroundColor = 'var(--tmx-bg-highlight)';
   }
 
   const tmxButton = document.getElementById('provider');

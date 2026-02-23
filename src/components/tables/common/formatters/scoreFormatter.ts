@@ -12,7 +12,7 @@ export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   } else if (isWalkover) {
     content.innerHTML = 'WO';
   } else {
-    content.style.color = 'blue';
+    content.style.color = 'var(--tmx-accent-blue)';
     content.style.fontSize = 'smaller';
     content.innerHTML = 'Enter score';
   }

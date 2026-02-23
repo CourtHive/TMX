@@ -33,9 +33,9 @@ export const venueRowFormatter =
 
     holderEl.appendChild(controlEl);
 
-    const borderStyle = '1px solid #333';
+    const borderStyle = '1px solid var(--tmx-border-primary)';
     const tableEl = document.createElement('div');
-    tableEl.style.backgroundColor = 'white';
+    tableEl.style.backgroundColor = 'var(--tmx-bg-primary)';
     tableEl.style.border = borderStyle;
     tableEl.style.width = '99%';
 

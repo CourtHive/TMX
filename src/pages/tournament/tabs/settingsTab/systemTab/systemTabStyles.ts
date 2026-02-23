@@ -23,7 +23,7 @@ export function ensureSystemStyles(): void {
 
     .system-provider-list,
     .system-provider-detail {
-      border: 1px solid #e0e0e0;
+      border: 1px solid var(--tmx-border-secondary);
       border-radius: 8px;
       padding: 12px;
       overflow: auto;
@@ -33,7 +33,7 @@ export function ensureSystemStyles(): void {
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #999;
+      color: var(--tmx-text-muted);
       font-style: italic;
       height: 100%;
     }
@@ -51,7 +51,7 @@ export function ensureSystemStyles(): void {
     }
 
     .system-detail-header .detail-meta {
-      color: #666;
+      color: var(--tmx-text-secondary);
       font-size: 0.85rem;
     }
 
@@ -92,22 +92,22 @@ export function ensureSystemStyles(): void {
     }
 
     .btn-impersonate {
-      background: #4a90d9;
+      background: var(--tmx-accent-blue);
       color: #fff;
     }
 
     .btn-edit {
-      background: #48c774;
+      background: var(--tmx-accent-green);
       color: #fff;
     }
 
     .btn-invite {
-      background: #b86bff;
+      background: var(--tmx-accent-purple);
       color: #fff;
     }
 
     .btn-remove {
-      background: #ff6b6b;
+      background: var(--tmx-accent-red);
       color: #fff;
     }
 

@@ -140,3 +140,20 @@
   --dd-hasvalue: #c0c0c0;
   --dd-novalue: #222244;
 }
+
+/* ===== Dark theme element overrides ===== */
+[data-theme='dark'] .tippy-box[data-theme~='tippy'] > .tippy-backdrop {
+  background-color: var(--tmx-bg-elevated);
+}
+
+[data-theme='dark'] .tippy-box[data-theme~='light-border'] {
+  background-color: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+  border-color: var(--tmx-border-primary);
+}
+
+[data-theme='dark'] .tipster-content {
+  background-color: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+  border-color: var(--tmx-border-primary);
+}

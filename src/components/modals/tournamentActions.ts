@@ -73,7 +73,7 @@ export function tournamentActions(): void {
         if (result?.success) {
           saveTournamentRecord();
           const dnav = document.getElementById('dnav');
-          if (dnav) dnav.style.backgroundColor = 'lightyellow';
+          if (dnav) dnav.style.backgroundColor = 'var(--tmx-bg-highlight)';
           tmxToast({ message: t('modals.tournamentActions.offline'), intent: 'is-info' });
         }
       };

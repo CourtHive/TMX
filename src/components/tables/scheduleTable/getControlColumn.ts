@@ -16,7 +16,7 @@ export function getControlColumn(): any {
     return `<i class="fa-regular fa-note-sticky"></i>`;
   }
   function controlColumnFormatter(cell: any): HTMLElement {
-    cell.getElement().style.backgroundColor = 'white';
+    cell.getElement().style.backgroundColor = 'var(--tmx-bg-primary)';
     const content = document.createElement('span');
     const data = cell.getRow().getData();
     content.innerHTML = data.rowNumber;

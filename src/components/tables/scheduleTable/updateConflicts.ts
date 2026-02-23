@@ -75,7 +75,7 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
           const issueClass = (scheduleClass as any)[issues[0].issue];
           controlCell.getElement().classList.add(issueClass);
         } else {
-          controlCell.getElement().style.backgroundColor = 'white';
+          controlCell.getElement().style.backgroundColor = 'var(--tmx-bg-primary)';
           data.issues = [];
         }
       }

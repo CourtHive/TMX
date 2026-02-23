@@ -39,7 +39,7 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
     panel.style.background = '';
   } else {
     const placeholder = document.createElement('div');
-    placeholder.style.cssText = 'text-align:center; color:#999; padding:24px; font-size:0.95rem;';
+    placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); padding:24px; font-size:0.95rem;';
     placeholder.innerHTML =
       '<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament image';
     panel.appendChild(placeholder);
@@ -69,7 +69,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   } else {
     const placeholder = document.createElement('div');
     placeholder.style.cssText =
-      'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:#999; text-align:center; font-size:0.95rem;';
+      'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:var(--tmx-text-muted); text-align:center; font-size:0.95rem;';
     placeholder.innerHTML =
       '<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament information</div>';
     notesView.appendChild(placeholder);
@@ -78,7 +78,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
 
   const editBtn = document.createElement('button');
   editBtn.style.cssText =
-    'position:absolute; bottom:8px; right:8px; background:#fff; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px;';
+    'position:absolute; bottom:8px; right:8px; background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px;';
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = 'Edit notes';
   editBtn.addEventListener('click', () => {
@@ -107,7 +107,7 @@ export function createStatCard(label: string, value: string | number, icon?: str
   card.appendChild(valueEl);
 
   const labelEl = document.createElement('div');
-  labelEl.style.cssText = 'font-size:0.85rem; color:#666;';
+  labelEl.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
   if (icon) {
     const iconEl = document.createElement('i');
     iconEl.className = `fa ${icon}`;
@@ -134,7 +134,7 @@ export function createDualStatCard(stats: { label: string; value: string | numbe
     group.appendChild(valueEl);
 
     const labelEl = document.createElement('div');
-    labelEl.style.cssText = 'font-size:0.85rem; color:#666;';
+    labelEl.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
     if (stat.icon) {
       const iconEl = document.createElement('i');
       iconEl.className = `fa ${stat.icon}`;
@@ -156,7 +156,7 @@ export function createSunburstPlaceholder(): HTMLElement {
   panel.style.cssText += 'display:flex; align-items:center; justify-content:center; min-height:200px;';
 
   const placeholder = document.createElement('div');
-  placeholder.style.cssText = 'text-align:center; color:#999; font-size:0.95rem;';
+  placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); font-size:0.95rem;';
   placeholder.innerHTML =
     '<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>No draws';
   panel.appendChild(placeholder);
@@ -170,7 +170,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
   // Dropdown selector
   const select = document.createElement('select');
-  select.style.cssText = 'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid #ccc;';
+  select.style.cssText = 'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
 
   for (const s of structures) {
     const option = document.createElement('option');
@@ -380,7 +380,7 @@ export function createActionsPanel(): HTMLElement {
             if (result?.success) {
               saveTournamentRecord();
               const dnav = document.getElementById('dnav');
-              if (dnav) dnav.style.backgroundColor = 'lightyellow';
+              if (dnav) dnav.style.backgroundColor = 'var(--tmx-bg-highlight)';
               tmxToast({ message: t('modals.tournamentActions.offline'), intent: 'is-info' });
               renderOverview();
             }
@@ -421,7 +421,7 @@ export function createActionsPanel(): HTMLElement {
 
   if (!btnContainer.children.length) {
     const noActions = document.createElement('div');
-    noActions.style.cssText = 'font-size:0.85rem; color:#666; font-style:italic;';
+    noActions.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary); font-style:italic;';
     noActions.textContent = t('modals.tournamentActions.noActions');
     btnContainer.appendChild(noActions);
   }
