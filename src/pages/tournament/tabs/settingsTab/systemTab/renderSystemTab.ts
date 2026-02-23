@@ -1,5 +1,4 @@
 import { getProviders, getUsers } from 'services/apis/servicesApi';
-import { editProviderModal } from 'components/modals/editProvider';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { ensureSystemStyles } from './systemTabStyles';
 import { renderProvidersPanel } from './providersPanel';
@@ -8,7 +7,7 @@ import { renderUsersPanel } from './usersPanel';
 import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
-import { LEFT, RIGHT } from 'constants/tmxConstants';
+import { LEFT } from 'constants/tmxConstants';
 
 type SubTab = 'providers' | 'users';
 let currentSubTab: SubTab = 'providers';
@@ -62,16 +61,6 @@ export function renderSystemTab(container: HTMLElement): void {
       ];
 
       const items: any[] = [{ id: 'systemSubTabs', location: LEFT, tabs }];
-
-      // Add "Create Provider" button on the right when in providers sub-tab
-      if (currentSubTab === 'providers') {
-        items.push({
-          onClick: () => editProviderModal({ callback: () => onRefresh() }),
-          label: t('system.createProvider'),
-          intent: 'is-info',
-          location: RIGHT,
-        });
-      }
 
       controlBar({ target: controlBarEl, items });
     };

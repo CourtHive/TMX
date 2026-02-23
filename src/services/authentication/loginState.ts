@@ -55,7 +55,7 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {
-      context.router?.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation}`);
+      context.router?.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation ?? Date.now()}`);
     }
   }
 }

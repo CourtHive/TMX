@@ -1,3 +1,4 @@
+import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { editProviderModal } from 'components/modals/editProvider';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
@@ -18,6 +19,29 @@ type RenderProvidersPanelParams = {
 
 export function renderProvidersPanel({ container, providers, users, onRefresh }: RenderProvidersPanelParams): void {
   container.innerHTML = '';
+
+  // Toolbar (matches usersPanel pattern)
+  const toolbar = document.createElement('div');
+  toolbar.className = 'system-users-toolbar';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = t('system.searchProviders');
+  searchInput.style.cssText = 'padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; min-width: 200px;';
+
+  const toolbarActions = document.createElement('div');
+  toolbarActions.className = 'toolbar-actions';
+
+  const createBtn = document.createElement('button');
+  createBtn.className = 'btn-invite';
+  createBtn.textContent = t('system.createProvider');
+  createBtn.addEventListener('click', () => editProviderModal({ callback: () => onRefresh() }));
+
+  toolbarActions.appendChild(createBtn);
+
+  toolbar.appendChild(searchInput);
+  toolbar.appendChild(toolbarActions);
+  container.appendChild(toolbar);
 
   const layout = document.createElement('div');
   layout.className = 'system-providers-layout';
@@ -67,6 +91,13 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
     } else {
       detailPane.innerHTML = `<div class="system-no-selection">${t('system.selectProvider')}</div>`;
     }
+  });
+
+  // Search filter
+  const setSearchFilter = createSearchFilter(table);
+  searchInput.addEventListener('input', (e: any) => setSearchFilter(e.target.value));
+  searchInput.addEventListener('keydown', (e: any) => {
+    if (e.keyCode === 8 && e.target.value.length === 1) setSearchFilter('');
   });
 }
 

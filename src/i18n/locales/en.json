@@ -292,7 +292,8 @@
     "userUpdated": "User updated",
     "inviteCopied": "Invite link copied to clipboard",
     "confirmRemoveUser": "Remove User",
-    "removeUserConfirm": "Are you sure you want to remove"
+    "removeUserConfirm": "Are you sure you want to remove",
+    "searchProviders": "Search providers..."
   },
 
   "round_names": {
