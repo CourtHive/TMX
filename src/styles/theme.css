@@ -263,6 +263,44 @@
   stroke: #ffffff;
 }
 
+/* --- Bulma tag/chip dark overrides --- */
+[data-theme='dark'] .tag:not(body) {
+  background-color: var(--tmx-bg-tertiary);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .tag.is-link {
+  background-color: var(--tmx-accent-blue);
+  color: #fff;
+}
+[data-theme='dark'] .tag.is-link.is-light {
+  background-color: rgba(91, 155, 213, 0.15);
+  color: var(--tmx-accent-blue);
+}
+[data-theme='dark'] .tag.is-danger {
+  background-color: var(--tmx-accent-red);
+  color: #fff;
+}
+[data-theme='dark'] .tag.is-danger.is-light {
+  background-color: rgba(255, 138, 138, 0.15);
+  color: var(--tmx-accent-red);
+}
+[data-theme='dark'] .tag.is-primary {
+  background-color: var(--tmx-accent-teal);
+  color: #fff;
+}
+[data-theme='dark'] .tag.is-primary.is-light {
+  background-color: rgba(51, 201, 187, 0.15);
+  color: var(--tmx-accent-teal);
+}
+[data-theme='dark'] .tag.is-info {
+  background-color: var(--tmx-status-info);
+  color: #fff;
+}
+[data-theme='dark'] .tag.is-info.is-light {
+  background-color: rgba(91, 163, 217, 0.15);
+  color: var(--tmx-status-info);
+}
+
 /* --- Radio button / checkradio dark overrides --- */
 /* courthive-components renderForm() puts span as sibling of label.radio with inline color: #000 */
 [data-theme='dark'] label.radio + span {
