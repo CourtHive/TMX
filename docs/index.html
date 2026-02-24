@@ -35,12 +35,23 @@
 
     <link rel="manifest" href="./assets/manifest-CpPZdLiN.json" />
 
+    <script>
+      (function() {
+        var pref = localStorage.getItem('tmx_theme') || 'light';
+        var theme = pref;
+        if (pref === 'system') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+
     <title>CourtHive® TMX 3</title>
-    <script type="module" crossorigin src="./assets/index-DaCZy20P.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-C5j3Abmv.css">
+    <script type="module" crossorigin src="./assets/index-C9E_pRbt.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CwsQALk2.css">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root" data-theme="light"></div>
+    <div id="root"></div>
   </body>
 </html>
