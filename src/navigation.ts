@@ -20,6 +20,8 @@ import {
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
 
+const ACCENT_BLUE = 'var(--tmx-accent-blue)';
+
 const routeMap: Record<string, string> = {
   'o-route': TOURNAMENT_OVERVIEW,
   'p-route': PARTICIPANTS,
@@ -88,12 +90,12 @@ export function tmxNavigation(): void {
     });
 
     if (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === TOURNAMENT_OVERVIEW)) {
-      element.style.color = 'var(--tmx-accent-blue)';
+      element.style.color = ACCENT_BLUE;
     }
 
     element.onclick = () => {
       document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
-      element.style.color = 'var(--tmx-accent-blue)';
+      element.style.color = ACCENT_BLUE;
 
       const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;
@@ -109,7 +111,7 @@ export function highlightTab(selectedTab: string): void {
   ids.forEach((id) => {
     const element = document.getElementById(id);
     if (element && (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === TOURNAMENT_OVERVIEW))) {
-      element.style.color = 'var(--tmx-accent-blue)';
+      element.style.color = ACCENT_BLUE;
     }
   });
 }
