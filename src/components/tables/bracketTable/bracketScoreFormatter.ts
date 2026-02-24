@@ -1,6 +1,8 @@
 const SELF_BG = 'var(--tmx-bg-tertiary)';
 const WON_COLOR = 'var(--tmx-accent-blue)';
 
+const TEXT_MUTED = 'var(--tmx-text-muted)';
+
 const STATUS_DISPLAY: Record<string, string> = {
   WALKOVER: 'WO',
   DOUBLE_WALKOVER: 'DWO',
@@ -24,7 +26,7 @@ export function bracketScoreFormatter(cell: any): string | HTMLElement {
   // BYE position: show "BYE" label
   if (value.bye) {
     const span = document.createElement('span');
-    span.style.color = 'var(--tmx-text-muted)';
+    span.style.color = TEXT_MUTED;
     span.textContent = 'BYE';
     return span;
   }
@@ -37,7 +39,7 @@ export function bracketScoreFormatter(cell: any): string | HTMLElement {
   if (statusLabel && !value.score) {
     el.style.cursor = 'pointer';
     const span = document.createElement('span');
-    span.style.color = value.won ? WON_COLOR : 'var(--tmx-text-muted)';
+    span.style.color = value.won ? WON_COLOR : TEXT_MUTED;
     span.textContent = statusLabel;
     return span;
   }
@@ -46,7 +48,7 @@ export function bracketScoreFormatter(cell: any): string | HTMLElement {
   if (!value.score && value.readyToScore) {
     el.style.cursor = 'pointer';
     const placeholder = document.createElement('span');
-    placeholder.style.color = 'var(--tmx-text-muted)';
+    placeholder.style.color = TEXT_MUTED;
     placeholder.textContent = '[Score]';
     return placeholder;
   }

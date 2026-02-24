@@ -26,6 +26,8 @@ import {
   TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
+const flexColFlexGrow = 'flexcol flexgrow';
+
 export function rootBlock(): HTMLElement {
   const root = document.getElementById('root')!;
   root.appendChild(newBlock());
@@ -116,7 +118,7 @@ export function rootBlock(): HTMLElement {
   main.appendChild(content);
 
   const tournaments = document.createElement('div');
-  tournaments.className = 'flexcol flexgrow';
+  tournaments.className = flexColFlexGrow;
   tournaments.style.display = NONE;
   tournaments.id = TMX_TOURNAMENTS;
 
@@ -133,7 +135,7 @@ export function rootBlock(): HTMLElement {
   main.appendChild(tournaments);
 
   const calendar = document.createElement('div');
-  calendar.className = 'flexcol flexgrow';
+  calendar.className = flexColFlexGrow;
   calendar.style.paddingTop = '3em';
   calendar.style.display = NONE;
   calendar.style.height = '90%';
@@ -143,14 +145,14 @@ export function rootBlock(): HTMLElement {
   main.appendChild(calendar);
 
   const admin = document.createElement('div');
-  admin.className = 'flexcol flexgrow';
+  admin.className = flexColFlexGrow;
   admin.style.display = NONE;
   admin.id = TMX_ADMIN;
 
   main.appendChild(admin);
 
   const system = document.createElement('div');
-  system.className = 'flexcol flexgrow';
+  system.className = flexColFlexGrow;
   system.style.display = NONE;
   system.id = TMX_SYSTEM;
 

@@ -20,6 +20,8 @@ import {
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
 
+const ACCENT_BLUE = 'var(--tmx-accent-blue)';
+
 const routeMap: Record<string, string> = {
   'o-route': TOURNAMENT_OVERVIEW,
   'p-route': PARTICIPANTS,
