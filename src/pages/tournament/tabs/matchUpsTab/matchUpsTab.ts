@@ -1,8 +1,9 @@
 /**
  * MatchUps tab with filtering and statistics.
  * Displays all tournament matches with search, event, flight, team, status, and type filters.
+ * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
-import { tournamentEngine, participantConstants, eventConstants } from 'tods-competition-factory';
+import { tournamentEngine, participantConstants, eventConstants, fixtures } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { controlBar, dropDownButton } from 'courthive-components';
@@ -11,7 +12,10 @@ import { setActiveScale } from 'settings/setActiveScale';
 import { t } from 'i18n';
 
 // constants
-import { LEFT, MATCHUPS_CONTROL, NONE, OVERLAY, RIGHT, TEAM_STATS, UTR, WTN } from 'constants/tmxConstants';
+import { LEFT, MATCHUPS_CONTROL, NONE, OVERLAY, RIGHT, TEAM_STATS } from 'constants/tmxConstants';
+
+const { ratingsParameters } = fixtures;
+const { SINGLES: SINGLES_EVENT } = eventConstants;
 
 const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
 const { TEAM } = participantConstants;
@@ -113,28 +117,8 @@ export function renderMatchUpTab(): void {
       selection: true,
       location: LEFT,
     },
-    {
-      onClick: () => {
-        setActiveScale(WTN);
-        replaceTableData();
-      },
-      id: 'wtnPredictiveAccuracy',
-      intent: 'is-danger',
-      location: RIGHT,
-      text: 'WTN %',
-      hide: true,
-    },
-    {
-      onClick: () => {
-        setActiveScale(UTR);
-        replaceTableData();
-      },
-      id: 'utrPredictiveAccuracy',
-      intent: 'is-info',
-      location: RIGHT,
-      text: 'UTR %',
-      hide: true,
-    },
+    // Dynamically create predictive accuracy buttons for all rating types present in tournament
+    ...getPredictiveAccuracyItems(replaceTableData),
   ];
 
   const target = document.getElementById(MATCHUPS_CONTROL)!;
@@ -324,4 +308,33 @@ function getEventOptions({ matchUpFilters, table, events, components }: any): an
       close: true,
     })),
   );
+}
+
+const intentColors = ['is-danger', 'is-info', 'is-success', 'is-warning', 'is-link', 'is-primary'];
+
+function getPredictiveAccuracyItems(replaceTableData: () => void): any[] {
+  // Discover which ratings are present in tournament participants
+  const { participants: allParticipants = [] } =
+    tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const presentRatings = new Set<string>();
+  for (const p of allParticipants) {
+    for (const item of p.ratings?.[SINGLES_EVENT] || []) {
+      if (ratingsParameters[item.scaleName]) {
+        presentRatings.add(item.scaleName);
+      }
+    }
+  }
+
+  let colorIndex = 0;
+  return Array.from(presentRatings).map((scaleName) => ({
+    onClick: () => {
+      setActiveScale(scaleName.toLowerCase());
+      replaceTableData();
+    },
+    id: `${scaleName.toLowerCase()}PredictiveAccuracy`,
+    intent: intentColors[colorIndex++ % intentColors.length],
+    location: RIGHT,
+    text: `${scaleName} %`,
+    hide: true,
+  }));
 }

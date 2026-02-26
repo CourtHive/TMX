@@ -1,11 +1,12 @@
 /**
  * Map event entry with participant details, ratings, rankings, and seeding.
  * Combines entry data with participant information for display in entries tables.
+ * Dynamically collects all ratings present in participant data.
  */
 import { drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
-import { entryStatusMapping } from 'constants/tmxConstants';
 
-const { WTN, UTR } = factoryConstants.ratingConstants;
+// constants
+import { entryStatusMapping } from 'constants/tmxConstants';
 const { TEAM } = factoryConstants.eventConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
@@ -37,9 +38,10 @@ export function mapEntry({
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
 
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
-  const wtn = participant?.ratings?.[ratingType]?.find((rating: any) => rating.scaleName === WTN)?.scaleValue;
-  const utr = participant?.ratings?.[ratingType]?.find((rating: any) => rating.scaleName === UTR)?.scaleValue;
-  const ratings = { wtn, utr };
+  const ratings: Record<string, any> = {};
+  for (const item of participant?.ratings?.[ratingType] || []) {
+    ratings[item.scaleName.toLowerCase()] = item.scaleValue;
+  }
 
   const ranking = participant?.rankings?.[eventType]?.find(
     (ranking: any) => ranking.scaleName === categoryName,

@@ -1,36 +1,32 @@
 /**
  * Column definitions for participants table.
  * Displays participant details, ratings, sign-in status, events, and teams.
+ * Rating columns are generated dynamically from participant data.
  */
 import { formatParticipant } from '../common/formatters/participantFormatter';
-import { genderConstants, factoryConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
+import { getRatingColumns } from '../common/getRatingColumns';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
-import { numericEditor } from '../common/editors/numericEditor';
 import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
+import { genderConstants } from 'tods-competition-factory';
 import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
 import { LEFT, RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-const { WTN, UTR } = factoryConstants.ratingConstants;
 const { FEMALE, MALE } = genderConstants;
-
-const FIELD_UTR = 'ratings.utr.utrRating';
-const FIELD_WTN = 'ratings.wtn.wtnRating';
 
 export function getParticipantColumns({ data, replaceTableData }: { data: any[]; replaceTableData: () => void }): any[] {
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
-  const utr = data.some((p) => p.ratings?.utr);
-  const wtn = data.some((p) => p.ratings?.wtn);
+  const ratingColumns = getRatingColumns(data, 'participant');
 
   return [
     {
@@ -163,30 +159,7 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       field: 'cityState',
       minWidth: 110,
     },
-    {
-      editor: numericEditor({ maxValue: 40, decimals: true, field: FIELD_WTN }),
-      sorterParams: { alignEmptyValues: 'bottom' },
-      responsive: true,
-      resizable: false,
-      sorter: 'number',
-      field: FIELD_WTN,
-      editable: false,
-      visible: !!wtn,
-      title: WTN,
-      width: 70,
-    },
-    {
-      editor: numericEditor({ maxValue: 16, decimals: true, field: FIELD_UTR }),
-      sorterParams: { alignEmptyValues: 'bottom' },
-      responsive: true,
-      resizable: false,
-      sorter: 'number',
-      field: FIELD_UTR,
-      editable: false,
-      visible: !!utr,
-      title: UTR,
-      width: 70,
-    },
+    ...ratingColumns,
     {
       cellClick: participantActions(replaceTableData),
       formatter: threeDots,

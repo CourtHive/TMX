@@ -6,8 +6,7 @@ import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { getLoginState } from 'services/authentication/loginState';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
-import { removeProviderTournament } from 'services/storage/removeProviderTournament';
-import { removeTournament, sendTournament } from 'services/apis/servicesApi';
+import { sendTournament } from 'services/apis/servicesApi';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
@@ -23,7 +22,7 @@ import { t } from 'i18n';
 
 // constants
 import { ADD_TOURNAMENT_TIMEITEM, SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
-import { ADMIN, SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { ADMIN, SUPER_ADMIN } from 'constants/tmxConstants';
 
 export function createImagePanel(imageUrl?: string): HTMLElement {
   const panel = document.createElement('div');
@@ -282,7 +281,6 @@ export function createActionsPanel(): HTMLElement {
   const providerId = provider?.organisationId;
   const state = getLoginState();
   const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-  const canDelete = superAdmin || state?.permissions?.includes('deleteTournament');
   const admin = superAdmin || state?.roles?.includes(ADMIN);
   const activeProvider = context.provider || state?.provider;
 
@@ -315,35 +313,6 @@ export function createActionsPanel(): HTMLElement {
               },
             },
           ],
-        });
-      }),
-    );
-  }
-
-  if (tournamentRecord && canDelete) {
-    btnContainer.appendChild(
-      createActionButton(t('modals.tournamentActions.deleteTournament'), 'fa-trash', () => {
-        const tournamentId = tournamentRecord.tournamentId;
-        const provId = state?.providerId || providerId;
-        const navigateAway = () => {
-          if (provId) removeProviderTournament({ tournamentId, providerId: provId });
-          context.router?.navigate(`/${TMX_TOURNAMENTS}`);
-        };
-        const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
-
-        tmxToast({
-          action: {
-            onClick: () => {
-              if (activeProvider && provId) {
-                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
-              } else {
-                localDelete();
-              }
-            },
-            text: t('common.confirm'),
-          },
-          message: t('modals.tournamentActions.deleteTournament'),
-          intent: 'is-danger',
         });
       }),
     );

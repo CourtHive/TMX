@@ -9,13 +9,13 @@ import { findAncestor, getParent } from 'services/dom/parentAndChild';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'courthive-components';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { getEntriesColumns } from './getEntriesColumns';
 import { displayAllEvents } from './displayAllEvents';
 import { panelDefinitions } from './panelDefinitions';
+import { controlBar } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -107,17 +107,22 @@ export function createEntriesPanels({
         tableElement.className = `${TMX_TABLE} flexcol flexcenter`;
         panelElement.appendChild(tableElement);
 
+        const entriesColumns = getEntriesColumns({ actions, exclude, entries, eventId, drawId, drawCreated });
+        // Dynamically collect rating field names for headerSortElement exclusion
+        const ratingFields = entriesColumns
+          .filter((col: any) => col.field?.startsWith('ratings.'))
+          .map((col: any) => col.field);
+
         const table = new Tabulator(tableElement, {
           headerSortElement: headerSortElement([
-            'ratings.utr',
-            'ratings.wtn',
+            ...ratingFields,
             'seedNumber',
             'ranking',
             'cityState',
             'status',
             'flights',
           ]),
-          columns: getEntriesColumns({ actions, exclude, entries, eventId, drawId, drawCreated }),
+          columns: entriesColumns,
           responsiveLayout: 'collapse',
           index: 'participantId',
           layout: 'fitColumns',

@@ -2,12 +2,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--tmx-font-family, sans-serif);
 }
 
 html,
 body {
-  /* font-size: 62.5%; */
   font-weight: 500;
 }
 
@@ -322,7 +321,6 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Lato', sans-serif;
 }
 
 * {

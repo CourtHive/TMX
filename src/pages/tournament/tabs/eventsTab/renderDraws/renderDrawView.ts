@@ -120,9 +120,8 @@ export function renderDrawView({
   composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 
-  if (composition.configuration.scaleAttributes) {
-    composition.configuration.scaleAttributes = env.scales[env.activeScale];
-  }
+  // Always inject active scale so ratings display regardless of composition
+  composition.configuration.scaleAttributes = env.scales[env.activeScale];
 
   if (!env.composition) {
     composition.configuration.genderColor = true;

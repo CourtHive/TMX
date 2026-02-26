@@ -872,7 +872,8 @@
       "betaFeatures": "Beta features",
       "pdfPrinting": "PDF printing",
       "language": "Language",
-      "theme": "Theme"
+      "theme": "Theme",
+      "dangerZone": "Danger Zone"
     },
     "editTournamentName": {
       "title": "Edit Tournament Name",
