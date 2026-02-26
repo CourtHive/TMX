@@ -1,9 +1,11 @@
 /**
  * Create table for tournament participants.
  * Displays individual participant details, ratings, and event assignments.
+ * Rating columns and averages are determined dynamically from participant data.
  */
-import { tournamentEngine, participantConstants, participantRoles, tools } from 'tods-competition-factory';
+import { tournamentEngine, participantConstants, participantRoles, tools, fixtures } from 'tods-competition-factory';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
+import { getRatingColumns } from '../common/getRatingColumns';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { getParticipantColumns } from './getParticipantColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -15,6 +17,8 @@ import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
+
+const { ratingsParameters } = fixtures;
 
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
@@ -55,12 +59,24 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     const data = getTableData();
     const cityState = data?.some((p: any) => p.cityState);
     const tennisId = data?.some((p: any) => p.tennisId);
-    const utr = data?.some((p: any) => p.ratings?.utr);
-    const wtn = data?.some((p: any) => p.ratings?.wtn);
     if (cityState) table?.showColumn('cityState');
     if (tennisId) table?.showColumn('tennisId');
-    if (utr) table?.showColumn('ratings.utr.utrRating');
-    if (wtn) table?.showColumn('ratings.wtn.wtnRating');
+
+    // Check if new rating types appeared that the table doesn't have columns for
+    const existingFields = new Set(table?.getColumns().map((c: any) => c.getField()));
+    const neededColumns = getRatingColumns(data, 'participant');
+    const hasNewRatings = neededColumns.some((col: any) => !existingFields.has(col.field));
+
+    if (hasNewRatings) {
+      // Rebuild columns to include new rating types
+      table?.setColumns(getParticipantColumns({ data, replaceTableData }));
+    } else {
+      // Just show existing rating columns
+      for (const col of neededColumns) {
+        table?.showColumn(col.field);
+      }
+    }
+
     const refresh = () => table.replaceData(data);
     setTimeout(refresh, ready ? 0 : 1000);
   };
@@ -77,14 +93,16 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     const element = document.getElementById(TOURNAMENT_PARTICIPANTS);
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader');
 
+    // Build dynamic list of rating fields to exclude from header sort
+    const ratingFields = getRatingColumns(data, 'participant').map((col: any) => col.field);
+
     table = new Tabulator(element, {
       headerSortElement: headerSortElement([
         'sex',
         'signedIn',
         'events',
         'teams',
-        'ratings.wtn.wtnRating',
-        'ratings.utr.utrRating',
+        ...ratingFields,
         'cityState',
         'tennisId',
       ]),
@@ -101,20 +119,30 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       if (headerElement) headerElement.innerHTML = getHeader(rows);
-      const wtns: number[] = [];
-      const utrs: number[] = [];
+      if (!env.averages) return;
+
+      // Dynamically calculate averages for all present rating types
+      const ratingValues: Record<string, number[]> = {};
       for (const row of rows) {
-        const data = row.getData();
-        const { wtn, utr } = data.ratings;
-        if (tools.isNumeric(utr?.utrRating)) utrs.push(parseFloat(utr.utrRating));
-        if (tools.isNumeric(wtn?.wtnRating)) wtns.push(parseFloat(wtn.wtnRating));
+        const rowData = row.getData();
+        if (!rowData.ratings) continue;
+        for (const [key, ratingData] of Object.entries(rowData.ratings)) {
+          if (!ratingData) continue;
+          const upperKey = key.toUpperCase();
+          const params = ratingsParameters[upperKey];
+          if (!params) continue;
+          const value = (ratingData as any)?.[params.accessor];
+          if (tools.isNumeric(value)) {
+            if (!ratingValues[upperKey]) ratingValues[upperKey] = [];
+            ratingValues[upperKey].push(parseFloat(value));
+          }
+        }
       }
-      const utrTotal = utrs.reduce(simpleAddition, 0);
-      const wtnTotal = wtns.reduce(simpleAddition, 0);
-      const utrAverage = (utrs.length ? utrTotal / utrs.length : 0).toFixed(2);
-      const wtnAverage = (wtns.length ? wtnTotal / wtns.length : 0).toFixed(2);
-      if (env.averages) console.log(`UTR ${utrAverage}x̄`);
-      if (env.averages) console.log(`WTN ${wtnAverage}x̄`);
+      for (const [ratingType, values] of Object.entries(ratingValues)) {
+        const total = values.reduce(simpleAddition, 0);
+        const average = (values.length ? total / values.length : 0).toFixed(2);
+        console.log(`${ratingType} ${average}x̄`);
+      }
     });
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));

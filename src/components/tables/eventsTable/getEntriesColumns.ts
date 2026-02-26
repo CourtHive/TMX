@@ -1,28 +1,41 @@
 /**
  * Column definitions for event entries table.
  * Displays participant details, rankings, ratings, teams, seeding, flights, and status.
+ * Rating columns are generated dynamically from entry data.
  */
 import { formatParticipant } from '../common/formatters/participantFormatter';
-import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
-import { ratingFormatter } from '../common/formatters/ratingFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
+import { getRatingColumns } from '../common/getRatingColumns';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { numericEditor } from '../common/editors/numericEditor';
-import { factoryConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { entryActions } from '../../popovers/entryActions';
 import { headerMenu } from '../common/headerMenu';
-
-import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-const { WTN, UTR } = factoryConstants.ratingConstants;
+// constants
+import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 
-export function getEntriesColumns({ entries, exclude = [], eventId, drawId, actions = [], drawCreated }: { entries: any[]; exclude?: string[]; eventId?: string; drawId?: string; actions?: any[]; drawCreated?: boolean } = {} as any): any[] {
+export function getEntriesColumns(
+  {
+    entries,
+    exclude = [],
+    eventId,
+    drawId,
+    actions = [],
+    drawCreated,
+  }: {
+    entries: any[];
+    exclude?: string[];
+    eventId?: string;
+    drawId?: string;
+    actions?: any[];
+    drawCreated?: boolean;
+  } = {} as any,
+): any[] {
   const teams = entries.find((entry) => entry.participant?.teams?.length);
-  const utrRating = entries.find((entry) => entry.ratings?.utr);
-  const wtnRating = entries.find((entry) => entry.ratings?.wtn);
+  const ratingColumns = getRatingColumns(entries, 'entry');
   const cityState = entries.find((entry) => entry.cityState);
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
@@ -71,24 +84,7 @@ export function getEntriesColumns({ entries, exclude = [], eventId, drawId, acti
       title: t('tables.entries.rank'),
       width: 70,
     },
-    {
-      formatter: ratingFormatter(WTN),
-      sorter: ratingSorter(WTN),
-      visible: !!wtnRating,
-      field: 'ratings.wtn',
-      resizable: false,
-      title: WTN,
-      width: 70,
-    },
-    {
-      formatter: ratingFormatter(UTR),
-      sorter: ratingSorter(UTR),
-      visible: !!utrRating,
-      field: 'ratings.utr',
-      resizable: false,
-      title: UTR,
-      width: 70,
-    },
+    ...ratingColumns,
     {
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
       formatter: teamsFormatter(() => console.log('boo')),

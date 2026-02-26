@@ -1,12 +1,13 @@
 /**
- * Map participant data with ratings (WTN, UTR), events, location, and personal information.
+ * Map participant data with ratings, events, location, and personal information.
  * Creates search text and formats participant details for display.
+ * Dynamically collects all ratings present in participant data.
  */
 import { getClub, getCountry, getEvents } from 'pages/tournament/tabs/participantTab/getters';
 import { factoryConstants } from 'tods-competition-factory';
 import camelcase from 'camelcase';
 
-const { WTN, UTR } = factoryConstants.ratingConstants;
+// constants
 const { SINGLES } = factoryConstants.eventConstants;
 
 export const mapParticipant = (participant: any, derivedEventInfo: any): any => {
@@ -15,9 +16,10 @@ export const mapParticipant = (participant: any, derivedEventInfo: any): any => 
   const address = participant.person?.addresses?.[0];
   const cityState = address?.city && address?.state ? `${address.city}, ${address.state}` : undefined;
 
-  const utr = participant.ratings?.[SINGLES]?.find((rating: any) => rating.scaleName === UTR)?.scaleValue;
-  const wtn = participant.ratings?.[SINGLES]?.find((rating: any) => rating.scaleName === WTN)?.scaleValue;
-  const ratings = { wtn, utr };
+  const ratings: Record<string, any> = {};
+  for (const item of participant.ratings?.[SINGLES] || []) {
+    ratings[item.scaleName.toLowerCase()] = item.scaleValue;
+  }
 
   return {
     searchText: `${participantName} ${standardGivenName} ${standardFamilyName}`.toLowerCase(),

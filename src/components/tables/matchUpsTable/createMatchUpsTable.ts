@@ -1,12 +1,12 @@
 /**
  * Create matchUps table with scoring and predictive accuracy.
- * Displays all tournament matchUps with WTN/UTR predictive accuracy calculations.
+ * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 import { hotKeyScoring } from './hotKeyScoring';
@@ -15,6 +15,9 @@ import { t } from 'i18n';
 
 // constants
 import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
+
+const { ratingsParameters } = fixtures;
+const { SINGLES } = factoryConstants.eventConstants;
 
 export function createMatchUpsTable(): { table: any; data: any[]; replaceTableData: () => void } {
   let table: any;
@@ -57,33 +60,43 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
       headerElement && (headerElement.innerHTML = `${t('pages.matchUps.title')} (${matchUps.length})`);
-      const predictiveWTN = document.getElementById('wtnPredictiveAccuracy')!;
-      const wtn = tournamentEngine.getPredictiveAccuracy({
-        valueAccessor: 'wtnRating',
-        scaleName: 'WTN',
-        zoneMargin: 2.5,
-        matchUps,
-      });
-      if (wtn?.accuracy?.percent) {
-        predictiveWTN.style.display = '';
-        predictiveWTN.innerHTML = `WTN ${wtn.accuracy.percent}%`;
-      } else {
-        predictiveWTN.style.display = NONE;
+
+      // Discover which ratings are present in tournament participants
+      const { participants: allParticipants = [] } =
+        tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+      const presentRatings = new Set<string>();
+      for (const p of allParticipants) {
+        for (const item of p.ratings?.[SINGLES] || []) {
+          presentRatings.add(item.scaleName);
+        }
       }
 
-      const predictiveUTR = document.getElementById('utrPredictiveAccuracy')!;
-      const utr = tournamentEngine.getPredictiveAccuracy({
-        valueAccessor: 'utrRating',
-        singlesForDoubles: true,
-        scaleName: 'UTR',
-        zoneMargin: 1,
-        matchUps,
-      });
-      if (utr?.accuracy?.percent) {
-        predictiveUTR.style.display = '';
-        predictiveUTR.innerHTML = `UTR ${utr.accuracy.percent}%`;
-      } else {
-        predictiveUTR.style.display = NONE;
+      // Calculate predictive accuracy for each present rating type
+      for (const scaleName of presentRatings) {
+        const params = ratingsParameters[scaleName];
+        if (!params) continue;
+
+        const elementId = `${scaleName.toLowerCase()}PredictiveAccuracy`;
+        const element = document.getElementById(elementId);
+        if (!element) continue;
+
+        const [rangeA, rangeB] = params.range || [0, 100];
+        const rangeSpan = Math.abs(rangeB - rangeA);
+        const zoneMargin = rangeSpan * 0.05;
+
+        const result = tournamentEngine.getPredictiveAccuracy({
+          valueAccessor: params.accessor,
+          scaleName,
+          zoneMargin,
+          matchUps,
+        });
+
+        if (result?.accuracy?.percent) {
+          element.style.display = '';
+          element.innerHTML = `${scaleName} ${result.accuracy.percent}%`;
+        } else {
+          element.style.display = NONE;
+        }
       }
     });
   };

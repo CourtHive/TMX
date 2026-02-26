@@ -1,11 +1,21 @@
-import { applyTheme, getThemePreference } from 'services/theme/themeService';
+import { applyFont, applyTheme, FONT_OPTIONS, getFontPreference, getThemePreference } from 'services/theme/themeService';
 import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
+import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { removeProviderTournament } from 'services/storage/removeProviderTournament';
+import { getLoginState } from 'services/authentication/loginState';
+import { removeTournament } from 'services/apis/servicesApi';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { renderForm, validators } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
+import { tmx2db } from 'services/storage/tmx2db';
+import { context } from 'services/context';
 import { env } from 'settings/env';
 import { i18next, t } from 'i18n';
 
-import { UTR, WTN } from 'constants/tmxConstants';
+import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+
+const { ratingsParameters } = fixtures;
+const { SINGLES } = factoryConstants.eventConstants;
 
 function persistAll(
   languageInputs: any,
@@ -15,7 +25,7 @@ function persistAll(
   storageInputs: any,
   displayInputs: any,
 ): void {
-  const activeScale = ratingInputs.wtn.checked ? WTN : UTR;
+  const activeScale = ratingInputs.activeRating.value;
   env.saveLocal = storageInputs.saveLocal.checked;
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
   env.persistInputFields = storageInputs.persistInputFields?.checked ?? true;
@@ -104,22 +114,44 @@ export function renderSettingsGrid(container: HTMLElement): void {
   ratingPanel.className = 'settings-panel panel-blue';
   ratingPanel.innerHTML = `<h3><i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}</h3>`;
 
+  // Discover which ratings are present in current tournament participants
+  const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const presentRatings = new Set<string>();
+  for (const p of allParticipants) {
+    for (const item of p.ratings?.[SINGLES] || []) {
+      presentRatings.add(item.scaleName);
+    }
+  }
+
+  // Build rating options: tournament ratings first, then all others (excluding deprecated)
+  const allRatingKeys = Object.keys(ratingsParameters).filter(
+    (key) => !(ratingsParameters as any)[key].deprecated,
+  );
+  const inTournament = allRatingKeys.filter((key) => presentRatings.has(key));
+  const notInTournament = allRatingKeys.filter((key) => !presentRatings.has(key));
+
+  const ratingOptions = [
+    ...inTournament.map((key) => ({
+      label: `${key} (in tournament)`,
+      value: key.toLowerCase(),
+      selected: env.activeScale === key.toLowerCase(),
+    })),
+    ...notInTournament.map((key) => ({
+      label: key,
+      value: key.toLowerCase(),
+      selected: env.activeScale === key.toLowerCase(),
+    })),
+  ];
+
   const ratingForm = document.createElement('div');
   ratingInputs = renderForm(ratingForm, [
     {
-      options: [
-        { text: 'WTN', field: 'wtn', checked: env.activeScale === WTN },
-        { text: 'UTR', field: 'utr', checked: env.activeScale === UTR },
-      ],
+      options: ratingOptions,
       onChange: persist,
       field: 'activeRating',
       id: 'activeRating',
-      radio: true,
     },
   ]);
-  // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
-  ratingInputs.wtn.addEventListener('change', persist);
-  ratingInputs.utr.addEventListener('change', persist);
   ratingPanel.appendChild(ratingForm);
   grid.appendChild(ratingPanel);
 
@@ -263,6 +295,80 @@ export function renderSettingsGrid(container: HTMLElement): void {
   themeInputs.system.addEventListener('change', themeChange);
   themePanel.appendChild(themeForm);
   grid.appendChild(themePanel);
+
+  // --- Font panel (indigo, 1 col) ---
+  const fontPanel = document.createElement('div');
+  fontPanel.className = 'settings-panel panel-blue';
+  fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> Font</h3>`;
+
+  const currentFont = getFontPreference();
+  const fontForm = document.createElement('div');
+  renderForm(fontForm, [
+    {
+      options: Object.entries(FONT_OPTIONS).map(([key, { label }]) => ({
+        value: key,
+        label,
+        selected: key === currentFont,
+      })),
+      onChange: (e: Event) => {
+        const select = e.target as HTMLSelectElement;
+        applyFont(select.value);
+      },
+      field: 'fontFamily',
+      id: 'fontFamily',
+    },
+  ]);
+  fontPanel.appendChild(fontForm);
+  grid.appendChild(fontPanel);
+
+  // --- Delete Tournament panel (red, full width) ---
+  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const provider = tournamentRecord?.parentOrganisation;
+  const providerId = provider?.organisationId;
+  const state = getLoginState();
+  const superAdmin = state?.roles?.includes(SUPER_ADMIN);
+  const canDelete = superAdmin || state?.permissions?.includes('deleteTournament');
+  const activeProvider = context.provider || state?.provider;
+
+  // Show for local tournaments (no provider) or when user has delete permission
+  if (tournamentRecord && (!providerId || canDelete)) {
+    const deletePanel = document.createElement('div');
+    deletePanel.className = 'settings-panel panel-red';
+    deletePanel.style.gridColumn = '1 / -1';
+    deletePanel.innerHTML = `<h3><i class="fa-solid fa-trash"></i> ${t('modals.settings.dangerZone')}</h3>`;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'button is-danger is-outlined';
+    deleteBtn.style.marginTop = '8px';
+    deleteBtn.innerHTML = `<i class="fa-solid fa-trash" style="margin-right:6px"></i>${t('modals.tournamentActions.deleteTournament')}`;
+    deleteBtn.addEventListener('click', () => {
+      const tournamentId = tournamentRecord.tournamentId;
+      const provId = state?.providerId || providerId;
+      const navigateAway = () => {
+        if (provId) removeProviderTournament({ tournamentId, providerId: provId });
+        context.router?.navigate(`/${TMX_TOURNAMENTS}`);
+      };
+      const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
+
+      tmxToast({
+        action: {
+          onClick: () => {
+            if (activeProvider && provId) {
+              removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
+            } else {
+              localDelete();
+            }
+          },
+          text: t('common.confirm'),
+        },
+        message: t('modals.tournamentActions.deleteTournament'),
+        intent: 'is-danger',
+      });
+    });
+
+    deletePanel.appendChild(deleteBtn);
+    grid.appendChild(deletePanel);
+  }
 
   container.appendChild(grid);
 }

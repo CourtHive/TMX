@@ -15,6 +15,7 @@ export type TMXSettings = {
   persistInputFields?: boolean; // Keep input fields visible after participant assignment (default: true)
   language?: string; // UI language code (e.g. 'en', 'fr')
   theme?: 'light' | 'dark' | 'system'; // UI theme preference
+  fontFamily?: string; // CSS font-family override (stored as option key, e.g. 'system', 'inter')
 };
 
 /**

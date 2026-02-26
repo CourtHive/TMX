@@ -84,9 +84,13 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
   content.appendChild(tableElement);
 
   // Initialize Tabulator table
+  const drawColumns = getDrawEntriesColumns({ entries: entryData });
+  // Dynamically collect rating field names for headerSortElement exclusion
+  const ratingFields = drawColumns.filter((col: any) => col.field?.startsWith('ratings.')).map((col: any) => col.field);
+
   const table = new Tabulator(tableElement, {
-    headerSortElement: headerSortElement(['ratings.utr', 'ratings.wtn', 'seedNumber', 'ranking', 'participant']),
-    columns: getDrawEntriesColumns({ entries: entryData }),
+    headerSortElement: headerSortElement([...ratingFields, 'seedNumber', 'ranking', 'participant']),
+    columns: drawColumns,
     placeholder: 'No entries in this draw',
     responsiveLayout: 'collapse',
     index: 'participantId',
