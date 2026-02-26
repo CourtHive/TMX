@@ -55,6 +55,15 @@
 .notification.is-primary { background-color: #00d1b2; color: #fff; }
 .notification.is-link { background-color: #485fc7; color: #fff; }
 
+/* ── Navbar items ───────────────────────────────────────── */
+.navbar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+}
+
 /* ── Helpers ─────────────────────────────────────────────── */
 .is-marginless { margin: 0 !important; }
 .has-text-success { color: var(--tmx-status-success) !important; }

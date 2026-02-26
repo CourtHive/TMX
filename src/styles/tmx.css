@@ -336,8 +336,10 @@ body {
   top: 0;
   z-index: 1000;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   justify-content: space-between;
+  min-height: 3.25rem;
   transition: top 500ms ease-in-out;
   border-bottom: 1px solid var(--tmx-border-primary);
 }
