@@ -68,6 +68,22 @@
   --tmx-tab-border: #dbdbdb;
   --tmx-tab-selected-bg: #e7e6e7;
   --tmx-tab-selected-text: #363636;
+
+  /* ── courthive-components bridge ────────────────────── */
+  /* Map --chc-* vars to TMX values so the component library */
+  /* inherits the host app palette. See courthive-components  */
+  /* theme.css for the full variable catalog.                 */
+  --chc-bg-primary: var(--tmx-bg-primary);
+  --chc-bg-secondary: var(--tmx-bg-secondary);
+  --chc-bg-elevated: var(--tmx-bg-elevated);
+  --chc-text-primary: var(--tmx-text-primary);
+  --chc-text-secondary: var(--tmx-text-secondary);
+  --chc-text-muted: var(--tmx-text-muted);
+  --chc-text-inverse: var(--tmx-text-inverse);
+  --chc-border-primary: var(--tmx-border-primary);
+  --chc-border-secondary: var(--tmx-border-secondary);
+  --chc-border-focus: var(--tmx-border-focus);
+  --chc-panel-header-bg: var(--tmx-bg-panel-header);
 }
 
 /* ===== Dark theme ===== */
@@ -151,6 +167,31 @@
   --dd-label-color: #e0e0e0;
   --dd-hasvalue: #c0c0c0;
   --dd-novalue: #222244;
+
+  /* ── courthive-components bridge (dark) ────────────── */
+  /* Use Bulma's body background so component surfaces    */
+  /* blend seamlessly with the page. When Bulma is        */
+  /* replaced, swap this to the new body-background var.  */
+  --chc-bg-primary: var(--bulma-body-background-color);
+  --chc-bg-secondary: var(--tmx-bg-secondary);
+  --chc-bg-elevated: var(--tmx-bg-elevated);
+  --chc-text-primary: var(--tmx-text-primary);
+  --chc-text-secondary: var(--tmx-text-secondary);
+  --chc-text-muted: var(--tmx-text-muted);
+  --chc-text-inverse: var(--tmx-text-inverse);
+  --chc-border-primary: var(--tmx-border-primary);
+  --chc-border-secondary: var(--tmx-border-secondary);
+  --chc-border-focus: var(--tmx-border-focus);
+  --chc-modal-bg: var(--tmx-bg-elevated);
+  --chc-dropdown-bg: var(--tmx-bg-elevated);
+  --chc-input-bg: var(--tmx-bg-secondary);
+  --chc-panel-header-bg: var(--tmx-bg-panel-header);
+  --chc-hover-bg: var(--tmx-bg-panel-header);
+  --chc-format-code-color: var(--tmx-accent-blue);
+  --chc-status-success: var(--tmx-status-success);
+  --chc-status-warning: var(--tmx-status-warning);
+  --chc-status-error: var(--tmx-status-error);
+  --chc-status-info: var(--tmx-status-info);
 }
 
 /* ===== Dark theme element overrides ===== */
