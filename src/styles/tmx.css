@@ -14,6 +14,7 @@ body {
 body {
   font-size: 1.4rem;
   color: var(--tmx-text-primary);
+  background-color: var(--tmx-bg-primary);
   height: 100vh;
 }
 
@@ -329,8 +330,8 @@ body {
 }
 
 #dnav {
-  background-color: var(--bulma-body-background-color);
-  color: var(--bulma-body-color);
+  background-color: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
   position: sticky;
   top: 0;
   z-index: 1000;

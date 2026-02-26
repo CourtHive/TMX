@@ -169,10 +169,7 @@
   --dd-novalue: #222244;
 
   /* ── courthive-components bridge (dark) ────────────── */
-  /* Use Bulma's body background so component surfaces    */
-  /* blend seamlessly with the page. When Bulma is        */
-  /* replaced, swap this to the new body-background var.  */
-  --chc-bg-primary: var(--bulma-body-background-color);
+  --chc-bg-primary: var(--tmx-bg-primary);
   --chc-bg-secondary: var(--tmx-bg-secondary);
   --chc-bg-elevated: var(--tmx-bg-elevated);
   --chc-text-primary: var(--tmx-text-primary);
