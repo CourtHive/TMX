@@ -4,7 +4,7 @@ import { showTMXsystem } from 'services/transitions/screenSlaver';
 import { context } from 'services/context';
 import { TMX_SYSTEM } from 'constants/tmxConstants';
 
-export function renderSystemPage(): void {
+export function renderSystemPage(selectedTab?: string): void {
   showTMXsystem();
 
   const tmxButton = document.getElementById('provider');
@@ -14,5 +14,5 @@ export function renderSystemPage(): void {
   if (!container) return;
 
   removeAllChildNodes(container);
-  renderSystemTab(container);
+  renderSystemTab(container, selectedTab);
 }
