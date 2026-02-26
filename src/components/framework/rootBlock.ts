@@ -180,6 +180,10 @@ function newBlock(): HTMLDivElement {
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
+      <div id="mobileNav" class="mobile-nav">
+        <button id="mobileNavToggle" class="mobile-nav-toggle"></button>
+        <div id="mobileNavMenu" class="mobile-nav-menu"></div>
+      </div>
     </div>
     <div class="navbar-item" style="font-size: 1em">
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
