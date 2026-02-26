@@ -195,16 +195,225 @@
 }
 
 /* ===== Dark theme element overrides ===== */
+
+/* --- Intent-colored button dark overrides --- */
+/* Info */
+[data-theme='dark'] .button.is-info {
+  background-color: var(--tmx-status-info);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme='dark'] .button.is-info:hover { background-color: #4faae0; }
+[data-theme='dark'] .button.is-info:active { background-color: #4a9cd4; }
+[data-theme='dark'] .button.is-info.is-outlined {
+  background-color: transparent;
+  border-color: var(--tmx-status-info);
+  color: var(--tmx-status-info);
+}
+[data-theme='dark'] .button.is-info.is-outlined:hover {
+  background-color: var(--tmx-status-info);
+  color: #fff;
+}
+[data-theme='dark'] .button.is-info.is-light {
+  background-color: rgba(91, 163, 217, 0.15);
+  color: var(--tmx-status-info);
+}
+[data-theme='dark'] .button.is-info.is-light:hover { background-color: rgba(91, 163, 217, 0.25); }
+
+/* Success */
+[data-theme='dark'] .button.is-success {
+  background-color: var(--tmx-status-success);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme='dark'] .button.is-success:hover { background-color: #6dc48d; }
+[data-theme='dark'] .button.is-success:active { background-color: #52b477; }
+[data-theme='dark'] .button.is-success.is-outlined {
+  background-color: transparent;
+  border-color: var(--tmx-status-success);
+  color: var(--tmx-status-success);
+}
+[data-theme='dark'] .button.is-success.is-outlined:hover {
+  background-color: var(--tmx-status-success);
+  color: #fff;
+}
+[data-theme='dark'] .button.is-success.is-light {
+  background-color: rgba(92, 184, 120, 0.15);
+  color: var(--tmx-status-success);
+}
+[data-theme='dark'] .button.is-success.is-light:hover { background-color: rgba(92, 184, 120, 0.25); }
+
+/* Danger */
+[data-theme='dark'] .button.is-danger {
+  background-color: var(--tmx-status-error);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme='dark'] .button.is-danger:hover { background-color: #ea7490; }
+[data-theme='dark'] .button.is-danger:active { background-color: #e56584; }
+[data-theme='dark'] .button.is-danger.is-outlined {
+  background-color: transparent;
+  border-color: var(--tmx-status-error);
+  color: var(--tmx-status-error);
+}
+[data-theme='dark'] .button.is-danger.is-outlined:hover {
+  background-color: var(--tmx-status-error);
+  color: #fff;
+}
+[data-theme='dark'] .button.is-danger.is-light {
+  background-color: rgba(232, 93, 122, 0.15);
+  color: var(--tmx-status-error);
+}
+[data-theme='dark'] .button.is-danger.is-light:hover { background-color: rgba(232, 93, 122, 0.25); }
+
+/* Warning */
+[data-theme='dark'] .button.is-warning {
+  background-color: var(--tmx-status-warning);
+  border-color: transparent;
+  color: rgba(0, 0, 0, 0.7);
+}
+[data-theme='dark'] .button.is-warning:hover { background-color: #e9d25a; }
+[data-theme='dark'] .button.is-warning:active { background-color: #d9c344; }
+[data-theme='dark'] .button.is-warning.is-outlined {
+  background-color: transparent;
+  border-color: var(--tmx-status-warning);
+  color: var(--tmx-status-warning);
+}
+[data-theme='dark'] .button.is-warning.is-outlined:hover {
+  background-color: var(--tmx-status-warning);
+  color: rgba(0, 0, 0, 0.7);
+}
+[data-theme='dark'] .button.is-warning.is-light {
+  background-color: rgba(230, 200, 78, 0.15);
+  color: var(--tmx-status-warning);
+}
+[data-theme='dark'] .button.is-warning.is-light:hover { background-color: rgba(230, 200, 78, 0.25); }
+
+/* Primary */
+[data-theme='dark'] .button.is-primary {
+  background-color: var(--tmx-accent-teal);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme='dark'] .button.is-primary:hover { background-color: #47d4c7; }
+[data-theme='dark'] .button.is-primary:active { background-color: #2dbfb1; }
+[data-theme='dark'] .button.is-primary.is-outlined {
+  background-color: transparent;
+  border-color: var(--tmx-accent-teal);
+  color: var(--tmx-accent-teal);
+}
+[data-theme='dark'] .button.is-primary.is-outlined:hover {
+  background-color: var(--tmx-accent-teal);
+  color: #fff;
+}
+[data-theme='dark'] .button.is-primary.is-light {
+  background-color: rgba(51, 201, 187, 0.15);
+  color: var(--tmx-accent-teal);
+}
+[data-theme='dark'] .button.is-primary.is-light:hover { background-color: rgba(51, 201, 187, 0.25); }
+
+/* Link */
+[data-theme='dark'] .button.is-link {
+  background-color: var(--tmx-accent-blue);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme='dark'] .button.is-link:hover { background-color: #6da8dc; }
+[data-theme='dark'] .button.is-link:active { background-color: #5098d5; }
+[data-theme='dark'] .button.is-link.is-outlined {
+  background-color: transparent;
+  border-color: var(--tmx-accent-blue);
+  color: var(--tmx-accent-blue);
+}
+[data-theme='dark'] .button.is-link.is-outlined:hover {
+  background-color: var(--tmx-accent-blue);
+  color: #fff;
+}
+[data-theme='dark'] .button.is-link.is-light {
+  background-color: rgba(91, 155, 213, 0.15);
+  color: var(--tmx-accent-blue);
+}
+[data-theme='dark'] .button.is-link.is-light:hover { background-color: rgba(91, 155, 213, 0.25); }
+
+/* White */
+[data-theme='dark'] .button.is-white {
+  background-color: var(--tmx-bg-secondary);
+  border-color: transparent;
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .button.is-white:hover { background-color: var(--tmx-bg-tertiary); }
+
+/* --- Tippy.js 'tippy' theme dark overrides --- */
+[data-theme='dark'] .tippy-box[data-theme~='tippy'] {
+  background-color: var(--tmx-bg-elevated);
+  border-color: var(--tmx-border-primary);
+  color: var(--tmx-text-primary);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.3);
+}
 [data-theme='dark'] .tippy-box[data-theme~='tippy'] > .tippy-backdrop {
   background-color: var(--tmx-bg-elevated);
 }
+[data-theme='dark'] .tippy-box[data-theme~='tippy'] > .tippy-svg-arrow {
+  fill: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='top'] > .tippy-arrow:before {
+  border-top-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='top'] > .tippy-arrow:after {
+  border-top-color: rgba(0, 0, 0, 0.3);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='bottom'] > .tippy-arrow:before {
+  border-bottom-color: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='bottom'] > .tippy-arrow:after {
+  border-bottom-color: rgba(0, 0, 0, 0.3);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='left'] > .tippy-arrow:before {
+  border-left-color: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='left'] > .tippy-arrow:after {
+  border-left-color: rgba(0, 0, 0, 0.3);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='right'] > .tippy-arrow:before {
+  border-right-color: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .tippy-box[data-theme~='tippy'][data-placement^='right'] > .tippy-arrow:after {
+  border-right-color: rgba(0, 0, 0, 0.3);
+}
 
+/* --- Tippy.js 'light-border' theme dark overrides --- */
 [data-theme='dark'] .tippy-box[data-theme~='light-border'] {
   background-color: var(--tmx-bg-elevated);
   color: var(--tmx-text-primary);
   border-color: var(--tmx-border-primary);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.3);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='top'] > .tippy-arrow::after {
+  border-top-color: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='bottom'] > .tippy-arrow::after {
+  border-bottom-color: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='left'] > .tippy-arrow::after {
+  border-left-color: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .tippy-box[data-theme~='light-border'][data-placement^='right'] > .tippy-arrow::after {
+  border-right-color: var(--tmx-bg-elevated);
 }
 
+/* --- Tipster content dark overrides --- */
 [data-theme='dark'] .tipster-content {
   background-color: var(--tmx-bg-elevated);
   color: var(--tmx-text-primary);
@@ -241,14 +450,6 @@
   background-color: var(--tmx-bg-elevated);
   border-color: var(--tmx-border-primary);
   color: var(--tmx-text-primary);
-}
-
-/* --- Tippy.js light-border theme dark overrides --- */
-[data-theme='dark'] .tippy-box[data-theme~='light-border'] .tippy-arrow::before {
-  border-top-color: var(--tmx-border-primary);
-}
-[data-theme='dark'] .tippy-box[data-theme~='light-border'] .tippy-arrow::after {
-  border-top-color: var(--tmx-bg-elevated);
 }
 
 /* --- Pikaday datepicker dark overrides --- */

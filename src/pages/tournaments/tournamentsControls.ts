@@ -39,7 +39,6 @@ export function calendarControls(table: any): void {
   };
 
   const actions = [
-    { label: 'Create new tournament', onClick: () => (editTournament as any)({ table }) },
     { label: 'Import tournament', onClick: () => importTournaments({ table }) },
     fetch && { label: 'Fetch tournament', onClick: () => fetchTournamentDetailsModal({ table }) },
     admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table }) },
@@ -52,6 +51,7 @@ export function calendarControls(table: any): void {
   const setSearchFilter = createSearchFilter(table);
 
   const items = [
+    { label: 'New Tournament', intent: 'is-success', onClick: () => (editTournament as any)({ table }), align: RIGHT },
     { label: 'Actions', options: actions, align: RIGHT },
     {
       onKeyDown: (e: KeyboardEvent) =>

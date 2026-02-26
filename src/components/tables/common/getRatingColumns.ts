@@ -34,9 +34,11 @@ export function getRatingColumns(data: any[], style: RatingColumnStyle): any[] {
     const params = ratingsParameters[upperKey];
     if (!params) continue;
 
-    const { accessor, range } = params;
+    const { range } = params;
+    const accessor = params.accessor || `${key}Rating`;
     const [rangeA, rangeB] = range || [0, 100];
     const maxValue = Math.max(rangeA, rangeB);
+    const width = upperKey.length > 3 ? 70 + (upperKey.length - 3) * 10 : 70;
 
     if (style === 'participant') {
       // Participants table: data is nested like ratings.wtn.wtnRating
@@ -50,7 +52,7 @@ export function getRatingColumns(data: any[], style: RatingColumnStyle): any[] {
         editable: false,
         visible: true,
         title: upperKey,
-        width: 70,
+        width,
         field,
       });
     } else {
@@ -62,7 +64,7 @@ export function getRatingColumns(data: any[], style: RatingColumnStyle): any[] {
         resizable: false,
         visible: true,
         title: upperKey,
-        width: 70,
+        width,
         field,
       });
     }

@@ -38,7 +38,7 @@ export function saveRatings(e: any, table: any): void {
         const params = ratingsParameters[upperKey];
         if (!params) return null;
 
-        const { accessor } = params;
+        const accessor = params.accessor || `${key}Rating`;
         const ratingValue = ratingData?.[accessor];
         const confidence = ratingData?.confidence || (ratingValue ? 50 : 0);
         const itemValue = confidence ? { ...ratingData, [accessor]: ratingValue, confidence } : '';
