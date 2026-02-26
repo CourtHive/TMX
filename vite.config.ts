@@ -9,7 +9,7 @@ export default ({ mode }) => {
   const BASE_URL = (process.env.BASE_URL && `/${process.env.BASE_URL}/`) || '';
 
   return defineConfig({
-    plugins: [tsconfigPaths(), EnvironmentPlugin(['SERVER', 'ENVIRONMENT'])],
+    plugins: [tsconfigPaths(), EnvironmentPlugin(['SERVER', 'ENVIRONMENT', 'PUBLIC_URL'])],
     build: { sourcemap: true },
     base: BASE_URL,
   });
