@@ -212,3 +212,7 @@ export const ROUNDS_BRACKET = 'roundsBracket';
 
 export const UTR = 'utr';
 export const WTN = 'wtn';
+
+export const SYSTEM = 'system';
+export const PROVIDERS_TAB = 'providers';
+export const USERS_TAB = 'users';

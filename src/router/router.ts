@@ -18,6 +18,7 @@ import {
   PARTICIPANTS,
   SPLASH,
   STRUCTURE,
+  SYSTEM,
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE_TAB,
@@ -81,7 +82,8 @@ export function routeTMX() {
 
   router.on(`/calendar`, renderCalendar);
   router.on('/admin', renderAdminPage);
-  router.on('/system', renderSystemPage);
+  router.on(`/${SYSTEM}/:selectedTab`, (match) => renderSystemPage(match?.data?.selectedTab));
+  router.on(`/${SYSTEM}`, () => renderSystemPage());
 
   router.on(`/actionKey/:key`, (match) => {
     const key = match?.data?.key;

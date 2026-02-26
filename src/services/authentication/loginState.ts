@@ -13,7 +13,7 @@ import { t } from 'i18n';
 
 import type { LoginState } from 'types/tmx';
 
-import { SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS, NONE } from 'constants/tmxConstants';
 
 export function styleLogin(valid: LoginState | undefined | false): void {
   const el = document.getElementById('login');
@@ -57,6 +57,21 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
     } else if (!tournamentInState) {
       context.router?.navigate(`/${TMX_TOURNAMENTS}/${valid.provider?.organisationAbbreviation ?? Date.now()}`);
     }
+
+    if (tournamentInState) {
+      reRenderActiveTab();
+    }
+  }
+}
+
+function reRenderActiveTab(): void {
+  const overviewTab = document.getElementById('o-tab');
+  const settingsTab = document.getElementById('c-tab');
+
+  if (overviewTab && overviewTab.style.display !== NONE) {
+    import('pages/tournament/tabs/overviewTab/renderOverview').then(({ renderOverview }) => renderOverview());
+  } else if (settingsTab && settingsTab.style.display !== NONE) {
+    import('pages/tournament/tabs/settingsTab/renderSettingsTab').then(({ renderSettingsTab }) => renderSettingsTab());
   }
 }
 

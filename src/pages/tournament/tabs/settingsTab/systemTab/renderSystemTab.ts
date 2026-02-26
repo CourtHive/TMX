@@ -7,12 +7,18 @@ import { renderUsersPanel } from './usersPanel';
 import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
-import { LEFT } from 'constants/tmxConstants';
+import { LEFT, PROVIDERS_TAB, USERS_TAB, SYSTEM } from 'constants/tmxConstants';
+import { context } from 'services/context';
 
 type SubTab = 'providers' | 'users';
 let currentSubTab: SubTab = 'providers';
 
-export function renderSystemTab(container: HTMLElement): void {
+export function renderSystemTab(container: HTMLElement, selectedTab?: string): void {
+  if (selectedTab === PROVIDERS_TAB || selectedTab === USERS_TAB) {
+    currentSubTab = selectedTab;
+  } else {
+    currentSubTab = PROVIDERS_TAB;
+  }
   ensureSystemStyles();
   removeAllChildNodes(container);
 
@@ -34,9 +40,7 @@ export function renderSystemTab(container: HTMLElement): void {
   const renderContent = (providers: any[], users: any[]) => {
     const switchSubTab = (tab: SubTab) => {
       if (tab === currentSubTab) return;
-      currentSubTab = tab;
-      buildControlBar();
-      renderCurrentPanel();
+      context.router?.navigate(`/${SYSTEM}/${tab}`);
     };
 
     const onRefresh = () => {

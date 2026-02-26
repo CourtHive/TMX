@@ -63,7 +63,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   notesView.className = 'ql-container ql-snow content';
   notesView.style.border = 'none';
 
-  const hasContent = notes && notes.replace(/<[^>]*>/g, '').trim().length > 0;
+  const hasContent = notes && notes.replaceAll(/<[^>]*>/g, '').trim().length > 0;
   if (hasContent) {
     notesView.innerHTML = notes;
   } else {
@@ -170,7 +170,8 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
   // Dropdown selector
   const select = document.createElement('select');
-  select.style.cssText = 'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
+  select.style.cssText =
+    'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
 
   for (const s of structures) {
     const option = document.createElement('option');
@@ -358,8 +359,8 @@ export function createActionsPanel(): HTMLElement {
           sendTournament({ tournamentRecord: record }).then(
             () => {
               tmx2db.deleteTournament(record.tournamentId);
-              context.router?.navigate(`/tournament/${record.tournamentId}/detail`);
               tmxToast({ message: t('modals.tournamentActions.tournamentClaimed'), intent: 'is-info' });
+              renderOverview();
             },
             (error: any) => {
               tmxToast({ message: error.message || t('modals.tournamentActions.notClaimed'), intent: 'is-danger' });
