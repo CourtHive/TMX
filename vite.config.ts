@@ -2,7 +2,7 @@ import EnvironmentPlugin from 'vite-plugin-environment';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig, loadEnv } from 'vite';
 
-export default ({ mode }) => {
+const viteconfigFactory = ({ mode }: { mode: string }) => {
   // Load app-level env vars to node-level env vars.
   process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') };
 
@@ -14,3 +14,5 @@ export default ({ mode }) => {
     base: BASE_URL,
   });
 };
+
+export default viteconfigFactory;
