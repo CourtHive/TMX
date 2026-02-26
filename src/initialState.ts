@@ -24,12 +24,10 @@ import { env } from 'settings/env';
 import dragMatch from 'assets/icons/dragmatch.png';
 
 import 'courthive-components/dist/courthive-components.css';
-import 'vanillajs-datepicker/css/datepicker-bulma.css';
+import 'vanillajs-datepicker/css/datepicker.css';
 import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
 
-import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
-import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'animate.css/animate.min.css';
 import 'quill/dist/quill.snow.css';
 import 'pikaday/css/pikaday.css';
@@ -40,7 +38,10 @@ import 'tippy.js/dist/tippy.css';
 
 import 'styles/tabulator.css';
 
-import 'bulma/css/bulma.min.css';
+import 'styles/components/buttons.css';
+import 'styles/components/tags.css';
+import 'styles/components/forms.css';
+import 'styles/components/layout.css';
 import 'styles/theme.css';
 
 import 'styles/tournamentContainer.css';

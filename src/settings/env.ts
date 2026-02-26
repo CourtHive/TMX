@@ -2,7 +2,7 @@
  * Environment configuration and settings.
  *
  * Global application configuration object that contains runtime settings for:
- * - Rating scales (WTN, UTR)
+ * - Rating scales (dynamically derived from factory ratingsParameters)
  * - Location and mapping services
  * - Scoreboard and match format settings
  * - Schedule display preferences
@@ -32,7 +32,7 @@
  *
  * RATING SCALES:
  * - env.activeScale: Current rating scale ('wtn' or 'utr') - Changed by user or programmatically
- * - env.scales: Scale configuration { wtn: {...}, utr: {...} } with accessor, color, etc.
+ * - env.scales: Scale configuration dynamically derived from factory ratingsParameters.
  *
  * LOCATION & MAPPING:
  * - env.locations.map: Leaflet map instance - Set when map is initialized
@@ -80,7 +80,24 @@
  * // Enable auto-save to IndexedDB
  * env.saveLocal = true;
  */
+import { fixtures } from 'tods-competition-factory';
 import { version } from '../config/version';
+
+const { ratingsParameters } = fixtures;
+
+// Build scales map from factory ratingsParameters (static — doesn't change at runtime)
+// scaleColor matches the legacy National composition convention: WTN = red, others = default (blue)
+const scaleColorMap: Record<string, string> = { WTN: 'red' };
+const scales: Record<string, any> = {};
+for (const [key, value] of Object.entries(ratingsParameters) as [string, any][]) {
+  const entry: Record<string, any> = {
+    accessor: value.accessor,
+    scaleType: 'RATING',
+    scaleName: key,
+  };
+  if (scaleColorMap[key]) entry.scaleColor = scaleColorMap[key];
+  scales[key.toLowerCase()] = entry;
+}
 
 export const env: any = {
   socketIo: { tmx: '/tmx' },
@@ -93,22 +110,9 @@ export const env: any = {
   smartComplements: false, // Auto-fill complement scores (6 → 6-4, Shift+6 → 4-6)
   composition: undefined, // Set dynamically by display settings modal or draw extension
 
-  scales: {
-    utr: {
-      accessor: 'utrRating',
-      scaleType: 'RATING',
-      scaleColor: 'blue',
-      scaleName: 'UTR',
-      fallback: true,
-    },
-    wtn: {
-      accessor: 'wtnRating',
-      scaleType: 'RATING',
-      scaleColor: 'red',
-      scaleName: 'WTN',
-      fallback: true,
-    },
-  },
+  // Scale configuration derived from factory ratingsParameters.
+  // Consumers access env.scales[env.activeScale] to get { accessor, scaleName, scaleType }.
+  scales,
 
   serverFirst: true,
   version,

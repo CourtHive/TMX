@@ -1,17 +1,14 @@
 /**
  * Column definitions for draw entries table in modal.
  * Similar to event entries 'Accepted' table with seeding support.
+ * Rating columns are generated dynamically from entry data.
  */
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
-import { ratingFormatter } from 'components/tables/common/formatters/ratingFormatter';
+import { getRatingColumns } from 'components/tables/common/getRatingColumns';
 import { numericEditor } from 'components/tables/common/editors/numericEditor';
-import { ratingSorter } from 'components/tables/common/sorters/ratingSorter';
-import { factoryConstants } from 'tods-competition-factory';
 
 import { CENTER, LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
-
-const { WTN, UTR } = factoryConstants.ratingConstants;
 
 export interface GetDrawEntriesColumnsParams {
   entries: any[];
@@ -19,8 +16,7 @@ export interface GetDrawEntriesColumnsParams {
 }
 
 export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesColumnsParams): any[] {
-  const utrRating = entries.find((entry) => entry.ratings?.utr);
-  const wtnRating = entries.find((entry) => entry.ratings?.wtn);
+  const ratingColumns = getRatingColumns(entries, 'entry').map((col) => ({ ...col, widthGrow: 1, minWidth: 80, width: undefined }));
   const cityState = entries.find((entry) => entry.cityState);
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
@@ -56,24 +52,7 @@ export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesC
       widthGrow: 1,
       minWidth: 80,
     },
-    {
-      formatter: ratingFormatter(WTN),
-      sorter: ratingSorter(WTN),
-      visible: !!wtnRating,
-      field: 'ratings.wtn',
-      title: WTN,
-      widthGrow: 1,
-      minWidth: 80,
-    },
-    {
-      formatter: ratingFormatter(UTR),
-      sorter: ratingSorter(UTR),
-      visible: !!utrRating,
-      field: 'ratings.utr',
-      title: UTR,
-      widthGrow: 1,
-      minWidth: 80,
-    },
+    ...ratingColumns,
     {
       visible: !!cityState,
       title: t('tables.drawEntries.cityState'),

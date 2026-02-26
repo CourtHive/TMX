@@ -1,14 +1,12 @@
 import type { Preview } from '@storybook/html-vite';
 
 // Import all application styles
-import 'vanillajs-datepicker/css/datepicker-bulma.css';
+import 'vanillajs-datepicker/css/datepicker.css';
 import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
 import '../src/styles/legacy/scoreboard.css';
 import '../src/styles/legacy/ddScoring.css';
 
-import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';
-import 'bulma-switch/dist/css/bulma-switch.min.css';
 import 'animate.css/animate.min.css';
 import 'quill/dist/quill.snow.css';
 import 'pikaday/css/pikaday.css';
@@ -19,7 +17,11 @@ import 'tippy.js/dist/tippy.css';
 
 import '../src/styles/tabulator.css';
 
-import 'bulma/css/versions/bulma-no-dark-mode.min.css';
+import '../src/styles/components/buttons.css';
+import '../src/styles/components/tags.css';
+import '../src/styles/components/forms.css';
+import '../src/styles/components/layout.css';
+import '../src/styles/theme.css';
 
 import '../src/styles/tournamentContainer.css';
 import '../src/styles/tournamentSchedule.css';

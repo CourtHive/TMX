@@ -1,0 +1,73 @@
+/**
+ * Layout & UI styles — replaces Bulma layout, notification, and helper classes for TMX.
+ */
+
+/* ── Section ─────────────────────────────────────────────── */
+.section { padding: 1rem 1.5rem; }
+
+/* ── Box ─────────────────────────────────────────────────── */
+.box {
+  background-color: var(--tmx-bg-primary);
+  border-radius: 6px;
+  box-shadow: 0 0.5em 1em -0.125em rgba(10,10,10,0.1), 0 0 0 1px rgba(10,10,10,0.02);
+  color: var(--tmx-text-primary);
+  display: block;
+  padding: 1.25rem;
+}
+
+/* ── Block ───────────────────────────────────────────────── */
+.block:not(:last-child) { margin-bottom: 1.5rem; }
+
+/* ── Content ─────────────────────────────────────────────── */
+.content { color: var(--tmx-text-primary); line-height: 1.5; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer {
+  background-color: var(--tmx-bg-secondary);
+  padding: 3rem 1.5rem 6rem;
+}
+
+/* ── Level ───────────────────────────────────────────────── */
+.level { align-items: center; display: flex; justify-content: space-between; }
+.level-left, .level-right { display: flex; align-items: center; }
+.level-item { align-items: center; display: flex; justify-content: center; margin: 0 0.75rem; }
+
+/* ── Title ───────────────────────────────────────────────── */
+.title { color: var(--tmx-text-primary); font-size: 2rem; font-weight: 600; line-height: 1.125; }
+.title.is-4 { font-size: 1.5rem; }
+.title.is-5 { font-size: 1.25rem; }
+
+/* ── Notification ────────────────────────────────────────── */
+.notification {
+  background-color: var(--tmx-bg-secondary);
+  border-radius: 4px;
+  padding: 1.25rem 2.5rem 1.25rem 1.5rem;
+  position: relative;
+  color: var(--tmx-text-primary);
+}
+.notification .delete { position: absolute; right: 0.5rem; top: 0.5rem; }
+
+.notification.is-info { background-color: #3e8ed0; color: #fff; }
+.notification.is-info.is-light { background-color: #eff5fb; color: #296fa8; }
+.notification.is-success { background-color: #48c78e; color: #fff; }
+.notification.is-danger { background-color: #f14668; color: #fff; }
+.notification.is-warning { background-color: #ffe08a; color: rgba(0,0,0,0.7); }
+.notification.is-primary { background-color: #00d1b2; color: #fff; }
+.notification.is-link { background-color: #485fc7; color: #fff; }
+
+/* ── Navbar items ───────────────────────────────────────── */
+.navbar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+}
+
+/* ── Helpers ─────────────────────────────────────────────── */
+.is-marginless { margin: 0 !important; }
+.has-text-success { color: var(--tmx-status-success) !important; }
+.has-text-warning-dark { color: #946c00 !important; }
+.has-text-centered { text-align: center !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }

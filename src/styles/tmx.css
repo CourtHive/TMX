@@ -2,18 +2,18 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--tmx-font-family, sans-serif);
 }
 
 html,
 body {
-  /* font-size: 62.5%; */
   font-weight: 500;
 }
 
 body {
   font-size: 1.4rem;
   color: var(--tmx-text-primary);
+  background-color: var(--tmx-bg-primary);
   height: 100vh;
 }
 
@@ -321,7 +321,6 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Lato', sans-serif;
 }
 
 * {
@@ -329,14 +328,16 @@ body {
 }
 
 #dnav {
-  background-color: var(--bulma-body-background-color);
-  color: var(--bulma-body-color);
+  background-color: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
   position: sticky;
   top: 0;
   z-index: 1000;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   justify-content: space-between;
+  min-height: 3.25rem;
   transition: top 500ms ease-in-out;
   border-bottom: 1px solid var(--tmx-border-primary);
 }

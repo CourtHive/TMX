@@ -2,15 +2,17 @@ import EnvironmentPlugin from 'vite-plugin-environment';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig, loadEnv } from 'vite';
 
-export default ({ mode }) => {
+const viteconfigFactory = ({ mode }: { mode: string }) => {
   // Load app-level env vars to node-level env vars.
   process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') };
 
   const BASE_URL = (process.env.BASE_URL && `/${process.env.BASE_URL}/`) || '';
 
   return defineConfig({
-    plugins: [tsconfigPaths(), EnvironmentPlugin(['SERVER', 'ENVIRONMENT'])],
+    plugins: [tsconfigPaths(), EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
     build: { sourcemap: true },
     base: BASE_URL,
   });
 };
+
+export default viteconfigFactory;
