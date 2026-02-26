@@ -4,10 +4,11 @@
  * Dynamically collects all ratings present in participant data.
  */
 import { getClub, getCountry, getEvents } from 'pages/tournament/tabs/participantTab/getters';
-import { factoryConstants } from 'tods-competition-factory';
+import { factoryConstants, fixtures } from 'tods-competition-factory';
 import camelcase from 'camelcase';
 
 // constants
+const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
 
 export const mapParticipant = (participant: any, derivedEventInfo: any): any => {
@@ -18,7 +19,15 @@ export const mapParticipant = (participant: any, derivedEventInfo: any): any => 
 
   const ratings: Record<string, any> = {};
   for (const item of participant.ratings?.[SINGLES] || []) {
-    ratings[item.scaleName.toLowerCase()] = item.scaleValue;
+    const key = item.scaleName.toLowerCase();
+    const params = ratingsParameters[item.scaleName.toUpperCase()];
+    const accessor = params?.accessor || `${key}Rating`;
+
+    if (typeof item.scaleValue === 'object' && item.scaleValue !== null) {
+      ratings[key] = item.scaleValue;
+    } else {
+      ratings[key] = { [accessor]: item.scaleValue };
+    }
   }
 
   return {

@@ -36,8 +36,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.28-beta.3
-        version: 0.9.28-beta.3(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
+        specifier: 0.9.28-beta.4
+        version: 0.9.28-beta.4(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
       d3-selection:
         specifier: 3.0.0
         version: 3.0.0
@@ -1651,8 +1651,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.9.28-beta.3:
-    resolution: {integrity: sha512-PukT+I4JXJxnZH0GXMsZ499JIpnAaxPbvDnDerxZodCcg8/i/p2xxvPbbGI0SJm2uUVcmqmKV6tj4u4ak7AzdA==}
+  courthive-components@0.9.28-beta.4:
+    resolution: {integrity: sha512-NpoxeI7gQtTumLgkrrN5CgegE48Fffc70Vv17EOhY5lglI+aLSng633PY58N6W/8jTama1JGFZwgtWQPwHyORw==}
     engines: {node: '>=20.19.0 < 25'}
 
   create-ecdh@4.0.4:
@@ -5134,7 +5134,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  courthive-components@0.9.28-beta.3(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15):
+  courthive-components@0.9.28-beta.4(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15):
     dependencies:
       awesomplete: 1.1.7
       class-variance-authority: 0.7.1

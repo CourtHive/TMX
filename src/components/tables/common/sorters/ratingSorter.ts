@@ -7,7 +7,8 @@ export const ratingSorter = (rating: string) => (a: any, b: any): number => {
   const ratingDetails = ratingsParameters[rating];
   if (!ratingDetails) return 0;
 
-  const { accessor, ascending } = ratingDetails;
+  const accessor = ratingDetails.accessor || `${rating.toLowerCase()}Rating`;
+  const { ascending } = ratingDetails;
   const reversed = !ascending;
 
   const ac = getConfidenceValue(a);

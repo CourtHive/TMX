@@ -3,10 +3,11 @@
  * Combines entry data with participant information for display in entries tables.
  * Dynamically collects all ratings present in participant data.
  */
-import { drawDefinitionConstants, factoryConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, factoryConstants, fixtures } from 'tods-competition-factory';
 
 // constants
 import { entryStatusMapping } from 'constants/tmxConstants';
+const { ratingsParameters } = fixtures;
 const { TEAM } = factoryConstants.eventConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
@@ -40,7 +41,15 @@ export function mapEntry({
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
   const ratings: Record<string, any> = {};
   for (const item of participant?.ratings?.[ratingType] || []) {
-    ratings[item.scaleName.toLowerCase()] = item.scaleValue;
+    const key = item.scaleName.toLowerCase();
+    const params = ratingsParameters[item.scaleName.toUpperCase()];
+    const accessor = params?.accessor || `${key}Rating`;
+
+    if (typeof item.scaleValue === 'object' && item.scaleValue !== null) {
+      ratings[key] = item.scaleValue;
+    } else {
+      ratings[key] = { [accessor]: item.scaleValue };
+    }
   }
 
   const ranking = participant?.rankings?.[eventType]?.find(
