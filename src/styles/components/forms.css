@@ -3,6 +3,15 @@
  * Checkradio and switch are loaded from courthive-components.
  */
 
+/* Form elements don't inherit font-family by default (browser UA styles override).
+   Bulma set this globally; replicate it here. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 .field { margin-bottom: 0.75rem; }
 .label { color: var(--tmx-text-primary); display: block; font-size: 1rem; font-weight: 700; margin-bottom: 0.5em; }
 .control { box-sizing: border-box; clear: both; font-size: 1rem; position: relative; text-align: inherit; }
