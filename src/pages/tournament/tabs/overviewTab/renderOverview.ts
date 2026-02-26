@@ -1,13 +1,30 @@
-import { createActionsPanel, createDualStatCard, createImagePanel, createNotesPanel, createStatCard, createSunburstPanel, createSunburstPlaceholder } from './dashboardPanels';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
+import {
+  createActionsPanel,
+  createDualStatCard,
+  createImagePanel,
+  createNotesPanel,
+  createStatCard,
+  createSunburstPanel,
+  createSunburstPlaceholder,
+} from './dashboardPanels';
 
 // constants
-import { ADMIN, EVENTS_TAB, MATCHUPS_TAB, PARTICIPANTS, SCHEDULE_TAB, SUPER_ADMIN, TOURNAMENT, TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
+import {
+  ADMIN,
+  EVENTS_TAB,
+  MATCHUPS_TAB,
+  PARTICIPANTS,
+  SCHEDULE_TAB,
+  SUPER_ADMIN,
+  TOURNAMENT,
+  TOURNAMENT_OVERVIEW,
+} from 'constants/tmxConstants';
 
 function navigateToTab(tab: string): void {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
@@ -155,7 +172,7 @@ export function renderOverview(): void {
 
   const state = getLoginState();
   const isAdmin =
-    state?.roles?.includes(SUPER_ADMIN) || (state?.roles?.includes(ADMIN) && context?.provider);
+    state?.roles?.includes(SUPER_ADMIN) || (state?.roles?.includes(ADMIN) && state?.provider?.organisationId);
   if (isAdmin) {
     leftColumn.appendChild(createActionsPanel());
   }

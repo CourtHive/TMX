@@ -359,8 +359,8 @@ export function createActionsPanel(): HTMLElement {
           sendTournament({ tournamentRecord: record }).then(
             () => {
               tmx2db.deleteTournament(record.tournamentId);
-              context.router?.navigate(`/tournament/${record.tournamentId}/detail`);
               tmxToast({ message: t('modals.tournamentActions.tournamentClaimed'), intent: 'is-info' });
+              renderOverview();
             },
             (error: any) => {
               tmxToast({ message: error.message || t('modals.tournamentActions.notClaimed'), intent: 'is-danger' });
