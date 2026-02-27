@@ -26,6 +26,9 @@ import {
   TOURNAMENT_TEAMS,
   PARTICIPANTS,
   MATCHUPS_TAB,
+  PUBLISHING_TAB,
+  PUBLISHING_CONTROL,
+  TOURNAMENT_PUBLISHING,
   SCHEDULE_TAB,
   UNSCHEDULED_MATCHUPS,
   UNSCHEDULED_CONTROL,
@@ -49,6 +52,7 @@ const refMap: Record<string, string> = {
   [MATCHUPS_TAB]: 'm-tab',
   [SCHEDULE_TAB]: 's-tab',
   [VENUES_TAB]: 'v-tab',
+  [PUBLISHING_TAB]: 'b-tab',
   [SETTINGS_TAB]: 'c-tab',
 };
 
@@ -115,11 +119,21 @@ export function tournamentContent(): void {
         </div>
         `;
 
+  const publishingTab = `
+        <div class='tab_section publishing_tab'>
+            <div class='section' style='min-height: auto;'>
+              <div id='${PUBLISHING_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_PUBLISHING}'></div>
+            </div>
+        </div>
+        `;
+
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's-tab': scheduleTab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
+    'b-tab': publishingTab,
     'c-tab': settingsTab,
   };
 
@@ -180,6 +194,7 @@ export function removeTournamentContent(): void {
     TOURNAMENT_TEAMS,
     UNSCHEDULED_MATCHUPS,
     TOURNAMENT_VENUES,
+    TOURNAMENT_PUBLISHING,
   ];
 
   ids.forEach((key) => {

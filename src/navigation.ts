@@ -15,6 +15,7 @@ import {
   EVENTS_TAB,
   MATCHUPS_TAB,
   PARTICIPANTS,
+  PUBLISHING_TAB,
   SCHEDULE_TAB,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
@@ -23,6 +24,10 @@ import {
 } from 'constants/tmxConstants';
 
 const ACCENT_BLUE = 'var(--tmx-accent-blue)';
+const ACTIVE_CLASS = 'mobile-nav-item--active';
+const MENU_OPEN_CLASS = 'mobile-nav-menu--open';
+const ARIA_EXPANDED = 'aria-expanded';
+const NAV_ITEM_SELECTOR = '.mobile-nav-item';
 
 const routeMap: Record<string, string> = {
   'o-route': TOURNAMENT_OVERVIEW,
@@ -31,6 +36,7 @@ const routeMap: Record<string, string> = {
   'm-route': MATCHUPS_TAB,
   's-route': SCHEDULE_TAB,
   'v-route': VENUES_TAB,
+  'b-route': PUBLISHING_TAB,
   'c-route': SETTINGS_TAB,
 };
 
@@ -41,6 +47,7 @@ const tips: Record<string, string> = {
   'm-route': 'MatchUps',
   's-route': 'Schedule',
   'v-route': 'Venues',
+  'b-route': 'Publishing',
   'c-route': 'Settings',
 };
 
@@ -52,6 +59,7 @@ const i18nKeys: Record<string, string> = {
   'm-route': 'mts',
   's-route': 'sch',
   'v-route': 'ven',
+  'b-route': 'pub',
   'c-route': 'set',
 };
 
@@ -84,17 +92,17 @@ function setupMobileNav(selectedTab: string | undefined): void {
     const item = document.createElement('button');
     item.className = 'mobile-nav-item';
     item.textContent = t(i18nKeys[id]);
-    if (id === currentId) item.classList.add('mobile-nav-item--active');
+    if (id === currentId) item.classList.add(ACTIVE_CLASS);
 
     item.onclick = () => {
       toggle.textContent = t(i18nKeys[id]);
-      menu.classList.remove('mobile-nav-menu--open');
-      toggle.setAttribute('aria-expanded', 'false');
+      menu.classList.remove(MENU_OPEN_CLASS);
+      toggle.setAttribute(ARIA_EXPANDED, 'false');
       navigateToRoute(id);
 
       // Update active state
-      menu.querySelectorAll('.mobile-nav-item').forEach((el) => el.classList.remove('mobile-nav-item--active'));
-      item.classList.add('mobile-nav-item--active');
+      menu.querySelectorAll(NAV_ITEM_SELECTOR).forEach((el) => el.classList.remove(ACTIVE_CLASS));
+      item.classList.add(ACTIVE_CLASS);
     };
 
     menu.appendChild(item);
@@ -102,16 +110,16 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Toggle dropdown on click
   toggle.onclick = () => {
-    const isOpen = menu.classList.toggle('mobile-nav-menu--open');
-    toggle.setAttribute('aria-expanded', String(isOpen));
+    const isOpen = menu.classList.toggle(MENU_OPEN_CLASS);
+    toggle.setAttribute(ARIA_EXPANDED, String(isOpen));
   };
 
   // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
     const mobileNav = document.getElementById('mobileNav');
     if (mobileNav && !mobileNav.contains(e.target as Node)) {
-      menu.classList.remove('mobile-nav-menu--open');
-      toggle.setAttribute('aria-expanded', 'false');
+      menu.classList.remove(MENU_OPEN_CLASS);
+      toggle.setAttribute(ARIA_EXPANDED, 'false');
     }
   });
 }
@@ -174,8 +182,8 @@ export function tmxNavigation(): void {
       const toggle = document.getElementById('mobileNavToggle');
       if (toggle) toggle.textContent = t(i18nKeys[id]);
       const menu = document.getElementById('mobileNavMenu');
-      menu?.querySelectorAll('.mobile-nav-item').forEach((el, idx) => {
-        el.classList.toggle('mobile-nav-item--active', Object.keys(routeMap)[idx] === id);
+      menu?.querySelectorAll(NAV_ITEM_SELECTOR).forEach((el, idx) => {
+        el.classList.toggle(ACTIVE_CLASS, Object.keys(routeMap)[idx] === id);
       });
     };
   });
@@ -197,8 +205,8 @@ export function highlightTab(selectedTab: string): void {
       const toggle = document.getElementById('mobileNavToggle');
       if (toggle) toggle.textContent = t(i18nKeys[id]);
       const menu = document.getElementById('mobileNavMenu');
-      menu?.querySelectorAll('.mobile-nav-item').forEach((el, idx) => {
-        el.classList.toggle('mobile-nav-item--active', ids[idx] === id);
+      menu?.querySelectorAll(NAV_ITEM_SELECTOR).forEach((el, idx) => {
+        el.classList.toggle(ACTIVE_CLASS, ids[idx] === id);
       });
     }
   });

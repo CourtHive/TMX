@@ -78,6 +78,7 @@
   "evt": "Épreuves",
   "sch": "Programmation",
   "ven": "Sites",
+  "pub": "Publication",
   "rename": "Renommer",
   "crt": "Courts",
   "ct": "Court",
@@ -1345,8 +1346,6 @@
     "events": {
       "title": "Épreuves",
       "addEvent": "Ajouter une épreuve",
-      "publish": "Publier",
-      "unpublish": "Dépublier",
       "deleteSelected": "Supprimer la sélection",
       "searchEvents": "Rechercher des épreuves",
       "editEvent": {
@@ -1450,5 +1449,38 @@
       "noChanges": "Aucune modification",
       "scorecardUpdated": "Feuille de score mise à jour"
     }
+  },
+
+  "publishing": {
+    "tournamentPublishing": "Publication du Tournoi",
+    "participants": "Participants",
+    "orderOfPlay": "Ordre de Jeu",
+    "eventsAndDraws": "Épreuves et Tableaux",
+    "activeEmbargoes": "Embargos Actifs",
+    "noActiveEmbargoes": "Aucun embargo actif",
+    "publishedDatesToggle": "Dates publiées (cliquer pour basculer) :",
+    "embargo": "Embargo",
+    "embargoDate": "Date d'Embargo",
+    "embargoTimeLocal": "Heure d'Embargo (locale)",
+    "setEmbargo": "Définir l'Embargo",
+    "clearEmbargo": "Supprimer l'Embargo",
+    "edit": "Modifier",
+    "set": "Définir",
+    "remove": "Supprimer",
+    "expired": "expiré",
+    "live": "En direct",
+    "embargoed": "Sous embargo",
+    "off": "Désactivé",
+    "name": "Nom",
+    "type": "Type",
+    "status": "Statut",
+    "event": "Épreuve",
+    "draw": "Tableau",
+    "noEvents": "Aucune épreuve",
+    "oopLive": "OOP En direct",
+    "oopOff": "OOP Désactivé",
+    "participantsLive": "Participants En direct",
+    "participantsOff": "Participants Désactivé",
+    "loginRequired": "Connectez-vous pour gérer la publication"
   }
 }

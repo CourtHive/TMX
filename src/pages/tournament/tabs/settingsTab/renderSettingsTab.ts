@@ -39,6 +39,11 @@ export function ensureSettingsStyles(): void {
     .panel-purple { border-color: var(--tmx-panel-purple-border); background: var(--tmx-panel-purple-bg); }
     .panel-teal   { border-color: var(--tmx-panel-teal-border); background: var(--tmx-panel-teal-bg); }
     .panel-red    { border-color: var(--tmx-panel-red-border); background: var(--tmx-panel-red-bg); }
+    .panel-gray   { border-color: var(--tmx-border-primary); background: var(--tmx-bg-secondary); }
+
+    .settings-panel label.radio {
+      white-space: nowrap;
+    }
 
     @media (max-width: 900px) {
       .settings-grid { grid-template-columns: 1fr; }

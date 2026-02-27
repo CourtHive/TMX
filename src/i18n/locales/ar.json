@@ -78,6 +78,7 @@
   "evt": "أحداث",
   "sch": "الجدول",
   "ven": "الأماكن",
+  "pub": "النشر",
   "rename": "إعادة تسمية",
   "crt": "ملاعب",
   "ct": "ملعب",
@@ -1312,8 +1313,6 @@
     "events": {
       "title": "الأحداث",
       "addEvent": "إضافة حدث",
-      "publish": "نشر",
-      "unpublish": "إلغاء النشر",
       "deleteSelected": "حذف المحدد",
       "searchEvents": "البحث عن أحداث",
       "editEvent": {
@@ -1416,5 +1415,38 @@
       "noChanges": "لا توجد تغييرات",
       "scorecardUpdated": "تم تحديث بطاقة النتائج"
     }
+  },
+
+  "publishing": {
+    "tournamentPublishing": "نشر البطولة",
+    "participants": "المشاركون",
+    "orderOfPlay": "ترتيب اللعب",
+    "eventsAndDraws": "الأحداث والقرعات",
+    "activeEmbargoes": "الحظر النشط",
+    "noActiveEmbargoes": "لا يوجد حظر نشط",
+    "publishedDatesToggle": "التواريخ المنشورة (انقر للتبديل):",
+    "embargo": "حظر",
+    "embargoDate": "تاريخ الحظر",
+    "embargoTimeLocal": "وقت الحظر (محلي)",
+    "setEmbargo": "تعيين الحظر",
+    "clearEmbargo": "إزالة الحظر",
+    "edit": "تعديل",
+    "set": "تعيين",
+    "remove": "إزالة",
+    "expired": "منتهي",
+    "live": "مباشر",
+    "embargoed": "محظور",
+    "off": "متوقف",
+    "name": "الاسم",
+    "type": "النوع",
+    "status": "الحالة",
+    "event": "حدث",
+    "draw": "قرعة",
+    "noEvents": "لا توجد أحداث",
+    "oopLive": "OOP مباشر",
+    "oopOff": "OOP متوقف",
+    "participantsLive": "المشاركون مباشر",
+    "participantsOff": "المشاركون متوقف",
+    "loginRequired": "سجّل الدخول لإدارة النشر"
   }
 }

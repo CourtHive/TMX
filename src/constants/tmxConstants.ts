@@ -61,10 +61,14 @@ export const SCHEDULE_TAB = 'schedule';
 export const MATCHUPS_TAB = 'matchUps';
 export const EVENTS_TAB = 'events';
 export const VENUES_TAB = 'venues';
+export const PUBLISHING_TAB = 'publishing';
 export const SETTINGS_TAB = 'settings';
 
 export const SETTINGS_CONTROL = 'settingsControl';
 export const TOURNAMENT_SETTINGS = 'tournamentSettings';
+
+export const PUBLISHING_CONTROL = 'publishingControl';
+export const TOURNAMENT_PUBLISHING = 'tournamentPublishing';
 
 export const LEGACY_EVENTS = 'legacyEvents';
 

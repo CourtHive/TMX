@@ -78,6 +78,7 @@
   "evt": "Bewerbe",
   "sch": "Spielplan",
   "ven": "Spielstätten",
+  "pub": "Veröffentlichung",
   "rename": "Umbenennen",
   "crt": "Plätze",
   "ct": "Platz",
@@ -1345,8 +1346,6 @@
     "events": {
       "title": "Bewerbe",
       "addEvent": "Bewerb hinzufügen",
-      "publish": "Veröffentlichen",
-      "unpublish": "Zurückziehen",
       "deleteSelected": "Ausgewählte löschen",
       "searchEvents": "Bewerbe suchen",
       "editEvent": {
@@ -1450,5 +1449,38 @@
       "noChanges": "Keine Änderungen",
       "scorecardUpdated": "Scorecard aktualisiert"
     }
+  },
+
+  "publishing": {
+    "tournamentPublishing": "Turnier-Veröffentlichung",
+    "participants": "Teilnehmer",
+    "orderOfPlay": "Spielreihenfolge",
+    "eventsAndDraws": "Bewerbe und Auslosungen",
+    "activeEmbargoes": "Aktive Embargos",
+    "noActiveEmbargoes": "Keine aktiven Embargos",
+    "publishedDatesToggle": "Veröffentlichte Daten (zum Umschalten klicken):",
+    "embargo": "Embargo",
+    "embargoDate": "Embargo-Datum",
+    "embargoTimeLocal": "Embargo-Zeit (lokal)",
+    "setEmbargo": "Embargo festlegen",
+    "clearEmbargo": "Embargo entfernen",
+    "edit": "Bearbeiten",
+    "set": "Festlegen",
+    "remove": "Entfernen",
+    "expired": "abgelaufen",
+    "live": "Live",
+    "embargoed": "Unter Embargo",
+    "off": "Aus",
+    "name": "Name",
+    "type": "Typ",
+    "status": "Status",
+    "event": "Bewerb",
+    "draw": "Auslosung",
+    "noEvents": "Keine Bewerbe",
+    "oopLive": "OOP Live",
+    "oopOff": "OOP Aus",
+    "participantsLive": "Teilnehmer Live",
+    "participantsOff": "Teilnehmer Aus",
+    "loginRequired": "Melden Sie sich an, um die Veröffentlichung zu verwalten"
   }
 }
