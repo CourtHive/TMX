@@ -155,7 +155,7 @@ importers:
         version: 24.10.15
       '@types/pdfmake':
         specifier: ^0.3.0
-        version: 0.3.1
+        version: 0.3.2
       '@typescript-eslint/eslint-plugin':
         specifier: 8.56.1
         version: 8.56.1(@typescript-eslint/parser@8.56.1(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3))(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
@@ -1162,8 +1162,8 @@ packages:
   '@types/pdfkit@0.17.5':
     resolution: {integrity: sha512-T3ZHnvF91HsEco5ClhBCOuBwobZfPcI2jaiSHybkkKYq4KhVIIurod94JVKvDIG0JXT6o3KiERC0X0//m8dyrg==}
 
-  '@types/pdfmake@0.3.1':
-    resolution: {integrity: sha512-/pR77+t9o0yqrSNwdA2wfp79ohgaXAhF2dTwXF4hNiI2ArHxaDlJ1BlBr3SWCrPUkjWjDRRHJv2+qALG33YPTA==}
+  '@types/pdfmake@0.3.2':
+    resolution: {integrity: sha512-2TZSL8puKJs/rHvMV1b8BhHD+qYyV9da8mVY83/x7ZR/NaEPXbm3+t5SwkwaH6QAIhY1zQVAaFDhHWL0haMstA==}
 
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
@@ -4553,7 +4553,7 @@ snapshots:
     dependencies:
       '@types/node': 24.10.15
 
-  '@types/pdfmake@0.3.1':
+  '@types/pdfmake@0.3.2':
     dependencies:
       '@types/node': 24.10.15
       '@types/pdfkit': 0.17.5
