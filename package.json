@@ -106,7 +106,7 @@
     "@event-calendar/day-grid": "3.12.0",
     "@event-calendar/interaction": "3.12.0",
     "animate.css": "4.1.1",
-    "axios": "1.13.5",
+    "axios": "1.13.6",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
     "courthive-components": "0.9.28-beta.5",
