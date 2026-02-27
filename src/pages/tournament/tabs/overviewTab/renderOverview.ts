@@ -4,9 +4,11 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   createActionsPanel,
   createDualStatCard,
+  createTripleStatCard,
   createImagePanel,
   createNotesPanel,
   createStatCard,
@@ -20,7 +22,7 @@ import {
   EVENTS_TAB,
   MATCHUPS_TAB,
   PARTICIPANTS,
-  SCHEDULE_TAB,
+  PUBLISHING_TAB,
   SUPER_ADMIN,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
@@ -58,6 +60,7 @@ function ensureStyles(): void {
     .dash-panel-notes  { border-color: var(--tmx-text-primary); background: transparent; }
     .dash-panel-green  { border-color: var(--tmx-panel-green-border); background: var(--tmx-panel-green-bg); }
     .dash-panel-red    { border-color: var(--tmx-panel-red-border); background: var(--tmx-panel-red-bg); }
+    .dash-panel-yellow { border-color: var(--tmx-panel-yellow-border); background: var(--tmx-panel-yellow-bg); }
     .dash-left   { grid-column: 1 / 3; display: flex; flex-direction: column; gap: 16px; }
 
     .dash-action-buttons {
@@ -158,16 +161,57 @@ export function renderOverview(): void {
   playersCard.addEventListener('click', () => navigateToTab(PARTICIPANTS));
   statsContainer.appendChild(playersCard);
 
-  const matchUpsCard = createStatCard('MatchUps', data.matchUpStats.total, 'fa-table-tennis');
+  const matchUpsCard = createTripleStatCard([
+    { label: 'MatchUps', value: data.matchUpStats.total, icon: 'fa-table-tennis' },
+    { label: 'Scheduled', value: data.matchUpStats.scheduled, icon: 'fa-clock' },
+    { label: 'Complete', value: `${data.matchUpStats.percentComplete}%`, icon: 'fa-chart-pie' },
+  ]);
   matchUpsCard.style.cursor = 'pointer';
   matchUpsCard.addEventListener('click', () => navigateToTab(MATCHUPS_TAB));
   statsContainer.appendChild(matchUpsCard);
 
-  const scheduledCard = createStatCard('Scheduled', data.matchUpStats.scheduled, 'fa-clock');
-  scheduledCard.style.cursor = 'pointer';
-  scheduledCard.addEventListener('click', () => navigateToTab(SCHEDULE_TAB));
-  statsContainer.appendChild(scheduledCard);
-  statsContainer.appendChild(createStatCard('Complete', `${data.matchUpStats.percentComplete}%`, 'fa-chart-pie'));
+  const pubStats = data.publishingStats;
+  const publishingCard = createDualStatCard([
+    { label: 'Draws', value: `${pubStats.publishedDraws}/${pubStats.totalDraws}`, icon: 'fa-eye' },
+    { label: 'Embargoes', value: pubStats.activeEmbargoes, icon: 'fa-clock' },
+  ]);
+  publishingCard.className = 'dash-panel dash-panel-yellow';
+  publishingCard.style.cssText += 'grid-column: 1 / -1; cursor: pointer;';
+  publishingCard.addEventListener('click', () => navigateToTab(PUBLISHING_TAB));
+
+  const pubHeader = document.createElement('div');
+  pubHeader.style.cssText =
+    'display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--tmx-text-secondary); margin-bottom:8px; width:100%;';
+  const pubIcon = document.createElement('i');
+  pubIcon.className = 'fa fa-eye';
+  pubIcon.style.fontSize = '0.8rem';
+  pubHeader.appendChild(pubIcon);
+  pubHeader.appendChild(document.createTextNode(t('settings.publishing')));
+
+  const oopBadge = document.createElement('span');
+  oopBadge.style.cssText = 'margin-left:auto; font-size:0.75rem; padding:1px 6px; border-radius:3px;';
+  if (pubStats.oopPublished) {
+    oopBadge.textContent = t('publishing.oopLive');
+    oopBadge.style.cssText += 'background:var(--tmx-accent-blue); color:var(--tmx-text-inverse);';
+  } else {
+    oopBadge.textContent = t('publishing.oopOff');
+    oopBadge.style.cssText += 'background:var(--tmx-accent-red); color:var(--tmx-text-inverse);';
+  }
+  pubHeader.appendChild(oopBadge);
+
+  const participantsBadge = document.createElement('span');
+  participantsBadge.style.cssText = 'font-size:0.75rem; padding:1px 6px; border-radius:3px;';
+  if (pubStats.participantsPublished) {
+    participantsBadge.textContent = t('publishing.participantsLive');
+    participantsBadge.style.cssText += 'background:var(--tmx-accent-blue); color:var(--tmx-text-inverse);';
+  } else {
+    participantsBadge.textContent = t('publishing.participantsOff');
+    participantsBadge.style.cssText += 'background:var(--tmx-accent-red); color:var(--tmx-text-inverse);';
+  }
+  pubHeader.appendChild(participantsBadge);
+
+  publishingCard.insertBefore(pubHeader, publishingCard.firstChild);
+  statsContainer.appendChild(publishingCard);
   leftColumn.appendChild(statsContainer);
 
   const state = getLoginState();

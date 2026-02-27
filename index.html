@@ -37,7 +37,7 @@
 
     <script>
       (function() {
-        var pref = localStorage.getItem('tmx_theme') || 'light';
+        var pref = localStorage.getItem('tmx_theme') || 'dark';
         var theme = pref;
         if (pref === 'system') {
           theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

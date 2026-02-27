@@ -2,7 +2,6 @@
  * Draws table columns configuration.
  * Defines columns for draw name, type, entries, ratings, and publish/actions.
  */
-import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
 import { visiblityFormatter } from '../common/formatters/visibility';
 import { drawActions } from 'components/popovers/drawActions';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
@@ -58,7 +57,6 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
     },
     {
       title: '<i class="fa-solid fa-eye"></i>',
-      cellClick: toggleDrawPublishState(eventRow),
       formatter: visiblityFormatter,
       headerSort: false,
       field: 'published',

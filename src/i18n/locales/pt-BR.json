@@ -78,6 +78,7 @@
   "evt": "Eventos",
   "sch": "Programação",
   "ven": "Locais",
+  "pub": "Publicação",
   "rename": "Renomear",
   "crt": "Quadras",
   "ct": "Quadra",
@@ -1345,8 +1346,6 @@
     "events": {
       "title": "Eventos",
       "addEvent": "Adicionar evento",
-      "publish": "Publicar",
-      "unpublish": "Despublicar",
       "deleteSelected": "Excluir selecionados",
       "searchEvents": "Buscar eventos",
       "editEvent": {
@@ -1450,5 +1449,38 @@
       "noChanges": "Sem alterações",
       "scorecardUpdated": "Súmula atualizada"
     }
+  },
+
+  "publishing": {
+    "tournamentPublishing": "Publicação do Torneio",
+    "participants": "Participantes",
+    "orderOfPlay": "Ordem de Jogo",
+    "eventsAndDraws": "Eventos e Chaves",
+    "activeEmbargoes": "Embargos Ativos",
+    "noActiveEmbargoes": "Sem embargos ativos",
+    "publishedDatesToggle": "Datas publicadas (clique para alternar):",
+    "embargo": "Embargo",
+    "embargoDate": "Data do Embargo",
+    "embargoTimeLocal": "Hora do Embargo (local)",
+    "setEmbargo": "Definir Embargo",
+    "clearEmbargo": "Remover Embargo",
+    "edit": "Editar",
+    "set": "Definir",
+    "remove": "Remover",
+    "expired": "expirado",
+    "live": "Ao vivo",
+    "embargoed": "Sob embargo",
+    "off": "Desativado",
+    "name": "Nome",
+    "type": "Tipo",
+    "status": "Status",
+    "event": "Evento",
+    "draw": "Chave",
+    "noEvents": "Sem eventos",
+    "oopLive": "OOP Ao vivo",
+    "oopOff": "OOP Desativado",
+    "participantsLive": "Participantes Ao vivo",
+    "participantsOff": "Participantes Desativado",
+    "loginRequired": "Faça login para gerenciar a publicação"
   }
 }

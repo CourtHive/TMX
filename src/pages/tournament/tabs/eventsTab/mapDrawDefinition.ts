@@ -14,6 +14,8 @@ export const mapDrawDefinition =
 
     const publishState = tournamentEngine.getPublishState({ drawId }).publishState;
     const published = publishState?.status?.published;
+    const drawDetail = publishState?.status?.drawDetails?.[drawId]?.publishingDetail;
+    const embargoActive = drawDetail?.embargo ? new Date(drawDetail.embargo).getTime() > Date.now() : false;
     const entriesCount = entries?.filter(({ entryStatus }: any) => entryStatus !== WITHDRAWN)?.length;
     const assignedParticipantIds = tournamentEngine
       .getAssignedParticipantIds({
@@ -31,6 +33,7 @@ export const mapDrawDefinition =
       matchUpFormat,
       flightNumber,
       tieFormat,
+      embargoActive,
       published,
       drawName,
       drawType,

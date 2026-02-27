@@ -1,13 +1,16 @@
 import { tournamentEngine } from 'tods-competition-factory';
+import { env } from 'settings/env';
 
 export function getPublicBaseUrl(): string {
+  if (env.PUBLIC_URL) return env.PUBLIC_URL;
   if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL;
 
   const url = new URL(globalThis.location.href);
   url.pathname = url.pathname.replace(/\/tmx\b/, '/pub');
   url.hash = '';
   url.search = '';
-  return url.toString().replace(/\/$/, '');
+  const publicURl = url.toString().replace(/\/$/, '');
+  return publicURl;
 }
 
 export function isEventPublished(eventId: string): boolean {

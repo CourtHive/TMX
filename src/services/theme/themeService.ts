@@ -120,7 +120,7 @@ export function applyTheme(pref: ThemePreference): void {
  */
 export function initTheme(): void {
   const settings = loadSettings();
-  const pref: ThemePreference = settings?.theme ?? 'light';
+  const pref: ThemePreference = settings?.theme ?? 'dark';
 
   applyTheme(pref);
 
@@ -133,7 +133,7 @@ export function initTheme(): void {
   // Listen for OS preference changes when in 'system' mode
   mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   mediaQuery.addEventListener('change', () => {
-    const currentPref = loadSettings()?.theme ?? 'light';
+    const currentPref = loadSettings()?.theme ?? 'dark';
     if (currentPref === 'system') {
       applyTheme('system');
     }
@@ -144,7 +144,7 @@ export function initTheme(): void {
  * Get the current theme preference.
  */
 export function getThemePreference(): ThemePreference {
-  return loadSettings()?.theme ?? 'light';
+  return loadSettings()?.theme ?? 'dark';
 }
 
 /**

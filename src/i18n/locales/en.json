@@ -78,6 +78,7 @@
   "evt": "Events",
   "sch": "Schedule",
   "ven": "Venues",
+  "pub": "Publishing",
   "rename": "Rename",
   "crt": "Courts",
   "ct": "Court",
@@ -1390,8 +1391,6 @@
     "events": {
       "title": "Events",
       "addEvent": "Add event",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
       "deleteSelected": "Delete selected",
       "searchEvents": "Search events",
       "editEvent": {
@@ -1495,5 +1494,38 @@
       "noChanges": "No changes",
       "scorecardUpdated": "Scorecard updated"
     }
+  },
+
+  "publishing": {
+    "tournamentPublishing": "Tournament Publishing",
+    "participants": "Participants",
+    "orderOfPlay": "Order of Play",
+    "eventsAndDraws": "Events & Draws",
+    "activeEmbargoes": "Active Embargoes",
+    "noActiveEmbargoes": "No active embargoes",
+    "publishedDatesToggle": "Published dates (click to toggle):",
+    "embargo": "Embargo",
+    "embargoDate": "Embargo Date",
+    "embargoTimeLocal": "Embargo Time (local)",
+    "setEmbargo": "Set Embargo",
+    "clearEmbargo": "Clear Embargo",
+    "edit": "Edit",
+    "set": "Set",
+    "remove": "Remove",
+    "expired": "expired",
+    "live": "Live",
+    "embargoed": "Embargoed",
+    "off": "Off",
+    "name": "Name",
+    "type": "Type",
+    "status": "Status",
+    "event": "Event",
+    "draw": "Draw",
+    "noEvents": "No events",
+    "oopLive": "OOP Live",
+    "oopOff": "OOP Off",
+    "participantsLive": "Participants Live",
+    "participantsOff": "Participants Off",
+    "loginRequired": "Log in to manage publishing"
   }
 }

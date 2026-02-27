@@ -4,19 +4,8 @@
  */
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { downloadURI } from './export/download';
-import { t } from 'i18n';
 import George from 'qrious';
-
-/*
-export function genQUR(value: string) {
-  new George({
-    element: document.getElementById('qr'),
-    level: 'H',
-    size: 200,
-    value: value
-  });
-}
-*/
+import { t } from 'i18n';
 
 type QRUriParams = {
   value: string;
@@ -25,15 +14,30 @@ type QRUriParams = {
   y_offset?: number;
 };
 
-export function getQRuri({ value, qr_dim, x_offset = 0, y_offset = 0 }: QRUriParams): { src: string; x: number; y: number } {
+export function getQRuri({ value, qr_dim, x_offset = 0, y_offset = 0 }: QRUriParams): {
+  src: string;
+  x: number;
+  y: number;
+} {
   const xx = new George({
     level: 'H',
     size: qr_dim,
-    value: value
+    value: value,
   });
   const qdu = xx.toDataURL();
 
   return { src: qdu, x: qr_dim * x_offset, y: qr_dim * y_offset };
+}
+
+export function renderQRimage(container: HTMLElement, value: string, size = 200): HTMLImageElement | undefined {
+  if (!value) return undefined;
+  const qruri = getQRuri({ value, qr_dim: size });
+  const img = document.createElement('img');
+  img.src = qruri.src;
+  img.alt = 'QR Code';
+  img.style.cssText = `width:100%; max-width:${size}px; height:auto; display:block; margin:0 auto;`;
+  container.appendChild(img);
+  return img;
 }
 
 export function displayQRdialogue(value: string, downloadName?: string): void {
@@ -50,9 +54,9 @@ export function displayQRdialogue(value: string, downloadName?: string): void {
       label: t('dl'),
       intent: 'is-success',
       onClick: downloadQRcode,
-      close: true
+      close: true,
     },
-    { label: t('tournaments.close') }
+    { label: t('tournaments.close') },
   ];
   (openModal as any)({ content, buttons });
 

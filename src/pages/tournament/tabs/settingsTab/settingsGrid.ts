@@ -14,6 +14,17 @@ import { i18next, t } from 'i18n';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
+/** Move text spans into their preceding label.radio so radio+text wrap as a unit. */
+function fixRadioWrapping(formEl: HTMLElement): void {
+  const labels = formEl.querySelectorAll('label.radio');
+  for (const label of labels) {
+    const span = label.nextElementSibling;
+    if (span?.tagName === 'SPAN') {
+      label.appendChild(span);
+    }
+  }
+}
+
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
 
@@ -187,13 +198,13 @@ export function renderSettingsGrid(container: HTMLElement): void {
   scoringInputs.dynamicSets.addEventListener('change', persist);
   scoringInputs.dialPad.addEventListener('change', persist);
   scoringInputs.freeScore.addEventListener('change', persist);
+  fixRadioWrapping(scoringForm);
   scoringPanel.appendChild(scoringForm);
   grid.appendChild(scoringPanel);
 
   // --- Scheduling panel (orange, cols 1-2) ---
   const schedulingPanel = document.createElement('div');
   schedulingPanel.className = 'settings-panel panel-orange';
-  schedulingPanel.style.gridColumn = '1 / 3';
   schedulingPanel.innerHTML = `<h3><i class="fa-solid fa-calendar-days"></i> ${t('modals.settings.scheduling')}</h3>`;
 
   const schedulingForm = document.createElement('div');
@@ -214,6 +225,31 @@ export function renderSettingsGrid(container: HTMLElement): void {
   ]);
   schedulingPanel.appendChild(schedulingForm);
   grid.appendChild(schedulingPanel);
+
+  // --- Font panel (blue, 1 col — next to scheduling) ---
+  const fontPanel = document.createElement('div');
+  fontPanel.className = 'settings-panel panel-blue';
+  fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> Font</h3>`;
+
+  const currentFont = getFontPreference();
+  const fontForm = document.createElement('div');
+  renderForm(fontForm, [
+    {
+      options: Object.entries(FONT_OPTIONS).map(([key, { label }]) => ({
+        value: key,
+        label,
+        selected: key === currentFont,
+      })),
+      onChange: (e: Event) => {
+        const select = e.target as HTMLSelectElement;
+        applyFont(select.value);
+      },
+      field: 'fontFamily',
+      id: 'fontFamily',
+    },
+  ]);
+  fontPanel.appendChild(fontForm);
+  grid.appendChild(fontPanel);
 
   // --- Storage panel (purple, cols 3-4) ---
   const storagePanel = document.createElement('div');
@@ -264,7 +300,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
 
   // --- Theme panel (red, 1 col) ---
   const themePanel = document.createElement('div');
-  themePanel.className = 'settings-panel panel-red';
+  themePanel.className = 'settings-panel panel-gray';
   themePanel.innerHTML = `<h3><i class="fa-solid fa-circle-half-stroke"></i> ${t('modals.settings.theme')}</h3>`;
 
   const currentTheme = getThemePreference();
@@ -293,33 +329,9 @@ export function renderSettingsGrid(container: HTMLElement): void {
   themeInputs.light.addEventListener('change', themeChange);
   themeInputs.dark.addEventListener('change', themeChange);
   themeInputs.system.addEventListener('change', themeChange);
+  fixRadioWrapping(themeForm);
   themePanel.appendChild(themeForm);
   grid.appendChild(themePanel);
-
-  // --- Font panel (indigo, 1 col) ---
-  const fontPanel = document.createElement('div');
-  fontPanel.className = 'settings-panel panel-blue';
-  fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> Font</h3>`;
-
-  const currentFont = getFontPreference();
-  const fontForm = document.createElement('div');
-  renderForm(fontForm, [
-    {
-      options: Object.entries(FONT_OPTIONS).map(([key, { label }]) => ({
-        value: key,
-        label,
-        selected: key === currentFont,
-      })),
-      onChange: (e: Event) => {
-        const select = e.target as HTMLSelectElement;
-        applyFont(select.value);
-      },
-      field: 'fontFamily',
-      id: 'fontFamily',
-    },
-  ]);
-  fontPanel.appendChild(fontForm);
-  grid.appendChild(fontPanel);
 
   // --- Delete Tournament panel (red, full width) ---
   const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
@@ -334,7 +346,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
   if (tournamentRecord && (!providerId || canDelete)) {
     const deletePanel = document.createElement('div');
     deletePanel.className = 'settings-panel panel-red';
-    deletePanel.style.gridColumn = '1 / -1';
+    deletePanel.style.gridColumn = '3 / 5';
     deletePanel.innerHTML = `<h3><i class="fa-solid fa-trash"></i> ${t('modals.settings.dangerZone')}</h3>`;
 
     const deleteBtn = document.createElement('button');

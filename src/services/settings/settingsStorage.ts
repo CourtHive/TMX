@@ -39,7 +39,9 @@ export function loadSettings(): TMXSettings | null {
  */
 export function saveSettings(settings: TMXSettings): void {
   try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    const existing = loadSettings() ?? {};
+    const merged = { ...existing, ...settings };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
   } catch (error) {
     console.error('Error saving settings to localStorage:', error);
   }

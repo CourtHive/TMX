@@ -50,6 +50,8 @@
   --tmx-panel-orange-border: #ff9f43;
   --tmx-panel-teal-bg: #e6faf8;
   --tmx-panel-teal-border: #00b8a9;
+  --tmx-panel-yellow-bg: #fffaeb;
+  --tmx-panel-yellow-border: #e6c84e;
 
   /* Schedule cell states */
   --sch-neutral: white;
@@ -138,6 +140,8 @@
   --tmx-panel-orange-border: #ffb366;
   --tmx-panel-teal-bg: #1a3a38;
   --tmx-panel-teal-border: #33c9bb;
+  --tmx-panel-yellow-bg: #3a3a1a;
+  --tmx-panel-yellow-border: #e6c84e;
 
   /* Tabulator */
   --tmx-tab-bg: #1a1a2e;

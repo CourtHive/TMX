@@ -2,7 +2,6 @@
  * Column definitions for events table.
  * Defines columns for event display including name, type, counts, and actions.
  */
-import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { openClose, toggleOpenClose } from '../common/formatters/openClose';
 import { visiblityFormatter } from '../common/formatters/visibility';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -51,7 +50,6 @@ export function getEventColumns(nestedTables: any, getLightMode?: () => boolean)
     },
     {
       title: '<i class="fa-solid fa-eye"></i>',
-      cellClick: toggleEventPublishState(nestedTables),
       formatter: visiblityFormatter,
       headerSort: false,
       field: 'published',

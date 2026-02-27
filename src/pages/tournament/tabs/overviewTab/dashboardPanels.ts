@@ -77,7 +77,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
 
   const editBtn = document.createElement('button');
   editBtn.style.cssText =
-    'position:absolute; bottom:8px; right:8px; background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px;';
+    'position:absolute; bottom:8px; right:8px; background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = 'Edit notes';
   editBtn.addEventListener('click', () => {
@@ -95,18 +95,22 @@ export function createNotesPanel(notes?: string): HTMLElement {
   return panel;
 }
 
+const VALUE_STYLE = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
+const LABEL_STYLE = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
+const CARD_BASE_STYLE = 'padding:12px 16px; min-width:0;';
+
 export function createStatCard(label: string, value: string | number, icon?: string): HTMLElement {
   const card = document.createElement('div');
   card.className = 'dash-panel dash-panel-blue';
-  card.style.cssText = 'padding:12px 16px; min-width:0;';
+  card.style.cssText = CARD_BASE_STYLE;
 
   const valueEl = document.createElement('div');
-  valueEl.style.cssText = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
+  valueEl.style.cssText = VALUE_STYLE;
   valueEl.textContent = String(value);
   card.appendChild(valueEl);
 
   const labelEl = document.createElement('div');
-  labelEl.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
+  labelEl.style.cssText = LABEL_STYLE;
   if (icon) {
     const iconEl = document.createElement('i');
     iconEl.className = `fa ${icon}`;
@@ -122,18 +126,18 @@ export function createStatCard(label: string, value: string | number, icon?: str
 export function createDualStatCard(stats: { label: string; value: string | number; icon?: string }[]): HTMLElement {
   const card = document.createElement('div');
   card.className = 'dash-panel dash-panel-blue';
-  card.style.cssText = 'padding:12px 16px; min-width:0; display:flex; gap:16px;';
+  card.style.cssText = `${CARD_BASE_STYLE} display:flex; gap:16px;`;
 
   for (const stat of stats) {
     const group = document.createElement('div');
 
     const valueEl = document.createElement('div');
-    valueEl.style.cssText = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
+    valueEl.style.cssText = VALUE_STYLE;
     valueEl.textContent = String(stat.value);
     group.appendChild(valueEl);
 
     const labelEl = document.createElement('div');
-    labelEl.style.cssText = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
+    labelEl.style.cssText = LABEL_STYLE;
     if (stat.icon) {
       const iconEl = document.createElement('i');
       iconEl.className = `fa ${stat.icon}`;
@@ -147,6 +151,12 @@ export function createDualStatCard(stats: { label: string; value: string | numbe
   }
 
   return card;
+}
+
+export function createTripleStatCard(
+  stats: { label: string; value: string | number; icon?: string }[],
+): HTMLElement {
+  return createDualStatCard(stats);
 }
 
 export function createSunburstPlaceholder(): HTMLElement {
