@@ -2,7 +2,7 @@
  * Add ad-hoc round modal with automated drawMatic or manual generation.
  * Creates new round with optional dynamic ratings and participant selection.
  */
-import { positionActionConstants, tournamentEngine } from 'tods-competition-factory';
+import { positionActionConstants, tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { renderForm } from 'courthive-components';
@@ -13,7 +13,7 @@ import { env } from 'settings/env';
 import { t } from 'i18n';
 
 import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
-import { AUTOMATED, MANUAL, UTR, WTN } from 'constants/tmxConstants';
+import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
@@ -74,7 +74,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
   };
 
   const drawMaticRound = (participantIds: string[]) => {
-    const selectedScale = (inputs.wtn.checked && 'wtn') || (inputs.utr.checked && 'utr') || '';
+    const selectedScale = inputs.levelOfPlay?.value || '';
     const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
     setActiveScale(selectedScale);
 
@@ -157,6 +157,28 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     { label: t('modals.addRound.addRound'), intent: 'is-success', close: false, onClick: addMatchUps },
   ];
 
+  // Discover which ratings are present in the current tournament
+  const { SINGLES } = factoryConstants.eventConstants;
+  const { ratingsParameters } = fixtures;
+  const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const presentRatings = new Set<string>();
+  for (const p of allParticipants) {
+    for (const item of (p as any).ratings?.[SINGLES] || []) {
+      presentRatings.add(item.scaleName);
+    }
+  }
+  const activeRatingKeys = Object.keys(ratingsParameters)
+    .filter((key) => !(ratingsParameters as any)[key].deprecated && presentRatings.has(key));
+
+  const scaleOptions = [
+    { label: `--${t('publishing.off')}--`, value: '', selected: !env.activeScale },
+    ...activeRatingKeys.map((key) => ({
+      label: key,
+      value: key.toLowerCase(),
+      selected: env.activeScale === key.toLowerCase(),
+    })),
+  ];
+
   const options = [
     {
       field: AUTOMATED,
@@ -167,16 +189,9 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       ],
     },
     {
-      options: [
-        { text: 'WTN', field: 'wtn', checked: env.activeScale === WTN },
-        { text: 'UTR', field: 'utr', checked: env.activeScale === UTR },
-        { text: 'None', field: 'none', checked: !env.activeScale },
-      ],
-      onClick: (x: any) => console.log({ x }),
       label: t('modals.addRound.levelOfPlay'),
       field: 'levelOfPlay',
-      id: 'levelOfPlay',
-      radio: true,
+      options: scaleOptions,
     },
   ];
 
