@@ -1,4 +1,10 @@
-import { applyFont, applyTheme, FONT_OPTIONS, getFontPreference, getThemePreference } from 'services/theme/themeService';
+import {
+  applyFont,
+  applyTheme,
+  FONT_OPTIONS,
+  getFontPreference,
+  getThemePreference,
+} from 'services/theme/themeService';
 import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
 import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
@@ -27,6 +33,8 @@ function fixRadioWrapping(formEl: HTMLElement): void {
 
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
+
+const RATINGS_PANEL_BLUE = 'settings-panel panel-blue';
 
 function persistAll(
   languageInputs: any,
@@ -98,7 +106,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
 
   // --- Language panel (blue, 1 col) ---
   const languagePanel = document.createElement('div');
-  languagePanel.className = 'settings-panel panel-blue';
+  languagePanel.className = RATINGS_PANEL_BLUE;
   languagePanel.innerHTML = `<h3><i class="fa-solid fa-globe"></i> ${t('modals.settings.language')}</h3>`;
 
   const languageForm = document.createElement('div');
@@ -122,7 +130,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
 
   // --- Active Rating panel (blue, 1 col) ---
   const ratingPanel = document.createElement('div');
-  ratingPanel.className = 'settings-panel panel-blue';
+  ratingPanel.className = RATINGS_PANEL_BLUE;
   ratingPanel.innerHTML = `<h3><i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}</h3>`;
 
   // Discover which ratings are present in current tournament participants
@@ -135,9 +143,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
   }
 
   // Build rating options: tournament ratings first, then all others (excluding deprecated)
-  const allRatingKeys = Object.keys(ratingsParameters).filter(
-    (key) => !(ratingsParameters as any)[key].deprecated,
-  );
+  const allRatingKeys = Object.keys(ratingsParameters).filter((key) => !(ratingsParameters as any)[key].deprecated);
   const inTournament = allRatingKeys.filter((key) => presentRatings.has(key));
   const notInTournament = allRatingKeys.filter((key) => !presentRatings.has(key));
 
@@ -176,7 +182,11 @@ export function renderSettingsGrid(container: HTMLElement): void {
   scoringInputs = renderForm(scoringForm, [
     {
       options: [
-        { text: t('modals.settings.dynamicSets'), field: 'dynamicSets', checked: env.scoringApproach === 'dynamicSets' },
+        {
+          text: t('modals.settings.dynamicSets'),
+          field: 'dynamicSets',
+          checked: env.scoringApproach === 'dynamicSets',
+        },
         { text: t('modals.settings.dialPad'), field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
         { text: t('modals.settings.freeScore'), field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
       ],
@@ -228,7 +238,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
 
   // --- Font panel (blue, 1 col — next to scheduling) ---
   const fontPanel = document.createElement('div');
-  fontPanel.className = 'settings-panel panel-blue';
+  fontPanel.className = RATINGS_PANEL_BLUE;
   fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> Font</h3>`;
 
   const currentFont = getFontPreference();
