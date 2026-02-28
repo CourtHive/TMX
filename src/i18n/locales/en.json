@@ -1533,6 +1533,7 @@
     "embargoRoundSchedule": "Embargo round {{roundNumber}} schedule",
     "clearRoundScheduleEmbargo": "Clear round {{roundNumber}} schedule embargo",
     "roundSchedule": "Round schedule",
+    "scheduleEmbargo": "Schedule embargo",
     "unpublishTournament": "Unpublish Tournament",
     "confirmUnpublish": "Unpublish all events, participants & schedule",
     "participantColumns": "Visible Columns",

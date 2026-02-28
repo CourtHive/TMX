@@ -80,6 +80,15 @@ function publicUrlFormatter(cell: any): string {
   return '<span style="color:var(--tmx-text-muted); font-size:0.85rem;">—</span>';
 }
 
+function formatLocalEmbargo(date: Date): string {
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function embargoFormatter(cell: any): string {
   const embargo = cell.getValue();
   if (!embargo) return '<span style="color:var(--tmx-text-muted); font-size:0.8rem;">—</span>';
@@ -87,11 +96,8 @@ function embargoFormatter(cell: any): string {
   const now = Date.now();
   const active = date.getTime() > now;
   if (!active) return `<span style="color:var(--tmx-text-muted); font-size:0.8rem;">${t('publishing.expired')}</span>`;
-  const diff = date.getTime() - now;
-  const hours = Math.floor(diff / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  return `<span style="color:var(--tmx-accent-orange); font-size:0.8rem;"><i class="fa fa-clock"></i> ${timeStr}</span>`;
+  const localStr = formatLocalEmbargo(date);
+  return `<span style="color:var(--tmx-accent-orange); font-size:0.8rem;" title="${localStr}"><i class="fa fa-clock"></i> ${localStr}</span>`;
 }
 
 function handleNameClick(cell: any): void {
@@ -276,6 +282,110 @@ function handleEmbargoClick(cell: any): void {
   });
 }
 
+function handleScheduleEmbargoClick(cell: any): void {
+  const row = cell.getRow();
+  const data = row.getData();
+
+  if (data.type === 'round') {
+    handleEmbargoClick(cell);
+    return;
+  }
+
+  if (data.type !== 'draw') return;
+
+  const eventDataParams = {
+    participantsProfile: { withScaleValues: true },
+    pressureRating: true,
+    refreshResults: true,
+  };
+
+  // Draw-level schedule embargo: applies to all rounds in all structures
+  const { event } = tournamentEngine.getEvent({ drawId: data.drawId });
+  if (!event) return;
+  const pubState = publishingGovernor.getPublishState({ event })?.publishState;
+  const drawDetail = pubState?.status?.drawDetails?.[data.drawId] || {};
+  const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === data.drawId);
+  const structures = drawDef?.structures || [];
+
+  // Find existing draw-level schedule embargo (from first structure's first round, or undefined)
+  const existingStructureDetails = drawDetail.structureDetails || {};
+  let currentScheduleEmbargo: string | undefined;
+  for (const [, sd] of Object.entries(existingStructureDetails) as [string, any][]) {
+    const scheduledRounds = sd?.scheduledRounds || {};
+    for (const [, rd] of Object.entries(scheduledRounds) as [string, any][]) {
+      if (rd?.embargo && new Date(rd.embargo).getTime() > Date.now()) {
+        currentScheduleEmbargo = rd.embargo;
+        break;
+      }
+    }
+    if (currentScheduleEmbargo) break;
+  }
+
+  openEmbargoModal({
+    title: `${t('publishing.embargo')}: ${data.name} ${t('publishing.roundSchedule').toLowerCase()}`,
+    currentEmbargo: currentScheduleEmbargo,
+    onSet: (isoString) => {
+      // Set schedule embargo on all rounds in all structures
+      const structureDetails: Record<string, any> = {};
+      for (const structure of structures) {
+        const matchUps = structure.matchUps || [];
+        const maxRound = matchUps.reduce((max: number, m: any) => Math.max(max, m.roundNumber || 0), 0);
+        const existingDetail = existingStructureDetails[structure.structureId] || {};
+        const scheduledRounds: Record<string, any> = {};
+        for (let rn = 1; rn <= maxRound; rn++) {
+          scheduledRounds[rn] = { published: true, embargo: isoString };
+        }
+        structureDetails[structure.structureId] = { ...existingDetail, scheduledRounds };
+      }
+
+      mutationRequest({
+        methods: [
+          {
+            method: PUBLISH_EVENT,
+            params: {
+              removePriorValues: true,
+              drawDetails: { [data.drawId]: { ...drawDetail, structureDetails } },
+              eventId: data.eventId,
+              eventDataParams,
+            },
+          },
+        ],
+        callback: () => renderPublishingTab(),
+      });
+    },
+    onClear: currentScheduleEmbargo
+      ? () => {
+          // Clear schedule embargoes from all rounds in all structures
+          const structureDetails: Record<string, any> = {};
+          for (const structure of structures) {
+            const existingDetail = existingStructureDetails[structure.structureId] || {};
+            const existingScheduledRounds = existingDetail.scheduledRounds || {};
+            const scheduledRounds: Record<string, any> = {};
+            for (const [rn] of Object.entries(existingScheduledRounds)) {
+              scheduledRounds[rn] = { published: true };
+            }
+            structureDetails[structure.structureId] = { ...existingDetail, scheduledRounds };
+          }
+
+          mutationRequest({
+            methods: [
+              {
+                method: PUBLISH_EVENT,
+                params: {
+                  removePriorValues: true,
+                  drawDetails: { [data.drawId]: { ...drawDetail, structureDetails } },
+                  eventId: data.eventId,
+                  eventDataParams,
+                },
+              },
+            ],
+            callback: () => renderPublishingTab(),
+          });
+        }
+      : undefined,
+  });
+}
+
 function getColumns(): any[] {
   return [
     {
@@ -334,10 +444,11 @@ function getColumns(): any[] {
       formatter: embargoFormatter,
       cellClick: (_: any, cell: any) => handleEmbargoClick(cell),
       headerSort: false,
-      width: 120,
+      width: 170,
     },
     {
       title: '<i class="fa fa-calendar"></i>',
+      headerTooltip: t('publishing.scheduleEmbargo'),
       field: 'scheduleEmbargo',
       formatter: (cell: any) => {
         const data = cell.getRow().getData();
@@ -346,12 +457,9 @@ function getColumns(): any[] {
         }
         return embargoFormatter(cell);
       },
-      cellClick: (_: any, cell: any) => {
-        const data = cell.getRow().getData();
-        if (data.type === 'round') handleEmbargoClick(cell);
-      },
+      cellClick: (_: any, cell: any) => handleScheduleEmbargoClick(cell),
       headerSort: false,
-      width: 100,
+      width: 170,
     },
   ];
 }

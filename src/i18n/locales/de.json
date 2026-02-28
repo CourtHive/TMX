@@ -1488,6 +1488,7 @@
     "embargoRoundSchedule": "Embargo für Runde {{roundNumber}} Spielplan",
     "clearRoundScheduleEmbargo": "Embargo für Runde {{roundNumber}} Spielplan entfernen",
     "roundSchedule": "Runden-Spielplan",
+    "scheduleEmbargo": "Spielplan-Embargo",
     "participantColumns": "Sichtbare Spalten",
     "defaultLanguage": "Standardsprache",
     "publishParticipants": "Teilnehmer veröffentlichen"

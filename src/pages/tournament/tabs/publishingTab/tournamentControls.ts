@@ -146,52 +146,21 @@ export function renderTournamentControls(grid: HTMLElement): void {
   const topPanel = document.createElement('div');
   topPanel.className = 'pub-panel pub-panel-yellow';
 
+  // Header row: title left, unpublish button right
+  const topHeaderRow = document.createElement('div');
+  topHeaderRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
+
   const topHeader = document.createElement('h3');
+  topHeader.style.margin = '0';
   topHeader.innerHTML = `<i class="fa fa-eye"></i> ${t('publishing.tournamentPublishing')}`;
-  topPanel.appendChild(topHeader);
-
-  // Default Language row
-  const langRow = document.createElement('div');
-  langRow.className = 'pub-toggle-row';
-
-  const langLabel = document.createElement('span');
-  langLabel.className = 'pub-label';
-  langLabel.textContent = t('publishing.defaultLanguage');
-  langRow.appendChild(langLabel);
-
-  const currentLang = data.publishLanguage || 'en';
-  const langFormContainer = document.createElement('div');
-  langFormContainer.style.cssText = 'flex:1;';
-  const langInputs = renderForm(langFormContainer, [
-    {
-      field: 'language',
-      options: SUPPORTED_LANGUAGES.map((lang) => ({
-        ...lang,
-        selected: lang.value === currentLang,
-      })),
-      onChange: () => {
-        const selectedLang: string = langInputs.language?.value || 'en';
-        const method = data.participantsPublished ? PUBLISH_PARTICIPANTS : PUBLISH_ORDER_OF_PLAY;
-        mutationRequest({
-          methods: [{ method, params: { language: selectedLang } }],
-          callback: () => renderPublishingTab(),
-        });
-      },
-    },
-  ]);
-  langRow.appendChild(langFormContainer);
-  topPanel.appendChild(langRow);
-
-  // Unpublish Tournament button
-  const unpublishRow = document.createElement('div');
-  unpublishRow.style.cssText = 'display:flex; justify-content:flex-end; padding-top:12px;';
+  topHeaderRow.appendChild(topHeader);
 
   const unpublishBtn = barButton({
     label: `<i class="fa fa-eye-slash"></i>&nbsp;${t('publishing.unpublishTournament')}`,
     intent: 'is-danger',
     disabled: !anythingPublished,
   });
-  unpublishBtn.style.marginRight = '0';
+  unpublishBtn.style.cssText = 'flex-shrink:0;';
 
   unpublishBtn.onclick = () => {
     const onClick = () => {
@@ -226,8 +195,39 @@ export function renderTournamentControls(grid: HTMLElement): void {
     });
   };
 
-  unpublishRow.appendChild(unpublishBtn);
-  topPanel.appendChild(unpublishRow);
+  topHeaderRow.appendChild(unpublishBtn);
+  topPanel.appendChild(topHeaderRow);
+
+  // Spacer between header and language selector
+  const topSpacer = document.createElement('div');
+  topSpacer.style.height = '8px';
+  topPanel.appendChild(topSpacer);
+
+  // Default Language selector (label rendered by renderForm above the select)
+  const currentLang = data.publishLanguage || 'en';
+  const langFormContainer = document.createElement('div');
+  const langInputs = renderForm(langFormContainer, [
+    {
+      label: t('publishing.defaultLanguage'),
+      field: 'language',
+      options: SUPPORTED_LANGUAGES.map((lang) => ({
+        ...lang,
+        selected: lang.value === currentLang,
+      })),
+      onChange: () => {
+        const selectedLang: string = langInputs.language?.value || 'en';
+        const method = data.participantsPublished ? PUBLISH_PARTICIPANTS : PUBLISH_ORDER_OF_PLAY;
+        mutationRequest({
+          methods: [{ method, params: { language: selectedLang } }],
+          callback: () => renderPublishingTab(),
+        });
+      },
+    },
+  ]);
+  // Remove .field bottom margin
+  const langField = langFormContainer.querySelector('.field') as HTMLElement;
+  if (langField) langField.style.marginBottom = '0';
+  topPanel.appendChild(langFormContainer);
 
   wrapper.appendChild(topPanel);
 
@@ -316,9 +316,27 @@ export function renderTournamentControls(grid: HTMLElement): void {
   const partPanel = document.createElement('div');
   partPanel.className = 'pub-panel pub-panel-yellow';
 
+  // Header row: title left, publish button right
+  const partHeaderRow = document.createElement('div');
+  partHeaderRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
+
   const partHeader = document.createElement('h3');
+  partHeader.style.margin = '0';
   partHeader.innerHTML = `<i class="fa fa-users"></i> ${t('publishing.participants')}`;
-  partPanel.appendChild(partHeader);
+  partHeaderRow.appendChild(partHeader);
+
+  // Publish Participants button in header (click handler wired up after columnInputs is created)
+  const publishBtn = barButton({
+    label: `<i class="fa fa-eye"></i>&nbsp;${t('publishing.publishParticipants')}`,
+    intent: 'is-primary',
+  });
+  publishBtn.style.cssText = 'flex-shrink:0;';
+  partHeaderRow.appendChild(publishBtn);
+  partPanel.appendChild(partHeaderRow);
+
+  const partSpacer = document.createElement('div');
+  partSpacer.style.height = '8px';
+  partPanel.appendChild(partSpacer);
 
   const partRow = document.createElement('div');
   partRow.className = 'pub-toggle-row';
@@ -402,9 +420,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
       });
     }
 
-    // Column multi-select
     const columnFormContainer = document.createElement('div');
-    columnFormContainer.style.cssText = 'margin-bottom:8px;';
     const columnInputs = renderForm(columnFormContainer, [
       {
         label: t('publishing.participantColumns'),
@@ -413,14 +429,11 @@ export function renderTournamentControls(grid: HTMLElement): void {
         options: columnOptions,
       },
     ]);
+    // Remove .field bottom margin
+    const colField = columnFormContainer.querySelector('.field') as HTMLElement;
+    if (colField) colField.style.marginBottom = '0';
 
-    configSection.appendChild(columnFormContainer);
-
-    // Publish button
-    const publishBtn = barButton({
-      label: `<i class="fa fa-eye"></i>&nbsp;${t('publishing.publishParticipants')}`,
-      intent: 'is-primary',
-    });
+    // Wire up publish button click handler now that columnInputs exists
     publishBtn.addEventListener('click', () => {
       const selectedValues: string[] = columnInputs.columns?.selectedValues || [];
 
@@ -437,7 +450,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
       });
     });
 
-    configSection.appendChild(publishBtn);
+    configSection.appendChild(columnFormContainer);
     partRow.appendChild(configSection);
   }
 

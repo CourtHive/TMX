@@ -1488,6 +1488,7 @@
     "embargoRoundSchedule": "Embarquer le calendrier du tour {{roundNumber}}",
     "clearRoundScheduleEmbargo": "Supprimer l'embargo du calendrier du tour {{roundNumber}}",
     "roundSchedule": "Calendrier du tour",
+    "scheduleEmbargo": "Embargo du calendrier",
     "participantColumns": "Colonnes Visibles",
     "defaultLanguage": "Langue par Défaut",
     "publishParticipants": "Publier les Participants"

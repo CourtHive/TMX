@@ -1488,6 +1488,7 @@
     "embargoRoundSchedule": "Embargar cronograma da rodada {{roundNumber}}",
     "clearRoundScheduleEmbargo": "Remover embargo do cronograma da rodada {{roundNumber}}",
     "roundSchedule": "Cronograma da rodada",
+    "scheduleEmbargo": "Embargo de cronograma",
     "participantColumns": "Colunas Visíveis",
     "defaultLanguage": "Idioma Padrão",
     "publishParticipants": "Publicar Participantes"

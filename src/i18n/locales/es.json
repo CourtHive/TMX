@@ -1488,6 +1488,7 @@
     "embargoRoundSchedule": "Embargar horario de ronda {{roundNumber}}",
     "clearRoundScheduleEmbargo": "Eliminar embargo de horario de ronda {{roundNumber}}",
     "roundSchedule": "Horario de ronda",
+    "scheduleEmbargo": "Embargo de horario",
     "participantColumns": "Columnas Visibles",
     "defaultLanguage": "Idioma Predeterminado",
     "publishParticipants": "Publicar Participantes"
