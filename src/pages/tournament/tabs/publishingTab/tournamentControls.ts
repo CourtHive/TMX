@@ -351,11 +351,8 @@ export function renderTournamentControls(grid: HTMLElement): void {
 
   // Toggle controls visibility (and for unpublish, fires immediately)
   const partToggle = createToggle(data.participantsPublished, (checked) => {
-    if (!checked) {
-      mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
-    } else {
-      renderPublishingTab();
-    }
+    const method = checked ? PUBLISH_PARTICIPANTS : UNPUBLISH_PARTICIPANTS;
+    mutationRequest({ methods: [{ method }], callback: () => renderPublishingTab() });
   });
   partRow.appendChild(partToggle);
 
@@ -365,8 +362,8 @@ export function renderTournamentControls(grid: HTMLElement): void {
     );
   }
 
-  // Participant publish config controls (shown when toggle is ON)
-  if (data.participantsPublished || (partToggle.querySelector('input') as HTMLInputElement)?.checked) {
+  // Participant publish config controls (column multi-selector + publish button handler)
+  {
     const configSection = document.createElement('div');
     configSection.style.cssText = 'width:100%; margin-top:8px;';
 
