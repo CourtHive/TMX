@@ -130,6 +130,7 @@ export function createDualStatCard(stats: { label: string; value: string | numbe
 
   for (const stat of stats) {
     const group = document.createElement('div');
+    group.style.flex = '1';
 
     const valueEl = document.createElement('div');
     valueEl.style.cssText = VALUE_STYLE;
