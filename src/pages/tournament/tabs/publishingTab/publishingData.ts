@@ -151,8 +151,8 @@ export function getPublishingTableData(): PublishingRowData[] {
               scheduleEmbargo: rd.embargo,
               scheduleEmbargoActive: true,
               published: true,
-              embargo: rd.embargo,
-              embargoActive: true,
+              embargo: undefined,
+              embargoActive: false,
               publishState: 'embargoed',
             });
           }
