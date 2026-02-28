@@ -5,12 +5,19 @@
 import { tournamentEngine, publishingGovernor, tools } from 'tods-competition-factory';
 import { t } from 'i18n';
 
+const PUB_ROUND_KEY = 'publishing.round';
+
 export type PublishingRowData = {
   id: string;
   name: string;
-  type: 'event' | 'draw';
+  type: 'event' | 'draw' | 'round';
   eventId: string;
   drawId?: string;
+  structureId?: string;
+  roundNumber?: number;
+  roundLimit?: number;
+  scheduleEmbargo?: string;
+  scheduleEmbargoActive?: boolean;
   published: boolean;
   embargo?: string;
   embargoActive: boolean;
@@ -35,6 +42,8 @@ export type TournamentPublishData = {
   participantsPublished: boolean;
   participantsEmbargo?: string;
   participantsEmbargoActive: boolean;
+  participantsColumns?: { country?: boolean; events?: boolean; ratings?: string[]; rankings?: string[] };
+  publishLanguage?: string;
   tournamentDateRange: string[];
   startDate: string;
   endDate: string;
@@ -58,6 +67,8 @@ export function getTournamentPublishData(): TournamentPublishData {
     participantsEmbargoActive: participantsEmbargo
       ? new Date(participantsEmbargo).getTime() > Date.now()
       : false,
+    participantsColumns: tournamentPubState?.participants?.columns,
+    publishLanguage: tournamentPubState?.language,
     tournamentDateRange: startDate && endDate ? tools.generateDateRange(startDate, endDate) : [],
     startDate,
     endDate,
@@ -85,7 +96,7 @@ export function getPublishingTableData(): PublishingRowData[] {
       const published = detail?.published ?? eventPublished;
       const embargo = detail?.embargo;
 
-      return {
+      const drawRow: PublishingRowData = {
         id: dd.drawId,
         name: dd.drawName || dd.drawId,
         type: 'draw' as const,
@@ -96,6 +107,61 @@ export function getPublishingTableData(): PublishingRowData[] {
         embargoActive: embargo ? new Date(embargo).getTime() > Date.now() : false,
         publishState: resolvePublishState(published, embargo),
       };
+
+      // Build round children from structureDetails
+      const structureDetails = drawDetails[dd.drawId]?.structureDetails || {};
+      const roundChildren: PublishingRowData[] = [];
+
+      for (const [structureId, sd] of Object.entries(structureDetails) as [string, any][]) {
+        // Round rows hidden by roundLimit
+        if (sd?.roundLimit != null) {
+          const structure = dd.structures?.find((s: any) => s.structureId === structureId);
+          const matchUps = structure?.matchUps || [];
+          const maxRound = matchUps.reduce((max: number, m: any) => Math.max(max, m.roundNumber || 0), 0);
+          for (let rn = sd.roundLimit + 1; rn <= maxRound; rn++) {
+            roundChildren.push({
+              id: `${dd.drawId}:${structureId}:round${rn}`,
+              name: `${t(PUB_ROUND_KEY)} ${rn}`,
+              type: 'round',
+              eventId: event.eventId,
+              drawId: dd.drawId,
+              structureId,
+              roundNumber: rn,
+              roundLimit: sd.roundLimit,
+              published: false,
+              embargo: undefined,
+              embargoActive: false,
+              publishState: 'off',
+            });
+          }
+        }
+
+        // Round rows with schedule embargo
+        const scheduledRounds = sd?.scheduledRounds || {};
+        for (const [rn, rd] of Object.entries(scheduledRounds) as [string, any][]) {
+          if (rd?.embargo && new Date(rd.embargo).getTime() > Date.now()) {
+            roundChildren.push({
+              id: `${dd.drawId}:${structureId}:sched${rn}`,
+              name: `${t(PUB_ROUND_KEY)} ${rn} ${t('publishing.roundSchedule').toLowerCase()}`,
+              type: 'round',
+              eventId: event.eventId,
+              drawId: dd.drawId,
+              structureId,
+              roundNumber: parseInt(rn),
+              scheduleEmbargo: rd.embargo,
+              scheduleEmbargoActive: true,
+              published: true,
+              embargo: undefined,
+              embargoActive: false,
+              publishState: 'embargoed',
+            });
+          }
+        }
+      }
+
+      if (roundChildren.length) drawRow._children = roundChildren;
+
+      return drawRow;
     });
 
     rows.push({
@@ -154,6 +220,25 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
             eventId: event.eventId,
             drawId,
           });
+        }
+      }
+
+      // Round-level schedule embargoes from structureDetails
+      const structureDetails = details?.structureDetails || {};
+      for (const [, sd] of Object.entries(structureDetails) as [string, any][]) {
+        const scheduledRounds = sd?.scheduledRounds || {};
+        for (const [roundNumber, rd] of Object.entries(scheduledRounds) as [string, any][]) {
+          if (rd?.embargo && new Date(rd.embargo).getTime() > Date.now()) {
+            const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
+            embargoes.push({
+              type: 'scheduledRound',
+              label: `${event.eventName} — ${drawDef?.drawName || drawId} — ${t(PUB_ROUND_KEY)} ${roundNumber} ${t('publishing.roundSchedule').toLowerCase()}`,
+              embargo: rd.embargo,
+              embargoActive: true,
+              eventId: event.eventId,
+              drawId,
+            });
+          }
         }
       }
     }

@@ -1447,6 +1447,16 @@
     "oopOff": "OOP متوقف",
     "participantsLive": "المشاركون مباشر",
     "participantsOff": "المشاركون متوقف",
-    "loginRequired": "سجّل الدخول لإدارة النشر"
+    "loginRequired": "سجّل الدخول لإدارة النشر",
+    "round": "جولة",
+    "showRound": "إظهار الجولة {{roundNumber}}",
+    "hideRound": "إخفاء الجولة {{roundNumber}}",
+    "embargoRoundSchedule": "حظر جدول الجولة {{roundNumber}}",
+    "clearRoundScheduleEmbargo": "إزالة حظر جدول الجولة {{roundNumber}}",
+    "roundSchedule": "جدول الجولة",
+    "scheduleEmbargo": "حظر الجدول",
+    "participantColumns": "الأعمدة المرئية",
+    "defaultLanguage": "اللغة الافتراضية",
+    "publishParticipants": "نشر المشاركين"
   }
 }

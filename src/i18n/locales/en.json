@@ -1526,6 +1526,18 @@
     "oopOff": "OOP Off",
     "participantsLive": "Participants Live",
     "participantsOff": "Participants Off",
-    "loginRequired": "Log in to manage publishing"
+    "loginRequired": "Log in to manage publishing",
+    "round": "Round",
+    "showRound": "Show round {{roundNumber}}",
+    "hideRound": "Hide round {{roundNumber}}",
+    "embargoRoundSchedule": "Embargo round {{roundNumber}} schedule",
+    "clearRoundScheduleEmbargo": "Clear round {{roundNumber}} schedule embargo",
+    "roundSchedule": "Round schedule",
+    "scheduleEmbargo": "Schedule embargo",
+    "unpublishTournament": "Unpublish Tournament",
+    "confirmUnpublish": "Unpublish all events, participants & schedule",
+    "participantColumns": "Visible Columns",
+    "defaultLanguage": "Default Language",
+    "publishParticipants": "Publish Participants"
   }
 }

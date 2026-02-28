@@ -1481,6 +1481,16 @@
     "oopOff": "OOP Désactivé",
     "participantsLive": "Participants En direct",
     "participantsOff": "Participants Désactivé",
-    "loginRequired": "Connectez-vous pour gérer la publication"
+    "loginRequired": "Connectez-vous pour gérer la publication",
+    "round": "Tour",
+    "showRound": "Afficher le tour {{roundNumber}}",
+    "hideRound": "Masquer le tour {{roundNumber}}",
+    "embargoRoundSchedule": "Embarquer le calendrier du tour {{roundNumber}}",
+    "clearRoundScheduleEmbargo": "Supprimer l'embargo du calendrier du tour {{roundNumber}}",
+    "roundSchedule": "Calendrier du tour",
+    "scheduleEmbargo": "Embargo du calendrier",
+    "participantColumns": "Colonnes Visibles",
+    "defaultLanguage": "Langue par Défaut",
+    "publishParticipants": "Publier les Participants"
   }
 }

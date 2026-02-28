@@ -1481,6 +1481,16 @@
     "oopOff": "OOP Desativado",
     "participantsLive": "Participantes Ao vivo",
     "participantsOff": "Participantes Desativado",
-    "loginRequired": "Faça login para gerenciar a publicação"
+    "loginRequired": "Faça login para gerenciar a publicação",
+    "round": "Rodada",
+    "showRound": "Mostrar rodada {{roundNumber}}",
+    "hideRound": "Ocultar rodada {{roundNumber}}",
+    "embargoRoundSchedule": "Embargar cronograma da rodada {{roundNumber}}",
+    "clearRoundScheduleEmbargo": "Remover embargo do cronograma da rodada {{roundNumber}}",
+    "roundSchedule": "Cronograma da rodada",
+    "scheduleEmbargo": "Embargo de cronograma",
+    "participantColumns": "Colunas Visíveis",
+    "defaultLanguage": "Idioma Padrão",
+    "publishParticipants": "Publicar Participantes"
   }
 }

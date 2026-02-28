@@ -4,6 +4,7 @@
  */
 import { fixtures, tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
+import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick';
 import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
@@ -97,6 +98,18 @@ export function getEventHandlers({ callback, drawId, eventData }: EventHandlersP
       const roundNumber = getRoundNumber(props);
       const structureId = getStructureId(props);
       return handleRoundHeaderClick({
+        pointerEvent: props.pointerEvent,
+        roundNumber,
+        structureId,
+        eventData,
+        callback,
+        drawId,
+      });
+    },
+    roundVisibilityClick: (props: any) => {
+      const roundNumber = getRoundNumber(props);
+      const structureId = getStructureId(props);
+      handleRoundVisibilityClick({
         pointerEvent: props.pointerEvent,
         roundNumber,
         structureId,
