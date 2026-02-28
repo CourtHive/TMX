@@ -1491,6 +1491,7 @@
     "scheduleEmbargo": "Spielplan-Embargo",
     "participantColumns": "Sichtbare Spalten",
     "defaultLanguage": "Standardsprache",
-    "publishParticipants": "Teilnehmer veröffentlichen"
+    "publishParticipants": "Teilnehmer veröffentlichen",
+    "country": "Land"
   }
 }

@@ -1491,6 +1491,7 @@
     "scheduleEmbargo": "Embargo du calendrier",
     "participantColumns": "Colonnes Visibles",
     "defaultLanguage": "Langue par Défaut",
-    "publishParticipants": "Publier les Participants"
+    "publishParticipants": "Publier les Participants",
+    "country": "Pays"
   }
 }

@@ -1457,6 +1457,7 @@
     "scheduleEmbargo": "حظر الجدول",
     "participantColumns": "الأعمدة المرئية",
     "defaultLanguage": "اللغة الافتراضية",
-    "publishParticipants": "نشر المشاركين"
+    "publishParticipants": "نشر المشاركين",
+    "country": "البلد"
   }
 }

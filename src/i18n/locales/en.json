@@ -1538,6 +1538,7 @@
     "confirmUnpublish": "Unpublish all events, participants & schedule",
     "participantColumns": "Visible Columns",
     "defaultLanguage": "Default Language",
-    "publishParticipants": "Publish Participants"
+    "publishParticipants": "Publish Participants",
+    "country": "Country"
   }
 }
