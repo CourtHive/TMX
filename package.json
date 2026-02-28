@@ -61,7 +61,7 @@
     "@storybook/html": "^10.1.11",
     "@storybook/html-vite": "^10.1.11",
     "@types/babel__traverse": "7.28.0",
-    "@types/node": "24.10.15",
+    "@types/node": "24.11.0",
     "@types/pdfmake": "^0.3.0",
     "@typescript-eslint/eslint-plugin": "8.56.1",
     "@typescript-eslint/parser": "8.56.1",
