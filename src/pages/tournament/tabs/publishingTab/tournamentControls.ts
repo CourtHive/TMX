@@ -316,27 +316,9 @@ export function renderTournamentControls(grid: HTMLElement): void {
   const partPanel = document.createElement('div');
   partPanel.className = 'pub-panel pub-panel-yellow';
 
-  // Header row: title left, publish button right
-  const partHeaderRow = document.createElement('div');
-  partHeaderRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
-
   const partHeader = document.createElement('h3');
-  partHeader.style.margin = '0';
   partHeader.innerHTML = `<i class="fa fa-users"></i> ${t('publishing.participants')}`;
-  partHeaderRow.appendChild(partHeader);
-
-  // Publish Participants button in header (click handler wired up after columnInputs is created)
-  const publishBtn = barButton({
-    label: `<i class="fa fa-eye"></i>&nbsp;${t('publishing.publishParticipants')}`,
-    intent: 'is-primary',
-  });
-  publishBtn.style.cssText = 'flex-shrink:0;';
-  partHeaderRow.appendChild(publishBtn);
-  partPanel.appendChild(partHeaderRow);
-
-  const partSpacer = document.createElement('div');
-  partSpacer.style.height = '8px';
-  partPanel.appendChild(partSpacer);
+  partPanel.appendChild(partHeader);
 
   const partRow = document.createElement('div');
   partRow.className = 'pub-toggle-row';
@@ -418,34 +400,36 @@ export function renderTournamentControls(grid: HTMLElement): void {
     }
 
     const columnFormContainer = document.createElement('div');
-    const columnInputs = renderForm(columnFormContainer, [
+    renderForm(columnFormContainer, [
       {
         label: t('publishing.participantColumns'),
         field: 'columns',
         multiple: true,
         options: columnOptions,
+        onChange: () => {
+          if (!data.participantsPublished) return;
+          const selectEl = columnFormContainer.querySelector('select');
+          const selectedValues = selectEl
+            ? Array.from(selectEl.selectedOptions).map((o) => o.value)
+            : [];
+
+          const columns: any = {
+            country: selectedValues.includes('country'),
+            events: selectedValues.includes('events'),
+            ratings: selectedValues.filter((v) => v.startsWith('rating:')).map((v) => v.split(':')[1]),
+            rankings: selectedValues.filter((v) => v.startsWith('ranking:')).map((v) => v.split(':')[1]),
+          };
+
+          mutationRequest({
+            methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
+            callback: () => renderPublishingTab(),
+          });
+        },
       },
     ]);
     // Remove .field bottom margin
     const colField = columnFormContainer.querySelector('.field') as HTMLElement;
     if (colField) colField.style.marginBottom = '0';
-
-    // Wire up publish button click handler now that columnInputs exists
-    publishBtn.addEventListener('click', () => {
-      const selectedValues: string[] = columnInputs.columns?.selectedValues || [];
-
-      const columns: any = {
-        country: selectedValues.includes('country'),
-        events: selectedValues.includes('events'),
-        ratings: selectedValues.filter((v) => v.startsWith('rating:')).map((v) => v.split(':')[1]),
-        rankings: selectedValues.filter((v) => v.startsWith('ranking:')).map((v) => v.split(':')[1]),
-      };
-
-      mutationRequest({
-        methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
-        callback: () => renderPublishingTab(),
-      });
-    });
 
     configSection.appendChild(columnFormContainer);
     partRow.appendChild(configSection);
