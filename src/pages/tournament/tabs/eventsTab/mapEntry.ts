@@ -8,7 +8,8 @@ import { drawDefinitionConstants, factoryConstants, fixtures } from 'tods-compet
 // constants
 import { entryStatusMapping } from 'constants/tmxConstants';
 const { ratingsParameters } = fixtures;
-const { TEAM } = factoryConstants.eventConstants;
+const { TEAM, SINGLES } = factoryConstants.eventConstants;
+const { PAIR } = factoryConstants.participantConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
 type MapEntryParams = {
@@ -40,15 +41,54 @@ export function mapEntry({
 
   const ratingType = eventType === TEAM ? 'AVERAGE' : eventType;
   const ratings: Record<string, any> = {};
-  for (const item of participant?.ratings?.[ratingType] || []) {
-    const key = item.scaleName.toLowerCase();
-    const params = ratingsParameters[item.scaleName.toUpperCase()];
-    const accessor = params?.accessor || `${key}Rating`;
 
-    if (typeof item.scaleValue === 'object' && item.scaleValue !== null) {
-      ratings[key] = item.scaleValue;
-    } else {
-      ratings[key] = { [accessor]: item.scaleValue };
+  if (participant?.participantType === PAIR && participant?.individualParticipants?.length) {
+    // Aggregate individual SINGLES ratings for PAIR participants
+    const individuals = participant.individualParticipants;
+    const allScaleNames = new Set<string>();
+    for (const ind of individuals) {
+      for (const item of ind.ratings?.[SINGLES] || []) {
+        allScaleNames.add(item.scaleName);
+      }
+    }
+
+    for (const scaleName of allScaleNames) {
+      const key = scaleName.toLowerCase();
+      const params = ratingsParameters[scaleName.toUpperCase()];
+      const accessor = params?.accessor || `${key}Rating`;
+      const indRatings = individuals
+        .map((ind: any) => ind.ratings?.[SINGLES]?.find((r: any) => r.scaleName === scaleName))
+        .filter(Boolean);
+
+      if (indRatings.length === 2) {
+        const sv0 = indRatings[0].scaleValue;
+        const sv1 = indRatings[1].scaleValue;
+        if (typeof sv0 === 'object' && sv0 !== null && typeof sv1 === 'object' && sv1 !== null) {
+          const valueKey = accessor in sv0 ? accessor : 'value';
+          ratings[key] = {
+            ...sv0,
+            [valueKey]: ((sv0[valueKey] ?? 0) + (sv1[valueKey] ?? 0)) / 2,
+            ...(sv0.confidence != null && { confidence: Math.min(sv0.confidence ?? 0, sv1.confidence ?? 0) }),
+          };
+        } else {
+          ratings[key] = { [accessor]: ((sv0 ?? 0) + (sv1 ?? 0)) / 2 };
+        }
+      } else if (indRatings.length === 1) {
+        const sv = indRatings[0].scaleValue;
+        ratings[key] = typeof sv === 'object' && sv !== null ? sv : { [accessor]: sv };
+      }
+    }
+  } else {
+    for (const item of participant?.ratings?.[ratingType] || []) {
+      const key = item.scaleName.toLowerCase();
+      const params = ratingsParameters[item.scaleName.toUpperCase()];
+      const accessor = params?.accessor || `${key}Rating`;
+
+      if (typeof item.scaleValue === 'object' && item.scaleValue !== null) {
+        ratings[key] = item.scaleValue;
+      } else {
+        ratings[key] = { [accessor]: item.scaleValue };
+      }
     }
   }
 

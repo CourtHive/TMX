@@ -42,6 +42,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
   const drawCreated = !!drawDefinition;
   const drawId = drawDefinition?.drawId;
   const eventId = event?.eventId;
+  const isDoubles = event?.eventType === DOUBLES;
 
   const moves: Record<string, string[]> = {
     [ACCEPTED]: [ALTERNATE, WITHDRAWN],
@@ -160,11 +161,14 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
       items: [
         ...panelItems({ heading: 'Alternates', count: alternateEntries.length }),
         moveSelected(moves[ALTERNATE], eventId, drawId),
-        event?.eventType === DOUBLES && destroySelected(eventId, drawId),
+        isDoubles && destroySelected(eventId, drawId),
         !drawCreated && addEntries(event, ALTERNATE),
+        !drawCreated && isDoubles && seedingSelector(event, ALTERNATE),
+        isDoubles && cancelManualSeeding(event),
+        isDoubles && saveSeeding(event),
       ],
       actions: [ACCEPTED, QUALIFYING, WITHDRAWN],
-      excludeColumns: ['seedNumber', 'flights'],
+      excludeColumns: isDoubles ? excludeColumns : ['seedNumber', ...excludeColumns],
       placeholder: 'No alternates',
       anchorId: ALTERNATES_PANEL,
       entries: alternateEntries,
