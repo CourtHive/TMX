@@ -138,7 +138,7 @@ function createToast(options: ToastOptions): { element: HTMLElement } {
   if (isFunction(options.action?.onClick)) {
     const actionButton = document.createElement('button');
     actionButton.style.cssText = 'margin-left: 1em;';
-    actionButton.className = 'button';
+    actionButton.className = options.type === 'is-danger' ? 'button is-light' : 'button';
     actionButton.innerHTML = options.action.text || 'OK';
     actionButton.addEventListener('click', options.action.onClick!);
     container.appendChild(actionButton);

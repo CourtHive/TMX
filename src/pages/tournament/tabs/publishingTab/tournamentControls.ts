@@ -4,10 +4,12 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
-import { getTournamentPublishData } from './publishingData';
+import { getTournamentPublishData, getPublishingTableData } from './publishingData';
+import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { barButton, renderForm } from 'courthive-components';
 import { openEmbargoModal } from './embargoModal';
-import { renderPublishingTab } from './renderPublishingTab';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine, eventConstants, fixtures } from 'tods-competition-factory';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
 
@@ -16,7 +18,20 @@ import {
   UNPUBLISH_ORDER_OF_PLAY,
   PUBLISH_PARTICIPANTS,
   UNPUBLISH_PARTICIPANTS,
+  UNPUBLISH_EVENT,
 } from 'constants/mutationConstants';
+
+const { ratingsParameters } = fixtures;
+const { SINGLES } = eventConstants;
+
+const SUPPORTED_LANGUAGES = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+  { value: 'pt-BR', label: 'Português' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'ar', label: 'العربية' },
+];
 
 function createToggle(checked: boolean, onChange: (checked: boolean) => void): HTMLElement {
   const label = document.createElement('label');
@@ -119,52 +134,116 @@ export function renderTournamentControls(grid: HTMLElement): void {
   const data = getTournamentPublishData();
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
   const publicUrl = tournamentId ? getPublicTournamentUrl(tournamentId) : undefined;
+  const anythingPublished = isAnythingPublished();
 
-  const panel = document.createElement('div');
-  panel.className = 'pub-panel pub-panel-yellow';
+  // Wrapper keeps all three panels in the left grid column (beside the QR panel)
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex; flex-direction:column; gap:16px;';
 
-  const header = document.createElement('h3');
-  header.innerHTML = `<i class="fa fa-eye"></i> ${t('publishing.tournamentPublishing')}`;
-  panel.appendChild(header);
+  // ============================================================
+  // Panel 1 — Tournament Publishing (language + unpublish)
+  // ============================================================
+  const topPanel = document.createElement('div');
+  topPanel.className = 'pub-panel pub-panel-yellow';
 
-  // --- Participants row ---
-  const partRow = document.createElement('div');
-  partRow.className = 'pub-toggle-row';
+  const topHeader = document.createElement('h3');
+  topHeader.innerHTML = `<i class="fa fa-eye"></i> ${t('publishing.tournamentPublishing')}`;
+  topPanel.appendChild(topHeader);
 
-  const partLabel = document.createElement('span');
-  partLabel.className = 'pub-label';
-  partLabel.textContent = t('publishing.participants');
-  partRow.appendChild(partLabel);
+  // Default Language row
+  const langRow = document.createElement('div');
+  langRow.className = 'pub-toggle-row';
 
-  const partState = data.participantsPublished
-    ? data.participantsEmbargoActive
-      ? 'embargoed'
-      : 'live'
-    : 'off';
-  partRow.appendChild(createStateBadge(partState as 'live' | 'embargoed' | 'off', partState === 'live' ? publicUrl : undefined));
+  const langLabel = document.createElement('span');
+  langLabel.className = 'pub-label';
+  langLabel.textContent = t('publishing.defaultLanguage');
+  langRow.appendChild(langLabel);
 
-  partRow.appendChild(
-    createToggle(data.participantsPublished, (checked) => {
-      const method = checked ? PUBLISH_PARTICIPANTS : UNPUBLISH_PARTICIPANTS;
-      mutationRequest({ methods: [{ method }], callback: () => renderPublishingTab() });
-    }),
-  );
+  const currentLang = data.publishLanguage || 'en';
+  const langFormContainer = document.createElement('div');
+  langFormContainer.style.cssText = 'flex:1;';
+  const langInputs = renderForm(langFormContainer, [
+    {
+      field: 'language',
+      options: SUPPORTED_LANGUAGES.map((lang) => ({
+        ...lang,
+        selected: lang.value === currentLang,
+      })),
+      onChange: () => {
+        const selectedLang: string = langInputs.language?.value || 'en';
+        const method = data.participantsPublished ? PUBLISH_PARTICIPANTS : PUBLISH_ORDER_OF_PLAY;
+        mutationRequest({
+          methods: [{ method, params: { language: selectedLang } }],
+          callback: () => renderPublishingTab(),
+        });
+      },
+    },
+  ]);
+  langRow.appendChild(langFormContainer);
+  topPanel.appendChild(langRow);
 
-  partRow.appendChild(
-    createEmbargoButton(data.participantsEmbargo, PUBLISH_PARTICIPANTS, () => renderPublishingTab()),
-  );
+  // Unpublish Tournament button
+  const unpublishRow = document.createElement('div');
+  unpublishRow.style.cssText = 'display:flex; justify-content:flex-end; padding-top:12px;';
 
-  panel.appendChild(partRow);
+  const unpublishBtn = barButton({
+    label: `<i class="fa fa-eye-slash"></i>&nbsp;${t('publishing.unpublishTournament')}`,
+    intent: 'is-danger',
+    disabled: !anythingPublished,
+  });
+  unpublishBtn.style.marginRight = '0';
 
-  // --- Order of Play row ---
+  unpublishBtn.onclick = () => {
+    const onClick = () => {
+      const methods: { method: string; params?: any }[] = [];
+
+      const pubData = getTournamentPublishData();
+      if (pubData.participantsPublished) {
+        methods.push({ method: UNPUBLISH_PARTICIPANTS });
+      }
+      if (pubData.oopPublished) {
+        methods.push({ method: UNPUBLISH_ORDER_OF_PLAY });
+      }
+
+      const tableData = getPublishingTableData();
+      for (const row of tableData) {
+        if (row.type === 'event' && row.published) {
+          methods.push({ method: UNPUBLISH_EVENT, params: { eventId: row.eventId } });
+        }
+      }
+
+      if (methods.length) {
+        mutationRequest({ methods, callback: () => renderPublishingTab() });
+      }
+    };
+
+    tmxToast({
+      action: { onClick, text: t('publishing.confirmUnpublish') },
+      message: t('publishing.unpublishTournament'),
+      intent: 'is-danger',
+      pauseOnHover: true,
+      duration: 8000,
+    });
+  };
+
+  unpublishRow.appendChild(unpublishBtn);
+  topPanel.appendChild(unpublishRow);
+
+  wrapper.appendChild(topPanel);
+
+  // ============================================================
+  // Panel 2 — Order of Play
+  // ============================================================
+  const oopPanel = document.createElement('div');
+  oopPanel.className = 'pub-panel pub-panel-yellow';
+
+  const oopHeader = document.createElement('h3');
+  oopHeader.innerHTML = `<i class="fa fa-calendar"></i> ${t('publishing.orderOfPlay')}`;
+  oopPanel.appendChild(oopHeader);
+
   const oopRow = document.createElement('div');
   oopRow.className = 'pub-toggle-row';
   oopRow.style.flexWrap = 'wrap';
-
-  const oopLabel = document.createElement('span');
-  oopLabel.className = 'pub-label';
-  oopLabel.textContent = t('publishing.orderOfPlay');
-  oopRow.appendChild(oopLabel);
 
   const oopState = data.oopPublished ? (data.oopEmbargoActive ? 'embargoed' : 'live') : 'off';
   const oopUrl = oopState === 'live' && publicUrl ? `${publicUrl}/schedule` : undefined;
@@ -228,7 +307,142 @@ export function renderTournamentControls(grid: HTMLElement): void {
     oopRow.appendChild(dateSection);
   }
 
-  panel.appendChild(oopRow);
+  oopPanel.appendChild(oopRow);
+  wrapper.appendChild(oopPanel);
 
-  grid.appendChild(panel);
+  // ============================================================
+  // Panel 3 — Participant Publishing
+  // ============================================================
+  const partPanel = document.createElement('div');
+  partPanel.className = 'pub-panel pub-panel-yellow';
+
+  const partHeader = document.createElement('h3');
+  partHeader.innerHTML = `<i class="fa fa-users"></i> ${t('publishing.participants')}`;
+  partPanel.appendChild(partHeader);
+
+  const partRow = document.createElement('div');
+  partRow.className = 'pub-toggle-row';
+  partRow.style.flexWrap = 'wrap';
+
+  const partState = data.participantsPublished
+    ? data.participantsEmbargoActive
+      ? 'embargoed'
+      : 'live'
+    : 'off';
+  partRow.appendChild(createStateBadge(partState as 'live' | 'embargoed' | 'off', partState === 'live' ? publicUrl : undefined));
+
+  // Toggle controls visibility (and for unpublish, fires immediately)
+  const partToggle = createToggle(data.participantsPublished, (checked) => {
+    if (!checked) {
+      mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
+    } else {
+      renderPublishingTab();
+    }
+  });
+  partRow.appendChild(partToggle);
+
+  if (data.participantsPublished) {
+    partRow.appendChild(
+      createEmbargoButton(data.participantsEmbargo, PUBLISH_PARTICIPANTS, () => renderPublishingTab()),
+    );
+  }
+
+  // Participant publish config controls (shown when toggle is ON)
+  if (data.participantsPublished || (partToggle.querySelector('input') as HTMLInputElement)?.checked) {
+    const configSection = document.createElement('div');
+    configSection.style.cssText = 'width:100%; margin-top:8px;';
+
+    // Discover available ratings and rankings from tournament participants
+    const { participants: allParticipants = [] } =
+      tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+    const discoveredRatings = new Set<string>();
+    let hasRanking = false;
+    for (const p of allParticipants as any[]) {
+      for (const item of p.ratings?.[SINGLES] || []) {
+        const upperName = item.scaleName?.toUpperCase();
+        if (upperName && ratingsParameters[upperName]) discoveredRatings.add(upperName);
+      }
+      if (p.rankings?.[SINGLES]?.length) hasRanking = true;
+    }
+
+    // Determine current config from publish state
+    const currentColumns = data.participantsColumns;
+
+    // Build column options
+    const columnOptions: { label: string; value: string; selected: boolean }[] = [
+      {
+        label: t('publishing.name') + ' (Country)',
+        value: 'country',
+        selected: currentColumns ? currentColumns.country !== false : true,
+      },
+      {
+        label: t('publishing.event') + 's',
+        value: 'events',
+        selected: currentColumns ? currentColumns.events !== false : true,
+      },
+    ];
+    if (hasRanking) {
+      const rankingSelected = currentColumns?.rankings
+        ? currentColumns.rankings.includes('SINGLES')
+        : true;
+      columnOptions.push({
+        label: `Rank (SINGLES)`,
+        value: 'ranking:SINGLES',
+        selected: rankingSelected,
+      });
+    }
+    for (const ratingName of [...discoveredRatings].sort()) {
+      const ratingSelected = currentColumns?.ratings
+        ? currentColumns.ratings.map((r) => r.toUpperCase()).includes(ratingName)
+        : true;
+      columnOptions.push({
+        label: ratingName,
+        value: `rating:${ratingName}`,
+        selected: ratingSelected,
+      });
+    }
+
+    // Column multi-select
+    const columnFormContainer = document.createElement('div');
+    columnFormContainer.style.cssText = 'margin-bottom:8px;';
+    const columnInputs = renderForm(columnFormContainer, [
+      {
+        label: t('publishing.participantColumns'),
+        field: 'columns',
+        multiple: true,
+        options: columnOptions,
+      },
+    ]);
+
+    configSection.appendChild(columnFormContainer);
+
+    // Publish button
+    const publishBtn = barButton({
+      label: `<i class="fa fa-eye"></i>&nbsp;${t('publishing.publishParticipants')}`,
+      intent: 'is-primary',
+    });
+    publishBtn.addEventListener('click', () => {
+      const selectedValues: string[] = columnInputs.columns?.selectedValues || [];
+
+      const columns: any = {
+        country: selectedValues.includes('country'),
+        events: selectedValues.includes('events'),
+        ratings: selectedValues.filter((v) => v.startsWith('rating:')).map((v) => v.split(':')[1]),
+        rankings: selectedValues.filter((v) => v.startsWith('ranking:')).map((v) => v.split(':')[1]),
+      };
+
+      mutationRequest({
+        methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
+        callback: () => renderPublishingTab(),
+      });
+    });
+
+    configSection.appendChild(publishBtn);
+    partRow.appendChild(configSection);
+  }
+
+  partPanel.appendChild(partRow);
+  wrapper.appendChild(partPanel);
+
+  grid.appendChild(wrapper);
 }

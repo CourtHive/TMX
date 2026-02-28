@@ -232,7 +232,7 @@ function ensureStyles(): void {
   document.head.appendChild(style);
 }
 
-function isAnythingPublished(): boolean {
+export function isAnythingPublished(): boolean {
   const data = getTournamentPublishData();
   if (data.participantsPublished || data.oopPublished) return true;
   return getPublishingTableData().some((row) => row.published);

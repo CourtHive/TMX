@@ -1481,6 +1481,15 @@
     "oopOff": "OOP Aus",
     "participantsLive": "Teilnehmer Live",
     "participantsOff": "Teilnehmer Aus",
-    "loginRequired": "Melden Sie sich an, um die Veröffentlichung zu verwalten"
+    "loginRequired": "Melden Sie sich an, um die Veröffentlichung zu verwalten",
+    "round": "Runde",
+    "showRound": "Runde {{roundNumber}} anzeigen",
+    "hideRound": "Runde {{roundNumber}} ausblenden",
+    "embargoRoundSchedule": "Embargo für Runde {{roundNumber}} Spielplan",
+    "clearRoundScheduleEmbargo": "Embargo für Runde {{roundNumber}} Spielplan entfernen",
+    "roundSchedule": "Runden-Spielplan",
+    "participantColumns": "Sichtbare Spalten",
+    "defaultLanguage": "Standardsprache",
+    "publishParticipants": "Teilnehmer veröffentlichen"
   }
 }
