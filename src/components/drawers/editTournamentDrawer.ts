@@ -18,9 +18,9 @@ import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationCon
 import { RIGHT } from 'constants/tmxConstants';
 
 export function editTournament({
-  table,
   tournamentRecord,
   onCreated,
+  table,
 }: {
   table?: any;
   tournamentRecord?: any;
@@ -170,7 +170,7 @@ export function editTournament({
       ];
       mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
     } else {
-      const result = tournamentEngine.newTournamentRecord({ tournamentName, startDate, endDate });
+      const result = tournamentEngine.newTournamentRecord({ tournamentName, activeDates, startDate, endDate });
       if (result.success) {
         const state = getLoginState();
         const newTournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
