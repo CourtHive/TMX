@@ -64,7 +64,7 @@ export function getScheduleColumns({
     cellClick: scheduleCellActions,
     field: `${courtPrefix}${index}`,
     title: courtInfo.courtName,
-    courtId: courtInfo.courtId,
+    meta: { courtId: courtInfo.courtId },
     headerHozAlign: CENTER,
     formatter: scheduleCell,
     headerSort: false,

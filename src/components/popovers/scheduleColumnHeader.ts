@@ -8,7 +8,7 @@ export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): vo
 
   const options = [
     {
-      option: `${addremove} court identifiers`,
+      option: `${addremove} ${t('settings.courtidentifiers')}`,
       onClick: toggleCourtIdentifiers,
     },
     {

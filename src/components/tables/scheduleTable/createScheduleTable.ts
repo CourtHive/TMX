@@ -69,7 +69,7 @@ export function createScheduleTable({
   const element = document.getElementById(TOURNAMENT_SCHEDULE)!;
 
   const { rows = [], columns = [], courtsCount } = getTableData({ scheduledDate });
-  existingCourtIds = columns.map((col: any) => col?.courtId).filter(Boolean);
+  existingCourtIds = columns.map((col: any) => col?.meta?.courtId).filter(Boolean);
 
   table = new Tabulator(element, {
     height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
