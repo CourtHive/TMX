@@ -875,6 +875,7 @@
       "topologyBuilder": "Topology builder",
       "language": "Language",
       "theme": "Theme",
+      "font": "Font",
       "dangerZone": "Danger Zone"
     },
     "editTournamentName": {
@@ -1104,6 +1105,23 @@
       "warning": "Structure will be removed!"
     },
     "selectTeam": "Select team"
+  },
+
+  "dashboard": {
+    "dates": "Dates",
+    "events": "Events",
+    "draws": "Draws",
+    "players": "Players",
+    "teams": "Teams",
+    "matchUps": "MatchUps",
+    "scheduled": "Scheduled",
+    "complete": "Complete",
+    "embargoes": "Embargoes",
+    "tournamentImage": "Tournament image",
+    "noTournamentImage": "No tournament image",
+    "noTournamentInfo": "No tournament information",
+    "editNotes": "Edit notes",
+    "noEliminationStructures": "No elimination structures"
   },
 
   "drawers": {

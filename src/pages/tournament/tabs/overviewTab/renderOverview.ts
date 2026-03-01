@@ -138,7 +138,7 @@ export function renderOverview(): void {
   const statsContainer = document.createElement('div');
   statsContainer.className = 'dash-stats';
   const datesCard = createStatCard(
-    'Dates',
+    t('dashboard.dates'),
     `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`,
     'fa-calendar',
   );
@@ -146,25 +146,25 @@ export function renderOverview(): void {
   datesCard.addEventListener('click', () => openEditDatesModal({ onSave: () => renderOverview() }));
   statsContainer.appendChild(datesCard);
   const eventsCard = createDualStatCard([
-    { label: 'Events', value: data.eventCount, icon: 'fa-trophy' },
-    { label: 'Draws', value: data.drawDefinitionCount, icon: 'fa-sitemap' },
+    { label: t('dashboard.events'), value: data.eventCount, icon: 'fa-trophy' },
+    { label: t('dashboard.draws'), value: data.drawDefinitionCount, icon: 'fa-sitemap' },
   ]);
   eventsCard.style.cursor = 'pointer';
   eventsCard.addEventListener('click', () => navigateToTab(EVENTS_TAB));
   statsContainer.appendChild(eventsCard);
 
   const playersCard = createDualStatCard([
-    { label: 'Players', value: data.participantCount, icon: 'fa-users' },
-    { label: 'Teams', value: data.teamParticipantCount, icon: 'fa-people-group' },
+    { label: t('dashboard.players'), value: data.participantCount, icon: 'fa-users' },
+    { label: t('dashboard.teams'), value: data.teamParticipantCount, icon: 'fa-people-group' },
   ]);
   playersCard.style.cursor = 'pointer';
   playersCard.addEventListener('click', () => navigateToTab(PARTICIPANTS));
   statsContainer.appendChild(playersCard);
 
   const matchUpsCard = createTripleStatCard([
-    { label: 'MatchUps', value: data.matchUpStats.total, icon: 'fa-table-tennis' },
-    { label: 'Scheduled', value: data.matchUpStats.scheduled, icon: 'fa-clock' },
-    { label: 'Complete', value: `${data.matchUpStats.percentComplete}%`, icon: 'fa-chart-pie' },
+    { label: t('dashboard.matchUps'), value: data.matchUpStats.total, icon: 'fa-table-tennis' },
+    { label: t('dashboard.scheduled'), value: data.matchUpStats.scheduled, icon: 'fa-clock' },
+    { label: t('dashboard.complete'), value: `${data.matchUpStats.percentComplete}%`, icon: 'fa-chart-pie' },
   ]);
   matchUpsCard.style.cursor = 'pointer';
   matchUpsCard.addEventListener('click', () => navigateToTab(MATCHUPS_TAB));
@@ -172,8 +172,8 @@ export function renderOverview(): void {
 
   const pubStats = data.publishingStats;
   const publishingCard = createDualStatCard([
-    { label: 'Draws', value: `${pubStats.publishedDraws}/${pubStats.totalDraws}`, icon: 'fa-eye' },
-    { label: 'Embargoes', value: pubStats.activeEmbargoes, icon: 'fa-clock' },
+    { label: t('dashboard.draws'), value: `${pubStats.publishedDraws}/${pubStats.totalDraws}`, icon: 'fa-eye' },
+    { label: t('dashboard.embargoes'), value: pubStats.activeEmbargoes, icon: 'fa-clock' },
   ]);
   publishingCard.className = 'dash-panel dash-panel-yellow';
   publishingCard.style.cssText += 'grid-column: 1 / -1; cursor: pointer;';

@@ -33,14 +33,14 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
     const img = document.createElement('img');
     img.src = imageUrl;
     img.style.cssText = 'border-radius:8px; width:100%; object-fit:cover; max-height:300px;';
-    img.alt = 'Tournament image';
+    img.alt = t('dashboard.tournamentImage');
     panel.appendChild(img);
     panel.style.background = '';
   } else {
     const placeholder = document.createElement('div');
     placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); padding:24px; font-size:0.95rem;';
     placeholder.innerHTML =
-      '<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament image';
+      `<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noTournamentImage')}`;
     panel.appendChild(placeholder);
   }
 
@@ -70,7 +70,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
     placeholder.style.cssText =
       'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:var(--tmx-text-muted); text-align:center; font-size:0.95rem;';
     placeholder.innerHTML =
-      '<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>No tournament information</div>';
+      `<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noTournamentInfo')}</div>`;
     notesView.appendChild(placeholder);
   }
   panel.appendChild(notesView);
@@ -79,7 +79,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   editBtn.style.cssText =
     'position:absolute; bottom:8px; right:8px; background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
-  editBtn.title = 'Edit notes';
+  editBtn.title = t('dashboard.editNotes');
   editBtn.addEventListener('click', () => {
     const notes = tournamentEngine.getTournamentInfo()?.tournamentInfo?.notes || '';
     openNotesEditor({
@@ -166,7 +166,7 @@ export function createSunburstPlaceholder(): HTMLElement {
   const placeholder = document.createElement('div');
   placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); font-size:0.95rem;';
   placeholder.innerHTML =
-    '<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>No elimination structures';
+    `<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noEliminationStructures')}`;
   panel.appendChild(placeholder);
 
   return panel;

@@ -121,6 +121,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
         { value: 'pt-BR', label: 'Portugu\u00eas (Brasil)', selected: i18next.language === 'pt-BR' },
         { value: 'de', label: 'Deutsch', selected: i18next.language === 'de' },
         { value: 'ar', label: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', selected: i18next.language === 'ar' },
+        { value: 'zh-CN', label: '\u7b80\u4f53\u4e2d\u6587', selected: i18next.language === 'zh-CN' },
       ],
       onChange: persist,
       field: 'language',
@@ -241,7 +242,7 @@ export function renderSettingsGrid(container: HTMLElement): void {
   // --- Font panel (blue, 1 col — next to scheduling) ---
   const fontPanel = document.createElement('div');
   fontPanel.className = RATINGS_PANEL_BLUE;
-  fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> Font</h3>`;
+  fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> ${t('modals.settings.font')}</h3>`;
 
   const currentFont = getFontPreference();
   const fontForm = document.createElement('div');

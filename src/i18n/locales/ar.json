@@ -810,7 +810,8 @@
       "betaFeatures": "الميزات التجريبية",
       "pdfPrinting": "طباعة PDF",
       "topologyBuilder": "منشئ الطوبولوجيا",
-      "language": "اللغة"
+      "language": "اللغة",
+      "font": "الخط"
     },
     "editTournamentName": {
       "title": "تعديل اسم البطولة",
@@ -1039,6 +1040,23 @@
     },
     "selectTeam": "اختيار فريق"
   },
+  "dashboard": {
+    "dates": "التواريخ",
+    "events": "الفعاليات",
+    "draws": "القرعات",
+    "players": "اللاعبون",
+    "teams": "الفرق",
+    "matchUps": "المباريات",
+    "scheduled": "مجدول",
+    "complete": "مكتمل",
+    "embargoes": "الحظر",
+    "tournamentImage": "صورة البطولة",
+    "noTournamentImage": "لا توجد صورة للبطولة",
+    "noTournamentInfo": "لا توجد معلومات عن البطولة",
+    "editNotes": "تعديل الملاحظات",
+    "noEliminationStructures": "لا توجد هياكل إقصاء"
+  },
+
   "drawers": {
     "editTournament": {
       "titleEdit": "تعديل البطولة",
