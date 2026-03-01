@@ -809,6 +809,7 @@
       "persistInputFields": "الاحتفاظ بحقول الإدخال بعد التعيين (وضع الاستمرار)",
       "betaFeatures": "الميزات التجريبية",
       "pdfPrinting": "طباعة PDF",
+      "topologyBuilder": "منشئ الطوبولوجيا",
       "language": "اللغة"
     },
     "editTournamentName": {

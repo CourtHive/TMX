@@ -837,6 +837,7 @@
       "persistInputFields": "Eingabefelder nach Zuweisung beibehalten (Persistenter Modus)",
       "betaFeatures": "Beta-Funktionen",
       "pdfPrinting": "PDF-Druck",
+      "topologyBuilder": "Topologie-Builder",
       "language": "Sprache"
     },
     "editTournamentName": {

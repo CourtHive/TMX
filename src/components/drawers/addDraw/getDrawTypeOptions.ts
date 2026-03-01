@@ -3,6 +3,7 @@
  * Filters draw types by playoff and qualifying flags.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { env } from 'settings/env';
 
 const {
   AD_HOC,
@@ -34,7 +35,7 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
     { label: 'Compass', value: COMPASS, hide: isQualifying },
     { label: 'Curtis consolation', value: CURTIS, hide: isQualifying },
     { label: 'Double elimination', value: DOUBLE_ELIMINATION, hide: isPlayoff || isQualifying },
-    { label: 'Elimination: fed consolation', value: FEED_IN_CHAMPIONSHIP, hide: isQualifying },
+    { label: 'Feed in championship', value: FEED_IN_CHAMPIONSHIP, hide: isQualifying },
     { label: 'First match loser consolation', value: FIRST_MATCH_LOSER_CONSOLATION, hide: isQualifying },
     { label: 'First round loser consolation', value: FIRST_ROUND_LOSER_CONSOLATION, hide: isQualifying },
     { label: 'Lucky', value: LUCKY_DRAW, hide: isPlayoff || isQualifying },
@@ -43,6 +44,7 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
     { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF, hide: isPlayoff || isQualifying },
     { label: 'Round robin', value: ROUND_ROBIN },
     { label: 'Single elimination', value: SINGLE_ELIMINATION },
-    { label: 'Staggered Entry', value: FEED_IN, hide: isPlayoff || isQualifying }
+    { label: 'Staggered Entry', value: FEED_IN, hide: isPlayoff || isQualifying },
+    { label: 'Custom topology...', value: 'CUSTOM_TOPOLOGY', hide: isPlayoff || isQualifying || !env.topologyBuilder }
   ];
 }

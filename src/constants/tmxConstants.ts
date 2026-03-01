@@ -44,6 +44,7 @@ export const COMPETITION_ENGINE = 'competitionEngine';
 export const TOURNAMENT_ENGINE = 'tournamentEngine';
 
 export const TMX_TOURNAMENTS = 'tournaments';
+export const TMX_TOPOLOGY = 'tmxTopology';
 export const TMX_ADMIN = 'tmxAdmin';
 export const TMX_SYSTEM = 'tmxSystem';
 export const DRAW_ENTRIES = 'drawEntries';
@@ -209,10 +210,14 @@ export const DRAW_TYPE = 'drawType';
 export const TOP_FINISHERS = 'top';
 export const WINNERS = 'winners';
 
+export const CUSTOM_TOPOLOGY = 'CUSTOM_TOPOLOGY';
+export const TOPOLOGY = 'topology';
+
 export const ROUNDS_COLUMNS = 'roundsColumns';
 export const ROUNDS_STATS = 'roundsStats';
 export const ROUNDS_TABLE = 'roundsTable';
 export const ROUNDS_BRACKET = 'roundsBracket';
+export const ROUNDS_TOPOLOGY = 'roundsTopology';
 
 export const UTR = 'utr';
 export const WTN = 'wtn';

@@ -17,6 +17,7 @@ import { t } from 'i18n';
 import { PUBLISH_EVENT, UNPUBLISH_EVENT } from 'constants/mutationConstants';
 
 const TABLE_ID = 'publishingEventsTable';
+const TRN_EMBARGO = 'publishing.embargo';
 
 function getRowPublicUrl(data: any): string | undefined {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
@@ -245,7 +246,7 @@ function handleEmbargoClick(cell: any): void {
   if (data.type !== 'draw') return;
 
   openEmbargoModal({
-    title: `${t('publishing.embargo')}: ${data.name}`,
+    title: `${t(TRN_EMBARGO)}: ${data.name}`,
     currentEmbargo: data.embargo,
     onSet: (isoString) => {
       const drawDetails: Record<string, any> = {};
@@ -322,7 +323,7 @@ function handleScheduleEmbargoClick(cell: any): void {
   }
 
   openEmbargoModal({
-    title: `${t('publishing.embargo')}: ${data.name} ${t('publishing.roundSchedule').toLowerCase()}`,
+    title: `${t(TRN_EMBARGO)}: ${data.name} ${t('publishing.roundSchedule').toLowerCase()}`,
     currentEmbargo: currentScheduleEmbargo,
     onSet: (isoString) => {
       // Set schedule embargo on all rounds in all structures
@@ -439,7 +440,7 @@ function getColumns(): any[] {
       width: 50,
     },
     {
-      title: t('publishing.embargo'),
+      title: t(TRN_EMBARGO),
       field: 'embargo',
       formatter: embargoFormatter,
       cellClick: (_: any, cell: any) => handleEmbargoClick(cell),

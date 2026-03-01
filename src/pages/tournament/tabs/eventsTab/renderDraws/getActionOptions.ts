@@ -6,6 +6,7 @@ import { tournamentEngine, eventConstants, policyConstants, drawDefinitionConsta
 import { t } from 'i18n';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
+import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -104,6 +105,12 @@ export function getActionOptions({
       hide: !env.pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => printDraw({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.printDraw'),
+      close: true,
+    },
+    {
+      hide: !env.topologyBuilder,
+      onClick: () => navigateToTopology({ eventId, drawId, readOnly: true }),
+      label: 'View Topology',
       close: true,
     },
     {

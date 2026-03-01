@@ -118,7 +118,7 @@
   --tmx-accent-purple: #c88aff;
   --tmx-accent-red: #ff8a8a;
   --tmx-accent-orange: #ffb366;
-  --tmx-accent-teal: #33c9bb;
+  --tmx-accent-teal: #1a9e8f;
   --tmx-accent-pink: #CC4488;
 
   /* Status */
@@ -299,8 +299,8 @@
   border-color: transparent;
   color: #fff;
 }
-[data-theme='dark'] .button.is-primary:hover { background-color: #47d4c7; }
-[data-theme='dark'] .button.is-primary:active { background-color: #2dbfb1; }
+[data-theme='dark'] .button.is-primary:hover { background-color: #23b5a4; }
+[data-theme='dark'] .button.is-primary:active { background-color: #15877a; }
 [data-theme='dark'] .button.is-primary.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-accent-teal);
@@ -311,10 +311,10 @@
   color: #fff;
 }
 [data-theme='dark'] .button.is-primary.is-light {
-  background-color: rgba(51, 201, 187, 0.15);
+  background-color: rgba(26, 158, 143, 0.15);
   color: var(--tmx-accent-teal);
 }
-[data-theme='dark'] .button.is-primary.is-light:hover { background-color: rgba(51, 201, 187, 0.25); }
+[data-theme='dark'] .button.is-primary.is-light:hover { background-color: rgba(26, 158, 143, 0.25); }
 
 /* Link */
 [data-theme='dark'] .button.is-link {

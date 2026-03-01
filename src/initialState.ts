@@ -68,6 +68,9 @@ export function setupTMX(): void {
     if (savedSettings.pdfPrinting !== undefined) {
       env.pdfPrinting = savedSettings.pdfPrinting;
     }
+    if (savedSettings.topologyBuilder !== undefined) {
+      env.topologyBuilder = savedSettings.topologyBuilder;
+    }
     if (savedSettings.minCourtGridRows !== undefined) {
       env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;
     }

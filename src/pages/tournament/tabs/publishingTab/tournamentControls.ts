@@ -22,6 +22,7 @@ import {
 } from 'constants/mutationConstants';
 
 const { ratingsParameters } = fixtures;
+const PUB_PANEL_YELLOW = 'pub-panel pub-panel-yellow';
 const { SINGLES } = eventConstants;
 
 const SUPPORTED_LANGUAGES = [
@@ -144,7 +145,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
   // Panel 1 — Tournament Publishing (language + unpublish)
   // ============================================================
   const topPanel = document.createElement('div');
-  topPanel.className = 'pub-panel pub-panel-yellow';
+  topPanel.className = PUB_PANEL_YELLOW;
 
   // Header row: title left, unpublish button right
   const topHeaderRow = document.createElement('div');
@@ -235,7 +236,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
   // Panel 2 — Order of Play
   // ============================================================
   const oopPanel = document.createElement('div');
-  oopPanel.className = 'pub-panel pub-panel-yellow';
+  oopPanel.className = PUB_PANEL_YELLOW;
 
   const oopHeader = document.createElement('h3');
   oopHeader.innerHTML = `<i class="fa fa-calendar"></i> ${t('publishing.orderOfPlay')}`;
@@ -314,7 +315,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
   // Panel 3 — Participant Publishing
   // ============================================================
   const partPanel = document.createElement('div');
-  partPanel.className = 'pub-panel pub-panel-yellow';
+  partPanel.className = PUB_PANEL_YELLOW;
 
   const partHeader = document.createElement('h3');
   partHeader.innerHTML = `<i class="fa fa-users"></i> ${t('publishing.participants')}`;
