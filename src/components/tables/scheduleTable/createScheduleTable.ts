@@ -39,16 +39,21 @@ export function createScheduleTable({
 
     const columns = getScheduleColumns({ courtsData, courtPrefix, updateScheduleTable: replaceTableData });
 
+    const fieldToCourtId: Record<string, string> = {};
+    courtsData?.forEach((court: any, index: number) => {
+      fieldToCourtId[`${courtPrefix}${index}`] = court.courtId;
+    });
+
     rows?.forEach((row: any, i: number) => {
       row.rowId = `rowId-${i + 1}`;
       row.rowNumber = i + 1;
     });
-    return { rows, columns, matchUps, courtsCount: courtsData?.length ?? 0, courtsData, groupInfo };
+    return { rows, columns, matchUps, courtsCount: courtsData?.length ?? 0, courtsData, groupInfo, fieldToCourtId };
   };
 
   const replaceTableData = ({ scheduledDate }: { scheduledDate?: string } = {}) => {
     const refresh = () => {
-      const { rows, matchUps, columns, courtsData } = getTableData({ scheduledDate });
+      const { rows, matchUps, columns, courtsData, fieldToCourtId } = getTableData({ scheduledDate });
       const courtIds = courtsData?.map((court: any) => court.courtId);
 
       const equivalentCourts = tools.intersection(existingCourtIds, courtIds).length === courtIds?.length;
@@ -60,6 +65,7 @@ export function createScheduleTable({
       awaitingUpdate = true;
       table?.replaceData(rows);
       table.matchUps = matchUps;
+      table.fieldToCourtId = fieldToCourtId;
     };
 
     setTimeout(refresh, ready ? 0 : 1000);
@@ -68,8 +74,10 @@ export function createScheduleTable({
   destroyTable({ anchorId: TOURNAMENT_SCHEDULE });
   const element = document.getElementById(TOURNAMENT_SCHEDULE)!;
 
-  const { rows = [], columns = [], courtsCount } = getTableData({ scheduledDate });
-  existingCourtIds = columns.map((col: any) => col?.meta?.courtId).filter(Boolean);
+  const { rows = [], columns = [], courtsCount, courtsData: initialCourtsData, fieldToCourtId } = getTableData({
+    scheduledDate,
+  });
+  existingCourtIds = initialCourtsData?.map((court: any) => court.courtId) ?? [];
 
   table = new Tabulator(element, {
     height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
@@ -80,6 +88,7 @@ export function createScheduleTable({
     columns,
   });
 
+  table.fieldToCourtId = fieldToCourtId;
   table.on('scrollVertical', destroyTipster);
   table.on('tableBuilt', () => {
     updateConflicts(table, matchUps);
