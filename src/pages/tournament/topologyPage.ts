@@ -6,6 +6,7 @@
 import { saveTopologyTemplate, getTopologyTemplates } from 'components/drawers/addDraw/topologyTemplates';
 import { generateDraw } from 'components/drawers/addDraw/generateDraw';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { showTopology } from 'services/transitions/screenSlaver';
@@ -15,9 +16,9 @@ import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { context } from 'services/context';
 
 import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
-import { TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
+import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
 
-import { TopologyBuilderControl, topologyToDrawOptions } from 'courthive-components';
+import { TopologyBuilderControl, topologyToDrawOptions, renderForm } from 'courthive-components';
 import type { TopologyState } from 'courthive-components';
 
 let currentControl: TopologyBuilderControl | null = null;
@@ -53,15 +54,21 @@ export function renderTopologyPage({
     onGenerate: readOnly ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
     onSaveTemplate: readOnly ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
     onClear: readOnly ? undefined : () => {
-      if (confirm('Clear the canvas? This will remove all structures and links.')) {
-        currentControl?.loadState({
-          nodes: [],
-          edges: [],
-          selectedNodeId: null,
-          selectedEdgeId: null,
-          drawName: '',
-        });
-      }
+      confirmModal({
+        title: 'Clear Canvas',
+        query: 'This will remove all structures and links. Continue?',
+        okIntent: 'is-danger',
+        cancelAction: undefined,
+        okAction: () => {
+          currentControl?.loadState({
+            nodes: [],
+            edges: [],
+            selectedNodeId: null,
+            selectedEdgeId: null,
+            drawName: '',
+          });
+        },
+      });
     },
   });
 
@@ -144,13 +151,37 @@ function handleGenerate({
 }
 
 function handleSaveTemplate({ state }: { state: TopologyState }): void {
-  const templateName = prompt('Template name:', state.drawName || 'My Template');
-  if (!templateName) return;
+  const content = document.createElement('div');
+  const inputs = renderForm(content, [
+    {
+      label: 'Template Name',
+      field: 'templateName',
+      value: state.drawName || 'My Template',
+      focus: true,
+    },
+  ]);
 
-  saveTopologyTemplate({
-    state,
-    name: templateName,
-    description: `${state.nodes.length} structures, ${state.edges.length} links`,
+  openModal({
+    title: 'Save Template',
+    content,
+    buttons: [
+      { label: 'Cancel', intent: NONE, close: true },
+      {
+        label: 'Save',
+        intent: 'is-info',
+        close: true,
+        onClick: () => {
+          const name = inputs.templateName?.value?.trim();
+          if (!name) return;
+          saveTopologyTemplate({
+            state,
+            name,
+            description: `${state.nodes.length} structures, ${state.edges.length} links`,
+          });
+          tmxToast({ message: 'Template saved', intent: 'is-success' });
+        },
+      },
+    ],
   });
 }
 
