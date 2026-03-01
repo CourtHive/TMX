@@ -1,9 +1,13 @@
 /**
  * Get available draw type options based on context.
  * Filters draw types by playoff and qualifying flags.
+ * Includes saved topology templates when the topology builder is enabled.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { getTopologyTemplates } from './topologyTemplates';
 import { env } from 'settings/env';
+
+import { TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
 
 const {
   AD_HOC,
@@ -30,6 +34,15 @@ const {
 } = drawDefinitionConstants;
 
 export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: boolean; isQualifying?: boolean } = {}): any[] {
+  const showTopology = !isPlayoff && !isQualifying && !!env.topologyBuilder;
+
+  const templateOptions = showTopology
+    ? getTopologyTemplates().map((t) => ({
+        label: `\u2726 ${t.name}`,
+        value: `${TOPOLOGY_TEMPLATE_PREFIX}${t.name}`,
+      }))
+    : [];
+
   return [
     { label: 'Ad-hoc', value: AD_HOC, hide: isQualifying },
     { label: 'Compass', value: COMPASS, hide: isQualifying },
@@ -45,6 +58,7 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
     { label: 'Round robin', value: ROUND_ROBIN },
     { label: 'Single elimination', value: SINGLE_ELIMINATION },
     { label: 'Staggered Entry', value: FEED_IN, hide: isPlayoff || isQualifying },
-    { label: 'Custom topology...', value: 'CUSTOM_TOPOLOGY', hide: isPlayoff || isQualifying || !env.topologyBuilder }
+    ...templateOptions,
+    { label: 'Custom topology...', value: 'CUSTOM_TOPOLOGY', hide: !showTopology },
   ];
 }

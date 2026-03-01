@@ -22,6 +22,7 @@ import { TopologyBuilderControl, topologyToDrawOptions, renderForm } from 'court
 import type { TopologyState } from 'courthive-components';
 
 let currentControl: TopologyBuilderControl | null = null;
+let pendingTemplateName: string | null = null;
 
 export function renderTopologyPage({
   eventId,
@@ -42,7 +43,22 @@ export function renderTopologyPage({
   // Hydrate from existing draw if drawId provided
   const event = tournamentEngine.getEvent({ eventId }).event;
   const drawDefinition = event?.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
-  const initialState = drawDefinition ? hydrateTopology(drawDefinition) : undefined;
+  let initialState = drawDefinition ? hydrateTopology(drawDefinition) : undefined;
+
+  // Load from pending template selection (from Draw Type dropdown)
+  if (!initialState && pendingTemplateName) {
+    const templates = getTopologyTemplates();
+    const template = templates.find((t) => t.name === pendingTemplateName);
+    if (template) {
+      initialState = {
+        ...template.state,
+        selectedNodeId: null,
+        selectedEdgeId: null,
+        templateName: template.name,
+      } as Partial<TopologyState>;
+    }
+  }
+  pendingTemplateName = null;
 
   const savedTemplates = getTopologyTemplates();
 
@@ -74,7 +90,7 @@ export function renderTopologyPage({
 
   currentControl.render(container);
 
-  // Auto-layout when viewing an existing draw for a clean presentation
+  // Auto-layout for hydrated or template-loaded topologies
   if (initialState) {
     currentControl.autoLayout();
   }
@@ -196,11 +212,14 @@ export function navigateToTopology({
   eventId,
   drawId,
   readOnly,
+  templateName,
 }: {
   eventId: string;
   drawId?: string;
   readOnly?: boolean;
+  templateName?: string;
 }): void {
+  pendingTemplateName = templateName || null;
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
   let route = `/${TOURNAMENT}/${tournamentId}/topology/${eventId}`;
   if (drawId) route += `/${drawId}`;

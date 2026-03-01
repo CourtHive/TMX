@@ -485,6 +485,68 @@
   color: var(--tmx-text-inverse);
 }
 
+/* --- vanillajs-datepicker dark overrides --- */
+[data-theme='dark'] .datepicker-picker {
+  background-color: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .datepicker-title {
+  background-color: var(--tmx-bg-secondary);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .datepicker-footer {
+  background-color: var(--tmx-bg-secondary);
+}
+[data-theme='dark'] .datepicker-controls .button {
+  background-color: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+  border-color: var(--tmx-border-primary);
+}
+[data-theme='dark'] .datepicker-header .datepicker-controls .button {
+  border-color: transparent;
+}
+[data-theme='dark'] .datepicker-controls .button:hover {
+  background-color: var(--tmx-bg-tertiary);
+}
+[data-theme='dark'] .datepicker-cell:not(.disabled):hover {
+  background-color: var(--tmx-bg-tertiary);
+}
+[data-theme='dark'] .datepicker-cell.focused:not(.selected) {
+  background-color: var(--tmx-bg-tertiary);
+}
+[data-theme='dark'] .datepicker-cell.selected,
+[data-theme='dark'] .datepicker-cell.selected:hover {
+  background-color: var(--tmx-accent-blue);
+  color: var(--tmx-text-inverse);
+}
+[data-theme='dark'] .datepicker-cell.disabled {
+  color: var(--tmx-text-muted);
+}
+[data-theme='dark'] .datepicker-cell.prev:not(.disabled),
+[data-theme='dark'] .datepicker-cell.next:not(.disabled) {
+  color: var(--tmx-text-muted);
+}
+[data-theme='dark'] .datepicker-cell.today:not(.selected) {
+  background-color: var(--tmx-accent-green);
+}
+[data-theme='dark'] .datepicker-cell.highlighted:not(.selected):not(.range):not(.today) {
+  background-color: var(--tmx-bg-secondary);
+}
+[data-theme='dark'] .datepicker .dow {
+  color: var(--tmx-text-secondary);
+}
+[data-theme='dark'] .datepicker .week {
+  color: var(--tmx-text-muted);
+}
+[data-theme='dark'] .datepicker-cell.range-end:not(.selected),
+[data-theme='dark'] .datepicker-cell.range-start:not(.selected) {
+  background-color: var(--tmx-accent-blue);
+  color: var(--tmx-text-inverse);
+}
+[data-theme='dark'] .datepicker-cell.range {
+  background-color: var(--tmx-bg-tertiary);
+}
+
 /* --- @event-calendar dark overrides --- */
 [data-theme='dark'] .ec {
   --ec-bg-color: var(--tmx-bg-primary);

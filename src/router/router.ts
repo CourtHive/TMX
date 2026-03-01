@@ -121,7 +121,12 @@ export function routeTMX() {
     }
   });
   router.notFound(() => {
-    router.navigate(`/${TMX_TOURNAMENTS}`);
+    const splash = document.getElementById(SPLASH);
+    if (splash?.dataset.animating) {
+      showSplash();
+    } else {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+    }
   });
   router.resolve();
 

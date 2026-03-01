@@ -13,7 +13,7 @@ import type { TopologyState, TopologyTemplate } from 'courthive-components';
 const TopologyTemplates = 'topologyTemplates';
 
 export function getTopologyTemplates(): TopologyTemplate[] {
-  const { extension } = tournamentEngine.findExtension({ name: TopologyTemplates }) || {};
+  const { extension } = tournamentEngine.findExtension({ discover: true, name: TopologyTemplates }) || {};
   return extension?.value || [];
 }
 
