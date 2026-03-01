@@ -130,6 +130,7 @@ export function createDualStatCard(stats: { label: string; value: string | numbe
 
   for (const stat of stats) {
     const group = document.createElement('div');
+    group.style.flex = '1';
 
     const valueEl = document.createElement('div');
     valueEl.style.cssText = VALUE_STYLE;
@@ -153,9 +154,7 @@ export function createDualStatCard(stats: { label: string; value: string | numbe
   return card;
 }
 
-export function createTripleStatCard(
-  stats: { label: string; value: string | number; icon?: string }[],
-): HTMLElement {
+export function createTripleStatCard(stats: { label: string; value: string | number; icon?: string }[]): HTMLElement {
   return createDualStatCard(stats);
 }
 
@@ -167,7 +166,7 @@ export function createSunburstPlaceholder(): HTMLElement {
   const placeholder = document.createElement('div');
   placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); font-size:0.95rem;';
   placeholder.innerHTML =
-    '<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>No draws';
+    '<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>No elimination structures';
   panel.appendChild(placeholder);
 
   return panel;

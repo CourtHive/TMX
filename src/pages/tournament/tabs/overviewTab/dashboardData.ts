@@ -49,7 +49,7 @@ export function getDashboardData(): DashboardData {
   }).tournamentInfo;
 
   const structures = (tournamentInfo?.structures || []).filter(
-    (s: any) => s.structureType !== CONTAINER && ![ROUND_ROBIN, LUCKY_DRAW, AD_HOC].includes(s.structureType),
+    (s: any) => s.structureType !== CONTAINER && ![ROUND_ROBIN, LUCKY_DRAW, AD_HOC].includes(s.drawType),
   );
 
   const drawDefinitionCount =

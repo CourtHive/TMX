@@ -4,6 +4,7 @@
  */
 import { getMatchUpFormatModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
+import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
@@ -12,7 +13,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
-import { CUSTOM, DRAW_NAME, NONE, RIGHT, STRUCTURE_NAME } from 'constants/tmxConstants';
+import { CUSTOM, CUSTOM_TOPOLOGY, DRAW_NAME, DRAW_TYPE, NONE, RIGHT, STRUCTURE_NAME, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
 
 type AddDrawParams = {
   callback?: (result: any) => void;
@@ -55,6 +56,19 @@ export function addDraw({
       : validators.nameValidator(3)(inputs[DRAW_NAME].value);
 
   const checkParams = () => {
+    const selectedDrawType = inputs[DRAW_TYPE]?.options?.[inputs[DRAW_TYPE].selectedIndex]?.getAttribute?.('value') ||
+      inputs[DRAW_TYPE]?.value;
+    if (selectedDrawType === CUSTOM_TOPOLOGY) {
+      context.drawer.close();
+      navigateToTopology({ eventId, drawId });
+      return;
+    }
+    if (selectedDrawType?.startsWith(TOPOLOGY_TEMPLATE_PREFIX)) {
+      context.drawer.close();
+      const templateName = selectedDrawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length);
+      navigateToTopology({ eventId, drawId, templateName });
+      return;
+    }
     if (!isValid()) {
       tmxToast({ message: t('drawers.addDraw.missingName'), intent: 'is-danger' });
     } else if (inputs.matchUpFormat?.value === CUSTOM) {

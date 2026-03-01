@@ -837,6 +837,7 @@
       "persistInputFields": "Eingabefelder nach Zuweisung beibehalten (Persistenter Modus)",
       "betaFeatures": "Beta-Funktionen",
       "pdfPrinting": "PDF-Druck",
+      "topologyBuilder": "Topologie-Builder",
       "language": "Sprache"
     },
     "editTournamentName": {
@@ -1491,6 +1492,7 @@
     "scheduleEmbargo": "Spielplan-Embargo",
     "participantColumns": "Sichtbare Spalten",
     "defaultLanguage": "Standardsprache",
-    "publishParticipants": "Teilnehmer veröffentlichen"
+    "publishParticipants": "Teilnehmer veröffentlichen",
+    "country": "Land"
   }
 }

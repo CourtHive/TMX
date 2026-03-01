@@ -228,6 +228,11 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
   const delayTimer = setTimeout(() => {
     // Snapshot current screen position before moving
     const rect = svg.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      // SVG is no longer visible (parent hidden); skip animation
+      finish();
+      return;
+    }
     const winW = window.innerWidth;
     const winH = window.innerHeight;
 

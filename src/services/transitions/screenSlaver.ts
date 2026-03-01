@@ -2,7 +2,7 @@
  * Screen state management for main content areas.
  * Controls visibility of splash, content, tournaments, and calendar views.
  */
-import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_ADMIN, TMX_SYSTEM } from 'constants/tmxConstants';
+import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TMX_TOPOLOGY, TOURNAMENTS_CALENDAR, TMX_ADMIN, TMX_SYSTEM } from 'constants/tmxConstants';
 
 let content: string | undefined;
 
@@ -10,14 +10,15 @@ function selectDisplay(which: string): void {
   setState(TMX_CONTENT, which);
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
+  setState(TMX_TOPOLOGY, which);
   setState(TOURNAMENTS_CALENDAR, which);
   setState(TMX_ADMIN, which);
   setState(TMX_SYSTEM, which);
 
   const trnynav = document.getElementById('trnynav');
   const dnav = document.getElementById('dnav');
-  if ([TMX_CONTENT, TMX_TOURNAMENTS, TMX_ADMIN, TMX_SYSTEM].includes(which)) {
-    if (trnynav) trnynav.style.display = which === TMX_CONTENT ? '' : NONE;
+  if ([TMX_CONTENT, TMX_TOURNAMENTS, TMX_TOPOLOGY, TMX_ADMIN, TMX_SYSTEM].includes(which)) {
+    if (trnynav) trnynav.style.display = (which === TMX_CONTENT || which === TMX_TOPOLOGY) ? '' : NONE;
     if (dnav) dnav.style.display = '';
   } else {
     if (dnav) dnav.style.display = NONE;
@@ -58,6 +59,10 @@ export const showTMXtournaments = (): void => {
 };
 export const showTMXcalendar = (): void => {
   content = TOURNAMENTS_CALENDAR;
+  selectDisplay(content);
+};
+export const showTopology = (): void => {
+  content = TMX_TOPOLOGY;
   selectDisplay(content);
 };
 export const showTMXadmin = (): void => {

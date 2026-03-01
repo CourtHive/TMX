@@ -22,6 +22,7 @@ import {
 } from 'constants/mutationConstants';
 
 const { ratingsParameters } = fixtures;
+const PUB_PANEL_YELLOW = 'pub-panel pub-panel-yellow';
 const { SINGLES } = eventConstants;
 
 const SUPPORTED_LANGUAGES = [
@@ -144,7 +145,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
   // Panel 1 — Tournament Publishing (language + unpublish)
   // ============================================================
   const topPanel = document.createElement('div');
-  topPanel.className = 'pub-panel pub-panel-yellow';
+  topPanel.className = PUB_PANEL_YELLOW;
 
   // Header row: title left, unpublish button right
   const topHeaderRow = document.createElement('div');
@@ -235,7 +236,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
   // Panel 2 — Order of Play
   // ============================================================
   const oopPanel = document.createElement('div');
-  oopPanel.className = 'pub-panel pub-panel-yellow';
+  oopPanel.className = PUB_PANEL_YELLOW;
 
   const oopHeader = document.createElement('h3');
   oopHeader.innerHTML = `<i class="fa fa-calendar"></i> ${t('publishing.orderOfPlay')}`;
@@ -314,29 +315,11 @@ export function renderTournamentControls(grid: HTMLElement): void {
   // Panel 3 — Participant Publishing
   // ============================================================
   const partPanel = document.createElement('div');
-  partPanel.className = 'pub-panel pub-panel-yellow';
-
-  // Header row: title left, publish button right
-  const partHeaderRow = document.createElement('div');
-  partHeaderRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
+  partPanel.className = PUB_PANEL_YELLOW;
 
   const partHeader = document.createElement('h3');
-  partHeader.style.margin = '0';
   partHeader.innerHTML = `<i class="fa fa-users"></i> ${t('publishing.participants')}`;
-  partHeaderRow.appendChild(partHeader);
-
-  // Publish Participants button in header (click handler wired up after columnInputs is created)
-  const publishBtn = barButton({
-    label: `<i class="fa fa-eye"></i>&nbsp;${t('publishing.publishParticipants')}`,
-    intent: 'is-primary',
-  });
-  publishBtn.style.cssText = 'flex-shrink:0;';
-  partHeaderRow.appendChild(publishBtn);
-  partPanel.appendChild(partHeaderRow);
-
-  const partSpacer = document.createElement('div');
-  partSpacer.style.height = '8px';
-  partPanel.appendChild(partSpacer);
+  partPanel.appendChild(partHeader);
 
   const partRow = document.createElement('div');
   partRow.className = 'pub-toggle-row';
@@ -349,12 +332,21 @@ export function renderTournamentControls(grid: HTMLElement): void {
     : 'off';
   partRow.appendChild(createStateBadge(partState as 'live' | 'embargoed' | 'off', partState === 'live' ? publicUrl : undefined));
 
-  // Toggle controls visibility (and for unpublish, fires immediately)
+  // Declared here so the toggle handler can read current column selections via closure
+  let columnInputs: any;
+
   const partToggle = createToggle(data.participantsPublished, (checked) => {
     if (!checked) {
       mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
     } else {
-      renderPublishingTab();
+      const selectedValues: string[] = columnInputs?.columns?.selectedValues || [];
+      const columns: any = {
+        country: selectedValues.includes('country'),
+        events: selectedValues.includes('events'),
+        ratings: selectedValues.filter((v: string) => v.startsWith('rating:')).map((v: string) => v.split(':')[1]),
+        rankings: selectedValues.filter((v: string) => v.startsWith('ranking:')).map((v: string) => v.split(':')[1]),
+      };
+      mutationRequest({ methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }], callback: () => renderPublishingTab() });
     }
   });
   partRow.appendChild(partToggle);
@@ -365,8 +357,8 @@ export function renderTournamentControls(grid: HTMLElement): void {
     );
   }
 
-  // Participant publish config controls (shown when toggle is ON)
-  if (data.participantsPublished || (partToggle.querySelector('input') as HTMLInputElement)?.checked) {
+  // Participant publish config controls (column multi-selector + publish button handler)
+  {
     const configSection = document.createElement('div');
     configSection.style.cssText = 'width:100%; margin-top:8px;';
 
@@ -387,22 +379,28 @@ export function renderTournamentControls(grid: HTMLElement): void {
     const currentColumns = data.participantsColumns;
 
     // Build column options
-    const columnOptions: { label: string; value: string; selected: boolean }[] = [
+    const columnOptions: { label: string; value: string; selected: boolean; disabled?: boolean }[] = [
       {
-        label: t('publishing.name') + ' (Country)',
+        label: t('publishing.name'),
+        value: 'name',
+        selected: true,
+        disabled: true,
+      },
+      {
+        label: t('publishing.country'),
         value: 'country',
-        selected: currentColumns ? currentColumns.country !== false : true,
+        selected: currentColumns ? currentColumns.country !== false : false,
       },
       {
         label: t('publishing.event') + 's',
         value: 'events',
-        selected: currentColumns ? currentColumns.events !== false : true,
+        selected: currentColumns ? currentColumns.events !== false : false,
       },
     ];
     if (hasRanking) {
       const rankingSelected = currentColumns?.rankings
         ? currentColumns.rankings.includes('SINGLES')
-        : true;
+        : false;
       columnOptions.push({
         label: `Rank (SINGLES)`,
         value: 'ranking:SINGLES',
@@ -412,7 +410,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
     for (const ratingName of [...discoveredRatings].sort()) {
       const ratingSelected = currentColumns?.ratings
         ? currentColumns.ratings.map((r) => r.toUpperCase()).includes(ratingName)
-        : true;
+        : false;
       columnOptions.push({
         label: ratingName,
         value: `rating:${ratingName}`,
@@ -421,34 +419,32 @@ export function renderTournamentControls(grid: HTMLElement): void {
     }
 
     const columnFormContainer = document.createElement('div');
-    const columnInputs = renderForm(columnFormContainer, [
+    columnInputs = renderForm(columnFormContainer, [
       {
         label: t('publishing.participantColumns'),
         field: 'columns',
         multiple: true,
         options: columnOptions,
+        onChange: () => {
+          if (!data.participantsPublished) return;
+          const selectedValues: string[] = columnInputs.columns?.selectedValues || [];
+
+          const columns: any = {
+            country: selectedValues.includes('country'),
+            events: selectedValues.includes('events'),
+            ratings: selectedValues.filter((v: string) => v.startsWith('rating:')).map((v: string) => v.split(':')[1]),
+            rankings: selectedValues.filter((v: string) => v.startsWith('ranking:')).map((v: string) => v.split(':')[1]),
+          };
+
+          mutationRequest({
+            methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
+          });
+        },
       },
     ]);
     // Remove .field bottom margin
     const colField = columnFormContainer.querySelector('.field') as HTMLElement;
     if (colField) colField.style.marginBottom = '0';
-
-    // Wire up publish button click handler now that columnInputs exists
-    publishBtn.addEventListener('click', () => {
-      const selectedValues: string[] = columnInputs.columns?.selectedValues || [];
-
-      const columns: any = {
-        country: selectedValues.includes('country'),
-        events: selectedValues.includes('events'),
-        ratings: selectedValues.filter((v) => v.startsWith('rating:')).map((v) => v.split(':')[1]),
-        rankings: selectedValues.filter((v) => v.startsWith('ranking:')).map((v) => v.split(':')[1]),
-      };
-
-      mutationRequest({
-        methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
-        callback: () => renderPublishingTab(),
-      });
-    });
 
     configSection.appendChild(columnFormContainer);
     partRow.appendChild(configSection);

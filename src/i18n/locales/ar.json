@@ -809,6 +809,7 @@
       "persistInputFields": "الاحتفاظ بحقول الإدخال بعد التعيين (وضع الاستمرار)",
       "betaFeatures": "الميزات التجريبية",
       "pdfPrinting": "طباعة PDF",
+      "topologyBuilder": "منشئ الطوبولوجيا",
       "language": "اللغة"
     },
     "editTournamentName": {
@@ -1457,6 +1458,7 @@
     "scheduleEmbargo": "حظر الجدول",
     "participantColumns": "الأعمدة المرئية",
     "defaultLanguage": "اللغة الافتراضية",
-    "publishParticipants": "نشر المشاركين"
+    "publishParticipants": "نشر المشاركين",
+    "country": "البلد"
   }
 }

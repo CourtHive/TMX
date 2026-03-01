@@ -8,7 +8,7 @@ import { initLoginToggle } from 'services/authentication/loginState';
 
 import { courthiveComponentsVersion } from 'courthive-components';
 import { loadSettings } from 'services/settings/settingsStorage';
-import { i18next } from 'i18n';
+import { initTheme } from 'services/theme/themeService';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
@@ -16,10 +16,10 @@ import { context } from 'services/context';
 import { drawer } from 'components/drawer';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
-import { initTheme } from 'services/theme/themeService';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
 import { env } from 'settings/env';
+import { i18next } from 'i18n';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
@@ -67,6 +67,9 @@ export function setupTMX(): void {
     }
     if (savedSettings.pdfPrinting !== undefined) {
       env.pdfPrinting = savedSettings.pdfPrinting;
+    }
+    if (savedSettings.topologyBuilder !== undefined) {
+      env.topologyBuilder = savedSettings.topologyBuilder;
     }
     if (savedSettings.minCourtGridRows !== undefined) {
       env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;

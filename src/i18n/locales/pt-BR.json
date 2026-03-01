@@ -837,6 +837,7 @@
       "persistInputFields": "Manter campos de entrada após atribuição (Modo persistente)",
       "betaFeatures": "Funcionalidades beta",
       "pdfPrinting": "Impressão PDF",
+      "topologyBuilder": "Construtor de topologia",
       "language": "Idioma"
     },
     "editTournamentName": {
@@ -1491,6 +1492,7 @@
     "scheduleEmbargo": "Embargo de cronograma",
     "participantColumns": "Colunas Visíveis",
     "defaultLanguage": "Idioma Padrão",
-    "publishParticipants": "Publicar Participantes"
+    "publishParticipants": "Publicar Participantes",
+    "country": "País"
   }
 }

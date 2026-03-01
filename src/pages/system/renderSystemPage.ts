@@ -1,7 +1,9 @@
 import { renderSystemTab } from 'pages/tournament/tabs/settingsTab/systemTab/renderSystemTab';
-import { removeAllChildNodes } from 'services/dom/transformers';
 import { showTMXsystem } from 'services/transitions/screenSlaver';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { context } from 'services/context';
+
+// constants
 import { TMX_SYSTEM } from 'constants/tmxConstants';
 
 export function renderSystemPage(selectedTab?: string): void {

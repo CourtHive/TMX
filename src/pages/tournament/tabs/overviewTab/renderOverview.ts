@@ -181,15 +181,19 @@ export function renderOverview(): void {
 
   const pubHeader = document.createElement('div');
   pubHeader.style.cssText =
-    'display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--tmx-text-secondary); margin-bottom:8px; width:100%;';
+    'display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:0.85rem; color:var(--tmx-text-secondary); margin-bottom:8px; width:100%;';
   const pubIcon = document.createElement('i');
   pubIcon.className = 'fa fa-eye';
   pubIcon.style.fontSize = '0.8rem';
   pubHeader.appendChild(pubIcon);
   pubHeader.appendChild(document.createTextNode(t('settings.publishing')));
 
+  const lineBreak = document.createElement('div');
+  lineBreak.style.cssText = 'flex-basis:100%; height:0;';
+  pubHeader.appendChild(lineBreak);
+
   const oopBadge = document.createElement('span');
-  oopBadge.style.cssText = 'margin-left:auto; font-size:0.75rem; padding:1px 6px; border-radius:3px;';
+  oopBadge.style.cssText = 'font-size:0.75rem; padding:1px 6px; border-radius:3px;';
   if (pubStats.oopPublished) {
     oopBadge.textContent = t('publishing.oopLive');
     oopBadge.style.cssText += 'background:var(--tmx-accent-blue); color:var(--tmx-text-inverse);';
@@ -210,6 +214,17 @@ export function renderOverview(): void {
   }
   pubHeader.appendChild(participantsBadge);
 
+  // Wrap the stat groups (Draws, Embargoes) so they share the right half of the panel
+  const statGroups = Array.from(publishingCard.children);
+  const statsWrapper = document.createElement('div');
+  statsWrapper.style.cssText = 'display:flex; gap:16px; flex:1;';
+  for (const child of statGroups) {
+    (child as HTMLElement).style.flex = '1';
+    statsWrapper.appendChild(child);
+  }
+  publishingCard.appendChild(statsWrapper);
+
+  pubHeader.style.cssText += 'flex:1;';
   publishingCard.insertBefore(pubHeader, publishingCard.firstChild);
   statsContainer.appendChild(publishingCard);
   leftColumn.appendChild(statsContainer);

@@ -11,6 +11,7 @@ export type TMXSettings = {
   saveLocal?: boolean;
   smartComplements?: boolean; // Enable smart complement entry in dynamicSets (default: false)
   pdfPrinting?: boolean; // Beta feature flag for PDF generation
+  topologyBuilder?: boolean; // Beta feature flag for custom draw topology builder
   minCourtGridRows?: number; // Minimum schedule grid rows (default: 10)
   persistInputFields?: boolean; // Keep input fields visible after participant assignment (default: true)
   language?: string; // UI language code (e.g. 'en', 'fr')

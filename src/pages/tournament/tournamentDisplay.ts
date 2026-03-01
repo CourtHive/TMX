@@ -10,6 +10,7 @@ import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderP
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderVenueTab } from 'pages/tournament/tabs/scheduleTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
+import { renderTopologyPage } from './topologyPage';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
@@ -54,6 +55,21 @@ function renderTournament({ config }: { config: any }): void {
 
 export function routeTo(config: any): void {
   const { selectedTab = TOURNAMENT_OVERVIEW } = config;
+
+  // Topology page is standalone — does not use tournament tab system
+  if (selectedTab === 'topology') {
+    highlightTab(selectedTab);
+    renderTopologyPage({
+      eventId: config.eventId,
+      drawId: config.drawId,
+      readOnly: config.readOnly,
+    });
+    return;
+  }
+
+  // Ensure TMX_CONTENT is visible (e.g. when navigating back from topology page)
+  showContent(TOURNAMENT);
+
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });

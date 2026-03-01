@@ -40,6 +40,26 @@ export function routeTMX() {
     displayTournament({ config: { selectedTab, renderDraw, ...data } }); // ...data must come last
   };
 
+  // Topology routes — standalone page, reuses tournament loading
+  router.on(`/${TOURNAMENT}/:tournamentId/topology/:eventId/:drawId/${VIEW}`, (match) => {
+    destroyTables();
+    displayTournament({
+      config: { ...match?.data, selectedTab: 'topology', readOnly: true },
+    });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/topology/:eventId/:drawId`, (match) => {
+    destroyTables();
+    displayTournament({
+      config: { ...match?.data, selectedTab: 'topology' },
+    });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/topology/:eventId`, (match) => {
+    destroyTables();
+    displayTournament({
+      config: { ...match?.data, selectedTab: 'topology' },
+    });
+  });
+
   router.on(`/${TOURNAMENT}/:tournamentId`, (match) => {
     displayRoute({ data: match?.data });
   });
@@ -101,7 +121,12 @@ export function routeTMX() {
     }
   });
   router.notFound(() => {
-    router.navigate(`/${TMX_TOURNAMENTS}`);
+    const splash = document.getElementById(SPLASH);
+    if (splash?.dataset.animating) {
+      showSplash();
+    } else {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+    }
   });
   router.resolve();
 

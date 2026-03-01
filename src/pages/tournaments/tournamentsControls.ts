@@ -13,9 +13,17 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { controlBar } from 'courthive-components';
 import { mockTournaments } from './mockTournaments';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 // constants
-import { LEFT, RIGHT, SUPER_ADMIN, TMX_TOURNAMENTS, TOURNAMENTS_CONTROL, TOURNAMENTS_TABLE } from 'constants/tmxConstants';
+import {
+  LEFT,
+  RIGHT,
+  SUPER_ADMIN,
+  TMX_TOURNAMENTS,
+  TOURNAMENTS_CONTROL,
+  TOURNAMENTS_TABLE,
+} from 'constants/tmxConstants';
 
 export function calendarControls(table: any): void {
   const state = getLoginState();
@@ -51,7 +59,12 @@ export function calendarControls(table: any): void {
   const setSearchFilter = createSearchFilter(table);
 
   const items = [
-    { label: 'New Tournament', intent: 'is-success', onClick: () => (editTournament as any)({ table }), align: RIGHT },
+    {
+      label: t('tournaments.new'),
+      intent: 'is-success',
+      onClick: () => (editTournament as any)({ table }),
+      align: RIGHT,
+    },
     { label: 'Actions', options: actions, align: RIGHT },
     {
       onKeyDown: (e: KeyboardEvent) =>

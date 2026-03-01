@@ -872,6 +872,7 @@
       "persistInputFields": "Keep input fields after assignment (Persist mode)",
       "betaFeatures": "Beta features",
       "pdfPrinting": "PDF printing",
+      "topologyBuilder": "Topology builder",
       "language": "Language",
       "theme": "Theme",
       "dangerZone": "Danger Zone"
@@ -1538,6 +1539,7 @@
     "confirmUnpublish": "Unpublish all events, participants & schedule",
     "participantColumns": "Visible Columns",
     "defaultLanguage": "Default Language",
-    "publishParticipants": "Publish Participants"
+    "publishParticipants": "Publish Participants",
+    "country": "Country"
   }
 }

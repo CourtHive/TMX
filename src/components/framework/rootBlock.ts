@@ -16,6 +16,7 @@ import {
   TOURNAMENTS_CONTROL,
   TMX_CONTENT,
   TMX_TOURNAMENTS,
+  TMX_TOPOLOGY,
   TMX_DRAWER,
   TIMEPICKER,
   TIMEVALUE,
@@ -36,12 +37,16 @@ export function rootBlock(): HTMLElement {
   const splash = document.createElement('div');
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
-  splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: none;';
   splash.appendChild(logo);
   root.appendChild(splash);
 
   const isRootUrl = !globalThis.location.hash || globalThis.location.hash === '#/' || globalThis.location.hash === '#';
   if (isRootUrl) {
+    // Show splash immediately so the SVG has layout dimensions when the
+    // fly-through animation fires.  Hide the nav bar during the splash.
+    splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: flex;';
+    const dnav = document.getElementById('dnav');
+    if (dnav) dnav.style.display = NONE;
     splash.dataset.animating = 'true';
 
     const skipAnimation = animateLogoFlyThrough(logo, {
@@ -58,6 +63,8 @@ export function rootBlock(): HTMLElement {
     // Click splash during static phase to skip animation
     splash.style.cursor = 'pointer';
     splash.addEventListener('click', skipAnimation);
+  } else {
+    splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: none;';
   }
 
   const tp = document.createElement('div');
@@ -143,6 +150,13 @@ export function rootBlock(): HTMLElement {
   calendar.id = TOURNAMENTS_CALENDAR;
 
   main.appendChild(calendar);
+
+  const topology = document.createElement('div');
+  topology.className = flexColFlexGrow;
+  topology.style.display = NONE;
+  topology.id = TMX_TOPOLOGY;
+
+  main.appendChild(topology);
 
   const admin = document.createElement('div');
   admin.className = flexColFlexGrow;
