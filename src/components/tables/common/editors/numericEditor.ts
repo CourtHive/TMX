@@ -33,7 +33,7 @@ export const numericEditor =
 
     editor.addEventListener('keyup', (e: any) => {
       const allNumeric = e.target.value.replace(regex, '') || '';
-      e.target.value = allNumeric > maxValue ? '' : allNumeric;
+      e.target.value = maxValue > 0 && allNumeric > maxValue ? '' : allNumeric;
       if (e.key === 'Tab' && e.shiftKey && field) {
         const row = findAncestor(e.target, 'tabulator-row');
         const previousRow = row?.previousSibling;
