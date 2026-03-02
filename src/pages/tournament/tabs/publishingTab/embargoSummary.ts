@@ -5,6 +5,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderPublishingTab } from './renderPublishingTab';
 import { getActiveEmbargoes } from './publishingData';
+import { tournamentEngine, publishingGovernor } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 // constants
@@ -54,6 +55,38 @@ function removeEmbargo(entry: ReturnType<typeof getActiveEmbargoes>[0]): void {
             eventId: entry.eventId,
             drawIdsToAdd: [entry.drawId],
             drawDetails,
+          },
+        },
+      ],
+      callback: () => renderPublishingTab(),
+    });
+  } else if (entry.type === 'scheduledRound' && entry.eventId && entry.drawId && entry.structureId && entry.roundNumber) {
+    const { event } = tournamentEngine.getEvent({ drawId: entry.drawId });
+    if (!event) return;
+
+    const pubState = publishingGovernor.getPublishState({ event })?.publishState;
+    const drawDetail = pubState?.status?.drawDetails?.[entry.drawId] || {};
+    const existingStructureDetails = drawDetail.structureDetails || {};
+    const existingDetail = existingStructureDetails[entry.structureId] || {};
+    const existingScheduledRounds = existingDetail.scheduledRounds || {};
+
+    const scheduledRounds = {
+      ...existingScheduledRounds,
+      [entry.roundNumber]: { published: true },
+    };
+    const structureDetails = {
+      ...existingStructureDetails,
+      [entry.structureId]: { ...existingDetail, scheduledRounds },
+    };
+
+    mutationRequest({
+      methods: [
+        {
+          method: PUBLISH_EVENT,
+          params: {
+            removePriorValues: true,
+            drawDetails: { [entry.drawId]: { ...drawDetail, structureDetails } },
+            eventId: entry.eventId,
           },
         },
       ],

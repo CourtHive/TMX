@@ -32,6 +32,8 @@ export type EmbargoEntry = {
   embargoActive: boolean;
   eventId?: string;
   drawId?: string;
+  structureId?: string;
+  roundNumber?: string;
 };
 
 export type TournamentPublishData = {
@@ -225,7 +227,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
 
       // Round-level schedule embargoes from structureDetails
       const structureDetails = details?.structureDetails || {};
-      for (const [, sd] of Object.entries(structureDetails) as [string, any][]) {
+      for (const [structureId, sd] of Object.entries(structureDetails) as [string, any][]) {
         const scheduledRounds = sd?.scheduledRounds || {};
         for (const [roundNumber, rd] of Object.entries(scheduledRounds) as [string, any][]) {
           if (rd?.embargo && new Date(rd.embargo).getTime() > Date.now()) {
@@ -237,6 +239,8 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
               embargoActive: true,
               eventId: event.eventId,
               drawId,
+              structureId,
+              roundNumber,
             });
           }
         }
