@@ -580,7 +580,7 @@ const mockProfiles = [
     ],
     venueProfiles: [wiffleballPark],
   },
-].filter((t) => !['INTENNSE Showdown', 'BLW Wiffle Ball Classic'].includes(t.tournamentName));
+]; // .filter((t) => !['INTENNSE Showdown', 'BLW Wiffle Ball Classic'].includes(t.tournamentName));
 
 export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({
   label: p.tournamentName,
