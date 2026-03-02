@@ -1,6 +1,5 @@
 /**
- * Venue control bar with add, delete, view toggle, and save actions.
- * Manages venue operations from the venues table and temporal grid.
+ * Venue control bar with add and delete actions.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'courthive-components';
@@ -8,23 +7,19 @@ import { addVenue } from './addVenue';
 import { t } from 'i18n';
 
 import { DELETE_VENUES } from 'constants/mutationConstants';
-import { NONE, OVERLAY, RIGHT } from 'constants/tmxConstants';
+import { OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 type VenueControlParams = {
   table: any;
   updateVenueRow: (params: any) => void;
   controlAnchor?: HTMLElement;
-  onToggleView?: () => void;
-  onSaveGrid?: () => void;
 };
 
 export function venueControl({
   table,
   updateVenueRow,
   controlAnchor,
-  onToggleView,
-  onSaveGrid,
-}: VenueControlParams = {} as any): any {
+}: VenueControlParams = {} as any): void {
   if (!controlAnchor) return;
 
   const deleteVenues = () => {
@@ -43,21 +38,6 @@ export function venueControl({
       location: OVERLAY,
     },
     {
-      onClick: onToggleView,
-      label: t('view'),
-      location: RIGHT,
-      id: 'toggleTemporalGrid',
-      intent: 'is-info',
-    },
-    {
-      onClick: onSaveGrid,
-      label: t('save'),
-      location: RIGHT,
-      id: 'saveTemporalGrid',
-      intent: 'is-success',
-      visible: false,
-    },
-    {
       label: t('pages.venues.addVenue.title'),
       onClick: () => addVenue(updateVenueRow),
       location: RIGHT,
@@ -66,17 +46,5 @@ export function venueControl({
     },
   ];
 
-  const result = controlBar({ table, target: controlAnchor, items });
-
-  return {
-    elements: result?.elements,
-    setGridView: (isGridView: boolean) => {
-      const toggleBtn = result?.elements?.toggleTemporalGrid;
-      const saveBtn = result?.elements?.saveTemporalGrid;
-      const addBtn = result?.elements?.addVenue;
-      if (toggleBtn) toggleBtn.innerHTML = isGridView ? t('ccl') : t('view');
-      if (saveBtn) saveBtn.style.display = isGridView ? '' : NONE;
-      if (addBtn) addBtn.style.display = isGridView ? NONE : '';
-    },
-  };
+  controlBar({ table, target: controlAnchor, items });
 }
