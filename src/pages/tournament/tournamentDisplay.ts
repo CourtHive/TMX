@@ -69,6 +69,7 @@ export function routeTo(config: any): void {
 
   // Ensure TMX_CONTENT is visible (e.g. when navigating back from topology page)
   showContent(TOURNAMENT);
+  highlightTab(selectedTab);
 
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
