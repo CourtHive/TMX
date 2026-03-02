@@ -36,8 +36,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.28-beta.9
-        version: 0.9.28-beta.9(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
+        specifier: 0.9.28-beta.10
+        version: 0.9.28-beta.10(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
       d3-selection:
         specifier: 3.0.0
         version: 3.0.0
@@ -1651,8 +1651,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.9.28-beta.9:
-    resolution: {integrity: sha512-tUN4c5pMzftbLrrgXT8wLQMYOJXSNiGgj1Y15HRzrH+tJLY00TugWV6RJvggKL3lIfPWPMiPP6VCjkxrJMrYfg==}
+  courthive-components@0.9.28-beta.10:
+    resolution: {integrity: sha512-JHM3tMzDRsmdjU7Xk73jXV1tZNia3MmMCRatktzUfSwOUnFRi1yLC3b1YJwQhGvUOosm1mujS93mf8zaTTEV0A==}
     engines: {node: '>=20.19.0 < 25'}
 
   create-ecdh@4.0.4:
@@ -2210,6 +2210,7 @@ packages:
   git-raw-commits@4.0.0:
     resolution: {integrity: sha512-ICsMM1Wk8xSGMowkOmPrzo2Fgmfo4bMHLNX6ytHjajRJUqvHOw/TFapQ+QG75c3X/tTDDhOSRPGC52dDbNM8FQ==}
     engines: {node: '>=16'}
+    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
     hasBin: true
 
   glob-parent@6.0.2:
@@ -3335,6 +3336,10 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  tods-competition-factory@2.4.6-beta.11:
+    resolution: {integrity: sha512-t1Rsfi6RNNzHB4TA1xU0ZfgkjCs0mxSjU3lyo0m8lP7bIecSa1iaCTA7iE47rbuY4okpts/Gx1ppie/FF+MtJA==}
+    engines: {node: '>=20'}
 
   tods-competition-factory@2.4.6-beta.9:
     resolution: {integrity: sha512-8c7s4OR/1qP7+OZmUzOLWcXEv0Fq2MleFtGdvwl5HemskB+pk5jH4mwwj2YslmzFV0EJkAnAgN+XZA8xqIm1Mg==}
@@ -5129,7 +5134,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  courthive-components@0.9.28-beta.9(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15):
+  courthive-components@0.9.28-beta.10(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15):
     dependencies:
       awesomplete: 1.1.7
       class-variance-authority: 0.7.1
@@ -5139,7 +5144,7 @@ snapshots:
       focus-trap: 8.0.0
       timepicker-ui: 4.1.6
       tippy.js: 6.3.7
-      tods-competition-factory: 2.4.6-beta.9
+      tods-competition-factory: 2.4.6-beta.11
       vanillajs-datepicker: 1.3.4
       vis-data: 8.0.3(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))
       vis-timeline: 8.5.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-data@8.0.3(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)))(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
@@ -7067,6 +7072,8 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  tods-competition-factory@2.4.6-beta.11: {}
 
   tods-competition-factory@2.4.6-beta.9: {}
 
