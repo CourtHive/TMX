@@ -5,6 +5,7 @@ export const idEditor =
   (cell, onRendered, success) => {
     const editor = document.createElement('input');
     editor.style.backgroundColor = 'var(--tmx-bg-highlight)';
+    editor.style.color = 'var(--tmx-text-primary)';
     editor.style.boxSizing = 'border-box';
     editor.style.textAlign = 'center';
     editor.style.padding = '3px';
