@@ -6,6 +6,7 @@ export const numericEditor =
     const regex = decimals ? /[^0-9.]/g : /^\D/g;
     const editor = document.createElement('input');
     editor.style.backgroundColor = 'var(--tmx-bg-highlight)';
+    editor.style.color = 'var(--tmx-text-primary)';
     editor.style.boxSizing = 'border-box';
     editor.style.textAlign = 'center';
     editor.style.padding = '3px';

@@ -37,6 +37,14 @@
   --tmx-status-error: #f14668;
   --tmx-status-info: #3e8ed0;
 
+  /* Container fills — in light mode, reuse standard intent colors */
+  --tmx-container-primary: #00d1b2;
+  --tmx-container-link: #485fc7;
+  --tmx-container-info: #3e8ed0;
+  --tmx-container-danger: #f14668;
+  --tmx-container-success: #48c78e;
+  --tmx-container-warning: #ffe08a;
+
   /* Panels */
   --tmx-panel-blue-bg: #eef4fb;
   --tmx-panel-blue-border: #4a90d9;
@@ -89,6 +97,12 @@
   --chc-border-secondary: var(--tmx-border-secondary);
   --chc-border-focus: var(--tmx-border-focus);
   --chc-panel-header-bg: var(--tmx-bg-panel-header);
+  --chc-container-primary: var(--tmx-container-primary);
+  --chc-container-link: var(--tmx-container-link);
+  --chc-container-info: var(--tmx-container-info);
+  --chc-container-danger: var(--tmx-container-danger);
+  --chc-container-success: var(--tmx-container-success);
+  --chc-container-warning: var(--tmx-container-warning);
 }
 
 /* ===== Dark theme ===== */
@@ -126,6 +140,14 @@
   --tmx-status-warning: #e6c84e;
   --tmx-status-error: #e85d7a;
   --tmx-status-info: #5ba3d9;
+
+  /* Container fills — darker for solid backgrounds with white text */
+  --tmx-container-primary: #0d7369;
+  --tmx-container-link: #3566a8;
+  --tmx-container-info: #3571b3;
+  --tmx-container-danger: #b83a3a;
+  --tmx-container-success: #287a4a;
+  --tmx-container-warning: #a08620;
 
   /* Panels */
   --tmx-panel-blue-bg: #1a2a4e;
@@ -196,6 +218,12 @@
   --chc-status-warning: var(--tmx-status-warning);
   --chc-status-error: var(--tmx-status-error);
   --chc-status-info: var(--tmx-status-info);
+  --chc-container-primary: var(--tmx-container-primary);
+  --chc-container-link: var(--tmx-container-link);
+  --chc-container-info: var(--tmx-container-info);
+  --chc-container-danger: var(--tmx-container-danger);
+  --chc-container-success: var(--tmx-container-success);
+  --chc-container-warning: var(--tmx-container-warning);
 }
 
 /* ===== Dark theme element overrides ===== */
@@ -203,12 +231,12 @@
 /* --- Intent-colored button dark overrides --- */
 /* Info */
 [data-theme='dark'] .button.is-info {
-  background-color: var(--tmx-status-info);
+  background-color: var(--tmx-container-info);
   border-color: transparent;
   color: #fff;
 }
-[data-theme='dark'] .button.is-info:hover { background-color: #4faae0; }
-[data-theme='dark'] .button.is-info:active { background-color: #4a9cd4; }
+[data-theme='dark'] .button.is-info:hover { background-color: #3d82c4; }
+[data-theme='dark'] .button.is-info:active { background-color: #2e6ea6; }
 [data-theme='dark'] .button.is-info.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-status-info);
@@ -226,12 +254,12 @@
 
 /* Success */
 [data-theme='dark'] .button.is-success {
-  background-color: var(--tmx-status-success);
+  background-color: var(--tmx-container-success);
   border-color: transparent;
   color: #fff;
 }
-[data-theme='dark'] .button.is-success:hover { background-color: #6dc48d; }
-[data-theme='dark'] .button.is-success:active { background-color: #52b477; }
+[data-theme='dark'] .button.is-success:hover { background-color: #2e8b55; }
+[data-theme='dark'] .button.is-success:active { background-color: #236b42; }
 [data-theme='dark'] .button.is-success.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-status-success);
@@ -249,12 +277,12 @@
 
 /* Danger */
 [data-theme='dark'] .button.is-danger {
-  background-color: var(--tmx-status-error);
+  background-color: var(--tmx-container-danger);
   border-color: transparent;
   color: #fff;
 }
-[data-theme='dark'] .button.is-danger:hover { background-color: #ea7490; }
-[data-theme='dark'] .button.is-danger:active { background-color: #e56584; }
+[data-theme='dark'] .button.is-danger:hover { background-color: #c74444; }
+[data-theme='dark'] .button.is-danger:active { background-color: #a03232; }
 [data-theme='dark'] .button.is-danger.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-status-error);
@@ -272,12 +300,12 @@
 
 /* Warning */
 [data-theme='dark'] .button.is-warning {
-  background-color: var(--tmx-status-warning);
+  background-color: var(--tmx-container-warning);
   border-color: transparent;
-  color: rgba(0, 0, 0, 0.7);
+  color: #fff;
 }
-[data-theme='dark'] .button.is-warning:hover { background-color: #e9d25a; }
-[data-theme='dark'] .button.is-warning:active { background-color: #d9c344; }
+[data-theme='dark'] .button.is-warning:hover { background-color: #b8962e; }
+[data-theme='dark'] .button.is-warning:active { background-color: #8a7118; }
 [data-theme='dark'] .button.is-warning.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-status-warning);
@@ -295,12 +323,12 @@
 
 /* Primary */
 [data-theme='dark'] .button.is-primary {
-  background-color: var(--tmx-accent-teal);
+  background-color: var(--tmx-container-primary);
   border-color: transparent;
   color: #fff;
 }
-[data-theme='dark'] .button.is-primary:hover { background-color: #23b5a4; }
-[data-theme='dark'] .button.is-primary:active { background-color: #15877a; }
+[data-theme='dark'] .button.is-primary:hover { background-color: #108575; }
+[data-theme='dark'] .button.is-primary:active { background-color: #0a5e53; }
 [data-theme='dark'] .button.is-primary.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-accent-teal);
@@ -318,12 +346,12 @@
 
 /* Link */
 [data-theme='dark'] .button.is-link {
-  background-color: var(--tmx-accent-blue);
+  background-color: var(--tmx-container-link);
   border-color: transparent;
   color: #fff;
 }
-[data-theme='dark'] .button.is-link:hover { background-color: #6da8dc; }
-[data-theme='dark'] .button.is-link:active { background-color: #5098d5; }
+[data-theme='dark'] .button.is-link:hover { background-color: #3e74b8; }
+[data-theme='dark'] .button.is-link:active { background-color: #2c5892; }
 [data-theme='dark'] .button.is-link.is-outlined {
   background-color: transparent;
   border-color: var(--tmx-accent-blue);
@@ -577,7 +605,7 @@
   color: var(--tmx-text-primary);
 }
 [data-theme='dark'] .tag.is-link {
-  background-color: var(--tmx-accent-blue);
+  background-color: var(--tmx-container-link);
   color: #fff;
 }
 [data-theme='dark'] .tag.is-link.is-light {
@@ -585,7 +613,7 @@
   color: var(--tmx-accent-blue);
 }
 [data-theme='dark'] .tag.is-danger {
-  background-color: var(--tmx-accent-red);
+  background-color: var(--tmx-container-danger);
   color: #fff;
 }
 [data-theme='dark'] .tag.is-danger.is-light {
@@ -593,7 +621,7 @@
   color: var(--tmx-accent-red);
 }
 [data-theme='dark'] .tag.is-primary {
-  background-color: var(--tmx-accent-teal);
+  background-color: var(--tmx-container-primary);
   color: #fff;
 }
 [data-theme='dark'] .tag.is-primary.is-light {
@@ -601,11 +629,39 @@
   color: var(--tmx-accent-teal);
 }
 [data-theme='dark'] .tag.is-info {
-  background-color: var(--tmx-status-info);
+  background-color: var(--tmx-container-info);
   color: #fff;
 }
 [data-theme='dark'] .tag.is-info.is-light {
   background-color: rgba(91, 163, 217, 0.15);
+  color: var(--tmx-status-info);
+}
+[data-theme='dark'] .tag.is-success {
+  background-color: var(--tmx-container-success);
+  color: #fff;
+}
+[data-theme='dark'] .tag.is-success.is-light {
+  background-color: rgba(92, 184, 120, 0.15);
+  color: var(--tmx-status-success);
+}
+[data-theme='dark'] .tag.is-warning {
+  background-color: var(--tmx-container-warning);
+  color: #fff;
+}
+[data-theme='dark'] .tag.is-warning.is-light {
+  background-color: rgba(230, 200, 78, 0.15);
+  color: var(--tmx-status-warning);
+}
+
+/* --- Notification dark overrides --- */
+[data-theme='dark'] .notification.is-info { background-color: var(--tmx-container-info); color: #fff; }
+[data-theme='dark'] .notification.is-success { background-color: var(--tmx-container-success); color: #fff; }
+[data-theme='dark'] .notification.is-danger { background-color: var(--tmx-container-danger); color: #fff; }
+[data-theme='dark'] .notification.is-warning { background-color: var(--tmx-container-warning); color: #fff; }
+[data-theme='dark'] .notification.is-primary { background-color: var(--tmx-container-primary); color: #fff; }
+[data-theme='dark'] .notification.is-link { background-color: var(--tmx-container-link); color: #fff; }
+[data-theme='dark'] .notification.is-info.is-light {
+  background-color: rgba(53, 113, 179, 0.15);
   color: var(--tmx-status-info);
 }
 
