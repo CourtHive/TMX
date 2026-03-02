@@ -3,15 +3,12 @@
  * Displays all active embargoes sorted by expiry with remove buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { getActiveEmbargoes } from './publishingData';
 import { renderPublishingTab } from './renderPublishingTab';
+import { getActiveEmbargoes } from './publishingData';
 import { t } from 'i18n';
 
-import {
-  PUBLISH_EVENT,
-  PUBLISH_ORDER_OF_PLAY,
-  PUBLISH_PARTICIPANTS,
-} from 'constants/mutationConstants';
+// constants
+import { PUBLISH_EVENT, PUBLISH_ORDER_OF_PLAY, PUBLISH_PARTICIPANTS } from 'constants/mutationConstants';
 
 function formatEmbargoTime(isoString: string): { display: string; countdown: string } {
   const date = new Date(isoString);
