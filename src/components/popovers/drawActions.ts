@@ -1,5 +1,4 @@
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
-import { toggleDrawPublishState } from 'services/publishing/toggleDrawPublishState';
 import { eventTabDeleteDraws } from 'components/tables/common/eventTabDeleteDraws';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -18,15 +17,7 @@ export const drawActions = (eventRow) => (e, cell) => {
 
   const row = cell.getRow();
   const data = row?.getData();
-  const { published, drawId, eventId } = data;
-
-  /**
-  const doneEditing = ({ success, eventUpdates }) => {
-    if (success) {
-      row.update(eventRow);
-    }
-  };
-   */
+  const { drawId, eventId } = data;
 
   const deleteDraw = () => {
     const callback = (result) => {
@@ -38,18 +29,10 @@ export const drawActions = (eventRow) => (e, cell) => {
     deleteFlights({ eventId, drawIds: [drawId], callback });
   };
 
-  const publish = () => {
-    toggleDrawPublishState(eventRow)(e, cell);
-  };
-
   const items = [
     {
       onClick: () => editDisplaySettings({ drawId: data.drawId }),
       text: 'Display settings',
-    },
-    {
-      text: published ? 'Unpublish' : 'Publish',
-      onClick: publish,
     },
     {
       onClick: deleteDraw,

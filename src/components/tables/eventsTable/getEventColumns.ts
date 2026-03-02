@@ -12,7 +12,7 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-export function getEventColumns(nestedTables: any, getLightMode?: () => boolean): any[] {
+export function getEventColumns(getLightMode?: () => boolean): any[] {
   const isLightMode = typeof getLightMode === 'function' ? getLightMode() : false;
 
   const eventDetail = (e: any, cell: any) => {
@@ -135,7 +135,7 @@ export function getEventColumns(nestedTables: any, getLightMode?: () => boolean)
       width: 20,
     },
     {
-      cellClick: eventActions(nestedTables),
+      cellClick: eventActions(),
       formatter: threeDots,
       responsive: false,
       headerSort: false,

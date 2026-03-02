@@ -47,7 +47,7 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
     table.replaceData(getTableData());
   };
 
-  const columns = getEventColumns(nestedTables, () => lightMode);
+  const columns = getEventColumns(() => lightMode);
 
   const render = (data: any[]) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
