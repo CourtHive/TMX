@@ -87,9 +87,10 @@ export function updateConflicts(table: any, matchUps?: any[]): void {
     const columns = table.getColumns();
 
     // Skip the first column (control column) and iterate through court columns
+    const fieldToCourtId = table.fieldToCourtId ?? {};
     columns.slice(1).forEach((column: any) => {
       const columnDef = column.getDefinition();
-      const courtId = columnDef.courtId;
+      const courtId = fieldToCourtId[columnDef.field];
       const headerElement = column.getElement().querySelector('.tabulator-col-content');
 
       if (!headerElement) return;

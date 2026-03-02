@@ -1,12 +1,11 @@
 import { tournamentFormatter } from '../common/formatters/tournamentFormatter';
-import { tournamentActionFormatter } from './tournamentActionFormatter';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
-import { RIGHT, TOURNAMENT } from 'constants/tmxConstants';
+import { TOURNAMENT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-export function getTournamentColumns(replaceTableData: () => void): any[] {
+export function getTournamentColumns(): any[] {
   const isMobile = /Mobile/.test(navigator.userAgent);
   const openTournament = (_: any, cell: any) => {
     const tournamentId = cell.getRow().getData().tournamentId;
@@ -35,14 +34,6 @@ export function getTournamentColumns(replaceTableData: () => void): any[] {
       visible: !isMobile,
       title: t('tables.tournaments.open'),
       width: 90,
-    },
-    {
-      formatter: tournamentActionFormatter(replaceTableData),
-      field: 'tournamentId',
-      vertAlign: 'middle',
-      headerSort: false,
-      hozAlign: RIGHT,
-      width: 10,
     },
   ];
 }

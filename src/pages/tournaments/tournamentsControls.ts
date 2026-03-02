@@ -10,8 +10,9 @@ import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
 import { getLoginState } from 'services/authentication/loginState';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { listPicker } from 'components/modals/listPicker';
 import { controlBar } from 'courthive-components';
-import { mockTournaments } from './mockTournaments';
+import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -39,7 +40,17 @@ export function calendarControls(table: any): void {
     if (calendarAnchor) {
       const navigate = () => context.router?.navigate(`/${TMX_TOURNAMENTS}/${Date.now()}`);
       renderWelcomeView(calendarAnchor, {
-        onGenerate: () => mockTournaments(undefined, navigate),
+        onGenerate: () => {
+          const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
+          listPicker({
+            options,
+            callback: ({ selection }: any) => {
+              const value = selection?.selection?.value;
+              const indices = value === -1 ? undefined : [value];
+              mockTournaments(undefined, navigate, indices);
+            },
+          });
+        },
         onCreate: () => editTournament({ onCreated: navigate }),
         onBack: navigate,
       });
@@ -52,7 +63,21 @@ export function calendarControls(table: any): void {
     admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table }) },
     { divider: true },
     { divider: true },
-    { label: 'Example tournaments', onClick: () => mockTournaments(table), close: true },
+    {
+      label: 'Example tournaments',
+      onClick: () => {
+        const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
+        listPicker({
+          options,
+          callback: ({ selection }: any) => {
+            const value = selection?.selection?.value;
+            const indices = value === -1 ? undefined : [value];
+            mockTournaments(table, undefined, indices);
+          },
+        });
+      },
+      close: true,
+    },
     { label: 'Welcome', onClick: showWelcome, close: true },
   ].filter(Boolean);
 

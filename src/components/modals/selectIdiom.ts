@@ -22,7 +22,7 @@ const iocToLang: Record<string, string> = {
   NLD: 'nl',
   RUS: 'ru',
   JPN: 'ja',
-  CHN: 'zh',
+  CHN: 'zh-CN',
   KOR: 'ko',
   SWE: 'sv',
   NOR: 'no',

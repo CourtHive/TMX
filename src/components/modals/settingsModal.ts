@@ -81,6 +81,7 @@ export function settingsModal(): void {
           { value: 'pt-BR', label: 'Português (Brasil)', selected: i18next.language === 'pt-BR' },
           { value: 'de', label: 'Deutsch', selected: i18next.language === 'de' },
           { value: 'ar', label: 'العربية', selected: i18next.language === 'ar' },
+          { value: 'zh-CN', label: '简体中文', selected: i18next.language === 'zh-CN' },
         ],
         field: 'language',
         id: 'language',

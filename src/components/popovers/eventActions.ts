@@ -1,16 +1,15 @@
 /**
- * Event actions popover with publish, edit, and delete options.
+ * Event actions popover with edit, delete, and display settings options.
  * Shows tipster menu for event management actions from table rows.
  */
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
-import { toggleEventPublishState } from 'services/publishing/toggleEventPublishState';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
 import { deleteEvents } from 'components/modals/deleteEvents';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export const eventActions = (nestedTables: any) => (e: MouseEvent, cell: any): void => {
+export const eventActions = () => (e: MouseEvent, cell: any): void => {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
@@ -21,17 +20,12 @@ export const eventActions = (nestedTables: any) => (e: MouseEvent, cell: any): v
 
   const row = cell.getRow();
   const eventRow = row?.getData();
-  const published = eventRow?.published;
 
   const doneEditing = ({ success, eventUpdates }: any) => {
     if (success) {
       Object.assign(eventRow.event, eventUpdates);
       row.update(eventRow);
     }
-  };
-
-  const publish = () => {
-    toggleEventPublishState(nestedTables)(e, cell);
   };
 
   const deleteEvent = () => {
@@ -47,10 +41,6 @@ export const eventActions = (nestedTables: any) => (e: MouseEvent, cell: any): v
     {
       onClick: () => editDisplaySettings({ eventId: data.eventId }),
       text: 'Display settings',
-    },
-    {
-      text: published ? 'Unpublish' : 'Publish',
-      onClick: publish,
     },
     {
       onClick: deleteEvent,

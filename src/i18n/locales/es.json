@@ -838,7 +838,8 @@
       "betaFeatures": "Funciones beta",
       "pdfPrinting": "Impresión PDF",
       "topologyBuilder": "Constructor de topología",
-      "language": "Idioma"
+      "language": "Idioma",
+      "font": "Fuente"
     },
     "editTournamentName": {
       "title": "Editar Nombre del Torneo",
@@ -1066,6 +1067,23 @@
       "warning": "¡La estructura será eliminada!"
     },
     "selectTeam": "Seleccionar equipo"
+  },
+
+  "dashboard": {
+    "dates": "Fechas",
+    "events": "Eventos",
+    "draws": "Cuadros",
+    "players": "Jugadores",
+    "teams": "Equipos",
+    "matchUps": "Partidos",
+    "scheduled": "Programado",
+    "complete": "Completado",
+    "embargoes": "Embargos",
+    "tournamentImage": "Imagen del torneo",
+    "noTournamentImage": "Sin imagen del torneo",
+    "noTournamentInfo": "Sin información del torneo",
+    "editNotes": "Editar notas",
+    "noEliminationStructures": "Sin estructuras de eliminación"
   },
 
   "drawers": {

@@ -1,8 +1,9 @@
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
+import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/mockTournaments';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
-import { mockTournaments } from 'pages/tournaments/mockTournaments';
+import { listPicker } from 'components/modals/listPicker';
 import { getLoginState } from 'services/authentication/loginState';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getTournamentColumns } from './getTournamentColumn';
@@ -22,7 +23,7 @@ export function createTournamentsTable(): { table: any } {
   if (dnav) dnav.style.backgroundColor = '';
   let table: any;
 
-  const columns = getTournamentColumns(() => {});
+  const columns = getTournamentColumns();
 
   const renderTable = (tableData: any[]) => {
     destroyTable({ anchorId: TOURNAMENTS_TABLE });
@@ -34,7 +35,17 @@ export function createTournamentsTable(): { table: any } {
       if (controlEl) controlEl.innerHTML = '';
 
       renderWelcomeView(calendarAnchor, {
-        onGenerate: () => mockTournaments(undefined, () => createTournamentsTable()),
+        onGenerate: () => {
+          const options = [...EXAMPLE_TOURNAMENT_CATALOG, { label: 'All', value: -1 }];
+          listPicker({
+            options,
+            callback: ({ selection }: any) => {
+              const value = selection?.selection?.value;
+              const indices = value === -1 ? undefined : [value];
+              mockTournaments(undefined, () => createTournamentsTable(), indices);
+            },
+          });
+        },
         onCreate: () => editTournament({ onCreated: () => createTournamentsTable() }),
       });
       return;

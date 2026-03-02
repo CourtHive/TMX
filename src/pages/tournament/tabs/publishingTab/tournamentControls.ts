@@ -32,6 +32,7 @@ const SUPPORTED_LANGUAGES = [
   { value: 'pt-BR', label: 'Português' },
   { value: 'de', label: 'Deutsch' },
   { value: 'ar', label: 'العربية' },
+  { value: 'zh-CN', label: '简体中文' },
 ];
 
 function createToggle(checked: boolean, onChange: (checked: boolean) => void): HTMLElement {
