@@ -36,8 +36,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       courthive-components:
-        specifier: 0.9.28-beta.12
-        version: 0.9.28-beta.12(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
+        specifier: 0.9.28-beta.13
+        version: 0.9.28-beta.13(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
       d3-selection:
         specifier: 3.0.0
         version: 3.0.0
@@ -111,8 +111,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: 2.4.6-beta.13
-        version: 2.4.6-beta.13
+        specifier: 2.4.6-beta.14
+        version: 2.4.6-beta.14
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -1651,8 +1651,8 @@ packages:
       typescript:
         optional: true
 
-  courthive-components@0.9.28-beta.12:
-    resolution: {integrity: sha512-wFL7jMJGjJVL7FR1CtGhFJ+jlAAOG2nWUHl8JUFjooK1jpVc9zgp7USWEfqk6XOOglpwab4VHKK4X61LBZuYRw==}
+  courthive-components@0.9.28-beta.13:
+    resolution: {integrity: sha512-hQH0Sz4/66smkW6ZfRrXG9uixHeGvTrWknw9GlF15jXRJLTP9CAQU+EkZ3maaRZFyvlBNPHkZ7br+NKh8xLEzw==}
     engines: {node: '>=20.19.0 < 25'}
 
   create-ecdh@4.0.4:
@@ -3337,8 +3337,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tods-competition-factory@2.4.6-beta.13:
-    resolution: {integrity: sha512-K3WA5NkJG6m/OfIeEdmYm1cDWl38Csbhf9e8n5evxQaz8ym6fDC8d9CnnispGNFQRzM8w6EdPcX/FuFbn1y5Qg==}
+  tods-competition-factory@2.4.6-beta.14:
+    resolution: {integrity: sha512-73evWcHKAbsSsw7XLoCCb7jd1Q8qtVlheY4977KsxVdIDjw8DChZ43CMuHqA90sodOC3dkxUZnQVkZUzZLavxg==}
     engines: {node: '>=20'}
 
   totalist@3.0.1:
@@ -5130,7 +5130,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  courthive-components@0.9.28-beta.12(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15):
+  courthive-components@0.9.28-beta.13(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15):
     dependencies:
       awesomplete: 1.1.7
       class-variance-authority: 0.7.1
@@ -5140,7 +5140,7 @@ snapshots:
       focus-trap: 8.0.0
       timepicker-ui: 4.1.6
       tippy.js: 6.3.7
-      tods-competition-factory: 2.4.6-beta.13
+      tods-competition-factory: 2.4.6-beta.14
       vanillajs-datepicker: 1.3.4
       vis-data: 8.0.3(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))
       vis-timeline: 8.5.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(moment@2.30.1)(propagating-hammerjs@3.0.0(@egjs/hammerjs@2.0.17))(uuid@13.0.0)(vis-data@8.0.3(uuid@13.0.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)))(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))(xss@1.0.15)
@@ -7069,7 +7069,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tods-competition-factory@2.4.6-beta.13: {}
+  tods-competition-factory@2.4.6-beta.14: {}
 
   totalist@3.0.1: {}
 
