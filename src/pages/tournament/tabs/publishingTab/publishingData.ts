@@ -190,17 +190,13 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
   if (tournamentPubState?.orderOfPlay?.embargo) {
     const embargo = tournamentPubState.orderOfPlay.embargo;
     const embargoActive = new Date(embargo).getTime() > Date.now();
-    if (embargoActive) {
-      embargoes.push({ type: 'orderOfPlay', label: t('publishing.orderOfPlay'), embargo, embargoActive });
-    }
+    embargoes.push({ type: 'orderOfPlay', label: t('publishing.orderOfPlay'), embargo, embargoActive });
   }
 
   if (tournamentPubState?.participants?.embargo) {
     const embargo = tournamentPubState.participants.embargo;
     const embargoActive = new Date(embargo).getTime() > Date.now();
-    if (embargoActive) {
-      embargoes.push({ type: 'participants', label: t('publishing.participants'), embargo, embargoActive });
-    }
+    embargoes.push({ type: 'participants', label: t('publishing.participants'), embargo, embargoActive });
   }
 
   const events = tournamentEngine.getEvents()?.events || [];
@@ -212,17 +208,15 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
       const detail = details?.publishingDetail;
       if (detail?.embargo) {
         const embargoActive = new Date(detail.embargo).getTime() > Date.now();
-        if (embargoActive) {
-          const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
-          embargoes.push({
-            type: 'draw',
-            label: `${event.eventName} — ${drawDef?.drawName || drawId}`,
-            embargo: detail.embargo,
-            embargoActive,
-            eventId: event.eventId,
-            drawId,
-          });
-        }
+        const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
+        embargoes.push({
+          type: 'draw',
+          label: `${event.eventName} — ${drawDef?.drawName || drawId}`,
+          embargo: detail.embargo,
+          embargoActive,
+          eventId: event.eventId,
+          drawId,
+        });
       }
 
       // Round-level schedule embargoes from structureDetails
@@ -230,13 +224,14 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
       for (const [structureId, sd] of Object.entries(structureDetails) as [string, any][]) {
         const scheduledRounds = sd?.scheduledRounds || {};
         for (const [roundNumber, rd] of Object.entries(scheduledRounds) as [string, any][]) {
-          if (rd?.embargo && new Date(rd.embargo).getTime() > Date.now()) {
+          if (rd?.embargo) {
+            const embargoActive = new Date(rd.embargo).getTime() > Date.now();
             const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
             embargoes.push({
               type: 'scheduledRound',
               label: `${event.eventName} — ${drawDef?.drawName || drawId} — ${t(PUB_ROUND_KEY)} ${roundNumber} ${t('publishing.roundSchedule').toLowerCase()}`,
               embargo: rd.embargo,
-              embargoActive: true,
+              embargoActive,
               eventId: event.eventId,
               drawId,
               structureId,
