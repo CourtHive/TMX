@@ -42,6 +42,15 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
       drawType = 'SINGLE_ELIMINATION';
     }
 
+    // For AD_HOC draws, derive roundsCount from the structure's matchUps
+    let structureOptions: any;
+    if (drawType === 'AD_HOC') {
+      const matchUps = structure.matchUps || [];
+      const roundNumbers = new Set(matchUps.map((m: any) => m.roundNumber));
+      const roundsCount = roundNumbers.size || 1;
+      structureOptions = { roundsCount };
+    }
+
     return {
       id: structure.structureId,
       structureName: structure.structureName || `${stage} ${sameStage.length + 1}`,
@@ -49,6 +58,7 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
       drawType,
       drawSize: structure.positionAssignments?.length || countMatchUpPositions(structure),
       matchUpFormat: structure.matchUpFormat,
+      ...(structureOptions && { structureOptions }),
       position: {
         x: col * 280 + 40,
         y: sameStage.length * 170 + 40,
