@@ -39,8 +39,8 @@ export const numericEditor =
         const previousRow = row?.previousSibling;
         const editableCells = previousRow && getChildrenByClassName(previousRow, 'tabulator-editable');
         if (editableCells) {
-          for (cell of editableCells) {
-            if (cell.getAttribute('tabulator-field') === field) cell.focus();
+          for (const editableCell of editableCells) {
+            if (editableCell.getAttribute('tabulator-field') === field) editableCell.focus();
           }
         }
       } else if ((e.key === 'Enter' || e.key === 'Tab') && field) {
@@ -48,8 +48,8 @@ export const numericEditor =
         const nextRow = row?.nextSibling;
         const editableCells = nextRow && getChildrenByClassName(nextRow, 'tabulator-editable');
         if (editableCells) {
-          for (cell of editableCells) {
-            if (cell.getAttribute('tabulator-field') === field) cell.focus();
+          for (const editableCell of editableCells) {
+            if (editableCell.getAttribute('tabulator-field') === field) editableCell.focus();
           }
         }
       }
