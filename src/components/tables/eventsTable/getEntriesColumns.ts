@@ -5,9 +5,11 @@
  */
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
+import { isSeedingEnabled } from './seeding/seedingState';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { numericEditor } from '../common/editors/numericEditor';
+import { cellBorder } from '../common/formatters/cellBorder';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { entryActions } from '../../popovers/entryActions';
@@ -105,13 +107,18 @@ export function getEntriesColumns(
     },
     {
       editor: numericEditor({ maxValue: entries?.length || 0, decimals: false, field: 'seedNumber' }),
+      formatter: (cell: any) => {
+        if (isSeedingEnabled(cell.getTable())) return cellBorder(cell);
+        const value = cell.getValue();
+        return value ?? '';
+      },
+      editable: (cell: any) => isSeedingEnabled(cell.getTable()),
       sorterParams: { alignEmptyValues: 'bottom' },
       visible: !!seeding,
       field: 'seedNumber',
       hozAlign: CENTER,
       resizable: false,
       sorter: 'number',
-      editable: false,
       title: t('tables.entries.seed'),
       maxWidth: 70,
     },
