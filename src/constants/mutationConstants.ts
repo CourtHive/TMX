@@ -34,6 +34,7 @@ export const DESTROY_PAIR_ENTRIES = 'destroyPairEntries';
 export const GENERATE_FLIGHT_PROFILE = 'generateFlightProfile';
 export const GENERATE_SEEDING_SCALE_ITEMS = 'generateSeedingScaleItems';
 export const MODIFY_COURT = 'modifyCourt';
+export const MODIFY_COURT_AVAILABILITY = 'modifyCourtAvailability';
 export const MODIFY_EVENT = 'modifyEvent';
 export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';

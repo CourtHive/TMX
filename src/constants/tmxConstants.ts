@@ -95,6 +95,7 @@ export const scheduleClass: Record<string, string> = {
 };
 
 export const TOURNAMENT_PARTICIPANTS = 'tournamentParticipants';
+export const TEMPORAL_GRID_CONTAINER = 'temporalGridContainer';
 export const SCHEDULED_DATE_FILTER = 'scheduledDateFilter';
 export const UNSCHEDULED_MATCHUPS = 'unscheduledMatchUps';
 export const TOURNAMENTS_CALENDAR = 'tournamentsCalendar';
