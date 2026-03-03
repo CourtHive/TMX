@@ -96,6 +96,8 @@
   --chc-border-primary: var(--tmx-border-primary);
   --chc-border-secondary: var(--tmx-border-secondary);
   --chc-border-focus: var(--tmx-border-focus);
+  --chc-input-bg: var(--tmx-bg-primary);
+  --chc-input-border: var(--tmx-border-primary);
   --chc-panel-header-bg: var(--tmx-bg-panel-header);
   --chc-container-primary: var(--tmx-container-primary);
   --chc-container-link: var(--tmx-container-link);

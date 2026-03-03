@@ -18,8 +18,8 @@ textarea {
 
 .input {
   -webkit-appearance: none;
-  background-color: var(--tmx-bg-primary);
-  border: 1px solid var(--tmx-border-primary);
+  background-color: var(--chc-input-bg);
+  border: 1px solid var(--chc-input-border);
   border-radius: 4px;
   color: var(--tmx-text-primary);
   font-size: 1rem;
@@ -30,6 +30,14 @@ textarea {
   max-width: 100%;
   box-sizing: border-box;
 }
+/* Override browser autofill background (email/password fields) for dark mode */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--tmx-text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--chc-input-bg) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
 .input:focus { border-color: var(--tmx-border-focus); outline: none; box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }
 .input::placeholder { color: var(--tmx-text-muted); }
 .input.is-success { border-color: #48c78e; }
@@ -38,8 +46,8 @@ textarea {
 .select { display: inline-block; max-width: 100%; position: relative; vertical-align: top; }
 .select select {
   -webkit-appearance: none;
-  background-color: var(--tmx-bg-primary);
-  border: 1px solid var(--tmx-border-primary);
+  background-color: var(--chc-input-bg);
+  border: 1px solid var(--chc-input-border);
   border-radius: 4px;
   color: var(--tmx-text-primary);
   cursor: pointer;
