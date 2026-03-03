@@ -34,10 +34,12 @@ export function scheduleGridControl({
 
   const formatDate = (dateString: string) => dayjs(dateString).format('dddd MMM D');
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const dateRange = tools.generateDateRange(startDate, endDate);
+  const { tournamentInfo } = competitionEngine.getTournamentInfo();
+  const activeDates = tournamentInfo?.activeDates;
+  const dateRange = activeDates?.length ? activeDates : tools.generateDateRange(startDate, endDate);
   const dateOptions = dateRange.map((dateString: string) => ({
     onClick: () => {
-      const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo.tournamentId;
+      const tournamentId = tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/schedule/${dateString}`);
     },
     isActive: dateString === scheduledDate,
