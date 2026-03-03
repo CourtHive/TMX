@@ -41,11 +41,14 @@ export function renderTopologyView({
   // Combine standard + saved templates
   const savedTemplates = getTopologyTemplates();
 
+  const isExistingDraw = !!initialState;
+
   currentControl = new TopologyBuilderControl({
     initialState,
     templates: savedTemplates,
-    onGenerate: (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
-    onSaveTemplate: (state: TopologyState) => handleSaveTemplate({ state }),
+    readOnly: isExistingDraw,
+    onGenerate: isExistingDraw ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
+    onSaveTemplate: isExistingDraw ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
   });
 
   currentControl.render(drawsView);

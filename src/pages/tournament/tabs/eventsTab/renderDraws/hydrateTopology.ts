@@ -96,8 +96,15 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     }
   }
 
+  // Determine template name: use drawType unless it's SINGLE_ELIMINATION with multiple structures (that's CUSTOM)
+  const templateName =
+    ddDrawType === 'SINGLE_ELIMINATION' && structures.length > 1
+      ? 'CUSTOM'
+      : formatDrawType(ddDrawType);
+
   return {
     drawName: drawDefinition.drawName || 'Existing Draw',
+    templateName,
     nodes,
     edges,
   };
@@ -126,4 +133,12 @@ function computeLabel(link: any): string {
   }
 
   return label;
+}
+
+/** Convert SNAKE_CASE draw type constant to Title Case display name. */
+function formatDrawType(drawType: string): string {
+  return drawType
+    .split('_')
+    .map((w) => w[0] + w.slice(1).toLowerCase())
+    .join(' ');
 }
