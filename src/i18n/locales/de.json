@@ -1331,6 +1331,21 @@
     "venues": {
       "title": "Anlagen",
       "invalidValues": "Ungültige Werte",
+      "viewAvailability": "Verfügbarkeit anzeigen",
+      "viewTable": "Tabellenansicht",
+      "setDefaultAvailability": "Standardverfügbarkeit festlegen",
+      "saveToTournament": "Im Turnier speichern",
+      "grid": {
+        "view": "Ansicht",
+        "day1": "1 Tag",
+        "days3": "3 Tage",
+        "week": "Woche",
+        "courtAvailability": "Platzverfügbarkeit",
+        "totalHours": "Gesamtstunden",
+        "blocked": "Gesperrt",
+        "available": "Verfügbar",
+        "avgPerCourt": "Ø Verfügbar/Platz"
+      },
       "addVenue": {
         "title": "Anlage hinzufügen",
         "venueName": "Anlagenname",
@@ -1392,7 +1407,8 @@
         "resetDraw": "Auslosung zurücksetzen",
         "cannotRemoveScores": "Kann nicht entfernt werden, wenn Ergebnisse vorhanden sind",
         "removePlayers": "Spieler entfernen",
-        "clearResults": "Ergebnisse löschen"
+        "clearResults": "Ergebnisse löschen",
+        "viewTopology": "Topologie anzeigen"
       }
     },
     "participants": {

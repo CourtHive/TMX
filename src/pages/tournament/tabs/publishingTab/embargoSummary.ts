@@ -5,6 +5,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderPublishingTab } from './renderPublishingTab';
 import { getActiveEmbargoes } from './publishingData';
+import { tournamentEngine, publishingGovernor } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 // constants
@@ -59,6 +60,38 @@ function removeEmbargo(entry: ReturnType<typeof getActiveEmbargoes>[0]): void {
       ],
       callback: () => renderPublishingTab(),
     });
+  } else if (entry.type === 'scheduledRound' && entry.eventId && entry.drawId && entry.structureId && entry.roundNumber) {
+    const { event } = tournamentEngine.getEvent({ drawId: entry.drawId });
+    if (!event) return;
+
+    const pubState = publishingGovernor.getPublishState({ event })?.publishState;
+    const drawDetail = pubState?.status?.drawDetails?.[entry.drawId] || {};
+    const existingStructureDetails = drawDetail.structureDetails || {};
+    const existingDetail = existingStructureDetails[entry.structureId] || {};
+    const existingScheduledRounds = existingDetail.scheduledRounds || {};
+
+    const scheduledRounds = {
+      ...existingScheduledRounds,
+      [entry.roundNumber]: { published: true },
+    };
+    const structureDetails = {
+      ...existingStructureDetails,
+      [entry.structureId]: { ...existingDetail, scheduledRounds },
+    };
+
+    mutationRequest({
+      methods: [
+        {
+          method: PUBLISH_EVENT,
+          params: {
+            removePriorValues: true,
+            drawDetails: { [entry.drawId]: { ...drawDetail, structureDetails } },
+            eventId: entry.eventId,
+          },
+        },
+      ],
+      callback: () => renderPublishingTab(),
+    });
   }
 }
 
@@ -79,18 +112,26 @@ export function renderEmbargoSummary(grid: HTMLElement): void {
     panel.appendChild(empty);
   } else {
     for (const entry of embargoes) {
+      const expired = !entry.embargoActive;
       const row = document.createElement('div');
-      row.className = 'pub-embargo-row';
+      row.className = `pub-embargo-row${expired ? ' pub-embargo-row--expired' : ''}`;
 
       const typeEl = document.createElement('span');
       typeEl.className = 'pub-embargo-type';
       typeEl.textContent = entry.label;
       row.appendChild(typeEl);
 
+      if (expired) {
+        const badge = document.createElement('span');
+        badge.className = 'pub-embargo-expired-badge';
+        badge.textContent = t('publishing.expired');
+        row.appendChild(badge);
+      }
+
       const { display, countdown } = formatEmbargoTime(entry.embargo);
       const timeEl = document.createElement('span');
       timeEl.className = 'pub-embargo-time';
-      timeEl.textContent = `${display} (${countdown})`;
+      timeEl.textContent = expired ? display : `${display} (${countdown})`;
       row.appendChild(timeEl);
 
       const removeBtn = document.createElement('button');

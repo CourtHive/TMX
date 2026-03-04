@@ -1,7 +1,7 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapVenue } from 'pages/tournament/tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine, tournamentEngine, TemporalEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
@@ -25,9 +25,18 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
     nestedTables.set(venueId, courtsTable);
   };
 
+  const createSchedulingEngine = () => {
+    const tournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
+    if (!tournamentRecord) return undefined;
+    const engine = new TemporalEngine();
+    engine.init(tournamentRecord);
+    return engine;
+  };
+
   const getTableData = () => {
     const { venues } = competitionEngine.getVenuesAndCourts();
-    const rows = venues.map(mapVenue);
+    const engine = createSchedulingEngine();
+    const rows = venues.map((v: any) => mapVenue(v, engine));
     return { rows };
   };
 

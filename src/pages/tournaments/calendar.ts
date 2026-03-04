@@ -6,6 +6,7 @@ import { showTMXcalendar } from 'services/transitions/screenSlaver';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'tods-competition-factory';
+import { homeNavigation } from 'homeNavigation';
 import Calendar from '@event-calendar/core';
 import DayGrid from '@event-calendar/day-grid';
 import Interaction from '@event-calendar/interaction';
@@ -18,6 +19,8 @@ import { SUCCESS, TOURNAMENT, TOURNAMENTS_CALENDAR } from 'constants/tmxConstant
 let calendar: any;
 
 export function renderCalendar(): void {
+  homeNavigation('calendar');
+
   const state = getLoginState();
   const providerId = state?.provider?.organisationId;
 

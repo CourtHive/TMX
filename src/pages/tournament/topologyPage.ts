@@ -3,26 +3,27 @@
  * Renders the topology builder in its own full-page container,
  * separate from the events tab.
  */
+import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
 import { saveTopologyTemplate, getTopologyTemplates } from 'components/drawers/addDraw/topologyTemplates';
-import { generateDraw } from 'components/drawers/addDraw/generateDraw';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { entryStatusConstants, tournamentEngine } from 'tods-competition-factory';
+import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { generateDraw } from 'components/drawers/addDraw/generateDraw';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { showTopology } from 'services/transitions/screenSlaver';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { entryStatusConstants, tournamentEngine } from 'tods-competition-factory';
-import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { context } from 'services/context';
 
-import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
+// constants
 import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
-
-import { TopologyBuilderControl, topologyToDrawOptions, renderForm } from 'courthive-components';
-import type { TopologyState } from 'courthive-components';
+import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
+
+const IS_SUCCESS = 'is-success';
 
 export function renderTopologyPage({
   eventId,
@@ -69,23 +70,28 @@ export function renderTopologyPage({
     readOnly,
     onGenerate: readOnly ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
     onSaveTemplate: readOnly ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
-    onClear: readOnly ? undefined : () => {
-      confirmModal({
-        title: 'Clear Canvas',
-        query: 'This will remove all structures and links. Continue?',
-        okIntent: 'is-danger',
-        cancelAction: undefined,
-        okAction: () => {
-          currentControl?.loadState({
-            nodes: [],
-            edges: [],
-            selectedNodeId: null,
-            selectedEdgeId: null,
-            drawName: '',
+    onDoubleClickNode: readOnly
+      ? (node) => navigateToEvent({ eventId, drawId, structureId: node.id, renderDraw: true })
+      : undefined,
+    onClear: readOnly
+      ? undefined
+      : () => {
+          confirmModal({
+            title: 'Clear Canvas',
+            query: 'This will remove all structures and links. Continue?',
+            okIntent: 'is-danger',
+            cancelAction: undefined,
+            okAction: () => {
+              currentControl?.loadState({
+                nodes: [],
+                edges: [],
+                selectedNodeId: null,
+                selectedEdgeId: null,
+                drawName: '',
+              });
+            },
           });
         },
-      });
-    },
   });
 
   currentControl.render(container);
@@ -96,15 +102,7 @@ export function renderTopologyPage({
   }
 }
 
-function handleGenerate({
-  state,
-  eventId,
-  drawId,
-}: {
-  state: TopologyState;
-  eventId: string;
-  drawId?: string;
-}): void {
+function handleGenerate({ state, eventId, drawId }: { state: TopologyState; eventId: string; drawId?: string }): void {
   const { drawOptions, postGenerationMethods } = topologyToDrawOptions(state);
   drawOptions.eventId = eventId;
   if (drawId) drawOptions.drawId = drawId;
@@ -113,10 +111,11 @@ function handleGenerate({
   if (!event) return;
 
   const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
-  const drawEntries = event.entries?.filter(
-    ({ entryStage, entryStatus }: any) =>
-      (!entryStage || entryStage === 'MAIN') && DIRECT_ENTRY_STATUSES.includes(entryStatus),
-  ) || [];
+  const drawEntries =
+    event.entries?.filter(
+      ({ entryStage, entryStatus }: any) =>
+        (!entryStage || entryStage === 'MAIN') && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+    ) || [];
   drawOptions.drawEntries = drawEntries;
 
   const postGeneration = (result: any) => {
@@ -126,9 +125,7 @@ function handleGenerate({
     }
 
     const generatedDrawId = result.drawDefinition.drawId;
-    const mainStructureId = result.drawDefinition.structures?.find(
-      (s: any) => s.stage === 'MAIN',
-    )?.structureId;
+    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === 'MAIN')?.structureId;
 
     if (postGenerationMethods.length > 0 && mainStructureId) {
       const methods = postGenerationMethods.map((pgm) => ({
@@ -143,7 +140,7 @@ function handleGenerate({
       mutationRequest({
         methods,
         callback: () => {
-          tmxToast({ message: 'Draw generated successfully', intent: 'is-success' });
+          tmxToast({ message: 'Draw generated successfully', intent: IS_SUCCESS });
           navigateToEvent({
             eventId,
             drawId: generatedDrawId,
@@ -153,7 +150,7 @@ function handleGenerate({
         },
       });
     } else {
-      tmxToast({ message: 'Draw generated successfully', intent: 'is-success' });
+      tmxToast({ message: 'Draw generated successfully', intent: IS_SUCCESS });
       navigateToEvent({
         eventId,
         drawId: generatedDrawId,
@@ -194,7 +191,7 @@ function handleSaveTemplate({ state }: { state: TopologyState }): void {
             name,
             description: `${state.nodes.length} structures, ${state.edges.length} links`,
           });
-          tmxToast({ message: 'Template saved', intent: 'is-success' });
+          tmxToast({ message: 'Template saved', intent: IS_SUCCESS });
         },
       },
     ],

@@ -1,6 +1,9 @@
 {
   "open": "Open",
   "zoom": "Zoom",
+  "cal": "Calendar",
+  "tpl": "Templates",
+  "pol": "Policies",
   "addcourts": "Add Courts",
   "login": "Login",
   "logout": "Logout",
@@ -1369,6 +1372,22 @@
     "venues": {
       "title": "Venues",
       "invalidValues": "Invalid values",
+      "viewAvailability": "View Availability",
+      "viewTable": "View Table",
+      "setDefaultAvailability": "Set Default Availability",
+      "saveToTournament": "Save to Tournament",
+      "grid": {
+        "view": "View",
+        "day1": "1 Day",
+        "days3": "3 Days",
+        "week": "Week",
+        "tournament": "Tournament",
+        "courtAvailability": "Court Availability",
+        "totalHours": "Total Hours",
+        "blocked": "Blocked",
+        "available": "Available",
+        "avgPerCourt": "Avg Avail/Court"
+      },
       "addVenue": {
         "title": "Add venue",
         "externalLookup": "External lookup",
@@ -1437,7 +1456,8 @@
         "resetDraw": "Reset draw",
         "cannotRemoveScores": "Cannot remove when scores are present",
         "removePlayers": "Remove players",
-        "clearResults": "Clear results"
+        "clearResults": "Clear results",
+        "viewTopology": "View Topology"
       }
     },
     "participants": {

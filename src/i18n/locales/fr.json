@@ -1331,6 +1331,21 @@
     "venues": {
       "title": "Sites",
       "invalidValues": "Valeurs invalides",
+      "viewAvailability": "Voir disponibilité",
+      "viewTable": "Voir tableau",
+      "setDefaultAvailability": "Définir la disponibilité par défaut",
+      "saveToTournament": "Enregistrer dans le tournoi",
+      "grid": {
+        "view": "Vue",
+        "day1": "1 Jour",
+        "days3": "3 Jours",
+        "week": "Semaine",
+        "courtAvailability": "Disponibilité des courts",
+        "totalHours": "Heures totales",
+        "blocked": "Bloqué",
+        "available": "Disponible",
+        "avgPerCourt": "Moy. Disp./Court"
+      },
       "addVenue": {
         "title": "Ajouter un lieu",
         "venueName": "Nom du lieu",
@@ -1392,7 +1407,8 @@
         "resetDraw": "Réinitialiser le tableau",
         "cannotRemoveScores": "Suppression impossible lorsque des scores sont présents",
         "removePlayers": "Retirer des joueurs",
-        "clearResults": "Effacer les résultats"
+        "clearResults": "Effacer les résultats",
+        "viewTopology": "Voir la topologie"
       }
     },
     "participants": {

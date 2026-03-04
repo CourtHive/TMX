@@ -17,6 +17,8 @@ import {
   TMX_CONTENT,
   TMX_TOURNAMENTS,
   TMX_TOPOLOGY,
+  TMX_TEMPLATES,
+  TMX_POLICIES,
   TMX_DRAWER,
   TIMEPICKER,
   TIMEVALUE,
@@ -172,6 +174,18 @@ export function rootBlock(): HTMLElement {
 
   main.appendChild(system);
 
+  const templates = document.createElement('div');
+  templates.className = flexColFlexGrow;
+  templates.style.display = NONE;
+  templates.id = TMX_TEMPLATES;
+  main.appendChild(templates);
+
+  const policies = document.createElement('div');
+  policies.className = flexColFlexGrow;
+  policies.style.display = NONE;
+  policies.id = TMX_POLICIES;
+  main.appendChild(policies);
+
   initScrollNav();
 
   return root;
@@ -198,6 +212,16 @@ function newBlock(): HTMLDivElement {
       <div id="mobileNav" class="mobile-nav">
         <button id="mobileNavToggle" class="mobile-nav-toggle"></button>
         <div id="mobileNavMenu" class="mobile-nav-menu"></div>
+      </div>
+    </div>
+    <div id='homenav' class="navbar-item" style="display: none; flex-direction: row;">
+      <i id='h-tournaments' class="home-nav-icon fa-solid fa-list"></i>
+      <i id='h-calendar' class="home-nav-icon fa-solid fa-calendar"></i>
+      <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
+      <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
+      <div id="mobileHomeNav" class="mobile-nav">
+        <button id="mobileHomeNavToggle" class="mobile-nav-toggle"></button>
+        <div id="mobileHomeNavMenu" class="mobile-nav-menu"></div>
       </div>
     </div>
     <div class="navbar-item" style="font-size: 1em">

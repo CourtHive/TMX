@@ -176,6 +176,19 @@ function ensureStyles(): void {
     .pub-embargo-remove:hover {
       background: var(--tmx-panel-red-bg);
     }
+    .pub-embargo-row--expired {
+      opacity: 0.6;
+    }
+    .pub-embargo-expired-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--tmx-text-muted);
+      color: var(--tmx-bg-primary);
+      white-space: nowrap;
+    }
 
     .pub-panel-green { border-color: var(--tmx-panel-green-border); background: var(--tmx-panel-green-bg); }
     .pub-qr-panel {

@@ -28,7 +28,7 @@ const FORMAT_TB11 = 'SET3-S:TB11'; // Pickleball standard (best of 3, tiebreak s
 const FORMAT_TB11_BO5 = 'SET5-S:TB11'; // Table Tennis / Squash (best of 5, tiebreak sets to 11)
 const FORMAT_TB21 = 'SET3-S:TB21'; // Badminton (best of 3, tiebreak sets to 21)
 const FORMAT_TIMED_10 = 'SET1A-S:T10'; // INTENNSE doubles (1 × 10-min aggregate timed)
-const FORMAT_WIFFLE = 'INN4XA-S:T12'; // BLW Wiffle Ball (4 innings, aggregate, ~12 min/inning approx)
+const FORMAT_WIFFLE = 'INN4XA-S:O3-M:T50'; // BLW Wiffle Ball (4 innings, 3 outs/inning, aggregate, 50-min cap)
 
 export function mockTournaments(table?: any, onComplete?: () => void, indices?: number[]): any {
   const tournamentIds = table?.getData().map((t: any) => t.tournamentId) ?? [];
@@ -580,7 +580,7 @@ const mockProfiles = [
     ],
     venueProfiles: [wiffleballPark],
   },
-].filter((t) => !['INTENNSE Showdown', 'BLW Wiffle Ball Classic'].includes(t.tournamentName));
+]; // .filter((t) => !['INTENNSE Showdown', 'BLW Wiffle Ball Classic'].includes(t.tournamentName));
 
 export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({
   label: p.tournamentName,

@@ -12,7 +12,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_NAME } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -49,12 +49,14 @@ export function editTournament({
       value: values.startDate,
       label: t('drawers.editTournament.startDateLabel'),
       field: 'startDate',
+      language: i18next.language,
     },
     {
       placeholder: 'YYYY-MM-DD',
       value: values.endDate,
       label: t('drawers.editTournament.endDateLabel'),
       field: 'endDate',
+      language: i18next.language,
     },
     {
       visible: !values.activeDates.length,
@@ -74,6 +76,7 @@ export function editTournament({
       field: 'activeDates',
       id: 'activeDates',
       date: true,
+      language: i18next.language,
     },
   ];
 

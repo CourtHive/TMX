@@ -1,5 +1,23 @@
-export function mapVenue(venue: any): any {
+import type { TemporalEngine } from 'tods-competition-factory';
+
+export function mapVenue(venue: any, engine?: TemporalEngine): any {
   const { venueName, venueAbbreviation, addresses, venueId, courts } = venue;
+
+  const mappedCourts = courts?.map((court: any) => {
+    if (!engine) return court;
+
+    const courtRef = {
+      tournamentId: engine.getConfig().tournamentId,
+      venueId,
+      courtId: court.courtId,
+    };
+    const summary = engine.getCourtSchedulingSummary(courtRef);
+    return {
+      ...court,
+      scheduledMinutes: summary.scheduledMinutes,
+      unscheduledMinutes: summary.availableMinutes,
+    };
+  });
 
   return {
     hasLocation: addresses?.[0]?.longitude,
@@ -10,7 +28,7 @@ export function mapVenue(venue: any): any {
     venueAbbreviation,
     venueName,
     venueId,
-    courts,
-    venue
+    courts: mappedCourts,
+    venue,
   };
 }

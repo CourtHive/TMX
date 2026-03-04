@@ -1369,6 +1369,21 @@
     "venues": {
       "title": "场馆",
       "invalidValues": "无效的值",
+      "viewAvailability": "查看可用性",
+      "viewTable": "查看表格",
+      "setDefaultAvailability": "设置默认可用性",
+      "saveToTournament": "保存到赛事",
+      "grid": {
+        "view": "视图",
+        "day1": "1天",
+        "days3": "3天",
+        "week": "一周",
+        "courtAvailability": "球场可用性",
+        "totalHours": "总小时数",
+        "blocked": "已封锁",
+        "available": "可用",
+        "avgPerCourt": "平均可用/球场"
+      },
       "addVenue": {
         "title": "添加场馆",
         "externalLookup": "外部查找",
@@ -1437,7 +1452,8 @@
         "resetDraw": "重置签表",
         "cannotRemoveScores": "有比分时无法移除",
         "removePlayers": "移除选手",
-        "clearResults": "清除结果"
+        "clearResults": "清除结果",
+        "viewTopology": "查看拓扑"
       }
     },
     "participants": {

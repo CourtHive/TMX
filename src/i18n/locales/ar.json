@@ -1298,6 +1298,21 @@
     "venues": {
       "title": "الأماكن",
       "invalidValues": "قيم غير صالحة",
+      "viewAvailability": "عرض التوفر",
+      "viewTable": "عرض الجدول",
+      "setDefaultAvailability": "تعيين التوفر الافتراضي",
+      "saveToTournament": "حفظ في البطولة",
+      "grid": {
+        "view": "عرض",
+        "day1": "يوم واحد",
+        "days3": "3 أيام",
+        "week": "أسبوع",
+        "courtAvailability": "توفر الملاعب",
+        "totalHours": "إجمالي الساعات",
+        "blocked": "محجوز",
+        "available": "متاح",
+        "avgPerCourt": "متوسط التوفر/ملعب"
+      },
       "addVenue": {
         "title": "إضافة مكان",
         "venueName": "اسم المكان",
@@ -1359,7 +1374,8 @@
         "resetDraw": "إعادة تعيين القرعة",
         "cannotRemoveScores": "لا يمكن الإزالة عند وجود نتائج",
         "removePlayers": "إزالة اللاعبين",
-        "clearResults": "مسح النتائج"
+        "clearResults": "مسح النتائج",
+        "viewTopology": "عرض الطوبولوجيا"
       }
     },
     "participants": {

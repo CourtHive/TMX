@@ -45,8 +45,12 @@ export const TOURNAMENT_ENGINE = 'tournamentEngine';
 
 export const TMX_TOURNAMENTS = 'tournaments';
 export const TMX_TOPOLOGY = 'tmxTopology';
+export const TMX_TEMPLATES = 'tmxTemplates';
+export const TMX_POLICIES = 'tmxPolicies';
 export const TMX_ADMIN = 'tmxAdmin';
 export const TMX_SYSTEM = 'tmxSystem';
+export const TEMPLATES = 'templates';
+export const POLICIES = 'policies';
 export const DRAW_ENTRIES = 'drawEntries';
 export const TOURNAMENT = 'tournament';
 export const STRUCTURE = 'structure';
@@ -95,6 +99,7 @@ export const scheduleClass: Record<string, string> = {
 };
 
 export const TOURNAMENT_PARTICIPANTS = 'tournamentParticipants';
+export const TEMPORAL_GRID_CONTAINER = 'temporalGridContainer';
 export const SCHEDULED_DATE_FILTER = 'scheduledDateFilter';
 export const UNSCHEDULED_MATCHUPS = 'unscheduledMatchUps';
 export const TOURNAMENTS_CALENDAR = 'tournamentsCalendar';

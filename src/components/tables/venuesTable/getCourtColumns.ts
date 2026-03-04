@@ -12,6 +12,18 @@ function lightsFormatter(cell: any): string {
   return value ? hasLights : noLights;
 }
 
+function durationFormatter(cell: any): string {
+  const value = cell.getValue();
+  if (value == null || value === '') return '';
+  const minutes = Number(value);
+  if (isNaN(minutes) || minutes === 0) return '0m';
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
 export function getCourtColumns(): any[] {
   return [
     {
@@ -31,8 +43,8 @@ export function getCourtColumns(): any[] {
       width: 55,
     },
     { title: t('tables.courts.courtName'), field: 'courtName', editor: true },
-    { title: t('tables.courts.scheduledTime'), field: 'scheduledTime' },
-    { title: t('tables.courts.unscheduledTime'), field: 'unscheduledTime' },
+    { title: t('tables.courts.scheduledTime'), field: 'scheduledMinutes', formatter: durationFormatter, hozAlign: CENTER, headerHozAlign: CENTER },
+    { title: t('tables.courts.unscheduledTime'), field: 'unscheduledMinutes', formatter: durationFormatter, hozAlign: CENTER, headerHozAlign: CENTER },
     { title: t('tables.courts.inOut'), field: 'indoorOutdoor' },
     { title: t('tables.courts.surface'), field: 'surfaceType' },
     {

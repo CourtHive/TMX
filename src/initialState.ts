@@ -25,6 +25,16 @@ import dragMatch from 'assets/icons/dragmatch.png';
 
 import 'courthive-components/dist/courthive-components.css';
 import 'vanillajs-datepicker/css/datepicker.css';
+
+// Register datepicker locales for i18n support
+import { Datepicker } from 'vanillajs-datepicker';
+import dpLocaleFr from 'vanillajs-datepicker/locales/fr';
+import dpLocaleEs from 'vanillajs-datepicker/locales/es';
+import dpLocaleDe from 'vanillajs-datepicker/locales/de';
+import dpLocalePtBR from 'vanillajs-datepicker/locales/pt-BR';
+import dpLocaleAr from 'vanillajs-datepicker/locales/ar';
+import dpLocaleZhCN from 'vanillajs-datepicker/locales/zh-CN';
+Object.assign(Datepicker.locales, dpLocaleFr, dpLocaleEs, dpLocaleDe, dpLocalePtBR, dpLocaleAr, dpLocaleZhCN);
 import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
 
@@ -67,9 +77,6 @@ export function setupTMX(): void {
     }
     if (savedSettings.pdfPrinting !== undefined) {
       env.pdfPrinting = savedSettings.pdfPrinting;
-    }
-    if (savedSettings.topologyBuilder !== undefined) {
-      env.topologyBuilder = savedSettings.topologyBuilder;
     }
     if (savedSettings.minCourtGridRows !== undefined) {
       env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;

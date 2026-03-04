@@ -4,6 +4,7 @@
  */
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { fetchTournamentDetailsModal } from 'components/modals/fetchTournamentDetails';
+import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { importTournaments } from '../../services/storage/importTournaments';
 import { loadTournamentById } from 'components/modals/loadTournamentById';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
@@ -12,7 +13,6 @@ import { getLoginState } from 'services/authentication/loginState';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { listPicker } from 'components/modals/listPicker';
 import { controlBar } from 'courthive-components';
-import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -58,27 +58,10 @@ export function calendarControls(table: any): void {
   };
 
   const actions = [
-    { label: 'Import tournament', onClick: () => importTournaments({ table }) },
+    admin && { label: 'Import tournament', onClick: () => importTournaments({ table }) },
     fetch && { label: 'Fetch tournament', onClick: () => fetchTournamentDetailsModal({ table }) },
     admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table }) },
-    { divider: true },
-    { divider: true },
-    {
-      label: 'Example tournaments',
-      onClick: () => {
-        const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
-        listPicker({
-          options,
-          callback: ({ selection }: any) => {
-            const value = selection?.selection?.value;
-            const indices = value === -1 ? undefined : [value];
-            mockTournaments(table, undefined, indices);
-          },
-        });
-      },
-      close: true,
-    },
-    { label: 'Welcome', onClick: showWelcome, close: true },
+    admin && { label: 'Welcome', onClick: showWelcome, close: true },
   ].filter(Boolean);
 
   const setSearchFilter = createSearchFilter(table);
@@ -90,7 +73,23 @@ export function calendarControls(table: any): void {
       onClick: () => (editTournament as any)({ table }),
       align: RIGHT,
     },
-    { label: 'Actions', options: actions, align: RIGHT },
+    !state && {
+      label: 'Examples',
+      intent: 'is-info',
+      onClick: () => {
+        const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
+        listPicker({
+          options,
+          callback: ({ selection }: any) => {
+            const value = selection?.selection?.value;
+            const indices = value === -1 ? undefined : [value];
+            mockTournaments(table, undefined, indices);
+          },
+        });
+      },
+      align: RIGHT,
+    },
+    actions.length && { label: 'Actions', options: actions, align: RIGHT },
     {
       onKeyDown: (e: KeyboardEvent) =>
         e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1 && setSearchFilter(''),
@@ -102,7 +101,7 @@ export function calendarControls(table: any): void {
       location: LEFT,
       search: true,
     },
-  ];
+  ].filter(Boolean);
 
   const target = document.getElementById(TOURNAMENTS_CONTROL) || undefined;
   controlBar({ target, items });

@@ -108,9 +108,8 @@ export function getActionOptions({
       close: true,
     },
     {
-      hide: !env.topologyBuilder,
       onClick: () => navigateToTopology({ eventId, drawId, readOnly: true }),
-      label: 'View Topology',
+      label: t('pages.events.actionOptions.viewTopology'),
       close: true,
     },
     {

@@ -17,6 +17,23 @@ const LINK_TYPE_MAP: Record<string, TopologyEdge['linkType']> = {
   POSITION: 'POSITION',
 };
 
+/**
+ * Map composite drawDefinition drawTypes to the structure-level structureType.
+ * The topology builder only uses SINGLE_ELIMINATION, FEED_IN, ROUND_ROBIN, AD_HOC
+ * as valid structure types; composite types (ROUND_ROBIN_WITH_PLAYOFF,
+ * FEED_IN_CHAMPIONSHIP, COMPASS, etc.) are inferred from the link topology.
+ */
+const COMPOSITE_TO_STRUCTURE_TYPE: Record<string, string> = {
+  ROUND_ROBIN_WITH_PLAYOFF: 'ROUND_ROBIN',
+  DOUBLE_ELIMINATION: 'SINGLE_ELIMINATION',
+  FIRST_MATCH_LOSER_CONSOLATION: 'SINGLE_ELIMINATION',
+  FIRST_ROUND_LOSER_CONSOLATION: 'SINGLE_ELIMINATION',
+  FEED_IN_CHAMPIONSHIP: 'SINGLE_ELIMINATION',
+  COMPASS: 'SINGLE_ELIMINATION',
+  OLYMPIC: 'SINGLE_ELIMINATION',
+  CURTIS: 'SINGLE_ELIMINATION',
+};
+
 export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | undefined {
   if (!drawDefinition?.structures?.length) return undefined;
 
@@ -33,22 +50,42 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     // Count structures in the same stage for vertical positioning
     const sameStage = structures.filter((s: any, i: number) => i < index && (STAGE_MAP[s.stage] || 'MAIN') === stage);
 
-    // Determine drawType: use structure-level if present, otherwise infer from drawDefinition
-    let drawType = structure.drawType || 'SINGLE_ELIMINATION';
+    // Determine structureType: map composite drawTypes to structure-level types
+    let structureType = structure.drawType || 'SINGLE_ELIMINATION';
     if (!structure.drawType && stage === 'MAIN' && structure.stageSequence === 1) {
-      drawType = ddDrawType;
+      structureType = ddDrawType;
     }
     if (structure.matchUpType === 'TEAM') {
-      drawType = 'SINGLE_ELIMINATION';
+      structureType = 'SINGLE_ELIMINATION';
+    }
+
+    // Map composite types to the 4 valid structure types
+    structureType = COMPOSITE_TO_STRUCTURE_TYPE[structureType] || structureType;
+
+    // Build structureOptions
+    let structureOptions: any;
+    if (structureType === 'AD_HOC') {
+      const matchUps = structure.matchUps || [];
+      const roundNumbers = new Set(matchUps.map((m: any) => m.roundNumber));
+      const roundsCount = roundNumbers.size || 1;
+      structureOptions = { roundsCount };
+    }
+
+    // Extract groupSize for RR structures from child structures
+    if (structureType === 'ROUND_ROBIN' && structure.structures?.length) {
+      const childMatchUps = structure.structures[0]?.matchUps || [];
+      const positions = new Set(childMatchUps.flatMap((m: any) => m.drawPositions || []));
+      structureOptions = { groupSize: positions.size || 4 };
     }
 
     return {
       id: structure.structureId,
       structureName: structure.structureName || `${stage} ${sameStage.length + 1}`,
       stage,
-      drawType,
+      structureType,
       drawSize: structure.positionAssignments?.length || countMatchUpPositions(structure),
       matchUpFormat: structure.matchUpFormat,
+      ...(structureOptions && { structureOptions }),
       position: {
         x: col * 280 + 40,
         y: sameStage.length * 170 + 40,
@@ -75,6 +112,20 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     };
   });
 
+  // Compute qualifyingPositions for QUALIFYING nodes from outgoing WINNER links.
+  // The link's sourceRoundNumber tells us where qualifiers exit; the count is
+  // drawSize / 2^sourceRoundNumber for standard elimination brackets.
+  for (const node of nodes) {
+    if (node.stage !== 'QUALIFYING') continue;
+
+    const outgoingWinner = edges.find(
+      (e: TopologyEdge) => e.sourceNodeId === node.id && e.linkType === 'WINNER',
+    );
+    if (outgoingWinner?.sourceRoundNumber) {
+      node.qualifyingPositions = Math.floor(node.drawSize / Math.pow(2, outgoingWinner.sourceRoundNumber));
+    }
+  }
+
   // Normalize positions so the leftmost column starts at x=40
   if (nodes.length > 0) {
     const minX = Math.min(...nodes.map((n) => n.position.x));
@@ -86,8 +137,15 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     }
   }
 
+  // Determine template name: use drawType unless it's SINGLE_ELIMINATION with multiple structures (that's CUSTOM)
+  const templateName =
+    ddDrawType === 'SINGLE_ELIMINATION' && structures.length > 1
+      ? 'CUSTOM'
+      : formatDrawType(ddDrawType);
+
   return {
     drawName: drawDefinition.drawName || 'Existing Draw',
+    templateName,
     nodes,
     edges,
   };
@@ -116,4 +174,12 @@ function computeLabel(link: any): string {
   }
 
   return label;
+}
+
+/** Convert SNAKE_CASE draw type constant to Title Case display name. */
+function formatDrawType(drawType: string): string {
+  return drawType
+    .split('_')
+    .map((w) => w[0] + w.slice(1).toLowerCase())
+    .join(' ');
 }

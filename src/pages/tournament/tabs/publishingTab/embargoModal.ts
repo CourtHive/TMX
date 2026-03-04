@@ -10,7 +10,7 @@ import { Datepicker } from 'vanillajs-datepicker';
 import { toDisplayTime } from 'components/forms/venue';
 import { renderForm, validators } from 'courthive-components';
 import { tools } from 'tods-competition-factory';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';
 
@@ -82,6 +82,7 @@ export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: Emba
     if (inputs?.embargoDate) {
       new Datepicker(inputs.embargoDate as HTMLInputElement, {
         format: 'yyyy-mm-dd',
+        language: i18next.language,
         autohide: true,
       });
     }

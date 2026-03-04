@@ -1,6 +1,6 @@
 import { tournamentEngine, publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 
-const { CONTAINER, ROUND_ROBIN, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
+const { CONTAINER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
 
 export type StructureInfo = {
   structureId: string;
@@ -49,7 +49,9 @@ export function getDashboardData(): DashboardData {
   }).tournamentInfo;
 
   const structures = (tournamentInfo?.structures || []).filter(
-    (s: any) => s.structureType !== CONTAINER && ![ROUND_ROBIN, LUCKY_DRAW, AD_HOC].includes(s.drawType),
+    (s: any) =>
+      s.structureType !== CONTAINER &&
+      ![ROUND_ROBIN_WITH_PLAYOFF, ROUND_ROBIN, LUCKY_DRAW, AD_HOC].includes(s.drawType),
   );
 
   const drawDefinitionCount =
