@@ -70,6 +70,9 @@ export function renderTopologyPage({
     readOnly,
     onGenerate: readOnly ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
     onSaveTemplate: readOnly ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
+    onDoubleClickNode: readOnly
+      ? (node) => navigateToEvent({ eventId, drawId, structureId: node.id, renderDraw: true })
+      : undefined,
     onClear: readOnly
       ? undefined
       : () => {
