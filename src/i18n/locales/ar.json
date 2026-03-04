@@ -1307,6 +1307,7 @@
         "day1": "يوم واحد",
         "days3": "3 أيام",
         "week": "أسبوع",
+        "courtAvailability": "توفر الملاعب",
         "totalHours": "إجمالي الساعات",
         "blocked": "محجوز",
         "available": "متاح",
@@ -1373,7 +1374,8 @@
         "resetDraw": "إعادة تعيين القرعة",
         "cannotRemoveScores": "لا يمكن الإزالة عند وجود نتائج",
         "removePlayers": "إزالة اللاعبين",
-        "clearResults": "مسح النتائج"
+        "clearResults": "مسح النتائج",
+        "viewTopology": "عرض الطوبولوجيا"
       }
     },
     "participants": {

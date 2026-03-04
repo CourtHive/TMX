@@ -20,6 +20,7 @@ export type TemporalGridInstance = {
 
 export interface RenderTemporalGridOptions {
   labels?: TemporalGridLabels;
+  language?: string;
   onSetDefaultAvailability?: () => void;
   onSave?: () => void;
 }
@@ -37,6 +38,7 @@ export function renderTemporalGrid(
       showVenueTree: true,
       showCapacity: true,
       labels: options?.labels,
+      language: options?.language,
       onSetDefaultAvailability: options?.onSetDefaultAvailability,
       onSave: options?.onSave,
     },

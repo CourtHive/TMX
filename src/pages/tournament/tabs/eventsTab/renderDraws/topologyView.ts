@@ -49,6 +49,9 @@ export function renderTopologyView({
     readOnly: isExistingDraw,
     onGenerate: isExistingDraw ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
     onSaveTemplate: isExistingDraw ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
+    onDoubleClickNode: isExistingDraw
+      ? (node) => navigateToEvent({ eventId, drawId, structureId: node.id, renderDraw: true })
+      : undefined,
   });
 
   currentControl.render(drawsView);

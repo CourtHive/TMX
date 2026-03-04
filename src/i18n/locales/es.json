@@ -1340,6 +1340,7 @@
         "day1": "1 Día",
         "days3": "3 Días",
         "week": "Semana",
+        "courtAvailability": "Disponibilidad de canchas",
         "totalHours": "Horas totales",
         "blocked": "Bloqueado",
         "available": "Disponible",
@@ -1406,7 +1407,8 @@
         "resetDraw": "Reiniciar cuadro",
         "cannotRemoveScores": "No se puede eliminar cuando hay puntajes presentes",
         "removePlayers": "Eliminar jugadores",
-        "clearResults": "Limpiar resultados"
+        "clearResults": "Limpiar resultados",
+        "viewTopology": "Ver topología"
       }
     },
     "participants": {

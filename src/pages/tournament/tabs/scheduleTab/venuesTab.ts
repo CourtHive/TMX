@@ -8,7 +8,7 @@ import { showCourtAvailabilityModal } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { mapVenue } from '../venuesTab/mapVenue';
 import { context } from 'services/context';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 import { TEMPORAL_GRID_CONTAINER, TOURNAMENT, TOURNAMENT_VENUES, VENUES_CONTROL, VENUES_TAB } from 'constants/tmxConstants';
 
@@ -77,6 +77,7 @@ export function renderVenueTab({ venueView }: { venueView?: string } = {}): void
     days3: t('pages.venues.grid.days3') || undefined,
     week: t('pages.venues.grid.week') || undefined,
     tournament: t('pages.venues.grid.tournament') || undefined,
+    courtAvailability: t('pages.venues.grid.courtAvailability') || undefined,
     totalHours: t('pages.venues.grid.totalHours') || undefined,
     blocked: t('pages.venues.grid.blocked') || undefined,
     available: t('pages.venues.grid.available') || undefined,
@@ -92,6 +93,7 @@ export function renderVenueTab({ venueView }: { venueView?: string } = {}): void
       if (!gridInstance) {
         gridInstance = renderTemporalGrid(gridContainerEl, {
           labels: gridLabels,
+          language: i18next.language,
           onSetDefaultAvailability,
           onSave: onSaveToTournament,
         });

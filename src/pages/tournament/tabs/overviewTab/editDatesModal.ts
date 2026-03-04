@@ -3,7 +3,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { getParent } from 'services/dom/parentAndChild';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 // constants
 import { SET_TOURNAMENT_DATES } from 'constants/mutationConstants';
@@ -56,12 +56,14 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       value: startDate,
       label: t('modals.editDates.startDateLabel'),
       field: 'startDate',
+      language: i18next.language,
     },
     {
       placeholder: 'YYYY-MM-DD',
       value: endDate,
       label: t('modals.editDates.endDateLabel'),
       field: 'endDate',
+      language: i18next.language,
     },
     {
       visible: !existingActiveDates.length,
@@ -81,6 +83,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       field: 'activeDates',
       id: 'activeDates',
       date: true,
+      language: i18next.language,
     },
   ];
 

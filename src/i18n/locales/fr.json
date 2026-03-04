@@ -1340,6 +1340,7 @@
         "day1": "1 Jour",
         "days3": "3 Jours",
         "week": "Semaine",
+        "courtAvailability": "Disponibilité des courts",
         "totalHours": "Heures totales",
         "blocked": "Bloqué",
         "available": "Disponible",
@@ -1406,7 +1407,8 @@
         "resetDraw": "Réinitialiser le tableau",
         "cannotRemoveScores": "Suppression impossible lorsque des scores sont présents",
         "removePlayers": "Retirer des joueurs",
-        "clearResults": "Effacer les résultats"
+        "clearResults": "Effacer les résultats",
+        "viewTopology": "Voir la topologie"
       }
     },
     "participants": {

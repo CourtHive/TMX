@@ -1378,6 +1378,7 @@
         "day1": "1天",
         "days3": "3天",
         "week": "一周",
+        "courtAvailability": "球场可用性",
         "totalHours": "总小时数",
         "blocked": "已封锁",
         "available": "可用",
@@ -1451,7 +1452,8 @@
         "resetDraw": "重置签表",
         "cannotRemoveScores": "有比分时无法移除",
         "removePlayers": "移除选手",
-        "clearResults": "清除结果"
+        "clearResults": "清除结果",
+        "viewTopology": "查看拓扑"
       }
     },
     "participants": {

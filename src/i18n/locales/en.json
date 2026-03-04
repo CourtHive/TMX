@@ -1382,6 +1382,7 @@
         "days3": "3 Days",
         "week": "Week",
         "tournament": "Tournament",
+        "courtAvailability": "Court Availability",
         "totalHours": "Total Hours",
         "blocked": "Blocked",
         "available": "Available",
@@ -1455,7 +1456,8 @@
         "resetDraw": "Reset draw",
         "cannotRemoveScores": "Cannot remove when scores are present",
         "removePlayers": "Remove players",
-        "clearResults": "Clear results"
+        "clearResults": "Clear results",
+        "viewTopology": "View Topology"
       }
     },
     "participants": {

@@ -7,7 +7,7 @@ import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
@@ -100,6 +100,7 @@ export function editIndividualParticipant({
           label: t('pages.participants.editParticipant.dateOfBirth'),
           field: 'birthday',
           date: true,
+          language: i18next.language,
         },
         {
           typeAhead: { list, callback: nationalityCodeValue },
