@@ -1298,6 +1298,20 @@
     "venues": {
       "title": "الأماكن",
       "invalidValues": "قيم غير صالحة",
+      "viewAvailability": "عرض التوفر",
+      "viewTable": "عرض الجدول",
+      "setDefaultAvailability": "تعيين التوفر الافتراضي",
+      "saveToTournament": "حفظ في البطولة",
+      "grid": {
+        "view": "عرض",
+        "day1": "يوم واحد",
+        "days3": "3 أيام",
+        "week": "أسبوع",
+        "totalHours": "إجمالي الساعات",
+        "blocked": "محجوز",
+        "available": "متاح",
+        "avgPerCourt": "متوسط التوفر/ملعب"
+      },
       "addVenue": {
         "title": "إضافة مكان",
         "venueName": "اسم المكان",

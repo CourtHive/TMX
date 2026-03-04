@@ -4,8 +4,6 @@ import type { Preview } from '@storybook/html-vite';
 import 'vanillajs-datepicker/css/datepicker.css';
 import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
-import '../src/styles/legacy/scoreboard.css';
-import '../src/styles/legacy/ddScoring.css';
 
 import 'animate.css/animate.min.css';
 import 'quill/dist/quill.snow.css';

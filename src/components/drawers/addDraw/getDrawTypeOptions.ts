@@ -5,7 +5,6 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getTopologyTemplates } from './topologyTemplates';
-import { env } from 'settings/env';
 
 import { TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
 
@@ -34,7 +33,7 @@ const {
 } = drawDefinitionConstants;
 
 export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: boolean; isQualifying?: boolean } = {}): any[] {
-  const showTopology = !isPlayoff && !isQualifying && !!env.topologyBuilder;
+  const showTopology = !isPlayoff && !isQualifying;
 
   const templateOptions = showTopology
     ? getTopologyTemplates().map((t) => ({

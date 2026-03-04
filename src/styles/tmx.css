@@ -382,14 +382,16 @@ body {
 }
 
 .nav-icon { width: 2em; text-align: center; }
+.home-nav-icon { width: 2em; text-align: center; cursor: pointer; }
 img {
   max-width: 200%; /* override minireset */
 }
 
 /* Mobile nav dropdown - hidden on desktop */
-#mobileNav { display: none; position: relative; }
+#mobileNav, #mobileHomeNav { display: none; position: relative; }
 
-#mobileNav button.mobile-nav-toggle {
+#mobileNav button.mobile-nav-toggle,
+#mobileHomeNav button.mobile-nav-toggle {
   background-color: var(--tmx-bg-elevated, #ffffff);
   border: 1px solid var(--tmx-border-primary, #dbdbdb);
   border-radius: 4px;
@@ -400,7 +402,7 @@ img {
   white-space: nowrap;
 }
 
-#mobileNavMenu {
+#mobileNavMenu, #mobileHomeNavMenu {
   display: none;
   position: absolute;
   top: 100%;
@@ -416,9 +418,11 @@ img {
   overflow: hidden;
 }
 
-#mobileNavMenu.mobile-nav-menu--open { display: flex; flex-direction: column; }
+#mobileNavMenu.mobile-nav-menu--open,
+#mobileHomeNavMenu.mobile-nav-menu--open { display: flex; flex-direction: column; }
 
-#mobileNavMenu button.mobile-nav-item {
+#mobileNavMenu button.mobile-nav-item,
+#mobileHomeNavMenu button.mobile-nav-item {
   background: var(--tmx-bg-elevated, #ffffff);
   border: none;
   color: var(--tmx-text-primary, #363636);
@@ -429,18 +433,22 @@ img {
   white-space: nowrap;
 }
 
-#mobileNavMenu button.mobile-nav-item:hover {
+#mobileNavMenu button.mobile-nav-item:hover,
+#mobileHomeNavMenu button.mobile-nav-item:hover {
   background: var(--tmx-tab-row-hover-bg, #f0f0f0);
 }
 
-#mobileNavMenu button.mobile-nav-item.mobile-nav-item--active {
+#mobileNavMenu button.mobile-nav-item.mobile-nav-item--active,
+#mobileHomeNavMenu button.mobile-nav-item.mobile-nav-item--active {
   color: var(--tmx-accent-blue);
   font-weight: 600;
 }
 
 @media (max-width: 767px) {
   .nav-icon { display: none; }
+  .home-nav-icon { display: none; }
   #mobileNav { display: block; }
+  #mobileHomeNav { display: block; }
   #pageTitle { display: none; }
   #content { padding: 0; }
   body { margin: 2px; }

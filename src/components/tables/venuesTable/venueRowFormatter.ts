@@ -55,8 +55,8 @@ export const venueRowFormatter =
     const courtsTable = new Tabulator(tableEl, {
       headerSortElement: headerSortElement([
         'courtName',
-        'scheduledTime',
-        'unscheduledTime',
+        'scheduledMinutes',
+        'unscheduledMinutes',
         'floodlit',
         'surfaceType',
         'indoorOutdoor',

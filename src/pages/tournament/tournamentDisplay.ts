@@ -77,7 +77,7 @@ export function routeTo(config: any): void {
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
-    if (selectedTab === VENUES_TAB) renderVenueTab();
+    if (selectedTab === VENUES_TAB) renderVenueTab({ venueView: config.venueView });
     if (selectedTab === PUBLISHING_TAB) renderPublishingTab();
     if (selectedTab === SETTINGS_TAB) renderSettingsTab();
   }

@@ -1331,6 +1331,20 @@
     "venues": {
       "title": "Anlagen",
       "invalidValues": "Ungültige Werte",
+      "viewAvailability": "Verfügbarkeit anzeigen",
+      "viewTable": "Tabellenansicht",
+      "setDefaultAvailability": "Standardverfügbarkeit festlegen",
+      "saveToTournament": "Im Turnier speichern",
+      "grid": {
+        "view": "Ansicht",
+        "day1": "1 Tag",
+        "days3": "3 Tage",
+        "week": "Woche",
+        "totalHours": "Gesamtstunden",
+        "blocked": "Gesperrt",
+        "available": "Verfügbar",
+        "avgPerCourt": "Ø Verfügbar/Platz"
+      },
       "addVenue": {
         "title": "Anlage hinzufügen",
         "venueName": "Anlagenname",

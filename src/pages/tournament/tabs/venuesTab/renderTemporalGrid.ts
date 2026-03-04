@@ -3,14 +3,14 @@
  * Creates a TemporalGrid from the tournament record and provides save logic
  * that maps engine state back to dateAvailability per court.
  */
-import { createTemporalGrid, TemporalGrid } from 'courthive-components';
+import { createTemporalGrid, TemporalGrid, type TemporalGridLabels } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 
 // constants
-import { MODIFY_COURT_AVAILABILITY } from 'constants/mutationConstants';
+import { MODIFY_COURT_AVAILABILITY, MODIFY_VENUE } from 'constants/mutationConstants';
 
 export type TemporalGridInstance = {
   grid: TemporalGrid;
@@ -18,7 +18,16 @@ export type TemporalGridInstance = {
   destroy: () => void;
 };
 
-export function renderTemporalGrid(container: HTMLElement): TemporalGridInstance {
+export interface RenderTemporalGridOptions {
+  labels?: TemporalGridLabels;
+  onSetDefaultAvailability?: () => void;
+  onSave?: () => void;
+}
+
+export function renderTemporalGrid(
+  container: HTMLElement,
+  options?: RenderTemporalGridOptions,
+): TemporalGridInstance {
   const { tournamentRecord } = tournamentEngine.getTournament();
 
   const grid = createTemporalGrid(
@@ -27,6 +36,9 @@ export function renderTemporalGrid(container: HTMLElement): TemporalGridInstance
       showToolbar: true,
       showVenueTree: true,
       showCapacity: true,
+      labels: options?.labels,
+      onSetDefaultAvailability: options?.onSetDefaultAvailability,
+      onSave: options?.onSave,
     },
     container,
   );
@@ -45,10 +57,29 @@ function saveGridState(grid: TemporalGrid): void {
 
   const tournamentDays = engine.getTournamentDays();
   const venues = tournamentRecord.venues ?? [];
-
-  const courtAvailabilityMap: Record<string, any[]> = {};
+  const methods: { method: string; params: any }[] = [];
 
   for (const venue of venues) {
+    // 1. Venue defaults — emit modifyVenue if changed
+    const venueAvail = engine.getVenueAvailability(tournamentRecord.tournamentId, venue.venueId);
+    if (venueAvail) {
+      const changed =
+        venueAvail.startTime !== venue.defaultStartTime || venueAvail.endTime !== venue.defaultEndTime;
+      if (changed) {
+        methods.push({
+          method: MODIFY_VENUE,
+          params: {
+            venueId: venue.venueId,
+            modifications: {
+              defaultStartTime: venueAvail.startTime,
+              defaultEndTime: venueAvail.endTime,
+            },
+          },
+        });
+      }
+    }
+
+    // 2. Per-court — only emit modifyCourtAvailability for courts with overrides or blocks
     for (const court of venue.courts ?? []) {
       const courtRef = {
         tournamentId: tournamentRecord.tournamentId,
@@ -56,16 +87,25 @@ function saveGridState(grid: TemporalGrid): void {
         courtId: court.courtId,
       };
 
+      const courtKeys = engine.getCourtAvailabilityKeys(courtRef);
+      const hasOverrides = courtKeys.length > 0;
+
+      // Collect blocks for this court across all days
       const dateAvailability: any[] = [];
+      let hasBlocks = false;
 
       for (const day of tournamentDays) {
-        const avail = engine.getCourtAvailability(courtRef, day);
-        if (!avail) continue;
-
         const dayBlocks = engine
           .getDayBlocks(day)
           .filter((block: any) => block.court.courtId === court.courtId && block.court.venueId === venue.venueId);
 
+        if (dayBlocks.length) hasBlocks = true;
+
+        // Only include days where this court has overrides or blocks
+        const dayHasOverride = courtKeys.includes(day) || courtKeys.includes('DEFAULT');
+        if (!dayHasOverride && !dayBlocks.length) continue;
+
+        const avail = engine.getCourtAvailability(courtRef, day);
         const bookings = dayBlocks.map((block: any) => ({
           startTime: extractTime(block.start),
           endTime: extractTime(block.end),
@@ -82,16 +122,25 @@ function saveGridState(grid: TemporalGrid): void {
         dateAvailability.push(entry);
       }
 
-      if (dateAvailability.length) {
-        courtAvailabilityMap[court.courtId] = dateAvailability;
+      const hadPrevious = (court.dateAvailability?.length ?? 0) > 0;
+
+      if (!hasOverrides && !hasBlocks) {
+        // No court-level state — clear stale data if it existed
+        if (hadPrevious) {
+          methods.push({
+            method: MODIFY_COURT_AVAILABILITY,
+            params: { courtId: court.courtId, dateAvailability: [] },
+          });
+        }
+        // else: nothing to save, skip
+      } else if (dateAvailability.length) {
+        methods.push({
+          method: MODIFY_COURT_AVAILABILITY,
+          params: { courtId: court.courtId, dateAvailability },
+        });
       }
     }
   }
-
-  const methods = Object.entries(courtAvailabilityMap).map(([courtId, dateAvailability]) => ({
-    method: MODIFY_COURT_AVAILABILITY,
-    params: { courtId, dateAvailability },
-  }));
 
   if (!methods.length) return;
 
@@ -100,6 +149,7 @@ function saveGridState(grid: TemporalGrid): void {
     callback: (result: any) => {
       if (result?.success) {
         tmxToast({ message: t('success'), intent: 'is-success' });
+        grid.resetDirtyState();
       }
     },
   });

@@ -85,6 +85,20 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     };
   });
 
+  // Compute qualifyingPositions for QUALIFYING nodes from outgoing WINNER links.
+  // The link's sourceRoundNumber tells us where qualifiers exit; the count is
+  // drawSize / 2^sourceRoundNumber for standard elimination brackets.
+  for (const node of nodes) {
+    if (node.stage !== 'QUALIFYING') continue;
+
+    const outgoingWinner = edges.find(
+      (e: TopologyEdge) => e.sourceNodeId === node.id && e.linkType === 'WINNER',
+    );
+    if (outgoingWinner?.sourceRoundNumber) {
+      node.qualifyingPositions = Math.floor(node.drawSize / Math.pow(2, outgoingWinner.sourceRoundNumber));
+    }
+  }
+
   // Normalize positions so the leftmost column starts at x=40
   if (nodes.length > 0) {
     const minX = Math.min(...nodes.map((n) => n.position.x));

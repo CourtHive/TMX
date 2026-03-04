@@ -1,5 +1,5 @@
 /**
- * Venue control bar with add and delete actions.
+ * Venue control bar with add, delete, and grid toggle buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { controlBar } from 'courthive-components';
@@ -12,15 +12,17 @@ import { OVERLAY, RIGHT } from 'constants/tmxConstants';
 type VenueControlParams = {
   table: any;
   updateVenueRow: (params: any) => void;
+  onToggleGrid?: () => void;
   controlAnchor?: HTMLElement;
 };
 
 export function venueControl({
   table,
   updateVenueRow,
+  onToggleGrid,
   controlAnchor,
-}: VenueControlParams = {} as any): void {
-  if (!controlAnchor) return;
+}: VenueControlParams = {} as any): { elements: Record<string, HTMLElement> } {
+  if (!controlAnchor) return { elements: {} };
 
   const deleteVenues = () => {
     const venueIds = table.getSelectedData().map(({ venueId }: any) => venueId);
@@ -44,7 +46,16 @@ export function venueControl({
       id: 'addVenue',
       intent: 'none',
     },
+    {
+      label: t('pages.venues.viewAvailability'),
+      onClick: onToggleGrid,
+      location: RIGHT,
+      id: 'viewAvailability',
+      intent: 'is-info',
+    },
   ];
 
-  controlBar({ table, target: controlAnchor, items });
+  const { elements } = controlBar({ table, target: controlAnchor, items });
+
+  return { elements };
 }

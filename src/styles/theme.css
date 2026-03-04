@@ -228,6 +228,43 @@
   --chc-container-warning: var(--tmx-container-warning);
 }
 
+/*
+ * Higher-specificity dark bridge — :root[data-theme='dark'] beats the library's
+ * bare [data-theme='dark'] selector regardless of CSS load order.  This ensures
+ * the component library always inherits TMX's dark palette.
+ */
+:root[data-theme='dark'] {
+  --chc-bg-primary: var(--tmx-bg-primary);
+  --chc-bg-secondary: var(--tmx-bg-secondary);
+  --chc-bg-elevated: var(--tmx-bg-elevated);
+  --chc-bg-overlay: rgba(0, 0, 0, 0.5);
+  --chc-text-primary: var(--tmx-text-primary);
+  --chc-text-secondary: var(--tmx-text-secondary);
+  --chc-text-muted: var(--tmx-text-muted);
+  --chc-text-inverse: var(--tmx-text-inverse);
+  --chc-border-primary: var(--tmx-border-primary);
+  --chc-border-secondary: var(--tmx-border-secondary);
+  --chc-border-focus: var(--tmx-border-focus);
+  --chc-hover-bg: var(--tmx-bg-panel-header);
+  --chc-active-bg: var(--tmx-bg-tertiary);
+  --chc-modal-bg: var(--tmx-bg-elevated);
+  --chc-dropdown-bg: var(--tmx-bg-elevated);
+  --chc-input-bg: var(--tmx-bg-secondary);
+  --chc-input-border: var(--tmx-border-primary);
+  --chc-panel-header-bg: var(--tmx-bg-panel-header);
+  --chc-format-code-color: var(--tmx-accent-blue);
+  --chc-status-success: var(--tmx-status-success);
+  --chc-status-warning: var(--tmx-status-warning);
+  --chc-status-error: var(--tmx-status-error);
+  --chc-status-info: var(--tmx-status-info);
+  --chc-container-primary: var(--tmx-container-primary);
+  --chc-container-link: var(--tmx-container-link);
+  --chc-container-info: var(--tmx-container-info);
+  --chc-container-danger: var(--tmx-container-danger);
+  --chc-container-success: var(--tmx-container-success);
+  --chc-container-warning: var(--tmx-container-warning);
+}
+
 /* ===== Dark theme element overrides ===== */
 
 /* --- Intent-colored button dark overrides --- */

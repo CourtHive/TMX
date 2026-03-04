@@ -47,7 +47,6 @@ function persistAll(
   const activeScale = ratingInputs.activeRating.value;
   env.saveLocal = storageInputs.saveLocal.checked;
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
-  env.topologyBuilder = displayInputs.topologyBuilder?.checked || false;
   env.persistInputFields = storageInputs.persistInputFields?.checked ?? true;
 
   let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
@@ -78,7 +77,6 @@ function persistAll(
     saveLocal: env.saveLocal,
     smartComplements: scoringInputs.smartComplements?.checked || false,
     pdfPrinting: env.pdfPrinting,
-    topologyBuilder: env.topologyBuilder,
     minCourtGridRows: env.schedule.minCourtGridRows,
     persistInputFields: env.persistInputFields,
     language,
@@ -304,14 +302,6 @@ export function renderSettingsGrid(container: HTMLElement): void {
       checked: env.pdfPrinting || false,
       field: 'pdfPrinting',
       id: 'pdfPrinting',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: t('modals.settings.topologyBuilder'),
-      checked: env.topologyBuilder || false,
-      field: 'topologyBuilder',
-      id: 'topologyBuilder',
       onChange: persist,
       checkbox: true,
     },

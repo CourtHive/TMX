@@ -96,7 +96,7 @@ export function tournamentContent(): void {
               <div class='tabHeader foreground'></div>
               <div id='${VENUES_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_VENUES}' class='tableClass flexcol flexcenter'></div>
-              <div id='${TEMPORAL_GRID_CONTAINER}' style='display: none; width: 100%; height: 75vh;'></div>
+              <div id='${TEMPORAL_GRID_CONTAINER}' style='display: none; width: 100%; height: 75vh; overflow: hidden;'></div>
             </div>
         </div>
         `;

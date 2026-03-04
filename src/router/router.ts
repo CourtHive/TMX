@@ -1,4 +1,6 @@
 import { registrationModal } from 'components/modals/registrationModal';
+import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
+import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
@@ -22,6 +24,9 @@ import {
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE_TAB,
+  VENUES_TAB,
+  TEMPLATES,
+  POLICIES,
   INVITE,
   VIEW,
 } from 'constants/tmxConstants';
@@ -90,6 +95,9 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE_TAB}/:scheduledDate`, (match) => {
     displayRoute({ selectedTab: SCHEDULE_TAB, data: match?.data });
   });
+  router.on(`/${TOURNAMENT}/:tournamentId/${VENUES_TAB}/:venueView`, (match) => {
+    displayRoute({ selectedTab: VENUES_TAB, data: match?.data });
+  });
   router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, (match) => {
     displayRoute({ data: match?.data });
   });
@@ -101,6 +109,8 @@ export function routeTMX() {
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
   router.on(`/calendar`, renderCalendar);
+  router.on(`/${TEMPLATES}`, renderTemplatesPage);
+  router.on(`/${POLICIES}`, renderPoliciesPage);
   router.on('/admin', renderAdminPage);
   router.on(`/${SYSTEM}/:selectedTab`, (match) => renderSystemPage(match?.data?.selectedTab));
   router.on(`/${SYSTEM}`, () => renderSystemPage());

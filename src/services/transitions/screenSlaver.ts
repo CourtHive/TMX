@@ -1,10 +1,25 @@
 /**
  * Screen state management for main content areas.
- * Controls visibility of splash, content, tournaments, and calendar views.
+ * Controls visibility of splash, content, tournaments, calendar, templates, policies views.
+ * Manages switching between home nav bar and tournament nav bar.
  */
-import { NONE, SPLASH, TMX_CONTENT, TMX_TOURNAMENTS, TMX_TOPOLOGY, TOURNAMENTS_CALENDAR, TMX_ADMIN, TMX_SYSTEM } from 'constants/tmxConstants';
+import {
+  NONE,
+  SPLASH,
+  TMX_CONTENT,
+  TMX_TOURNAMENTS,
+  TMX_TOPOLOGY,
+  TMX_TEMPLATES,
+  TMX_POLICIES,
+  TOURNAMENTS_CALENDAR,
+  TMX_ADMIN,
+  TMX_SYSTEM,
+} from 'constants/tmxConstants';
 
 let content: string | undefined;
+
+const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_TEMPLATES, TMX_POLICIES];
+const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY];
 
 function selectDisplay(which: string): void {
   setState(TMX_CONTENT, which);
@@ -14,13 +29,30 @@ function selectDisplay(which: string): void {
   setState(TOURNAMENTS_CALENDAR, which);
   setState(TMX_ADMIN, which);
   setState(TMX_SYSTEM, which);
+  setState(TMX_TEMPLATES, which);
+  setState(TMX_POLICIES, which);
 
   const trnynav = document.getElementById('trnynav');
+  const homenav = document.getElementById('homenav');
   const dnav = document.getElementById('dnav');
-  if ([TMX_CONTENT, TMX_TOURNAMENTS, TMX_TOPOLOGY, TMX_ADMIN, TMX_SYSTEM].includes(which)) {
-    if (trnynav) trnynav.style.display = (which === TMX_CONTENT || which === TMX_TOPOLOGY) ? '' : NONE;
+
+  const allManagedPages = [...HOME_CONTEXT_PAGES, ...TOURNAMENT_CONTEXT_PAGES, TMX_ADMIN, TMX_SYSTEM];
+  if (allManagedPages.includes(which)) {
     if (dnav) dnav.style.display = '';
+
+    if (TOURNAMENT_CONTEXT_PAGES.includes(which)) {
+      if (trnynav) trnynav.style.display = '';
+      if (homenav) homenav.style.display = NONE;
+    } else if (HOME_CONTEXT_PAGES.includes(which)) {
+      if (trnynav) trnynav.style.display = NONE;
+      if (homenav) homenav.style.display = '';
+    } else {
+      // Admin/System: hide both nav bars
+      if (trnynav) trnynav.style.display = NONE;
+      if (homenav) homenav.style.display = NONE;
+    }
   } else {
+    // Splash or unknown: hide entire dnav
     if (dnav) dnav.style.display = NONE;
   }
 }
@@ -63,6 +95,22 @@ export const showTMXcalendar = (): void => {
 };
 export const showTopology = (): void => {
   content = TMX_TOPOLOGY;
+  selectDisplay(content);
+};
+export const showTMXtemplates = (): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>Templates</div>`;
+  }
+  content = TMX_TEMPLATES;
+  selectDisplay(content);
+};
+export const showTMXpolicies = (): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>Policies</div>`;
+  }
+  content = TMX_POLICIES;
   selectDisplay(content);
 };
 export const showTMXadmin = (): void => {
