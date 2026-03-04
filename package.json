@@ -80,7 +80,7 @@
     "globals": "17.4.0",
     "husky": "9.1.7",
     "inquirer": "13.3.0",
-    "lint-staged": "16.3.1",
+    "lint-staged": "16.3.2",
     "os-browserify": "0.3.0",
     "prettier": "3.8.1",
     "process": "0.11.10",
