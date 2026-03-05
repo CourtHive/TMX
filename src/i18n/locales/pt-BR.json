@@ -926,6 +926,10 @@
       "title": "Imagem do torneio",
       "imageLabel": "Endereço web de imagem online",
       "imagePlaceholder": "URL da Imagem",
+      "courtLabel": "Diagrama de quadra / campo",
+      "courtNone": "— Nenhum —",
+      "infoUrl": "Cole uma URL publicamente acessível para um logotipo ou foto do torneio.",
+      "infoCourt": "Selecione um diagrama de quadra ou campo integrado. Ele é selecionado automaticamente quando uma chave é criada, mas pode ser alterado aqui.",
       "updated": "Imagem do torneio atualizada"
     },
     "deleteMatches": {

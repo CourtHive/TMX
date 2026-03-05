@@ -1,5 +1,5 @@
 /**
- * Tag styles — replaces Bulma's .tag + color variants for TMX.
+ * Tag styles — .tag + color variants for TMX.
  */
 
 .tag:not(body) {

@@ -1,29 +1,53 @@
-export const tournamentFormatter = (isMobile: boolean) => (cell: any): HTMLSpanElement => {
-  const rowTable = document.createElement('table');
-  const values = cell.getValue();
-  rowTable.style.width = '400px';
+import { createCourtSvg } from 'services/courtSvg/courtSvgUtil';
 
-  const imageSize = '4em';
-  const rowTabletr = document.createElement('tr');
-  if (values.offline) {
-    const rowElement = cell.getRow().getElement();
-    rowElement.style.backgroundColor = 'var(--tmx-bg-highlight)';
-  }
-  const img = values.tournamentImageURL
-    ? `<img src='${values.tournamentImageURL}' style='width: ${imageSize}' alt=''>`
-    : '';
-  const cellContents =
-    (isMobile ? '' : `<td style='min-width: ${imageSize};'>${img}</td>`) +
-    `<td>` +
-    `<div style='margin-left: 1em'><strong style='font-size: 1.5em'>${values.tournamentName}</strong></div>` +
-    `<div style='margin-left: 1em'>${values.startDate} / ${values.endDate}</div>` +
-    `</td>`;
+export const tournamentFormatter =
+  (isMobile: boolean) =>
+  (cell: any): HTMLSpanElement => {
+    const rowTable = document.createElement('table');
+    const values = cell.getValue();
+    rowTable.style.width = '400px';
 
-  rowTabletr.innerHTML = cellContents;
-  rowTable.appendChild(rowTabletr);
+    const imageSize = '4em';
+    const rowTabletr = document.createElement('tr');
+    if (values.offline) {
+      const rowElement = cell.getRow().getElement();
+      rowElement.style.backgroundColor = 'var(--tmx-bg-highlight)';
+    }
 
-  const content = document.createElement('span');
-  content.appendChild(rowTable);
+    // Build image cell: URL image > court SVG > empty
+    let imageTd: HTMLTableCellElement | undefined;
+    if (!isMobile) {
+      imageTd = document.createElement('td');
+      imageTd.style.minWidth = imageSize;
 
-  return content;
-};
+      if (values.tournamentImageURL) {
+        const img = document.createElement('img');
+        img.src = values.tournamentImageURL;
+        img.alt = '';
+        img.style.width = imageSize;
+        imageTd.appendChild(img);
+      } else if (values.courtSvgSport) {
+        const svg = createCourtSvg(values.courtSvgSport);
+        if (svg) {
+          svg.style.width = imageSize;
+          svg.style.height = 'auto';
+          svg.style.opacity = '0.7';
+          imageTd.appendChild(svg);
+        }
+      }
+    }
+
+    const textTd = document.createElement('td');
+    textTd.innerHTML =
+      `<div style='margin-left: 1em'><strong style='font-size: 1.5em'>${values.tournamentName}</strong></div>` +
+      `<div style='margin-left: 1em'>${values.startDate} / ${values.endDate}</div>`;
+
+    if (imageTd) rowTabletr.appendChild(imageTd);
+    rowTabletr.appendChild(textTd);
+    rowTable.appendChild(rowTabletr);
+
+    const content = document.createElement('span');
+    content.appendChild(rowTable);
+
+    return content;
+  };

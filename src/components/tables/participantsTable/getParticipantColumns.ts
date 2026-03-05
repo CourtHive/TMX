@@ -18,7 +18,7 @@ import { genderConstants } from 'tods-competition-factory';
 import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
-import { LEFT, RIGHT } from 'constants/tmxConstants';
+import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const { FEMALE, MALE } = genderConstants;
@@ -45,8 +45,9 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       }),
       formatter: 'rownum',
       headerSort: false,
-      hozAlign: LEFT,
-      width: 55,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      width: 65,
     },
     {
       formatter: formatParticipant(({ event, cell }: any) => (participantActions(replaceTableData) as any)(event, cell)),

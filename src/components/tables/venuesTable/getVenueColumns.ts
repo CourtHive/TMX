@@ -34,8 +34,9 @@ export function getVenuesColumns(nestedTables: any): any[] {
       }),
       formatter: 'rownum',
       headerSort: false,
+      headerHozAlign: CENTER,
       hozAlign: CENTER,
-      width: 55
+      width: 65
     },
     {
       cellClick: toggleOpenClose,

@@ -49,8 +49,9 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       }),
       formatter: 'rownum',
       headerSort: false,
-      hozAlign: LEFT,
-      width: 55,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      width: 65,
     },
     {
       cellClick: (e: Event, cell: any) => openCloseToggle(e, cell),

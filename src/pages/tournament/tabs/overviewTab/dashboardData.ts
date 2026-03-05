@@ -1,4 +1,5 @@
 import { tournamentEngine, publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
+import { COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
 
 const { CONTAINER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
 
@@ -31,6 +32,7 @@ export type DashboardData = {
   startDate: string;
   endDate: string;
   imageUrl?: string;
+  courtSvgSport?: string;
   notes?: string;
   participantCount: number;
   teamParticipantCount: number;
@@ -103,9 +105,16 @@ export function getDashboardData(): DashboardData {
     activeEmbargoes,
   };
 
+  // Factory only returns imageUrl for URL resources; check for court SVG separately
+  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const courtSvgResource = tournamentRecord?.onlineResources?.find(
+    (r: any) => r.name === 'tournamentImage' && r.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE,
+  );
+
   const info = {
     participantCount: tournamentInfo?.participantCount || tournamentInfo?.individualParticipantCount || 0,
     teamParticipantCount: tournamentInfo?.teamParticipantCount || 0,
+    courtSvgSport: courtSvgResource?.identifier,
     tournamentName: tournamentInfo?.tournamentName,
     matchUpStats: tournamentInfo?.matchUpStats,
     eventCount: tournamentInfo?.eventCount,
