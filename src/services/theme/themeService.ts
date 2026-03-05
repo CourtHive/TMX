@@ -95,7 +95,7 @@ function resolveTheme(pref: ThemePreference): 'light' | 'dark' {
 
 /**
  * Apply the given theme to the DOM.
- * - Sets `data-theme` on <html> (Bulma reads this)
+ * - Sets `data-theme` on <html> (drives CSS variable theming)
  * - Toggles `tmx-dark` class on <body> (for custom selectors)
  */
 export function applyTheme(pref: ThemePreference): void {

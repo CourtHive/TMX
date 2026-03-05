@@ -1,10 +1,9 @@
 /**
- * Form styles — replaces Bulma's form classes for TMX.
+ * Form styles for TMX.
  * Checkradio and switch are loaded from courthive-components.
  */
 
-/* Form elements don't inherit font-family by default (browser UA styles override).
-   Bulma set this globally; replicate it here. */
+/* Form elements don't inherit font-family by default (browser UA styles override). */
 button,
 input,
 select,
@@ -17,7 +16,7 @@ textarea {
 .control { box-sizing: border-box; clear: both; font-size: 1rem; position: relative; text-align: inherit; }
 
 .input {
-  -webkit-appearance: none;
+  appearance: none;
   background-color: var(--chc-input-bg);
   border: 1px solid var(--chc-input-border);
   border-radius: 4px;
@@ -45,7 +44,7 @@ textarea {
 
 .select { display: inline-block; max-width: 100%; position: relative; vertical-align: top; }
 .select select {
-  -webkit-appearance: none;
+  appearance: none;
   background-color: var(--chc-input-bg);
   border: 1px solid var(--chc-input-border);
   border-radius: 4px;

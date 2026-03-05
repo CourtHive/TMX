@@ -57,8 +57,9 @@ export function getEntriesColumns(
       headerMenu: headerMenu({}),
       formatter: 'rownum',
       headerSort: false,
-      hozAlign: LEFT,
-      width: 55,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      width: 65,
     },
     {
       formatter: 'responsiveCollapse',

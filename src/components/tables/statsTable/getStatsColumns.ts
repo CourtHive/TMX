@@ -6,7 +6,7 @@ import { orderSorter } from '../common/sorters/orderSorter';
 import { headerMenu } from '../common/headerMenu';
 
 // constants
-import { CENTER, LEFT } from 'constants/tmxConstants';
+import { CENTER } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 export function getStatsColumns(): any[] {
@@ -15,8 +15,9 @@ export function getStatsColumns(): any[] {
       headerMenu: headerMenu({}),
       field: 'drawPosition',
       headerSort: false,
-      hozAlign: LEFT,
-      width: 55,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      width: 65,
     },
     {
       formatter: 'responsiveCollapse',

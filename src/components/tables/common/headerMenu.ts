@@ -1,6 +1,7 @@
 import { context } from 'services/context';
 
-const CHECKBOX = 'fa-check-square';
+const ICON_ON = 'fa-toggle-on';
+const ICON_OFF = 'fa-toggle-off';
 
 export const headerMenu = (displayTitles) => (_, column) => {
   const table = column.getTable();
@@ -10,38 +11,45 @@ export const headerMenu = (displayTitles) => (_, column) => {
   for (const column of columns) {
     const def = column.getDefinition();
     if (def.title) {
+      const visible = column.isVisible();
+
       const icon = document.createElement('i');
       icon.classList.add('fas');
-      icon.classList.add(column.isVisible() ? CHECKBOX : 'fa-square');
+      icon.classList.add(visible ? ICON_ON : ICON_OFF);
+      icon.style.color = visible ? 'var(--tmx-accent-blue)' : 'var(--tmx-text-muted)';
+      icon.style.marginRight = '8px';
+      icon.style.fontSize = '14px';
+      icon.style.width = '20px';
+      icon.style.textAlign = 'center';
 
       const label = document.createElement('span');
-      const title = document.createElement('span');
+      label.style.display = 'flex';
+      label.style.alignItems = 'center';
 
+      const title = document.createElement('span');
       const displayTitle = displayTitles?.[def.field] || def.displayTitle || def.title;
-      title.textContent = ' ' + displayTitle;
+      title.textContent = displayTitle;
 
       label.appendChild(icon);
       label.appendChild(title);
 
-      //create menu item
       menu.push({
         label: label,
         action: function (e) {
-          //prevent menu closing
           e.stopPropagation();
 
-          //toggle current column visibility
           column.toggle();
           context.columns[column.getField()] = column.isVisible();
           table.redraw();
 
-          //change menu item icon
           if (column.isVisible()) {
-            icon.classList.remove('fa-square');
-            icon.classList.add(CHECKBOX);
+            icon.classList.remove(ICON_OFF);
+            icon.classList.add(ICON_ON);
+            icon.style.color = 'var(--tmx-accent-blue)';
           } else {
-            icon.classList.remove(CHECKBOX);
-            icon.classList.add('fa-square');
+            icon.classList.remove(ICON_ON);
+            icon.classList.add(ICON_OFF);
+            icon.style.color = 'var(--tmx-text-muted)';
           }
         },
       });

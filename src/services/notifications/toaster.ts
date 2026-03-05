@@ -1,6 +1,6 @@
 /**
  * Generic toast notification system.
- * Requires bulma.css for styling and animate.css for animations.
+ * Requires animate.css for animations.
  */
 
 import { isFunction } from 'functions/typeOf';

@@ -80,11 +80,26 @@
 
 .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-header-popup-button {
   padding: 0 8px;
+  font-size: 0;
+  line-height: 1;
+  color: var(--tmx-text-muted);
+  transition: color 0.15s;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-header-popup-button::before {
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  content: '\f1de';
+  font-size: 13px;
 }
 
 .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-header-popup-button:hover {
   cursor: pointer;
-  opacity: 0.6;
+  color: var(--tmx-accent-blue);
+}
+
+.tabulator .tabulator-col-title:has(.tabulator-header-popup-button:only-child) {
+  font-size: 0;
 }
 
 .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title-holder {
@@ -894,18 +909,19 @@
   position: absolute;
   display: inline-block;
   box-sizing: border-box;
-  background: transparent;
-  border: 1px solid var(--tmx-tab-border);
-  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2);
-  font-size: 16px;
+  background: var(--tmx-bg-elevated);
+  border: 1px solid var(--tmx-border-secondary);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-size: 13px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   z-index: 10000;
 }
 
 .tabulator-popup {
-  padding: 5px;
-  border-radius: 3px;
+  padding: 6px;
+  border-radius: 10px;
 }
 
 .tabulator-tooltip {
@@ -920,8 +936,11 @@
 .tabulator-menu .tabulator-menu-item {
   position: relative;
   box-sizing: border-box;
-  padding: 5px 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
   user-select: none;
+  color: var(--tmx-text-primary);
+  transition: background 0.12s;
 }
 
 .tabulator-menu .tabulator-menu-item.tabulator-menu-item-disabled {
@@ -930,7 +949,7 @@
 
 .tabulator-menu .tabulator-menu-item:not(.tabulator-menu-item-disabled):hover {
   cursor: pointer;
-  background: var(--tmx-tab-row-alt-bg);
+  background: var(--tmx-bg-secondary);
 }
 
 .tabulator-menu .tabulator-menu-item.tabulator-menu-item-submenu {
@@ -940,20 +959,21 @@
 .tabulator-menu .tabulator-menu-item.tabulator-menu-item-submenu::after {
   display: inline-block;
   position: absolute;
-  top: calc(5px + 0.4em);
+  top: calc(7px + 0.4em);
   right: 10px;
   height: 7px;
   width: 7px;
   content: '';
   border-width: 1px 1px 0 0;
   border-style: solid;
-  border-color: var(--tmx-tab-border);
+  border-color: var(--tmx-border-primary);
   vertical-align: top;
   transform: rotate(45deg);
 }
 
 .tabulator-menu .tabulator-menu-separator {
-  border-top: 1px solid var(--tmx-tab-border);
+  border-top: 1px solid var(--tmx-border-secondary);
+  margin: 4px 0;
 }
 
 .tabulator-edit-list {

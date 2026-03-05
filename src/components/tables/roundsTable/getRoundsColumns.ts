@@ -73,8 +73,9 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       }),
       formatter: 'rownum',
       headerSort: false,
-      hozAlign: LEFT,
-      width: 55,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      width: 65,
     },
     {
       title: t('tables.rounds.flight'),

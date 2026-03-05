@@ -22,7 +22,7 @@ import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
-import { LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { data: any[]; replaceTableData: () => void; setFocusData?: (data: any) => void }): any[] {
@@ -91,8 +91,9 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       }),
       formatter: 'rownum',
       headerSort: false,
-      hozAlign: LEFT,
-      width: 55,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      width: 65,
     },
     {
       formatter: eventFormatter(navigateToEvent),

@@ -45,7 +45,7 @@ src/
 ├── types/tmx.ts            # Shared TypeScript interfaces
 ├── constants/              # String constants and enumerations
 ├── settings/env.ts         # Runtime configuration (mutable)
-├── styles/                 # CSS files (Bulma + custom)
+├── styles/                 # CSS files (custom + courthive-components)
 ├── i18n/                   # Internationalization (6 languages)
 └── config/                 # Server/build configuration
 ```
@@ -112,7 +112,7 @@ export function createSomething({ title, onClick }: { title: string; onClick: ()
 
 ### 4. CSS and Styling
 
-TMX uses **Bulma** as its CSS framework plus custom stylesheets in `src/styles/`.
+TMX uses custom CSS stylesheets in `src/styles/` with `--tmx-*` CSS variables for theming.
 
 For component-specific styles that need to be injected dynamically, follow the `ensureStyles()` pattern:
 
@@ -259,7 +259,7 @@ pnpm test           # Vitest test runner
 | Hash-based routing       | Works on static hosting (GitHub Pages), supports offline use                    |
 | Mutable global context   | Simple service locator for vanilla JS; avoid prop-drilling without a framework  |
 | tods-competition-factory | Separates business logic from UI; engine is reusable across front-ends          |
-| Bulma CSS                | Lightweight utility classes without build-time CSS processing                   |
+| Custom CSS + CSS vars    | Lightweight utility classes without build-time CSS processing                   |
 | Dexie/IndexedDB          | Enables offline tournament editing and local caching                            |
 | Socket.IO + REST         | REST for CRUD operations, WebSocket for real-time collaboration                 |
 

@@ -3,7 +3,6 @@
  * Defines columns for event display including name, type, counts, and actions.
  */
 import { openClose, toggleOpenClose } from '../common/formatters/openClose';
-import { visiblityFormatter } from '../common/formatters/visibility';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { eventActions } from '../../popovers/eventActions';
@@ -41,19 +40,12 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
         entriesCount: 'Accepted entries',
         matchUpsCount: 'Total matches',
         drawsCount: 'Number of draws',
-        published: 'Published',
       }),
       formatter: 'rownum',
       headerSort: false,
+      headerHozAlign: CENTER,
       hozAlign: CENTER,
-      width: 55,
-    },
-    {
-      title: '<i class="fa-solid fa-eye"></i>',
-      formatter: visiblityFormatter,
-      headerSort: false,
-      field: 'published',
-      width: 55,
+      width: 65,
     },
     {
       field: 'event.eventName',

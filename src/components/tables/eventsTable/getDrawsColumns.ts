@@ -2,7 +2,6 @@
  * Draws table columns configuration.
  * Defines columns for draw name, type, entries, ratings, and publish/actions.
  */
-import { visiblityFormatter } from '../common/formatters/visibility';
 import { drawActions } from 'components/popovers/drawActions';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -52,15 +51,9 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
       headerMenu: headerMenu({ entries: 'Entries', wtnAvg: 'WTN avg', utrAvg: 'UTR avg' }),
       headerSort: false,
       formatter: 'rownum',
+      headerHozAlign: CENTER,
       hozAlign: CENTER,
-      width: 55,
-    },
-    {
-      title: '<i class="fa-solid fa-eye"></i>',
-      formatter: visiblityFormatter,
-      headerSort: false,
-      field: 'published',
-      width: 55,
+      width: 65,
     },
     { title: t('tables.draws.drawName'), field: DRAW_NAME, cellClick: drawDetail },
     { title: t('tables.draws.drawType'), field: DRAW_TYPE, cellClick: drawDetail },

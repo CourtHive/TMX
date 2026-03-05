@@ -105,6 +105,27 @@
   --chc-container-danger: var(--tmx-container-danger);
   --chc-container-success: var(--tmx-container-success);
   --chc-container-warning: var(--tmx-container-warning);
+
+  /* ── sp-* bridge (scheduling-profile, policy-catalog, etc.) ── */
+  --sp-bg: var(--tmx-bg-secondary);
+  --sp-panel: var(--tmx-bg-primary);
+  --sp-text: var(--tmx-text-primary);
+  --sp-muted: var(--tmx-text-muted);
+  --sp-line: var(--tmx-border-secondary);
+  --sp-accent: var(--tmx-accent-blue);
+  --sp-ok: var(--tmx-status-success);
+  --sp-warn: var(--tmx-status-warning);
+  --sp-err: var(--tmx-status-error);
+  --sp-input-bg: var(--tmx-bg-primary);
+  --sp-panel-bg: var(--tmx-bg-primary);
+  --sp-card-bg: var(--tmx-bg-secondary);
+  --sp-action-btn-bg: var(--tmx-bg-secondary);
+
+  /* ── temporal-grid accent ── */
+  --tg-accent: var(--tmx-accent-teal);
+  --tg-accent-hover: #009e92;
+  --tg-accent-bg-light: rgba(0, 184, 169, 0.08);
+  --tg-accent-bg-medium: rgba(0, 184, 169, 0.25);
 }
 
 /* ===== Dark theme ===== */
@@ -226,6 +247,27 @@
   --chc-container-danger: var(--tmx-container-danger);
   --chc-container-success: var(--tmx-container-success);
   --chc-container-warning: var(--tmx-container-warning);
+
+  /* ── sp-* bridge (dark) ── */
+  --sp-bg: #0f1318;
+  --sp-panel: var(--tmx-bg-primary);
+  --sp-text: var(--tmx-text-primary);
+  --sp-muted: var(--tmx-text-muted);
+  --sp-line: var(--tmx-border-secondary);
+  --sp-accent: var(--tmx-accent-blue);
+  --sp-ok: var(--tmx-status-success);
+  --sp-warn: var(--tmx-status-warning);
+  --sp-err: var(--tmx-status-error);
+  --sp-input-bg: var(--tmx-bg-secondary);
+  --sp-panel-bg: var(--tmx-bg-primary);
+  --sp-card-bg: var(--tmx-bg-secondary);
+  --sp-action-btn-bg: var(--tmx-bg-secondary);
+
+  /* ── temporal-grid accent (dark) ── */
+  --tg-accent: var(--tmx-accent-teal);
+  --tg-accent-hover: #178a7f;
+  --tg-accent-bg-light: rgba(26, 158, 143, 0.1);
+  --tg-accent-bg-medium: rgba(26, 158, 143, 0.3);
 }
 
 /*
@@ -263,6 +305,27 @@
   --chc-container-danger: var(--tmx-container-danger);
   --chc-container-success: var(--tmx-container-success);
   --chc-container-warning: var(--tmx-container-warning);
+
+  /* ── sp-* bridge (high-specificity dark) ── */
+  --sp-bg: #0f1318;
+  --sp-panel: var(--tmx-bg-primary);
+  --sp-text: var(--tmx-text-primary);
+  --sp-muted: var(--tmx-text-muted);
+  --sp-line: var(--tmx-border-secondary);
+  --sp-accent: var(--tmx-accent-blue);
+  --sp-ok: var(--tmx-status-success);
+  --sp-warn: var(--tmx-status-warning);
+  --sp-err: var(--tmx-status-error);
+  --sp-input-bg: var(--tmx-bg-secondary);
+  --sp-panel-bg: var(--tmx-bg-primary);
+  --sp-card-bg: var(--tmx-bg-secondary);
+  --sp-action-btn-bg: var(--tmx-bg-secondary);
+
+  /* ── temporal-grid accent (high-specificity dark) ── */
+  --tg-accent: var(--tmx-accent-teal);
+  --tg-accent-hover: #178a7f;
+  --tg-accent-bg-light: rgba(26, 158, 143, 0.1);
+  --tg-accent-bg-medium: rgba(26, 158, 143, 0.3);
 }
 
 /* ===== Dark theme element overrides ===== */
@@ -557,6 +620,10 @@
   background-color: var(--tmx-bg-elevated);
   color: var(--tmx-text-primary);
 }
+[data-theme='dark'] .datepicker-dropdown .datepicker-picker {
+  border: 1px solid var(--tmx-border-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
 [data-theme='dark'] .datepicker-title {
   background-color: var(--tmx-bg-secondary);
   color: var(--tmx-text-primary);
@@ -638,7 +705,7 @@
   stroke: #ffffff;
 }
 
-/* --- Bulma tag/chip dark overrides --- */
+/* --- Tag/chip dark overrides --- */
 [data-theme='dark'] .tag:not(body) {
   background-color: var(--tmx-bg-tertiary);
   color: var(--tmx-text-primary);
