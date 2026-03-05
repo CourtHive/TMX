@@ -963,6 +963,10 @@
       "title": "锦标赛图片",
       "imageLabel": "在线图片网址",
       "imagePlaceholder": "图片URL",
+      "courtLabel": "球场 / 场地示意图",
+      "courtNone": "— 无 —",
+      "infoUrl": "粘贴一个可公开访问的URL，用于锦标赛标志或照片。",
+      "infoCourt": "选择一个内置的球场或场地示意图。创建签表时会自动选择，但可以在此处更改。",
       "updated": "锦标赛图片已更新"
     },
     "deleteMatches": {

@@ -1,8 +1,14 @@
+import { COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+
 export function mapTournamentRecord(tournamentRecord: any): any {
   const searchText = tournamentRecord.tournamentName?.toLowerCase() || 'Error';
-  const tournamentImageURL = tournamentRecord.onlineResources?.find(
-    ({ name, resourceType }: any) => name === 'tournamentImage' && resourceType === 'URL',
-  )?.identifier;
+  const imageResource = tournamentRecord.onlineResources?.find(
+    ({ name }: any) => name === 'tournamentImage',
+  );
+  const tournamentImageURL =
+    imageResource?.resourceType === 'URL' ? imageResource.identifier : undefined;
+  const courtSvgSport =
+    imageResource?.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE ? imageResource.identifier : undefined;
   const offline = tournamentRecord.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
 
   return {
@@ -14,6 +20,7 @@ export function mapTournamentRecord(tournamentRecord: any): any {
       endDate: new Date(tournamentRecord.endDate).toISOString()?.split('T')[0],
       tournamentName: tournamentRecord.tournamentName,
       tournamentImageURL,
+      courtSvgSport,
       offline,
     },
   };

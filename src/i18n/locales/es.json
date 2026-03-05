@@ -926,6 +926,10 @@
       "title": "Imagen del torneo",
       "imageLabel": "Dirección web de imagen en línea",
       "imagePlaceholder": "URL de Imagen",
+      "courtLabel": "Diagrama de cancha / campo",
+      "courtNone": "— Ninguno —",
+      "infoUrl": "Pegue una URL de acceso público para un logo o foto del torneo.",
+      "infoCourt": "Seleccione un diagrama de cancha o campo incorporado. Se selecciona automáticamente al crear un cuadro, pero puede cambiarse aquí.",
       "updated": "Imagen del torneo actualizada"
     },
     "deleteMatches": {

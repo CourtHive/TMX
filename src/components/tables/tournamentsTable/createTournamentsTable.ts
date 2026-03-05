@@ -77,11 +77,13 @@ export function createTournamentsTable(): { table: any } {
     const tableData = sortedTournaments.map((t) => {
       const offline = t.tournament.timeItemValues?.TMX?.offline;
       t.tournament.offline = offline;
-      const tournamentImageURL = t.tournament.onlineResources?.find(
-        ({ name, resourceType }: any) => name === 'tournamentImage' && resourceType === 'URL',
-      )?.identifier;
-      if (tournamentImageURL) {
-        t.tournament.tournamentImageURL = tournamentImageURL;
+      const imageResource = t.tournament.onlineResources?.find(
+        ({ name }: any) => name === 'tournamentImage',
+      );
+      if (imageResource?.resourceType === 'URL') {
+        t.tournament.tournamentImageURL = imageResource.identifier;
+      } else if (imageResource?.resourceSubType === 'COURT_SVG') {
+        t.tournament.courtSvgSport = imageResource.identifier;
       }
       return { ...t, provider };
     });

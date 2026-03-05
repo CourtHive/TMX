@@ -926,6 +926,10 @@
       "title": "Turnierbild",
       "imageLabel": "Webadresse eines Online-Bildes",
       "imagePlaceholder": "Bild-URL",
+      "courtLabel": "Platz- / Felddiagramm",
+      "courtNone": "— Keines —",
+      "infoUrl": "Fügen Sie eine öffentlich zugängliche URL für ein Turnierlogo oder -foto ein.",
+      "infoCourt": "Wählen Sie ein integriertes Platz- oder Felddiagramm. Es wird automatisch beim Erstellen einer Auslosung ausgewählt, kann aber hier geändert werden.",
       "updated": "Turnierbild aktualisiert"
     },
     "deleteMatches": {

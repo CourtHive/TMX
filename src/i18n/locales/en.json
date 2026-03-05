@@ -966,6 +966,10 @@
       "title": "Tournament image",
       "imageLabel": "Web address of online image",
       "imagePlaceholder": "Image URL",
+      "courtLabel": "Court / field diagram",
+      "courtNone": "— None —",
+      "infoUrl": "Paste a publicly accessible URL for a tournament logo or photo.",
+      "infoCourt": "Select a built-in court or field diagram. This is auto-selected when a draw is created but can be changed here.",
       "updated": "Tournament image updated"
     },
     "deleteMatches": {

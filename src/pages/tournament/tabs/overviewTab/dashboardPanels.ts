@@ -1,3 +1,4 @@
+import { createCourtSvg, type CourtSport } from 'services/courtSvg/courtSvgUtil';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
@@ -24,7 +25,7 @@ import { t } from 'i18n';
 import { ADD_TOURNAMENT_TIMEITEM, SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
 import { ADMIN, SUPER_ADMIN } from 'constants/tmxConstants';
 
-export function createImagePanel(imageUrl?: string): HTMLElement {
+export function createImagePanel(imageUrl?: string, courtSvgSport?: string): HTMLElement {
   const panel = document.createElement('div');
   panel.style.cssText =
     'border-radius:8px; overflow:hidden; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height:200px;';
@@ -36,11 +37,20 @@ export function createImagePanel(imageUrl?: string): HTMLElement {
     img.alt = t('dashboard.tournamentImage');
     panel.appendChild(img);
     panel.style.background = '';
+  } else if (courtSvgSport) {
+    const svg = createCourtSvg(courtSvgSport as CourtSport);
+    if (svg) {
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+      svg.style.maxHeight = '300px';
+      svg.style.opacity = '0.7';
+      svg.style.padding = '16px';
+      panel.appendChild(svg);
+    }
   } else {
     const placeholder = document.createElement('div');
     placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); padding:24px; font-size:0.95rem;';
-    placeholder.innerHTML =
-      `<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noTournamentImage')}`;
+    placeholder.innerHTML = `<i class="fa fa-camera" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noTournamentImage')}`;
     panel.appendChild(placeholder);
   }
 
@@ -69,8 +79,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
     const placeholder = document.createElement('div');
     placeholder.style.cssText =
       'display:flex; align-items:center; justify-content:center; height:100%; min-height:160px; color:var(--tmx-text-muted); text-align:center; font-size:0.95rem;';
-    placeholder.innerHTML =
-      `<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noTournamentInfo')}</div>`;
+    placeholder.innerHTML = `<div><i class="fa fa-file-alt" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noTournamentInfo')}</div>`;
     notesView.appendChild(placeholder);
   }
   panel.appendChild(notesView);
@@ -165,8 +174,7 @@ export function createSunburstPlaceholder(): HTMLElement {
 
   const placeholder = document.createElement('div');
   placeholder.style.cssText = 'text-align:center; color:var(--tmx-text-muted); font-size:0.95rem;';
-  placeholder.innerHTML =
-    `<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noEliminationStructures')}`;
+  placeholder.innerHTML = `<i class="fa fa-circle-notch" style="font-size:48px; margin-bottom:8px; display:block;"></i>${t('dashboard.noEliminationStructures')}`;
   panel.appendChild(placeholder);
 
   return panel;

@@ -457,3 +457,8 @@ img {
 .has-text-success {
   color: var(--tmx-status-success);
 }
+
+/* Hide Apply button on standalone policies page (no tournament context) */
+#tmxPolicies .pc-editor-actions button:last-child {
+  display: none;
+}

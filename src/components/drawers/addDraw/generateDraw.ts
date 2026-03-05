@@ -2,6 +2,7 @@
  * Generate draw definition with tournament engine.
  * Applies active scale configuration and adds draw to event via mutation.
  */
+import { getAutoCourtImageMethod } from 'services/courtSvg/autoCourtImage';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -28,7 +29,11 @@ export function generateDraw({
 
   if (result.success) {
     const drawDefinition = result.drawDefinition;
-    const methods = [{ method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true } }];
+    const methods: any[] = [{ method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true } }];
+
+    const courtMethod = getAutoCourtImageMethod(eventId, drawOptions?.matchUpFormat || drawDefinition?.matchUpFormat);
+    if (courtMethod) methods.push(courtMethod);
+
     const postMutation = (result: any) => isFunction(callback) && callback({ drawDefinition, ...result });
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {

@@ -123,7 +123,7 @@ export function renderOverview(): void {
   grid.className = 'dash-grid';
 
   // Row 1: Image (2cols) + Notes (3cols)
-  const imagePanel = createImagePanel(data.imageUrl);
+  const imagePanel = createImagePanel(data.imageUrl, data.courtSvgSport);
   imagePanel.className = 'dash-image';
   grid.appendChild(imagePanel);
 

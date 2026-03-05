@@ -3,6 +3,7 @@
  * Creates sample tournaments with various draw types and categories.
  */
 import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
+import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
@@ -587,7 +588,31 @@ export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({
   value: i,
 }));
 
+function addAutoCourtImage(tournamentRecord: any, drawProfiles: any[]): void {
+  const hasImage = tournamentRecord.onlineResources?.some(
+    (r: any) => r.name === 'tournamentImage',
+  );
+  if (hasImage) return;
+
+  // Use the first draw profile's matchUpFormat to infer the sport; default to tennis
+  const format = drawProfiles?.find((p: any) => p.matchUpFormat)?.matchUpFormat;
+  const sport = sportFromMatchUpFormat(format) ?? 'tennis';
+  if (!sport) return;
+
+  if (!tournamentRecord.onlineResources) tournamentRecord.onlineResources = [];
+  tournamentRecord.onlineResources.push({
+    resourceSubType: COURT_SVG_RESOURCE_SUB_TYPE,
+    name: 'tournamentImage',
+    resourceType: 'OTHER',
+    identifier: sport,
+  });
+}
+
 function generateTournamentRecords(indices?: number[]): any[] {
   const profiles = indices ? indices.map((i) => mockProfiles[i]).filter(Boolean) : mockProfiles;
-  return profiles.map((profile) => mocksEngine.generateTournamentRecord(profile).tournamentRecord);
+  return profiles.map((profile) => {
+    const { tournamentRecord } = mocksEngine.generateTournamentRecord(profile);
+    addAutoCourtImage(tournamentRecord, profile.drawProfiles);
+    return tournamentRecord;
+  });
 }

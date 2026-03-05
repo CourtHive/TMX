@@ -3,8 +3,13 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { homeNavigation } from 'homeNavigation';
 import { context } from 'services/context';
 import { TMX_POLICIES, POLICIES } from 'constants/tmxConstants';
+import { createPolicyCatalog } from 'courthive-components';
+import type { PolicyCatalogControl } from 'courthive-components';
+import { getBuiltinPolicies, loadUserPolicies, saveUserPolicy } from './policyBridge';
 
-export function renderPoliciesPage(): void {
+let catalogControl: PolicyCatalogControl | null = null;
+
+export async function renderPoliciesPage(): Promise<void> {
   showTMXpolicies();
   homeNavigation(POLICIES);
 
@@ -16,12 +21,19 @@ export function renderPoliciesPage(): void {
 
   removeAllChildNodes(container);
 
-  const placeholder = document.createElement('div');
-  placeholder.className = 'flexcol flexcenter';
-  placeholder.style.padding = '2em';
-  placeholder.innerHTML = `
-    <h2>Policies</h2>
-    <p>Manage reusable policy configurations (scheduling, scoring, seeding) here.</p>
-  `;
-  container.appendChild(placeholder);
+  if (catalogControl) {
+    catalogControl.destroy();
+    catalogControl = null;
+  }
+
+  const userPolicies = await loadUserPolicies();
+
+  catalogControl = createPolicyCatalog(
+    {
+      builtinPolicies: getBuiltinPolicies(),
+      userPolicies,
+      onPolicySaved: (item) => saveUserPolicy(item),
+    },
+    container,
+  );
 }

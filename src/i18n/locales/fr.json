@@ -926,6 +926,10 @@
       "title": "Image du tournoi",
       "imageLabel": "Adresse web de l'image en ligne",
       "imagePlaceholder": "URL de l'image",
+      "courtLabel": "Diagramme de court / terrain",
+      "courtNone": "— Aucun —",
+      "infoUrl": "Collez une URL publiquement accessible pour un logo ou une photo du tournoi.",
+      "infoCourt": "Sélectionnez un diagramme de court ou de terrain intégré. Il est automatiquement sélectionné lors de la création d'un tableau, mais peut être modifié ici.",
       "updated": "Image du tournoi mise à jour"
     },
     "deleteMatches": {
