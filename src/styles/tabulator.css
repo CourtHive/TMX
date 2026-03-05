@@ -1285,7 +1285,15 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 }
 
 .tabulator .tabulator-header .tabulator-col .tabulator-header-filter input {
+  background-color: var(--tmx-tab-bg);
+  color: var(--tmx-tab-text);
   border: 1px solid var(--tmx-tab-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.85em;
+}
+.tabulator .tabulator-header .tabulator-col .tabulator-header-filter input::placeholder {
+  color: var(--tmx-tab-text-muted);
 }
 
 .tabulator .tabulator-header .tabulator-calcs-holder {
