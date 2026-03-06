@@ -16,14 +16,20 @@ const { MAIN, QUALIFYING, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 const AUTO_POSITION_PLAYOFF = 'autoPositionPlayoff';
 
 export function drawControlBar({
+  onInitialRoundChange,
+  initialRoundNumber,
   updateDisplay,
   existingView,
+  roundNumbers,
   structure,
   callback,
   drawId,
 }: {
+  onInitialRoundChange?: (roundNumber: number) => void;
+  initialRoundNumber?: number;
   callback?: (params: any) => void;
   updateDisplay?: () => void;
+  roundNumbers?: number[];
   existingView?: string;
   structure: any;
   drawId: string;
@@ -106,6 +112,31 @@ export function drawControlBar({
   }
   if (structure?.stage === VOLUNTARY_CONSOLATION) {
     console.log('voluntary controlBar with [View participants]');
+  }
+
+  const isRoundRobin = structure?.structureType === drawDefinitionConstants.CONTAINER;
+  const showRoundSelector = !isAdHoc && !isRoundRobin && roundNumbers && roundNumbers.length > 2 && onInitialRoundChange;
+
+  if (showRoundSelector) {
+    const roundName = (round: number): string => {
+      const fromEnd = roundNumbers[roundNumbers.length - 1] - round;
+      if (fromEnd === 0) return 'F';
+      if (fromEnd === 1) return 'SF';
+      if (fromEnd === 2) return 'QF';
+      return `R${round}`;
+    };
+
+    const roundTabs = roundNumbers.map((rn) => ({
+      label: roundName(rn),
+      active: rn === (initialRoundNumber || 1),
+      onClick: () => onInitialRoundChange(rn),
+    }));
+
+    drawControlItems.push({
+      id: 'initialRoundTabs',
+      location: RIGHT,
+      tabs: roundTabs,
+    });
   }
 
   const tabs = (getRoundTabs as any)({ structure, existingView, drawId, callback: setDisplay }).tabs;

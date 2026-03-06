@@ -178,6 +178,24 @@ body {
   -webkit-align-items: center;
   align-items: center;
 }
+.tpl-layout .options_left {
+  flex-grow: 1;
+}
+.tpl-layout .options_center {
+  flex-grow: 0;
+}
+.tpl-layout .options_right {
+  flex-grow: 2;
+}
+#eventControl .options_left {
+  flex-grow: 1;
+}
+#eventControl .options_center {
+  flex-grow: 0;
+}
+#eventControl .options_right {
+  flex-grow: 1;
+}
 .options_overlay {
   flex-grow: 1;
   -webkit-flex-direction: row;
@@ -461,4 +479,162 @@ img {
 /* Hide Apply button on standalone policies page (no tournament context) */
 #tmxPolicies .pc-editor-actions button:last-child {
   display: none;
+}
+
+/* ── Topology Catalog (pc-* pattern — left panel + right builder) ──── */
+.tpl-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  height: 100%;
+  box-sizing: border-box;
+}
+.tpl-layout * { box-sizing: border-box; }
+
+.tpl-panel {
+  background: var(--sp-panel-bg, var(--tmx-bg-secondary, #fff));
+  border: 1px solid var(--sp-line, var(--tmx-border-color, #e0e0e0));
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--sp-panel-shadow, none);
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+}
+.tpl-panel-header {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--sp-border-subtle, var(--tmx-border-color, #e0e0e0));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.tpl-panel-title {
+  font-weight: 700;
+  font-size: 13px;
+}
+.tpl-panel-meta {
+  font-size: 12px;
+  color: var(--sp-muted, var(--tmx-text-tertiary, #999));
+}
+.tpl-panel-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-scrollbar, #ccc) transparent;
+}
+.tpl-group {
+  border: 1px solid var(--sp-border-group, var(--tmx-border-color, #e0e0e0));
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tpl-group-header {
+  padding: 10px;
+  border-bottom: 1px solid var(--sp-border-subtle, var(--tmx-border-color, #e0e0e0));
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.tpl-group-header:hover { background: var(--sp-hover-bg, rgba(0,0,0,.04)); }
+.tpl-group-chevron {
+  font-size: 10px;
+  color: var(--sp-muted, var(--tmx-text-tertiary, #999));
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+.tpl-group-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tpl-card {
+  border: 1px solid var(--sp-border, var(--tmx-border-color, #e0e0e0));
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--sp-card-bg, var(--tmx-bg-secondary, #fff));
+  cursor: pointer;
+}
+.tpl-card:hover { border-color: var(--sp-border-hover, #aaa); }
+.tpl-card.active {
+  border-color: var(--sp-selected-border, var(--tmx-accent-blue, #3273dc));
+  background: var(--sp-selected-bg, rgba(50,115,220,.06));
+}
+.tpl-card__name {
+  font-size: 12px;
+  font-weight: 800;
+}
+.tpl-card__meta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--sp-muted, var(--tmx-text-tertiary, #999));
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.tpl-source-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-border-light, #ddd);
+  color: var(--sp-muted, #999);
+  white-space: nowrap;
+}
+.tpl-source-badge.builtin { border-color: var(--sp-accent-border, #3273dc); color: var(--sp-accent-text, #3273dc); }
+.tpl-source-badge.user { border-color: var(--sp-ok-border, #48c774); color: var(--sp-ok-text, #257942); }
+
+/* Right panel — builder or empty state */
+.tpl-builder-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.tpl-builder-header {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--sp-border-subtle, var(--tmx-border-color, #e0e0e0));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.tpl-builder-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.tpl-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--sp-muted, var(--tmx-text-tertiary, #999));
+  font-size: 13px;
+}
+
+@media (max-width: 767px) {
+  .tpl-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Participant type chips ──────────────────────────────────────────── */
+.participant-chip {
+  font-size: 0.85rem !important;
+  padding: 0.25em 0.55em !important;
+  border-radius: 999px !important;
+  margin-right: 0.35em !important;
+  min-width: 2em;
+  line-height: 1;
 }

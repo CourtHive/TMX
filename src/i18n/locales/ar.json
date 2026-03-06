@@ -805,8 +805,6 @@
       "scheduling": "الجدولة",
       "minScheduleGridRows": "الحد الأدنى لصفوف شبكة الجدول",
       "minScheduleGridRowsError": "يجب أن يكون رقماً بين 1 و 100",
-      "participantAssignment": "تعيين المشاركين",
-      "persistInputFields": "الاحتفاظ بحقول الإدخال بعد التعيين (وضع الاستمرار)",
       "betaFeatures": "الميزات التجريبية",
       "pdfPrinting": "طباعة PDF",
       "topologyBuilder": "منشئ الطوبولوجيا",

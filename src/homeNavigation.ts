@@ -9,7 +9,7 @@ import { env } from 'settings/env';
 import { t } from 'i18n';
 import tippy from 'tippy.js';
 
-import { BOTTOM, TMX_TOURNAMENTS, TEMPLATES, POLICIES } from 'constants/tmxConstants';
+import { BOTTOM, TMX_TOURNAMENTS, TEMPLATES, POLICIES, SETTINGS } from 'constants/tmxConstants';
 
 const ACCENT_BLUE = 'var(--tmx-accent-blue)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';
@@ -19,23 +19,23 @@ const NAV_ITEM_SELECTOR = '.mobile-nav-item';
 
 const homeRouteMap: Record<string, string> = {
   'h-tournaments': TMX_TOURNAMENTS,
-  'h-calendar': 'calendar',
   'h-templates': TEMPLATES,
   'h-policies': POLICIES,
+  'h-settings': SETTINGS,
 };
 
 const homeTips: Record<string, string> = {
   'h-tournaments': 'Tournaments',
-  'h-calendar': 'Calendar',
   'h-templates': 'Templates',
   'h-policies': 'Policies',
+  'h-settings': 'Settings',
 };
 
 const homeI18nKeys: Record<string, string> = {
   'h-tournaments': 'tnz',
-  'h-calendar': 'cal',
   'h-templates': 'tpl',
   'h-policies': 'pol',
+  'h-settings': 'set',
 };
 
 function navigateHomeRoute(id: string): void {

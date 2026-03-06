@@ -59,7 +59,7 @@ export function getDrawsColumns(data: any[], eventRow: any): any[] {
     { title: t('tables.draws.drawType'), field: DRAW_TYPE, cellClick: drawDetail },
     { title: t('tables.draws.flight'), field: 'flightNumber', width: 70, headerSort: false, hozAlign: CENTER },
     {
-      title: '<div class="event_icon opponents_header" />',
+      title: '<i class="fa-solid fa-user-group" />',
       cellClick: drawEntriesClick(eventRow),
       field: 'entries',
       width: 50,

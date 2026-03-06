@@ -26,6 +26,7 @@ export const AUTOMATED_PLAYOFF_POSITIONING = 'automatedPlayoffPositioning';
 export const BULK_SCHEDULE_MATCHUPS = 'bulkScheduleMatchUps';
 export const DELETE_ADHOC_MATCHUPS = 'deleteAdHocMatchUps';
 export const DELETE_DRAW_DEFINITIONS = 'deleteDrawDefinitions';
+export const LUCKY_DRAW_ADVANCEMENT = 'luckyDrawAdvancement';
 export const DELETE_FLIGHT_AND_DRAW = 'deleteFlightAndFlightDraw';
 export const DELETE_EVENTS = 'deleteEvents';
 export const DELETE_PARTICIPANTS = 'deleteParticipants';

@@ -47,8 +47,6 @@ function persistAll(
   const activeScale = ratingInputs.activeRating.value;
   env.saveLocal = storageInputs.saveLocal.checked;
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
-  env.persistInputFields = storageInputs.persistInputFields?.checked ?? true;
-
   let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
   if (scoringInputs.dynamicSets.checked) {
     scoringApproach = 'dynamicSets';
@@ -78,7 +76,6 @@ function persistAll(
     smartComplements: scoringInputs.smartComplements?.checked || false,
     pdfPrinting: env.pdfPrinting,
     minCourtGridRows: env.schedule.minCourtGridRows,
-    persistInputFields: env.persistInputFields,
     language,
   });
 
@@ -87,7 +84,7 @@ function persistAll(
   }
 }
 
-export function renderSettingsGrid(container: HTMLElement): void {
+export function renderSettingsGrid(container: HTMLElement, options?: { excludeTournament?: boolean }): void {
   const currentSettings = loadSettings();
 
   // These are populated after renderForm calls; persist closure captures the refs.
@@ -129,49 +126,40 @@ export function renderSettingsGrid(container: HTMLElement): void {
   languagePanel.appendChild(languageForm);
   grid.appendChild(languagePanel);
 
-  // --- Active Rating panel (blue, 1 col) ---
-  const ratingPanel = document.createElement('div');
-  ratingPanel.className = RATINGS_PANEL_BLUE;
-  ratingPanel.innerHTML = `<h3><i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}</h3>`;
+  // --- Theme panel (gray, 1 col) ---
+  const themePanel = document.createElement('div');
+  themePanel.className = 'settings-panel panel-gray';
+  themePanel.innerHTML = `<h3><i class="fa-solid fa-circle-half-stroke"></i> ${t('modals.settings.theme')}</h3>`;
 
-  // Discover which ratings are present in current tournament participants
-  const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
-  const presentRatings = new Set<string>();
-  for (const p of allParticipants) {
-    for (const item of p.ratings?.[SINGLES] || []) {
-      presentRatings.add(item.scaleName);
-    }
-  }
-
-  // Build rating options: tournament ratings first, then all others (excluding deprecated)
-  const allRatingKeys = Object.keys(ratingsParameters).filter((key) => !(ratingsParameters as any)[key].deprecated);
-  const inTournament = allRatingKeys.filter((key) => presentRatings.has(key));
-  const notInTournament = allRatingKeys.filter((key) => !presentRatings.has(key));
-
-  const ratingOptions = [
-    ...inTournament.map((key) => ({
-      label: `${key} (in tournament)`,
-      value: key.toLowerCase(),
-      selected: env.activeScale === key.toLowerCase(),
-    })),
-    ...notInTournament.map((key) => ({
-      label: key,
-      value: key.toLowerCase(),
-      selected: env.activeScale === key.toLowerCase(),
-    })),
-  ];
-
-  const ratingForm = document.createElement('div');
-  ratingInputs = renderForm(ratingForm, [
+  const currentTheme = getThemePreference();
+  const themeForm = document.createElement('div');
+  const themeInputs = renderForm(themeForm, [
     {
-      options: ratingOptions,
-      onChange: persist,
-      field: 'activeRating',
-      id: 'activeRating',
+      options: [
+        { text: 'Light', field: 'light', checked: currentTheme === 'light' },
+        { text: 'Dark', field: 'dark', checked: currentTheme === 'dark' },
+        { text: 'System', field: 'system', checked: currentTheme === 'system' },
+      ],
+      onChange: () => {
+        const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
+        applyTheme(pref);
+      },
+      field: 'theme',
+      id: 'theme',
+      radio: true,
     },
   ]);
-  ratingPanel.appendChild(ratingForm);
-  grid.appendChild(ratingPanel);
+  // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
+  const themeChange = () => {
+    const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
+    applyTheme(pref);
+  };
+  themeInputs.light.addEventListener('change', themeChange);
+  themeInputs.dark.addEventListener('change', themeChange);
+  themeInputs.system.addEventListener('change', themeChange);
+  fixRadioWrapping(themeForm);
+  themePanel.appendChild(themeForm);
+  grid.appendChild(themePanel);
 
   // --- Scoring panel (green, cols 3-4) ---
   const scoringPanel = document.createElement('div');
@@ -278,14 +266,6 @@ export function renderSettingsGrid(container: HTMLElement): void {
       onChange: persist,
       checkbox: true,
     },
-    {
-      label: t('modals.settings.persistInputFields'),
-      checked: currentSettings?.persistInputFields ?? true,
-      field: 'persistInputFields',
-      id: 'persistInputFields',
-      onChange: persist,
-      checkbox: true,
-    },
   ]);
   storagePanel.appendChild(storageForm);
   grid.appendChild(storagePanel);
@@ -309,88 +289,101 @@ export function renderSettingsGrid(container: HTMLElement): void {
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
 
-  // --- Theme panel (red, 1 col) ---
-  const themePanel = document.createElement('div');
-  themePanel.className = 'settings-panel panel-gray';
-  themePanel.innerHTML = `<h3><i class="fa-solid fa-circle-half-stroke"></i> ${t('modals.settings.theme')}</h3>`;
+  // --- Active Rating panel (blue, 1 col) — tournament-specific ---
+  if (!options?.excludeTournament) {
+    const ratingPanel = document.createElement('div');
+    ratingPanel.className = RATINGS_PANEL_BLUE;
+    ratingPanel.innerHTML = `<h3><i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}</h3>`;
 
-  const currentTheme = getThemePreference();
-  const themeForm = document.createElement('div');
-  const themeInputs = renderForm(themeForm, [
-    {
-      options: [
-        { text: 'Light', field: 'light', checked: currentTheme === 'light' },
-        { text: 'Dark', field: 'dark', checked: currentTheme === 'dark' },
-        { text: 'System', field: 'system', checked: currentTheme === 'system' },
-      ],
-      onChange: () => {
-        const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
-        applyTheme(pref);
+    // Discover which ratings are present in current tournament participants
+    const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+    const presentRatings = new Set<string>();
+    for (const p of allParticipants) {
+      for (const item of p.ratings?.[SINGLES] || []) {
+        presentRatings.add(item.scaleName);
+      }
+    }
+
+    // Build rating options: tournament ratings first, then all others (excluding deprecated)
+    const allRatingKeys = Object.keys(ratingsParameters).filter((key) => !(ratingsParameters as any)[key].deprecated);
+    const inTournament = allRatingKeys.filter((key) => presentRatings.has(key));
+    const notInTournament = allRatingKeys.filter((key) => !presentRatings.has(key));
+
+    const ratingOptions = [
+      ...inTournament.map((key) => ({
+        label: `${key} (in tournament)`,
+        value: key.toLowerCase(),
+        selected: env.activeScale === key.toLowerCase(),
+      })),
+      ...notInTournament.map((key) => ({
+        label: key,
+        value: key.toLowerCase(),
+        selected: env.activeScale === key.toLowerCase(),
+      })),
+    ];
+
+    const ratingForm = document.createElement('div');
+    ratingInputs = renderForm(ratingForm, [
+      {
+        options: ratingOptions,
+        onChange: persist,
+        field: 'activeRating',
+        id: 'activeRating',
       },
-      field: 'theme',
-      id: 'theme',
-      radio: true,
-    },
-  ]);
-  // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
-  const themeChange = () => {
-    const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
-    applyTheme(pref);
-  };
-  themeInputs.light.addEventListener('change', themeChange);
-  themeInputs.dark.addEventListener('change', themeChange);
-  themeInputs.system.addEventListener('change', themeChange);
-  fixRadioWrapping(themeForm);
-  themePanel.appendChild(themeForm);
-  grid.appendChild(themePanel);
+    ]);
+    ratingPanel.appendChild(ratingForm);
+    grid.appendChild(ratingPanel);
+  }
 
-  // --- Delete Tournament panel (red, full width) ---
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
-  const provider = tournamentRecord?.parentOrganisation;
-  const providerId = provider?.organisationId;
-  const state = getLoginState();
-  const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-  const canDelete = superAdmin || state?.permissions?.includes('deleteTournament');
-  const activeProvider = context.provider || state?.provider;
+  // --- Delete Tournament panel (red, full width) — tournament-specific ---
+  if (!options?.excludeTournament) {
+    const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+    const provider = tournamentRecord?.parentOrganisation;
+    const providerId = provider?.organisationId;
+    const state = getLoginState();
+    const superAdmin = state?.roles?.includes(SUPER_ADMIN);
+    const canDelete = superAdmin || state?.permissions?.includes('deleteTournament');
+    const activeProvider = context.provider || state?.provider;
 
-  // Show for local tournaments (no provider) or when user has delete permission
-  if (tournamentRecord && (!providerId || canDelete)) {
-    const deletePanel = document.createElement('div');
-    deletePanel.className = 'settings-panel panel-red';
-    deletePanel.style.gridColumn = '3 / 5';
-    deletePanel.innerHTML = `<h3><i class="fa-solid fa-trash"></i> ${t('modals.settings.dangerZone')}</h3>`;
+    // Show for local tournaments (no provider) or when user has delete permission
+    if (tournamentRecord && (!providerId || canDelete)) {
+      const deletePanel = document.createElement('div');
+      deletePanel.className = 'settings-panel panel-red';
+      deletePanel.style.gridColumn = '3 / 5';
+      deletePanel.innerHTML = `<h3><i class="fa-solid fa-trash"></i> ${t('modals.settings.dangerZone')}</h3>`;
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'button is-danger is-outlined';
-    deleteBtn.style.marginTop = '8px';
-    deleteBtn.innerHTML = `<i class="fa-solid fa-trash" style="margin-right:6px"></i>${t('modals.tournamentActions.deleteTournament')}`;
-    deleteBtn.addEventListener('click', () => {
-      const tournamentId = tournamentRecord.tournamentId;
-      const provId = state?.providerId || providerId;
-      const navigateAway = () => {
-        if (provId) removeProviderTournament({ tournamentId, providerId: provId });
-        context.router?.navigate(`/${TMX_TOURNAMENTS}`);
-      };
-      const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'button is-danger is-outlined';
+      deleteBtn.style.marginTop = '8px';
+      deleteBtn.innerHTML = `<i class="fa-solid fa-trash" style="margin-right:6px"></i>${t('modals.tournamentActions.deleteTournament')}`;
+      deleteBtn.addEventListener('click', () => {
+        const tournamentId = tournamentRecord.tournamentId;
+        const provId = state?.providerId || providerId;
+        const navigateAway = () => {
+          if (provId) removeProviderTournament({ tournamentId, providerId: provId });
+          context.router?.navigate(`/${TMX_TOURNAMENTS}`);
+        };
+        const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
 
-      tmxToast({
-        action: {
-          onClick: () => {
-            if (activeProvider && provId) {
-              removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
-            } else {
-              localDelete();
-            }
+        tmxToast({
+          action: {
+            onClick: () => {
+              if (activeProvider && provId) {
+                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
+              } else {
+                localDelete();
+              }
+            },
+            text: t('common.confirm'),
           },
-          text: t('common.confirm'),
-        },
-        message: t('modals.tournamentActions.deleteTournament'),
-        intent: 'is-danger',
+          message: t('modals.tournamentActions.deleteTournament'),
+          intent: 'is-danger',
+        });
       });
-    });
 
-    deletePanel.appendChild(deleteBtn);
-    grid.appendChild(deletePanel);
+      deletePanel.appendChild(deleteBtn);
+      grid.appendChild(deletePanel);
+    }
   }
 
   container.appendChild(grid);

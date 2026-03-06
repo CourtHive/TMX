@@ -247,7 +247,7 @@ pnpm test           # Vitest test runner
 ### Adding a new setting
 
 1. Add the field to `settings/env.ts`.
-2. Add UI controls in `components/modals/settingsModal.ts`.
+2. Add UI controls in `pages/tournament/tabs/settingsTab/settingsGrid.ts`.
 3. Persist via `saveSettings()` / `loadSettings()` in `services/settings/settingsStorage.ts`.
 4. Add the i18n key to `i18n/locales/en.json`.
 

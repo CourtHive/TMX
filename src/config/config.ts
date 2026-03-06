@@ -2,6 +2,7 @@
  * Application configuration and initialization.
  * Sets up database and event listeners.
  */
+import { loadUserTopologies } from 'pages/templates/topologyBridge';
 import { processDirective } from 'services/processDirective';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
@@ -18,6 +19,7 @@ export function initConfig(): Promise<void> {
 
     const DBready = () => {
       initWithDB();
+      loadUserTopologies();
       resolve();
     };
 

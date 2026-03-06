@@ -11,14 +11,14 @@ import {
   TMX_TOPOLOGY,
   TMX_TEMPLATES,
   TMX_POLICIES,
-  TOURNAMENTS_CALENDAR,
+  TMX_SETTINGS,
   TMX_ADMIN,
   TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 let content: string | undefined;
 
-const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_TEMPLATES, TMX_POLICIES];
+const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
 const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY];
 
 function selectDisplay(which: string): void {
@@ -26,11 +26,11 @@ function selectDisplay(which: string): void {
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
   setState(TMX_TOPOLOGY, which);
-  setState(TOURNAMENTS_CALENDAR, which);
   setState(TMX_ADMIN, which);
   setState(TMX_SYSTEM, which);
   setState(TMX_TEMPLATES, which);
   setState(TMX_POLICIES, which);
+  setState(TMX_SETTINGS, which);
 
   const trnynav = document.getElementById('trnynav');
   const homenav = document.getElementById('homenav');
@@ -51,15 +51,15 @@ function selectDisplay(which: string): void {
       if (trnynav) trnynav.style.display = NONE;
       if (homenav) homenav.style.display = NONE;
     }
-  } else {
+  } else if (dnav) {
     // Splash or unknown: hide entire dnav
-    if (dnav) dnav.style.display = NONE;
+    dnav.style.display = NONE;
   }
 }
 
 function isActive(id: string): boolean {
   const docnode = document.getElementById(id);
-  return !!(docnode && docnode.style.display === 'flex');
+  return docnode?.style.display !== 'flex';
 }
 
 function setState(id: string, which: string): void {
@@ -89,10 +89,6 @@ export const showTMXtournaments = (): void => {
   content = TMX_TOURNAMENTS;
   selectDisplay(content);
 };
-export const showTMXcalendar = (): void => {
-  content = TOURNAMENTS_CALENDAR;
-  selectDisplay(content);
-};
 export const showTopology = (): void => {
   content = TMX_TOPOLOGY;
   selectDisplay(content);
@@ -111,6 +107,14 @@ export const showTMXpolicies = (): void => {
     tournamentElement.innerHTML = `<div class='tmx-title'>Policies</div>`;
   }
   content = TMX_POLICIES;
+  selectDisplay(content);
+};
+export const showTMXsettings = (): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>Settings</div>`;
+  }
+  content = TMX_SETTINGS;
   selectDisplay(content);
 };
 export const showTMXadmin = (): void => {

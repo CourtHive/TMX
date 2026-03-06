@@ -1,11 +1,12 @@
 import { registrationModal } from 'components/modals/registrationModal';
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
+import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { renderCalendar } from 'pages/tournaments/calendar';
+
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { renderSystemPage } from 'pages/system/renderSystemPage';
 import { queueKey } from 'services/messaging/socketIo';
@@ -27,6 +28,7 @@ import {
   VENUES_TAB,
   TEMPLATES,
   POLICIES,
+  SETTINGS,
   INVITE,
   VIEW,
 } from 'constants/tmxConstants';
@@ -108,9 +110,9 @@ export function routeTMX() {
 
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
-  router.on(`/calendar`, renderCalendar);
   router.on(`/${TEMPLATES}`, renderTemplatesPage);
   router.on(`/${POLICIES}`, renderPoliciesPage);
+  router.on(`/${SETTINGS}`, renderSettingsPage);
   router.on('/admin', renderAdminPage);
   router.on(`/${SYSTEM}/:selectedTab`, (match) => renderSystemPage(match?.data?.selectedTab));
   router.on(`/${SYSTEM}`, () => renderSystemPage());

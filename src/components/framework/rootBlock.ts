@@ -19,12 +19,12 @@ import {
   TMX_TOPOLOGY,
   TMX_TEMPLATES,
   TMX_POLICIES,
+  TMX_SETTINGS,
   TMX_DRAWER,
   TIMEPICKER,
   TIMEVALUE,
   NONE,
   TOURNAMENT_CONTAINER,
-  TOURNAMENTS_CALENDAR,
   TMX_ADMIN,
   TMX_SYSTEM,
 } from 'constants/tmxConstants';
@@ -143,16 +143,6 @@ export function rootBlock(): HTMLElement {
 
   main.appendChild(tournaments);
 
-  const calendar = document.createElement('div');
-  calendar.className = flexColFlexGrow;
-  calendar.style.paddingTop = '3em';
-  calendar.style.display = NONE;
-  calendar.style.height = '90%';
-  calendar.style.width = '100%';
-  calendar.id = TOURNAMENTS_CALENDAR;
-
-  main.appendChild(calendar);
-
   const topology = document.createElement('div');
   topology.className = flexColFlexGrow;
   topology.style.display = NONE;
@@ -186,6 +176,12 @@ export function rootBlock(): HTMLElement {
   policies.id = TMX_POLICIES;
   main.appendChild(policies);
 
+  const settings = document.createElement('div');
+  settings.className = flexColFlexGrow;
+  settings.style.display = NONE;
+  settings.id = TMX_SETTINGS;
+  main.appendChild(settings);
+
   initScrollNav();
 
   return root;
@@ -216,9 +212,10 @@ function newBlock(): HTMLDivElement {
     </div>
     <div id='homenav' class="navbar-item" style="display: none; flex-direction: row;">
       <i id='h-tournaments' class="home-nav-icon fa-solid fa-list"></i>
-      <i id='h-calendar' class="home-nav-icon fa-solid fa-calendar"></i>
+
       <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
+      <i id='h-settings' class="home-nav-icon fa-solid fa-sliders"></i>
       <div id="mobileHomeNav" class="mobile-nav">
         <button id="mobileHomeNavToggle" class="mobile-nav-toggle"></button>
         <div id="mobileHomeNavMenu" class="mobile-nav-menu"></div>

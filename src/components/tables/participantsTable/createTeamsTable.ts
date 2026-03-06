@@ -50,7 +50,6 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
       headerSortElement: headerSortElement(['events', 'membersCount', 'matchUpsCount', 'winLoss']),
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
-      minHeight: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No team participants',
       rowFormatter: teamRowFormatter,

@@ -868,8 +868,6 @@
       "scheduling": "排程",
       "minScheduleGridRows": "最少赛程表行数",
       "minScheduleGridRowsError": "必须是1到100之间的数字",
-      "participantAssignment": "参赛者分配",
-      "persistInputFields": "分配后保留输入字段（持续模式）",
       "betaFeatures": "测试功能",
       "pdfPrinting": "PDF打印",
       "topologyBuilder": "拓扑构建器",

@@ -54,7 +54,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       widthGrow: 3
     },
     {
-      title: `<div class="event_icon surface_header"></div>`,
+      title: '<i class="fa-solid fa-table-columns" />',
       headerTooltip: 'Number of courts',
       headerHozAlign: CENTER,
       field: 'courtsCount',

@@ -7,7 +7,6 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { controlBar, renderStructure, renderContainer, compositions, DrawStateManager } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderDrawView } from './renderDrawView';
-import { env } from 'settings/env';
 
 import { DRAWS_VIEW, EVENT_CONTROL } from 'constants/tmxConstants';
 
@@ -228,7 +227,7 @@ function renderAssignmentView({
     configuration: {
       ...composition.configuration,
       inlineAssignment: true,
-      persistInputFields: env.persistInputFields, // From settings
+      persistInputFields: true,
       hasQualifying, // Enable QUALIFIER option if qualifying structure exists
       participantProvider: () => stateManager!.getAvailableParticipants(),
     },
