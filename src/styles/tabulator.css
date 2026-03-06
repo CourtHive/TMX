@@ -11,6 +11,16 @@
   transform: translateZ(0);
 }
 
+/* Dark/light mode aware checkboxes (rowSelection formatter) */
+.tabulator input[type='checkbox'] {
+  accent-color: var(--tmx-accent-teal);
+  color-scheme: light;
+}
+
+[data-theme='dark'] .tabulator input[type='checkbox'] {
+  color-scheme: dark;
+}
+
 .tabulator[tabulator-layout='fitDataFill'] .tabulator-tableholder .tabulator-table {
   min-width: 100%;
 }
