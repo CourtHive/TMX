@@ -6,7 +6,7 @@ import { displayTournament } from 'pages/tournament/tournamentDisplay';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { renderCalendar } from 'pages/tournaments/calendar';
+
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { renderSystemPage } from 'pages/system/renderSystemPage';
 import { queueKey } from 'services/messaging/socketIo';
@@ -110,7 +110,6 @@ export function routeTMX() {
 
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
-  router.on(`/calendar`, renderCalendar);
   router.on(`/${TEMPLATES}`, renderTemplatesPage);
   router.on(`/${POLICIES}`, renderPoliciesPage);
   router.on(`/${SETTINGS}`, renderSettingsPage);

@@ -91,6 +91,7 @@ export function renderDrawView({
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
   let participantFilter: string | undefined;
+  let initialRoundNumber = 1;
   let roundMatchUps: any;
   let structures: any[] = [];
   let eventData: any;
@@ -211,6 +212,7 @@ export function renderDrawView({
           context: { drawId, structureId, roundVisibilityState },
           searchActive: !!participantFilter,
           matchUps: displayMatchUps as any,
+          initialRoundNumber,
           eventHandlers,
           composition,
           selectedMatchUpId: undefined,
@@ -251,7 +253,27 @@ export function renderDrawView({
     getData();
     updateDrawDisplay();
   };
-  drawControlBar({ updateDisplay: update, drawId, structure, existingView: roundsView, callback });
+
+  const roundNumbers = Object.keys(roundMatchUps || {})
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  const onInitialRoundChange = (roundNumber: number) => {
+    initialRoundNumber = roundNumber;
+    if (drawsView) removeAllChildNodes(drawsView);
+    updateDrawDisplay();
+  };
+
+  drawControlBar({
+    onInitialRoundChange,
+    initialRoundNumber,
+    updateDisplay: update,
+    existingView: roundsView,
+    roundNumbers,
+    structure,
+    callback,
+    drawId,
+  });
   const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
   const updateControlBar = (refresh?: boolean) => {
     if (refresh) getData();

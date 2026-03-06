@@ -1,8 +1,9 @@
 /**
- * Handle round header click for ad hoc draws.
- * Shows tipster with actions to add/delete matchUps and rounds.
+ * Handle round header click for ad hoc and lucky draws.
+ * Shows tipster with context-appropriate actions.
  */
 import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocRoundOptions';
+import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
@@ -12,7 +13,7 @@ import { tipster } from 'components/popovers/tipster';
 import { BOTTOM } from 'constants/tmxConstants';
 
 export function handleRoundHeaderClick(props: any): void {
-  const { structureId, drawId } = props?.context ?? props;
+  const { structureId, drawId, roundNumber } = props?.context ?? props;
   const structure = props.eventData?.drawsData
     ?.find((drawData: any) => drawData.drawId === drawId)
     ?.structures?.find((s: any) => s.structureId === structureId);
@@ -39,6 +40,31 @@ export function handleRoundHeaderClick(props: any): void {
     ];
 
     roundActions.push(...adHocRoundAction);
+  }
+
+  // Lucky draw: offer lucky loser selection when a pre-feed round needs it
+  const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
+  if (luckyStatus?.isLuckyDraw && roundNumber) {
+    const round = luckyStatus.rounds?.find((r: any) => r.roundNumber === roundNumber);
+
+    if (round?.needsLuckySelection) {
+      roundActions.push({
+        onClick: () =>
+          luckyLoserSelection({
+            roundNumber,
+            structureId,
+            callback: props.callback,
+            drawId,
+          }),
+        text: 'Select lucky loser...',
+        color: 'blue',
+      });
+    } else if (round?.isPreFeedRound && !round.isComplete) {
+      roundActions.push({
+        text: 'Lucky round (awaiting results)',
+        color: 'grey',
+      });
+    }
   }
 
   if (props?.pointerEvent && roundActions.length) {

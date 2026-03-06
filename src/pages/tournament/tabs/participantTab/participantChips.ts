@@ -2,15 +2,15 @@ import { tournamentEngine, participantConstants, participantRoles } from 'tods-c
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-import { PARTICIPANTS, LEFT } from 'constants/tmxConstants';
+import { PARTICIPANTS, CENTER } from 'constants/tmxConstants';
 
 const { INDIVIDUAL, TEAM, GROUP } = participantConstants;
 const { OFFICIAL } = participantRoles;
 
 const chipDefs = [
   { value: INDIVIDUAL, icon: 'fa-solid fa-user', labelKey: 'pages.participants.individuals' },
-  { value: OFFICIAL, icon: 'fa-solid fa-user-tie', labelKey: 'pages.participants.officials' },
   { value: TEAM, icon: 'fa-solid fa-people-group', labelKey: 'pages.participants.teams' },
+  { value: OFFICIAL, icon: 'fa-solid fa-user-tie', labelKey: 'pages.participants.officials' },
   { value: GROUP, icon: 'fa-solid fa-users', labelKey: 'pages.participants.groups' },
 ];
 
@@ -22,7 +22,7 @@ export function participantChips(view: string): any[] {
     toolTip: { content: t(labelKey), placement: 'bottom' },
     intent: view === value ? 'is-info' : 'is-light',
     class: 'participant-chip',
-    location: LEFT,
+    location: CENTER,
     onClick: () => {
       if (value !== view) {
         const route = `/tournament/${tournamentId}/${PARTICIPANTS}/${value}`;

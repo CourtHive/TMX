@@ -19,7 +19,6 @@ const NAV_ITEM_SELECTOR = '.mobile-nav-item';
 
 const homeRouteMap: Record<string, string> = {
   'h-tournaments': TMX_TOURNAMENTS,
-  'h-calendar': 'calendar',
   'h-templates': TEMPLATES,
   'h-policies': POLICIES,
   'h-settings': SETTINGS,
@@ -27,7 +26,6 @@ const homeRouteMap: Record<string, string> = {
 
 const homeTips: Record<string, string> = {
   'h-tournaments': 'Tournaments',
-  'h-calendar': 'Calendar',
   'h-templates': 'Templates',
   'h-policies': 'Policies',
   'h-settings': 'Settings',
@@ -35,7 +33,6 @@ const homeTips: Record<string, string> = {
 
 const homeI18nKeys: Record<string, string> = {
   'h-tournaments': 'tnz',
-  'h-calendar': 'cal',
   'h-templates': 'tpl',
   'h-policies': 'pol',
   'h-settings': 'set',

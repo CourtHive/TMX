@@ -14,15 +14,13 @@ export interface TopologyCatalogItem {
 let builtinItems: TopologyCatalogItem[] | null = null;
 
 export function getBuiltinTopologies(): TopologyCatalogItem[] {
-  if (!builtinItems) {
-    builtinItems = standardTemplates.map((t, i) => ({
-      id: `builtin-${i}`,
-      name: t.name,
-      description: t.description,
-      source: 'builtin' as const,
-      state: t.state,
-    }));
-  }
+  builtinItems ??= standardTemplates.map((t, i) => ({
+    id: `builtin-${i}`,
+    name: t.name,
+    description: t.description,
+    source: 'builtin' as const,
+    state: t.state,
+  }));
   return builtinItems;
 }
 

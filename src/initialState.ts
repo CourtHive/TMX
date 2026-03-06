@@ -35,7 +35,7 @@ import dpLocalePtBR from 'vanillajs-datepicker/locales/pt-BR';
 import dpLocaleAr from 'vanillajs-datepicker/locales/ar';
 import dpLocaleZhCN from 'vanillajs-datepicker/locales/zh-CN';
 Object.assign(Datepicker.locales, dpLocaleFr, dpLocaleEs, dpLocaleDe, dpLocalePtBR, dpLocaleAr, dpLocaleZhCN);
-import '@event-calendar/core/index.css';
+
 import 'timepicker-ui/main.css';
 
 import 'animate.css/animate.min.css';

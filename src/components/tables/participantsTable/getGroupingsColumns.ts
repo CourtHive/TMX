@@ -72,7 +72,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       widthGrow: 2,
     },
     {
-      title: '<div class="event_icon opponents_header" />',
+      title: '<i class="fa-solid fa-user-group" />',
       headerTooltip: 'Individuals',
       headerHozAlign: CENTER,
       field: 'membersCount',
@@ -82,7 +82,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       width: 50,
     },
     {
-      title: '<div class="event_icon matches_header" />',
+      title: '<i class="fa-solid fa-table-tennis-paddle-ball" />',
       headerTooltip: 'Total MatchUps',
       headerHozAlign: CENTER,
       field: 'matchUpsCount',
@@ -92,7 +92,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       width: 50,
     },
     {
-      title: '<div class="event_icon winloss_header" />',
+      title: '<i class="fa-solid fa-trophy" />',
       headerTooltip: 'Win/Loss',
       headerHozAlign: CENTER,
       field: 'winLoss',

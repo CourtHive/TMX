@@ -66,7 +66,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
       visible: true,
     },
     {
-      title: '<div class="event_icon drawsize_header" />',
+      title: '<i class="fa-solid fa-sitemap" />',
       headerTooltip: 'Number of Draws',
       cellClick: toggleOpenClose,
       headerHozAlign: CENTER,
@@ -77,7 +77,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
       width: 45,
     },
     {
-      title: '<div class="event_icon opponents_header" />',
+      title: '<i class="fa-solid fa-user-group" />',
       headerTooltip: 'Accepted Entries',
       headerHozAlign: CENTER,
       field: 'entriesCount',
@@ -88,7 +88,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
       width: 50,
     },
     {
-      title: '<div class="event_icon matches_header" />',
+      title: '<i class="fa-solid fa-table-tennis-paddle-ball" />',
       headerTooltip: 'Total MatchUps',
       headerHozAlign: CENTER,
       field: 'matchUpsCount',
@@ -98,7 +98,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
       width: 50,
     },
     {
-      title: '<div class="event_icon time_header" />',
+      title: '<i class="fa-solid fa-clock" />',
       headerTooltip: 'Scheduled MatchUps',
       field: 'scheduledMatchUpsCount',
       headerHozAlign: CENTER,
@@ -108,7 +108,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
       width: 50,
     },
     {
-      title: '<div class="event_icon rank_header" />',
+      title: '<i class="fa-solid fa-flag-checkered" />',
       headerTooltip: 'Completed MatchUps',
       field: 'completedMatchUpsCount',
       headerHozAlign: CENTER,

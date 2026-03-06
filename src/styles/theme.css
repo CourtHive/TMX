@@ -681,14 +681,6 @@
   background-color: var(--tmx-bg-tertiary);
 }
 
-/* --- @event-calendar dark overrides --- */
-[data-theme='dark'] .ec {
-  --ec-bg-color: var(--tmx-bg-primary);
-  --ec-text-color: var(--tmx-text-primary);
-  --ec-border-color: var(--tmx-border-primary);
-  --ec-active-bg-color: var(--tmx-accent-blue);
-}
-
 /* --- Scoreboard dark overrides --- */
 [data-theme='dark'] .scoreboard {
   border: 1px solid var(--tmx-border-secondary);

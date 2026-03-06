@@ -12,14 +12,13 @@ import {
   TMX_TEMPLATES,
   TMX_POLICIES,
   TMX_SETTINGS,
-  TOURNAMENTS_CALENDAR,
   TMX_ADMIN,
   TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 let content: string | undefined;
 
-const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
+const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
 const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY];
 
 function selectDisplay(which: string): void {
@@ -27,7 +26,6 @@ function selectDisplay(which: string): void {
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
   setState(TMX_TOPOLOGY, which);
-  setState(TOURNAMENTS_CALENDAR, which);
   setState(TMX_ADMIN, which);
   setState(TMX_SYSTEM, which);
   setState(TMX_TEMPLATES, which);
@@ -53,15 +51,15 @@ function selectDisplay(which: string): void {
       if (trnynav) trnynav.style.display = NONE;
       if (homenav) homenav.style.display = NONE;
     }
-  } else {
+  } else if (dnav) {
     // Splash or unknown: hide entire dnav
-    if (dnav) dnav.style.display = NONE;
+    dnav.style.display = NONE;
   }
 }
 
 function isActive(id: string): boolean {
   const docnode = document.getElementById(id);
-  return !!(docnode && docnode.style.display === 'flex');
+  return docnode?.style.display !== 'flex';
 }
 
 function setState(id: string, which: string): void {
@@ -89,10 +87,6 @@ export const showTMXtournaments = (): void => {
     tournamentElement.innerHTML = `<div class='tmx-title'>Tournaments</div>`;
   }
   content = TMX_TOURNAMENTS;
-  selectDisplay(content);
-};
-export const showTMXcalendar = (): void => {
-  content = TOURNAMENTS_CALENDAR;
   selectDisplay(content);
 };
 export const showTopology = (): void => {

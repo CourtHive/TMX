@@ -1,20 +1,17 @@
-import { TopologyBuilderControl } from 'courthive-components';
+import { getBuiltinTopologies, loadUserTopologies, saveUserTopology, deleteUserTopology } from './topologyBridge';
 import { showTMXtemplates } from 'services/transitions/screenSlaver';
-import { removeAllChildNodes } from 'services/dom/transformers';
 import { openModal } from 'components/modals/baseModal/baseModal';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { TopologyBuilderControl } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { homeNavigation } from 'homeNavigation';
 import { context } from 'services/context';
-import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
-import {
-  getBuiltinTopologies,
-  loadUserTopologies,
-  saveUserTopology,
-  deleteUserTopology,
-} from './topologyBridge';
 
 import type { TopologyCatalogItem } from './topologyBridge';
 import type { TopologyState } from 'courthive-components';
+
+// constants
+import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
 
 let builderControl: TopologyBuilderControl | null = null;
 let selectedItemId: string | null = null;
