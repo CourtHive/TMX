@@ -97,8 +97,8 @@ importers:
         specifier: 4.8.3
         version: 4.8.3
       tabulator-tables:
-        specifier: 6.3.1
-        version: 6.3.1
+        specifier: 6.4.0
+        version: 6.4.0
       timepicker-ui:
         specifier: 4.1.6
         version: 4.1.6
@@ -3055,8 +3055,8 @@ packages:
   tabbable@6.4.0:
     resolution: {integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==}
 
-  tabulator-tables@6.3.1:
-    resolution: {integrity: sha512-qFW7kfadtcaISQIibKAIy0f3eeIXUVi8242Vly1iJfMD79kfEGzfczNuPBN/80hDxHzQJXYbmJ8VipI40hQtfA==}
+  tabulator-tables@6.4.0:
+    resolution: {integrity: sha512-Lxh+leFNoBo/Yyr4USs6gxqbfo8anYUaUMmoT91pfVLtoUgl/dE+qV7ahnFrKVMCYYqGG33aIMPR7FzpPBaNYA==}
 
   test-exclude@8.0.0:
     resolution: {integrity: sha512-ZOffsNrXYggvU1mDGHk54I96r26P8SyMjO5slMKSc7+IWmtB/MQKnEC2fP51imB3/pT6YK5cT5E8f+Dd9KdyOQ==}
@@ -6475,7 +6475,7 @@ snapshots:
 
   tabbable@6.4.0: {}
 
-  tabulator-tables@6.3.1: {}
+  tabulator-tables@6.4.0: {}
 
   test-exclude@8.0.0:
     dependencies:
