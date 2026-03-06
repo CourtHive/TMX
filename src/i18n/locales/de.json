@@ -833,8 +833,6 @@
       "scheduling": "Spielplanung",
       "minScheduleGridRows": "Minimale Spielplanzeilen",
       "minScheduleGridRowsError": "Muss eine Zahl zwischen 1 und 100 sein",
-      "participantAssignment": "Teilnehmerzuweisung",
-      "persistInputFields": "Eingabefelder nach Zuweisung beibehalten (Persistenter Modus)",
       "betaFeatures": "Beta-Funktionen",
       "pdfPrinting": "PDF-Druck",
       "topologyBuilder": "Topologie-Builder",

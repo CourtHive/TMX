@@ -19,6 +19,7 @@ import {
   TMX_TOPOLOGY,
   TMX_TEMPLATES,
   TMX_POLICIES,
+  TMX_SETTINGS,
   TMX_DRAWER,
   TIMEPICKER,
   TIMEVALUE,
@@ -186,6 +187,12 @@ export function rootBlock(): HTMLElement {
   policies.id = TMX_POLICIES;
   main.appendChild(policies);
 
+  const settings = document.createElement('div');
+  settings.className = flexColFlexGrow;
+  settings.style.display = NONE;
+  settings.id = TMX_SETTINGS;
+  main.appendChild(settings);
+
   initScrollNav();
 
   return root;
@@ -219,6 +226,7 @@ function newBlock(): HTMLDivElement {
       <i id='h-calendar' class="home-nav-icon fa-solid fa-calendar"></i>
       <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
+      <i id='h-settings' class="home-nav-icon fa-solid fa-sliders"></i>
       <div id="mobileHomeNav" class="mobile-nav">
         <button id="mobileHomeNavToggle" class="mobile-nav-toggle"></button>
         <div id="mobileHomeNavMenu" class="mobile-nav-menu"></div>

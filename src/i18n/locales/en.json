@@ -871,8 +871,6 @@
       "scheduling": "Scheduling",
       "minScheduleGridRows": "Minimum schedule grid rows",
       "minScheduleGridRowsError": "Must be a number between 1 and 100",
-      "participantAssignment": "Participant Assignment",
-      "persistInputFields": "Keep input fields after assignment (Persist mode)",
       "betaFeatures": "Beta features",
       "pdfPrinting": "PDF printing",
       "topologyBuilder": "Topology builder",

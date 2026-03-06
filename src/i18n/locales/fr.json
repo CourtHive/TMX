@@ -833,8 +833,6 @@
       "scheduling": "Programmation",
       "minScheduleGridRows": "Nombre minimum de lignes de la grille de programmation",
       "minScheduleGridRowsError": "Doit être un nombre entre 1 et 100",
-      "participantAssignment": "Attribution des participants",
-      "persistInputFields": "Conserver les champs de saisie après l'attribution (mode persistant)",
       "betaFeatures": "Fonctionnalités bêta",
       "pdfPrinting": "Impression PDF",
       "topologyBuilder": "Constructeur de topologie",

@@ -3,6 +3,7 @@
  * Filters draw types by playoff and qualifying flags.
  * Includes saved topology templates when the topology builder is enabled.
  */
+import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getTopologyTemplates } from './topologyTemplates';
 
@@ -35,12 +36,29 @@ const {
 export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: boolean; isQualifying?: boolean } = {}): any[] {
   const showTopology = !isPlayoff && !isQualifying;
 
-  const templateOptions = showTopology
+  // Tournament-extension templates
+  const tournamentTemplates = showTopology
     ? getTopologyTemplates().map((t) => ({
         label: `\u2726 ${t.name}`,
         value: `${TOPOLOGY_TEMPLATE_PREFIX}${t.name}`,
       }))
     : [];
+
+  // User-saved templates from Dexie catalog
+  const userCatalogTemplates = showTopology
+    ? getUserTopologiesSync().map((t) => ({
+        label: `\u2726 ${t.name}`,
+        value: `${TOPOLOGY_TEMPLATE_PREFIX}${t.name}`,
+      }))
+    : [];
+
+  // Merge, deduplicate by value
+  const seen = new Set<string>();
+  const templateOptions = [...tournamentTemplates, ...userCatalogTemplates].filter((t) => {
+    if (seen.has(t.value)) return false;
+    seen.add(t.value);
+    return true;
+  });
 
   return [
     { label: 'Ad-hoc', value: AD_HOC, hide: isQualifying },

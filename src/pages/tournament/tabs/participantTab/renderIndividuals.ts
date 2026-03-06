@@ -24,11 +24,10 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'courthive-components';
 import { selectItem } from 'components/modals/selectItem';
-import { participantOptions } from './participantOptions';
+import { participantChips } from './participantChips';
 import {
   participantConstants,
   genderConstants,
-  participantRoles,
   tournamentEngine,
   extensionConstants,
 } from 'tods-competition-factory';
@@ -37,7 +36,6 @@ import { t } from 'i18n';
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
-const { OFFICIAL } = participantRoles;
 const { ANY } = genderConstants;
 
 const isPrimary = 'is-primary';
@@ -46,7 +44,6 @@ export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
-  const participantLabel = view === OFFICIAL ? t('pages.participants.officials') : t('pages.participants.individuals');
   const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
   const registration = extension?.value;
   const state = getLoginState();
@@ -190,6 +187,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       location: LEFT,
       search: true,
     },
+    ...participantChips(view),
     {
       hide: (events || []).length < 1,
       options: eventOptions,
@@ -212,15 +210,6 @@ export function renderIndividuals({ view }: { view: string }): void {
       modifyLabel: true,
       selection: true,
       location: LEFT,
-    },
-    {
-      options: participantOptions(view),
-      label: participantLabel,
-      intent: 'is-info',
-      modifyLabel: true,
-      location: RIGHT,
-      selection: true,
-      align: RIGHT,
     },
     {
       options: actionOptions,

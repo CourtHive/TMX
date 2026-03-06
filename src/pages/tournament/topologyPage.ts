@@ -5,6 +5,7 @@
  */
 import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
 import { saveTopologyTemplate, getTopologyTemplates } from 'components/drawers/addDraw/topologyTemplates';
+import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { entryStatusConstants, tournamentEngine } from 'tods-competition-factory';
 import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
@@ -49,7 +50,16 @@ export function renderTopologyPage({
   // Load from pending template selection (from Draw Type dropdown)
   if (!initialState && pendingTemplateName) {
     const templates = getTopologyTemplates();
-    const template = templates.find((t) => t.name === pendingTemplateName);
+    let template = templates.find((t) => t.name === pendingTemplateName);
+
+    // Also check Dexie-stored user topologies
+    if (!template) {
+      const userTopo = getUserTopologiesSync().find((t) => t.name === pendingTemplateName);
+      if (userTopo) {
+        template = { name: userTopo.name, description: userTopo.description, state: userTopo.state };
+      }
+    }
+
     if (template) {
       initialState = {
         ...template.state,

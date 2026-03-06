@@ -12,7 +12,6 @@ export type TMXSettings = {
   smartComplements?: boolean; // Enable smart complement entry in dynamicSets (default: false)
   pdfPrinting?: boolean; // Beta feature flag for PDF generation
   minCourtGridRows?: number; // Minimum schedule grid rows (default: 10)
-  persistInputFields?: boolean; // Keep input fields visible after participant assignment (default: true)
   language?: string; // UI language code (e.g. 'en', 'fr')
   theme?: 'light' | 'dark' | 'system'; // UI theme preference
   fontFamily?: string; // CSS font-family override (stored as option key, e.g. 'system', 'inter')

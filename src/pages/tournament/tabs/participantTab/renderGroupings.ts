@@ -13,7 +13,7 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
-import { participantOptions } from './participantOptions';
+import { participantChips } from './participantChips';
 
 import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
 
@@ -46,7 +46,6 @@ export function renderGroupings({ view }: { view: string }): void {
       })),
   );
 
-  const participantLabel = view === 'GROUP' ? 'Groups' : 'Teams';
   const items = [
     {
       onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
@@ -87,6 +86,7 @@ export function renderGroupings({ view }: { view: string }): void {
       location: LEFT,
       search: true,
     },
+    ...participantChips(view),
     {
       hide: eventOptions.length < 2,
       options: eventOptions,
@@ -94,15 +94,6 @@ export function renderGroupings({ view }: { view: string }): void {
       label: ALL_EVENTS,
       location: LEFT,
       selection: true,
-    },
-    {
-      options: participantOptions(view),
-      label: participantLabel,
-      modifyLabel: true,
-      intent: 'is-info',
-      location: RIGHT,
-      selection: true,
-      align: RIGHT,
     },
     {
       options: actionOptions,

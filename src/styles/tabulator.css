@@ -1261,6 +1261,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 
 .tabulator {
   border: none;
+  display: block;
 }
 
 .tabulator .tabulator-header {

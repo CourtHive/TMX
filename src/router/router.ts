@@ -1,5 +1,6 @@
 import { registrationModal } from 'components/modals/registrationModal';
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
+import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
@@ -27,6 +28,7 @@ import {
   VENUES_TAB,
   TEMPLATES,
   POLICIES,
+  SETTINGS,
   INVITE,
   VIEW,
 } from 'constants/tmxConstants';
@@ -111,6 +113,7 @@ export function routeTMX() {
   router.on(`/calendar`, renderCalendar);
   router.on(`/${TEMPLATES}`, renderTemplatesPage);
   router.on(`/${POLICIES}`, renderPoliciesPage);
+  router.on(`/${SETTINGS}`, renderSettingsPage);
   router.on('/admin', renderAdminPage);
   router.on(`/${SYSTEM}/:selectedTab`, (match) => renderSystemPage(match?.data?.selectedTab));
   router.on(`/${SYSTEM}`, () => renderSystemPage());

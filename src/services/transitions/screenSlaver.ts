@@ -11,6 +11,7 @@ import {
   TMX_TOPOLOGY,
   TMX_TEMPLATES,
   TMX_POLICIES,
+  TMX_SETTINGS,
   TOURNAMENTS_CALENDAR,
   TMX_ADMIN,
   TMX_SYSTEM,
@@ -18,7 +19,7 @@ import {
 
 let content: string | undefined;
 
-const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_TEMPLATES, TMX_POLICIES];
+const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TOURNAMENTS_CALENDAR, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
 const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY];
 
 function selectDisplay(which: string): void {
@@ -31,6 +32,7 @@ function selectDisplay(which: string): void {
   setState(TMX_SYSTEM, which);
   setState(TMX_TEMPLATES, which);
   setState(TMX_POLICIES, which);
+  setState(TMX_SETTINGS, which);
 
   const trnynav = document.getElementById('trnynav');
   const homenav = document.getElementById('homenav');
@@ -111,6 +113,14 @@ export const showTMXpolicies = (): void => {
     tournamentElement.innerHTML = `<div class='tmx-title'>Policies</div>`;
   }
   content = TMX_POLICIES;
+  selectDisplay(content);
+};
+export const showTMXsettings = (): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'>Settings</div>`;
+  }
+  content = TMX_SETTINGS;
   selectDisplay(content);
 };
 export const showTMXadmin = (): void => {
