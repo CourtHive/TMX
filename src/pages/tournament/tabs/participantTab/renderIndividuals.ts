@@ -6,6 +6,7 @@ import { enableManualRatings } from 'components/tables/participantsTable/editRat
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
 import { enableEditWTID } from 'components/tables/participantsTable/editWTID/enableEditWTID';
 import { saveRatings } from 'components/tables/participantsTable/editRatings/saveRatings';
+import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getAddToGroupingSelection } from './controlBar/getAddToGroupingSelection';
 import { createSelectOnEnter } from 'components/tables/common/createSelectOnEnter';
@@ -25,18 +26,12 @@ import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'courthive-components';
 import { selectItem } from 'components/modals/selectItem';
 import { participantChips } from './participantChips';
-import {
-  participantConstants,
-  genderConstants,
-  tournamentEngine,
-  extensionConstants,
-} from 'tods-competition-factory';
+import { participantConstants, tournamentEngine, extensionConstants } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
-const { ANY } = genderConstants;
 
 const isPrimary = 'is-primary';
 
@@ -52,9 +47,16 @@ export function renderIndividuals({ view }: { view: string }): void {
   // Callback that refreshes data and rebuilds the component after event changes
   const refreshAfterEventChange = () => renderIndividuals({ view });
 
-  const { eventOptions, events } = getEventFilter(table);
-  const { sexOptions, genders } = getSexFilter(table);
-  const { teamOptions } = getTeamFilter({ table, teamParticipants });
+  const { eventOptions, events, isFiltered: isEventFiltered } = getEventFilter(table);
+  const { sexOptions, isFiltered: isSexFiltered } = getSexFilter(table);
+  const { teamOptions, isFiltered: isTeamFiltered } = getTeamFilter({ table, teamParticipants });
+
+  const filterSections = [
+    { label: t('pages.participants.allEvents'), options: events.length ? eventOptions : [], isFiltered: isEventFiltered },
+    { label: t('pages.participants.anyTeam'), options: teamParticipants?.length ? teamOptions : [], isFiltered: isTeamFiltered },
+    { label: t('pages.participants.allGenders'), options: sexOptions, isFiltered: isSexFiltered },
+  ];
+  const { item: filterButton } = filterPopoverButton(filterSections);
 
   const editRegistrationLink = () => sheetsLink({ callback: replaceTableData });
 
@@ -187,30 +189,8 @@ export function renderIndividuals({ view }: { view: string }): void {
       location: LEFT,
       search: true,
     },
+    filterButton,
     ...participantChips(view),
-    {
-      hide: (events || []).length < 1,
-      options: eventOptions,
-      label: t('pages.participants.allEvents'),
-      modifyLabel: true,
-      selection: true,
-      location: LEFT,
-    },
-    {
-      hide: !teamParticipants?.length,
-      label: (teamOptions[0] as any)?.label || '',
-      options: teamOptions,
-      modifyLabel: true,
-      selection: true,
-      location: LEFT,
-    },
-    {
-      options: sexOptions,
-      label: genders[ANY],
-      modifyLabel: true,
-      selection: true,
-      location: LEFT,
-    },
     {
       options: actionOptions,
       label: t('pages.participants.actions'),

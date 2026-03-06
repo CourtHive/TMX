@@ -3,7 +3,10 @@ import { t } from 'i18n';
 
 const { FEMALE, MALE, ANY } = genderConstants;
 
-export function getSexFilter(table: any): { sexOptions: any[]; genders: Record<string, string> } {
+export function getSexFilter(
+  table: any,
+  onChange?: () => void,
+): { sexOptions: any[]; genders: Record<string, string>; isFiltered: () => boolean } {
   let filterValue: string | undefined;
 
   const sexFilter = (rowData: any): boolean => rowData.participant?.person?.sex === filterValue;
@@ -11,6 +14,7 @@ export function getSexFilter(table: any): { sexOptions: any[]; genders: Record<s
     table.removeFilter(sexFilter);
     filterValue = sex;
     if (sex) table.addFilter(sexFilter);
+    if (onChange) onChange();
   };
   const sexes = [MALE, FEMALE];
   const genders: Record<string, string> = {
@@ -31,5 +35,7 @@ export function getSexFilter(table: any): { sexOptions: any[]; genders: Record<s
     })),
   );
 
-  return { sexOptions, genders };
+  const isFiltered = () => !!filterValue;
+
+  return { sexOptions, genders, isFiltered };
 }

@@ -76,6 +76,5 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
     { label: 'Single elimination', value: SINGLE_ELIMINATION },
     { label: 'Staggered Entry', value: FEED_IN, hide: isPlayoff || isQualifying },
     ...templateOptions,
-    { label: 'Custom topology...', value: 'CUSTOM_TOPOLOGY', hide: !showTopology },
   ];
 }

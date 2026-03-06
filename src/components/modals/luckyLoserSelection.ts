@@ -1,6 +1,7 @@
 /**
- * Modal for selecting which loser advances in a lucky draw pre-feed round.
- * Shows eligible losers ranked by margin of defeat (narrowest first).
+ * Panel for lucky draw round management.
+ * Shows advancing winners (scrollable, informational) and eligible losers
+ * (scrollable, row-selectable) with margin ratios for TD decision-making.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
@@ -16,98 +17,175 @@ interface LuckyLoserSelectionParams {
   drawId: string;
 }
 
+function formatRatio(value: number | undefined): string {
+  if (value == null || !Number.isFinite(value)) return '-';
+  return (value * 100).toFixed(1) + '%';
+}
+
+const ROW_STYLE =
+  'display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);';
+const SELECTED_BG = 'var(--tmx-accent-teal, #00b8a9)';
+
 export function luckyLoserSelection({ roundNumber, structureId, callback, drawId }: LuckyLoserSelectionParams) {
   const result = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
   if (!result?.success || !result.isLuckyDraw) return;
 
-  const round = result.rounds?.find((r: any) => r.roundNumber === roundNumber && r.needsLuckySelection);
-  if (!round?.eligibleLosers?.length) {
-    tmxToast({ message: 'No eligible losers for lucky advancement', intent: 'is-warning' });
-    return;
-  }
+  const round = result.rounds?.find((r: any) => r.roundNumber === roundNumber && r.isPreFeedRound);
+  if (!round) return;
 
-  const losers = round.eligibleLosers;
+  const winners = round.advancingWinners || [];
+  const losers = round.eligibleLosers || [];
+  const canAdvance = round.needsLuckySelection && losers.length > 0;
 
-  const rows = losers
-    .map((loser: any, index: number) => {
-      const marginDisplay = Number.isFinite(loser.margin) ? (loser.margin * 100).toFixed(1) + '%' : 'N/A';
-      const highlight = index === 0 ? "style='background: #f0f9ff;'" : '';
-      return `
-      <tr ${highlight} class="lucky-loser-row" data-participant-id="${loser.participantId}">
-        <td style="padding: 8px 12px;">${index + 1}</td>
-        <td style="padding: 8px 12px; font-weight: ${index === 0 ? '600' : '400'};">${loser.participantName || 'Unknown'}</td>
-        <td style="padding: 8px 12px;">${loser.scoreString || '-'}</td>
-        <td style="padding: 8px 12px; text-align: right;">${marginDisplay}</td>
-        <td style="padding: 8px 12px; text-align: center;">${loser.setsWonByLoser ?? 0}</td>
-        <td style="padding: 8px 12px; text-align: center;">
-          <button class="lucky-select-btn" data-participant-id="${loser.participantId}"
-            style="padding: 4px 12px; border: 1px solid #3b82f6; border-radius: 4px; background: white; color: #3b82f6; cursor: pointer;">
-            Select
-          </button>
-        </td>
-      </tr>`;
-    })
-    .join('');
+  // Winners list (read-only scrollable box, first ~5 visible)
+  const winnersHtml = winners.length
+    ? winners
+        .map(
+          (w: any) =>
+            `<div style="${ROW_STYLE} color: var(--tmx-text-primary, #363636);">
+              <span style="flex: 1;">${w.participantName || 'Unknown'}</span>
+              <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${w.scoreString || ''}</span>
+            </div>`,
+        )
+        .join('')
+    : '<div style="color: var(--tmx-text-muted, #999); padding: 8px;">No winners yet</div>';
+
+  // Losers list (selectable rows)
+  const losersHtml = losers.length
+    ? losers
+        .map((l: any, i: number) => {
+          const ratios = [
+            l.pointRatio != null ? `pts: ${formatRatio(l.pointRatio)}` : '',
+            l.gameRatio != null ? `gm: ${formatRatio(l.gameRatio)}` : '',
+            l.setRatio != null ? `set: ${formatRatio(l.setRatio)}` : '',
+          ]
+            .filter(Boolean)
+            .join('  ');
+
+          return `<div class="lucky-loser-row" data-index="${i}"
+            style="${ROW_STYLE} cursor: ${canAdvance ? 'pointer' : 'default'}; border-radius: 3px; transition: background-color 0.15s;">
+            <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${l.participantName || 'Unknown'}</span>
+            <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${l.scoreString || ''}</span>
+            <span style="color: #2979ff; font-size: 12px; font-weight: 600; font-family: monospace; white-space: nowrap; min-width: 120px; text-align: right;">${ratios}</span>
+          </div>`;
+        })
+        .join('')
+    : '<div style="color: var(--tmx-text-muted, #999); padding: 8px;">No completed matchUps with losers yet.</div>';
+
+  const statusText = round.isComplete
+    ? round.needsLuckySelection
+      ? 'Round complete. Select a loser to advance.'
+      : 'Round complete.'
+    : `${round.completedCount} of ${round.matchUpsCount} matchUps complete.`;
+
+  const winnersMaxHeight = Math.min(winners.length, 5) * 34 + 4;
 
   const content = `
-    <div style="margin-bottom: 12px; color: #666; font-size: 13px;">
-      Round ${roundNumber} has an odd number of matchUps. One loser advances to the next round.
-      Losers are ranked by margin of defeat (narrowest first).
+    <div style="color: var(--tmx-text-secondary, #666); font-size: 13px; margin-bottom: 12px;">
+      ${statusText}
     </div>
-    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-      <thead>
-        <tr style="border-bottom: 2px solid #e5e7eb; text-align: left;">
-          <th style="padding: 8px 12px;">#</th>
-          <th style="padding: 8px 12px;">Participant</th>
-          <th style="padding: 8px 12px;">Score</th>
-          <th style="padding: 8px 12px; text-align: right;">Margin</th>
-          <th style="padding: 8px 12px; text-align: center;">Sets Won</th>
-          <th style="padding: 8px 12px; text-align: center;"></th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
+    <div style="margin-bottom: 12px;">
+      <div style="font-weight: 600; color: var(--tmx-text-secondary, #666); margin-bottom: 4px;">Advancing Winners (${winners.length})</div>
+      <div style="max-height: ${winnersMaxHeight}px; overflow-y: auto; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px;">
+        ${winnersHtml}
+      </div>
+    </div>
+    <div>
+      <div style="font-weight: 600; color: var(--tmx-text-secondary, #666); margin-bottom: 4px;">Losers &mdash; by margin (${losers.length})</div>
+      <div id="lucky-losers-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px;">
+        ${losersHtml}
+      </div>
+    </div>
   `;
 
-  const advanceLoser = (participantId: string) => {
-    const methods = [
-      {
-        method: LUCKY_DRAW_ADVANCEMENT,
-        params: { participantId, roundNumber, structureId, drawId },
-      },
-    ];
+  let selectedIndex: number | null = null;
+
+  const advanceSelected = () => {
+    if (selectedIndex == null) {
+      tmxToast({ message: 'Select a loser to advance', intent: 'is-warning' });
+      return;
+    }
+
+    const loser = losers[selectedIndex];
+    if (!loser) return;
 
     mutationRequest({
-      methods,
+      methods: [
+        {
+          method: LUCKY_DRAW_ADVANCEMENT,
+          params: { participantId: loser.participantId, roundNumber, structureId, drawId },
+        },
+      ],
       callback: (mutationResult: any) => {
         closeModal();
         if (mutationResult?.error) {
           tmxToast({ message: mutationResult.error.message ?? 'Advancement failed', intent: 'is-danger' });
         } else {
-          const name = losers.find((l: any) => l.participantId === participantId)?.participantName ?? 'Participant';
-          tmxToast({ message: `${name} advanced to Round ${roundNumber + 1}`, intent: 'is-success' });
+          tmxToast({
+            message: `${loser.participantName ?? 'Participant'} advanced to Round ${roundNumber + 1}`,
+            intent: 'is-success',
+          });
           callback({ refresh: true });
         }
       },
     });
   };
 
-  const buttons = [{ label: 'Cancel', intent: 'is-none', close: true }];
+  const buttons = [
+    { label: 'Cancel', intent: 'is-none', close: true },
+    ...(canAdvance
+      ? [
+          {
+            id: 'lucky-advance-btn',
+            label: 'Advance Selected',
+            intent: 'is-info',
+            disabled: true,
+            onClick: advanceSelected,
+          },
+        ]
+      : []),
+  ];
 
   openModal({
-    title: `Lucky Draw — Round ${roundNumber} Advancement`,
+    title: `Lucky Draw — Round ${roundNumber}`,
     content,
     buttons,
-    config: { padding: '.5', maxWidth: 700 },
+    config: { padding: '.5', maxWidth: 650 },
   });
 
-  // Attach click handlers to select buttons
-  setTimeout(() => {
-    document.querySelectorAll('.lucky-select-btn').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const participantId = (e.currentTarget as HTMLElement).getAttribute('data-participant-id');
-        if (participantId) advanceLoser(participantId);
+  // Wire up row selection on losers
+  if (canAdvance) {
+    setTimeout(() => {
+      const advanceBtn = document.getElementById('lucky-advance-btn') as HTMLButtonElement;
+      const rows = document.querySelectorAll('.lucky-loser-row');
+
+      rows.forEach((row) => {
+        row.addEventListener('click', () => {
+          const idx = parseInt((row as HTMLElement).dataset.index || '');
+          if (isNaN(idx)) return;
+
+          selectedIndex = idx;
+
+          // Clear previous selection
+          rows.forEach((r) => {
+            (r as HTMLElement).style.backgroundColor = '';
+            (r as HTMLElement).style.color = '';
+            const spans = r.querySelectorAll('span');
+            spans.forEach((s) => (s.style.color = ''));
+          });
+
+          // Highlight selected row
+          (row as HTMLElement).style.backgroundColor = SELECTED_BG;
+          const spans = row.querySelectorAll('span');
+          spans.forEach((s) => (s.style.color = '#fff'));
+
+          // Enable advance button
+          if (advanceBtn) {
+            advanceBtn.disabled = false;
+            advanceBtn.style.opacity = '1';
+          }
+        });
       });
-    });
-  }, 0);
+    }, 0);
+  }
 }

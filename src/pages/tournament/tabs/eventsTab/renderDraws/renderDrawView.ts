@@ -19,6 +19,7 @@ import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
+import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { drawControlBar } from './drawControlBar';
 import { context } from 'services/context';
 import { env } from 'settings/env';
@@ -223,6 +224,9 @@ export function renderDrawView({
         theme: composition.theme,
       });
 
+      // Apply lucky draw round highlighting to content before DOM insertion
+      applyLuckyRoundHighlighting(content, drawId, structureId!, callback);
+
       const isParticipantEl = (node: any) =>
         node instanceof HTMLElement &&
         (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
@@ -332,4 +336,33 @@ export function renderDrawView({
   }
 
   updateControlBar();
+}
+
+function applyLuckyRoundHighlighting(
+  content: HTMLElement,
+  drawId: string,
+  structureId: string,
+  callback: (params?: any) => void,
+) {
+  const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
+  if (!luckyStatus?.isLuckyDraw) return;
+
+  for (const round of luckyStatus.rounds || []) {
+    const el = content.querySelector(`.tmx-rd[roundNumber="${round.roundNumber}"]`) as HTMLElement;
+    if (!el) continue;
+    if (round.needsLuckySelection) {
+      el.classList.add('lucky-needs-selection');
+      el.addEventListener('click', (e) => {
+        // Don't trigger if click was on a matchUp or interactive element inside the round
+        const target = e.target as HTMLElement;
+        if (target.closest('.tmx-mu, .tmx-p, button, input, a')) return;
+        luckyLoserSelection({
+          roundNumber: round.roundNumber,
+          structureId,
+          callback,
+          drawId,
+        });
+      });
+    }
+  }
 }

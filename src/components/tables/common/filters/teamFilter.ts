@@ -1,12 +1,13 @@
 import { t } from 'i18n';
 
-export function getTeamFilter({ table, teamParticipants }) {
+export function getTeamFilter({ table, teamParticipants, onChange }: { table: any; teamParticipants: any[]; onChange?: () => void }) {
   let filterValue;
   const teamFilter = (rowData) => rowData.teams.some((team) => team?.participantId === filterValue);
   const updateTeamFilter = (participantId?) => {
     table.removeFilter(teamFilter);
     filterValue = participantId;
     if (participantId) table.addFilter(teamFilter);
+    if (onChange) onChange();
   };
   const anyTeamLabel = t('pages.participants.anyTeam');
   const allTeams = {
@@ -26,5 +27,7 @@ export function getTeamFilter({ table, teamParticipants }) {
       })),
   );
 
-  return { teamOptions };
+  const isFiltered = () => !!filterValue;
+
+  return { teamOptions, isFiltered };
 }

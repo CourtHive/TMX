@@ -13,7 +13,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
-import { CUSTOM, CUSTOM_TOPOLOGY, DRAW_NAME, DRAW_TYPE, NONE, RIGHT, STRUCTURE_NAME, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
+import { CUSTOM, DRAW_NAME, DRAW_TYPE, NONE, RIGHT, STRUCTURE_NAME, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
 
 type AddDrawParams = {
   callback?: (result: any) => void;
@@ -58,11 +58,6 @@ export function addDraw({
   const checkParams = () => {
     const selectedDrawType = inputs[DRAW_TYPE]?.options?.[inputs[DRAW_TYPE].selectedIndex]?.getAttribute?.('value') ||
       inputs[DRAW_TYPE]?.value;
-    if (selectedDrawType === CUSTOM_TOPOLOGY) {
-      context.drawer.close();
-      navigateToTopology({ eventId, drawId });
-      return;
-    }
     if (selectedDrawType?.startsWith(TOPOLOGY_TEMPLATE_PREFIX)) {
       context.drawer.close();
       const templateName = selectedDrawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length);

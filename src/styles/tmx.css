@@ -178,6 +178,24 @@ body {
   -webkit-align-items: center;
   align-items: center;
 }
+.tpl-layout .options_left {
+  flex-grow: 1;
+}
+.tpl-layout .options_center {
+  flex-grow: 0;
+}
+.tpl-layout .options_right {
+  flex-grow: 2;
+}
+#eventControl .options_left {
+  flex-grow: 1;
+}
+#eventControl .options_center {
+  flex-grow: 0;
+}
+#eventControl .options_right {
+  flex-grow: 1;
+}
 .options_overlay {
   flex-grow: 1;
   -webkit-flex-direction: row;

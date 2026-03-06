@@ -548,6 +548,7 @@
     "addimage": "Enter full website address for an image",
     "addgooglemap": "Enter full URL, not \"Link to Share\"",
     "retrieveFromServer": "Retrieve from CourtHive Server?",
+    "filters": "Filters",
     "mainmenu": "Main Menu",
     "rankbyrating": "Rank by Rating",
     "dblsrankisrating": "Use Rating as Doubles Ranking?",

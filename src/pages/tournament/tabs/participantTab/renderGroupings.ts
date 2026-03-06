@@ -2,8 +2,8 @@
  * Renders groupings (teams) tab with table and controls.
  * Displays team participants with filtering and management options.
  */
+import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
-import { t } from 'i18n';
 import { createTeamsTable } from 'components/tables/participantsTable/createTeamsTable';
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
@@ -14,8 +14,9 @@ import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import { participantChips } from './participantChips';
+import { t } from 'i18n';
 
-import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT, ALL_EVENTS } from 'constants/tmxConstants';
+import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
 
@@ -24,7 +25,12 @@ export function renderGroupings({ view }: { view: string }): void {
 
   const setSearchFilter = createSearchFilter(table);
 
-  const { eventOptions, events } = getEventFilter(table);
+  const { eventOptions, events, isFiltered: isEventFiltered } = getEventFilter(table);
+
+  const filterSections = [
+    { label: t('pages.participants.allEvents'), options: events.length ? eventOptions : [], isFiltered: isEventFiltered },
+  ];
+  const { item: filterButton } = filterPopoverButton(filterSections);
 
   const actionOptions = [
     { label: t('pages.participants.newTeam'), onClick: () => editGroupingParticipant({ title: t('pages.participants.newTeam'), refresh: replaceTableData }) },
@@ -86,15 +92,8 @@ export function renderGroupings({ view }: { view: string }): void {
       location: LEFT,
       search: true,
     },
+    filterButton,
     ...participantChips(view),
-    {
-      hide: eventOptions.length < 2,
-      options: eventOptions,
-      modifyLabel: true,
-      label: ALL_EVENTS,
-      location: LEFT,
-      selection: true,
-    },
     {
       options: actionOptions,
       label: 'Actions',

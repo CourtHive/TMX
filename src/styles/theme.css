@@ -784,3 +784,20 @@
   background-color: var(--tmx-accent-teal);
   border-color: var(--tmx-accent-teal);
 }
+
+/* Lucky draw: highlight completed pre-feed rounds needing loser selection */
+.lucky-needs-selection {
+  background-color: rgba(72, 199, 116, 0.18);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.lucky-needs-selection:hover {
+  background-color: rgba(72, 199, 116, 0.28);
+}
+[data-theme='dark'] .lucky-needs-selection {
+  background-color: rgba(72, 199, 116, 0.2);
+}
+[data-theme='dark'] .lucky-needs-selection:hover {
+  background-color: rgba(72, 199, 116, 0.3);
+}

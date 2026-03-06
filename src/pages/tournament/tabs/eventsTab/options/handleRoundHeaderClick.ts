@@ -25,29 +25,33 @@ export function handleRoundHeaderClick(props: any): void {
       {
         onClick: () => addAdHocMatchUps({ ...props }),
         text: addMatchUpsAction,
-        color: 'blue',
       },
       {
         onClick: () => addAdHocRound({ ...props, structure, roundNumber: undefined, newRound: true }),
         text: addRoundAction,
-        color: 'blue',
       },
       {
         onClick: () => deleteAdHocMatchUps({ ...props }),
         text: deleteMatchUpsAction,
-        color: 'red',
+        color: 'var(--tmx-accent-red, #ff6b6b)',
       },
     ];
 
     roundActions.push(...adHocRoundAction);
   }
 
-  // Lucky draw: offer lucky loser selection when a pre-feed round needs it
+  // Lucky draw: show round panel for any pre-feed round
   const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
   if (luckyStatus?.isLuckyDraw && roundNumber) {
     const round = luckyStatus.rounds?.find((r: any) => r.roundNumber === roundNumber);
 
-    if (round?.needsLuckySelection) {
+    if (round?.isPreFeedRound) {
+      const label = round.needsLuckySelection
+        ? 'Select lucky loser...'
+        : round.isComplete
+          ? 'Lucky round details...'
+          : `Lucky round (${round.completedCount}/${round.matchUpsCount})...`;
+
       roundActions.push({
         onClick: () =>
           luckyLoserSelection({
@@ -56,13 +60,7 @@ export function handleRoundHeaderClick(props: any): void {
             callback: props.callback,
             drawId,
           }),
-        text: 'Select lucky loser...',
-        color: 'blue',
-      });
-    } else if (round?.isPreFeedRound && !round.isComplete) {
-      roundActions.push({
-        text: 'Lucky round (awaiting results)',
-        color: 'grey',
+        text: label,
       });
     }
   }

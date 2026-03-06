@@ -217,7 +217,6 @@ export const DRAW_TYPE = 'drawType';
 export const TOP_FINISHERS = 'top';
 export const WINNERS = 'winners';
 
-export const CUSTOM_TOPOLOGY = 'CUSTOM_TOPOLOGY';
 export const TOPOLOGY_TEMPLATE_PREFIX = 'TOPOLOGY_TEMPLATE:';
 export const TOPOLOGY = 'topology';
 

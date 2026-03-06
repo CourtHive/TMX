@@ -3,9 +3,13 @@ import { t } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';
 
-export function getEventFilter(table: any): {
+export function getEventFilter(
+  table: any,
+  onChange?: () => void,
+): {
   events: { eventId: string; eventName: string }[];
   eventOptions: any[];
+  isFiltered: () => boolean;
 } {
   let filterValue;
 
@@ -15,6 +19,7 @@ export function getEventFilter(table: any): {
     table.removeFilter(eventFilter);
     filterValue = eventId;
     if (eventId) table.addFilter(eventFilter);
+    if (onChange) onChange();
   };
   const events = tournamentEngine.getEvents().events || [];
   const allEventsLabel = t('pages.participants.allEvents');
@@ -37,5 +42,7 @@ export function getEventFilter(table: any): {
     })),
   );
 
-  return { eventOptions, events };
+  const isFiltered = () => !!filterValue;
+
+  return { eventOptions, events, isFiltered };
 }
