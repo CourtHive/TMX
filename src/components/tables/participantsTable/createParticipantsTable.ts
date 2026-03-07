@@ -115,7 +115,8 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
       data,
     });
 
-    const getHeader = (rows: any[]) => `${t('pages.participants.title')} (${rows.length})`;
+    const headerLabel = view === OFFICIAL ? t('pages.participants.officials') : t('pages.participants.title');
+    const getHeader = (rows: any[]) => `${headerLabel} (${rows.length})`;
     table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       if (headerElement) headerElement.innerHTML = getHeader(rows);
@@ -134,7 +135,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
           const value = (ratingData as any)?.[params.accessor];
           if (tools.isNumeric(value)) {
             if (!ratingValues[upperKey]) ratingValues[upperKey] = [];
-            ratingValues[upperKey].push(parseFloat(value));
+            ratingValues[upperKey].push(Number.parseFloat(value));
           }
         }
       }

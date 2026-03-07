@@ -224,9 +224,6 @@ export function renderDrawView({
         theme: composition.theme,
       });
 
-      // Apply lucky draw round highlighting to content before DOM insertion
-      applyLuckyRoundHighlighting(content, drawId, structureId!, callback);
-
       const isParticipantEl = (node: any) =>
         node instanceof HTMLElement &&
         (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
@@ -250,6 +247,10 @@ export function renderDrawView({
       } else if (drawsView) {
         drawsView.appendChild(content);
       }
+
+      // Apply after DOM insertion so click listeners attach to live nodes, not the morphdom template
+      const liveNode = drawsView?.firstChild as HTMLElement;
+      if (liveNode) applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
     }
   };
 

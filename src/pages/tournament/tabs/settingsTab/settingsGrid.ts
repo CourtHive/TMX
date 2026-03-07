@@ -138,9 +138,9 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   const themeInputs = renderForm(themeForm, [
     {
       options: [
-        { text: 'Light', field: 'light', checked: currentTheme === 'light' },
-        { text: 'Dark', field: 'dark', checked: currentTheme === 'dark' },
-        { text: 'System', field: 'system', checked: currentTheme === 'system' },
+        { text: t('modals.settings.themeLight'), field: 'light', checked: currentTheme === 'light' },
+        { text: t('modals.settings.themeDark'), field: 'dark', checked: currentTheme === 'dark' },
+        { text: t('modals.settings.themeSystem'), field: 'system', checked: currentTheme === 'system' },
       ],
       onChange: () => {
         const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';

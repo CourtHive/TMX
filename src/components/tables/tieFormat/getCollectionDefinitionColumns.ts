@@ -2,6 +2,7 @@
  * Column definitions for tie format collection definitions table.
  * Manages collection names, match counts, types, genders, and scoring formats.
  */
+import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal } from 'courthive-components';
 
 import {
@@ -27,9 +28,10 @@ export function getCollectionDefinitionColumns(): any[] {
         table.redraw(true);
       }
     };
-    (getMatchUpFormatModal as any)({ 
-      callback, 
+    (getMatchUpFormatModal as any)({
+      callback,
       existingMatchUpFormat: data.matchUpFormat,
+      config: { labels: getMatchFormatLabels() },
       modalConfig: {
         style: {
           fontSize: '12px',

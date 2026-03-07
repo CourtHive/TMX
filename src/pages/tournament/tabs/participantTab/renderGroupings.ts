@@ -1,6 +1,6 @@
 /**
- * Renders groupings (teams) tab with table and controls.
- * Displays team participants with filtering and management options.
+ * Renders groupings (teams/groups) tab with table and controls.
+ * Displays team or group participants with filtering and management options.
  */
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
@@ -9,16 +9,19 @@ import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttrib
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { editGroupingParticipant } from './editGroupingParticipant';
+import { getLoginState } from 'services/authentication/loginState';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { participantConstants } from 'tods-competition-factory';
-import { controlBar } from 'courthive-components';
+import { generateTeams } from 'components/modals/generateTeams';
 import { participantChips } from './participantChips';
+import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
+// Constants
 import { TEAMS_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 
-const { TEAM } = participantConstants;
+const { TEAM, GROUP } = participantConstants;
 
 export function renderGroupings({ view }: { view: string }): void {
   const { table, replaceTableData } = createTeamsTable({ view });
@@ -28,14 +31,38 @@ export function renderGroupings({ view }: { view: string }): void {
   const { eventOptions, events, isFiltered: isEventFiltered } = getEventFilter(table);
 
   const filterSections = [
-    { label: t('pages.participants.allEvents'), options: events.length ? eventOptions : [], isFiltered: isEventFiltered },
+    {
+      label: t('pages.participants.allEvents'),
+      options: events.length ? eventOptions : [],
+      isFiltered: isEventFiltered,
+    },
   ];
   const { item: filterButton } = filterPopoverButton(filterSections);
 
-  const actionOptions = [
-    { label: t('pages.participants.newTeam'), onClick: () => editGroupingParticipant({ title: t('pages.participants.newTeam'), refresh: replaceTableData }) },
-    { label: t('pages.participants.generateTeams'), onClick: () => createTeamsFromAttribute({ callback: replaceTableData }) },
+  const isLoggedIn = !!getLoginState();
+  const isTeamView = view === TEAM;
+
+  const newLabel = isTeamView ? t('pages.participants.newTeam') : t('pages.participants.newGroup');
+  const searchPlaceholder = isTeamView ? 'Search teams' : 'Search groups';
+
+  const actionOptions: any[] = [
+    {
+      label: newLabel,
+      onClick: () =>
+        editGroupingParticipant({
+          participantType: isTeamView ? TEAM : GROUP,
+          title: newLabel,
+          refresh: replaceTableData,
+        }),
+    },
   ];
+
+  if (isTeamView) {
+    actionOptions.push({
+      label: t('pages.participants.generateTeams'),
+      onClick: () => createTeamsFromAttribute({ callback: replaceTableData }),
+    });
+  }
 
   const createNewEvent = {
     label: '<p style="font-weight: bold">Create new event</p>',
@@ -58,21 +85,21 @@ export function renderGroupings({ view }: { view: string }): void {
       onChange: (e: any) => setSearchFilter(e.target.value),
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search teams',
+      placeholder: searchPlaceholder,
       location: OVERLAY,
       search: true,
     },
     {
       options: addToEventOptions,
       label: 'Add to event',
-      hide: !events.length,
+      hide: !events.length || !isTeamView,
       intent: 'is-none',
       location: OVERLAY,
     },
     {
       onClick: () => eventFromParticipants(table, replaceTableData),
       label: 'Create event',
-      hide: events.length,
+      hide: events.length || !isTeamView,
       intent: 'is-info',
       location: OVERLAY,
     },
@@ -88,12 +115,19 @@ export function renderGroupings({ view }: { view: string }): void {
       onChange: (e: any) => setSearchFilter(e.target.value),
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search teams',
+      placeholder: searchPlaceholder,
       location: LEFT,
       search: true,
     },
     filterButton,
     ...participantChips(view),
+    {
+      onClick: () => generateTeams({ callback: replaceTableData }),
+      label: 'Generate Mock Teams',
+      hide: isLoggedIn || !isTeamView,
+      intent: 'is-info',
+      location: RIGHT,
+    },
     {
       options: actionOptions,
       label: 'Actions',

@@ -41,9 +41,11 @@ export const tmx2db: TMXDatabase = (function () {
         const idioms = 'ioc';
         const policies = '&id, policyType, source';
         const topologies = '&id, name, source';
+        const tieFormats = '&id, name, source';
         idb.dex.version(2).stores({ tournaments, providers, idioms });
         idb.dex.version(3).stores({ tournaments, providers, idioms, policies });
         idb.dex.version(4).stores({ tournaments, providers, idioms, policies, topologies });
+        idb.dex.version(5).stores({ tournaments, providers, idioms, policies, topologies, tieFormats });
         resolve();
       } catch (err) {
         return reject(err);

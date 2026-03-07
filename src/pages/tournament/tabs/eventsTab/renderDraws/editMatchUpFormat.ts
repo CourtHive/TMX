@@ -2,6 +2,7 @@
  * Edit matchUp format for a draw structure.
  * Prompts for format selection and updates via mutation if changed.
  */
+import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -31,6 +32,7 @@ export function editMatchUpFormat({ structureId, drawId }: { structureId: string
   getMatchUpFormatModal({
     callback,
     existingMatchUpFormat,
+    config: { labels: getMatchFormatLabels() },
     modalConfig: {
       style: {
         fontSize: '12px',
