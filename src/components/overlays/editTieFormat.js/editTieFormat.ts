@@ -220,11 +220,14 @@ function renderGrid(
     const headerRight = document.createElement('div');
     headerRight.className = 'tfe-header-right';
 
+    const isMixed = row.gender === 'Mixed';
+    if (isMixed) row.matchUpType = 'Doubles';
     const typeSelect = createSelect(getMatchTypes(), row.matchUpType, (val) => {
       row.matchUpType = val;
       refresh();
     });
     typeSelect.className = 'tfe-inline-select tfe-inline-select--type';
+    typeSelect.disabled = isMixed;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'tfe-delete-btn';
@@ -270,6 +273,9 @@ function renderGrid(
     genderLabel.textContent = 'Gender';
     const genderSelect = createSelect(getGenders(), row.gender, (val) => {
       row.gender = val;
+      if (val === 'Mixed') {
+        row.matchUpType = 'Doubles';
+      }
       refresh();
     });
     genderSelect.className = 'tfe-inline-select';
