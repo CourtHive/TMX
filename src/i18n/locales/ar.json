@@ -807,6 +807,7 @@
       "minScheduleGridRowsError": "يجب أن يكون رقماً بين 1 و 100",
       "betaFeatures": "الميزات التجريبية",
       "pdfPrinting": "طباعة PDF",
+      "googleSheetsImport": "استيراد من Google Sheets",
       "topologyBuilder": "منشئ الطوبولوجيا",
       "language": "اللغة",
       "font": "الخط"
@@ -1409,7 +1410,6 @@
       "signOutUnapproved": "تسجيل انصراف اللاعبين غير الموافق عليهم للأحداث",
       "editRatings": "تعديل التقييمات",
       "editWTID": "تعديل WTID",
-      "addParticipants": "إضافة مشاركين",
       "generateMock": "إنشاء مشاركين وهميين",
       "importGoogleSheet": "الاستيراد من جدول Google",
       "newParticipant": "مشارك جديد",

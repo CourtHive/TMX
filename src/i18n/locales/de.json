@@ -835,6 +835,7 @@
       "minScheduleGridRowsError": "Muss eine Zahl zwischen 1 und 100 sein",
       "betaFeatures": "Beta-Funktionen",
       "pdfPrinting": "PDF-Druck",
+      "googleSheetsImport": "Google Sheets Import",
       "topologyBuilder": "Topologie-Builder",
       "language": "Sprache",
       "font": "Schriftart"
@@ -1442,7 +1443,6 @@
       "signOutUnapproved": "Nicht genehmigte Spieler für Bewerbe abmelden",
       "editRatings": "Ratings bearbeiten",
       "editWTID": "WTID bearbeiten",
-      "addParticipants": "Teilnehmer hinzufügen",
       "generateMock": "Test-Teilnehmer generieren",
       "importGoogleSheet": "Aus Google Sheet importieren",
       "newParticipant": "Neuer Teilnehmer",

@@ -78,6 +78,9 @@ export function setupTMX(): void {
     if (savedSettings.pdfPrinting !== undefined) {
       env.pdfPrinting = savedSettings.pdfPrinting;
     }
+    if (savedSettings.googleSheetsImport !== undefined) {
+      env.googleSheetsImport = savedSettings.googleSheetsImport;
+    }
     if (savedSettings.minCourtGridRows !== undefined) {
       env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;
     }

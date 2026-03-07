@@ -120,6 +120,7 @@ export const env: any = {
   tableHeightMultiplier: 0.85, // Multiplier for Tabulator table height (window.innerHeight * N)
 
   pdfPrinting: false, // Beta feature flag for PDF generation
+  googleSheetsImport: false, // Beta feature flag for Google Sheets participant import
 
   ioc: 'gbr',
   locations: {
