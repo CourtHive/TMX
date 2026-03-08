@@ -20,21 +20,15 @@ function filterTiedAssignments(positionAssignments: any[], order: any) {
 }
 
 export const groupOrderAction =
-  ({ eventId, drawId, structureId }) =>
+  ({ eventId, drawId, structureId, updateRows }) =>
   (_: MouseEvent, cell: any): void => {
     const row = cell.getRow();
     const table = cell.getTable();
-    const callback = (result) => {
-      // get all rows relevant to the drawPositions in the result and update their groupOrder value
-      const rows = table.getRows();
-      const resultPositions = new Set(result.map((r) => r.drawPosition));
-      for (const row of rows) {
-        const data = row.getData();
-        if (resultPositions.has(data.drawPosition)) {
-          const groupOrder = result?.find((r) => r.drawPosition === data.drawPosition)?.groupOrder || data.groupOrder;
-          Object.assign(data, { groupOrder });
-          row.update(data); // trigger update to refresh the cell display with new groupOrder value => NOT WORKING!
-        }
+    const callback = () => {
+      if (updateRows) {
+        // Re-fetch fresh data from the factory (same pattern as score entry)
+        const allPositions = table.getRows().map((r) => r.getData().drawPosition);
+        updateRows(allPositions);
       }
     };
     const playerRow = row?.getData();

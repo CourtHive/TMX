@@ -228,6 +228,7 @@ export async function createBracketTable({
         participants: group.participants,
         participantClick,
         scoreClick,
+        updateRows,
         eventId,
         drawId,
         structureId,

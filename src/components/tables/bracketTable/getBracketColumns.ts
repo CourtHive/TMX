@@ -18,6 +18,7 @@ type GetBracketColumnsParams = {
   participants: GroupParticipant[];
   scoreClick: (_: any, cell: any) => void;
   participantClick: (_: any, cell: any) => void;
+  updateRows: (drawPositions: number[]) => void;
   eventId: string;
   drawId: string;
   structureId: string;
@@ -99,6 +100,7 @@ export function getBracketColumns({
   participants,
   scoreClick,
   participantClick,
+  updateRows,
   eventId,
   drawId,
   structureId,
@@ -178,7 +180,7 @@ export function getBracketColumns({
       headerSort: false,
     },
     {
-      cellClick: groupOrderAction({ eventId, drawId, structureId }),
+      cellClick: groupOrderAction({ eventId, drawId, structureId, updateRows }),
       formatter: groupOrderFormatter,
       headerHozAlign: CENTER,
       headerWordWrap: true,
