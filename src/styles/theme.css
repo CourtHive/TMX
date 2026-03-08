@@ -802,6 +802,37 @@
   background-color: rgba(72, 199, 116, 0.3);
 }
 
+/* Awesomplete typeahead dark mode */
+[data-theme='dark'] .awesomplete > ul {
+  background: var(--tmx-bg-elevated);
+  border-color: var(--tmx-border-primary);
+  box-shadow: 0 .1em .6em rgba(0, 0, 0, .5);
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .awesomplete > ul::before {
+  background: var(--tmx-bg-elevated);
+}
+[data-theme='dark'] .awesomplete > ul > li:hover {
+  background: var(--tmx-accent-blue);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete > ul > li[aria-selected="true"] {
+  background: var(--tmx-accent-blue);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete mark {
+  background: hsl(65, 70%, 35%);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete li:hover mark {
+  background: hsl(68, 80%, 30%);
+  color: #fff;
+}
+[data-theme='dark'] .awesomplete li[aria-selected="true"] mark {
+  background: hsl(86, 70%, 28%);
+  color: inherit;
+}
+
 /* Consolidation: highlight target rounds awaiting lucky loser decision */
 .consolidation-ready {
   background-color: var(--tmx-panel-green-bg);
