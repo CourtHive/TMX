@@ -1076,7 +1076,8 @@
     },
     "deleteParticipants": {
       "title": "Eliminar participantes",
-      "content": "¿Eliminar {{count}} participante(s)?"
+      "content": "¿Eliminar {{count}} participante(s)?",
+      "inDraws": "{{count}} participantes están asignados a cuadros y no pueden ser eliminados."
     },
     "removeStructure": {
       "title": "Eliminar estructura",
@@ -1250,7 +1251,8 @@
     "invalidMatchUpFormat": "matchUpFormat inválido",
     "missingMethodsArray": "Falta array de métodos",
     "missingTournament": "Falta torneo",
-    "devVariableError": "Ocurrió un error al agregar variables de desarrollo"
+    "devVariableError": "Ocurrió un error al agregar variables de desarrollo",
+    "cannotDeleteParticipant": "El participante está asignado a un cuadro y no puede ser eliminado"
   },
 
   "loginMenu": {

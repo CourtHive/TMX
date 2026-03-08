@@ -1,4 +1,5 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 
 import { DELETE_PARTICIPANTS } from 'constants/mutationConstants';
@@ -19,10 +20,10 @@ export async function deleteParticipants({ participantIds, participantId, callba
     ];
 
     const postMutation = (result: any) => {
-      if (result.success) {
-        isFunction(callback) && callback && callback(result);
-      } else {
-        console.log({ result });
+      if (isFunction(callback) && callback) {
+        callback(result);
+      } else if (!result.success) {
+        tmxToast({ message: result.error?.message || 'Cannot delete participant', intent: 'is-danger' });
       }
     };
     mutationRequest({ methods, callback: postMutation });

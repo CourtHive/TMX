@@ -1116,7 +1116,8 @@
     },
     "deleteParticipants": {
       "title": "Delete participants",
-      "content": "Delete {{count}} participants?"
+      "content": "Delete {{count}} participants?",
+      "inDraws": "{{count}} participants are assigned to draws and cannot be deleted."
     },
     "removeStructure": {
       "title": "Remove structure",
@@ -1290,7 +1291,8 @@
     "invalidMatchUpFormat": "Invalid matchUpFormat",
     "missingMethodsArray": "Missing methods array",
     "missingTournament": "Missing tournament",
-    "devVariableError": "An error occurred while adding dev variables"
+    "devVariableError": "An error occurred while adding dev variables",
+    "cannotDeleteParticipant": "Participant is assigned to a draw and cannot be deleted"
   },
 
   "loginMenu": {

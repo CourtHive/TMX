@@ -1076,7 +1076,8 @@
     },
     "deleteParticipants": {
       "title": "Excluir participantes",
-      "content": "Excluir {{count}} participante(s)?"
+      "content": "Excluir {{count}} participante(s)?",
+      "inDraws": "{{count}} participantes estão atribuídos a chaves e não podem ser excluídos."
     },
     "removeStructure": {
       "title": "Remover estrutura",
@@ -1250,7 +1251,8 @@
     "invalidMatchUpFormat": "matchUpFormat inválido",
     "missingMethodsArray": "Array de métodos ausente",
     "missingTournament": "Torneio ausente",
-    "devVariableError": "Ocorreu um erro ao adicionar variáveis de desenvolvimento"
+    "devVariableError": "Ocorreu um erro ao adicionar variáveis de desenvolvimento",
+    "cannotDeleteParticipant": "O participante está atribuído a uma chave e não pode ser excluído"
   },
 
   "loginMenu": {

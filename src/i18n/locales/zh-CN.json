@@ -1112,7 +1112,8 @@
     },
     "deleteParticipants": {
       "title": "删除参赛者",
-      "content": "删除 {{count}} 名参赛者？"
+      "content": "删除 {{count}} 名参赛者？",
+      "inDraws": "{{count}} 名参赛者已分配到签表中，无法删除。"
     },
     "removeStructure": {
       "title": "移除结构",
@@ -1286,7 +1287,8 @@
     "invalidMatchUpFormat": "无效的比赛格式",
     "missingMethodsArray": "缺少方法数组",
     "missingTournament": "缺少锦标赛",
-    "devVariableError": "添加开发变量时发生错误"
+    "devVariableError": "添加开发变量时发生错误",
+    "cannotDeleteParticipant": "参赛者已分配到签表中，无法删除"
   },
 
   "loginMenu": {

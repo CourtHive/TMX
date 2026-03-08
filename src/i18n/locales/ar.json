@@ -1048,7 +1048,8 @@
     },
     "deleteParticipants": {
       "title": "حذف المشاركين",
-      "content": "حذف {{count}} مشارك؟"
+      "content": "حذف {{count}} مشارك؟",
+      "inDraws": "{{count}} مشاركين مسجلين في قرعات ولا يمكن حذفهم."
     },
     "removeStructure": {
       "title": "إزالة الهيكل",
@@ -1220,7 +1221,8 @@
     "invalidMatchUpFormat": "تنسيق مباراة غير صالح",
     "missingMethodsArray": "مصفوفة الطرق مفقودة",
     "missingTournament": "البطولة مفقودة",
-    "devVariableError": "حدث خطأ أثناء إضافة متغيرات التطوير"
+    "devVariableError": "حدث خطأ أثناء إضافة متغيرات التطوير",
+    "cannotDeleteParticipant": "المشارك مسجل في قرعة ولا يمكن حذفه"
   },
   "loginMenu": {
     "authorization": "التفويض",

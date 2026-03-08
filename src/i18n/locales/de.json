@@ -1076,7 +1076,8 @@
     },
     "deleteParticipants": {
       "title": "Teilnehmer löschen",
-      "content": "{{count}} Teilnehmer löschen?"
+      "content": "{{count}} Teilnehmer löschen?",
+      "inDraws": "{{count}} Teilnehmer sind Auslosungen zugeordnet und können nicht gelöscht werden."
     },
     "removeStructure": {
       "title": "Struktur entfernen",
@@ -1250,7 +1251,8 @@
     "invalidMatchUpFormat": "Ungültiges matchUpFormat",
     "missingMethodsArray": "Fehlendes Methods-Array",
     "missingTournament": "Fehlendes Turnier",
-    "devVariableError": "Beim Hinzufügen von Entwicklungsvariablen ist ein Fehler aufgetreten"
+    "devVariableError": "Beim Hinzufügen von Entwicklungsvariablen ist ein Fehler aufgetreten",
+    "cannotDeleteParticipant": "Teilnehmer ist einer Auslosung zugeordnet und kann nicht gelöscht werden"
   },
 
   "loginMenu": {

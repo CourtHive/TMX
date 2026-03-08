@@ -1076,7 +1076,8 @@
     },
     "deleteParticipants": {
       "title": "Supprimer des participants",
-      "content": "Supprimer {{count}} participants ?"
+      "content": "Supprimer {{count}} participants ?",
+      "inDraws": "{{count}} participants sont assignés à des tableaux et ne peuvent pas être supprimés."
     },
     "removeStructure": {
       "title": "Supprimer la structure",
@@ -1250,7 +1251,8 @@
     "invalidMatchUpFormat": "Format de match invalide",
     "missingMethodsArray": "Tableau de méthodes manquant",
     "missingTournament": "Tournoi manquant",
-    "devVariableError": "Une erreur est survenue lors de l'ajout des variables de développement"
+    "devVariableError": "Une erreur est survenue lors de l'ajout des variables de développement",
+    "cannotDeleteParticipant": "Le participant est assigné à un tableau et ne peut pas être supprimé"
   },
 
   "loginMenu": {
