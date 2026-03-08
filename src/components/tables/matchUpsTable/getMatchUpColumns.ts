@@ -86,6 +86,9 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
     },
     {
       headerMenu: headerMenu({
+        startTime: 'Start time',
+        endTime: 'End time',
+        official: 'Official',
         duration: 'Duration',
         complete: 'Complete',
       }),
@@ -143,6 +146,18 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       width: 70,
     },
     {
+      field: 'startTime',
+      title: t('tables.matchUps.startTime'),
+      visible: false,
+      width: 80,
+    },
+    {
+      field: 'endTime',
+      title: t('tables.matchUps.endTime'),
+      visible: false,
+      width: 80,
+    },
+    {
       formatter: matchUpParticipantFormatter,
       cellClick: handleSideClick,
       sorter: participantSorter,
@@ -187,6 +202,12 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
       hozAlign: LEFT,
       tooltip: false,
       width: 40,
+    },
+    {
+      field: 'official',
+      title: t('tables.matchUps.official'),
+      visible: false,
+      width: 140,
     },
     {
       field: 'matchUp.matchUpStatus',

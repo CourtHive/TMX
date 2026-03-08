@@ -1362,10 +1362,13 @@
       "date": "التاريخ",
       "court": "الملعب",
       "time": "الوقت",
+      "startTime": "بداية",
+      "endTime": "نهاية",
       "side1": "الجانب 1",
       "side2": "الجانب 2",
       "score": "النتيجة",
       "profile": "الملف الشخصي",
+      "official": "الحكم",
       "status": "الحالة"
     },
     "tournaments": {

@@ -1394,10 +1394,13 @@
       "date": "Fecha",
       "court": "Cancha",
       "time": "Hora",
+      "startTime": "Inicio",
+      "endTime": "Fin",
       "side1": "Lado 1",
       "side2": "Lado 2",
       "score": "Puntaje",
       "profile": "Perfil",
+      "official": "Oficial",
       "status": "Estado"
     },
     "tournaments": {

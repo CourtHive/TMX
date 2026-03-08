@@ -1394,10 +1394,13 @@
       "date": "Datum",
       "court": "Platz",
       "time": "Zeit",
+      "startTime": "Start",
+      "endTime": "Ende",
       "side1": "Seite 1",
       "side2": "Seite 2",
       "score": "Ergebnis",
       "profile": "Profil",
+      "official": "Schiedsrichter",
       "status": "Status"
     },
     "tournaments": {

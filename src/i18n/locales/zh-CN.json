@@ -1430,10 +1430,13 @@
       "date": "日期",
       "court": "球场",
       "time": "时间",
+      "startTime": "开始",
+      "endTime": "结束",
       "side1": "方1",
       "side2": "方2",
       "score": "比分",
       "profile": "概况",
+      "official": "裁判",
       "status": "状态"
     },
     "tournaments": {

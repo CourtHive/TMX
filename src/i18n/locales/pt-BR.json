@@ -1394,10 +1394,13 @@
       "date": "Data",
       "court": "Quadra",
       "time": "Hora",
+      "startTime": "Início",
+      "endTime": "Fim",
       "side1": "Lado 1",
       "side2": "Lado 2",
       "score": "Placar",
       "profile": "Perfil",
+      "official": "Oficial",
       "status": "Status"
     },
     "tournaments": {

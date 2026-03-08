@@ -2,7 +2,7 @@
  * Map matchUp data for table display.
  * Transforms matchUp objects into table-ready format with participant details.
  */
-import { eventConstants } from 'tods-competition-factory';
+import { eventConstants, tournamentEngine } from 'tods-competition-factory';
 import { normalizeDiacritics } from 'normalize-text';
 
 const { TEAM } = eventConstants;
@@ -22,7 +22,11 @@ export const mapMatchUp = (matchUp: any): any => {
     ...rest
   } = matchUp;
 
-  const { scheduledDate, scheduledTime, courtName } = schedule || {};
+  const { scheduledDate, scheduledTime, courtName, startTime, endTime, official: officialId } = schedule || {};
+  const official = officialId
+    ? tournamentEngine.getParticipants({ participantFilters: { participantIds: [officialId] } })?.participants?.[0]
+        ?.participantName || officialId
+    : undefined;
 
   const getPotentialName = (participant: any) => participant.person?.standardFamilyName || participant.participantName;
   const potentials =
@@ -89,12 +93,15 @@ export const mapMatchUp = (matchUp: any): any => {
     scoreDetail,
     winningSide,
     searchText,
+    startTime,
     courtName,
     eventName,
     eventType,
     matchUpId,
+    official,
     roundName,
     complete,
+    endTime,
     eventId,
     matchUp,
     gender,
