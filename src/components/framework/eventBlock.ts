@@ -17,6 +17,7 @@ import {
   DRAW_RIGHT,
   DRAW_LEFT,
   DRAWS_VIEW,
+  POINTS_VIEW,
   EVENT_INFO,
   EVENT_CONTROL,
   TMX_PANEL,
@@ -58,6 +59,7 @@ export function eventBlock(): HTMLDivElement {
           {' '}
         </div>
       </div>
+      <div id=${POINTS_VIEW} style="display: none; width: 100%;"></div>
       <div style="width: 100%; margin: 0">
         <div id=${DRAW_CONTROL}></div>
         <div id=${DRAW_FRAME} class="flexrow flexjustifystart" style="width: 100%">

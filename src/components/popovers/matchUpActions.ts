@@ -10,6 +10,7 @@ import { timePicker } from 'components/modals/timePicker';
 import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
 
+// constants
 import { ADD_MATCHUP_OFFICIAL, DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -57,9 +58,7 @@ function getTimeBounds(matchUp: any): { earliest?: string; latest?: string } {
   let latest: string | undefined;
 
   for (const court of relevantCourts) {
-    const dateAvail = scheduledDate
-      ? court.dateAvailability?.find((a: any) => a.date === scheduledDate)
-      : undefined;
+    const dateAvail = scheduledDate ? court.dateAvailability?.find((a: any) => a.date === scheduledDate) : undefined;
     const defaultAvail = court.dateAvailability?.find((a: any) => !a.date);
     const avail = dateAvail || defaultAvail;
 

@@ -1,11 +1,12 @@
 /**
- * Render events tab with draw view, entries panels, or events table.
- * Handles routing to draw views, round tables, or entry management based on parameters.
+ * Render events tab with draw view, entries panels, points view, or events table.
+ * Handles routing to draw views, round tables, points, or entry management based on parameters.
  */
 import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
+import { createPointsTable } from 'components/tables/pointsTable/createPointsTable';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
@@ -33,11 +34,12 @@ type RenderEventsTabParams = {
   drawId?: string;
   structureId?: string;
   renderDraw?: boolean;
+  renderPoints?: boolean;
   roundsView?: string;
 };
 
 export function renderEventsTab(params: RenderEventsTabParams): void {
-  let { eventId, drawId, structureId, renderDraw, roundsView } = params;
+  let { eventId, drawId, structureId, renderDraw, renderPoints, roundsView } = params;
 
   // Resolve structureId from draw data when not provided; default to Grid view for round robin draws
   if (drawId) {
@@ -53,7 +55,16 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
   destroyTables();
   cleanupDrawPanel();
 
-  if (eventId || drawId) {
+  if (renderPoints && eventId) {
+    const element = document.getElementById(TOURNAMENT_EVENTS);
+    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
+    if (headerElement) {
+      const event = tournamentEngine.getEvent({ eventId })?.event;
+      if (event) headerElement.innerHTML = event.eventName;
+    }
+    createPointsTable({ eventId });
+    setEventView({ renderPoints });
+  } else if (eventId || drawId) {
     const element = document.getElementById(TOURNAMENT_EVENTS);
     const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
 

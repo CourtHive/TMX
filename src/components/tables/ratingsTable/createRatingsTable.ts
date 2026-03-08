@@ -64,16 +64,6 @@ function showMatchUpTipster(target: HTMLElement, drawId: string, matchUpId: stri
   const matchUp = result?.matchUp;
   if (!matchUp) return;
 
-  // Diagnostic logging for ratings hydration
-  console.log('showMatchUpTipster matchUp:', {
-    matchUpId,
-    sides: matchUp.sides?.map((s: any) => ({
-      participantName: s.participant?.participantName,
-      hasRatings: !!s.participant?.ratings,
-      ratings: s.participant?.ratings,
-    })),
-  });
-
   const wrapper = document.createElement('div');
   wrapper.style.cssText = 'position:relative; padding:8px; padding-top:20px;';
 

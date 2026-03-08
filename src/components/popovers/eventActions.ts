@@ -3,6 +3,7 @@
  * Shows tipster menu for event management actions from table rows.
  */
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
 import { deleteEvents } from 'components/modals/deleteEvents';
 import { tipster } from 'components/popovers/tipster';
@@ -38,6 +39,10 @@ export const eventActions = () => (e: MouseEvent, cell: any): void => {
   };
 
   const items = [
+    {
+      onClick: () => navigateToEvent({ eventId: data.eventId, renderPoints: true }),
+      text: 'Ranking points',
+    },
     {
       onClick: () => editDisplaySettings({ eventId: data.eventId }),
       text: 'Display settings',

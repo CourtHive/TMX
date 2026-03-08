@@ -581,6 +581,29 @@ const mockProfiles = [
     ],
     venueProfiles: [wiffleballPark],
   },
+  // Tournament 12: Ranking Points Demo — simple completed singles for demonstrating ranking points
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-rp-01' },
+    participantsProfile: { scaledParticipantsCount: 32, idPrefix: 'rp' },
+    tournamentName: 'Ranking Points Demo',
+    completeAllMatchUps: true,
+    randomWinningSide: true,
+    drawProfiles: [
+      {
+        eventName: 'Open Singles',
+        drawType: SINGLE_ELIMINATION,
+        seedsCount: 8,
+        drawSize: 32,
+      },
+      {
+        eventName: 'Consolation Singles',
+        drawType: FIRST_MATCH_LOSER_CONSOLATION,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles,
+  },
 ]; // .filter((t) => !['INTENNSE Showdown', 'BLW Wiffle Ball Classic'].includes(t.tournamentName));
 
 export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({

@@ -2,6 +2,7 @@
  * Participant actions popover with edit and delete options.
  * Shows tipster menu with profile view, edit, and delete actions based on participant type.
  */
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -25,7 +26,7 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
     {
       hide: participantType !== 'INDIVIDUAL',
       text: "<i class='fas fa-address-card'></i> Participant profile",
-      onClick: () => console.log('Participant profile', cell.getData()?.participant),
+      onClick: () => participantProfileModal({ participantId }),
     },
     {
       hide: participantType !== 'INDIVIDUAL',

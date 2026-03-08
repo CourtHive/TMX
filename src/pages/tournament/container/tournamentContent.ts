@@ -17,6 +17,7 @@ import {
   UNGROUPED_PANEL,
   WITHDRAWN_PANEL,
   DRAWS_VIEW,
+  POINTS_VIEW,
   EVENT_CONTROL,
   TOURNAMENT_CONTAINER,
   TOURNAMENT_MATCHUPS,
@@ -172,6 +173,7 @@ export function displayTab(reference: string): any {
 export function removeTournamentContent(): void {
   const ids = [
     DRAWS_VIEW,
+    POINTS_VIEW,
     EVENTS_CONTROL,
     MATCHUPS_CONTROL,
     PARTICIPANT_CONTROL,

@@ -1,11 +1,22 @@
-import { policyConstants } from 'tods-competition-factory';
+import { fixtures, policyConstants } from 'tods-competition-factory';
 import type { PolicyCatalogItem } from 'courthive-components';
 import { POLICY_SCHEDULING } from 'assets/policies/schedulingPolicy';
 import { POLICY_SCORING } from 'assets/policies/scoringPolicy';
 import { POLICY_SEEDING } from 'assets/policies/seedingPolicy';
 import { tmx2db } from 'services/storage/tmx2db';
 
-const { POLICY_TYPE_SCHEDULING, POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
+const { POLICY_TYPE_SCHEDULING, POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING, POLICY_TYPE_RANKING_POINTS } =
+  policyConstants;
+
+const {
+  policies: {
+    POLICY_RANKING_POINTS_ATP,
+    POLICY_RANKING_POINTS_BASIC,
+    POLICY_RANKING_POINTS_WTA,
+    POLICY_RANKING_POINTS_ITF_WTT,
+    POLICY_RANKING_POINTS_USTA_JUNIOR,
+  },
+} = fixtures;
 
 const BUILTIN_POLICIES: PolicyCatalogItem[] = [
   {
@@ -31,6 +42,46 @@ const BUILTIN_POLICIES: PolicyCatalogItem[] = [
     source: 'builtin',
     description: 'Default seeding thresholds and positioning rules',
     policyData: POLICY_SEEDING[POLICY_TYPE_SEEDING],
+  },
+  {
+    id: 'builtin-ranking-points-basic',
+    name: 'Basic Ranking Points',
+    policyType: POLICY_TYPE_RANKING_POINTS,
+    source: 'builtin',
+    description: 'Simple finishing-position points — works for any event regardless of category or level',
+    policyData: POLICY_RANKING_POINTS_BASIC[POLICY_TYPE_RANKING_POINTS],
+  },
+  {
+    id: 'builtin-ranking-points-atp',
+    name: 'ATP Ranking Points (2026)',
+    policyType: POLICY_TYPE_RANKING_POINTS,
+    source: 'builtin',
+    description: 'PIF ATP Rankings — Grand Slams through ITF events, 15 tournament levels',
+    policyData: POLICY_RANKING_POINTS_ATP[POLICY_TYPE_RANKING_POINTS],
+  },
+  {
+    id: 'builtin-ranking-points-wta',
+    name: 'WTA Ranking Points (2026)',
+    policyType: POLICY_TYPE_RANKING_POINTS,
+    source: 'builtin',
+    description: 'PIF WTA Rankings — Grand Slams through WTA 125, with quality win bonuses',
+    policyData: POLICY_RANKING_POINTS_WTA[POLICY_TYPE_RANKING_POINTS],
+  },
+  {
+    id: 'builtin-ranking-points-itf-wtt',
+    name: 'ITF World Tennis Tour Points',
+    policyType: POLICY_TYPE_RANKING_POINTS,
+    source: 'builtin',
+    description: 'ITF World Tennis Tour — qualifying round points for $15K–$25K+H tournaments',
+    policyData: POLICY_RANKING_POINTS_ITF_WTT[POLICY_TYPE_RANKING_POINTS],
+  },
+  {
+    id: 'builtin-ranking-points-usta-junior',
+    name: 'USTA Junior Ranking Points',
+    policyType: POLICY_TYPE_RANKING_POINTS,
+    source: 'builtin',
+    description: 'USTA Junior Rankings — 7 levels, 8 age categories, quality win bonuses, multiple draw formats',
+    policyData: POLICY_RANKING_POINTS_USTA_JUNIOR[POLICY_TYPE_RANKING_POINTS],
   },
 ];
 

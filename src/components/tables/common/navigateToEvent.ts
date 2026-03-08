@@ -20,12 +20,13 @@ type NavigateToEventParams = {
   drawId?: string;
   structureId?: string;
   renderDraw?: boolean;
+  renderPoints?: boolean;
   participantId?: string;
   matchUpId?: string;
   view?: string;
 };
 
-export function navigateToEvent({ eventId, drawId, structureId, renderDraw, participantId, matchUpId, view }: NavigateToEventParams): void {
+export function navigateToEvent({ eventId, drawId, structureId, renderDraw, renderPoints, participantId, matchUpId, view }: NavigateToEventParams): void {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
   const event = eventId && tournamentEngine.getEvent({ eventId, drawId }).event;
   const singleDraw = event?.drawDefinitions?.length === 1 && event.drawDefinitions[0];
@@ -44,6 +45,12 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, part
   }
 
   let route = `/${TOURNAMENT}/${tournamentId}/${EVENT}/${eventId}`;
+  if (renderPoints) {
+    route += '/points';
+    context.router?.navigate(route);
+    context.router?.resolve();
+    return;
+  }
   if (renderDraw && drawId) {
     route += `/${DRAW}/${drawId}`;
     if (structureId) {

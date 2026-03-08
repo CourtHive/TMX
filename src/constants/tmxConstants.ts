@@ -225,6 +225,7 @@ export const ROUNDS_STATS = 'roundsStats';
 export const ROUNDS_TABLE = 'roundsTable';
 export const ROUNDS_BRACKET = 'roundsBracket';
 export const ROUNDS_TOPOLOGY = 'roundsTopology';
+export const POINTS_VIEW = 'pointsView';
 
 export const UTR = 'utr';
 export const WTN = 'wtn';
