@@ -56,6 +56,12 @@ export function renderVenueTab({ venueView }: { venueView?: string } = {}): void
       currentStartTime: avail.startTime,
       currentEndTime: avail.endTime,
       showScopeToggle: false,
+      labels: {
+        startTime: t('modals.courtAvailability.startTime'),
+        endTime: t('modals.courtAvailability.endTime'),
+        cancel: t('modals.courtAvailability.cancel'),
+        apply: t('modals.courtAvailability.apply'),
+      },
       onConfirm: ({ startTime, endTime }) => {
         for (const venue of venues) {
           engine.setVenueDefaultAvailability(config.tournamentId, venue.venueId, { startTime, endTime });

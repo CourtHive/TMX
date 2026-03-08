@@ -679,6 +679,7 @@
   },
 
   "genders": {
+    "any": "Any",
     "male": "Male",
     "male_abbr": "M",
     "female": "Female",
@@ -874,9 +875,13 @@
       "minScheduleGridRowsError": "Must be a number between 1 and 100",
       "betaFeatures": "Beta features",
       "pdfPrinting": "PDF printing",
+      "googleSheetsImport": "Google Sheets import",
       "topologyBuilder": "Topology builder",
       "language": "Language",
       "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
       "font": "Font",
       "dangerZone": "Danger Zone"
     },
@@ -1110,7 +1115,89 @@
       "title": "Remove structure",
       "warning": "Structure will be removed!"
     },
-    "selectTeam": "Select team"
+    "selectTeam": "Select team",
+    "scoring": {
+      "title": "Score Entry",
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "submit": "Submit Score",
+      "format": "Format",
+      "irregularEnding": "Irregular Ending",
+      "winner": "Winner",
+      "retired": "Retired",
+      "walkover": "Walkover",
+      "defaulted": "Defaulted",
+      "validScore": "Valid score",
+      "scoreIncomplete": "Score incomplete",
+      "invalidScore": "Invalid score",
+      "scoreTips": "Score Entry Tips:",
+      "setScores": "Set Scores:",
+      "tiebreaks": "Tiebreaks:",
+      "matchTiebreaks": "Match Tiebreaks:",
+      "irregularEndings": "Irregular Endings:"
+    },
+    "generateTeams": {
+      "title": "Generate mock teams",
+      "gender": "Gender",
+      "teamsCount": "Number of teams",
+      "tieFormatTemplate": "Tie format template",
+      "manualTeamSize": "Manual team size",
+      "playersPerTeam": "Players per team",
+      "countries": "# of Countries",
+      "cancel": "Cancel",
+      "generate": "Generate"
+    },
+    "generateParticipants": {
+      "title": "Generate mock participants",
+      "role": "Participant role",
+      "gender": "Participant gender",
+      "count": "Participant count",
+      "minAge": "Min Age",
+      "maxAge": "Max Age",
+      "ratings": "Generate Ratings",
+      "countries": "# of Countries",
+      "cancel": "Cancel",
+      "generate": "Generate"
+    },
+    "matchFormat": {
+      "title": "Score format",
+      "setFormat": "Set format",
+      "finalSet": "Final set",
+      "tiebreak": "Tiebreak",
+      "standardFormats": "Standard formats",
+      "bestOf": "Best of",
+      "exactly": "Exactly",
+      "set": "Set",
+      "timedSet": "Timed set",
+      "ad": "Ad",
+      "noAd": "No-Ad",
+      "cancel": "Cancel",
+      "select": "Select",
+      "custom": "Custom",
+      "aggregate": "Aggregate",
+      "game": "Game",
+      "gameType": "Game type",
+      "deuceRule": "Deuce rule",
+      "none": "None",
+      "traditional": "Traditional",
+      "consecutive2": "2 consecutive",
+      "consecutive3": "3 consecutive",
+      "consecutive4": "4 consecutive",
+      "goldenPoint": "Golden point",
+      "starPoint": "Star point",
+      "games": "Games",
+      "points": "Points"
+    },
+    "courtAvailability": {
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "applyTo": "Apply to",
+      "currentDayOnly": "Current day only (${day})",
+      "allDays": "All tournament days",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "venueWarning": "Venue hours are ${startTime}\u2013${endTime}. The venue will be widened to accommodate this change."
+    }
   },
 
   "dashboard": {
@@ -1492,7 +1579,6 @@
       "signOutUnapproved": "Sign out players not approved for events",
       "editRatings": "Edit ratings",
       "editWTID": "Edit WTID",
-      "addParticipants": "Add participants",
       "generateMock": "Generate mock participants",
       "importGoogleSheet": "Import from Google sheet",
       "newParticipant": "New participant",
@@ -1511,6 +1597,7 @@
         "countryPlaceholder": "Country of origin"
       },
       "newTeam": "New team",
+      "newGroup": "New group",
       "generateTeams": "Generate teams",
       "sheetsLink": {
         "title": "Import participants",

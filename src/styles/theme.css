@@ -801,3 +801,10 @@
 [data-theme='dark'] .lucky-needs-selection:hover {
   background-color: rgba(72, 199, 116, 0.3);
 }
+
+/* Consolidation: highlight target rounds awaiting lucky loser decision */
+.consolidation-ready {
+  background-color: var(--tmx-panel-green-bg);
+  border: 1px dashed var(--tmx-panel-green-border);
+  border-radius: 4px;
+}

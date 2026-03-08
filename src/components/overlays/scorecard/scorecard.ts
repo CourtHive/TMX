@@ -1,17 +1,18 @@
 /**
  * Scorecard overlay for team match display and editing.
- * Displays collection definitions and individual match results within a team match.
+ * Uses renderMatchUp from courthive-components to display collection matchUps as cards.
  */
-import { createCollectionTable } from 'components/tables/collectionTable/createCollectionTable';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
+import { renderMatchUp, compositions } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
 
-import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
+import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
@@ -29,18 +30,37 @@ export function openScorecard({ title, drawId, matchUpId, onClose }: ScorecardPa
   const matchUp = result.matchUp;
 
   if (!matchUp || result.error) return;
-
   if (!title || !Array.isArray(matchUp?.tieFormat?.collectionDefinitions)) return;
-  const content = renderScorecard({ matchUp });
 
+  const content = renderScorecard({ matchUp, onRefresh: () => refreshScorecard({ drawId, matchUpId }) });
   const footer = renderScorecardFooter({ title, drawId, matchUpId, onClose });
 
   return openOverlay({ title, content, footer });
 }
 
-export function renderScorecard({ matchUp }: { matchUp: any }): HTMLDivElement {
-  const contentContaner = document.createElement('div');
-  contentContaner.className = 'overlay-content-container';
+function refreshScorecard({ drawId, matchUpId }: { drawId: string; matchUpId: string }): void {
+  const matchUp = tournamentEngine.findMatchUp({
+    drawId,
+    matchUpId,
+    participantsProfile: { withISO2: true },
+  })?.matchUp;
+  if (!matchUp) return;
+
+  const content = renderScorecard({ matchUp, onRefresh: () => refreshScorecard({ drawId, matchUpId }) });
+  setOverlayContent({ content });
+}
+
+export function renderScorecard({
+  matchUp,
+  onRefresh,
+}: {
+  matchUp: any;
+  onRefresh?: () => void;
+}): HTMLDivElement {
+  const contentContainer = document.createElement('div');
+  contentContainer.className = 'overlay-content-container sc-container';
+
+  // Team vs team header
   const side1 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 1 }) || '', justify: 'end' });
   const side2 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 2 }) || '', justify: 'start' });
 
@@ -49,34 +69,170 @@ export function renderScorecard({ matchUp }: { matchUp: any }): HTMLDivElement {
   const side1Score = getSideScore({ winningSide, sets, sideNumber: 1, id: TIE_SIDE_1 });
   const side2Score = getSideScore({ winningSide, sets, sideNumber: 2, id: TIE_SIDE_2 });
   const overview = getTeamVs({ side1, side2, side1Score, side2Score });
-  contentContaner.appendChild(overview);
+  contentContainer.appendChild(overview);
 
-  context.collectionTables ??= [];
-
+  // Collection panels
   const collectionDefinitions =
     matchUp.tieFormat.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || [];
 
+  const composition = compositions['National'];
+
   for (const collectionDefinition of collectionDefinitions) {
-    const collectionMatchUps = matchUp.tieMatchUps.filter(
-      (tieMatchUp: any) => tieMatchUp.collectionId === collectionDefinition.collectionId,
-    );
-    const collection = document.createElement('div');
-    collection.className = 'collection';
-    const collectionName = document.createElement('div');
-    collectionName.className = 'title is-4';
-    collectionName.innerHTML = collectionDefinition.collectionName;
-    collection.appendChild(collectionName);
+    const collectionMatchUps = matchUp.tieMatchUps
+      .filter((m: any) => m.collectionId === collectionDefinition.collectionId)
+      .sort((a: any, b: any) => (a.collectionPosition || 0) - (b.collectionPosition || 0));
 
-    const tableElement = document.createElement('div');
-    collection.appendChild(tableElement);
+    const panel = document.createElement('div');
+    panel.className = 'sc-collection-panel';
 
-    const { table } = createCollectionTable({ matchUp, tableElement, collectionMatchUps });
-    context.collectionTables.push(table);
+    // Panel header
+    const header = document.createElement('div');
+    header.className = 'sc-collection-header';
 
-    contentContaner.appendChild(collection);
+    const nameEl = document.createElement('div');
+    nameEl.className = 'sc-collection-name';
+    nameEl.textContent = collectionDefinition.collectionName || 'Collection';
+
+    const meta = document.createElement('div');
+    meta.className = 'sc-collection-meta';
+
+    const typeBadge = document.createElement('span');
+    const mType = (collectionDefinition.matchUpType || '').toUpperCase();
+    typeBadge.className = `tfp-type-badge tfp-type-badge--${mType === 'DOUBLES' ? 'doubles' : 'singles'}`;
+    typeBadge.textContent = mType === 'DOUBLES' ? 'D' : 'S';
+
+    const countBadge = document.createElement('span');
+    countBadge.className = 'sc-count-badge';
+    countBadge.textContent = `${collectionMatchUps.length}`;
+
+    meta.appendChild(typeBadge);
+    meta.appendChild(countBadge);
+    header.appendChild(nameEl);
+    header.appendChild(meta);
+    panel.appendChild(header);
+
+    // MatchUp cards grid
+    const grid = document.createElement('div');
+    grid.className = 'sc-matchups-grid';
+
+    const eventHandlers = buildCollectionEventHandlers({ matchUp, onRefresh });
+
+    for (const tieMatchUp of collectionMatchUps) {
+      const card = renderMatchUp({
+        composition,
+        matchUp: tieMatchUp as any,
+        isLucky: true, // suppresses connector lines
+        eventHandlers,
+      });
+      card.classList.add('sc-matchup-card');
+      grid.appendChild(card);
+    }
+
+    panel.appendChild(grid);
+    contentContainer.appendChild(panel);
   }
 
-  return contentContaner;
+  return contentContainer;
+}
+
+function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; onRefresh?: () => void }): any {
+  const { drawId } = matchUp;
+
+  const getMatchUpFromEvent = (pointerEvent: any) => {
+    let el = pointerEvent.target as HTMLElement;
+    while (el && !el.classList?.contains('tmx-m')) el = el.parentElement as HTMLElement;
+    const muId = el?.getAttribute('id');
+    if (!muId) return undefined;
+    return matchUp.tieMatchUps?.find((m: any) => m.matchUpId === muId);
+  };
+
+  const getSideNumber = (pointerEvent: any) => {
+    let el = pointerEvent.target as HTMLElement;
+    while (el && !el.classList?.contains('tmx-sd')) el = el.parentElement as HTMLElement;
+    return parseInt(el?.getAttribute('sideNumber') || '0');
+  };
+
+  const scoreClick = (props: any) => {
+    const tieMatchUp = getMatchUpFromEvent(props.pointerEvent);
+    if (!tieMatchUp) return;
+
+    const { validActions } =
+      tournamentEngine.matchUpActions({
+        matchUpId: tieMatchUp.matchUpId,
+        drawId,
+      }) || {};
+
+    const readyToScore = validActions?.find(({ type }: any) => type === 'SCORE');
+    if (readyToScore) {
+      enterMatchUpScore({
+        matchUpId: tieMatchUp.matchUpId,
+        callback: (result: any) => {
+          if (result.success) {
+            const tieResult = result.results?.find(
+              ({ methodName }: any) => methodName === SET_MATCHUP_STATUS,
+            )?.tieMatchUpResult;
+            if (tieResult) setTieScore(tieResult);
+            onRefresh?.();
+          }
+        },
+      });
+    }
+  };
+
+  const participantClick = (props: any) => {
+    const tieMatchUp = getMatchUpFromEvent(props.pointerEvent);
+    if (!tieMatchUp) return;
+
+    const sideNumber = getSideNumber(props.pointerEvent);
+    if (!sideNumber) return;
+
+    const { validActions } =
+      tournamentEngine.matchUpActions({
+        matchUpId: tieMatchUp.matchUpId,
+        drawId,
+        sideNumber,
+        policyDefinitions: {
+          matchUpActions: {
+            substituteAfterCompleted: true,
+            substituteWithoutScore: true,
+          },
+        },
+      }) || {};
+
+    if (!validActions?.length) return;
+
+    // Build a fake cell/row API to reuse participantMatchUpActions
+    const matchUpData = {
+      matchUpId: tieMatchUp.matchUpId,
+      matchUpType: tieMatchUp.matchUpType,
+      eventType: 'TEAM',
+      matchUp: tieMatchUp,
+      drawId,
+    };
+
+    const fakeCell = {
+      getRow: () => ({
+        getData: () => matchUpData,
+      }),
+      getColumn: () => ({
+        getDefinition: () => ({ field: `side${sideNumber}` }),
+      }),
+    };
+
+    const callback = (result: any) => {
+      if (result.success) onRefresh?.();
+    };
+
+    participantMatchUpActions(props.pointerEvent, fakeCell, callback, {
+      individualParticipant: props.individualParticipant,
+    });
+  };
+
+  return {
+    participantClick,
+    matchUpClick: scoreClick,
+    scoreClick,
+  };
 }
 
 export function setTieScore(result: any): void {
@@ -85,6 +241,7 @@ export function setTieScore(result: any): void {
 
   const side1Score = document.getElementById(TIE_SIDE_1)!;
   const side2Score = document.getElementById(TIE_SIDE_2)!;
+  if (!side1Score || !side2Score) return;
   side1Score.classList.remove(WIN_INDICATOR);
   side2Score.classList.remove(WIN_INDICATOR);
   side1Score.innerHTML = set.side1Score;
@@ -102,23 +259,16 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   const edit = document.createElement('button');
   edit.className = 'button is-warning is-light';
   edit.onclick = () => {
-    const callback = () => openScorecard({ title, drawId, matchUpId, onClose: () => console.log('closed') });
+    const callback = () => openScorecard({ title, drawId, matchUpId, onClose });
     updateTieFormat({ matchUpId, drawId, callback });
   };
   edit.innerHTML = 'Edit scorecard';
 
-  const postMutation = (result: any) => {
-    if (result.success) {
-      const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
-      const content = renderScorecard({ matchUp });
-      setOverlayContent({ content });
-    }
-  };
+  const postMutation = () => refreshScorecard({ drawId, matchUpId });
 
   const removePlayers = document.createElement('button');
   removePlayers.className = 'button is-warning is-light button-spacer';
   removePlayers.innerHTML = 'Remove players';
-
   removePlayers.onclick = () => {
     const methods = [
       {
@@ -132,7 +282,6 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   const clear = document.createElement('button');
   clear.className = 'button is-info is-light button-spacer';
   clear.innerHTML = 'Clear results';
-
   clear.onclick = () => {
     const methods = [
       {
@@ -148,10 +297,6 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   close.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    while (context.collectionTables?.length) {
-      const table = context.collectionTables.pop();
-      table.destroy();
-    }
     closeOverlay();
     isFunction(onClose) && onClose?.();
   };

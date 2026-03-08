@@ -26,7 +26,8 @@ import { eventFromParticipants } from './eventFromParticipants';
 import { controlBar } from 'courthive-components';
 import { selectItem } from 'components/modals/selectItem';
 import { participantChips } from './participantChips';
-import { participantConstants, tournamentEngine, extensionConstants } from 'tods-competition-factory';
+import { participantConstants } from 'tods-competition-factory';
+import { env } from 'settings/env';
 import { t } from 'i18n';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
@@ -39,8 +40,6 @@ export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
 
   const setSearchFilter = createSearchFilter(table);
-  const { extension } = tournamentEngine.findExtension({ discover: true, name: extensionConstants.REGISTRATION });
-  const registration = extension?.value;
   const state = getLoginState();
   const canEditTennisId = state?.roles?.includes('superadmin') || state?.permissions?.includes('editTennisId');
 
@@ -70,15 +69,20 @@ export function renderIndividuals({ view }: { view: string }): void {
     });
   };
 
+  const hasParticipants = table?.getDataCount() > 0;
+  const isLoggedIn = !!state;
+
   const actionOptions: any[] = [
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: t('pages.participants.signOutUnapproved'),
+      hide: !hasParticipants,
       close: true,
     },
     {
       onClick: (e: any) => enableManualRatings(e, table),
       label: t('pages.participants.editRatings'),
+      hide: !hasParticipants,
       close: true,
     },
     {
@@ -88,9 +92,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       close: true,
     },
     { divider: true } as any,
-    { heading: t('pages.participants.addParticipants') } as any,
-    { hide: registration, label: t('pages.participants.generateMock'), onClick: synchronizePlayers, close: true },
-    { label: t('pages.participants.importGoogleSheet'), onClick: editRegistrationLink, close: true },
+    { hide: !env.googleSheetsImport, label: t('pages.participants.importGoogleSheet'), onClick: editRegistrationLink, close: true },
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
       label: t('pages.participants.newParticipant'),
@@ -191,6 +193,13 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     filterButton,
     ...participantChips(view),
+    {
+      onClick: synchronizePlayers,
+      label: t('pages.participants.generateMock'),
+      hide: isLoggedIn,
+      intent: 'is-info',
+      location: RIGHT,
+    },
     {
       options: actionOptions,
       label: t('pages.participants.actions'),

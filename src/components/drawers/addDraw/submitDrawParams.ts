@@ -39,9 +39,8 @@ import {
 
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
   drawDefinitionConstants;
-const { TIME_TENNIS_PRO_CIRCUIT } = factoryConstants.tieFormatConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
-const { POLICY_TYPE_ROUND_NAMING, POLICY_TYPE_SEEDING } = policyConstants;
+const { POLICY_TYPE_SEEDING } = policyConstants;
 
 // Seeding policy constants
 const INHERIT = 'INHERIT';
@@ -298,20 +297,6 @@ function handleDrawGeneration(params: {
       drawOptions.policyDefinitions = {
         ...drawOptions.policyDefinitions,
         ...seedingPolicyDefinition,
-      };
-    }
-
-    if (tieFormatName === TIME_TENNIS_PRO_CIRCUIT) {
-      const customRoundNamingPolicy = {
-        [POLICY_TYPE_ROUND_NAMING]: {
-          namingConventions: { round: 'Day' },
-          affixes: { roundNumber: 'D' },
-          policyName: 'TTPro 4 Day',
-        },
-      };
-      drawOptions.policyDefinitions = {
-        ...drawOptions.policyDefinitions,
-        ...customRoundNamingPolicy,
       };
     }
 

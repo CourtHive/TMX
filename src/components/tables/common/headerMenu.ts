@@ -8,6 +8,23 @@ export const headerMenu = (displayTitles) => (_, column) => {
   const columns = table.getColumns();
   const menu: Array<{ label: HTMLSpanElement; action: (e: any) => void }> = [];
 
+  // Close button header row
+  const closeLabel = document.createElement('span');
+  closeLabel.style.display = 'flex';
+  closeLabel.style.alignItems = 'center';
+  closeLabel.style.justifyContent = 'flex-end';
+  closeLabel.style.width = '100%';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'delete is-small';
+  closeBtn.setAttribute('aria-label', 'close');
+  closeLabel.appendChild(closeBtn);
+
+  menu.push({
+    label: closeLabel,
+    action: () => {},
+  });
+
   for (const column of columns) {
     const def = column.getDefinition();
     if (def.title) {

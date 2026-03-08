@@ -3,6 +3,7 @@
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
 import { getMatchUpFormatModal, renderButtons, renderForm, validators } from 'courthive-components';
+import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -83,6 +84,7 @@ export function addDraw({
       };
       (getMatchUpFormatModal as any)({
         callback: setMatchUpFormat,
+        config: { labels: getMatchFormatLabels() },
         modalConfig: {
           style: {
             fontSize: '12px',

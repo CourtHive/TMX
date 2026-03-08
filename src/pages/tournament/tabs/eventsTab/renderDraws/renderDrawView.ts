@@ -224,9 +224,6 @@ export function renderDrawView({
         theme: composition.theme,
       });
 
-      // Apply lucky draw round highlighting to content before DOM insertion
-      applyLuckyRoundHighlighting(content, drawId, structureId!, callback);
-
       const isParticipantEl = (node: any) =>
         node instanceof HTMLElement &&
         (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
@@ -250,6 +247,10 @@ export function renderDrawView({
       } else if (drawsView) {
         drawsView.appendChild(content);
       }
+
+      // Apply after DOM insertion so click listeners attach to live nodes, not the morphdom template
+      const liveNode = drawsView?.firstChild as HTMLElement;
+      if (liveNode) applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
     }
   };
 
@@ -363,6 +364,36 @@ function applyLuckyRoundHighlighting(
           drawId,
         });
       });
+    }
+  }
+
+  // Green highlighting on consolidation target structure rounds
+  applyConsolidationReadyHighlighting(content, drawId, structureId, luckyStatus);
+}
+
+function applyConsolidationReadyHighlighting(
+  content: HTMLElement,
+  drawId: string,
+  currentStructureId: string,
+  luckyStatus: any,
+) {
+  // Check if the current structure is a target of any LOSER links from the lucky draw
+  const drawDefinition = tournamentEngine.getEvent({ drawId })?.drawDefinition;
+  if (!drawDefinition?.links?.length) return;
+
+  for (const round of luckyStatus.rounds || []) {
+    if (!round.consolidationLinks?.length) continue;
+
+    for (const link of round.consolidationLinks) {
+      // Only highlight when viewing the target structure
+      if (link.targetStructureId !== currentStructureId) continue;
+      // Only highlight when the source round needs selection and losers aren't yet placed
+      if (!round.needsLuckySelection || link.losersPlaced) continue;
+
+      const el = content.querySelector(`.tmx-rd[roundNumber="${link.targetRoundNumber}"]`) as HTMLElement;
+      if (el) {
+        el.classList.add('consolidation-ready');
+      }
     }
   }
 }

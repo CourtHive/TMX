@@ -47,6 +47,7 @@ function persistAll(
   const activeScale = ratingInputs.activeRating.value;
   env.saveLocal = storageInputs.saveLocal.checked;
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
+  env.googleSheetsImport = displayInputs.googleSheetsImport?.checked || false;
   let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
   if (scoringInputs.dynamicSets.checked) {
     scoringApproach = 'dynamicSets';
@@ -75,6 +76,7 @@ function persistAll(
     saveLocal: env.saveLocal,
     smartComplements: scoringInputs.smartComplements?.checked || false,
     pdfPrinting: env.pdfPrinting,
+    googleSheetsImport: env.googleSheetsImport,
     minCourtGridRows: env.schedule.minCourtGridRows,
     language,
   });
@@ -136,9 +138,9 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   const themeInputs = renderForm(themeForm, [
     {
       options: [
-        { text: 'Light', field: 'light', checked: currentTheme === 'light' },
-        { text: 'Dark', field: 'dark', checked: currentTheme === 'dark' },
-        { text: 'System', field: 'system', checked: currentTheme === 'system' },
+        { text: t('modals.settings.themeLight'), field: 'light', checked: currentTheme === 'light' },
+        { text: t('modals.settings.themeDark'), field: 'dark', checked: currentTheme === 'dark' },
+        { text: t('modals.settings.themeSystem'), field: 'system', checked: currentTheme === 'system' },
       ],
       onChange: () => {
         const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
@@ -282,6 +284,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       checked: env.pdfPrinting || false,
       field: 'pdfPrinting',
       id: 'pdfPrinting',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: t('modals.settings.googleSheetsImport'),
+      checked: env.googleSheetsImport || false,
+      field: 'googleSheetsImport',
+      id: 'googleSheetsImport',
       onChange: persist,
       checkbox: true,
     },
