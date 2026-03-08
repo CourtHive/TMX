@@ -72,17 +72,28 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
         .join('')
     : '<div style="color: var(--tmx-text-muted, #999); padding: 8px;">No completed matchUps with losers yet.</div>';
 
+  const consolidationLinks = round.consolidationLinks || [];
+  const discardedCount = losers.length - 1; // all losers except the one selected
+
   const statusText = round.isComplete
     ? round.needsLuckySelection
       ? 'Round complete. Select a loser to advance.'
       : 'Round complete.'
     : `${round.completedCount} of ${round.matchUpsCount} matchUps complete.`;
 
+  const consolidationInfo =
+    canAdvance && consolidationLinks.length && discardedCount > 0
+      ? `<div style="color: var(--tmx-panel-green-border, #48c774); font-size: 12px; margin-top: 6px; font-style: italic;">
+          ${discardedCount} remaining loser${discardedCount > 1 ? 's' : ''} will be placed in the linked consolation structure.
+        </div>`
+      : '';
+
   const winnersMaxHeight = Math.min(winners.length, 5) * 34 + 4;
 
   const content = `
     <div style="color: var(--tmx-text-secondary, #666); font-size: 13px; margin-bottom: 12px;">
       ${statusText}
+      ${consolidationInfo}
     </div>
     <div style="margin-bottom: 12px;">
       <div style="font-weight: 600; color: var(--tmx-text-secondary, #666); margin-bottom: 4px;">Advancing Winners (${winners.length})</div>

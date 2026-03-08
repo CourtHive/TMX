@@ -1,8 +1,11 @@
 /**
  * Scoring Modal - TMX integration with courthive-components
- * Configures and delegates to courthive-components scoring modal
+ * Configures and delegates to courthive-components scoring modal.
+ * The component's menu caret allows seamless approach switching;
+ * on close we sync the (possibly changed) approach back to env + localStorage.
  */
-import { scoringModal as componentsScoringModal, setScoringConfig } from 'courthive-components';
+import { scoringModal as componentsScoringModal, setScoringConfig, getScoringConfig } from 'courthive-components';
+import { saveSettings } from 'services/settings/settingsStorage';
 import { resolveComposition } from './resolveComposition';
 import { env } from 'settings/env';
 import { t } from 'i18n';
@@ -34,6 +37,18 @@ function getScoringLabels() {
 }
 
 /**
+ * Sync the scoring approach from courthive-components config back to
+ * TMX env + localStorage, so menu-driven switches persist.
+ */
+function syncApproachPreference() {
+  const { scoringApproach } = getScoringConfig();
+  if (scoringApproach && scoringApproach !== env.scoringApproach) {
+    env.scoringApproach = scoringApproach;
+    saveSettings({ scoringApproach });
+  }
+}
+
+/**
  * Scoring modal - configures and opens courthive-components scoring modal
  * @param params - Scoring modal parameters (matchUp, callback)
  */
@@ -57,5 +72,7 @@ export function scoringModal(params: any): void {
   }
 
   // Call courthive-components scoringModal with i18n labels
-  componentsScoringModal({ ...params, labels: getScoringLabels() });
+  // onClose fires on any modal dismissal (submit, cancel, backdrop)
+  // so the approach preference syncs regardless of how the modal is closed
+  componentsScoringModal({ ...params, onClose: syncApproachPreference, labels: getScoringLabels() });
 }

@@ -60,7 +60,13 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
     return true;
   });
 
-  return [
+  // Common types first, then alphabetical built-ins, then user templates
+  const common = [
+    { label: 'Single elimination', value: SINGLE_ELIMINATION },
+    { label: 'Round robin', value: ROUND_ROBIN },
+  ];
+
+  const builtIn = [
     { label: 'Ad-hoc', value: AD_HOC, hide: isQualifying },
     { label: 'Compass', value: COMPASS, hide: isQualifying },
     { label: 'Curtis consolation', value: CURTIS, hide: isQualifying },
@@ -72,9 +78,15 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
     { label: 'Olympic', value: OLYMPIC, hide: isQualifying },
     { label: 'Playoff', value: PLAY_OFF, hide: isQualifying },
     { label: 'Round robin w/ playoff', value: ROUND_ROBIN_WITH_PLAYOFF, hide: isPlayoff || isQualifying },
-    { label: 'Round robin', value: ROUND_ROBIN },
-    { label: 'Single elimination', value: SINGLE_ELIMINATION },
     { label: 'Staggered Entry', value: FEED_IN, hide: isPlayoff || isQualifying },
-    ...templateOptions,
+  ];
+
+  const divider = { label: '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500', disabled: true };
+
+  return [
+    ...common,
+    divider,
+    ...builtIn,
+    ...(templateOptions.length ? [divider, ...templateOptions] : []),
   ];
 }
