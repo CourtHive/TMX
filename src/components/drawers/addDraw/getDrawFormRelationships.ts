@@ -8,20 +8,27 @@ import { renderOptions, validators } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 
-const { FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } = drawDefinitionConstants;
+const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
+  drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
+  DRAW_MATIC,
   DRAW_NAME,
   DRAW_SIZE,
   DRAW_TYPE,
+  DYNAMIC_RATINGS,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
   NONE,
   PLAYOFF_TYPE,
   QUALIFIERS_COUNT,
+  RATING_SCALE,
+  ROUNDS_COUNT,
+  SEEDING_POLICY,
   STRUCTURE_NAME,
+  TEAM_AVOIDANCE,
   TOP_FINISHERS,
 } from 'constants/tmxConstants';
 
@@ -77,7 +84,8 @@ export function getDrawFormRelationships({
     const drawSizeInteger =
       isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const drawSize =
-      ((maxQualifiers || [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType as string)) &&
+      ((maxQualifiers ||
+        [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, DRAW_MATIC].includes(drawType as string)) &&
         drawSizeInteger) ||
       tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
@@ -129,6 +137,18 @@ export function getDrawFormRelationships({
       fields[PLAYOFF_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
       const groupSizeVisible = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType);
       fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
+
+      // DrawMatic-specific fields
+      const isDrawMatic = drawType === DRAW_MATIC;
+      fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
+      fields[RATING_SCALE].style.display = isDrawMatic ? '' : NONE;
+      fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
+      fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
+
+      // Hide seeding policy and qualifiers for ad-hoc draw types
+      const isAdHocType = drawType === AD_HOC || isDrawMatic;
+      fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
+      fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
     }
   };
 

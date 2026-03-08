@@ -16,6 +16,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
+import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+import { renderDrawView } from './renderDrawView';
 import { env } from 'settings/env';
 
 // constants
@@ -75,6 +77,16 @@ export function getActionOptions({
   };
 
   const options = [
+    {
+      onClick: () =>
+        editDisplaySettings({
+          drawId,
+          eventId,
+          callback: () => renderDrawView({ eventId, drawId, structureId }),
+        }),
+      label: t('pages.events.actionOptions.displaySettings'),
+      close: true,
+    },
     {
       // Only show for MAIN stage with stageSequence 1, and when not blocked by scores or TEAM event
       hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM,

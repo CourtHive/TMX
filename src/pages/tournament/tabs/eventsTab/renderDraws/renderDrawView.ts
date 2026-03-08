@@ -7,6 +7,7 @@ import { compositions, controlBar, renderContainer, renderStructure } from 'cour
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
+import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -25,7 +26,7 @@ import { context } from 'services/context';
 import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
-import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -200,6 +201,8 @@ export function renderDrawView({
       (createRoundsTable as any)({ matchUps: displayMatchUps, eventData });
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId: structureId! });
+    } else if (roundsView === ROUNDS_RATINGS) {
+      createRatingsTable({ eventId, drawId, structureId: structureId! });
     } else if (roundsView === ROUNDS_BRACKET) {
       createBracketTable({ eventId, drawId, structureId: structureId! });
     } else {

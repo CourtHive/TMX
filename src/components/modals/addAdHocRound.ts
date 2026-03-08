@@ -56,13 +56,14 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     if (roundResults?.length) {
       for (const roundResult of roundResults) {
         const modifiedScaleValues = roundResult?.modifiedScaleValues;
-        (methods as any).push({
-          params: { modifiedScaleValues, replacePriorValues: true },
-          method: ADD_DYNAMIC_RATINGS,
-        });
+        if (modifiedScaleValues && Object.keys(modifiedScaleValues).length) {
+          (methods as any).push({
+            params: { modifiedScaleValues, replacePriorValues: true },
+            method: ADD_DYNAMIC_RATINGS,
+          });
+        }
       }
     }
-
     const postMutation = (result: any) => {
       if (result.success) {
         if (isFunction(callback) && callback) callback({ refresh: true });
@@ -78,15 +79,22 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
     setActiveScale(selectedScale);
 
-    const result = tournamentEngine.drawMatic({
+    const useDynamicRatings = inputs.dynamicRatings?.checked ?? false;
+    const teamAvoidance = inputs.teamAvoidance?.checked ?? false;
+    const roundsCount = Number.parseInt(inputs.roundsCount?.value) || 1;
+
+    const drawMaticParams = {
       updateParticipantRatings: true,
-      dynamicRatings: true,
+      dynamicRatings: useDynamicRatings,
       refreshRatings: true,
       participantIds,
       scaleAccessor,
+      roundsCount,
       scaleName,
       drawId,
-    });
+      ...(teamAvoidance === false && { sameTeamValue: 0 }),
+    };
+    const result = tournamentEngine.drawMatic(drawMaticParams);
     if (!result.matchUps?.length) return;
     addRound(result);
   };
@@ -167,8 +175,11 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       presentRatings.add(item.scaleName);
     }
   }
-  const activeRatingKeys = Object.keys(ratingsParameters)
-    .filter((key) => !(ratingsParameters as any)[key].deprecated && presentRatings.has(key));
+  const activeRatingKeys = Object.keys(ratingsParameters).filter(
+    (key) => !(ratingsParameters as any)[key].deprecated && presentRatings.has(key),
+  );
+
+  const hasRatings = activeRatingKeys.length > 0;
 
   const scaleOptions = [
     { label: `--${t('publishing.off')}--`, value: '', selected: !env.activeScale },
@@ -179,7 +190,17 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     })),
   ];
 
-  const options = [
+  const roundsCountOptions = [
+    { label: '1', value: 1, selected: true },
+    { label: '2', value: 2 },
+    { label: '3', value: 3 },
+    { label: '4', value: 4 },
+    { label: '5', value: 5 },
+  ];
+
+  const helpIcon = '\u24D8'; // circled i
+
+  const options: any[] = [
     {
       field: AUTOMATED,
       value: AUTOMATED,
@@ -189,9 +210,38 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       ],
     },
     {
-      label: t('modals.addRound.levelOfPlay'),
+      label: `${t('modals.addRound.roundsCount')}`,
+      field: 'roundsCount',
+      options: roundsCountOptions,
+    },
+    {
+      label: `${t('modals.addRound.levelOfPlay')} ${helpIcon}`,
       field: 'levelOfPlay',
       options: scaleOptions,
+    },
+    {
+      text: `<small>${t('modals.addRound.levelOfPlayHelp')}</small>`,
+      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+    },
+    {
+      label: `${t('modals.addRound.dynamicRatings')} ${helpIcon}`,
+      field: 'dynamicRatings',
+      checkbox: true,
+      checked: hasRatings,
+    },
+    {
+      text: `<small>${t('modals.addRound.dynamicRatingsHelp')}</small>`,
+      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+    },
+    {
+      label: `${t('modals.addRound.teamAvoidance')} ${helpIcon}`,
+      field: 'teamAvoidance',
+      checkbox: true,
+      checked: true,
+    },
+    {
+      text: `<small>${t('modals.addRound.teamAvoidanceHelp')}</small>`,
+      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
     },
   ];
 

@@ -936,7 +936,14 @@
       "title": "添加轮次",
       "confirmSelection": "确认选手选择",
       "addRound": "添加轮次",
-      "levelOfPlay": "比赛级别"
+      "levelOfPlay": "比赛级别",
+      "addRounds": "添加轮次",
+      "levelOfPlayHelp": "使用参赛者评分生成均衡配对，按技术水平匹配对手",
+      "roundsCount": "轮次数量",
+      "dynamicRatings": "动态评分",
+      "dynamicRatingsHelp": "根据比赛结果在每轮后重新计算参赛者评分",
+      "teamAvoidance": "队伍回避",
+      "teamAvoidanceHelp": "防止同一队伍的参赛者相互配对"
     },
     "selectParticipant": {
       "assignAlternate": "分配替补",
@@ -1231,7 +1238,29 @@
       "generateFlight": "生成分组",
       "configureDraw": "配置签表",
       "customScorecard": "自定义记分卡",
-      "invalidDrawSize": "无效的签表大小"
+      "invalidDrawSize": "无效的签表大小",
+      "roundsCount": "要生成的轮次",
+      "ratingScale": "评分标准",
+      "dynamicRatings": "动态评分",
+      "teamAvoidance": "队伍回避",
+      "drawTypeInfo": "签表类型信息",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "标准淘汰赛签表，每次失败即淘汰出签表。",
+        "ROUND_ROBIN": "所有参赛者在小组内互相比赛；排名由胜/负记录决定。",
+        "DRAW_MATIC": "使用评分按技术水平自动逐轮配对参赛者，并在轮次之间动态更新评分。",
+        "AD_HOC": "灵活轮次，支持手动或自动配对。无固定签表结构。",
+        "COMPASS": "多签表结构，最多8个以方向命名的签表（东/西/南/北/东北/西北/东南/西南），失败者依次进入安慰赛签表。",
+        "CURTIS": "三签表安慰赛，前两轮的失败者进入安慰赛签表。",
+        "DOUBLE_ELIMINATION": "参赛者必须输两次才被淘汰；失败者进入安慰赛签表。",
+        "FEED_IN_CHAMPIONSHIP": "主签表配有补入式安慰赛签表，每轮的失败者进入安慰赛。",
+        "FIRST_MATCH_LOSER_CONSOLATION": "首场比赛的失败者进入单独的安慰赛签表。",
+        "FIRST_ROUND_LOSER_CONSOLATION": "首轮失败者进入单独的安慰赛签表。",
+        "LUCKY_DRAW": "单淘汰赛，未进行的位置随机晋级。",
+        "OLYMPIC": "四签表奥运赛制，包含安慰赛和排名签表。",
+        "PLAY_OFF": "附加赛签表，用作辅助结构。",
+        "ROUND_ROBIN_WITH_PLAYOFF": "循环赛小组赛阶段后接单淘汰附加赛。",
+        "FEED_IN": "交错入场签表，参赛者在不同轮次进入签表。"
+      }
     }
   },
 
@@ -1542,7 +1571,8 @@
         "cannotRemoveScores": "有比分时无法移除",
         "removePlayers": "移除选手",
         "clearResults": "清除结果",
-        "viewTopology": "查看拓扑"
+        "viewTopology": "查看拓扑",
+        "displaySettings": "显示设置"
       }
     },
     "participants": {

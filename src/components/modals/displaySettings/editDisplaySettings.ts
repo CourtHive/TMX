@@ -163,7 +163,8 @@ export function editDisplaySettings(params) {
 
   const saveComposition = () => {
     const postMutation = () => {
-      console.log('Mutation completed');
+      env.composition = selections.composition;
+      if (isFunction(callback)) callback(selections.composition);
     };
     const existingValue = tournamentEngine.findExtension({
       name: extensionConstants.DISPLAY,
@@ -182,8 +183,6 @@ export function editDisplaySettings(params) {
     const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
     const methods = [{ method, params: { eventId, drawId, extension } }];
     mutationRequest({ methods, callback: postMutation });
-    if (isFunction(callback)) callback(selections.composition);
-    env.composition = selections.composition;
   };
 
   openModal({

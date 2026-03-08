@@ -229,6 +229,13 @@ export const ROUNDS_TOPOLOGY = 'roundsTopology';
 export const UTR = 'utr';
 export const WTN = 'wtn';
 
+export const DRAW_MATIC = 'DRAW_MATIC';
+export const ROUNDS_COUNT = 'roundsCount';
+export const DYNAMIC_RATINGS = 'dynamicRatings';
+export const TEAM_AVOIDANCE = 'teamAvoidance';
+export const RATING_SCALE = 'ratingScale';
+export const ROUNDS_RATINGS = 'roundsRatings';
+
 export const SYSTEM = 'system';
 export const PROVIDERS_TAB = 'providers';
 export const USERS_TAB = 'users';

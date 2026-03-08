@@ -901,7 +901,14 @@
       "title": "Ajouter un tour",
       "confirmSelection": "Confirmer la sélection des joueurs",
       "addRound": "Ajouter un tour",
-      "levelOfPlay": "Niveau de jeu"
+      "levelOfPlay": "Niveau de jeu",
+      "addRounds": "Ajouter des tours",
+      "levelOfPlayHelp": "Utilise les classements des participants pour générer des appariements équilibrés où les adversaires sont appariés par niveau de compétence",
+      "roundsCount": "Nombre de tours",
+      "dynamicRatings": "Classements dynamiques",
+      "dynamicRatingsHelp": "Recalculer les classements des participants après chaque tour en fonction des résultats des matchs",
+      "teamAvoidance": "Évitement d'équipe",
+      "teamAvoidanceHelp": "Empêcher les participants de la même équipe d'être opposés les uns aux autres"
     },
     "selectParticipant": {
       "assignAlternate": "Attribuer un repêché",
@@ -1195,7 +1202,29 @@
       "generateFlight": "Générer un tableau",
       "configureDraw": "Configurer le tableau",
       "customScorecard": "Feuille de score personnalisée",
-      "invalidDrawSize": "Taille de tableau invalide"
+      "invalidDrawSize": "Taille de tableau invalide",
+      "roundsCount": "Tours à générer",
+      "ratingScale": "Échelle de classement",
+      "dynamicRatings": "Classements dynamiques",
+      "teamAvoidance": "Évitement d'équipe",
+      "drawTypeInfo": "Info type de tableau",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "Tableau à élimination directe standard où chaque défaite élimine un participant du tableau.",
+        "ROUND_ROBIN": "Tous les participants jouent les uns contre les autres au sein de groupes ; le classement est déterminé par le bilan victoires/défaites.",
+        "DRAW_MATIC": "Appariement automatisé tour par tour utilisant les classements pour apparier les participants par niveau de compétence, avec des mises à jour dynamiques des classements entre les tours.",
+        "AD_HOC": "Tours flexibles avec appariement manuel ou automatisé. Pas de structure de tableau fixe.",
+        "COMPASS": "Structure multi-tableaux avec jusqu'à 8 tableaux nommés par direction (Est/Ouest/Nord/Sud/NE/NO/SE/SO) où les perdants passent dans des tableaux de consolation successifs.",
+        "CURTIS": "Consolation à trois tableaux où les perdants des deux premiers tours passent dans des tableaux de consolation.",
+        "DOUBLE_ELIMINATION": "Les participants doivent perdre deux fois pour être éliminés ; les perdants passent dans un tableau de consolation.",
+        "FEED_IN_CHAMPIONSHIP": "Tableau principal avec un tableau de consolation en alimentation où les perdants de chaque tour entrent.",
+        "FIRST_MATCH_LOSER_CONSOLATION": "Les perdants du premier match entrent dans un tableau de consolation séparé.",
+        "FIRST_ROUND_LOSER_CONSOLATION": "Les perdants du premier tour entrent dans un tableau de consolation séparé.",
+        "LUCKY_DRAW": "Élimination directe avec avancement aléatoire pour les positions non jouées.",
+        "OLYMPIC": "Format olympique à quatre tableaux avec tableaux de consolation et de classement.",
+        "PLAY_OFF": "Tableau de playoffs utilisé comme structure secondaire.",
+        "ROUND_ROBIN_WITH_PLAYOFF": "Phase de groupes en poules suivie de playoffs à élimination directe.",
+        "FEED_IN": "Tableau à entrée échelonnée où les participants entrent dans le tableau à différents tours."
+      }
     }
   },
 
@@ -1499,7 +1528,8 @@
         "cannotRemoveScores": "Suppression impossible lorsque des scores sont présents",
         "removePlayers": "Retirer des joueurs",
         "clearResults": "Effacer les résultats",
-        "viewTopology": "Voir la topologie"
+        "viewTopology": "Voir la topologie",
+        "displaySettings": "Paramètres d'affichage"
       }
     },
     "participants": {

@@ -116,7 +116,7 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       field: 'completed',
       id: 'completed',
       checkbox: true,
-      color: 'red',
+      color: 'var(--tmx-accent-red, #ff6b6b)',
     },
   ];
 

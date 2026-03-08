@@ -7,7 +7,7 @@ import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getTopologyTemplates } from './topologyTemplates';
 
-import { TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
+import { DRAW_MATIC, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
 
 const {
   AD_HOC,
@@ -64,6 +64,7 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
   const common = [
     { label: 'Single elimination', value: SINGLE_ELIMINATION },
     { label: 'Round robin', value: ROUND_ROBIN },
+    { label: 'DrawMatic', value: DRAW_MATIC, hide: isQualifying || isPlayoff },
   ];
 
   const builtIn = [

@@ -21,16 +21,16 @@ export function getAdHocRoundOptions({ structure, drawId, callback }: { structur
     {
       onClick: () => addAdHocMatchUps({ drawId, structure, callback: refreshCallback }),
       label: addMatchUpsAction,
-      color: 'blue',
+      color: '#5ba0d0',
     },
     {
       onClick: () => addAdHocRound({ drawId, structure, newRound: true, callback: refreshCallback }),
       label: addRoundAction,
-      color: 'blue',
+      color: '#5ba0d0',
     },
     {
       label: deleteMatchUpsAction,
-      color: 'red',
+      color: '#e06060',
       onClick: () => deleteAdHocMatchUps({ drawId, structure, callback: refreshCallback }),
     },
   ];

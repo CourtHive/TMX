@@ -901,7 +901,14 @@
       "title": "Agregar ronda",
       "confirmSelection": "Confirmar selección de jugadores",
       "addRound": "Agregar ronda",
-      "levelOfPlay": "Nivel de juego"
+      "levelOfPlay": "Nivel de juego",
+      "addRounds": "Agregar rondas",
+      "levelOfPlayHelp": "Utiliza las clasificaciones de los participantes para generar emparejamientos equilibrados donde los oponentes se emparejan por nivel de habilidad",
+      "roundsCount": "Número de rondas",
+      "dynamicRatings": "Clasificaciones dinámicas",
+      "dynamicRatingsHelp": "Recalcular las clasificaciones de los participantes después de cada ronda basándose en los resultados de los partidos",
+      "teamAvoidance": "Evitar equipos",
+      "teamAvoidanceHelp": "Evitar que participantes del mismo equipo se enfrenten entre sí"
     },
     "selectParticipant": {
       "assignAlternate": "Asignar alterno",
@@ -1195,7 +1202,29 @@
       "generateFlight": "Generar vuelo",
       "configureDraw": "Configurar cuadro",
       "customScorecard": "Planilla personalizada",
-      "invalidDrawSize": "Tamaño de cuadro inválido"
+      "invalidDrawSize": "Tamaño de cuadro inválido",
+      "roundsCount": "Rondas a generar",
+      "ratingScale": "Escala de clasificación",
+      "dynamicRatings": "Clasificaciones dinámicas",
+      "teamAvoidance": "Evitar equipos",
+      "drawTypeInfo": "Información del tipo de cuadro",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "Cuadro de eliminación directa estándar donde cada derrota elimina a un participante del cuadro.",
+        "ROUND_ROBIN": "Todos los participantes juegan entre sí dentro de grupos; la clasificación se determina por el registro de victorias/derrotas.",
+        "DRAW_MATIC": "Emparejamiento automatizado ronda por ronda usando clasificaciones para emparejar participantes por nivel de habilidad, con actualizaciones dinámicas de clasificación entre rondas.",
+        "AD_HOC": "Rondas flexibles con emparejamiento manual o automatizado. Sin estructura de cuadro fija.",
+        "COMPASS": "Estructura de múltiples cuadros con hasta 8 llaves nombradas por dirección (Este/Oeste/Norte/Sur/NE/NO/SE/SO) donde los perdedores pasan a cuadros de consolación sucesivos.",
+        "CURTIS": "Consolación de tres cuadros donde los perdedores de las dos primeras rondas pasan a llaves de consolación.",
+        "DOUBLE_ELIMINATION": "Los participantes deben perder dos veces para ser eliminados; los perdedores pasan a un cuadro de consolación.",
+        "FEED_IN_CHAMPIONSHIP": "Cuadro principal con un cuadro de consolación de alimentación donde entran los perdedores de cada ronda.",
+        "FIRST_MATCH_LOSER_CONSOLATION": "Los perdedores del primer partido entran en un cuadro de consolación separado.",
+        "FIRST_ROUND_LOSER_CONSOLATION": "Los perdedores de la primera ronda entran en un cuadro de consolación separado.",
+        "LUCKY_DRAW": "Eliminación directa con avance aleatorio para posiciones no jugadas.",
+        "OLYMPIC": "Formato olímpico de cuatro cuadros con llaves de consolación y clasificación.",
+        "PLAY_OFF": "Llave de playoffs utilizada como estructura secundaria.",
+        "ROUND_ROBIN_WITH_PLAYOFF": "Fase de grupos en round robin seguida de playoffs de eliminación directa.",
+        "FEED_IN": "Cuadro de entrada escalonada donde los participantes entran en la llave en diferentes rondas."
+      }
     }
   },
 
@@ -1499,7 +1528,8 @@
         "cannotRemoveScores": "No se puede eliminar cuando hay puntajes presentes",
         "removePlayers": "Eliminar jugadores",
         "clearResults": "Limpiar resultados",
-        "viewTopology": "Ver topología"
+        "viewTopology": "Ver topología",
+        "displaySettings": "Configuración de visualización"
       }
     },
     "participants": {
