@@ -1542,7 +1542,9 @@
         "removePlayers": "Eliminar jugadores",
         "clearResults": "Limpiar resultados",
         "viewTopology": "Ver topología",
-        "displaySettings": "Configuración de visualización"
+        "viewDraw": "Ver cuadro",
+        "displaySettings": "Configuración de visualización",
+        "autoPlaceParticipants": "Ubicar participantes automáticamente"
       }
     },
     "participants": {

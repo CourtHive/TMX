@@ -1509,7 +1509,9 @@
         "removePlayers": "إزالة اللاعبين",
         "clearResults": "مسح النتائج",
         "viewTopology": "عرض الطوبولوجيا",
-        "displaySettings": "إعدادات العرض"
+        "viewDraw": "عرض القرعة",
+        "displaySettings": "إعدادات العرض",
+        "autoPlaceParticipants": "توزيع المشاركين تلقائيًا"
       }
     },
     "participants": {

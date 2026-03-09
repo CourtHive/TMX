@@ -1592,7 +1592,8 @@
         "clearResults": "Clear results",
         "viewTopology": "View Topology",
         "viewDraw": "View Draw",
-        "displaySettings": "Display settings"
+        "displaySettings": "Display settings",
+        "autoPlaceParticipants": "Auto place participants"
       }
     },
     "participants": {

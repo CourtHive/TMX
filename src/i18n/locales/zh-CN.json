@@ -1585,7 +1585,9 @@
         "removePlayers": "移除选手",
         "clearResults": "清除结果",
         "viewTopology": "查看拓扑",
-        "displaySettings": "显示设置"
+        "viewDraw": "查看签表",
+        "displaySettings": "显示设置",
+        "autoPlaceParticipants": "自动分配参赛者"
       }
     },
     "participants": {

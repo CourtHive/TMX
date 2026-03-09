@@ -1542,7 +1542,9 @@
         "removePlayers": "Spieler entfernen",
         "clearResults": "Ergebnisse löschen",
         "viewTopology": "Topologie anzeigen",
-        "displaySettings": "Anzeigeeinstellungen"
+        "viewDraw": "Auslosung anzeigen",
+        "displaySettings": "Anzeigeeinstellungen",
+        "autoPlaceParticipants": "Teilnehmer automatisch platzieren"
       }
     },
     "participants": {
