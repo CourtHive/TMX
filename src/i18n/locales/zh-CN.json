@@ -1515,6 +1515,8 @@
         "venueNameError": "请输入至少5个字符的名称",
         "abbreviation": "缩写",
         "abbreviationError": "请输入2-6个字符的缩写",
+        "courtNameBase": "Court name base",
+        "courtNameBasePlaceholder": "e.g. Court, Field, Rink",
         "numberOfCourts": "球场数量",
         "numberOfCourtsError": "必须是整数",
         "openingTime": "开放时间",

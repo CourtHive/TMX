@@ -32,6 +32,13 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
       onChange,
     },
     {
+      value: values.courtNameBase || '',
+      label: t('pages.venues.addVenue.courtNameBase'),
+      placeholder: t('pages.venues.addVenue.courtNameBasePlaceholder'),
+      field: 'courtNameBase',
+      onChange,
+    },
+    {
       error: t('pages.venues.addVenue.numberOfCourtsError'),
       value: values.courtsCount || '',
       validator: numberValidator,
@@ -63,11 +70,29 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
 export function getVenueFormValues(content: any): any {
   return {
     venueAbbreviation: content?.venueAbbreviation.value,
+    courtNameBase: content?.courtNameBase?.value || '',
     defaultStartTime: content?.defaultStartTime?.value,
     defaultEndTime: content?.defaultEndTime?.value,
     courtsCount: content?.courtsCount.value,
     venueName: content?.venueName.value,
   };
+}
+
+/**
+ * Derive the common name base from existing court names.
+ * e.g. ["GHC 1", "GHC 2", "GHC 3"] → "GHC"
+ * Returns empty string if no common pattern is found.
+ */
+export function deriveCourtNameBase(courts: any[]): string {
+  if (!courts?.length) return '';
+  const bases = courts.map((c: any) => {
+    const name = c.courtName || '';
+    const match = name.match(/^(.+?)\s+\d+$/);
+    return match ? match[1] : '';
+  });
+  const first = bases[0];
+  if (first && bases.every((b: string) => b === first)) return first;
+  return '';
 }
 
 /** Convert military time (e.g. "08:00", "20:00") to 12h display (e.g. "8:00 AM", "8:00 PM"). */

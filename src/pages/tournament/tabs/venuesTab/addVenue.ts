@@ -22,7 +22,7 @@ import { RIGHT } from 'constants/tmxConstants';
 
 const saveVenue = (callback?: (result: any) => void) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
-  const { venueName, venueAbbreviation, courtsCount, defaultStartTime, defaultEndTime } = values;
+  const { venueName, venueAbbreviation, courtNameBase, courtsCount, defaultStartTime, defaultEndTime } = values;
   const venueId = tools.UUID();
   if (!venueName || !venueAbbreviation || !courtsCount) {
     tmxToast({ message: t('pages.venues.invalidValues'), intent: 'is-danger' });
@@ -33,12 +33,19 @@ const saveVenue = (callback?: (result: any) => void) => {
   if (defaultStartTime) venue.defaultStartTime = toMilitaryTime(defaultStartTime);
   if (defaultEndTime) venue.defaultEndTime = toMilitaryTime(defaultEndTime);
 
+  const addCourtsParams: any = { courtsCount: Number.parseInt(courtsCount), venueId };
+  if (courtNameBase) {
+    addCourtsParams.courtNameRoot = courtNameBase;
+  } else {
+    addCourtsParams.venueAbbreviationRoot = true;
+  }
+
   const methods = [
     {
       params: { venue, returnDetails: true },
       method: ADD_VENUE,
     },
-    { params: { courtsCount: Number.parseInt(courtsCount), venueId, venueAbbreviationRoot: true }, method: ADD_COURTS },
+    { params: addCourtsParams, method: ADD_COURTS },
   ];
 
   const postMutation = (result: any) => {

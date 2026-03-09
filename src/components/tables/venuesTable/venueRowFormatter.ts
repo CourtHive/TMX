@@ -1,4 +1,5 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { deriveCourtNameBase } from 'components/forms/venue';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { validators, renderButtons, renderForm, controlBar } from 'courthive-components';
@@ -41,7 +42,19 @@ function addCourtsToVenue(venueId: string, courtsTable: any): void {
     const courtsCount = Number.parseInt(context.drawer.attributes.content?.courtsCount?.value);
     if (!courtsCount || courtsCount < 1) return;
 
-    const methods = [{ method: ADD_COURTS, params: { courtsCount, venueId, venueAbbreviationRoot: true } }];
+    // Derive court name root from existing courts, fall back to venue abbreviation
+    const { venue } = tournamentEngine.findVenue({ venueId });
+    const existingCourts = venue?.courts || [];
+    const courtNameRoot = deriveCourtNameBase(existingCourts);
+
+    const addCourtsParams: any = { courtsCount, venueId };
+    if (courtNameRoot) {
+      addCourtsParams.courtNameRoot = courtNameRoot;
+    } else {
+      addCourtsParams.venueAbbreviationRoot = true;
+    }
+
+    const methods = [{ method: ADD_COURTS, params: addCourtsParams }];
     mutationRequest({
       methods,
       callback: (result: any) => {

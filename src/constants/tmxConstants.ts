@@ -91,6 +91,7 @@ export const SCHEDULE_ISSUE_IDS = 'ISSUE_IDS';
 export const SCHEDULE_ISSUE = 'ISSUE';
 
 export const AUTOMATED = 'Automated';
+export const DRAFT = 'Draft';
 export const MANUAL = 'Manual';
 
 export const scheduleClass: Record<string, string> = {

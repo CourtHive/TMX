@@ -1445,6 +1445,8 @@
         "venueNameError": "يرجى إدخال اسم من 5 أحرف على الأقل",
         "abbreviation": "الاختصار",
         "abbreviationError": "يرجى إدخال اختصار من 2-6 أحرف",
+        "courtNameBase": "Court name base",
+        "courtNameBasePlaceholder": "e.g. Court, Field, Rink",
         "numberOfCourts": "عدد الملاعب",
         "numberOfCourtsError": "يجب أن يكون عدداً صحيحاً"
       },

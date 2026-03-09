@@ -20,6 +20,7 @@ import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
   CUSTOM,
+  DRAFT,
   DRAW_NAME,
   DRAW_SIZE,
   DRAW_TYPE,
@@ -132,6 +133,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
 
   const creationOptions = [
     { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
+    { label: DRAFT, value: DRAFT, disabled: !!structureId },
     { label: MANUAL, value: false, selected: structureId },
   ];
 

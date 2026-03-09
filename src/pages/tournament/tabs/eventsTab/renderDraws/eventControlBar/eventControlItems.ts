@@ -2,7 +2,8 @@
  * Event control bar items configuration.
  * Provides search, event/draw/structure navigation, and action options.
  */
-import { drawDefinitionConstants, eventConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, eventConstants, tournamentEngine } from 'tods-competition-factory';
+import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
 import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
 import { getStructureOptions } from '../getStructureOptions';
@@ -91,9 +92,22 @@ export function getEventControlItems({
     location: RIGHT,
   });
 
+  // Draft status button when a draft is active
+  const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
+  const hasDraft = drawDefinition?.extensions?.some((ext: any) => ext.name === 'draftState');
+
+  if (hasDraft) {
+    items.push({
+      onClick: () => openConfigureDraft({ drawId, eventId }),
+      label: t('pages.events.actionOptions.draftStatus'),
+      intent: 'is-info',
+      location: RIGHT,
+    });
+  }
+
   // "Assign participants" button when there are unassigned positions (furthest right)
   const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
-  if (isMainStage && !isTeam) {
+  if (isMainStage && !isTeam && !hasDraft) {
     const unassignedCount =
       structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye).length ?? 0;
     if (unassignedCount > 0) {

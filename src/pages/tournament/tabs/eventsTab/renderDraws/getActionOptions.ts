@@ -15,6 +15,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+import { openConfigureDraft } from 'components/modals/draftConfigure';
+import { openResolveDraft } from 'components/modals/draftResolve';
 import { renderDrawView } from './renderDrawView';
 import { env } from 'settings/env';
 
@@ -44,6 +46,10 @@ export function getActionOptions({
   const hasQualifying = drawData.structures?.find((structure: any) => structure.stage === QUALIFYING);
   const structure = drawData.structures?.find((structure: any) => structure.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
+
+  // Check for active draft
+  const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
+  const hasDraft = drawDefinition?.extensions?.some((ext: any) => ext.name === 'draftState');
 
   // Get scoring policy to check if participant assignment should be blocked
   const scoringPolicy = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });
@@ -139,6 +145,23 @@ export function getActionOptions({
         mutationRequest({ methods, callback: postMutation });
       },
       label: t('pages.events.actionOptions.autoPlaceParticipants'),
+      close: true,
+    },
+    {
+      hide: !hasDraft,
+      onClick: () =>
+        openConfigureDraft({
+          drawId,
+          eventId,
+          callback: () => renderDrawView({ eventId, drawId, structureId }),
+        }),
+      label: t('pages.events.actionOptions.configureDraft'),
+      close: true,
+    },
+    {
+      hide: !hasDraft,
+      onClick: () => openResolveDraft({ drawId, eventId }),
+      label: t('pages.events.actionOptions.resolveDraft'),
       close: true,
     },
     {

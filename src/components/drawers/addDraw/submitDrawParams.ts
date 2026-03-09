@@ -23,6 +23,7 @@ import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
   CUSTOM,
+  DRAFT,
   DRAW_MATIC,
   DRAW_NAME,
   DRAW_SIZE,
@@ -163,7 +164,7 @@ function handleQualifyingStructure(params: {
   structureOptions: any;
   matchUpFormat: string;
   structureName: string;
-  automated: boolean;
+  automated: any;
   drawSize: number;
   drawType: string;
   drawId: string;
@@ -360,7 +361,10 @@ export function submitDrawParams({
             (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
         );
 
-  const automated = drawSize < drawEntries.length ? false : inputs[AUTOMATED].value === AUTOMATED;
+  const creationValue = inputs[AUTOMATED].value;
+  const isDraft = creationValue === DRAFT;
+  const automated =
+    drawSize < drawEntries.length ? false : isDraft ? { seedsOnly: true } : creationValue === AUTOMATED;
 
   const eventId = event.eventId;
   const drawOptions: any = {
@@ -368,6 +372,7 @@ export function submitDrawParams({
     automated,
     eventId,
     drawId,
+    isDraft,
   };
 
   const structureOptions = getStructureOptions(drawType, inputs);

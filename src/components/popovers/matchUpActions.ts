@@ -250,6 +250,12 @@ export function matchUpActions({
     officialTip.show();
   };
 
+  const matchUpStatus = matchUp?.matchUpStatus;
+  const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId);
+  const terminalStatuses = ['BYE', 'WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED', 'ABANDONED', 'DOUBLE_DEFAULT', 'DEFAULTED'];
+  const isTerminal = terminalStatuses.includes(matchUpStatus);
+  const hideTimeOptions = noParticipants || isTerminal;
+
   const items = [
     {
       onClick: clearSchedule,
@@ -259,10 +265,12 @@ export function matchUpActions({
     {
       onClick: setStartTime,
       text: 'Start time',
+      hide: hideTimeOptions,
     },
     {
       onClick: setEndTime,
       text: 'End time',
+      hide: hideTimeOptions,
     },
     {
       onClick: selectOfficial,
