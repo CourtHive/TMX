@@ -52,6 +52,7 @@ export function eventsView(): void {
     {
       onClick: () => (editEvent as any)({ callback: eventAdded }),
       label: t('pages.events.addEvent'),
+      intent: 'is-info',
       location: RIGHT,
     },
   ];

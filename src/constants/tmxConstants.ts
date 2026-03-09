@@ -123,6 +123,11 @@ export const DRAW_LEFT = 'drawLeft';
 export const ENTRIES_VIEW = 'entriesView';
 export const DRAWS_VIEW = 'drawsView';
 
+export const EVENT_SELECTOR = 'eventSelector';
+export const EVENT_SELECTOR_TABLE = 'eventSelectorTable';
+export const EVENT_TABS_BAR = 'eventTabsBar';
+export const EVENT_TAB_CONTENT = 'eventTabContent';
+
 export const QUALIFYING = 'QUALIFYING';
 export const ACCEPTED = 'ACCEPTED';
 

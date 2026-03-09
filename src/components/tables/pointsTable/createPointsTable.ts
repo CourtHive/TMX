@@ -10,26 +10,29 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'tods-competition-factory';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { navigateToEvent } from '../common/navigateToEvent';
 import { getPointsColumns } from './getPointsColumns';
 import { controlBar } from 'courthive-components';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { context } from 'services/context';
 import { env } from 'settings/env';
 
-import { EVENT_CONTROL, LEFT, POINTS_VIEW, RIGHT } from 'constants/tmxConstants';
+import { POINTS_VIEW, RIGHT } from 'constants/tmxConstants';
 
 type CreatePointsTableParams = {
   eventId: string;
 };
 
-export function createPointsTable({ eventId }: CreatePointsTableParams): void {
+type CreatePointsTableResult = {
+  policyControlsElement?: HTMLElement;
+};
+
+export function createPointsTable({ eventId }: CreatePointsTableParams): CreatePointsTableResult {
   const pointsContainer = document.getElementById(POINTS_VIEW);
-  if (!pointsContainer) return;
+  if (!pointsContainer) return {};
   removeAllChildNodes(pointsContainer);
 
   const availablePolicies = getAvailablePolicies();
-  if (!availablePolicies.length) return;
+  if (!availablePolicies.length) return {};
 
   let selectedPolicyId = availablePolicies[0].id;
   let selectedLevel: number | undefined;
@@ -37,23 +40,55 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): void {
 
   const getSelectedPolicy = (): PolicyOption | undefined => availablePolicies.find((p) => p.id === selectedPolicyId);
 
+  // Build a participantId → participant lookup for enriching awards
+  const buildParticipantMap = () => {
+    const { participants = [] } =
+      tournamentEngine.getParticipants({
+        participantFilters: { eventIds: [eventId] },
+        withIndividualParticipants: true,
+        withScaleValues: true,
+        withISO2: true,
+      }) ?? {};
+    const map: Record<string, any> = {};
+    for (const p of participants) {
+      map[p.participantId] = p;
+    }
+    return map;
+  };
+
+  const participantMap = buildParticipantMap();
+
   const computePoints = () => {
     const policy = getSelectedPolicy();
     if (!policy) return [];
 
     if (policy.requiresLevel && !selectedLevel) return [];
 
-    const result = tournamentEngine.getEventRankingPoints({
-      policyDefinitions: policy.policyData,
-      level: selectedLevel,
-      eventId,
-    });
+    let result: any;
+    try {
+      result = tournamentEngine.getEventRankingPoints({
+        policyDefinitions: policy.policyData,
+        level: selectedLevel,
+        eventId,
+      });
+    } catch {
+      return [];
+    }
 
     if (!result?.success) return [];
-    return result.eventAwards || [];
+
+    // Enrich awards with full participant objects
+    return (result.eventAwards || []).map((award: any) => ({
+      ...award,
+      participant: participantMap[award.participantId],
+    }));
   };
 
   const columns = getPointsColumns();
+
+  // Container for policy/level selector controls (rendered into tabs bar)
+  const policyControlsElement = document.createElement('div');
+  policyControlsElement.style.cssText = 'display: flex; align-items: center; gap: 0.25em;';
 
   const render = () => {
     const policy = getSelectedPolicy();
@@ -95,22 +130,9 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): void {
     context.tables.pointsTable = table;
   };
 
-  render();
-
-  // Build event-level control bar with policy selector, level selector, and back navigation
-  const event = tournamentEngine.getEvent({ eventId })?.event;
-  const events = tournamentEngine.getEvents()?.events || [];
-
-  const eventOptions = events
-    .filter((e: any) => e.eventId !== eventId)
-    .map((e: any) => ({
-      label: e.eventName,
-      close: true,
-      onClick: () => navigateToEvent({ eventId: e.eventId, renderPoints: true }),
-    }));
-
-  const renderControlBar = () => {
+  const renderPolicyControls = () => {
     const policy = getSelectedPolicy();
+    policyControlsElement.innerHTML = '';
 
     const policyOptions = availablePolicies.map((p) => ({
       label: p.requiresLevel ? `${p.label} *` : p.label,
@@ -118,37 +140,27 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): void {
       active: p.id === selectedPolicyId,
       onClick: () => {
         selectedPolicyId = p.id;
-        const newPolicy = getSelectedPolicy();
-        // Reset level when switching policies
-        if (newPolicy?.requiresLevel) {
-          selectedLevel = undefined;
-        } else {
-          selectedLevel = undefined;
-        }
+        selectedLevel = undefined;
         render();
-        renderControlBar();
+        renderPolicyControls();
       },
     }));
 
-    const items: any[] = [
-      {
-        options: eventOptions.length ? eventOptions : undefined,
-        label: event?.eventName || 'Event',
-        modifyLabel: true,
-        location: LEFT,
-      },
-      {
-        label: 'Points',
-        location: LEFT,
-        intent: 'is-info',
-      },
-      {
-        options: policyOptions,
-        label: policy?.label || 'Select policy',
-        modifyLabel: true,
-        location: RIGHT,
-      },
-    ];
+    const policyEl = document.createElement('div');
+    controlBar({
+      target: policyEl,
+      items: [
+        {
+          options: policyOptions,
+          label: policy?.label || 'Select policy',
+          modifyLabel: true,
+          intent: 'is-info',
+          location: RIGHT,
+          align: RIGHT,
+        },
+      ],
+    });
+    policyControlsElement.appendChild(policyEl);
 
     // Level selector — only shown when policy requires a level
     if (policy?.requiresLevel) {
@@ -159,31 +171,31 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): void {
         onClick: () => {
           selectedLevel = lvl;
           render();
-          renderControlBar();
+          renderPolicyControls();
         },
       }));
 
       const levelLabel = selectedLevel ? getLevelDisplayLabel(selectedLevel, policy) : 'Select level';
 
-      items.push({
-        options: levelOptions,
-        label: levelLabel,
-        modifyLabel: true,
-        location: RIGHT,
-        intent: !selectedLevel ? 'is-warning' : undefined,
+      const levelEl = document.createElement('div');
+      controlBar({
+        target: levelEl,
+        items: [
+          {
+            options: levelOptions,
+            label: levelLabel,
+            modifyLabel: true,
+            location: RIGHT,
+            intent: 'is-warning',
+          },
+        ],
       });
+      policyControlsElement.appendChild(levelEl);
     }
-
-    items.push({
-      label: 'Entries',
-      location: RIGHT,
-      close: true,
-      onClick: () => navigateToEvent({ eventId }),
-    });
-
-    const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
-    controlBar({ target: eventControlElement, items });
   };
 
-  renderControlBar();
+  render();
+  renderPolicyControls();
+
+  return { policyControlsElement };
 }

@@ -326,6 +326,8 @@ export function participantProfileModal({ participantId }: ParticipantProfilePar
 
     const renderControlBar = () => {
       const policy = getSelectedPolicy();
+      controlElement.innerHTML = '';
+      controlElement.style.cssText = 'display: flex; align-items: center; gap: 0.25em;';
 
       const policyOptions = availablePolicies.map((p) => ({
         label: p.requiresLevel ? `${p.label} *` : p.label,
@@ -341,19 +343,37 @@ export function participantProfileModal({ participantId }: ParticipantProfilePar
 
       const totalPoints = lastData.reduce((sum: number, r: any) => sum + (r.points || 0), 0);
 
-      const items: any[] = [
-        {
-          label: `Total: ${totalPoints}`,
-          location: LEFT,
-          intent: 'is-info',
-        },
-        {
-          options: policyOptions,
-          label: policy?.label || 'Select policy',
-          modifyLabel: true,
-          location: RIGHT,
-        },
-      ];
+      const leftEl = document.createElement('div');
+      controlBar({
+        target: leftEl,
+        items: [
+          {
+            label: `Total: ${totalPoints}`,
+            location: LEFT,
+            intent: 'is-info',
+          },
+        ],
+      });
+      controlElement.appendChild(leftEl);
+
+      const spacer = document.createElement('div');
+      spacer.style.flex = '1';
+      controlElement.appendChild(spacer);
+
+      const policyEl = document.createElement('div');
+      controlBar({
+        target: policyEl,
+        items: [
+          {
+            options: policyOptions,
+            label: policy?.label || 'Select policy',
+            modifyLabel: true,
+            intent: 'is-info',
+            location: RIGHT,
+          },
+        ],
+      });
+      controlElement.appendChild(policyEl);
 
       // Level selector — only shown when policy requires a level
       if (policy?.requiresLevel) {
@@ -368,16 +388,21 @@ export function participantProfileModal({ participantId }: ParticipantProfilePar
           },
         }));
 
-        items.push({
-          options: levelOptions,
-          label: selectedLevel ? getLevelDisplayLabel(selectedLevel, policy) : 'Select level',
-          modifyLabel: true,
-          location: RIGHT,
-          intent: !selectedLevel ? 'is-warning' : undefined,
+        const levelEl = document.createElement('div');
+        controlBar({
+          target: levelEl,
+          items: [
+            {
+              options: levelOptions,
+              label: selectedLevel ? getLevelDisplayLabel(selectedLevel, policy) : 'Select level',
+              modifyLabel: true,
+              location: RIGHT,
+              intent: selectedLevel ? 'is-primary' : 'is-warning',
+            },
+          ],
         });
+        controlElement.appendChild(levelEl);
       }
-
-      controlBar({ target: controlElement, items });
     };
 
     renderControlBar();

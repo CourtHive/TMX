@@ -10,7 +10,6 @@ import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { resetDraws } from 'components/modals/resetDraws';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -78,11 +77,6 @@ export function getActionOptions({
   };
 
   const options = [
-    {
-      onClick: () => navigateToEvent({ eventId, renderPoints: true }),
-      label: 'Ranking points',
-      close: true,
-    },
     {
       onClick: () =>
         editDisplaySettings({

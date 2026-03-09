@@ -9,7 +9,6 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
-import { eventRowFormatter } from './eventRowFormatter';
 import { getEventColumns } from './getEventColumns';
 import { env } from 'settings/env';
 import { t } from 'i18n';
@@ -21,11 +20,6 @@ const EVENT_COUNT_THRESHOLD = 15;
 
 export function createEventsTable(): { table: any; replaceTableData: () => void } {
   let table: any;
-  const nestedTables = new Map();
-  const setNestedTable = (eventId: string, table: any) => {
-    if (nestedTables.has(eventId)) return;
-    nestedTables.set(eventId, table);
-  };
 
   const initialEventData = tournamentEngine.getEvents({ withScaleValues: false });
   const eventCount = initialEventData?.events?.length || 0;
@@ -67,7 +61,6 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
         'entriesCount',
         'drawsCount',
       ]),
-      rowFormatter: eventRowFormatter(setNestedTable),
       height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
       placeholder: 'No events',
       layout: 'fitColumns',

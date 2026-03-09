@@ -73,6 +73,9 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId`, (match) => {
     displayRoute({ selectedTab: EVENTS_TAB, data: match?.data });
   });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/draws`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
+  });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId`, (match) => {
     displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
   });

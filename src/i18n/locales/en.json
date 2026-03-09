@@ -1553,8 +1553,16 @@
     "events": {
       "title": "Events",
       "addEvent": "Add event",
+      "addDraw": "Add draw",
+      "addFlights": "Add flights",
       "deleteSelected": "Delete selected",
       "searchEvents": "Search events",
+      "draws": "Draws",
+      "entries": "Entries",
+      "rankings": "Rankings",
+      "actions": "Actions",
+      "editEventAction": "Edit event",
+      "displaySettings": "Display settings",
       "editEvent": {
         "titleEdit": "Edit event",
         "titleAdd": "Add event",

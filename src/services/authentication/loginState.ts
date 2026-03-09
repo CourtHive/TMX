@@ -1,3 +1,5 @@
+import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
+import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 
@@ -69,9 +71,9 @@ function reRenderActiveTab(): void {
   const settingsTab = document.getElementById('c-tab');
 
   if (overviewTab && overviewTab.style.display !== NONE) {
-    import('pages/tournament/tabs/overviewTab/renderOverview').then(({ renderOverview }) => renderOverview());
+    renderOverview();
   } else if (settingsTab && settingsTab.style.display !== NONE) {
-    import('pages/tournament/tabs/settingsTab/renderSettingsTab').then(({ renderSettingsTab }) => renderSettingsTab());
+    renderSettingsTab();
   }
 }
 

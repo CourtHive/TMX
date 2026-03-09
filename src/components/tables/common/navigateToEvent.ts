@@ -5,6 +5,7 @@ import {
   DRAW_ENTRIES,
   DRAW,
   EVENT,
+  EVENTS_TAB,
   STRUCTURE,
   TOURNAMENT,
   ROUNDS_BRACKET,
@@ -26,9 +27,18 @@ type NavigateToEventParams = {
   view?: string;
 };
 
-export function navigateToEvent({ eventId, drawId, structureId, renderDraw, renderPoints, participantId, matchUpId, view }: NavigateToEventParams): void {
+export function navigateToEvent({ eventId, drawId, structureId, renderDraw, renderPoints, participantId, matchUpId, view }: NavigateToEventParams = {}): void {
   const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
-  const event = eventId && tournamentEngine.getEvent({ eventId, drawId }).event;
+
+  // No eventId — navigate to events list
+  if (!eventId) {
+    const route = `/${TOURNAMENT}/${tournamentId}/${EVENTS_TAB}`;
+    context.router?.navigate(route);
+    context.router?.resolve();
+    return;
+  }
+
+  const event = tournamentEngine.getEvent({ eventId, drawId }).event;
   const singleDraw = event?.drawDefinitions?.length === 1 && event.drawDefinitions[0];
 
   if (participantId && singleDraw) {
@@ -59,6 +69,8 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
     if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET, ROUNDS_RATINGS].includes(view || '')) {
       route += `/${VIEW}/${view}`;
     }
+  } else if (renderDraw && !drawId) {
+    route += '/draws';
   } else if (drawId) {
     route += `/${DRAW_ENTRIES}/${drawId}`;
   }
