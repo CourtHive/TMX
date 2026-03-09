@@ -1521,6 +1521,8 @@
         "venueNameError": "Please enter a name of at least 5 characters",
         "abbreviation": "Abbreviation",
         "abbreviationError": "Please enter an abbreviation of 2-6 characters",
+        "courtNameBase": "Court name base",
+        "courtNameBasePlaceholder": "e.g. Court, Field, Rink",
         "numberOfCourts": "Number of courts",
         "numberOfCourtsError": "Must be a whole number",
         "openingTime": "Opening Time",
@@ -1594,7 +1596,10 @@
         "viewTopology": "View Topology",
         "viewDraw": "View Draw",
         "displaySettings": "Display settings",
-        "autoPlaceParticipants": "Auto place participants"
+        "autoPlaceParticipants": "Auto place participants",
+        "configureDraft": "Configure draft",
+        "resolveDraft": "Resolve draft",
+        "draftStatus": "Draft"
       }
     },
     "participants": {

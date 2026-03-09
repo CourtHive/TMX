@@ -1478,6 +1478,8 @@
         "venueNameError": "Bitte geben Sie einen Namen mit mindestens 5 Zeichen ein",
         "abbreviation": "Abkürzung",
         "abbreviationError": "Bitte geben Sie eine Abkürzung mit 2-6 Zeichen ein",
+        "courtNameBase": "Court name base",
+        "courtNameBasePlaceholder": "e.g. Court, Field, Rink",
         "numberOfCourts": "Anzahl der Plätze",
         "numberOfCourtsError": "Muss eine ganze Zahl sein"
       },

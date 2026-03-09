@@ -3,7 +3,7 @@
  * Modifies venue name, abbreviation, and operating hours via mutation.
  */
 import { validators, renderButtons, renderForm } from 'courthive-components';
-import { toDisplayTime } from 'components/forms/venue';
+import { toDisplayTime, deriveCourtNameBase } from 'components/forms/venue';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -23,9 +23,13 @@ export function editVenue({
   const { venue: venueDetails } = tournamentEngine.findVenue({ venueId: venue.venueId });
   const courts = venueDetails?.courts || [];
 
+  // Derive existing courtNameBase from court names if they follow a pattern
+  const existingCourtNameBase = deriveCourtNameBase(courts);
+
   const values: any = {
     venueName: venue?.venueName || '',
     venueAbbreviation: venue?.venueAbbreviation || '',
+    courtNameBase: existingCourtNameBase,
     defaultStartTime: venueDetails?.defaultStartTime || '',
     defaultEndTime: venueDetails?.defaultEndTime || '',
     updateCourtNames: false,
@@ -84,6 +88,13 @@ export function editVenue({
           field: 'venueAbbreviation',
         },
         {
+          value: values.courtNameBase || '',
+          label: t('pages.venues.addVenue.courtNameBase'),
+          placeholder: t('pages.venues.addVenue.courtNameBasePlaceholder'),
+          field: 'courtNameBase',
+          onChange: valueChange,
+        },
+        {
           label: t('pages.venues.editVenue.updateCourtNames'),
           field: 'updateCourtNames',
           id: 'updateCourtNames',
@@ -119,6 +130,7 @@ export function editVenue({
   const saveVenue = () => {
     const venueName = context.drawer.attributes.content.venueName.value;
     const venueAbbreviation = context.drawer.attributes.content.venueAbbreviation.value;
+    const courtNameBase = context.drawer.attributes.content.courtNameBase?.value || '';
     const updateCourtNames = context.drawer.attributes.content.updateCourtNames.checked;
     const defaultStartTime = context.drawer.attributes.content.defaultStartTime?.value;
     const defaultEndTime = context.drawer.attributes.content.defaultEndTime?.value;
@@ -139,17 +151,18 @@ export function editVenue({
     if (defaultStartTime) venueUpdates.defaultStartTime = toMilitaryTime(defaultStartTime);
     if (defaultEndTime) venueUpdates.defaultEndTime = toMilitaryTime(defaultEndTime);
 
-    // Check if abbreviation changed and checkbox is selected
-    const abbreviationChanged = venueAbbreviation !== venue.venueAbbreviation;
-    if (updateCourtNames && abbreviationChanged && courts.length > 0) {
-      // Build courts array with updated names based on new abbreviation
+    // Update court names when checkbox is selected and the naming root changed
+    const nameRoot = courtNameBase || venueAbbreviation;
+    const previousRoot = existingCourtNameBase || venue.venueAbbreviation;
+    const rootChanged = nameRoot !== previousRoot;
+    if (updateCourtNames && rootChanged && courts.length > 0) {
       venueUpdates.courts = courts.map((court: any, index: number) => ({
         courtId: court.courtId,
-        courtName: `${venueAbbreviation} ${index + 1}`,
+        courtName: `${nameRoot} ${index + 1}`,
       }));
     }
 
-    const courtsUpdated = updateCourtNames && abbreviationChanged && courts.length > 0;
+    const courtsUpdated = updateCourtNames && rootChanged && courts.length > 0;
 
     const postMutation = (result: any) => {
       if (result.success) {
@@ -202,3 +215,4 @@ export function editVenue({
     footer,
   });
 }
+
