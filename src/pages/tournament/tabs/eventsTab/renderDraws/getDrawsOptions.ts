@@ -20,32 +20,35 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   )?.length || 0;
   const totalDrawItems = eventData.drawsData.length + ungeneratedCount;
 
-  const deleteOption = totalDrawItems > 1 && {
-    onClick: deleteFlights,
-    label: 'Delete flights',
-    modifyLabel: false,
-    close: true
-  };
-
-  const allDrawsOption = totalDrawItems > 1 && {
+  const allDrawsOption = {
     onClick: () => navigateToEvent({ eventId, renderDraw: true }),
     label: 'All draws',
     modifyLabel: false,
     close: true,
   };
 
-  return [allDrawsOption]
-    .concat(
-      eventData.drawsData.map((draw: any) => ({
-        onClick: () => {
-          const structureId = draw.structures?.[0]?.structureId;
-          const drawId = draw.drawId;
-          navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
-        },
-        label: draw.drawName,
-        close: true,
-      })),
-    )
-    .concat([deleteOption])
-    .filter(Boolean);
+  const options: any[] = [allDrawsOption];
+
+  for (const draw of eventData.drawsData) {
+    options.push({
+      onClick: () => {
+        const structureId = draw.structures?.[0]?.structureId;
+        const drawId = draw.drawId;
+        navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
+      },
+      label: draw.drawName,
+      close: true,
+    });
+  }
+
+  if (totalDrawItems > 1) {
+    options.push({
+      onClick: deleteFlights,
+      label: 'Delete flights',
+      modifyLabel: false,
+      close: true,
+    });
+  }
+
+  return options;
 }

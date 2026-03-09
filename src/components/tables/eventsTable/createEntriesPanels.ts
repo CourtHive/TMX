@@ -68,12 +68,39 @@ export function createEntriesPanels({
         withISO2: true,
       }) ?? {};
 
-    const hasFlights = event?.drawDefinitions?.length > 1;
+    const hasDrawDefinitions = event?.drawDefinitions?.length > 0;
 
     const categoryName = event.category?.categoryName ?? event.category?.ageCategoryCode;
+
+    // Build participantId → drawPosition map from main structure position assignments
+    const drawPositionMap: Record<string, number> = {};
+    if (drawDefinition?.structures) {
+      for (const structure of drawDefinition.structures) {
+        for (const pa of structure.positionAssignments || []) {
+          if (pa.participantId && pa.drawPosition) {
+            drawPositionMap[pa.participantId] = pa.drawPosition;
+          }
+        }
+      }
+    }
+
+    // Build participantId → draws map from all drawDefinitions' entries
+    // This ensures draw chips show regardless of position assignment or flight profile status
+    const participantDrawsMap: Record<string, { drawId: string; drawName: string; eventId: string }[]> = {};
+    if (hasDrawDefinitions) {
+      for (const dd of event.drawDefinitions) {
+        for (const entry of dd.entries || []) {
+          if (!participantDrawsMap[entry.participantId]) participantDrawsMap[entry.participantId] = [];
+          participantDrawsMap[entry.participantId].push({ drawId: dd.drawId, drawName: dd.drawName, eventId });
+        }
+      }
+    }
+
     const entryData = (drawDefinition?.entries || event?.entries || []).map((entry: any) =>
       mapEntry({
         eventType: event.eventType,
+        participantDrawsMap,
+        drawPositionMap,
         derivedDrawInfo,
         categoryName,
         participants,
@@ -84,7 +111,7 @@ export function createEntriesPanels({
 
     const { events } = tournamentEngine.getEvents();
     return {
-      tableData: panelDefinitions({ event, drawDefinition, participants, entryData, hasFlights }),
+      tableData: panelDefinitions({ event, drawDefinition, participants, entryData, hasDrawDefinitions }),
       events,
       event,
     };
@@ -114,9 +141,9 @@ export function createEntriesPanels({
         const table = new Tabulator(tableElement, {
           headerSortElement: headerSortElement([
             ...ratingFields,
+            'drawPosition',
             'seedNumber',
             'ranking',
-            'cityState',
             'status',
             'flights',
           ]),

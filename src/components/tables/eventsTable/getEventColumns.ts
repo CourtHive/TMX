@@ -2,6 +2,7 @@
  * Column definitions for events table.
  * Defines columns for event display including name, type, counts, and actions.
  */
+import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { headerMenu } from '../common/headerMenu';
 
@@ -14,7 +15,15 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
   const eventDetail = (e: any, cell: any) => {
     e.stopPropagation();
     const eventId = cell.getRow().getData().eventId;
-    navigateToEvent({ eventId });
+    const event = tournamentEngine.getEvent({ eventId }).event;
+    const drawDefs = event?.drawDefinitions || [];
+    if (drawDefs.length === 1) {
+      navigateToEvent({ eventId, drawId: drawDefs[0].drawId, renderDraw: true });
+    } else if (drawDefs.length > 1) {
+      navigateToEvent({ eventId, renderDraw: true });
+    } else {
+      navigateToEvent({ eventId });
+    }
   };
 
   return [

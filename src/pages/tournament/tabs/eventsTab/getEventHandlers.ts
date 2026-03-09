@@ -44,19 +44,20 @@ export function getEventHandlers({ callback, drawId, eventData }: EventHandlersP
   const sideClick = (props: any) => {
     const matchUp = getMatchUp(props);
     if (!matchUp) return;
-    
+
     const sideNumber = getSideNumber(props);
 
     const side = props.side || matchUp.sides?.find((side: any) => side.sideNumber === sideNumber);
+    const drawPosition = side?.drawPosition || (sideNumber && matchUp.drawPositions?.[sideNumber - 1]);
 
     const { validActions: actions } =
       (matchUp.drawId &&
         tournamentEngine.positionActions({
           sideNumber: sideNumber || side?.sideNumber,
           structureId: matchUp?.structureId,
-          drawPosition: side?.drawPosition,
           matchUpId: matchUp?.matchUpId,
           drawId: matchUp?.drawId,
+          drawPosition,
           policyDefinitions: {
             ...fixtures.policies.POLICY_POSITION_ACTIONS_UNRESTRICTED,
           },

@@ -103,14 +103,12 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
       const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
       const sid = structureId || drawData?.structures?.[0]?.structureId;
       const structure = drawData?.structures?.find((s: any) => s.structureId === sid);
-      const structureName = structure?.structureName;
       const { roundMatchUps } = tools.makeDeepCopy(structure || {});
       const matchUps = Object.values(roundMatchUps || {}).flat();
       const dual = matchUps?.length === 1 && eventData?.eventInfo?.eventType === TEAM;
 
       const actionOptions = (getActionOptions as any)({
         dualMatchUp: dual && matchUps[0],
-        structureName,
         structureId: sid,
         eventData,
         drawData,
@@ -153,11 +151,7 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
       )?.length || 0;
       const totalDrawItems = drawDefs.length + ungeneratedCount;
 
-      if (drawDefs.length === 1 && ungeneratedCount === 0) {
-        // Single draw, no ungenerated flights — navigate directly to it
-        navigateToEvent({ eventId, drawId: drawDefs[0].drawId, renderDraw: true });
-        return;
-      } else if (totalDrawItems > 1 || ungeneratedCount > 0) {
+      if (totalDrawItems > 0) {
         // Multiple draws — show draws table with control bar
         const drawsActionsElement = document.createElement('div');
         drawsActionsElement.style.cssText = 'display: flex; align-items: center;';

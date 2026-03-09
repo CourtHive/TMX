@@ -20,7 +20,12 @@ const POLICY_KEYS = [
   ['POLICY_RANKING_POINTS_ATP', 'ATP Rankings'],
   ['POLICY_RANKING_POINTS_WTA', 'WTA Rankings'],
   ['POLICY_RANKING_POINTS_ITF_WTT', 'ITF World Tennis Tour'],
+  ['POLICY_RANKING_POINTS_ITF_JUNIOR', 'ITF Junior Circuit'],
+  ['POLICY_RANKING_POINTS_TENNIS_EUROPE', 'Tennis Europe Junior Tour'],
   ['POLICY_RANKING_POINTS_USTA_JUNIOR', 'USTA Junior Rankings'],
+  ['POLICY_RANKING_POINTS_LTA', 'LTA Rankings'],
+  ['POLICY_RANKING_POINTS_TENNIS_AUSTRALIA', 'Tennis Australia Junior Tour'],
+  ['POLICY_RANKING_POINTS_TENNIS_CANADA', 'Tennis Canada Junior Rankings'],
 ] as const;
 
 /**

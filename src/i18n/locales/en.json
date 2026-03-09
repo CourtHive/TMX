@@ -1351,7 +1351,8 @@
       "teams": "Teams",
       "cityState": "City/State",
       "seed": "Seed",
-      "flights": "Flights",
+      "drawPosition": "Pos",
+      "flights": "Draws",
       "status": "Status"
     },
     "teamRow": {
@@ -1590,6 +1591,7 @@
         "removePlayers": "Remove players",
         "clearResults": "Clear results",
         "viewTopology": "View Topology",
+        "viewDraw": "View Draw",
         "displaySettings": "Display settings"
       }
     },

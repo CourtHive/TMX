@@ -33,7 +33,7 @@ const { DIRECT_ACCEPTANCE, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConsta
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { SINGLES, DOUBLES } = eventConstants;
 
-export function panelDefinitions({ drawDefinition, event, entryData, hasFlights }: any): any[] {
+export function panelDefinitions({ drawDefinition, event, entryData, hasDrawDefinitions }: any): any[] {
   const filterEntries = (groupings: string[]) =>
     entryData.filter(({ entryStage = MAIN, entryStatus }: any) => {
       return groupings.includes(`${entryStage}.${entryStatus}`);
@@ -52,7 +52,7 @@ export function panelDefinitions({ drawDefinition, event, entryData, hasFlights 
 
   // Get createPair functionality - we handle auto-pair logic separately via toggle
   const { createPairButton } = createPair(event, false);
-  const excludeColumns = !hasFlights ? ['flights'] : [];
+  const excludeColumns = !hasDrawDefinitions ? ['flights'] : [];
 
   const selectWithEnter = (table: any): boolean => {
     const active = table.getData('active');

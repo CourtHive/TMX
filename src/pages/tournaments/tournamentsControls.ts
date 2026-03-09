@@ -43,6 +43,9 @@ export function calendarControls(table: any): void {
         onGenerate: () => {
           const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
           listPicker({
+            title: 'Example Tournaments',
+            actionLabel: 'Generate',
+            actionIntent: 'is-success',
             options,
             callback: ({ selection }: any) => {
               const value = selection?.selection?.value;
@@ -79,6 +82,9 @@ export function calendarControls(table: any): void {
       onClick: () => {
         const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
         listPicker({
+          title: 'Example Tournaments',
+          actionLabel: 'Generate',
+          actionIntent: 'is-success',
           options,
           callback: ({ selection }: any) => {
             const value = selection?.selection?.value;

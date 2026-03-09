@@ -6,7 +6,8 @@ import { t } from 'i18n';
 import { NONE } from 'constants/tmxConstants';
 
 export function deleteSelectedParticipants(table: any): void {
-  const selected = table.getSelectedData();
+  const activeIds = new Set(table.getData('active').map((a: any) => a.participantId));
+  const selected = table.getSelectedData().filter((s: any) => activeIds.has(s.participantId));
   const deletable = selected.filter((p: any) => !p.events?.length);
   const inDraws = selected.length - deletable.length;
   const participantIds = deletable.map(({ participantId }: any) => participantId);

@@ -12,7 +12,7 @@ export function openOverlay({ title, content, footer }: { title?: string; conten
   if (!content || !footer) return;
 
   const tmxOverlay = document.getElementById(TMX_OVERLAY);
-  if (tmxOverlay) removeAllChildNodes(tmxOverlay);
+  if (tmxOverlay) tmxOverlay.remove();
 
   const overlay = document.createElement('div');
   overlay.className = 'overlay noselect';

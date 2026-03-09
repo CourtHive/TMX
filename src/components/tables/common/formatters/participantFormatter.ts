@@ -6,7 +6,7 @@ import { env } from 'settings/env';
 const { MALE, FEMALE } = genderConstants;
 const { PAIR } = participantConstants;
 
-export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
+export const formatParticipant = (onClick, config?: { participantDetail?: string }) => (cell, placeholder, layout) => {
   const def = cell.getColumn().getDefinition();
   const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
   const elem = document.createElement('div');
@@ -27,7 +27,7 @@ export const formatParticipant = (onClick) => (cell, placeholder, layout) => {
         composition: {
           theme: 'default',
           configuration: {
-            participantDetail: 'TEAM', // ['ADDRESS', 'TEAM'] // TODO: pass display into formatParticipant, or use env
+            participantDetail: config?.participantDetail || 'TEAM',
             genderColor: true,
             winnerColor: true,
             scaleAttributes,

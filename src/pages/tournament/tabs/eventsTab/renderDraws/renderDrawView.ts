@@ -131,12 +131,16 @@ export function renderDrawView({
 
   const callback = (params?: any) => {
     const { refresh, view } = params ?? {};
-    const redraw = refresh || participantFilter;
-    cleanupDrawPanel();
     if (view) {
+      cleanupDrawPanel();
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
+    } else if (refresh || participantFilter) {
+      // Structural changes (e.g. lucky draw advancement) or active filter: full re-render
+      cleanupDrawPanel();
+      renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView });
     } else {
-      renderDrawView({ eventId, drawId, structureId, redraw, roundsView: view });
+      // Lightweight update: refresh data and morphdom-patch the draw in place
+      updateView();
     }
   };
   const dual = matchUps?.length === 1 && eventData?.eventInfo?.eventType === TEAM;
@@ -262,6 +266,21 @@ export function renderDrawView({
     updateDrawDisplay();
   };
 
+  const updateView = () => {
+    getData();
+    if (dual) {
+      // For team dual matches: clear and re-render the scorecard with fresh data
+      const dv = document.getElementById(DRAWS_VIEW);
+      if (dv) {
+        removeAllChildNodes(dv);
+        const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], onRefresh: updateView });
+        if (scorecard) dv.appendChild(scorecard);
+      }
+    } else {
+      updateDrawDisplay();
+    }
+  };
+
   const roundNumbers = Object.keys(roundMatchUps || {})
     .map(Number)
     .sort((a, b) => a - b);
@@ -331,7 +350,7 @@ export function renderDrawView({
   }
 
   if (dual) {
-    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], participantFilter });
+    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], onRefresh: updateView });
     if (scorecard && drawsView) {
       drawsView.appendChild(scorecard);
     }

@@ -14,11 +14,12 @@ import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
-import { genderConstants } from 'tods-competition-factory';
+import { genderConstants, tournamentEngine } from 'tods-competition-factory';
 import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
 
-import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { CENTER, LEFT, PARTICIPANTS, RIGHT } from 'constants/tmxConstants';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 const { FEMALE, MALE } = genderConstants;
@@ -145,7 +146,10 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
     },
     {
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
-      formatter: teamsFormatter(() => console.log('boo')),
+      formatter: teamsFormatter(() => {
+        const tournamentId = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+        if (tournamentId) context.router?.navigate(`/tournament/${tournamentId}/${PARTICIPANTS}/TEAM`);
+      }),
       visible: columnIsVisible('teams'),
       title: t('tables.participants.teams'),
       field: 'teams',

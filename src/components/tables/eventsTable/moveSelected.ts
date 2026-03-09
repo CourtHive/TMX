@@ -10,7 +10,18 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 const moveTo = (table: any, group: string, eventId: string, drawId?: string): void => {
   const selected = table.getSelectedData();
-  const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
+  const participantIds = selected
+    .filter((p: any) => !p.events?.length && !p.drawPosition)
+    .map(({ participantId }: any) => participantId);
+
+  if (!participantIds.length) {
+    table.deselectRow();
+    const msg = selected.length
+      ? 'Selected participants have assigned draw positions'
+      : 'No participants selected';
+    tmxToast({ message: msg, intent: 'is-warning' });
+    return;
+  }
 
   const callback = (result: any) => {
     if (result?.success) {

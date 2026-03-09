@@ -8,6 +8,9 @@ import { flightsFormatter } from '../common/formatters/flightsFormatter';
 import { isSeedingEnabled } from './seeding/seedingState';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
+import { tournamentEngine } from 'tods-competition-factory';
+import { context } from 'services/context';
+import { PARTICIPANTS } from 'constants/tmxConstants';
 import { numericEditor } from '../common/editors/numericEditor';
 import { cellBorder } from '../common/formatters/cellBorder';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -38,16 +41,18 @@ export function getEntriesColumns(
 ): any[] {
   const teams = entries.find((entry) => entry.participant?.teams?.length);
   const ratingColumns = getRatingColumns(entries, 'entry');
-  const cityState = entries.find((entry) => entry.cityState);
+  const hasDrawPosition = entries.some((entry) => entry.drawPosition);
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
 
   return [
     {
-      cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
+      cellClick: (_: Event, cell: any) => {
+        const rowData = cell.getRow().getData();
+        if (!drawCreated || !rowData.drawPosition) cell.getRow().toggleSelect();
+      },
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
-      visible: !drawCreated,
       headerSort: false,
       responsive: false,
       hozAlign: LEFT,
@@ -70,7 +75,8 @@ export function getEntriesColumns(
       width: 50,
     },
     {
-      formatter: (cell: any) => (formatParticipant(undefined) as any)(cell, undefined, 'sideBySide'),
+      formatter: (cell: any) =>
+        (formatParticipant(undefined, { participantDetail: 'ADDRESS' }) as any)(cell, undefined, 'sideBySide'),
       field: 'participant',
       responsive: false,
       resizable: false,
@@ -90,18 +96,13 @@ export function getEntriesColumns(
     ...ratingColumns,
     {
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
-      formatter: teamsFormatter(() => console.log('boo')),
+      formatter: teamsFormatter(() => {
+        const tournamentId = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+        if (tournamentId) context.router?.navigate(`/tournament/${tournamentId}/${PARTICIPANTS}/TEAM`);
+      }),
       field: 'participant.teams',
       visible: !!teams,
       title: t('tables.entries.teams'),
-      responsive: false,
-      resizable: false,
-      minWidth: 100,
-    },
-    {
-      visible: !!cityState,
-      title: t('tables.entries.cityState'),
-      field: 'cityState',
       responsive: false,
       resizable: false,
       minWidth: 100,
@@ -124,6 +125,16 @@ export function getEntriesColumns(
       maxWidth: 70,
     },
     {
+      sorterParams: { alignEmptyValues: 'bottom' },
+      visible: !!hasDrawPosition,
+      field: 'drawPosition',
+      hozAlign: CENTER,
+      resizable: false,
+      sorter: 'number',
+      title: t('tables.entries.drawPosition'),
+      maxWidth: 70,
+    },
+    {
       formatter: flightsFormatter(navigateToEvent),
       title: t('tables.entries.flights'),
       responsive: true,
@@ -140,6 +151,7 @@ export function getEntriesColumns(
     },
     {
       cellClick: entryActions(actions, eventId || '', drawId),
+      visible: !drawCreated,
       formatter: threeDots,
       responsive: false,
       headerSort: false,

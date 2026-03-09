@@ -14,6 +14,8 @@ const { QUALIFYING } = drawDefinitionConstants;
 type MapEntryParams = {
   entry: any;
   derivedDrawInfo?: any;
+  participantDrawsMap?: Record<string, { drawId: string; drawName: string }[]>;
+  drawPositionMap?: Record<string, number>;
   participants?: any[];
   participant?: any;
   eventType: string;
@@ -24,6 +26,8 @@ type MapEntryParams = {
 export function mapEntry({
   entry,
   derivedDrawInfo,
+  participantDrawsMap,
+  drawPositionMap,
   participants,
   participant,
   eventType,
@@ -31,10 +35,13 @@ export function mapEntry({
   eventId,
 }: MapEntryParams): any {
   participant = participant || participants?.find((p) => p.participantId === entry.participantId);
-  const flights =
+
+  // Use participantDrawsMap (built from drawDefinition entries) if available,
+  // otherwise fall back to participant.draws from the factory
+  const flights = participantDrawsMap?.[entry.participantId] ??
     participant?.draws
       ?.filter((flight: any) => flight.eventId === eventId)
-      .map((flight: any) => ({ ...flight, drawName: derivedDrawInfo[flight.drawId].drawName })) ?? [];
+      .map((flight: any) => ({ ...flight, drawName: derivedDrawInfo?.[flight.drawId]?.drawName })) ?? [];
   const address = participant?.person?.addresses?.[0];
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
 
@@ -62,9 +69,11 @@ export function mapEntry({
   )?.scaleValue;
 
   const status = (entryStatusMapping as any)[entry.entryStatus];
+  const drawPosition = drawPositionMap?.[entry.participantId];
 
   return {
     searchText: participant?.participantName.toLowerCase(),
+    drawPosition,
     participant,
     seedNumber,
     cityState,

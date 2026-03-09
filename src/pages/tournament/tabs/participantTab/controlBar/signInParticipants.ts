@@ -6,7 +6,8 @@ import { MODIFY_SIGN_IN_STATUS } from 'constants/mutationConstants';
 const { SIGNED_IN } = participantConstants;
 
 export function signInParticipants(table: any): void {
-  const selected = table.getSelectedData();
+  const activeIds = new Set(table.getData('active').map((a: any) => a.participantId));
+  const selected = table.getSelectedData().filter((s: any) => activeIds.has(s.participantId));
   const participantIds = selected.map(({ participantId }: any) => participantId);
 
   const methods = [
