@@ -13,7 +13,9 @@ const { ALTERNATE, DIRECT_ACCEPTANCE, WITHDRAWN, UNGROUPED } = entryStatusConsta
 const { QUALIFYING } = drawDefinitionConstants;
 
 export const entryActions = (actions: string[], eventId: string, drawId?: string) => (e: MouseEvent, cell: any): void => {
-  const { participant } = cell.getRow().getData();
+  const rowData = cell.getRow().getData();
+  const { participant } = rowData;
+  const hasDrawPosition = !!rowData.drawPosition;
 
   const modifyEntryStatus = (group: string) => () => {
     const callback = (result: any) => {
@@ -41,6 +43,10 @@ export const entryActions = (actions: string[], eventId: string, drawId?: string
     console.log({ result });
   };
 
+  // When a participant has a draw position, moving to alternates or withdrawing
+  // would fail because the participant is already placed in the draw
+  const blockedByDrawPosition = hasDrawPosition ? [ALTERNATE, WITHDRAWN] : [];
+
   const options = [
     {
       onClick: modifyEntryStatus(DIRECT_ACCEPTANCE),
@@ -67,7 +73,7 @@ export const entryActions = (actions: string[], eventId: string, drawId?: string
       option: 'Withdraw participant',
       action: WITHDRAWN
     }
-  ].filter((option) => actions.includes(option.action));
+  ].filter((option) => actions.includes(option.action) && !blockedByDrawPosition.includes(option.action));
 
   if (options.length) {
     const target = e.target as HTMLElement;

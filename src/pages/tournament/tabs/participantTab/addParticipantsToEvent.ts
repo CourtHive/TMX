@@ -26,8 +26,10 @@ export function addParticipantsToEvent({
   callback,
 }: AddParticipantsToEventParams): void {
   const selected = table.getSelectedData();
+  const activeIds = new Set(table.getData('active').map((a: any) => a.participantId));
   const { eventId, eventName, eventType } = event;
   const participantIds = selected
+    .filter((p: any) => activeIds.has(p.participantId))
     .filter((p: any) => !p.events.map((e: any) => e.eventId).includes(eventId))
     .map(({ participantId }: any) => participantId);
 

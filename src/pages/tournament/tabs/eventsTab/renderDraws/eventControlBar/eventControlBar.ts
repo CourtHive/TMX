@@ -2,7 +2,7 @@
  * Event draw control bar with participant filtering.
  * Renders control bar with search and actions for event draw views.
  */
-import { tournamentEngine, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import { getEventControlItems } from './eventControlItems';
 import { context } from 'services/context';
@@ -14,9 +14,6 @@ export function eventControlBar({ eventId, drawId, structureId, updateDisplay }:
   const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;
-  const structure = structures.find((s: any) => s.structureId === structureId);
-  const { roundMatchUps } = tools.makeDeepCopy(structure || {});
-  const matchUps = Object.values(roundMatchUps || {}).flat();
 
   let participantFilter: string | undefined;
 
@@ -41,8 +38,6 @@ export function eventControlBar({ eventId, drawId, structureId, updateDisplay }:
     updateParticipantFilter,
     structureId,
     eventData,
-    drawData,
-    matchUps,
     eventId,
     drawId,
   });

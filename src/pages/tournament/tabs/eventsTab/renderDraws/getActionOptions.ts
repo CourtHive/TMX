@@ -6,20 +6,20 @@ import { tournamentEngine, eventConstants, policyConstants, drawDefinitionConsta
 import { t } from 'i18n';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
-import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { resetDraws } from 'components/modals/resetDraws';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { editMatchUpFormat } from './editMatchUpFormat';
 import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
+import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+import { renderDrawView } from './renderDrawView';
 import { env } from 'settings/env';
 
 // constants
-import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD } from 'constants/mutationConstants';
+import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 
 const { POLICY_TYPE_SCORING } = policyConstants;
@@ -27,7 +27,6 @@ const { MAIN } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
 
 interface ActionOptionsParams {
-  structureName: string;
   dualMatchUp?: any;
   structureId: string;
   eventData: any;
@@ -36,7 +35,6 @@ interface ActionOptionsParams {
 }
 
 export function getActionOptions({
-  structureName,
   dualMatchUp,
   structureId,
   eventData,
@@ -65,6 +63,13 @@ export function getActionOptions({
   // to avoid propagation issues with qualifying or playoff structures
   const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
 
+  // Check position assignments for menu item visibility
+  const { positionAssignments } = tournamentEngine.getPositionAssignments({ structureId, drawId });
+  const isEmptyDraw = positionAssignments?.every(
+    (pa: any) => !pa.participantId && !pa.bye && !pa.qualifier,
+  );
+  const hasUnassignedPositions = positionAssignments?.some((pa: any) => !pa.participantId && !pa.bye);
+
   const scorecardUpdated = () => {
     const matchUpId = dualMatchUp.matchUpId;
     const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
@@ -76,10 +81,64 @@ export function getActionOptions({
 
   const options = [
     {
-      // Only show for MAIN stage with stageSequence 1, and when not blocked by scores or TEAM event
-      hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM,
+      onClick: () =>
+        editDisplaySettings({
+          drawId,
+          eventId,
+          callback: () => renderDrawView({ eventId, drawId, structureId }),
+        }),
+      label: t('pages.events.actionOptions.displaySettings'),
+      close: true,
+    },
+    {
+      // Hide when: not main stage, blocked by scores, TEAM event, or button already visible in control bar
+      hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM || hasUnassignedPositions,
       onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.assignParticipants'),
+      close: true,
+    },
+    {
+      hide: !isMainStage || !isEmptyDraw,
+      onClick: () => {
+        const result = tournamentEngine.automatedPositioning({
+          applyPositioning: false,
+          structureId,
+          drawId,
+        });
+
+        if (!result.success || !result.positionAssignments?.length) {
+          tmxToast({
+            message: result.error?.message || 'No position assignments generated',
+            intent: 'is-warning',
+          });
+          return;
+        }
+
+        const methods = [
+          {
+            method: SET_POSITION_ASSIGNMENTS,
+            params: {
+              structurePositionAssignments: [{ structureId, positionAssignments: result.positionAssignments }],
+              structureId,
+              drawId,
+            },
+          },
+        ];
+
+        const postMutation = (mutationResult: any) => {
+          if (mutationResult.success) {
+            renderDrawView({ eventId, drawId, structureId });
+          } else {
+            tmxToast({
+              message: mutationResult.error?.message || 'Failed to place participants',
+              intent: 'is-danger',
+            });
+          }
+        };
+
+        mutationRequest({ methods, callback: postMutation });
+      },
+      label: t('pages.events.actionOptions.autoPlaceParticipants'),
       close: true,
     },
     {
@@ -87,12 +146,6 @@ export function getActionOptions({
       onClick: () =>
         updateTieFormat({ matchUpId: dualMatchUp.matchUpId, structureId, eventId, drawId, callback: scorecardUpdated }),
       label: t('pages.events.actionOptions.editScorecard'),
-      close: true,
-    },
-    {
-      hide: eventData.eventInfo.eventType === TEAM,
-      onClick: () => editMatchUpFormat({ structureId, drawId }),
-      label: t('pages.events.actionOptions.editScoring', { name: structureName }),
       close: true,
     },
     {
@@ -105,11 +158,6 @@ export function getActionOptions({
       hide: !env.pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => printDraw({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.printDraw'),
-      close: true,
-    },
-    {
-      onClick: () => navigateToTopology({ eventId, drawId, readOnly: true }),
-      label: t('pages.events.actionOptions.viewTopology'),
       close: true,
     },
     {

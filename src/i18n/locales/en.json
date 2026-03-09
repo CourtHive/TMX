@@ -940,7 +940,14 @@
       "title": "Add round",
       "confirmSelection": "Confirm player selection",
       "addRound": "Add round",
-      "levelOfPlay": "Level of play"
+      "addRounds": "Add rounds",
+      "levelOfPlay": "Level of play",
+      "levelOfPlayHelp": "Uses participant ratings to generate balanced pairings where opponents are matched by skill level",
+      "roundsCount": "Number of rounds",
+      "dynamicRatings": "Dynamic ratings",
+      "dynamicRatingsHelp": "Recalculate participant ratings after each round based on match results",
+      "teamAvoidance": "Team avoidance",
+      "teamAvoidanceHelp": "Prevent participants from the same team from being paired against each other"
     },
     "selectParticipant": {
       "assignAlternate": "Assign alternate",
@@ -1109,7 +1116,8 @@
     },
     "deleteParticipants": {
       "title": "Delete participants",
-      "content": "Delete {{count}} participants?"
+      "content": "Delete {{count}} participants?",
+      "inDraws": "{{count}} participants are assigned to draws and cannot be deleted."
     },
     "removeStructure": {
       "title": "Remove structure",
@@ -1235,7 +1243,29 @@
       "generateFlight": "Generate flight",
       "configureDraw": "Configure draw",
       "customScorecard": "Custom scorecard",
-      "invalidDrawSize": "Invalid draw size"
+      "invalidDrawSize": "Invalid draw size",
+      "roundsCount": "Rounds to generate",
+      "ratingScale": "Rating scale",
+      "dynamicRatings": "Dynamic ratings",
+      "teamAvoidance": "Team avoidance",
+      "drawTypeInfo": "Draw Type Info",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "Standard knockout bracket where each loss eliminates a participant from the draw.",
+        "ROUND_ROBIN": "All participants play each other within groups; standings determined by win/loss record.",
+        "DRAW_MATIC": "Automated round-by-round pairing using ratings to match participants by skill level, with dynamic rating updates between rounds.",
+        "AD_HOC": "Flexible rounds with manual or automated pairing. No fixed bracket structure.",
+        "COMPASS": "Multi-draw structure with up to 8 direction-named brackets (East/West/North/South/NE/NW/SE/SW) where losers feed into successive consolation draws.",
+        "CURTIS": "Three-draw consolation where losers from the first two rounds feed into consolation brackets.",
+        "DOUBLE_ELIMINATION": "Participants must lose twice to be eliminated; losers drop to a consolation bracket.",
+        "FEED_IN_CHAMPIONSHIP": "Main draw with a feed-in consolation bracket where losers from each round enter.",
+        "FIRST_MATCH_LOSER_CONSOLATION": "First-match losers enter a separate consolation draw.",
+        "FIRST_ROUND_LOSER_CONSOLATION": "First-round losers enter a separate consolation draw.",
+        "LUCKY_DRAW": "Single elimination with randomized advancement for unplayed positions.",
+        "OLYMPIC": "Four-draw Olympic format with consolation and placement brackets.",
+        "PLAY_OFF": "Playoff bracket used as a secondary structure.",
+        "ROUND_ROBIN_WITH_PLAYOFF": "Round robin group stage followed by single elimination playoffs.",
+        "FEED_IN": "Staggered entry draw where participants enter the bracket at different rounds."
+      }
     }
   },
 
@@ -1261,7 +1291,8 @@
     "invalidMatchUpFormat": "Invalid matchUpFormat",
     "missingMethodsArray": "Missing methods array",
     "missingTournament": "Missing tournament",
-    "devVariableError": "An error occurred while adding dev variables"
+    "devVariableError": "An error occurred while adding dev variables",
+    "cannotDeleteParticipant": "Participant is assigned to a draw and cannot be deleted"
   },
 
   "loginMenu": {
@@ -1320,7 +1351,8 @@
       "teams": "Teams",
       "cityState": "City/State",
       "seed": "Seed",
-      "flights": "Flights",
+      "drawPosition": "Pos",
+      "flights": "Draws",
       "status": "Status"
     },
     "teamRow": {
@@ -1403,10 +1435,13 @@
       "date": "Date",
       "court": "Court",
       "time": "Time",
+      "startTime": "Start",
+      "endTime": "End",
       "side1": "Side 1",
       "side2": "Side 2",
       "score": "Score",
       "profile": "Profile",
+      "official": "Official",
       "status": "Status"
     },
     "tournaments": {
@@ -1478,6 +1513,7 @@
         "available": "Available",
         "avgPerCourt": "Avg Avail/Court"
       },
+      "addCourts": "Add courts",
       "addVenue": {
         "title": "Add venue",
         "externalLookup": "External lookup",
@@ -1519,8 +1555,16 @@
     "events": {
       "title": "Events",
       "addEvent": "Add event",
+      "addDraw": "Add draw",
+      "addFlights": "Add flights",
       "deleteSelected": "Delete selected",
       "searchEvents": "Search events",
+      "draws": "Draws",
+      "entries": "Entries",
+      "rankings": "Rankings",
+      "actions": "Actions",
+      "editEventAction": "Edit event",
+      "displaySettings": "Display settings",
       "editEvent": {
         "titleEdit": "Edit event",
         "titleAdd": "Add event",
@@ -1547,7 +1591,10 @@
         "cannotRemoveScores": "Cannot remove when scores are present",
         "removePlayers": "Remove players",
         "clearResults": "Clear results",
-        "viewTopology": "View Topology"
+        "viewTopology": "View Topology",
+        "viewDraw": "View Draw",
+        "displaySettings": "Display settings",
+        "autoPlaceParticipants": "Auto place participants"
       }
     },
     "participants": {

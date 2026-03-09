@@ -10,6 +10,7 @@ export const ADD_EVENT_ENTRIES = 'addEventEntries';
 export const ADD_EVENT_ENTRY_PAIRS = 'addEventEntryPairs';
 export const ADD_EVENT_EXTENSION = 'addEventExtension';
 export const ADD_INDIVIDUAL_PARTICIPANT_IDS = 'addIndividualParticipantIds';
+export const ADD_MATCHUP_OFFICIAL = 'addMatchUpOfficial';
 export const ADD_MATCHUP_SCHEDULE_ITEMS = 'addMatchUpScheduleItems';
 export const ADD_ONLINE_RESOURCE = 'addOnlineResource';
 export const ADD_PARTICIPANTS = 'addParticipants';

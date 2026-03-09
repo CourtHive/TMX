@@ -901,7 +901,14 @@
       "title": "Runde hinzufügen",
       "confirmSelection": "Spielerauswahl bestätigen",
       "addRound": "Runde hinzufügen",
-      "levelOfPlay": "Spielniveau"
+      "levelOfPlay": "Spielniveau",
+      "addRounds": "Runden hinzufügen",
+      "levelOfPlayHelp": "Verwendet Teilnehmerbewertungen, um ausgewogene Paarungen zu erstellen, bei denen Gegner nach Spielstärke zusammengestellt werden",
+      "roundsCount": "Anzahl der Runden",
+      "dynamicRatings": "Dynamische Bewertungen",
+      "dynamicRatingsHelp": "Teilnehmerbewertungen nach jeder Runde basierend auf Spielergebnissen neu berechnen",
+      "teamAvoidance": "Teamvermeidung",
+      "teamAvoidanceHelp": "Verhindern, dass Teilnehmer desselben Teams gegeneinander antreten"
     },
     "selectParticipant": {
       "assignAlternate": "Nachrücker zuweisen",
@@ -1069,7 +1076,8 @@
     },
     "deleteParticipants": {
       "title": "Teilnehmer löschen",
-      "content": "{{count}} Teilnehmer löschen?"
+      "content": "{{count}} Teilnehmer löschen?",
+      "inDraws": "{{count}} Teilnehmer sind Auslosungen zugeordnet und können nicht gelöscht werden."
     },
     "removeStructure": {
       "title": "Struktur entfernen",
@@ -1195,7 +1203,29 @@
       "generateFlight": "Flight generieren",
       "configureDraw": "Auslosung konfigurieren",
       "customScorecard": "Benutzerdefinierte Scorecard",
-      "invalidDrawSize": "Ungültige Auslosungsgröße"
+      "invalidDrawSize": "Ungültige Auslosungsgröße",
+      "roundsCount": "Zu generierende Runden",
+      "ratingScale": "Bewertungsskala",
+      "dynamicRatings": "Dynamische Bewertungen",
+      "teamAvoidance": "Teamvermeidung",
+      "drawTypeInfo": "Auslosungstyp-Info",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "Standard-K.-o.-Raster, bei dem jede Niederlage einen Teilnehmer aus der Auslosung eliminiert.",
+        "ROUND_ROBIN": "Alle Teilnehmer spielen innerhalb von Gruppen gegeneinander; die Platzierung wird durch Sieg/Niederlage bestimmt.",
+        "DRAW_MATIC": "Automatisierte rundenweise Paarung unter Verwendung von Bewertungen zur Abstimmung der Teilnehmer nach Spielstärke, mit dynamischen Bewertungsaktualisierungen zwischen den Runden.",
+        "AD_HOC": "Flexible Runden mit manueller oder automatisierter Paarung. Keine feste Rasterstruktur.",
+        "COMPASS": "Mehrrasterstruktur mit bis zu 8 richtungsbenannten Rastern (Ost/West/Nord/Süd/NO/NW/SO/SW), bei der Verlierer in aufeinanderfolgende Trostrunden eingespeist werden.",
+        "CURTIS": "Drei-Raster-Trostauslosung, bei der Verlierer der ersten beiden Runden in Trostraster eingespeist werden.",
+        "DOUBLE_ELIMINATION": "Teilnehmer müssen zweimal verlieren, um eliminiert zu werden; Verlierer fallen in ein Trostraster.",
+        "FEED_IN_CHAMPIONSHIP": "Hauptraster mit einem Feed-in-Trostraster, in das Verlierer jeder Runde eintreten.",
+        "FIRST_MATCH_LOSER_CONSOLATION": "Verlierer des ersten Spiels treten in eine separate Trostauslosung ein.",
+        "FIRST_ROUND_LOSER_CONSOLATION": "Verlierer der ersten Runde treten in eine separate Trostauslosung ein.",
+        "LUCKY_DRAW": "K.-o.-Auslosung mit zufälligem Weiterkommen bei nicht ausgetragenen Positionen.",
+        "OLYMPIC": "Vier-Raster-Olympiaformat mit Trost- und Platzierungsrastern.",
+        "PLAY_OFF": "Playoff-Raster als sekundäre Struktur.",
+        "ROUND_ROBIN_WITH_PLAYOFF": "Gruppenphase im Rundensystem, gefolgt von K.-o.-Playoffs.",
+        "FEED_IN": "Gestaffelte Auslosung, bei der Teilnehmer in verschiedenen Runden ins Raster eintreten."
+      }
     }
   },
 
@@ -1221,7 +1251,8 @@
     "invalidMatchUpFormat": "Ungültiges matchUpFormat",
     "missingMethodsArray": "Fehlendes Methods-Array",
     "missingTournament": "Fehlendes Turnier",
-    "devVariableError": "Beim Hinzufügen von Entwicklungsvariablen ist ein Fehler aufgetreten"
+    "devVariableError": "Beim Hinzufügen von Entwicklungsvariablen ist ein Fehler aufgetreten",
+    "cannotDeleteParticipant": "Teilnehmer ist einer Auslosung zugeordnet und kann nicht gelöscht werden"
   },
 
   "loginMenu": {
@@ -1363,10 +1394,13 @@
       "date": "Datum",
       "court": "Platz",
       "time": "Zeit",
+      "startTime": "Start",
+      "endTime": "Ende",
       "side1": "Seite 1",
       "side2": "Seite 2",
       "score": "Ergebnis",
       "profile": "Profil",
+      "official": "Schiedsrichter",
       "status": "Status"
     },
     "tournaments": {
@@ -1437,6 +1471,7 @@
         "available": "Verfügbar",
         "avgPerCourt": "Ø Verfügbar/Platz"
       },
+      "addCourts": "Plätze hinzufügen",
       "addVenue": {
         "title": "Anlage hinzufügen",
         "venueName": "Anlagenname",
@@ -1473,6 +1508,14 @@
       "addEvent": "Bewerb hinzufügen",
       "deleteSelected": "Ausgewählte löschen",
       "searchEvents": "Bewerbe suchen",
+      "draws": "Draws",
+      "entries": "Entries",
+      "rankings": "Rankings",
+      "actions": "Actions",
+      "addDraw": "Add draw",
+      "addFlights": "Add flights",
+      "editEventAction": "Edit event",
+      "displaySettings": "Display settings",
       "editEvent": {
         "titleEdit": "Bewerb bearbeiten",
         "titleAdd": "Bewerb hinzufügen",
@@ -1499,7 +1542,10 @@
         "cannotRemoveScores": "Kann nicht entfernt werden, wenn Ergebnisse vorhanden sind",
         "removePlayers": "Spieler entfernen",
         "clearResults": "Ergebnisse löschen",
-        "viewTopology": "Topologie anzeigen"
+        "viewTopology": "Topologie anzeigen",
+        "viewDraw": "Auslosung anzeigen",
+        "displaySettings": "Anzeigeeinstellungen",
+        "autoPlaceParticipants": "Teilnehmer automatisch platzieren"
       }
     },
     "participants": {

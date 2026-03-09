@@ -19,7 +19,8 @@ type GetAddToGroupingSelectionParams = {
 export function getAddToGroupingSelection({ participants, table, replaceTableData, participantType = TEAM }: GetAddToGroupingSelectionParams): any {
   const addToTeam = ({ team }: { team: any }) => {
     const selected = table.getSelectedData();
-    const individualParticipantIds = selected.map(({ participantId }: any) => participantId);
+    const activeIds = new Set(table.getData('active').map((a: any) => a.participantId));
+    const individualParticipantIds = selected.filter((s: any) => activeIds.has(s.participantId)).map(({ participantId }: any) => participantId);
     table.deselectRow();
 
     const methods = [
@@ -40,7 +41,8 @@ export function getAddToGroupingSelection({ participants, table, replaceTableDat
   const createNewGrouping = () => {
     const title = participantType === TEAM ? 'New team' : 'New Group';
     const selected = table.getSelectedData();
-    const individualParticipantIds = selected.map(({ participantId }: any) => participantId);
+    const activeIds = new Set(table.getData('active').map((a: any) => a.participantId));
+    const individualParticipantIds = selected.filter((s: any) => activeIds.has(s.participantId)).map(({ participantId }: any) => participantId);
     (editGroupingParticipant as any)({
       refresh: replaceTableData,
       individualParticipantIds,

@@ -345,7 +345,7 @@ function updateControlBarForAssignment({
       label: 'Exit Assignment Mode',
       icon: 'fa fa-times-circle',
       onClick: () => exitParticipantAssignmentMode({ drawId, eventId, structureId }),
-      intent: 'is-warning',
+      intent: 'is-primary',
     },
   ];
 

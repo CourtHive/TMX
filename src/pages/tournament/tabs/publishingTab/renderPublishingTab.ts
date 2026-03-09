@@ -14,6 +14,7 @@ import { renderEmbargoSummary } from './embargoSummary';
 import { renderQRimage, getQRuri } from 'services/qrFx';
 import { downloadURI } from 'services/export/download';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 import { t } from 'i18n';
 
 import { TOURNAMENT_PUBLISHING } from 'constants/tmxConstants';
@@ -300,7 +301,7 @@ export function renderPublishingTab(): void {
 
   const state = getLoginState();
   const activeProvider = context.provider || state?.provider;
-  const canPublish = !!state && !!activeProvider;
+  const canPublish = env.usePublishState || (!!state && !!activeProvider);
 
   if (!canPublish) {
     const banner = document.createElement('div');

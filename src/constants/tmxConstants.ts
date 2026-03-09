@@ -123,6 +123,11 @@ export const DRAW_LEFT = 'drawLeft';
 export const ENTRIES_VIEW = 'entriesView';
 export const DRAWS_VIEW = 'drawsView';
 
+export const EVENT_SELECTOR = 'eventSelector';
+export const EVENT_SELECTOR_TABLE = 'eventSelectorTable';
+export const EVENT_TABS_BAR = 'eventTabsBar';
+export const EVENT_TAB_CONTENT = 'eventTabContent';
+
 export const QUALIFYING = 'QUALIFYING';
 export const ACCEPTED = 'ACCEPTED';
 
@@ -225,9 +230,17 @@ export const ROUNDS_STATS = 'roundsStats';
 export const ROUNDS_TABLE = 'roundsTable';
 export const ROUNDS_BRACKET = 'roundsBracket';
 export const ROUNDS_TOPOLOGY = 'roundsTopology';
+export const POINTS_VIEW = 'pointsView';
 
 export const UTR = 'utr';
 export const WTN = 'wtn';
+
+export const DRAW_MATIC = 'DRAW_MATIC';
+export const ROUNDS_COUNT = 'roundsCount';
+export const DYNAMIC_RATINGS = 'dynamicRatings';
+export const TEAM_AVOIDANCE = 'teamAvoidance';
+export const RATING_SCALE = 'ratingScale';
+export const ROUNDS_RATINGS = 'roundsRatings';
 
 export const SYSTEM = 'system';
 export const PROVIDERS_TAB = 'providers';

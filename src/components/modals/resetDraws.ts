@@ -2,7 +2,7 @@
  * Reset draw definitions modal with audit reason.
  * Validates word count and resets draw to initial state with mutation.
  */
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
@@ -14,30 +14,41 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   const eventId = eventData.eventInfo.eventId;
   const drawName =
     drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
-  const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
+  const modalTitle = drawName ? `Reset ${drawName}` : 'Reset draws';
 
   let inputs: any;
-  const deleteAction = () => {
-    const auditData = { auditReason: inputs['drawDeletionReason'].value };
+  const resetAction = () => {
+    const auditData = { auditReason: inputs['drawResetReason'].value };
+    const removeAssignments = inputs['removeAssignments']?.checked ?? false;
     const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData },
+      params: { eventId, drawId, auditData, removeAssignments },
       method: RESET_DRAW_DEFINITION,
     }));
-    const postMutation = (result: any) => result.success && navigateToEvent({ eventId, drawId: drawIds[0] });
+    const postMutation = (result: any) => {
+      if (result.success) {
+        renderEventsTab({ eventId, drawId: drawIds[0], renderDraw: true });
+      }
+    };
     mutationRequest({ methods, callback: postMutation });
   };
   const items = [
     {
-      text: `Please provide a reason for resetting draws.`,
+      text: `Please provide a reason for resetting the draw.`,
       style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
     {
       placeholder: 'Explanation',
-      field: 'drawDeletionReason',
+      field: 'drawResetReason',
       validator: validators.wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
       focus: true,
+    },
+    {
+      label: 'Remove all position assignments',
+      field: 'removeAssignments',
+      id: 'removeAssignments',
+      checkbox: true,
     },
     {
       text: `This action cannot be undone!`,
@@ -45,14 +56,14 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     },
   ];
   const enableSubmit = ({ inputs }: any) => {
-    const value = inputs['drawDeletionReason'].value;
+    const value = inputs['drawResetReason'].value;
     const isValid = validators.wordValidator(5)(value);
-    const deleteButton = document.getElementById('deleteDraw');
-    if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
+    const resetButton = document.getElementById('resetDraw');
+    if (resetButton) (resetButton as HTMLButtonElement).disabled = !isValid;
   };
   const relationships = [
     {
-      control: 'drawDeletionReason',
+      control: 'drawResetReason',
       onInput: enableSubmit,
     },
   ];
@@ -63,7 +74,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteDraw', disabled: true, intent: 'is-danger', close: true, onClick: deleteAction },
+      { label: 'Reset', id: 'resetDraw', disabled: true, intent: 'is-warning', close: true, onClick: resetAction },
     ],
   });
 }

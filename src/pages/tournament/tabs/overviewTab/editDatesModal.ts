@@ -45,8 +45,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
 
   const toggleActiveDates = ({ inputs }: any) => {
     const show = inputs.activeDateSelector.checked;
-    const activeDates = document.getElementById('activeDates');
-    const fieldParent = getParent(activeDates, 'field') as any;
+    const fieldParent = getParent(inputs.activeDates, 'field') as any;
     if (fieldParent?.parent) fieldParent.parent.style.display = show ? 'block' : 'none';
   };
 
@@ -69,7 +68,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       visible: !existingActiveDates.length,
       label: t('drawers.editTournament.selectActiveDates'),
       field: 'activeDateSelector',
-      id: 'activeDateSelector',
+      id: 'modalActiveDateSelector',
       checkbox: true,
     },
     {
@@ -81,7 +80,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       label: t('drawers.editTournament.activeDates'),
       maxNumberOfDates: 10,
       field: 'activeDates',
-      id: 'activeDates',
+      id: 'modalActiveDates',
       date: true,
       language: i18next.language,
     },

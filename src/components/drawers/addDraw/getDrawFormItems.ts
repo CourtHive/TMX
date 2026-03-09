@@ -11,6 +11,7 @@ import {
   tournamentEngine,
   eventConstants,
   policyConstants,
+  fixtures,
   tools,
 } from 'tods-competition-factory';
 
@@ -22,6 +23,7 @@ import {
   DRAW_NAME,
   DRAW_SIZE,
   DRAW_TYPE,
+  DYNAMIC_RATINGS,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
@@ -29,8 +31,11 @@ import {
   PLAYOFF_TYPE,
   POSITIONS,
   QUALIFIERS_COUNT,
+  RATING_SCALE,
+  ROUNDS_COUNT,
   SEEDING_POLICY,
   STRUCTURE_NAME,
+  TEAM_AVOIDANCE,
   TOP_FINISHERS,
   WINNERS,
 } from 'constants/tmxConstants';
@@ -39,6 +44,7 @@ const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, M
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
 const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
+const { SINGLES } = factoryConstants.eventConstants;
 const { TEAM } = eventConstants;
 
 const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
@@ -129,6 +135,34 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     { label: MANUAL, value: false, selected: structureId },
   ];
 
+  // Discover available rating scales for DrawMatic configuration
+  const { ratingsParameters } = fixtures;
+  const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const presentRatings = new Set<string>();
+  for (const p of allParticipants) {
+    for (const item of (p as any).ratings?.[SINGLES] || []) {
+      presentRatings.add(item.scaleName);
+    }
+  }
+  const activeRatingKeys = Object.keys(ratingsParameters).filter(
+    (key) => !(ratingsParameters as any)[key].deprecated && presentRatings.has(key),
+  );
+  const ratingScaleOptions = [
+    { label: '--Off--', value: '', selected: true },
+    ...activeRatingKeys.map((key) => ({ label: key, value: key.toLowerCase() })),
+  ];
+
+  const roundsCountOptions = [
+    { label: '1', value: 1, selected: true },
+    { label: '2', value: 2 },
+    { label: '3', value: 3 },
+    { label: '4', value: 4 },
+    { label: '5', value: 5 },
+    { label: '6', value: 6 },
+    { label: '7', value: 7 },
+    { label: '8', value: 8 },
+  ];
+
   const items = [
     {
       error: 'minimum of 4 characters',
@@ -197,6 +231,31 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       label: 'Creation',
       field: AUTOMATED,
       value: '',
+    },
+    {
+      options: roundsCountOptions,
+      label: 'Rounds to generate',
+      field: ROUNDS_COUNT,
+      value: 1,
+      visible: false,
+    },
+    {
+      options: ratingScaleOptions,
+      label: 'Rating scale',
+      field: RATING_SCALE,
+      visible: false,
+    },
+    {
+      label: 'Dynamic ratings',
+      field: DYNAMIC_RATINGS,
+      checkbox: true,
+      visible: false,
+    },
+    {
+      label: 'Team avoidance',
+      field: TEAM_AVOIDANCE,
+      checkbox: true,
+      visible: false,
     },
     {
       hide: event.eventType === TEAM,

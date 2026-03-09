@@ -2,13 +2,18 @@
  * Event control bar items configuration.
  * Provides search, event/draw/structure navigation, and action options.
  */
+import { drawDefinitionConstants, eventConstants } from 'tods-competition-factory';
+import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
+import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
 import { getStructureOptions } from '../getStructureOptions';
-import { eventConstants } from 'tods-competition-factory';
-import { getActionOptions } from '../getActionOptions';
+import { editMatchUpFormat } from '../editMatchUpFormat';
 import { getDrawsOptions } from '../getDrawsOptions';
-import { getEventOptions } from '../getEventOptions';
+import { renderDrawView } from '../renderDrawView';
+import { t } from 'i18n';
 
 import { LEFT, RIGHT } from 'constants/tmxConstants';
+
+const { MAIN } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
 
 export function getEventControlItems({
@@ -16,7 +21,6 @@ export function getEventControlItems({
   updateControlBar,
   structureId,
   eventData,
-  matchUps,
   eventId,
   drawId,
 }: {
@@ -24,16 +28,14 @@ export function getEventControlItems({
   updateControlBar: (refresh?: boolean) => void;
   structureId: string;
   eventData: any;
-  matchUps: any[];
   eventId: string;
   drawId: string;
 }): any[] {
-  const { eventOptions } = (getEventOptions as any)({ eventId, drawId });
-  const drawsOptions = getDrawsOptions({ eventData, drawId });
+  const drawsOptions = getDrawsOptions({ eventData });
 
   const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
   const structureName = drawData?.structures?.find((s: any) => s.structureId === structureId)?.structureName;
-  const dual = matchUps?.length === 1 && eventData.eventInfo.eventType === TEAM;
+  const structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
   const structureOptions = getStructureOptions({
     updateControlBar,
@@ -41,16 +43,10 @@ export function getEventControlItems({
     drawData,
     eventId,
   });
-  const actionOptions = (getActionOptions as any)({
-    dualMatchUp: dual && matchUps[0],
-    structureName,
-    structureId,
-    eventData,
-    drawData,
-    drawId,
-  });
 
-  return [
+  const isTeam = eventData?.eventInfo?.eventType === TEAM;
+
+  const items: any[] = [
     {
       onKeyDown: (e: KeyboardEvent) =>
         e.key === 'Backspace' && (e.target as HTMLInputElement).value.length === 1 && updateParticipantFilter(''),
@@ -60,12 +56,6 @@ export function getEventControlItems({
       placeholder: 'Participant name',
       location: LEFT,
       search: true,
-    },
-    {
-      options: eventOptions.length > 1 ? eventOptions : undefined,
-      label: eventData.eventInfo.eventName,
-      modifyLabel: true,
-      location: LEFT,
     },
     {
       options: drawsOptions.length > 1 ? drawsOptions : undefined,
@@ -79,12 +69,79 @@ export function getEventControlItems({
       modifyLabel: true,
       location: LEFT,
     },
-    {
-      options: actionOptions,
-      intent: 'is-info',
-      label: 'Actions',
+  ];
+
+  // RIGHT side icon buttons (order: scoring, topology, then assign participants furthest right)
+
+  // Edit main scoring (non-TEAM events only)
+  if (!isTeam) {
+    items.push({
+      onClick: () => editMatchUpFormat({ structureId, drawId }),
+      label: '<i class="fa-solid fa-gear"></i>',
+      toolTip: { content: t('pages.events.actionOptions.editScoring', { name: structureName }), placement: 'bottom' },
       location: RIGHT,
-      align: RIGHT,
+    });
+  }
+
+  // View topology
+  items.push({
+    onClick: () => renderInlineTopology({ eventId, drawId, structureId }),
+    label: '<i class="fa-solid fa-sitemap"></i>',
+    toolTip: { content: t('pages.events.actionOptions.viewTopology'), placement: 'bottom' },
+    location: RIGHT,
+  });
+
+  // "Assign participants" button when there are unassigned positions (furthest right)
+  const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
+  if (isMainStage && !isTeam) {
+    const unassignedCount =
+      structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye).length ?? 0;
+    if (unassignedCount > 0) {
+      items.push({
+        onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
+        label: t('pages.events.actionOptions.assignParticipants'),
+        intent: 'is-warning',
+        location: RIGHT,
+      });
+    }
+  }
+
+  return items;
+}
+
+/**
+ * Returns simplified control bar items for topology view mode.
+ * Only shows draw selector on left and "View Draw" button on right.
+ */
+export function getTopologyControlItems({
+  structureId,
+  eventData,
+  eventId,
+  drawId,
+}: {
+  structureId: string;
+  eventData: any;
+  eventId: string;
+  drawId: string;
+}): any[] {
+  const drawsOptions = getDrawsOptions({ eventData });
+  const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
+
+  return [
+    {
+      options: drawsOptions.length > 1 ? drawsOptions : undefined,
+      label: drawData?.drawName,
+      modifyLabel: true,
+      location: LEFT,
+    },
+    {
+      onClick: () => {
+        destroyInlineTopology();
+        renderDrawView({ eventId, drawId, structureId, redraw: true });
+      },
+      label: t('pages.events.actionOptions.viewDraw'),
+      intent: 'is-primary',
+      location: RIGHT,
     },
   ];
 }

@@ -2,13 +2,11 @@
  * Column definitions for events table.
  * Defines columns for event display including name, type, counts, and actions.
  */
-import { openClose, toggleOpenClose } from '../common/formatters/openClose';
+import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { threeDots } from '../common/formatters/threeDots';
-import { eventActions } from '../../popovers/eventActions';
 import { headerMenu } from '../common/headerMenu';
 
-import { CENTER, LEFT, RIGHT } from 'constants/tmxConstants';
+import { CENTER, LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 export function getEventColumns(getLightMode?: () => boolean): any[] {
@@ -17,11 +15,15 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
   const eventDetail = (e: any, cell: any) => {
     e.stopPropagation();
     const eventId = cell.getRow().getData().eventId;
-    navigateToEvent({ eventId });
-  };
-
-  const nameClick = (e: any, cell: any) => {
-    toggleOpenClose(e, cell);
+    const event = tournamentEngine.getEvent({ eventId }).event;
+    const drawDefs = event?.drawDefinitions || [];
+    if (drawDefs.length === 1) {
+      navigateToEvent({ eventId, drawId: drawDefs[0].drawId, renderDraw: true });
+    } else if (drawDefs.length > 1) {
+      navigateToEvent({ eventId, renderDraw: true });
+    } else {
+      navigateToEvent({ eventId });
+    }
   };
 
   return [
@@ -49,7 +51,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     },
     {
       field: 'event.eventName',
-      cellClick: nameClick,
+      cellClick: eventDetail,
       title: t('tables.events.event'),
       minWidth: 200,
       visible: true,
@@ -68,7 +70,10 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     {
       title: '<i class="fa-solid fa-sitemap" />',
       headerTooltip: 'Number of Draws',
-      cellClick: toggleOpenClose,
+      cellClick: (_: any, cell: any) => {
+        const eventId = cell.getRow().getData().eventId;
+        navigateToEvent({ eventId, renderDraw: true });
+      },
       headerHozAlign: CENTER,
       field: 'drawsCount',
       hozAlign: CENTER,
@@ -116,23 +121,6 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
       headerSort: true,
       visible: !isLightMode,
       width: 50,
-    },
-    {
-      cellClick: toggleOpenClose,
-      formatter: openClose,
-      responsive: false,
-      headerSort: false,
-      hozAlign: RIGHT,
-      field: 'isOpen',
-      width: 20,
-    },
-    {
-      cellClick: eventActions(),
-      formatter: threeDots,
-      responsive: false,
-      headerSort: false,
-      hozAlign: RIGHT,
-      width: 20,
     },
   ];
 }

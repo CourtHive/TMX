@@ -42,9 +42,9 @@ export function routeTMX() {
   // make accessible
   context.router = router;
 
-  const displayRoute = ({ selectedTab, renderDraw, data }: any) => {
+  const displayRoute = ({ selectedTab, renderDraw, renderPoints, data }: any) => {
     destroyTables();
-    displayTournament({ config: { selectedTab, renderDraw, ...data } }); // ...data must come last
+    displayTournament({ config: { selectedTab, renderDraw, renderPoints, ...data } }); // ...data must come last
   };
 
   // Topology routes — standalone page, reuses tournament loading
@@ -73,6 +73,9 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId`, (match) => {
     displayRoute({ selectedTab: EVENTS_TAB, data: match?.data });
   });
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/draws`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
+  });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW}/:drawId`, (match) => {
     displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
   });
@@ -88,6 +91,9 @@ export function routeTMX() {
       displayRoute({ selectedTab: EVENTS_TAB, renderDraw: true, data: match?.data });
     },
   );
+  router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/points`, (match) => {
+    displayRoute({ selectedTab: EVENTS_TAB, renderPoints: true, data: match?.data });
+  });
   router.on(`/${TOURNAMENT}/:tournamentId/${EVENT}/:eventId/${DRAW_ENTRIES}/:drawId`, (match) => {
     displayRoute({ selectedTab: EVENTS_TAB, data: match?.data });
   });

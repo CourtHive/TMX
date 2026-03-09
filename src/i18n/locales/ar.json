@@ -873,7 +873,14 @@
       "title": "إضافة جولة",
       "confirmSelection": "تأكيد اختيار اللاعبين",
       "addRound": "إضافة جولة",
-      "levelOfPlay": "مستوى اللعب"
+      "levelOfPlay": "مستوى اللعب",
+      "addRounds": "إضافة جولات",
+      "levelOfPlayHelp": "يستخدم تقييمات المشاركين لإنشاء أزواج متوازنة حيث يتم مطابقة الخصوم حسب مستوى المهارة",
+      "roundsCount": "عدد الجولات",
+      "dynamicRatings": "تقييمات ديناميكية",
+      "dynamicRatingsHelp": "إعادة حساب تقييمات المشاركين بعد كل جولة بناءً على نتائج المباريات",
+      "teamAvoidance": "تجنب الفريق",
+      "teamAvoidanceHelp": "منع المشاركين من نفس الفريق من مواجهة بعضهم البعض"
     },
     "selectParticipant": {
       "assignAlternate": "تعيين بديل",
@@ -1041,7 +1048,8 @@
     },
     "deleteParticipants": {
       "title": "حذف المشاركين",
-      "content": "حذف {{count}} مشارك؟"
+      "content": "حذف {{count}} مشارك؟",
+      "inDraws": "{{count}} مشاركين مسجلين في قرعات ولا يمكن حذفهم."
     },
     "removeStructure": {
       "title": "إزالة الهيكل",
@@ -1166,7 +1174,29 @@
       "generateFlight": "إنشاء مجموعة فرعية",
       "configureDraw": "تكوين القرعة",
       "customScorecard": "بطاقة نتائج مخصصة",
-      "invalidDrawSize": "حجم قرعة غير صالح"
+      "invalidDrawSize": "حجم قرعة غير صالح",
+      "roundsCount": "عدد الجولات المراد إنشاؤها",
+      "ratingScale": "مقياس التقييم",
+      "dynamicRatings": "تقييمات ديناميكية",
+      "teamAvoidance": "تجنب الفريق",
+      "drawTypeInfo": "معلومات نوع القرعة",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "قرعة خروج مباشر حيث تؤدي كل خسارة إلى إقصاء المشارك من القرعة.",
+        "ROUND_ROBIN": "يلعب جميع المشاركين ضد بعضهم البعض ضمن مجموعات؛ يتم تحديد الترتيب بناءً على سجل الفوز/الخسارة.",
+        "DRAW_MATIC": "قرعة آلية جولة بجولة باستخدام التقييمات لمطابقة المشاركين حسب مستوى المهارة، مع تحديثات ديناميكية للتقييمات بين الجولات.",
+        "AD_HOC": "جولات مرنة مع إقران يدوي أو آلي. لا يوجد هيكل قرعة ثابت.",
+        "COMPASS": "هيكل متعدد القرعات يصل إلى 8 أقسام مسماة بالاتجاهات (شرق/غرب/شمال/جنوب/شمال شرقي/شمال غربي/جنوب شرقي/جنوب غربي) حيث ينتقل الخاسرون إلى قرعات عزاء متتالية.",
+        "CURTIS": "عزاء من ثلاث قرعات حيث ينتقل الخاسرون من أول جولتين إلى أقسام العزاء.",
+        "DOUBLE_ELIMINATION": "يجب أن يخسر المشاركون مرتين للإقصاء؛ ينتقل الخاسرون إلى قسم العزاء.",
+        "FEED_IN_CHAMPIONSHIP": "قرعة رئيسية مع قسم عزاء تغذية حيث يدخل الخاسرون من كل جولة.",
+        "FIRST_MATCH_LOSER_CONSOLATION": "خاسرو المباراة الأولى يدخلون قرعة عزاء منفصلة.",
+        "FIRST_ROUND_LOSER_CONSOLATION": "خاسرو الجولة الأولى يدخلون قرعة عزاء منفصلة.",
+        "LUCKY_DRAW": "إقصاء مباشر مع تقدم عشوائي للمواقع غير الملعوبة.",
+        "OLYMPIC": "نظام أولمبي من أربع قرعات مع أقسام عزاء وتحديد المراكز.",
+        "PLAY_OFF": "قسم تصفيات يُستخدم كهيكل ثانوي.",
+        "ROUND_ROBIN_WITH_PLAYOFF": "مرحلة مجموعات دائرية تليها تصفيات إقصاء مباشر.",
+        "FEED_IN": "قرعة دخول متدرج حيث يدخل المشاركون القرعة في جولات مختلفة."
+      }
     }
   },
   "toasts": {
@@ -1191,7 +1221,8 @@
     "invalidMatchUpFormat": "تنسيق مباراة غير صالح",
     "missingMethodsArray": "مصفوفة الطرق مفقودة",
     "missingTournament": "البطولة مفقودة",
-    "devVariableError": "حدث خطأ أثناء إضافة متغيرات التطوير"
+    "devVariableError": "حدث خطأ أثناء إضافة متغيرات التطوير",
+    "cannotDeleteParticipant": "المشارك مسجل في قرعة ولا يمكن حذفه"
   },
   "loginMenu": {
     "authorization": "التفويض",
@@ -1331,10 +1362,13 @@
       "date": "التاريخ",
       "court": "الملعب",
       "time": "الوقت",
+      "startTime": "بداية",
+      "endTime": "نهاية",
       "side1": "الجانب 1",
       "side2": "الجانب 2",
       "score": "النتيجة",
       "profile": "الملف الشخصي",
+      "official": "الحكم",
       "status": "الحالة"
     },
     "tournaments": {
@@ -1404,6 +1438,7 @@
         "available": "متاح",
         "avgPerCourt": "متوسط التوفر/ملعب"
       },
+      "addCourts": "إضافة ملاعب",
       "addVenue": {
         "title": "إضافة مكان",
         "venueName": "اسم المكان",
@@ -1440,6 +1475,14 @@
       "addEvent": "إضافة حدث",
       "deleteSelected": "حذف المحدد",
       "searchEvents": "البحث عن أحداث",
+      "draws": "Draws",
+      "entries": "Entries",
+      "rankings": "Rankings",
+      "actions": "Actions",
+      "addDraw": "Add draw",
+      "addFlights": "Add flights",
+      "editEventAction": "Edit event",
+      "displaySettings": "Display settings",
       "editEvent": {
         "titleEdit": "تعديل الحدث",
         "titleAdd": "إضافة حدث",
@@ -1466,7 +1509,10 @@
         "cannotRemoveScores": "لا يمكن الإزالة عند وجود نتائج",
         "removePlayers": "إزالة اللاعبين",
         "clearResults": "مسح النتائج",
-        "viewTopology": "عرض الطوبولوجيا"
+        "viewTopology": "عرض الطوبولوجيا",
+        "viewDraw": "عرض القرعة",
+        "displaySettings": "إعدادات العرض",
+        "autoPlaceParticipants": "توزيع المشاركين تلقائيًا"
       }
     },
     "participants": {

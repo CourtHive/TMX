@@ -1,57 +1,54 @@
 /**
  * Get draw navigation options for event.
- * Provides menu options to navigate to draws, view entries, add flights, or delete flights.
+ * Provides menu options to navigate to draws or delete flights.
  */
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 
-export function getDrawsOptions({ eventData, drawId }: { eventData: any; drawId?: string }): any[] {
-  const addFlight = () => {
-    const callback = (result: any) => {
-      if (result.drawDefinition) {
-        const structureId = result.drawDefinition.structures?.[0]?.structureId;
-        const eventId = eventData.eventInfo.eventId;
-        const drawId = result.drawDefinition.drawId;
-        navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
-      }
-    };
-    (addDraw as any)({ eventId: eventData.eventInfo.eventId, callback });
-  };
-
+export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const deleteFlights = () => selectAndDeleteEventFlights({ eventData });
 
-  const deleteOption = eventData.drawsData.length > 1 && {
-    onClick: deleteFlights,
-    label: 'Delete flights',
+  const eventId = eventData.eventInfo.eventId;
+
+  // Count total draw items including ungenerated flights
+  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const drawDefs = event?.drawDefinitions || [];
+  const flightProfile = event?.extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const ungeneratedCount = flightProfile?.flights?.filter(
+    (f: any) => !drawDefs.find((dd: any) => dd.drawId === f.drawId),
+  )?.length || 0;
+  const totalDrawItems = eventData.drawsData.length + ungeneratedCount;
+
+  const allDrawsOption = {
+    onClick: () => navigateToEvent({ eventId, renderDraw: true }),
+    label: 'All draws',
     modifyLabel: false,
-    close: true
+    close: true,
   };
 
-  const viewEntries = eventData.drawsData.length && {
-    onClick: () => navigateToEvent({ eventId: eventData.eventInfo.eventId, drawId }),
-    label: 'View entries',
-    modifyLabel: false,
-    close: true
-  };
+  const options: any[] = [allDrawsOption];
 
-  return eventData.drawsData
-    .map((draw: any) => ({
+  for (const draw of eventData.drawsData) {
+    options.push({
       onClick: () => {
         const structureId = draw.structures?.[0]?.structureId;
-        const eventId = eventData.eventInfo.eventId;
         const drawId = draw.drawId;
-
         navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
       },
       label: draw.drawName,
-      close: true
-    }))
-    .concat([
-      { divider: true },
-      viewEntries,
-      deleteOption,
-      { label: 'Add flight', modifyLabel: false, onClick: addFlight }
-    ])
-    .filter(Boolean);
+      close: true,
+    });
+  }
+
+  if (totalDrawItems > 1) {
+    options.push({
+      onClick: deleteFlights,
+      label: 'Delete flights',
+      modifyLabel: false,
+      close: true,
+    });
+  }
+
+  return options;
 }

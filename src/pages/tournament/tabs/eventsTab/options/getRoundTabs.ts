@@ -1,6 +1,6 @@
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
-import { ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
+import { ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_RATINGS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;
 
 export function getRoundTabs({ callback, structure, existingView }) {
@@ -42,6 +42,14 @@ export function getRoundTabs({ callback, structure, existingView }) {
       active: existingView === ROUNDS_STATS,
       onClick: () => displayUpdate(ROUNDS_STATS),
       label: 'Stats',
+      close: true,
+    });
+
+  if (isAdHoc)
+    actionOptions.push({
+      active: existingView === ROUNDS_RATINGS,
+      onClick: () => displayUpdate(ROUNDS_RATINGS),
+      label: 'Ratings',
       close: true,
     });
 

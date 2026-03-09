@@ -23,17 +23,22 @@ import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
   CUSTOM,
+  DRAW_MATIC,
   DRAW_NAME,
   DRAW_SIZE,
   DRAW_TYPE,
+  DYNAMIC_RATINGS,
   GROUP_REMAINING,
   GROUP_SIZE,
   MATCHUP_FORMAT,
   PLAYOFF_TYPE,
   POSITIONS,
   QUALIFIERS_COUNT,
+  RATING_SCALE,
+  ROUNDS_COUNT,
   SEEDING_POLICY,
   STRUCTURE_NAME,
+  TEAM_AVOIDANCE,
   TOP_FINISHERS,
 } from 'constants/tmxConstants';
 
@@ -323,7 +328,9 @@ export function submitDrawParams({
   drawId?: string;
   event: any;
 }): void {
-  const drawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
+  const rawDrawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
+  const isDrawMatic = rawDrawType === DRAW_MATIC;
+  const drawType = isDrawMatic ? AD_HOC : rawDrawType;
   const matchUpFormat = providedMatchUpFormat || inputs[MATCHUP_FORMAT]?.value;
   const selectedSeedingPolicy = inputs[SEEDING_POLICY]?.value;
 
@@ -339,7 +346,7 @@ export function submitDrawParams({
   const drawSizeValue = inputs[DRAW_SIZE].value || 0;
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const drawSize =
-    ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) && drawSizeInteger) ||
+    ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC].includes(drawType) && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
     ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
@@ -366,7 +373,23 @@ export function submitDrawParams({
   const structureOptions = getStructureOptions(drawType, inputs);
 
   if (drawType === AD_HOC) {
-    Object.assign(drawOptions, { roundsCount: 1 });
+    if (isDrawMatic) {
+      const roundsCount = Number.parseInt(inputs[ROUNDS_COUNT]?.value) || 1;
+      const selectedScale = inputs[RATING_SCALE]?.value || '';
+      const dynamicRatings = inputs[DYNAMIC_RATINGS]?.checked || false;
+      const teamAvoidance = inputs[TEAM_AVOIDANCE]?.checked || false;
+      Object.assign(drawOptions, {
+        automated: true,
+        roundsCount,
+        drawMatic: {
+          dynamicRatings,
+          ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
+          ...(teamAvoidance === false && { sameTeamValue: 0 }),
+        },
+      });
+    } else {
+      Object.assign(drawOptions, { roundsCount: 1 });
+    }
   }
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);

@@ -7,6 +7,7 @@ import { compositions, controlBar, renderContainer, renderStructure } from 'cour
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
+import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -25,7 +26,7 @@ import { context } from 'services/context';
 import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
-import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -130,12 +131,16 @@ export function renderDrawView({
 
   const callback = (params?: any) => {
     const { refresh, view } = params ?? {};
-    const redraw = refresh || participantFilter;
-    cleanupDrawPanel();
     if (view) {
+      cleanupDrawPanel();
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
+    } else if (refresh || participantFilter) {
+      // Structural changes (e.g. lucky draw advancement) or active filter: full re-render
+      cleanupDrawPanel();
+      renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView });
     } else {
-      renderDrawView({ eventId, drawId, structureId, redraw, roundsView: view });
+      // Lightweight update: refresh data and morphdom-patch the draw in place
+      updateView();
     }
   };
   const dual = matchUps?.length === 1 && eventData?.eventInfo?.eventType === TEAM;
@@ -200,6 +205,8 @@ export function renderDrawView({
       (createRoundsTable as any)({ matchUps: displayMatchUps, eventData });
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId: structureId! });
+    } else if (roundsView === ROUNDS_RATINGS) {
+      createRatingsTable({ eventId, drawId, structureId: structureId! });
     } else if (roundsView === ROUNDS_BRACKET) {
       createBracketTable({ eventId, drawId, structureId: structureId! });
     } else {
@@ -257,6 +264,21 @@ export function renderDrawView({
   const update = () => {
     getData();
     updateDrawDisplay();
+  };
+
+  const updateView = () => {
+    getData();
+    if (dual) {
+      // For team dual matches: clear and re-render the scorecard with fresh data
+      const dv = document.getElementById(DRAWS_VIEW);
+      if (dv) {
+        removeAllChildNodes(dv);
+        const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], onRefresh: updateView });
+        if (scorecard) dv.appendChild(scorecard);
+      }
+    } else {
+      updateDrawDisplay();
+    }
   };
 
   const roundNumbers = Object.keys(roundMatchUps || {})
@@ -328,7 +350,7 @@ export function renderDrawView({
   }
 
   if (dual) {
-    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], participantFilter });
+    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], onRefresh: updateView });
     if (scorecard && drawsView) {
       drawsView.appendChild(scorecard);
     }

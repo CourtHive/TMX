@@ -2,7 +2,7 @@
   "name": "tmx",
   "license": "MIT",
   "private": true,
-  "version": "3.1.46",
+  "version": "3.1.48",
   "type": "module",
   "engines": {
     "node": ">=22",
@@ -106,7 +106,7 @@
     "axios": "1.13.6",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
-    "courthive-components": "0.9.28-beta.15",
+    "courthive-components": "0.9.28-beta.16",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.19",
     "dexie": "4.3.0",
@@ -129,9 +129,9 @@
     "rxjs": "7.8.2",
     "socket.io-client": "4.8.3",
     "tabulator-tables": "6.4.0",
-    "timepicker-ui": "4.1.6",
+    "timepicker-ui": "4.1.7",
     "tippy.js": "6.3.7",
-    "tods-competition-factory": "2.4.6-beta.17",
+    "tods-competition-factory": "2.4.6-beta.20",
     "typescript": "5.9.3",
     "vanillajs-datepicker": "1.3.4"
   }

@@ -9,6 +9,7 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
 
+// constants
 import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 

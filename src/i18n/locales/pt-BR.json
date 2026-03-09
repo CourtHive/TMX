@@ -901,7 +901,14 @@
       "title": "Adicionar rodada",
       "confirmSelection": "Confirmar seleção de jogadores",
       "addRound": "Adicionar rodada",
-      "levelOfPlay": "Nível de jogo"
+      "levelOfPlay": "Nível de jogo",
+      "addRounds": "Adicionar rodadas",
+      "levelOfPlayHelp": "Utiliza as classificações dos participantes para gerar pareamentos equilibrados onde os adversários são pareados por nível de habilidade",
+      "roundsCount": "Número de rodadas",
+      "dynamicRatings": "Classificações dinâmicas",
+      "dynamicRatingsHelp": "Recalcular as classificações dos participantes após cada rodada com base nos resultados das partidas",
+      "teamAvoidance": "Evitar equipe",
+      "teamAvoidanceHelp": "Impedir que participantes da mesma equipe sejam pareados entre si"
     },
     "selectParticipant": {
       "assignAlternate": "Atribuir alternado",
@@ -1069,7 +1076,8 @@
     },
     "deleteParticipants": {
       "title": "Excluir participantes",
-      "content": "Excluir {{count}} participante(s)?"
+      "content": "Excluir {{count}} participante(s)?",
+      "inDraws": "{{count}} participantes estão atribuídos a chaves e não podem ser excluídos."
     },
     "removeStructure": {
       "title": "Remover estrutura",
@@ -1195,7 +1203,29 @@
       "generateFlight": "Gerar flight",
       "configureDraw": "Configurar chave",
       "customScorecard": "Súmula personalizada",
-      "invalidDrawSize": "Tamanho de chave inválido"
+      "invalidDrawSize": "Tamanho de chave inválido",
+      "roundsCount": "Rodadas a gerar",
+      "ratingScale": "Escala de classificação",
+      "dynamicRatings": "Classificações dinâmicas",
+      "teamAvoidance": "Evitar equipe",
+      "drawTypeInfo": "Info do tipo de chave",
+      "drawTypeDescriptions": {
+        "SINGLE_ELIMINATION": "Chave eliminatória padrão onde cada derrota elimina um participante da chave.",
+        "ROUND_ROBIN": "Todos os participantes jogam entre si dentro de grupos; a classificação é determinada pelo registro de vitórias/derrotas.",
+        "DRAW_MATIC": "Pareamento automatizado rodada por rodada usando classificações para parear participantes por nível de habilidade, com atualizações dinâmicas de classificação entre rodadas.",
+        "AD_HOC": "Rodadas flexíveis com pareamento manual ou automatizado. Sem estrutura de chave fixa.",
+        "COMPASS": "Estrutura de múltiplas chaves com até 8 chaves nomeadas por direção (Leste/Oeste/Norte/Sul/NE/NO/SE/SO) onde os perdedores passam para chaves de consolação sucessivas.",
+        "CURTIS": "Consolação de três chaves onde os perdedores das duas primeiras rodadas passam para chaves de consolação.",
+        "DOUBLE_ELIMINATION": "Os participantes devem perder duas vezes para serem eliminados; os perdedores passam para uma chave de consolação.",
+        "FEED_IN_CHAMPIONSHIP": "Chave principal com uma chave de consolação de alimentação onde os perdedores de cada rodada entram.",
+        "FIRST_MATCH_LOSER_CONSOLATION": "Os perdedores da primeira partida entram em uma chave de consolação separada.",
+        "FIRST_ROUND_LOSER_CONSOLATION": "Os perdedores da primeira rodada entram em uma chave de consolação separada.",
+        "LUCKY_DRAW": "Eliminação simples com avanço aleatório para posições não jogadas.",
+        "OLYMPIC": "Formato olímpico de quatro chaves com chaves de consolação e classificação.",
+        "PLAY_OFF": "Chave de playoffs utilizada como estrutura secundária.",
+        "ROUND_ROBIN_WITH_PLAYOFF": "Fase de grupos em round robin seguida de playoffs eliminatórios.",
+        "FEED_IN": "Chave de entrada escalonada onde os participantes entram na chave em rodadas diferentes."
+      }
     }
   },
 
@@ -1221,7 +1251,8 @@
     "invalidMatchUpFormat": "matchUpFormat inválido",
     "missingMethodsArray": "Array de métodos ausente",
     "missingTournament": "Torneio ausente",
-    "devVariableError": "Ocorreu um erro ao adicionar variáveis de desenvolvimento"
+    "devVariableError": "Ocorreu um erro ao adicionar variáveis de desenvolvimento",
+    "cannotDeleteParticipant": "O participante está atribuído a uma chave e não pode ser excluído"
   },
 
   "loginMenu": {
@@ -1363,10 +1394,13 @@
       "date": "Data",
       "court": "Quadra",
       "time": "Hora",
+      "startTime": "Início",
+      "endTime": "Fim",
       "side1": "Lado 1",
       "side2": "Lado 2",
       "score": "Placar",
       "profile": "Perfil",
+      "official": "Oficial",
       "status": "Status"
     },
     "tournaments": {
@@ -1437,6 +1471,7 @@
         "available": "Disponível",
         "avgPerCourt": "Méd. Disp./Quadra"
       },
+      "addCourts": "Adicionar quadras",
       "addVenue": {
         "title": "Adicionar local",
         "venueName": "Nome do local",
@@ -1473,6 +1508,14 @@
       "addEvent": "Adicionar evento",
       "deleteSelected": "Excluir selecionados",
       "searchEvents": "Buscar eventos",
+      "draws": "Draws",
+      "entries": "Entries",
+      "rankings": "Rankings",
+      "actions": "Actions",
+      "addDraw": "Add draw",
+      "addFlights": "Add flights",
+      "editEventAction": "Edit event",
+      "displaySettings": "Display settings",
       "editEvent": {
         "titleEdit": "Editar evento",
         "titleAdd": "Adicionar evento",
@@ -1499,7 +1542,10 @@
         "cannotRemoveScores": "Não é possível remover quando há placares presentes",
         "removePlayers": "Remover jogadores",
         "clearResults": "Limpar resultados",
-        "viewTopology": "Ver topologia"
+        "viewTopology": "Ver topologia",
+        "viewDraw": "Ver chave",
+        "displaySettings": "Configurações de exibição",
+        "autoPlaceParticipants": "Posicionar participantes automaticamente"
       }
     },
     "participants": {

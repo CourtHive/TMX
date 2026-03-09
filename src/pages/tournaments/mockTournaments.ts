@@ -2,8 +2,8 @@
  * Mock tournament generation for testing and demo purposes.
  * Creates sample tournaments with various draw types and categories.
  */
-import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
@@ -18,9 +18,10 @@ const {
   SINGLE_ELIMINATION,
   ROUND_ROBIN,
   COMPASS,
+  AD_HOC,
 } = drawDefinitionConstants;
 
-const { WTN, DUPR, PSA, BWF, USATT } = factoryConstants.ratingConstants;
+const { WTN, DUPR, PSA, BWF, USATT, UTR } = factoryConstants.ratingConstants;
 const { DOUBLES, SINGLES, TEAM } = factoryConstants.eventConstants;
 const { MALE, FEMALE, MIXED } = factoryConstants.genderConstants;
 
@@ -131,12 +132,14 @@ const wiffleballPark = {
   courtsCount: 4,
 };
 
+const ratingType = 'UTR';
 const mockProfiles = [
   // Tournament 1: CourtHive Challenge (existing)
   {
     tournamentAttributes: { tournamentId: 'tournament-id-1' },
     participantsProfile: { scaledParticipantsCount: 200, idPrefix: 'p' },
     tournamentName: 'CourtHive Challenge',
+    completeAllMatchUps: true,
     drawProfiles: [
       {
         category: { categoryName: 'U18' },
@@ -156,26 +159,7 @@ const mockProfiles = [
         drawId: 'draw-id-2',
         gender: FEMALE,
         seedsCount: 8,
-        drawSize: 32,
-      },
-      {
-        category: { ratingType: WTN, ratingMin: 18, ratingMax: 24.99 },
-        eventName: `WTN 18-25 SINGLES`,
-        scaledParticipantsCount: 32,
-        eventId: 'event-id-3',
-        drawId: 'draw-id-3',
-        seedsCount: 8,
-        drawSize: 32,
-      },
-      {
-        category: { ratingType: WTN, ratingMin: 18, ratingMax: 24.99 },
-        eventName: `WTN 18-25 DOUBLES`,
-        scaledParticipantsCount: 32,
-        eventId: 'event-id-4',
-        drawId: 'draw-id-4',
-        eventType: DOUBLES,
-        seedsCount: 8,
-        drawSize: 32,
+        drawSize: 16,
       },
     ],
     venueProfiles,
@@ -185,25 +169,37 @@ const mockProfiles = [
     tournamentAttributes: { tournamentId: 'tournament-id-02' },
     participantsProfile: { idPrefix: 'p' },
     tournamentName: 'Level Based Play',
+    completeAllMatchUps: true,
     drawProfiles: [
       {
         eventName: `WTN 14-19 SINGLES`,
         category: { ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
-        scaledParticipantsCount: 32,
+        scaledParticipantsCount: 16,
         eventId: 'event-id-1',
         drawId: 'draw-id-1',
         drawType: COMPASS,
         seedsCount: 8,
-        drawSize: 32,
+        drawSize: 16,
       },
       {
-        eventName: `WTN 20-26 SINGLES`,
-        category: { ratingType: WTN, ratingMin: 20, ratingMax: 25.99 },
+        eventName: `UTR 10-12 SINGLES`,
+        category: { ratingType: UTR, ratingMin: 10, ratingMax: 12 },
         scaledParticipantsCount: 16,
         drawType: ROUND_ROBIN,
         eventId: 'event-id-2',
         drawId: 'draw-id-2',
         seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        category: { ratingType, ratingMin: 10, ratingMax: 14 },
+        eventName: 'DrawMatic with Dynamic Ratings',
+        scaleName: ratingType,
+        eventId: 'event-id-3',
+        drawId: 'draw-id-3',
+        drawType: AD_HOC,
+        automated: true,
+        roundsCount: 4,
         drawSize: 16,
       },
     ],
@@ -581,7 +577,7 @@ const mockProfiles = [
     ],
     venueProfiles: [wiffleballPark],
   },
-]; // .filter((t) => !['INTENNSE Showdown', 'BLW Wiffle Ball Classic'].includes(t.tournamentName));
+];
 
 export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({
   label: p.tournamentName,
@@ -589,9 +585,7 @@ export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({
 }));
 
 function addAutoCourtImage(tournamentRecord: any, drawProfiles: any[]): void {
-  const hasImage = tournamentRecord.onlineResources?.some(
-    (r: any) => r.name === 'tournamentImage',
-  );
+  const hasImage = tournamentRecord.onlineResources?.some((r: any) => r.name === 'tournamentImage');
   if (hasImage) return;
 
   // Use the first draw profile's matchUpFormat to infer the sport; default to tennis
