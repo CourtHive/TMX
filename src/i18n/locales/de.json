@@ -1471,6 +1471,7 @@
         "available": "Verfügbar",
         "avgPerCourt": "Ø Verfügbar/Platz"
       },
+      "addCourts": "Plätze hinzufügen",
       "addVenue": {
         "title": "Anlage hinzufügen",
         "venueName": "Anlagenname",

@@ -1471,6 +1471,7 @@
         "available": "Disponible",
         "avgPerCourt": "Moy. Disp./Court"
       },
+      "addCourts": "Ajouter des courts",
       "addVenue": {
         "title": "Ajouter un lieu",
         "venueName": "Nom du lieu",

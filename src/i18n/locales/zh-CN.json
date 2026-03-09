@@ -1507,6 +1507,7 @@
         "available": "可用",
         "avgPerCourt": "平均可用/球场"
       },
+      "addCourts": "添加球场",
       "addVenue": {
         "title": "添加场馆",
         "externalLookup": "外部查找",

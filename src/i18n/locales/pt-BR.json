@@ -1471,6 +1471,7 @@
         "available": "Disponível",
         "avgPerCourt": "Méd. Disp./Quadra"
       },
+      "addCourts": "Adicionar quadras",
       "addVenue": {
         "title": "Adicionar local",
         "venueName": "Nome do local",

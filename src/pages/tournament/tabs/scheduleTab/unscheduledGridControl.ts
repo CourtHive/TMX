@@ -1,9 +1,18 @@
 /**
  * Unscheduled matchUps grid control bar.
- * Provides filtering, search, auto-scheduling, and schedule clearing functionality.
+ * Provides filtering (via filter popover), court targeting, search,
+ * auto-scheduling, and schedule clearing functionality.
  */
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
-import { tournamentEngine, tools } from 'tods-competition-factory';
+import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
+import { courtTargetButton } from 'components/tables/common/filters/courtTargetButton';
+import {
+  getScheduleEventFilter,
+  getScheduleEventTypeFilter,
+  getScheduleFlightFilter,
+  getScheduleGenderFilter,
+  getScheduleRoundFilter,
+} from 'components/tables/common/filters/scheduleFilters';
 import { autoScheduleMatchUps } from './autoScheduleMatchUps';
 import { controlBar } from 'courthive-components';
 import { findAncestor } from 'services/dom/parentAndChild';
@@ -17,14 +26,9 @@ export function unscheduledGridControl({
   updateScheduleTable,
   toggleUnscheduled,
   minCourtGridRows,
-  eventTypeFilter,
-  flightNameFilter,
-  roundNameFilter,
   controlAnchor,
-  eventIdFilter,
   scheduledDate,
   matchUps = [],
-  genderFilter,
   table,
 }: {
   updateUnscheduledTable: () => boolean;
@@ -32,11 +36,6 @@ export function unscheduledGridControl({
   toggleUnscheduled: () => void;
   controlAnchor: HTMLElement;
   minCourtGridRows: number;
-  eventTypeFilter?: string;
-  flightNameFilter?: string;
-  roundNameFilter?: string;
-  eventIdFilter?: string;
-  genderFilter?: string;
   scheduledDate: string;
   matchUps?: any[];
   table: any;
@@ -45,93 +44,35 @@ export function unscheduledGridControl({
   const updateScheduledDate = (date: string) => {
     currentScheduledDate = date;
   };
-  const eventFilter = (rowData: any) => rowData.eventId === eventIdFilter;
-  const updateEventFilter = (eventId?: string) => {
-    table.removeFilter(eventFilter);
-    eventIdFilter = eventId;
-    if (eventId) table.addFilter(eventFilter);
-  };
-  const events = tournamentEngine.getEvents().events || [];
-  const allEvents = { label: t('pages.schedule.allEvents'), onClick: () => updateEventFilter(), close: true };
-  const eventOptions = [allEvents].concat(
-    events.map((event: any) => ({
-      onClick: () => updateEventFilter(event.eventId),
-      label: event.eventName,
-      close: true,
-    })),
+
+  // Build filter functions
+  const { eventOptions, hasOptions: hasEvents, isFiltered: isEventFiltered } = getScheduleEventFilter(table);
+  const { eventTypeOptions, hasOptions: hasEventTypes, isFiltered: isEventTypeFiltered } =
+    getScheduleEventTypeFilter(table);
+  const { genderOptions, hasOptions: hasGenders, isFiltered: isGenderFiltered } = getScheduleGenderFilter(table);
+  const { roundOptions, hasOptions: hasRounds, isFiltered: isRoundFiltered } = getScheduleRoundFilter(table, matchUps);
+  const { flightOptions, hasOptions: hasFlights, isFiltered: isFlightFiltered } = getScheduleFlightFilter(
+    table,
+    matchUps,
   );
 
-  const eventTypeFilterFx = (rowData: any) => rowData.matchUpType === eventTypeFilter;
-  const updateEventTypeFilter = (eventType?: string) => {
-    table.removeFilter(eventTypeFilterFx);
-    eventTypeFilter = eventType;
-    if (eventType) table.addFilter(eventTypeFilterFx);
-  };
-  const allEventTypes = { label: t('pages.schedule.allEventTypes'), onClick: () => updateEventTypeFilter(), close: true };
-  const eventTypeOptions = [allEventTypes].concat(
-    tools.unique(events.map((event: any) => event.eventType)).map((eventType: any) => ({
-      onClick: () => updateEventTypeFilter(eventType),
-      label: eventType,
-      close: true,
-    })),
-  );
+  // Build filter popover sections
+  const filterSections = [
+    { label: t('pages.schedule.allEventTypes'), options: hasEventTypes ? eventTypeOptions : [], isFiltered: isEventTypeFiltered },
+    { label: t('pages.schedule.allEvents'), options: hasEvents ? eventOptions : [], isFiltered: isEventFiltered },
+    { label: t('pages.schedule.allFlights'), options: hasFlights ? flightOptions : [], isFiltered: isFlightFiltered },
+    { label: t('pages.schedule.allGenders'), options: hasGenders ? genderOptions : [], isFiltered: isGenderFiltered },
+    { label: t('pages.schedule.allRounds'), options: hasRounds ? roundOptions : [], isFiltered: isRoundFiltered },
+  ];
+  const { item: filterButton } = filterPopoverButton(filterSections);
 
-  const genderFilterFx = (rowData: any) => rowData.gender === genderFilter;
-  const updateGenderFilter = (gender?: string) => {
-    console.log({ gender });
-    table.removeFilter(genderFilterFx);
-    genderFilter = gender;
-    if (gender) table.addFilter(genderFilterFx);
-  };
-  const allGenders = { label: t('pages.schedule.allGenders'), onClick: () => updateGenderFilter(), close: true };
-  const genderOptions = [allGenders].concat(
-    tools
-      .unique(events.map((event: any) => event.gender))
-      .map((gender: any) => ({
-        onClick: () => updateGenderFilter(gender),
-        label: gender,
-        close: true,
-      }))
-      .filter((i) => i.label),
-  );
-
-  const roundFilter = (rowData: any) => rowData.roundName === roundNameFilter;
-  const roundNames = tools.unique(matchUps.map((matchUp: any) => matchUp.roundName));
-  const updateRoundFilter = (roundName?: string) => {
-    table.removeFilter(roundFilter);
-    roundNameFilter = roundName;
-    if (roundName) table.addFilter(roundFilter);
-  };
-  const allRounds = { label: t('pages.schedule.allRounds'), onClick: () => updateRoundFilter(), close: true };
-  const roundOptions = [allRounds].concat(
-    roundNames.map((roundName: string) => ({
-      onClick: () => updateRoundFilter(roundName),
-      label: roundName,
-      close: true,
-    })),
-  );
-
-  const flightFilter = (rowData: any) => rowData.flight === flightNameFilter;
-  const flightNames = tools.unique(matchUps.map((matchUp: any) => matchUp.drawName));
-  const updateFlightFilter = (flightName?: string) => {
-    table.removeFilter(flightFilter);
-    flightNameFilter = flightName;
-    if (flightName) table.addFilter(flightFilter);
-  };
-  const allFlights = { label: t('pages.schedule.allFlights'), onClick: () => updateFlightFilter(), close: true };
-  const flightOptions = [allFlights].concat(
-    flightNames.map((flightName: string) => ({
-      onClick: () => updateFlightFilter(flightName),
-      label: flightName,
-      close: true,
-    })),
-  );
+  // Court target selector
+  const { item: courtTarget, getSelectedCourtIds } = courtTargetButton();
 
   const updateTables = () => {
     if (updateUnscheduledTable()) {
       updateScheduleTable({ scheduledDate: currentScheduledDate });
     }
-    console.log('clear filters ?');
   };
   const scheduleClear = (e: Event) => {
     const result = findAncestor(e.target as HTMLElement, 'dropdown');
@@ -139,8 +80,6 @@ export function unscheduledGridControl({
       target: result || (e?.target as HTMLElement),
       scheduledDate: currentScheduledDate,
       callback: updateTables,
-      roundNameFilter,
-      eventIdFilter,
     });
   };
 
@@ -148,6 +87,7 @@ export function unscheduledGridControl({
   const autoScheduler = () =>
     autoScheduleMatchUps({
       scheduledDate: currentScheduledDate,
+      getTargetCourtIds: getSelectedCourtIds,
       updateUnscheduledTable,
       updateScheduleTable,
       minCourtGridRows,
@@ -182,51 +122,8 @@ export function unscheduledGridControl({
       location: LEFT,
       search: true,
     },
-    {
-      hide: eventTypeOptions.length < 2,
-      options: eventTypeOptions,
-      label: t('pages.schedule.allEventTypes'),
-      id: 'eventTypeOptions',
-      modifyLabel: true,
-      location: LEFT,
-      selection: true,
-    },
-    {
-      hide: eventOptions.length < 2,
-      options: eventOptions,
-      id: 'eventOptions',
-      label: t('pages.schedule.allEvents'),
-      modifyLabel: true,
-      location: LEFT,
-      selection: true,
-    },
-    {
-      hide: flightOptions.length < 2,
-      options: flightOptions,
-      id: 'flightOptions',
-      label: t('pages.schedule.allFlights'),
-      modifyLabel: true,
-      location: LEFT,
-      selection: true,
-    },
-    {
-      hide: genderOptions.length < 2,
-      options: genderOptions,
-      id: 'genderOptions',
-      label: t('pages.schedule.allGenders'),
-      modifyLabel: true,
-      location: LEFT,
-      selection: true,
-    },
-    {
-      hide: roundOptions.length < 2,
-      options: roundOptions,
-      id: 'roundOptions',
-      label: t('pages.schedule.allRounds'),
-      modifyLabel: true,
-      location: LEFT,
-      selection: true,
-    },
+    filterButton,
+    courtTarget,
     {
       options: actionOptions,
       label: t('pages.schedule.actions'),

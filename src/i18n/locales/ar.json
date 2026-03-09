@@ -1438,6 +1438,7 @@
         "available": "متاح",
         "avgPerCourt": "متوسط التوفر/ملعب"
       },
+      "addCourts": "إضافة ملاعب",
       "addVenue": {
         "title": "إضافة مكان",
         "venueName": "اسم المكان",

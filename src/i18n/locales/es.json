@@ -1471,6 +1471,7 @@
         "available": "Disponible",
         "avgPerCourt": "Prom. Disp./Cancha"
       },
+      "addCourts": "Agregar canchas",
       "addVenue": {
         "title": "Agregar sede",
         "venueName": "Nombre de sede",

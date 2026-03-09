@@ -1513,6 +1513,7 @@
         "available": "Available",
         "avgPerCourt": "Avg Avail/Court"
       },
+      "addCourts": "Add courts",
       "addVenue": {
         "title": "Add venue",
         "externalLookup": "External lookup",

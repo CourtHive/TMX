@@ -1,13 +1,76 @@
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'courthive-components';
+import { validators, renderButtons, renderForm, controlBar } from 'courthive-components';
+import { tournamentEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCourtColumns } from './getCourtColumns';
+import { context } from 'services/context';
+import { t } from 'i18n';
 
 // constants
 import { NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
-import { MODIFY_COURT } from 'constants/mutationConstants';
+import { ADD_COURTS, MODIFY_COURT } from 'constants/mutationConstants';
+
+function addCourtsToVenue(venueId: string, courtsTable: any): void {
+  const numberValidator = (value: string) => value && !Number.isNaN(Number(value)) && Number(value) > 0;
+
+  const enableSubmit = ({ inputs }: any) => {
+    const isValid = !!numberValidator(inputs['courtsCount']?.value);
+    const btn = document.getElementById('addCourtsButton');
+    if (btn) (btn as HTMLButtonElement).disabled = !isValid;
+  };
+
+  const content = (elem: HTMLElement) =>
+    renderForm(
+      elem,
+      [
+        {
+          error: t('pages.venues.addVenue.numberOfCourtsError'),
+          validator: validators.numericValidator,
+          label: t('pages.venues.addVenue.numberOfCourts'),
+          field: 'courtsCount',
+          value: '1',
+          focus: true,
+        },
+      ],
+      [{ control: 'courtsCount', onInput: enableSubmit }],
+    );
+
+  const saveCourts = () => {
+    const courtsCount = Number.parseInt(context.drawer.attributes.content?.courtsCount?.value);
+    if (!courtsCount || courtsCount < 1) return;
+
+    const methods = [{ method: ADD_COURTS, params: { courtsCount, venueId, venueAbbreviationRoot: true } }];
+    mutationRequest({
+      methods,
+      callback: (result: any) => {
+        if (result?.success) {
+          const { venue } = tournamentEngine.findVenue({ venueId });
+          if (venue?.courts) courtsTable.replaceData(venue.courts);
+        }
+      },
+    });
+  };
+
+  const footer = (elem: HTMLElement, close: () => void) =>
+    renderButtons(
+      elem,
+      [
+        { label: t('common.cancel'), close: true },
+        { onClick: saveCourts, id: 'addCourtsButton', intent: 'is-info', label: t('add'), close: true },
+      ],
+      close,
+    );
+
+  context.drawer.open({
+    title: `<b style='larger'>${t('pages.venues.addCourts')}</b>`,
+    width: '300px',
+    side: RIGHT,
+    content,
+    footer,
+  });
+}
 
 export const venueRowFormatter =
   (setTable: (venueId: string, table: any) => void) =>
@@ -16,20 +79,6 @@ export const venueRowFormatter =
     const controlEl = document.createElement('div');
     controlEl.className = 'tableControl';
     controlEl.style.marginBottom = '1em';
-
-    const items = [
-      {
-        label: 'Delete selected',
-        intent: 'is-danger',
-        stateChange: true,
-        location: OVERLAY,
-      },
-      {
-        label: 'Add courts',
-        location: RIGHT,
-        align: RIGHT,
-      },
-    ];
 
     holderEl.appendChild(controlEl);
 
@@ -71,6 +120,21 @@ export const venueRowFormatter =
 
     const venueId = row.getData().venueId;
     setTable(venueId, courtsTable);
+
+    const items = [
+      {
+        label: 'Delete selected',
+        intent: 'is-danger',
+        stateChange: true,
+        location: OVERLAY,
+      },
+      {
+        label: t('pages.venues.addCourts'),
+        onClick: () => addCourtsToVenue(venueId, courtsTable),
+        location: RIGHT,
+        align: RIGHT,
+      },
+    ];
 
     controlBar({ table: courtsTable, target: controlEl, items });
 
