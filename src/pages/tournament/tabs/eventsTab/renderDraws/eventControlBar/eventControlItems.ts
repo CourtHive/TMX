@@ -94,20 +94,21 @@ export function getEventControlItems({
 
   // Draft status button when a draft is active
   const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
-  const hasDraft = drawDefinition?.extensions?.some((ext: any) => ext.name === 'draftState');
+  const draftExt = drawDefinition?.extensions?.find((ext: any) => ext.name === 'draftState');
 
-  if (hasDraft) {
+  if (draftExt) {
+    const draftComplete = draftExt.value?.status === 'COMPLETE';
     items.push({
-      onClick: () => openConfigureDraft({ drawId, eventId }),
+      onClick: () => openConfigureDraft({ drawId, eventId, callback: () => renderDrawView({ eventId, drawId, structureId }) }),
       label: t('pages.events.actionOptions.draftStatus'),
-      intent: 'is-info',
+      intent: draftComplete ? 'is-info' : 'is-primary',
       location: RIGHT,
     });
   }
 
   // "Assign participants" button when there are unassigned positions (furthest right)
   const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
-  if (isMainStage && !isTeam && !hasDraft) {
+  if (isMainStage && !isTeam && !draftExt) {
     const unassignedCount =
       structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye).length ?? 0;
     if (unassignedCount > 0) {

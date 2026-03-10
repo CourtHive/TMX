@@ -121,6 +121,7 @@ export const env: any = {
 
   pdfPrinting: false, // Beta feature flag for PDF generation
   googleSheetsImport: false, // Beta feature flag for Google Sheets participant import
+  schedule2: false, // Beta feature flag for Schedule Page 2
   usePublishState: false, // Dev toggle: bypass login requirement for publishing tab
 
   ioc: 'gbr',

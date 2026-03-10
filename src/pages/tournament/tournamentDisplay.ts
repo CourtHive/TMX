@@ -4,6 +4,7 @@
  */
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
+import { renderSchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
@@ -29,6 +30,7 @@ import {
   PARTICIPANTS,
   PUBLISHING_TAB,
   SCHEDULE_TAB,
+  SCHEDULE2_TAB,
   TOURNAMENT,
   VENUES_TAB,
   EVENTS_TAB,
@@ -74,6 +76,8 @@ export function routeTo(config: any): void {
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
     if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });
+    if (selectedTab === SCHEDULE2_TAB)
+      renderSchedule2Tab({ scheduledDate: config.scheduledDate, scheduleView: config.scheduleView });
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();

@@ -203,6 +203,7 @@ function newBlock(): HTMLDivElement {
       <i id='e-route' class="nav-icon fa-solid fa-diagram-project"></i>
       <i id='m-route' class="nav-icon fa-solid fa-table-tennis-paddle-ball"></i>
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
+      <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
       <div id="mobileNav" class="mobile-nav">
