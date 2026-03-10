@@ -75,7 +75,9 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
       }
       chip.onclick = () => {
         if (!isSelected) {
-          navigateToEvent({ eventId: event.eventId });
+          const draws = event.drawDefinitions || [];
+          const drawId = draws.length === 1 ? draws[0].drawId : undefined;
+          navigateToEvent({ eventId: event.eventId, renderDraw: draws.length > 0, drawId });
         }
       };
       wrapper.appendChild(chip);
