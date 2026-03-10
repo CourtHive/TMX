@@ -60,13 +60,17 @@ export function incomingParticipants({
     const rowParser = findAttr(loweredRow);
 
     const participant: any = { participantType: 'INDIVIDUAL', participantRole: 'COMPETITOR', person: {} };
-    participant.participantName = rowParser(modelParticipant.participantName);
+    const rawParticipantName = rowParser(modelParticipant.participantName);
+    participant.participantName =
+      typeof rawParticipantName === 'string' ? rawParticipantName.trim() : rawParticipantName;
 
     const tennisId = rowParser(['tennis id', 'tennisid']);
     if (tennisId) participant.person.tennisId = tennisId;
 
-    const standardFamilyName = rowParser(modelParticipant.person.standardFamilyName);
-    const standardGivenName = rowParser(modelParticipant.person.standardGivenName);
+    const rawFamilyName = rowParser(modelParticipant.person.standardFamilyName);
+    const rawGivenName = rowParser(modelParticipant.person.standardGivenName);
+    const standardFamilyName = typeof rawFamilyName === 'string' ? rawFamilyName.trim() : rawFamilyName;
+    const standardGivenName = typeof rawGivenName === 'string' ? rawGivenName.trim() : rawGivenName;
     if (standardFamilyName && standardGivenName) {
       participant.person.standardFamilyName = standardFamilyName;
       participant.person.standardGivenName = standardGivenName;
@@ -168,7 +172,7 @@ export function incomingParticipants({
           message: t('toasts.addedParticipants', { count: result.results[0].addedCount }),
           intent: 'is-success',
         });
-        isFunction(callback) && callback && callback();
+        isFunction(callback) && callback();
       } else {
         console.log(result);
       }
@@ -178,5 +182,5 @@ export function incomingParticipants({
     tmxToast({ message: t('toasts.noNewParticipants'), intent: 'is-primary' });
   }
 
-  isFunction(callback) && callback && callback();
+  isFunction(callback) && callback();
 }
