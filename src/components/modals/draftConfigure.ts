@@ -8,6 +8,7 @@ import { closeModal, openModal } from './baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'tods-competition-factory';
 
+// constants
 import { INITIALIZE_DRAFT, RESOLVE_DRAFT_POSITIONS, SET_DRAW_POSITION_PREFERENCES } from 'constants/mutationConstants';
 
 const IS_WARNING = 'is-warning';
@@ -26,7 +27,7 @@ interface ConfigureDraftParams {
 }
 
 export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraftParams): void {
-  const { draftState, summary, error } = tournamentEngine.getDraftState({ drawId }) as any;
+  const { draftState, summary, error } = tournamentEngine.getDraftState({ drawId });
 
   if (error || !draftState) {
     tmxToast({ message: 'No draft found for this draw', intent: IS_WARNING });
@@ -44,17 +45,34 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   const anyPrefsSubmitted = summary.preferencesSubmitted > 0;
   const showConfigBar = !anyTierResolved && !anyPrefsSubmitted;
 
+  const currentTierMethod = draftState.tierMethod || 'ENTRY_ORDER';
+  const currentScaleName = draftState.scaleAttributes?.scaleName || '';
+  const selectStyle =
+    'padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636);';
+
   const configBar = showConfigBar
     ? `<div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);">
         <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
           Tiers:
-          <select id="draft-tier-count" style="padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636);">
+          <select id="draft-tier-count" style="${selectStyle}">
             ${tierCountOptions(summary.totalParticipants, summary.tiersTotal)}
           </select>
         </label>
         <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
+          Sort by:
+          <select id="draft-tier-method" style="${selectStyle}">
+            <option value="ENTRY_ORDER" ${currentTierMethod === 'ENTRY_ORDER' ? 'selected' : ''}>Entry order</option>
+            <option value="RANKING" ${currentTierMethod === 'RANKING' ? 'selected' : ''}>Ranking</option>
+            <option value="RATING" ${currentTierMethod === 'RATING' ? 'selected' : ''}>Rating</option>
+          </select>
+        </label>
+        <label id="draft-scale-name-label" style="display: ${currentTierMethod === 'RATING' ? 'flex' : 'none'}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
+          Scale:
+          <input id="draft-scale-name" type="text" value="${currentScaleName}" placeholder="e.g. DUPR, WTN" style="width: 80px; padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636); font-size: 13px;" />
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
           Max preferences:
-          <select id="draft-pref-count" style="padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636);">
+          <select id="draft-pref-count" style="${selectStyle}">
             ${prefCountOptions(availablePositions.length, draftState.preferencesCount ?? 3)}
           </select>
         </label>
@@ -64,18 +82,21 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
       </div>`
     : '';
 
+  const tierMethodLabel = tierMethodDisplayLabel(currentTierMethod, currentScaleName);
+
   const content = `
     <div style="font-size: 0.9em; overflow: hidden;">
       ${configBar}
       <div style="display: flex; gap: 12px; margin-bottom: 12px;">
         <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: var(--tmx-panel-blue-bg, #e8f4fd); color: var(--tmx-panel-blue-text, #1a73e8);">
-          ${availablePositions.length} available position${availablePositions.length !== 1 ? 's' : ''}
+          ${availablePositions.length} available position${availablePositions.length === 1 ? '' : 's'}
         </span>
         <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: ${summary.preferencesSubmitted === summary.totalParticipants ? '#1b5e20' : '#e65100'}; color: #fff;">
           ${summary.preferencesSubmitted} of ${summary.totalParticipants} submitted
         </span>
       </div>
 
+      ${showConfigBar ? '' : `<div style="font-size: 12px; color: var(--tmx-text-secondary, #666); margin-bottom: 4px;">Sorted by: ${tierMethodLabel}</div>`}
       <div id="draft-tiers-container" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px;">
         ${renderTiers(draftState, participants)}
       </div>
@@ -95,13 +116,21 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
       const reconfigBtn = document.getElementById('draft-reconfigure-btn') as HTMLButtonElement;
       const tierSelect = document.getElementById('draft-tier-count') as HTMLSelectElement;
       const prefSelect = document.getElementById('draft-pref-count') as HTMLSelectElement;
+      const tierMethodSelect = document.getElementById('draft-tier-method') as HTMLSelectElement;
+      const scaleNameLabel = document.getElementById('draft-scale-name-label') as HTMLElement;
+      const scaleNameInput = document.getElementById('draft-scale-name') as HTMLInputElement;
 
-      const currentTierCount = summary.tiersTotal;
-      const currentPrefCount = draftState.preferencesCount ?? 3;
+      const origTierCount = summary.tiersTotal;
+      const origPrefCount = draftState.preferencesCount ?? 3;
+      const origTierMethod = currentTierMethod;
+      const origScaleName = currentScaleName;
 
       const updateApplyState = () => {
         const changed =
-          parseInt(tierSelect?.value) !== currentTierCount || parseInt(prefSelect?.value) !== currentPrefCount;
+          Number.parseInt(tierSelect?.value) !== origTierCount ||
+          Number.parseInt(prefSelect?.value) !== origPrefCount ||
+          tierMethodSelect?.value !== origTierMethod ||
+          (tierMethodSelect?.value === 'RATING' && scaleNameInput?.value !== origScaleName);
         if (reconfigBtn) {
           reconfigBtn.disabled = !changed;
           reconfigBtn.style.opacity = changed ? '1' : '0.4';
@@ -110,17 +139,39 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
 
       tierSelect?.addEventListener('change', updateApplyState);
       prefSelect?.addEventListener('change', updateApplyState);
+      tierMethodSelect?.addEventListener('change', () => {
+        const showScale = tierMethodSelect.value === 'RATING';
+        if (scaleNameLabel) scaleNameLabel.style.display = showScale ? 'flex' : 'none';
+        updateApplyState();
+      });
+      scaleNameInput?.addEventListener('input', updateApplyState);
 
       reconfigBtn?.addEventListener('click', () => {
-        const newTierCount = parseInt(tierSelect?.value || '3');
-        const newPrefCount = parseInt(prefSelect?.value || '3');
-        if (newTierCount === currentTierCount && newPrefCount === currentPrefCount) return;
+        const newTierCount = Number.parseInt(tierSelect?.value || '3');
+        const newPrefCount = Number.parseInt(prefSelect?.value || '3');
+        const newTierMethod = tierMethodSelect?.value || 'ENTRY_ORDER';
+        const newScaleName = scaleNameInput?.value?.trim();
+
+        const scaleAttributes =
+          newTierMethod === 'RATING' && newScaleName
+            ? { scaleType: 'RATING', scaleName: newScaleName }
+            : newTierMethod === 'RANKING'
+              ? { scaleType: 'RANKING' }
+              : undefined;
 
         mutationRequest({
           methods: [
             {
               method: INITIALIZE_DRAFT,
-              params: { drawId, eventId, tierCount: newTierCount, preferencesCount: newPrefCount, force: true },
+              params: {
+                drawId,
+                eventId,
+                tierCount: newTierCount,
+                preferencesCount: newPrefCount,
+                tierMethod: newTierMethod,
+                scaleAttributes,
+                force: true,
+              },
             },
           ],
           callback: (result: any) => {
@@ -162,8 +213,8 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
     resolveBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const tierIndex = parseInt((btn as HTMLElement).dataset.tierIndex || '');
-        if (isNaN(tierIndex)) return;
+        const tierIndex = Number.parseInt((btn as HTMLElement).dataset.tierIndex || '');
+        if (Number.isNaN(tierIndex)) return;
 
         mutationRequest({
           methods: [
@@ -179,11 +230,17 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
               if (callback) callback();
               refreshTierList({ drawId, eventId, callback });
             } else if (result.success && innerErrors?.length) {
-              tmxToast({ message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`, intent: IS_WARNING });
+              tmxToast({
+                message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`,
+                intent: IS_WARNING,
+              });
               if (callback) callback();
               refreshTierList({ drawId, eventId, callback });
             } else {
-              tmxToast({ message: result.error?.message || result.info || 'Failed to resolve tier', intent: IS_WARNING });
+              tmxToast({
+                message: result.error?.message || result.info || 'Failed to resolve tier',
+                intent: IS_WARNING,
+              });
             }
           },
         });
@@ -250,8 +307,8 @@ function openPreferenceEntry({
     const btns = document.querySelectorAll('.draft-pos-btn');
     btns.forEach((btn) => {
       btn.addEventListener('click', () => {
-        const pos = parseInt((btn as HTMLElement).dataset.position || '');
-        if (isNaN(pos)) return;
+        const pos = Number.parseInt((btn as HTMLElement).dataset.position || '');
+        if (Number.isNaN(pos)) return;
 
         const existingIdx = selected.indexOf(pos);
         if (existingIdx >= 0) {
@@ -277,7 +334,9 @@ function openPreferenceEntry({
         <div id="pref-positions-grid" style="display: flex; flex-wrap: wrap; padding: 8px; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px; max-height: 250px; overflow: auto;">
           ${renderPositionGrid()}
         </div>
-        ${unresolvedIds.length > 1 ? `
+        ${
+          unresolvedIds.length > 1
+            ? `
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--tmx-border-secondary, #eee);">
           <button id="pref-nav-prev" ${currentIndex <= 0 ? 'disabled' : ''} style="padding: 4px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); cursor: ${currentIndex <= 0 ? 'default' : 'pointer'}; opacity: ${currentIndex <= 0 ? '0.3' : '1'};">
             ← Prev
@@ -286,7 +345,9 @@ function openPreferenceEntry({
           <button id="pref-nav-next" ${currentIndex >= unresolvedIds.length - 1 ? 'disabled' : ''} style="padding: 4px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); cursor: ${currentIndex >= unresolvedIds.length - 1 ? 'default' : 'pointer'}; opacity: ${currentIndex >= unresolvedIds.length - 1 ? '0.3' : '1'};">
             Next →
           </button>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
     `;
   };
@@ -479,7 +540,7 @@ function openResolutionDetail({
 
         <div style="display: flex; gap: 12px; margin-bottom: 12px;">
           <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-secondary, #aaa);">Tier ${tierNumber}</span>
-          <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-secondary, #aaa);">${prefs.length} preference${prefs.length !== 1 ? 's' : ''} submitted</span>
+          <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-secondary, #aaa);">${prefs.length} preference${prefs.length > 1 ? 's' : ''} submitted</span>
         </div>
 
         <div style="font-weight: 600; font-size: 13px; color: var(--tmx-text-secondary, #666); margin-bottom: 6px;">
@@ -586,8 +647,6 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
       const previousResolved = tierIdx === 0 || draftState.tiers.slice(0, tierIdx).every((t: any) => t.resolved);
       const canResolve = !tier.resolved && allSubmitted && previousResolved;
 
-
-
       const participantRows = (tier.participantIds || [])
         .map((pid: string) => {
           const name = participants.get(pid) || pid.slice(0, 8);
@@ -648,10 +707,10 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
         statusHtml = `<span style="font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; background: #1b5e20; color: #fff;">Resolved</span>`;
       } else if (canResolve) {
         statusHtml = `<button class="draft-resolve-tier-btn" data-tier-index="${tierIdx}" style="font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px; border: none; background: ${ACCENT_TEAL}; color: #fff; cursor: pointer;">Resolve tier</button>`;
-      } else if (!allSubmitted) {
-        statusHtml = `<span style="font-size: 11px; color: #e65100;">${submittedCount}/${totalCount} submitted</span>`;
-      } else {
+      } else if (allSubmitted) {
         statusHtml = `<span style="font-size: 11px; color: var(--tmx-text-muted, #999);">waiting</span>`;
+      } else {
+        statusHtml = `<span style="font-size: 11px; color: #e65100;">${submittedCount}/${totalCount} submitted</span>`;
       }
 
       return `<div style="${TIER_HEADER} display: flex; align-items: center; justify-content: space-between;">
@@ -695,7 +754,7 @@ function refreshTierList({
   eventId: string;
   callback?: () => void;
 }): void {
-  const { draftState, summary } = tournamentEngine.getDraftState({ drawId }) as any;
+  const { draftState, summary } = tournamentEngine.getDraftState({ drawId });
   if (!draftState) return;
 
   const participants = getParticipantsMap();
@@ -713,7 +772,7 @@ function refreshTierList({
   if (pillsContainer) {
     const pills = pillsContainer.querySelectorAll('span');
     if (pills.length >= 1) {
-      pills[0].textContent = `${availablePositions.length} available position${availablePositions.length !== 1 ? 's' : ''}`;
+      pills[0].textContent = `${availablePositions.length} available position${availablePositions.length === 1 ? '' : 's'}`;
     }
     if (pills.length >= 2 && summary) {
       pills[1].textContent = `${summary.preferencesSubmitted} of ${summary.totalParticipants} submitted`;
@@ -746,8 +805,8 @@ function refreshTierList({
   resolveBtns.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const tierIndex = parseInt((btn as HTMLElement).dataset.tierIndex || '');
-      if (isNaN(tierIndex)) return;
+      const tierIndex = Number.parseInt((btn as HTMLElement).dataset.tierIndex || '');
+      if (Number.isNaN(tierIndex)) return;
 
       mutationRequest({
         methods: [
@@ -763,7 +822,10 @@ function refreshTierList({
             if (callback) callback();
             refreshTierList({ drawId, eventId, callback });
           } else if (result.success && innerErrors?.length) {
-            tmxToast({ message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`, intent: IS_WARNING });
+            tmxToast({
+              message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`,
+              intent: IS_WARNING,
+            });
             if (callback) callback();
             refreshTierList({ drawId, eventId, callback });
           } else {
@@ -852,8 +914,14 @@ function openTransparencyReport({
   });
 }
 
+function tierMethodDisplayLabel(tierMethod: string, scaleName?: string): string {
+  if (tierMethod === 'RANKING') return 'Ranking';
+  if (tierMethod === 'RATING') return scaleName ? `Rating (${scaleName})` : 'Rating';
+  return 'Entry order';
+}
+
 function getParticipantsMap(): Map<string, string> {
-  const { participants } = tournamentEngine.getParticipants() as any;
+  const { participants } = tournamentEngine.getParticipants();
   const map = new Map<string, string>();
   for (const p of participants || []) {
     map.set(p.participantId, p.participantName);
