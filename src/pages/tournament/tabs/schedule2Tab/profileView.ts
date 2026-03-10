@@ -7,7 +7,7 @@
 
 let container: HTMLElement | null = null;
 
-export function renderProfileView(target: HTMLElement, _scheduledDate: string): void {
+export function renderProfileView(target: HTMLElement): void {
   container = target;
 
   const placeholder = document.createElement('div');

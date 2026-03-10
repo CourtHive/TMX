@@ -17,6 +17,8 @@ import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
+const HELP_TEXT_STYLE = 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;';
+
 type AddAdHocRoundParams = {
   drawId?: string;
   structure?: any;
@@ -221,7 +223,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     },
     {
       text: `<small>${t('modals.addRound.levelOfPlayHelp')}</small>`,
-      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+      style: HELP_TEXT_STYLE,
     },
     {
       label: `${t('modals.addRound.dynamicRatings')} ${helpIcon}`,
@@ -231,7 +233,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     },
     {
       text: `<small>${t('modals.addRound.dynamicRatingsHelp')}</small>`,
-      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+      style: HELP_TEXT_STYLE,
     },
     {
       label: `${t('modals.addRound.teamAvoidance')} ${helpIcon}`,
@@ -241,7 +243,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     },
     {
       text: `<small>${t('modals.addRound.teamAvoidanceHelp')}</small>`,
-      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+      style: HELP_TEXT_STYLE,
     },
   ];
 

@@ -78,7 +78,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   // Render the active view
   if (view === 'profile') {
-    renderProfileView(container, scheduledDate);
+    renderProfileView(container);
   } else {
     renderGridView(container, scheduledDate);
   }

@@ -13,6 +13,9 @@ import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants
 
 const AWARD_TYPES = [MATCH_VALUE, COLLECTION_VALUE, SET_VALUE, SCORE_VALUE];
 
+const TFE_FIELD_GROUP = 'tfe-field-group';
+const TFE_FIELD_LABEL = 'tfe-field-label';
+
 type SelectOption = { value: string; label: string };
 const getMatchTypes = (): SelectOption[] => [
   { value: 'Singles', label: t('formats.singles') },
@@ -249,9 +252,9 @@ function renderGrid(
     stats.className = 'tfp-collection__stats tfe-stats-row';
 
     const countGroup = document.createElement('div');
-    countGroup.className = 'tfe-field-group';
+    countGroup.className = TFE_FIELD_GROUP;
     const countLabel = document.createElement('span');
-    countLabel.className = 'tfe-field-label';
+    countLabel.className = TFE_FIELD_LABEL;
     countLabel.textContent = 'Matches';
     const countInput = document.createElement('input');
     countInput.type = 'number';
@@ -267,9 +270,9 @@ function renderGrid(
     countGroup.appendChild(countInput);
 
     const genderGroup = document.createElement('div');
-    genderGroup.className = 'tfe-field-group';
+    genderGroup.className = TFE_FIELD_GROUP;
     const genderLabel = document.createElement('span');
-    genderLabel.className = 'tfe-field-label';
+    genderLabel.className = TFE_FIELD_LABEL;
     genderLabel.textContent = 'Gender';
     const genderSelect = createSelect(getGenders(), row.gender, (val) => {
       row.gender = val;
@@ -291,9 +294,9 @@ function renderGrid(
     formatRow.className = 'tfp-collection__stats tfe-stats-row';
 
     const formatGroup = document.createElement('div');
-    formatGroup.className = 'tfe-field-group';
+    formatGroup.className = TFE_FIELD_GROUP;
     const formatLabel = document.createElement('span');
-    formatLabel.className = 'tfe-field-label';
+    formatLabel.className = TFE_FIELD_LABEL;
     formatLabel.textContent = 'Format';
     const formatPill = document.createElement('button');
     formatPill.className = 'tpl-format-pill';
@@ -314,9 +317,9 @@ function renderGrid(
     formatGroup.appendChild(formatPill);
 
     const awardTypeGroup = document.createElement('div');
-    awardTypeGroup.className = 'tfe-field-group';
+    awardTypeGroup.className = TFE_FIELD_GROUP;
     const awardTypeLabel = document.createElement('span');
-    awardTypeLabel.className = 'tfe-field-label';
+    awardTypeLabel.className = TFE_FIELD_LABEL;
     awardTypeLabel.textContent = 'Award';
     const awardTypeSelect = createSelect(AWARD_TYPES, row.awardType, (val) => {
       row.awardType = val;
@@ -327,9 +330,9 @@ function renderGrid(
     awardTypeGroup.appendChild(awardTypeSelect);
 
     const awardValGroup = document.createElement('div');
-    awardValGroup.className = 'tfe-field-group';
+    awardValGroup.className = TFE_FIELD_GROUP;
     const awardValLabel = document.createElement('span');
-    awardValLabel.className = 'tfe-field-label';
+    awardValLabel.className = TFE_FIELD_LABEL;
     awardValLabel.textContent = 'Value';
     const awardValInput = document.createElement('input');
     awardValInput.type = 'number';

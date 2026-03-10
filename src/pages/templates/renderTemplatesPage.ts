@@ -18,6 +18,9 @@ import type { TopologyState } from 'courthive-components';
 // constants
 import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
 
+const TPL_PANEL_TITLE = 'tpl-panel-title';
+const BTN_SMALL_INFO = 'button is-small is-info';
+
 // ── Shared state ──
 type TemplateView = 'topologies' | 'tieFormats';
 let activeView: TemplateView = 'topologies';
@@ -120,14 +123,14 @@ function buildTopologyLayout(
   header.className = 'tpl-panel-header';
 
   const title = document.createElement('div');
-  title.className = 'tpl-panel-title';
+  title.className = TPL_PANEL_TITLE;
   title.textContent = 'Topology Templates';
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = 'tpl-panel-meta';
 
   const newBtn = document.createElement('button');
-  newBtn.className = 'button is-small is-info';
+  newBtn.className = BTN_SMALL_INFO;
   newBtn.textContent = 'New';
   newBtn.onclick = () => selectTopologyItem(undefined);
 
@@ -219,7 +222,7 @@ function selectTopologyItem(item: TopologyCatalogItem | undefined, readOnly?: bo
   builderHeader.innerHTML = '';
 
   const titleEl = document.createElement('div');
-  titleEl.className = 'tpl-panel-title';
+  titleEl.className = TPL_PANEL_TITLE;
   titleEl.textContent = item ? item.name : 'New Topology';
   builderHeader.appendChild(titleEl);
 
@@ -272,7 +275,7 @@ function selectTopologyAsTemplate(item: TopologyCatalogItem): void {
   builderHeader.innerHTML = '';
 
   const titleEl = document.createElement('div');
-  titleEl.className = 'tpl-panel-title';
+  titleEl.className = TPL_PANEL_TITLE;
   titleEl.textContent = `${item.name} (copy)`;
   builderHeader.appendChild(titleEl);
 
@@ -338,14 +341,14 @@ function buildTieFormatLayout(
   header.className = 'tpl-panel-header';
 
   const title = document.createElement('div');
-  title.className = 'tpl-panel-title';
+  title.className = TPL_PANEL_TITLE;
   title.textContent = 'Tie Format Templates';
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = 'tpl-panel-meta';
 
   const newBtn = document.createElement('button');
-  newBtn.className = 'button is-small is-info';
+  newBtn.className = BTN_SMALL_INFO;
   newBtn.textContent = 'New';
   newBtn.onclick = () => selectTieFormatItem(undefined);
 
@@ -481,7 +484,7 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
 
   // Header with title and action buttons
   const titleEl = document.createElement('div');
-  titleEl.className = 'tpl-panel-title';
+  titleEl.className = TPL_PANEL_TITLE;
   titleEl.textContent = item ? item.name : 'New Tie Format';
   builderHeader.appendChild(titleEl);
 
@@ -499,7 +502,7 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
 
   if (!readOnly) {
     const editBtn = document.createElement('button');
-    editBtn.className = 'button is-small is-info';
+    editBtn.className = BTN_SMALL_INFO;
     editBtn.textContent = item ? 'Edit' : 'Create';
     editBtn.onclick = () => {
       const tf = item ? structuredClone(item.tieFormat) : { collectionDefinitions: [], winCriteria: {} };

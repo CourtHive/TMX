@@ -10,6 +10,10 @@ import { tournamentEngine } from 'tods-competition-factory';
 
 import { INITIALIZE_DRAFT, RESOLVE_DRAFT_POSITIONS, SET_DRAW_POSITION_PREFERENCES } from 'constants/mutationConstants';
 
+const IS_WARNING = 'is-warning';
+const IS_PRIMARY = 'is-primary';
+const ACCENT_TEAL = 'var(--tmx-accent-teal, #00b8a9)';
+
 const ROW_STYLE =
   'display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee); cursor: pointer; transition: background-color 0.15s;';
 const TIER_HEADER =
@@ -25,7 +29,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   const { draftState, summary, error } = tournamentEngine.getDraftState({ drawId }) as any;
 
   if (error || !draftState) {
-    tmxToast({ message: 'No draft found for this draw', intent: 'is-warning' });
+    tmxToast({ message: 'No draft found for this draw', intent: IS_WARNING });
     return;
   }
 
@@ -54,7 +58,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
             ${prefCountOptions(availablePositions.length, draftState.preferencesCount ?? 3)}
           </select>
         </label>
-        <button id="draft-reconfigure-btn" disabled style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-accent-teal, #00b8a9); color: #fff; cursor: pointer; font-weight: 500; opacity: 0.4;">
+        <button id="draft-reconfigure-btn" disabled style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: ${ACCENT_TEAL}; color: #fff; cursor: pointer; font-weight: 500; opacity: 0.4;">
           Apply
         </button>
       </div>`
@@ -81,7 +85,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   openModal({
     title: 'Configure Draft',
     content,
-    buttons: [{ label: 'Done', intent: 'is-primary', close: true }],
+    buttons: [{ label: 'Done', intent: IS_PRIMARY, close: true }],
     config: { padding: '.5', maxWidth: 700 },
   });
 
@@ -124,7 +128,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
               closeModal();
               openConfigureDraft({ drawId, eventId, callback });
             } else {
-              tmxToast({ message: result.error?.message || 'Reconfigure failed', intent: 'is-warning' });
+              tmxToast({ message: result.error?.message || 'Reconfigure failed', intent: IS_WARNING });
             }
           },
         });
@@ -175,11 +179,11 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
               if (callback) callback();
               refreshTierList({ drawId, eventId, callback });
             } else if (result.success && innerErrors?.length) {
-              tmxToast({ message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`, intent: 'is-warning' });
+              tmxToast({ message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`, intent: IS_WARNING });
               if (callback) callback();
               refreshTierList({ drawId, eventId, callback });
             } else {
-              tmxToast({ message: result.error?.message || result.info || 'Failed to resolve tier', intent: 'is-warning' });
+              tmxToast({ message: result.error?.message || result.info || 'Failed to resolve tier', intent: IS_WARNING });
             }
           },
         });
@@ -231,7 +235,7 @@ function openPreferenceEntry({
         const idx = selected.indexOf(pos);
         const isSelected = idx >= 0;
         const rank = idx + 1;
-        const bg = isSelected ? 'var(--tmx-accent-teal, #00b8a9)' : 'var(--tmx-bg-secondary, #f5f5f5)';
+        const bg = isSelected ? ACCENT_TEAL : 'var(--tmx-bg-secondary, #f5f5f5)';
         const color = isSelected ? '#fff' : 'var(--tmx-text-primary, #363636)';
         const badge = isSelected
           ? `<span style="position:absolute;top:-2px;right:-2px;background:#e74c3c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;">${rank}</span>`
@@ -332,7 +336,7 @@ function openPreferenceEntry({
           draftState.preferences[currentPid] = [...selected];
           onDone();
         } else {
-          tmxToast({ message: result.error?.message || 'Failed to save preferences', intent: 'is-warning' });
+          tmxToast({ message: result.error?.message || 'Failed to save preferences', intent: IS_WARNING });
         }
       },
     });
@@ -371,7 +375,7 @@ function openPreferenceEntry({
     buttons: [
       {
         label: 'Clear',
-        intent: 'is-warning',
+        intent: IS_WARNING,
         close: false,
         onClick: () => {
           selected = [];
@@ -380,7 +384,7 @@ function openPreferenceEntry({
       },
       {
         label: 'Done',
-        intent: 'is-primary',
+        intent: IS_PRIMARY,
         close: false,
         onClick: () => {
           saveAndDo(() => {
@@ -456,7 +460,7 @@ function openResolutionDetail({
       ? prefs
           .map((pos: number, idx: number) => {
             const isAssigned = pos === assignedPos;
-            const bg = isAssigned ? '#1b5e20' : 'var(--tmx-accent-teal, #00b8a9)';
+            const bg = isAssigned ? '#1b5e20' : ACCENT_TEAL;
             return `<div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--tmx-border-secondary, #333);">
               <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 50%; background: #e74c3c; color: #fff; font-size: 11px; font-weight: 700;">${idx + 1}</span>
               <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 30px; padding: 0 10px; border-radius: 4px; background: ${bg}; color: #fff; font-size: 14px; font-weight: 700;">Position ${pos}</span>
@@ -508,7 +512,7 @@ function openResolutionDetail({
     buttons: [
       {
         label: 'Close',
-        intent: 'is-primary',
+        intent: IS_PRIMARY,
         close: false,
         onClick: () => {
           closeModal();
@@ -566,7 +570,7 @@ function applyModalGlow() {
   const dialog = dialogs[dialogs.length - 1] as HTMLElement;
   if (dialog) {
     dialog.style.boxShadow = '0 0 20px 4px rgba(0, 184, 169, 0.4), 0 0 60px 8px rgba(0, 184, 169, 0.15)';
-    dialog.style.border = '1px solid var(--tmx-accent-teal, #00b8a9)';
+    dialog.style.border = '1px solid ${ACCENT_TEAL}';
   }
 }
 
@@ -600,7 +604,7 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
                 match === 1
                   ? '#48c774'
                   : match === 2
-                    ? 'var(--tmx-accent-teal, #00b8a9)'
+                    ? ACCENT_TEAL
                     : match
                       ? 'var(--tmx-text-secondary, #666)'
                       : 'var(--tmx-text-muted, #999)';
@@ -616,7 +620,7 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
 
             // Resolved but no resolution data (tier was resolved before resolutions tracking was added)
             const prefDisplay = prefs?.length
-              ? `<span style="color: var(--tmx-accent-teal, #00b8a9); font-size: 12px;">${prefs.join(', ')}</span>`
+              ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${prefs.join(', ')}</span>`
               : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
             return `<div class="draft-participant-row" style="${ROW_STYLE} cursor: default; opacity: 0.6;">
@@ -627,7 +631,7 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
 
           // Unresolved tier — editable
           const prefDisplay = prefs?.length
-            ? `<span style="color: var(--tmx-accent-teal, #00b8a9); font-size: 12px;">${prefs.join(', ')}</span>`
+            ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${prefs.join(', ')}</span>`
             : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
           return `<div class="draft-participant-row draft-participant-clickable" data-participant-id="${pid}" style="${ROW_STYLE}">
@@ -639,11 +643,11 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
         .join('');
 
       // Tier header with status/action
-      let statusHtml = '';
+      let statusHtml: string;
       if (tier.resolved) {
         statusHtml = `<span style="font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; background: #1b5e20; color: #fff;">Resolved</span>`;
       } else if (canResolve) {
-        statusHtml = `<button class="draft-resolve-tier-btn" data-tier-index="${tierIdx}" style="font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px; border: none; background: var(--tmx-accent-teal, #00b8a9); color: #fff; cursor: pointer;">Resolve tier</button>`;
+        statusHtml = `<button class="draft-resolve-tier-btn" data-tier-index="${tierIdx}" style="font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px; border: none; background: ${ACCENT_TEAL}; color: #fff; cursor: pointer;">Resolve tier</button>`;
       } else if (!allSubmitted) {
         statusHtml = `<span style="font-size: 11px; color: #e65100;">${submittedCount}/${totalCount} submitted</span>`;
       } else {
@@ -759,11 +763,11 @@ function refreshTierList({
             if (callback) callback();
             refreshTierList({ drawId, eventId, callback });
           } else if (result.success && innerErrors?.length) {
-            tmxToast({ message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`, intent: 'is-warning' });
+            tmxToast({ message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`, intent: IS_WARNING });
             if (callback) callback();
             refreshTierList({ drawId, eventId, callback });
           } else {
-            tmxToast({ message: result.error?.message || result.info || 'Failed to resolve tier', intent: 'is-warning' });
+            tmxToast({ message: result.error?.message || result.info || 'Failed to resolve tier', intent: IS_WARNING });
           }
         },
       });
@@ -808,7 +812,7 @@ function openTransparencyReport({
         match === 1
           ? '#48c774'
           : match === 2
-            ? 'var(--tmx-accent-teal, #00b8a9)'
+            ? ACCENT_TEAL
             : match
               ? 'var(--tmx-text-secondary, #666)'
               : 'var(--tmx-text-muted, #999)';
@@ -828,7 +832,7 @@ function openTransparencyReport({
       ${resolvedAt ? `<div style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-bottom: 8px;">Resolved ${resolvedAt}</div>` : ''}
       <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
         ${statPill('1st choice', got1st, '#1b5e20')}
-        ${statPill('2nd choice', got2nd, 'var(--tmx-accent-teal, #00b8a9)')}
+        ${statPill('2nd choice', got2nd, ACCENT_TEAL)}
         ${statPill('3rd choice', got3rd, '#1a73e8')}
         ${statPill('other choice', gotOther, '#666')}
         ${statPill('random', gotRandom, '#e65100')}

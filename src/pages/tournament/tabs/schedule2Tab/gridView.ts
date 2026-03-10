@@ -29,6 +29,12 @@ const { scheduleConstants } = factoryConstants;
 
 const { BYE } = matchUpStatusConstants;
 
+const DATA_COURT_ID = 'data-court-id';
+const DATA_VENUE_ID = 'data-venue-id';
+const DATA_COURT_ORDER = 'data-court-order';
+const DATA_MATCHUP_ID = 'data-matchup-id';
+const DATA_DRAW_ID = 'data-draw-id';
+
 let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
 
@@ -52,21 +58,21 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     onMatchUpDrop: (payload, event) => {
       // Walk up from event.target to find the grid cell with data attributes
       let target = event.target as HTMLElement | null;
-      while (target && !target.getAttribute('data-court-id')) {
+      while (target && !target.getAttribute(DATA_COURT_ID)) {
         target = target.parentElement;
       }
 
-      const courtId = target?.getAttribute('data-court-id');
-      const venueId = target?.getAttribute('data-venue-id');
-      const courtOrder = target?.getAttribute('data-court-order');
+      const courtId = target?.getAttribute(DATA_COURT_ID);
+      const venueId = target?.getAttribute(DATA_VENUE_ID);
+      const courtOrder = target?.getAttribute(DATA_COURT_ORDER);
 
       if (!courtId || !venueId || !courtOrder) return;
 
       const methods: any[] = [];
 
       // If the target cell already has a matchUp, unschedule it first (swap)
-      const existingMatchUpId = target?.getAttribute('data-matchup-id');
-      const existingDrawId = target?.getAttribute('data-draw-id');
+      const existingMatchUpId = target?.getAttribute(DATA_MATCHUP_ID);
+      const existingDrawId = target?.getAttribute(DATA_DRAW_ID);
       if (existingMatchUpId) {
         methods.push({
           method: ADD_MATCHUP_SCHEDULE_ITEMS,
@@ -279,15 +285,15 @@ function buildInteractiveGrid(selectedDate: string): InteractiveGrid {
         // Wrap in a container that carries grid-level data attributes
         const cell = document.createElement('div');
         cell.style.cssText = 'min-height: 44px;';
-        cell.setAttribute('data-court-id', courtId);
-        cell.setAttribute('data-venue-id', venueId);
-        cell.setAttribute('data-court-order', String(courtOrder));
+        cell.setAttribute(DATA_COURT_ID, courtId);
+        cell.setAttribute(DATA_VENUE_ID, venueId);
+        cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
 
         // Transfer matchUp/draw IDs from rendered cell
-        const matchUpId = cellContent.getAttribute('data-matchup-id');
-        const drawId = cellContent.getAttribute('data-draw-id');
-        if (matchUpId) cell.setAttribute('data-matchup-id', matchUpId);
-        if (drawId) cell.setAttribute('data-draw-id', drawId);
+        const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
+        const drawId = cellContent.getAttribute(DATA_DRAW_ID);
+        if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
+        if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
 
         cell.appendChild(cellContent);
 

@@ -49,6 +49,11 @@ function persistAll(
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
   env.googleSheetsImport = displayInputs.googleSheetsImport?.checked || false;
   env.schedule2 = displayInputs.schedule2?.checked || false;
+
+  // Immediately update the schedule2 nav icon visibility
+  const s2Icon = document.getElementById('s2-route');
+  if (s2Icon) s2Icon.style.display = env.schedule2 ? '' : 'none';
+
   let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
   if (scoringInputs.dynamicSets.checked) {
     scoringApproach = 'dynamicSets';
