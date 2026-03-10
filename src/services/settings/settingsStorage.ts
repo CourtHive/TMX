@@ -12,6 +12,7 @@ export type TMXSettings = {
   smartComplements?: boolean; // Enable smart complement entry in dynamicSets (default: false)
   pdfPrinting?: boolean; // Beta feature flag for PDF generation
   googleSheetsImport?: boolean; // Beta feature flag for Google Sheets participant import
+  schedule2?: boolean; // Beta feature flag for Schedule Page 2
   minCourtGridRows?: number; // Minimum schedule grid rows (default: 10)
   language?: string; // UI language code (e.g. 'en', 'fr')
   theme?: 'light' | 'dark' | 'system'; // UI theme preference

@@ -81,6 +81,9 @@ export function setupTMX(): void {
     if (savedSettings.googleSheetsImport !== undefined) {
       env.googleSheetsImport = savedSettings.googleSheetsImport;
     }
+    if (savedSettings.schedule2 !== undefined) {
+      env.schedule2 = savedSettings.schedule2;
+    }
     if (savedSettings.minCourtGridRows !== undefined) {
       env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;
     }

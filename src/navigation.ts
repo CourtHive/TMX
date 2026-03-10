@@ -17,6 +17,7 @@ import {
   PARTICIPANTS,
   PUBLISHING_TAB,
   SCHEDULE_TAB,
+  SCHEDULE2_TAB,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
   VENUES_TAB,
@@ -35,6 +36,7 @@ const routeMap: Record<string, string> = {
   'e-route': EVENTS_TAB,
   'm-route': MATCHUPS_TAB,
   's-route': SCHEDULE_TAB,
+  's2-route': SCHEDULE2_TAB,
   'v-route': VENUES_TAB,
   'b-route': PUBLISHING_TAB,
   'c-route': SETTINGS_TAB,
@@ -46,6 +48,7 @@ const tips: Record<string, string> = {
   'e-route': 'Events',
   'm-route': 'MatchUps',
   's-route': 'Schedule',
+  's2-route': 'Schedule 2',
   'v-route': 'Venues',
   'b-route': 'Publishing',
   'c-route': 'Settings',
@@ -58,6 +61,7 @@ const i18nKeys: Record<string, string> = {
   'e-route': 'evt',
   'm-route': 'mts',
   's-route': 'sch',
+  's2-route': 'sch2',
   'v-route': 'ven',
   'b-route': 'pub',
   'c-route': 'set',
@@ -87,7 +91,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Build dropdown items
   menu.innerHTML = '';
-  const ids = Object.keys(routeMap);
+  const ids = Object.keys(routeMap).filter((id) => id !== 's2-route' || env.schedule2);
   ids.forEach((id) => {
     const item = document.createElement('button');
     item.className = 'mobile-nav-item';
@@ -143,6 +147,10 @@ export function tmxNavigation(): void {
   element.innerHTML = html;
 
   const ids = Object.keys(routeMap);
+
+  // Hide schedule2 nav icon when beta flag is off
+  const s2Icon = document.getElementById('s2-route');
+  if (s2Icon) s2Icon.style.display = env.schedule2 ? '' : 'none';
 
   const selectedTab = context.router?.current?.[0]?.data?.selectedTab;
 

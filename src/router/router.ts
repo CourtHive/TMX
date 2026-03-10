@@ -25,6 +25,7 @@ import {
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE_TAB,
+  SCHEDULE2_TAB,
   VENUES_TAB,
   TEMPLATES,
   POLICIES,
@@ -102,6 +103,12 @@ export function routeTMX() {
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE_TAB}/:scheduledDate`, (match) => {
     displayRoute({ selectedTab: SCHEDULE_TAB, data: match?.data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}/:scheduledDate/:scheduleView`, (match) => {
+    displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}/:scheduledDate`, (match) => {
+    displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${VENUES_TAB}/:venueView`, (match) => {
     displayRoute({ selectedTab: VENUES_TAB, data: match?.data });

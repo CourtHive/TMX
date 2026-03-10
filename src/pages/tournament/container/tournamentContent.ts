@@ -31,6 +31,9 @@ import {
   PUBLISHING_CONTROL,
   TOURNAMENT_PUBLISHING,
   SCHEDULE_TAB,
+  SCHEDULE2_TAB,
+  SCHEDULE2_CONTAINER,
+  SCHEDULE2_CONTROL,
   UNSCHEDULED_MATCHUPS,
   UNSCHEDULED_CONTROL,
   UNSCHEDULED_VISIBILITY,
@@ -53,6 +56,7 @@ const refMap: Record<string, string> = {
   [EVENTS_TAB]: 'e-tab',
   [MATCHUPS_TAB]: 'm-tab',
   [SCHEDULE_TAB]: 's-tab',
+  [SCHEDULE2_TAB]: 's2-tab',
   [VENUES_TAB]: 'v-tab',
   [PUBLISHING_TAB]: 'b-tab',
   [SETTINGS_TAB]: 'c-tab',
@@ -87,6 +91,15 @@ export function tournamentContent(): void {
                   <div id='${SCHEDULE_CONTROL}' class='controlBar flexcol flexcenter'></div>
                   <div id='${TOURNAMENT_SCHEDULE}' class='tableClass flexcol flexcenter'></div>
               </div>
+            </div>
+        </div>
+        `;
+
+  const schedule2Tab = `
+        <div class='tab_section sch2_tab'>
+            <div class='section block' style='min-height: auto;'>
+              <div id='${SCHEDULE2_CONTROL}' class='controlBar flexcol flexcenter'></div>
+              <div id='${SCHEDULE2_CONTAINER}' style='width: 100%; height: calc(100vh - 140px);'></div>
             </div>
         </div>
         `;
@@ -134,6 +147,7 @@ export function tournamentContent(): void {
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's-tab': scheduleTab,
+    's2-tab': schedule2Tab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
     'b-tab': publishingTab,
@@ -181,6 +195,7 @@ export function removeTournamentContent(): void {
     EVENT_CONTROL,
     TEAMS_CONTROL,
     SCHEDULE_CONTROL,
+    SCHEDULE2_CONTROL,
     VENUES_CONTROL,
 
     TEAM_STATS,
@@ -195,6 +210,7 @@ export function removeTournamentContent(): void {
     TOURNAMENT_MATCHUPS,
     TOURNAMENT_PARTICIPANTS,
     TOURNAMENT_SCHEDULE,
+    SCHEDULE2_CONTAINER,
     TOURNAMENT_TEAMS,
     UNSCHEDULED_MATCHUPS,
     TOURNAMENT_VENUES,

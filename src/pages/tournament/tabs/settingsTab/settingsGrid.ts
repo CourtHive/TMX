@@ -48,6 +48,7 @@ function persistAll(
   env.saveLocal = storageInputs.saveLocal.checked;
   env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
   env.googleSheetsImport = displayInputs.googleSheetsImport?.checked || false;
+  env.schedule2 = displayInputs.schedule2?.checked || false;
   let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
   if (scoringInputs.dynamicSets.checked) {
     scoringApproach = 'dynamicSets';
@@ -77,6 +78,7 @@ function persistAll(
     smartComplements: scoringInputs.smartComplements?.checked || false,
     pdfPrinting: env.pdfPrinting,
     googleSheetsImport: env.googleSheetsImport,
+    schedule2: env.schedule2,
     minCourtGridRows: env.schedule.minCourtGridRows,
     language,
   });
@@ -292,6 +294,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       checked: env.googleSheetsImport || false,
       field: 'googleSheetsImport',
       id: 'googleSheetsImport',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: t('modals.settings.schedule2'),
+      checked: env.schedule2 || false,
+      field: 'schedule2',
+      id: 'schedule2',
       onChange: persist,
       checkbox: true,
     },

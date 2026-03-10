@@ -65,6 +65,7 @@ export const TOURNAMENT_EVENTS = 'tournamentEvents';
 export const TOURNAMENT_OVERVIEW = 'overview';
 export const PARTICIPANTS = 'participants';
 export const SCHEDULE_TAB = 'schedule';
+export const SCHEDULE2_TAB = 'schedule2';
 export const MATCHUPS_TAB = 'matchUps';
 export const EVENTS_TAB = 'events';
 export const VENUES_TAB = 'venues';
@@ -140,6 +141,8 @@ export const UNGROUPED_PANEL = 'ungroupedPanel';
 export const WITHDRAWN_PANEL = 'withdrawaPanel';
 
 export const UNSCHEDULED_VISIBILITY = 'unscheduledVisibility';
+export const SCHEDULE2_CONTAINER = 'schedule2Container';
+export const SCHEDULE2_CONTROL = 'schedule2Control';
 export const TOURNAMENTS_CONTROL = 'tournamentsControl';
 export const PARTICIPANT_CONTROL = 'participantControl';
 export const UNSCHEDULED_CONTROL = 'unscheduledControl';
