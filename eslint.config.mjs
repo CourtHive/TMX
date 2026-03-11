@@ -12,6 +12,7 @@ export default [
       'storybook-static/**',
       '**/*.mjs',
       'vite.config.ts',
+      'electron.vite.config.ts',
       '**/*.cy.ts',
       'cypress/**',
       'cypress.config.ts',
@@ -27,7 +28,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['tsconfig.json'],
+        project: ['tsconfig.json', 'electron/tsconfig.json'],
       },
       globals: {
         ...globals.browser,
@@ -81,7 +82,7 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'import/no-named-as-default': 'off',
       'import/no-named-as-default-member': 'off',
       'import/no-unresolved': 'off',

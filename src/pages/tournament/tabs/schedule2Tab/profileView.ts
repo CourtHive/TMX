@@ -384,7 +384,9 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
     totalOverLimit += (ids as string[]).length;
   }
 
-  const message = `Scheduled ${totalScheduled} matchUps across ${(result?.scheduledDates || []).length} dates.${totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : ''}`;
+  const dateCount = (result?.scheduledDates || []).length;
+  const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
+  const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
 
   tmxToast({
     message,

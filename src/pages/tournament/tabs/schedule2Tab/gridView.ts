@@ -28,8 +28,10 @@ import {
 import type { SchedulePageConfig, SchedulePageControl, CatalogMatchUpItem, ScheduleDate } from 'courthive-components';
 import type { ScheduleIssue, ScheduleIssueSeverity } from 'courthive-components';
 import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
+import { handleSchedule2CellClick } from './schedule2CellActions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { scheduleConfig } from 'config/scheduleConfig';
 import { tmx2db } from 'services/storage/tmx2db';
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
@@ -43,6 +45,7 @@ const DATA_VENUE_ID = 'data-venue-id';
 const DATA_COURT_ORDER = 'data-court-order';
 const DATA_MATCHUP_ID = 'data-matchup-id';
 const DATA_DRAW_ID = 'data-draw-id';
+const POSITION_STICKY = 'position: sticky';
 
 let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
@@ -50,14 +53,27 @@ let bulkMode = false;
 let pendingMethods: any[][] = []; // Each entry is a methods array from one drop/remove
 let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
+let gridRootElement: HTMLElement | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   currentDate = scheduledDate;
   actionBarContainer = container;
 
+  // Late-binding refresh: grid cells reference this via closure, but grid is built
+  // before activeControl exists. The wrapper defers to the real refresh once ready.
+  function refresh(): void {
+    if (!activeControl || !grid) return;
+    grid.rebuild(currentDate);
+    activeControl.setMatchUpCatalog(buildCatalog(currentDate));
+    activeControl.setScheduleDates(buildScheduleDates(currentDate));
+    activeControl.setIssues(buildIssues(currentDate));
+  }
+
+  const gridCallbacks: GridCallbacks = { onRefresh: refresh, executeMethods };
+
   const catalog = buildCatalog(scheduledDate);
   const scheduleDates = buildScheduleDates(scheduledDate);
-  const grid = buildInteractiveGrid(scheduledDate);
+  const grid = buildInteractiveGrid(scheduledDate, gridCallbacks);
   const issues = buildIssues(scheduledDate);
 
   const config: SchedulePageConfig = {
@@ -65,7 +81,6 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     scheduleDates,
     issues,
     courtGridElement: grid.element,
-    gridMaxHeight: '70vh',
     scheduledBehavior: 'dim',
     schedulingMode: 'immediate',
 
@@ -154,21 +169,11 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     },
 
     onMatchUpSelected: (m) => {
-      // Could open inspector / popover in the future
       if (m) console.log('[schedule2] selected', m.matchUpId);
     },
   };
 
   activeControl = createSchedulePage(config, container);
-
-  // Refresh helper — rebuilds everything from factory state after mutations
-  function refresh(): void {
-    if (!activeControl) return;
-    grid.rebuild(currentDate);
-    activeControl.setMatchUpCatalog(buildCatalog(currentDate));
-    activeControl.setScheduleDates(buildScheduleDates(currentDate));
-    activeControl.setIssues(buildIssues(currentDate));
-  }
 }
 
 export function destroyGridView(): void {
@@ -179,6 +184,7 @@ export function destroyGridView(): void {
   removeActionBar();
   pendingMethods = [];
   actionBarContainer = null;
+  gridRootElement = null;
 }
 
 /** Whether there are unsaved bulk scheduling changes. */
@@ -205,6 +211,47 @@ export function setGridBulkMode(enabled: boolean): boolean {
 
 export function getGridBulkMode(): boolean {
   return bulkMode;
+}
+
+const SEARCH_HIGHLIGHT_CLASS = 'sch2-search-highlight';
+
+function ensureSearchHighlightStyle(): void {
+  if (document.getElementById('sch2-search-style')) return;
+  const style = document.createElement('style');
+  style.id = 'sch2-search-style';
+  style.textContent = `.${SEARCH_HIGHLIGHT_CLASS} { outline: 2px solid #f59e0b; outline-offset: -2px; background: rgba(245, 158, 11, 0.15) !important; }`;
+  document.head.appendChild(style);
+}
+
+/** Highlight grid cells matching search text; scroll first match into view. */
+export function searchGridCells(text: string, _mode: 'individual' | 'team'): void {
+  if (!gridRootElement) return;
+  ensureSearchHighlightStyle();
+
+  // Remove previous highlights
+  const prev = gridRootElement.querySelectorAll(`.${SEARCH_HIGHLIGHT_CLASS}`);
+  for (const el of prev) el.classList.remove(SEARCH_HIGHLIGHT_CLASS);
+
+  if (!text.trim()) return;
+
+  const needle = text.trim().toLowerCase();
+  const cells = gridRootElement.querySelectorAll(`[${DATA_MATCHUP_ID}]`);
+  let firstMatch: HTMLElement | null = null;
+
+  for (const cell of cells) {
+    const el = cell as HTMLElement;
+    // For 'team' mode, match against team names (data attribute or full text)
+    // For 'individual' mode, match against participant names in the cell
+    const cellText = el.textContent?.toLowerCase() || '';
+    if (cellText.includes(needle)) {
+      el.classList.add(SEARCH_HIGHLIGHT_CLASS);
+      if (!firstMatch) firstMatch = el;
+    }
+  }
+
+  if (firstMatch) {
+    firstMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }
 }
 
 // ============================================================================
@@ -316,7 +363,7 @@ function updateActionBar(): void {
   if (!actionBar) {
     actionBar = document.createElement('div');
     actionBar.style.cssText = [
-      'position: sticky',
+      POSITION_STICKY,
       'bottom: 0',
       'z-index: 10',
       'display: flex',
@@ -372,12 +419,18 @@ interface InteractiveGrid {
   rebuild: (date: string) => void;
 }
 
-function buildInteractiveGrid(selectedDate: string): InteractiveGrid {
+interface GridCallbacks {
+  onRefresh: () => void;
+  executeMethods: (methods: any[], onRefresh: () => void) => void;
+}
+
+function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): InteractiveGrid {
   const MIN_COURT_WIDTH = 110;
   const TIME_COL_WIDTH = 50;
 
   const root = document.createElement('div');
   root.style.cssText = 'width: 100%; overflow: auto;';
+  gridRootElement = root;
 
   function render(date: string): void {
     root.innerHTML = '';
@@ -386,7 +439,7 @@ function buildInteractiveGrid(selectedDate: string): InteractiveGrid {
       matchUpFilters: { scheduledDate: date },
       courtCompletedMatchUps: true,
       withCourtGridRows: true,
-      minCourtGridRows: 14,
+      minCourtGridRows: scheduleConfig.get().minCourtGridRows,
     });
 
     const rows: any[] = scheduleResult.rows || [];
@@ -414,14 +467,14 @@ function buildInteractiveGrid(selectedDate: string): InteractiveGrid {
     ].join('; ');
 
     const STICKY_HEADER = [
-      'position: sticky', 'top: 0', 'z-index: 2',
+      POSITION_STICKY, 'top: 0', 'z-index: 2',
       'background: var(--sp-panel-bg, #fff)', 'padding: 6px 4px',
       'font-size: 10px', 'font-weight: 700', 'text-align: center',
       'white-space: nowrap', 'overflow: hidden', 'text-overflow: ellipsis',
     ].join('; ');
 
     const STICKY_ROW = [
-      'position: sticky', 'left: 0', 'z-index: 1',
+      POSITION_STICKY, 'left: 0', 'z-index: 1',
       'background: var(--sp-panel-bg, #fff)', 'padding: 6px 4px',
       'font-size: 10px', 'font-weight: 600', 'color: var(--sp-muted, #888)',
       'display: flex', 'align-items: center', 'justify-content: center',
@@ -485,7 +538,6 @@ function buildInteractiveGrid(selectedDate: string): InteractiveGrid {
         // ── Filled cells are draggable ──
         if (cellData?.matchUpId) {
           cell.draggable = true;
-          cell.style.cursor = 'grab';
           cell.title = `${cellData.eventName || ''} ${cellData.roundName || ''}`.trim();
 
           cell.addEventListener('dragstart', (e) => {
@@ -531,6 +583,26 @@ function buildInteractiveGrid(selectedDate: string): InteractiveGrid {
             cell.style.outlineOffset = '';
           });
         }
+
+        // ── Click handler for popover menu ──
+        cell.addEventListener('click', (e: MouseEvent) => {
+          // Ignore clicks that are part of a drag operation
+          if (cell.draggable && cell.style.opacity === '0.4') return;
+
+          handleSchedule2CellClick(e, {
+            cellData,
+            courtId,
+            venueId,
+            courtOrder,
+            scheduledDate: currentDate,
+            allRows: rows,
+            courtPrefix,
+            rowIndex: ri,
+            onRefresh: callbacks.onRefresh,
+            executeMethods: callbacks.executeMethods,
+          });
+        });
+        cell.style.cursor = cell.draggable ? 'grab' : 'pointer';
 
         grid.appendChild(cell);
       }

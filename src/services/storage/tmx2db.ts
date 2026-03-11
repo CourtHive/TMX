@@ -40,13 +40,14 @@ export const tmx2db: TMXDatabase = (function () {
         const providers = '&providerId, settings, calendar';
         const idioms = 'ioc';
         const policies = '&id, policyType, source';
-        const topologies = '&id, name, source';
-        const tieFormats = '&id, name, source';
+        const namedSource = '&id, name, source';
+        const topologies = namedSource;
+        const tieFormats = namedSource;
         idb.dex.version(2).stores({ tournaments, providers, idioms });
         idb.dex.version(3).stores({ tournaments, providers, idioms, policies });
         idb.dex.version(4).stores({ tournaments, providers, idioms, policies, topologies });
         idb.dex.version(5).stores({ tournaments, providers, idioms, policies, topologies, tieFormats });
-        const compositions = '&id, name, source';
+        const compositions = namedSource;
         idb.dex.version(6).stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions });
         resolve();
       } catch (err) {

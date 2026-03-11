@@ -1,6 +1,8 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { providerConfig } from './providerConfig';
 
+const BEST_OF_3 = 'SET3-S:6/TB7';
+
 describe('providerConfig', () => {
   beforeEach(() => {
     providerConfig.reset();
@@ -95,10 +97,10 @@ describe('providerConfig', () => {
 
     it('returns allowed matchUp formats from policies', () => {
       providerConfig.set({
-        policies: { allowedMatchUpFormats: ['SET3-S:6/TB7', 'SET1-S:6/TB7'] },
+        policies: { allowedMatchUpFormats: [BEST_OF_3, 'SET1-S:6/TB7'] },
       });
       expect(providerConfig.getAllowedList('allowedMatchUpFormats')).toEqual([
-        'SET3-S:6/TB7',
+        BEST_OF_3,
         'SET1-S:6/TB7',
       ]);
     });
@@ -260,7 +262,7 @@ describe('providerConfig', () => {
           canUseBulkScheduling: false,
         },
         policies: {
-          allowedMatchUpFormats: ['SET3-S:6/TB7'],
+          allowedMatchUpFormats: [BEST_OF_3],
           allowedCategories: [{ ageCategoryCode: 'U14' }, { ageCategoryCode: 'U18' }],
         },
       });
@@ -291,7 +293,7 @@ describe('providerConfig', () => {
         'SINGLE_ELIMINATION',
         'ROUND_ROBIN',
       ]);
-      expect(providerConfig.getAllowedList('allowedMatchUpFormats')).toEqual(['SET3-S:6/TB7']);
+      expect(providerConfig.getAllowedList('allowedMatchUpFormats')).toEqual([BEST_OF_3]);
       expect(providerConfig.getAllowedList('allowedCategories')).toHaveLength(2);
     });
   });

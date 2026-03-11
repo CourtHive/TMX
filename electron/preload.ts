@@ -15,9 +15,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readFile: (filePath: string) => ipcRenderer.invoke('fs:readFile', filePath),
   writeFile: (filePath: string, data: Uint8Array) => ipcRenderer.invoke('fs:writeFile', filePath, data),
 
-  // App metadata
-  getAppDataPath: () => ipcRenderer.invoke('app:getDataPath'),
-  getServerUrl: () => ipcRenderer.invoke('app:getServerUrl'),
+  // App metadata (sync — these read in-memory values)
+  getAppDataPath: () => ipcRenderer.sendSync('app:getDataPath'),
+  getServerUrl: () => ipcRenderer.sendSync('app:getServerUrl'),
   setServerUrl: (url: string) => ipcRenderer.invoke('app:setServerUrl', url),
 
   // DevTools

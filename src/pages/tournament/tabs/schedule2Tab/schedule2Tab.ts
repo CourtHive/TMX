@@ -16,7 +16,7 @@ import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 
 export type Schedule2View = 'grid' | 'profile';
@@ -76,6 +76,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
     },
+    onSearch: (text, mode) => searchGridCells(text, mode),
     onBulkModeChange: (enabled: boolean) => {
       const result = setGridBulkMode(enabled);
       // Re-render header to reflect actual state (in case user cancelled)

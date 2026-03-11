@@ -21,7 +21,21 @@ import type { TopologyState, SavedComposition } from 'courthive-components';
 import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
 
 const TPL_PANEL_TITLE = 'tpl-panel-title';
+const TPL_LAYOUT = 'tpl-layout';
+const TPL_PANEL = 'tpl-panel';
+const TPL_PANEL_HEADER = 'tpl-panel-header';
+const TPL_PANEL_META = 'tpl-panel-meta';
+const TPL_PANEL_BODY = 'tpl-panel-body';
+const TPL_BUILDER_PANEL = 'tpl-builder-panel';
+const TPL_BUILDER_HEADER = 'tpl-builder-header';
+const TPL_BUILDER_BODY = 'tpl-builder-body';
+const TPL_EMPTY = 'tpl-empty';
+const TPL_CARD_NAME = '.tpl-card__name';
 const BTN_SMALL_INFO = 'button is-small is-info';
+const BTN_SMALL_INFO_OUTLINED = 'button is-small is-info is-outlined';
+const USE_AS_TEMPLATE = 'Use as template';
+const BTN_GROUP_STYLE = 'display:flex;gap:6px;';
+const INTENT_SUCCESS = 'is-success';
 
 // ── Shared state ──
 type TemplateView = 'topologies' | 'tieFormats' | 'compositions';
@@ -124,21 +138,21 @@ function buildTopologyLayout(
   userTopologies: TopologyCatalogItem[],
 ): void {
   layoutRoot = document.createElement('div');
-  layoutRoot.className = 'tpl-layout';
+  layoutRoot.className = TPL_LAYOUT;
 
   // ── Left panel: catalog ──
   const leftPanel = document.createElement('div');
-  leftPanel.className = 'tpl-panel';
+  leftPanel.className = TPL_PANEL;
 
   const header = document.createElement('div');
-  header.className = 'tpl-panel-header';
+  header.className = TPL_PANEL_HEADER;
 
   const title = document.createElement('div');
   title.className = TPL_PANEL_TITLE;
   title.textContent = 'Topology Templates';
 
   catalogMeta = document.createElement('div');
-  catalogMeta.className = 'tpl-panel-meta';
+  catalogMeta.className = TPL_PANEL_META;
 
   const newBtn = document.createElement('button');
   newBtn.className = BTN_SMALL_INFO;
@@ -151,28 +165,28 @@ function buildTopologyLayout(
   leftPanel.appendChild(header);
 
   catalogBody = document.createElement('div');
-  catalogBody.className = 'tpl-panel-body';
+  catalogBody.className = TPL_PANEL_BODY;
   leftPanel.appendChild(catalogBody);
 
   // ── Right panel: builder ──
   const rightPanel = document.createElement('div');
-  rightPanel.className = 'tpl-panel';
+  rightPanel.className = TPL_PANEL;
 
   builderPanel = document.createElement('div');
-  builderPanel.className = 'tpl-builder-panel';
+  builderPanel.className = TPL_BUILDER_PANEL;
   builderPanel.style.display = 'none';
 
   builderHeader = document.createElement('div');
-  builderHeader.className = 'tpl-builder-header';
+  builderHeader.className = TPL_BUILDER_HEADER;
 
   builderBody = document.createElement('div');
-  builderBody.className = 'tpl-builder-body';
+  builderBody.className = TPL_BUILDER_BODY;
 
   builderPanel.appendChild(builderHeader);
   builderPanel.appendChild(builderBody);
 
   emptyEl = document.createElement('div');
-  emptyEl.className = 'tpl-empty';
+  emptyEl.className = TPL_EMPTY;
   emptyEl.textContent = 'Select a template to view or click New';
 
   rightPanel.appendChild(builderPanel);
@@ -220,7 +234,7 @@ function selectTopologyItem(item: TopologyCatalogItem | undefined, readOnly?: bo
   catalogBody?.querySelectorAll('.tpl-card').forEach((el) => el.classList.remove('active'));
   if (selectedItemId) {
     catalogBody?.querySelectorAll('.tpl-card').forEach((el) => {
-      const nameEl = el.querySelector('.tpl-card__name');
+      const nameEl = el.querySelector(TPL_CARD_NAME);
       if (nameEl?.textContent?.startsWith(item!.name)) el.classList.add('active');
     });
   }
@@ -239,8 +253,8 @@ function selectTopologyItem(item: TopologyCatalogItem | undefined, readOnly?: bo
 
   if (item && !readOnly) {
     const useBtn = document.createElement('button');
-    useBtn.className = 'button is-small is-info is-outlined';
-    useBtn.textContent = 'Use as template';
+    useBtn.className = BTN_SMALL_INFO_OUTLINED;
+    useBtn.textContent = USE_AS_TEMPLATE;
     useBtn.onclick = () => selectTopologyAsTemplate(item);
     builderHeader.appendChild(useBtn);
   }
@@ -326,7 +340,7 @@ function handleTopologySave(state: TopologyState, editingId?: string, defaultNam
     };
 
     saveUserTopology(item).then(() => {
-      tmxToast({ message: `Template "${name}" saved`, intent: 'is-success' });
+      tmxToast({ message: `Template "${name}" saved`, intent: INTENT_SUCCESS });
       renderTemplatesPage();
     });
   });
@@ -342,21 +356,21 @@ function buildTieFormatLayout(
   userTieFormats: TieFormatCatalogItem[],
 ): void {
   layoutRoot = document.createElement('div');
-  layoutRoot.className = 'tpl-layout';
+  layoutRoot.className = TPL_LAYOUT;
 
   // ── Left panel: catalog ──
   const leftPanel = document.createElement('div');
-  leftPanel.className = 'tpl-panel';
+  leftPanel.className = TPL_PANEL;
 
   const header = document.createElement('div');
-  header.className = 'tpl-panel-header';
+  header.className = TPL_PANEL_HEADER;
 
   const title = document.createElement('div');
   title.className = TPL_PANEL_TITLE;
   title.textContent = 'Tie Format Templates';
 
   catalogMeta = document.createElement('div');
-  catalogMeta.className = 'tpl-panel-meta';
+  catalogMeta.className = TPL_PANEL_META;
 
   const newBtn = document.createElement('button');
   newBtn.className = BTN_SMALL_INFO;
@@ -369,28 +383,28 @@ function buildTieFormatLayout(
   leftPanel.appendChild(header);
 
   catalogBody = document.createElement('div');
-  catalogBody.className = 'tpl-panel-body';
+  catalogBody.className = TPL_PANEL_BODY;
   leftPanel.appendChild(catalogBody);
 
   // ── Right panel: editor / preview ──
   const rightPanel = document.createElement('div');
-  rightPanel.className = 'tpl-panel';
+  rightPanel.className = TPL_PANEL;
 
   builderPanel = document.createElement('div');
-  builderPanel.className = 'tpl-builder-panel';
+  builderPanel.className = TPL_BUILDER_PANEL;
   builderPanel.style.display = 'none';
 
   builderHeader = document.createElement('div');
-  builderHeader.className = 'tpl-builder-header';
+  builderHeader.className = TPL_BUILDER_HEADER;
 
   builderBody = document.createElement('div');
-  builderBody.className = 'tpl-builder-body';
+  builderBody.className = TPL_BUILDER_BODY;
 
   builderPanel.appendChild(builderHeader);
   builderPanel.appendChild(builderBody);
 
   emptyEl = document.createElement('div');
-  emptyEl.className = 'tpl-empty';
+  emptyEl.className = TPL_EMPTY;
   emptyEl.textContent = 'Select a tie format to view or click New';
 
   rightPanel.appendChild(builderPanel);
@@ -481,7 +495,7 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
   catalogBody?.querySelectorAll('.tpl-card').forEach((el) => el.classList.remove('active'));
   if (selectedItemId) {
     catalogBody?.querySelectorAll('.tpl-card').forEach((el) => {
-      const nameEl = el.querySelector('.tpl-card__name');
+      const nameEl = el.querySelector(TPL_CARD_NAME);
       if (nameEl?.textContent?.startsWith(item!.name)) el.classList.add('active');
     });
   }
@@ -500,13 +514,13 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
   builderHeader.appendChild(titleEl);
 
   const btnGroup = document.createElement('div');
-  btnGroup.style.cssText = 'display:flex;gap:6px;';
+  btnGroup.style.cssText = BTN_GROUP_STYLE;
 
   if (item && readOnly) {
     // "Use as template" button for builtins
     const copyBtn = document.createElement('button');
-    copyBtn.className = 'button is-small is-info is-outlined';
-    copyBtn.textContent = 'Use as template';
+    copyBtn.className = BTN_SMALL_INFO_OUTLINED;
+    copyBtn.textContent = USE_AS_TEMPLATE;
     copyBtn.onclick = () => openTieFormatEditor(structuredClone(item.tieFormat), `${item.name} (copy)`);
     btnGroup.appendChild(copyBtn);
   }
@@ -680,7 +694,7 @@ function openTieFormatEditor(tieFormat: any, defaultName?: string, editingId?: s
           tieFormat: result,
         };
         saveUserTieFormat(item).then(() => {
-          tmxToast({ message: `Tie format "${name}" saved`, intent: 'is-success' });
+          tmxToast({ message: `Tie format "${name}" saved`, intent: INTENT_SUCCESS });
           renderTemplatesPage();
         });
       });
@@ -709,21 +723,21 @@ function buildCompositionLayout(
   userCompositions: CompositionCatalogItem[],
 ): void {
   layoutRoot = document.createElement('div');
-  layoutRoot.className = 'tpl-layout';
+  layoutRoot.className = TPL_LAYOUT;
 
   // ── Left panel: catalog ──
   const leftPanel = document.createElement('div');
-  leftPanel.className = 'tpl-panel';
+  leftPanel.className = TPL_PANEL;
 
   const header = document.createElement('div');
-  header.className = 'tpl-panel-header';
+  header.className = TPL_PANEL_HEADER;
 
   const title = document.createElement('div');
   title.className = TPL_PANEL_TITLE;
   title.textContent = 'Composition Templates';
 
   catalogMeta = document.createElement('div');
-  catalogMeta.className = 'tpl-panel-meta';
+  catalogMeta.className = TPL_PANEL_META;
 
   const newBtn = document.createElement('button');
   newBtn.className = BTN_SMALL_INFO;
@@ -736,28 +750,28 @@ function buildCompositionLayout(
   leftPanel.appendChild(header);
 
   catalogBody = document.createElement('div');
-  catalogBody.className = 'tpl-panel-body';
+  catalogBody.className = TPL_PANEL_BODY;
   leftPanel.appendChild(catalogBody);
 
   // ── Right panel: editor / preview ──
   const rightPanel = document.createElement('div');
-  rightPanel.className = 'tpl-panel';
+  rightPanel.className = TPL_PANEL;
 
   builderPanel = document.createElement('div');
-  builderPanel.className = 'tpl-builder-panel';
+  builderPanel.className = TPL_BUILDER_PANEL;
   builderPanel.style.display = 'none';
 
   builderHeader = document.createElement('div');
-  builderHeader.className = 'tpl-builder-header';
+  builderHeader.className = TPL_BUILDER_HEADER;
 
   builderBody = document.createElement('div');
-  builderBody.className = 'tpl-builder-body';
+  builderBody.className = TPL_BUILDER_BODY;
 
   builderPanel.appendChild(builderHeader);
   builderPanel.appendChild(builderBody);
 
   emptyEl = document.createElement('div');
-  emptyEl.className = 'tpl-empty';
+  emptyEl.className = TPL_EMPTY;
   emptyEl.textContent = 'Select a composition to view or click New';
 
   rightPanel.appendChild(builderPanel);
@@ -812,7 +826,7 @@ function selectCompositionItem(item: CompositionCatalogItem | undefined, readOnl
   catalogBody?.querySelectorAll('.tpl-card').forEach((el) => el.classList.remove('active'));
   if (selectedItemId) {
     catalogBody?.querySelectorAll('.tpl-card').forEach((el) => {
-      const nameEl = el.querySelector('.tpl-card__name');
+      const nameEl = el.querySelector(TPL_CARD_NAME);
       if (nameEl?.textContent?.startsWith(item!.name)) el.classList.add('active');
     });
   }
@@ -830,13 +844,13 @@ function selectCompositionItem(item: CompositionCatalogItem | undefined, readOnl
   builderHeader.appendChild(titleEl);
 
   const btnGroup = document.createElement('div');
-  btnGroup.style.cssText = 'display:flex;gap:6px;';
+  btnGroup.style.cssText = BTN_GROUP_STYLE;
 
   if (item && readOnly) {
     // "Use as template" — opens editor with a copy
     const copyBtn = document.createElement('button');
-    copyBtn.className = 'button is-small is-info is-outlined';
-    copyBtn.textContent = 'Use as template';
+    copyBtn.className = BTN_SMALL_INFO_OUTLINED;
+    copyBtn.textContent = USE_AS_TEMPLATE;
     copyBtn.onclick = () => {
       const copy: CompositionCatalogItem = {
         id: '',
@@ -897,7 +911,7 @@ function handleCompositionSave(saved: SavedComposition, editingId?: string): voi
     };
 
     saveUserComposition(item).then(() => {
-      tmxToast({ message: `Composition "${name}" saved`, intent: 'is-success' });
+      tmxToast({ message: `Composition "${name}" saved`, intent: INTENT_SUCCESS });
       renderTemplatesPage();
     });
   });
