@@ -6,7 +6,10 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine, fixtures } from 'tods-competition-factory';
+import { getTournamentScaleOptions, getParticipantScaleValues, ScaleOption } from './draftScaleOptions';
+
+const { ratingsParameters } = fixtures;
 
 // constants
 import { INITIALIZE_DRAFT, RESOLVE_DRAFT_POSITIONS, SET_DRAW_POSITION_PREFERENCES } from 'constants/mutationConstants';
@@ -43,46 +46,76 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   const availablePositions = draftState.unassignedDrawPositions || [];
   const anyTierResolved = draftState.tiers?.some((t: any) => t.resolved);
   const anyPrefsSubmitted = summary.preferencesSubmitted > 0;
-  const showConfigBar = !anyTierResolved && !anyPrefsSubmitted;
+  const showConfigBar = !anyTierResolved;
+  const configLocked = anyPrefsSubmitted;
 
   const currentTierMethod = draftState.tierMethod || 'ENTRY_ORDER';
   const currentScaleName = draftState.scaleAttributes?.scaleName || '';
   const selectStyle =
-    'padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636);';
+    'padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636); outline: none;';
+
+  // Discover scales present in the tournament for the event's type
+  const eventType = resolveEventType(eventId);
+  const scaleOptions = discoverScaleOptions(eventType);
+  const ratingOptions = scaleOptions.filter((o) => o.scaleType === 'RATING');
+  const rankingOptions = scaleOptions.filter((o) => o.scaleType === 'RANKING');
+
+  const showScaleSelect = currentTierMethod === 'RATING' || currentTierMethod === 'RANKING';
+  const activeOptions = currentTierMethod === 'RATING' ? ratingOptions : rankingOptions;
+
+  // Resolve sort direction: from draft state, or default from ratingsParameters
+  const currentAscending = draftState.ascending ?? defaultAscending(currentTierMethod, currentScaleName);
+
+  // Build scale value lookup for participant rows
+  const scaleValues =
+    currentScaleName && (currentTierMethod === 'RATING' || currentTierMethod === 'RANKING')
+      ? buildScaleValuesMap(currentTierMethod as 'RATING' | 'RANKING', currentScaleName, eventType)
+      : new Map<string, string>();
+
+  const disabledAttr = configLocked ? ' disabled' : '';
+  const lockedOpacity = configLocked ? ' opacity: 0.5;' : '';
 
   const configBar = showConfigBar
     ? `<div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);">
-        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
+        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
           Tiers:
-          <select id="draft-tier-count" style="${selectStyle}">
+          <select id="draft-tier-count" style="${selectStyle}"${disabledAttr}>
             ${tierCountOptions(summary.totalParticipants, summary.tiersTotal)}
           </select>
         </label>
-        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
+        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
           Sort by:
-          <select id="draft-tier-method" style="${selectStyle}">
+          <select id="draft-tier-method" style="${selectStyle}"${disabledAttr}>
             <option value="ENTRY_ORDER" ${currentTierMethod === 'ENTRY_ORDER' ? 'selected' : ''}>Entry order</option>
             <option value="RANKING" ${currentTierMethod === 'RANKING' ? 'selected' : ''}>Ranking</option>
             <option value="RATING" ${currentTierMethod === 'RATING' ? 'selected' : ''}>Rating</option>
           </select>
         </label>
-        <label id="draft-scale-name-label" style="display: ${currentTierMethod === 'RATING' ? 'flex' : 'none'}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
+        <label id="draft-scale-name-label" style="display: ${showScaleSelect && activeOptions.length ? 'flex' : 'none'}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
           Scale:
-          <input id="draft-scale-name" type="text" value="${currentScaleName}" placeholder="e.g. DUPR, WTN" style="width: 80px; padding: 2px 6px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636); font-size: 13px;" />
+          <select id="draft-scale-name" style="${selectStyle}"${disabledAttr}>
+            ${scaleSelectOptions(activeOptions, currentScaleName)}
+          </select>
         </label>
-        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);">
+        <label id="draft-direction-label" style="display: ${showScaleSelect && activeOptions.length ? 'flex' : 'none'}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
+          Tier 1:
+          <select id="draft-sort-direction" style="${selectStyle}"${disabledAttr}>
+            <option value="asc" ${currentAscending ? 'selected' : ''}>Lowest first</option>
+            <option value="desc" ${!currentAscending ? 'selected' : ''}>Highest first</option>
+          </select>
+        </label>
+        <span id="draft-no-scales-msg" style="display: ${showScaleSelect && !activeOptions.length ? 'inline' : 'none'}; font-size: 12px; color: #e65100; font-style: italic;">No ${currentTierMethod === 'RATING' ? 'ratings' : 'rankings'} in tournament</span>
+        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
           Max preferences:
-          <select id="draft-pref-count" style="${selectStyle}">
+          <select id="draft-pref-count" style="${selectStyle}"${disabledAttr}>
             ${prefCountOptions(availablePositions.length, draftState.preferencesCount ?? 3)}
           </select>
         </label>
-        <button id="draft-reconfigure-btn" disabled style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid var(--tmx-border-secondary, #ccc); background: ${ACCENT_TEAL}; color: #fff; cursor: pointer; font-weight: 500; opacity: 0.4;">
-          Apply
+        <button id="draft-clear-prefs-btn" ${configLocked ? '' : 'disabled'} style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid #e65100; background: transparent; color: #e65100; cursor: pointer; font-weight: 500; opacity: ${configLocked ? '1' : '0.4'};">
+          Clear preferences
         </button>
       </div>`
     : '';
-
-  const tierMethodLabel = tierMethodDisplayLabel(currentTierMethod, currentScaleName);
 
   const content = `
     <div style="font-size: 0.9em; overflow: hidden;">
@@ -96,9 +129,9 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
         </span>
       </div>
 
-      ${showConfigBar ? '' : `<div style="font-size: 12px; color: var(--tmx-text-secondary, #666); margin-bottom: 4px;">Sorted by: ${tierMethodLabel}</div>`}
+      <div id="draft-config-lock-msg" style="display: ${configLocked ? 'block' : 'none'}; font-size: 12px; color: var(--tmx-text-secondary, #666); margin-bottom: 4px; font-style: italic;">Configuration locked — preferences have been submitted</div>
       <div id="draft-tiers-container" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px;">
-        ${renderTiers(draftState, participants)}
+        ${renderTiers(draftState, participants, scaleValues)}
       </div>
     </div>
   `;
@@ -113,140 +146,177 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   // Wire up interactions after DOM is ready
   setTimeout(() => {
     if (showConfigBar) {
-      const reconfigBtn = document.getElementById('draft-reconfigure-btn') as HTMLButtonElement;
       const tierSelect = document.getElementById('draft-tier-count') as HTMLSelectElement;
       const prefSelect = document.getElementById('draft-pref-count') as HTMLSelectElement;
       const tierMethodSelect = document.getElementById('draft-tier-method') as HTMLSelectElement;
       const scaleNameLabel = document.getElementById('draft-scale-name-label') as HTMLElement;
-      const scaleNameInput = document.getElementById('draft-scale-name') as HTMLInputElement;
+      const scaleNameSelect = document.getElementById('draft-scale-name') as HTMLSelectElement;
+      const directionLabel = document.getElementById('draft-direction-label') as HTMLElement;
+      const directionSelect = document.getElementById('draft-sort-direction') as HTMLSelectElement;
+      const noScalesMsg = document.getElementById('draft-no-scales-msg') as HTMLElement;
+      const clearPrefsBtn = document.getElementById('draft-clear-prefs-btn') as HTMLButtonElement;
 
-      const origTierCount = summary.tiersTotal;
-      const origPrefCount = draftState.preferencesCount ?? 3;
-      const origTierMethod = currentTierMethod;
-      const origScaleName = currentScaleName;
+      const getSelectedAscending = () => directionSelect?.value === 'asc';
 
-      const updateApplyState = () => {
-        const changed =
-          Number.parseInt(tierSelect?.value) !== origTierCount ||
-          Number.parseInt(prefSelect?.value) !== origPrefCount ||
-          tierMethodSelect?.value !== origTierMethod ||
-          (tierMethodSelect?.value === 'RATING' && scaleNameInput?.value !== origScaleName);
-        if (reconfigBtn) {
-          reconfigBtn.disabled = !changed;
-          reconfigBtn.style.opacity = changed ? '1' : '0.4';
+      /** Build scaleAttributes from current control values, including accessor and eventType. */
+      const getScaleAttributes = () => {
+        const method = tierMethodSelect?.value || '';
+        const scale = scaleNameSelect?.value || '';
+        if (method === 'RATING' && scale) {
+          const accessor = (ratingsParameters as any)?.[scale]?.accessor;
+          return {
+            scaleType: 'RATING',
+            scaleName: scale,
+            ...(eventType && { eventType }),
+            ...(accessor && { accessor }),
+          };
         }
+        if (method === 'RANKING' && scale) {
+          return { scaleType: 'RANKING', scaleName: scale, ...(eventType && { eventType }) };
+        }
+        return undefined;
       };
 
-      tierSelect?.addEventListener('change', updateApplyState);
-      prefSelect?.addEventListener('change', updateApplyState);
-      tierMethodSelect?.addEventListener('change', () => {
-        const showScale = tierMethodSelect.value === 'RATING';
-        if (scaleNameLabel) scaleNameLabel.style.display = showScale ? 'flex' : 'none';
-        updateApplyState();
-      });
-      scaleNameInput?.addEventListener('input', updateApplyState);
-
-      reconfigBtn?.addEventListener('click', () => {
-        const newTierCount = Number.parseInt(tierSelect?.value || '3');
-        const newPrefCount = Number.parseInt(prefSelect?.value || '3');
-        const newTierMethod = tierMethodSelect?.value || 'ENTRY_ORDER';
-        const newScaleName = scaleNameInput?.value?.trim();
-
-        const scaleAttributes =
-          newTierMethod === 'RATING' && newScaleName
-            ? { scaleType: 'RATING', scaleName: newScaleName }
-            : newTierMethod === 'RANKING'
-              ? { scaleType: 'RANKING' }
-              : undefined;
-
+      /** Read current config values from controls, re-initialize draft, and refresh tiers in-place. */
+      const applyConfig = () => {
+        const params = {
+          drawId,
+          eventId,
+          tierCount: Number.parseInt(tierSelect?.value || '3'),
+          preferencesCount: Number.parseInt(prefSelect?.value || '3'),
+          tierMethod: tierMethodSelect?.value || 'ENTRY_ORDER',
+          ascending: getSelectedAscending(),
+          scaleAttributes: getScaleAttributes(),
+          force: true,
+        };
+        console.log('%c [draftConfigure] applyConfig params:', 'color: cyan', params);
         mutationRequest({
-          methods: [
-            {
-              method: INITIALIZE_DRAFT,
-              params: {
-                drawId,
-                eventId,
-                tierCount: newTierCount,
-                preferencesCount: newPrefCount,
-                tierMethod: newTierMethod,
-                scaleAttributes,
-                force: true,
-              },
-            },
-          ],
+          methods: [{ method: INITIALIZE_DRAFT, params }],
           callback: (result: any) => {
+            console.log('%c [draftConfigure] applyConfig result:', 'color: cyan', result);
             if (result.success) {
-              closeModal();
-              openConfigureDraft({ drawId, eventId, callback });
+              const { draftState } = tournamentEngine.getDraftState({ drawId });
+              console.log('%c [draftConfigure] post-init tier sizes:', 'color: cyan',
+                draftState?.tiers?.map((t: any, i: number) => `T${i + 1}: ${t.participantIds.length}`));
+              console.log('%c [draftConfigure] ascending stored:', 'color: cyan', draftState?.ascending);
+              refreshTierList({ drawId, eventId, callback });
             } else {
               tmxToast({ message: result.error?.message || 'Reconfigure failed', intent: IS_WARNING });
             }
           },
         });
+      };
+
+      const updateScaleDropdown = () => {
+        const method = tierMethodSelect?.value;
+        const needsScale = method === 'RATING' || method === 'RANKING';
+        const opts = method === 'RATING' ? ratingOptions : rankingOptions;
+
+        if (scaleNameLabel) scaleNameLabel.style.display = needsScale && opts.length ? 'flex' : 'none';
+        if (directionLabel) directionLabel.style.display = needsScale && opts.length ? 'flex' : 'none';
+        if (noScalesMsg) {
+          noScalesMsg.style.display = needsScale && !opts.length ? 'inline' : 'none';
+          noScalesMsg.textContent = `No ${method === 'RATING' ? 'ratings' : 'rankings'} in tournament`;
+        }
+        if (scaleNameSelect && needsScale) {
+          scaleNameSelect.innerHTML = scaleSelectOptions(opts, currentScaleName);
+        }
+        if (directionSelect && needsScale) {
+          const newDefault = defaultAscending(method, scaleNameSelect?.value || '');
+          directionSelect.value = newDefault ? 'asc' : 'desc';
+        }
+        applyConfig();
+      };
+
+      tierSelect?.addEventListener('change', applyConfig);
+      prefSelect?.addEventListener('change', applyConfig);
+      tierMethodSelect?.addEventListener('change', updateScaleDropdown);
+      scaleNameSelect?.addEventListener('change', () => {
+        if (directionSelect) {
+          const method = tierMethodSelect?.value || '';
+          const newDefault = defaultAscending(method, scaleNameSelect.value);
+          directionSelect.value = newDefault ? 'asc' : 'desc';
+        }
+        applyConfig();
       });
+      directionSelect?.addEventListener('change', applyConfig);
+
+      clearPrefsBtn?.addEventListener('click', applyConfig);
     }
 
-    // Participant row clicks — open preference entry for unresolved tiers
-    const rows = document.querySelectorAll('.draft-participant-clickable');
-    rows.forEach((row) => {
-      row.addEventListener('click', () => {
-        const participantId = (row as HTMLElement).dataset.participantId;
-        if (participantId) {
-          openPreferenceEntry({ drawId, eventId, participantId, draftState, participants, callback });
-        }
-      });
-    });
-
-    // Resolved tier row clicks — open resolution detail view
-    const resolvedRows = document.querySelectorAll('.draft-participant-resolved');
-    resolvedRows.forEach((row) => {
-      row.addEventListener('click', () => {
-        const participantId = (row as HTMLElement).dataset.participantId;
-        if (participantId) {
-          openResolutionDetail({ drawId, eventId, participantId, draftState, participants, callback });
-        }
-      });
-    });
-
-    // Resolve tier buttons
-    const resolveBtns = document.querySelectorAll('.draft-resolve-tier-btn');
-    resolveBtns.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const tierIndex = Number.parseInt((btn as HTMLElement).dataset.tierIndex || '');
-        if (Number.isNaN(tierIndex)) return;
-
-        mutationRequest({
-          methods: [
-            {
-              method: RESOLVE_DRAFT_POSITIONS,
-              params: { drawId, eventId, tierIndex },
-            },
-          ],
-          callback: (result: any) => {
-            const innerErrors = result.results?.[0]?.errors;
-            if (result.success && !innerErrors?.length) {
-              tmxToast({ message: `Tier ${tierIndex + 1} resolved`, intent: 'is-success' });
-              if (callback) callback();
-              refreshTierList({ drawId, eventId, callback });
-            } else if (result.success && innerErrors?.length) {
-              tmxToast({
-                message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`,
-                intent: IS_WARNING,
-              });
-              if (callback) callback();
-              refreshTierList({ drawId, eventId, callback });
-            } else {
-              tmxToast({
-                message: result.error?.message || result.info || 'Failed to resolve tier',
-                intent: IS_WARNING,
-              });
-            }
-          },
-        });
-      });
-    });
+    rewireParticipantClicks(drawId, eventId, draftState, participants, callback);
   }, 0);
+}
+
+/**
+ * Wire click handlers on participant rows, resolved rows, and resolve-tier buttons
+ * inside the currently rendered #draft-tiers-container. Called on initial render
+ * and after any re-render (scale change, tier resolution, etc.).
+ */
+function rewireParticipantClicks(
+  drawId: string,
+  eventId: string,
+  draftState: any,
+  participants: Map<string, string>,
+  callback?: () => void,
+): void {
+  const rows = document.querySelectorAll('.draft-participant-clickable');
+  rows.forEach((row) => {
+    row.addEventListener('click', () => {
+      const participantId = (row as HTMLElement).dataset.participantId;
+      if (participantId) {
+        openPreferenceEntry({ drawId, eventId, participantId, draftState, participants, callback });
+      }
+    });
+  });
+
+  const resolvedRows = document.querySelectorAll('.draft-participant-resolved');
+  resolvedRows.forEach((row) => {
+    row.addEventListener('click', () => {
+      const participantId = (row as HTMLElement).dataset.participantId;
+      if (participantId) {
+        openResolutionDetail({ drawId, eventId, participantId, draftState, participants, callback });
+      }
+    });
+  });
+
+  const resolveBtns = document.querySelectorAll('.draft-resolve-tier-btn');
+  resolveBtns.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tierIndex = Number.parseInt((btn as HTMLElement).dataset.tierIndex || '');
+      if (Number.isNaN(tierIndex)) return;
+
+      mutationRequest({
+        methods: [
+          {
+            method: RESOLVE_DRAFT_POSITIONS,
+            params: { drawId, eventId, tierIndex },
+          },
+        ],
+        callback: (result: any) => {
+          const innerErrors = result.results?.[0]?.errors;
+          if (result.success && !innerErrors?.length) {
+            tmxToast({ message: `Tier ${tierIndex + 1} resolved`, intent: 'is-success' });
+            if (callback) callback();
+            refreshTierList({ drawId, eventId, callback });
+          } else if (result.success && innerErrors?.length) {
+            tmxToast({
+              message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`,
+              intent: IS_WARNING,
+            });
+            if (callback) callback();
+            refreshTierList({ drawId, eventId, callback });
+          } else {
+            tmxToast({
+              message: result.error?.message || result.info || 'Failed to resolve tier',
+              intent: IS_WARNING,
+            });
+          }
+        },
+      });
+    });
+  });
 }
 
 /**
@@ -635,9 +705,19 @@ function applyModalGlow() {
   }
 }
 
-function renderTiers(draftState: any, participants: Map<string, string>): string {
+function renderTiers(
+  draftState: any,
+  participants: Map<string, string>,
+  scaleValues?: Map<string, string>,
+): string {
   const tiers = draftState.tiers || [];
   const preferences = draftState.preferences || {};
+
+  const scaleBadge = (pid: string) => {
+    const val = scaleValues?.get(pid);
+    if (!val) return '';
+    return `<span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 20px; padding: 0 6px; font-size: 11px; font-weight: 600; border-radius: 3px; background: var(--tmx-bg-secondary, #f0f0f0); color: var(--tmx-text-secondary, #666); margin-right: 6px; flex-shrink: 0;">${val}</span>`;
+  };
 
   return tiers
     .map((tier: any, tierIdx: number) => {
@@ -670,7 +750,7 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
               const prefsText = prefs?.length ? `(prefs: ${prefs.join(', ')})` : '';
 
               return `<div class="draft-participant-row draft-participant-resolved" data-participant-id="${pid}" style="${ROW_STYLE}">
-                <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+                ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
                 <span style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-right: 4px;">${prefsText}</span>
                 <span style="font-size: 12px; font-weight: 600; color: ${matchColor};">${matchLabel}</span>
                 <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: #1b5e20; color: #fff;">${pos}</span>
@@ -683,7 +763,7 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
               : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
             return `<div class="draft-participant-row" style="${ROW_STYLE} cursor: default; opacity: 0.6;">
-              <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+              ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
               <span style="display: flex; align-items: center;">${prefDisplay}</span>
             </div>`;
           }
@@ -694,7 +774,7 @@ function renderTiers(draftState: any, participants: Map<string, string>): string
             : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
           return `<div class="draft-participant-row draft-participant-clickable" data-participant-id="${pid}" style="${ROW_STYLE}">
-            <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+            ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
             <span style="display: flex; align-items: center;">${prefDisplay}</span>
             <i class="fa-solid fa-pencil" style="font-size: 11px; color: var(--tmx-text-muted, #999);"></i>
           </div>`;
@@ -760,10 +840,18 @@ function refreshTierList({
   const participants = getParticipantsMap();
   const availablePositions = draftState.unassignedDrawPositions || [];
 
+  const tierMethod = draftState.tierMethod || 'ENTRY_ORDER';
+  const scaleName = draftState.scaleAttributes?.scaleName || '';
+  const eventType = resolveEventType(eventId);
+  const scaleValues =
+    scaleName && (tierMethod === 'RATING' || tierMethod === 'RANKING')
+      ? buildScaleValuesMap(tierMethod, scaleName, eventType)
+      : new Map<string, string>();
+
   // Update tier container content
   const tiersContainer = document.getElementById('draft-tiers-container');
   if (tiersContainer) {
-    tiersContainer.innerHTML = renderTiers(draftState, participants);
+    tiersContainer.innerHTML = renderTiers(draftState, participants, scaleValues);
   }
 
   // Update status pills — find the pills container in the Configure Draft modal
@@ -780,61 +868,38 @@ function refreshTierList({
     }
   }
 
+  // Update config lock state based on current preferences
+  updateConfigLockState(summary.preferencesSubmitted > 0);
+
   // Re-wire click handlers
-  const rows = document.querySelectorAll('.draft-participant-clickable');
-  rows.forEach((row) => {
-    row.addEventListener('click', () => {
-      const participantId = (row as HTMLElement).dataset.participantId;
-      if (participantId) {
-        openPreferenceEntry({ drawId, eventId, participantId, draftState, participants, callback });
-      }
-    });
-  });
+  rewireParticipantClicks(drawId, eventId, draftState, participants, callback);
+}
 
-  const resolvedRows = document.querySelectorAll('.draft-participant-resolved');
-  resolvedRows.forEach((row) => {
-    row.addEventListener('click', () => {
-      const participantId = (row as HTMLElement).dataset.participantId;
-      if (participantId) {
-        openResolutionDetail({ drawId, eventId, participantId, draftState, participants, callback });
-      }
-    });
-  });
+/**
+ * Dynamically enable/disable all config controls and the clear button
+ * based on whether any preferences have been submitted.
+ */
+function updateConfigLockState(hasPreferences: boolean): void {
+  const configSelectIds = ['draft-tier-count', 'draft-tier-method', 'draft-scale-name', 'draft-sort-direction', 'draft-pref-count'];
+  for (const id of configSelectIds) {
+    const el = document.getElementById(id) as HTMLSelectElement;
+    if (el) {
+      el.disabled = hasPreferences;
+      const label = el.closest('label') as HTMLElement;
+      if (label) label.style.opacity = hasPreferences ? '0.5' : '1';
+    }
+  }
 
-  const resolveBtns = document.querySelectorAll('.draft-resolve-tier-btn');
-  resolveBtns.forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tierIndex = Number.parseInt((btn as HTMLElement).dataset.tierIndex || '');
-      if (Number.isNaN(tierIndex)) return;
+  const clearBtn = document.getElementById('draft-clear-prefs-btn') as HTMLButtonElement;
+  if (clearBtn) {
+    clearBtn.disabled = !hasPreferences;
+    clearBtn.style.opacity = hasPreferences ? '1' : '0.4';
+  }
 
-      mutationRequest({
-        methods: [
-          {
-            method: RESOLVE_DRAFT_POSITIONS,
-            params: { drawId, eventId, tierIndex },
-          },
-        ],
-        callback: (result: any) => {
-          const innerErrors = result.results?.[0]?.errors;
-          if (result.success && !innerErrors?.length) {
-            tmxToast({ message: `Tier ${tierIndex + 1} resolved`, intent: 'is-success' });
-            if (callback) callback();
-            refreshTierList({ drawId, eventId, callback });
-          } else if (result.success && innerErrors?.length) {
-            tmxToast({
-              message: `Tier ${tierIndex + 1}: ${innerErrors.length} placement error(s)`,
-              intent: IS_WARNING,
-            });
-            if (callback) callback();
-            refreshTierList({ drawId, eventId, callback });
-          } else {
-            tmxToast({ message: result.error?.message || result.info || 'Failed to resolve tier', intent: IS_WARNING });
-          }
-        },
-      });
-    });
-  });
+  const lockMsg = document.getElementById('draft-config-lock-msg') as HTMLElement;
+  if (lockMsg) {
+    lockMsg.style.display = hasPreferences ? 'block' : 'none';
+  }
 }
 
 /**
@@ -914,10 +979,47 @@ function openTransparencyReport({
   });
 }
 
-function tierMethodDisplayLabel(tierMethod: string, scaleName?: string): string {
-  if (tierMethod === 'RANKING') return 'Ranking';
-  if (tierMethod === 'RATING') return scaleName ? `Rating (${scaleName})` : 'Rating';
-  return 'Entry order';
+function resolveEventType(eventId: string): string | undefined {
+  const { event } = tournamentEngine.getEvent({ eventId });
+  return event?.eventType;
+}
+
+function discoverScaleOptions(eventType?: string): ScaleOption[] {
+  const { participants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  return getTournamentScaleOptions(participants, eventType);
+}
+
+function scaleSelectOptions(options: ScaleOption[], currentValue: string): string {
+  if (!options.length) return '';
+  return options
+    .map((o) => `<option value="${o.value}" ${o.value === currentValue ? 'selected' : ''}>${o.value}</option>`)
+    .join('');
+}
+
+/**
+ * Returns the default ascending flag for a given tier method and scale name.
+ * For ratings, uses `ratingsParameters[scaleName].ascending` if available.
+ * For rankings, defaults to true (lower rank number = better = tier 1).
+ * For entry order, returns false (not meaningful but a safe default).
+ */
+function defaultAscending(tierMethod: string, scaleName: string): boolean {
+  if (tierMethod === 'RANKING') return true;
+  if (tierMethod === 'RATING' && scaleName) {
+    const params = (ratingsParameters as any)?.[scaleName];
+    if (params && typeof params.ascending === 'boolean') return params.ascending;
+    return false; // default: higher is better
+  }
+  return false;
+}
+
+function buildScaleValuesMap(
+  scaleType: 'RATING' | 'RANKING',
+  scaleName: string,
+  eventType?: string,
+): Map<string, string> {
+  const { participants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const accessor = (ratingsParameters as any)?.[scaleName]?.accessor;
+  return getParticipantScaleValues(participants, scaleType, scaleName, eventType, accessor);
 }
 
 function getParticipantsMap(): Map<string, string> {
