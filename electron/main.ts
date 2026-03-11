@@ -117,13 +117,13 @@ ipcMain.handle('fs:writeFile', async (_event, filePath: string, data: Uint8Array
   await fs.promises.writeFile(filePath, data);
 });
 
-ipcMain.handle('app:getDataPath', () => {
-  return app.getPath('userData');
+ipcMain.on('app:getDataPath', (event) => {
+  event.returnValue = app.getPath('userData');
 });
 
-ipcMain.handle('app:getServerUrl', () => {
+ipcMain.on('app:getServerUrl', (event) => {
   const prefs = loadPrefs();
-  return prefs.serverUrl || '';
+  event.returnValue = prefs.serverUrl || '';
 });
 
 ipcMain.handle('app:setServerUrl', (_event, url: string) => {

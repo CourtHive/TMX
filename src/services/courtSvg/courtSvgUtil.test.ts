@@ -12,6 +12,9 @@ vi.mock('courthive-components', () => ({
 
 import { sportFromMatchUpFormat, resolveCourtSport, COURT_SVG_RESOURCE_SUB_TYPE } from './courtSvgUtil';
 
+const TENNIS = 'tennis';
+const BEST_OF_3 = 'SET3-S:6/TB7';
+
 describe('sportFromMatchUpFormat', () => {
   it('returns undefined for no input', () => {
     expect(sportFromMatchUpFormat()).toBeUndefined();
@@ -19,12 +22,12 @@ describe('sportFromMatchUpFormat', () => {
   });
 
   it('maps SET-based formats to tennis', () => {
-    expect(sportFromMatchUpFormat('SET3-S:6/TB7')).toBe('tennis');
-    expect(sportFromMatchUpFormat('SET1-S:4/TB7')).toBe('tennis');
+    expect(sportFromMatchUpFormat(BEST_OF_3)).toBe(TENNIS);
+    expect(sportFromMatchUpFormat('SET1-S:4/TB7')).toBe(TENNIS);
   });
 
   it('maps T-prefix formats to tennis', () => {
-    expect(sportFromMatchUpFormat('T:10')).toBe('tennis');
+    expect(sportFromMatchUpFormat('T:10')).toBe(TENNIS);
   });
 
   it('maps SET with @RALLY to pickleball', () => {
@@ -55,22 +58,22 @@ describe('resolveCourtSport', () => {
   });
 
   it('prefers competitionFormat.sport', () => {
-    expect(resolveCourtSport({ competitionFormat: { sport: 'TENNIS' } })).toBe('tennis');
+    expect(resolveCourtSport({ competitionFormat: { sport: 'TENNIS' } })).toBe(TENNIS);
     expect(resolveCourtSport({ competitionFormat: { sport: 'PICKLEBALL' } })).toBe('pickleball');
     expect(resolveCourtSport({ competitionFormat: { sport: 'PADEL' } })).toBe('padel');
     expect(resolveCourtSport({ competitionFormat: { sport: 'BADMINTON' } })).toBe('badminton');
   });
 
   it('falls back to matchUpFormat', () => {
-    expect(resolveCourtSport({ matchUpFormat: 'SET3-S:6/TB7' })).toBe('tennis');
+    expect(resolveCourtSport({ matchUpFormat: BEST_OF_3 })).toBe(TENNIS);
     expect(resolveCourtSport({ matchUpFormat: 'HAL4-S:12' })).toBe('basketball');
   });
 
   it('ignores unrecognized competitionFormat.sport and falls back', () => {
     expect(resolveCourtSport({
       competitionFormat: { sport: 'CRICKET' },
-      matchUpFormat: 'SET3-S:6/TB7',
-    })).toBe('tennis');
+      matchUpFormat: BEST_OF_3,
+    })).toBe(TENNIS);
   });
 });
 

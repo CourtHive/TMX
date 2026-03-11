@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mapTournament } from './mapTournament';
 
+const START = '2025-01-01';
+const END = '2025-01-02';
+
 describe('mapTournament', () => {
   it('maps basic tournament fields', () => {
     const input = {
@@ -24,8 +27,8 @@ describe('mapTournament', () => {
     const input = {
       tuid: 'x',
       tournamentName: 'Test',
-      start: '2025-01-01',
-      end: '2025-01-02',
+      start: START,
+      end: END,
       publishing: { logo: 'https://example.com/logo.png' },
     };
     expect(mapTournament(input).tournament.media).toBe('https://example.com/logo.png');
@@ -35,14 +38,14 @@ describe('mapTournament', () => {
     const input = {
       tuid: 'x',
       tournamentName: 'Test',
-      start: '2025-01-01',
-      end: '2025-01-02',
+      start: START,
+      end: END,
     };
     expect(mapTournament(input).tournament.media).toBeUndefined();
   });
 
   it('search text defaults to Error when name is missing', () => {
-    const input = { tuid: 'x', start: '2025-01-01', end: '2025-01-02' };
+    const input = { tuid: 'x', start: START, end: END };
     expect(mapTournament(input).searchText).toBe('Error');
   });
 });

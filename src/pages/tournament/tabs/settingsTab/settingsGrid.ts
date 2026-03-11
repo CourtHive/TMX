@@ -305,11 +305,62 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   storagePanel.appendChild(storageForm);
   grid.appendChild(storagePanel);
 
-  // --- Connection panel (indigo, cols 1-2) — Electron only ---
+  // --- Beta Features panel (teal, 1 col) ---
+  const displayPanel = document.createElement('div');
+  displayPanel.className = 'settings-panel panel-teal';
+  displayPanel.innerHTML = `<h3><i class="fa-solid fa-display"></i> ${t('modals.settings.betaFeatures')}</h3>`;
+
+  const displayForm = document.createElement('div');
+  displayInputs = renderForm(displayForm, [
+    {
+      label: t('modals.settings.pdfPrinting'),
+      checked: featureFlags.get().pdfPrinting || false,
+      field: 'pdfPrinting',
+      id: 'pdfPrinting',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: t('modals.settings.googleSheetsImport'),
+      checked: featureFlags.get().googleSheetsImport || false,
+      field: 'googleSheetsImport',
+      id: 'googleSheetsImport',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: t('modals.settings.schedule2'),
+      checked: featureFlags.get().schedule2 || false,
+      field: 'schedule2',
+      id: 'schedule2',
+      onChange: persist,
+      checkbox: true,
+    },
+  ]);
+  if (deviceConfig.get().isElectron) {
+    const notifRow = document.createElement('div');
+    notifRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';
+    const notifCheckbox = document.createElement('input');
+    notifCheckbox.type = 'checkbox';
+    notifCheckbox.id = 'desktopNotifications';
+    notifCheckbox.checked = isDesktopNotificationsEnabled();
+    notifCheckbox.addEventListener('change', () => setDesktopNotificationsEnabled(notifCheckbox.checked));
+    const notifLabel = document.createElement('label');
+    notifLabel.htmlFor = 'desktopNotifications';
+    notifLabel.textContent = ' Desktop Notifications';
+    notifLabel.style.marginLeft = '4px';
+    notifRow.appendChild(notifCheckbox);
+    notifRow.appendChild(notifLabel);
+    displayForm.appendChild(notifRow);
+  }
+  displayPanel.appendChild(displayForm);
+  grid.appendChild(displayPanel);
+
+  // --- Connection panel (indigo, cols 3-4) — Electron only ---
   if (deviceConfig.get().isElectron) {
     const connectionPanel = document.createElement('div');
     connectionPanel.className = 'settings-panel panel-indigo';
-    connectionPanel.style.gridColumn = '1 / 3';
+    connectionPanel.style.gridColumn = '3 / 5';
     connectionPanel.innerHTML = `<h3><i class="fa-solid fa-server"></i> Connection</h3>`;
 
     const serverUrlLabel = document.createElement('label');
@@ -388,57 +439,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     connectionPanel.appendChild(offlineRow);
     grid.appendChild(connectionPanel);
   }
-
-  // --- Beta Features panel (teal, 1 col) ---
-  const displayPanel = document.createElement('div');
-  displayPanel.className = 'settings-panel panel-teal';
-  displayPanel.innerHTML = `<h3><i class="fa-solid fa-display"></i> ${t('modals.settings.betaFeatures')}</h3>`;
-
-  const displayForm = document.createElement('div');
-  displayInputs = renderForm(displayForm, [
-    {
-      label: t('modals.settings.pdfPrinting'),
-      checked: featureFlags.get().pdfPrinting || false,
-      field: 'pdfPrinting',
-      id: 'pdfPrinting',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: t('modals.settings.googleSheetsImport'),
-      checked: featureFlags.get().googleSheetsImport || false,
-      field: 'googleSheetsImport',
-      id: 'googleSheetsImport',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: t('modals.settings.schedule2'),
-      checked: featureFlags.get().schedule2 || false,
-      field: 'schedule2',
-      id: 'schedule2',
-      onChange: persist,
-      checkbox: true,
-    },
-  ]);
-  if (deviceConfig.get().isElectron) {
-    const notifRow = document.createElement('div');
-    notifRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';
-    const notifCheckbox = document.createElement('input');
-    notifCheckbox.type = 'checkbox';
-    notifCheckbox.id = 'desktopNotifications';
-    notifCheckbox.checked = isDesktopNotificationsEnabled();
-    notifCheckbox.addEventListener('change', () => setDesktopNotificationsEnabled(notifCheckbox.checked));
-    const notifLabel = document.createElement('label');
-    notifLabel.htmlFor = 'desktopNotifications';
-    notifLabel.textContent = ' Desktop Notifications';
-    notifLabel.style.marginLeft = '4px';
-    notifRow.appendChild(notifCheckbox);
-    notifRow.appendChild(notifLabel);
-    displayForm.appendChild(notifRow);
-  }
-  displayPanel.appendChild(displayForm);
-  grid.appendChild(displayPanel);
 
   // --- Active Rating panel (blue, 1 col) — tournament-specific ---
   if (!options?.excludeTournament) {

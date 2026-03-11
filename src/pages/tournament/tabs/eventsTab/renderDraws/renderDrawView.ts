@@ -289,6 +289,7 @@ export function renderDrawView({
 
   const onInitialRoundChange = (roundNumber: number) => {
     initialRoundNumber = roundNumber;
+    getData(); // fresh matchUps — renderRound mutates roundFactor in-place
     if (drawsView) removeAllChildNodes(drawsView);
     updateDrawDisplay();
   };

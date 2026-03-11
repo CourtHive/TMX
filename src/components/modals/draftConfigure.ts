@@ -189,16 +189,10 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
           scaleAttributes: getScaleAttributes(),
           force: true,
         };
-        console.log('%c [draftConfigure] applyConfig params:', 'color: cyan', params);
         mutationRequest({
           methods: [{ method: INITIALIZE_DRAFT, params }],
           callback: (result: any) => {
-            console.log('%c [draftConfigure] applyConfig result:', 'color: cyan', result);
             if (result.success) {
-              const { draftState } = tournamentEngine.getDraftState({ drawId });
-              console.log('%c [draftConfigure] post-init tier sizes:', 'color: cyan',
-                draftState?.tiers?.map((t: any, i: number) => `T${i + 1}: ${t.participantIds.length}`));
-              console.log('%c [draftConfigure] ascending stored:', 'color: cyan', draftState?.ascending);
               refreshTierList({ drawId, eventId, callback });
             } else {
               tmxToast({ message: result.error?.message || 'Reconfigure failed', intent: IS_WARNING });

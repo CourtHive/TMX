@@ -9,6 +9,8 @@ import { competitionEngine } from 'tods-competition-factory';
 import { providerConfig } from 'config/providerConfig';
 import type { Schedule2View } from './schedule2Tab';
 
+export type ScheduleSearchMode = 'individual' | 'team';
+
 interface Schedule2HeaderParams {
   selectedDate: string;
   activeView: Schedule2View;
@@ -18,11 +20,14 @@ interface Schedule2HeaderParams {
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
+  onSearch?: (text: string, mode: ScheduleSearchMode) => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
-  const { selectedDate, activeView, startDate, endDate, bulkMode, onDateChange, onViewChange, onBulkModeChange } =
-    params;
+  const {
+    selectedDate, activeView, startDate, endDate, bulkMode,
+    onDateChange, onViewChange, onBulkModeChange, onSearch,
+  } = params;
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
@@ -64,16 +69,58 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   countBadge.textContent = `${count} scheduled`;
   left.appendChild(countBadge);
 
+  // ── Search field (grid view only) ──
+  if (activeView === 'grid' && onSearch) {
+    const searchWrap = document.createElement('div');
+    searchWrap.style.cssText = 'display: flex; align-items: center; gap: 4px; margin-left: 4px;';
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'search';
+    searchInput.placeholder = 'Search schedule…';
+    searchInput.style.cssText =
+      'font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); width: 150px;';
+
+    const modeSelect = document.createElement('select');
+    modeSelect.title = 'Search by individual or team name';
+    modeSelect.style.cssText =
+      'font-size: 11px; padding: 3px 4px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); cursor: pointer;';
+    const indOpt = document.createElement('option');
+    indOpt.value = 'individual';
+    indOpt.textContent = 'Individual';
+    const teamOpt = document.createElement('option');
+    teamOpt.value = 'team';
+    teamOpt.textContent = 'Team';
+    modeSelect.appendChild(indOpt);
+    modeSelect.appendChild(teamOpt);
+
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+    const doSearch = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        onSearch(searchInput.value, modeSelect.value as ScheduleSearchMode);
+      }, 200);
+    };
+
+    searchInput.addEventListener('input', doSearch);
+    modeSelect.addEventListener('change', doSearch);
+
+    searchWrap.appendChild(searchInput);
+    searchWrap.appendChild(modeSelect);
+    left.appendChild(searchWrap);
+  }
+
   bar.appendChild(left);
 
-  // ── Center: Bulk mode toggle (grid view only, if permitted) ──
-  if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
-    const center = document.createElement('div');
-    center.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+  // ── Right: Bulk mode toggle + View switcher ──
+  const right = document.createElement('div');
+  right.style.cssText = 'display: flex; align-items: center; gap: 8px;';
 
+  // Bulk mode toggle (grid view only, if permitted)
+  if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
     const bulkLabel = document.createElement('label');
     bulkLabel.style.cssText =
       'font-size: 12px; color: var(--tmx-color-primary); cursor: pointer; display: flex; align-items: center; gap: 6px;';
+    bulkLabel.title = 'Queue changes, save all at once';
 
     const toggle = document.createElement('input');
     toggle.type = 'checkbox';
@@ -83,19 +130,12 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
 
     bulkLabel.appendChild(toggle);
     bulkLabel.appendChild(document.createTextNode('Bulk mode'));
-    center.appendChild(bulkLabel);
-
-    const bulkHint = document.createElement('span');
-    bulkHint.style.cssText = 'font-size: 10px; color: var(--tmx-muted);';
-    bulkHint.textContent = '(queue changes, save all at once)';
-    center.appendChild(bulkHint);
-
-    bar.appendChild(center);
+    right.appendChild(bulkLabel);
   }
 
-  // ── Right: View switcher (segmented control) ──
-  const right = document.createElement('div');
-  right.style.cssText = 'display: flex; align-items: center; gap: 0;';
+  // View switcher (segmented control)
+  const viewSwitcher = document.createElement('div');
+  viewSwitcher.style.cssText = 'display: flex; align-items: center; gap: 0;';
 
   const views: { key: Schedule2View; label: string; icon: string }[] = [
     { key: 'grid', label: 'Grid', icon: 'fa-table-cells' },
@@ -120,9 +160,10 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     if (v.key === 'grid') btn.style.borderRadius = '6px 0 0 6px';
     else btn.style.borderRadius = '0 6px 6px 0';
 
-    right.appendChild(btn);
+    viewSwitcher.appendChild(btn);
   }
 
+  right.appendChild(viewSwitcher);
   bar.appendChild(right);
 
   return bar;
