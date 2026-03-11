@@ -8,6 +8,7 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getTopologyTemplates } from './topologyTemplates';
 
 import { DRAW_MATIC, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
+import { providerConfig } from 'config/providerConfig';
 
 const {
   AD_HOC,
@@ -84,10 +85,18 @@ export function getDrawTypeOptions({ isPlayoff, isQualifying }: { isPlayoff?: bo
 
   const divider = { label: '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500', disabled: true };
 
-  return [
+  let allOptions = [
     ...common,
     divider,
     ...builtIn,
     ...(templateOptions.length ? [divider, ...templateOptions] : []),
   ];
+
+  // Filter by provider-allowed draw types (if restricted)
+  const allowedDrawTypes = providerConfig.getAllowedList('allowedDrawTypes');
+  if (allowedDrawTypes.length) {
+    allOptions = allOptions.filter((opt: any) => opt.disabled || !opt.value || allowedDrawTypes.includes(opt.value));
+  }
+
+  return allOptions;
 }

@@ -5,6 +5,7 @@
 import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { providerConfig } from 'config/providerConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -118,6 +119,10 @@ export function editEvent({
   const tournamentCategories = tournamentRecord?.tournamentCategories || [];
 
   // Build category options from tournament categories
+  const allowedCategories = providerConfig.getAllowedList('allowedCategories');
+  const isCategoryAllowed = (code: string) =>
+    !allowedCategories.length || allowedCategories.some((c: any) => c.ageCategoryCode === code);
+
   const buildCategoryOptions = () => {
     const options = [
       {
@@ -129,43 +134,34 @@ export function editEvent({
 
     // Add tournament-defined categories first
     if (tournamentCategories.length > 0) {
-      tournamentCategories.forEach((cat: any) => {
-        const label = cat.ageCategoryCode ? `${cat.categoryName} (${cat.ageCategoryCode})` : cat.categoryName;
-        options.push({
-          selected: values.ageCategoryCode === (cat.ageCategoryCode || cat.categoryName),
-          label,
-          value: cat.ageCategoryCode || cat.categoryName,
+      tournamentCategories
+        .filter((cat: any) => isCategoryAllowed(cat.ageCategoryCode || cat.categoryName))
+        .forEach((cat: any) => {
+          const label = cat.ageCategoryCode ? `${cat.categoryName} (${cat.ageCategoryCode})` : cat.categoryName;
+          options.push({
+            selected: values.ageCategoryCode === (cat.ageCategoryCode || cat.categoryName),
+            label,
+            value: cat.ageCategoryCode || cat.categoryName,
+          });
         });
-      });
     } else {
       // Fallback to default categories if tournament has none defined
-      options.push(
-        {
-          selected: values.ageCategoryCode === 'U10',
-          label: '10 and Under',
-          value: 'U10',
-        },
-        {
-          selected: values.ageCategoryCode === 'U12',
-          label: '12 and Under',
-          value: 'U12',
-        },
-        {
-          selected: values.ageCategoryCode === 'U14',
-          label: '14 and Under',
-          value: 'U14',
-        },
-        {
-          selected: values.ageCategoryCode === 'U16',
-          label: '16 and Under',
-          value: 'U16',
-        },
-        {
-          selected: values.ageCategoryCode === 'U18',
-          label: '18 and Under',
-          value: 'U18',
-        },
-      );
+      const defaults = [
+        { code: 'U10', label: '10 and Under' },
+        { code: 'U12', label: '12 and Under' },
+        { code: 'U14', label: '14 and Under' },
+        { code: 'U16', label: '16 and Under' },
+        { code: 'U18', label: '18 and Under' },
+      ];
+      defaults
+        .filter(({ code }) => isCategoryAllowed(code))
+        .forEach(({ code, label }) => {
+          options.push({
+            selected: values.ageCategoryCode === code,
+            label,
+            value: code,
+          });
+        });
     }
 
     // Always add Custom option at the end

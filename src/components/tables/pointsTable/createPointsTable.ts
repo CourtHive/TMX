@@ -14,7 +14,7 @@ import { getPointsColumns } from './getPointsColumns';
 import { controlBar } from 'courthive-components';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { context } from 'services/context';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 
 import { POINTS_VIEW, RIGHT } from 'constants/tmxConstants';
 
@@ -117,7 +117,7 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
         'winCount',
         'rangeAccessor',
       ]),
-      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       responsiveLayoutCollapseStartOpen: false,
       responsiveLayout: 'collapse',
       layout: 'fitColumns',

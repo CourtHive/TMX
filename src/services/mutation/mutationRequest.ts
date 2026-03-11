@@ -4,17 +4,31 @@
  */
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { providerConfig } from 'config/providerConfig';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
+import { serverConfig } from 'config/serverConfig';
+import { debugConfig } from 'config/debugConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { env } from 'settings/env';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
 
 // constants
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
+import {
+  ADD_PARTICIPANTS,
+  DELETE_PARTICIPANTS,
+  ADD_EVENT,
+  DELETE_EVENTS,
+  ADD_MATCHUP_SCHEDULE_ITEMS,
+  BULK_SCHEDULE_MATCHUPS,
+  ADD_VENUE,
+  DELETE_VENUES,
+  ADD_DRAW_DEFINITION,
+  DELETE_DRAW_DEFINITIONS,
+} from 'constants/mutationConstants';
 
 interface MutationParams {
   tournamentRecord?: any;
@@ -39,6 +53,12 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   if (!Array.isArray(methods)) return completion();
   const factoryEngine = factory[engine];
   if (!factoryEngine) return completion();
+
+  // Provider-level mutation gating (defense-in-depth)
+  const blocked = methods.find((m) => !isMutationAllowed(m.method));
+  if (blocked) {
+    return completion({ error: { message: `Action not permitted: ${blocked.method}` } });
+  }
 
   if (tournamentRecord) factoryEngine.setState(tournamentRecord);
 
@@ -139,13 +159,13 @@ function checkPermissions({
 }
 
 function engineExecution({ factoryEngine, methods }: { factoryEngine: any; methods: any[] }): any {
-  if (env.log?.verbose) console.log('%c executing locally', 'color: lightgreen');
+  if (debugConfig.get().log?.verbose) console.log('%c executing locally', 'color: lightgreen');
   const directives = factory.tools.makeDeepCopy(methods);
   return factoryEngine.executionQueue(directives, true) || {};
 }
 
 async function localSave(saveLocal: boolean): Promise<void> {
-  if (saveLocal || env.saveLocal) {
+  if (saveLocal || serverConfig.get().saveLocal) {
     await saveTournamentRecord();
   }
 }
@@ -176,7 +196,7 @@ async function makeMutation({
 
   if (window?.['dev']?.getContext().internal) console.log({ methods });
 
-  const executeLocalFirst = !env.serverFirst || !hasProvider;
+  const executeLocalFirst = !serverConfig.get().serverFirst || !hasProvider;
 
   let factoryResult: any;
   if (executeLocalFirst || offline) {
@@ -188,25 +208,25 @@ async function makeMutation({
     }
   }
 
-  if (hasProvider && (factoryResult?.success || env.serverFirst)) {
+  if (hasProvider && (factoryResult?.success || serverConfig.get().serverFirst)) {
     let ackReceived = false;
     let timedOut = false;
     const ackCallback = (ack: any) => {
       if (timedOut) return;
       ackReceived = true;
       const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
-      if (env.serverFirst && (ack?.success || missingTournament)) {
+      if (serverConfig.get().serverFirst && (ack?.success || missingTournament)) {
         (async () => {
           factoryResult = engineExecution({ factoryEngine, methods });
           if (factoryResult.error) return completion(factoryResult);
           await localSave(saveLocal || missingTournament);
           return completion(factoryResult);
         })();
-      } else if (env.serverFirst && !executeLocalFirst) {
+      } else if (serverConfig.get().serverFirst && !executeLocalFirst) {
         completion(ack?.error ? ack : { error: { message: 'Server rejected mutation' } });
       }
     };
-    if (env.log?.verbose) console.log('%c invoking remote', 'color: lightblue');
+    if (debugConfig.get().log?.verbose) console.log('%c invoking remote', 'color: lightblue');
     emitTmx({
       data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
       ackCallback,
@@ -219,9 +239,31 @@ async function makeMutation({
         timedOut = true;
         tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
         completion({ error: { message: 'Server not responding' } });
-      }, env.serverTimeout ?? 10000);
+      }, serverConfig.get().serverTimeout ?? 10000);
     }
   }
 
   if (executeLocalFirst) return completion(factoryResult);
+}
+
+// ── Provider mutation gating ──
+
+/** Map of mutation method names to provider permission keys. */
+const MUTATION_PERMISSION_MAP: Record<string, keyof import('config/providerConfig').ProviderPermissions> = {
+  [ADD_PARTICIPANTS]: 'canCreateCompetitors',
+  [DELETE_PARTICIPANTS]: 'canDeleteParticipants',
+  [ADD_EVENT]: 'canCreateEvents',
+  [DELETE_EVENTS]: 'canDeleteEvents',
+  [ADD_MATCHUP_SCHEDULE_ITEMS]: 'canModifySchedule',
+  [BULK_SCHEDULE_MATCHUPS]: 'canModifySchedule',
+  [ADD_VENUE]: 'canCreateVenues',
+  [DELETE_VENUES]: 'canDeleteVenues',
+  [ADD_DRAW_DEFINITION]: 'canCreateDraws',
+  [DELETE_DRAW_DEFINITIONS]: 'canDeleteDraws',
+};
+
+function isMutationAllowed(method: string): boolean {
+  const permKey = MUTATION_PERMISSION_MAP[method];
+  if (!permKey) return true; // Unmapped mutations are allowed by default
+  return providerConfig.isAllowed(permKey);
 }

@@ -6,6 +6,7 @@
  * control with Grid / Profile buttons.
  */
 import { competitionEngine } from 'tods-competition-factory';
+import { providerConfig } from 'config/providerConfig';
 import type { Schedule2View } from './schedule2Tab';
 
 interface Schedule2HeaderParams {
@@ -13,12 +14,15 @@ interface Schedule2HeaderParams {
   activeView: Schedule2View;
   startDate: string;
   endDate: string;
+  bulkMode: boolean;
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
+  onBulkModeChange: (enabled: boolean) => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
-  const { selectedDate, activeView, startDate, endDate, onDateChange, onViewChange } = params;
+  const { selectedDate, activeView, startDate, endDate, bulkMode, onDateChange, onViewChange, onBulkModeChange } =
+    params;
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
@@ -61,6 +65,33 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   left.appendChild(countBadge);
 
   bar.appendChild(left);
+
+  // ── Center: Bulk mode toggle (grid view only, if permitted) ──
+  if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
+    const center = document.createElement('div');
+    center.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+
+    const bulkLabel = document.createElement('label');
+    bulkLabel.style.cssText =
+      'font-size: 12px; color: var(--tmx-color-primary); cursor: pointer; display: flex; align-items: center; gap: 6px;';
+
+    const toggle = document.createElement('input');
+    toggle.type = 'checkbox';
+    toggle.checked = bulkMode;
+    toggle.style.cssText = 'cursor: pointer; accent-color: var(--tmx-accent-blue);';
+    toggle.addEventListener('change', () => onBulkModeChange(toggle.checked));
+
+    bulkLabel.appendChild(toggle);
+    bulkLabel.appendChild(document.createTextNode('Bulk mode'));
+    center.appendChild(bulkLabel);
+
+    const bulkHint = document.createElement('span');
+    bulkHint.style.cssText = 'font-size: 10px; color: var(--tmx-muted);';
+    bulkHint.textContent = '(queue changes, save all at once)';
+    center.appendChild(bulkHint);
+
+    bar.appendChild(center);
+  }
 
   // ── Right: View switcher (segmented control) ──
   const right = document.createElement('div');

@@ -14,6 +14,8 @@ import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
+import { providerConfig } from 'config/providerConfig';
+import { serverConfig } from 'config/serverConfig';
 import { context } from 'services/context';
 import { env } from 'settings/env';
 import { t } from 'i18n';
@@ -127,11 +129,12 @@ export function setDev(): void {
   addDev({ connectSocket, disconnectSocket, emitTmx });
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
+  addDev({ providerConfig });
 
   addDev({
     setServer: (url: string) => {
       setBaseURL(url);
-      env.socketPath = url;
+      serverConfig.set({ socketPath: url });
       disconnectSocket();
       console.log(`[dev] server set to: ${url} — call dev.connectSocket() after logging in`);
     },

@@ -2,6 +2,7 @@
  * Venue control bar with add, delete, and grid toggle buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { providerConfig } from 'config/providerConfig';
 import { controlBar } from 'courthive-components';
 import { addVenue } from './addVenue';
 import { t } from 'i18n';
@@ -38,6 +39,7 @@ export function venueControl({
       intent: 'is-danger',
       stateChange: true,
       location: OVERLAY,
+      hide: !providerConfig.isAllowed('canDeleteVenues'),
     },
     {
       label: t('pages.venues.addVenue.title'),
@@ -45,6 +47,7 @@ export function venueControl({
       location: RIGHT,
       id: 'addVenue',
       intent: 'none',
+      hide: !providerConfig.isAllowed('canCreateVenues'),
     },
     {
       label: t('pages.venues.viewAvailability'),

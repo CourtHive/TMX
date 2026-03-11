@@ -3,6 +3,8 @@ packages:
 
 ignoredBuiltDependencies:
   - cypress
+  - electron
+  - electron-winstaller
   - esbuild
 
 overrides:

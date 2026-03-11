@@ -4,13 +4,20 @@
  * Wires the courthive-components Schedule Page into TMX using real factory data.
  * Builds a court grid from competitionScheduleMatchUps and passes it as the
  * courtGridElement to createSchedulePage. Handles drop/remove callbacks via
- * mutationRequest (immediate mode).
+ * mutationRequest (immediate mode) or queues locally (bulk mode).
  *
  * Drag-drop flow:
  *  - Catalog → Grid: card dragstart sets CATALOG_MATCHUP payload; grid cell drop fires onMatchUpDrop
  *  - Grid → Grid: filled cell dragstart sets GRID_MATCHUP payload; target cell drop fires onMatchUpDrop
  *  - Grid → Catalog: filled cell dragged onto catalog drop zone fires onMatchUpRemove
  *  - After each mutation the grid, catalog, and dates are rebuilt from factory state.
+ *
+ * Bulk mode:
+ *  - Mutations run locally on competitionEngine for visual feedback
+ *  - Methods are queued in pendingMethods for batch server send
+ *  - A floating Save/Discard bar appears when changes are pending
+ *  - On Save: all queued methods sent as single mutationRequest
+ *  - On Discard: factory state reloaded from IndexedDB
  */
 import {
   createSchedulePage,
@@ -20,8 +27,10 @@ import {
 } from 'courthive-components';
 import type { SchedulePageConfig, SchedulePageControl, CatalogMatchUpItem, ScheduleDate } from 'courthive-components';
 import type { ScheduleIssue, ScheduleIssueSeverity } from 'courthive-components';
-import { competitionEngine, matchUpStatusConstants, factoryConstants } from 'tods-competition-factory';
+import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tmx2db } from 'services/storage/tmx2db';
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
@@ -37,9 +46,14 @@ const DATA_DRAW_ID = 'data-draw-id';
 
 let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
+let bulkMode = false;
+let pendingMethods: any[][] = []; // Each entry is a methods array from one drop/remove
+let actionBar: HTMLElement | null = null;
+let actionBarContainer: HTMLElement | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   currentDate = scheduledDate;
+  actionBarContainer = container;
 
   const catalog = buildCatalog(scheduledDate);
   const scheduleDates = buildScheduleDates(scheduledDate);
@@ -116,14 +130,7 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
         },
       });
 
-      mutationRequest({
-        methods,
-        engine: COMPETITION_ENGINE,
-        callback: (result: any) => {
-          if (!result.success) console.log('[schedule2] drop error', result);
-          refresh();
-        },
-      });
+      executeMethods(methods, refresh);
     },
 
     onMatchUpRemove: (matchUpId) => {
@@ -143,14 +150,7 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
         },
       ];
 
-      mutationRequest({
-        methods,
-        engine: COMPETITION_ENGINE,
-        callback: (result: any) => {
-          if (!result.success) console.log('[schedule2] remove error', result);
-          refresh();
-        },
-      });
+      executeMethods(methods, refresh);
     },
 
     onMatchUpSelected: (m) => {
@@ -175,6 +175,191 @@ export function destroyGridView(): void {
   if (activeControl) {
     activeControl.destroy();
     activeControl = null;
+  }
+  removeActionBar();
+  pendingMethods = [];
+  actionBarContainer = null;
+}
+
+/** Whether there are unsaved bulk scheduling changes. */
+export function hasUnsavedGridChanges(): boolean {
+  return bulkMode && pendingMethods.length > 0;
+}
+
+/** Set bulk mode on/off. Returns the new state. */
+export function setGridBulkMode(enabled: boolean): boolean {
+  if (bulkMode === enabled) return bulkMode;
+
+  // If turning off bulk mode with pending changes, warn
+  if (!enabled && pendingMethods.length > 0) {
+    const confirmed = window.confirm(
+      `You have ${pendingMethods.length} unsaved scheduling change(s). Switching to immediate mode will discard them. Continue?`,
+    );
+    if (!confirmed) return bulkMode;
+    discardPending();
+  }
+
+  bulkMode = enabled;
+  return bulkMode;
+}
+
+export function getGridBulkMode(): boolean {
+  return bulkMode;
+}
+
+// ============================================================================
+// Bulk Mode — Execute / Save / Discard
+// ============================================================================
+
+/**
+ * Execute mutation methods — immediate or bulk.
+ * In immediate mode: sends via mutationRequest (server + local).
+ * In bulk mode: runs locally on competitionEngine, queues for batch send.
+ */
+function executeMethods(methods: any[], onRefresh: () => void): void {
+  if (!bulkMode) {
+    mutationRequest({
+      methods,
+      engine: COMPETITION_ENGINE,
+      callback: (result: any) => {
+        if (!result.success) console.log('[schedule2] mutation error', result);
+        onRefresh();
+      },
+    });
+    return;
+  }
+
+  // Bulk mode: execute locally for visual feedback
+  const directives = tools.makeDeepCopy(methods);
+  const result = competitionEngine.executionQueue(directives, true);
+  if (result?.error) {
+    console.error('[schedule2] local execution error', result);
+    tmxToast({ message: 'Schedule change failed locally', intent: 'is-danger' });
+    return;
+  }
+
+  // Queue methods for batch server send
+  pendingMethods.push(methods);
+  onRefresh();
+  updateActionBar();
+}
+
+/** Save all pending bulk changes to server. */
+async function savePending(): Promise<void> {
+  if (!pendingMethods.length) return;
+
+  // Flatten all queued method arrays into one batch
+  const allMethods = pendingMethods.flat();
+  pendingMethods = [];
+
+  mutationRequest({
+    methods: allMethods,
+    engine: COMPETITION_ENGINE,
+    callback: (result: any) => {
+      if (result?.success || !result?.error) {
+        tmxToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: 'is-success' });
+      } else {
+        console.error('[schedule2] bulk save error', result);
+        tmxToast({ message: 'Failed to save scheduling changes to server', intent: 'is-danger' });
+      }
+      updateActionBar();
+    },
+  });
+
+  updateActionBar();
+}
+
+/** Discard pending changes by reloading factory state from IndexedDB. */
+async function discardPending(): Promise<void> {
+  if (!pendingMethods.length) {
+    pendingMethods = [];
+    updateActionBar();
+    return;
+  }
+
+  const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId;
+  if (!tournamentId) return;
+
+  try {
+    const record = await tmx2db.findTournament(tournamentId);
+    if (record) {
+      competitionEngine.setState(record);
+    }
+  } catch (err) {
+    console.error('[schedule2] failed to reload from IndexedDB', err);
+  }
+
+  pendingMethods = [];
+  tmxToast({ message: 'Scheduling changes discarded', intent: 'is-warning' });
+  updateActionBar();
+
+  // Re-render the grid view to reflect restored state
+  if (activeControl && actionBarContainer) {
+    const container = actionBarContainer;
+    const date = currentDate;
+    destroyGridView();
+    renderGridView(container, date);
+  }
+}
+
+// ============================================================================
+// Action Bar (floating save/discard bar for bulk mode)
+// ============================================================================
+
+function updateActionBar(): void {
+  if (!bulkMode || !pendingMethods.length) {
+    removeActionBar();
+    return;
+  }
+  if (!actionBarContainer) return;
+
+  if (!actionBar) {
+    actionBar = document.createElement('div');
+    actionBar.style.cssText = [
+      'position: sticky',
+      'bottom: 0',
+      'z-index: 10',
+      'display: flex',
+      'align-items: center',
+      'gap: 12px',
+      'padding: 10px 16px',
+      'background: var(--sp-panel-bg, var(--tmx-bg-primary))',
+      'border-top: 2px solid var(--sp-accent, var(--tmx-accent-blue))',
+      'box-shadow: 0 -2px 8px rgba(0,0,0,0.1)',
+    ].join('; ');
+    actionBarContainer.appendChild(actionBar);
+  }
+
+  const count = pendingMethods.length;
+  const totalMethods = pendingMethods.flat().length;
+
+  actionBar.innerHTML = '';
+
+  // Save button
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'sp-btn sp-btn--success';
+  saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Save ${totalMethods} change${totalMethods !== 1 ? 's' : ''}`;
+  saveBtn.addEventListener('click', () => savePending());
+  actionBar.appendChild(saveBtn);
+
+  // Discard button
+  const discardBtn = document.createElement('button');
+  discardBtn.className = 'sp-btn sp-btn--danger';
+  discardBtn.innerHTML = '<i class="fa-solid fa-rotate-left" style="margin-right:6px;"></i>Discard';
+  discardBtn.addEventListener('click', () => discardPending());
+  actionBar.appendChild(discardBtn);
+
+  // Status text
+  const status = document.createElement('span');
+  status.style.cssText = 'font-size: 0.75rem; color: var(--sp-warn-text, var(--tmx-accent-orange, #f59e0b));';
+  status.textContent = `${count} unsaved action${count !== 1 ? 's' : ''} — changes are local only`;
+  actionBar.appendChild(status);
+}
+
+function removeActionBar(): void {
+  if (actionBar) {
+    actionBar.remove();
+    actionBar = null;
   }
 }
 

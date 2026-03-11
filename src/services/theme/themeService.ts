@@ -1,4 +1,4 @@
-import { loadSettings, saveSettings } from 'services/settings/settingsStorage';
+import { loadSettings, persistConfigToStorage } from 'services/settings/settingsStorage';
 import { context } from 'services/context';
 
 type ThemePreference = 'light' | 'dark' | 'system';
@@ -54,6 +54,14 @@ export const FONT_OPTIONS: Record<string, FontOption> = {
   },
 };
 
+export const FONT_SIZE_OPTIONS: Record<string, { label: string; value: string }> = {
+  xs: { label: 'Extra Small (13px)', value: '13px' },
+  sm: { label: 'Small (14px)', value: '14px' },
+  md: { label: 'Medium (16px)', value: '16px' },
+  lg: { label: 'Large (18px)', value: '18px' },
+  xl: { label: 'Extra Large (20px)', value: '20px' },
+};
+
 /** Track which fonts have already been injected so we don't add duplicate <link> tags. */
 const loadedFonts = new Set<string>();
 
@@ -107,9 +115,7 @@ export function applyTheme(pref: ThemePreference): void {
   localStorage.setItem(THEME_STORAGE_KEY, pref);
 
   // Persist in TMXSettings
-  const settings = loadSettings() ?? {};
-  settings.theme = pref;
-  saveSettings(settings);
+  persistConfigToStorage({ theme: pref });
 
   // Notify live components
   context.ee?.emit('THEME_CHANGE', { theme, preference: pref });
@@ -129,6 +135,11 @@ export function initTheme(): void {
   const fontOption = FONT_OPTIONS[fontKey] ?? FONT_OPTIONS.system;
   loadGoogleFont(fontOption);
   document.documentElement.style.setProperty('--tmx-font-family', fontOption.value);
+
+  // Apply saved font size preference
+  const fontSizeKey = settings?.fontSize ?? 'md';
+  const fontSizeOption = FONT_SIZE_OPTIONS[fontSizeKey] ?? FONT_SIZE_OPTIONS.md;
+  document.documentElement.style.setProperty('--tmx-font-size', fontSizeOption.value);
 
   // Listen for OS preference changes when in 'system' mode
   mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -156,9 +167,18 @@ export function applyFont(key: string): void {
   loadGoogleFont(option);
   document.documentElement.style.setProperty('--tmx-font-family', option.value);
 
-  const settings = loadSettings() ?? {};
-  settings.fontFamily = key;
-  saveSettings(settings);
+  persistConfigToStorage({ fontFamily: key });
+}
+
+/**
+ * Apply a font-size to the document by setting --tmx-font-size.
+ * Persists the choice in settings.
+ */
+export function applyFontSize(key: string): void {
+  const option = FONT_SIZE_OPTIONS[key] ?? FONT_SIZE_OPTIONS.md;
+  document.documentElement.style.setProperty('--tmx-font-size', option.value);
+
+  persistConfigToStorage({ fontSize: key });
 }
 
 /**
@@ -166,4 +186,11 @@ export function applyFont(key: string): void {
  */
 export function getFontPreference(): string {
   return loadSettings()?.fontFamily ?? 'system';
+}
+
+/**
+ * Get the current font size preference key.
+ */
+export function getFontSizePreference(): string {
+  return loadSettings()?.fontSize ?? 'md';
 }

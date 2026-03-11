@@ -16,7 +16,7 @@ import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
-import { renderGridView, destroyGridView } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 
 export type Schedule2View = 'grid' | 'profile';
@@ -59,19 +59,30 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   state = { currentView: view, selectedDate: scheduledDate };
 
-  // Build header with date strip + view switcher
+  // Build header with date strip + view switcher + bulk mode toggle
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
     startDate,
     endDate,
+    bulkMode: getGridBulkMode(),
     onDateChange: (date: string) => {
+      if (!confirmUnsavedChanges()) return;
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${date}/${state?.currentView || 'grid'}`);
     },
     onViewChange: (newView: Schedule2View) => {
+      if (!confirmUnsavedChanges()) return;
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
+    },
+    onBulkModeChange: (enabled: boolean) => {
+      const result = setGridBulkMode(enabled);
+      // Re-render header to reflect actual state (in case user cancelled)
+      if (result !== enabled) {
+        controlAnchor.innerHTML = '';
+        renderSchedule2Tab(params);
+      }
     },
   });
   controlAnchor.appendChild(header);
@@ -89,3 +100,23 @@ function destroyCurrentView(): void {
   if (state.currentView === 'grid') destroyGridView();
   if (state.currentView === 'profile') destroyProfileView();
 }
+
+/** Check for unsaved changes; return true if safe to proceed, false to block. */
+function confirmUnsavedChanges(): boolean {
+  if (!hasUnsavedGridChanges()) return true;
+  return window.confirm('You have unsaved scheduling changes. Discard and continue?');
+}
+
+/** Exported for use by router guards or other navigation checks. */
+export function hasUnsavedScheduleChanges(): boolean {
+  return hasUnsavedGridChanges();
+}
+
+// ── beforeunload guard ──
+function onBeforeUnload(e: BeforeUnloadEvent): void {
+  if (hasUnsavedGridChanges()) {
+    e.preventDefault();
+  }
+}
+
+window.addEventListener('beforeunload', onBeforeUnload);

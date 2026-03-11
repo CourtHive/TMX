@@ -38,6 +38,7 @@ export function ensureSettingsStyles(): void {
     .panel-orange { border-color: var(--tmx-panel-orange-border); background: var(--tmx-panel-orange-bg); }
     .panel-purple { border-color: var(--tmx-panel-purple-border); background: var(--tmx-panel-purple-bg); }
     .panel-teal   { border-color: var(--tmx-panel-teal-border); background: var(--tmx-panel-teal-bg); }
+    .panel-indigo { border-color: var(--tmx-panel-indigo-border); background: var(--tmx-panel-indigo-bg); }
     .panel-red    { border-color: var(--tmx-panel-red-border); background: var(--tmx-panel-red-bg); }
     .panel-gray   { border-color: var(--tmx-border-primary); background: var(--tmx-bg-secondary); }
 

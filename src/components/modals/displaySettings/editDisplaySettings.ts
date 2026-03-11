@@ -4,7 +4,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { isFunction } from 'functions/typeOf';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 
 // constants
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
@@ -25,7 +25,7 @@ export function editDisplaySettings(params) {
   const noScheduleInfo = new Set(['Wimbledon', 'French', 'ITF']);
   const saveId = 'saveDisplaySettings';
   const selections: any = {
-    compositionName: scopedValue?.compositionName ?? env.composition?.compositionName ?? 'Australian',
+    compositionName: scopedValue?.compositionName ?? displayConfig.get().composition?.compositionName ?? 'Australian',
     configuration: scopedValue?.configuration ?? {},
     composition: undefined,
     inputs: undefined,
@@ -163,7 +163,7 @@ export function editDisplaySettings(params) {
 
   const saveComposition = () => {
     const postMutation = () => {
-      env.composition = selections.composition;
+      displayConfig.set({ composition: selections.composition });
       if (isFunction(callback)) callback(selections.composition);
     };
     const existingValue = tournamentEngine.findExtension({
@@ -176,6 +176,7 @@ export function editDisplaySettings(params) {
       value: {
         ...existingValue, // order is important!
         compositionName: selections.composition.compositionName,
+        theme: selections.composition.theme,
         configuration: selections.configuration,
       },
       name: extensionConstants.DISPLAY,

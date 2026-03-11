@@ -18,7 +18,7 @@ import { editDisplaySettings } from 'components/modals/displaySettings/editDispl
 import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { openResolveDraft } from 'components/modals/draftResolve';
 import { renderDrawView } from './renderDrawView';
-import { env } from 'settings/env';
+import { featureFlags } from 'config/featureFlags';
 
 // constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
@@ -178,7 +178,7 @@ export function getActionOptions({
       close: true,
     },
     {
-      hide: !env.pdfPrinting, // Only show if PDF printing beta feature is enabled
+      hide: !featureFlags.get().pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => printDraw({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.printDraw'),
       close: true,

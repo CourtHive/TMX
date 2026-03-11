@@ -8,7 +8,7 @@ import { competitionEngine, tools } from 'tods-competition-factory';
 import { unscheduledGridControl } from './unscheduledGridControl';
 import { scheduleGridControl } from './scheduleGridControl';
 import { context } from 'services/context';
-import { env } from 'settings/env';
+import { scheduleConfig } from 'config/scheduleConfig';
 
 import { NONE, SCHEDULE_CONTROL, UNSCHEDULED_CONTROL, UNSCHEDULED_VISIBILITY } from 'constants/tmxConstants';
 
@@ -59,12 +59,12 @@ export function renderScheduleTab(params: { scheduledDate?: string }): void {
     table: scheduleTable,
     courtsCount,
   } = createScheduleTable({
-    minCourtGridRows: Math.max(env.schedule.minCourtGridRows, reasonableRowCount),
+    minCourtGridRows: Math.max(scheduleConfig.get().minCourtGridRows, reasonableRowCount),
     scheduledDate,
   });
 
   (unscheduledGridControl as any)({
-    minCourtGridRows: env.schedule.minCourtGridRows,
+    minCourtGridRows: scheduleConfig.get().minCourtGridRows,
     controlAnchor: unscheduldControlAnchor,
     matchUps: unscheduledMatchUps,
     table: unscheduledTable,

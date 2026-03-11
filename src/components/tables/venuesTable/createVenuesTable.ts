@@ -7,7 +7,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { venueRowFormatter } from './venueRowFormatter';
 import { getVenuesColumns } from './getVenueColumns';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 import { t } from 'i18n';
 
 // constants
@@ -64,7 +64,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
         'courtsCount',
         'venueName',
       ]),
-      minHeight: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      minHeight: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       rowFormatter: venueRowFormatter(setNestedTable),
       placeholder: 'No venues',
       layout: 'fitColumns',

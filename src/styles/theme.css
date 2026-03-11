@@ -1,7 +1,12 @@
+html {
+  font-size: var(--tmx-font-size, 16px);
+}
+
 /* ===== Light theme (default) ===== */
 :root {
   /* Typography */
   --tmx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --tmx-font-size: 16px;
 
   /* Backgrounds */
   --tmx-bg-primary: #ffffff;
@@ -58,6 +63,8 @@
   --tmx-panel-orange-border: #ff9f43;
   --tmx-panel-teal-bg: #e6faf8;
   --tmx-panel-teal-border: #00b8a9;
+  --tmx-panel-indigo-bg: #eef0fb;
+  --tmx-panel-indigo-border: #5c6bc0;
   --tmx-panel-yellow-bg: #fffaeb;
   --tmx-panel-yellow-border: #e6c84e;
 
@@ -185,6 +192,8 @@
   --tmx-panel-orange-border: #ffb366;
   --tmx-panel-teal-bg: #1a3a38;
   --tmx-panel-teal-border: #33c9bb;
+  --tmx-panel-indigo-bg: #1a1e3e;
+  --tmx-panel-indigo-border: #7986cb;
   --tmx-panel-yellow-bg: #3a3a1a;
   --tmx-panel-yellow-border: #e6c84e;
 

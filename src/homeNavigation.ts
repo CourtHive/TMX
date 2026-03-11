@@ -5,7 +5,7 @@
  */
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { context } from 'services/context';
-import { env } from 'settings/env';
+import { deviceConfig } from 'config/deviceConfig';
 import { t } from 'i18n';
 import tippy from 'tippy.js';
 
@@ -107,7 +107,7 @@ export function homeNavigation(currentRoute?: string): void {
     if ((element as any)._tippy) (element as any)._tippy.destroy();
 
     (tippy as any)(element, {
-      dynContent: () => !env.device.isMobile && tippyContent(homeTips[id]),
+      dynContent: () => !deviceConfig.get().isMobile && tippyContent(homeTips[id]),
       onShow: (options: any) => !!options.props.content,
       plugins: [enhancedContentFunction],
       placement: BOTTOM,

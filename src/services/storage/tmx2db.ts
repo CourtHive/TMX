@@ -46,6 +46,8 @@ export const tmx2db: TMXDatabase = (function () {
         idb.dex.version(3).stores({ tournaments, providers, idioms, policies });
         idb.dex.version(4).stores({ tournaments, providers, idioms, policies, topologies });
         idb.dex.version(5).stores({ tournaments, providers, idioms, policies, topologies, tieFormats });
+        const compositions = '&id, name, source';
+        idb.dex.version(6).stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions });
         resolve();
       } catch (err) {
         return reject(err);

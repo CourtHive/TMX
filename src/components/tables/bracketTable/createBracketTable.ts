@@ -10,7 +10,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { getBracketData } from './getBracketData';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_BRACKET } from 'constants/tmxConstants';
@@ -234,7 +234,7 @@ export async function createBracketTable({
         structureId,
       });
       const table = new Tabulator(tableDiv, {
-        height: groups.length > 1 ? undefined : window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+        height: groups.length > 1 ? undefined : window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
         placeholder: 'No participants',
         layout: 'fitData',
         headerSort: false,

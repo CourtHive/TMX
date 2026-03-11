@@ -12,7 +12,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { getControlColumn } from './getControlColumn';
 
 import { CENTER, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
-import { env } from 'settings/env';
+import { scheduleConfig } from 'config/scheduleConfig';
 
 export function getScheduleColumns({
   courtsData,
@@ -64,7 +64,7 @@ export function getScheduleColumns({
     headerClick: (e: any, cell: any) => setScheduleColumnHeader(e, cell, courtInfo),
     cellClick: scheduleCellActions,
     field: `${courtPrefix}${index}`,
-    title: env.schedule.court_identifiers !== false ? courtInfo.courtName : '',
+    title: scheduleConfig.get().court_identifiers !== false ? courtInfo.courtName : '',
     headerHozAlign: CENTER,
     formatter: scheduleCell,
     headerSort: false,

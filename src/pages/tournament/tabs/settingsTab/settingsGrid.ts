@@ -1,11 +1,14 @@
 import {
   applyFont,
+  applyFontSize,
   applyTheme,
   FONT_OPTIONS,
+  FONT_SIZE_OPTIONS,
   getFontPreference,
+  getFontSizePreference,
   getThemePreference,
 } from 'services/theme/themeService';
-import { saveSettings, loadSettings } from 'services/settings/settingsStorage';
+import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
 import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { getLoginState } from 'services/authentication/loginState';
@@ -14,8 +17,15 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { renderForm, validators } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { tmx2db } from 'services/storage/tmx2db';
+import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
+import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { scheduleConfig } from 'config/scheduleConfig';
+import { featureFlags } from 'config/featureFlags';
+import { serverConfig } from 'config/serverConfig';
+import { deviceConfig } from 'config/deviceConfig';
+import { platform } from 'platform';
 import { context } from 'services/context';
-import { env } from 'settings/env';
 import { i18next, t } from 'i18n';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
@@ -45,14 +55,16 @@ function persistAll(
   displayInputs: any,
 ): void {
   const activeScale = ratingInputs.activeRating.value;
-  env.saveLocal = storageInputs.saveLocal.checked;
-  env.pdfPrinting = displayInputs.pdfPrinting?.checked || false;
-  env.googleSheetsImport = displayInputs.googleSheetsImport?.checked || false;
-  env.schedule2 = displayInputs.schedule2?.checked || false;
+  serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
+  featureFlags.set({
+    pdfPrinting: displayInputs.pdfPrinting?.checked || false,
+    googleSheetsImport: displayInputs.googleSheetsImport?.checked || false,
+    schedule2: displayInputs.schedule2?.checked || false,
+  });
 
   // Immediately update the schedule2 nav icon visibility
   const s2Icon = document.getElementById('s2-route');
-  if (s2Icon) s2Icon.style.display = env.schedule2 ? '' : 'none';
+  if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
 
   let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
   if (scoringInputs.dynamicSets.checked) {
@@ -64,11 +76,14 @@ function persistAll(
   } else {
     scoringApproach = 'dynamicSets';
   }
-  env.scoringApproach = scoringApproach;
+  preferencesConfig.set({
+    scoringApproach,
+    smartComplements: scoringInputs.smartComplements?.checked || false,
+  });
 
   const minCourtGridRowsValue = schedulingInputs.minCourtGridRows.value;
   if (validators.numericRange(1, 100)(minCourtGridRowsValue)) {
-    env.schedule.minCourtGridRows = Number.parseInt(minCourtGridRowsValue, 10);
+    scheduleConfig.set({ minCourtGridRows: Number.parseInt(minCourtGridRowsValue, 10) });
   }
 
   const language = languageInputs.language.value;
@@ -76,17 +91,7 @@ function persistAll(
 
   setActiveScale(activeScale);
 
-  saveSettings({
-    activeScale,
-    scoringApproach,
-    saveLocal: env.saveLocal,
-    smartComplements: scoringInputs.smartComplements?.checked || false,
-    pdfPrinting: env.pdfPrinting,
-    googleSheetsImport: env.googleSheetsImport,
-    schedule2: env.schedule2,
-    minCourtGridRows: env.schedule.minCourtGridRows,
-    language,
-  });
+  persistConfigToStorage({ language });
 
   if (languageChanged) {
     globalThis.location.reload();
@@ -183,10 +188,10 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
         {
           text: t('modals.settings.dynamicSets'),
           field: 'dynamicSets',
-          checked: env.scoringApproach === 'dynamicSets',
+          checked: preferencesConfig.get().scoringApproach === 'dynamicSets',
         },
-        { text: t('modals.settings.dialPad'), field: 'dialPad', checked: env.scoringApproach === 'dialPad' },
-        { text: t('modals.settings.freeScore'), field: 'freeScore', checked: env.scoringApproach === 'freeScore' },
+        { text: t('modals.settings.dialPad'), field: 'dialPad', checked: preferencesConfig.get().scoringApproach === 'dialPad' },
+        { text: t('modals.settings.freeScore'), field: 'freeScore', checked: preferencesConfig.get().scoringApproach === 'freeScore' },
       ],
       onChange: persist,
       field: 'scoringApproach',
@@ -219,7 +224,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   schedulingInputs = renderForm(schedulingForm, [
     {
       label: t('modals.settings.minScheduleGridRows'),
-      value: currentSettings?.minCourtGridRows ?? env.schedule.minCourtGridRows,
+      value: currentSettings?.minCourtGridRows ?? scheduleConfig.get().minCourtGridRows,
       field: 'minCourtGridRows',
       id: 'minCourtGridRows',
       validator: validators.numericRange(1, 100),
@@ -257,6 +262,27 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     },
   ]);
   fontPanel.appendChild(fontForm);
+
+  const currentFontSize = getFontSizePreference();
+  const fontSizeForm = document.createElement('div');
+  fontSizeForm.style.marginTop = '8px';
+  renderForm(fontSizeForm, [
+    {
+      options: Object.entries(FONT_SIZE_OPTIONS).map(([key, { label }]) => ({
+        value: key,
+        label,
+        selected: key === currentFontSize,
+      })),
+      onChange: (e: Event) => {
+        const select = e.target as HTMLSelectElement;
+        applyFontSize(select.value);
+      },
+      field: 'fontSize',
+      id: 'fontSize',
+    },
+  ]);
+  fontPanel.appendChild(fontSizeForm);
+
   grid.appendChild(fontPanel);
 
   // --- Storage panel (purple, cols 3-4) ---
@@ -269,7 +295,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   storageInputs = renderForm(storageForm, [
     {
       label: t('modals.settings.saveLocalCopies'),
-      checked: env.saveLocal,
+      checked: serverConfig.get().saveLocal,
       field: 'saveLocal',
       id: 'saveLocal',
       onChange: persist,
@@ -278,6 +304,90 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   ]);
   storagePanel.appendChild(storageForm);
   grid.appendChild(storagePanel);
+
+  // --- Connection panel (indigo, cols 1-2) — Electron only ---
+  if (deviceConfig.get().isElectron) {
+    const connectionPanel = document.createElement('div');
+    connectionPanel.className = 'settings-panel panel-indigo';
+    connectionPanel.style.gridColumn = '1 / 3';
+    connectionPanel.innerHTML = `<h3><i class="fa-solid fa-server"></i> Connection</h3>`;
+
+    const serverUrlLabel = document.createElement('label');
+    serverUrlLabel.className = 'label';
+    serverUrlLabel.textContent = 'Server URL';
+    serverUrlLabel.style.marginBottom = '4px';
+
+    const serverUrlInput = document.createElement('input');
+    serverUrlInput.className = 'input';
+    serverUrlInput.type = 'text';
+    serverUrlInput.value = serverConfig.get().socketPath || '';
+    serverUrlInput.placeholder = 'http://localhost:8383';
+
+    const statusDot = document.createElement('span');
+    const updateStatus = () => {
+      const isConnected = connected();
+      statusDot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${isConnected ? '#48c774' : '#f14668'}`;
+    };
+    updateStatus();
+
+    const statusLabel = document.createElement('span');
+    statusLabel.style.fontSize = '0.85rem';
+    const updateStatusLabel = () => {
+      statusLabel.textContent = connected() ? 'Connected' : 'Disconnected';
+    };
+    updateStatusLabel();
+
+    const statusRow = document.createElement('div');
+    statusRow.style.cssText = 'display:flex;align-items:center;margin-top:8px;margin-bottom:8px';
+    statusRow.appendChild(statusDot);
+    statusRow.appendChild(statusLabel);
+
+    const offlineCheckbox = document.createElement('input');
+    offlineCheckbox.type = 'checkbox';
+    offlineCheckbox.id = 'workOffline';
+    offlineCheckbox.checked = !serverConfig.get().serverFirst;
+
+    const offlineLabel = document.createElement('label');
+    offlineLabel.htmlFor = 'workOffline';
+    offlineLabel.textContent = ' Work Offline';
+    offlineLabel.style.marginLeft = '4px';
+
+    const offlineRow = document.createElement('div');
+    offlineRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';
+    offlineRow.appendChild(offlineCheckbox);
+    offlineRow.appendChild(offlineLabel);
+
+    // Save server URL on blur
+    serverUrlInput.addEventListener('change', () => {
+      const url = serverUrlInput.value.trim();
+      serverConfig.set({ socketPath: url });
+      platform.setServerUrl?.(url);
+      persistConfigToStorage({});
+    });
+
+    // Work Offline toggle
+    offlineCheckbox.addEventListener('change', () => {
+      if (offlineCheckbox.checked) {
+        disconnectSocket();
+        serverConfig.set({ serverFirst: false, saveLocal: true });
+      } else {
+        serverConfig.set({ serverFirst: true });
+        connectSocket(() => {
+          updateStatus();
+          updateStatusLabel();
+        });
+      }
+      updateStatus();
+      updateStatusLabel();
+      persistConfigToStorage({});
+    });
+
+    connectionPanel.appendChild(serverUrlLabel);
+    connectionPanel.appendChild(serverUrlInput);
+    connectionPanel.appendChild(statusRow);
+    connectionPanel.appendChild(offlineRow);
+    grid.appendChild(connectionPanel);
+  }
 
   // --- Beta Features panel (teal, 1 col) ---
   const displayPanel = document.createElement('div');
@@ -288,7 +398,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   displayInputs = renderForm(displayForm, [
     {
       label: t('modals.settings.pdfPrinting'),
-      checked: env.pdfPrinting || false,
+      checked: featureFlags.get().pdfPrinting || false,
       field: 'pdfPrinting',
       id: 'pdfPrinting',
       onChange: persist,
@@ -296,7 +406,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     },
     {
       label: t('modals.settings.googleSheetsImport'),
-      checked: env.googleSheetsImport || false,
+      checked: featureFlags.get().googleSheetsImport || false,
       field: 'googleSheetsImport',
       id: 'googleSheetsImport',
       onChange: persist,
@@ -304,13 +414,29 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     },
     {
       label: t('modals.settings.schedule2'),
-      checked: env.schedule2 || false,
+      checked: featureFlags.get().schedule2 || false,
       field: 'schedule2',
       id: 'schedule2',
       onChange: persist,
       checkbox: true,
     },
   ]);
+  if (deviceConfig.get().isElectron) {
+    const notifRow = document.createElement('div');
+    notifRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';
+    const notifCheckbox = document.createElement('input');
+    notifCheckbox.type = 'checkbox';
+    notifCheckbox.id = 'desktopNotifications';
+    notifCheckbox.checked = isDesktopNotificationsEnabled();
+    notifCheckbox.addEventListener('change', () => setDesktopNotificationsEnabled(notifCheckbox.checked));
+    const notifLabel = document.createElement('label');
+    notifLabel.htmlFor = 'desktopNotifications';
+    notifLabel.textContent = ' Desktop Notifications';
+    notifLabel.style.marginLeft = '4px';
+    notifRow.appendChild(notifCheckbox);
+    notifRow.appendChild(notifLabel);
+    displayForm.appendChild(notifRow);
+  }
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
 
@@ -338,12 +464,12 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       ...inTournament.map((key) => ({
         label: `${key} (in tournament)`,
         value: key.toLowerCase(),
-        selected: env.activeScale === key.toLowerCase(),
+        selected: preferencesConfig.get().activeScale === key.toLowerCase(),
       })),
       ...notInTournament.map((key) => ({
         label: key,
         value: key.toLowerCase(),
-        selected: env.activeScale === key.toLowerCase(),
+        selected: preferencesConfig.get().activeScale === key.toLowerCase(),
       })),
     ];
 

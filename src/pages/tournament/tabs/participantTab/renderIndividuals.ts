@@ -27,7 +27,8 @@ import { controlBar } from 'courthive-components';
 import { selectItem } from 'components/modals/selectItem';
 import { participantChips } from './participantChips';
 import { participantConstants } from 'tods-competition-factory';
-import { env } from 'settings/env';
+import { providerConfig } from 'config/providerConfig';
+import { featureFlags } from 'config/featureFlags';
 import { t } from 'i18n';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
@@ -92,10 +93,11 @@ export function renderIndividuals({ view }: { view: string }): void {
       close: true,
     },
     { divider: true } as any,
-    { hide: !env.googleSheetsImport, label: t('pages.participants.importGoogleSheet'), onClick: editRegistrationLink, close: true },
+    { hide: !featureFlags.get().googleSheetsImport || !providerConfig.isAllowed('canImportParticipants'), label: t('pages.participants.importGoogleSheet'), onClick: editRegistrationLink, close: true },
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
       label: t('pages.participants.newParticipant'),
+      hide: !providerConfig.isAllowed('canCreateCompetitors'),
       close: true,
     },
   ];
@@ -177,6 +179,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       label: t('pages.participants.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
+      hide: !providerConfig.isAllowed('canDeleteParticipants'),
       location: OVERLAY,
     },
     {

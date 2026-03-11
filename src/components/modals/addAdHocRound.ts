@@ -8,8 +8,9 @@ import { closeModal, openModal } from './baseModal/baseModal';
 import { renderForm } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
-import { env } from 'settings/env';
 import { t } from 'i18n';
 
 import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
@@ -78,7 +79,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const drawMaticRound = (participantIds: string[]) => {
     const selectedScale = inputs.levelOfPlay?.value || '';
-    const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
+    const { accessor: scaleAccessor, scaleName } = scalesMap[selectedScale] ?? {};
     setActiveScale(selectedScale);
 
     const useDynamicRatings = inputs.dynamicRatings?.checked ?? false;
@@ -184,11 +185,11 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
   const hasRatings = activeRatingKeys.length > 0;
 
   const scaleOptions = [
-    { label: `--${t('publishing.off')}--`, value: '', selected: !env.activeScale },
+    { label: `--${t('publishing.off')}--`, value: '', selected: !preferencesConfig.get().activeScale },
     ...activeRatingKeys.map((key) => ({
       label: key,
       value: key.toLowerCase(),
-      selected: env.activeScale === key.toLowerCase(),
+      selected: preferencesConfig.get().activeScale === key.toLowerCase(),
     })),
   ];
 

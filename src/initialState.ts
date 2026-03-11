@@ -7,7 +7,7 @@ import { tournamentContent } from 'pages/tournament/container/tournamentContent'
 import { initLoginToggle } from 'services/authentication/loginState';
 
 import { courthiveComponentsVersion } from 'courthive-components';
-import { loadSettings } from 'services/settings/settingsStorage';
+import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
 import { initTheme } from 'services/theme/themeService';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
@@ -17,8 +17,10 @@ import { drawer } from 'components/drawer';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
+import { registerMenuHandler } from 'platform/menuHandler';
+import { deviceConfig } from 'config/deviceConfig';
+import { debugConfig } from 'config/debugConfig';
 import { version } from 'config/version';
-import { env } from 'settings/env';
 import { i18next } from 'i18n';
 
 import dragMatch from 'assets/icons/dragmatch.png';
@@ -63,33 +65,14 @@ import 'styles/icons.css';
 import 'styles/tmx.css';
 
 export function setupTMX(): void {
-  // Load settings from localStorage before initializing
-  const savedSettings = loadSettings();
-  if (savedSettings) {
-    if (savedSettings.activeScale) {
-      env.activeScale = savedSettings.activeScale;
-    }
-    if (savedSettings.scoringApproach) {
-      env.scoringApproach = savedSettings.scoringApproach;
-    }
-    if (savedSettings.saveLocal !== undefined) {
-      env.saveLocal = savedSettings.saveLocal;
-    }
-    if (savedSettings.pdfPrinting !== undefined) {
-      env.pdfPrinting = savedSettings.pdfPrinting;
-    }
-    if (savedSettings.googleSheetsImport !== undefined) {
-      env.googleSheetsImport = savedSettings.googleSheetsImport;
-    }
-    if (savedSettings.schedule2 !== undefined) {
-      env.schedule2 = savedSettings.schedule2;
-    }
-    if (savedSettings.minCourtGridRows !== undefined) {
-      env.schedule.minCourtGridRows = savedSettings.minCourtGridRows;
-    }
-    if (savedSettings.language) {
+  // Hydrate typed config modules from localStorage
+  try {
+    const savedSettings = hydrateConfigFromStorage();
+    if (savedSettings?.language) {
       i18next.changeLanguage(savedSettings.language);
     }
+  } catch (err) {
+    console.error('Failed to hydrate config from storage:', err);
   }
 
   initTheme();
@@ -115,6 +98,7 @@ function tmxReady(): void {
   console.log('%c TMX ready', 'color: lightgreen');
   setDev();
   setSubscriptions();
+  registerMenuHandler();
   routeTMX();
   tmxNavigation();
 }
@@ -144,7 +128,7 @@ const RESIZE_LOOP = 'ResizeObserver loop limit exceeded';
 const RESIZE_NOTIFICATIONS = 'ResizeObserver loop completed with undelivered notifications.';
 
 function setEnv(): void {
-  env.device = getDevice();
+  deviceConfig.refresh();
   const cfv = tournamentEngine.version();
   const chcv = courthiveComponentsVersion();
   const logStyle = 'color: lightblue';
@@ -162,7 +146,7 @@ function setSubscriptions(): void {
       [topicConstants.MODIFY_MATCHUP]: (data: any) => {
         const matchUpId = data.matchUp?.matchUpId;
         context.matchUpsToBroadcast.push(matchUpId);
-        if (env.devNotes) console.log('MODIFY_MATCHUP', data);
+        if (debugConfig.get().devNotes) console.log('MODIFY_MATCHUP', data);
       },
     },
   });
@@ -181,24 +165,4 @@ function eventListeners(): void {
       }
     }
   });
-}
-
-function getDevice(): any {
-  const nav = getNavigator();
-  return {
-    isStandalone: nav && 'standalone' in nav && (nav as any).standalone,
-    isIDevice: nav && /iphone|ipod|ipad/i.test(nav.userAgent),
-    isIpad: nav && /iPad/i.test(nav.userAgent),
-    isWindows: nav && /indows/i.test(nav.userAgent),
-    isMobile: nav && /Mobi/.test(nav.userAgent),
-  };
-}
-
-function getNavigator(): Navigator | undefined {
-  try {
-    return navigator || (globalThis as any).navigator;
-  } catch (err) {
-    console.log(err);
-    return undefined;
-  }
 }
