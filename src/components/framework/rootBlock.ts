@@ -9,6 +9,7 @@ import { eventBlock } from './eventBlock';
 
 // SVG/D3 version
 import { animateLogoFlyThrough, TMXlogoSVG as TMXlogo } from './courtHiveLogoSVG';
+import { providerConfig } from 'config/providerConfig';
 
 import {
   SPLASH,
@@ -35,7 +36,17 @@ export function rootBlock(): HTMLElement {
   const root = document.getElementById('root')!;
   root.appendChild(newBlock());
 
-  const logo = TMXlogo();
+  const branding = providerConfig.get().branding;
+  let logo: SVGSVGElement | HTMLImageElement;
+  if (branding?.splashLogoUrl) {
+    logo = document.createElement('img') as HTMLImageElement;
+    logo.src = branding.splashLogoUrl;
+    logo.alt = branding.navbarLogoAlt ?? 'Logo';
+    logo.style.maxWidth = '450px';
+    logo.style.width = '100%';
+  } else {
+    logo = TMXlogo();
+  }
   const splash = document.createElement('div');
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
@@ -44,27 +55,36 @@ export function rootBlock(): HTMLElement {
 
   const isRootUrl = !globalThis.location.hash || globalThis.location.hash === '#/' || globalThis.location.hash === '#';
   if (isRootUrl) {
-    // Show splash immediately so the SVG has layout dimensions when the
-    // fly-through animation fires.  Hide the nav bar during the splash.
     splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: flex;';
     const dnav = document.getElementById('dnav');
     if (dnav) dnav.style.display = NONE;
     splash.dataset.animating = 'true';
 
-    const skipAnimation = animateLogoFlyThrough(logo, {
-      delay: 2000, // 2s static display
-      duration: 2000, // 2s fly-through
-      courtLineFade: 2000, // 2s fade of court lines starting at fly-through start
-      onComplete: () => {
+    if (branding?.splashLogoUrl) {
+      // Static image splash — show briefly then navigate
+      splash.style.cursor = 'pointer';
+      const navigateAway = () => {
         delete splash.dataset.animating;
         splash.style.display = NONE;
         context.router?.navigate(`/${TMX_TOURNAMENTS}`);
-      },
-    });
-
-    // Click splash during static phase to skip animation
-    splash.style.cursor = 'pointer';
-    splash.addEventListener('click', skipAnimation);
+      };
+      splash.addEventListener('click', navigateAway);
+      setTimeout(navigateAway, 2500);
+    } else {
+      // SVG fly-through animation
+      const skipAnimation = animateLogoFlyThrough(logo as SVGSVGElement, {
+        delay: 2000,
+        duration: 2000,
+        courtLineFade: 2000,
+        onComplete: () => {
+          delete splash.dataset.animating;
+          splash.style.display = NONE;
+          context.router?.navigate(`/${TMX_TOURNAMENTS}`);
+        },
+      });
+      splash.style.cursor = 'pointer';
+      splash.addEventListener('click', skipAnimation);
+    }
   } else {
     splash.style.cssText = 'margin-top: 2em; padding-top: 5em; display: none;';
   }
@@ -203,6 +223,7 @@ function newBlock(): HTMLDivElement {
       <i id='e-route' class="nav-icon fa-solid fa-diagram-project"></i>
       <i id='m-route' class="nav-icon fa-solid fa-table-tennis-paddle-ball"></i>
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
+      <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
       <div id="mobileNav" class="mobile-nav">

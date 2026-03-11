@@ -31,7 +31,7 @@ export const mapParticipant = (participant: any, derivedEventInfo: any): any => 
   }
 
   return {
-    searchText: `${participantName} ${standardGivenName} ${standardFamilyName}`.toLowerCase(),
+    searchText: [participantName, standardGivenName, standardFamilyName].filter(Boolean).join(' ').toLowerCase(),
     sex: camelcase(participant.person.sex || '', { pascalCase: true }),
     eventIds: participant.events.map(({ eventId }: any) => eventId),
     ioc: getCountry(participant.person?.nationalityCode),

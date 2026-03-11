@@ -11,7 +11,7 @@ import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 import { idObj } from 'services/dom/idObj';
-import { env } from 'settings/env';
+import { locationConfig, leafletConfig } from 'config/locationConfig';
 import * as L from 'leaflet';
 
 function getNavigator() {
@@ -176,10 +176,11 @@ function locationMap({
 
   function gpsLocation(lat: number, lng: number, zoom: number): { map: any; marker: any } {
     if (Number.isNaN(lat) || Number.isNaN(lng)) return {} as any;
-    const view = env.locations.map_view || 'map';
-    const layer = L.tileLayer(env.leaflet[view].tileLayer, {
-      attribution: env.leaflet[view].attribution,
-      maxZoom: env.leaflet[view].maxZoom ?? 16,
+    const view = locationConfig.get().map_view || 'map';
+    const leaflet = leafletConfig.get();
+    const layer = L.tileLayer(leaflet[view].tileLayer, {
+      attribution: leaflet[view].attribution,
+      maxZoom: leaflet[view].maxZoom ?? 16,
     });
     const map = L.map(mapElementId).fitWorld().addLayer(layer);
     if (lat || lng) map.setView([+lat, +lng], zoom);

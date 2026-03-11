@@ -1,197 +1,118 @@
 /**
- * Environment configuration and settings.
+ * Environment configuration — backward-compatible shim.
  *
- * Global application configuration object that contains runtime settings for:
- * - Rating scales (dynamically derived from factory ratingsParameters)
- * - Location and mapping services
- * - Scoreboard and match format settings
- * - Schedule display preferences
- * - Device-specific configurations
+ * This module re-exports a mutable `env` object that delegates to the typed
+ * config modules under `src/config/`. Existing code that reads/writes `env.X`
+ * continues to work unchanged. New code should import directly from the
+ * typed config modules instead.
  *
- * RUNTIME MUTABILITY:
- * This object is typed as `any` to preserve full JavaScript mutability.
- * Various parts of the application dynamically add or modify properties at runtime.
+ * MIGRATION STATUS: Phase 1 — env delegates to typed modules but remains
+ * the primary import for existing code. Properties set on env are forwarded
+ * to the appropriate config module.
  *
- * CAUTION: Do not add TypeScript type constraints (interfaces, type assertions) to this
- * object as they can interfere with runtime property additions and cause initialization
- * failures or navigation issues. The `any` type is intentional and necessary.
- *
- * ============================================================================
- * RUNTIME PROPERTIES - Set/Modified Dynamically
- * ============================================================================
- *
- * DEVICE & DISPLAY:
- * - env.device: Device capabilities { isMobile, isTouch, etc. } - Set during initialization
- * - env.composition: Display composition settings - Set when user configures draw display
- *
- * MUTATION & PERSISTENCE:
- * - env.serverFirst: (default true) Execute mutations on server first, then locally
- *                    If false, executes locally first, then sends to server
- * - env.saveLocal: Auto-save tournament records to IndexedDB after mutations
- * - env.serverTimeout: (default 10000) Milliseconds to wait for server ack before reporting failure
- *
- * RATING SCALES:
- * - env.activeScale: Current rating scale ('wtn' or 'utr') - Changed by user or programmatically
- * - env.scales: Scale configuration dynamically derived from factory ratingsParameters.
- *
- * LOCATION & MAPPING:
- * - env.locations.map: Leaflet map instance - Set when map is initialized
- * - env.locations.geoposition: User's geolocation { lat, lng } - Set when geolocation succeeds
- * - env.locations.map_view: Map display mode ('map' or 'satellite')
- * - env.locations.map_provider: Map provider ('leaflet')
- * - env.locations.geolocate: Enable/disable geolocation
- *
- * SOCKET.IO COMMUNICATION:
- * - env.socketPath: Socket.IO server path - Overrides process.env.SERVER if set
- * - env.socketIo: Socket configuration { tmx: '/tmx' }
- *
- * DEBUGGING & LOGGING:
- * - env.log.verbose: Enable verbose logging for mutations and operations
- * - env.averages: Show rating averages in console (participants table)
- * - env.renderLog: Log draw rendering operations
- * - env.devNotes: Log matchUp modifications
- *
- * USER INTERFACE:
- * - env.tableHeightMultiplier: (default 0.85) Multiplier for Tabulator table height
- *                              (window.innerHeight * N). Values > 1.0 extend tables beyond
- *                              the viewport so users can scroll the page header off screen.
- * - env.hotkeys: Enable keyboard shortcuts for match scoring
- * - env.scoring: Enable scoring modal (vs direct score entry)
- *
- * DATA STORAGE:
- * - env.messages: Array of application messages - Accumulates throughout session
- * - env.ioc: Country code for internationalization (default: 'gbr')
- *
- * ============================================================================
- *
- * @example
- * // Setting active rating scale
- * env.activeScale = 'utr';
- *
- * @example
- * // Enable verbose logging
- * env.log = { verbose: true };
- *
- * @example
- * // Execute mutations locally first (offline mode)
- * env.serverFirst = false;
- *
- * @example
- * // Enable auto-save to IndexedDB
- * env.saveLocal = true;
+ * @deprecated Import from the specific config module instead:
+ *   - `import { serverConfig } from 'config/serverConfig'`
+ *   - `import { featureFlags } from 'config/featureFlags'`
+ *   - `import { preferencesConfig } from 'config/preferencesConfig'`
+ *   - `import { deviceConfig } from 'config/deviceConfig'`
+ *   - etc.
  */
-import { fixtures } from 'tods-competition-factory';
-import { version } from '../config/version';
+import { serverConfig } from 'config/serverConfig';
+import { deviceConfig } from 'config/deviceConfig';
+import { featureFlags } from 'config/featureFlags';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { displayConfig } from 'config/displayConfig';
+import { scheduleConfig } from 'config/scheduleConfig';
+import { scoringBoardConfig } from 'config/scoringConfig';
+import { debugConfig } from 'config/debugConfig';
+import { locationConfig, leafletConfig } from 'config/locationConfig';
+import { scalesMap } from 'config/scalesConfig';
+import { version } from 'config/version';
 
-const { ratingsParameters } = fixtures;
-
-// Build scales map from factory ratingsParameters (static — doesn't change at runtime)
-// scaleColor matches the legacy National composition convention: WTN = red, others = default (blue)
-const scaleColorMap: Record<string, string> = { WTN: 'red' };
-const scales: Record<string, any> = {};
-for (const [key, value] of Object.entries(ratingsParameters) as [string, any][]) {
-  const entry: Record<string, any> = {
-    accessor: value.accessor,
-    scaleType: 'RATING',
-    scaleName: key,
-  };
-  if (scaleColorMap[key]) entry.scaleColor = scaleColorMap[key];
-  scales[key.toLowerCase()] = entry;
-}
-
+/**
+ * The env object remains typed as `any` for full backward compatibility.
+ * All initial values now come from the typed config modules.
+ *
+ * During migration (Phase 2+), reads and writes will be moved file-by-file
+ * from `env.X` to the appropriate `xConfig.get().X` / `xConfig.set({ X })`.
+ * Once all consumers are migrated, this file can be deleted.
+ */
 export const env: any = {
-  socketIo: { tmx: '/tmx' },
-  activeScale: 'wtn',
-  hotkeys: false,
-  scoring: false,
-  
-  // Scoring modal configuration (courthive-components)
-  scoringApproach: 'dynamicSets', // 'freeScore' | 'dynamicSets' | 'dialPad'
-  smartComplements: false, // Auto-fill complement scores (6 → 6-4, Shift+6 → 4-6)
-  composition: undefined, // Set dynamically by display settings modal or draw extension
+  // Server & sync — delegates to serverConfig
+  get serverFirst() { return serverConfig.get().serverFirst; },
+  set serverFirst(v: boolean) { serverConfig.set({ serverFirst: v }); },
+  get serverTimeout() { return serverConfig.get().serverTimeout; },
+  set serverTimeout(v: number) { serverConfig.set({ serverTimeout: v }); },
+  get saveLocal() { return serverConfig.get().saveLocal; },
+  set saveLocal(v: boolean) { serverConfig.set({ saveLocal: v }); },
+  get socketPath() { return serverConfig.get().socketPath; },
+  set socketPath(v: string) { serverConfig.set({ socketPath: v }); },
+  get socketIo() { return serverConfig.get().socketIo; },
+  set socketIo(v: any) { serverConfig.set({ socketIo: v }); },
 
-  // Scale configuration derived from factory ratingsParameters.
-  // Consumers access env.scales[env.activeScale] to get { accessor, scaleName, scaleType }.
-  scales,
+  // Device — delegates to deviceConfig
+  get device() { return deviceConfig.get(); },
+  set device(_v: any) { deviceConfig.refresh(); },
 
-  serverFirst: true,
+  // Feature flags — delegates to featureFlags
+  get pdfPrinting() { return featureFlags.get().pdfPrinting; },
+  set pdfPrinting(v: boolean) { featureFlags.set({ pdfPrinting: v }); },
+  get googleSheetsImport() { return featureFlags.get().googleSheetsImport; },
+  set googleSheetsImport(v: boolean) { featureFlags.set({ googleSheetsImport: v }); },
+  get schedule2() { return featureFlags.get().schedule2; },
+  set schedule2(v: boolean) { featureFlags.set({ schedule2: v }); },
+  get usePublishState() { return featureFlags.get().usePublishState; },
+  set usePublishState(v: boolean) { featureFlags.set({ usePublishState: v }); },
+
+  // User preferences — delegates to preferencesConfig
+  get activeScale() { return preferencesConfig.get().activeScale; },
+  set activeScale(v: string) { preferencesConfig.set({ activeScale: v }); },
+  get scoringApproach() { return preferencesConfig.get().scoringApproach; },
+  set scoringApproach(v: any) { preferencesConfig.set({ scoringApproach: v }); },
+  get smartComplements() { return preferencesConfig.get().smartComplements; },
+  set smartComplements(v: boolean) { preferencesConfig.set({ smartComplements: v }); },
+  get hotkeys() { return preferencesConfig.get().hotkeys; },
+  set hotkeys(v: boolean) { preferencesConfig.set({ hotkeys: v }); },
+  get scoring() { return preferencesConfig.get().scoring; },
+  set scoring(v: boolean) { preferencesConfig.set({ scoring: v }); },
+  get ioc() { return preferencesConfig.get().ioc; },
+  set ioc(v: string) { preferencesConfig.set({ ioc: v }); },
+
+  // Display — delegates to displayConfig
+  get composition() { return displayConfig.get().composition; },
+  set composition(v: any) { displayConfig.set({ composition: v }); },
+  get tableHeightMultiplier() { return displayConfig.get().tableHeightMultiplier; },
+  set tableHeightMultiplier(v: number) { displayConfig.set({ tableHeightMultiplier: v }); },
+  get printing() { return displayConfig.get().printing; },
+  set printing(v: any) { displayConfig.set({ printing: v }); },
+
+  // Schedule — delegates to scheduleConfig
+  get schedule() { return scheduleConfig.get(); },
+  set schedule(v: any) { scheduleConfig.set(v); },
+
+  // Scoreboard — delegates to scoringBoardConfig
+  get scoreboard() { return scoringBoardConfig.get(); },
+  set scoreboard(v: any) { scoringBoardConfig.set(v); },
+
+  // Scales — static, from scalesConfig
+  scales: scalesMap,
+
+  // Location & mapping — delegates to locationConfig
+  get locations() { return locationConfig.get(); },
+  set locations(v: any) { locationConfig.set(v); },
+  get leaflet() { return leafletConfig.get(); },
+
+  // Debug — delegates to debugConfig
+  get log() { return debugConfig.get().log; },
+  set log(v: any) { debugConfig.set({ log: v }); },
+  get renderLog() { return debugConfig.get().renderLog; },
+  set renderLog(v: boolean) { debugConfig.set({ renderLog: v }); },
+  get devNotes() { return debugConfig.get().devNotes; },
+  set devNotes(v: boolean) { debugConfig.set({ devNotes: v }); },
+  get averages() { return debugConfig.get().averages; },
+  set averages(v: boolean) { debugConfig.set({ averages: v }); },
+
+  // Metadata — not delegated (session-only)
   version,
-
-  tableHeightMultiplier: 0.85, // Multiplier for Tabulator table height (window.innerHeight * N)
-
-  pdfPrinting: false, // Beta feature flag for PDF generation
-  googleSheetsImport: false, // Beta feature flag for Google Sheets participant import
-  usePublishState: false, // Dev toggle: bypass login requirement for publishing tab
-
-  ioc: 'gbr',
-  locations: {
-    geolocate: true,
-    geoposition: undefined,
-    map: undefined,
-    map_view: 'satellite',
-    map_provider: 'leaflet',
-  },
-  leaflet: {
-    map: {
-      tileLayer: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors',
-      maxZoom: 18,
-    },
-    satellite: {
-      tileLayer: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Tiles &copy; Esri',
-    },
-  },
-  scoreboard: {
-    matchFormats: {
-      categories: {},
-      singles: 'SET3-S:6/TB7',
-      doubles: 'SET3-S:6/TB7-F:TB10',
-    },
-    options: {
-      bestof: [1, 3, 5],
-      setsto: [4, 6, 8, 9],
-      tiebreaksto: [5, 7, 12],
-      supertiebreakto: [7, 10, 21],
-    },
-    settings: {
-      singles: {
-        max_sets: 3,
-        sets_to_win: 2,
-        games_for_set: 6,
-        tiebreak_to: 7,
-        tiebreaks_at: 6,
-        supertiebreak_to: 10,
-        final_set_tiebreak: true,
-        final_set_supertiebreak: false,
-      },
-      doubles: {
-        max_sets: 3,
-        sets_to_win: 2,
-        games_for_set: 6,
-        tiebreak_to: 7,
-        tiebreaks_at: 6,
-        supertiebreak_to: 10,
-        final_set_tiebreak: false,
-        final_set_supertiebreak: true,
-      },
-    },
-  },
-  printing: {
-    pageSize: 'A4',
-  },
-  schedule: {
-    teams: true,
-    clubs: true,
-    time24: true,
-    ioc_codes: false,
-    default_time: '9:00',
-    scores_in_draw_order: true,
-    completed_matches_in_search: false,
-    max_matches_per_court: 14,
-    court_identifiers: true,
-    minCourtGridRows: 10,
-  },
-  messages: [],
-  device: {},
+  messages: [] as any[],
 };

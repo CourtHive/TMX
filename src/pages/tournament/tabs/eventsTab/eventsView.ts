@@ -7,6 +7,7 @@ import { createEventsTable } from 'components/tables/eventsTable/createEventsTab
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { deleteEvents } from 'components/modals/deleteEvents';
 import { controlBar } from 'courthive-components';
+import { providerConfig } from 'config/providerConfig';
 import { editEvent } from './editEvent';
 import { t } from 'i18n';
 
@@ -37,6 +38,7 @@ export function eventsView(): void {
       label: t('pages.events.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
+      hide: !providerConfig.isAllowed('canDeleteEvents'),
       location: OVERLAY,
     },
     {
@@ -53,6 +55,7 @@ export function eventsView(): void {
       onClick: () => (editEvent as any)({ callback: eventAdded }),
       label: t('pages.events.addEvent'),
       intent: 'is-info',
+      hide: !providerConfig.isAllowed('canCreateEvents'),
       location: RIGHT,
     },
   ];

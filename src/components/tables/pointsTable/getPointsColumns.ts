@@ -3,7 +3,8 @@
  * Participant column uses renderParticipant for city/state and active rating display.
  */
 import { renderParticipant } from 'courthive-components';
-import { env } from 'settings/env';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { scalesMap } from 'config/scalesConfig';
 
 export function getPointsColumns(): any[] {
   return [
@@ -18,7 +19,7 @@ export function getPointsColumns(): any[] {
         const participant = data.participant;
         if (!participant) return data.participantName || '';
 
-        const scaleAttributes = env.scales?.[env.activeScale];
+        const scaleAttributes = scalesMap[preferencesConfig.get().activeScale];
         const elem = renderParticipant({
           composition: {
             theme: 'default',

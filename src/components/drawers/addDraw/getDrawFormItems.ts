@@ -4,6 +4,7 @@
  */
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import {
   factoryConstants,
@@ -92,17 +93,20 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const flightProfile = event?.extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
+  const allowedFormats = providerConfig.getAllowedList('allowedMatchUpFormats');
   const scoreFormatOptions = [
     {
       label: 'Custom',
       value: CUSTOM,
     },
   ].concat(
-    POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats.map(({ matchUpFormat, description: label }: any) => ({
-      selected: matchUpFormat === 'SET3-S:6/TB7',
-      value: matchUpFormat,
-      label,
-    })),
+    POLICY_SCORING[POLICY_TYPE_SCORING].matchUpFormats
+      .filter(({ matchUpFormat }: any) => !allowedFormats.length || allowedFormats.includes(matchUpFormat))
+      .map(({ matchUpFormat, description: label }: any) => ({
+        selected: matchUpFormat === 'SET3-S:6/TB7',
+        value: matchUpFormat,
+        label,
+      })),
   );
 
   const tieFormatOptions = [
@@ -131,11 +135,25 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     { label: '4', value: 4 },
   ];
 
-  const creationOptions = [
+  const allCreationOptions = [
     { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
     { label: DRAFT, value: DRAFT, disabled: !!structureId },
     { label: MANUAL, value: false, selected: structureId },
   ];
+
+  // Filter creation methods by provider config
+  const allowedMethods = providerConfig.getAllowedList('allowedCreationMethods');
+  const creationOptions = allowedMethods.length
+    ? allCreationOptions.filter((opt) => {
+        const val = opt.value === false ? MANUAL : String(opt.value);
+        return allowedMethods.includes(val);
+      })
+    : allCreationOptions.filter((opt) => {
+        // Also respect individual permission flags
+        if (opt.value === DRAFT && !providerConfig.isAllowed('canUseDraftPositioning')) return false;
+        if (opt.value === false && !providerConfig.isAllowed('canUseManualPositioning')) return false;
+        return true;
+      });
 
   // Discover available rating scales for DrawMatic configuration
   const { ratingsParameters } = fixtures;

@@ -6,7 +6,7 @@ import { renderForm } from 'courthive-components';
 import { fixtures } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
 import { i18next, t } from 'i18n';
-import { env } from 'settings/env';
+import { preferencesConfig } from 'config/preferencesConfig';
 
 // IOC country code to BCP47 language tag mapping
 const iocToLang: Record<string, string> = {
@@ -77,7 +77,7 @@ export function selectIdiom(): void {
   const content = (elem: HTMLElement) => {
     renderForm(elem, [
       {
-        typeAhead: { list: displayList, callback: typeAheadCallback, currentValue: env.ioc?.toUpperCase() || 'GBR' },
+        typeAhead: { list: displayList, callback: typeAheadCallback, currentValue: preferencesConfig.get().ioc?.toUpperCase() || 'GBR' },
         placeholder: t('phrases.selectlanguage'),
         label: t('cnt'),
         field: 'ioc',

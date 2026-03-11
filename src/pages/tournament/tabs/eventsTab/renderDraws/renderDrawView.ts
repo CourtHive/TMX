@@ -22,8 +22,10 @@ import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { drawControlBar } from './drawControlBar';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { displayConfig } from 'config/displayConfig';
+import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
-import { env } from 'settings/env';
 import morphdom from 'morphdom';
 
 import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
@@ -156,7 +158,7 @@ export function renderDrawView({
 
   const composition =
     compositions[compositionName] ||
-    env.composition ||
+    displayConfig.get().composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
 
   composition.configuration ??= {};
@@ -165,9 +167,9 @@ export function renderDrawView({
   Object.assign(composition.configuration, configuration);
 
   // Always inject active scale so ratings display regardless of composition
-  composition.configuration.scaleAttributes = env.scales[env.activeScale];
+  composition.configuration.scaleAttributes = scalesMap[preferencesConfig.get().activeScale];
 
-  if (!env.composition) {
+  if (!displayConfig.get().composition) {
     composition.configuration.genderColor = true;
     composition.configuration.showAddress = undefined;
 

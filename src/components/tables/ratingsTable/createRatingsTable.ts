@@ -7,8 +7,10 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine, scaleEngine, fixtures } from 'tods-competition-factory';
 import { renderMatchUp, compositions } from 'courthive-components';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { displayConfig } from 'config/displayConfig';
+import { scalesMap } from 'config/scalesConfig';
 import tippy, { type Instance } from 'tippy.js';
-import { env } from 'settings/env';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
 
@@ -78,10 +80,11 @@ function showMatchUpTipster(target: HTMLElement, drawId: string, matchUpId: stri
   };
   wrapper.appendChild(closeBtn);
 
-  const composition = env.composition || compositions.National;
+  const composition = displayConfig.get().composition || compositions.National;
   // Ensure scaleAttributes is set so ratings render in the popover
-  if (composition.configuration && env.scales?.[env.activeScale]) {
-    composition.configuration.scaleAttributes = env.scales[env.activeScale];
+  const _activeScale = preferencesConfig.get().activeScale;
+  if (composition.configuration && scalesMap[_activeScale]) {
+    composition.configuration.scaleAttributes = scalesMap[_activeScale];
   }
   const matchUpElement = renderMatchUp({ matchUp, composition, isLucky: true });
   wrapper.appendChild(matchUpElement);
@@ -133,7 +136,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   const matchUpType = (matchUps[0] as any)?.matchUpType || 'SINGLES';
 
   // Determine active scale and accessor for extracting numeric values
-  const activeScale = env.activeScale?.toUpperCase() || 'WTN';
+  const activeScale = preferencesConfig.get().activeScale?.toUpperCase() || 'WTN';
   const dynamicScaleName = `${activeScale}.DYNAMIC`;
   const rp = (ratingsParameters as any)[activeScale];
   const accessor = rp?.accessor;
@@ -352,7 +355,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   const sortableFields = ['participantName', 'rating', 'dynamicRating', 'ratingChange'];
   new Tabulator(element, {
     headerSortElement: headerSortElement(sortableFields),
-    height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+    height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
     placeholder: 'No rating data available',
     responsiveLayout: 'collapse',
     layout: 'fitColumns',

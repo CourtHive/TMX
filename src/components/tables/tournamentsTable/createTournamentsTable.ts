@@ -12,7 +12,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { getCalendar } from 'services/apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 
 // constants
 import { TOURNAMENTS_CONTROL, TOURNAMENTS_TABLE } from 'constants/tmxConstants';
@@ -36,8 +36,11 @@ export function createTournamentsTable(): { table: any } {
 
       renderWelcomeView(calendarAnchor, {
         onGenerate: () => {
-          const options = [...EXAMPLE_TOURNAMENT_CATALOG, { label: 'All', value: -1 }];
+          const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
           listPicker({
+            title: 'Example Tournaments',
+            actionLabel: 'Generate',
+            actionIntent: 'is-success',
             options,
             callback: ({ selection }: any) => {
               const value = selection?.selection?.value;
@@ -52,7 +55,7 @@ export function createTournamentsTable(): { table: any } {
     }
 
     table = new Tabulator(calendarAnchor, {
-      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: 'No tournaments',
       layout: 'fitColumns',
       index: 'tournamentId',

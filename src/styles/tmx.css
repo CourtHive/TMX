@@ -355,9 +355,10 @@ body {
   align-items: center;
   flex-wrap: wrap;
   justify-content: space-between;
-  min-height: 3.25rem;
+  min-height: 52px;
   transition: top 500ms ease-in-out;
   border-bottom: 1px solid var(--tmx-border-primary);
+  font-size: 18px; /* Fixed — nav bar should not scale with --tmx-font-size */
 }
 
 #dnav.scroll-up,
@@ -388,13 +389,13 @@ body {
 #dnav a {
   color: var(--tmx-text-primary);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 14.4px;
   text-transform: uppercase;
   letter-spacing: 0.2em;
 }
 
 .dnav-item-text {
-  margin-top: 1.5rem;
+  margin-top: 24px;
   transition: opacity 0.6s ease;
   opacity: 1;
 }
@@ -414,7 +415,7 @@ img {
   border: 1px solid var(--tmx-border-primary, #dbdbdb);
   border-radius: 4px;
   color: var(--tmx-text-primary, #363636);
-  font-size: 0.9rem;
+  font-size: 14.4px;
   padding: 0.35em 0.75em;
   cursor: pointer;
   white-space: nowrap;
@@ -444,7 +445,7 @@ img {
   background: var(--tmx-bg-elevated, #ffffff);
   border: none;
   color: var(--tmx-text-primary, #363636);
-  font-size: 0.9rem;
+  font-size: 14.4px;
   padding: 0.6em 1em;
   text-align: left;
   cursor: pointer;

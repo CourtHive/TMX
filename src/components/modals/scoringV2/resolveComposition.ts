@@ -4,8 +4,8 @@
  * Smart Complements: localStorage settings > env > default
  */
 import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
-import { loadSettings } from 'services/settings/settingsStorage';
-import { env } from 'settings/env';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { displayConfig } from 'config/displayConfig';
 
 export interface CompositionSettings {
   compositionName: string;
@@ -17,19 +17,7 @@ export interface CompositionSettings {
  * @returns Smart complements preference
  */
 function resolveSmartComplements(): boolean {
-  // Priority 1: localStorage settings
-  const settings = loadSettings();
-  if (settings?.smartComplements !== undefined) {
-    return settings.smartComplements;
-  }
-
-  // Priority 2: env setting
-  if (env.smartComplements !== undefined) {
-    return env.smartComplements;
-  }
-
-  // Default: true
-  return true;
+  return preferencesConfig.get().smartComplements;
 }
 
 /**
@@ -66,10 +54,11 @@ export function resolveComposition(matchUp: any): CompositionSettings {
     }
   }
 
-  // Fall back to env.composition
-  if (env.composition?.compositionName) {
+  // Fall back to displayConfig composition
+  const composition = displayConfig.get().composition;
+  if (composition?.compositionName) {
     return {
-      compositionName: env.composition.compositionName,
+      compositionName: composition.compositionName,
       smartComplements,
     };
   }

@@ -10,7 +10,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getEventColumns } from './getEventColumns';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 import { t } from 'i18n';
 
 // constants
@@ -61,7 +61,7 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
         'entriesCount',
         'drawsCount',
       ]),
-      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: 'No events',
       layout: 'fitColumns',
       reactiveData: true,

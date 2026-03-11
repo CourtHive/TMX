@@ -5,9 +5,10 @@
  * on close we sync the (possibly changed) approach back to env + localStorage.
  */
 import { scoringModal as componentsScoringModal, setScoringConfig, getScoringConfig } from 'courthive-components';
-import { saveSettings } from 'services/settings/settingsStorage';
+import { persistConfigToStorage } from 'services/settings/settingsStorage';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { resolveComposition } from './resolveComposition';
-import { env } from 'settings/env';
+import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
 
 // Re-export types from courthive-components
@@ -42,9 +43,9 @@ function getScoringLabels() {
  */
 function syncApproachPreference() {
   const { scoringApproach } = getScoringConfig();
-  if (scoringApproach && scoringApproach !== env.scoringApproach) {
-    env.scoringApproach = scoringApproach;
-    saveSettings({ scoringApproach });
+  if (scoringApproach && scoringApproach !== preferencesConfig.get().scoringApproach) {
+    preferencesConfig.set({ scoringApproach });
+    persistConfigToStorage();
   }
 }
 
@@ -58,14 +59,14 @@ export function scoringModal(params: any): void {
 
   // Configure courthive-components scoring
   setScoringConfig({
-    scoringApproach: env.scoringApproach || 'dynamicSets',
+    scoringApproach: preferencesConfig.get().scoringApproach || 'dynamicSets',
     smartComplements: compositionSettings.smartComplements,
     composition: compositionSettings.compositionName,
   });
 
-  if (env.log?.verbose) {
+  if (debugConfig.get().log?.verbose) {
     console.log('%c TMX → courthive-components scoring', 'color: green', {
-      approach: env.scoringApproach || 'dynamicSets',
+      approach: preferencesConfig.get().scoringApproach || 'dynamicSets',
       composition: compositionSettings.compositionName,
       smartComplements: compositionSettings.smartComplements,
     });

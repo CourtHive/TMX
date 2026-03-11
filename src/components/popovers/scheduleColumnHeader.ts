@@ -1,10 +1,10 @@
 import { renameCourt } from 'components/modals/renameCourt';
 import { tipster } from 'components/popovers/tipster';
-import { env } from 'settings/env';
+import { scheduleConfig } from 'config/scheduleConfig';
 import { t } from 'i18n';
 
 export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): void {
-  const courtIdentifiers = env.schedule.court_identifiers !== false;
+  const courtIdentifiers = scheduleConfig.get().court_identifiers !== false;
   const addremove = courtIdentifiers ? t('remove') : t('add');
 
   const options = [
@@ -22,7 +22,7 @@ export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): vo
   tipster({ options, target });
 
   function toggleCourtIdentifiers() {
-    env.schedule.court_identifiers = !courtIdentifiers;
+    scheduleConfig.set({ court_identifiers: !courtIdentifiers });
 
     const table = column.getTable();
     const columns = table.getColumns();
@@ -35,7 +35,7 @@ export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): vo
       const headerEl = col.getElement().querySelector('.tabulator-col-title');
       if (!headerEl) return;
 
-      if (env.schedule.court_identifiers === false) {
+      if (scheduleConfig.get().court_identifiers === false) {
         headerEl.textContent = '';
       } else {
         headerEl.textContent = def.title;

@@ -26,6 +26,8 @@ import {
   TOURNAMENTS_TABLE,
 } from 'constants/tmxConstants';
 
+const IS_SUCCESS = 'is-success';
+
 export function calendarControls(table: any): void {
   const state = getLoginState();
   const admin = state?.roles?.includes(SUPER_ADMIN);
@@ -45,7 +47,7 @@ export function calendarControls(table: any): void {
           listPicker({
             title: 'Example Tournaments',
             actionLabel: 'Generate',
-            actionIntent: 'is-success',
+            actionIntent: IS_SUCCESS,
             options,
             callback: ({ selection }: any) => {
               const value = selection?.selection?.value;
@@ -72,7 +74,7 @@ export function calendarControls(table: any): void {
   const items = [
     {
       label: t('tournaments.new'),
-      intent: 'is-success',
+      intent: IS_SUCCESS,
       onClick: () => (editTournament as any)({ table }),
       align: RIGHT,
     },
@@ -84,7 +86,7 @@ export function calendarControls(table: any): void {
         listPicker({
           title: 'Example Tournaments',
           actionLabel: 'Generate',
-          actionIntent: 'is-success',
+          actionIntent: IS_SUCCESS,
           options,
           callback: ({ selection }: any) => {
             const value = selection?.selection?.value;

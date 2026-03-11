@@ -8,14 +8,17 @@ import { closeModal, openModal } from './baseModal/baseModal';
 import { renderForm } from 'courthive-components';
 import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
-import { env } from 'settings/env';
 import { t } from 'i18n';
 
 import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
 import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
+
+const HELP_TEXT_STYLE = 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;';
 
 type AddAdHocRoundParams = {
   drawId?: string;
@@ -76,7 +79,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const drawMaticRound = (participantIds: string[]) => {
     const selectedScale = inputs.levelOfPlay?.value || '';
-    const { accessor: scaleAccessor, scaleName } = env.scales[selectedScale] ?? {};
+    const { accessor: scaleAccessor, scaleName } = scalesMap[selectedScale] ?? {};
     setActiveScale(selectedScale);
 
     const useDynamicRatings = inputs.dynamicRatings?.checked ?? false;
@@ -182,11 +185,11 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
   const hasRatings = activeRatingKeys.length > 0;
 
   const scaleOptions = [
-    { label: `--${t('publishing.off')}--`, value: '', selected: !env.activeScale },
+    { label: `--${t('publishing.off')}--`, value: '', selected: !preferencesConfig.get().activeScale },
     ...activeRatingKeys.map((key) => ({
       label: key,
       value: key.toLowerCase(),
-      selected: env.activeScale === key.toLowerCase(),
+      selected: preferencesConfig.get().activeScale === key.toLowerCase(),
     })),
   ];
 
@@ -221,7 +224,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     },
     {
       text: `<small>${t('modals.addRound.levelOfPlayHelp')}</small>`,
-      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+      style: HELP_TEXT_STYLE,
     },
     {
       label: `${t('modals.addRound.dynamicRatings')} ${helpIcon}`,
@@ -231,7 +234,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     },
     {
       text: `<small>${t('modals.addRound.dynamicRatingsHelp')}</small>`,
-      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+      style: HELP_TEXT_STYLE,
     },
     {
       label: `${t('modals.addRound.teamAvoidance')} ${helpIcon}`,
@@ -241,7 +244,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     },
     {
       text: `<small>${t('modals.addRound.teamAvoidanceHelp')}</small>`,
-      style: 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;',
+      style: HELP_TEXT_STYLE,
     },
   ];
 

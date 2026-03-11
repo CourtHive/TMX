@@ -10,7 +10,7 @@ import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-f
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 import { hotKeyScoring } from './hotKeyScoring';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 import { t } from 'i18n';
 
 // constants
@@ -49,7 +49,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
 
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['complete', 'duration', 'score', 'scheduledTime']),
-      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: 'No matches',
       layout: 'fitColumns',
       reactiveData: true,

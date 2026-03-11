@@ -27,6 +27,8 @@ claude.*
 node_modules
 dist
 dist-ssr
+dist-electron
+release
 *.local
 
 # misc

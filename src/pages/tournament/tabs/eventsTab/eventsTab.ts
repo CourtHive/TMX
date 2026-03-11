@@ -49,6 +49,8 @@ import {
 const { CONTAINER } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
 
+const FLEX_CENTER = 'display: flex; align-items: center;';
+
 type RenderEventsTabParams = {
   eventId?: string;
   drawId?: string;
@@ -116,7 +118,7 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
       });
 
       actionsElement = document.createElement('div');
-      actionsElement.style.cssText = 'display: flex; align-items: center;';
+      actionsElement.style.cssText = FLEX_CENTER;
       controlBar({
         target: actionsElement,
         items: [{ options: actionOptions, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' }],
@@ -154,7 +156,7 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
       if (totalDrawItems > 0) {
         // Multiple draws — show draws table with control bar
         const drawsActionsElement = document.createElement('div');
-        drawsActionsElement.style.cssText = 'display: flex; align-items: center;';
+        drawsActionsElement.style.cssText = FLEX_CENTER;
         const drawsActionOptions = [
           {
             onClick: () => editDisplaySettings({ eventId }),
@@ -273,7 +275,7 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
       },
     ];
     const entriesActionsElement = document.createElement('div');
-    entriesActionsElement.style.cssText = 'display: flex; align-items: center;';
+    entriesActionsElement.style.cssText = FLEX_CENTER;
     controlBar({
       target: entriesActionsElement,
       items: [{ options: entriesActionOptions, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' }],

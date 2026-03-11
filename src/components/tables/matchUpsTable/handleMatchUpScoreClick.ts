@@ -1,7 +1,8 @@
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { participantConstants } from 'tods-competition-factory';
-import { env } from 'settings/env';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { deviceConfig } from 'config/deviceConfig';
 
 const { TEAM } = participantConstants;
 
@@ -12,7 +13,7 @@ export const handleScoreClick = (replaceTableData, setFocusData) => (e, cell) =>
     const onClose = () => replaceTableData();
     openScorecard({ title: eventName, matchUpId, drawId, onClose });
   } else if (readyToScore || data.matchUp.score?.scoreStringSide1)
-    if (env.hotkeys && !env.device.isMobile) {
+    if (preferencesConfig.get().hotkeys && !deviceConfig.get().isMobile) {
       setFocusData({ e, cell, replaceTableData });
       const tcells = document.querySelectorAll('.activeScoreCell');
       for (const tcell of Array.from(tcells)) {

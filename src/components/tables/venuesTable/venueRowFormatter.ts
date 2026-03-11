@@ -1,8 +1,8 @@
+import { validators, renderButtons, renderForm, controlBar } from 'courthive-components';
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { deriveCourtNameBase } from 'components/forms/venue';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { validators, renderButtons, renderForm, controlBar } from 'courthive-components';
+import { deriveCourtNameBase } from 'components/forms/venue';
 import { tournamentEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCourtColumns } from './getCourtColumns';
@@ -10,8 +10,8 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
+import { ADD_COURTS, DELETE_COURTS, MODIFY_COURT } from 'constants/mutationConstants';
 import { NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
-import { ADD_COURTS, MODIFY_COURT } from 'constants/mutationConstants';
 
 function addCourtsToVenue(venueId: string, courtsTable: any): void {
   const numberValidator = (value: string) => value && !Number.isNaN(Number(value)) && Number(value) > 0;
@@ -134,9 +134,17 @@ export const venueRowFormatter =
     const venueId = row.getData().venueId;
     setTable(venueId, courtsTable);
 
+    const deleteCourts = () => {
+      const courtIds = courtsTable.getSelectedData().map(({ courtId }: any) => courtId);
+      const methods = [{ method: DELETE_COURTS, params: { courtIds, force: true } }];
+      const callback = (result: any) => result.success && courtsTable.deleteRow(courtIds);
+      mutationRequest({ methods, callback });
+    };
+
     const items = [
       {
         label: 'Delete selected',
+        onClick: deleteCourts,
         intent: 'is-danger',
         stateChange: true,
         location: OVERLAY,

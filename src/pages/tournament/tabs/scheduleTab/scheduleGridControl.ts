@@ -6,7 +6,7 @@ import { competitionEngine, tools } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import { printSchedule } from 'components/modals/printSchedule';
 import { context } from 'services/context';
-import { env } from 'settings/env';
+import { featureFlags } from 'config/featureFlags';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
 
@@ -68,7 +68,7 @@ export function scheduleGridControl({
       align: LEFT,
     },
     {
-      visible: !!courtsCount && env.pdfPrinting, // Only show if PDF printing beta feature is enabled
+      visible: !!courtsCount && featureFlags.get().pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => {
         // Get schedule data from competitionEngine with grid rows
         const matchUpFilters = { localPerspective: true, scheduledDate };

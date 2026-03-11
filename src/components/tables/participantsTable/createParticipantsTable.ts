@@ -12,7 +12,8 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
+import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
 
 // constants
@@ -106,7 +107,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
         'cityState',
         'tennisId',
       ]),
-      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: 'No participants',
       index: 'participantId',
       layout: 'fitColumns',
@@ -120,7 +121,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       if (headerElement) headerElement.innerHTML = getHeader(rows);
-      if (!env.averages) return;
+      if (!debugConfig.get().averages) return;
 
       // Dynamically calculate averages for all present rating types
       const ratingValues: Record<string, number[]> = {};

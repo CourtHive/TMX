@@ -1,9 +1,10 @@
 import { getBuiltinTopologies, loadUserTopologies, saveUserTopology, deleteUserTopology } from './topologyBridge';
 import { getBuiltinTieFormats, loadUserTieFormats, saveUserTieFormat, deleteUserTieFormat } from './tieFormatBridge';
+import { getBuiltinCompositions, loadUserCompositions, saveUserComposition, deleteUserComposition } from './compositionBridge';
 import { showTMXtemplates } from 'services/transitions/screenSlaver';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { TopologyBuilderControl } from 'courthive-components';
+import { TopologyBuilderControl, createCompositionEditor } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
@@ -11,20 +12,27 @@ import { getMatchUpFormatModal } from 'courthive-components';
 import { homeNavigation } from 'homeNavigation';
 import { context } from 'services/context';
 
+import type { CompositionCatalogItem } from './compositionBridge';
 import type { TopologyCatalogItem } from './topologyBridge';
 import type { TieFormatCatalogItem } from './tieFormatBridge';
-import type { TopologyState } from 'courthive-components';
+import type { TopologyState, SavedComposition } from 'courthive-components';
 
 // constants
 import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
 
+const TPL_PANEL_TITLE = 'tpl-panel-title';
+const BTN_SMALL_INFO = 'button is-small is-info';
+
 // ── Shared state ──
-type TemplateView = 'topologies' | 'tieFormats';
+type TemplateView = 'topologies' | 'tieFormats' | 'compositions';
 let activeView: TemplateView = 'topologies';
 
 // ── Topology view state ──
 let builderControl: TopologyBuilderControl | null = null;
 let selectedItemId: string | null = null;
+
+// ── Composition view state ──
+let compositionEditorInstance: { destroy: () => void; getComposition: () => SavedComposition } | null = null;
 
 // Persistent DOM references
 let layoutRoot: HTMLElement | null = null;
@@ -57,6 +65,7 @@ export async function renderTemplatesPage(): Promise<void> {
   const views: { key: TemplateView; label: string }[] = [
     { key: 'topologies', label: 'Topologies' },
     { key: 'tieFormats', label: 'Tie Formats' },
+    { key: 'compositions', label: 'Compositions' },
   ];
 
   const chips: HTMLButtonElement[] = [];
@@ -86,6 +95,7 @@ export async function renderTemplatesPage(): Promise<void> {
 
 async function renderActiveView(contentArea: HTMLElement): Promise<void> {
   destroyBuilder();
+  destroyCompositionEditor();
   removeAllChildNodes(contentArea);
   selectedItemId = null;
 
@@ -93,10 +103,14 @@ async function renderActiveView(contentArea: HTMLElement): Promise<void> {
     const userTopologies = await loadUserTopologies();
     const builtins = getBuiltinTopologies();
     buildTopologyLayout(contentArea, builtins, userTopologies);
-  } else {
+  } else if (activeView === 'tieFormats') {
     const userTieFormats = await loadUserTieFormats();
     const builtins = getBuiltinTieFormats();
     buildTieFormatLayout(contentArea, builtins, userTieFormats);
+  } else if (activeView === 'compositions') {
+    const userCompositions = await loadUserCompositions();
+    const builtins = getBuiltinCompositions();
+    buildCompositionLayout(contentArea, builtins, userCompositions);
   }
 }
 
@@ -120,14 +134,14 @@ function buildTopologyLayout(
   header.className = 'tpl-panel-header';
 
   const title = document.createElement('div');
-  title.className = 'tpl-panel-title';
+  title.className = TPL_PANEL_TITLE;
   title.textContent = 'Topology Templates';
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = 'tpl-panel-meta';
 
   const newBtn = document.createElement('button');
-  newBtn.className = 'button is-small is-info';
+  newBtn.className = BTN_SMALL_INFO;
   newBtn.textContent = 'New';
   newBtn.onclick = () => selectTopologyItem(undefined);
 
@@ -219,7 +233,7 @@ function selectTopologyItem(item: TopologyCatalogItem | undefined, readOnly?: bo
   builderHeader.innerHTML = '';
 
   const titleEl = document.createElement('div');
-  titleEl.className = 'tpl-panel-title';
+  titleEl.className = TPL_PANEL_TITLE;
   titleEl.textContent = item ? item.name : 'New Topology';
   builderHeader.appendChild(titleEl);
 
@@ -272,7 +286,7 @@ function selectTopologyAsTemplate(item: TopologyCatalogItem): void {
   builderHeader.innerHTML = '';
 
   const titleEl = document.createElement('div');
-  titleEl.className = 'tpl-panel-title';
+  titleEl.className = TPL_PANEL_TITLE;
   titleEl.textContent = `${item.name} (copy)`;
   builderHeader.appendChild(titleEl);
 
@@ -338,14 +352,14 @@ function buildTieFormatLayout(
   header.className = 'tpl-panel-header';
 
   const title = document.createElement('div');
-  title.className = 'tpl-panel-title';
+  title.className = TPL_PANEL_TITLE;
   title.textContent = 'Tie Format Templates';
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = 'tpl-panel-meta';
 
   const newBtn = document.createElement('button');
-  newBtn.className = 'button is-small is-info';
+  newBtn.className = BTN_SMALL_INFO;
   newBtn.textContent = 'New';
   newBtn.onclick = () => selectTieFormatItem(undefined);
 
@@ -481,7 +495,7 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
 
   // Header with title and action buttons
   const titleEl = document.createElement('div');
-  titleEl.className = 'tpl-panel-title';
+  titleEl.className = TPL_PANEL_TITLE;
   titleEl.textContent = item ? item.name : 'New Tie Format';
   builderHeader.appendChild(titleEl);
 
@@ -499,7 +513,7 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
 
   if (!readOnly) {
     const editBtn = document.createElement('button');
-    editBtn.className = 'button is-small is-info';
+    editBtn.className = BTN_SMALL_INFO;
     editBtn.textContent = item ? 'Edit' : 'Create';
     editBtn.onclick = () => {
       const tf = item ? structuredClone(item.tieFormat) : { collectionDefinitions: [], winCriteria: {} };
@@ -683,6 +697,217 @@ function summarizeTieFormat(tf: any): string {
   });
   const goal = tf.winCriteria?.valueGoal;
   return parts.join(', ') + (goal ? ` (win: ${goal})` : '');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// COMPOSITION VIEW
+// ═══════════════════════════════════════════════════════════════════════
+
+function buildCompositionLayout(
+  container: HTMLElement,
+  builtins: CompositionCatalogItem[],
+  userCompositions: CompositionCatalogItem[],
+): void {
+  layoutRoot = document.createElement('div');
+  layoutRoot.className = 'tpl-layout';
+
+  // ── Left panel: catalog ──
+  const leftPanel = document.createElement('div');
+  leftPanel.className = 'tpl-panel';
+
+  const header = document.createElement('div');
+  header.className = 'tpl-panel-header';
+
+  const title = document.createElement('div');
+  title.className = TPL_PANEL_TITLE;
+  title.textContent = 'Composition Templates';
+
+  catalogMeta = document.createElement('div');
+  catalogMeta.className = 'tpl-panel-meta';
+
+  const newBtn = document.createElement('button');
+  newBtn.className = BTN_SMALL_INFO;
+  newBtn.textContent = 'New';
+  newBtn.onclick = () => selectCompositionItem(undefined);
+
+  header.appendChild(title);
+  header.appendChild(catalogMeta);
+  header.appendChild(newBtn);
+  leftPanel.appendChild(header);
+
+  catalogBody = document.createElement('div');
+  catalogBody.className = 'tpl-panel-body';
+  leftPanel.appendChild(catalogBody);
+
+  // ── Right panel: editor / preview ──
+  const rightPanel = document.createElement('div');
+  rightPanel.className = 'tpl-panel';
+
+  builderPanel = document.createElement('div');
+  builderPanel.className = 'tpl-builder-panel';
+  builderPanel.style.display = 'none';
+
+  builderHeader = document.createElement('div');
+  builderHeader.className = 'tpl-builder-header';
+
+  builderBody = document.createElement('div');
+  builderBody.className = 'tpl-builder-body';
+
+  builderPanel.appendChild(builderHeader);
+  builderPanel.appendChild(builderBody);
+
+  emptyEl = document.createElement('div');
+  emptyEl.className = 'tpl-empty';
+  emptyEl.textContent = 'Select a composition to view or click New';
+
+  rightPanel.appendChild(builderPanel);
+  rightPanel.appendChild(emptyEl);
+
+  layoutRoot.appendChild(leftPanel);
+  layoutRoot.appendChild(rightPanel);
+  container.appendChild(layoutRoot);
+
+  renderCompositionCatalog(builtins, userCompositions);
+}
+
+function compositionMeta(item: CatalogItem, container: HTMLElement): void {
+  const ci = item as CompositionCatalogItem;
+  const cfg = ci.composition.configuration || {};
+  const enabledFlags = Object.entries(cfg)
+    .filter(([, v]) => v === true)
+    .map(([k]) => k);
+
+  const info = document.createElement('span');
+  info.style.fontSize = '0.8em';
+  info.textContent = enabledFlags.length ? enabledFlags.slice(0, 3).join(', ') + (enabledFlags.length > 3 ? '…' : '') : 'default';
+  container.appendChild(info);
+}
+
+function renderCompositionCatalog(builtins: CompositionCatalogItem[], userCompositions: CompositionCatalogItem[]): void {
+  if (!catalogBody || !catalogMeta) return;
+  catalogBody.innerHTML = '';
+  catalogMeta.textContent = `${builtins.length + userCompositions.length} compositions`;
+
+  if (builtins.length) {
+    catalogBody.appendChild(
+      renderGroup('Default', builtins, false, compositionMeta, (item) => selectCompositionItem(item as CompositionCatalogItem, true)),
+    );
+  }
+  if (userCompositions.length) {
+    catalogBody.appendChild(
+      renderGroup('Custom', userCompositions, true, compositionMeta, (item) => selectCompositionItem(item as CompositionCatalogItem, false), async (item) => {
+        await deleteUserComposition(item.id);
+        tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
+        renderTemplatesPage();
+      }),
+    );
+  }
+}
+
+function selectCompositionItem(item: CompositionCatalogItem | undefined, readOnly?: boolean): void {
+  selectedItemId = item?.id ?? null;
+  destroyBuilder();
+  destroyCompositionEditor();
+
+  catalogBody?.querySelectorAll('.tpl-card').forEach((el) => el.classList.remove('active'));
+  if (selectedItemId) {
+    catalogBody?.querySelectorAll('.tpl-card').forEach((el) => {
+      const nameEl = el.querySelector('.tpl-card__name');
+      if (nameEl?.textContent?.startsWith(item!.name)) el.classList.add('active');
+    });
+  }
+
+  if (!builderPanel || !builderBody || !builderHeader || !emptyEl) return;
+
+  builderPanel.style.display = 'flex';
+  emptyEl.style.display = 'none';
+  builderBody.innerHTML = '';
+  builderHeader.innerHTML = '';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = TPL_PANEL_TITLE;
+  titleEl.textContent = item ? item.name : 'New Composition';
+  builderHeader.appendChild(titleEl);
+
+  const btnGroup = document.createElement('div');
+  btnGroup.style.cssText = 'display:flex;gap:6px;';
+
+  if (item && readOnly) {
+    // "Use as template" — opens editor with a copy
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'button is-small is-info is-outlined';
+    copyBtn.textContent = 'Use as template';
+    copyBtn.onclick = () => {
+      const copy: CompositionCatalogItem = {
+        id: '',
+        name: `${item.name} (copy)`,
+        source: 'user',
+        composition: {
+          ...structuredClone(item.composition),
+          compositionName: `${item.name} (copy)`,
+        },
+      };
+      selectCompositionItem(copy, false);
+    };
+    btnGroup.appendChild(copyBtn);
+  }
+
+  if (!readOnly) {
+    const saveBtn = document.createElement('button');
+    saveBtn.className = BTN_SMALL_INFO;
+    saveBtn.textContent = 'Save';
+    saveBtn.onclick = () => {
+      if (!compositionEditorInstance) return;
+      const saved = compositionEditorInstance.getComposition();
+      handleCompositionSave(saved, item?.source === 'user' ? item.id : undefined);
+    };
+    btnGroup.appendChild(saveBtn);
+  }
+
+  builderHeader.appendChild(btnGroup);
+
+  // Mount the composition editor
+  const composition = item
+    ? { theme: item.composition.theme, configuration: item.composition.configuration }
+    : undefined;
+
+  compositionEditorInstance = createCompositionEditor(builderBody, {
+    composition,
+    compositionName: item?.name || 'Custom',
+    readOnly,
+  });
+}
+
+function handleCompositionSave(saved: SavedComposition, editingId?: string): void {
+  promptForName(saved.compositionName || '', (name) => {
+    saved.compositionName = name;
+    const id = editingId || `user-${Date.now()}`;
+
+    const cfg = saved.configuration || {};
+    const enabledFlags = Object.entries(cfg)
+      .filter(([, v]) => v === true)
+      .map(([k]) => k);
+
+    const item: CompositionCatalogItem = {
+      id,
+      name,
+      description: enabledFlags.join(', ') || 'custom',
+      source: 'user',
+      composition: saved,
+    };
+
+    saveUserComposition(item).then(() => {
+      tmxToast({ message: `Composition "${name}" saved`, intent: 'is-success' });
+      renderTemplatesPage();
+    });
+  });
+}
+
+function destroyCompositionEditor(): void {
+  if (compositionEditorInstance) {
+    compositionEditorInstance.destroy();
+    compositionEditorInstance = null;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════

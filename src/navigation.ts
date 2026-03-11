@@ -5,8 +5,9 @@
  */
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'tods-competition-factory';
+import { featureFlags } from 'config/featureFlags';
+import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
-import { env } from 'settings/env';
 import { t } from 'i18n';
 import tippy from 'tippy.js';
 
@@ -17,6 +18,7 @@ import {
   PARTICIPANTS,
   PUBLISHING_TAB,
   SCHEDULE_TAB,
+  SCHEDULE2_TAB,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
   VENUES_TAB,
@@ -35,6 +37,7 @@ const routeMap: Record<string, string> = {
   'e-route': EVENTS_TAB,
   'm-route': MATCHUPS_TAB,
   's-route': SCHEDULE_TAB,
+  's2-route': SCHEDULE2_TAB,
   'v-route': VENUES_TAB,
   'b-route': PUBLISHING_TAB,
   'c-route': SETTINGS_TAB,
@@ -46,6 +49,7 @@ const tips: Record<string, string> = {
   'e-route': 'Events',
   'm-route': 'MatchUps',
   's-route': 'Schedule',
+  's2-route': 'Schedule 2',
   'v-route': 'Venues',
   'b-route': 'Publishing',
   'c-route': 'Settings',
@@ -58,6 +62,7 @@ const i18nKeys: Record<string, string> = {
   'e-route': 'evt',
   'm-route': 'mts',
   's-route': 'sch',
+  's2-route': 'sch2',
   'v-route': 'ven',
   'b-route': 'pub',
   'c-route': 'set',
@@ -87,7 +92,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Build dropdown items
   menu.innerHTML = '';
-  const ids = Object.keys(routeMap);
+  const ids = Object.keys(routeMap).filter((id) => id !== 's2-route' || featureFlags.get().schedule2);
   ids.forEach((id) => {
     const item = document.createElement('button');
     item.className = 'mobile-nav-item';
@@ -144,6 +149,10 @@ export function tmxNavigation(): void {
 
   const ids = Object.keys(routeMap);
 
+  // Hide schedule2 nav icon when beta flag is off
+  const s2Icon = document.getElementById('s2-route');
+  if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
+
   const selectedTab = context.router?.current?.[0]?.data?.selectedTab;
 
   const tippyContent = (text: string) => {
@@ -154,7 +163,7 @@ export function tmxNavigation(): void {
   const tRoute = document.getElementById('o-route')!;
 
   (tippy as any)(tRoute, {
-    dynContent: () => !env.device.isMobile && tippyContent(tips['o-route']),
+    dynContent: () => !deviceConfig.get().isMobile && tippyContent(tips['o-route']),
     onShow: (options: any) => !!options.props.content,
     plugins: [enhancedContentFunction],
     placement: BOTTOM,
@@ -164,7 +173,7 @@ export function tmxNavigation(): void {
   ids.forEach((id) => {
     const element = document.getElementById(id)!;
     (tippy as any)(element, {
-      dynContent: () => !env.device.isMobile && tippyContent(tips[id]),
+      dynContent: () => !deviceConfig.get().isMobile && tippyContent(tips[id]),
       onShow: (options: any) => !!options.props.content,
       plugins: [enhancedContentFunction],
       placement: BOTTOM,

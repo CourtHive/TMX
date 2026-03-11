@@ -14,7 +14,7 @@ import { roundGroupingHeader } from './roundGroupingHeader';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { getRoundsColumns } from './getRoundsColumns';
 import { mapRound } from './mapRound';
-import { env } from 'settings/env';
+import { displayConfig } from 'config/displayConfig';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_TABLE } from 'constants/tmxConstants';
@@ -89,7 +89,7 @@ export async function createRoundsTable({
       groupHeader: [roundGroupingHeader, (value: any) => value],
       headerSortElement: headerSortElement(['complete', 'duration', 'score']),
       responsiveLayoutCollapseStartOpen: false,
-      height: window.innerHeight * (env.tableHeightMultiplier ?? 0.85),
+      height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       responsiveLayout: 'collapse',
       placeholder: 'No matches',
       layout: 'fitColumns',

@@ -9,8 +9,9 @@ import { tools, version } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction, isObject } from 'functions/typeOf';
 import { version as tmxVersion } from 'config/version';
+import { showOSNotification } from 'services/notifications/osNotification';
+import { serverConfig } from 'config/serverConfig';
 import { io } from 'socket.io-client';
-import { env } from 'settings/env';
 import { t } from 'i18n';
 
 // constants
@@ -44,14 +45,17 @@ export function connectSocket(callback?: () => void): void {
     timeout: 20000,
   };
   if (!oi.socket) {
-    const socketPath = env.socketPath || process.env.SERVER || window.location.origin;
+    const socketPath = serverConfig.get().socketPath || process.env.SERVER || window.location.origin;
     const connectionString = `${socketPath}/tmx`;
     oi.socket = io(connectionString, connectionOptions);
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('connect', () => connectionEvent(callback));
-    oi.socket.on('disconnect', () => console.log('disconnect'));
+    oi.socket.on('disconnect', () => {
+      console.log('disconnect');
+      showOSNotification({ title: 'TMX', body: 'Server connection lost' });
+    });
     oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = new Date().getTime() - data.timestamp));
     oi.socket.on('connect_error', (data: any) => {
       console.log('connection error:', { data });
@@ -141,7 +145,7 @@ function requestAcknowledgement({
     if (uuid) delete ackRequests[uuid];
   };
 
-  const timeoutMs = (env.serverTimeout ?? 10000) * 3;
+  const timeoutMs = (serverConfig.get().serverTimeout ?? 10000) * 3;
   const timerId = setTimeout(cleanup, timeoutMs);
 
   const wrappedCallback = (ack: any) => {

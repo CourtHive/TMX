@@ -42,7 +42,7 @@ export function renderUsersPanel({ container, providers, users, onRefresh }: Ren
   searchInput.type = 'text';
   searchInput.placeholder = t('system.searchUsers');
   searchInput.style.cssText =
-    'padding: 6px 10px; border: 1px solid var(--tmx-border-primary); border-radius: 4px; font-size: 0.85rem; min-width: 200px;';
+    'padding: 6px 10px; border: 1px solid var(--tmx-border-primary); border-radius: 4px; font-size: 0.85rem; min-width: 200px; background: var(--tmx-bg-elevated, #fff); color: var(--tmx-text-primary, #363636);';
 
   const toolbarActions = document.createElement('div');
   toolbarActions.className = 'toolbar-actions';
