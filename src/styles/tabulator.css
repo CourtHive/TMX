@@ -686,6 +686,7 @@
 .tabulator-row .tabulator-cell.tabulator-editing select {
   border: 1px;
   background: transparent;
+  color: var(--tmx-tab-text);
   outline: none;
 }
 
