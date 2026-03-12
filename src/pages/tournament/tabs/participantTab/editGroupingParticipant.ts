@@ -8,7 +8,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
+import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
 
 const { COMPETITOR, OTHER } = participantRoles;
@@ -73,10 +73,35 @@ export function editGroupingParticipant({
   function saveParticipant(): void {
     table?.deselectRow();
     if (participant?.participantId) {
-      console.log('update existing');
+      updateParticipant();
     } else {
       addParticipant();
     }
+  }
+
+  function updateParticipant(): void {
+    const participantName = inputs[PARTICIPANT_NAME]?.value;
+    if (!participantName || participantName.length < 3) return;
+
+    const methods = [
+      {
+        method: MODIFY_PARTICIPANT,
+        params: {
+          participant: {
+            participantId: participant.participantId,
+            participantName,
+          },
+        },
+      },
+    ];
+    const postMutation = (result: any) => {
+      if (result.success) {
+        isFunction(refresh) && refresh?.();
+      } else {
+        console.log({ result });
+      }
+    };
+    mutationRequest({ methods, callback: postMutation });
   }
 
   function addParticipant(): void {

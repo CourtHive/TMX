@@ -39,7 +39,7 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
     setTimeout(refresh, ready ? 0 : 1000);
   };
 
-  const columns = (getGroupingsColumns as any)({ view });
+  const columns = (getGroupingsColumns as any)({ view, replaceTableData });
 
   const render = (data: any[]) => {
     destroyTable({ anchorId: TOURNAMENT_TEAMS });
