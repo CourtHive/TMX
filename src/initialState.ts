@@ -17,6 +17,7 @@ import { drawer } from 'components/drawer';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
+import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
 import { registerMenuHandler } from 'platform/menuHandler';
 import { deviceConfig } from 'config/deviceConfig';
 import { debugConfig } from 'config/debugConfig';
@@ -99,6 +100,7 @@ function tmxReady(): void {
   setDev();
   setSubscriptions();
   registerMenuHandler();
+  initRemoteMutationHandler();
   routeTMX();
   tmxNavigation();
 }

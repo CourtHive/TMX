@@ -15,6 +15,7 @@ import { timePicker } from 'components/modals/timePicker';
 
 import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { timeModifierText, RIGHT } from 'constants/tmxConstants';
+import { activateScheduleCellTypeAhead } from 'courthive-components';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
@@ -41,6 +42,10 @@ export interface Schedule2CellContext {
   onRefresh: () => void;
   /** Execute mutations (respects bulk mode) */
   executeMethods: (methods: any[], onRefresh: () => void) => void;
+  /** Returns unscheduled matchUps as { label, value } for typeahead */
+  matchUpListProvider?: () => Array<{ label: string; value: string }>;
+  /** Look up a catalog item by matchUpId to get drawId etc. */
+  findCatalogItem?: (matchUpId: string) => any;
 }
 
 // ── Main dispatcher ──
@@ -169,9 +174,45 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 // ── Empty cell popover ──
 
 function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
-  const { courtId, courtOrder, scheduledDate, onRefresh } = ctx;
+  const { courtId, venueId, courtOrder, scheduledDate, onRefresh, executeMethods, matchUpListProvider, findCatalogItem } = ctx;
 
   if (!courtId || !courtOrder) return;
+
+  const assignMatchUp = () => {
+    if (!matchUpListProvider) return;
+
+    // Find the grid cell wrapper (walk up from click target to the cell with data-court-id)
+    let cell = e.target as HTMLElement;
+    while (cell && !cell.getAttribute('data-court-id')) {
+      cell = cell.parentElement as HTMLElement;
+    }
+    if (!cell) return;
+
+    activateScheduleCellTypeAhead({
+      cell,
+      listProvider: matchUpListProvider,
+      onSelect: (matchUpId: string) => {
+        const item = findCatalogItem?.(matchUpId);
+        const methods = [
+          {
+            method: ADD_MATCHUP_SCHEDULE_ITEMS,
+            params: {
+              matchUpId,
+              drawId: item?.drawId ?? '',
+              schedule: {
+                courtId,
+                venueId,
+                courtOrder,
+                scheduledDate,
+              },
+              removePriorValues: true,
+            },
+          },
+        ];
+        executeMethods(methods, onRefresh);
+      },
+    });
+  };
 
   const blockCourt = (rowCount: number, bookingType: string = 'BLOCKED') => {
     const methods = [
@@ -189,12 +230,13 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   };
 
   const options = [
+    matchUpListProvider && { option: 'Assign matchUp', onClick: assignMatchUp },
     { option: 'Block court (1 row)', onClick: () => blockCourt(1, 'BLOCKED') },
     { option: 'Block court (2 rows)', onClick: () => blockCourt(2, 'BLOCKED') },
     { option: 'Block court (3 rows)', onClick: () => blockCourt(3, 'BLOCKED') },
     { option: 'Mark court for practice (1 row)', onClick: () => blockCourt(1, 'PRACTICE') },
     { option: 'Mark court for maintenance (1 row)', onClick: () => blockCourt(1, 'MAINTENANCE') },
-  ];
+  ].filter(Boolean);
 
   const target = e.target as HTMLElement;
   tipster({ options, target, config: { placement: RIGHT } });

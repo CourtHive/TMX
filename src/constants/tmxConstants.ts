@@ -37,6 +37,8 @@ export const NAVBAR = 'navbar';
 export const SPLASH = 'splash';
 export const HOME = 'home';
 
+export const SYNC_INDICATOR = 'syncIndicator';
+
 export const SUPER_ADMIN = 'superadmin';
 export const ADMIN = 'admin';
 

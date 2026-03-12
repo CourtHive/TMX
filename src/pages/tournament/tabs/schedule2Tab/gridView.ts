@@ -24,6 +24,7 @@ import {
   buildScheduleGridCell,
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
+  matchUpLabel,
 } from 'courthive-components';
 import type { SchedulePageConfig, SchedulePageControl, CatalogMatchUpItem, ScheduleDate } from 'courthive-components';
 import type { ScheduleIssue, ScheduleIssueSeverity } from 'courthive-components';
@@ -600,6 +601,19 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
             rowIndex: ri,
             onRefresh: callbacks.onRefresh,
             executeMethods: callbacks.executeMethods,
+            matchUpListProvider: () => {
+              const catalog = buildCatalog(currentDate);
+              return catalog
+                .filter((m) => !m.isScheduled && (m.sides?.length ?? 0) >= 1)
+                .map((m) => ({
+                  label: `${m.eventName} ${m.roundName || ''} — ${matchUpLabel(m)}`.trim(),
+                  value: m.matchUpId,
+                }));
+            },
+            findCatalogItem: (matchUpId: string) => {
+              const catalog = buildCatalog(currentDate);
+              return catalog.find((m) => m.matchUpId === matchUpId);
+            },
           });
         });
         cell.style.cursor = cell.draggable ? 'grab' : 'pointer';
