@@ -10,7 +10,16 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
   return defineConfig({
     plugins: [EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
     resolve: { tsconfigPaths: true },
-    build: { sourcemap: true },
+    build: {
+      sourcemap: true,
+      rolldownOptions: {
+        onwarn(warning, defaultHandler) {
+          // Suppress CommonJS-in-ESM warning from hotkeys-js (bug in 4.0.2)
+          if (warning.code === 'COMMONJS_VARIABLE_IN_ESM') return;
+          defaultHandler(warning);
+        },
+      },
+    },
     base: BASE_URL,
   });
 };
