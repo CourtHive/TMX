@@ -1,5 +1,4 @@
 import EnvironmentPlugin from 'vite-plugin-environment';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig, loadEnv } from 'vite';
 
 const viteconfigFactory = ({ mode }: { mode: string }) => {
@@ -9,8 +8,18 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
   const BASE_URL = (process.env.BASE_URL && `/${process.env.BASE_URL}/`) || '';
 
   return defineConfig({
-    plugins: [tsconfigPaths(), EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
-    build: { sourcemap: true },
+    plugins: [EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
+    resolve: { tsconfigPaths: true },
+    build: {
+      sourcemap: true,
+      rolldownOptions: {
+        onwarn(warning, defaultHandler) {
+          // Suppress CommonJS-in-ESM warning from hotkeys-js (bug in 4.0.2)
+          if (warning.code === 'COMMONJS_VARIABLE_IN_ESM') return;
+          defaultHandler(warning);
+        },
+      },
+    },
     base: BASE_URL,
   });
 };

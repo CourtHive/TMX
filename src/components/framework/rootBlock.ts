@@ -226,6 +226,7 @@ function newBlock(): HTMLDivElement {
       <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
+      <i id='syncIndicator' class="nav-icon fa-solid fa-rotate" style="display:none; cursor:pointer;" title="Data updated — click to refresh"></i>
       <div id="mobileNav" class="mobile-nav">
         <button id="mobileNavToggle" class="mobile-nav-toggle"></button>
         <div id="mobileNavMenu" class="mobile-nav-menu"></div>

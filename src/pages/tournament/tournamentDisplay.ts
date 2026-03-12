@@ -24,6 +24,7 @@ import { t } from 'i18n';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
+import { joinTournamentRoom, leaveTournamentRoom } from 'services/messaging/socketIo';
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 import {
   MATCHUPS_TAB,
@@ -43,7 +44,9 @@ export function displayTournament({ config }: { config?: any } = {}): void {
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     routeTo(config);
   } else {
-    context.ee.emit(LEAVE_TOURNAMENT, (context as any).tournamentId);
+    const prevId = (context as any).tournamentId;
+    context.ee.emit(LEAVE_TOURNAMENT, prevId);
+    if (prevId && getLoginState()) leaveTournamentRoom(prevId);
     tmx2db.findTournament(config.tournamentId).then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
   }
 }
@@ -53,6 +56,9 @@ function renderTournament({ config }: { config: any }): void {
   tournamentHeader();
   highlightTab(config.selectedTab);
   routeTo(config);
+
+  // Join the tournament room so we receive mutation broadcasts from other clients
+  if (config.tournamentId && getLoginState()) joinTournamentRoom(config.tournamentId);
 }
 
 export function routeTo(config: any): void {

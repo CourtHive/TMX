@@ -15,7 +15,7 @@ import { io } from 'socket.io-client';
 import { t } from 'i18n';
 
 // constants
-import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE } from 'constants/comsConstants';
+import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE, JOIN_TOURNAMENT, LEAVE_TOURNAMENT } from 'constants/comsConstants';
 
 function getAuthorization(): { authorization: string } | undefined {
   const token = getToken();
@@ -32,8 +32,19 @@ const oi: any = {
 const ackRequests: Record<string, (ack: any) => void> = {};
 const socketQueue: any[] = [];
 
+let mutationListener: ((data: any) => void) | null = null;
+
 function tmxMessage(data: any): void {
   console.log('tmxMessage:', { data });
+}
+
+/** Register a callback for remote tournament mutations broadcast by the server. */
+export function onTournamentMutation(callback: ((data: any) => void) | null): void {
+  mutationListener = callback;
+}
+
+function handleTournamentMutation(data: any): void {
+  if (mutationListener) mutationListener(data);
 }
 
 export function connectSocket(callback?: () => void): void {
@@ -51,6 +62,7 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on('ack', receiveAcknowledgement);
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
+    oi.socket.on('tournamentMutation', handleTournamentMutation);
     oi.socket.on('connect', () => connectionEvent(callback));
     oi.socket.on('disconnect', () => {
       console.log('disconnect');
@@ -166,6 +178,18 @@ function receiveAcknowledgement(ack: any): void {
     ackRequests[ack.uuid](ack);
     delete ackRequests[ack.uuid];
   }
+}
+
+/** Join a tournament room to receive mutation broadcasts from other clients. */
+export function joinTournamentRoom(tournamentId: string): void {
+  if (!tournamentId || !oi.socket?.connected) return;
+  oi.socket.emit(JOIN_TOURNAMENT, { tournamentId });
+}
+
+/** Leave a tournament room to stop receiving mutation broadcasts. */
+export function leaveTournamentRoom(tournamentId: string): void {
+  if (!tournamentId || !oi.socket?.connected) return;
+  oi.socket.emit(LEAVE_TOURNAMENT, { tournamentId });
 }
 
 export function logError(err: any): void {

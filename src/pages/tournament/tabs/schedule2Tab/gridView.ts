@@ -24,6 +24,8 @@ import {
   buildScheduleGridCell,
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
+  matchUpLabel,
+  isCompletedStatus,
 } from 'courthive-components';
 import type { SchedulePageConfig, SchedulePageControl, CatalogMatchUpItem, ScheduleDate } from 'courthive-components';
 import type { ScheduleIssue, ScheduleIssueSeverity } from 'courthive-components';
@@ -600,6 +602,32 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
             rowIndex: ri,
             onRefresh: callbacks.onRefresh,
             executeMethods: callbacks.executeMethods,
+            matchUpListProvider: () => {
+              const catalog = buildCatalog(currentDate);
+              const storeState = activeControl?.getStore().getState();
+              const filters = storeState?.catalogFilters;
+              const showCompleted = storeState?.showCompleted ?? false;
+              return catalog
+                .filter(
+                  (m) =>
+                    !m.isScheduled &&
+                    (m.sides?.length ?? 0) >= 1 &&
+                    (showCompleted || !isCompletedStatus(m.matchUpStatus)) &&
+                    (!filters?.eventType || m.matchUpType === filters.eventType) &&
+                    (!filters?.eventName || m.eventName === filters.eventName) &&
+                    (!filters?.drawName || (m.drawName ?? m.drawId) === filters.drawName) &&
+                    (!filters?.gender || m.gender === filters.gender) &&
+                    (!filters?.roundName || m.roundName === filters.roundName),
+                )
+                .map((m) => ({
+                  label: `${m.eventName} ${m.roundName || ''} — ${matchUpLabel(m)}`.trim(),
+                  value: m.matchUpId,
+                }));
+            },
+            findCatalogItem: (matchUpId: string) => {
+              const catalog = buildCatalog(currentDate);
+              return catalog.find((m) => m.matchUpId === matchUpId);
+            },
           });
         });
         cell.style.cursor = cell.draggable ? 'grab' : 'pointer';
@@ -647,6 +675,8 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
         roundName: m.roundName,
         matchUpFormat: m.matchUpFormat,
         matchUpType: m.matchUpType,
+        matchUpStatus: m.matchUpStatus,
+        gender: m.gender,
         sides: (m.sides || []).map((s: any) => ({
           participantName: s.participant?.participantName ?? s.participantName,
           participantId: s.participantId ?? s.participant?.participantId,

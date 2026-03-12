@@ -1,3 +1,4 @@
+import { leaveTournamentRoom } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
 import { context } from 'services/context';
 
@@ -8,6 +9,7 @@ export function resetTournament(): void {
 
   if (tournamentRecord) {
     context.ee.emit(LEAVE_TOURNAMENT, tournamentRecord.tournamentId);
+    leaveTournamentRoom(tournamentRecord.tournamentId);
     tournamentEngine.reset();
   }
 }

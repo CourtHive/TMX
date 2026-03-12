@@ -11,6 +11,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 import tippy from 'tippy.js';
 
+import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import {
   BOTTOM,
   EVENTS_TAB,
@@ -69,6 +70,7 @@ const i18nKeys: Record<string, string> = {
 };
 
 function navigateToRoute(id: string): void {
+  clearSyncIndicator();
   document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
   const element = document.getElementById(id);
   if (element) element.style.color = ACCENT_BLUE;
