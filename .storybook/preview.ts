@@ -2,7 +2,6 @@ import type { Preview } from '@storybook/html-vite';
 
 // Import all application styles
 import 'vanillajs-datepicker/css/datepicker.css';
-import '@event-calendar/core/index.css';
 import 'timepicker-ui/main.css';
 
 import 'animate.css/animate.min.css';
