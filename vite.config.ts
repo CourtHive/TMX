@@ -1,5 +1,4 @@
 import EnvironmentPlugin from 'vite-plugin-environment';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig, loadEnv } from 'vite';
 
 const viteconfigFactory = ({ mode }: { mode: string }) => {
@@ -9,7 +8,8 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
   const BASE_URL = (process.env.BASE_URL && `/${process.env.BASE_URL}/`) || '';
 
   return defineConfig({
-    plugins: [tsconfigPaths(), EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
+    plugins: [EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
+    resolve: { tsconfigPaths: true },
     build: { sourcemap: true },
     base: BASE_URL,
   });
