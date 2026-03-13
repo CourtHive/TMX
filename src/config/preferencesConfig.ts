@@ -13,7 +13,7 @@ export interface PreferencesConfig {
 const defaults: PreferencesConfig = {
   activeScale: 'wtn',
   scoringApproach: 'dynamicSets',
-  smartComplements: false,
+  smartComplements: true,
   hotkeys: false,
   scoring: false,
   ioc: 'gbr',
