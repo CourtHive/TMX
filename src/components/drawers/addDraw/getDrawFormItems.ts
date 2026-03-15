@@ -20,6 +20,7 @@ import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
+  BEST_FINISHERS,
   CUSTOM,
   DRAFT,
   DRAW_NAME,
@@ -39,6 +40,7 @@ import {
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
+  TOTAL_ADVANCE,
   WINNERS,
 } from 'constants/tmxConstants';
 
@@ -128,6 +130,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     { label: 'Group winners', value: WINNERS },
     { label: 'Group positions', value: POSITIONS },
     { label: 'Top finishers', value: TOP_FINISHERS },
+    { label: 'Best finishers', value: BEST_FINISHERS },
   ];
   const advanceOptions = [
     { label: '2', value: 2 },
@@ -237,6 +240,14 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       options: advanceOptions,
       field: ADVANCE_PER_GROUP,
       visible: false,
+    },
+    {
+      label: 'Total to advance',
+      field: TOTAL_ADVANCE,
+      validator: validators.numericValidator,
+      selectOnFocus: true,
+      visible: false,
+      value: 4,
     },
     {
       label: '2nd playoff from remaining',

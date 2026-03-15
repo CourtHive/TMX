@@ -22,6 +22,7 @@ import { ATTACH_QUALIFYING_STRUCTURE } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
+  BEST_FINISHERS,
   CUSTOM,
   DRAFT,
   DRAW_MATIC,
@@ -41,6 +42,7 @@ import {
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
+  TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
@@ -99,6 +101,7 @@ function getPlayoffGroups(
   advancePerGroup: number,
   groupRemaining: boolean,
   groupSize: number,
+  inputs?: any,
 ): any[] {
   const playoffGroups: any[] = [];
 
@@ -114,6 +117,22 @@ function getPlayoffGroups(
         finishingPositions,
       });
     });
+  } else if (playoffType === BEST_FINISHERS) {
+    const totalAdvance = Number.parseInt(inputs[TOTAL_ADVANCE]?.value || 0);
+    if (totalAdvance > 0) {
+      playoffGroups.push({
+        finishingPositions: [1],
+        bestOf: totalAdvance,
+        rankBy: 'GEMscore',
+        structureName: 'Playoff 1',
+      });
+      if (groupRemaining) {
+        playoffGroups.push({
+          remainder: true,
+          structureName: 'Playoff 2',
+        });
+      }
+    }
   } else if (playoffType === POSITIONS) {
     tools.generateRange(1, groupSize + 1).forEach((c) => {
       playoffGroups.push({
@@ -133,7 +152,7 @@ function getStructureOptions(drawType: string, inputs: any): any {
     const advancePerGroup = Number.parseInt(inputs.advancePerGroup?.value || 0);
     const groupRemaining = inputs[GROUP_REMAINING]?.checked;
     const playoffType = inputs[PLAYOFF_TYPE]?.value;
-    const playoffGroups = getPlayoffGroups(playoffType, advancePerGroup, groupRemaining, groupSize);
+    const playoffGroups = getPlayoffGroups(playoffType, advancePerGroup, groupRemaining, groupSize, inputs);
 
     const structureOptions: any = { groupSize };
     if (playoffGroups.length) {

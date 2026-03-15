@@ -13,6 +13,7 @@ const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
+  BEST_FINISHERS,
   DRAW_MATIC,
   DRAW_NAME,
   DRAW_SIZE,
@@ -30,6 +31,7 @@ import {
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
+  TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
 interface FormRelationshipParams {
@@ -134,6 +136,12 @@ export function getDrawFormRelationships({
     if (fields) {
       fields[ADVANCE_PER_GROUP].style.display =
         drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === TOP_FINISHERS ? '' : NONE;
+      fields[TOTAL_ADVANCE].style.display =
+        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === BEST_FINISHERS ? '' : NONE;
+      fields[GROUP_REMAINING].style.display =
+        drawType === ROUND_ROBIN_WITH_PLAYOFF && (playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS)
+          ? ''
+          : NONE;
       fields[PLAYOFF_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
       const groupSizeVisible = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType);
       fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
@@ -173,7 +181,9 @@ export function getDrawFormRelationships({
     const playoffType = (e!.target as HTMLSelectElement).value;
     if (fields) {
       fields[ADVANCE_PER_GROUP].style.display = playoffType === TOP_FINISHERS ? '' : NONE;
-      fields[GROUP_REMAINING].style.display = playoffType === TOP_FINISHERS ? '' : NONE;
+      fields[TOTAL_ADVANCE].style.display = playoffType === BEST_FINISHERS ? '' : NONE;
+      fields[GROUP_REMAINING].style.display =
+        playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS ? '' : NONE;
     }
   };
 

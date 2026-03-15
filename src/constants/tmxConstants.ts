@@ -225,6 +225,8 @@ export const GROUP_SIZE = 'groupSize';
 export const POSITIONS = 'positions';
 export const DRAW_NAME = 'drawName';
 export const DRAW_TYPE = 'drawType';
+export const BEST_FINISHERS = 'bestFinishers';
+export const TOTAL_ADVANCE = 'totalAdvance';
 export const TOP_FINISHERS = 'top';
 export const WINNERS = 'winners';
 
