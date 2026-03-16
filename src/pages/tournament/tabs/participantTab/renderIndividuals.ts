@@ -47,14 +47,14 @@ export function renderIndividuals({ view }: { view: string }): void {
   // Callback that refreshes data and rebuilds the component after event changes
   const refreshAfterEventChange = () => renderIndividuals({ view });
 
-  const { eventOptions, events, isFiltered: isEventFiltered } = getEventFilter(table);
-  const { sexOptions, isFiltered: isSexFiltered } = getSexFilter(table);
-  const { teamOptions, isFiltered: isTeamFiltered } = getTeamFilter({ table, teamParticipants });
+  const { eventOptions, events, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getEventFilter(table);
+  const { sexOptions, isFiltered: isSexFiltered, activeIndex: sexActiveIndex } = getSexFilter(table);
+  const { teamOptions, isFiltered: isTeamFiltered, activeIndex: teamActiveIndex } = getTeamFilter({ table, teamParticipants });
 
   const filterSections = [
-    { label: t('pages.participants.allEvents'), options: events.length ? eventOptions : [], isFiltered: isEventFiltered },
-    { label: t('pages.participants.anyTeam'), options: teamParticipants?.length ? teamOptions : [], isFiltered: isTeamFiltered },
-    { label: t('pages.participants.allGenders'), options: sexOptions, isFiltered: isSexFiltered },
+    { label: t('pages.participants.allEvents'), options: events.length ? eventOptions : [], isFiltered: isEventFiltered, activeIndex: eventActiveIndex },
+    { label: t('pages.participants.anyTeam'), options: teamParticipants?.length ? teamOptions : [], isFiltered: isTeamFiltered, activeIndex: teamActiveIndex },
+    { label: t('pages.participants.allGenders'), options: sexOptions, isFiltered: isSexFiltered, activeIndex: sexActiveIndex },
   ];
   const { item: filterButton } = filterPopoverButton(filterSections);
 

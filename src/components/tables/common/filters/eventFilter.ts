@@ -10,6 +10,7 @@ export function getEventFilter(
   events: { eventId: string; eventName: string }[];
   eventOptions: any[];
   isFiltered: () => boolean;
+  activeIndex: () => number;
 } {
   let filterValue;
 
@@ -34,15 +35,24 @@ export function getEventFilter(
     onClick: () => updateEventFilter(NONE),
     close: true,
   };
-  const eventOptions = [allEvents, noEvents, { divider: true }].concat(
+  const eventOptions = [allEvents, { ...noEvents, filterValue: '__NONE__' }, { divider: true }].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
       label: event.eventName,
+      filterValue: event.eventId,
       close: true,
     })),
   );
 
   const isFiltered = () => !!filterValue;
 
-  return { eventOptions, events, isFiltered };
+  const selectableOptions = eventOptions.filter((opt: any) => !opt.divider);
+  const activeIndex = () => {
+    if (!filterValue) return 0;
+    const matchValue = filterValue === NONE ? '__NONE__' : filterValue;
+    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === matchValue);
+    return idx >= 0 ? idx : 0;
+  };
+
+  return { eventOptions, events, isFiltered, activeIndex };
 }

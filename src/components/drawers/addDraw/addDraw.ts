@@ -2,21 +2,40 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
-import { getMatchUpFormatModal, renderButtons, renderForm, validators } from 'courthive-components';
+import { entryStatusConstants, tournamentEngine } from 'tods-competition-factory';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
-import { navigateToTopology } from 'pages/tournament/topologyPage';
-import { getDrawTypeInfoKey } from './drawTypeDescriptions';
-import { tournamentEngine } from 'tods-competition-factory';
-import { tmxToast } from 'services/notifications/tmxToast';
 import { informModal } from 'components/modals/baseModal/baseModal';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getDrawTypeInfoKey } from './drawTypeDescriptions';
+import { getTopologyTemplates } from './topologyTemplates';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
+import { generateDraw } from './generateDraw';
 import { context } from 'services/context';
 import { t } from 'i18n';
+import {
+  getMatchUpFormatModal,
+  renderButtons,
+  renderForm,
+  validators,
+  topologyToDrawOptions,
+} from 'courthive-components';
 
 // constants
-import { CUSTOM, DRAW_NAME, DRAW_TYPE, NONE, RIGHT, STRUCTURE_NAME, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
+import { ATTACH_CONSOLATION_STRUCTURES, ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
+import {
+  CUSTOM,
+  DRAW_NAME,
+  DRAW_TYPE,
+  NONE,
+  RIGHT,
+  STRUCTURE_NAME,
+  TOPOLOGY_TEMPLATE_PREFIX,
+} from 'constants/tmxConstants';
 
 type AddDrawParams = {
   callback?: (result: any) => void;
@@ -60,12 +79,13 @@ export function addDraw({
       : validators.nameValidator(3)(inputs[DRAW_NAME].value);
 
   const checkParams = () => {
-    const selectedDrawType = inputs[DRAW_TYPE]?.options?.[inputs[DRAW_TYPE].selectedIndex]?.getAttribute?.('value') ||
+    const selectedDrawType =
+      inputs[DRAW_TYPE]?.options?.[inputs[DRAW_TYPE].selectedIndex]?.getAttribute?.('value') ||
       inputs[DRAW_TYPE]?.value;
     if (selectedDrawType?.startsWith(TOPOLOGY_TEMPLATE_PREFIX)) {
       context.drawer.close();
       const templateName = selectedDrawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length);
-      navigateToTopology({ eventId, drawId, templateName });
+      generateFromTopologyTemplate({ templateName, eventId, drawId, callback });
       return;
     }
     if (!isValid()) {
@@ -102,13 +122,146 @@ export function addDraw({
 
   const buttons = [
     { label: t('common.cancel'), intent: NONE, close: true },
-    { label: t('drawers.addDraw.generate'), id: 'generateDraw', intent: 'is-primary', onClick: checkParams, close: isValid },
+    {
+      label: t('drawers.addDraw.generate'),
+      id: 'generateDraw',
+      intent: 'is-primary',
+      onClick: checkParams,
+      close: isValid,
+    },
   ];
 
   const title = flightNumber ? t('drawers.addDraw.generateFlight') : t('drawers.addDraw.configureDraw');
 
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
+}
+
+function generateFromTopologyTemplate({
+  templateName,
+  eventId,
+  drawId,
+  callback,
+}: {
+  templateName: string;
+  eventId: string;
+  drawId?: string;
+  callback?: (result: any) => void;
+}): void {
+  // Resolve the template from tournament extensions or user catalog
+  const tournamentTemplates = getTopologyTemplates();
+  let template = tournamentTemplates.find((t) => t.name === templateName);
+
+  if (!template) {
+    const userTopo = getUserTopologiesSync().find((t) => t.name === templateName);
+    if (userTopo) {
+      template = { name: userTopo.name, description: userTopo.description, state: userTopo.state };
+    }
+  }
+
+  if (!template) {
+    tmxToast({ message: `Template "${templateName}" not found`, intent: 'is-danger' });
+    return;
+  }
+
+  const state = {
+    ...template.state,
+    selectedNodeId: null,
+    selectedEdgeId: null,
+  };
+
+  let drawOptions: any;
+  let postGenerationMethods: any[];
+  try {
+    const result = topologyToDrawOptions(state);
+    drawOptions = result.drawOptions;
+    postGenerationMethods = result.postGenerationMethods;
+  } catch (err: any) {
+    tmxToast({ message: err.message || 'Failed to convert topology', intent: 'is-danger' });
+    return;
+  }
+
+  drawOptions.eventId = eventId;
+  if (drawId) drawOptions.drawId = drawId;
+
+  const event = tournamentEngine.getEvent({ eventId }).event;
+  if (!event) return;
+
+  const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
+  const drawEntries =
+    event.entries?.filter(
+      ({ entryStage, entryStatus }: any) =>
+        (!entryStage || entryStage === 'MAIN') && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+    ) || [];
+  drawOptions.drawEntries = drawEntries;
+
+  const postGeneration = (result: any) => {
+    if (!result?.drawDefinition) {
+      tmxToast({ message: 'Draw generation failed', intent: 'is-danger' });
+      return;
+    }
+
+    const generatedDrawId = result.drawDefinition.drawId;
+    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === 'MAIN')?.structureId;
+
+    if (postGenerationMethods.length > 0 && mainStructureId) {
+      const methods = postGenerationMethods.flatMap((pgm) => {
+        if (pgm.method === ATTACH_CONSOLATION_STRUCTURES) {
+          // Generate structure locally, then attach via server-first mutation
+          const genResult = tournamentEngine.generateConsolationStructure(pgm.params);
+          if (!genResult?.structures?.length) return [];
+          const consolationStructure = genResult.structures[0];
+
+          // Build LOSER links from main to consolation
+          const links = (pgm.params.links || []).map((link: any) => ({
+            linkType: 'LOSER',
+            source: { roundNumber: link.sourceRoundNumber, structureId: mainStructureId },
+            target: {
+              roundNumber: link.targetRoundNumber,
+              feedProfile: 'TOP_DOWN',
+              structureId: consolationStructure.structureId,
+            },
+          }));
+
+          return {
+            method: ATTACH_CONSOLATION_STRUCTURES,
+            params: { drawId: generatedDrawId, structures: [consolationStructure], links },
+          };
+        }
+        // Generate playoff structures locally, then attach via server-first mutation
+        const playoffResult = tournamentEngine.generateAndPopulatePlayoffStructures({
+          ...pgm.params,
+          drawId: generatedDrawId,
+          structureId: mainStructureId,
+        });
+        if (playoffResult.error || !playoffResult.structures?.length) return [];
+        return {
+          method: ATTACH_PLAYOFF_STRUCTURES,
+          params: {
+            matchUpModifications: playoffResult.matchUpModifications,
+            structures: playoffResult.structures,
+            links: playoffResult.links,
+            drawId: generatedDrawId,
+          },
+        };
+      });
+
+      mutationRequest({
+        methods,
+        callback: () => {
+          tmxToast({ message: 'Draw generated successfully', intent: 'is-success' });
+          navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
+          if (callback) callback(result);
+        },
+      });
+    } else {
+      tmxToast({ message: 'Draw generated successfully', intent: 'is-success' });
+      navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
+      if (callback) callback(result);
+    }
+  };
+
+  generateDraw({ drawOptions, eventId, callback: postGeneration });
 }
 
 function attachDrawTypeHelp(inputs: any) {

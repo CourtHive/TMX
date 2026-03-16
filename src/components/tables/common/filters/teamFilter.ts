@@ -23,11 +23,19 @@ export function getTeamFilter({ table, teamParticipants, onChange }: { table: an
       .map((team) => ({
         onClick: () => updateTeamFilter(team.participantId),
         label: team.participantName,
+        filterValue: team.participantId,
         close: true,
       })),
   );
 
   const isFiltered = () => !!filterValue;
 
-  return { teamOptions, isFiltered };
+  const selectableOptions = teamOptions.filter((opt: any) => !opt.divider);
+  const activeIndex = () => {
+    if (!filterValue) return 0;
+    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
+    return idx >= 0 ? idx : 0;
+  };
+
+  return { teamOptions, isFiltered, activeIndex };
 }

@@ -11,7 +11,7 @@ import { addRRplayoffs } from './addRRplayoffs';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
-import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
+import { ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 
 export function addStructures({
@@ -84,10 +84,31 @@ export function addStructures({
       }
       return { [roundNumber]: 1 };
     });
+
+    // Generate structures locally so client and server use identical structures
+    const genResult = tournamentEngine.generateAndPopulatePlayoffStructures({
+      playoffStructureNameBase,
+      playoffAttributes,
+      roundProfiles,
+      structureId,
+      drawId,
+    });
+
+    if (genResult.error) {
+      tmxToast({ message: genResult.error?.message || 'Generation error', intent: 'is-danger' });
+      return;
+    }
+
+    // Send generated structures to server via executionQueue
     const methods = [
       {
-        params: { drawId, structureId, playoffAttributes, roundProfiles, playoffStructureNameBase },
-        method: ADD_PLAYOFF_STRUCTURES,
+        method: ATTACH_PLAYOFF_STRUCTURES,
+        params: {
+          matchUpModifications: genResult.matchUpModifications,
+          structures: genResult.structures,
+          links: genResult.links,
+          drawId,
+        },
       },
     ];
     const postMutation = (result: any) => {

@@ -2,6 +2,7 @@
  * Column definitions for matchUps table.
  * Displays match details, participants, scores, schedule, and completion status.
  */
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
@@ -22,10 +23,19 @@ import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
+// constants
 import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { data: any[]; replaceTableData: () => void; setFocusData?: (data: any) => void }): any[] {
+export function getMatchUpColumns({
+  data,
+  replaceTableData,
+  setFocusData,
+}: {
+  data: any[];
+  replaceTableData: () => void;
+  setFocusData?: (data: any) => void;
+}): any[] {
   const matchUpScheduleClick = (_e: Event, cell: any) => {
     const row = cell.getRow();
     const data = row.getData();
@@ -66,8 +76,28 @@ export function getMatchUpColumns({ data, replaceTableData, setFocusData }: { da
     const placholder = document.createElement('div');
     placholder.className = 'has-text-warning-dark';
     placholder.innerHTML = 'Select participant';
-    const onClick = ({ event, ...params }: any) => {
-      participantMatchUpActions(event, cell, participantChange, params);
+    const onClick = (params: any) => {
+      const clickedParticipant = params?.individualParticipant || params?.participant;
+      const rowData = cell.getRow().getData();
+      const matchUpType = rowData.matchUpType;
+      if (matchUpType === 'TEAM') return;
+      const participantId = clickedParticipant?.participantId;
+      if (!participantId) return;
+      const matchUp = rowData.matchUp;
+      const participantIds: string[] = [];
+      for (const side of matchUp?.sides || []) {
+        if (side?.participant?.participantId) {
+          participantIds.push(side.participant.participantId);
+        }
+        for (const ip of side?.participant?.individualParticipants || []) {
+          if (ip.participantId) participantIds.push(ip.participantId);
+        }
+      }
+      participantProfileModal({
+        participantId,
+        participantIds: participantIds.length > 1 ? participantIds : undefined,
+        readOnly: true,
+      });
     };
 
     const value = cell.getValue();

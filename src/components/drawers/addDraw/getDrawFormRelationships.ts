@@ -4,8 +4,10 @@
  */
 import { drawDefinitionConstants, tournamentEngine, tools } from 'tods-competition-factory';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
+import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { renderOptions, validators } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { getTopologyTemplates } from './topologyTemplates';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
@@ -23,6 +25,8 @@ import {
   GROUP_SIZE,
   MANUAL,
   NONE,
+  PLAYOFF_DRAW_TYPE,
+  PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
   QUALIFIERS_COUNT,
   RATING_SCALE,
@@ -30,9 +34,29 @@ import {
   SEEDING_POLICY,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
+  TOPOLOGY_TEMPLATE_PREFIX,
   TOP_FINISHERS,
   TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
+
+/** Non-power-of-2 structure types that use raw draw size */
+const NON_POW2_TYPES = [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, DRAW_MATIC, AD_HOC];
+
+/**
+ * When drawType is a topology template reference, resolve the main node's
+ * structureType so draw size coercion matches the actual structure.
+ */
+function resolveEffectiveDrawType(drawType: string): string {
+  if (!drawType?.startsWith(TOPOLOGY_TEMPLATE_PREFIX)) return drawType;
+
+  const templateName = drawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length);
+  const template =
+    getTopologyTemplates().find((t) => t.name === templateName) ||
+    getUserTopologiesSync().find((t) => t.name === templateName);
+
+  const mainNode = template?.state?.nodes?.find((n: any) => n.stage === MAIN);
+  return mainNode?.structureType || drawType;
+}
 
 interface FormRelationshipParams {
   isQualifying?: boolean;
@@ -85,10 +109,9 @@ export function getDrawFormRelationships({
       (validators.numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
     const drawSizeInteger =
       isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
+    const effectiveType = resolveEffectiveDrawType(drawType as string);
     const drawSize =
-      ((maxQualifiers ||
-        [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, DRAW_MATIC].includes(drawType as string)) &&
-        drawSizeInteger) ||
+      ((maxQualifiers || NON_POW2_TYPES.includes(effectiveType)) && drawSizeInteger) ||
       tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
 
@@ -143,6 +166,10 @@ export function getDrawFormRelationships({
           ? ''
           : NONE;
       fields[PLAYOFF_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
+      fields[PLAYOFF_DRAW_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
+      const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
+      fields[PLAYOFF_GROUP_SIZE].style.display =
+        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffDrawType === ROUND_ROBIN ? '' : NONE;
       const groupSizeVisible = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType);
       fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
 
@@ -175,6 +202,13 @@ export function getDrawFormRelationships({
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
     checkCreationMethod({ fields, inputs });
+  };
+
+  const playoffDrawTypeChange = ({ e, fields }: FormInteractionParams) => {
+    const playoffDrawType = (e!.target as HTMLSelectElement).value;
+    if (fields) {
+      fields[PLAYOFF_GROUP_SIZE].style.display = playoffDrawType === ROUND_ROBIN ? '' : NONE;
+    }
   };
 
   const playoffTypeChange = ({ e, fields }: FormInteractionParams) => {
@@ -233,6 +267,10 @@ export function getDrawFormRelationships({
     {
       onChange: playoffTypeChange,
       control: PLAYOFF_TYPE,
+    },
+    {
+      onChange: playoffDrawTypeChange,
+      control: PLAYOFF_DRAW_TYPE,
     },
     {
       onInput: drawSizeChange,

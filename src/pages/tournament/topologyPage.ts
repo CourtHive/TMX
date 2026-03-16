@@ -19,7 +19,7 @@ import { context } from 'services/context';
 
 // constants
 import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
-import { ADD_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
+import { ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
@@ -138,14 +138,23 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
     const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === 'MAIN')?.structureId;
 
     if (postGenerationMethods.length > 0 && mainStructureId) {
-      const methods = postGenerationMethods.map((pgm) => ({
-        method: ADD_PLAYOFF_STRUCTURES,
-        params: {
+      const methods = postGenerationMethods.flatMap((pgm) => {
+        const playoffResult = tournamentEngine.generateAndPopulatePlayoffStructures({
           ...pgm.params,
           drawId: generatedDrawId,
           structureId: mainStructureId,
-        },
-      }));
+        });
+        if (playoffResult.error || !playoffResult.structures?.length) return [];
+        return {
+          method: ATTACH_PLAYOFF_STRUCTURES,
+          params: {
+            matchUpModifications: playoffResult.matchUpModifications,
+            structures: playoffResult.structures,
+            links: playoffResult.links,
+            drawId: generatedDrawId,
+          },
+        };
+      });
 
       mutationRequest({
         methods,

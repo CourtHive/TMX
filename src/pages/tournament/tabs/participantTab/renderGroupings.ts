@@ -28,13 +28,14 @@ export function renderGroupings({ view }: { view: string }): void {
 
   const setSearchFilter = createSearchFilter(table);
 
-  const { eventOptions, events, isFiltered: isEventFiltered } = getEventFilter(table);
+  const { eventOptions, events, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getEventFilter(table);
 
   const filterSections = [
     {
       label: t('pages.participants.allEvents'),
       options: events.length ? eventOptions : [],
       isFiltered: isEventFiltered,
+      activeIndex: eventActiveIndex,
     },
   ];
   const { item: filterButton } = filterPopoverButton(filterSections);

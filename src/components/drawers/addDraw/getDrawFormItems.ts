@@ -6,6 +6,7 @@ import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
+import { t } from 'i18n';
 import {
   factoryConstants,
   drawDefinitionConstants,
@@ -31,6 +32,8 @@ import {
   GROUP_SIZE,
   MANUAL,
   MATCHUP_FORMAT,
+  PLAYOFF_DRAW_TYPE,
+  PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
   POSITIONS,
   QUALIFIERS_COUNT,
@@ -98,7 +101,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const allowedFormats = providerConfig.getAllowedList('allowedMatchUpFormats');
   const scoreFormatOptions = [
     {
-      label: 'Custom',
+      label: t('drawers.addDraw.custom'),
       value: CUSTOM,
     },
   ].concat(
@@ -112,25 +115,25 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   );
 
   const tieFormatOptions = [
-    { label: 'Dominant Duo', value: DOMINANT_DUO, selected: true },
-    { label: 'College Default', value: COLLEGE_DEFAULT },
-    { label: 'Laver Cup', value: LAVER_CUP },
-    { label: 'Custom', value: CUSTOM },
+    { label: t('drawers.addDraw.dominantDuo'), value: DOMINANT_DUO, selected: true },
+    { label: t('drawers.addDraw.collegeDefault'), value: COLLEGE_DEFAULT },
+    { label: t('drawers.addDraw.laverCup'), value: LAVER_CUP },
+    { label: t('drawers.addDraw.custom'), value: CUSTOM },
   ];
 
   const seedingPolicyOptions = [
-    ...(hasExistingPolicy ? [{ label: 'Inherited', value: INHERIT, selected: true }] : []),
-    { label: 'Separated (USTA)', value: SEPARATE, selected: !hasExistingPolicy },
-    { label: 'Adjacent (ITF)', value: CLUSTER },
+    ...(hasExistingPolicy ? [{ label: t('drawers.addDraw.inherited'), value: INHERIT, selected: true }] : []),
+    { label: t('drawers.addDraw.separatedUsta'), value: SEPARATE, selected: !hasExistingPolicy },
+    { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
   ];
 
   const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size: number) => ({ label: size, value: size }));
   const playoffOptions = [
-    { label: 'Group winners', value: WINNERS },
-    { label: 'Group positions', value: POSITIONS },
-    { label: 'Top finishers', value: TOP_FINISHERS },
-    { label: 'Best finishers', value: BEST_FINISHERS },
+    { label: t('drawers.addDraw.groupWinners'), value: WINNERS },
+    { label: t('drawers.addDraw.groupPositions'), value: POSITIONS },
+    { label: t('drawers.addDraw.topFinishers'), value: TOP_FINISHERS },
+    { label: t('drawers.addDraw.bestFinishers'), value: BEST_FINISHERS },
   ];
   const advanceOptions = [
     { label: '2', value: 2 },
@@ -171,7 +174,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     (key) => !(ratingsParameters as any)[key].deprecated && presentRatings.has(key),
   );
   const ratingScaleOptions = [
-    { label: '--Off--', value: '', selected: true },
+    { label: t('drawers.addDraw.offOption'), value: '', selected: true },
     ...activeRatingKeys.map((key) => ({ label: key, value: key.toLowerCase() })),
   ];
 
@@ -188,61 +191,74 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
 
   const items = [
     {
-      error: 'minimum of 4 characters',
-      placeholder: 'Display name of the structure',
+      error: t('drawers.addDraw.minCharsError'),
+      placeholder: t('drawers.addDraw.structureNamePlaceholder'),
       validator: validators.nameValidator(4),
-      label: 'Structure name',
+      label: t('drawers.addDraw.structureName'),
       value: structureName,
       field: STRUCTURE_NAME,
       selectOnFocus: true,
       hide: !isQualifying,
     },
     {
-      error: 'minimum of 4 characters',
-      placeholder: 'Display name of the draw',
+      error: t('drawers.addDraw.minCharsError'),
+      placeholder: t('drawers.addDraw.drawNamePlaceholder'),
       value: flight?.drawName || `Draw ${drawsCount + 1}`,
       validator: validators.nameValidator(4),
       selectOnFocus: true,
       hide: isQualifying,
-      label: 'Draw name',
+      label: t('drawers.addDraw.drawName'),
       field: DRAW_NAME,
       focus: true,
     },
     {
       options: getDrawTypeOptions({ isQualifying }),
-      label: 'Draw Type',
+      label: t('drawers.addDraw.drawType'),
       field: DRAW_TYPE,
       value: drawType,
     },
     {
-      error: `Must be in range 2-${maxDrawSize}`,
+      error: t('drawers.addDraw.drawSizeError', { max: maxDrawSize }),
       validator: validators.numericRange(2, maxDrawSize),
       selectOnFocus: true,
-      label: 'Draw size',
+      label: t('drawers.addDraw.drawSize'),
       value: drawSize,
       field: DRAW_SIZE,
     },
     {
       visible: [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
       options: roundRobinOptions,
-      label: 'Group size',
+      label: t('drawers.addDraw.groupSize'),
       field: GROUP_SIZE,
       value: 4,
     },
     {
       visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
       options: playoffOptions,
-      label: 'Playoff Type',
+      label: t('drawers.addDraw.playoffType'),
       field: PLAYOFF_TYPE,
     },
     {
-      label: 'Advance per group',
+      visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
+      options: getDrawTypeOptions({ isPlayoff: true }),
+      label: t('drawers.addDraw.playoffDrawType'),
+      field: PLAYOFF_DRAW_TYPE,
+    },
+    {
+      visible: false,
+      options: roundRobinOptions,
+      label: t('drawers.addDraw.playoffGroupSize'),
+      field: PLAYOFF_GROUP_SIZE,
+      value: 4,
+    },
+    {
+      label: t('drawers.addDraw.advancePerGroup'),
       options: advanceOptions,
       field: ADVANCE_PER_GROUP,
       visible: false,
     },
     {
-      label: 'Total to advance',
+      label: t('drawers.addDraw.totalToAdvance'),
       field: TOTAL_ADVANCE,
       validator: validators.numericValidator,
       selectOnFocus: true,
@@ -250,40 +266,40 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       value: 4,
     },
     {
-      label: '2nd playoff from remaining',
+      label: t('drawers.addDraw.secondPlayoffFromRemaining'),
       field: GROUP_REMAINING,
       id: GROUP_REMAINING,
       checkbox: true,
       visible: false,
     },
     {
-      help: { text: 'Automation disabled', visible: false },
+      help: { text: t('drawers.addDraw.automationDisabled'), visible: false },
       options: creationOptions,
-      label: 'Creation',
+      label: t('drawers.addDraw.creation'),
       field: AUTOMATED,
       value: '',
     },
     {
       options: roundsCountOptions,
-      label: 'Rounds to generate',
+      label: t('drawers.addDraw.roundsCount'),
       field: ROUNDS_COUNT,
       value: 1,
       visible: false,
     },
     {
       options: ratingScaleOptions,
-      label: 'Rating scale',
+      label: t('drawers.addDraw.ratingScale'),
       field: RATING_SCALE,
       visible: false,
     },
     {
-      label: 'Dynamic ratings',
+      label: t('drawers.addDraw.dynamicRatings'),
       field: DYNAMIC_RATINGS,
       checkbox: true,
       visible: false,
     },
     {
-      label: 'Team avoidance',
+      label: t('drawers.addDraw.teamAvoidance'),
       field: TEAM_AVOIDANCE,
       checkbox: true,
       visible: false,
@@ -292,20 +308,20 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       hide: event.eventType === TEAM,
       options: scoreFormatOptions,
       field: MATCHUP_FORMAT,
-      label: 'Score format',
+      label: t('drawers.addDraw.scoreFormat'),
       value: '',
     },
     {
       options: seedingPolicyOptions,
       field: SEEDING_POLICY,
-      label: 'Seeding policy',
+      label: t('drawers.addDraw.seedingPolicy'),
       value: '',
     },
     {
       hide: event.eventType !== TEAM,
       options: tieFormatOptions,
       field: 'tieFormatName',
-      label: 'Scorecard',
+      label: t('drawers.addDraw.scorecard'),
       value: '',
     },
     {
@@ -314,7 +330,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,
       selectOnFocus: true,
-      label: 'Qualifiers',
+      label: t('drawers.addDraw.qualifiers'),
     },
   ];
 

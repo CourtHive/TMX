@@ -4,18 +4,41 @@
  */
 import { getAvailablePolicies, getLevelDisplayLabel } from 'components/tables/pointsTable/policyUtils';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar, cModal } from 'courthive-components';
 
+// constants
 import { entryStatusMapping, LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
 
-function getPointsColumns(): any[] {
+function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
   return [
-    { title: 'Event', field: 'eventName', minWidth: 160, headerSort: true, responsive: 0 },
+    {
+      title: 'Event',
+      field: 'eventName',
+      minWidth: 160,
+      headerSort: true,
+      responsive: 0,
+      formatter: (cell: any) => {
+        const val = cell.getValue();
+        const rowData = cell.getRow().getData();
+        if (rowData.eventId) {
+          const link = document.createElement('span');
+          link.textContent = val || '';
+          link.style.cssText = 'cursor: pointer; text-decoration: underline; color: var(--tmx-accent-blue, #3273dc);';
+          link.onclick = (e) => {
+            e.stopPropagation();
+            onEventClick(rowData.eventId);
+          };
+          return link;
+        }
+        return val || '';
+      },
+    },
     { title: 'Finish', field: 'rangeAccessor', hozAlign: 'center', headerSort: true, width: 90, responsive: 2 },
     { title: 'Wins', field: 'winCount', hozAlign: 'center', headerSort: true, width: 70, responsive: 2 },
     {
@@ -196,9 +219,11 @@ function createChip(text: string, subtitle?: string, color?: string): HTMLElemen
 
 type ParticipantProfileParams = {
   participantId: string;
+  participantIds?: string[];
+  readOnly?: boolean;
 };
 
-export function participantProfileModal({ participantId }: ParticipantProfileParams): void {
+export function participantProfileModal({ participantId, participantIds, readOnly }: ParticipantProfileParams): void {
   const result = tournamentEngine.getParticipants({
     participantFilters: { participantIds: [participantId] },
     withRankingProfile: true,
@@ -241,10 +266,10 @@ export function participantProfileModal({ participantId }: ParticipantProfilePar
       );
 
       if (awards.length) {
-        for (const award of awards) rows.push({ ...award, eventName });
+        for (const award of awards) rows.push({ ...award, eventName, eventId });
       } else {
         const evt = allEvents.find((e: any) => e.eventId === eventId);
-        rows.push({ eventName: evt?.eventName || eventName || eventId, points: 0 });
+        rows.push({ eventName: evt?.eventName || eventName || eventId, eventId, points: 0 });
       }
     }
     return rows;
@@ -284,7 +309,12 @@ export function participantProfileModal({ participantId }: ParticipantProfilePar
     tableElement.style.width = '100%';
     content.appendChild(tableElement);
 
-    const columns = getPointsColumns();
+    const onEventClick = (eventId: string) => {
+      table?.destroy();
+      cModal.close();
+      navigateToEvent({ eventId, renderDraw: true });
+    };
+    const columns = getPointsColumns(onEventClick);
 
     const render = () => {
       const policy = getSelectedPolicy();
@@ -408,14 +438,92 @@ export function participantProfileModal({ participantId }: ParticipantProfilePar
     renderControlBar();
   }
 
+  // Navigation support
+  const hasList = participantIds && participantIds.length > 1;
+  const currentIndex = hasList ? participantIds.indexOf(participantId) : -1;
+
+  const navigate = (delta: number) => {
+    if (!hasList || currentIndex < 0) return;
+    const newIndex = currentIndex + delta;
+    if (newIndex < 0 || newIndex >= participantIds.length) return;
+    table?.destroy();
+    cModal.close();
+    participantProfileModal({ participantId: participantIds[newIndex], participantIds, readOnly });
+  };
+
+  if (hasList && currentIndex >= 0) {
+    const navBar = document.createElement('div');
+    navBar.style.cssText =
+      'display: flex; align-items: center; justify-content: center; gap: 0.5em; margin-bottom: 1em;';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '\u2190 Previous';
+    prevBtn.style.cssText =
+      'padding: 4px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); cursor: pointer;';
+    if (currentIndex <= 0) {
+      prevBtn.disabled = true;
+      prevBtn.style.opacity = '0.3';
+      prevBtn.style.cursor = 'default';
+    }
+
+    const counter = document.createElement('span');
+    counter.style.cssText = 'font-size: 12px; color: var(--tmx-text-muted, #999);';
+    counter.textContent = `${currentIndex + 1} of ${participantIds.length}`;
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next \u2192';
+    nextBtn.style.cssText =
+      'padding: 4px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); cursor: pointer;';
+    if (currentIndex >= participantIds.length - 1) {
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.3';
+      nextBtn.style.cursor = 'default';
+    }
+
+    prevBtn.addEventListener('click', () => navigate(-1));
+    nextBtn.addEventListener('click', () => navigate(1));
+
+    navBar.appendChild(prevBtn);
+    navBar.appendChild(counter);
+    navBar.appendChild(nextBtn);
+    content.insertBefore(navBar, content.firstChild);
+  }
+
   const onClose = () => {
     table?.destroy();
   };
 
+  const navButtonStyle =
+    'background-color: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); border: 1px solid var(--tmx-border-secondary, #555);';
+  const buttons: any[] = [];
+
+  if (hasList && currentIndex >= 0) {
+    buttons.push(
+      {
+        label: '\u2190 Previous',
+        intent: 'none',
+        close: false,
+        disabled: currentIndex <= 0,
+        onClick: () => navigate(-1),
+        footer: { style: navButtonStyle },
+      },
+      {
+        label: 'Next \u2192',
+        intent: 'none',
+        close: false,
+        disabled: currentIndex >= participantIds.length - 1,
+        onClick: () => navigate(1),
+        footer: { style: navButtonStyle },
+      },
+    );
+  }
+
+  buttons.push({ label: 'Close', close: true });
+
   cModal.open({
     title: participant.participantName || 'Participant Profile',
     content,
-    buttons: [{ label: 'Close', close: true }],
+    buttons,
     config: { maxWidth: 1000 },
     onClose,
   });

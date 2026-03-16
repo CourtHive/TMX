@@ -5,10 +5,11 @@
 import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
-import { controlBar } from 'courthive-components';
-import { getRoundTabs } from '../options/getRoundTabs';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { getRoundTabs } from '../options/getRoundTabs';
+import { controlBar } from 'courthive-components';
 
+// constants
 import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
 import { SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 
@@ -101,6 +102,7 @@ export function drawControlBar({
       id: AUTO_POSITION_PLAYOFF,
       label: 'Auto position',
       location: RIGHT,
+      style: { marginRight: '0.5em' },
     });
   }
 
@@ -115,7 +117,8 @@ export function drawControlBar({
   }
 
   const isRoundRobin = structure?.structureType === drawDefinitionConstants.CONTAINER;
-  const showRoundSelector = !isAdHoc && !isRoundRobin && roundNumbers && roundNumbers.length > 2 && onInitialRoundChange;
+  const showRoundSelector =
+    !isAdHoc && !isRoundRobin && roundNumbers && roundNumbers.length > 2 && onInitialRoundChange;
 
   if (showRoundSelector) {
     const roundName = (round: number): string => {

@@ -1,3 +1,22 @@
+import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
+import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
+import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
+import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { removeProviderTournament } from 'services/storage/removeProviderTournament';
+import { getLoginState } from 'services/authentication/loginState';
+import { renderForm, validators } from 'courthive-components';
+import { removeTournament } from 'services/apis/servicesApi';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
+import { setActiveScale } from 'settings/setActiveScale';
+import { scheduleConfig } from 'config/scheduleConfig';
+import { featureFlags } from 'config/featureFlags';
+import { tmx2db } from 'services/storage/tmx2db';
+import { serverConfig } from 'config/serverConfig';
+import { deviceConfig } from 'config/deviceConfig';
+import { context } from 'services/context';
+import { platform } from 'platform';
+import { i18next, t } from 'i18n';
 import {
   applyFont,
   applyFontSize,
@@ -8,26 +27,8 @@ import {
   getFontSizePreference,
   getThemePreference,
 } from 'services/theme/themeService';
-import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
-import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
-import { removeProviderTournament } from 'services/storage/removeProviderTournament';
-import { getLoginState } from 'services/authentication/loginState';
-import { removeTournament } from 'services/apis/servicesApi';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { renderForm, validators } from 'courthive-components';
-import { setActiveScale } from 'settings/setActiveScale';
-import { tmx2db } from 'services/storage/tmx2db';
-import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
-import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
-import { preferencesConfig } from 'config/preferencesConfig';
-import { scheduleConfig } from 'config/scheduleConfig';
-import { featureFlags } from 'config/featureFlags';
-import { serverConfig } from 'config/serverConfig';
-import { deviceConfig } from 'config/deviceConfig';
-import { platform } from 'platform';
-import { context } from 'services/context';
-import { i18next, t } from 'i18n';
 
+// constants
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 /** Move text spans into their preceding label.radio so radio+text wrap as a unit. */
@@ -54,7 +55,7 @@ function persistAll(
   storageInputs: any,
   displayInputs: any,
 ): void {
-  const activeScale = ratingInputs.activeRating.value;
+  const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
     pdfPrinting: displayInputs.pdfPrinting?.checked || false,
@@ -66,13 +67,15 @@ function persistAll(
   const s2Icon = document.getElementById('s2-route');
   if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
 
-  let scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
+  let scoringApproach: PreferencesConfig['scoringApproach'];
   if (scoringInputs.dynamicSets.checked) {
     scoringApproach = 'dynamicSets';
   } else if (scoringInputs.dialPad.checked) {
     scoringApproach = 'dialPad';
   } else if (scoringInputs.freeScore.checked) {
     scoringApproach = 'freeScore';
+  } else if (scoringInputs.inlineScoring?.checked) {
+    scoringApproach = 'inlineScoring';
   } else {
     scoringApproach = 'dynamicSets';
   }
@@ -89,7 +92,7 @@ function persistAll(
   const language = languageInputs.language.value;
   const languageChanged = language !== i18next.language;
 
-  setActiveScale(activeScale);
+  if (activeScale) setActiveScale(activeScale);
 
   persistConfigToStorage({ language });
 
@@ -190,8 +193,21 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
           field: 'dynamicSets',
           checked: preferencesConfig.get().scoringApproach === 'dynamicSets',
         },
-        { text: t('modals.settings.dialPad'), field: 'dialPad', checked: preferencesConfig.get().scoringApproach === 'dialPad' },
-        { text: t('modals.settings.freeScore'), field: 'freeScore', checked: preferencesConfig.get().scoringApproach === 'freeScore' },
+        {
+          text: t('modals.settings.dialPad'),
+          field: 'dialPad',
+          checked: preferencesConfig.get().scoringApproach === 'dialPad',
+        },
+        {
+          text: t('modals.settings.freeScore'),
+          field: 'freeScore',
+          checked: preferencesConfig.get().scoringApproach === 'freeScore',
+        },
+        {
+          text: t('modals.settings.inlineScoring') || 'Inline Scoring',
+          field: 'inlineScoring',
+          checked: preferencesConfig.get().scoringApproach === 'inlineScoring',
+        },
       ],
       onChange: persist,
       field: 'scoringApproach',

@@ -15,9 +15,10 @@ import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
-
-import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { t } from 'i18n';
+
+// constants
+import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getRoundsColumns({ data, replaceTableData }: { data: any[]; replaceTableData: () => void }): any[] {
   const matchUpScheduleClick = (_e: Event, cell: any) => {
@@ -132,7 +133,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
       field: 'scoreDetail',
       responsive: false,
       title: t('tables.rounds.score'),
-      width: 140,
+      width: 200,
     },
     {
       sorter: competitiveProfileSorter,

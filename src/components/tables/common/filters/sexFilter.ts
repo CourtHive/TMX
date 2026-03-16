@@ -6,7 +6,7 @@ const { FEMALE, MALE, ANY } = genderConstants;
 export function getSexFilter(
   table: any,
   onChange?: () => void,
-): { sexOptions: any[]; genders: Record<string, string>; isFiltered: () => boolean } {
+): { sexOptions: any[]; genders: Record<string, string>; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined;
 
   const sexFilter = (rowData: any): boolean => rowData.participant?.person?.sex === filterValue;
@@ -31,11 +31,19 @@ export function getSexFilter(
     sexes.map((sex) => ({
       onClick: () => updateSexFilter(sex),
       label: genders[sex],
+      filterValue: sex,
       close: true,
     })),
   );
 
   const isFiltered = () => !!filterValue;
 
-  return { sexOptions, genders, isFiltered };
+  const selectableOptions = sexOptions.filter((opt: any) => !opt.divider);
+  const activeIndex = () => {
+    if (!filterValue) return 0;
+    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
+    return idx >= 0 ? idx : 0;
+  };
+
+  return { sexOptions, genders, isFiltered, activeIndex };
 }

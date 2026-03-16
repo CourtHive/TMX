@@ -3,20 +3,21 @@
  * Displays participant details, rankings, ratings, teams, seeding, flights, and status.
  * Rating columns are generated dynamically from entry data.
  */
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { flightsFormatter } from '../common/formatters/flightsFormatter';
-import { isSeedingEnabled } from './seeding/seedingState';
-import { getRatingColumns } from '../common/getRatingColumns';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
-import { tournamentEngine } from 'tods-competition-factory';
-import { context } from 'services/context';
-import { PARTICIPANTS } from 'constants/tmxConstants';
 import { numericEditor } from '../common/editors/numericEditor';
+import { getRatingColumns } from '../common/getRatingColumns';
 import { cellBorder } from '../common/formatters/cellBorder';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { tournamentEngine } from 'tods-competition-factory';
 import { threeDots } from '../common/formatters/threeDots';
 import { entryActions } from '../../popovers/entryActions';
+import { isSeedingEnabled } from './seeding/seedingState';
+import { PARTICIPANTS } from 'constants/tmxConstants';
 import { headerMenu } from '../common/headerMenu';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
@@ -75,8 +76,19 @@ export function getEntriesColumns(
       width: 50,
     },
     {
-      formatter: (cell: any) =>
-        (formatParticipant(undefined, { participantDetail: 'ADDRESS' }) as any)(cell, undefined, 'sideBySide'),
+      formatter: (cell: any) => {
+        const onClick = (params: any) => {
+          const clickedParticipant = params?.individualParticipant || params?.participant;
+          const participantId = clickedParticipant?.participantId || cell.getRow().getData().participantId;
+          if (!participantId) return;
+          const table = cell.getTable();
+          const participantIds = (table.getData() as any[])
+            .map((r: any) => r.participant?.participantId || r.participantId)
+            .filter(Boolean);
+          participantProfileModal({ participantId, participantIds, readOnly: true });
+        };
+        return (formatParticipant(onClick, { participantDetail: 'ADDRESS' }) as any)(cell, undefined, 'sideBySide');
+      },
       field: 'participant',
       responsive: false,
       resizable: false,
