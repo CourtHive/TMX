@@ -59,6 +59,7 @@ export function getEventControlItems({
       onKeyUp: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       clearSearch: () => updateParticipantFilter(''),
       placeholder: 'Participant name',
+      id: 'participantFilter',
       location: LEFT,
       search: true,
     },
