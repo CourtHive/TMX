@@ -143,11 +143,44 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
   const addMatchUps = () => {
     if (inputs[AUTOMATED].value === AUTOMATED) {
       let participantIds: string[];
+      console.log('[addAdHocRound] stage:', structure?.stage, 'sourceStructureIds:', structure?.sourceStructureIds);
 
       if (structure?.stage === 'VOLUNTARY_CONSOLATION') {
         // For voluntary consolation, get eligible losers from the main structure
         const eligible = tournamentEngine.getEligibleVoluntaryConsolationParticipants({ drawId });
         participantIds = (eligible?.eligibleParticipants || []).map((p: any) => p.participantId);
+      } else if (structure?.stage === 'PLAY_OFF' && structure?.sourceStructureIds?.length) {
+        // For AD_HOC playoff structures, find participants from source RR groups
+        // based on POSITION link finishingPositions
+        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+        const positionLink = drawDefinition?.links?.find(
+          (link: any) => link.linkType === 'POSITION' && link.target?.structureId === structureId,
+        );
+        const targetFinishingPositions = positionLink?.source?.finishingPositions || [];
+
+        // Get all participants from source structure's group results
+        const sourceStructureId = structure.sourceStructureIds[0];
+        const { event: drawEvent } = tournamentEngine.getEvent({ drawId });
+        const { eventData: evData } = tournamentEngine.getEventData({
+          includePositionAssignments: true,
+          eventId: drawEvent?.eventId,
+        });
+        const drawDataForParticipants = evData?.drawsData?.find((d: any) => d.drawId === drawId);
+        const sourceStructure = drawDataForParticipants?.structures?.find((s: any) => s.structureId === sourceStructureId);
+
+        // Collect participants by their group finishing position (groupOrder from tally).
+        // For CONTAINER (RR) structures, positionAssignments are flattened across all groups.
+        participantIds = [];
+        const positionAssignments = sourceStructure?.positionAssignments || [];
+        for (const pa of positionAssignments) {
+          if (!pa.participantId) continue;
+          const tally = pa.extensions?.find((e: any) => e.name === 'tally')?.value;
+          const groupOrder = tally?.groupOrder || tally?.rankOrder;
+          // Include if no finishingPositions specified (all) or participant's position matches
+          if (!targetFinishingPositions.length || (groupOrder && targetFinishingPositions.includes(groupOrder))) {
+            participantIds.push(pa.participantId);
+          }
+        }
       } else {
         const { drawDefinition } = tournamentEngine.getEvent({ drawId });
         participantIds = drawDefinition.entries

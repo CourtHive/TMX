@@ -13,7 +13,7 @@ import { controlBar } from 'courthive-components';
 import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
 import { SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 
-const { MAIN, QUALIFYING, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const AUTO_POSITION_PLAYOFF = 'autoPositionPlayoff';
 
 export function drawControlBar({

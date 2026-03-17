@@ -40,8 +40,8 @@ export function getEventControlItems({
   const drawsOptions = eventData?.eventInfo ? getDrawsOptions({ eventData }) : [];
 
   drawData = drawData || eventData?.drawsData?.find((data: any) => data.drawId === drawId);
-  const structureName = drawData?.structures?.find((s: any) => s.structureId === structureId)?.structureName;
   const structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
+  const structureName = structure?.structureName || structure?.stage || 'Structure';
 
   const structureOptions = getStructureOptions({
     structureId,

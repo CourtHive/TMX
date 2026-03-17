@@ -341,7 +341,10 @@ export function renderDrawView({
 
       // Apply after DOM insertion so click listeners attach to live nodes, not the morphdom template
       const liveNode = drawsView?.firstChild as HTMLElement;
-      if (liveNode) applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
+      if (liveNode) {
+        applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
+        applyRRGroupCompletionHighlighting(liveNode, displayMatchUps as any[]);
+      }
     }
   };
 
@@ -502,5 +505,25 @@ function applyConsolidationReadyHighlighting(
         el.classList.add('consolidation-ready');
       }
     }
+  }
+}
+
+function applyRRGroupCompletionHighlighting(content: HTMLElement, matchUps: any[]) {
+  if (!matchUps.some((m: any) => m.isRoundRobin)) return;
+
+  // Group matchUps by structureId (each RR group is a child structure)
+  const groups: Record<string, any[]> = {};
+  for (const m of matchUps) {
+    if (!m.structureId) continue;
+    (groups[m.structureId] ??= []).push(m);
+  }
+
+  for (const [groupId, groupMatchUps] of Object.entries(groups)) {
+    const allComplete = groupMatchUps.every((m: any) => m.winningSide);
+    if (!allComplete) continue;
+
+    content.querySelectorAll(`.chc-rr-group[data-group-id="${groupId}"]`).forEach((el) => {
+      (el as HTMLElement).classList.add('rr-group-complete');
+    });
   }
 }
