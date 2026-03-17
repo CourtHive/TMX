@@ -105,7 +105,7 @@ export function getEventControlItems({
         drawId,
       })?.extension?.value;
 
-      const newCompositionName = isInlineActive ? 'National' : 'InlineScoring';
+      const newCompositionName = isInlineActive ? 'Australian' : 'InlineScoring';
       const newComposition = compositions[newCompositionName];
       const extension = {
         value: {
@@ -121,7 +121,7 @@ export function getEventControlItems({
         methods: [{ method, params: { eventId, drawId, extension } }],
         callback: () => {
           displayConfig.set({ composition: newComposition });
-          renderDrawView({ eventId, drawId, structureId });
+          renderDrawView({ eventId, drawId, structureId, redraw: true });
         },
       });
     };
