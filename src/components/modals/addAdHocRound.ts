@@ -94,6 +94,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       scaleAccessor,
       roundsCount,
       scaleName,
+      structureId,
       drawId,
       ...(teamAvoidance === false && { sameTeamValue: 0 }),
     };
@@ -141,13 +142,21 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const addMatchUps = () => {
     if (inputs[AUTOMATED].value === AUTOMATED) {
-      const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-      const participantIds = drawDefinition.entries
-        .filter(
-          ({ entryStatus, entryStage }: any) =>
-            !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
-        )
-        .map(({ participantId }: any) => participantId);
+      let participantIds: string[];
+
+      if (structure?.stage === 'VOLUNTARY_CONSOLATION') {
+        // For voluntary consolation, get eligible losers from the main structure
+        const eligible = tournamentEngine.getEligibleVoluntaryConsolationParticipants({ drawId });
+        participantIds = (eligible?.eligibleParticipants || []).map((p: any) => p.participantId);
+      } else {
+        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+        participantIds = drawDefinition.entries
+          .filter(
+            ({ entryStatus, entryStage }: any) =>
+              !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
+          )
+          .map(({ participantId }: any) => participantId);
+      }
 
       checkParticipants({ participantIds });
     } else {

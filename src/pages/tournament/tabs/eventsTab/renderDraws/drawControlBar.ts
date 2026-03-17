@@ -112,9 +112,6 @@ export function drawControlBar({
     const adHocOptions = (getAdHocRoundOptions as any)({ structure, drawId, callback });
     drawControlItems.push(adHocOptions);
   }
-  if (structure?.stage === VOLUNTARY_CONSOLATION) {
-    console.log('voluntary controlBar with [View participants]');
-  }
 
   const isRoundRobin = structure?.structureType === drawDefinitionConstants.CONTAINER;
   const showRoundSelector =
