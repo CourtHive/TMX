@@ -293,8 +293,18 @@ export function renderDrawView({
       const isParticipantEl = (node: any) =>
         node instanceof HTMLElement && (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
 
-      const isInlineScoringEl = (node: any) =>
-        inlineManager && node instanceof HTMLElement && node.classList?.contains('chc-inline-scoring-wrapper');
+      // Only preserve inline wrappers for matchUps still eligible for inline scoring.
+      // Completed matchUps should be replaced with their normal rendered state.
+      const isActiveInlineScoringEl = (node: any) => {
+        if (!inlineManager || !(node instanceof HTMLElement) || !node.classList?.contains('chc-inline-scoring-wrapper')) {
+          return false;
+        }
+        const matchUpId = node.getAttribute('data-matchup-id');
+        if (!matchUpId) return false;
+        const m = (displayMatchUps as any[]).find((mu: any) => mu?.matchUpId === matchUpId);
+        // Don't preserve wrappers for completed matchUps — they need to render normally
+        return m && m.matchUpStatus !== 'COMPLETED' && !m.winningSide;
+      };
 
       const targetNode = drawsView?.firstChild;
       if (targetNode) {
@@ -307,13 +317,21 @@ export function renderDrawView({
             // Returning undefined forces positional matching instead.
             if (isParticipantEl(node)) return undefined;
 
+            // Inline scoring wrappers use data-matchup-id instead of id
+            // to avoid duplicate IDs with the inner matchUp element.
+            // Use it as the key so morphdom can match wrappers with their
+            // corresponding matchUp elements in the new content.
+            const matchUpId = node.getAttribute?.('data-matchup-id');
+            if (matchUpId) return matchUpId;
+
             const id = node.getAttribute?.('id');
             if (id && id !== 'undefined' && id !== '') return id;
             return undefined;
           },
           onBeforeElUpdated(fromEl: any, _toEl: any) {
-            // Preserve inline scoring wrappers — they manage their own re-render loop
-            if (isInlineScoringEl(fromEl)) return false;
+            // Preserve active inline scoring wrappers — they manage their own re-render loop.
+            // Completed matchUps are allowed through so morphdom replaces the stale wrapper.
+            if (isActiveInlineScoringEl(fromEl)) return false;
             return true;
           },
         });

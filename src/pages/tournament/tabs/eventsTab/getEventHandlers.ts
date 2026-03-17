@@ -138,7 +138,10 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
             },
           },
         ];
-        mutationRequest({ methods, callback });
+        // When a match completes (winningSide set), participants may advance —
+        // trigger a full refresh so lucky draw highlighting and structural changes apply.
+        const mutationCallback = (result: any) => callback({ ...result, refresh: !!winningSide });
+        mutationRequest({ methods, callback: mutationCallback });
       },
     });
 
