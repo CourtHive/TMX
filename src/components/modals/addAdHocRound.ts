@@ -143,7 +143,6 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
   const addMatchUps = () => {
     if (inputs[AUTOMATED].value === AUTOMATED) {
       let participantIds: string[];
-      console.log('[addAdHocRound] stage:', structure?.stage, 'sourceStructureIds:', structure?.sourceStructureIds);
 
       if (structure?.stage === 'VOLUNTARY_CONSOLATION') {
         // For voluntary consolation, get eligible losers from the main structure
