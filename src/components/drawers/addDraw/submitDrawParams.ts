@@ -18,10 +18,12 @@ import {
   policyConstants,
 } from 'tods-competition-factory';
 
+// constants
 import { ATTACH_QUALIFYING_STRUCTURE } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
+  BEST_FINISHERS,
   CUSTOM,
   DRAFT,
   DRAW_MATIC,
@@ -32,6 +34,8 @@ import {
   GROUP_REMAINING,
   GROUP_SIZE,
   MATCHUP_FORMAT,
+  PLAYOFF_DRAW_TYPE,
+  PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
   POSITIONS,
   QUALIFIERS_COUNT,
@@ -41,6 +45,7 @@ import {
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
+  TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
 const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
@@ -99,8 +104,24 @@ function getPlayoffGroups(
   advancePerGroup: number,
   groupRemaining: boolean,
   groupSize: number,
+  inputs?: any,
 ): any[] {
   const playoffGroups: any[] = [];
+
+  // Get the selected playoff draw type and optional playoff group size
+  const playoffDrawType = inputs?.[PLAYOFF_DRAW_TYPE]?.value;
+  const playoffGroupSize = inputs?.[PLAYOFF_GROUP_SIZE]?.value
+    ? Number.parseInt(inputs[PLAYOFF_GROUP_SIZE].value)
+    : undefined;
+
+  // Build extra properties to spread into each playoff group
+  const playoffDrawProps: any = {};
+  if (playoffDrawType) {
+    playoffDrawProps.drawType = playoffDrawType;
+  }
+  if (playoffDrawType === ROUND_ROBIN && playoffGroupSize) {
+    playoffDrawProps.structureOptions = { groupSize: playoffGroupSize };
+  }
 
   if (playoffType === TOP_FINISHERS) {
     const groups = [tools.generateRange(1, advancePerGroup + 1)];
@@ -112,13 +133,33 @@ function getPlayoffGroups(
       playoffGroups.push({
         structureName: `Playoff ${i + 1}`,
         finishingPositions,
+        ...playoffDrawProps,
       });
     });
+  } else if (playoffType === BEST_FINISHERS) {
+    const totalAdvance = Number.parseInt(inputs[TOTAL_ADVANCE]?.value || 0);
+    if (totalAdvance > 0) {
+      playoffGroups.push({
+        finishingPositions: [1],
+        bestOf: totalAdvance,
+        rankBy: 'GEMscore',
+        structureName: 'Playoff 1',
+        ...playoffDrawProps,
+      });
+      if (groupRemaining) {
+        playoffGroups.push({
+          remainder: true,
+          structureName: 'Playoff 2',
+          ...playoffDrawProps,
+        });
+      }
+    }
   } else if (playoffType === POSITIONS) {
     tools.generateRange(1, groupSize + 1).forEach((c) => {
       playoffGroups.push({
         structureName: `Playoff ${c}`,
         finishingPositions: [c],
+        ...playoffDrawProps,
       });
     });
   }
@@ -133,11 +174,27 @@ function getStructureOptions(drawType: string, inputs: any): any {
     const advancePerGroup = Number.parseInt(inputs.advancePerGroup?.value || 0);
     const groupRemaining = inputs[GROUP_REMAINING]?.checked;
     const playoffType = inputs[PLAYOFF_TYPE]?.value;
-    const playoffGroups = getPlayoffGroups(playoffType, advancePerGroup, groupRemaining, groupSize);
+    const playoffGroups = getPlayoffGroups(playoffType, advancePerGroup, groupRemaining, groupSize, inputs);
 
     const structureOptions: any = { groupSize };
     if (playoffGroups.length) {
       structureOptions.playoffGroups = playoffGroups;
+    } else {
+      // WINNERS case: no explicit playoffGroups, but pass drawType if non-default
+      const playoffDrawType = inputs?.[PLAYOFF_DRAW_TYPE]?.value;
+      const playoffGroupSize = inputs?.[PLAYOFF_GROUP_SIZE]?.value
+        ? Number.parseInt(inputs[PLAYOFF_GROUP_SIZE].value)
+        : undefined;
+      if (playoffDrawType) {
+        structureOptions.playoffGroups = [
+          {
+            drawType: playoffDrawType,
+            ...(playoffDrawType === ROUND_ROBIN && playoffGroupSize
+              ? { structureOptions: { groupSize: playoffGroupSize } }
+              : {}),
+          },
+        ];
+      }
     }
     return structureOptions;
   } else if (drawType === ROUND_ROBIN) {
@@ -363,8 +420,7 @@ export function submitDrawParams({
 
   const creationValue = inputs[AUTOMATED].value;
   const isDraft = creationValue === DRAFT;
-  const automated =
-    drawSize < drawEntries.length ? false : isDraft ? { seedsOnly: true } : creationValue === AUTOMATED;
+  const automated = drawSize < drawEntries.length ? false : isDraft ? { seedsOnly: true } : creationValue === AUTOMATED;
 
   const eventId = event.eventId;
   const drawOptions: any = {

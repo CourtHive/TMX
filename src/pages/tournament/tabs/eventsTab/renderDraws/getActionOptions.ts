@@ -14,7 +14,7 @@ import { resetDraws } from 'components/modals/resetDraws';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
-import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+
 import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { openResolveDraft } from 'components/modals/draftResolve';
 import { renderDrawView } from './renderDrawView';
@@ -86,16 +86,6 @@ export function getActionOptions({
   };
 
   const options = [
-    {
-      onClick: () =>
-        editDisplaySettings({
-          drawId,
-          eventId,
-          callback: () => renderDrawView({ eventId, drawId, structureId }),
-        }),
-      label: t('pages.events.actionOptions.displaySettings'),
-      close: true,
-    },
     {
       // Hide when: not main stage, blocked by scores, TEAM event, or button already visible in control bar
       hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM || hasUnassignedPositions,

@@ -116,10 +116,13 @@ export function renderUsersPanel({ container, providers, users, onRefresh }: Ren
   inviteBtn.addEventListener('click', () => {
     const processInviteResult = (inviteResult) => {
       const inviteCode = inviteResult?.data?.inviteCode;
-      console.log('Invite result:', inviteResult);
       if (inviteCode) {
         const inviteURL = `${globalThis.location.origin}${globalThis.location.pathname}/#/${INVITE}/${inviteCode}`;
+        console.log('Invite URL:', inviteURL);
         copyClick(inviteURL);
+      } else {
+        console.warn('Invite failed — no inviteCode in response:', inviteResult);
+        tmxToast({ message: t('system.inviteFailed'), intent: 'is-danger' });
       }
       onRefresh();
     };

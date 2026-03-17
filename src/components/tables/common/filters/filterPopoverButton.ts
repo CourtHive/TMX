@@ -8,6 +8,7 @@ type FilterSection = {
   label: string;
   options: any[];
   isFiltered: () => boolean;
+  activeIndex?: () => number;
 };
 
 let tip: Instance | undefined;
@@ -84,10 +85,12 @@ export function filterPopoverButton(sections: FilterSection[]): { item: any; upd
       select.className = 'input font-medium';
       select.style.cssText = 'width: 100%; margin-bottom: 0.75em; padding: 0.35em 0.5em; font-size: 0.9em;';
 
+      const activeIdx = section.activeIndex ? section.activeIndex() : 0;
       selectableOptions.forEach((opt: any, index: number) => {
         const option = document.createElement('option');
         option.value = String(index);
         option.textContent = stripHtml(opt.label || opt.text || '');
+        if (index === activeIdx) option.selected = true;
         select.appendChild(option);
       });
 

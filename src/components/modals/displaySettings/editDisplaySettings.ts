@@ -101,7 +101,7 @@ export function editDisplaySettings(params) {
   render(selections);
 
   const compositionOptions = Object.keys(compositions)
-    .filter((x) => x !== 'Night')
+    .filter((x) => x !== 'Night' && x !== 'InlineScoring')
     .map((key) => ({
       selected: key === selections.compositionName,
       label: key,

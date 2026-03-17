@@ -3,7 +3,7 @@
  */
 export interface PreferencesConfig {
   activeScale: string;
-  scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad';
+  scoringApproach: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
   smartComplements: boolean;
   hotkeys: boolean;
   scoring: boolean;
@@ -13,7 +13,7 @@ export interface PreferencesConfig {
 const defaults: PreferencesConfig = {
   activeScale: 'wtn',
   scoringApproach: 'dynamicSets',
-  smartComplements: false,
+  smartComplements: true,
   hotkeys: false,
   scoring: false,
   ioc: 'gbr',

@@ -8,6 +8,10 @@ import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick
 import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { InlineScoringManager } from 'courthive-components';
+
+import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { getTargetAttribute } from 'services/dom/parentAndChild';
 import { tipster } from 'components/popovers/tipster';
@@ -18,11 +22,12 @@ const { TEAM } = participantConstants;
 
 interface EventHandlersParams {
   callback: (params?: any) => void;
+  composition?: any;
   drawId: string;
   eventData: any;
 }
 
-export function getEventHandlers({ callback, drawId, eventData }: EventHandlersParams): any {
+export function getEventHandlers({ callback, composition, drawId, eventData }: EventHandlersParams) {
   const matchUps = eventData?.drawsData?.flatMap(({ structures }: any) =>
     structures
       .flatMap((structure: any) => [
@@ -90,10 +95,65 @@ export function getEventHandlers({ callback, drawId, eventData }: EventHandlersP
       } else {
         enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
       }
+    } else if (matchUp.matchUpStatus && !['TO_BE_PLAYED', 'COMPLETED', 'BYE'].includes(matchUp.matchUpStatus)) {
+      // For non-terminal statuses (SUSPENDED, IN_PROGRESS, etc.) that don't have a SCORE action,
+      // still allow opening the scoring modal to edit/clear the score
+      enterMatchUpScore({ matchUpId: matchUp.matchUpId, callback });
     }
   };
 
-  return {
+  // Inline scoring: create manager when composition has inlineScoring config
+  let inlineManager: InlineScoringManager | undefined;
+  if (composition?.configuration?.inlineScoring) {
+    inlineManager = new InlineScoringManager({
+      onSubmit: ({ matchUpId: mId, matchUp: scoredMatchUp }) => {
+        const { matchUpStatus, matchUpFormat, winningSide, score } = scoredMatchUp;
+        // Map sets for the factory outcome — include point scores (factory accepts
+        // both string and numeric values) but ensure they are always paired.
+        const sets = (score?.sets || []).map((s: any) => ({
+          setNumber: s.setNumber,
+          side1Score: s.side1Score,
+          side2Score: s.side2Score,
+          ...(s.side1TiebreakScore != null && { side1TiebreakScore: s.side1TiebreakScore }),
+          ...(s.side2TiebreakScore != null && { side2TiebreakScore: s.side2TiebreakScore }),
+          ...(s.side1PointScore != null && s.side2PointScore != null && {
+            side1PointScore: s.side1PointScore,
+            side2PointScore: s.side2PointScore,
+          }),
+          ...(s.winningSide != null && { winningSide: s.winningSide }),
+        }));
+        const methods = [
+          {
+            method: SET_MATCHUP_STATUS,
+            params: {
+              allowChangePropagation: true,
+              drawId: scoredMatchUp.drawId || drawId,
+              outcome: {
+                score: { sets },
+                matchUpFormat,
+                matchUpStatus,
+                winningSide,
+              },
+              matchUpId: mId,
+            },
+          },
+        ];
+        // When a match completes (winningSide set), participants may advance —
+        // trigger a full refresh so lucky draw highlighting and structural changes apply.
+        const mutationCallback = (result: any) => callback({ ...result, refresh: !!winningSide });
+        mutationRequest({ methods, callback: mutationCallback });
+      },
+    });
+
+    // Pre-create engines for all ready-to-score matchUps
+    for (const matchUp of matchUps || []) {
+      if (matchUp?.readyToScore && !matchUp?.winningSide && matchUp?.matchUpFormat) {
+        inlineManager.getOrCreate(matchUp.matchUpId, matchUp.matchUpFormat, matchUp);
+      }
+    }
+  }
+
+  const eventHandlers = {
     centerInfoClick: () => console.log('centerInfo click'),
     roundHeaderClick: (props: any) => {
       const roundNumber = getRoundNumber(props);
@@ -164,4 +224,6 @@ export function getEventHandlers({ callback, drawId, eventData }: EventHandlersP
     matchUpClick: scoreClick,
     scoreClick,
   };
+
+  return { eventHandlers, inlineManager, matchUpsMap };
 }

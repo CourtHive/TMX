@@ -46,23 +46,23 @@ export function unscheduledGridControl({
   };
 
   // Build filter functions
-  const { eventOptions, hasOptions: hasEvents, isFiltered: isEventFiltered } = getScheduleEventFilter(table);
-  const { eventTypeOptions, hasOptions: hasEventTypes, isFiltered: isEventTypeFiltered } =
+  const { eventOptions, hasOptions: hasEvents, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getScheduleEventFilter(table);
+  const { eventTypeOptions, hasOptions: hasEventTypes, isFiltered: isEventTypeFiltered, activeIndex: eventTypeActiveIndex } =
     getScheduleEventTypeFilter(table);
-  const { genderOptions, hasOptions: hasGenders, isFiltered: isGenderFiltered } = getScheduleGenderFilter(table);
-  const { roundOptions, hasOptions: hasRounds, isFiltered: isRoundFiltered } = getScheduleRoundFilter(table, matchUps);
-  const { flightOptions, hasOptions: hasFlights, isFiltered: isFlightFiltered } = getScheduleFlightFilter(
+  const { genderOptions, hasOptions: hasGenders, isFiltered: isGenderFiltered, activeIndex: genderActiveIndex } = getScheduleGenderFilter(table);
+  const { roundOptions, hasOptions: hasRounds, isFiltered: isRoundFiltered, activeIndex: roundActiveIndex } = getScheduleRoundFilter(table, matchUps);
+  const { flightOptions, hasOptions: hasFlights, isFiltered: isFlightFiltered, activeIndex: flightActiveIndex } = getScheduleFlightFilter(
     table,
     matchUps,
   );
 
   // Build filter popover sections
   const filterSections = [
-    { label: t('pages.schedule.allEventTypes'), options: hasEventTypes ? eventTypeOptions : [], isFiltered: isEventTypeFiltered },
-    { label: t('pages.schedule.allEvents'), options: hasEvents ? eventOptions : [], isFiltered: isEventFiltered },
-    { label: t('pages.schedule.allFlights'), options: hasFlights ? flightOptions : [], isFiltered: isFlightFiltered },
-    { label: t('pages.schedule.allGenders'), options: hasGenders ? genderOptions : [], isFiltered: isGenderFiltered },
-    { label: t('pages.schedule.allRounds'), options: hasRounds ? roundOptions : [], isFiltered: isRoundFiltered },
+    { label: t('pages.schedule.allEventTypes'), options: hasEventTypes ? eventTypeOptions : [], isFiltered: isEventTypeFiltered, activeIndex: eventTypeActiveIndex },
+    { label: t('pages.schedule.allEvents'), options: hasEvents ? eventOptions : [], isFiltered: isEventFiltered, activeIndex: eventActiveIndex },
+    { label: t('pages.schedule.allFlights'), options: hasFlights ? flightOptions : [], isFiltered: isFlightFiltered, activeIndex: flightActiveIndex },
+    { label: t('pages.schedule.allGenders'), options: hasGenders ? genderOptions : [], isFiltered: isGenderFiltered, activeIndex: genderActiveIndex },
+    { label: t('pages.schedule.allRounds'), options: hasRounds ? roundOptions : [], isFiltered: isRoundFiltered, activeIndex: roundActiveIndex },
   ];
   const { item: filterButton } = filterPopoverButton(filterSections);
 

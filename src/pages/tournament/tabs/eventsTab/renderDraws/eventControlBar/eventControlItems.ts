@@ -2,16 +2,21 @@
  * Event control bar items configuration.
  * Provides search, event/draw/structure navigation, and action options.
  */
-import { drawDefinitionConstants, eventConstants, tournamentEngine } from 'tods-competition-factory';
+import { drawDefinitionConstants, eventConstants, extensionConstants, tournamentEngine } from 'tods-competition-factory';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
 import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
+import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getStructureOptions } from '../getStructureOptions';
 import { editMatchUpFormat } from '../editMatchUpFormat';
 import { getDrawsOptions } from '../getDrawsOptions';
+import { displayConfig } from 'config/displayConfig';
 import { renderDrawView } from '../renderDrawView';
+import { compositions } from 'courthive-components';
 import { t } from 'i18n';
 
+import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { LEFT, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN } = drawDefinitionConstants;
@@ -19,27 +24,26 @@ const { TEAM } = eventConstants;
 
 export function getEventControlItems({
   updateParticipantFilter,
-  updateControlBar,
   structureId,
   eventData,
+  drawData,
   eventId,
   drawId,
 }: {
   updateParticipantFilter: (value: string) => void;
-  updateControlBar: (refresh?: boolean) => void;
   structureId: string;
   eventData: any;
+  drawData?: any;
   eventId: string;
   drawId: string;
 }): any[] {
-  const drawsOptions = getDrawsOptions({ eventData });
+  const drawsOptions = eventData?.eventInfo ? getDrawsOptions({ eventData }) : [];
 
-  const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
+  drawData = drawData || eventData?.drawsData?.find((data: any) => data.drawId === drawId);
   const structureName = drawData?.structures?.find((s: any) => s.structureId === structureId)?.structureName;
   const structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
   const structureOptions = getStructureOptions({
-    updateControlBar,
     structureId,
     drawData,
     eventId,
@@ -60,7 +64,7 @@ export function getEventControlItems({
     },
     {
       options: drawsOptions.length > 1 ? drawsOptions : undefined,
-      label: drawData.drawName,
+      label: drawData?.drawName,
       modifyLabel: true,
       location: LEFT,
     },
@@ -72,7 +76,64 @@ export function getEventControlItems({
     },
   ];
 
-  // RIGHT side icon buttons (order: scoring, topology, then assign participants furthest right)
+  // RIGHT side icon buttons (order: display, inline scoring, scoring, topology, then assign participants)
+
+  // Display settings
+  items.push({
+    onClick: () =>
+      editDisplaySettings({
+        drawId,
+        eventId,
+        callback: () => renderDrawView({ eventId, drawId, structureId }),
+      }),
+    label: '<i class="fa-solid fa-palette"></i>',
+    toolTip: { content: t('pages.events.actionOptions.displaySettings'), placement: 'bottom' },
+    location: RIGHT,
+  });
+
+  // Inline scoring toggle
+  if (!isTeam) {
+    const display = drawData?.display || eventData?.eventInfo?.display || {};
+    const isInlineActive = display?.compositionName === 'InlineScoring';
+
+    const toggleInlineScoring = () => {
+      const currentDisplay = tournamentEngine.findExtension({
+        name: extensionConstants.DISPLAY,
+        discover: true,
+        eventId,
+        drawId,
+      })?.extension?.value;
+
+      const newCompositionName = isInlineActive ? 'National' : 'InlineScoring';
+      const newComposition = compositions[newCompositionName];
+      const extension = {
+        value: {
+          ...currentDisplay,
+          compositionName: newCompositionName,
+          theme: newComposition?.theme,
+          configuration: newComposition?.configuration,
+        },
+        name: extensionConstants.DISPLAY,
+      };
+      const method = drawId ? ADD_DRAW_DEFINITION_EXTENSION : ADD_EVENT_EXTENSION;
+      mutationRequest({
+        methods: [{ method, params: { eventId, drawId, extension } }],
+        callback: () => {
+          displayConfig.set({ composition: newComposition });
+          renderDrawView({ eventId, drawId, structureId });
+        },
+      });
+    };
+
+    items.push({
+      onClick: toggleInlineScoring,
+      label: isInlineActive
+        ? '<i class="fa-solid fa-table-tennis-paddle-ball" style="color: var(--chc-color-primary, #3b82f6)"></i>'
+        : '<i class="fa-solid fa-table-tennis-paddle-ball"></i>',
+      toolTip: { content: isInlineActive ? 'Disable Inline Scoring' : 'Enable Inline Scoring', placement: 'bottom' },
+      location: RIGHT,
+    });
+  }
 
   // Edit main scoring (non-TEAM events only)
   if (!isTeam) {
@@ -93,7 +154,7 @@ export function getEventControlItems({
   });
 
   // Draft status button when a draft is active
-  const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
+  const drawDefinition = drawId ? tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition : undefined;
   const draftExt = drawDefinition?.extensions?.find((ext: any) => ext.name === 'draftState');
 
   if (draftExt) {

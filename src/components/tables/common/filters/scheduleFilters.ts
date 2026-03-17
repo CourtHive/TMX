@@ -1,15 +1,24 @@
 /**
  * Schedule-specific table filters for the unscheduled matchUps grid.
  * Each filter follows the same pattern as sexFilter/eventFilter/teamFilter:
- * returns { options[], isFiltered() } for use with filterPopoverButton.
+ * returns { options[], isFiltered(), activeIndex() } for use with filterPopoverButton.
  */
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { t } from 'i18n';
 
+function makeActiveIndex(selectableOptions: any[], getFilterValue: () => string | undefined) {
+  return () => {
+    const fv = getFilterValue();
+    if (!fv) return 0;
+    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === fv);
+    return idx >= 0 ? idx : 0;
+  };
+}
+
 export function getScheduleEventFilter(
   table: any,
   onChange?: () => void,
-): { eventOptions: any[]; hasOptions: boolean; isFiltered: () => boolean } {
+): { eventOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined;
 
   const eventFilter = (rowData: any): boolean => rowData.eventId === filterValue;
@@ -31,17 +40,19 @@ export function getScheduleEventFilter(
     events.map((event: any) => ({
       onClick: () => updateFilter(event.eventId),
       label: event.eventName,
+      filterValue: event.eventId,
       close: true,
     })),
   );
 
-  return { eventOptions, hasOptions: events.length > 1, isFiltered: () => !!filterValue };
+  const selectableOptions = eventOptions.filter((opt: any) => !opt.divider);
+  return { eventOptions, hasOptions: events.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
 }
 
 export function getScheduleEventTypeFilter(
   table: any,
   onChange?: () => void,
-): { eventTypeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean } {
+): { eventTypeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined;
 
   const eventTypeFilter = (rowData: any): boolean => rowData.eventType === filterValue;
@@ -64,17 +75,19 @@ export function getScheduleEventTypeFilter(
     eventTypes.map((eventType: string) => ({
       onClick: () => updateFilter(eventType),
       label: eventType,
+      filterValue: eventType,
       close: true,
     })),
   );
 
-  return { eventTypeOptions, hasOptions: eventTypes.length > 1, isFiltered: () => !!filterValue };
+  const selectableOptions = eventTypeOptions.filter((opt: any) => !opt.divider);
+  return { eventTypeOptions, hasOptions: eventTypes.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
 }
 
 export function getScheduleGenderFilter(
   table: any,
   onChange?: () => void,
-): { genderOptions: any[]; hasOptions: boolean; isFiltered: () => boolean } {
+): { genderOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined;
 
   const genderFilter = (rowData: any): boolean => rowData.gender === filterValue;
@@ -97,18 +110,20 @@ export function getScheduleGenderFilter(
     genders.map((gender: string) => ({
       onClick: () => updateFilter(gender),
       label: gender,
+      filterValue: gender,
       close: true,
     })),
   );
 
-  return { genderOptions, hasOptions: genders.length > 1, isFiltered: () => !!filterValue };
+  const selectableOptions = genderOptions.filter((opt: any) => !opt.divider);
+  return { genderOptions, hasOptions: genders.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
 }
 
 export function getScheduleRoundFilter(
   table: any,
   matchUps: any[],
   onChange?: () => void,
-): { roundOptions: any[]; hasOptions: boolean; isFiltered: () => boolean } {
+): { roundOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined;
 
   const roundFilter = (rowData: any): boolean => rowData.roundName === filterValue;
@@ -130,18 +145,20 @@ export function getScheduleRoundFilter(
     roundNames.map((roundName: string) => ({
       onClick: () => updateFilter(roundName),
       label: roundName,
+      filterValue: roundName,
       close: true,
     })),
   );
 
-  return { roundOptions, hasOptions: roundNames.length > 1, isFiltered: () => !!filterValue };
+  const selectableOptions = roundOptions.filter((opt: any) => !opt.divider);
+  return { roundOptions, hasOptions: roundNames.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
 }
 
 export function getScheduleFlightFilter(
   table: any,
   matchUps: any[],
   onChange?: () => void,
-): { flightOptions: any[]; hasOptions: boolean; isFiltered: () => boolean } {
+): { flightOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined;
 
   const flightFilter = (rowData: any): boolean => rowData.flight === filterValue;
@@ -163,9 +180,11 @@ export function getScheduleFlightFilter(
     flightNames.map((flightName: string) => ({
       onClick: () => updateFilter(flightName),
       label: flightName,
+      filterValue: flightName,
       close: true,
     })),
   );
 
-  return { flightOptions, hasOptions: flightNames.length > 1, isFiltered: () => !!filterValue };
+  const selectableOptions = flightOptions.filter((opt: any) => !opt.divider);
+  return { flightOptions, hasOptions: flightNames.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
 }

@@ -15,6 +15,7 @@ import {
   policyConstants,
 } from 'tods-competition-factory';
 
+// constants
 import { BOTTOM } from 'constants/tmxConstants';
 
 const { SUBSTITUTION, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT } = matchUpActionConstants;

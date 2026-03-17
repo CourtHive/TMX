@@ -3,6 +3,7 @@ import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/rend
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
 import { tournamentEngine, scoreGovernor, fixtures } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
+import { showTallyReportModal } from 'components/modals/tallyReportModal';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { getBracketColumns, attachHeaderTooltip } from './getBracketColumns';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
@@ -214,8 +215,16 @@ export async function createBracketTable({
     for (const group of groups) {
       if (groups.length > 1) {
         const header = document.createElement('div');
-        header.style.cssText = 'font-weight:bold;font-size:1.1em;padding:8px 4px 4px;';
+        header.style.cssText = 'font-weight:bold;font-size:1.1em;padding:8px 4px 4px; cursor:pointer; display:inline-block;';
         header.textContent = group.groupName;
+        header.title = 'Click to view tiebreak report';
+        header.onclick = () => {
+          const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
+          const groupMatchUps = allMatchUps.filter((mu: any) => mu.structureId === group.groupId);
+          if (groupMatchUps.length) {
+            showTallyReportModal({ groupMatchUps, groupName: group.groupName, eventId, drawId });
+          }
+        };
         element.appendChild(header);
       }
 

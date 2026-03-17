@@ -4,9 +4,11 @@
  * Rating columns are generated dynamically from entry data.
  */
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
-import { getRatingColumns } from 'components/tables/common/getRatingColumns';
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { numericEditor } from 'components/tables/common/editors/numericEditor';
+import { getRatingColumns } from 'components/tables/common/getRatingColumns';
 
+// constants
 import { CENTER, LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
@@ -16,7 +18,12 @@ export interface GetDrawEntriesColumnsParams {
 }
 
 export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesColumnsParams): any[] {
-  const ratingColumns = getRatingColumns(entries, 'entry').map((col) => ({ ...col, widthGrow: 1, minWidth: 80, width: undefined }));
+  const ratingColumns = getRatingColumns(entries, 'entry').map((col) => ({
+    ...col,
+    widthGrow: 1,
+    minWidth: 80,
+    width: undefined,
+  }));
   const cityState = entries.find((entry) => entry.cityState);
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
@@ -36,7 +43,19 @@ export function getDrawEntriesColumns({ entries, exclude = [] }: GetDrawEntriesC
       width: 50,
     },
     {
-      formatter: (cell: any) => (formatParticipant(undefined) as any)(cell, undefined, 'sideBySide'),
+      formatter: (cell: any) => {
+        const onClick = (params: any) => {
+          const clickedParticipant = params?.individualParticipant || params?.participant;
+          const participantId = clickedParticipant?.participantId || cell.getRow().getData().participantId;
+          if (!participantId) return;
+          const table = cell.getTable();
+          const participantIds = (table.getData() as any[])
+            .map((r: any) => r.participant?.participantId || r.participantId)
+            .filter(Boolean);
+          participantProfileModal({ participantId, participantIds, readOnly: true });
+        };
+        return (formatParticipant(onClick) as any)(cell, undefined, 'sideBySide');
+      },
       field: 'participant',
       responsive: false,
       minWidth: 250,

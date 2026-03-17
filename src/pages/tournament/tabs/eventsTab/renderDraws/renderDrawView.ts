@@ -3,7 +3,7 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
-import { compositions, controlBar, renderContainer, renderStructure } from 'courthive-components';
+import { compositions, controlBar, renderContainer, renderInlineMatchUp, renderStructure } from 'courthive-components';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { tournamentEngine, eventConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
@@ -28,7 +28,15 @@ import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
 
-import { EVENT_CONTROL, DRAWS_VIEW, QUALIFYING, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_TABLE, ROUNDS_STATS } from 'constants/tmxConstants';
+import {
+  EVENT_CONTROL,
+  DRAWS_VIEW,
+  QUALIFYING,
+  ROUNDS_BRACKET,
+  ROUNDS_RATINGS,
+  ROUNDS_TABLE,
+  ROUNDS_STATS,
+} from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
 
@@ -146,11 +154,6 @@ export function renderDrawView({
     }
   };
   const dual = matchUps?.length === 1 && eventData?.eventInfo?.eventType === TEAM;
-  const eventHandlers = getEventHandlers({
-    eventData,
-    callback,
-    drawId,
-  });
 
   const display = structure?.display || drawData?.display || eventData?.eventInfo?.display || {};
   const compositionName = display?.compositionName;
@@ -169,7 +172,7 @@ export function renderDrawView({
   // Always inject active scale so ratings display regardless of composition
   composition.configuration.scaleAttributes = scalesMap[preferencesConfig.get().activeScale];
 
-  if (!displayConfig.get().composition) {
+  if (!displayConfig.get().composition && !compositionName) {
     composition.configuration.genderColor = true;
     composition.configuration.showAddress = undefined;
 
@@ -177,6 +180,13 @@ export function renderDrawView({
     composition.configuration.drawPositions = true;
   }
   composition.configuration.roundHeader = true;
+
+  const { eventHandlers, inlineManager } = getEventHandlers({
+    composition,
+    eventData,
+    callback,
+    drawId,
+  });
 
   const drawsView = document.getElementById(DRAWS_VIEW);
   if (redraw && drawsView) removeAllChildNodes(drawsView);
@@ -217,25 +227,84 @@ export function renderDrawView({
         ? computeRoundVisibilityState(drawId, structureId!, displayMatchUps, currentEvent)
         : undefined;
 
+      // Identify matchUps eligible for inline scoring wrapping
+      const irregularStatuses = ['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED'];
+      if (inlineManager) {
+        for (const m of displayMatchUps as any[]) {
+          const hasBothParticipants = m?.sides?.length === 2 && m.sides[0]?.participant && m.sides[1]?.participant;
+          if (!hasBothParticipants) continue;
+          // Mark fresh ready-to-score matchUps as IN_PROGRESS so the LIVE chip renders.
+          // Don't override matchUps that already have a meaningful status (SUSPENDED, etc.)
+          if (m?.readyToScore && !m?.winningSide && (!m?.matchUpStatus || m.matchUpStatus === 'TO_BE_PLAYED')) {
+            m.matchUpStatus = 'IN_PROGRESS';
+          }
+        }
+      }
+
+      const structureContent = renderStructure({
+        context: { drawId, structureId, roundVisibilityState },
+        searchActive: !!participantFilter,
+        matchUps: displayMatchUps as any,
+        initialRoundNumber,
+        eventHandlers,
+        composition,
+        selectedMatchUpId: undefined,
+        structureId,
+        finalColumn: undefined,
+        minWidth: undefined,
+      });
+
+      // Replace eligible matchUp elements with interactive inline scoring wrappers.
+      // Includes: IN_PROGRESS (fresh or ongoing) and irregular endings (RETIRED, etc.)
+      // that need inline handlers for status changes.
+      if (inlineManager) {
+        for (const m of displayMatchUps as any[]) {
+          const isInProgress = m?.matchUpStatus === 'IN_PROGRESS' && !m?.winningSide;
+          const isIrregularEnding = irregularStatuses.includes(m?.matchUpStatus);
+          if (!isInProgress && !isIrregularEnding) continue;
+          if (!m?.sides?.length || !m.sides[0]?.participant || !m.sides[1]?.participant) continue;
+
+          const existing = structureContent.querySelector(`#${CSS.escape(m.matchUpId)}`);
+          if (!existing?.parentElement) continue;
+
+          // Derive connector params from the matchUp so bracket lines render correctly
+          const moiety = m.roundPosition ? m.roundPosition % 2 === 1 : undefined;
+          const isFinalRound = m.finishingRound ? Number(m.finishingRound) === 1 : false;
+
+          const inlineEl = renderInlineMatchUp({
+            matchUp: m,
+            composition,
+            manager: inlineManager,
+            matchUpFormat: m.matchUpFormat,
+            initialRoundNumber,
+            searchActive: !!participantFilter,
+            isFinalRound,
+            moiety,
+          });
+          existing.parentElement.replaceChild(inlineEl, existing);
+        }
+      }
+
       const content = renderContainer({
-        content: renderStructure({
-          context: { drawId, structureId, roundVisibilityState },
-          searchActive: !!participantFilter,
-          matchUps: displayMatchUps as any,
-          initialRoundNumber,
-          eventHandlers,
-          composition,
-          selectedMatchUpId: undefined,
-          structureId,
-          finalColumn: undefined,
-          minWidth: undefined,
-        }),
+        content: structureContent,
         theme: composition.theme,
       });
 
       const isParticipantEl = (node: any) =>
-        node instanceof HTMLElement &&
-        (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
+        node instanceof HTMLElement && (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
+
+      // Only preserve inline wrappers for matchUps still eligible for inline scoring.
+      // Completed matchUps should be replaced with their normal rendered state.
+      const isActiveInlineScoringEl = (node: any) => {
+        if (!inlineManager || !(node instanceof HTMLElement) || !node.classList?.contains('chc-inline-scoring-wrapper')) {
+          return false;
+        }
+        const matchUpId = node.getAttribute('data-matchup-id');
+        if (!matchUpId) return false;
+        const m = (displayMatchUps as any[]).find((mu: any) => mu?.matchUpId === matchUpId);
+        // Don't preserve wrappers for completed matchUps — they need to render normally
+        return m && m.matchUpStatus !== 'COMPLETED' && !m.winningSide;
+      };
 
       const targetNode = drawsView?.firstChild;
       if (targetNode) {
@@ -248,9 +317,22 @@ export function renderDrawView({
             // Returning undefined forces positional matching instead.
             if (isParticipantEl(node)) return undefined;
 
+            // Inline scoring wrappers use data-matchup-id instead of id
+            // to avoid duplicate IDs with the inner matchUp element.
+            // Use it as the key so morphdom can match wrappers with their
+            // corresponding matchUp elements in the new content.
+            const matchUpId = node.getAttribute?.('data-matchup-id');
+            if (matchUpId) return matchUpId;
+
             const id = node.getAttribute?.('id');
             if (id && id !== 'undefined' && id !== '') return id;
             return undefined;
+          },
+          onBeforeElUpdated(fromEl: any, _toEl: any) {
+            // Preserve active inline scoring wrappers — they manage their own re-render loop.
+            // Completed matchUps are allowed through so morphdom replaces the stale wrapper.
+            if (isActiveInlineScoringEl(fromEl)) return false;
+            return true;
           },
         });
       } else if (drawsView) {

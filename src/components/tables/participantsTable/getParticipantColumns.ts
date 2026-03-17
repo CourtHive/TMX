@@ -3,28 +3,36 @@
  * Displays participant details, ratings, sign-in status, events, and teams.
  * Rating columns are generated dynamically from participant data.
  */
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { genderConstants, tournamentEngine } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
-import { getRatingColumns } from '../common/getRatingColumns';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
+import { getRatingColumns } from '../common/getRatingColumns';
 import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
-import { genderConstants, tournamentEngine } from 'tods-competition-factory';
 import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
+import { t } from 'i18n';
 
+// constants
 import { CENTER, LEFT, PARTICIPANTS, RIGHT } from 'constants/tmxConstants';
 import { context } from 'services/context';
-import { t } from 'i18n';
 
 const { FEMALE, MALE } = genderConstants;
 
-export function getParticipantColumns({ data, replaceTableData }: { data: any[]; replaceTableData: () => void }): any[] {
+export function getParticipantColumns({
+  data,
+  replaceTableData,
+}: {
+  data: any[];
+  replaceTableData: () => void;
+}): any[] {
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
   const ratingColumns = getRatingColumns(data, 'participant');
@@ -51,8 +59,21 @@ export function getParticipantColumns({ data, replaceTableData }: { data: any[];
       width: 65,
     },
     {
-      formatter: formatParticipant(({ event, cell }: any) => (participantActions(replaceTableData) as any)(event, cell)),
-      cellClick: participantActions(replaceTableData),
+      formatter: formatParticipant((params: any) => {
+        const clickedParticipant = params?.individualParticipant || params?.participant;
+        const rowData = params?.cell?.getRow().getData();
+        if (!rowData) return;
+        const { participantType } = rowData;
+        if (participantType !== 'INDIVIDUAL') return;
+        const participantId = clickedParticipant?.participantId || rowData.participantId;
+        if (!participantId) return;
+        const table = params?.cell?.getTable();
+        if (!table) return;
+        const participantIds = (table.getData() as any[])
+          .filter((r: any) => r.participantType === 'INDIVIDUAL')
+          .map((r: any) => r.participantId);
+        participantProfileModal({ participantId, participantIds });
+      }),
       sorter: participantSorter,
       field: 'participant',
       responsive: false,

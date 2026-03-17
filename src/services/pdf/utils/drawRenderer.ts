@@ -35,7 +35,8 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
   }
 
   // Use default composition - try different composition types
-  const composition = compositions?.tableView || compositions?.gridView || compositions?.[Object.keys(compositions || {})[0]];
+  const composition =
+    compositions?.tableView || compositions?.gridView || compositions?.[Object.keys(compositions || {})[0]];
 
   // Create off-screen container - let it size naturally
   const offscreenContainer = document.createElement('div');
@@ -56,8 +57,6 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
       matchUpClick: () => {},
       // scoreClick intentionally omitted - no scoring in PDF printouts
     };
-
-
 
     // Check if composition is available
     if (!composition) {
@@ -83,7 +82,7 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
     offscreenContainer.appendChild(content);
 
     // Wait a moment for initial render
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Find the actual draw structure element and force it to expand fully
     const drawStructure = offscreenContainer.querySelector('.c-iZKoSQ, [class*="c-"]');
@@ -106,7 +105,7 @@ export async function renderDrawToPNG(options: RenderDrawOptions): Promise<strin
     });
 
     // Wait for re-layout after removing constraints
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Get the actual rendered dimensions from the FIRST CHILD (the draw container)
     const drawContainer = offscreenContainer.firstElementChild as HTMLElement;
