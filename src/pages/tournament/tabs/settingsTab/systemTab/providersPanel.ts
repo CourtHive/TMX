@@ -67,6 +67,7 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
     organisationName: p.value?.organisationName || '',
     organisationAbbreviation: p.value?.organisationAbbreviation || '',
     organisationId: p.value?.organisationId || p.key || '',
+    lastAccess: p.value?.lastAccess || '',
     searchText: `${p.value?.organisationName || ''} ${p.value?.organisationAbbreviation || ''}`.toLowerCase(),
     _raw: p,
   }));
@@ -81,6 +82,17 @@ export function renderProvidersPanel({ container, providers, users, onRefresh }:
     columns: [
       { title: t('system.providerName'), field: 'organisationName', headerSort: true },
       { title: t('system.providerAbbr'), field: 'organisationAbbreviation', headerSort: true },
+      {
+        title: t('system.lastAccess'),
+        field: 'lastAccess',
+        headerSort: true,
+        formatter: (cell: any) => {
+          const val = cell.getValue();
+          if (!val) return '';
+          const d = new Date(val);
+          return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
+      },
     ],
     data: providerData,
   });
@@ -182,6 +194,7 @@ function renderProviderDetail({ detailPane, provider, providers, users, onRefres
       lastName: u.value?.lastName || '',
       email: u.value?.email || '',
       roles: (u.value?.roles || []).join(', '),
+      lastAccess: u.value?.lastAccess || '',
       searchText: `${u.value?.firstName || ''} ${u.value?.lastName || ''} ${u.value?.email || ''}`.toLowerCase(),
     }));
 
@@ -196,6 +209,17 @@ function renderProviderDetail({ detailPane, provider, providers, users, onRefres
       { title: t('system.lastName'), field: 'lastName', headerSort: true },
       { title: 'Email', field: 'email', headerSort: true },
       { title: t('system.roles'), field: 'roles', headerSort: false },
+      {
+        title: t('system.lastAccess'),
+        field: 'lastAccess',
+        headerSort: true,
+        formatter: (cell: any) => {
+          const val = cell.getValue();
+          if (!val) return '';
+          const d = new Date(val);
+          return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
+      },
     ],
     data: filteredUsers,
   });

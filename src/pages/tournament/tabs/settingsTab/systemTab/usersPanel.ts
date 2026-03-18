@@ -78,6 +78,7 @@ export function renderUsersPanel({ container, providers, users, onRefresh }: Ren
     email: u.value?.email || '',
     providerName: providerMap[u.value?.providerId] || '',
     roles: (u.value?.roles || []).join(', '),
+    lastAccess: u.value?.lastAccess || '',
     searchText: `${u.value?.firstName || ''} ${u.value?.lastName || ''} ${u.value?.email || ''}`.toLowerCase(),
     _raw: u,
   }));
@@ -95,6 +96,17 @@ export function renderUsersPanel({ container, providers, users, onRefresh }: Ren
       { title: 'Email', field: 'email', headerSort: true },
       { title: t('system.provider'), field: 'providerName', headerSort: true },
       { title: t('system.roles'), field: 'roles', headerSort: false },
+      {
+        title: t('system.lastAccess'),
+        field: 'lastAccess',
+        headerSort: true,
+        formatter: (cell) => {
+          const val = cell.getValue();
+          if (!val) return '';
+          const d = new Date(val);
+          return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
+      },
     ],
     data: userData,
   });

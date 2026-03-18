@@ -301,7 +301,8 @@
     "inviteCopied": "Invite link copied to clipboard",
     "confirmRemoveUser": "Remove User",
     "removeUserConfirm": "Are you sure you want to remove",
-    "searchProviders": "Search providers..."
+    "searchProviders": "Search providers...",
+    "lastAccess": "Last Access"
   },
 
   "round_names": {
