@@ -106,8 +106,8 @@ importers:
         specifier: 6.3.7
         version: 6.3.7
       tods-competition-factory:
-        specifier: link:../factory
-        version: link:../factory
+        specifier: 2.4.6-beta.29
+        version: 2.4.6-beta.29
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -4254,6 +4254,10 @@ packages:
   to-buffer@1.2.2:
     resolution: {integrity: sha512-db0E3UJjcFhpDhAF4tLo03oli3pwl3dbnzXOUIlRKrp+ldk/VUxzpWYZENsw2SZiuBjHAk7DfB0VU7NKdpb6sw==}
     engines: {node: '>= 0.4'}
+
+  tods-competition-factory@2.4.6-beta.29:
+    resolution: {integrity: sha512-q8BU1D3s/bpl1ZK8W90b7z71TV/bOoJmn9mcJFS7iDNSDIL1zWjZTtWD0WGQTgPZSecJHb695cysS90+c7tvUA==}
+    engines: {node: '>=20'}
 
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
@@ -9021,6 +9025,8 @@ snapshots:
       isarray: 2.0.5
       safe-buffer: 5.2.1
       typed-array-buffer: 1.0.3
+
+  tods-competition-factory@2.4.6-beta.29: {}
 
   totalist@3.0.1: {}
 
