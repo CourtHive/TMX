@@ -7,6 +7,17 @@ import { t } from 'i18n';
 
 const PUB_ROUND_KEY = 'publishing.round';
 
+function getTournamentDateRange(startDate: string, endDate: string): string[] {
+  if (!startDate || !endDate) return [];
+  const fullRange = tools.generateDateRange(startDate, endDate);
+  const activeDates = tournamentEngine.getTournament()?.tournamentRecord?.activeDates;
+  if (activeDates?.length) {
+    const activeSet = new Set(activeDates);
+    return fullRange.filter((d: string) => activeSet.has(d));
+  }
+  return fullRange;
+}
+
 export type PublishingRowData = {
   id: string;
   name: string;
@@ -71,7 +82,7 @@ export function getTournamentPublishData(): TournamentPublishData {
       : false,
     participantsColumns: tournamentPubState?.participants?.columns,
     publishLanguage: tournamentPubState?.language,
-    tournamentDateRange: startDate && endDate ? tools.generateDateRange(startDate, endDate) : [],
+    tournamentDateRange: getTournamentDateRange(startDate, endDate),
     startDate,
     endDate,
   };

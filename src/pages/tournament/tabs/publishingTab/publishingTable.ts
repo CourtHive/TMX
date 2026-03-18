@@ -106,7 +106,7 @@ function handleNameClick(cell: any): void {
   if (data.type === 'draw' && data.drawId) {
     navigateToEvent({ eventId: data.eventId, drawId: data.drawId, renderDraw: true });
   } else if (data.type === 'event') {
-    navigateToEvent({ eventId: data.eventId });
+    navigateToEvent({ eventId: data.eventId, renderDraw: true });
   }
 }
 
@@ -488,7 +488,6 @@ export function renderPublishingTable(grid: HTMLElement): void {
     layout: 'fitColumns',
     placeholder: t('publishing.noEvents'),
     index: 'id',
-    height: Math.min(data.length * 80 + 60, window.innerHeight * 0.5),
     columns: getColumns(),
     data,
   });

@@ -315,8 +315,8 @@ export function renderPublishingTab(): void {
 
   renderTournamentControls(grid);
   renderQRPanel(grid);
-  renderPublishingTable(grid);
   renderEmbargoSummary(grid);
+  renderPublishingTable(grid);
 
   container.appendChild(grid);
 }
