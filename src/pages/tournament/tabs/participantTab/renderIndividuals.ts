@@ -32,6 +32,7 @@ import { featureFlags } from 'config/featureFlags';
 import { t } from 'i18n';
 
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
+import { context } from 'services/context';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
 
@@ -39,6 +40,7 @@ const isPrimary = 'is-primary';
 
 export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
+  context.refreshActiveTable = replaceTableData;
 
   const setSearchFilter = createSearchFilter(table);
   const state = getLoginState();

@@ -14,6 +14,7 @@ import { getMatchUpTypeFilter } from 'components/tables/common/filters/matchUpTy
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { setActiveScale } from 'settings/setActiveScale';
 import { controlBar } from 'courthive-components';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
@@ -24,6 +25,7 @@ const { SINGLES: SINGLES_EVENT } = eventConstants;
 
 export function renderMatchUpTab(): void {
   const { data, table, replaceTableData } = createMatchUpsTable();
+  context.refreshActiveTable = replaceTableData;
   const statsPanel = document.getElementById(TEAM_STATS)!;
   statsPanel.style.display = NONE;
 

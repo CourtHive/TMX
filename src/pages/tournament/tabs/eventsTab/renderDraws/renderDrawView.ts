@@ -368,6 +368,9 @@ export function renderDrawView({
     }
   };
 
+  // Allow remote mutations to trigger an in-place morphdom refresh
+  context.refreshActiveTable = updateView;
+
   const roundNumbers = Object.keys(roundMatchUps || {})
     .map(Number)
     .sort((a, b) => a - b);

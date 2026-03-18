@@ -18,13 +18,17 @@ import { showContent } from 'services/transitions/screenSlaver';
 import { requestTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
+import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { debugConfig } from 'config/debugConfig';
 import { tmx2db } from 'services/storage/tmx2db';
 import { t } from 'i18n';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
-import { joinTournamentRoom, leaveTournamentRoom } from 'services/messaging/socketIo';
+const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
+
+import { joinTournamentRoom, leaveTournamentRoom, hadDisconnect, clearDisconnectFlag } from 'services/messaging/socketIo';
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 import {
   MATCHUPS_TAB,
@@ -32,6 +36,7 @@ import {
   PUBLISHING_TAB,
   SCHEDULE_TAB,
   SCHEDULE2_TAB,
+  SYNC_INDICATOR,
   TOURNAMENT,
   VENUES_TAB,
   EVENTS_TAB,
@@ -42,9 +47,15 @@ import {
 export function displayTournament({ config }: { config?: any } = {}): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
+    // Tournament already loaded — check if we missed updates while disconnected
+    if (hadDisconnect() && getLoginState()) {
+      clearDisconnectFlag();
+      checkForStaleData(config.tournamentId);
+    }
     routeTo(config);
   } else {
     const prevId = (context as any).tournamentId;
+    slog('[tournament] switching from %s to %s (loggedIn=%s)', prevId, config.tournamentId, !!getLoginState());
     context.ee.emit(LEAVE_TOURNAMENT, prevId);
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
     tmx2db.findTournament(config.tournamentId).then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
@@ -58,7 +69,12 @@ function renderTournament({ config }: { config: any }): void {
   routeTo(config);
 
   // Join the tournament room so we receive mutation broadcasts from other clients
-  if (config.tournamentId && getLoginState()) joinTournamentRoom(config.tournamentId);
+  if (config.tournamentId && getLoginState()) {
+    slog('[tournament] renderTournament — joining room for', config.tournamentId);
+    joinTournamentRoom(config.tournamentId);
+  } else {
+    slog('[tournament] renderTournament — skipping room join (tournamentId=%s, loggedIn=%s)', config.tournamentId, !!getLoginState());
+  }
 }
 
 export function routeTo(config: any): void {
@@ -137,4 +153,52 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     tournamentEngine.setState(tournamentRecord);
     renderTournament({ config });
   }
+}
+
+/**
+ * After reconnecting from a disconnect, fetch the tournament from the server
+ * and compare `updatedAt` to detect missed mutations.  If stale, reload the
+ * server copy and show the sync indicator so the user knows data was refreshed.
+ */
+function checkForStaleData(tournamentId: string): void {
+  slog('[tournament] checking for stale data after reconnect — tournamentId:', tournamentId);
+  requestTournament({ tournamentId }).then(
+    (result: any) => {
+      const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
+      if (!serverRecord) {
+        slog('[tournament] stale check — server returned no record');
+        return;
+      }
+
+      const localRecord = tournamentEngine.getTournament()?.tournamentRecord;
+      const serverUpdated = serverRecord.updatedAt ? new Date(serverRecord.updatedAt).getTime() : 0;
+      const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
+
+      slog('[tournament] stale check — server updatedAt: %s, local updatedAt: %s', serverRecord.updatedAt, localRecord?.updatedAt);
+
+      if (serverUpdated > localUpdated) {
+        slog('[tournament] local data is stale — reloading from server');
+        tournamentEngine.setState(serverRecord);
+        saveTournamentRecord();
+
+        // Refresh the active table if one exists, otherwise show sync indicator
+        if (context.refreshActiveTable) {
+          context.refreshActiveTable();
+        } else {
+          const el = document.getElementById(SYNC_INDICATOR);
+          if (el) {
+            el.style.display = '';
+            el.classList.add('sync-indicator--active');
+          }
+        }
+
+        tmxToast({ message: 'Tournament data refreshed from server', intent: 'is-info' });
+      } else {
+        slog('[tournament] local data is up to date');
+      }
+    },
+    (err: any) => {
+      console.warn('[tournament] stale check failed:', err);
+    },
+  );
 }

@@ -4,6 +4,7 @@
 export interface DebugConfig {
   log: { verbose: boolean };
   renderLog: boolean;
+  socketLog: boolean;
   devNotes: boolean;
   averages: boolean;
 }
@@ -11,6 +12,7 @@ export interface DebugConfig {
 const defaults: DebugConfig = {
   log: { verbose: false },
   renderLog: false,
+  socketLog: false,
   devNotes: false,
   averages: false,
 };
