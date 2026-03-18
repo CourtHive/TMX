@@ -60,7 +60,7 @@ export function getStructureOptions({ drawData, eventId, structureId }: { drawDa
       onClick: () => {
         navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
       },
-      label: structure.structureName,
+      label: structure.structureName || structure.stage || 'Structure',
       close: true,
     }))
     .concat([

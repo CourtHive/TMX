@@ -1,11 +1,12 @@
 /**
  * Development mode utilities and debugging tools.
- * Exposes factory methods and utilities on window.dev for debugging.
+ * Exposes factory methods and utilities on globalThis.dev for debugging.
  */
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
+import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { loadTournament } from 'pages/tournament/tournamentDisplay';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { mutationRequest } from './mutation/mutationRequest';
@@ -21,6 +22,7 @@ import { env } from 'settings/env';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
 
+// constants
 import { TOURNAMENT } from 'constants/tmxConstants';
 
 const subscriptions: Record<string, (results: any) => void> = {
@@ -50,20 +52,20 @@ const subscriptions: Record<string, (results: any) => void> = {
 };
 
 function functionOrLog(s: string, results: any): void {
-  return typeof (window as any).dev?.subs?.[s] === 'function'
-    ? (window as any).dev.subs[s](results)
-    : ((window as any).dev.allSubscriptions || (window as any).dev.subs?.[s]) && console.log(s, results);
+  return typeof (globalThis as any).dev?.subs?.[s] === 'function'
+    ? (globalThis as any).dev.subs[s](results)
+    : ((globalThis as any).dev.allSubscriptions || (globalThis as any).dev.subs?.[s]) && console.log(s, results);
 }
 
 export function setDev(): void {
-  if (!(window as any)['dev']) {
-    console.log('%c dev initialized', 'color: yellow');
-    (window as any).dev = {};
-  } else {
+  if ((globalThis as any)['dev']) {
     return;
+  } else {
+    console.log('%c dev initialized', 'color: yellow');
+    (globalThis as any).dev = {};
   }
 
-  const help = () => console.log('set window.socketURL for messaging');
+  const help = () => console.log('set globalThis.socketURL for messaging');
   const modifyTournament = (methods: any[]) => {
     if (!Array.isArray(methods)) {
       tmxToast({ message: t('toasts.missingMethodsArray'), intent: 'is-danger' });
@@ -129,6 +131,8 @@ export function setDev(): void {
   addDev({ connectSocket, disconnectSocket, emitTmx });
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
+
+  addDev({ completeMatchUps });
   addDev({ providerConfig });
 
   addDev({
@@ -140,7 +144,7 @@ export function setDev(): void {
     },
     goLocal: (port = 8383) => {
       const url = `http://localhost:${port}`;
-      (window as any).dev.setServer(url);
+      (globalThis as any).dev.setServer(url);
     },
     getServer: () => getBaseURL(),
   });
@@ -149,10 +153,10 @@ export function setDev(): void {
 }
 
 function addDev(variable: Record<string, any>): void {
-  if (!isObject((window as any).dev)) return;
+  if (!isObject((globalThis as any).dev)) return;
 
   try {
-    Object.keys(variable).forEach((key) => ((window as any).dev[key] = variable[key]));
+    Object.keys(variable).forEach((key) => ((globalThis as any).dev[key] = variable[key]));
   } catch (err) {
     tmxToast({ message: t('toasts.devVariableError'), intent: 'is-danger' });
     console.error('Error adding dev variables:', err);

@@ -48,7 +48,7 @@ import {
   TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
-const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
+const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
   drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { POLICY_TYPE_SEEDING } = policyConstants;
@@ -404,7 +404,7 @@ export function submitDrawParams({
   const drawSizeValue = inputs[DRAW_SIZE].value || 0;
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const drawSize =
-    ([LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC].includes(drawType) && drawSizeInteger) ||
+    ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC].includes(drawType) && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
     ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),

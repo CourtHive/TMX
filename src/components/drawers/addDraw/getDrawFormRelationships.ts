@@ -3,14 +3,14 @@
  * Manages form field dependencies and dynamic updates for draw creation.
  */
 import { drawDefinitionConstants, tournamentEngine, tools } from 'tods-competition-factory';
-import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
+import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { renderOptions, validators } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { getTopologyTemplates } from './topologyTemplates';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { getTopologyTemplates } from './topologyTemplates';
 
-const { AD_HOC, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
+const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
   drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
@@ -40,7 +40,15 @@ import {
 } from 'constants/tmxConstants';
 
 /** Non-power-of-2 structure types that use raw draw size */
-const NON_POW2_TYPES = [LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, DRAW_MATIC, AD_HOC];
+const NON_POW2_TYPES = new Set([
+  ADAPTIVE,
+  LUCKY_DRAW,
+  FEED_IN,
+  ROUND_ROBIN,
+  ROUND_ROBIN_WITH_PLAYOFF,
+  DRAW_MATIC,
+  AD_HOC,
+]);
 
 /**
  * When drawType is a topology template reference, resolve the main node's
@@ -111,8 +119,7 @@ export function getDrawFormRelationships({
       isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const effectiveType = resolveEffectiveDrawType(drawType as string);
     const drawSize =
-      ((maxQualifiers || NON_POW2_TYPES.includes(effectiveType)) && drawSizeInteger) ||
-      tools.nextPowerOf2(drawSizeInteger);
+      ((maxQualifiers || NON_POW2_TYPES.has(effectiveType)) && drawSizeInteger) || tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
 
     checkCreationMethod({ fields, inputs });

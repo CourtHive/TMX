@@ -53,8 +53,9 @@ export async function createBracketTable({
   let structure: any;
   let tables: any[] = [];
 
-  // Map from groupId to its Tabulator instance
+  // Map from groupId to its Tabulator instance and container element
   const tablesByGroup: Record<string, any> = {};
+  const containersByGroup: Record<string, HTMLElement> = {};
 
   const getParticipantMap = (participants: any[]) =>
     (participants ?? []).reduce((map: Record<string, any>, participant: any) => {
@@ -126,10 +127,20 @@ export async function createBracketTable({
     }
   };
 
+  // Re-evaluate green completion highlighting for a specific group
+  const refreshGroupHighlight = (groupId: string) => {
+    const container = containersByGroup[groupId];
+    if (!container) return;
+    const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
+    const groupMatchUps = allMatchUps.filter((mu: any) => mu.structureId === groupId);
+    const allComplete = groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
+    container.classList.toggle('rr-group-complete', allComplete);
+  };
+
   // After scoring, update all rows in the affected group (stats change for everyone)
   const updateGroupAfterScore = (matchUpId: string) => {
     // Find which group contains this matchUp and update all its rows
-    for (const [, table] of Object.entries(tablesByGroup)) {
+    for (const [groupId, table] of Object.entries(tablesByGroup)) {
       const allPositions: number[] = [];
       let found = false;
       for (const row of table.getRows()) {
@@ -141,6 +152,7 @@ export async function createBracketTable({
       }
       if (found) {
         updateRows(allPositions);
+        refreshGroupHighlight(groupId);
         return;
       }
     }
@@ -212,7 +224,24 @@ export async function createBracketTable({
     const groups = getData();
     tables = [];
 
+    // Build set of completed group IDs for green highlighting
+    const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
+    const completedGroupIds = new Set<string>();
     for (const group of groups) {
+      const groupMatchUps = allMatchUps.filter((mu: any) => mu.structureId === group.groupId);
+      const allComplete = groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
+      if (allComplete) completedGroupIds.add(group.groupId);
+    }
+
+    for (const group of groups) {
+      // Wrap each group's header + table in a container for highlighting
+      const groupContainer = document.createElement('div');
+      if (completedGroupIds.has(group.groupId)) {
+        groupContainer.classList.add('rr-group-complete');
+      }
+      groupContainer.style.cssText = 'border-radius:4px; margin-bottom:4px; padding:2px;';
+      element.appendChild(groupContainer);
+
       if (groups.length > 1) {
         const header = document.createElement('div');
         header.style.cssText = 'font-weight:bold;font-size:1.1em;padding:8px 4px 4px; cursor:pointer; display:inline-block;';
@@ -225,13 +254,13 @@ export async function createBracketTable({
             showTallyReportModal({ groupMatchUps, groupName: group.groupName, eventId, drawId });
           }
         };
-        element.appendChild(header);
+        groupContainer.appendChild(header);
       }
 
       ensureBracketStyles();
       const tableDiv = document.createElement('div');
       tableDiv.classList.add('bracket-table');
-      element.appendChild(tableDiv);
+      groupContainer.appendChild(tableDiv);
 
       const columns = getBracketColumns({
         participants: group.participants,
@@ -266,6 +295,7 @@ export async function createBracketTable({
 
       tables.push(table);
       tablesByGroup[group.groupId] = table;
+      containersByGroup[group.groupId] = groupContainer;
     }
   };
 

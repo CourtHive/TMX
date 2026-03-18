@@ -811,6 +811,14 @@ html {
   background-color: rgba(72, 199, 116, 0.3);
 }
 
+/* Round Robin: highlight completed groups ready for playoff placement */
+.rr-group-complete {
+  background-color: rgba(72, 199, 116, 0.18);
+}
+[data-theme='dark'] .rr-group-complete {
+  background-color: rgba(72, 199, 116, 0.2);
+}
+
 /* Consolidation: highlight target rounds awaiting lucky loser decision */
 .consolidation-ready {
   background-color: var(--tmx-panel-green-bg);

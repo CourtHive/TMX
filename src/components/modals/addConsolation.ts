@@ -14,11 +14,10 @@ import { t } from 'i18n';
 import { GENERATE_VOLUNTARY_CONSOLATION } from 'constants/mutationConstants';
 import { DRAW_TYPE, GROUP_SIZE, NONE } from 'constants/tmxConstants';
 
-const { ROUND_ROBIN, SINGLE_ELIMINATION, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
+const { ROUND_ROBIN, SINGLE_ELIMINATION, AD_HOC } = drawDefinitionConstants;
 
 const CONSOLATION_DRAW_TYPES = [
   { label: 'Single elimination', value: SINGLE_ELIMINATION },
-  { label: 'Lucky', value: LUCKY_DRAW },
   { label: 'Round robin', value: ROUND_ROBIN },
   { label: 'Ad-hoc', value: AD_HOC },
 ];

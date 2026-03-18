@@ -94,6 +94,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       scaleAccessor,
       roundsCount,
       scaleName,
+      structureId,
       drawId,
       ...(teamAvoidance === false && { sameTeamValue: 0 }),
     };
@@ -141,13 +142,72 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const addMatchUps = () => {
     if (inputs[AUTOMATED].value === AUTOMATED) {
-      const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-      const participantIds = drawDefinition.entries
-        .filter(
-          ({ entryStatus, entryStage }: any) =>
-            !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
-        )
-        .map(({ participantId }: any) => participantId);
+      let participantIds: string[];
+
+      if (structure?.stage === 'VOLUNTARY_CONSOLATION') {
+        // For voluntary consolation, get eligible losers from the main structure
+        const eligible = tournamentEngine.getEligibleVoluntaryConsolationParticipants({ drawId });
+        participantIds = (eligible?.eligibleParticipants || []).map((p: any) => p.participantId);
+      } else if (structure?.sourceStructureIds?.length) {
+        // Structure linked from a source — find eligible participants based on link type
+        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+        const loserLinks = drawDefinition?.links?.filter(
+          (link: any) => link.linkType === 'LOSER' && link.target?.structureId === structureId,
+        );
+        const positionLink = drawDefinition?.links?.find(
+          (link: any) => link.linkType === 'POSITION' && link.target?.structureId === structureId,
+        );
+
+        if (loserLinks?.length) {
+          // LOSER links: collect losers from completed matchUps in source rounds
+          const sourceStructureId = structure.sourceStructureIds[0];
+          const sourceRoundNumbers = new Set(loserLinks.map((l: any) => l.source?.roundNumber).filter(Boolean));
+          const result = tournamentEngine.allDrawMatchUps({ drawId, inContext: true });
+          const sourceMatchUps = (result?.matchUps || []).filter(
+            (m: any) => m.structureId === sourceStructureId && m.winningSide && sourceRoundNumbers.has(m.roundNumber),
+          );
+
+          participantIds = [];
+          for (const m of sourceMatchUps) {
+            const losingSide = m.sides?.find((_: any, i: number) => i + 1 !== m.winningSide);
+            if (losingSide?.participantId) participantIds.push(losingSide.participantId);
+          }
+        } else if (positionLink) {
+          // POSITION links: find participants by finishing position (RR group results)
+          const targetFinishingPositions = positionLink.source?.finishingPositions || [];
+          const sourceStructureId = structure.sourceStructureIds[0];
+          const { event: drawEvent } = tournamentEngine.getEvent({ drawId });
+          const { eventData: evData } = tournamentEngine.getEventData({
+            includePositionAssignments: true,
+            eventId: drawEvent?.eventId,
+          });
+          const drawDataForParticipants = evData?.drawsData?.find((d: any) => d.drawId === drawId);
+          const sourceStructure = drawDataForParticipants?.structures?.find(
+            (s: any) => s.structureId === sourceStructureId,
+          );
+
+          participantIds = [];
+          const positionAssignments = sourceStructure?.positionAssignments || [];
+          for (const pa of positionAssignments) {
+            if (!pa.participantId) continue;
+            const tally = pa.extensions?.find((e: any) => e.name === 'tally')?.value;
+            const groupOrder = tally?.groupOrder || tally?.rankOrder;
+            if (!targetFinishingPositions.length || (groupOrder && targetFinishingPositions.includes(groupOrder))) {
+              participantIds.push(pa.participantId);
+            }
+          }
+        } else {
+          participantIds = [];
+        }
+      } else {
+        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+        participantIds = drawDefinition.entries
+          .filter(
+            ({ entryStatus, entryStage }: any) =>
+              !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
+          )
+          .map(({ participantId }: any) => participantId);
+      }
 
       checkParticipants({ participantIds });
     } else {

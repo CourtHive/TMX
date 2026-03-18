@@ -40,8 +40,8 @@ export function getEventControlItems({
   const drawsOptions = eventData?.eventInfo ? getDrawsOptions({ eventData }) : [];
 
   drawData = drawData || eventData?.drawsData?.find((data: any) => data.drawId === drawId);
-  const structureName = drawData?.structures?.find((s: any) => s.structureId === structureId)?.structureName;
   const structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
+  const structureName = structure?.structureName || structure?.stage || 'Structure';
 
   const structureOptions = getStructureOptions({
     structureId,
@@ -59,6 +59,7 @@ export function getEventControlItems({
       onKeyUp: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       clearSearch: () => updateParticipantFilter(''),
       placeholder: 'Participant name',
+      id: 'participantFilter',
       location: LEFT,
       search: true,
     },
@@ -104,7 +105,7 @@ export function getEventControlItems({
         drawId,
       })?.extension?.value;
 
-      const newCompositionName = isInlineActive ? 'National' : 'InlineScoring';
+      const newCompositionName = isInlineActive ? 'Australian' : 'InlineScoring';
       const newComposition = compositions[newCompositionName];
       const extension = {
         value: {
@@ -120,7 +121,7 @@ export function getEventControlItems({
         methods: [{ method, params: { eventId, drawId, extension } }],
         callback: () => {
           displayConfig.set({ composition: newComposition });
-          renderDrawView({ eventId, drawId, structureId });
+          renderDrawView({ eventId, drawId, structureId, redraw: true });
         },
       });
     };

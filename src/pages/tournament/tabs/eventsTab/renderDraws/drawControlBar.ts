@@ -13,7 +13,7 @@ import { controlBar } from 'courthive-components';
 import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
 import { SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 
-const { MAIN, QUALIFYING, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const AUTO_POSITION_PLAYOFF = 'autoPositionPlayoff';
 
 export function drawControlBar({
@@ -111,9 +111,6 @@ export function drawControlBar({
   if (isAdHoc) {
     const adHocOptions = (getAdHocRoundOptions as any)({ structure, drawId, callback });
     drawControlItems.push(adHocOptions);
-  }
-  if (structure?.stage === VOLUNTARY_CONSOLATION) {
-    console.log('voluntary controlBar with [View participants]');
   }
 
   const isRoundRobin = structure?.structureType === drawDefinitionConstants.CONTAINER;
