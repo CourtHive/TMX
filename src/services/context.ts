@@ -16,6 +16,7 @@ export const context: {
   };
   columns: Record<string, any>;
   collectionTables?: any[];
+  refreshActiveTable?: () => void;
   router?: { navigate: (path: string) => void; resolve: () => void; current: any[] | null };
   provider?: ProviderValue;
   quill?: any;

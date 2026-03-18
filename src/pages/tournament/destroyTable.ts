@@ -14,6 +14,9 @@ export function destroyTables(): void {
     }
   }
 
+  // Clear stale refresh callback so the sync indicator shows as fallback
+  context.refreshActiveTable = undefined;
+
   while ((context.collectionTables || []).length) {
     const table = context.collectionTables?.pop();
     table?.destroy();

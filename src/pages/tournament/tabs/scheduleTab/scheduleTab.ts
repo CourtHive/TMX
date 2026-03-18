@@ -63,6 +63,11 @@ export function renderScheduleTab(params: { scheduledDate?: string }): void {
     scheduledDate,
   });
 
+  context.refreshActiveTable = () => {
+    updateUnscheduledTable();
+    updateScheduleTable({ scheduledDate });
+  };
+
   (unscheduledGridControl as any)({
     minCourtGridRows: scheduleConfig.get().minCourtGridRows,
     controlAnchor: unscheduldControlAnchor,

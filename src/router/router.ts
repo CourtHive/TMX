@@ -9,7 +9,7 @@ import { destroyTables } from 'pages/tournament/destroyTable';
 
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { renderSystemPage } from 'pages/system/renderSystemPage';
-import { queueKey } from 'services/messaging/socketIo';
+import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { context } from 'services/context';
 import Navigo from 'navigo';
 
@@ -42,6 +42,14 @@ export function routeTMX() {
 
   // make accessible
   context.router = router;
+
+  // Reconnect socket on any navigation if it was lost
+  router.hooks({
+    before(done) {
+      ensureConnected();
+      done();
+    },
+  });
 
   const displayRoute = ({ selectedTab, renderDraw, renderPoints, data }: any) => {
     destroyTables();

@@ -5,7 +5,8 @@
  * Flow:
  *   Server broadcasts `tournamentMutation` → socketIo handler → this module
  *   → applies mutations locally via factory engine → saves to IndexedDB
- *   → shows sync indicator in navbar (click to re-render current page)
+ *   → refreshes active table data in-place (preserving sort/scroll)
+ *   → shows sync indicator in navbar if no table could be refreshed
  */
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { onTournamentMutation } from 'services/messaging/socketIo';
@@ -23,11 +24,14 @@ interface RemoteMutationPayload {
   timestamp?: number;
 }
 
+const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
+
 /**
  * Initialize the remote mutation listener.
  * Call once at app startup (e.g. in initialState.ts).
  */
 export function initRemoteMutationHandler(): void {
+  slog('[remoteMutation] handler registered');
   onTournamentMutation(handleRemoteMutation);
 }
 
@@ -52,10 +56,9 @@ function showSyncIndicator(): void {
     el.dataset.bound = '1';
     el.addEventListener('click', () => {
       clearSyncIndicator();
-      // Re-render the current page by re-navigating to the current route
-      const current = context.router?.current?.[0];
-      if (current?.url) {
-        context.router?.navigate(current.url);
+      if (context.refreshActiveTable) {
+        slog('[syncIndicator] clicked — refreshing active table');
+        context.refreshActiveTable();
       }
     });
   }
@@ -63,6 +66,8 @@ function showSyncIndicator(): void {
 
 async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> {
   const { methods, tournamentIds, userId } = data;
+  slog('[remoteMutation] received — methods:', methods?.length, 'tournaments:', tournamentIds, 'from:', userId);
+
   if (!methods?.length || !tournamentIds?.length) return;
 
   const factoryEngine = factory[TOURNAMENT_ENGINE];
@@ -71,11 +76,13 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   // Only apply if we have at least one of the affected tournaments loaded
   const loadedRecords = factoryEngine.getState()?.tournamentRecords ?? {};
   const affected = tournamentIds.filter((id) => loadedRecords[id]);
-  if (!affected.length) return;
-
-  if (debugConfig.get().log?.verbose) {
-    console.log('%c [remoteMutation] applying', 'color: orange', { userId, methods: methods.length });
+  if (!affected.length) {
+    slog('[remoteMutation] skipped — none of the affected tournaments are loaded locally');
+    return;
   }
+
+  const methodNames = methods.map((m: any) => m.method || m.methodName || 'unknown');
+  slog('[remoteMutation] applying %d methods from %s:', methods.length, userId, methodNames);
 
   // Execute the same mutations locally
   const directives = factory.tools.makeDeepCopy(methods);
@@ -90,8 +97,15 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   // Persist to IndexedDB
   await saveTournamentRecord();
 
-  // Show sync indicator in the navbar
-  showSyncIndicator();
+  // Refresh the active table in-place (preserves sort and scroll)
+  if (context.refreshActiveTable) {
+    slog('[remoteMutation] refreshing active table in-place');
+    context.refreshActiveTable();
+  } else {
+    // No table refresh available — show sync indicator so user can manually refresh
+    slog('[remoteMutation] no active table — showing sync indicator');
+    showSyncIndicator();
+  }
 
   // Emit a local event so the active view can optionally react
   context.ee.emit('remoteMutation', { methods, tournamentIds });
