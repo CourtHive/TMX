@@ -276,8 +276,8 @@ export function renderTournamentControls(grid: HTMLElement): void {
     dateGrid.className = 'pub-date-grid';
 
     const publishedDates = data.oopScheduledDates || [];
-    // Empty scheduledDates means "all dates" — render all chips as active
-    const allDatesPublished = publishedDates.length === 0;
+    // Empty scheduledDates means "all dates" — but only when OOP is actually published
+    const allDatesPublished = data.oopPublished && publishedDates.length === 0;
 
     for (const date of data.tournamentDateRange) {
       const chip = document.createElement('button');
@@ -298,12 +298,20 @@ export function renderTournamentControls(grid: HTMLElement): void {
           newDates = [...effectiveDates, date];
         }
 
-        mutationRequest({
-          methods: [
-            { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
-          ],
-          callback: () => renderPublishingTab(),
-        });
+        // If no dates remain, unpublish order of play entirely
+        if (!newDates.length) {
+          mutationRequest({
+            methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
+            callback: () => renderPublishingTab(),
+          });
+        } else {
+          mutationRequest({
+            methods: [
+              { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
+            ],
+            callback: () => renderPublishingTab(),
+          });
+        }
       });
 
       dateGrid.appendChild(chip);
