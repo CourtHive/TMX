@@ -347,12 +347,27 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   });
   bar.appendChild(saveBtn);
 
-  // Apply schedule button
-  const scheduleBtn = document.createElement('button');
-  scheduleBtn.className = 'sp-btn sp-btn--success';
-  scheduleBtn.innerHTML = '<i class="fa-solid fa-calendar-check" style="margin-right:6px;"></i>Apply Schedule';
-  scheduleBtn.addEventListener('click', () => applySchedule(setup, statusEl));
-  bar.appendChild(scheduleBtn);
+  // Apply schedule — segmented control: Times | Grid
+  const applyWrap = document.createElement('div');
+  applyWrap.style.cssText = 'display: flex; align-items: center; gap: 0;';
+
+  const applyTimesBtn = document.createElement('button');
+  applyTimesBtn.className = 'sp-btn sp-btn--success';
+  applyTimesBtn.style.cssText += '; border-radius: 6px 0 0 6px;';
+  applyTimesBtn.innerHTML = '<i class="fa-solid fa-clock" style="margin-right:6px;"></i>Apply Times';
+  applyTimesBtn.title = 'Assign scheduled times using the Garman algorithm';
+  applyTimesBtn.addEventListener('click', () => applySchedule(setup, statusEl));
+
+  const applyGridBtn = document.createElement('button');
+  applyGridBtn.className = 'sp-btn sp-btn--success';
+  applyGridBtn.style.cssText += '; border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.3);';
+  applyGridBtn.innerHTML = '<i class="fa-solid fa-table-cells" style="margin-right:6px;"></i>Apply Grid';
+  applyGridBtn.title = 'Assign court grid positions without times (pro scheduling)';
+  applyGridBtn.addEventListener('click', () => applyGrid(setup, statusEl));
+
+  applyWrap.appendChild(applyTimesBtn);
+  applyWrap.appendChild(applyGridBtn);
+  bar.appendChild(applyWrap);
 
   // Clear button
   const clearBtn = document.createElement('button');
@@ -435,6 +450,66 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
         tmxToast({
           message,
           intent: totalOverLimit > 0 ? 'is-warning' : 'is-success',
+        });
+
+        statusEl.textContent = message;
+      },
+    });
+  });
+}
+
+function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
+  if (!activeControl) return;
+
+  const profile = activeControl.getProfile();
+  const store = activeControl.getStore();
+  const state = store.getState();
+
+  if (state.issueIndex.counts.ERROR > 0) {
+    tmxToast({
+      message: `Cannot apply grid: ${state.issueIndex.counts.ERROR} error(s) in profile. Fix errors first.`,
+      intent: 'is-danger',
+    });
+    return;
+  }
+
+  saveProfile(profile, () => {
+    const scheduleDates = profile.map((d) => d.scheduleDate);
+    mutationRequest({
+      methods: [{ method: 'scheduleProfileGrid', params: { scheduleDates } }],
+      engine: COMPETITION_ENGINE,
+      callback: (eqResult: any) => {
+        const result = eqResult?.results?.[0] ?? eqResult;
+
+        if (result?.error || eqResult?.error) {
+          const err = result?.error || eqResult?.error;
+          tmxToast({
+            message: `Grid scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
+            intent: 'is-danger',
+          });
+          statusEl.textContent = 'Grid scheduling failed.';
+          return;
+        }
+
+        const scheduledIds = result?.scheduledMatchUpIds || {};
+        let totalScheduled = 0;
+        for (const ids of Object.values(scheduledIds)) {
+          totalScheduled += (ids as string[]).length;
+        }
+
+        const notScheduledIds = result?.notScheduledMatchUpIds || {};
+        let totalNotScheduled = 0;
+        for (const ids of Object.values(notScheduledIds)) {
+          totalNotScheduled += (ids as string[]).length;
+        }
+
+        const dateCount = (result?.scheduledDates || []).length;
+        const notSchedSuffix = totalNotScheduled > 0 ? ` (${totalNotScheduled} could not be placed)` : '';
+        const message = `Placed ${totalScheduled} matchUps on grid across ${dateCount} dates.${notSchedSuffix}`;
+
+        tmxToast({
+          message,
+          intent: totalNotScheduled > 0 ? 'is-warning' : 'is-success',
         });
 
         statusEl.textContent = message;
