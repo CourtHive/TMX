@@ -21,6 +21,7 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 const { calculateCapacityStats } = temporal;
@@ -29,7 +30,7 @@ const AVG_MATCH_MINUTES = 75;
 
 let activeControl: SchedulingProfileControl | null = null;
 
-export function renderProfileView(target: HTMLElement): void {
+export function renderProfileView(target: HTMLElement, scheduledDate?: string): void {
   target.innerHTML = '';
 
   const setup = buildProfileSetup();
@@ -48,6 +49,7 @@ export function renderProfileView(target: HTMLElement): void {
 
   const config: SchedulingProfileConfig = {
     ...setup.config,
+    selectedDate: scheduledDate,
     initialProfile: existingProfile,
     onProfileChanged: (profile) => {
       // Persist profile to factory as a tournament extension
@@ -103,20 +105,32 @@ function buildProfileSetup(): ProfileSetup | null {
   const factoryRounds: any[] = roundsResult?.rounds || [];
   if (!factoryRounds.length) return null;
 
-  const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => ({
-    tournamentId: r.tournamentId || tournamentId,
-    eventId: r.eventId,
-    eventName: r.eventName || '',
-    drawId: r.drawId,
-    drawName: r.structureName || r.drawName,
-    structureId: r.structureId,
-    roundNumber: r.roundNumber,
-    roundName: r.roundName,
-    matchCountEstimate: r.matchUpsCount,
-  }));
+  const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {
+    // Prefer structureName (e.g. "Main Draw", "Consolation"); fall back to drawName only if it's not a UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r.drawName || '');
+    const drawName = r.structureName || (!isUUID ? r.drawName : '') || '';
 
-  // Schedulable dates
-  const schedulableDates = dateRange(startDate, endDate);
+    // Build a human-readable round name from matchUps if factory gives raw format
+    const rawRound = r.roundName || '';
+    const roundName = rawRound.startsWith('rn=')
+      ? r.matchUps?.[0]?.roundName || `Round ${r.roundNumber}`
+      : rawRound || `Round ${r.roundNumber}`;
+
+    return {
+      tournamentId: r.tournamentId || tournamentId,
+      eventId: r.eventId,
+      eventName: r.eventName || '',
+      drawId: r.drawId,
+      drawName,
+      structureId: r.structureId,
+      roundNumber: r.roundNumber,
+      roundName,
+      matchCountEstimate: r.matchUpsCount,
+    };
+  });
+
+  // Schedulable dates (respects activeDates when present)
+  const schedulableDates = getScheduleDateRange();
 
   // Build adapters
   const temporalAdapter = buildTemporalAdapter(schedulableDates);
@@ -127,6 +141,8 @@ function buildProfileSetup(): ProfileSetup | null {
     venues,
     roundCatalog,
     schedulableDates,
+    hideLeft: true,
+    catalogSide: 'left',
     venueOrder: venues.map((v) => v.venueId),
     temporalAdapter,
     demandAdapter,
@@ -417,13 +433,3 @@ function renderEmpty(target: HTMLElement, message: string): void {
   target.appendChild(placeholder);
 }
 
-function dateRange(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const current = new Date(start + 'T00:00:00');
-  const last = new Date(end + 'T00:00:00');
-  while (current <= last) {
-    dates.push(current.toISOString().slice(0, 10));
-    current.setDate(current.getDate() + 1);
-  }
-  return dates;
-}

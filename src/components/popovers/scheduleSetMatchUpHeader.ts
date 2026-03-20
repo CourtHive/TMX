@@ -2,24 +2,35 @@
  * Schedule set matchUp header popover.
  * Provides options for setting match times, modifiers, and entering scores.
  */
+import { matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
-import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { timeItemConstants, tools } from 'tods-competition-factory';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { updateConflicts } from 'components/tables/scheduleTable/updateConflicts';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
-import { updateConflicts } from 'components/tables/scheduleTable/updateConflicts';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tipster } from 'components/popovers/tipster';
 import { timePicker } from '../modals/timePicker';
 import { isFunction } from 'functions/typeOf';
 
-import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+// constants
+import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 import { timeModifierText, RIGHT, COMPETITION_ENGINE, UNSCHEDULED_MATCHUPS } from 'constants/tmxConstants';
+
+const { IN_PROGRESS } = matchUpStatusConstants;
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
-export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData: providedRowData }: { e: Event; cell: any; callback?: (schedule: any) => void; matchUpId?: string; rowData?: any } = {} as any): void {
+export function scheduleSetMatchUpHeader(
+  {
+    e,
+    cell,
+    callback,
+    matchUpId,
+    rowData: providedRowData,
+  }: { e: Event; cell: any; callback?: (schedule: any) => void; matchUpId?: string; rowData?: any } = {} as any,
+): void {
   const rowData = providedRowData || cell.getRow().getData();
 
   const setSchedule = (schedule: any) => {
@@ -78,9 +89,115 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
   const matchUp = Object.values(cell.getData()).find((c: any) => c?.matchUpId === matchUpId) as any;
   const readyToScore = matchUp?.readyToScore || matchUp?.winningSide || matchUp?.score?.sets;
 
+  const setStartTime = () => {
+    if (!matchUpId) return;
+    const existingStart = matchUp?.schedule?.startTime || '';
+    timePicker({
+      time: existingStart || '',
+      callback: ({ time }) => {
+        const startTime = tools.dateTime.convertTime(time, true) as string;
+        if (!startTime) return;
+        setSchedule({ startTime });
+      },
+    });
+  };
+
+  const setEndTime = () => {
+    if (!matchUpId) return;
+    const existingEnd = matchUp?.schedule?.endTime || '';
+    timePicker({
+      time: existingEnd || '',
+      callback: ({ time }) => {
+        const endTime = tools.dateTime.convertTime(time, true) as string;
+        if (!endTime) return;
+        setSchedule({ endTime });
+      },
+    });
+  };
+
+  const startMatch = () => {
+    console.log('startMatch:', { matchUpId, drawId: matchUp?.drawId, matchUp });
+    if (!matchUpId || !matchUp?.drawId) return;
+    const now = new Date();
+    const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const methods = [
+      {
+        params: { matchUpIds: [matchUpId], schedule: { startTime }, removePriorValues: true },
+        method: BULK_SCHEDULE_MATCHUPS,
+      },
+      {
+        method: SET_MATCHUP_STATUS,
+        params: {
+          matchUpId,
+          drawId: matchUp.drawId,
+          outcome: { matchUpStatus: IN_PROGRESS },
+        },
+      },
+    ];
+    console.log('startMatch methods:', methods);
+    const postMutation = (result: any) => {
+      console.log('startMatch result:', result);
+      if (result.success && isFunction(callback) && callback) callback({ startTime });
+    };
+    mutationRequest({ methods, engine: COMPETITION_ENGINE, callback: postMutation });
+  };
+
+  const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId);
+  const matchUpStatus = matchUp?.matchUpStatus;
+  const terminalStatuses = new Set([
+    'BYE',
+    'WALKOVER',
+    'DOUBLE_WALKOVER',
+    'CANCELLED',
+    'ABANDONED',
+    'DOUBLE_DEFAULT',
+    'DEFAULTED',
+  ]);
+  const isTerminal = terminalStatuses.has(matchUpStatus);
+  const isInProgress = matchUpStatus === IN_PROGRESS;
+  const hideTimeActions = !matchUpId || noParticipants || isTerminal;
+  const hideStartMatch = hideTimeActions || isInProgress || matchUp?.winningSide;
+
+  const isRowMode = !matchUpId;
+  const rowMatchUps = isRowMode ? Object.values(rowData).filter((c: any) => c?.matchUpId) : [];
+  const startableMatchUps = rowMatchUps.filter((m: any) => {
+    const status = m.matchUpStatus;
+    const participantCount = m.sides?.filter((s: any) => s?.participantId || s?.participant?.participantId).length || 0;
+    const terminal = terminalStatuses.has(status);
+    return participantCount >= 2 && !terminal && status !== IN_PROGRESS && !m.winningSide;
+  });
+
+  const shotgunStart = () => {
+    console.log('shotgunStart:', { startableMatchUps: startableMatchUps.length, rowMatchUps: rowMatchUps.length });
+    if (!startableMatchUps.length) return;
+    const now = new Date();
+    const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const matchUpIds = startableMatchUps.map((m: any) => m.matchUpId);
+    const methods: any[] = [
+      {
+        params: { matchUpIds, schedule: { startTime }, removePriorValues: true },
+        method: BULK_SCHEDULE_MATCHUPS,
+      },
+      ...startableMatchUps.map((m: any) => ({
+        method: SET_MATCHUP_STATUS,
+        params: {
+          matchUpId: m.matchUpId,
+          drawId: m.drawId,
+          outcome: { matchUpStatus: IN_PROGRESS },
+        },
+      })),
+    ];
+    console.log('shotgunStart methods:', methods);
+    const postMutation = (result: any) => {
+      console.log('shotgunStart result:', result);
+      if (result.success && isFunction(callback) && callback) callback({ startTime, matchUpIds });
+    };
+    mutationRequest({ methods, engine: COMPETITION_ENGINE, callback: postMutation });
+  };
+
   const viewDraw = () => {
     if (!matchUp?.drawId || !matchUp?.eventId) return;
-    
+
     // Navigate to the draw view for this matchUp using the proper navigation function
     navigateToEvent({
       eventId: matchUp.eventId,
@@ -94,7 +211,7 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
 
     const scheduleTable = cell.getTable();
     const { courtId, courtOrder, venueId } = matchUp.schedule;
-    
+
     const updatedSchedule = { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' };
     const methods = [
       {
@@ -112,7 +229,7 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
     const postMutation = (result: any) => {
       if (result.success) {
         matchUp.schedule = updatedSchedule;
-        
+
         // Update the schedule table row to clear the matchUp
         const tableRows = scheduleTable.getRows();
         let sourceColumnKey: string | undefined;
@@ -155,6 +272,23 @@ export function scheduleSetMatchUpHeader({ e, cell, callback, matchUpId, rowData
     {
       option: setMatchTimeText,
       onClick: setMatchUpTimes,
+    },
+    isRowMode &&
+      startableMatchUps.length > 0 && {
+        option: `Shotgun start (${startableMatchUps.length})`,
+        onClick: shotgunStart,
+      },
+    !hideStartMatch && {
+      option: 'Start match',
+      onClick: startMatch,
+    },
+    !hideTimeActions && {
+      option: 'Start time',
+      onClick: setStartTime,
+    },
+    !hideTimeActions && {
+      option: 'End time',
+      onClick: setEndTime,
     },
     readyToScore && {
       option: 'Enter score',

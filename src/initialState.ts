@@ -8,7 +8,7 @@ import { initLoginToggle } from 'services/authentication/loginState';
 
 import { courthiveComponentsVersion } from 'courthive-components';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
-import { initTheme } from 'services/theme/themeService';
+import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { EventEmitter } from './services/EventEmitter';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
@@ -84,6 +84,7 @@ export function setupTMX(): void {
   tournamentContent();
   initLoginToggle('login');
   initLoginToggle('burger');
+  initThemeToggle('themeToggle');
   if (!(Array.prototype as any).toSorted) {
     (Array.prototype as any).toSorted = function (compareFn?: (a: any, b: any) => number) {
       return this.slice().sort(compareFn);

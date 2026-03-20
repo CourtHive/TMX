@@ -755,7 +755,23 @@
     "umpirenotes": "Notas do Árbitro",
     "notice": "Aviso de Programação",
     "opponentname": "Nome do Adversário",
-    "scheduled": "Programado"
+    "scheduled": "Programado",
+    "time": "Hora",
+    "setTime": "Definir horário",
+    "startMatch": "Iniciar partida",
+    "startTime": "Hora de início",
+    "endTime": "Hora de término",
+    "annotations": "Anotações",
+    "clearTimeSettings": "Limpar",
+    "enterScore": "Inserir placar",
+    "viewDraw": "Ver chave",
+    "removeFromSchedule": "Remover da programação",
+    "assign": "Atribuir",
+    "assignMatchUp": "Atribuir partida",
+    "blockCourt": "Bloquear quadra",
+    "otherBookings": "Outros",
+    "practice": "Treino",
+    "maintenance": "Manutenção"
   },
 
   "penalties": {

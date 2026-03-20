@@ -243,7 +243,8 @@ function newBlock(): HTMLDivElement {
         <div id="mobileHomeNavMenu" class="mobile-nav-menu"></div>
       </div>
     </div>
-    <div class="navbar-item" style="font-size: 1em">
+    <div class="navbar-item" style="font-size: 1em; display: flex; align-items: center; gap: 2px;">
+      <i id="themeToggle" style="cursor: pointer; padding: 0 .4em; opacity: 0.7;" class="fa-solid fa-moon" title="Toggle theme"></i>
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
     </div>
   </div>

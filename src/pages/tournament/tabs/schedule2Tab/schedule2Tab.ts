@@ -11,12 +11,13 @@
  *   /#/tournament/:id/schedule2/:date/grid      → Grid view
  *   /#/tournament/:id/schedule2/:date/profile   → Profile view
  */
-import { competitionEngine, tools } from 'tods-competition-factory';
+import { competitionEngine } from 'tods-competition-factory';
+import { resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 
 export type Schedule2View = 'grid' | 'profile';
@@ -30,20 +31,16 @@ let state: Schedule2State | null = null;
 
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const now = new Date();
-  const today = tools.dateTime.formatDate(now);
-  const nowInRange = now >= new Date(startDate) && now <= new Date(endDate);
-  const fallback = now > new Date(endDate) ? endDate : startDate;
 
   // Resolve date — redirect if missing
   if (!params.scheduledDate) {
-    const scheduledDate = nowInRange ? today : fallback;
+    const scheduledDate = resolveScheduleDate();
     const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
     context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`);
     return;
   }
 
-  const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
+  const scheduledDate = params.scheduledDate || resolveScheduleDate();
   const view: Schedule2View = params.scheduleView === 'profile' ? 'profile' : 'grid';
 
   // Store selected date for other parts of TMX
@@ -59,13 +56,15 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   state = { currentView: view, selectedDate: scheduledDate };
 
-  // Build header with date strip + view switcher + bulk mode toggle
+  // Build header with rich date dropdown + issues icon + view switcher
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
     startDate,
     endDate,
     bulkMode: getGridBulkMode(),
+    scheduleDates: buildScheduleDates(scheduledDate),
+    issues: buildIssues(scheduledDate),
     onDateChange: (date: string) => {
       if (!confirmUnsavedChanges()) return;
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
@@ -90,7 +89,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   // Render the active view
   if (view === 'profile') {
-    renderProfileView(container);
+    renderProfileView(container, scheduledDate);
   } else {
     renderGridView(container, scheduledDate);
   }

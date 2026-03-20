@@ -794,7 +794,23 @@
     "umpirenotes": "Umpire Notes",
     "notice": "Schedule Notice",
     "opponentname": "Opponent Name",
-    "scheduled": "Scheduled"
+    "scheduled": "Scheduled",
+    "time": "Time",
+    "setTime": "Set time",
+    "startMatch": "Start match",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "annotations": "Annotations",
+    "clearTimeSettings": "Clear",
+    "enterScore": "Enter score",
+    "viewDraw": "View draw",
+    "removeFromSchedule": "Remove from schedule",
+    "assign": "Assign",
+    "assignMatchUp": "Assign matchUp",
+    "blockCourt": "Block Court",
+    "otherBookings": "Other",
+    "practice": "Practice",
+    "maintenance": "Maintenance"
   },
 
   "penalties": {

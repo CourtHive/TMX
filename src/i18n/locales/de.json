@@ -755,7 +755,23 @@
     "umpirenotes": "Schiedsrichternotizen",
     "notice": "Spielplan-Hinweis",
     "opponentname": "Gegnername",
-    "scheduled": "Geplant"
+    "scheduled": "Geplant",
+    "time": "Zeit",
+    "setTime": "Zeit festlegen",
+    "startMatch": "Spiel starten",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "annotations": "Anmerkungen",
+    "clearTimeSettings": "Löschen",
+    "enterScore": "Ergebnis eingeben",
+    "viewDraw": "Auslosung anzeigen",
+    "removeFromSchedule": "Aus Spielplan entfernen",
+    "assign": "Zuweisen",
+    "assignMatchUp": "Spiel zuweisen",
+    "blockCourt": "Platz sperren",
+    "otherBookings": "Sonstiges",
+    "practice": "Training",
+    "maintenance": "Wartung"
   },
 
   "penalties": {

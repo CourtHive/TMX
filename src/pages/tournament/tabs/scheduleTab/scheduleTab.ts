@@ -4,9 +4,10 @@
  */
 import { createUnscheduledTable } from 'components/tables/unscheduledTable/createUnscheduledTable';
 import { createScheduleTable } from 'components/tables/scheduleTable/createScheduleTable';
-import { competitionEngine, tools } from 'tods-competition-factory';
+import { competitionEngine } from 'tods-competition-factory';
 import { unscheduledGridControl } from './unscheduledGridControl';
 import { scheduleGridControl } from './scheduleGridControl';
+import { resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
 import { scheduleConfig } from 'config/scheduleConfig';
 
@@ -15,18 +16,12 @@ import { NONE, SCHEDULE_CONTROL, UNSCHEDULED_CONTROL, UNSCHEDULED_VISIBILITY } f
 export function renderScheduleTab(params: { scheduledDate?: string }): void {
   let gridControlElements: any;
 
-  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const now = new Date();
-  const today = tools.dateTime.formatDate(now);
-  const nowInRange = now >= new Date(startDate) && now <= new Date(endDate);
-  const fallback = now > new Date(endDate) ? endDate : startDate;
-
   if (!params.scheduledDate) {
-    const scheduledDate = nowInRange ? today : fallback;
+    const scheduledDate = resolveScheduleDate();
     const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
     context.router?.navigate(`/tournament/${tournamentId}/schedule/${scheduledDate}`);
   }
-  const scheduledDate = params.scheduledDate || (nowInRange ? today : fallback);
+  const scheduledDate = params.scheduledDate || resolveScheduleDate();
   context.displayed.selectedScheduleDate = scheduledDate;
 
   const unscheduledVisibility = document.getElementById(UNSCHEDULED_VISIBILITY)!;

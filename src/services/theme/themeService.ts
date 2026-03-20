@@ -122,6 +122,53 @@ export function applyTheme(pref: ThemePreference): void {
 }
 
 /**
+ * Cycle through theme preferences: light → dark → system → light.
+ * Returns the new preference.
+ */
+export function cycleTheme(): ThemePreference {
+  const current = getThemePreference();
+  const next: ThemePreference = current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light';
+  applyTheme(next);
+  return next;
+}
+
+/**
+ * Get the Font Awesome icon class for the current theme preference.
+ */
+export function getThemeIcon(pref?: ThemePreference): string {
+  const p = pref ?? getThemePreference();
+  if (p === 'light') return 'fa-sun';
+  if (p === 'dark') return 'fa-moon';
+  return 'fa-circle-half-stroke';
+}
+
+/**
+ * Wire up a navbar icon to cycle through theme preferences on click.
+ * Updates the icon class to reflect the current preference.
+ */
+export function initThemeToggle(id: string): void {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const updateIcon = () => {
+    const icon = getThemeIcon();
+    el.className = `fa-solid ${icon}`;
+    const pref = getThemePreference();
+    el.title = pref === 'light' ? 'Light theme' : pref === 'dark' ? 'Dark theme' : 'System theme';
+  };
+
+  updateIcon();
+
+  el.addEventListener('click', () => {
+    cycleTheme();
+    updateIcon();
+  });
+
+  // Also update when theme changes from elsewhere (e.g. settings still open in another context)
+  context.ee?.on('THEME_CHANGE', () => updateIcon());
+}
+
+/**
  * Initialize theme and font on app startup. Call from setupTMX().
  */
 export function initTheme(): void {

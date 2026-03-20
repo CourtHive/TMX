@@ -789,7 +789,23 @@
     "umpirenotes": "裁判备注",
     "notice": "赛程通知",
     "opponentname": "对手姓名",
-    "scheduled": "已安排"
+    "scheduled": "已安排",
+    "time": "时间",
+    "setTime": "设置时间",
+    "startMatch": "开始比赛",
+    "startTime": "开始时间",
+    "endTime": "结束时间",
+    "annotations": "注释",
+    "clearTimeSettings": "清除",
+    "enterScore": "输入比分",
+    "viewDraw": "查看签表",
+    "removeFromSchedule": "从赛程中移除",
+    "assign": "分配",
+    "assignMatchUp": "分配比赛",
+    "blockCourt": "封锁球场",
+    "otherBookings": "其他",
+    "practice": "练习",
+    "maintenance": "维护"
   },
 
   "penalties": {

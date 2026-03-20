@@ -3,13 +3,13 @@ import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import { scheduleCell } from '../common/formatters/scheduleCell';
 import { tools } from 'tods-competition-factory';
 
-import { CENTER } from 'constants/tmxConstants';
+import { CENTER, COMPETITION_ENGINE } from 'constants/tmxConstants';
 
 export function generateEmptyColumns({ courtsData, count }: { courtsData: any[]; count: number }): any[] {
   const emptyColumnHeaderClick = (e: MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    addVenue(renderScheduleTab);
+    addVenue(renderScheduleTab, COMPETITION_ENGINE);
   };
   const emptyColumnHeader = (index: number): string => {
     if (index) return '';
