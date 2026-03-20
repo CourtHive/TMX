@@ -771,7 +771,9 @@
     "blockCourt": "Bloquear quadra",
     "otherBookings": "Outros",
     "practice": "Treino",
-    "maintenance": "Manutenção"
+    "maintenance": "Manutenção",
+    "unscheduled": "Não agendados",
+    "noScheduledMatchUps": "Nenhuma partida agendada"
   },
 
   "penalties": {

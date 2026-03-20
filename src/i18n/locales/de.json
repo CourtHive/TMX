@@ -771,7 +771,9 @@
     "blockCourt": "Platz sperren",
     "otherBookings": "Sonstiges",
     "practice": "Training",
-    "maintenance": "Wartung"
+    "maintenance": "Wartung",
+    "unscheduled": "Nicht geplant",
+    "noScheduledMatchUps": "Keine geplanten Spiele"
   },
 
   "penalties": {

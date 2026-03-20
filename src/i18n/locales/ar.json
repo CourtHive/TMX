@@ -747,7 +747,9 @@
     "blockCourt": "حجب الملعب",
     "otherBookings": "أخرى",
     "practice": "تدريب",
-    "maintenance": "صيانة"
+    "maintenance": "صيانة",
+    "unscheduled": "غير مجدولة",
+    "noScheduledMatchUps": "لا توجد مباريات مجدولة"
   },
   "penalties": {
     "fail2signout": "عدم تسجيل الانصراف",

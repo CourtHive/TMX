@@ -18,19 +18,21 @@ interface Schedule2HeaderParams {
   startDate: string;
   endDate: string;
   bulkMode: boolean;
+  catalogVisible?: boolean;
   scheduleDates?: ScheduleDate[];
   issues?: ScheduleIssue[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
+  onToggleCatalog?: () => void;
   onSearch?: (text: string, mode: ScheduleSearchMode) => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
   const {
     selectedDate, activeView, startDate, endDate, bulkMode,
-    scheduleDates, issues,
-    onDateChange, onViewChange, onBulkModeChange, onSearch,
+    catalogVisible = true, scheduleDates, issues,
+    onDateChange, onViewChange, onBulkModeChange, onToggleCatalog, onSearch,
   } = params;
 
   const bar = document.createElement('div');
@@ -157,6 +159,22 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     searchWrap.appendChild(searchInput);
     searchWrap.appendChild(modeSelect);
     left.appendChild(searchWrap);
+  }
+
+  // ── Catalog toggle (floats far left) ──
+  if (onToggleCatalog) {
+    const catalogBtn = document.createElement('button');
+    catalogBtn.style.cssText = [
+      'font-size: 13px', 'padding: 4px 8px', 'border-radius: 6px',
+      'border: 1px solid var(--tmx-border-primary)',
+      'background: var(--tmx-bg-primary)', 'cursor: pointer',
+      'color: var(--tmx-color-primary)', 'display: inline-flex', 'align-items: center',
+      'opacity: 0.7', 'margin-right: auto',
+    ].join('; ');
+    catalogBtn.innerHTML = '<i class="fa-solid fa-table-columns"></i>';
+    catalogBtn.title = catalogVisible ? 'Hide catalog' : 'Show catalog';
+    catalogBtn.addEventListener('click', onToggleCatalog);
+    bar.appendChild(catalogBtn);
   }
 
   bar.appendChild(left);

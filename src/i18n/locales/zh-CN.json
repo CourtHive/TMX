@@ -805,7 +805,9 @@
     "blockCourt": "封锁球场",
     "otherBookings": "其他",
     "practice": "练习",
-    "maintenance": "维护"
+    "maintenance": "维护",
+    "unscheduled": "未安排",
+    "noScheduledMatchUps": "没有已安排的比赛"
   },
 
   "penalties": {

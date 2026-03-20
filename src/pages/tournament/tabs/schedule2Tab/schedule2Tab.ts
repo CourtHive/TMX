@@ -28,6 +28,7 @@ interface Schedule2State {
 }
 
 let state: Schedule2State | null = null;
+let catalogVisible = true;
 
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
@@ -56,13 +57,14 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   state = { currentView: view, selectedDate: scheduledDate };
 
-  // Build header with rich date dropdown + issues icon + view switcher
+  // Build header with rich date dropdown + issues icon + catalog toggle + view switcher
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
     startDate,
     endDate,
     bulkMode: getGridBulkMode(),
+    catalogVisible,
     scheduleDates: buildScheduleDates(scheduledDate),
     issues: buildIssues(scheduledDate),
     onDateChange: (date: string) => {
@@ -75,10 +77,16 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
     },
+    onToggleCatalog: () => {
+      catalogVisible = !catalogVisible;
+      const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement;
+      if (layout) {
+        layout.classList.toggle('spl-sidebar-collapsed', !catalogVisible);
+      }
+    },
     onSearch: (text, mode) => searchGridCells(text, mode),
     onBulkModeChange: (enabled: boolean) => {
       const result = setGridBulkMode(enabled);
-      // Re-render header to reflect actual state (in case user cancelled)
       if (result !== enabled) {
         controlAnchor.innerHTML = '';
         renderSchedule2Tab(params);

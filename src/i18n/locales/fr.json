@@ -771,7 +771,9 @@
     "blockCourt": "Bloquer le court",
     "otherBookings": "Autres",
     "practice": "Entraînement",
-    "maintenance": "Maintenance"
+    "maintenance": "Maintenance",
+    "unscheduled": "Non programmés",
+    "noScheduledMatchUps": "Aucun match programmé"
   },
 
   "penalties": {

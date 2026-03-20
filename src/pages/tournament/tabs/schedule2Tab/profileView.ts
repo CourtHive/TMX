@@ -21,8 +21,11 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
+
+import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
 const { calculateCapacityStats } = temporal;
 
@@ -294,7 +297,7 @@ function loadExistingProfile(setup: ProfileSetup): SchedulingProfile | undefined
   return existing;
 }
 
-function saveProfile(profile: SchedulingProfile): void {
+function saveProfile(profile: SchedulingProfile, callback?: () => void): void {
   // Strip display-only fields before persisting
   const factoryProfile = profile.map((day) => ({
     scheduleDate: day.scheduleDate,
@@ -315,7 +318,11 @@ function saveProfile(profile: SchedulingProfile): void {
     })),
   }));
 
-  competitionEngine.setSchedulingProfile({ schedulingProfile: factoryProfile });
+  mutationRequest({
+    methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: factoryProfile } }],
+    engine: COMPETITION_ENGINE,
+    callback: () => callback?.(),
+  });
 }
 
 // ============================================================================
@@ -327,7 +334,20 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   bar.style.cssText =
     'display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
 
-  // Schedule button
+  // Save profile button
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'sp-btn';
+  saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i>Save Profile';
+  saveBtn.addEventListener('click', () => {
+    if (!activeControl) return;
+    saveProfile(activeControl.getProfile(), () => {
+      tmxToast({ message: 'Scheduling profile saved', intent: 'is-success' });
+      statusEl.textContent = 'Profile saved.';
+    });
+  });
+  bar.appendChild(saveBtn);
+
+  // Apply schedule button
   const scheduleBtn = document.createElement('button');
   scheduleBtn.className = 'sp-btn sp-btn--success';
   scheduleBtn.innerHTML = '<i class="fa-solid fa-calendar-check" style="margin-right:6px;"></i>Apply Schedule';
@@ -339,9 +359,14 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   clearBtn.className = 'sp-btn sp-btn--danger';
   clearBtn.innerHTML = '<i class="fa-solid fa-eraser" style="margin-right:6px;"></i>Clear Profile';
   clearBtn.addEventListener('click', () => {
-    competitionEngine.setSchedulingProfile({ schedulingProfile: null });
-    tmxToast({ message: 'Scheduling profile cleared', intent: 'is-warning' });
-    statusEl.textContent = 'Profile cleared.';
+    mutationRequest({
+      methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: null } }],
+      engine: COMPETITION_ENGINE,
+      callback: () => {
+        tmxToast({ message: 'Scheduling profile cleared', intent: 'is-warning' });
+        statusEl.textContent = 'Profile cleared.';
+      },
+    });
   });
   bar.appendChild(clearBtn);
 
@@ -370,47 +395,52 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
     return;
   }
 
-  // Save profile first
-  saveProfile(profile);
+  // Save profile first, then run the factory scheduler in the callback
+  saveProfile(profile, () => {
+    const scheduleDates = profile.map((d) => d.scheduleDate);
+    mutationRequest({
+      methods: [{ method: 'scheduleProfileRounds', params: { scheduleDates } }],
+      engine: COMPETITION_ENGINE,
+      callback: (eqResult: any) => {
+        // executionQueue wraps method results in { success, results: [{ ...methodResult }] }
+        const result = eqResult?.results?.[0] ?? eqResult;
 
-  // Run the factory scheduler
-  const scheduleDates = profile.map((d) => d.scheduleDate);
-  const result = competitionEngine.scheduleProfileRounds({ scheduleDates });
+        if (result?.error || eqResult?.error) {
+          const err = result?.error || eqResult?.error;
+          tmxToast({
+            message: `Scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
+            intent: 'is-danger',
+          });
+          statusEl.textContent = 'Scheduling failed. Check console for details.';
+          console.error('[schedule2] scheduleProfileRounds error:', eqResult);
+          return;
+        }
 
-  if (result?.error) {
-    tmxToast({
-      message: `Scheduling failed: ${typeof result.error === 'string' ? result.error : JSON.stringify(result.error)}`,
-      intent: 'is-danger',
+        const scheduledIds = result?.scheduledMatchUpIds || {};
+        let totalScheduled = 0;
+        for (const ids of Object.values(scheduledIds)) {
+          totalScheduled += (ids as string[]).length;
+        }
+
+        const overLimitIds = result?.overLimitMatchUpIds || {};
+        let totalOverLimit = 0;
+        for (const ids of Object.values(overLimitIds)) {
+          totalOverLimit += (ids as string[]).length;
+        }
+
+        const dateCount = (result?.scheduledDates || []).length;
+        const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
+        const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
+
+        tmxToast({
+          message,
+          intent: totalOverLimit > 0 ? 'is-warning' : 'is-success',
+        });
+
+        statusEl.textContent = message;
+      },
     });
-    statusEl.textContent = 'Scheduling failed. Check console for details.';
-    console.error('[schedule2] scheduleProfileRounds error:', result);
-    return;
-  }
-
-  // Count results
-  const scheduledIds = result?.scheduledMatchUpIds || {};
-  let totalScheduled = 0;
-  for (const ids of Object.values(scheduledIds)) {
-    totalScheduled += (ids as string[]).length;
-  }
-
-  const overLimitIds = result?.overLimitMatchUpIds || {};
-  let totalOverLimit = 0;
-  for (const ids of Object.values(overLimitIds)) {
-    totalOverLimit += (ids as string[]).length;
-  }
-
-  const dateCount = (result?.scheduledDates || []).length;
-  const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
-  const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
-
-  tmxToast({
-    message,
-    intent: totalOverLimit > 0 ? 'is-warning' : 'is-success',
   });
-
-  statusEl.textContent = message;
-  console.log('[schedule2] scheduleProfileRounds result:', result);
 }
 
 // ── Helpers ──

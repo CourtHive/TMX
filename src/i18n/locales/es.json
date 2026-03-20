@@ -771,7 +771,9 @@
     "blockCourt": "Bloquear cancha",
     "otherBookings": "Otros",
     "practice": "Práctica",
-    "maintenance": "Mantenimiento"
+    "maintenance": "Mantenimiento",
+    "unscheduled": "No programados",
+    "noScheduledMatchUps": "No hay partidos programados"
   },
 
   "penalties": {

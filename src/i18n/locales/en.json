@@ -810,7 +810,9 @@
     "blockCourt": "Block Court",
     "otherBookings": "Other",
     "practice": "Practice",
-    "maintenance": "Maintenance"
+    "maintenance": "Maintenance",
+    "unscheduled": "Unscheduled",
+    "noScheduledMatchUps": "No scheduled matchUps"
   },
 
   "penalties": {

@@ -189,6 +189,153 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
   };
 
   activeControl = createSchedulePage(config, container);
+
+  // ── Inject sidebar controls: collapse toggle + Unscheduled/Scheduled tabs ──
+  injectSidebarControls(container);
+}
+
+// ============================================================================
+// Sidebar Controls (collapse + scheduled matchUp list)
+// ============================================================================
+
+function injectSidebarControls(container: HTMLElement): void {
+  const layout = container.querySelector('.spl-layout') as HTMLElement;
+  if (!layout) return;
+
+  // The sidebar is the first child when catalogSide='left'
+  const sidebar = layout.firstElementChild as HTMLElement;
+  if (!sidebar) return;
+
+  // Build control bar (tab switcher: Unscheduled / Scheduled)
+  const controlBar = document.createElement('div');
+  controlBar.style.cssText = 'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
+
+  const unschedTab = document.createElement('button');
+  const schedTab = document.createElement('button');
+  const tabStyle = (active: boolean) => [
+    'font-size: 11px', 'padding: 3px 8px', 'border-radius: 10px', 'cursor: pointer',
+    'border: 1px solid transparent', 'white-space: nowrap',
+    active ? 'background: var(--sp-accent, var(--tmx-accent-blue, #3b82f6)); color: #fff; font-weight: 600;' : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
+  ].join('; ');
+  unschedTab.style.cssText = tabStyle(true);
+  unschedTab.textContent = t('schedule.unscheduled') || 'Unscheduled';
+  schedTab.style.cssText = tabStyle(false);
+  schedTab.textContent = t('schedule.scheduled') || 'Scheduled';
+
+  controlBar.appendChild(unschedTab);
+  controlBar.appendChild(schedTab);
+
+  // Scheduled matchUp list container
+  const scheduledPanel = document.createElement('div');
+  scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; overflow: auto; padding: 8px;';
+
+  // The component's existing catalog content (everything after the control bar)
+  const catalogContent = Array.from(sidebar.children);
+
+  // Insert control bar at top
+  sidebar.insertBefore(controlBar, sidebar.firstChild);
+  sidebar.appendChild(scheduledPanel);
+
+  let activeTab: 'unscheduled' | 'scheduled' = 'unscheduled';
+
+  function updateScheduledPanel(): void {
+    scheduledPanel.innerHTML = '';
+    // Show matchUps that have a scheduled time on this date but are NOT yet placed on a court
+    const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true, nextMatchUps: true });
+    const scheduled = (matchUps || []).filter((m: any) => {
+      if (m.matchUpStatus === BYE) return false;
+      if (isCompletedStatus(m.matchUpStatus)) return false;
+      if (m.schedule?.scheduledDate !== currentDate) return false;
+      if (m.schedule?.courtId) return false; // already on a court — don't show
+      return !!m.schedule?.scheduledTime;
+    });
+
+    if (!scheduled.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size: 11px; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
+      hint.textContent = t('schedule.noScheduledMatchUps') || 'No scheduled matchUps';
+      scheduledPanel.appendChild(hint);
+      return;
+    }
+
+    for (const m of scheduled) {
+      const card = document.createElement('div');
+      card.style.cssText = [
+        'padding: 6px 8px', 'margin-bottom: 4px', 'border-radius: 8px', 'font-size: 11px',
+        'background: var(--sp-card-bg, var(--tmx-bg-secondary))',
+        'border: 1px solid var(--sp-border, var(--tmx-border-primary))',
+        'cursor: grab', 'display: flex', 'flex-direction: column', 'gap: 2px',
+      ].join('; ');
+
+      const titleEl = document.createElement('div');
+      titleEl.style.cssText = 'font-weight: 700; font-size: 11px;';
+      titleEl.textContent = `${m.eventName || ''} ${m.roundName || ''}`.trim();
+
+      const sidesEl = document.createElement('div');
+      sidesEl.style.cssText = 'font-size: 10px; color: var(--sp-text, inherit);';
+      sidesEl.textContent = (m.sides || []).map((s: any) => s.participant?.participantName ?? s.participantName ?? '?').join(' vs ');
+
+      const metaEl = document.createElement('div');
+      metaEl.style.cssText = 'font-size: 10px; color: var(--sp-muted, var(--tmx-muted));';
+      const parts: string[] = [];
+      if (m.schedule?.scheduledTime) parts.push(m.schedule.scheduledTime);
+      metaEl.textContent = parts.join(' \u00b7 ');
+
+      card.appendChild(titleEl);
+      card.appendChild(sidesEl);
+      if (parts.length) card.appendChild(metaEl);
+
+      // Make draggable — uses CATALOG_MATCHUP type so the grid's onMatchUpDrop assigns a court
+      card.draggable = true;
+      card.addEventListener('dragstart', (e) => {
+        e.dataTransfer!.setData('application/json', JSON.stringify({
+          type: 'CATALOG_MATCHUP',
+          matchUp: {
+            matchUpId: m.matchUpId,
+            drawId: m.drawId,
+            eventId: m.eventId,
+            eventName: m.eventName,
+            roundName: m.roundName,
+            matchUpType: m.matchUpType,
+            sides: (m.sides || []).map((s: any) => ({
+              participantName: s.participant?.participantName ?? s.participantName,
+              participantId: s.participantId ?? s.participant?.participantId,
+            })),
+          },
+        }));
+        e.dataTransfer!.effectAllowed = 'move';
+        card.style.opacity = '0.4';
+      });
+      card.addEventListener('dragend', () => { card.style.opacity = ''; });
+
+      scheduledPanel.appendChild(card);
+    }
+  }
+
+  function setTab(tab: 'unscheduled' | 'scheduled'): void {
+    activeTab = tab;
+    unschedTab.style.cssText = tabStyle(tab === 'unscheduled');
+    schedTab.style.cssText = tabStyle(tab === 'scheduled');
+
+    if (tab === 'unscheduled') {
+      scheduledPanel.style.display = 'none';
+      for (const el of catalogContent) (el as HTMLElement).style.display = '';
+    } else {
+      for (const el of catalogContent) (el as HTMLElement).style.display = 'none';
+      scheduledPanel.style.display = '';
+      updateScheduledPanel();
+    }
+  }
+
+  unschedTab.addEventListener('click', () => setTab('unscheduled'));
+  schedTab.addEventListener('click', () => setTab('scheduled'));
+
+  // Hook into refresh to update scheduled panel when visible
+  const origRefresh = activeControl?.getStore().subscribe(() => {
+    if (activeTab === 'scheduled') updateScheduledPanel();
+  });
+  // Store unsubscribe for cleanup (will be handled by destroyGridView → activeControl.destroy)
+  void origRefresh;
 }
 
 export function destroyGridView(): void {
@@ -751,7 +898,9 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   return (matchUps || [])
     .filter((m: any) => m.matchUpStatus !== BYE)
     .map((m: any) => {
-      const isScheduled = !!(m.schedule?.courtId && m.schedule?.scheduledDate);
+      const hasCourtAssignment = !!(m.schedule?.courtId && m.schedule?.scheduledDate);
+      const hasTimeAssignment = !!(m.schedule?.scheduledTime && m.schedule?.scheduledDate);
+      const isScheduled = hasCourtAssignment || hasTimeAssignment;
       const onSelectedDate = m.schedule?.scheduledDate === selectedDate;
 
       return {
