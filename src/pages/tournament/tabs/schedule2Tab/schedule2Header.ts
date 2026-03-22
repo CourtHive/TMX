@@ -317,9 +317,19 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
     INFO: { bg: 'rgba(59,130,246,0.15)', color: '#3b82f6' },
   };
 
+  const P1_COLOR = '#4fc3f7';
+  const P2_COLOR = '#ffb74d';
+  const MUTED = 'opacity: 0.7';
+
   for (const issue of issues.slice(0, 30)) {
     const row = document.createElement('div');
     row.style.cssText = 'display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--tmx-border-primary, #e5e7eb);';
+
+    if (issue.matchUpId) {
+      row.style.cursor = 'pointer';
+      const candidates = issue.conflictMatchUpIds || [issue.matchUpId];
+      row.addEventListener('click', () => scrollToMatchUp(candidates));
+    }
 
     const badge = document.createElement('span');
     const colors = severityColors[issue.severity] ?? severityColors.WARN;
@@ -328,7 +338,46 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
 
     const msg = document.createElement('span');
     msg.style.cssText = 'font-size: 11px; color: var(--tmx-color-primary); line-height: 1.4;';
-    msg.textContent = issue.message;
+
+    if (issue.participants) {
+      if (issue.prefix) {
+        const s = document.createElement('span');
+        s.style.cssText = MUTED;
+        s.textContent = issue.prefix;
+        msg.appendChild(s);
+      }
+      const typeSpan = document.createElement('span');
+      typeSpan.style.cssText = MUTED;
+      typeSpan.textContent = (issue.issueType || '') + ': ';
+      msg.appendChild(typeSpan);
+
+      const p1 = document.createElement('span');
+      p1.style.cssText = `color: ${P1_COLOR}; font-weight: 600;`;
+      p1.textContent = issue.participants;
+      msg.appendChild(p1);
+
+      if (issue.conflictParticipants?.length) {
+        const sep = document.createElement('span');
+        sep.style.cssText = MUTED;
+        sep.textContent = ' conflicts with ';
+        msg.appendChild(sep);
+
+        issue.conflictParticipants.forEach((cp, i) => {
+          if (i > 0) {
+            const comma = document.createElement('span');
+            comma.style.cssText = MUTED;
+            comma.textContent = ', ';
+            msg.appendChild(comma);
+          }
+          const p2 = document.createElement('span');
+          p2.style.cssText = `color: ${P2_COLOR}; font-weight: 600;`;
+          p2.textContent = cp;
+          msg.appendChild(p2);
+        });
+      }
+    } else {
+      msg.textContent = issue.message;
+    }
 
     row.appendChild(badge);
     row.appendChild(msg);
@@ -343,6 +392,22 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
   }
 
   return container;
+}
+
+function scrollToMatchUp(matchUpIds: string[]): void {
+  let cell: HTMLElement | null = null;
+  for (const mid of matchUpIds) {
+    cell = document.querySelector(`.spl-grid-cell[data-matchup-id="${mid}"]`) as HTMLElement | null;
+    if (cell) break;
+  }
+  if (!cell) return;
+
+  cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+  cell.classList.remove('spl-cell--issue-pulse');
+  void cell.offsetWidth;
+  cell.classList.add('spl-cell--issue-pulse');
+  cell.addEventListener('animationend', () => cell!.classList.remove('spl-cell--issue-pulse'), { once: true });
 }
 
 // ── Helpers ──

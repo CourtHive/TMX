@@ -68,6 +68,7 @@ let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
 
+
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   currentDate = scheduledDate;
   actionBarContainer = container;
@@ -592,7 +593,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
   const MIN_PLACEHOLDER_ROWS = 8;
 
   const root = document.createElement('div');
-  root.style.cssText = 'width: 100%; overflow: auto;';
+  root.style.cssText = 'width: 100%; height: 100%; overflow: auto;';
   gridRootElement = root;
 
   const handleAddVenue = () => {
@@ -678,12 +679,14 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     grid.appendChild(corner);
 
     // Court headers
+    const courtHeaders: HTMLElement[] = [];
     for (let ci = 0; ci < courtCount; ci++) {
       const court = courtsData[ci];
       const th = document.createElement('div');
       th.style.cssText = STICKY_HEADER;
       th.title = court.courtName || `Court ${ci + 1}`;
       th.textContent = court.courtName || `Court ${ci + 1}`;
+      courtHeaders.push(th);
       grid.appendChild(th);
     }
 
@@ -710,6 +713,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
 
     // ── Data rows ──
 
+    const rowLabels: HTMLElement[] = [];
     for (let ri = 0; ri < displayRows; ri++) {
       const row = ri < rows.length ? rows[ri] : null;
 
@@ -727,6 +731,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
           });
         });
       }
+      rowLabels.push(rowCell);
       grid.appendChild(rowCell);
 
       // Active court cells
@@ -873,6 +878,10 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       }
     }
 
+    // ── Apply issue indicators to court headers and row labels ──
+    // Use allTournamentMatchUps-based proConflicts (annotateConflicts' cell data misses some conflict types)
+    applyHeaderRowIssueIndicators(courtHeaders, rowLabels, courtsData, date);
+
     root.appendChild(grid);
   }
 
@@ -949,6 +958,73 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
 }
 
 /**
+ * Apply issue severity indicators to court column headers and row number labels.
+ * Uses a left border accent matching the cell issue colors.
+ */
+function applyHeaderRowIssueIndicators(
+  courtHeaders: HTMLElement[],
+  rowLabels: HTMLElement[],
+  courtsData: any[],
+  selectedDate: string,
+): void {
+  // Use allTournamentMatchUps for conflict detection (grid cell data lacks fields proConflicts needs)
+  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const scheduledMatchUps = (matchUps || []).filter((m: any) => {
+    return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
+  });
+  if (!scheduledMatchUps.length) return;
+
+  const result = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
+  if (result.error) return;
+
+  const conflicts = { courtIssues: result.courtIssues || {}, rowIssues: result.rowIssues || {} };
+
+  const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING } = scheduleConstants;
+
+  const severityColor = (issue: string): string => {
+    if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'var(--sp-err, #f43f5e)';
+    if (issue === SCHEDULE_WARNING) return 'var(--sp-warn, #f59e0b)';
+    return 'var(--sp-accent, #3b82f6)';
+  };
+
+  // Semi-transparent tint for headers (they don't overlap scrolling content)
+  const severityBg = (issue: string): string => {
+    if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'rgba(244, 63, 94, 0.08)';
+    if (issue === SCHEDULE_WARNING) return 'rgba(245, 158, 11, 0.06)';
+    return 'rgba(59, 130, 246, 0.06)';
+  };
+
+  // Opaque tint for sticky row labels — layers a semi-transparent tint over the panel bg
+  // so it works in both light and dark mode while hiding scrolling content behind it
+  const severityBgOpaque = (issue: string): string => {
+    const tint = severityBg(issue);
+    return `linear-gradient(${tint}, ${tint}), var(--sp-panel-bg, #fff)`;
+  };
+
+  // Court headers: match courtId from courtsData to courtIssues keys
+  for (let ci = 0; ci < courtHeaders.length; ci++) {
+    const courtId = courtsData[ci]?.courtId;
+    if (!courtId) continue;
+    const issues = conflicts.courtIssues[courtId];
+    if (!issues?.length) continue;
+    // Use the highest severity issue
+    const topIssue = issues[0].issue;
+    courtHeaders[ci].style.borderBottom = `3px solid ${severityColor(topIssue)}`;
+    courtHeaders[ci].style.background = severityBgOpaque(topIssue);
+  }
+
+  // Row labels: rowIssues keyed by row index
+  const rowIssueEntries = conflicts.rowIssues || {};
+  for (const [rowIdx, issues] of Object.entries(rowIssueEntries)) {
+    const ri = parseInt(rowIdx);
+    if (isNaN(ri) || ri >= rowLabels.length || !(issues as any[])?.length) continue;
+    const topIssue = (issues as any[])[0].issue;
+    rowLabels[ri].style.borderRight = `3px solid ${severityColor(topIssue)}`;
+    rowLabels[ri].style.background = severityBgOpaque(topIssue);
+  }
+}
+
+/**
  * Run proConflicts and annotate cellData objects with scheduleState, issueType,
  * and issueIds so that buildScheduleGridCell applies the correct CSS classes.
  */
@@ -1001,25 +1077,21 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
       delete cellData.issueIds;
     }
   }
+
 }
 
 export function buildIssues(selectedDate: string): ScheduleIssue[] {
-  const { matchUps } = competitionEngine.allTournamentMatchUps({
-    inContext: true,
-    nextMatchUps: true,
-  });
-
-  // Filter to scheduled matchUps for the selected date
+  // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
+  // lack fields that proConflicts needs to detect certain conflict types.
+  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const scheduledMatchUps = (matchUps || []).filter((m: any) => {
-    if (!m.schedule?.courtId) return false;
-    if (m.schedule?.scheduledDate !== selectedDate) return false;
-    return true;
+    return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
   });
-
   if (!scheduledMatchUps.length) return [];
 
-  const conflictsResult = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if (conflictsResult.error) return [];
+  const conflictResult = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
+  if (conflictResult.error) return [];
+  const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
   const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ISSUE } = scheduleConstants;
 
@@ -1031,14 +1103,41 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
     return 'WARN';
   };
 
+  // Build lookup from matchUpId to participant display string
+  const matchUpLabel = (id: string): string => {
+    const m = scheduledMatchUps.find((mu: any) => mu.matchUpId === id);
+    if (!m) return id;
+    const names = (m.sides || [])
+      .map((s: any) => s.participant?.participantName ?? s.participantName)
+      .filter(Boolean);
+    return names.length ? names.join(' vs ') : id;
+  };
+
   const issues: ScheduleIssue[] = [];
+
+  // Deduplicate: for mirror pairs (A conflicts with B, B conflicts with A),
+  // keep only the first occurrence by tracking seen matchUpId pairs.
+  const seenPairs = new Set<string>();
+  const dedupKey = (mid: string, ids: string[]): string => {
+    const sorted = [mid, ...ids].sort();
+    return sorted.join('|');
+  };
 
   // Court issues
   for (const [, courtIssues] of Object.entries(conflictsResult.courtIssues || {})) {
     for (const ci of courtIssues as any[]) {
+      const key = dedupKey(ci.matchUpId, ci.issueIds || []);
+      if (seenPairs.has(key)) continue;
+      seenPairs.add(key);
+      const participants = matchUpLabel(ci.matchUpId);
+      const conflictLabels = (ci.issueIds || []).map((id: string) => matchUpLabel(id));
       issues.push({
         severity: mapSeverity(ci.issue),
-        message: `${ci.issueType}: ${ci.matchUpId}${ci.issueIds?.length ? ' conflicts with ' + ci.issueIds.join(', ') : ''}`,
+        message: `${ci.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
+        issueType: ci.issueType,
+        participants,
+        conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
+        conflictMatchUpIds: ci.issueIds?.length ? [ci.matchUpId, ...ci.issueIds] : undefined,
         matchUpId: ci.matchUpId,
         date: selectedDate,
       });
@@ -1048,9 +1147,19 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Row issues
   for (const [rowIdx, rowIssues] of Object.entries(conflictsResult.rowIssues || {})) {
     for (const ri of rowIssues as any[]) {
+      const key = dedupKey(ri.matchUpId, ri.issueIds || []);
+      if (seenPairs.has(key)) continue;
+      seenPairs.add(key);
+      const participants = matchUpLabel(ri.matchUpId);
+      const conflictLabels = (ri.issueIds || []).map((id: string) => matchUpLabel(id));
       issues.push({
         severity: mapSeverity(ri.issue),
-        message: `Row ${parseInt(rowIdx) + 1}: ${ri.issueType}: ${ri.matchUpId}${ri.issueIds?.length ? ' conflicts with ' + ri.issueIds.join(', ') : ''}`,
+        message: `Row ${parseInt(rowIdx) + 1}: ${ri.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
+        issueType: ri.issueType,
+        prefix: `Row ${parseInt(rowIdx) + 1}: `,
+        participants,
+        conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
+        conflictMatchUpIds: ri.issueIds?.length ? [ri.matchUpId, ...ri.issueIds] : undefined,
         matchUpId: ri.matchUpId,
         date: selectedDate,
       });
