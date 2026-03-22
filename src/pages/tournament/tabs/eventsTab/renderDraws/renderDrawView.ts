@@ -2,13 +2,14 @@
  * Draw view renderer with structure visualization.
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
-import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { compositions, controlBar, renderContainer, renderInlineMatchUp, renderStructure } from 'courthive-components';
-import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
-import { tournamentEngine, eventConstants, tools, publishingGovernor } from 'tods-competition-factory';
+import { generateVoluntaryConsolationPanel } from './generateVoluntaryConsolationPanel';
+import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
+import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
+import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
@@ -18,15 +19,21 @@ import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
-import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { drawControlBar } from './drawControlBar';
-import { preferencesConfig } from 'config/preferencesConfig';
 import { displayConfig } from 'config/displayConfig';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
+import {
+  tournamentEngine,
+  eventConstants,
+  drawDefinitionConstants,
+  tools,
+  publishingGovernor,
+} from 'tods-competition-factory';
 
 import {
   EVENT_CONTROL,
@@ -39,6 +46,7 @@ import {
 } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
+const { VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
 function computeRoundVisibilityState(
   drawId: string,
@@ -207,6 +215,8 @@ export function renderDrawView({
     if (!matchUps.length) {
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
+      } else if (stage === VOLUNTARY_CONSOLATION && !isAdHoc) {
+        generateVoluntaryConsolationPanel({ structure, drawId, eventId, callback });
       } else if (isAdHoc) {
         generateAdHocRound({ structure, drawId, callback });
       } else {
@@ -228,7 +238,7 @@ export function renderDrawView({
         : undefined;
 
       // Identify matchUps eligible for inline scoring wrapping
-      const irregularStatuses = ['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED'];
+      const irregularStatuses = new Set(['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED']);
       if (inlineManager) {
         for (const m of displayMatchUps as any[]) {
           const hasBothParticipants = m?.sides?.length === 2 && m.sides[0]?.participant && m.sides[1]?.participant;
@@ -260,7 +270,7 @@ export function renderDrawView({
       if (inlineManager) {
         for (const m of displayMatchUps as any[]) {
           const isInProgress = m?.matchUpStatus === 'IN_PROGRESS' && !m?.winningSide;
-          const isIrregularEnding = irregularStatuses.includes(m?.matchUpStatus);
+          const isIrregularEnding = irregularStatuses.has(m?.matchUpStatus);
           if (!isInProgress && !isIrregularEnding) continue;
           if (!m?.sides?.length || !m.sides[0]?.participant || !m.sides[1]?.participant) continue;
 
@@ -296,10 +306,14 @@ export function renderDrawView({
       // Only preserve inline wrappers for matchUps still eligible for inline scoring.
       // Completed matchUps should be replaced with their normal rendered state.
       const isActiveInlineScoringEl = (node: any) => {
-        if (!inlineManager || !(node instanceof HTMLElement) || !node.classList?.contains('chc-inline-scoring-wrapper')) {
+        if (
+          !inlineManager ||
+          !(node instanceof HTMLElement) ||
+          !node.classList?.contains('chc-inline-scoring-wrapper')
+        ) {
           return false;
         }
-        const matchUpId = node.getAttribute('data-matchup-id');
+        const matchUpId = node.dataset.matchupId;
         if (!matchUpId) return false;
         const m = (displayMatchUps as any[]).find((mu: any) => mu?.matchUpId === matchUpId);
         // Don't preserve wrappers for completed matchUps — they need to render normally
@@ -331,8 +345,7 @@ export function renderDrawView({
           onBeforeElUpdated(fromEl: any, _toEl: any) {
             // Preserve active inline scoring wrappers — they manage their own re-render loop.
             // Completed matchUps are allowed through so morphdom replaces the stale wrapper.
-            if (isActiveInlineScoringEl(fromEl)) return false;
-            return true;
+            return !isActiveInlineScoringEl(fromEl);
           },
         });
       } else if (drawsView) {
@@ -518,7 +531,8 @@ function applyRRGroupCompletionHighlighting(content: HTMLElement, matchUps: any[
   const groups: Record<string, any[]> = {};
   for (const m of matchUps) {
     if (!m.structureId) continue;
-    (groups[m.structureId] ??= []).push(m);
+    groups[m.structureId] ??= [];
+    groups[m.structureId].push(m);
   }
 
   for (const [groupId, groupMatchUps] of Object.entries(groups)) {
