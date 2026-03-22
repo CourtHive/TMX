@@ -2,10 +2,10 @@
  * Select position action popover for draw assignments.
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
-import { validators } from 'courthive-components';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
+import { validators } from 'courthive-components';
 import { tools } from 'tods-competition-factory';
 
 const actionLabels: Record<string, string> = {
@@ -16,17 +16,27 @@ const actionLabels: Record<string, string> = {
   REMOVE: 'Remove assignment',
   QUALIFIER: 'Assign qualifier',
   LUCKY: 'Assign Lucky Loser',
+  SEED_CASCADE: 'Withdraw seed (cascade)',
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
   WITHDRAW: 'Withdraw participant',
 };
 
-export function selectPositionAction({ pointerEvent, actions, callback }: { pointerEvent: PointerEvent; actions: any[]; callback: () => void }): void {
+export function selectPositionAction({
+  pointerEvent,
+  actions,
+  callback,
+}: {
+  pointerEvent: PointerEvent;
+  actions: any[];
+  callback: () => void;
+}): void {
   const target = pointerEvent.target as HTMLElement;
   const handleClick = (action: any) => {
     if (['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT'].includes(action.type)) noChoiceAction({ action, callback });
     if (['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER', 'LUCKY'].includes(action.type))
       assignParticipant({ action, callback });
+    if (['SEED_CASCADE'].includes(action.type)) seedCascadeAction({ action, callback });
     if (['SEED_VALUE'].includes(action.type)) assignSeed({ target, action, callback });
   };
   const options = actions
@@ -43,6 +53,30 @@ function noChoiceAction({ action, callback }: { action: any; callback: () => voi
   const postMutation = (result: any) => (result.success ? callback() : console.log({ result }));
   const methods = [{ method: action.method, params: action.payload }];
   mutationRequest({ methods, callback: postMutation });
+}
+
+function seedCascadeAction({ action, callback }: { action: any; callback: () => void }) {
+  const postMutation = (result: any) => {
+    if (!result.success) return console.log({ result });
+
+    const vacatedDrawPosition = result.results?.[0]?.vacatedDrawPosition;
+    callback();
+
+    if (vacatedDrawPosition) {
+      requestAnimationFrame(() => highlightDrawPosition(vacatedDrawPosition));
+    }
+  };
+  const methods = [{ method: action.method, params: action.payload }];
+  mutationRequest({ methods, callback: postMutation });
+}
+
+export function highlightDrawPosition(drawPosition: number) {
+  const el = document.querySelector(`.tmx-p[data-draw-position="${drawPosition}"]`) as HTMLElement;
+  if (!el) return;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('draw-position-highlight');
+  setTimeout(() => el.classList.remove('draw-position-highlight'), 4000);
 }
 
 function assignParticipant({ action, callback }: { action: any; callback: () => void }) {

@@ -65,6 +65,7 @@ export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
 export const SET_DRAW_POSITION_PREFERENCES = 'setDrawPositionPreferences';
 export const SET_POSITION_ASSIGNMENTS = 'setPositionAssignments';
 export const SET_PARTICIPANT_SCALE_ITEMS = 'setParticipantScaleItems';
+export const SEED_WITHDRAWAL_CASCADE = 'seedWithdrawalCascade';
 export const SET_SUB_ORDER = 'setSubOrder';
 export const SET_TOURNAMENT_DATES = 'setTournamentDates';
 export const SET_TOURNAMENT_NAME = 'setTournamentName';
