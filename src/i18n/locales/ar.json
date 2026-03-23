@@ -819,6 +819,7 @@
       "dynamicSets": "أشواط ديناميكية",
       "dialPad": "لوحة الأرقام",
       "freeScore": "نتيجة حرة",
+      "inlineScoring": "تسجيل النقاط المباشر",
       "smartComplements": "مكملات ذكية (الأشواط الديناميكية فقط)",
       "storage": "التخزين",
       "saveLocalCopies": "حفظ نسخ محلية",
@@ -1027,7 +1028,8 @@
       "groupSize": "حجم المجموعة",
       "positionsToBePlayedOff": "المراكز التي ستُلعب عليها المباريات الفاصلة:",
       "selectPositions": "اختر مراكز الانتهاء في المجموعة. يجب أن تكون الاختيارات متتالية",
-      "structureAdded": "تمت إضافة الهيكل"
+      "structureAdded": "تمت إضافة الهيكل",
+      "selectEligible": "اختيار المشاركين المؤهلين"
     },
     "addToEvent": {
       "title": "إضافة إلى حدث",

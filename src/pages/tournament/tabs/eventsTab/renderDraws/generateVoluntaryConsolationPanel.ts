@@ -48,7 +48,7 @@ export function generateVoluntaryConsolationPanel({
     selectEligibleParticipants({ structure, drawId, eventId, callback });
   };
   button.className = 'button is-info';
-  button.innerHTML = t('modals.addConsolation.selectEligible') || 'Select eligible participants';
+  button.innerHTML = t('modals.addConsolation.selectEligible');
   generatePanel.appendChild(button);
 
   const drawsView = document.getElementById(DRAWS_VIEW);
@@ -80,7 +80,7 @@ function selectEligibleParticipants({ structure, drawId, eventId, callback }: Ge
   };
 
   selectParticipant({
-    title: t('modals.addConsolation.selectEligible') || 'Select eligible participants',
+    title: t('modals.addConsolation.selectEligible'),
     selectedParticipantIds: eligibleParticipantIds,
     activeOnEnter: true,
     selectionLimit: 99,

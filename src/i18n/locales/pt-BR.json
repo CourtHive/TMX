@@ -847,6 +847,7 @@
       "dynamicSets": "Sets Dinâmicos",
       "dialPad": "Teclado Numérico",
       "freeScore": "Placar Livre",
+      "inlineScoring": "Pontuação em linha",
       "smartComplements": "Complementos inteligentes (apenas Sets Dinâmicos)",
       "storage": "Armazenamento",
       "saveLocalCopies": "Salvar cópias locais",
@@ -1055,7 +1056,8 @@
       "groupSize": "Tamanho do grupo",
       "positionsToBePlayedOff": "Posições a serem disputadas:",
       "selectPositions": "Selecione posições finais do grupo. As seleções devem ser sequenciais",
-      "structureAdded": "Estrutura adicionada"
+      "structureAdded": "Estrutura adicionada",
+      "selectEligible": "Selecionar participantes elegíveis"
     },
     "addToEvent": {
       "title": "Adicionar ao evento",

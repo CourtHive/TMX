@@ -1,16 +1,22 @@
 /**
  * Render venue tab with venues table, control bar, and temporal grid toggle.
  */
-import { createVenuesTable } from 'components/tables/venuesTable/createVenuesTable';
 import { renderTemporalGrid, TemporalGridInstance } from '../venuesTab/renderTemporalGrid';
-import { venueControl } from '../venuesTab/venueControl';
+import { createVenuesTable } from 'components/tables/venuesTable/createVenuesTable';
 import { showCourtAvailabilityModal } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
+import { venueControl } from '../venuesTab/venueControl';
 import { mapVenue } from '../venuesTab/mapVenue';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
 
-import { TEMPORAL_GRID_CONTAINER, TOURNAMENT, TOURNAMENT_VENUES, VENUES_CONTROL, VENUES_TAB } from 'constants/tmxConstants';
+import {
+  TEMPORAL_GRID_CONTAINER,
+  TOURNAMENT,
+  TOURNAMENT_VENUES,
+  VENUES_CONTROL,
+  VENUES_TAB,
+} from 'constants/tmxConstants';
 
 const NONE = 'none';
 const AVAILABILITY = 'availability';
@@ -45,9 +51,7 @@ export function renderVenueTab({ venueView }: { venueView?: string } = {}): void
     const venues = tournamentRecord?.venues ?? [];
 
     const firstVenue = venues[0];
-    const venueAvail = firstVenue
-      ? engine.getVenueAvailability(config.tournamentId, firstVenue.venueId)
-      : null;
+    const venueAvail = firstVenue ? engine.getVenueAvailability(config.tournamentId, firstVenue.venueId) : null;
     const avail = venueAvail || { startTime: config.dayStartTime, endTime: config.dayEndTime };
 
     showCourtAvailabilityModal({
@@ -78,18 +82,18 @@ export function renderVenueTab({ venueView }: { venueView?: string } = {}): void
   };
 
   const gridLabels = {
-    view: t('pages.venues.grid.view') || undefined,
-    day1: t('pages.venues.grid.day1') || undefined,
-    days3: t('pages.venues.grid.days3') || undefined,
-    week: t('pages.venues.grid.week') || undefined,
-    tournament: t('pages.venues.grid.tournament') || undefined,
-    courtAvailability: t('pages.venues.grid.courtAvailability') || undefined,
-    totalHours: t('pages.venues.grid.totalHours') || undefined,
-    blocked: t('pages.venues.grid.blocked') || undefined,
-    available: t('pages.venues.grid.available') || undefined,
-    avgPerCourt: t('pages.venues.grid.avgPerCourt') || undefined,
-    setDefaultAvailability: t('pages.venues.setDefaultAvailability') || undefined,
-    saveToTournament: t('pages.venues.saveToTournament') || undefined,
+    view: t('pages.venues.grid.view'),
+    day1: t('pages.venues.grid.day1'),
+    days3: t('pages.venues.grid.days3'),
+    week: t('pages.venues.grid.week'),
+    tournament: t('pages.venues.grid.tournament'),
+    courtAvailability: t('pages.venues.grid.courtAvailability'),
+    totalHours: t('pages.venues.grid.totalHours'),
+    blocked: t('pages.venues.grid.blocked'),
+    available: t('pages.venues.grid.available'),
+    avgPerCourt: t('pages.venues.grid.avgPerCourt'),
+    setDefaultAvailability: t('pages.venues.setDefaultAvailability'),
+    saveToTournament: t('pages.venues.saveToTournament'),
   };
 
   const showGrid = () => {

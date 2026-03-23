@@ -1,3 +1,4 @@
+import { saveColumnVisibility } from './columnIsVisible';
 import { context } from 'services/context';
 
 const ICON_ON = 'fa-toggle-on';
@@ -57,6 +58,7 @@ export const headerMenu = (displayTitles) => (_, column) => {
 
           column.toggle();
           context.columns[column.getField()] = column.isVisible();
+          saveColumnVisibility();
           table.redraw();
 
           if (column.isVisible()) {

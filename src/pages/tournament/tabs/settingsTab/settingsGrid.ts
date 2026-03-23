@@ -3,11 +3,11 @@ import { connectSocket, connected, disconnectSocket } from 'services/messaging/s
 import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
 import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
+import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { getLoginState } from 'services/authentication/loginState';
 import { renderForm, validators } from 'courthive-components';
 import { removeTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { setActiveScale } from 'settings/setActiveScale';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { featureFlags } from 'config/featureFlags';
@@ -167,7 +167,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
           checked: preferencesConfig.get().scoringApproach === 'freeScore',
         },
         {
-          text: t('modals.settings.inlineScoring') || 'Inline Scoring',
+          text: t('modals.settings.inlineScoring'),
           field: 'inlineScoring',
           checked: preferencesConfig.get().scoringApproach === 'inlineScoring',
         },

@@ -882,6 +882,7 @@
       "dynamicSets": "动态盘数",
       "dialPad": "拨号盘",
       "freeScore": "自由计分",
+      "inlineScoring": "内联计分",
       "smartComplements": "智能补全（仅动态盘数）",
       "storage": "存储",
       "saveLocalCopies": "保存本地副本",
@@ -1091,7 +1092,8 @@
       "groupSize": "小组大小",
       "positionsToBePlayedOff": "需要进行附加赛的位置：",
       "selectPositions": "选择小组最终位置。选择必须连续",
-      "structureAdded": "已添加结构"
+      "structureAdded": "已添加结构",
+      "selectEligible": "选择符合条件的参赛者"
     },
     "addToEvent": {
       "title": "添加到赛事",

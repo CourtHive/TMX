@@ -9,10 +9,10 @@ import { competitionEngine, matchUpStatusConstants, timeItemConstants, tools } f
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { activateScheduleCellTypeAhead } from 'courthive-components';
-import { timePicker } from 'components/modals/timePicker';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { destroyTipster } from 'components/popovers/tipster';
+import { timePicker } from 'components/modals/timePicker';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 
@@ -96,19 +96,23 @@ const PILL_ROW_CSS = 'display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8
 // Pill background for default (non-colored) pills — semi-transparent so it works on any base
 const PILL_BG = 'var(--sp-chip-bg, rgba(128,128,128,0.12))';
 
-function makePill(label: string, onClick: () => void, opts?: { icon?: string; color?: string; outline?: boolean; tint?: string }): HTMLElement {
+function makePill(
+  label: string,
+  onClick: () => void,
+  opts?: { icon?: string; color?: string; outline?: boolean; tint?: string },
+): HTMLElement {
   const btn = document.createElement('button');
-  const bg = opts?.tint
-    ? opts.tint
-    : opts?.outline ? 'transparent' : opts?.color ? opts.color : PILL_BG;
+  const bg = opts?.tint ? opts.tint : opts?.outline ? 'transparent' : opts?.color ? opts.color : PILL_BG;
   const border = opts?.outline
     ? `1px solid ${opts?.color ?? 'var(--sp-border, var(--tmx-border-primary))'}`
     : '1px solid transparent';
   const textColor = opts?.tint
-    ? opts?.color ?? 'inherit'
+    ? (opts?.color ?? 'inherit')
     : opts?.outline
-      ? opts?.color ?? 'inherit'
-      : opts?.color ? '#fff' : 'inherit';
+      ? (opts?.color ?? 'inherit')
+      : opts?.color
+        ? '#fff'
+        : 'inherit';
   btn.style.cssText = [
     `background: ${bg}`,
     `border: ${border}`,
@@ -123,11 +127,18 @@ function makePill(label: string, onClick: () => void, opts?: { icon?: string; co
     'gap: 5px',
     'transition: opacity 0.15s',
   ].join('; ');
-  btn.addEventListener('mouseenter', () => { btn.style.opacity = '0.8'; });
-  btn.addEventListener('mouseleave', () => { btn.style.opacity = ''; });
+  btn.addEventListener('mouseenter', () => {
+    btn.style.opacity = '0.8';
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.opacity = '';
+  });
   if (opts?.icon) btn.innerHTML = `<i class="fa-solid ${opts.icon}" style="font-size: 10px;"></i>${label}`;
   else btn.textContent = label;
-  btn.addEventListener('click', () => { destroyCellTip(); onClick(); });
+  btn.addEventListener('click', () => {
+    destroyCellTip();
+    onClick();
+  });
   return btn;
 }
 
@@ -149,9 +160,16 @@ function makeIconBtn(title: string, icon: string, onClick: () => void, opts?: { 
   ].join('; ');
   btn.title = title;
   btn.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-  btn.addEventListener('mouseenter', () => { btn.style.opacity = '0.8'; });
-  btn.addEventListener('mouseleave', () => { btn.style.opacity = ''; });
-  btn.addEventListener('click', () => { destroyCellTip(); onClick(); });
+  btn.addEventListener('mouseenter', () => {
+    btn.style.opacity = '0.8';
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.opacity = '';
+  });
+  btn.addEventListener('click', () => {
+    destroyCellTip();
+    onClick();
+  });
   return btn;
 }
 
@@ -199,8 +217,12 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 
   const setSchedule = (schedule: any) => {
     mutationRequest({
-      methods: [{ params: { matchUpIds: [matchUpId], schedule, removePriorValues: true }, method: BULK_SCHEDULE_MATCHUPS }],
-      callback: (result: any) => { if (result.success) onRefresh(); },
+      methods: [
+        { params: { matchUpIds: [matchUpId], schedule, removePriorValues: true }, method: BULK_SCHEDULE_MATCHUPS },
+      ],
+      callback: (result: any) => {
+        if (result.success) onRefresh();
+      },
     });
   };
 
@@ -256,15 +278,29 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     if (!drawId) return;
     const now = new Date();
     const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    executeMethods([
-      { params: { matchUpIds: [matchUpId], schedule: { startTime }, removePriorValues: true }, method: BULK_SCHEDULE_MATCHUPS },
-      { method: SET_MATCHUP_STATUS, params: { matchUpId, drawId, outcome: { matchUpStatus: IN_PROGRESS } } },
-    ], onRefresh);
+    executeMethods(
+      [
+        {
+          params: { matchUpIds: [matchUpId], schedule: { startTime }, removePriorValues: true },
+          method: BULK_SCHEDULE_MATCHUPS,
+        },
+        { method: SET_MATCHUP_STATUS, params: { matchUpId, drawId, outcome: { matchUpStatus: IN_PROGRESS } } },
+      ],
+      onRefresh,
+    );
   };
 
   const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId || s?.participant?.participantId);
   const matchUpStatus = matchUp?.matchUpStatus || cellData?.matchUpStatus;
-  const terminalStatuses = ['BYE', 'WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED', 'ABANDONED', 'DOUBLE_DEFAULT', 'DEFAULTED'];
+  const terminalStatuses = [
+    'BYE',
+    'WALKOVER',
+    'DOUBLE_WALKOVER',
+    'CANCELLED',
+    'ABANDONED',
+    'DOUBLE_DEFAULT',
+    'DEFAULTED',
+  ];
   const isTerminal = terminalStatuses.includes(matchUpStatus);
   const isInProgress = matchUpStatus === IN_PROGRESS;
   const hideTimeActions = noParticipants || isTerminal;
@@ -280,10 +316,20 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 
   const removeFromSchedule = () => {
     const drawId = matchUp?.drawId || cellData.drawId || '';
-    executeMethods([{
-      method: ADD_MATCHUP_SCHEDULE_ITEMS,
-      params: { matchUpId, drawId, schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' }, removePriorValues: true },
-    }], onRefresh);
+    executeMethods(
+      [
+        {
+          method: ADD_MATCHUP_SCHEDULE_ITEMS,
+          params: {
+            matchUpId,
+            drawId,
+            schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
+            removePriorValues: true,
+          },
+        },
+      ],
+      onRefresh,
+    );
   };
 
   const hasCourtId = matchUp?.schedule?.courtId || cellData?.schedule?.courtId;
@@ -293,19 +339,26 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   pop.style.cssText = POPOVER_CSS;
 
   // Section 1: Time
-  pop.appendChild(makeSectionLabel(t('schedule.time') || 'Time'));
+  pop.appendChild(makeSectionLabel(t('schedule.time')));
   const timeRow = document.createElement('div');
   timeRow.style.cssText = PILL_ROW_CSS;
-  timeRow.appendChild(makePill(t('schedule.setTime') || 'Set time', setMatchUpTime, { icon: 'fa-clock' }));
-  if (!hideStartMatch) timeRow.appendChild(makePill(t('schedule.startMatch') || 'Start match', startMatch, { icon: 'fa-play', color: 'var(--tmx-accent-blue, #3b82f6)', outline: true }));
+  timeRow.appendChild(makePill(t('schedule.setTime'), setMatchUpTime, { icon: 'fa-clock' }));
+  if (!hideStartMatch)
+    timeRow.appendChild(
+      makePill(t('schedule.startMatch'), startMatch, {
+        icon: 'fa-play',
+        color: 'var(--tmx-accent-blue, #3b82f6)',
+        outline: true,
+      }),
+    );
   if (!hideTimeActions) {
-    timeRow.appendChild(makePill(t('schedule.startTime') || 'Start time', setStartTime));
-    timeRow.appendChild(makePill(t('schedule.endTime') || 'End time', setEndTime));
+    timeRow.appendChild(makePill(t('schedule.startTime'), setStartTime));
+    timeRow.appendChild(makePill(t('schedule.endTime'), setEndTime));
   }
   pop.appendChild(timeRow);
 
   // Section 2: Schedule annotations
-  pop.appendChild(makeSectionLabel(t('schedule.annotations') || 'Annotations'));
+  pop.appendChild(makeSectionLabel(t('schedule.annotations')));
   const annoRow = document.createElement('div');
   annoRow.style.cssText = PILL_ROW_CSS;
   annoRow.appendChild(makePill(timeModifierText[FOLLOWED_BY], () => modifyTime(FOLLOWED_BY)));
@@ -313,16 +366,27 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   annoRow.appendChild(makePill(timeModifierText[NOT_BEFORE], () => modifyTime(NOT_BEFORE)));
   annoRow.appendChild(makePill(timeModifierText[AFTER_REST], () => modifyTime(AFTER_REST)));
   annoRow.appendChild(makePill(timeModifierText[TO_BE_ANNOUNCED], () => modifyTime(TO_BE_ANNOUNCED)));
-  annoRow.appendChild(makePill(t('schedule.clearTimeSettings') || 'Clear', clearTimeSettings, { icon: 'fa-xmark' }));
+  annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
   pop.appendChild(annoRow);
 
   // Section 3: Actions (icon buttons)
   pop.appendChild(makeDivider());
   const actionsRow = document.createElement('div');
   actionsRow.style.cssText = 'display: flex; align-items: center; gap: 6px;';
-  if (readyToScore) actionsRow.appendChild(makeIconBtn(t('schedule.enterScore') || 'Enter score', 'fa-pen-to-square', scoreMatchUp, { color: 'var(--tmx-accent-blue, #3b82f6)' }));
-  if (matchUp?.drawId || cellData.drawId) actionsRow.appendChild(makeIconBtn(t('schedule.viewDraw') || 'View draw', 'fa-sitemap', viewDraw));
-  if (hasCourtId) actionsRow.appendChild(makeIconBtn(t('schedule.removeFromSchedule') || 'Remove from schedule', 'fa-calendar-xmark', removeFromSchedule, { color: 'var(--tmx-accent-orange, #ef4444)' }));
+  if (readyToScore)
+    actionsRow.appendChild(
+      makeIconBtn(t('schedule.enterScore'), 'fa-pen-to-square', scoreMatchUp, {
+        color: 'var(--tmx-accent-blue, #3b82f6)',
+      }),
+    );
+  if (matchUp?.drawId || cellData.drawId)
+    actionsRow.appendChild(makeIconBtn(t('schedule.viewDraw'), 'fa-sitemap', viewDraw));
+  if (hasCourtId)
+    actionsRow.appendChild(
+      makeIconBtn(t('schedule.removeFromSchedule'), 'fa-calendar-xmark', removeFromSchedule, {
+        color: 'var(--tmx-accent-orange, #ef4444)',
+      }),
+    );
   if (actionsRow.children.length) pop.appendChild(actionsRow);
 
   // Walk up to the grid cell for accurate popover positioning
@@ -336,7 +400,16 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 // ============================================================================
 
 function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
-  const { courtId, venueId, courtOrder, scheduledDate, onRefresh, executeMethods, matchUpListProvider, findCatalogItem } = ctx;
+  const {
+    courtId,
+    venueId,
+    courtOrder,
+    scheduledDate,
+    onRefresh,
+    executeMethods,
+    matchUpListProvider,
+    findCatalogItem,
+  } = ctx;
   if (!courtId || !courtOrder) return;
 
   const assignMatchUp = () => {
@@ -349,18 +422,32 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
       listProvider: matchUpListProvider,
       onSelect: (matchUpId: string) => {
         const item = findCatalogItem?.(matchUpId);
-        executeMethods([{
-          method: ADD_MATCHUP_SCHEDULE_ITEMS,
-          params: { matchUpId, drawId: item?.drawId ?? '', schedule: { courtId, venueId, courtOrder, scheduledDate }, removePriorValues: true },
-        }], onRefresh);
+        executeMethods(
+          [
+            {
+              method: ADD_MATCHUP_SCHEDULE_ITEMS,
+              params: {
+                matchUpId,
+                drawId: item?.drawId ?? '',
+                schedule: { courtId, venueId, courtOrder, scheduledDate },
+                removePriorValues: true,
+              },
+            },
+          ],
+          onRefresh,
+        );
       },
     });
   };
 
   const blockCourt = (rowCount: number, bookingType: string = 'BLOCKED') => {
     mutationRequest({
-      methods: [{ method: 'addCourtGridBooking', params: { courtId, scheduledDate, courtOrder, rowCount, bookingType } }],
-      callback: (result: any) => { if (result.success) onRefresh(); },
+      methods: [
+        { method: 'addCourtGridBooking', params: { courtId, scheduledDate, courtOrder, rowCount, bookingType } },
+      ],
+      callback: (result: any) => {
+        if (result.success) onRefresh();
+      },
     });
   };
 
@@ -369,28 +456,64 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 
   // Assign matchUp
   if (matchUpListProvider) {
-    pop.appendChild(makeSectionLabel(t('schedule.assign') || 'Assign'));
+    pop.appendChild(makeSectionLabel(t('schedule.assign')));
     const assignRow = document.createElement('div');
     assignRow.style.cssText = PILL_ROW_CSS;
-    assignRow.appendChild(makePill(t('schedule.assignMatchUp') || 'Assign matchUp', assignMatchUp, { icon: 'fa-plus', tint: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }));
+    assignRow.appendChild(
+      makePill(t('schedule.assignMatchUp'), assignMatchUp, {
+        icon: 'fa-plus',
+        tint: 'rgba(16, 185, 129, 0.15)',
+        color: '#10b981',
+      }),
+    );
     pop.appendChild(assignRow);
   }
 
   // Block court
-  pop.appendChild(makeSectionLabel(t('schedule.blockCourt') || 'Block Court'));
+  pop.appendChild(makeSectionLabel(t('schedule.blockCourt')));
   const blockRow = document.createElement('div');
   blockRow.style.cssText = PILL_ROW_CSS;
-  blockRow.appendChild(makePill('1 row', () => blockCourt(1, 'BLOCKED'), { icon: 'fa-ban', tint: 'rgba(244, 63, 94, 0.15)', color: '#f43f5e' }));
-  blockRow.appendChild(makePill('2 rows', () => blockCourt(2, 'BLOCKED'), { icon: 'fa-ban', tint: 'rgba(244, 63, 94, 0.15)', color: '#f43f5e' }));
-  blockRow.appendChild(makePill('3 rows', () => blockCourt(3, 'BLOCKED'), { icon: 'fa-ban', tint: 'rgba(244, 63, 94, 0.15)', color: '#f43f5e' }));
+  blockRow.appendChild(
+    makePill('1 row', () => blockCourt(1, 'BLOCKED'), {
+      icon: 'fa-ban',
+      tint: 'rgba(244, 63, 94, 0.15)',
+      color: '#f43f5e',
+    }),
+  );
+  blockRow.appendChild(
+    makePill('2 rows', () => blockCourt(2, 'BLOCKED'), {
+      icon: 'fa-ban',
+      tint: 'rgba(244, 63, 94, 0.15)',
+      color: '#f43f5e',
+    }),
+  );
+  blockRow.appendChild(
+    makePill('3 rows', () => blockCourt(3, 'BLOCKED'), {
+      icon: 'fa-ban',
+      tint: 'rgba(244, 63, 94, 0.15)',
+      color: '#f43f5e',
+    }),
+  );
   pop.appendChild(blockRow);
 
   // Other booking types
-  pop.appendChild(makeSectionLabel(t('schedule.otherBookings') || 'Other'));
+  pop.appendChild(makeSectionLabel(t('schedule.otherBookings')));
   const otherRow = document.createElement('div');
   otherRow.style.cssText = PILL_ROW_CSS;
-  otherRow.appendChild(makePill(t('schedule.practice') || 'Practice', () => blockCourt(1, 'PRACTICE'), { icon: 'fa-dumbbell', tint: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }));
-  otherRow.appendChild(makePill(t('schedule.maintenance') || 'Maintenance', () => blockCourt(1, 'MAINTENANCE'), { icon: 'fa-wrench', tint: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }));
+  otherRow.appendChild(
+    makePill(t('schedule.practice'), () => blockCourt(1, 'PRACTICE'), {
+      icon: 'fa-dumbbell',
+      tint: 'rgba(59, 130, 246, 0.15)',
+      color: '#3b82f6',
+    }),
+  );
+  otherRow.appendChild(
+    makePill(t('schedule.maintenance'), () => blockCourt(1, 'MAINTENANCE'), {
+      icon: 'fa-wrench',
+      tint: 'rgba(245, 158, 11, 0.15)',
+      color: '#f59e0b',
+    }),
+  );
   pop.appendChild(otherRow);
 
   let target = e.target as HTMLElement;
@@ -412,7 +535,13 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   const { rowData, courtPrefix, courtsData, onRefresh, executeMethods } = ctx;
 
   const terminalStatuses = new Set([
-    'BYE', 'WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED', 'ABANDONED', 'DOUBLE_DEFAULT', 'DEFAULTED',
+    'BYE',
+    'WALKOVER',
+    'DOUBLE_WALKOVER',
+    'CANCELLED',
+    'ABANDONED',
+    'DOUBLE_DEFAULT',
+    'DEFAULTED',
   ]);
 
   const rowMatchUps: any[] = [];
@@ -434,20 +563,29 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
     const now = new Date();
     const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const matchUpIds = startableMatchUps.map((m: any) => m.matchUpId);
-    executeMethods([
-      { params: { matchUpIds, schedule: { startTime }, removePriorValues: true }, method: BULK_SCHEDULE_MATCHUPS },
-      ...startableMatchUps.map((m: any) => ({
-        method: SET_MATCHUP_STATUS,
-        params: { matchUpId: m.matchUpId, drawId: m.drawId, outcome: { matchUpStatus: IN_PROGRESS } },
-      })),
-    ], onRefresh);
+    executeMethods(
+      [
+        { params: { matchUpIds, schedule: { startTime }, removePriorValues: true }, method: BULK_SCHEDULE_MATCHUPS },
+        ...startableMatchUps.map((m: any) => ({
+          method: SET_MATCHUP_STATUS,
+          params: { matchUpId: m.matchUpId, drawId: m.drawId, outcome: { matchUpStatus: IN_PROGRESS } },
+        })),
+      ],
+      onRefresh,
+    );
   };
 
   const pop = document.createElement('div');
   pop.style.cssText = POPOVER_CSS;
   const row = document.createElement('div');
   row.style.cssText = PILL_ROW_CSS;
-  row.appendChild(makePill(`Shotgun start (${startableMatchUps.length})`, shotgunStart, { icon: 'fa-bolt', color: 'var(--tmx-accent-blue, #3b82f6)', outline: true }));
+  row.appendChild(
+    makePill(`Shotgun start (${startableMatchUps.length})`, shotgunStart, {
+      icon: 'fa-bolt',
+      color: 'var(--tmx-accent-blue, #3b82f6)',
+      outline: true,
+    }),
+  );
   pop.appendChild(row);
 
   showPopover(e.target as HTMLElement, pop);
@@ -464,8 +602,12 @@ function showBlockedCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 
   const unblockCourt = () => {
     mutationRequest({
-      methods: [{ method: 'removeCourtGridBooking', params: { courtId, scheduledDate, courtOrder: booking.courtOrder } }],
-      callback: (result: any) => { if (result.success) onRefresh(); },
+      methods: [
+        { method: 'removeCourtGridBooking', params: { courtId, scheduledDate, courtOrder: booking.courtOrder } },
+      ],
+      callback: (result: any) => {
+        if (result.success) onRefresh();
+      },
     });
   };
 
@@ -476,7 +618,13 @@ function showBlockedCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   pop.style.cssText = POPOVER_CSS;
   const row = document.createElement('div');
   row.style.cssText = PILL_ROW_CSS;
-  row.appendChild(makePill(`Unblock (${rowText}, ${bookingLabel})`, unblockCourt, { icon: 'fa-unlock', color: 'var(--tmx-accent-orange, #ef4444)', outline: true }));
+  row.appendChild(
+    makePill(`Unblock (${rowText}, ${bookingLabel})`, unblockCourt, {
+      icon: 'fa-unlock',
+      color: 'var(--tmx-accent-orange, #ef4444)',
+      outline: true,
+    }),
+  );
   pop.appendChild(row);
 
   if (booking.notes) {

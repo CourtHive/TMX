@@ -847,6 +847,7 @@
       "dynamicSets": "Sets dynamiques",
       "dialPad": "Pavé numérique",
       "freeScore": "Score libre",
+      "inlineScoring": "Score en ligne",
       "smartComplements": "Compléments intelligents (sets dynamiques uniquement)",
       "storage": "Stockage",
       "saveLocalCopies": "Enregistrer des copies locales",
@@ -1055,7 +1056,8 @@
       "groupSize": "Taille du groupe",
       "positionsToBePlayedOff": "Positions à départager :",
       "selectPositions": "Sélectionnez les positions d'arrivée dans les groupes. Les sélections doivent être consécutives",
-      "structureAdded": "Structure ajoutée"
+      "structureAdded": "Structure ajoutée",
+      "selectEligible": "Sélectionner les participants éligibles"
     },
     "addToEvent": {
       "title": "Ajouter à l'épreuve",

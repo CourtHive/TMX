@@ -5,6 +5,7 @@
 import { tournamentEngine, participantConstants } from 'tods-competition-factory';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
@@ -16,7 +17,7 @@ export function getMatchUpTeamFilter(
   table: any,
   statsPanel: HTMLElement,
 ): { teamOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
+  let filterValue: string | undefined = context.matchUpFilters.teamId;
 
   const teamParticipants =
     tournamentEngine.getParticipants({ participantFilters: { participantTypes: [TEAM] } }).participants || [];
@@ -30,9 +31,13 @@ export function getMatchUpTeamFilter(
       ? rowData.individualParticipantIds.some((id: string) => teamMap[filterValue as string]?.includes(id))
       : true;
 
+  // Restore saved filter
+  if (filterValue) table.addFilter(teamFilter);
+
   const updateFilter = (teamParticipantId?: string) => {
     if (filterValue) table.removeFilter(teamFilter);
     filterValue = teamParticipantId;
+    context.matchUpFilters.teamId = teamParticipantId;
     if (teamParticipantId) {
       table.addFilter(teamFilter);
       const { teamStats } = tournamentEngine.getParticipantStats({ teamParticipantId });

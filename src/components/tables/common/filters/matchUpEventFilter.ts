@@ -3,6 +3,7 @@
  * Filters matchUps by event (using eventId on row data).
  */
 import { tournamentEngine } from 'tods-competition-factory';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 export function getMatchUpEventFilter(table: any): {
@@ -11,14 +12,18 @@ export function getMatchUpEventFilter(table: any): {
   isFiltered: () => boolean;
   activeIndex: () => number;
 } {
-  let filterValue: string | undefined;
+  let filterValue: string | undefined = context.matchUpFilters.eventId;
 
   const eventFilter = (rowData: any): boolean => rowData.eventId === filterValue;
   const updateFilter = (eventId?: string) => {
     table.removeFilter(eventFilter);
     filterValue = eventId;
+    context.matchUpFilters.eventId = eventId;
     if (eventId) table.addFilter(eventFilter);
   };
+
+  // Restore saved filter
+  if (filterValue) table.addFilter(eventFilter);
 
   const events = tournamentEngine.getEvents().events || [];
   const allLabel = t('pages.matchUps.allEvents');

@@ -29,7 +29,7 @@ export function renderMatchUpTab(): void {
   const statsPanel = document.getElementById(TEAM_STATS)!;
   statsPanel.style.display = NONE;
 
-  const setSearchFilter = createSearchFilter(table);
+  const setSearchFilter = createSearchFilter(table, { persistKey: 'search' });
 
   const { eventOptions, hasOptions: hasEventOptions, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getMatchUpEventFilter(table);
   const { flightOptions, hasOptions: hasFlightOptions, isFiltered: isFlightFiltered, activeIndex: flightActiveIndex } = getMatchUpFlightFilter(table);
@@ -59,6 +59,7 @@ export function renderMatchUpTab(): void {
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: t('pages.matchUps.searchMatches'),
+      value: context.matchUpFilters.search || '',
       location: LEFT,
       search: true,
     },

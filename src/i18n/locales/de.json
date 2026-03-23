@@ -847,6 +847,7 @@
       "dynamicSets": "Dynamische Sätze",
       "dialPad": "Ziffernblock",
       "freeScore": "Freie Wertung",
+      "inlineScoring": "Inline-Wertung",
       "smartComplements": "Intelligente Ergänzungen (nur Dynamische Sätze)",
       "storage": "Speicher",
       "saveLocalCopies": "Lokale Kopien speichern",
@@ -1055,7 +1056,8 @@
       "groupSize": "Gruppengröße",
       "positionsToBePlayedOff": "Auszuspielende Positionen:",
       "selectPositions": "Endplatzierungen in der Gruppe auswählen. Auswahlen müssen fortlaufend sein",
-      "structureAdded": "Struktur hinzugefügt"
+      "structureAdded": "Struktur hinzugefügt",
+      "selectEligible": "Berechtigte Teilnehmer auswählen"
     },
     "addToEvent": {
       "title": "Zum Bewerb hinzufügen",

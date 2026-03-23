@@ -23,9 +23,9 @@ import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } fr
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { t } from 'i18n';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { tmx2db } from 'services/storage/tmx2db';
+import { t } from 'i18n';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -44,10 +44,10 @@ import type {
 } from 'courthive-components';
 
 // constants
+import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
+import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import { renderSchedule2Tab } from './schedule2Tab';
-import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
-import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 
 const { scheduleConstants } = factoryConstants;
 
@@ -67,7 +67,6 @@ let pendingMethods: any[][] = []; // Each entry is a methods array from one drop
 let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
-
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   currentDate = scheduledDate;
@@ -209,19 +208,27 @@ function injectSidebarControls(container: HTMLElement): void {
 
   // Build control bar (tab switcher: Unscheduled / Scheduled)
   const controlBar = document.createElement('div');
-  controlBar.style.cssText = 'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
+  controlBar.style.cssText =
+    'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
 
   const unschedTab = document.createElement('button');
   const schedTab = document.createElement('button');
-  const tabStyle = (active: boolean) => [
-    'font-size: 11px', 'padding: 3px 8px', 'border-radius: 10px', 'cursor: pointer',
-    'border: 1px solid transparent', 'white-space: nowrap',
-    active ? 'background: var(--sp-accent, var(--tmx-accent-blue, #3b82f6)); color: #fff; font-weight: 600;' : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
-  ].join('; ');
+  const tabStyle = (active: boolean) =>
+    [
+      'font-size: 11px',
+      'padding: 3px 8px',
+      'border-radius: 10px',
+      'cursor: pointer',
+      'border: 1px solid transparent',
+      'white-space: nowrap',
+      active
+        ? 'background: var(--sp-accent, var(--tmx-accent-blue, #3b82f6)); color: #fff; font-weight: 600;'
+        : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
+    ].join('; ');
   unschedTab.style.cssText = tabStyle(true);
-  unschedTab.textContent = t('schedule.unscheduled') || 'Unscheduled';
+  unschedTab.textContent = t('schedule.unscheduled');
   schedTab.style.cssText = tabStyle(false);
-  schedTab.textContent = t('schedule.scheduled') || 'Scheduled';
+  schedTab.textContent = t('schedule.scheduled');
 
   controlBar.appendChild(unschedTab);
   controlBar.appendChild(schedTab);
@@ -253,8 +260,9 @@ function injectSidebarControls(container: HTMLElement): void {
 
     if (!scheduled.length) {
       const hint = document.createElement('div');
-      hint.style.cssText = 'font-size: 11px; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
-      hint.textContent = t('schedule.noScheduledMatchUps') || 'No scheduled matchUps';
+      hint.style.cssText =
+        'font-size: 11px; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
+      hint.textContent = t('schedule.noScheduledMatchUps');
       scheduledPanel.appendChild(hint);
       return;
     }
@@ -262,10 +270,16 @@ function injectSidebarControls(container: HTMLElement): void {
     for (const m of scheduled) {
       const card = document.createElement('div');
       card.style.cssText = [
-        'padding: 6px 8px', 'margin-bottom: 4px', 'border-radius: 8px', 'font-size: 11px',
+        'padding: 6px 8px',
+        'margin-bottom: 4px',
+        'border-radius: 8px',
+        'font-size: 11px',
         'background: var(--sp-card-bg, var(--tmx-bg-secondary))',
         'border: 1px solid var(--sp-border, var(--tmx-border-primary))',
-        'cursor: grab', 'display: flex', 'flex-direction: column', 'gap: 2px',
+        'cursor: grab',
+        'display: flex',
+        'flex-direction: column',
+        'gap: 2px',
       ].join('; ');
 
       const titleEl = document.createElement('div');
@@ -274,7 +288,9 @@ function injectSidebarControls(container: HTMLElement): void {
 
       const sidesEl = document.createElement('div');
       sidesEl.style.cssText = 'font-size: 10px; color: var(--sp-text, inherit);';
-      sidesEl.textContent = (m.sides || []).map((s: any) => s.participant?.participantName ?? s.participantName ?? '?').join(' vs ');
+      sidesEl.textContent = (m.sides || [])
+        .map((s: any) => s.participant?.participantName ?? s.participantName ?? '?')
+        .join(' vs ');
 
       const metaEl = document.createElement('div');
       metaEl.style.cssText = 'font-size: 10px; color: var(--sp-muted, var(--tmx-muted));';
@@ -289,25 +305,30 @@ function injectSidebarControls(container: HTMLElement): void {
       // Make draggable — uses CATALOG_MATCHUP type so the grid's onMatchUpDrop assigns a court
       card.draggable = true;
       card.addEventListener('dragstart', (e) => {
-        e.dataTransfer!.setData('application/json', JSON.stringify({
-          type: 'CATALOG_MATCHUP',
-          matchUp: {
-            matchUpId: m.matchUpId,
-            drawId: m.drawId,
-            eventId: m.eventId,
-            eventName: m.eventName,
-            roundName: m.roundName,
-            matchUpType: m.matchUpType,
-            sides: (m.sides || []).map((s: any) => ({
-              participantName: s.participant?.participantName ?? s.participantName,
-              participantId: s.participantId ?? s.participant?.participantId,
-            })),
-          },
-        }));
+        e.dataTransfer!.setData(
+          'application/json',
+          JSON.stringify({
+            type: 'CATALOG_MATCHUP',
+            matchUp: {
+              matchUpId: m.matchUpId,
+              drawId: m.drawId,
+              eventId: m.eventId,
+              eventName: m.eventName,
+              roundName: m.roundName,
+              matchUpType: m.matchUpType,
+              sides: (m.sides || []).map((s: any) => ({
+                participantName: s.participant?.participantName ?? s.participantName,
+                participantId: s.participantId ?? s.participant?.participantId,
+              })),
+            },
+          }),
+        );
         e.dataTransfer!.effectAllowed = 'move';
         card.style.opacity = '0.4';
       });
-      card.addEventListener('dragend', () => { card.style.opacity = ''; });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '';
+      });
 
       scheduledPanel.appendChild(card);
     }
@@ -1077,7 +1098,6 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
       delete cellData.issueIds;
     }
   }
-
 }
 
 export function buildIssues(selectedDate: string): ScheduleIssue[] {
@@ -1107,9 +1127,7 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   const matchUpLabel = (id: string): string => {
     const m = scheduledMatchUps.find((mu: any) => mu.matchUpId === id);
     if (!m) return id;
-    const names = (m.sides || [])
-      .map((s: any) => s.participant?.participantName ?? s.participantName)
-      .filter(Boolean);
+    const names = (m.sides || []).map((s: any) => s.participant?.participantName ?? s.participantName).filter(Boolean);
     return names.length ? names.join(' vs ') : id;
   };
 

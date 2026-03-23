@@ -82,13 +82,6 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
   // Check that all positions are assigned before attempting elimination looping
   const allStructureMatchUps = getStructureMatchUps();
   const isRoundRobin = allStructureMatchUps.some((m: any) => m.isRoundRobin);
-  const hasUnassigned = allStructureMatchUps.some(
-    (m: any) => !m.winningSide && m.matchUpStatus !== 'BYE' && !m.readyToScore,
-  );
-
-  if (!isRoundRobin && hasUnassigned) {
-    console.log('Not all positions are assigned — cannot loop through elimination rounds');
-  }
 
   const MAX_PASSES = 20;
   let totalCompleted = 0;
@@ -97,11 +90,11 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
   const runPass = () => {
     const methods = buildPassMethods();
     if (!methods.length) {
-      if (!totalCompleted) {
-        console.log('No incomplete matchUps with both participants');
-      } else {
+      if (totalCompleted) {
         console.log(`Completed ${totalCompleted} matchUps`);
-        reRenderCurrentView(drawId!, structureId!);
+        reRenderCurrentView(drawId, structureId);
+      } else {
+        console.log('No incomplete matchUps with both participants');
       }
       return;
     }
