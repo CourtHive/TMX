@@ -87,7 +87,7 @@ export function getTournamentPublishData(): TournamentPublishData {
   };
 }
 
-function resolvePublishState(published: boolean, embargo?: string): 'live' | 'embargoed' | 'off' {
+export function resolvePublishState(published: boolean, embargo?: string): 'live' | 'embargoed' | 'off' {
   if (!published) return 'off';
   if (isEmbargoActive(embargo)) return 'embargoed';
   return 'live';

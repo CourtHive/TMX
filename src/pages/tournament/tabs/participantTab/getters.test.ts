@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getClub, getSchool, getEvents, getCountry } from './getters';
+import { getClub, getSchool, getCity, getEvents, getCountry } from './getters';
 
 describe('getClub', () => {
   it('returns club name from participant groups', () => {
@@ -31,6 +31,30 @@ describe('getSchool', () => {
 
   it('returns undefined when no SCHOOL role', () => {
     expect(getSchool({ groups: [] })).toBeUndefined();
+  });
+});
+
+describe('getCity', () => {
+  it('returns city from first address with a city', () => {
+    const participant = {
+      person: { addresses: [{ city: 'Austin', state: 'TX' }] },
+    };
+    expect(getCity(participant)).toBe('Austin');
+  });
+
+  it('skips addresses without a city', () => {
+    const participant = {
+      person: { addresses: [{ state: 'TX' }, { city: 'Dallas', state: 'TX' }] },
+    };
+    expect(getCity(participant)).toBe('Dallas');
+  });
+
+  it('returns undefined when no addresses', () => {
+    expect(getCity({ person: {} })).toBeUndefined();
+  });
+
+  it('returns undefined when participant has no person', () => {
+    expect(getCity({})).toBeUndefined();
   });
 });
 

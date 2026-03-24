@@ -7,6 +7,7 @@ import { generateVoluntaryConsolationPanel } from './generateVoluntaryConsolatio
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
+import { computeRoundVisibilityState } from 'functions/computeRoundVisibilityState';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
@@ -17,7 +18,6 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { isEmbargoActive } from 'functions/isEmbargoActive';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -49,41 +49,9 @@ import {
 const { DOUBLES, TEAM } = eventConstants;
 const { VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
-function computeRoundVisibilityState(
-  drawId: string,
-  structureId: string,
-  matchUps: any[],
-  event: any,
-): Record<number, { hidden?: boolean; embargoed?: boolean }> | undefined {
+function getStructureDetail(drawId: string, structureId: string, event: any): any {
   const pubState = publishingGovernor.getPublishState({ event })?.publishState;
-  const structureDetail = pubState?.status?.drawDetails?.[drawId]?.structureDetails?.[structureId];
-  if (!structureDetail) return undefined;
-
-  const roundLimit = structureDetail.roundLimit;
-  const scheduledRounds = structureDetail.scheduledRounds || {};
-  const maxRound = matchUps.reduce((max: number, m: any) => Math.max(max, m.roundNumber || 0), 0);
-  if (maxRound === 0) return undefined;
-
-  const state: Record<number, { hidden?: boolean; embargoed?: boolean }> = {};
-  let hasState = false;
-
-  for (let rn = 1; rn <= maxRound; rn++) {
-    const entry: { hidden?: boolean; embargoed?: boolean } = {};
-    if (roundLimit != null && rn > roundLimit) {
-      entry.hidden = true;
-      hasState = true;
-    }
-    const rd = scheduledRounds[rn];
-    if (isEmbargoActive(rd?.embargo)) {
-      entry.embargoed = true;
-      hasState = true;
-    }
-    if (entry.hidden || entry.embargoed) {
-      state[rn] = entry;
-    }
-  }
-
-  return hasState ? state : undefined;
+  return pubState?.status?.drawDetails?.[drawId]?.structureDetails?.[structureId];
 }
 
 export function renderDrawView({
@@ -234,9 +202,8 @@ export function renderDrawView({
       createBracketTable({ eventId, drawId, structureId: structureId! });
     } else {
       const { event: currentEvent } = tournamentEngine.getEvent({ drawId });
-      const roundVisibilityState = currentEvent
-        ? computeRoundVisibilityState(drawId, structureId!, displayMatchUps, currentEvent)
-        : undefined;
+      const structureDetail = currentEvent ? getStructureDetail(drawId, structureId!, currentEvent) : undefined;
+      const roundVisibilityState = computeRoundVisibilityState(structureDetail, displayMatchUps);
 
       // Identify matchUps eligible for inline scoring wrapping
       const irregularStatuses = new Set(['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED']);
