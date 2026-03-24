@@ -255,7 +255,7 @@ function injectSidebarControls(container: HTMLElement): void {
       if (isCompletedStatus(m.matchUpStatus)) return false;
       if (m.schedule?.scheduledDate !== currentDate) return false;
       if (m.schedule?.courtId) return false; // already on a court — don't show
-      return !!m.schedule?.scheduledTime;
+      return true; // date match is sufficient — time is optional
     });
 
     if (!scheduled.length) {
@@ -268,6 +268,7 @@ function injectSidebarControls(container: HTMLElement): void {
     }
 
     for (const m of scheduled) {
+      const hasTime = !!m.schedule?.scheduledTime;
       const card = document.createElement('div');
       card.style.cssText = [
         'padding: 6px 8px',
@@ -275,7 +276,8 @@ function injectSidebarControls(container: HTMLElement): void {
         'border-radius: 8px',
         'font-size: 11px',
         'background: var(--sp-card-bg, var(--tmx-bg-secondary))',
-        'border: 1px solid var(--sp-border, var(--tmx-border-primary))',
+        `border: 1px ${hasTime ? 'solid' : 'dashed'} var(--sp-border, var(--tmx-border-primary))`,
+        `opacity: ${hasTime ? '1' : '0.7'}`,
         'cursor: grab',
         'display: flex',
         'flex-direction: column',
@@ -294,13 +296,15 @@ function injectSidebarControls(container: HTMLElement): void {
 
       const metaEl = document.createElement('div');
       metaEl.style.cssText = 'font-size: 10px; color: var(--sp-muted, var(--tmx-muted));';
-      const parts: string[] = [];
-      if (m.schedule?.scheduledTime) parts.push(m.schedule.scheduledTime);
-      metaEl.textContent = parts.join(' \u00b7 ');
+      metaEl.textContent = hasTime ? m.schedule.scheduledTime : t('schedule.noTimeSet');
+      if (!hasTime) {
+        metaEl.style.fontStyle = 'italic';
+        metaEl.style.color = 'var(--tmx-accent-orange, #f59e0b)';
+      }
 
       card.appendChild(titleEl);
       card.appendChild(sidesEl);
-      if (parts.length) card.appendChild(metaEl);
+      card.appendChild(metaEl);
 
       // Make draggable — uses CATALOG_MATCHUP type so the grid's onMatchUpDrop assigns a court
       card.draggable = true;
@@ -928,9 +932,10 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   return (matchUps || [])
     .filter((m: any) => m.matchUpStatus !== BYE)
     .map((m: any) => {
-      const hasCourtAssignment = !!(m.schedule?.courtId && m.schedule?.scheduledDate);
-      const hasTimeAssignment = !!(m.schedule?.scheduledTime && m.schedule?.scheduledDate);
-      const isScheduled = hasCourtAssignment || hasTimeAssignment;
+      const hasDate = !!m.schedule?.scheduledDate;
+      const hasCourtAssignment = !!(m.schedule?.courtId && hasDate);
+      const hasTimeAssignment = !!(m.schedule?.scheduledTime && hasDate);
+      const isScheduled = hasCourtAssignment || hasTimeAssignment || hasDate;
       const onSelectedDate = m.schedule?.scheduledDate === selectedDate;
 
       return {

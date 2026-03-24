@@ -773,7 +773,8 @@
     "practice": "Práctica",
     "maintenance": "Mantenimiento",
     "unscheduled": "No programados",
-    "noScheduledMatchUps": "No hay partidos programados"
+    "noScheduledMatchUps": "No hay partidos programados",
+    "noTimeSet": "Sin hora asignada"
   },
 
   "penalties": {

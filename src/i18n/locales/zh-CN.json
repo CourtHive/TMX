@@ -807,7 +807,8 @@
     "practice": "练习",
     "maintenance": "维护",
     "unscheduled": "未安排",
-    "noScheduledMatchUps": "没有已安排的比赛"
+    "noScheduledMatchUps": "没有已安排的比赛",
+    "noTimeSet": "未设定时间"
   },
 
   "penalties": {

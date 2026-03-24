@@ -749,7 +749,8 @@
     "practice": "تدريب",
     "maintenance": "صيانة",
     "unscheduled": "غير مجدولة",
-    "noScheduledMatchUps": "لا توجد مباريات مجدولة"
+    "noScheduledMatchUps": "لا توجد مباريات مجدولة",
+    "noTimeSet": "لم يتم تحديد وقت"
   },
   "penalties": {
     "fail2signout": "عدم تسجيل الانصراف",

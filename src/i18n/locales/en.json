@@ -812,7 +812,8 @@
     "practice": "Practice",
     "maintenance": "Maintenance",
     "unscheduled": "Unscheduled",
-    "noScheduledMatchUps": "No scheduled matchUps"
+    "noScheduledMatchUps": "No scheduled matchUps",
+    "noTimeSet": "No time set"
   },
 
   "penalties": {
