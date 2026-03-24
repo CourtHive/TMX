@@ -2,6 +2,7 @@
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
  */
+import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -75,6 +76,14 @@ export function determineExecutionStrategy(
 }
 
 export async function mutationRequest(params: MutationParams): Promise<void> {
+  if (isStale()) {
+    const msg = 'Please refresh tournament data before making changes';
+    tmxToast({ message: msg, intent: 'is-warning' });
+    if (params.callback) params.callback({ error: { message: msg } });
+    return;
+  }
+  resetActivityTimer();
+
   const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
   const state = getLoginState();
 
