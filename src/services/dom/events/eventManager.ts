@@ -15,62 +15,128 @@ interface MouseCoords {
   pageY: number;
 }
 
-export const eventManager = (function () {
-  let touchTimer: NodeJS.Timeout;
-  const em: any = {
-    elapsed: 100000,
-    held: undefined as any,
-    touched: undefined as any,
-    holdTime: 800,
-    holdAction: undefined as any,
-    holdActions: {},
-  };
-  const keys: Record<string, string[]> = {};
-  let registeredFunctions: Record<string, Record<string, RegisteredFunction>> = {};
-  const intersection = (a: string[], b: string[]) => a.filter((n) => b.indexOf(n) !== -1).filter((e, i, c) => c.indexOf(e) === i);
+export class EventManager {
+  elapsed = 100000;
+  held: any;
+  touched: any;
+  coords: any;
+  holdTime = 800;
+  holdAction: any;
 
-  em.reset = () => {
-    registeredFunctions = {};
-    return em;
+  private registeredFunctions: Record<string, Record<string, RegisteredFunction>> = {};
+  private keys: Record<string, string[]> = {};
+  private touchTimer: NodeJS.Timeout | undefined;
+  private lastTap = 0;
+
+  constructor() {
+    this.attachListeners();
+  }
+
+  reset = (): this => {
+    this.registeredFunctions = {};
+    this.keys = {};
+    return this;
   };
 
-  em.register = (cls: string, evnt: string, fx: Function, delay?: number) => {
-    if (typeof fx == 'function') {
-      if (!registeredFunctions[evnt]) {
-        registeredFunctions[evnt] = {};
-        keys[evnt] = [];
+  register = (cls: string, evnt: string, fx: Function, _delay?: number): this => {
+    if (typeof fx === 'function') {
+      if (!this.registeredFunctions[evnt]) {
+        this.registeredFunctions[evnt] = {};
+        this.keys[evnt] = [];
       }
-      registeredFunctions[evnt][cls] = { fx, delay };
-      keys[evnt] = Object.keys(registeredFunctions[evnt]);
+      this.registeredFunctions[evnt][cls] = { fx, delay: _delay };
+      this.keys[evnt] = Object.keys(this.registeredFunctions[evnt]);
     }
-    return em;
+    return this;
   };
 
-  em.deRegister = (cls: string, evnt: string) => {
-    if (registeredFunctions[evnt]) {
-      delete registeredFunctions[evnt][cls];
-      keys[evnt] = Object.keys(registeredFunctions[evnt]);
+  deRegister = (cls: string, evnt: string): this => {
+    if (this.registeredFunctions[evnt]) {
+      delete this.registeredFunctions[evnt][cls];
+      this.keys[evnt] = Object.keys(this.registeredFunctions[evnt]);
     }
-    return em;
+    return this;
   };
 
-  em.call = (cls: string, evnt: string, ...args: any[]) => {
-    return registeredFunctions?.[evnt]?.[cls]?.fx(...args);
+  call = (cls: string, evnt: string, ...args: any[]): any => {
+    return this.registeredFunctions?.[evnt]?.[cls]?.fx(...args);
   };
-  em.trigger = (cls: string, evnt: string, target: any, mouse: MouseCoords) => registeredFunctions[evnt][cls].fx(target, mouse, evnt);
-  em.list = () => console.log(registeredFunctions);
 
-  const tapHandler = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
-  document.addEventListener(tapHandler, (evt) => processEvnt({ evt, evnt: 'tap' }));
-  document.addEventListener('change', (evt) => processEvnt({ evt, evnt: 'change' }));
-  document.addEventListener('click', (evt) => processEvnt({ evt, evnt: 'click' }));
-  document.addEventListener('mouseover', (evt) => processEvnt({ evt, evnt: 'mouseover', stopPropagation: false }));
-  document.addEventListener('mouseout', (evt) => processEvnt({ evt, evnt: 'mouseout', stopPropagation: false }));
-  document.addEventListener('keyup', (evt) => processEvnt({ evt, evnt: 'keyup', stopPropagation: false }));
+  trigger = (cls: string, evnt: string, target: any, mouse: MouseCoords): any => {
+    return this.registeredFunctions[evnt][cls].fx(target, mouse, evnt);
+  };
 
-  let lastTap = 0;
+  list = (): void => {
+    console.log(this.registeredFunctions);
+  };
 
-  function processEvnt({ evt, evnt, stopPropagation = true }: { evt: Event; evnt: string; stopPropagation?: boolean }) {
+  // ── Private ──
+
+  private attachListeners(): void {
+    const tapHandler = 'ontouchstart' in document.documentElement ? 'touchstart' : 'click';
+    document.addEventListener(tapHandler, (evt) => this.processEvent(evt, 'tap'));
+    document.addEventListener('change', (evt) => this.processEvent(evt, 'change'));
+    document.addEventListener('click', (evt) => this.processEvent(evt, 'click'));
+    document.addEventListener('mouseover', (evt) => this.processEvent(evt, 'mouseover', false));
+    document.addEventListener('mouseout', (evt) => this.processEvent(evt, 'mouseout', false));
+    document.addEventListener('keyup', (evt) => this.processEvent(evt, 'keyup', false));
+
+    document.addEventListener(
+      'touchstart',
+      (e: Event) => {
+        const te = e as TouchEvent;
+        this.touched = te.target;
+        this.coords = [te.touches[0].clientX, te.touches[0].clientY];
+        if (this.touched) {
+          this.touchTimer = setTimeout(() => this.holdActionFire(), this.holdTime);
+        }
+      },
+      false,
+    );
+    document.addEventListener('touchend', () => this.touchLeave(), false);
+    document.addEventListener(
+      'touchmove',
+      (e: Event) => {
+        const te = e as TouchEvent;
+        if (this.touched !== te.target) this.touchLeave();
+      },
+      false,
+    );
+
+    // Device type detection (touch vs mouse)
+    let isTouch = false;
+    let isTouchTimer: NodeJS.Timeout;
+    let curRootClass = '';
+
+    document.addEventListener(
+      'touchstart',
+      () => {
+        clearTimeout(isTouchTimer);
+        isTouch = true;
+        if (curRootClass !== 'can-touch') {
+          curRootClass = 'can-touch';
+          document.documentElement.classList.add(curRootClass);
+        }
+        isTouchTimer = setTimeout(() => {
+          isTouch = false;
+        }, 500);
+      },
+      { passive: true },
+    );
+    document.addEventListener(
+      'mouseover',
+      () => {
+        if (!isTouch && curRootClass === 'can-touch') {
+          isTouch = false;
+          curRootClass = '';
+          document.documentElement.classList.remove('can-touch');
+        }
+      },
+      { passive: true },
+    );
+  }
+
+  private processEvent(evt: Event, evnt: string, stopPropagation = true): void {
     if (stopPropagation) evt.stopPropagation();
     const mouseEvent = evt as MouseEvent;
     const mouse: MouseCoords = {
@@ -80,89 +146,27 @@ export const eventManager = (function () {
       pageY: mouseEvent.pageY,
     };
     const classList = Array.from((evt.target as HTMLElement).classList);
-    const matchedClasses = classList.length && keys[evnt] ? intersection(classList, keys[evnt]) : [];
-    if (matchedClasses.length) {
-      const thisTap = new Date().getTime();
-      em.elapsed = thisTap - lastTap;
-      lastTap = thisTap;
-      matchedClasses.forEach((cls) => {
-        callFunction({ cls, evt, evnt, mouse });
-      });
-    }
-  }
-
-  function callFunction({ cls, evt, evnt, mouse }: { cls: string; evt: Event; evnt: string; mouse: MouseCoords }) {
-    const target = evt.target;
-    registeredFunctions[evnt][cls].fx(target, mouse, evnt, evt);
-  }
-
-  document.addEventListener(
-    'touchstart',
-    (pointerEvent: Event) => {
-      const touchEvent = pointerEvent as TouchEvent;
-      em.touched = touchEvent.target;
-      em.coords = [touchEvent.touches[0].clientX, touchEvent.touches[0].clientY];
-      if (em.touched) {
-        touchTimer = setTimeout(function () {
-          holdAction();
-        }, em.holdTime);
-      }
-    },
-    false,
-  );
-  document.addEventListener(
-    'touchend',
-    function () {
-      touchleave();
-    },
-    false,
-  );
-  document.addEventListener(
-    'touchmove',
-    function (pointerEvent: Event) {
-      const touchEvent = pointerEvent as TouchEvent;
-      if (em.touched !== touchEvent.target) touchleave();
-    },
-    false,
-  );
-  function touchleave() {
-    clearTimeout(touchTimer);
-  }
-  function holdAction() {
-    if (typeof em.holdAction == 'function') {
-      em.held = em.touched;
-      em.holdAction(em.held, em.coords);
-    }
-  }
-
-  (function () {
-    let isTouch = false;
-    let isTouchTimer: NodeJS.Timeout;
-    let curRootClass = '';
-
-    function addtouchclass() {
-      clearTimeout(isTouchTimer);
-      isTouch = true;
-      if (curRootClass !== 'can-touch') {
-        curRootClass = 'can-touch';
-        document.documentElement.classList.add(curRootClass);
-      }
-      isTouchTimer = setTimeout(function () {
-        isTouch = false;
-      }, 500);
-    }
-
-    function removetouchclass() {
-      if (!isTouch && curRootClass === 'can-touch') {
-        isTouch = false;
-        curRootClass = '';
-        document.documentElement.classList.remove('can-touch');
+    const intersection = classList.filter((c) => this.keys[evnt]?.includes(c));
+    if (intersection.length) {
+      const thisTap = Date.now();
+      this.elapsed = thisTap - this.lastTap;
+      this.lastTap = thisTap;
+      for (const cls of intersection) {
+        this.registeredFunctions[evnt][cls].fx(evt.target, mouse, evnt, evt);
       }
     }
+  }
 
-    document.addEventListener('touchstart', addtouchclass, { passive: true });
-    document.addEventListener('mouseover', removetouchclass, { passive: true });
-  })();
+  private touchLeave(): void {
+    clearTimeout(this.touchTimer);
+  }
 
-  return em;
-})();
+  private holdActionFire(): void {
+    if (typeof this.holdAction === 'function') {
+      this.held = this.touched;
+      this.holdAction(this.held, this.coords);
+    }
+  }
+}
+
+export const eventManager = new EventManager();
