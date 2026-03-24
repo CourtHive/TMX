@@ -1,9 +1,9 @@
 import { findAncestor, getChildrenByClassName } from 'services/dom/parentAndChild';
+import { validateNumericInput } from 'functions/validateNumericInput';
 
 export const numericEditor =
   ({ maxValue, decimals, field }) =>
   (cell, onRendered, success) => {
-    const regex = decimals ? /[^0-9.]/g : /^\D/g;
     const editor = document.createElement('input');
     editor.style.backgroundColor = 'var(--tmx-bg-highlight)';
     editor.style.color = 'var(--tmx-text-primary)';
@@ -33,8 +33,7 @@ export const numericEditor =
     });
 
     editor.addEventListener('keyup', (e: any) => {
-      const allNumeric = e.target.value.replace(regex, '') || '';
-      e.target.value = maxValue > 0 && allNumeric > maxValue ? '' : allNumeric;
+      e.target.value = validateNumericInput(e.target.value, maxValue, decimals);
       if (e.key === 'Tab' && e.shiftKey && field) {
         const row = findAncestor(e.target, 'tabulator-row');
         const previousRow = row?.previousSibling;

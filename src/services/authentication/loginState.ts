@@ -2,31 +2,31 @@ import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSetti
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
-
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
-import { loginModal } from 'components/modals/loginModal';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { loginModal } from 'components/modals/loginModal';
+import { getLoginColor } from 'functions/getLoginColor';
 import { tipster } from 'components/popovers/tipster';
 import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+// types
 import type { LoginState } from 'types/tmx';
 
+// constants
 import { SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS, NONE } from 'constants/tmxConstants';
 
 export function styleLogin(valid: LoginState | undefined | false): void {
   const el = document.getElementById('login');
-  const impersonating = context?.provider;
-  const admin = valid && valid.roles?.includes(SUPER_ADMIN);
   if (!el) return;
-  if (!valid) {
-    el.style.color = '';
-  } else {
-    el.style.color = (impersonating && 'var(--tmx-accent-red)') || (admin && 'var(--tmx-accent-green)') || 'var(--tmx-accent-blue)';
-  }
+  el.style.color = getLoginColor({
+    valid: !!valid,
+    impersonating: !!context?.provider,
+    isSuperAdmin: !!(valid && valid.roles?.includes(SUPER_ADMIN)),
+  });
 }
 
 export function getLoginState(): LoginState | undefined {
