@@ -37,6 +37,40 @@ interface MutationParams {
   callback?: (result: any) => void;
 }
 
+// ── Pure helpers (testable without DOM) ──
+
+export function checkOfflineState(tournamentRecords: Record<string, any>): {
+  offline: number;
+  invalidOffline: boolean;
+} {
+  const getOffline = (record: any) =>
+    record.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
+  const offlineValues = Object.values(tournamentRecords).map(getOffline).filter(Boolean);
+  const invalidOffline =
+    offlineValues.length > 1 && !offlineValues.every((v: any) => !v.email || v.email === offlineValues[0].email);
+  return { offline: offlineValues.length, invalidOffline };
+}
+
+export function applyDevOverrides(methods: any[], devParams?: Record<string, any>): any[] {
+  if (!devParams) return methods;
+  return methods.map((m) => (devParams[m.method] ? { ...m, params: { ...m.params, ...devParams[m.method] } } : m));
+}
+
+const LOCAL_ONLY = 'local-only';
+const LOCAL_FIRST = 'local-first';
+const SERVER_FIRST = 'server-first';
+type ExecutionStrategy = typeof LOCAL_ONLY | typeof LOCAL_FIRST | typeof SERVER_FIRST;
+
+export function determineExecutionStrategy(
+  hasProvider: boolean,
+  offline: boolean,
+  serverFirst: boolean,
+): ExecutionStrategy {
+  if (!hasProvider || offline) return LOCAL_ONLY;
+  if (!serverFirst) return LOCAL_FIRST;
+  return SERVER_FIRST;
+}
+
 export async function mutationRequest(params: MutationParams): Promise<void> {
   const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
   const state = getLoginState();
@@ -65,20 +99,14 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const getProviderId = (tournamentRecord: any) => tournamentRecord?.parentOrganisation?.organisationId;
   const tournamentRecords = factoryEngine.getState()?.tournamentRecords ?? {};
 
-  const getOffline = (tournamentRecord: any) =>
-    tournamentRecord.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
-
-  const offlineValues = Object.values(tournamentRecords)?.map(getOffline).filter(Boolean);
-  const invalidOffline =
-    offlineValues.length > 1 && !offlineValues.every((v: any) => !v.email || v.email === offlineValues[0].email);
+  const { offline, invalidOffline } = checkOfflineState(tournamentRecords);
   if (invalidOffline) return tmxToast({ message: t('toasts.notAllOffline'), intent: 'is-danger' });
-  const offline = offlineValues.length;
 
   const tournamentIds = Object.values(tournamentRecords)?.map((record: any) => record.tournamentId);
   const providerIds = factory.tools.unique(Object.values(tournamentRecords)?.map(getProviderId)).filter(Boolean);
   if (providerIds.length > 1) return tmxToast({ message: t('toasts.multipleProviders'), intent: 'is-danger' });
 
-  const now = new Date().getTime();
+  const now = Date.now();
   const inDateRange = Object.values(tournamentRecords).every((record: any) => {
     const endTime = dayjs(record.endDate).endOf('day').valueOf();
     return !!(endTime && endTime >= now);
@@ -185,30 +213,23 @@ async function makeMutation({
   tournamentIds: string[];
   saveLocal?: boolean;
 }): Promise<void> {
-  const hasProvider = factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
-  if (window['dev']?.params) {
-    for (const method of methods) {
-      if (window['dev'].params[method.method]) {
-        method.params = { ...method.params, ...window['dev'].params[method.method] };
-      }
-    }
-  }
+  const hasProvider = !!factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
+  const resolvedMethods = applyDevOverrides(methods, window['dev']?.params);
+  if (window?.['dev']?.getContext().internal) console.log({ methods: resolvedMethods });
 
-  if (window?.['dev']?.getContext().internal) console.log({ methods });
-
-  const executeLocalFirst = !serverConfig.get().serverFirst || !hasProvider;
+  const strategy = determineExecutionStrategy(hasProvider, !!offline, serverConfig.get().serverFirst);
 
   let factoryResult: any;
-  if (executeLocalFirst || offline) {
-    factoryResult = engineExecution({ factoryEngine, methods });
+  if (strategy === LOCAL_ONLY || strategy === LOCAL_FIRST) {
+    factoryResult = engineExecution({ factoryEngine, methods: resolvedMethods });
     if (factoryResult.error) return completion(factoryResult);
-    if (!hasProvider || offline) {
+    if (strategy === LOCAL_ONLY) {
       await localSave(true);
       return completion(factoryResult);
     }
   }
 
-  if (hasProvider && (factoryResult?.success || serverConfig.get().serverFirst)) {
+  if (hasProvider && (factoryResult?.success || strategy === SERVER_FIRST)) {
     let ackReceived = false;
     let timedOut = false;
     const ackCallback = (ack: any) => {
@@ -217,21 +238,21 @@ async function makeMutation({
       const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
       if (serverConfig.get().serverFirst && (ack?.success || missingTournament)) {
         (async () => {
-          factoryResult = engineExecution({ factoryEngine, methods });
+          factoryResult = engineExecution({ factoryEngine, methods: resolvedMethods });
           if (factoryResult.error) return completion(factoryResult);
           await localSave(saveLocal || missingTournament);
           return completion(factoryResult);
         })();
-      } else if (serverConfig.get().serverFirst && !executeLocalFirst) {
+      } else if (strategy === SERVER_FIRST) {
         completion(ack?.error ? ack : { error: { message: 'Server rejected mutation' } });
       }
     };
     if (debugConfig.get().log?.verbose) console.log('%c invoking remote', 'color: lightblue');
     emitTmx({
-      data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
+      data: { type: 'executionQueue', payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true } },
       ackCallback,
     });
-    if (executeLocalFirst) {
+    if (strategy === LOCAL_FIRST) {
       await localSave(saveLocal || false);
     } else {
       setTimeout(() => {
@@ -243,7 +264,7 @@ async function makeMutation({
     }
   }
 
-  if (executeLocalFirst) return completion(factoryResult);
+  if (strategy === LOCAL_FIRST) return completion(factoryResult);
 }
 
 // ── Provider mutation gating ──
