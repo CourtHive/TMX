@@ -85,7 +85,7 @@ export function getEventControlItems({
       editDisplaySettings({
         drawId,
         eventId,
-        callback: () => renderDrawView({ eventId, drawId, structureId }),
+        callback: () => renderDrawView({ eventId, drawId, structureId, redraw: true }),
       }),
     label: '<i class="fa-solid fa-palette"></i>',
     toolTip: { content: t('pages.events.actionOptions.displaySettings'), placement: 'bottom' },

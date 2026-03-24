@@ -374,7 +374,7 @@ export function renderDrawView({
       const dv = document.getElementById(DRAWS_VIEW);
       if (dv) {
         removeAllChildNodes(dv);
-        const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], onRefresh: updateView });
+        const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], composition, onRefresh: updateView });
         if (scorecard) dv.appendChild(scorecard);
       }
     } else {
@@ -455,7 +455,7 @@ export function renderDrawView({
   }
 
   if (dual) {
-    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], onRefresh: updateView });
+    const scorecard = (renderScorecard as any)({ matchUp: matchUps[0], composition, onRefresh: updateView });
     if (scorecard && drawsView) {
       drawsView.appendChild(scorecard);
     }

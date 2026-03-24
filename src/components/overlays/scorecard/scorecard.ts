@@ -2,17 +2,42 @@
  * Scorecard overlay for team match display and editing.
  * Uses renderMatchUp from courthive-components to display collection matchUps as cards.
  */
+import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
+import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
 import { renderMatchUp, compositions } from 'courthive-components';
+import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
 
+// constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
+
+function resolveComposition(matchUp: any): any {
+  const { drawId, eventId } = matchUp;
+  const storedValue = tournamentEngine.findExtension({
+    name: extensionConstants.DISPLAY,
+    discover: true,
+    eventId,
+    drawId,
+  })?.extension?.value;
+
+  const display = storedValue?.admin ?? storedValue;
+  const compositionName = display?.compositionName;
+  const configuration = display?.configuration;
+
+  const composition = compositions[compositionName] || displayConfig.get().composition || compositions['National'];
+
+  if (configuration) {
+    composition.configuration ??= {};
+    Object.assign(composition.configuration, configuration);
+  }
+
+  return composition;
+}
 
 const WIN_INDICATOR = 'has-text-success';
 const TIE_SIDE_1 = 'tieSide1';
@@ -52,9 +77,11 @@ function refreshScorecard({ drawId, matchUpId }: { drawId: string; matchUpId: st
 
 export function renderScorecard({
   matchUp,
+  composition: compositionOverride,
   onRefresh,
 }: {
   matchUp: any;
+  composition?: any;
   onRefresh?: () => void;
 }): HTMLDivElement {
   const contentContainer = document.createElement('div');
@@ -75,7 +102,7 @@ export function renderScorecard({
   const collectionDefinitions =
     matchUp.tieFormat.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || [];
 
-  const composition = compositions['National'];
+  const composition = compositionOverride || resolveComposition(matchUp);
 
   for (const collectionDefinition of collectionDefinitions) {
     const collectionMatchUps = matchUp.tieMatchUps
@@ -119,10 +146,10 @@ export function renderScorecard({
 
     for (const tieMatchUp of collectionMatchUps) {
       const card = renderMatchUp({
-        composition,
-        matchUp: tieMatchUp as any,
+        matchUp: tieMatchUp,
         isLucky: true, // suppresses connector lines
         eventHandlers,
+        composition,
       });
       card.classList.add('sc-matchup-card');
       grid.appendChild(card);
@@ -149,7 +176,7 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
   const getSideNumber = (pointerEvent: any) => {
     let el = pointerEvent.target as HTMLElement;
     while (el && !el.classList?.contains('tmx-sd')) el = el.parentElement as HTMLElement;
-    return parseInt(el?.getAttribute('sideNumber') || '0');
+    return Number.parseInt(el?.getAttribute('sideNumber') || '0');
   };
 
   const scoreClick = (props: any) => {
