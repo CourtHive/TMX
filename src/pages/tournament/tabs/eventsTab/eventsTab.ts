@@ -4,33 +4,39 @@
  * 2. Event tabs bar (Draws / Entries / Rankings)
  * 3. Tab content (draw view, entries panels, points table, or add-draw placeholder)
  */
-import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
-import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
-import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
-import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
-import { createPointsTable } from 'components/tables/pointsTable/createPointsTable';
-import { setEventView } from 'components/tables/eventsTable/setEventView';
-import { renderEventTabsBar, renderNoDrawsPlaceholder } from './eventTabsBar';
-import { renderEventSelector, hideEventSelector } from './eventSelector';
-import { destroyTables } from 'pages/tournament/destroyTable';
-import { renderDrawsTable } from './renderDraws/renderDrawsTable';
-import { renderDrawView } from './renderDraws/renderDrawView';
-import { getActionOptions } from './renderDraws/getActionOptions';
-import { cleanupDrawPanel } from './cleanupDrawPanel';
-import { renderDrawPanel } from './renderDrawPanel';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
-import { deleteFlights } from 'components/modals/deleteFlights';
+import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
+import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
+import { createPointsTable } from 'components/tables/pointsTable/createPointsTable';
+import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
+import { renderEventTabsBar, renderNoDrawsPlaceholder } from './eventTabsBar';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { setEventView } from 'components/tables/eventsTable/setEventView';
+import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';
+import { getActionOptions } from './renderDraws/getActionOptions';
+import { renderDrawsTable } from './renderDraws/renderDrawsTable';
+import { deleteFlights } from 'components/modals/deleteFlights';
+import { destroyTables } from 'pages/tournament/destroyTable';
+import { renderDrawView } from './renderDraws/renderDrawView';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { editEvent } from './editEvent';
+import { cleanupDrawPanel } from './cleanupDrawPanel';
+import { renderDrawPanel } from './renderDrawPanel';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
+import { editEvent } from './editEvent';
 import { t } from 'i18n';
 
 // constants
-import { tournamentEngine, drawDefinitionConstants, eventConstants, extensionConstants, tools } from 'tods-competition-factory';
+import {
+  tournamentEngine,
+  drawDefinitionConstants,
+  eventConstants,
+  extensionConstants,
+  tools,
+} from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import {
   DRAWS_VIEW,
@@ -147,10 +153,11 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
       const drawDefs = event?.drawDefinitions || [];
 
       // Check for ungenerated flights from flight profile extension
-      const flightProfile = event?.extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
-      const ungeneratedCount = flightProfile?.flights?.filter(
-        (f: any) => !drawDefs.find((dd: any) => dd.drawId === f.drawId),
-      )?.length || 0;
+      const flightProfile = event?.extensions?.find(
+        (ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE,
+      )?.value;
+      const ungeneratedCount =
+        flightProfile?.flights?.filter((f: any) => !drawDefs.some((dd: any) => dd.drawId === f.drawId))?.length || 0;
       const totalDrawItems = drawDefs.length + ungeneratedCount;
 
       if (totalDrawItems > 0) {
@@ -171,7 +178,9 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
         ];
         controlBar({
           target: drawsActionsElement,
-          items: [{ options: drawsActionOptions, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' }],
+          items: [
+            { options: drawsActionOptions, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' },
+          ],
         });
 
         renderEventTabsBar({ eventId, activeTab: 'draws', rightContent: drawsActionsElement });
@@ -221,7 +230,8 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
                     location: OVERLAY,
                   },
                   {
-                    onClick: () => addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
+                    onClick: () =>
+                      addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
                     intent: 'is-info',
                     label: 'Add flights',
                     location: RIGHT,
@@ -278,7 +288,9 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
     entriesActionsElement.style.cssText = FLEX_CENTER;
     controlBar({
       target: entriesActionsElement,
-      items: [{ options: entriesActionOptions, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' }],
+      items: [
+        { options: entriesActionOptions, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' },
+      ],
     });
 
     renderEventTabsBar({ eventId, drawId, activeTab: 'entries', rightContent: entriesActionsElement });
