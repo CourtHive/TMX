@@ -1,21 +1,26 @@
-import { getBuiltinTopologies, loadUserTopologies, saveUserTopology, deleteUserTopology } from './topologyBridge';
 import { getBuiltinTieFormats, loadUserTieFormats, saveUserTieFormat, deleteUserTieFormat } from './tieFormatBridge';
-import { getBuiltinCompositions, loadUserCompositions, saveUserComposition, deleteUserComposition } from './compositionBridge';
+import { getBuiltinTopologies, loadUserTopologies, saveUserTopology, deleteUserTopology } from './topologyBridge';
+import { TopologyBuilderControl, createCompositionEditor, getMatchUpFormatModal } from 'courthive-components';
+import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
+import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { showTMXtemplates } from 'services/transitions/screenSlaver';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { TopologyBuilderControl, createCompositionEditor } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
-import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
-import { getMatchUpFormatModal } from 'courthive-components';
 import { homeNavigation } from 'homeNavigation';
 import { context } from 'services/context';
+import {
+  getBuiltinCompositions,
+  loadUserCompositions,
+  saveUserComposition,
+  deleteUserComposition,
+} from './compositionBridge';
 
-import type { CompositionCatalogItem } from './compositionBridge';
-import type { TopologyCatalogItem } from './topologyBridge';
-import type { TieFormatCatalogItem } from './tieFormatBridge';
+// types
 import type { TopologyState, SavedComposition } from 'courthive-components';
+import type { CompositionCatalogItem } from './compositionBridge';
+import type { TieFormatCatalogItem } from './tieFormatBridge';
+import type { TopologyCatalogItem } from './topologyBridge';
 
 // constants
 import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
@@ -57,8 +62,17 @@ let builderBody: HTMLElement | null = null;
 let builderHeader: HTMLElement | null = null;
 let emptyEl: HTMLElement | null = null;
 
+const VALID_VIEWS: Record<string, TemplateView> = {
+  topologies: 'topologies',
+  tieformats: 'tieFormats',
+  compositions: 'compositions',
+};
+
 // ── Entry point ──
-export async function renderTemplatesPage(): Promise<void> {
+export async function renderTemplatesPage(params?: { templateView?: string }): Promise<void> {
+  if (params?.templateView) {
+    activeView = VALID_VIEWS[params.templateView.toLowerCase()] || 'topologies';
+  }
   showTMXtemplates();
   homeNavigation(TEMPLATES);
 
@@ -82,19 +96,14 @@ export async function renderTemplatesPage(): Promise<void> {
     { key: 'compositions', label: 'Compositions' },
   ];
 
-  const chips: HTMLButtonElement[] = [];
   for (const view of views) {
     const chip = document.createElement('button');
     chip.className = 'tpl-nav-chip';
     if (view.key === activeView) chip.classList.add('active');
     chip.textContent = view.label;
     chip.onclick = () => {
-      activeView = view.key;
-      chips.forEach((c) => c.classList.remove('active'));
-      chip.classList.add('active');
-      renderActiveView(contentArea);
+      context.router?.navigate(`/${TEMPLATES}/${view.key.toLowerCase()}`);
     };
-    chips.push(chip);
     chipsRow.appendChild(chip);
   }
 
@@ -213,16 +222,25 @@ function renderTopologyCatalog(builtins: TopologyCatalogItem[], userTopologies: 
 
   if (builtins.length) {
     catalogBody.appendChild(
-      renderGroup('Default', builtins, false, topologyMeta, (item) => selectTopologyItem(item as TopologyCatalogItem, true)),
+      renderGroup('Default', builtins, false, topologyMeta, (item) =>
+        selectTopologyItem(item as TopologyCatalogItem, true),
+      ),
     );
   }
   if (userTopologies.length) {
     catalogBody.appendChild(
-      renderGroup('Custom', userTopologies, true, topologyMeta, (item) => selectTopologyItem(item as TopologyCatalogItem, false), async (item) => {
-        await deleteUserTopology(item.id);
-        tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
-        renderTemplatesPage();
-      }),
+      renderGroup(
+        'Custom',
+        userTopologies,
+        true,
+        topologyMeta,
+        (item) => selectTopologyItem(item as TopologyCatalogItem, false),
+        async (item) => {
+          await deleteUserTopology(item.id);
+          tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
+          renderTemplatesPage();
+        },
+      ),
     );
   }
 }
@@ -268,7 +286,7 @@ function selectTopologyItem(item: TopologyCatalogItem | undefined, readOnly?: bo
     };
   }
 
-  const editingId = item && item.source === 'user' ? item.id : undefined;
+  const editingId = item?.source === 'user' ? item.id : undefined;
 
   builderControl = new TopologyBuilderControl({
     initialState,
@@ -474,16 +492,25 @@ function renderTieFormatCatalog(builtins: TieFormatCatalogItem[], userTieFormats
 
   if (builtins.length) {
     catalogBody.appendChild(
-      renderGroup('Default', builtins, false, tieFormatMeta, (item) => selectTieFormatItem(item as TieFormatCatalogItem, true)),
+      renderGroup('Default', builtins, false, tieFormatMeta, (item) =>
+        selectTieFormatItem(item as TieFormatCatalogItem, true),
+      ),
     );
   }
   if (userTieFormats.length) {
     catalogBody.appendChild(
-      renderGroup('Custom', userTieFormats, true, tieFormatMeta, (item) => selectTieFormatItem(item as TieFormatCatalogItem, false), async (item) => {
-        await deleteUserTieFormat(item.id);
-        tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
-        renderTemplatesPage();
-      }),
+      renderGroup(
+        'Custom',
+        userTieFormats,
+        true,
+        tieFormatMeta,
+        (item) => selectTieFormatItem(item as TieFormatCatalogItem, false),
+        async (item) => {
+          await deleteUserTieFormat(item.id);
+          tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
+          renderTemplatesPage();
+        },
+      ),
     );
   }
 }
@@ -648,13 +675,14 @@ function renderTieFormatPreview(container: HTMLElement, tieFormat: any): void {
       }
 
       // Award info
-      const awardLabel = col.collectionValue != null
-        ? 'Collection value'
-        : col.scoreValue != null
-          ? 'Score value'
-          : col.setValue != null
-            ? 'Set value'
-            : 'Match value';
+      const awardLabel =
+        col.collectionValue == null
+          ? col.scoreValue == null
+            ? col.setValue == null
+              ? 'Match value'
+              : 'Set value'
+            : 'Score value'
+          : 'Collection value';
       const awardVal = col.collectionValue ?? col.scoreValue ?? col.setValue ?? col.matchUpValue;
       if (awardVal != null) {
         const award = document.createElement('div');
@@ -793,27 +821,41 @@ function compositionMeta(item: CatalogItem, container: HTMLElement): void {
 
   const info = document.createElement('span');
   info.style.fontSize = '0.8em';
-  info.textContent = enabledFlags.length ? enabledFlags.slice(0, 3).join(', ') + (enabledFlags.length > 3 ? '…' : '') : 'default';
+  info.textContent = enabledFlags.length
+    ? enabledFlags.slice(0, 3).join(', ') + (enabledFlags.length > 3 ? '…' : '')
+    : 'default';
   container.appendChild(info);
 }
 
-function renderCompositionCatalog(builtins: CompositionCatalogItem[], userCompositions: CompositionCatalogItem[]): void {
+function renderCompositionCatalog(
+  builtins: CompositionCatalogItem[],
+  userCompositions: CompositionCatalogItem[],
+): void {
   if (!catalogBody || !catalogMeta) return;
   catalogBody.innerHTML = '';
   catalogMeta.textContent = `${builtins.length + userCompositions.length} compositions`;
 
   if (builtins.length) {
     catalogBody.appendChild(
-      renderGroup('Default', builtins, false, compositionMeta, (item) => selectCompositionItem(item as CompositionCatalogItem, true)),
+      renderGroup('Default', builtins, false, compositionMeta, (item) =>
+        selectCompositionItem(item as CompositionCatalogItem, true),
+      ),
     );
   }
   if (userCompositions.length) {
     catalogBody.appendChild(
-      renderGroup('Custom', userCompositions, true, compositionMeta, (item) => selectCompositionItem(item as CompositionCatalogItem, false), async (item) => {
-        await deleteUserComposition(item.id);
-        tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
-        renderTemplatesPage();
-      }),
+      renderGroup(
+        'Custom',
+        userCompositions,
+        true,
+        compositionMeta,
+        (item) => selectCompositionItem(item as CompositionCatalogItem, false),
+        async (item) => {
+          await deleteUserComposition(item.id);
+          tmxToast({ message: `Deleted "${item.name}"`, intent: 'is-info' });
+          renderTemplatesPage();
+        },
+      ),
     );
   }
 }

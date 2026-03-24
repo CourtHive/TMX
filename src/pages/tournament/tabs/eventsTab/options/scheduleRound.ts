@@ -3,14 +3,15 @@
  * Presents a date picker (constrained to activeDates, excluding dates before
  * previously scheduled rounds) and an optional time picker.
  */
-import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { Datepicker } from 'vanillajs-datepicker';
-import { TimepickerUI } from 'timepicker-ui';
 import { tools } from 'tods-competition-factory';
+import { TimepickerUI } from 'timepicker-ui';
 import { i18next } from 'i18n';
 
+// constants
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
@@ -57,7 +58,7 @@ export function scheduleRound(params: ScheduleRoundParams): void {
     elem.appendChild(dateInput);
 
     const activeDatesSet = new Set(activeDates);
-    new Datepicker(dateInput, {
+    new Datepicker(dateInput, { // NOSONAR — instance attaches to DOM element
       format: 'yyyy-mm-dd',
       language: i18next.language,
       autohide: false,
@@ -96,8 +97,10 @@ export function scheduleRound(params: ScheduleRoundParams): void {
 
     // defer timepicker-ui init so DOM is ready
     requestAnimationFrame(() => {
+      const isDark = document.documentElement.dataset.theme === 'dark';
       const tpu = new TimepickerUI(timeWrapper, {
         clock: { type: '12h', autoSwitchToMinutes: true },
+        ...(isDark && { ui: { theme: 'dark' as const } }),
         callbacks: {
           onConfirm: () => {
             selectedTime = timeInput.value;

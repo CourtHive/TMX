@@ -131,7 +131,8 @@ export function routeTMX() {
 
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
-  router.on(`/${TEMPLATES}`, renderTemplatesPage);
+  router.on(`/${TEMPLATES}/:templateView`, (match) => renderTemplatesPage(match?.data ?? undefined));
+  router.on(`/${TEMPLATES}`, () => renderTemplatesPage());
   router.on(`/${POLICIES}`, renderPoliciesPage);
   router.on(`/${SETTINGS}`, renderSettingsPage);
   router.on('/admin', renderAdminPage);

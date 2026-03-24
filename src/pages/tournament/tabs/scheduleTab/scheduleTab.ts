@@ -4,13 +4,14 @@
  */
 import { createUnscheduledTable } from 'components/tables/unscheduledTable/createUnscheduledTable';
 import { createScheduleTable } from 'components/tables/scheduleTable/createScheduleTable';
-import { competitionEngine } from 'tods-competition-factory';
 import { unscheduledGridControl } from './unscheduledGridControl';
+import { competitionEngine } from 'tods-competition-factory';
 import { scheduleGridControl } from './scheduleGridControl';
 import { resolveScheduleDate } from '../scheduleUtils';
-import { context } from 'services/context';
 import { scheduleConfig } from 'config/scheduleConfig';
+import { context } from 'services/context';
 
+// constants
 import { NONE, SCHEDULE_CONTROL, UNSCHEDULED_CONTROL, UNSCHEDULED_VISIBILITY } from 'constants/tmxConstants';
 
 export function renderScheduleTab(params: { scheduledDate?: string }): void {

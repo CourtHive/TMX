@@ -1,41 +1,20 @@
 /**
  * IndexedDB database wrapper using Dexie.
  * Manages local storage for tournaments, providers, and language idioms.
+ *
+ * All methods are arrow properties so `this` is bound even when methods
+ * are passed as bare references (e.g. `catchAsync(tmx2db.initDB)`).
  */
+import { tmxToast } from 'services/notifications/tmxToast';
 import Dexie from 'dexie';
 
-interface TMXDatabase {
-  dex: Dexie;
-  initDB: () => Promise<void>;
-  resetDB: (callback?: () => void) => void;
-  findAll: (table: string) => Promise<any[]>;
-  findAllTournaments: () => Promise<any[]>;
-  findAllProviders: () => Promise<any[]>;
-  findAllIdioms: () => Promise<any[]>;
-  findWhere: (tbl: string, attr: string, val: any) => Promise<any[]>;
-  deleteTournament: (tournamentId: string) => Promise<void>;
-  deleteProvider: (key: string) => Promise<any>;
-  deleteAllTournamentAttr: (attr: string) => Promise<void>;
-  findUnique: (tbl: string, attr: string, val: any) => Promise<any>;
-  findProvider: (providerId: string) => Promise<any>;
-  findIdiom: (ioc: string) => Promise<any>;
-  findTournament: (tournamentId: string) => Promise<any>;
-  findProviderTournaments: (providerId: string) => Promise<any[]>;
-  addItem: (tbl: string, item: any) => Promise<any>;
-  modifyOrAddUnique: (tbl: string, attr: string, val: any, item: any) => Promise<string | any>;
-  addIdiom: (idiom: any) => Promise<string | any>;
-  addTournament: (tournamentRecord: any) => Promise<string | any>;
-  addProvider: (provider: any) => Promise<string | any>;
-  modify: (tbl: string, attr: string, val: any, fx: (params: any) => void, params: any) => Promise<any>;
-}
+export class TMXDatabase {
+  dex: any;
 
-export const tmx2db: TMXDatabase = (function () {
-  const idb: any = {};
-
-  idb.initDB = () => {
+  initDB = (): Promise<void> => {
     return new Promise<void>((resolve, reject) => {
       try {
-        idb.dex = new Dexie('TMX', { autoOpen: true });
+        this.dex = new Dexie('TMX', { autoOpen: true });
         const tournaments = '&tournamentId, tournamentName, startDate, endDate';
         const providers = '&providerId, settings, calendar';
         const idioms = 'ioc';
@@ -43,113 +22,114 @@ export const tmx2db: TMXDatabase = (function () {
         const namedSource = '&id, name, source';
         const topologies = namedSource;
         const tieFormats = namedSource;
-        idb.dex.version(2).stores({ tournaments, providers, idioms });
-        idb.dex.version(3).stores({ tournaments, providers, idioms, policies });
-        idb.dex.version(4).stores({ tournaments, providers, idioms, policies, topologies });
-        idb.dex.version(5).stores({ tournaments, providers, idioms, policies, topologies, tieFormats });
+        this.dex.version(2).stores({ tournaments, providers, idioms });
+        this.dex.version(3).stores({ tournaments, providers, idioms, policies });
+        this.dex.version(4).stores({ tournaments, providers, idioms, policies, topologies });
+        this.dex.version(5).stores({ tournaments, providers, idioms, policies, topologies, tieFormats });
         const compositions = namedSource;
-        idb.dex.version(6).stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions });
+        this.dex.version(6).stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions });
         resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   };
 
-  idb.resetDB = (callback?: () => void) => {
-    idb.dex.close();
-    Dexie.delete('TMX').then(callback, () => alert('Failed to Reset Database'));
-  };
-
-  idb.findAll = (table: string) => {
-    return new Promise((resolve, reject) => {
-      const targetTable = idb.dex[table];
-      if (targetTable) {
-        return targetTable.toArray(resolve, reject).catch(reject);
-      } else {
-        return resolve([]);
-      }
+  resetDB = (callback?: () => void): void => {
+    this.dex.close();
+    Dexie.delete('TMX').then(callback, (err: any) => {
+      console.error('[IndexedDB] Failed to reset database:', err);
+      tmxToast({ message: 'Failed to reset database', intent: 'is-danger' });
     });
   };
-  idb.findAllTournaments = () => idb.findAll('tournaments');
-  idb.findAllProviders = () => idb.findAll('providers');
-  idb.findAllIdioms = () => idb.findAll('idioms');
 
-  idb.findWhere = (tbl: string, attr: string, val: any) =>
-    new Promise((resolve, reject) => idb.dex[tbl].where(attr).equals(val).toArray(resolve, reject).catch(reject));
-
-  idb.deleteTournament = (tournamentId: string) => {
-    return new Promise((resolve, reject) => {
-      idb.dex.tournaments.where('tournamentId').equals(tournamentId).delete().then(resolve, reject);
-    });
+  findAll = (table: string): Promise<any[]> => {
+    const targetTable = this.dex[table];
+    if (targetTable) {
+      return targetTable.toArray();
+    }
+    return Promise.resolve([]);
   };
-  idb.deleteProvider = (key: string) => idb.dex.providers.where('providerId').equals(key).delete();
 
-  idb.deleteAllTournamentAttr = (attr: string) =>
-    idb.dex.tournaments
+  findAllTournaments = (): Promise<any[]> => this.findAll('tournaments');
+  findAllProviders = (): Promise<any[]> => this.findAll('providers');
+  findAllIdioms = (): Promise<any[]> => this.findAll('idioms');
+
+  findWhere = (tbl: string, attr: string, val: any): Promise<any[]> => {
+    return this.dex[tbl].where(attr).equals(val).toArray();
+  };
+
+  deleteTournament = (tournamentId: string): Promise<void> => {
+    return this.dex['tournaments'].where('tournamentId').equals(tournamentId).delete().then(() => undefined);
+  };
+
+  deleteProvider = (key: string): Promise<any> => {
+    return this.dex['providers'].where('providerId').equals(key).delete();
+  };
+
+  deleteAllTournamentAttr = (attr: string): Promise<void> => {
+    return this.dex['tournaments']
       .toCollection()
       .modify((tournament: any) => delete tournament[attr])
-      .then(() => console.log('done'));
+      .then(() => undefined);
+  };
 
-  idb.findUnique = (tbl: string, attr: string, val: any) =>
-    new Promise((resolve, reject) => {
-      idb.findWhere(tbl, attr, val).then((d: any[]) => resolve(d?.length ? d[0] : undefined), reject);
-    });
-  idb.findProvider = (providerId: string) => idb.findUnique('providers', 'providerId', providerId);
-  idb.findIdiom = (ioc: string) => idb.findUnique('idioms', 'ioc', ioc);
-  idb.findTournament = (tournamentId: string) => idb.findUnique('tournaments', 'tournamentId', tournamentId);
-  idb.findProviderTournaments = (providerId: string) => idb.findWhere('tournaments', 'providerId', providerId);
-  idb.addItem = (tbl: string, item: any) =>
-    new Promise((resolve, reject) =>
-      idb.dex[tbl]
-        .put(item)
-        .then(resolve, reject)
-        .catch((err: any) => {
-          alert('try again:' + err);
-          reject(err);
-        }),
-    );
+  findUnique = async (tbl: string, attr: string, val: any): Promise<any> => {
+    const results = await this.findWhere(tbl, attr, val);
+    return results?.length ? results[0] : undefined;
+  };
 
-  idb.modifyOrAddUnique = (tbl: string, attr: string, val: any, item: any) =>
-    new Promise((resolve, reject) => {
-      idb.dex[tbl]
+  findProvider = (providerId: string): Promise<any> => this.findUnique('providers', 'providerId', providerId);
+  findIdiom = (ioc: string): Promise<any> => this.findUnique('idioms', 'ioc', ioc);
+  findTournament = (tournamentId: string): Promise<any> => this.findUnique('tournaments', 'tournamentId', tournamentId);
+  findProviderTournaments = (providerId: string): Promise<any[]> => this.findWhere('tournaments', 'providerId', providerId);
+
+  addItem = async (tbl: string, item: any): Promise<any> => {
+    try {
+      return await this.dex[tbl].put(item);
+    } catch (err) {
+      console.error('[IndexedDB] put failed:', err);
+      tmxToast({ message: 'Database write failed', intent: 'is-danger' });
+      throw err;
+    }
+  };
+
+  modifyOrAddUnique = async (tbl: string, attr: string, val: any, item: any): Promise<string | any> => {
+    try {
+      const result = await this.dex[tbl]
         .where(attr)
         .equals(val)
-        .modify((data: any) => Object.assign(data, item))
-        .then(
-          (result: any) => {
-            if (result) {
-              return resolve('exists');
-            } else {
-              idb.addItem(tbl, item).then(resolve, reject);
-            }
-          },
-          (err: any) => {
-            console.log({ err });
-            reject(err);
-          },
-        );
-    });
-
-  idb.addIdiom = (idiom: any) => idb.modifyOrAddUnique('idioms', 'ioc', idiom.ioc, idiom);
-  idb.addTournament = (tournamentRecord: any) => {
-    return idb.modifyOrAddUnique('tournaments', 'tournamentId', tournamentRecord.tournamentId, tournamentRecord);
+        .modify((data: any) => Object.assign(data, item));
+      if (result) return 'exists';
+      return this.addItem(tbl, item);
+    } catch (err) {
+      console.error('[IndexedDB] modifyOrAddUnique failed:', err);
+      throw err;
+    }
   };
-  idb.addProvider = (provider: any) => idb.modifyOrAddUnique('providers', 'providerId', provider.providerId, provider);
-  idb.modify = (tbl: string, attr: string, val: any, fx: (params: any) => void, params: any) =>
-    new Promise((resolve, reject) => {
-      idb.dex[tbl]
+
+  addIdiom = (idiom: any): Promise<string | any> => this.modifyOrAddUnique('idioms', 'ioc', idiom.ioc, idiom);
+  addTournament = (tournamentRecord: any): Promise<string | any> => {
+    return this.modifyOrAddUnique('tournaments', 'tournamentId', tournamentRecord.tournamentId, tournamentRecord);
+  };
+  addProvider = (provider: any): Promise<string | any> => {
+    return this.modifyOrAddUnique('providers', 'providerId', provider.providerId, provider);
+  };
+
+  modify = async (tbl: string, attr: string, val: any, fx: (params: any) => void, params: any): Promise<any> => {
+    try {
+      return await this.dex[tbl]
         .where(attr)
         .equals(val)
         .modify((item: any) => {
           Object.assign(params, { item });
           fx(params);
-        })
-        .then(resolve, (err: any) => {
-          console.log('error:', err);
-          reject();
         });
-    });
+    } catch (err) {
+      console.error('[IndexedDB] modify failed:', err);
+      throw err;
+    }
+  };
+}
 
-  return idb;
-})();
+export const tmx2db = new TMXDatabase();

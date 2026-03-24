@@ -7,7 +7,7 @@ export const getClub = (participant: any): string | undefined => getGroup(partic
 export const getSchool = (participant: any): string | undefined => getGroup(participant, 'SCHOOL');
 
 export const getCity = (participant: any): string | undefined => {
-  return participant.person?.addresses?.find(({ city }: any) => city)?.[0].city;
+  return participant.person?.addresses?.find(({ city }: any) => city)?.city;
 };
 export const getEvents = (participant: any, derivedEventInfo: any): any[] => {
   return (participant.events || []).map(({ eventId }: any) => derivedEventInfo?.[eventId]);

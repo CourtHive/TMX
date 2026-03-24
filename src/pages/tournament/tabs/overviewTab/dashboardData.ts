@@ -1,5 +1,6 @@
 import { tournamentEngine, publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 import { COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+import { isEmbargoActive } from 'functions/isEmbargoActive';
 
 const { CONTAINER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
 
@@ -78,9 +79,8 @@ export function getDashboardData(): DashboardData {
       for (const drawDef of drawDefs) {
         const detail = drawDetails[drawDef.drawId];
         if (detail?.publishingDetail?.published) publishedDraws++;
-        if (detail?.publishingDetail?.embargo) {
-          const embargoTime = new Date(detail.publishingDetail.embargo).getTime();
-          if (embargoTime > Date.now()) activeEmbargoes++;
+        if (isEmbargoActive(detail?.publishingDetail?.embargo)) {
+          activeEmbargoes++;
         }
       }
     } else if (eventPubState?.status?.published) {
@@ -88,14 +88,8 @@ export function getDashboardData(): DashboardData {
     }
   }
 
-  if (tournamentPubState?.orderOfPlay?.embargo) {
-    const embargoTime = new Date(tournamentPubState.orderOfPlay.embargo).getTime();
-    if (embargoTime > Date.now()) activeEmbargoes++;
-  }
-  if (tournamentPubState?.participants?.embargo) {
-    const embargoTime = new Date(tournamentPubState.participants.embargo).getTime();
-    if (embargoTime > Date.now()) activeEmbargoes++;
-  }
+  if (isEmbargoActive(tournamentPubState?.orderOfPlay?.embargo)) activeEmbargoes++;
+  if (isEmbargoActive(tournamentPubState?.participants?.embargo)) activeEmbargoes++;
 
   const publishingStats: PublishingStats = {
     publishedDraws,

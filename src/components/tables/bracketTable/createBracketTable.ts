@@ -16,6 +16,17 @@ import { displayConfig } from 'config/displayConfig';
 // constants
 import { DRAWS_VIEW, ROUNDS_BRACKET } from 'constants/tmxConstants';
 
+/** Flatten all matchUps across rounds in a structure. */
+function getStructureMatchUps(structure: any): any[] {
+  return Object.values(structure?.roundMatchUps ?? {}).flat();
+}
+
+/** True when every matchUp in a group has a winner or is a BYE. */
+function isGroupComplete(structureMatchUps: any[], groupId: string): boolean {
+  const groupMatchUps = structureMatchUps.filter((mu: any) => mu.structureId === groupId);
+  return groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
+}
+
 const BRACKET_STYLE_ID = 'bracket-table-style';
 function ensureBracketStyles() {
   if (document.getElementById(BRACKET_STYLE_ID)) return;
@@ -87,7 +98,7 @@ export async function createBracketTable({
   };
 
   // Re-fetch data and update specific rows in place by drawPosition
-  const updateRows = async (drawPositions: number[]) => {
+  const updateRows = (drawPositions: number[]): void => {
     const posSet = new Set(drawPositions);
     const groups = getData();
     for (const group of groups) {
@@ -105,10 +116,11 @@ export async function createBracketTable({
         if (p) {
           const newTitle = p.participantName || String(def.title);
           if (def.title !== newTitle) {
-            const updatedCol = await table.updateColumnDefinition(def.field, { title: newTitle });
-            if (updatedCol && p.participantName) {
-              attachHeaderTooltip(updatedCol, p.participantName);
-            }
+            table.updateColumnDefinition(def.field, { title: newTitle }).then((updatedCol: any) => {
+              if (updatedCol && p.participantName) {
+                attachHeaderTooltip(updatedCol, p.participantName);
+              }
+            });
           }
         }
       }
@@ -131,27 +143,19 @@ export async function createBracketTable({
   const refreshGroupHighlight = (groupId: string) => {
     const container = containersByGroup[groupId];
     if (!container) return;
-    const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
-    const groupMatchUps = allMatchUps.filter((mu: any) => mu.structureId === groupId);
-    const allComplete = groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
-    container.classList.toggle('rr-group-complete', allComplete);
+    container.classList.toggle('rr-group-complete', isGroupComplete(getStructureMatchUps(structure), groupId));
   };
 
   // After scoring, update all rows in the affected group (stats change for everyone)
   const updateGroupAfterScore = (matchUpId: string) => {
-    // Find which group contains this matchUp and update all its rows
     for (const [groupId, table] of Object.entries(tablesByGroup)) {
-      const allPositions: number[] = [];
-      let found = false;
-      for (const row of table.getRows()) {
+      const rows = table.getRows();
+      const hasMatchUp = rows.some((row: any) => {
         const data = row.getData();
-        allPositions.push(data.drawPosition);
-        if (!found) {
-          found = Object.keys(data).some((key) => key.startsWith('opponent_') && data[key]?.matchUpId === matchUpId);
-        }
-      }
-      if (found) {
-        updateRows(allPositions);
+        return Object.keys(data).some((key) => key.startsWith('opponent_') && data[key]?.matchUpId === matchUpId);
+      });
+      if (hasMatchUp) {
+        updateRows(rows.map((row: any) => row.getData().drawPosition));
         refreshGroupHighlight(groupId);
         return;
       }
@@ -183,8 +187,7 @@ export async function createBracketTable({
     if (!childStructureId || !drawPosition) return;
 
     // Find a matchUp in this group to get context
-    const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
-    const matchUp = allMatchUps.find(
+    const matchUp = getStructureMatchUps(structure).find(
       (mu: any) => mu.structureId === childStructureId && mu.sides?.some((s: any) => s.drawPosition === drawPosition),
     );
     if (!matchUp) return;
@@ -225,13 +228,8 @@ export async function createBracketTable({
     tables = [];
 
     // Build set of completed group IDs for green highlighting
-    const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
-    const completedGroupIds = new Set<string>();
-    for (const group of groups) {
-      const groupMatchUps = allMatchUps.filter((mu: any) => mu.structureId === group.groupId);
-      const allComplete = groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
-      if (allComplete) completedGroupIds.add(group.groupId);
-    }
+    const allMatchUps = getStructureMatchUps(structure);
+    const completedGroupIds = new Set(groups.filter((g) => isGroupComplete(allMatchUps, g.groupId)).map((g) => g.groupId));
 
     for (const group of groups) {
       // Wrap each group's header + table in a container for highlighting
@@ -248,8 +246,7 @@ export async function createBracketTable({
         header.textContent = group.groupName;
         header.title = 'Click to view tiebreak report';
         header.onclick = () => {
-          const allMatchUps: any[] = Object.values(structure?.roundMatchUps ?? {}).flat();
-          const groupMatchUps = allMatchUps.filter((mu: any) => mu.structureId === group.groupId);
+          const groupMatchUps = getStructureMatchUps(structure).filter((mu: any) => mu.structureId === group.groupId);
           if (groupMatchUps.length) {
             showTallyReportModal({ groupMatchUps, groupName: group.groupName, eventId, drawId });
           }

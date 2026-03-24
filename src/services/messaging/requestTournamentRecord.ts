@@ -6,7 +6,7 @@ import { t } from 'i18n';
 import { SUCCESS } from 'constants/tmxConstants';
 
 export function requestTournamentRecord(): { success: boolean } {
-  const tournamentId = tournamentEngine.getTournament()?.tournaentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
 
   if (connected()) {
     const data = {

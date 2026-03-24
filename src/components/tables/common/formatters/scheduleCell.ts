@@ -153,13 +153,15 @@ export function scheduleCell(cell: any): HTMLSpanElement {
       ?.map((participant: any) => `<span class='potential nowrap'>${getPotentialName(participant)}</span>`)
       .join('<span style="font-weight: bold">&nbsp;or&nbsp;</span>'),
   );
-  const getParticiapntName = (sideNumber: number) => {
+  const getParticipantName = (sideNumber: number): { text: string; bold: boolean } | undefined => {
     const participantName = sides?.find((side: any) => sideNumber === side.sideNumber)?.participant?.participantName;
     if (!participantName) return;
-    return winningSide === sideNumber ? `<span style='font-weight: bold'>${participantName}</span>` : participantName;
+    return { text: participantName, bold: winningSide === sideNumber };
   };
-  const side1 = getParticiapntName(1) || potentials?.shift() || 'Unkown';
-  const side2 = getParticiapntName(2) || potentials?.shift() || 'Unknown';
+  const side1 = getParticipantName(1);
+  const side2 = getParticipantName(2);
+  const side1Potential = side1 ? undefined : potentials?.shift();
+  const side2Potential = side2 ? undefined : potentials?.shift();
 
   content.id = matchUpId;
 
@@ -177,21 +179,36 @@ export function scheduleCell(cell: any): HTMLSpanElement {
 
   const scheduledTeams = document.createElement('div');
   scheduledTeams.className = 'scheduled_teams';
+
   const side1El = document.createElement('div');
   side1El.className = 'scheduled_team';
   side1El.style.fontSize = '1em';
-  side1El.innerHTML = side1;
+  if (side1) {
+    side1El.textContent = side1.text;
+    if (side1.bold) side1El.style.fontWeight = 'bold';
+  } else if (side1Potential) {
+    side1El.innerHTML = side1Potential;
+  } else {
+    side1El.textContent = 'Unknown';
+  }
   scheduledTeams.appendChild(side1El);
 
   const divider = document.createElement('div');
   divider.className = 'divider';
-  divider.innerHTML = 'vs.';
+  divider.textContent = 'vs.';
   scheduledTeams.appendChild(divider);
 
   const side2El = document.createElement('div');
   side2El.className = 'scheduled_team';
   side2El.style.fontSize = '1em';
-  side2El.innerHTML = side2;
+  if (side2) {
+    side2El.textContent = side2.text;
+    if (side2.bold) side2El.style.fontWeight = 'bold';
+  } else if (side2Potential) {
+    side2El.innerHTML = side2Potential;
+  } else {
+    side2El.textContent = 'Unknown';
+  }
   scheduledTeams.appendChild(side2El);
 
   if (winningSide) {

@@ -1,122 +1,113 @@
 /**
  * Schedule-specific table filters for the unscheduled matchUps grid.
- * Each filter follows the same pattern as sexFilter/eventFilter/teamFilter:
- * returns { options[], isFiltered(), activeIndex() } for use with filterPopoverButton.
+ * Built on a generic factory; each exported function is a thin wrapper
+ * that supplies the field, values, and label for its filter type.
  */
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { t } from 'i18n';
 
-function makeActiveIndex(selectableOptions: any[], getFilterValue: () => string | undefined) {
-  return () => {
-    const fv = getFilterValue();
-    if (!fv) return 0;
-    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === fv);
+// ---------------------------------------------------------------------------
+// Generic schedule filter factory
+// ---------------------------------------------------------------------------
+
+type FilterResult = { options: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number };
+
+type ScheduleFilterConfig = {
+  field: string;
+  values: { value: string; label: string }[];
+  allLabel: string;
+};
+
+function createScheduleFilter(table: any, config: ScheduleFilterConfig, onChange?: () => void): FilterResult {
+  let filterValue: string | undefined;
+
+  const filterFn = (rowData: any): boolean => rowData[config.field] === filterValue;
+  const updateFilter = (value?: string) => {
+    table.removeFilter(filterFn);
+    filterValue = value;
+    if (value) table.addFilter(filterFn);
+    if (onChange) onChange();
+  };
+
+  const allOption = {
+    label: `<span style='font-weight: bold'>${config.allLabel}</span>`,
+    onClick: () => updateFilter(),
+    close: true,
+  };
+  const options = [allOption, { divider: true }].concat(
+    config.values.map(({ value, label }) => ({
+      onClick: () => updateFilter(value),
+      filterValue: value,
+      label,
+      close: true,
+    })),
+  );
+
+  const selectableOptions = options.filter((opt: any) => !opt.divider);
+  const activeIndex = () => {
+    if (!filterValue) return 0;
+    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
     return idx >= 0 ? idx : 0;
   };
+
+  return { options, hasOptions: config.values.length > 1, isFiltered: () => !!filterValue, activeIndex };
 }
+
+// ---------------------------------------------------------------------------
+// Concrete filters
+// ---------------------------------------------------------------------------
 
 export function getScheduleEventFilter(
   table: any,
   onChange?: () => void,
 ): { eventOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
-
-  const eventFilter = (rowData: any): boolean => rowData.eventId === filterValue;
-  const updateFilter = (eventId?: string) => {
-    table.removeFilter(eventFilter);
-    filterValue = eventId;
-    if (eventId) table.addFilter(eventFilter);
-    if (onChange) onChange();
-  };
-
   const events = tournamentEngine.getEvents().events || [];
-  const allLabel = t('pages.schedule.allEvents');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const eventOptions = [allOption, { divider: true }].concat(
-    events.map((event: any) => ({
-      onClick: () => updateFilter(event.eventId),
-      label: event.eventName,
-      filterValue: event.eventId,
-      close: true,
-    })),
+  const { options, ...rest } = createScheduleFilter(
+    table,
+    {
+      field: 'eventId',
+      values: events.map((e: any) => ({ value: e.eventId, label: e.eventName })),
+      allLabel: t('pages.schedule.allEvents'),
+    },
+    onChange,
   );
-
-  const selectableOptions = eventOptions.filter((opt: any) => !opt.divider);
-  return { eventOptions, hasOptions: events.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
+  return { eventOptions: options, ...rest };
 }
 
 export function getScheduleEventTypeFilter(
   table: any,
   onChange?: () => void,
 ): { eventTypeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
-
-  const eventTypeFilter = (rowData: any): boolean => rowData.eventType === filterValue;
-  const updateFilter = (eventType?: string) => {
-    table.removeFilter(eventTypeFilter);
-    filterValue = eventType;
-    if (eventType) table.addFilter(eventTypeFilter);
-    if (onChange) onChange();
-  };
-
   const events = tournamentEngine.getEvents().events || [];
-  const eventTypes = tools.unique(events.map((event: any) => event.eventType)).filter(Boolean);
-  const allLabel = t('pages.schedule.allEventTypes');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const eventTypeOptions = [allOption, { divider: true }].concat(
-    eventTypes.map((eventType: string) => ({
-      onClick: () => updateFilter(eventType),
-      label: eventType,
-      filterValue: eventType,
-      close: true,
-    })),
+  const eventTypes: string[] = tools.unique(events.map((e: any) => e.eventType)).filter(Boolean);
+  const { options, ...rest } = createScheduleFilter(
+    table,
+    {
+      field: 'eventType',
+      values: eventTypes.map((v) => ({ value: v, label: v })),
+      allLabel: t('pages.schedule.allEventTypes'),
+    },
+    onChange,
   );
-
-  const selectableOptions = eventTypeOptions.filter((opt: any) => !opt.divider);
-  return { eventTypeOptions, hasOptions: eventTypes.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
+  return { eventTypeOptions: options, ...rest };
 }
 
 export function getScheduleGenderFilter(
   table: any,
   onChange?: () => void,
 ): { genderOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
-
-  const genderFilter = (rowData: any): boolean => rowData.gender === filterValue;
-  const updateFilter = (gender?: string) => {
-    table.removeFilter(genderFilter);
-    filterValue = gender;
-    if (gender) table.addFilter(genderFilter);
-    if (onChange) onChange();
-  };
-
   const events = tournamentEngine.getEvents().events || [];
-  const genders = tools.unique(events.map((event: any) => event.gender)).filter(Boolean);
-  const allLabel = t('pages.schedule.allGenders');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const genderOptions = [allOption, { divider: true }].concat(
-    genders.map((gender: string) => ({
-      onClick: () => updateFilter(gender),
-      label: gender,
-      filterValue: gender,
-      close: true,
-    })),
+  const genders: string[] = tools.unique(events.map((e: any) => e.gender)).filter(Boolean);
+  const { options, ...rest } = createScheduleFilter(
+    table,
+    {
+      field: 'gender',
+      values: genders.map((v) => ({ value: v, label: v })),
+      allLabel: t('pages.schedule.allGenders'),
+    },
+    onChange,
   );
-
-  const selectableOptions = genderOptions.filter((opt: any) => !opt.divider);
-  return { genderOptions, hasOptions: genders.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
+  return { genderOptions: options, ...rest };
 }
 
 export function getScheduleRoundFilter(
@@ -124,34 +115,17 @@ export function getScheduleRoundFilter(
   matchUps: any[],
   onChange?: () => void,
 ): { roundOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
-
-  const roundFilter = (rowData: any): boolean => rowData.roundName === filterValue;
-  const updateFilter = (roundName?: string) => {
-    table.removeFilter(roundFilter);
-    filterValue = roundName;
-    if (roundName) table.addFilter(roundFilter);
-    if (onChange) onChange();
-  };
-
-  const roundNames = tools.unique(matchUps.map((m: any) => m.roundName)).filter(Boolean);
-  const allLabel = t('pages.schedule.allRounds');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const roundOptions = [allOption, { divider: true }].concat(
-    roundNames.map((roundName: string) => ({
-      onClick: () => updateFilter(roundName),
-      label: roundName,
-      filterValue: roundName,
-      close: true,
-    })),
+  const roundNames: string[] = tools.unique(matchUps.map((m: any) => m.roundName)).filter(Boolean);
+  const { options, ...rest } = createScheduleFilter(
+    table,
+    {
+      field: 'roundName',
+      values: roundNames.map((v) => ({ value: v, label: v })),
+      allLabel: t('pages.schedule.allRounds'),
+    },
+    onChange,
   );
-
-  const selectableOptions = roundOptions.filter((opt: any) => !opt.divider);
-  return { roundOptions, hasOptions: roundNames.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
+  return { roundOptions: options, ...rest };
 }
 
 export function getScheduleFlightFilter(
@@ -159,32 +133,15 @@ export function getScheduleFlightFilter(
   matchUps: any[],
   onChange?: () => void,
 ): { flightOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
-
-  const flightFilter = (rowData: any): boolean => rowData.flight === filterValue;
-  const updateFilter = (flightName?: string) => {
-    table.removeFilter(flightFilter);
-    filterValue = flightName;
-    if (flightName) table.addFilter(flightFilter);
-    if (onChange) onChange();
-  };
-
-  const flightNames = tools.unique(matchUps.map((m: any) => m.drawName)).filter(Boolean);
-  const allLabel = t('pages.schedule.allFlights');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const flightOptions = [allOption, { divider: true }].concat(
-    flightNames.map((flightName: string) => ({
-      onClick: () => updateFilter(flightName),
-      label: flightName,
-      filterValue: flightName,
-      close: true,
-    })),
+  const flightNames: string[] = tools.unique(matchUps.map((m: any) => m.drawName)).filter(Boolean);
+  const { options, ...rest } = createScheduleFilter(
+    table,
+    {
+      field: 'flight',
+      values: flightNames.map((v) => ({ value: v, label: v })),
+      allLabel: t('pages.schedule.allFlights'),
+    },
+    onChange,
   );
-
-  const selectableOptions = flightOptions.filter((opt: any) => !opt.divider);
-  return { flightOptions, hasOptions: flightNames.length > 1, isFiltered: () => !!filterValue, activeIndex: makeActiveIndex(selectableOptions, () => filterValue) };
+  return { flightOptions: options, ...rest };
 }

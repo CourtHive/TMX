@@ -147,61 +147,29 @@ export function matchUpActions({
     });
   };
 
-  const setScheduleTime = () => {
-    const existingTime = matchUp?.schedule?.scheduledTime || '';
-    const { earliest } = getTimeBounds(matchUp);
-    timePicker({
-      time: existingTime || earliest || '',
-      callback: ({ time }) => {
-        const scheduledTime = tools.dateTime.convertTime(time, true) as string;
-        if (!scheduledTime) return;
-        setMatchUpSchedule({
-          matchUpId: matchUp.matchUpId,
-          schedule: { scheduledTime },
-          callback: () => updateRow({ scheduledTime }),
-        });
-      },
-    });
-  };
-
-  const setStartTime = () => {
-    const existingStart = matchUp?.schedule?.startTime || '';
+  const setTimeField = (field: 'scheduledTime' | 'startTime' | 'endTime') => {
+    const schedule = matchUp?.schedule || {};
     const { earliest, latest } = getTimeBounds(matchUp);
-    timePicker({
-      time: existingStart || earliest || '',
-      callback: ({ time }) => {
-        const startTime = tools.dateTime.convertTime(time, true) as string;
-        if (!startTime) return;
-        const existingEnd = matchUp?.schedule?.endTime;
-        if (existingEnd && startTime > existingEnd) return;
-        if (earliest && startTime < earliest) return;
-        if (latest && startTime > latest) return;
-        setMatchUpSchedule({
-          matchUpId: matchUp.matchUpId,
-          schedule: { startTime },
-          callback: () => updateRow({ startTime }),
-        });
-      },
-    });
-  };
-
-  const setEndTime = () => {
-    const existingEnd = matchUp?.schedule?.endTime || '';
-    const { earliest, latest } = getTimeBounds(matchUp);
+    const defaultTime = field === 'endTime' ? latest : earliest;
 
     timePicker({
-      time: existingEnd || latest || '',
+      time: schedule[field] || defaultTime || '',
       callback: ({ time }) => {
-        const endTime = tools.dateTime.convertTime(time, true) as string;
-        if (!endTime) return;
-        const existingStart = matchUp?.schedule?.startTime;
-        if (existingStart && endTime < existingStart) return;
-        if (earliest && endTime < earliest) return;
-        if (latest && endTime > latest) return;
+        const converted = tools.dateTime.convertTime(time, true) as string;
+        if (!converted) return;
+
+        if (field === 'startTime' || field === 'endTime') {
+          if (earliest && converted < earliest) return;
+          if (latest && converted > latest) return;
+          const crossField = field === 'startTime' ? 'endTime' : 'startTime';
+          const crossValue = schedule[crossField];
+          if (crossValue && (field === 'startTime' ? converted > crossValue : converted < crossValue)) return;
+        }
+
         setMatchUpSchedule({
           matchUpId: matchUp.matchUpId,
-          schedule: { endTime },
-          callback: () => updateRow({ endTime }),
+          schedule: { [field]: converted },
+          callback: () => updateRow({ [field]: converted }),
         });
       },
     });
@@ -329,16 +297,16 @@ export function matchUpActions({
       text: 'Schedule date',
     },
     {
-      onClick: setScheduleTime,
+      onClick: () => setTimeField('scheduledTime'),
       text: 'Schedule time',
     },
     {
-      onClick: setStartTime,
+      onClick: () => setTimeField('startTime'),
       text: 'Start time',
       hide: hideTimeOptions,
     },
     {
-      onClick: setEndTime,
+      onClick: () => setTimeField('endTime'),
       text: 'End time',
       hide: hideTimeOptions,
     },

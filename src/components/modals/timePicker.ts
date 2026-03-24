@@ -5,6 +5,10 @@
 import { isFunction } from 'functions/typeOf';
 import { TimepickerUI } from 'timepicker-ui';
 
+function getTimepickerTheme(): { theme: 'dark' } | undefined {
+  return document.documentElement.dataset.theme === 'dark' ? { theme: 'dark' } : undefined;
+}
+
 type TimePickerParams = {
   time?: string;
   options?: any;
@@ -16,6 +20,7 @@ export function timePicker({ time, options, callback }: TimePickerParams = {}): 
   timeValue.value = regularTime(time);
   const tpu = new TimepickerUI(document.getElementById('timepicker')!, {
     clock: { type: '12h' },
+    ui: getTimepickerTheme(),
     behavior: { autoSwitchToMinutes: true },
     callbacks: {
       onConfirm: () => {
