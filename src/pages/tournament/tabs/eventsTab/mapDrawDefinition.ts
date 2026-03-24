@@ -3,6 +3,7 @@
  * Returns draw metadata including entries count, ratings averages, and formats.
  */
 import { tournamentEngine, entryStatusConstants } from 'tods-competition-factory';
+import { isEmbargoActive } from 'functions/isEmbargoActive';
 
 // constants
 const { WITHDRAWN } = entryStatusConstants;
@@ -15,7 +16,7 @@ export const mapDrawDefinition =
     const publishState = tournamentEngine.getPublishState({ drawId }).publishState;
     const published = publishState?.status?.published;
     const drawDetail = publishState?.status?.drawDetails?.[drawId]?.publishingDetail;
-    const embargoActive = drawDetail?.embargo ? new Date(drawDetail.embargo).getTime() > Date.now() : false;
+    const embargoActive = isEmbargoActive(drawDetail?.embargo);
     const entriesCount = entries?.filter(({ entryStatus }: any) => entryStatus !== WITHDRAWN)?.length;
     const assignedParticipantIds = tournamentEngine
       .getAssignedParticipantIds({

@@ -17,6 +17,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import { isEmbargoActive } from 'functions/isEmbargoActive';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -73,7 +74,7 @@ function computeRoundVisibilityState(
       hasState = true;
     }
     const rd = scheduledRounds[rn];
-    if (rd?.embargo && new Date(rd.embargo).getTime() > Date.now()) {
+    if (isEmbargoActive(rd?.embargo)) {
       entry.embargoed = true;
       hasState = true;
     }
