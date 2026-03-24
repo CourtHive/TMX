@@ -2,6 +2,7 @@
  * Socket.IO client for real-time communication.
  * Handles WebSocket connections, message emission, and acknowledgements.
  */
+import { setChatSendFn, receiveMessage } from 'services/chat/chatService';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
@@ -50,6 +51,7 @@ const ackTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 const socketQueue: any[] = [];
 
 let mutationListener: ((data: any) => void) | null = null;
+let currentTournamentRoom: string | undefined;
 
 function tmxMessage(data: any): void {
   slog('[socket] tmxMessage:', { data });
@@ -84,8 +86,10 @@ export function connectSocket(callback?: () => void): void {
     reconnectionAttempts: 'Infinity',
     timeout: 20000,
   };
-  if (!oi.socket) {
-    const socketPath = serverConfig.get().socketPath || process.env.SERVER || window.location.origin;
+  if (oi.socket) {
+    slog('[socket] connectSocket called but socket already exists (connected=%s)', oi.socket.connected);
+  } else {
+    const socketPath = serverConfig.get().socketPath || process.env.SERVER || globalThis.location.origin;
     const connectionString = `${socketPath}/tmx`;
     slog('[socket] connecting to', connectionString);
     oi.socket = io(connectionString, connectionOptions);
@@ -93,7 +97,10 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('tournamentMutation', handleTournamentMutation);
+    oi.socket.on('chatMessage', receiveMessage);
     oi.socket.on('connect', () => connectionEvent(callback));
+
+    setChatSendFn((data: any) => socketEmit('chatMessage', data));
     oi.socket.on('disconnect', (reason: string) => {
       slog('[socket] disconnected — reason:', reason);
       disconnectedSinceLastNav = true;
@@ -102,14 +109,12 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on('exception', (data: any) => {
       console.warn('[socket] server exception:', data);
     });
-    oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = new Date().getTime() - data.timestamp));
+    oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
     oi.socket.on('connect_error', (data: any) => {
       slog('[socket] connect_error:', data?.message ?? data);
       tmxToast({ message: t('toasts.connectionError'), intent: 'is-danger' });
       disconnectSocket();
     });
-  } else {
-    slog('[socket] connectSocket called but socket already exists (connected=%s)', oi.socket.connected);
   }
 }
 
@@ -158,7 +163,7 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
       requestAcknowledgement({ ackId, callback: ackCallback });
     }
 
-    const timestamp = oi.timestampOffset ? new Date().getTime() + oi.timestampOffset : new Date().getTime();
+    const timestamp = oi.timestampOffset ? Date.now() + oi.timestampOffset : Date.now();
     Object.assign(data.payload || data, {
       factoryVersion: version(),
       tmxVersion,
@@ -182,11 +187,11 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
 }
 
 function socketEmit(msg: string, data: any): void {
-  if (!oi.socket.connected) {
-    slog('[socket] emit skipped (not connected) — msg:', msg);
-  } else {
+  if (oi.socket.connected) {
     slog('[socket] emit:', msg, data?.type ?? '');
     oi.socket.emit(msg, data);
+  } else {
+    slog('[socket] emit skipped (not connected) — msg:', msg);
   }
 }
 
@@ -196,6 +201,12 @@ function connectionEvent(callback?: () => void): void {
   while (socketQueue.length) {
     const message = socketQueue.pop();
     socketEmit(message.header, message.data);
+  }
+
+  // Re-join tournament room after reconnect (room membership is lost on disconnect)
+  if (currentTournamentRoom) {
+    slog('[socket] re-joining tournament room after reconnect:', currentTournamentRoom);
+    oi.socket.emit(JOIN_TOURNAMENT, { tournamentId: currentTournamentRoom });
   }
 
   if (isFunction(callback)) callback();
@@ -266,6 +277,7 @@ function receiveAcknowledgement(ack: ServerAck): void {
 
 /** Join a tournament room to receive mutation broadcasts from other clients. */
 export function joinTournamentRoom(tournamentId: string): void {
+  currentTournamentRoom = tournamentId;
   if (!tournamentId || !oi.socket?.connected) {
     slog('[socket] joinTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, oi.socket?.connected);
     return;
@@ -276,6 +288,7 @@ export function joinTournamentRoom(tournamentId: string): void {
 
 /** Leave a tournament room to stop receiving mutation broadcasts. */
 export function leaveTournamentRoom(tournamentId: string): void {
+  if (currentTournamentRoom === tournamentId) currentTournamentRoom = undefined;
   if (!tournamentId || !oi.socket?.connected) {
     slog('[socket] leaveTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, oi.socket?.connected);
     return;

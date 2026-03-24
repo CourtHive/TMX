@@ -226,6 +226,10 @@ function newBlock(): HTMLDivElement {
       <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
+      <span id='chatIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Tournament Chat">
+        <i class="nav-icon fa-solid fa-comments"></i>
+        <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>
+      </span>
       <i id='syncIndicator' class="nav-icon fa-solid fa-rotate" style="display:none; cursor:pointer;" title="Data updated — click to refresh"></i>
       <div id="mobileNav" class="mobile-nav">
         <button id="mobileNavToggle" class="mobile-nav-toggle"></button>

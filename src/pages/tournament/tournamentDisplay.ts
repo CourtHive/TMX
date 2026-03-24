@@ -10,6 +10,7 @@ import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { clearChat } from 'services/chat/chatService';
 import { renderVenueTab } from 'pages/tournament/tabs/scheduleTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
@@ -26,8 +27,7 @@ import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 import { t } from 'i18n';
 
-const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
-
+// constants
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 import {
   joinTournamentRoom,
@@ -48,6 +48,8 @@ import {
   TOURNAMENT_OVERVIEW,
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
+
+const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
 export function displayTournament({ config }: { config?: any } = {}): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -123,6 +125,7 @@ export function routeTo(config: any): void {
 export function loadTournament({ tournamentRecord, config }: { tournamentRecord?: any; config: any }): void {
   // Clear per-tournament transient state
   context.matchUpFilters = {};
+  clearChat();
 
   const state = getLoginState();
   const provider = state?.provider || context?.provider;

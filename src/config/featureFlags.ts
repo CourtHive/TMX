@@ -6,6 +6,7 @@ export interface FeatureFlags {
   googleSheetsImport: boolean;
   schedule2: boolean;
   usePublishState: boolean;
+  enableChat: boolean;
 }
 
 const defaults: FeatureFlags = {
@@ -13,6 +14,7 @@ const defaults: FeatureFlags = {
   googleSheetsImport: false,
   schedule2: false,
   usePublishState: false,
+  enableChat: false,
 };
 
 let current: FeatureFlags = { ...defaults };

@@ -3,15 +3,18 @@
  * Manages tab navigation and highlighting for tournament sections.
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
+import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
+import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'tods-competition-factory';
+import { openChatModal } from 'components/modals/chatModal';
 import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import tippy from 'tippy.js';
 
-import { clearSyncIndicator } from 'services/messaging/remoteMutations';
+// constants
 import {
   BOTTOM,
   EVENTS_TAB,
@@ -86,8 +89,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
   if (!toggle || !menu) return;
 
   // Determine current route id
-  const currentId =
-    Object.keys(routeMap).find((id) => routeMap[id] === selectedTab) || 'o-route';
+  const currentId = Object.keys(routeMap).find((id) => routeMap[id] === selectedTab) || 'o-route';
 
   // Set toggle label to translated current page name
   toggle.textContent = t(i18nKeys[currentId]);
@@ -201,6 +203,29 @@ export function tmxNavigation(): void {
 
   // Initialize mobile dropdown
   setupMobileNav(selectedTab);
+
+  // Chat icon — show/hide based on feature flag and unread count
+  setupChatIndicator();
+}
+
+function setupChatIndicator(): void {
+  const chatEl = document.getElementById('chatIndicator');
+  const badgeEl = document.getElementById('chatBadge');
+  if (!chatEl) return;
+
+  const updateVisibility = () => {
+    const enabled = featureFlags.get().enableChat;
+    const unread = getUnreadCount();
+    chatEl.style.display = enabled || unread > 0 ? 'inline-flex' : 'none';
+    if (badgeEl) badgeEl.style.display = unread > 0 ? 'block' : 'none';
+  };
+
+  chatEl.onclick = (e) => {
+    e.stopPropagation();
+    openChatModal();
+  };
+  onChatUpdate(updateVisibility);
+  updateVisibility();
 }
 
 export function highlightTab(selectedTab: string): void {

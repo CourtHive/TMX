@@ -21,6 +21,7 @@ export type TMXSettings = {
   pdfPrinting?: boolean;
   googleSheetsImport?: boolean;
   schedule2?: boolean;
+  enableChat?: boolean;
   minCourtGridRows?: number;
   language?: string;
   theme?: 'light' | 'dark' | 'system';
@@ -95,6 +96,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.pdfPrinting !== undefined) flagsPatch.pdfPrinting = settings.pdfPrinting;
   if (settings.googleSheetsImport !== undefined) flagsPatch.googleSheetsImport = settings.googleSheetsImport;
   if (settings.schedule2 !== undefined) flagsPatch.schedule2 = settings.schedule2;
+  if (settings.enableChat !== undefined) flagsPatch.enableChat = settings.enableChat;
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -128,6 +130,7 @@ export function persistConfigToStorage(extras?: Pick<TMXSettings, 'language' | '
     pdfPrinting: flags.pdfPrinting,
     googleSheetsImport: flags.googleSheetsImport,
     schedule2: flags.schedule2,
+    enableChat: flags.enableChat,
     minCourtGridRows: schedule.minCourtGridRows,
     ...extras,
   });
