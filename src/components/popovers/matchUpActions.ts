@@ -4,9 +4,11 @@
  */
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { tournamentEngine, participantRoles, tools } from 'tods-competition-factory';
+import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tipster } from 'components/popovers/tipster';
 import { timePicker } from 'components/modals/timePicker';
+import { datePicker } from 'components/modals/datePicker';
+import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
 
@@ -128,6 +130,40 @@ export function matchUpActions({
     });
   };
 
+  const setScheduleDate = () => {
+    const existingDate = matchUp?.schedule?.scheduledDate || '';
+    const activeDates = getScheduleDateRange();
+    datePicker({
+      date: existingDate,
+      activeDates,
+      callback: ({ date }) => {
+        if (!date) return;
+        setMatchUpSchedule({
+          matchUpId: matchUp.matchUpId,
+          schedule: { scheduledDate: date },
+          callback: () => updateRow({ scheduledDate: date }),
+        });
+      },
+    });
+  };
+
+  const setScheduleTime = () => {
+    const existingTime = matchUp?.schedule?.scheduledTime || '';
+    const { earliest } = getTimeBounds(matchUp);
+    timePicker({
+      time: existingTime || earliest || '',
+      callback: ({ time }) => {
+        const scheduledTime = tools.dateTime.convertTime(time, true) as string;
+        if (!scheduledTime) return;
+        setMatchUpSchedule({
+          matchUpId: matchUp.matchUpId,
+          schedule: { scheduledTime },
+          callback: () => updateRow({ scheduledTime }),
+        });
+      },
+    });
+  };
+
   const setStartTime = () => {
     const existingStart = matchUp?.schedule?.startTime || '';
     const { earliest, latest } = getTimeBounds(matchUp);
@@ -176,10 +212,28 @@ export function matchUpActions({
       participantFilters: { participantRoles: [OFFICIAL] },
     });
 
-    if (!officials.length) return;
+    if (!officials.length) {
+      const noOfficialsEl = document.createElement('div');
+      noOfficialsEl.style.cssText =
+        'padding:12px; min-width:160px; text-align:center; color:var(--chc-text-secondary, #888);';
+      noOfficialsEl.textContent = 'No officials found';
+
+      const anchorEl = (target || pointerEvent.target) as HTMLElement;
+      destroyOfficialTip();
+      officialTip = tippy(anchorEl, {
+        content: noOfficialsEl,
+        theme: 'light-border',
+        trigger: 'manual',
+        interactive: true,
+        placement: BOTTOM as any,
+        appendTo: document.body,
+      });
+      officialTip.show();
+      setTimeout(() => destroyOfficialTip(), 2000);
+      return;
+    }
 
     const currentOfficialId = matchUp?.schedule?.official;
-    console.log('selectOfficial:', { currentOfficialId, schedule: matchUp?.schedule, timeItems: matchUp?.timeItems });
 
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:relative; padding:8px; padding-top:20px; min-width:160px;';
@@ -252,7 +306,15 @@ export function matchUpActions({
 
   const matchUpStatus = matchUp?.matchUpStatus;
   const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId);
-  const terminalStatuses = ['BYE', 'WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED', 'ABANDONED', 'DOUBLE_DEFAULT', 'DEFAULTED'];
+  const terminalStatuses = [
+    'BYE',
+    'WALKOVER',
+    'DOUBLE_WALKOVER',
+    'CANCELLED',
+    'ABANDONED',
+    'DOUBLE_DEFAULT',
+    'DEFAULTED',
+  ];
   const isTerminal = terminalStatuses.includes(matchUpStatus);
   const hideTimeOptions = noParticipants || isTerminal;
 
@@ -261,6 +323,14 @@ export function matchUpActions({
       onClick: clearSchedule,
       text: 'Clear schedule',
       hide: !hasSchedule,
+    },
+    {
+      onClick: setScheduleDate,
+      text: 'Schedule date',
+    },
+    {
+      onClick: setScheduleTime,
+      text: 'Schedule time',
     },
     {
       onClick: setStartTime,

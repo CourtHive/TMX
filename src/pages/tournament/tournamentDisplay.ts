@@ -2,34 +2,39 @@
  * Main tournament display router and loader.
  * Handles tournament loading, navigation, and tab rendering.
  */
+import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
-import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
+import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderSchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
+import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
-import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
-import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
+import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { renderVenueTab } from 'pages/tournament/tabs/scheduleTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
-import { renderTopologyPage } from './topologyPage';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
 import { requestTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
-import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { debugConfig } from 'config/debugConfig';
+import { renderTopologyPage } from './topologyPage';
 import { tmx2db } from 'services/storage/tmx2db';
-import { t } from 'i18n';
+import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
+import { t } from 'i18n';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
-import { joinTournamentRoom, leaveTournamentRoom, hadDisconnect, clearDisconnectFlag } from 'services/messaging/socketIo';
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
+import {
+  joinTournamentRoom,
+  leaveTournamentRoom,
+  hadDisconnect,
+  clearDisconnectFlag,
+} from 'services/messaging/socketIo';
 import {
   MATCHUPS_TAB,
   PARTICIPANTS,
@@ -58,7 +63,9 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     slog('[tournament] switching from %s to %s (loggedIn=%s)', prevId, config.tournamentId, !!getLoginState());
     context.ee.emit(LEAVE_TOURNAMENT, prevId);
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
-    tmx2db.findTournament(config.tournamentId).then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
+    tmx2db
+      .findTournament(config.tournamentId)
+      .then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
   }
 }
 
@@ -73,7 +80,11 @@ function renderTournament({ config }: { config: any }): void {
     slog('[tournament] renderTournament — joining room for', config.tournamentId);
     joinTournamentRoom(config.tournamentId);
   } else {
-    slog('[tournament] renderTournament — skipping room join (tournamentId=%s, loggedIn=%s)', config.tournamentId, !!getLoginState());
+    slog(
+      '[tournament] renderTournament — skipping room join (tournamentId=%s, loggedIn=%s)',
+      config.tournamentId,
+      !!getLoginState(),
+    );
   }
 }
 
@@ -110,6 +121,9 @@ export function routeTo(config: any): void {
 }
 
 export function loadTournament({ tournamentRecord, config }: { tournamentRecord?: any; config: any }): void {
+  // Clear per-tournament transient state
+  context.matchUpFilters = {};
+
   const state = getLoginState();
   const provider = state?.provider || context?.provider;
 
@@ -174,7 +188,11 @@ function checkForStaleData(tournamentId: string): void {
       const serverUpdated = serverRecord.updatedAt ? new Date(serverRecord.updatedAt).getTime() : 0;
       const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
 
-      slog('[tournament] stale check — server updatedAt: %s, local updatedAt: %s', serverRecord.updatedAt, localRecord?.updatedAt);
+      slog(
+        '[tournament] stale check — server updatedAt: %s, local updatedAt: %s',
+        serverRecord.updatedAt,
+        localRecord?.updatedAt,
+      );
 
       if (serverUpdated > localUpdated) {
         slog('[tournament] local data is stale — reloading from server');

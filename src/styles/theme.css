@@ -825,3 +825,20 @@ html {
   border: 1px dashed var(--tmx-panel-green-border);
   border-radius: 4px;
 }
+
+/* Draw position highlight: pulse to draw attention to a specific position */
+.draw-position-highlight {
+  animation: draw-position-pulse 0.8s ease-in-out 3;
+  border-radius: 4px;
+}
+@keyframes draw-position-pulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(255, 166, 0, 0.35); }
+}
+[data-theme='dark'] .draw-position-highlight {
+  animation: draw-position-pulse-dark 0.8s ease-in-out 3;
+}
+@keyframes draw-position-pulse-dark {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(255, 166, 0, 0.25); }
+}

@@ -42,7 +42,7 @@ export function renderIndividuals({ view }: { view: string }): void {
   const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
   context.refreshActiveTable = replaceTableData;
 
-  const setSearchFilter = createSearchFilter(table);
+  const setSearchFilter = createSearchFilter(table, { persistKey: 'search', filterContext: 'participantFilters' });
   const state = getLoginState();
   const canEditTennisId = state?.roles?.includes('superadmin') || state?.permissions?.includes('editTennisId');
 
@@ -139,6 +139,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: t('pages.participants.searchParticipants'),
+      value: context.participantFilters.search || '',
       location: OVERLAY,
       search: true,
     },
@@ -193,6 +194,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       onKeyUp: (e: any) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
       placeholder: t('pages.participants.searchParticipants'),
+      value: context.participantFilters.search || '',
       location: LEFT,
       search: true,
     },

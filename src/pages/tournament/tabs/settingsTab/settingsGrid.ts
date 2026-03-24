@@ -3,11 +3,11 @@ import { connectSocket, connected, disconnectSocket } from 'services/messaging/s
 import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
 import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
+import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { getLoginState } from 'services/authentication/loginState';
 import { renderForm, validators } from 'courthive-components';
 import { removeTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { setActiveScale } from 'settings/setActiveScale';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { featureFlags } from 'config/featureFlags';
@@ -20,12 +20,10 @@ import { i18next, t } from 'i18n';
 import {
   applyFont,
   applyFontSize,
-  applyTheme,
   FONT_OPTIONS,
   FONT_SIZE_OPTIONS,
   getFontPreference,
   getFontSizePreference,
-  getThemePreference,
 } from 'services/theme/themeService';
 
 // constants
@@ -143,45 +141,10 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   languagePanel.appendChild(languageForm);
   grid.appendChild(languagePanel);
 
-  // --- Theme panel (gray, 1 col) ---
-  const themePanel = document.createElement('div');
-  themePanel.className = 'settings-panel panel-gray';
-  themePanel.innerHTML = `<h3><i class="fa-solid fa-circle-half-stroke"></i> ${t('modals.settings.theme')}</h3>`;
-
-  const currentTheme = getThemePreference();
-  const themeForm = document.createElement('div');
-  const themeInputs = renderForm(themeForm, [
-    {
-      options: [
-        { text: t('modals.settings.themeLight'), field: 'light', checked: currentTheme === 'light' },
-        { text: t('modals.settings.themeDark'), field: 'dark', checked: currentTheme === 'dark' },
-        { text: t('modals.settings.themeSystem'), field: 'system', checked: currentTheme === 'system' },
-      ],
-      onChange: () => {
-        const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
-        applyTheme(pref);
-      },
-      field: 'theme',
-      id: 'theme',
-      radio: true,
-    },
-  ]);
-  // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
-  const themeChange = () => {
-    const pref = themeInputs.dark.checked ? 'dark' : themeInputs.system.checked ? 'system' : 'light';
-    applyTheme(pref);
-  };
-  themeInputs.light.addEventListener('change', themeChange);
-  themeInputs.dark.addEventListener('change', themeChange);
-  themeInputs.system.addEventListener('change', themeChange);
-  fixRadioWrapping(themeForm);
-  themePanel.appendChild(themeForm);
-  grid.appendChild(themePanel);
-
   // --- Scoring panel (green, cols 3-4) ---
   const scoringPanel = document.createElement('div');
   scoringPanel.className = 'settings-panel panel-green';
-  scoringPanel.style.gridColumn = '3 / 5';
+  scoringPanel.style.gridColumn = '2 / 5';
   scoringPanel.innerHTML = `<h3><i class="fa-solid fa-table-tennis-paddle-ball"></i> ${t('modals.settings.scoringApproach')}</h3>`;
 
   const scoringForm = document.createElement('div');
@@ -204,7 +167,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
           checked: preferencesConfig.get().scoringApproach === 'freeScore',
         },
         {
-          text: t('modals.settings.inlineScoring') || 'Inline Scoring',
+          text: t('modals.settings.inlineScoring'),
           field: 'inlineScoring',
           checked: preferencesConfig.get().scoringApproach === 'inlineScoring',
         },

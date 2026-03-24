@@ -2,10 +2,11 @@
  * MatchUp status filter for filterPopoverButton.
  * Filters matchUps by status: ready to score or complete.
  */
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 export function getMatchUpStatusFilter(table: any): { statusOptions: any[]; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
+  let filterValue: string | undefined = context.matchUpFilters.status;
 
   const statusFilter = (rowData: any): boolean => {
     if (filterValue === 'readyToScore') {
@@ -24,9 +25,13 @@ export function getMatchUpStatusFilter(table: any): { statusOptions: any[]; isFi
     return true;
   };
 
+  // Restore saved filter
+  if (filterValue) table.addFilter(statusFilter);
+
   const updateFilter = (status?: string) => {
     table.removeFilter(statusFilter);
     filterValue = status;
+    context.matchUpFilters.status = status;
     if (status) table.addFilter(statusFilter);
   };
 

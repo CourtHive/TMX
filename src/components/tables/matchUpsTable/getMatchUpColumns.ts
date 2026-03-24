@@ -6,6 +6,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
@@ -14,10 +15,12 @@ import { titleFormatter } from '../common/formatters/titleFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { handleScoreClick } from './handleMatchUpScoreClick';
+import { applyColumnVisibility } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
 import { setMatchUpSchedule } from './setMatchUpSchedule';
+import { datePicker } from 'components/modals/datePicker';
 import { timePicker } from 'components/modals/timePicker';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';
@@ -48,6 +51,28 @@ export function getMatchUpColumns({
     }
   };
 
+  const matchUpDateClick = (_e: Event, cell: any) => {
+    const existingDate = cell.getValue();
+    const activeDates = getScheduleDateRange();
+    const row = cell.getRow();
+    const data = row.getData();
+    const { matchUpId } = data;
+
+    datePicker({
+      date: existingDate,
+      activeDates,
+      callback: ({ date }) => {
+        if (date && date !== existingDate) {
+          setMatchUpSchedule({
+            matchUpId,
+            schedule: { scheduledDate: date },
+            callback: () => row.update({ ...data, scheduledDate: date }),
+          });
+        }
+      },
+    });
+  };
+
   const matchUpTimeClick = (_e: Event, cell: any) => {
     const existingTime = cell.getValue();
     const timeSelected = ({ time }: { time: string }) => {
@@ -57,11 +82,44 @@ export function getMatchUpColumns({
       const data = row.getData();
       const { matchUpId } = data;
       if (scheduledTime !== existingTime) {
-        const callback = () => {
-          console.log('callback');
-          row.update({ ...data, scheduledTime });
-        };
+        const callback = () => row.update({ ...data, scheduledTime });
         setMatchUpSchedule({ matchUpId, schedule: { scheduledTime }, callback });
+      }
+    };
+    timePicker({ time: existingTime, callback: timeSelected });
+  };
+
+  const matchUpStartTimeClick = (_e: Event, cell: any) => {
+    const existingTime = cell.getValue();
+    const timeSelected = ({ time }: { time: string }) => {
+      const startTime = tools.dateTime.convertTime(time, true) as string;
+      const row = cell.getRow();
+      const data = row.getData();
+      const { matchUpId } = data;
+      if (startTime && startTime !== existingTime) {
+        setMatchUpSchedule({
+          matchUpId,
+          schedule: { startTime },
+          callback: () => row.update({ ...data, startTime }),
+        });
+      }
+    };
+    timePicker({ time: existingTime, callback: timeSelected });
+  };
+
+  const matchUpEndTimeClick = (_e: Event, cell: any) => {
+    const existingTime = cell.getValue();
+    const timeSelected = ({ time }: { time: string }) => {
+      const endTime = tools.dateTime.convertTime(time, true) as string;
+      const row = cell.getRow();
+      const data = row.getData();
+      const { matchUpId } = data;
+      if (endTime && endTime !== existingTime) {
+        setMatchUpSchedule({
+          matchUpId,
+          schedule: { endTime },
+          callback: () => row.update({ ...data, endTime }),
+        });
       }
     };
     timePicker({ time: existingTime, callback: timeSelected });
@@ -104,7 +162,7 @@ export function getMatchUpColumns({
     return value.participantName && (formatParticipant(onClick) as any)(cell, placholder);
   };
 
-  return [
+  return applyColumnVisibility([
     {
       cellClick: (_e: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
@@ -156,7 +214,7 @@ export function getMatchUpColumns({
       minWidth: 90,
     },
     {
-      cellClick: matchUpScheduleClick,
+      cellClick: matchUpDateClick,
       field: 'scheduledDate',
       title: t('tables.matchUps.date'),
       width: 110,
@@ -176,12 +234,14 @@ export function getMatchUpColumns({
       width: 70,
     },
     {
+      cellClick: matchUpStartTimeClick,
       field: 'startTime',
       title: t('tables.matchUps.startTime'),
       visible: false,
       width: 80,
     },
     {
+      cellClick: matchUpEndTimeClick,
       field: 'endTime',
       title: t('tables.matchUps.endTime'),
       visible: false,
@@ -260,5 +320,5 @@ export function getMatchUpColumns({
       widthGrow: 0,
       width: 50,
     },
-  ];
+  ]);
 }

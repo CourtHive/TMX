@@ -789,7 +789,25 @@
     "umpirenotes": "裁判备注",
     "notice": "赛程通知",
     "opponentname": "对手姓名",
-    "scheduled": "已安排"
+    "scheduled": "已安排",
+    "time": "时间",
+    "setTime": "设置时间",
+    "startMatch": "开始比赛",
+    "startTime": "开始时间",
+    "endTime": "结束时间",
+    "annotations": "注释",
+    "clearTimeSettings": "清除",
+    "enterScore": "输入比分",
+    "viewDraw": "查看签表",
+    "removeFromSchedule": "从赛程中移除",
+    "assign": "分配",
+    "assignMatchUp": "分配比赛",
+    "blockCourt": "封锁球场",
+    "otherBookings": "其他",
+    "practice": "练习",
+    "maintenance": "维护",
+    "unscheduled": "未安排",
+    "noScheduledMatchUps": "没有已安排的比赛"
   },
 
   "penalties": {
@@ -864,6 +882,7 @@
       "dynamicSets": "动态盘数",
       "dialPad": "拨号盘",
       "freeScore": "自由计分",
+      "inlineScoring": "内联计分",
       "smartComplements": "智能补全（仅动态盘数）",
       "storage": "存储",
       "saveLocalCopies": "保存本地副本",
@@ -1073,7 +1092,8 @@
       "groupSize": "小组大小",
       "positionsToBePlayedOff": "需要进行附加赛的位置：",
       "selectPositions": "选择小组最终位置。选择必须连续",
-      "structureAdded": "已添加结构"
+      "structureAdded": "已添加结构",
+      "selectEligible": "选择符合条件的参赛者"
     },
     "addToEvent": {
       "title": "添加到赛事",

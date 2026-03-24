@@ -755,7 +755,25 @@
     "umpirenotes": "Notas del Árbitro",
     "notice": "Aviso de Programación",
     "opponentname": "Nombre del Oponente",
-    "scheduled": "Programado"
+    "scheduled": "Programado",
+    "time": "Hora",
+    "setTime": "Establecer hora",
+    "startMatch": "Iniciar partido",
+    "startTime": "Hora de inicio",
+    "endTime": "Hora de fin",
+    "annotations": "Anotaciones",
+    "clearTimeSettings": "Borrar",
+    "enterScore": "Ingresar resultado",
+    "viewDraw": "Ver cuadro",
+    "removeFromSchedule": "Quitar del programa",
+    "assign": "Asignar",
+    "assignMatchUp": "Asignar partido",
+    "blockCourt": "Bloquear cancha",
+    "otherBookings": "Otros",
+    "practice": "Práctica",
+    "maintenance": "Mantenimiento",
+    "unscheduled": "No programados",
+    "noScheduledMatchUps": "No hay partidos programados"
   },
 
   "penalties": {
@@ -829,6 +847,7 @@
       "dynamicSets": "Sets Dinámicos",
       "dialPad": "Teclado Numérico",
       "freeScore": "Puntaje Libre",
+      "inlineScoring": "Puntuación en línea",
       "smartComplements": "Complementos inteligentes (solo Sets Dinámicos)",
       "storage": "Almacenamiento",
       "saveLocalCopies": "Guardar copias locales",
@@ -1037,7 +1056,8 @@
       "groupSize": "Tamaño de grupo",
       "positionsToBePlayedOff": "Posiciones a disputar:",
       "selectPositions": "Seleccione posiciones finales del grupo. Las selecciones deben ser secuenciales",
-      "structureAdded": "Estructura agregada"
+      "structureAdded": "Estructura agregada",
+      "selectEligible": "Seleccionar participantes elegibles"
     },
     "addToEvent": {
       "title": "Agregar al evento",

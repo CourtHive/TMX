@@ -301,7 +301,8 @@
     "inviteCopied": "Invite link copied to clipboard",
     "confirmRemoveUser": "Remove User",
     "removeUserConfirm": "Are you sure you want to remove",
-    "searchProviders": "Search providers..."
+    "searchProviders": "Search providers...",
+    "lastAccess": "Last Access"
   },
 
   "round_names": {
@@ -793,7 +794,25 @@
     "umpirenotes": "Umpire Notes",
     "notice": "Schedule Notice",
     "opponentname": "Opponent Name",
-    "scheduled": "Scheduled"
+    "scheduled": "Scheduled",
+    "time": "Time",
+    "setTime": "Set time",
+    "startMatch": "Start match",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "annotations": "Annotations",
+    "clearTimeSettings": "Clear",
+    "enterScore": "Enter score",
+    "viewDraw": "View draw",
+    "removeFromSchedule": "Remove from schedule",
+    "assign": "Assign",
+    "assignMatchUp": "Assign matchUp",
+    "blockCourt": "Block Court",
+    "otherBookings": "Other",
+    "practice": "Practice",
+    "maintenance": "Maintenance",
+    "unscheduled": "Unscheduled",
+    "noScheduledMatchUps": "No scheduled matchUps"
   },
 
   "penalties": {
@@ -868,6 +887,7 @@
       "dynamicSets": "Dynamic Sets",
       "dialPad": "Dial Pad",
       "freeScore": "Free Score",
+      "inlineScoring": "Inline Scoring",
       "smartComplements": "Smart complements (Dynamic Sets only)",
       "storage": "Storage",
       "saveLocalCopies": "Save local copies",
@@ -1088,7 +1108,8 @@
       "title": "Add voluntary consolation",
       "structureName": "Structure name",
       "groupSize": "Group size",
-      "structureAdded": "Voluntary consolation structure added"
+      "structureAdded": "Voluntary consolation structure added",
+      "selectEligible": "Select eligible participants"
     },
     "addRRplayoffs": {
       "title": "Add playoff structure",

@@ -3,6 +3,7 @@
  * Filters matchUps by type: singles, doubles, or team.
  */
 import { eventConstants } from 'tods-competition-factory';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
@@ -11,12 +12,17 @@ export function getMatchUpTypeFilter(
   table: any,
   data: any[],
 ): { typeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
+  let filterValue: string | undefined = context.matchUpFilters.type;
 
   const typeFilter = (rowData: any): boolean => rowData.matchUpType === filterValue;
+
+  // Restore saved filter
+  if (filterValue) table.addFilter(typeFilter);
+
   const updateFilter = (type?: string) => {
     table.removeFilter(typeFilter);
     filterValue = type;
+    context.matchUpFilters.type = type;
     if (type) table.addFilter(typeFilter);
   };
 

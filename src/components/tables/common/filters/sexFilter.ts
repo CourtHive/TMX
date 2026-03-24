@@ -1,4 +1,5 @@
 import { genderConstants } from 'tods-competition-factory';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 const { FEMALE, MALE, ANY } = genderConstants;
@@ -7,15 +8,19 @@ export function getSexFilter(
   table: any,
   onChange?: () => void,
 ): { sexOptions: any[]; genders: Record<string, string>; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined;
+  let filterValue: string | undefined = context.participantFilters.sex;
 
   const sexFilter = (rowData: any): boolean => rowData.participant?.person?.sex === filterValue;
   const updateSexFilter = (sex?: string) => {
     table.removeFilter(sexFilter);
     filterValue = sex;
+    context.participantFilters.sex = sex;
     if (sex) table.addFilter(sexFilter);
     if (onChange) onChange();
   };
+
+  // Restore saved filter
+  if (filterValue) table.addFilter(sexFilter);
   const sexes = [MALE, FEMALE];
   const genders: Record<string, string> = {
     [MALE]: t('pages.participants.gender.male'),

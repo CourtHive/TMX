@@ -1,12 +1,13 @@
 /**
- * Schedule 2 header bar — date selector + view switcher.
+ * Schedule 2 header bar — rich date dropdown + issues popover + view switcher.
  *
- * Persistent across view changes. The date selector is a native <select>
- * dropdown listing all competition dates. The view switcher is a segmented
- * control with Grid / Profile buttons.
+ * Persistent across view changes. The date selector is a button that opens a
+ * tippy popover with date chips (matching courthive-components dateStrip style).
+ * An issues icon appears when there are scheduling conflicts.
  */
-import { competitionEngine } from 'tods-competition-factory';
 import { providerConfig } from 'config/providerConfig';
+import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import type { ScheduleDate, ScheduleIssue } from 'courthive-components';
 import type { Schedule2View } from './schedule2Tab';
 
 export type ScheduleSearchMode = 'individual' | 'team';
@@ -17,16 +18,21 @@ interface Schedule2HeaderParams {
   startDate: string;
   endDate: string;
   bulkMode: boolean;
+  catalogVisible?: boolean;
+  scheduleDates?: ScheduleDate[];
+  issues?: ScheduleIssue[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
+  onToggleCatalog?: () => void;
   onSearch?: (text: string, mode: ScheduleSearchMode) => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
   const {
     selectedDate, activeView, startDate, endDate, bulkMode,
-    onDateChange, onViewChange, onBulkModeChange, onSearch,
+    catalogVisible = true, scheduleDates, issues,
+    onDateChange, onViewChange, onBulkModeChange, onToggleCatalog, onSearch,
   } = params;
 
   const bar = document.createElement('div');
@@ -34,40 +40,86 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   bar.style.cssText =
     'display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; flex-wrap: wrap;';
 
-  // ── Left: Date selector ──
+  // ── Left: Date dropdown + issues icon ──
   const left = document.createElement('div');
   left.style.cssText = 'display: flex; align-items: center; gap: 8px;';
 
-  const dateLabel = document.createElement('span');
-  dateLabel.style.cssText = 'font-size: 13px; font-weight: 600; color: var(--tmx-color-primary);';
-  dateLabel.textContent = 'Date:';
-  left.appendChild(dateLabel);
+  // Rich date dropdown button
+  const dates = scheduleDates ?? fallbackDates(startDate, endDate, selectedDate);
+  const selectedDateInfo = dates.find((d) => d.date === selectedDate);
+  const dateBtn = document.createElement('button');
+  dateBtn.style.cssText = [
+    'font-size: 13px', 'font-weight: 600', 'padding: 5px 12px',
+    'border-radius: 6px', 'border: 1px solid var(--tmx-border-primary)',
+    'background: var(--tmx-bg-primary)', 'color: var(--tmx-color-primary)',
+    'cursor: pointer', 'display: inline-flex', 'align-items: center', 'gap: 6px',
+  ].join('; ');
+  const matchUpCount = selectedDateInfo?.matchUpCount ?? 0;
+  dateBtn.innerHTML = `<i class="fa-solid fa-calendar-days" style="font-size: 12px;"></i>${formatDateLabel(selectedDate)}` +
+    (matchUpCount > 0 ? ` <span style="font-size: 10px; font-weight: 400; padding: 1px 6px; border-radius: 10px; background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); color: var(--tmx-muted);">${matchUpCount}</span>` : '') +
+    ' <i class="fa-solid fa-chevron-down" style="font-size: 9px; opacity: 0.6;"></i>';
 
-  const dateSelect = document.createElement('select');
-  dateSelect.style.cssText =
-    'font-size: 13px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); cursor: pointer;';
-
-  const dates = dateRange(startDate, endDate);
-  for (const d of dates) {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = formatDateLabel(d);
-    if (d === selectedDate) opt.selected = true;
-    dateSelect.appendChild(opt);
-  }
-  dateSelect.addEventListener('change', () => onDateChange(dateSelect.value));
-  left.appendChild(dateSelect);
-
-  // ── Scheduled matchUp count badge ──
-  const countBadge = document.createElement('span');
-  countBadge.style.cssText =
-    'font-size: 11px; color: var(--tmx-muted); padding: 2px 8px; background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); border-radius: 10px;';
-  const { matchUps } = competitionEngine.competitionScheduleMatchUps({
-    matchUpFilters: { scheduledDate: selectedDate },
+  let dateTippy: TippyInstance | undefined;
+  const datePopoverContent = buildDatePopover(dates, selectedDate, (date) => {
+    dateTippy?.hide();
+    onDateChange(date);
   });
-  const count = matchUps?.length ?? 0;
-  countBadge.textContent = `${count} scheduled`;
-  left.appendChild(countBadge);
+
+  left.appendChild(dateBtn);
+
+  // Attach tippy after element is in the DOM
+  requestAnimationFrame(() => {
+    dateTippy = tippy(dateBtn, {
+      content: datePopoverContent,
+      trigger: 'click',
+      interactive: true,
+      placement: 'bottom-start',
+      theme: 'light-border',
+      appendTo: () => document.body,
+      onShown: () => {
+        const activeChip = datePopoverContent.querySelector(`[data-date="${selectedDate}"]`) as HTMLElement;
+        activeChip?.scrollIntoView({ block: 'nearest' });
+      },
+    });
+  });
+
+  // ── Issues icon (shown only when issues exist) ──
+  if (issues && issues.length > 0) {
+    const issuesBtn = document.createElement('button');
+    issuesBtn.style.cssText = [
+      'position: relative', 'font-size: 14px', 'padding: 4px 8px',
+      'border-radius: 6px', 'border: 1px solid var(--tmx-border-primary)',
+      'background: var(--tmx-bg-primary)', 'cursor: pointer',
+      'color: var(--tmx-accent-orange, #f59e0b)', 'display: inline-flex', 'align-items: center', 'gap: 4px',
+    ].join('; ');
+    issuesBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+
+    // Count badge
+    const badge = document.createElement('span');
+    badge.style.cssText =
+      'font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-accent-orange, #f59e0b); color: #fff;';
+    badge.textContent = String(issues.length);
+    issuesBtn.appendChild(badge);
+
+    const issuesPopoverContent = buildIssuesPopover(issues);
+    let issuesTippy: TippyInstance | undefined;
+
+    left.appendChild(issuesBtn);
+
+    requestAnimationFrame(() => {
+      issuesTippy = tippy(issuesBtn, {
+        content: issuesPopoverContent,
+        trigger: 'click',
+        interactive: true,
+        placement: 'bottom-start',
+        theme: 'light-border',
+        appendTo: () => document.body,
+        maxWidth: 400,
+      });
+      // keep reference to suppress unused warning
+      void issuesTippy;
+    });
+  }
 
   // ── Search field (grid view only) ──
   if (activeView === 'grid' && onSearch) {
@@ -76,7 +128,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
 
     const searchInput = document.createElement('input');
     searchInput.type = 'search';
-    searchInput.placeholder = 'Search schedule…';
+    searchInput.placeholder = 'Search schedule\u2026';
     searchInput.style.cssText =
       'font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); width: 150px;';
 
@@ -107,6 +159,22 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     searchWrap.appendChild(searchInput);
     searchWrap.appendChild(modeSelect);
     left.appendChild(searchWrap);
+  }
+
+  // ── Catalog toggle (floats far left) ──
+  if (onToggleCatalog) {
+    const catalogBtn = document.createElement('button');
+    catalogBtn.style.cssText = [
+      'font-size: 13px', 'padding: 4px 8px', 'border-radius: 6px',
+      'border: 1px solid var(--tmx-border-primary)',
+      'background: var(--tmx-bg-primary)', 'cursor: pointer',
+      'color: var(--tmx-color-primary)', 'display: inline-flex', 'align-items: center',
+      'opacity: 0.7', 'margin-right: auto',
+    ].join('; ');
+    catalogBtn.innerHTML = '<i class="fa-solid fa-table-columns"></i>';
+    catalogBtn.title = catalogVisible ? 'Hide catalog' : 'Show catalog';
+    catalogBtn.addEventListener('click', onToggleCatalog);
+    bar.appendChild(catalogBtn);
   }
 
   bar.appendChild(left);
@@ -169,6 +237,179 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   return bar;
 }
 
+// ── Date Popover ──
+
+function buildDatePopover(
+  dates: ScheduleDate[],
+  selectedDate: string,
+  onSelect: (date: string) => void,
+): HTMLElement {
+  const container = document.createElement('div');
+  container.style.cssText = 'padding: 8px; max-height: 320px; overflow-y: auto; min-width: 220px;';
+
+  for (const d of dates) {
+    const chip = document.createElement('div');
+    const isSelected = d.date === selectedDate;
+    chip.setAttribute('data-date', d.date);
+    chip.style.cssText = [
+      'display: flex', 'justify-content: space-between', 'align-items: center',
+      'padding: 8px 10px', 'border-radius: 8px', 'cursor: pointer',
+      'margin-bottom: 2px', 'transition: background 0.15s',
+      isSelected ? 'background: var(--tmx-accent-blue, #3b82f6); color: #fff;' : '',
+    ].join('; ');
+
+    chip.addEventListener('mouseenter', () => {
+      if (!isSelected) chip.style.background = 'var(--tmx-bg-secondary, rgba(128,128,128,0.08))';
+    });
+    chip.addEventListener('mouseleave', () => {
+      if (!isSelected) chip.style.background = '';
+    });
+
+    const leftSide = document.createElement('div');
+    const dateLabel = document.createElement('div');
+    dateLabel.style.cssText = 'font-weight: 700; font-size: 12px;';
+    dateLabel.textContent = formatDateLabel(d.date);
+    const statusLabel = document.createElement('div');
+    statusLabel.style.cssText = `font-size: 11px; ${isSelected ? 'color: rgba(255,255,255,0.8);' : 'color: var(--tmx-muted);'}`;
+    statusLabel.textContent = d.isActive ? 'Active' : 'Inactive';
+    leftSide.appendChild(dateLabel);
+    leftSide.appendChild(statusLabel);
+
+    const badges = document.createElement('div');
+    badges.style.cssText = 'display: flex; gap: 4px; align-items: center;';
+
+    if (d.matchUpCount != null && d.matchUpCount > 0) {
+      const b = document.createElement('span');
+      b.style.cssText = `font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); color: var(--tmx-muted);'}`;
+      b.textContent = `${d.matchUpCount}`;
+      badges.appendChild(b);
+    }
+    if (d.issueCount && d.issueCount > 0) {
+      const b = document.createElement('span');
+      b.style.cssText = `font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,200,100,0.4); color: #fff;' : 'background: rgba(245, 158, 11, 0.15); color: var(--tmx-accent-orange, #f59e0b);'}`;
+      b.textContent = `${d.issueCount} !`;
+      badges.appendChild(b);
+    }
+
+    chip.appendChild(leftSide);
+    chip.appendChild(badges);
+    chip.addEventListener('click', () => onSelect(d.date));
+    container.appendChild(chip);
+  }
+
+  return container;
+}
+
+// ── Issues Popover ──
+
+function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
+  const container = document.createElement('div');
+  container.style.cssText = 'padding: 8px; max-height: 360px; overflow-y: auto; min-width: 280px;';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight: 700; font-size: 12px; margin-bottom: 8px; color: var(--tmx-color-primary);';
+  title.textContent = `Scheduling Issues (${issues.length})`;
+  container.appendChild(title);
+
+  const severityColors: Record<string, { bg: string; color: string }> = {
+    ERROR: { bg: 'rgba(239,68,68,0.15)', color: '#ef4444' },
+    WARN: { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
+    INFO: { bg: 'rgba(59,130,246,0.15)', color: '#3b82f6' },
+  };
+
+  const P1_COLOR = '#4fc3f7';
+  const P2_COLOR = '#ffb74d';
+  const MUTED = 'opacity: 0.7';
+
+  for (const issue of issues.slice(0, 30)) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--tmx-border-primary, #e5e7eb);';
+
+    if (issue.matchUpId) {
+      row.style.cursor = 'pointer';
+      const candidates = issue.conflictMatchUpIds || [issue.matchUpId];
+      row.addEventListener('click', () => scrollToMatchUp(candidates));
+    }
+
+    const badge = document.createElement('span');
+    const colors = severityColors[issue.severity] ?? severityColors.WARN;
+    badge.style.cssText = `font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; background: ${colors.bg}; color: ${colors.color};`;
+    badge.textContent = issue.severity;
+
+    const msg = document.createElement('span');
+    msg.style.cssText = 'font-size: 11px; color: var(--tmx-color-primary); line-height: 1.4;';
+
+    if (issue.participants) {
+      if (issue.prefix) {
+        const s = document.createElement('span');
+        s.style.cssText = MUTED;
+        s.textContent = issue.prefix;
+        msg.appendChild(s);
+      }
+      const typeSpan = document.createElement('span');
+      typeSpan.style.cssText = MUTED;
+      typeSpan.textContent = (issue.issueType || '') + ': ';
+      msg.appendChild(typeSpan);
+
+      const p1 = document.createElement('span');
+      p1.style.cssText = `color: ${P1_COLOR}; font-weight: 600;`;
+      p1.textContent = issue.participants;
+      msg.appendChild(p1);
+
+      if (issue.conflictParticipants?.length) {
+        const sep = document.createElement('span');
+        sep.style.cssText = MUTED;
+        sep.textContent = ' conflicts with ';
+        msg.appendChild(sep);
+
+        issue.conflictParticipants.forEach((cp, i) => {
+          if (i > 0) {
+            const comma = document.createElement('span');
+            comma.style.cssText = MUTED;
+            comma.textContent = ', ';
+            msg.appendChild(comma);
+          }
+          const p2 = document.createElement('span');
+          p2.style.cssText = `color: ${P2_COLOR}; font-weight: 600;`;
+          p2.textContent = cp;
+          msg.appendChild(p2);
+        });
+      }
+    } else {
+      msg.textContent = issue.message;
+    }
+
+    row.appendChild(badge);
+    row.appendChild(msg);
+    container.appendChild(row);
+  }
+
+  if (issues.length > 30) {
+    const more = document.createElement('div');
+    more.style.cssText = 'font-size: 11px; color: var(--tmx-muted); padding: 6px 0; text-align: center;';
+    more.textContent = `\u2026and ${issues.length - 30} more`;
+    container.appendChild(more);
+  }
+
+  return container;
+}
+
+function scrollToMatchUp(matchUpIds: string[]): void {
+  let cell: HTMLElement | null = null;
+  for (const mid of matchUpIds) {
+    cell = document.querySelector(`.spl-grid-cell[data-matchup-id="${mid}"]`) as HTMLElement | null;
+    if (cell) break;
+  }
+  if (!cell) return;
+
+  cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+  cell.classList.remove('spl-cell--issue-pulse');
+  void cell.offsetWidth;
+  cell.classList.add('spl-cell--issue-pulse');
+  cell.addEventListener('animationend', () => cell!.classList.remove('spl-cell--issue-pulse'), { once: true });
+}
+
 // ── Helpers ──
 
 function segmentBtnStyle(active: boolean): string {
@@ -178,6 +419,10 @@ function segmentBtnStyle(active: boolean): string {
     return base + 'background: var(--tmx-accent-blue); color: #fff; font-weight: 600;';
   }
   return base + 'background: var(--tmx-bg-primary); color: var(--tmx-color-primary);';
+}
+
+function fallbackDates(start: string, end: string, selectedDate: string): ScheduleDate[] {
+  return dateRange(start, end).map((d) => ({ date: d, isActive: d === selectedDate }));
 }
 
 function dateRange(start: string, end: string): string[] {

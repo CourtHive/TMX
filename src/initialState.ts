@@ -4,12 +4,16 @@
  */
 import { factoryConstants, globalState, tournamentEngine } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
-import { initLoginToggle } from 'services/authentication/loginState';
-
-import { courthiveComponentsVersion } from 'courthive-components';
+import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
+import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
-import { initTheme } from 'services/theme/themeService';
+import { initTheme, initThemeToggle } from 'services/theme/themeService';
+import { initLoginToggle } from 'services/authentication/loginState';
+import { courthiveComponentsVersion } from 'courthive-components';
+import { registerMenuHandler } from 'platform/menuHandler';
 import { EventEmitter } from './services/EventEmitter';
+import { deviceConfig } from 'config/deviceConfig';
+import { debugConfig } from 'config/debugConfig';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
@@ -17,10 +21,6 @@ import { drawer } from 'components/drawer';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
-import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
-import { registerMenuHandler } from 'platform/menuHandler';
-import { deviceConfig } from 'config/deviceConfig';
-import { debugConfig } from 'config/debugConfig';
 import { version } from 'config/version';
 import { i18next } from 'i18n';
 
@@ -76,6 +76,8 @@ export function setupTMX(): void {
     console.error('Failed to hydrate config from storage:', err);
   }
 
+  loadColumnVisibility();
+
   initTheme();
 
   setEnv();
@@ -84,6 +86,7 @@ export function setupTMX(): void {
   tournamentContent();
   initLoginToggle('login');
   initLoginToggle('burger');
+  initThemeToggle('themeToggle');
   if (!(Array.prototype as any).toSorted) {
     (Array.prototype as any).toSorted = function (compareFn?: (a: any, b: any) => number) {
       return this.slice().sort(compareFn);

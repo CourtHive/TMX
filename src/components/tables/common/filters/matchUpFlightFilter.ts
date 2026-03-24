@@ -3,6 +3,7 @@
  * Filters matchUps by flight (draw).
  */
 import { tournamentEngine } from 'tods-competition-factory';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 export function getMatchUpFlightFilter(table: any): {
@@ -11,14 +12,18 @@ export function getMatchUpFlightFilter(table: any): {
   isFiltered: () => boolean;
   activeIndex: () => number;
 } {
-  let filterValue: string | undefined;
+  let filterValue: string | undefined = context.matchUpFilters.drawId;
 
   const flightFilter = (rowData: any): boolean => rowData.drawId === filterValue;
   const updateFilter = (drawId?: string) => {
     table.removeFilter(flightFilter);
     filterValue = drawId;
+    context.matchUpFilters.drawId = drawId;
     if (drawId) table.addFilter(flightFilter);
   };
+
+  // Restore saved filter
+  if (filterValue) table.addFilter(flightFilter);
 
   const events = tournamentEngine.getEvents().events || [];
   const allLabel = t('pages.matchUps.allFlights');

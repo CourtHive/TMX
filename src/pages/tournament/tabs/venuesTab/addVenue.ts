@@ -20,7 +20,7 @@ import { RIGHT } from 'constants/tmxConstants';
 // Save
 // ---------------------------------------------------------------------------
 
-const saveVenue = (callback?: (result: any) => void) => {
+const saveVenue = (callback?: (result: any) => void, engine?: string) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
   const { venueName, venueAbbreviation, courtNameBase, courtsCount, defaultStartTime, defaultEndTime } = values;
   const venueId = tools.UUID();
@@ -33,7 +33,9 @@ const saveVenue = (callback?: (result: any) => void) => {
   if (defaultStartTime) venue.defaultStartTime = toMilitaryTime(defaultStartTime);
   if (defaultEndTime) venue.defaultEndTime = toMilitaryTime(defaultEndTime);
 
-  const addCourtsParams: any = { courtsCount: Number.parseInt(courtsCount), venueId };
+  const count = Number.parseInt(courtsCount);
+  const courtIds = Array.from({ length: count }, () => tools.UUID());
+  const addCourtsParams: any = { courtsCount: count, venueId, courtIds };
   if (courtNameBase) {
     addCourtsParams.courtNameRoot = courtNameBase;
   } else {
@@ -58,7 +60,7 @@ const saveVenue = (callback?: (result: any) => void) => {
       tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
     }
   };
-  mutationRequest({ methods, callback: postMutation });
+  mutationRequest({ methods, engine, callback: postMutation });
 };
 
 // ---------------------------------------------------------------------------
@@ -87,7 +89,7 @@ function createExternalLookupButton(): HTMLButtonElement {
 // Form + relationships
 // ---------------------------------------------------------------------------
 
-export function addVenue(callback?: (result: any) => void): void {
+export function addVenue(callback?: (result: any) => void, engine?: string): void {
   const valueChange = () => {};
 
   const numberValidator = (value: string) => value && !Number.isNaN(Number(value));
@@ -135,7 +137,7 @@ export function addVenue(callback?: (result: any) => void): void {
       [
         { label: t('common.cancel'), close: true },
         {
-          onClick: () => saveVenue(callback),
+          onClick: () => saveVenue(callback, engine),
           id: 'addVenueButton',
           intent: 'is-info',
           disabled: true,

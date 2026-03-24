@@ -19,6 +19,13 @@
  *  - On Save: all queued methods sent as single mutationRequest
  *  - On Discard: factory state reloaded from IndexedDB
  */
+import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
+import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { scheduleConfig } from 'config/scheduleConfig';
+import { tmx2db } from 'services/storage/tmx2db';
+import { t } from 'i18n';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -27,16 +34,20 @@ import {
   matchUpLabel,
   isCompletedStatus,
 } from 'courthive-components';
-import type { SchedulePageConfig, SchedulePageControl, CatalogMatchUpItem, ScheduleDate } from 'courthive-components';
-import type { ScheduleIssue, ScheduleIssueSeverity } from 'courthive-components';
-import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
-import { handleSchedule2CellClick } from './schedule2CellActions';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { scheduleConfig } from 'config/scheduleConfig';
-import { tmx2db } from 'services/storage/tmx2db';
-import { COMPETITION_ENGINE } from 'constants/tmxConstants';
+import type {
+  SchedulePageConfig,
+  SchedulePageControl,
+  CatalogMatchUpItem,
+  ScheduleDate,
+  ScheduleIssue,
+  ScheduleIssueSeverity,
+} from 'courthive-components';
+
+// constants
+import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
+import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
+import { renderSchedule2Tab } from './schedule2Tab';
 
 const { scheduleConstants } = factoryConstants;
 
@@ -83,6 +94,8 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     scheduleDates,
     issues,
     courtGridElement: grid.element,
+    hideLeft: true,
+    catalogSide: 'left',
     scheduledBehavior: 'dim',
     schedulingMode: 'immediate',
 
@@ -138,10 +151,10 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId ?? '',
           schedule: {
-            courtId,
-            venueId,
             courtOrder: parseInt(courtOrder, 10),
             scheduledDate: currentDate,
+            courtId,
+            venueId,
           },
           removePriorValues: true,
         },
@@ -176,6 +189,175 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
   };
 
   activeControl = createSchedulePage(config, container);
+
+  // ── Inject sidebar controls: collapse toggle + Unscheduled/Scheduled tabs ──
+  injectSidebarControls(container);
+}
+
+// ============================================================================
+// Sidebar Controls (collapse + scheduled matchUp list)
+// ============================================================================
+
+function injectSidebarControls(container: HTMLElement): void {
+  const layout = container.querySelector('.spl-layout') as HTMLElement;
+  if (!layout) return;
+
+  // The sidebar is the first child when catalogSide='left'
+  const sidebar = layout.firstElementChild as HTMLElement;
+  if (!sidebar) return;
+
+  // Build control bar (tab switcher: Unscheduled / Scheduled)
+  const controlBar = document.createElement('div');
+  controlBar.style.cssText =
+    'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
+
+  const unschedTab = document.createElement('button');
+  const schedTab = document.createElement('button');
+  const tabStyle = (active: boolean) =>
+    [
+      'font-size: 11px',
+      'padding: 3px 8px',
+      'border-radius: 10px',
+      'cursor: pointer',
+      'border: 1px solid transparent',
+      'white-space: nowrap',
+      active
+        ? 'background: var(--sp-accent, var(--tmx-accent-blue, #3b82f6)); color: #fff; font-weight: 600;'
+        : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
+    ].join('; ');
+  unschedTab.style.cssText = tabStyle(true);
+  unschedTab.textContent = t('schedule.unscheduled');
+  schedTab.style.cssText = tabStyle(false);
+  schedTab.textContent = t('schedule.scheduled');
+
+  controlBar.appendChild(unschedTab);
+  controlBar.appendChild(schedTab);
+
+  // Scheduled matchUp list container
+  const scheduledPanel = document.createElement('div');
+  scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; overflow: auto; padding: 8px;';
+
+  // The component's existing catalog content (everything after the control bar)
+  const catalogContent = Array.from(sidebar.children);
+
+  // Insert control bar at top
+  sidebar.insertBefore(controlBar, sidebar.firstChild);
+  sidebar.appendChild(scheduledPanel);
+
+  let activeTab: 'unscheduled' | 'scheduled' = 'unscheduled';
+
+  function updateScheduledPanel(): void {
+    scheduledPanel.innerHTML = '';
+    // Show matchUps that have a scheduled time on this date but are NOT yet placed on a court
+    const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true, nextMatchUps: true });
+    const scheduled = (matchUps || []).filter((m: any) => {
+      if (m.matchUpStatus === BYE) return false;
+      if (isCompletedStatus(m.matchUpStatus)) return false;
+      if (m.schedule?.scheduledDate !== currentDate) return false;
+      if (m.schedule?.courtId) return false; // already on a court — don't show
+      return !!m.schedule?.scheduledTime;
+    });
+
+    if (!scheduled.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText =
+        'font-size: 11px; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
+      hint.textContent = t('schedule.noScheduledMatchUps');
+      scheduledPanel.appendChild(hint);
+      return;
+    }
+
+    for (const m of scheduled) {
+      const card = document.createElement('div');
+      card.style.cssText = [
+        'padding: 6px 8px',
+        'margin-bottom: 4px',
+        'border-radius: 8px',
+        'font-size: 11px',
+        'background: var(--sp-card-bg, var(--tmx-bg-secondary))',
+        'border: 1px solid var(--sp-border, var(--tmx-border-primary))',
+        'cursor: grab',
+        'display: flex',
+        'flex-direction: column',
+        'gap: 2px',
+      ].join('; ');
+
+      const titleEl = document.createElement('div');
+      titleEl.style.cssText = 'font-weight: 700; font-size: 11px;';
+      titleEl.textContent = `${m.eventName || ''} ${m.roundName || ''}`.trim();
+
+      const sidesEl = document.createElement('div');
+      sidesEl.style.cssText = 'font-size: 10px; color: var(--sp-text, inherit);';
+      sidesEl.textContent = (m.sides || [])
+        .map((s: any) => s.participant?.participantName ?? s.participantName ?? '?')
+        .join(' vs ');
+
+      const metaEl = document.createElement('div');
+      metaEl.style.cssText = 'font-size: 10px; color: var(--sp-muted, var(--tmx-muted));';
+      const parts: string[] = [];
+      if (m.schedule?.scheduledTime) parts.push(m.schedule.scheduledTime);
+      metaEl.textContent = parts.join(' \u00b7 ');
+
+      card.appendChild(titleEl);
+      card.appendChild(sidesEl);
+      if (parts.length) card.appendChild(metaEl);
+
+      // Make draggable — uses CATALOG_MATCHUP type so the grid's onMatchUpDrop assigns a court
+      card.draggable = true;
+      card.addEventListener('dragstart', (e) => {
+        e.dataTransfer!.setData(
+          'application/json',
+          JSON.stringify({
+            type: 'CATALOG_MATCHUP',
+            matchUp: {
+              matchUpId: m.matchUpId,
+              drawId: m.drawId,
+              eventId: m.eventId,
+              eventName: m.eventName,
+              roundName: m.roundName,
+              matchUpType: m.matchUpType,
+              sides: (m.sides || []).map((s: any) => ({
+                participantName: s.participant?.participantName ?? s.participantName,
+                participantId: s.participantId ?? s.participant?.participantId,
+              })),
+            },
+          }),
+        );
+        e.dataTransfer!.effectAllowed = 'move';
+        card.style.opacity = '0.4';
+      });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '';
+      });
+
+      scheduledPanel.appendChild(card);
+    }
+  }
+
+  function setTab(tab: 'unscheduled' | 'scheduled'): void {
+    activeTab = tab;
+    unschedTab.style.cssText = tabStyle(tab === 'unscheduled');
+    schedTab.style.cssText = tabStyle(tab === 'scheduled');
+
+    if (tab === 'unscheduled') {
+      scheduledPanel.style.display = 'none';
+      for (const el of catalogContent) (el as HTMLElement).style.display = '';
+    } else {
+      for (const el of catalogContent) (el as HTMLElement).style.display = 'none';
+      scheduledPanel.style.display = '';
+      updateScheduledPanel();
+    }
+  }
+
+  unschedTab.addEventListener('click', () => setTab('unscheduled'));
+  schedTab.addEventListener('click', () => setTab('scheduled'));
+
+  // Hook into refresh to update scheduled panel when visible
+  const origRefresh = activeControl?.getStore().subscribe(() => {
+    if (activeTab === 'scheduled') updateScheduledPanel();
+  });
+  // Store unsubscribe for cleanup (will be handled by destroyGridView → activeControl.destroy)
+  void origRefresh;
 }
 
 export function destroyGridView(): void {
@@ -200,7 +382,7 @@ export function setGridBulkMode(enabled: boolean): boolean {
 
   // If turning off bulk mode with pending changes, warn
   if (!enabled && pendingMethods.length > 0) {
-    const confirmed = window.confirm(
+    const confirmed = globalThis.confirm(
       `You have ${pendingMethods.length} unsaved scheduling change(s). Switching to immediate mode will discard them. Continue?`,
     );
     if (!confirmed) return bulkMode;
@@ -247,7 +429,7 @@ export function searchGridCells(text: string, _mode: 'individual' | 'team'): voi
     const cellText = el.textContent?.toLowerCase() || '';
     if (cellText.includes(needle)) {
       el.classList.add(SEARCH_HIGHLIGHT_CLASS);
-      if (!firstMatch) firstMatch = el;
+      firstMatch ??= el;
     }
   }
 
@@ -387,7 +569,7 @@ function updateActionBar(): void {
   // Save button
   const saveBtn = document.createElement('button');
   saveBtn.className = 'sp-btn sp-btn--success';
-  saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Save ${totalMethods} change${totalMethods !== 1 ? 's' : ''}`;
+  saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Save ${totalMethods} change${totalMethods === 1 ? '' : 's'}`;
   saveBtn.addEventListener('click', () => savePending());
   actionBar.appendChild(saveBtn);
 
@@ -401,7 +583,7 @@ function updateActionBar(): void {
   // Status text
   const status = document.createElement('span');
   status.style.cssText = 'font-size: 0.75rem; color: var(--sp-warn-text, var(--tmx-accent-orange, #f59e0b));';
-  status.textContent = `${count} unsaved action${count !== 1 ? 's' : ''} — changes are local only`;
+  status.textContent = `${count} unsaved action${count === 1 ? '' : 's'} — changes are local only`;
   actionBar.appendChild(status);
 }
 
@@ -429,10 +611,19 @@ interface GridCallbacks {
 function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): InteractiveGrid {
   const MIN_COURT_WIDTH = 110;
   const TIME_COL_WIDTH = 50;
+  const MIN_PLACEHOLDER_ROWS = 8;
 
   const root = document.createElement('div');
-  root.style.cssText = 'width: 100%; overflow: auto;';
+  root.style.cssText = 'width: 100%; height: 100%; overflow: auto;';
   gridRootElement = root;
+
+  const handleAddVenue = () => {
+    addVenue((result: any) => {
+      if (result?.success) {
+        renderSchedule2Tab({ scheduledDate: currentDate });
+      }
+    }, COMPETITION_ENGINE);
+  };
 
   function render(date: string): void {
     root.innerHTML = '';
@@ -449,38 +640,58 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const courtPrefix: string = scheduleResult.courtPrefix || 'C|';
 
     // Run proConflicts and annotate cell data with issue styling info
-    annotateConflicts(rows, courtsData, courtPrefix);
-
-    if (!courtsData.length) {
-      root.textContent = 'No courts configured. Add venues and courts first.';
-      root.style.cssText += 'padding: 24px; color: var(--tmx-muted); text-align: center;';
-      return;
-    }
+    if (courtsData.length) annotateConflicts(rows, courtsData, courtPrefix);
 
     const courtCount = courtsData.length;
+
+    // Calculate placeholder columns to fill remaining space (always at least 1 for "Add venue")
+    const emptyCalc = MINIMUM_SCHEDULE_COLUMNS - courtCount;
+    const emptyCount = emptyCalc <= 0 ? 1 : emptyCalc;
+    const totalColumns = courtCount + emptyCount;
+
+    // Ensure we have enough rows to display even when no courts
+    const displayRows = rows.length || MIN_PLACEHOLDER_ROWS;
 
     const grid = document.createElement('div');
     grid.style.cssText = [
       'display: grid',
       'gap: 1px',
       'background: var(--sp-line, #e5e7eb)',
-      `min-width: ${TIME_COL_WIDTH + courtCount * MIN_COURT_WIDTH}px`,
-      `grid-template-columns: ${TIME_COL_WIDTH}px repeat(${courtCount}, minmax(${MIN_COURT_WIDTH}px, 1fr))`,
+      `min-width: ${TIME_COL_WIDTH + totalColumns * MIN_COURT_WIDTH}px`,
+      `grid-template-columns: ${TIME_COL_WIDTH}px repeat(${totalColumns}, minmax(${MIN_COURT_WIDTH}px, 1fr))`,
     ].join('; ');
 
     const STICKY_HEADER = [
-      POSITION_STICKY, 'top: 0', 'z-index: 2',
-      'background: var(--sp-panel-bg, #fff)', 'padding: 6px 4px',
-      'font-size: 10px', 'font-weight: 700', 'text-align: center',
-      'white-space: nowrap', 'overflow: hidden', 'text-overflow: ellipsis',
+      POSITION_STICKY,
+      'top: 0',
+      'z-index: 2',
+      'background: var(--sp-panel-bg, #fff)',
+      'padding: 6px 4px',
+      'font-size: 11px',
+      'font-weight: 700',
+      'text-align: center',
+      'white-space: nowrap',
+      'overflow: hidden',
+      'text-overflow: ellipsis',
     ].join('; ');
 
     const STICKY_ROW = [
-      POSITION_STICKY, 'left: 0', 'z-index: 1',
-      'background: var(--sp-panel-bg, #fff)', 'padding: 6px 4px',
-      'font-size: 10px', 'font-weight: 600', 'color: var(--sp-muted, #888)',
-      'display: flex', 'align-items: center', 'justify-content: center',
+      POSITION_STICKY,
+      'left: 0',
+      'z-index: 1',
+      'background: var(--sp-panel-bg, #fff)',
+      'padding: 6px 4px',
+      'font-size: 11px',
+      'font-weight: 600',
+      'color: var(--sp-muted, #888)',
+      'display: flex',
+      'align-items: center',
+      'justify-content: center',
     ].join('; ');
+
+    const EMPTY_CELL = 'min-height: 60px; background: var(--sp-panel-bg, #fff); opacity: 0.4;';
+
+    // ── Header row ──
 
     // Corner
     const corner = document.createElement('div');
@@ -489,25 +700,71 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     grid.appendChild(corner);
 
     // Court headers
+    const courtHeaders: HTMLElement[] = [];
     for (let ci = 0; ci < courtCount; ci++) {
       const court = courtsData[ci];
       const th = document.createElement('div');
       th.style.cssText = STICKY_HEADER;
       th.title = court.courtName || `Court ${ci + 1}`;
       th.textContent = court.courtName || `Court ${ci + 1}`;
+      courtHeaders.push(th);
       grid.appendChild(th);
     }
 
-    // Data rows
-    for (let ri = 0; ri < rows.length; ri++) {
-      const row = rows[ri];
+    // Placeholder column headers
+    for (let ei = 0; ei < emptyCount; ei++) {
+      const th = document.createElement('div');
+      th.style.cssText = STICKY_HEADER + '; opacity: 0.6;';
+      if (ei === 0) {
+        // First empty column: prominent button when no courts, subtle text otherwise
+        const addVenueLabel = t('pages.venues.addVenue.title');
+        if (courtCount === 0) {
+          th.innerHTML = `<button style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--tmx-accent-blue, #3b82f6); background: var(--tmx-bg-primary, #fff); color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</button>`;
+        } else {
+          th.innerHTML = `<span style="font-weight: normal; color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</span>`;
+        }
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleAddVenue();
+        });
+      }
+      grid.appendChild(th);
+    }
+
+    // ── Data rows ──
+
+    const rowLabels: HTMLElement[] = [];
+    for (let ri = 0; ri < displayRows; ri++) {
+      const row = ri < rows.length ? rows[ri] : null;
 
       const rowCell = document.createElement('div');
-      rowCell.style.cssText = STICKY_ROW;
+      rowCell.style.cssText = STICKY_ROW + (row ? '; cursor: pointer;' : '');
       rowCell.textContent = String(ri + 1);
+      if (row) {
+        rowCell.addEventListener('click', (e: MouseEvent) => {
+          handleSchedule2RowClick(e, {
+            executeMethods: callbacks.executeMethods,
+            onRefresh: callbacks.onRefresh,
+            rowData: row,
+            courtPrefix,
+            courtsData,
+          });
+        });
+      }
+      rowLabels.push(rowCell);
       grid.appendChild(rowCell);
 
+      // Active court cells
       for (let ci = 0; ci < courtCount; ci++) {
+        if (!row) {
+          // Placeholder row for active court column
+          const emptyCell = document.createElement('div');
+          emptyCell.style.cssText = EMPTY_CELL;
+          grid.appendChild(emptyCell);
+          continue;
+        }
+
         const cellKey = `${courtPrefix}${ci}`;
         const cellData = row[cellKey];
 
@@ -517,14 +774,11 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
         const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
 
         // Build the cell content using the configurable renderer
-        const cellContent = buildScheduleGridCell(
-          mapMatchUpToCellData(cellData || {}),
-          DEFAULT_SCHEDULE_CELL_CONFIG,
-        );
+        const cellContent = buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
 
         // Wrap in a container that carries grid-level data attributes
         const cell = document.createElement('div');
-        cell.style.cssText = 'min-height: 44px;';
+        cell.style.cssText = 'min-height: 60px; font-size: 11px;';
         cell.setAttribute(DATA_COURT_ID, courtId);
         cell.setAttribute(DATA_VENUE_ID, venueId);
         cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
@@ -564,7 +818,9 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
             e.dataTransfer!.effectAllowed = 'move';
             cell.style.opacity = '0.4';
           });
-          cell.addEventListener('dragend', () => { cell.style.opacity = ''; });
+          cell.addEventListener('dragend', () => {
+            cell.style.opacity = '';
+          });
         }
 
         // ── All cells are drop targets (unless blocked) ──
@@ -634,7 +890,18 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
 
         grid.appendChild(cell);
       }
+
+      // Placeholder cells for empty columns
+      for (let ei = 0; ei < emptyCount; ei++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.style.cssText = EMPTY_CELL;
+        grid.appendChild(emptyCell);
+      }
     }
+
+    // ── Apply issue indicators to court headers and row labels ──
+    // Use allTournamentMatchUps-based proConflicts (annotateConflicts' cell data misses some conflict types)
+    applyHeaderRowIssueIndicators(courtHeaders, rowLabels, courtsData, date);
 
     root.appendChild(grid);
   }
@@ -661,7 +928,9 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   return (matchUps || [])
     .filter((m: any) => m.matchUpStatus !== BYE)
     .map((m: any) => {
-      const isScheduled = !!(m.schedule?.courtId && m.schedule?.scheduledDate);
+      const hasCourtAssignment = !!(m.schedule?.courtId && m.schedule?.scheduledDate);
+      const hasTimeAssignment = !!(m.schedule?.scheduledTime && m.schedule?.scheduledDate);
+      const isScheduled = hasCourtAssignment || hasTimeAssignment;
       const onSelectedDate = m.schedule?.scheduledDate === selectedDate;
 
       return {
@@ -689,9 +958,11 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
     });
 }
 
-function buildScheduleDates(selectedDate: string): ScheduleDate[] {
+export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const dates = dateRange(startDate, endDate);
+  const { tournamentInfo } = competitionEngine.getTournamentInfo();
+  const activeDates = tournamentInfo?.activeDates;
+  const dates = activeDates?.length ? activeDates : dateRange(startDate, endDate);
 
   const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const dateCounts = new Map<string, number>();
@@ -700,11 +971,78 @@ function buildScheduleDates(selectedDate: string): ScheduleDate[] {
     if (d) dateCounts.set(d, (dateCounts.get(d) || 0) + 1);
   }
 
-  return dates.map((date) => ({
+  return dates.map((date: string) => ({
     date,
     isActive: date === selectedDate,
     matchUpCount: dateCounts.get(date) ?? 0,
   }));
+}
+
+/**
+ * Apply issue severity indicators to court column headers and row number labels.
+ * Uses a left border accent matching the cell issue colors.
+ */
+function applyHeaderRowIssueIndicators(
+  courtHeaders: HTMLElement[],
+  rowLabels: HTMLElement[],
+  courtsData: any[],
+  selectedDate: string,
+): void {
+  // Use allTournamentMatchUps for conflict detection (grid cell data lacks fields proConflicts needs)
+  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const scheduledMatchUps = (matchUps || []).filter((m: any) => {
+    return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
+  });
+  if (!scheduledMatchUps.length) return;
+
+  const result = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
+  if (result.error) return;
+
+  const conflicts = { courtIssues: result.courtIssues || {}, rowIssues: result.rowIssues || {} };
+
+  const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING } = scheduleConstants;
+
+  const severityColor = (issue: string): string => {
+    if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'var(--sp-err, #f43f5e)';
+    if (issue === SCHEDULE_WARNING) return 'var(--sp-warn, #f59e0b)';
+    return 'var(--sp-accent, #3b82f6)';
+  };
+
+  // Semi-transparent tint for headers (they don't overlap scrolling content)
+  const severityBg = (issue: string): string => {
+    if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'rgba(244, 63, 94, 0.08)';
+    if (issue === SCHEDULE_WARNING) return 'rgba(245, 158, 11, 0.06)';
+    return 'rgba(59, 130, 246, 0.06)';
+  };
+
+  // Opaque tint for sticky row labels — layers a semi-transparent tint over the panel bg
+  // so it works in both light and dark mode while hiding scrolling content behind it
+  const severityBgOpaque = (issue: string): string => {
+    const tint = severityBg(issue);
+    return `linear-gradient(${tint}, ${tint}), var(--sp-panel-bg, #fff)`;
+  };
+
+  // Court headers: match courtId from courtsData to courtIssues keys
+  for (let ci = 0; ci < courtHeaders.length; ci++) {
+    const courtId = courtsData[ci]?.courtId;
+    if (!courtId) continue;
+    const issues = conflicts.courtIssues[courtId];
+    if (!issues?.length) continue;
+    // Use the highest severity issue
+    const topIssue = issues[0].issue;
+    courtHeaders[ci].style.borderBottom = `3px solid ${severityColor(topIssue)}`;
+    courtHeaders[ci].style.background = severityBgOpaque(topIssue);
+  }
+
+  // Row labels: rowIssues keyed by row index
+  const rowIssueEntries = conflicts.rowIssues || {};
+  for (const [rowIdx, issues] of Object.entries(rowIssueEntries)) {
+    const ri = parseInt(rowIdx);
+    if (isNaN(ri) || ri >= rowLabels.length || !(issues as any[])?.length) continue;
+    const topIssue = (issues as any[])[0].issue;
+    rowLabels[ri].style.borderRight = `3px solid ${severityColor(topIssue)}`;
+    rowLabels[ri].style.background = severityBgOpaque(topIssue);
+  }
 }
 
 /**
@@ -730,7 +1068,7 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
 
   if (rowIssues) {
     const flatIssues = Array.isArray(rowIssues) ? rowIssues.flat() : Object.values(rowIssues).flat();
-    for (const issue of flatIssues as any[]) {
+    for (const issue of flatIssues) {
       if (issue.matchUpId) {
         matchUpIssueMap.set(issue.matchUpId, issue);
       }
@@ -762,30 +1100,20 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
   }
 }
 
-function buildIssues(selectedDate: string): ScheduleIssue[] {
-  const { matchUps } = competitionEngine.allTournamentMatchUps({
-    inContext: true,
-    nextMatchUps: true,
-  });
-
-  // Filter to scheduled matchUps for the selected date
+export function buildIssues(selectedDate: string): ScheduleIssue[] {
+  // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
+  // lack fields that proConflicts needs to detect certain conflict types.
+  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const scheduledMatchUps = (matchUps || []).filter((m: any) => {
-    if (!m.schedule?.courtId) return false;
-    if (m.schedule?.scheduledDate !== selectedDate) return false;
-    return true;
+    return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
   });
-
   if (!scheduledMatchUps.length) return [];
 
-  const conflictsResult = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if (conflictsResult.error) return [];
+  const conflictResult = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
+  if (conflictResult.error) return [];
+  const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
-  const {
-    SCHEDULE_ERROR,
-    SCHEDULE_CONFLICT,
-    SCHEDULE_WARNING,
-    SCHEDULE_ISSUE,
-  } = scheduleConstants;
+  const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ISSUE } = scheduleConstants;
 
   const mapSeverity = (issue: string): ScheduleIssueSeverity => {
     if (issue === SCHEDULE_ERROR) return 'ERROR';
@@ -795,14 +1123,39 @@ function buildIssues(selectedDate: string): ScheduleIssue[] {
     return 'WARN';
   };
 
+  // Build lookup from matchUpId to participant display string
+  const matchUpLabel = (id: string): string => {
+    const m = scheduledMatchUps.find((mu: any) => mu.matchUpId === id);
+    if (!m) return id;
+    const names = (m.sides || []).map((s: any) => s.participant?.participantName ?? s.participantName).filter(Boolean);
+    return names.length ? names.join(' vs ') : id;
+  };
+
   const issues: ScheduleIssue[] = [];
+
+  // Deduplicate: for mirror pairs (A conflicts with B, B conflicts with A),
+  // keep only the first occurrence by tracking seen matchUpId pairs.
+  const seenPairs = new Set<string>();
+  const dedupKey = (mid: string, ids: string[]): string => {
+    const sorted = [mid, ...ids].sort();
+    return sorted.join('|');
+  };
 
   // Court issues
   for (const [, courtIssues] of Object.entries(conflictsResult.courtIssues || {})) {
     for (const ci of courtIssues as any[]) {
+      const key = dedupKey(ci.matchUpId, ci.issueIds || []);
+      if (seenPairs.has(key)) continue;
+      seenPairs.add(key);
+      const participants = matchUpLabel(ci.matchUpId);
+      const conflictLabels = (ci.issueIds || []).map((id: string) => matchUpLabel(id));
       issues.push({
         severity: mapSeverity(ci.issue),
-        message: `${ci.issueType}: ${ci.matchUpId}${ci.issueIds?.length ? ' conflicts with ' + ci.issueIds.join(', ') : ''}`,
+        message: `${ci.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
+        issueType: ci.issueType,
+        participants,
+        conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
+        conflictMatchUpIds: ci.issueIds?.length ? [ci.matchUpId, ...ci.issueIds] : undefined,
         matchUpId: ci.matchUpId,
         date: selectedDate,
       });
@@ -812,9 +1165,19 @@ function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Row issues
   for (const [rowIdx, rowIssues] of Object.entries(conflictsResult.rowIssues || {})) {
     for (const ri of rowIssues as any[]) {
+      const key = dedupKey(ri.matchUpId, ri.issueIds || []);
+      if (seenPairs.has(key)) continue;
+      seenPairs.add(key);
+      const participants = matchUpLabel(ri.matchUpId);
+      const conflictLabels = (ri.issueIds || []).map((id: string) => matchUpLabel(id));
       issues.push({
         severity: mapSeverity(ri.issue),
-        message: `Row ${parseInt(rowIdx) + 1}: ${ri.issueType}: ${ri.matchUpId}${ri.issueIds?.length ? ' conflicts with ' + ri.issueIds.join(', ') : ''}`,
+        message: `Row ${parseInt(rowIdx) + 1}: ${ri.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
+        issueType: ri.issueType,
+        prefix: `Row ${parseInt(rowIdx) + 1}: `,
+        participants,
+        conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
+        conflictMatchUpIds: ri.issueIds?.length ? [ri.matchUpId, ...ri.issueIds] : undefined,
         matchUpId: ri.matchUpId,
         date: selectedDate,
       });

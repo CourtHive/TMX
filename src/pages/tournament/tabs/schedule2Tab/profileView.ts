@@ -21,7 +21,11 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
+
+import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
 const { calculateCapacityStats } = temporal;
 
@@ -29,7 +33,7 @@ const AVG_MATCH_MINUTES = 75;
 
 let activeControl: SchedulingProfileControl | null = null;
 
-export function renderProfileView(target: HTMLElement): void {
+export function renderProfileView(target: HTMLElement, scheduledDate?: string): void {
   target.innerHTML = '';
 
   const setup = buildProfileSetup();
@@ -48,6 +52,7 @@ export function renderProfileView(target: HTMLElement): void {
 
   const config: SchedulingProfileConfig = {
     ...setup.config,
+    selectedDate: scheduledDate,
     initialProfile: existingProfile,
     onProfileChanged: (profile) => {
       // Persist profile to factory as a tournament extension
@@ -103,20 +108,32 @@ function buildProfileSetup(): ProfileSetup | null {
   const factoryRounds: any[] = roundsResult?.rounds || [];
   if (!factoryRounds.length) return null;
 
-  const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => ({
-    tournamentId: r.tournamentId || tournamentId,
-    eventId: r.eventId,
-    eventName: r.eventName || '',
-    drawId: r.drawId,
-    drawName: r.structureName || r.drawName,
-    structureId: r.structureId,
-    roundNumber: r.roundNumber,
-    roundName: r.roundName,
-    matchCountEstimate: r.matchUpsCount,
-  }));
+  const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {
+    // Prefer structureName (e.g. "Main Draw", "Consolation"); fall back to drawName only if it's not a UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r.drawName || '');
+    const drawName = r.structureName || (!isUUID ? r.drawName : '') || '';
 
-  // Schedulable dates
-  const schedulableDates = dateRange(startDate, endDate);
+    // Build a human-readable round name from matchUps if factory gives raw format
+    const rawRound = r.roundName || '';
+    const roundName = rawRound.startsWith('rn=')
+      ? r.matchUps?.[0]?.roundName || `Round ${r.roundNumber}`
+      : rawRound || `Round ${r.roundNumber}`;
+
+    return {
+      tournamentId: r.tournamentId || tournamentId,
+      eventId: r.eventId,
+      eventName: r.eventName || '',
+      drawId: r.drawId,
+      drawName,
+      structureId: r.structureId,
+      roundNumber: r.roundNumber,
+      roundName,
+      matchCountEstimate: r.matchUpsCount,
+    };
+  });
+
+  // Schedulable dates (respects activeDates when present)
+  const schedulableDates = getScheduleDateRange();
 
   // Build adapters
   const temporalAdapter = buildTemporalAdapter(schedulableDates);
@@ -127,6 +144,8 @@ function buildProfileSetup(): ProfileSetup | null {
     venues,
     roundCatalog,
     schedulableDates,
+    hideLeft: true,
+    catalogSide: 'left',
     venueOrder: venues.map((v) => v.venueId),
     temporalAdapter,
     demandAdapter,
@@ -278,7 +297,7 @@ function loadExistingProfile(setup: ProfileSetup): SchedulingProfile | undefined
   return existing;
 }
 
-function saveProfile(profile: SchedulingProfile): void {
+function saveProfile(profile: SchedulingProfile, callback?: () => void): void {
   // Strip display-only fields before persisting
   const factoryProfile = profile.map((day) => ({
     scheduleDate: day.scheduleDate,
@@ -299,7 +318,11 @@ function saveProfile(profile: SchedulingProfile): void {
     })),
   }));
 
-  competitionEngine.setSchedulingProfile({ schedulingProfile: factoryProfile });
+  mutationRequest({
+    methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: factoryProfile } }],
+    engine: COMPETITION_ENGINE,
+    callback: () => callback?.(),
+  });
 }
 
 // ============================================================================
@@ -311,21 +334,54 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   bar.style.cssText =
     'display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
 
-  // Schedule button
-  const scheduleBtn = document.createElement('button');
-  scheduleBtn.className = 'sp-btn sp-btn--success';
-  scheduleBtn.innerHTML = '<i class="fa-solid fa-calendar-check" style="margin-right:6px;"></i>Apply Schedule';
-  scheduleBtn.addEventListener('click', () => applySchedule(setup, statusEl));
-  bar.appendChild(scheduleBtn);
+  // Save profile button
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'sp-btn';
+  saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i>Save Profile';
+  saveBtn.addEventListener('click', () => {
+    if (!activeControl) return;
+    saveProfile(activeControl.getProfile(), () => {
+      tmxToast({ message: 'Scheduling profile saved', intent: 'is-success' });
+      statusEl.textContent = 'Profile saved.';
+    });
+  });
+  bar.appendChild(saveBtn);
+
+  // Apply schedule — segmented control: Times | Grid
+  const applyWrap = document.createElement('div');
+  applyWrap.style.cssText = 'display: flex; align-items: center; gap: 0;';
+
+  const applyTimesBtn = document.createElement('button');
+  applyTimesBtn.className = 'sp-btn sp-btn--success';
+  applyTimesBtn.style.cssText += '; border-radius: 6px 0 0 6px;';
+  applyTimesBtn.innerHTML = '<i class="fa-solid fa-clock" style="margin-right:6px;"></i>Apply Times';
+  applyTimesBtn.title = 'Assign scheduled times using the Garman algorithm';
+  applyTimesBtn.addEventListener('click', () => applySchedule(setup, statusEl));
+
+  const applyGridBtn = document.createElement('button');
+  applyGridBtn.className = 'sp-btn sp-btn--success';
+  applyGridBtn.style.cssText += '; border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.3);';
+  applyGridBtn.innerHTML = '<i class="fa-solid fa-table-cells" style="margin-right:6px;"></i>Apply Grid';
+  applyGridBtn.title = 'Assign court grid positions without times (pro scheduling)';
+  applyGridBtn.addEventListener('click', () => applyGrid(setup, statusEl));
+
+  applyWrap.appendChild(applyTimesBtn);
+  applyWrap.appendChild(applyGridBtn);
+  bar.appendChild(applyWrap);
 
   // Clear button
   const clearBtn = document.createElement('button');
   clearBtn.className = 'sp-btn sp-btn--danger';
   clearBtn.innerHTML = '<i class="fa-solid fa-eraser" style="margin-right:6px;"></i>Clear Profile';
   clearBtn.addEventListener('click', () => {
-    competitionEngine.setSchedulingProfile({ schedulingProfile: null });
-    tmxToast({ message: 'Scheduling profile cleared', intent: 'is-warning' });
-    statusEl.textContent = 'Profile cleared.';
+    mutationRequest({
+      methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: null } }],
+      engine: COMPETITION_ENGINE,
+      callback: () => {
+        tmxToast({ message: 'Scheduling profile cleared', intent: 'is-warning' });
+        statusEl.textContent = 'Profile cleared.';
+      },
+    });
   });
   bar.appendChild(clearBtn);
 
@@ -354,47 +410,112 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
     return;
   }
 
-  // Save profile first
-  saveProfile(profile);
+  // Save profile first, then run the factory scheduler in the callback
+  saveProfile(profile, () => {
+    const scheduleDates = profile.map((d) => d.scheduleDate);
+    mutationRequest({
+      methods: [{ method: 'scheduleProfileRounds', params: { scheduleDates } }],
+      engine: COMPETITION_ENGINE,
+      callback: (eqResult: any) => {
+        // executionQueue wraps method results in { success, results: [{ ...methodResult }] }
+        const result = eqResult?.results?.[0] ?? eqResult;
 
-  // Run the factory scheduler
-  const scheduleDates = profile.map((d) => d.scheduleDate);
-  const result = competitionEngine.scheduleProfileRounds({ scheduleDates });
+        if (result?.error || eqResult?.error) {
+          const err = result?.error || eqResult?.error;
+          tmxToast({
+            message: `Scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
+            intent: 'is-danger',
+          });
+          statusEl.textContent = 'Scheduling failed. Check console for details.';
+          console.error('[schedule2] scheduleProfileRounds error:', eqResult);
+          return;
+        }
 
-  if (result?.error) {
+        const scheduledIds = result?.scheduledMatchUpIds || {};
+        let totalScheduled = 0;
+        for (const ids of Object.values(scheduledIds)) {
+          totalScheduled += (ids as string[]).length;
+        }
+
+        const overLimitIds = result?.overLimitMatchUpIds || {};
+        let totalOverLimit = 0;
+        for (const ids of Object.values(overLimitIds)) {
+          totalOverLimit += (ids as string[]).length;
+        }
+
+        const dateCount = (result?.scheduledDates || []).length;
+        const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
+        const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
+
+        tmxToast({
+          message,
+          intent: totalOverLimit > 0 ? 'is-warning' : 'is-success',
+        });
+
+        statusEl.textContent = message;
+      },
+    });
+  });
+}
+
+function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
+  if (!activeControl) return;
+
+  const profile = activeControl.getProfile();
+  const store = activeControl.getStore();
+  const state = store.getState();
+
+  if (state.issueIndex.counts.ERROR > 0) {
     tmxToast({
-      message: `Scheduling failed: ${typeof result.error === 'string' ? result.error : JSON.stringify(result.error)}`,
+      message: `Cannot apply grid: ${state.issueIndex.counts.ERROR} error(s) in profile. Fix errors first.`,
       intent: 'is-danger',
     });
-    statusEl.textContent = 'Scheduling failed. Check console for details.';
-    console.error('[schedule2] scheduleProfileRounds error:', result);
     return;
   }
 
-  // Count results
-  const scheduledIds = result?.scheduledMatchUpIds || {};
-  let totalScheduled = 0;
-  for (const ids of Object.values(scheduledIds)) {
-    totalScheduled += (ids as string[]).length;
-  }
+  saveProfile(profile, () => {
+    const scheduleDates = profile.map((d) => d.scheduleDate);
+    mutationRequest({
+      methods: [{ method: 'scheduleProfileGrid', params: { scheduleDates } }],
+      engine: COMPETITION_ENGINE,
+      callback: (eqResult: any) => {
+        const result = eqResult?.results?.[0] ?? eqResult;
 
-  const overLimitIds = result?.overLimitMatchUpIds || {};
-  let totalOverLimit = 0;
-  for (const ids of Object.values(overLimitIds)) {
-    totalOverLimit += (ids as string[]).length;
-  }
+        if (result?.error || eqResult?.error) {
+          const err = result?.error || eqResult?.error;
+          tmxToast({
+            message: `Grid scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
+            intent: 'is-danger',
+          });
+          statusEl.textContent = 'Grid scheduling failed.';
+          return;
+        }
 
-  const dateCount = (result?.scheduledDates || []).length;
-  const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
-  const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
+        const scheduledIds = result?.scheduledMatchUpIds || {};
+        let totalScheduled = 0;
+        for (const ids of Object.values(scheduledIds)) {
+          totalScheduled += (ids as string[]).length;
+        }
 
-  tmxToast({
-    message,
-    intent: totalOverLimit > 0 ? 'is-warning' : 'is-success',
+        const notScheduledIds = result?.notScheduledMatchUpIds || {};
+        let totalNotScheduled = 0;
+        for (const ids of Object.values(notScheduledIds)) {
+          totalNotScheduled += (ids as string[]).length;
+        }
+
+        const dateCount = (result?.scheduledDates || []).length;
+        const notSchedSuffix = totalNotScheduled > 0 ? ` (${totalNotScheduled} could not be placed)` : '';
+        const message = `Placed ${totalScheduled} matchUps on grid across ${dateCount} dates.${notSchedSuffix}`;
+
+        tmxToast({
+          message,
+          intent: totalNotScheduled > 0 ? 'is-warning' : 'is-success',
+        });
+
+        statusEl.textContent = message;
+      },
+    });
   });
-
-  statusEl.textContent = message;
-  console.log('[schedule2] scheduleProfileRounds result:', result);
 }
 
 // ── Helpers ──
@@ -417,13 +538,3 @@ function renderEmpty(target: HTMLElement, message: string): void {
   target.appendChild(placeholder);
 }
 
-function dateRange(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const current = new Date(start + 'T00:00:00');
-  const last = new Date(end + 'T00:00:00');
-  while (current <= last) {
-    dates.push(current.toISOString().slice(0, 10));
-    current.setDate(current.getDate() + 1);
-  }
-  return dates;
-}

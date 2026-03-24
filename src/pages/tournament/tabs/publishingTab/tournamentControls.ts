@@ -276,30 +276,42 @@ export function renderTournamentControls(grid: HTMLElement): void {
     dateGrid.className = 'pub-date-grid';
 
     const publishedDates = data.oopScheduledDates || [];
+    // Empty scheduledDates means "all dates" — but only when OOP is actually published
+    const allDatesPublished = data.oopPublished && publishedDates.length === 0;
 
     for (const date of data.tournamentDateRange) {
       const chip = document.createElement('button');
       chip.className = 'pub-date-chip';
-      if (publishedDates.includes(date)) chip.classList.add('active');
+      if (allDatesPublished || publishedDates.includes(date)) chip.classList.add('active');
       chip.textContent = dayjs(date).format('ddd MMM D');
 
       chip.addEventListener('click', () => {
         const isPublished = chip.classList.contains('active');
-        const currentDates = [...publishedDates];
+        // When all dates are implicitly published (empty array), deselecting one
+        // must explicitly list all remaining dates
+        const effectiveDates = allDatesPublished ? [...data.tournamentDateRange] : [...publishedDates];
         let newDates: string[];
 
         if (isPublished) {
-          newDates = currentDates.filter((d) => d !== date);
+          newDates = effectiveDates.filter((d) => d !== date);
         } else {
-          newDates = [...currentDates, date];
+          newDates = [...effectiveDates, date];
         }
 
-        mutationRequest({
-          methods: [
-            { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
-          ],
-          callback: () => renderPublishingTab(),
-        });
+        // If no dates remain, unpublish order of play entirely
+        if (!newDates.length) {
+          mutationRequest({
+            methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
+            callback: () => renderPublishingTab(),
+          });
+        } else {
+          mutationRequest({
+            methods: [
+              { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
+            ],
+            callback: () => renderPublishingTab(),
+          });
+        }
       });
 
       dateGrid.appendChild(chip);

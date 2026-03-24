@@ -7,6 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
 
+// constants
 import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
@@ -21,7 +22,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     const auditData = { auditReason: inputs['drawResetReason'].value };
     const removeAssignments = inputs['removeAssignments']?.checked ?? false;
     const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData, removeAssignments },
+      params: { eventId, drawId, auditData, removeAssignments, removeScheduling: true },
       method: RESET_DRAW_DEFINITION,
     }));
     const postMutation = (result: any) => {

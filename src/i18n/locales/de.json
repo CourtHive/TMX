@@ -755,7 +755,25 @@
     "umpirenotes": "Schiedsrichternotizen",
     "notice": "Spielplan-Hinweis",
     "opponentname": "Gegnername",
-    "scheduled": "Geplant"
+    "scheduled": "Geplant",
+    "time": "Zeit",
+    "setTime": "Zeit festlegen",
+    "startMatch": "Spiel starten",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "annotations": "Anmerkungen",
+    "clearTimeSettings": "Löschen",
+    "enterScore": "Ergebnis eingeben",
+    "viewDraw": "Auslosung anzeigen",
+    "removeFromSchedule": "Aus Spielplan entfernen",
+    "assign": "Zuweisen",
+    "assignMatchUp": "Spiel zuweisen",
+    "blockCourt": "Platz sperren",
+    "otherBookings": "Sonstiges",
+    "practice": "Training",
+    "maintenance": "Wartung",
+    "unscheduled": "Nicht geplant",
+    "noScheduledMatchUps": "Keine geplanten Spiele"
   },
 
   "penalties": {
@@ -829,6 +847,7 @@
       "dynamicSets": "Dynamische Sätze",
       "dialPad": "Ziffernblock",
       "freeScore": "Freie Wertung",
+      "inlineScoring": "Inline-Wertung",
       "smartComplements": "Intelligente Ergänzungen (nur Dynamische Sätze)",
       "storage": "Speicher",
       "saveLocalCopies": "Lokale Kopien speichern",
@@ -1037,7 +1056,8 @@
       "groupSize": "Gruppengröße",
       "positionsToBePlayedOff": "Auszuspielende Positionen:",
       "selectPositions": "Endplatzierungen in der Gruppe auswählen. Auswahlen müssen fortlaufend sein",
-      "structureAdded": "Struktur hinzugefügt"
+      "structureAdded": "Struktur hinzugefügt",
+      "selectEligible": "Berechtigte Teilnehmer auswählen"
     },
     "addToEvent": {
       "title": "Zum Bewerb hinzufügen",

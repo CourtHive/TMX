@@ -731,7 +731,25 @@
     "umpirenotes": "ملاحظات الحكم",
     "notice": "إشعار الجدول",
     "opponentname": "اسم الخصم",
-    "scheduled": "مجدول"
+    "scheduled": "مجدول",
+    "time": "الوقت",
+    "setTime": "تحديد الوقت",
+    "startMatch": "بدء المباراة",
+    "startTime": "وقت البدء",
+    "endTime": "وقت الانتهاء",
+    "annotations": "ملاحظات",
+    "clearTimeSettings": "مسح",
+    "enterScore": "إدخال النتيجة",
+    "viewDraw": "عرض القرعة",
+    "removeFromSchedule": "إزالة من الجدول",
+    "assign": "تعيين",
+    "assignMatchUp": "تعيين مباراة",
+    "blockCourt": "حجب الملعب",
+    "otherBookings": "أخرى",
+    "practice": "تدريب",
+    "maintenance": "صيانة",
+    "unscheduled": "غير مجدولة",
+    "noScheduledMatchUps": "لا توجد مباريات مجدولة"
   },
   "penalties": {
     "fail2signout": "عدم تسجيل الانصراف",
@@ -801,6 +819,7 @@
       "dynamicSets": "أشواط ديناميكية",
       "dialPad": "لوحة الأرقام",
       "freeScore": "نتيجة حرة",
+      "inlineScoring": "تسجيل النقاط المباشر",
       "smartComplements": "مكملات ذكية (الأشواط الديناميكية فقط)",
       "storage": "التخزين",
       "saveLocalCopies": "حفظ نسخ محلية",
@@ -1009,7 +1028,8 @@
       "groupSize": "حجم المجموعة",
       "positionsToBePlayedOff": "المراكز التي ستُلعب عليها المباريات الفاصلة:",
       "selectPositions": "اختر مراكز الانتهاء في المجموعة. يجب أن تكون الاختيارات متتالية",
-      "structureAdded": "تمت إضافة الهيكل"
+      "structureAdded": "تمت إضافة الهيكل",
+      "selectEligible": "اختيار المشاركين المؤهلين"
     },
     "addToEvent": {
       "title": "إضافة إلى حدث",

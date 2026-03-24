@@ -3,11 +3,12 @@
  * Handles bulk schedule time and time modifier updates for all matchUps in a row.
  */
 import { scheduleSetMatchUpHeader } from 'components/popovers/scheduleSetMatchUpHeader';
-import { timeItemConstants } from 'tods-competition-factory';
+import { matchUpStatusConstants, timeItemConstants } from 'tods-competition-factory';
 import { timeFormat } from 'functions/timeStrings';
 import { isObject } from 'functions/typeOf';
 
 const { NOT_BEFORE } = timeItemConstants;
+const { IN_PROGRESS } = matchUpStatusConstants;
 
 export function rowActions(e: any, cell: any): void {
   const rowData = cell.getRow().getData();
@@ -33,6 +34,14 @@ export function rowActions(e: any, cell: any): void {
                 c.schedule.scheduledTime = '';
               }
               if (c.schedule) c.schedule.timeModifiers = (schedule as any).timeModifiers;
+            }
+
+            if ((schedule as any).startTime) {
+              const affectedIds: string[] = (schedule as any).matchUpIds || [];
+              if (!affectedIds.length || affectedIds.includes(c.matchUpId)) {
+                c.schedule.startTime = (schedule as any).startTime;
+                c.matchUpStatus = IN_PROGRESS;
+              }
             }
           }
         });

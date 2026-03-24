@@ -5,9 +5,9 @@
 
 const localhostRegex = /^127(?:\.(?:25[0-5]|2[0-4]\d|[01]?\d\d?)){3}$/;
 const isLocalhost = Boolean(
-  window.location.hostname === 'localhost' ||
-    window.location.hostname === '[::1]' ||
-    localhostRegex.exec(window.location.hostname),
+  globalThis.location.hostname === 'localhost' ||
+  globalThis.location.hostname === '[::1]' ||
+  localhostRegex.exec(globalThis.location.hostname),
 );
 
 interface Config {
@@ -17,8 +17,8 @@ interface Config {
 
 export function register(config?: Config): void {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    const publicUrl = new URL(process.env.PUBLIC_URL || '', window.location.href);
-    if (publicUrl.origin !== window.location.origin) {
+    const publicUrl = new URL(process.env.PUBLIC_URL || '', globalThis.location.href);
+    if (publicUrl.origin !== globalThis.location.origin) {
       return;
     }
 
@@ -81,10 +81,10 @@ function checkValidServiceWorker(swUrl: string, config?: Config): void {
   fetch(swUrl)
     .then((response) => {
       const contentType = response.headers.get('content-type');
-      if (response.status === 404 || (contentType != null && contentType.indexOf('javascript') === -1)) {
+      if (response.status === 404 || contentType?.includes('javascript')) {
         navigator.serviceWorker.ready.then((registration) => {
           registration.unregister().then(() => {
-            window.location.reload();
+            globalThis.location.reload();
           });
         });
       } else {

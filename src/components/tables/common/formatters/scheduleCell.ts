@@ -67,7 +67,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     issueIds,
   } = value || {};
 
-  const { courtOrder = '', scheduledTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
+  const { courtOrder = '', scheduledTime = '', startTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
   content.setAttribute('courtOrder', courtOrder);
   content.setAttribute('courtId', courtId);
   content.setAttribute('venueId', venueId);
@@ -165,8 +165,9 @@ export function scheduleCell(cell: any): HTMLSpanElement {
 
   const timeDetail = document.createElement('div');
   timeDetail.className = 'header flexrow';
+  const displayTime = scheduledTime || startTime;
   timeDetail.innerHTML =
-    ((timeModifiers?.[0] && timeModifierDisplay[timeModifiers[0]] + '&nbsp;') || '') + timeFormat(scheduledTime);
+    ((timeModifiers?.[0] && timeModifierDisplay[timeModifiers[0]] + '&nbsp;') || '') + timeFormat(displayTime);
   content.appendChild(timeDetail);
 
   const roundDetail = document.createElement('div');
