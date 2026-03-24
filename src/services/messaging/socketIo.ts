@@ -36,6 +36,7 @@ const oi: any = {
 let disconnectedSinceLastNav = false;
 
 const ackRequests: Record<string, (ack: any) => void> = {};
+const ackTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 const socketQueue: any[] = [];
 
 let mutationListener: ((data: any) => void) | null = null;
@@ -183,6 +184,8 @@ function connectionEvent(callback?: () => void): void {
   if (isFunction(callback)) callback();
 }
 
+const MAX_PENDING_ACKS = 100;
+
 function requestAcknowledgement({
   ackId,
   uuid,
@@ -192,32 +195,56 @@ function requestAcknowledgement({
   uuid?: string;
   callback: (ack: any) => void;
 }): void {
+  // Prevent unbounded growth — purge oldest entries if limit reached
+  const keys = Object.keys(ackRequests);
+  if (keys.length >= MAX_PENDING_ACKS) {
+    const toRemove = keys.slice(0, keys.length - MAX_PENDING_ACKS + 1);
+    for (const key of toRemove) {
+      clearTimeout(ackTimeouts[key]);
+      delete ackRequests[key];
+      delete ackTimeouts[key];
+    }
+    slog('[socket] purged', toRemove.length, 'stale ack requests');
+  }
+
   const cleanup = () => {
-    if (ackId) delete ackRequests[ackId];
-    if (uuid) delete ackRequests[uuid];
+    if (ackId) {
+      delete ackRequests[ackId];
+      delete ackTimeouts[ackId];
+    }
+    if (uuid) {
+      delete ackRequests[uuid];
+      delete ackTimeouts[uuid];
+    }
   };
 
   const timeoutMs = (serverConfig.get().serverTimeout ?? 10000) * 3;
   const timerId = setTimeout(cleanup, timeoutMs);
 
   const wrappedCallback = (ack: any) => {
+    cleanup();
     clearTimeout(timerId);
-    callback(ack);
+    try {
+      callback(ack);
+    } catch (err) {
+      console.error('[socket] ack callback error:', err);
+    }
   };
 
-  if (ackId) ackRequests[ackId] = wrappedCallback;
-  if (uuid) ackRequests[uuid] = wrappedCallback;
+  if (ackId) {
+    ackRequests[ackId] = wrappedCallback;
+    ackTimeouts[ackId] = timerId;
+  }
+  if (uuid) {
+    ackRequests[uuid] = wrappedCallback;
+    ackTimeouts[uuid] = timerId;
+  }
 }
 
 function receiveAcknowledgement(ack: any): void {
-  if (ack.ackId && ackRequests[ack.ackId]) {
-    ackRequests[ack.ackId](ack);
-    delete ackRequests[ack.ackId];
-  }
-  if (ack.uuid && ackRequests[ack.uuid]) {
-    ackRequests[ack.uuid](ack);
-    delete ackRequests[ack.uuid];
-  }
+  // Prefer ackId; fall back to uuid. Only fire once.
+  const key = (ack.ackId && ackRequests[ack.ackId] && ack.ackId) || (ack.uuid && ackRequests[ack.uuid] && ack.uuid);
+  if (key) ackRequests[key](ack);
 }
 
 /** Join a tournament room to receive mutation broadcasts from other clients. */
