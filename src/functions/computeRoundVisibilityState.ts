@@ -1,6 +1,9 @@
 /**
  * Compute per-round visibility state (hidden / embargoed) for a draw structure.
  * Pure function — depends only on the publish state data and matchUp round numbers.
+ *
+ * TODO: Replace with `publishingGovernor.getRoundVisibilityState()` from
+ * tods-competition-factory once available in a published release.
  */
 import { isEmbargoActive } from './isEmbargoActive';
 
