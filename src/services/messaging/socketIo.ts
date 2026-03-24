@@ -2,6 +2,7 @@
  * Socket.IO client for real-time communication.
  * Handles WebSocket connections, message emission, and acknowledgements.
  */
+import { showOSNotification } from 'services/notifications/osNotification';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
@@ -9,14 +10,23 @@ import { tools, version } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction, isObject } from 'functions/typeOf';
 import { version as tmxVersion } from 'config/version';
-import { showOSNotification } from 'services/notifications/osNotification';
-import { debugConfig } from 'config/debugConfig';
 import { serverConfig } from 'config/serverConfig';
+import { debugConfig } from 'config/debugConfig';
 import { io } from 'socket.io-client';
 import { t } from 'i18n';
 
+// types
+import type { ServerAck } from 'types/services';
+
 // constants
-import { CLIENT_ERROR, SEND_KEY, TMX_DIRECTIVE, TMX_MESSAGE, JOIN_TOURNAMENT, LEAVE_TOURNAMENT } from 'constants/comsConstants';
+import {
+  CLIENT_ERROR,
+  SEND_KEY,
+  TMX_DIRECTIVE,
+  TMX_MESSAGE,
+  JOIN_TOURNAMENT,
+  LEAVE_TOURNAMENT,
+} from 'constants/comsConstants';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
@@ -35,7 +45,7 @@ const oi: any = {
 /** True after a disconnect event until cleared by `clearDisconnectFlag()`. */
 let disconnectedSinceLastNav = false;
 
-const ackRequests: Record<string, (ack: any) => void> = {};
+const ackRequests: Record<string, (ack: ServerAck) => void> = {};
 const ackTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 const socketQueue: any[] = [];
 
@@ -51,7 +61,14 @@ export function onTournamentMutation(callback: ((data: any) => void) | null): vo
 }
 
 function handleTournamentMutation(data: any): void {
-  slog('[socket] received tournamentMutation — methods:', data?.methods?.length, 'tournaments:', data?.tournamentIds, 'from:', data?.userId);
+  slog(
+    '[socket] received tournamentMutation — methods:',
+    data?.methods?.length,
+    'tournaments:',
+    data?.tournamentIds,
+    'from:',
+    data?.userId,
+  );
   if (mutationListener) {
     mutationListener(data);
   } else {
@@ -128,7 +145,7 @@ export function clearDisconnectFlag(): void {
   disconnectedSinceLastNav = false;
 }
 
-export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: any) => void }): void {
+export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: ServerAck) => void }): void {
   const state = getLoginState();
   const { email: userId } = state || {};
   const messageType = data.type ?? 'tmx';
@@ -193,7 +210,7 @@ function requestAcknowledgement({
 }: {
   ackId?: string;
   uuid?: string;
-  callback: (ack: any) => void;
+  callback: (ack: ServerAck) => void;
 }): void {
   // Prevent unbounded growth — purge oldest entries if limit reached
   const keys = Object.keys(ackRequests);
@@ -241,7 +258,7 @@ function requestAcknowledgement({
   }
 }
 
-function receiveAcknowledgement(ack: any): void {
+function receiveAcknowledgement(ack: ServerAck): void {
   // Prefer ackId; fall back to uuid. Only fire once.
   const key = (ack.ackId && ackRequests[ack.ackId] && ack.ackId) || (ack.uuid && ackRequests[ack.uuid] && ack.uuid);
   if (key) ackRequests[key](ack);

@@ -145,7 +145,7 @@ export function orderResolutionModal({
         }
         return null;
       })
-      .filter(Boolean);
+      .filter(Boolean) as { method: string; params: Record<string, any> }[];
 
     const postMutation = (result: any) => {
       if (result.success) {
