@@ -7,8 +7,10 @@
  */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { logMutationError } from 'functions/logMutationError';
 import * as factory from 'tods-competition-factory';
 
+// constants
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 function getHashSegment(name: string): string | undefined {
@@ -108,7 +110,7 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
       methods,
       callback: (result: any) => {
         if (!result?.success) {
-          console.log('mutationRequest error:', result?.error);
+          logMutationError('devCompleteMatchUps', result);
           return;
         }
 
@@ -116,7 +118,7 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
 
         if (shouldStop) {
           console.log(`Completed ${totalCompleted} matchUps`);
-          reRenderCurrentView(drawId!, structureId!);
+          reRenderCurrentView(drawId, structureId);
         } else {
           // Elimination: next pass after server ack
           runPass();
