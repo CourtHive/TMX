@@ -195,172 +195,178 @@ function renderSummary(container: HTMLElement, rows: CollectionRow[], winCriteri
   addStat('Win Criteria', goal ? `First to ${goal}` : aggregate ? 'Aggregate' : 'None');
 }
 
-function renderGrid(
-  container: HTMLElement,
+// ---------------------------------------------------------------------------
+// DOM helpers for field groups
+// ---------------------------------------------------------------------------
+
+function fieldGroup(label: string, input: HTMLElement): HTMLElement {
+  const group = document.createElement('div');
+  group.className = TFE_FIELD_GROUP;
+  const labelEl = document.createElement('span');
+  labelEl.className = TFE_FIELD_LABEL;
+  labelEl.textContent = label;
+  group.appendChild(labelEl);
+  group.appendChild(input);
+  return group;
+}
+
+function numberInput(config: {
+  value: number;
+  min: string;
+  max: string;
+  onInput: (val: number) => void;
+  onBlur: () => void;
+}): HTMLInputElement {
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'tfe-inline-input tfe-inline-input--number';
+  input.value = String(config.value);
+  input.min = config.min;
+  input.max = config.max;
+  input.oninput = () => config.onInput(Number.parseInt(input.value) || 0);
+  input.onblur = config.onBlur;
+  return input;
+}
+
+function statsRow(...groups: HTMLElement[]): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'tfp-collection__stats tfe-stats-row';
+  for (const g of groups) row.appendChild(g);
+  return row;
+}
+
+// ---------------------------------------------------------------------------
+// Collection card builder
+// ---------------------------------------------------------------------------
+
+function buildCollectionCard(
+  row: CollectionRow,
+  index: number,
   rows: CollectionRow[],
   refresh: () => void,
-): void {
+): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'tfp-collection tfe-collection';
+
+  // Header: editable name + type select + delete button
+  const header = document.createElement('div');
+  header.className = 'tfp-collection__header';
+
+  const nameInput = document.createElement('input');
+  nameInput.className = 'tfe-inline-input tfe-inline-input--name';
+  nameInput.value = row.collectionName;
+  nameInput.placeholder = 'Collection name';
+  nameInput.oninput = () => {
+    row.collectionName = nameInput.value;
+  };
+  nameInput.onblur = () => refresh();
+
+  const headerRight = document.createElement('div');
+  headerRight.className = 'tfe-header-right';
+
+  const isMixed = row.gender === 'Mixed';
+  if (isMixed) row.matchUpType = 'Doubles';
+  const typeSelect = createSelect(getMatchTypes(), row.matchUpType, (val) => {
+    row.matchUpType = val;
+    refresh();
+  });
+  typeSelect.className = 'tfe-inline-select tfe-inline-select--type';
+  typeSelect.disabled = isMixed;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'tfe-delete-btn';
+  deleteBtn.textContent = '\u00D7';
+  deleteBtn.title = 'Remove collection';
+  deleteBtn.onclick = () => {
+    rows.splice(index, 1);
+    refresh();
+  };
+
+  headerRight.appendChild(typeSelect);
+  headerRight.appendChild(deleteBtn);
+  header.appendChild(nameInput);
+  header.appendChild(headerRight);
+  card.appendChild(header);
+
+  // Stats row: count + gender
+  const countInput = numberInput({
+    value: row.matchUpCount,
+    min: '0',
+    max: '20',
+    onInput: (val) => {
+      row.matchUpCount = val;
+    },
+    onBlur: refresh,
+  });
+  const genderSelect = createSelect(getGenders(), row.gender, (val) => {
+    row.gender = val;
+    if (val === 'Mixed') row.matchUpType = 'Doubles';
+    refresh();
+  });
+  genderSelect.className = 'tfe-inline-select';
+  card.appendChild(statsRow(fieldGroup('Matches', countInput), fieldGroup('Gender', genderSelect)));
+
+  // Format row: format pill + award type + award value
+  const formatPill = document.createElement('button');
+  formatPill.className = 'tpl-format-pill';
+  formatPill.textContent = row.matchUpFormat || 'Set format...';
+  formatPill.onclick = () => {
+    (getMatchUpFormatModal as any)({
+      existingMatchUpFormat: row.matchUpFormat,
+      config: { labels: getMatchFormatLabels() },
+      callback: (matchUpFormat: string) => {
+        if (matchUpFormat) {
+          row.matchUpFormat = matchUpFormat;
+          refresh();
+        }
+      },
+    });
+  };
+
+  const awardTypeSelect = createSelect(AWARD_TYPES, row.awardType, (val) => {
+    row.awardType = val;
+    refresh();
+  });
+  awardTypeSelect.className = 'tfe-inline-select';
+
+  const awardValInput = numberInput({
+    value: row.awardValue,
+    min: '0',
+    max: '99',
+    onInput: (val) => {
+      row.awardValue = val;
+    },
+    onBlur: refresh,
+  });
+
+  card.appendChild(
+    statsRow(
+      fieldGroup('Format', formatPill),
+      fieldGroup('Award', awardTypeSelect),
+      fieldGroup('Value', awardValInput),
+    ),
+  );
+
+  return card;
+}
+
+// ---------------------------------------------------------------------------
+// Grid renderer
+// ---------------------------------------------------------------------------
+
+function renderGrid(container: HTMLElement, rows: CollectionRow[], refresh: () => void): void {
   container.innerHTML = '';
-
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const card = document.createElement('div');
-    card.className = 'tfp-collection tfe-collection';
-
-    // Header: editable name + type badge + delete button
-    const header = document.createElement('div');
-    header.className = 'tfp-collection__header';
-
-    const nameInput = document.createElement('input');
-    nameInput.className = 'tfe-inline-input tfe-inline-input--name';
-    nameInput.value = row.collectionName;
-    nameInput.placeholder = 'Collection name';
-    nameInput.oninput = () => {
-      row.collectionName = nameInput.value;
-    };
-    nameInput.onblur = () => refresh();
-
-    const headerRight = document.createElement('div');
-    headerRight.className = 'tfe-header-right';
-
-    const isMixed = row.gender === 'Mixed';
-    if (isMixed) row.matchUpType = 'Doubles';
-    const typeSelect = createSelect(getMatchTypes(), row.matchUpType, (val) => {
-      row.matchUpType = val;
-      refresh();
-    });
-    typeSelect.className = 'tfe-inline-select tfe-inline-select--type';
-    typeSelect.disabled = isMixed;
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'tfe-delete-btn';
-    deleteBtn.textContent = '\u00D7';
-    deleteBtn.title = 'Remove collection';
-    deleteBtn.onclick = () => {
-      rows.splice(i, 1);
-      refresh();
-    };
-
-    headerRight.appendChild(typeSelect);
-    headerRight.appendChild(deleteBtn);
-    header.appendChild(nameInput);
-    header.appendChild(headerRight);
-    card.appendChild(header);
-
-    // Stats row: count, gender
-    const stats = document.createElement('div');
-    stats.className = 'tfp-collection__stats tfe-stats-row';
-
-    const countGroup = document.createElement('div');
-    countGroup.className = TFE_FIELD_GROUP;
-    const countLabel = document.createElement('span');
-    countLabel.className = TFE_FIELD_LABEL;
-    countLabel.textContent = 'Matches';
-    const countInput = document.createElement('input');
-    countInput.type = 'number';
-    countInput.className = 'tfe-inline-input tfe-inline-input--number';
-    countInput.value = String(row.matchUpCount);
-    countInput.min = '0';
-    countInput.max = '20';
-    countInput.oninput = () => {
-      row.matchUpCount = parseInt(countInput.value) || 0;
-    };
-    countInput.onblur = () => refresh();
-    countGroup.appendChild(countLabel);
-    countGroup.appendChild(countInput);
-
-    const genderGroup = document.createElement('div');
-    genderGroup.className = TFE_FIELD_GROUP;
-    const genderLabel = document.createElement('span');
-    genderLabel.className = TFE_FIELD_LABEL;
-    genderLabel.textContent = 'Gender';
-    const genderSelect = createSelect(getGenders(), row.gender, (val) => {
-      row.gender = val;
-      if (val === 'Mixed') {
-        row.matchUpType = 'Doubles';
-      }
-      refresh();
-    });
-    genderSelect.className = 'tfe-inline-select';
-    genderGroup.appendChild(genderLabel);
-    genderGroup.appendChild(genderSelect);
-
-    stats.appendChild(countGroup);
-    stats.appendChild(genderGroup);
-    card.appendChild(stats);
-
-    // Format row
-    const formatRow = document.createElement('div');
-    formatRow.className = 'tfp-collection__stats tfe-stats-row';
-
-    const formatGroup = document.createElement('div');
-    formatGroup.className = TFE_FIELD_GROUP;
-    const formatLabel = document.createElement('span');
-    formatLabel.className = TFE_FIELD_LABEL;
-    formatLabel.textContent = 'Format';
-    const formatPill = document.createElement('button');
-    formatPill.className = 'tpl-format-pill';
-    formatPill.textContent = row.matchUpFormat || 'Set format...';
-    formatPill.onclick = () => {
-      (getMatchUpFormatModal as any)({
-        existingMatchUpFormat: row.matchUpFormat,
-        config: { labels: getMatchFormatLabels() },
-        callback: (matchUpFormat: string) => {
-          if (matchUpFormat) {
-            row.matchUpFormat = matchUpFormat;
-            refresh();
-          }
-        },
-      });
-    };
-    formatGroup.appendChild(formatLabel);
-    formatGroup.appendChild(formatPill);
-
-    const awardTypeGroup = document.createElement('div');
-    awardTypeGroup.className = TFE_FIELD_GROUP;
-    const awardTypeLabel = document.createElement('span');
-    awardTypeLabel.className = TFE_FIELD_LABEL;
-    awardTypeLabel.textContent = 'Award';
-    const awardTypeSelect = createSelect(AWARD_TYPES, row.awardType, (val) => {
-      row.awardType = val;
-      refresh();
-    });
-    awardTypeSelect.className = 'tfe-inline-select';
-    awardTypeGroup.appendChild(awardTypeLabel);
-    awardTypeGroup.appendChild(awardTypeSelect);
-
-    const awardValGroup = document.createElement('div');
-    awardValGroup.className = TFE_FIELD_GROUP;
-    const awardValLabel = document.createElement('span');
-    awardValLabel.className = TFE_FIELD_LABEL;
-    awardValLabel.textContent = 'Value';
-    const awardValInput = document.createElement('input');
-    awardValInput.type = 'number';
-    awardValInput.className = 'tfe-inline-input tfe-inline-input--number';
-    awardValInput.value = String(row.awardValue);
-    awardValInput.min = '0';
-    awardValInput.max = '99';
-    awardValInput.oninput = () => {
-      row.awardValue = parseInt(awardValInput.value) || 0;
-    };
-    awardValInput.onblur = () => refresh();
-
-    awardValGroup.appendChild(awardValLabel);
-    awardValGroup.appendChild(awardValInput);
-
-    formatRow.appendChild(formatGroup);
-    formatRow.appendChild(awardTypeGroup);
-    formatRow.appendChild(awardValGroup);
-    card.appendChild(formatRow);
-
-    container.appendChild(card);
-  }
 
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'tfp-empty';
     empty.textContent = 'No collections — click Add Collection to start';
     container.appendChild(empty);
+    return;
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    container.appendChild(buildCollectionCard(rows[i], i, rows, refresh));
   }
 }
 
