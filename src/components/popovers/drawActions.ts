@@ -1,7 +1,7 @@
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { eventTabDeleteDraws } from 'components/tables/common/eventTabDeleteDraws';
 import { deleteFlights } from 'components/modals/deleteFlights';
-import { tmxToast } from 'services/notifications/tmxToast';
+import { logMutationError } from 'functions/logMutationError';
 import { tipster } from 'components/popovers/tipster';
 
 // constants
@@ -22,7 +22,7 @@ export const drawActions = (eventRow) => (e, cell) => {
   const deleteDraw = () => {
     const callback = (result) => {
       if (!result.success) {
-        result.error?.message && tmxToast({ message: result.error.message, intent: 'is-danger' });
+        logMutationError('deleteDraw', result);
       }
       eventTabDeleteDraws({ eventRow, drawsTable: cell.getTable(), drawIds: [drawId] });
     };

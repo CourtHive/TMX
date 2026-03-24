@@ -2,11 +2,12 @@
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
  */
+import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { providerConfig } from 'config/providerConfig';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
+import { providerConfig } from 'config/providerConfig';
 import * as factory from 'tods-competition-factory';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
@@ -14,6 +15,9 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
+
+// types
+import type { MutationMethod, ExecutionResult } from 'types/services';
 
 // constants
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
@@ -32,9 +36,9 @@ import {
 
 interface MutationParams {
   tournamentRecord?: any;
-  methods: any[];
+  methods: MutationMethod[];
   engine?: string;
-  callback?: (result: any) => void;
+  callback?: (result: ExecutionResult) => void;
 }
 
 // ── Pure helpers (testable without DOM) ──
@@ -51,7 +55,7 @@ export function checkOfflineState(tournamentRecords: Record<string, any>): {
   return { offline: offlineValues.length, invalidOffline };
 }
 
-export function applyDevOverrides(methods: any[], devParams?: Record<string, any>): any[] {
+export function applyDevOverrides(methods: MutationMethod[], devParams?: Record<string, any>): MutationMethod[] {
   if (!devParams) return methods;
   return methods.map((m) => (devParams[m.method] ? { ...m, params: { ...m.params, ...devParams[m.method] } } : m));
 }
@@ -72,6 +76,14 @@ export function determineExecutionStrategy(
 }
 
 export async function mutationRequest(params: MutationParams): Promise<void> {
+  if (isStale()) {
+    const msg = 'Please refresh tournament data before making changes';
+    tmxToast({ message: msg, intent: 'is-warning' });
+    if (params.callback) params.callback({ error: { message: msg } });
+    return;
+  }
+  resetActivityTimer();
+
   const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
   const state = getLoginState();
 

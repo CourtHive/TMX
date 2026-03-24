@@ -1,5 +1,5 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tmxToast } from 'services/notifications/tmxToast';
+import { logMutationError } from 'functions/logMutationError';
 
 // constants
 import { PUBLISH_EVENT, UNPUBLISH_EVENT } from 'constants/mutationConstants';
@@ -29,7 +29,7 @@ export const toggleEventPublishState = (nestedTables) => (_, cell) => {
     if (result?.success) {
       cell.getRow().update({ published: !row.published });
     } else {
-      tmxToast({ message: result.error.message, intent: 'is-danger' });
+      logMutationError('toggleEventPublishState', result);
     }
   };
   mutationRequest({ methods, callback: postMutation });

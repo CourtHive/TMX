@@ -8,6 +8,7 @@ import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
+import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { courthiveComponentsVersion } from 'courthive-components';
 import { registerMenuHandler } from 'platform/menuHandler';
@@ -104,6 +105,7 @@ function tmxReady(): void {
   setSubscriptions();
   registerMenuHandler();
   initRemoteMutationHandler();
+  initStalenessGuard();
   routeTMX();
   tmxNavigation();
 }

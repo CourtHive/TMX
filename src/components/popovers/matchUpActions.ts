@@ -6,6 +6,7 @@ import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSc
 import { tournamentEngine, participantRoles, tools } from 'tods-competition-factory';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { logMutationError } from 'functions/logMutationError';
 import { timePicker } from 'components/modals/timePicker';
 import { datePicker } from 'components/modals/datePicker';
 import { tipster } from 'components/popovers/tipster';
@@ -346,7 +347,7 @@ export function deleteAdHocMatchUp({
     if (result.success) {
       if (isFunction(callback) && callback) callback();
     } else {
-      console.log({ postMutationError: result.error });
+      logMutationError('deleteAdHocMatchUp', result);
     }
   };
   mutationRequest({ methods, callback: postMutation });

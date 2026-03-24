@@ -8,7 +8,6 @@ import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as safeJSON from 'utilities/safeJSON';
-import { isFunction } from 'functions/typeOf';
 import { platform } from 'platform';
 import { t } from 'i18n';
 
@@ -58,7 +57,7 @@ export function importTournaments({ table }: { table: any }): void {
   });
 }
 
-export function addTournament({
+export async function addTournament({
   tournamentRecord,
   tournamentIds,
   table,
@@ -68,7 +67,7 @@ export function addTournament({
   tournamentIds?: string[];
   table?: any;
   callback?: () => void;
-}): void {
+}): Promise<void> {
   const rowData = mapTournamentRecord(tournamentRecord);
   const existsInCalendar = tournamentIds?.includes(tournamentRecord.tournamentId);
   if (existsInCalendar) {
@@ -76,6 +75,6 @@ export function addTournament({
   } else {
     table?.addData([rowData], true);
   }
-  addOrUpdateTournament({ tournamentRecord });
-  isFunction(callback) && callback?.();
+  await addOrUpdateTournament({ tournamentRecord });
+  callback?.();
 }

@@ -6,17 +6,18 @@ import { getProviders, getUsers, requestTournament, sendTournament } from './api
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
-import { completeMatchUps } from 'services/devCompleteMatchUps';
+import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
 import { loadTournament } from 'pages/tournament/tournamentDisplay';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
+import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
+import { providerConfig } from 'config/providerConfig';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
-import { isObject } from 'functions/typeOf';
-import { providerConfig } from 'config/providerConfig';
 import { serverConfig } from 'config/serverConfig';
+import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
 import { env } from 'settings/env';
 import { t } from 'i18n';
@@ -132,7 +133,7 @@ export function setDev(): void {
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 
-  addDev({ completeMatchUps });
+  addDev({ completeMatchUps, forceStalenessOverlay });
   addDev({ providerConfig });
 
   addDev({

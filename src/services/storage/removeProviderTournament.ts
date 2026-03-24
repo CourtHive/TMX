@@ -1,13 +1,17 @@
 import { context } from 'services/context';
 import { tmx2db } from './tmx2db';
 
-export function removeProviderTournament({ providerId, tournamentId }: { providerId: string; tournamentId: string }): void {
-  const refreshCalendar = () => context.router?.navigate(`/tournaments/${tournamentId}`);
-  const go = (provider: any) => {
-    if (provider) {
-      provider.calendar = provider.calendar.filter((item: any) => item.tournamentId !== tournamentId);
-      tmx2db.addProvider(provider).then(refreshCalendar);
-    }
-  };
-  tmx2db.findProvider(providerId).then(go);
+export async function removeProviderTournament({
+  providerId,
+  tournamentId,
+}: {
+  providerId: string;
+  tournamentId: string;
+}): Promise<void> {
+  const provider = await tmx2db.findProvider(providerId);
+  if (!provider) return;
+
+  provider.calendar = provider.calendar.filter((item: any) => item.tournamentId !== tournamentId);
+  await tmx2db.addProvider(provider);
+  context.router?.navigate(`/tournaments/${tournamentId}`);
 }

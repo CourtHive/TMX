@@ -1,6 +1,6 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { logMutationError } from 'functions/logMutationError';
 import { tournamentEngine } from 'tods-competition-factory';
-import { tmxToast } from 'services/notifications/tmxToast';
 
 // constants
 import { PUBLISH_EVENT } from 'constants/mutationConstants';
@@ -34,7 +34,7 @@ export const toggleDrawPublishState = (eventRow) => (_, cell) => {
       const published = publishState?.status?.published;
       eventRow.update({ published });
     } else {
-      tmxToast({ message: result.error.message, intent: 'is-danger' });
+      logMutationError('toggleDrawPublishState', result);
     }
   };
   mutationRequest({ methods, callback: postMutation });

@@ -1,15 +1,15 @@
-import { registrationModal } from 'components/modals/registrationModal';
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
+import { registrationModal } from 'components/modals/registrationModal';
+import { ensureConnected, queueKey } from 'services/messaging/socketIo';
+import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
+import { renderSystemPage } from 'pages/system/renderSystemPage';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
-import { destroyTables } from 'pages/tournament/destroyTable';
-
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
-import { renderSystemPage } from 'pages/system/renderSystemPage';
-import { ensureConnected, queueKey } from 'services/messaging/socketIo';
+import { destroyTables } from 'pages/tournament/destroyTable';
 import { context } from 'services/context';
 import Navigo from 'navigo';
 
@@ -47,6 +47,7 @@ export function routeTMX() {
   router.hooks({
     before(done) {
       ensureConnected();
+      resetActivityTimer();
       done();
     },
   });

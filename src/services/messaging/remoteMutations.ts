@@ -11,18 +11,13 @@
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { onTournamentMutation } from 'services/messaging/socketIo';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { debugConfig } from 'config/debugConfig';
 import * as factory from 'tods-competition-factory';
+import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 
+// constants and types
 import { SYNC_INDICATOR, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
-
-interface RemoteMutationPayload {
-  methods: any[];
-  tournamentIds: string[];
-  userId?: string;
-  timestamp?: number;
-}
+import type { RemoteMutationPayload } from 'types/services';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
