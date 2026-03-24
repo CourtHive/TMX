@@ -2,6 +2,7 @@
  * IndexedDB database wrapper using Dexie.
  * Manages local storage for tournaments, providers, and language idioms.
  */
+import { tmxToast } from 'services/notifications/tmxToast';
 import Dexie from 'dexie';
 
 interface TMXDatabase {
@@ -58,7 +59,10 @@ export const tmx2db: TMXDatabase = (function () {
 
   idb.resetDB = (callback?: () => void) => {
     idb.dex.close();
-    Dexie.delete('TMX').then(callback, () => alert('Failed to Reset Database'));
+    Dexie.delete('TMX').then(callback, (err: any) => {
+      console.error('[IndexedDB] Failed to reset database:', err);
+      tmxToast({ message: 'Failed to reset database', intent: 'is-danger' });
+    });
   };
 
   idb.findAll = (table: string) => {
@@ -105,7 +109,8 @@ export const tmx2db: TMXDatabase = (function () {
         .put(item)
         .then(resolve, reject)
         .catch((err: any) => {
-          alert('try again:' + err);
+          console.error('[IndexedDB] put failed:', err);
+          tmxToast({ message: 'Database write failed', intent: 'is-danger' });
           reject(err);
         }),
     );
