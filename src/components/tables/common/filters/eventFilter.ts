@@ -1,4 +1,5 @@
 import { tournamentEngine } from 'tods-competition-factory';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';
@@ -12,16 +13,20 @@ export function getEventFilter(
   isFiltered: () => boolean;
   activeIndex: () => number;
 } {
-  let filterValue;
+  let filterValue: string | undefined = context.participantFilters.eventId;
 
   const eventFilter = (rowData) =>
     filterValue === NONE ? !rowData?.eventIds?.length : rowData?.eventIds?.includes(filterValue);
   const updateEventFilter = (eventId?) => {
     table.removeFilter(eventFilter);
     filterValue = eventId;
+    context.participantFilters.eventId = eventId;
     if (eventId) table.addFilter(eventFilter);
     if (onChange) onChange();
   };
+
+  // Restore saved filter
+  if (filterValue) table.addFilter(eventFilter);
   const events = tournamentEngine.getEvents().events || [];
   const allEventsLabel = t('pages.participants.allEvents');
   const noEventsLabel = t('pages.participants.noEvents');

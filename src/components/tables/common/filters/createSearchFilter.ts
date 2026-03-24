@@ -1,8 +1,13 @@
 import { context } from 'services/context';
 
-export const createSearchFilter = (target: any, { persistKey }: { persistKey?: string } = {}): any => {
+export const createSearchFilter = (
+  target: any,
+  { persistKey, filterContext = 'matchUpFilters' }: { persistKey?: string; filterContext?: 'matchUpFilters' | 'participantFilters' } = {},
+): any => {
   let searchFilter;
   const tables = Array.isArray(target) ? target : [target];
+
+  const filters = context[filterContext];
 
   const applyFilter = (value) => {
     if (searchFilter) tables.forEach((table) => table.removeFilter(searchFilter));
@@ -13,11 +18,11 @@ export const createSearchFilter = (target: any, { persistKey }: { persistKey?: s
     } else {
       searchFilter = undefined;
     }
-    if (persistKey) context.matchUpFilters[persistKey] = value || undefined;
+    if (persistKey) filters[persistKey] = value || undefined;
   };
 
   // Restore saved filter
-  const saved = persistKey && context.matchUpFilters[persistKey];
+  const saved = persistKey && filters[persistKey];
   if (saved) applyFilter(saved);
 
   return applyFilter;

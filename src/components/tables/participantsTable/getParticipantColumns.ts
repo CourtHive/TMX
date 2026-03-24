@@ -11,8 +11,8 @@ import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
+import { applyColumnVisibility } from '../common/columnIsVisible';
 import { getRatingColumns } from '../common/getRatingColumns';
-import { columnIsVisible } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
@@ -37,7 +37,7 @@ export function getParticipantColumns({
   const tennisId = data.some((p) => p.tennisId);
   const ratingColumns = getRatingColumns(data, 'participant');
 
-  return [
+  return applyColumnVisibility([
     {
       cellClick: (_: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
@@ -157,7 +157,6 @@ export function getParticipantColumns({
     {
       sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
       formatter: eventsFormatter(navigateToEvent),
-      visible: columnIsVisible('events'),
       title: t('tables.participants.events'),
       field: 'events',
       hozAlign: LEFT,
@@ -171,7 +170,6 @@ export function getParticipantColumns({
         const tournamentId = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
         if (tournamentId) context.router?.navigate(`/tournament/${tournamentId}/${PARTICIPANTS}/TEAM`);
       }),
-      visible: columnIsVisible('teams'),
       title: t('tables.participants.teams'),
       field: 'teams',
       hozAlign: LEFT,
@@ -194,5 +192,5 @@ export function getParticipantColumns({
       hozAlign: RIGHT,
       maxWidth: 40,
     },
-  ];
+  ]);
 }

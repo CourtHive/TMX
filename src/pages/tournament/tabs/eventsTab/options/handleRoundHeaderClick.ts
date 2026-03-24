@@ -8,6 +8,7 @@ import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tournamentEngine } from 'tods-competition-factory';
+import { scheduleRound } from './scheduleRound';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -63,6 +64,20 @@ export function handleRoundHeaderClick(props: any): void {
         text: label,
       });
     }
+  }
+
+  if (roundNumber) {
+    roundActions.push({
+      onClick: () =>
+        scheduleRound({
+          roundNumber,
+          structureId,
+          drawId,
+          eventData: props.eventData,
+          callback: props.callback,
+        }),
+      text: 'Schedule round...',
+    });
   }
 
   if (props?.pointerEvent && roundActions.length) {

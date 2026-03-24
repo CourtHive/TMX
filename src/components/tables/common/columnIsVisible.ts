@@ -31,3 +31,20 @@ export const columnIsVisible = (field) => context.columns[field] !== false;
  */
 export const columnVisibility = (field, defaultVisible: boolean) =>
   field in context.columns ? context.columns[field] : defaultVisible;
+
+/**
+ * Apply saved visibility state to all toggleable columns in a definitions array.
+ * A column is toggleable when it has both a `title` and a `field` (these are
+ * the columns rendered in the headerMenu dropdown).  The column's own `visible`
+ * value is treated as the default; any value previously saved in
+ * `context.columns` overrides it.
+ */
+export function applyColumnVisibility(columns: any[]): any[] {
+  for (const col of columns) {
+    if (!col.title || !col.field) continue;
+    if (col.field in context.columns) {
+      col.visible = context.columns[col.field];
+    }
+  }
+  return columns;
+}

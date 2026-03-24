@@ -2,6 +2,7 @@ import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { groupOrderAction } from '../statsTable/groupOrderAction';
 import { bracketScoreFormatter } from './bracketScoreFormatter';
+import { applyColumnVisibility, saveColumnVisibility } from '../common/columnIsVisible';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
 
@@ -53,6 +54,7 @@ const statsHeaderMenu = () => (_: any, column: any) => {
         e.stopPropagation();
         col.toggle();
         context.columns[col.getField()] = col.isVisible();
+        saveColumnVisibility();
         table.redraw();
         if (col.isVisible()) {
           icon.classList.remove('fa-square');
@@ -192,7 +194,7 @@ export function getBracketColumns({
     },
   );
 
-  return columns;
+  return applyColumnVisibility(columns);
 }
 
 export { attachHeaderTooltip };

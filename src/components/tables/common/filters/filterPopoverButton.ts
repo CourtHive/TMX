@@ -107,10 +107,11 @@ export function filterPopoverButton(sections: FilterSection[]): { item: any; upd
     return container;
   };
 
+  const anyActiveOnInit = visibleSections.some((s) => s.isFiltered());
   const item = {
     id: FILTER_BUTTON_ID,
     location: LEFT,
-    label: `<span style="position:relative;display:inline-flex;align-items:center"><i class="fa-solid fa-filter"></i><span class="filter-badge" style="display:none;position:absolute;top:-4px;right:-6px;width:8px;height:8px;background:#3273dc;border-radius:50%;"></span></span>`,
+    label: `<span style="position:relative;display:inline-flex;align-items:center"><i class="fa-solid fa-filter"></i><span class="filter-badge" style="display:${anyActiveOnInit ? '' : 'none'};position:absolute;top:-4px;right:-6px;width:8px;height:8px;background:#3273dc;border-radius:50%;"></span></span>`,
     intent: 'is-light',
     onClick: () => {
       const button = document.getElementById(FILTER_BUTTON_ID);

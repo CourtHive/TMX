@@ -15,7 +15,7 @@ import { titleFormatter } from '../common/formatters/titleFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { tournamentEngine, tools } from 'tods-competition-factory';
 import { handleScoreClick } from './handleMatchUpScoreClick';
-import { columnVisibility } from '../common/columnIsVisible';
+import { applyColumnVisibility } from '../common/columnIsVisible';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
@@ -162,7 +162,7 @@ export function getMatchUpColumns({
     return value.participantName && (formatParticipant(onClick) as any)(cell, placholder);
   };
 
-  return [
+  return applyColumnVisibility([
     {
       cellClick: (_e: Event, cell: any) => cell.getRow().toggleSelect(),
       titleFormatter: 'rowSelection',
@@ -196,7 +196,7 @@ export function getMatchUpColumns({
     },
     {
       title: t('tables.matchUps.flight'),
-      visible: columnVisibility('flight', false),
+      visible: false,
       minWidth: 150,
       field: 'flight',
       widthGrow: 1,
@@ -237,14 +237,14 @@ export function getMatchUpColumns({
       cellClick: matchUpStartTimeClick,
       field: 'startTime',
       title: t('tables.matchUps.startTime'),
-      visible: columnVisibility('startTime', false),
+      visible: false,
       width: 80,
     },
     {
       cellClick: matchUpEndTimeClick,
       field: 'endTime',
       title: t('tables.matchUps.endTime'),
-      visible: columnVisibility('endTime', false),
+      visible: false,
       width: 80,
     },
     {
@@ -282,7 +282,7 @@ export function getMatchUpColumns({
       field: 'competitiveProfile',
       responsive: false,
       title: t('tables.matchUps.profile'),
-      visible: columnVisibility('competitiveProfile', false),
+      visible: false,
       width: 140,
     },
     {
@@ -296,7 +296,7 @@ export function getMatchUpColumns({
     {
       field: 'official',
       title: t('tables.matchUps.official'),
-      visible: columnVisibility('official', false),
+      visible: false,
       width: 140,
     },
     {
@@ -308,7 +308,7 @@ export function getMatchUpColumns({
       title: `<div class='fa-solid fa-clock' style='color: var(--tmx-accent-blue)' />`,
       headerSort: false,
       field: 'duration',
-      visible: columnVisibility('duration', false),
+      visible: false,
       width: 70,
     },
     {
@@ -320,5 +320,5 @@ export function getMatchUpColumns({
       widthGrow: 0,
       width: 50,
     },
-  ];
+  ]);
 }

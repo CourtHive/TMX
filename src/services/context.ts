@@ -23,6 +23,12 @@ export const context: {
     type?: string;
     search?: string;
   };
+  participantFilters: {
+    eventId?: string;
+    teamId?: string;
+    sex?: string;
+    search?: string;
+  };
   collectionTables?: any[];
   refreshActiveTable?: () => void;
   router?: { navigate: (path: string) => void; resolve: () => void; current: any[] | null };
@@ -51,4 +57,5 @@ export const context: {
 
   columns: {},
   matchUpFilters: {},
+  participantFilters: {},
 };
