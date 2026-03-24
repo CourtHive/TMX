@@ -65,7 +65,7 @@ export function editDisplaySettings(params) {
       ],
     },
   ];
-  const participantsProfile = { withScaleValues: true };
+  const participantsProfile = { withScaleValues: true, withISO2: true };
 
   const tournamentRecord = mocksEngine.generateTournamentRecord({
     scheduleCompletedMatchUps: true,
@@ -89,7 +89,6 @@ export function editDisplaySettings(params) {
   const render = ({ compositionName, configuration }) => {
     removeAllChildNodes(matchUpNode);
     selections.composition = compositions[compositionName];
-    selections.composition.configuration.flags = undefined;
     Object.assign(selections.composition.configuration, configuration);
 
     selections.composition.genderColor = true;

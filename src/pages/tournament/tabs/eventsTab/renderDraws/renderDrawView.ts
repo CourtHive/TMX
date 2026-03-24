@@ -143,7 +143,6 @@ export function renderDrawView({
 
   composition.configuration ??= {};
 
-  composition.configuration.flags = false;
   Object.assign(composition.configuration, configuration);
 
   // Always inject active scale so ratings display regardless of composition
