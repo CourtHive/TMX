@@ -483,11 +483,10 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     const providerId = provider?.organisationId;
     const state = getLoginState();
     const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-    const canDelete = superAdmin || state?.permissions?.includes('deleteTournament');
+    const canDeleteOnServer = superAdmin || state?.permissions?.includes('deleteTournament');
     const activeProvider = context.provider || state?.provider;
 
-    // Show for local tournaments (no provider) or when user has delete permission
-    if (tournamentRecord && (!providerId || canDelete)) {
+    if (tournamentRecord) {
       const deletePanel = document.createElement('div');
       deletePanel.className = 'settings-panel panel-red';
       deletePanel.style.gridColumn = '3 / 5';
@@ -501,6 +500,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
         const tournamentId = tournamentRecord.tournamentId;
         const provId = state?.providerId || providerId;
         const navigateAway = () => {
+          tournamentEngine.reset();
           if (provId) removeProviderTournament({ tournamentId, providerId: provId });
           context.router?.navigate(`/${TMX_TOURNAMENTS}`);
         };
@@ -509,7 +509,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
         tmxToast({
           action: {
             onClick: () => {
-              if (activeProvider && provId) {
+              if (activeProvider && provId && canDeleteOnServer) {
                 removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
               } else {
                 localDelete();
