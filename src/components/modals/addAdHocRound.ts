@@ -89,6 +89,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     const drawMaticParams = {
       updateParticipantRatings: true,
       dynamicRatings: useDynamicRatings,
+      convertToELO: useDynamicRatings,
       refreshRatings: true,
       participantIds,
       scaleAccessor,

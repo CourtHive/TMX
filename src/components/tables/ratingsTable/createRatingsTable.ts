@@ -156,16 +156,19 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     .map((mu: any) => mu.matchUpId);
 
   let computedRatings: Record<string, any> = {};
+  let isEloDynamic = false;
   if (completedMatchUpIds.length) {
     const { tournamentRecord } = tournamentEngine.getTournament();
     scaleEngine.setState(tournamentRecord);
     const result = scaleEngine.generateDynamicRatings({
       matchUpIds: completedMatchUpIds,
       ratingType: activeScale,
+      convertToELO: true,
       asDynamic: true,
     });
     if (result.modifiedScaleValues) {
       computedRatings = result.modifiedScaleValues;
+      isEloDynamic = !!result.sourceRatingType;
     }
   }
 
@@ -190,15 +193,25 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
 
     // Dynamic rating: prefer on-the-fly calculation, fall back to persisted value
     const computedEntry = computedRatings[pid];
-    const computedValue = computedEntry ? extractNumeric(computedEntry.scaleValue, accessor) : undefined;
-    const dynEntry = ratings.find((r: any) => r.scaleName === dynamicScaleName);
-    const persistedValue = extractNumeric(dynEntry?.scaleValue, accessor);
+    // When convertToELO, computed values are plain numbers (no accessor wrapping)
+    const computedValue = computedEntry
+      ? isEloDynamic
+        ? computedEntry.scaleValue
+        : extractNumeric(computedEntry.scaleValue, accessor)
+      : undefined;
+    const dynEntry = ratings.find((r: any) => r.scaleName === dynamicScaleName || r.scaleName === 'ELO.DYNAMIC');
+    const persistedValue = dynEntry
+      ? dynEntry.scaleName === 'ELO.DYNAMIC'
+        ? extractNumeric(dynEntry.scaleValue, undefined)
+        : extractNumeric(dynEntry.scaleValue, accessor)
+      : undefined;
     const dynValue = computedValue ?? persistedValue;
 
     if (dynValue != null) {
       hasDynamic = true;
       row.dynamicRating = dynValue;
-      if (row.rating != null) {
+      // Change column: only compute delta when both values are in the same scale
+      if (row.rating != null && !isEloDynamic) {
         row.ratingChange = +(dynValue - row.rating).toFixed(2);
       }
     }
@@ -322,7 +335,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   if (hasDynamic) {
     columns.push(
       {
-        title: 'Dynamic',
+        title: isEloDynamic ? `ELO (from ${activeScale})` : 'Dynamic',
         field: 'dynamicRating',
         hozAlign: 'center',
         width: 100,
@@ -331,6 +344,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
       {
         title: 'Change',
         field: 'ratingChange',
+        visible: !isEloDynamic,
         hozAlign: 'center',
         width: 100,
         formatter: (cell: any) => {
