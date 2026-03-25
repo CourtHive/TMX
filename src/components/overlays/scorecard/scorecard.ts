@@ -1,15 +1,15 @@
 /**
  * Scorecard overlay for team match display and editing.
- * Uses renderMatchUp from courthive-components to display collection matchUps as cards.
+ * Uses renderScorecard from courthive-components for the layout,
+ * wires TMX-specific event handlers for scoring and substitution.
  */
+import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
-import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderMatchUp, compositions } from 'courthive-components';
 import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
 
@@ -38,10 +38,6 @@ function resolveComposition(matchUp: any): any {
 
   return composition;
 }
-
-const WIN_INDICATOR = 'has-text-success';
-const TIE_SIDE_1 = 'tieSide1';
-const TIE_SIDE_2 = 'tieSide2';
 
 interface ScorecardParams {
   title: string;
@@ -84,82 +80,13 @@ export function renderScorecard({
   composition?: any;
   onRefresh?: () => void;
 }): HTMLDivElement {
-  const contentContainer = document.createElement('div');
-  contentContainer.className = 'overlay-content-container sc-container';
-
-  // Team vs team header
-  const side1 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 1 }) || '', justify: 'end' });
-  const side2 = getSide({ participantName: getParticipantName({ matchUp, sideNumber: 2 }) || '', justify: 'start' });
-
-  const { winningSide, score } = matchUp;
-  const sets = score?.sets || [];
-  const side1Score = getSideScore({ winningSide, sets, sideNumber: 1, id: TIE_SIDE_1 });
-  const side2Score = getSideScore({ winningSide, sets, sideNumber: 2, id: TIE_SIDE_2 });
-  const overview = getTeamVs({ side1, side2, side1Score, side2Score });
-  contentContainer.appendChild(overview);
-
-  // Collection panels
-  const collectionDefinitions =
-    matchUp.tieFormat.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || [];
-
   const composition = compositionOverride || resolveComposition(matchUp);
+  const eventHandlers = buildCollectionEventHandlers({ matchUp, onRefresh });
 
-  for (const collectionDefinition of collectionDefinitions) {
-    const collectionMatchUps = matchUp.tieMatchUps
-      .filter((m: any) => m.collectionId === collectionDefinition.collectionId)
-      .sort((a: any, b: any) => (a.collectionPosition || 0) - (b.collectionPosition || 0));
+  const container = renderScorecardLayout({ matchUp, composition, eventHandlers });
+  container.classList.add('overlay-content-container');
 
-    const panel = document.createElement('div');
-    panel.className = 'sc-collection-panel';
-
-    // Panel header
-    const header = document.createElement('div');
-    header.className = 'sc-collection-header';
-
-    const nameEl = document.createElement('div');
-    nameEl.className = 'sc-collection-name';
-    nameEl.textContent = collectionDefinition.collectionName || 'Collection';
-
-    const meta = document.createElement('div');
-    meta.className = 'sc-collection-meta';
-
-    const typeBadge = document.createElement('span');
-    const mType = (collectionDefinition.matchUpType || '').toUpperCase();
-    typeBadge.className = `tfp-type-badge tfp-type-badge--${mType === 'DOUBLES' ? 'doubles' : 'singles'}`;
-    typeBadge.textContent = mType === 'DOUBLES' ? 'D' : 'S';
-
-    const countBadge = document.createElement('span');
-    countBadge.className = 'sc-count-badge';
-    countBadge.textContent = `${collectionMatchUps.length}`;
-
-    meta.appendChild(typeBadge);
-    meta.appendChild(countBadge);
-    header.appendChild(nameEl);
-    header.appendChild(meta);
-    panel.appendChild(header);
-
-    // MatchUp cards grid
-    const grid = document.createElement('div');
-    grid.className = 'sc-matchups-grid';
-
-    const eventHandlers = buildCollectionEventHandlers({ matchUp, onRefresh });
-
-    for (const tieMatchUp of collectionMatchUps) {
-      const card = renderMatchUp({
-        matchUp: tieMatchUp,
-        isLucky: true, // suppresses connector lines
-        eventHandlers,
-        composition,
-      });
-      card.classList.add('sc-matchup-card');
-      grid.appendChild(card);
-    }
-
-    panel.appendChild(grid);
-    contentContainer.appendChild(panel);
-  }
-
-  return contentContainer;
+  return container;
 }
 
 function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; onRefresh?: () => void }): any {
@@ -198,7 +125,7 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
             const tieResult = result.results?.find(
               ({ methodName }: any) => methodName === SET_MATCHUP_STATUS,
             )?.tieMatchUpResult;
-            if (tieResult) setTieScore(tieResult);
+            if (tieResult) updateTieScore(tieResult);
             onRefresh?.();
           }
         },
@@ -228,7 +155,6 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
 
     if (!validActions?.length) return;
 
-    // Build a fake cell/row API to reuse participantMatchUpActions
     const matchUpData = {
       matchUpId: tieMatchUp.matchUpId,
       matchUpType: tieMatchUp.matchUpType,
@@ -260,26 +186,6 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
     matchUpClick: scoreClick,
     scoreClick,
   };
-}
-
-export function setTieScore(result: any): void {
-  const set = result?.score?.sets?.[0];
-  if (!set) return;
-
-  const side1Score = document.getElementById(TIE_SIDE_1)!;
-  const side2Score = document.getElementById(TIE_SIDE_2)!;
-  if (!side1Score || !side2Score) return;
-  side1Score.classList.remove(WIN_INDICATOR);
-  side2Score.classList.remove(WIN_INDICATOR);
-  side1Score.innerHTML = set.side1Score;
-  side2Score.innerHTML = set.side2Score;
-
-  if (result.winningSide === 1) side1Score.classList.add(WIN_INDICATOR);
-  if (result.winningSide === 2) side2Score.classList.add(WIN_INDICATOR);
-}
-
-function getParticipantName({ matchUp, sideNumber }: { matchUp: any; sideNumber: number }): string | undefined {
-  return matchUp.sides.find((side: any) => side.sideNumber === sideNumber)?.participant?.participantName;
 }
 
 export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: ScorecardParams): HTMLDivElement {
