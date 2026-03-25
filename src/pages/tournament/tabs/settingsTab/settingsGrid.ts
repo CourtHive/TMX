@@ -486,7 +486,8 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     const canDeleteOnServer = superAdmin || state?.permissions?.includes('deleteTournament');
     const activeProvider = context.provider || state?.provider;
 
-    if (tournamentRecord) {
+    const isProviderTournament = !!(activeProvider && providerId);
+    if (tournamentRecord && (!isProviderTournament || canDeleteOnServer)) {
       const deletePanel = document.createElement('div');
       deletePanel.className = 'settings-panel panel-red';
       deletePanel.style.gridColumn = '3 / 5';
@@ -499,9 +500,9 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       deleteBtn.addEventListener('click', () => {
         const tournamentId = tournamentRecord.tournamentId;
         const provId = state?.providerId || providerId;
-        const navigateAway = () => {
+        const navigateAway = async () => {
           tournamentEngine.reset();
-          if (provId) removeProviderTournament({ tournamentId, providerId: provId });
+          if (provId) await removeProviderTournament({ tournamentId, providerId: provId });
           context.router?.navigate(`/${TMX_TOURNAMENTS}`);
         };
         const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
@@ -510,7 +511,10 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
           action: {
             onClick: () => {
               if (activeProvider && provId && canDeleteOnServer) {
-                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
+                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => {
+                  console.error('[deleteTournament] server error:', err);
+                  localDelete();
+                });
               } else {
                 localDelete();
               }

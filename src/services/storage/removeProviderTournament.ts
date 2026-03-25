@@ -1,4 +1,3 @@
-import { context } from 'services/context';
 import { tmx2db } from './tmx2db';
 
 export async function removeProviderTournament({
@@ -13,5 +12,4 @@ export async function removeProviderTournament({
 
   provider.calendar = provider.calendar.filter((item: any) => item.tournamentId !== tournamentId);
   await tmx2db.addProvider(provider);
-  context.router?.navigate(`/tournaments/${tournamentId}`);
 }
