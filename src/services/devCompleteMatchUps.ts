@@ -45,7 +45,7 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
     : [structureId];
 
   // Check if this is a lucky draw — stop before requiring lucky loser decisions
-  const luckyStatus = te.getLuckyDrawRoundStatus({ drawId });
+  const luckyStatus = te.getLuckyDrawRoundStatus({ drawId, structureId });
   const isLucky = luckyStatus?.isLuckyDraw;
 
   const getStructureMatchUps = () => {
