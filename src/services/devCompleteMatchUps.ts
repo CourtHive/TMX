@@ -117,7 +117,6 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
         if (isLucky) console.log('Lucky draw — stopping before lucky loser selection');
 
         if (shouldStop) {
-          console.log(`Completed ${totalCompleted} matchUps`);
           reRenderCurrentView(drawId, structureId);
         } else {
           // Elimination: next pass after server ack
