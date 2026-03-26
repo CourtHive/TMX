@@ -86,12 +86,17 @@ export function createEntriesPanels({
 
     // Build participantId → draws map from all drawDefinitions' entries
     // This ensures draw chips show regardless of position assignment or flight profile status
-    const participantDrawsMap: Record<string, { drawId: string; drawName: string; eventId: string }[]> = {};
+    const participantDrawsMap: Record<string, { drawId: string; drawName: string; entryStage?: string; eventId: string }[]> = {};
     if (hasDrawDefinitions) {
       for (const dd of event.drawDefinitions) {
         for (const entry of dd.entries || []) {
           if (!participantDrawsMap[entry.participantId]) participantDrawsMap[entry.participantId] = [];
-          participantDrawsMap[entry.participantId].push({ drawId: dd.drawId, drawName: dd.drawName, eventId });
+          participantDrawsMap[entry.participantId].push({
+            drawId: dd.drawId,
+            drawName: dd.drawName,
+            entryStage: entry.entryStage,
+            eventId,
+          });
         }
       }
     }

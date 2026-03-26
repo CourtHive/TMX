@@ -3,7 +3,7 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { compositions, controlBar, renderContainer, renderInlineMatchUp, renderStructure } from 'courthive-components';
-import { generateVoluntaryConsolationPanel } from './generateVoluntaryConsolationPanel';
+import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
@@ -184,7 +184,7 @@ export function renderDrawView({
       if (stage === QUALIFYING) {
         generateQualifying({ drawData, drawId, eventId });
       } else if (stage === VOLUNTARY_CONSOLATION && !isAdHoc) {
-        generateVoluntaryConsolationPanel({ structure, drawId, eventId, callback });
+        voluntaryConsolationPanel({ structure, drawId, eventId, callback });
       } else if (isAdHoc) {
         generateAdHocRound({ structure, drawId, callback });
       } else {
@@ -438,7 +438,7 @@ function applyLuckyRoundHighlighting(
   structureId: string,
   callback: (params?: any) => void,
 ) {
-  const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
+  const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId, structureId });
   if (!luckyStatus?.isLuckyDraw) return;
 
   for (const round of luckyStatus.rounds || []) {
