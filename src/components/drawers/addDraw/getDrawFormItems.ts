@@ -295,12 +295,14 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     {
       label: t('drawers.addDraw.dynamicRatings'),
       field: DYNAMIC_RATINGS,
+      id: DYNAMIC_RATINGS,
       checkbox: true,
       visible: false,
     },
     {
       label: t('drawers.addDraw.teamAvoidance'),
       field: TEAM_AVOIDANCE,
+      id: TEAM_AVOIDANCE,
       checkbox: true,
       visible: false,
     },

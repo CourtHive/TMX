@@ -6,6 +6,7 @@ import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
+import { isDev } from 'functions/isDev';
 
 // constants
 import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
@@ -13,6 +14,21 @@ import { NONE } from 'constants/tmxConstants';
 
 export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: string[] }): void {
   const eventId = eventData.eventInfo.eventId;
+  if (isDev()) {
+    const auditData = { auditReason: 'Reason skipped' };
+    const methods = drawIds.map((drawId) => ({
+      params: { eventId, drawId, auditData, removeAssignments: false, removeScheduling: true },
+      method: RESET_DRAW_DEFINITION,
+    }));
+    const postMutation = (result: any) => {
+      if (result.success) {
+        renderEventsTab({ eventId, drawId: drawIds[0], renderDraw: true });
+      }
+    };
+    mutationRequest({ methods, callback: postMutation });
+    return;
+  }
+
   const drawName =
     drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
   const modalTitle = drawName ? `Reset ${drawName}` : 'Reset draws';
