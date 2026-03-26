@@ -1049,6 +1049,14 @@
       "flightsGenerated": "Flights gerados",
       "generationFailed": "Falha na geração do perfil de flight"
     },
+    "addConsolation": {
+      "title": "Adicionar consolação voluntária",
+      "structureName": "Nome da estrutura",
+      "groupSize": "Tamanho do grupo",
+      "structureAdded": "Estrutura de consolação voluntária adicionada",
+      "selectEligible": "Selecionar participantes elegíveis",
+      "noEligible": "Nenhum participante elegível encontrado"
+    },
     "addRRplayoffs": {
       "title": "Adicionar estrutura de playoff",
       "createsPlayoff": "Cria playoff para posições",

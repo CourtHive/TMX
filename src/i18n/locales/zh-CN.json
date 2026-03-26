@@ -1085,6 +1085,14 @@
       "flightsGenerated": "航班已生成",
       "generationFailed": "航班配置生成失败"
     },
+    "addConsolation": {
+      "title": "添加自愿安慰赛",
+      "structureName": "结构名称",
+      "groupSize": "小组人数",
+      "structureAdded": "自愿安慰赛结构已添加",
+      "selectEligible": "选择符合条件的参赛者",
+      "noEligible": "未找到符合条件的参赛者"
+    },
     "addRRplayoffs": {
       "title": "添加附加赛结构",
       "createsPlayoff": "为以下位置创建附加赛",

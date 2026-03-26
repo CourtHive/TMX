@@ -1110,7 +1110,8 @@
       "structureName": "Structure name",
       "groupSize": "Group size",
       "structureAdded": "Voluntary consolation structure added",
-      "selectEligible": "Select eligible participants"
+      "selectEligible": "Select eligible participants",
+      "noEligible": "No eligible participants found"
     },
     "addRRplayoffs": {
       "title": "Add playoff structure",
