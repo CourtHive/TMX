@@ -54,8 +54,10 @@ function syncApproachPreference() {
  * @param params - Scoring modal parameters (matchUp, callback)
  */
 export function scoringModal(params: any): void {
+  const { onRelayCleanup, ...rest } = params;
+
   // Resolve composition from draw extension, localStorage, or env
-  const compositionSettings = resolveComposition(params.matchUp);
+  const compositionSettings = resolveComposition(rest.matchUp);
 
   // Configure courthive-components scoring
   setScoringConfig({
@@ -72,8 +74,12 @@ export function scoringModal(params: any): void {
     });
   }
 
-  // Call courthive-components scoringModal with i18n labels
   // onClose fires on any modal dismissal (submit, cancel, backdrop)
   // so the approach preference syncs regardless of how the modal is closed
-  componentsScoringModal({ ...params, onClose: syncApproachPreference, labels: getScoringLabels() });
+  const onClose = () => {
+    syncApproachPreference();
+    if (typeof onRelayCleanup === 'function') onRelayCleanup();
+  };
+
+  componentsScoringModal({ ...rest, onClose, labels: getScoringLabels() });
 }
