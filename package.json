@@ -116,7 +116,7 @@
     "courthive-components": "0.9.28-beta.27",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.20",
-    "dexie": "4.3.0",
+    "dexie": "4.4.1",
     "esri-leaflet": "3.0.19",
     "focus-trap": "8.0.1",
     "hotkeys-js": "4.0.2",
