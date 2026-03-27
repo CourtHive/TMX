@@ -110,7 +110,7 @@
     "@babel/plugin-transform-private-property-in-object": "7.28.6",
     "@eslint/js": "^10.0.1",
     "animate.css": "4.1.1",
-    "axios": "1.13.6",
+    "axios": "1.14.0",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
     "courthive-components": "0.9.28-beta.27",
