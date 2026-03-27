@@ -73,7 +73,7 @@ export function getStructureOptions({
     .sort((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
     .map((structure: any) => ({
       onClick: () => {
-        navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
+        renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true });
       },
       label: structure.structureName || structure.stage || 'Structure',
       close: true,
