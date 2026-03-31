@@ -34,7 +34,7 @@ const defaults: ScoreboardConfig = {
   matchFormats: {
     categories: {},
     singles: 'SET3-S:6/TB7',
-    doubles: 'SET3-S:6/TB7-F:TB10',
+    doubles: 'SET3-S:6NOAD/TB7-F:TB10',
   },
   options: {
     bestof: [1, 3, 5],

@@ -32,6 +32,10 @@ export const POLICY_SCORING = {
         matchUpFormat: 'SET3-S:6/TB7-F:TB10',
       },
       {
+        description: 'Best of 3 sets to 6, no Ad, 10-point match tiebreak at one set all',
+        matchUpFormat: 'SET3-S:6NOAD/TB7-F:TB10',
+      },
+      {
         description: 'One set set to 6, 7-point tiebreak at 6-6',
         matchUpFormat: 'SET1-S:6/TB7',
       },
