@@ -28,6 +28,7 @@ import { selectItem } from 'components/modals/selectItem';
 import { participantChips } from './participantChips';
 import { participantConstants } from 'tods-competition-factory';
 import { providerConfig } from 'config/providerConfig';
+import { printPlayerList } from 'components/modals/printPlayerList';
 import { featureFlags } from 'config/featureFlags';
 import { t } from 'i18n';
 
@@ -92,6 +93,13 @@ export function renderIndividuals({ view }: { view: string }): void {
       onClick: (e: any) => enableEditWTID(e, table),
       hide: !canEditTennisId,
       label: t('pages.participants.editWTID'),
+      close: true,
+    },
+    { divider: true } as any,
+    {
+      onClick: () => printPlayerList({}),
+      label: '<i class="fa-solid fa-print"></i> Print Player List',
+      hide: !featureFlags.get().pdfPrinting,
       close: true,
     },
     { divider: true } as any,
