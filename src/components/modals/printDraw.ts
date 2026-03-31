@@ -1,6 +1,5 @@
 /**
- * Print Draw Modal
- * Provides options for generating PDF of draw sheet
+ * Print Draw Modal — uses pdf-factory for generation
  */
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
@@ -15,45 +14,30 @@ interface PrintDrawParams {
 }
 
 export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): void {
-  // Get tournament info using getTournamentInfo (TODS format)
   const tournamentInfoResult = tournamentEngine.getTournamentInfo();
   const tournament = tournamentInfoResult?.tournamentInfo;
 
   const eventResult = tournamentEngine.getEvent({ eventId });
   const event = eventResult?.event;
 
-  // Get draw definition
   let drawDefinition;
   if (event?.drawDefinitions) {
     drawDefinition = event.drawDefinitions.find((dd: any) => dd.drawId === drawId);
-  } else {
-    // Try alternate method
-    const drawResult = tournamentEngine.findDrawDefinition({ drawId });
-    drawDefinition = drawResult?.drawDefinition;
   }
 
-  if (!event || !drawDefinition) {
-    return;
-  }
+  if (!drawDefinition) return;
 
-  // Tournament is optional - use fallback values if not available
-
-  // Get draw name (use structure name if structureId provided)
-  let drawTitle = drawDefinition.drawName || event.eventName;
+  let drawTitle = drawDefinition.drawName || event?.eventName || '';
   if (structureId) {
     const structure = drawDefinition.structures?.find((s: any) => s.structureId === structureId);
-    if (structure?.structureName) {
-      drawTitle = structure.structureName;
-    }
+    if (structure?.structureName) drawTitle = structure.structureName;
   }
 
-  // Form state
   let printOptions = {
     drawTitle,
     includeSeeding: true,
-    includeRankings: true,
     includeTimestamp: true,
-    includeOrganizers: true,
+    splitPages: false,
   };
 
   const formItems = [
@@ -70,39 +54,37 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
     {
       label: t('modals.printDraw.includeSeeding'),
       field: 'includeSeeding',
+      id: 'pd-seeding',
       checkbox: true,
       checked: printOptions.includeSeeding,
     },
     {
-      label: t('modals.printDraw.includeRankings'),
-      field: 'includeRankings',
-      checkbox: true,
-      checked: printOptions.includeRankings,
-    },
-    {
       label: t('modals.printDraw.includeTimestamp'),
       field: 'includeTimestamp',
+      id: 'pd-timestamp',
       checkbox: true,
       checked: printOptions.includeTimestamp,
     },
-    {
-      label: t('modals.printDraw.includeOrganizers'),
-      field: 'includeOrganizers',
-      checkbox: true,
-      checked: printOptions.includeOrganizers,
-    },
+    ...(drawDefinition.drawSize >= 64
+      ? [
+          {
+            label: 'Multi-page (split into sections)',
+            field: 'splitPages',
+            id: 'pd-split',
+            checkbox: true,
+            checked: false,
+          },
+        ]
+      : []),
   ];
 
   const content = document.createElement('div');
   content.style.padding = '1em';
-
   renderForm(content, formItems);
 
-  // Update state when form changes
   content.addEventListener('change', (e: Event) => {
     const target = e.target as HTMLInputElement;
     const field = target.getAttribute('field');
-
     if (field) {
       if (target.type === 'checkbox') {
         (printOptions as any)[field] = target.checked;
@@ -113,42 +95,44 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
   });
 
   const buttons = [
-    {
-      label: t('common.cancel'),
-      intent: 'none',
-      close: true,
-    },
+    { label: t('common.cancel'), intent: 'none', close: true },
     {
       label: t('view'),
       intent: 'is-info',
-      onClick: async () => {
-        try {
-          await generateDrawPDF({
-            tournament,
-            event,
-            drawDefinition,
-            structureId,
-            options: printOptions,
-            action: 'open',
-          });
-        } catch { /* PDF open may fail silently */ }
+      onClick: () => {
+        generateDrawPDF({
+          tournament,
+          event,
+          drawId,
+          structureId,
+          options: {
+            drawTitle: printOptions.drawTitle,
+            includeTimestamp: printOptions.includeTimestamp,
+            includeSeeding: printOptions.includeSeeding,
+            splitPages: printOptions.splitPages,
+          },
+          action: 'open',
+        });
       },
       close: true,
     },
     {
       label: t('dl'),
       intent: 'is-primary',
-      onClick: async () => {
-        try {
-          await generateDrawPDF({
-            tournament,
-            event,
-            drawDefinition,
-            structureId,
-            options: printOptions,
-            action: 'download',
-          });
-        } catch { /* PDF download may fail silently */ }
+      onClick: () => {
+        generateDrawPDF({
+          tournament,
+          event,
+          drawId,
+          structureId,
+          options: {
+            drawTitle: printOptions.drawTitle,
+            includeTimestamp: printOptions.includeTimestamp,
+            includeSeeding: printOptions.includeSeeding,
+            splitPages: printOptions.splitPages,
+          },
+          action: 'download',
+        });
       },
       close: true,
     },

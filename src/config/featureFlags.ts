@@ -10,7 +10,7 @@ export interface FeatureFlags {
 }
 
 const defaults: FeatureFlags = {
-  pdfPrinting: false,
+  pdfPrinting: true,
   googleSheetsImport: false,
   schedule2: false,
   usePublishState: false,
