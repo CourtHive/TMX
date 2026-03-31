@@ -15,6 +15,15 @@ import { providerConfig } from 'config/providerConfig';
 import type { Schedule2View } from './schedule2Tab';
 export type ScheduleSearchMode = 'individual' | 'team';
 
+// Repeated CSS property literals (extracted to satisfy sonar duplicate-literal rule)
+const BORDER_RADIUS_6 = 'border-radius: 6px';
+const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
+const BG_PRIMARY = 'background: var(--tmx-bg-primary)';
+const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
+const CURSOR_POINTER = 'cursor: pointer';
+const DISPLAY_INLINE_FLEX = 'display: inline-flex';
+const ALIGN_CENTER = 'align-items: center';
+
 interface Schedule2HeaderParams {
   selectedDate: string;
   activeView: Schedule2View;
@@ -65,13 +74,13 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     'font-size: 13px',
     'font-weight: 600',
     'padding: 5px 12px',
-    'border-radius: 6px',
-    'border: 1px solid var(--tmx-border-primary)',
-    'background: var(--tmx-bg-primary)',
-    'color: var(--tmx-color-primary)',
-    'cursor: pointer',
-    'display: inline-flex',
-    'align-items: center',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
+    BG_PRIMARY,
+    COLOR_PRIMARY,
+    CURSOR_POINTER,
+    DISPLAY_INLINE_FLEX,
+    ALIGN_CENTER,
     'gap: 6px',
   ].join('; ');
   const matchUpCount = selectedDateInfo?.matchUpCount ?? 0;
@@ -113,13 +122,13 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
       'position: relative',
       'font-size: 14px',
       'padding: 4px 8px',
-      'border-radius: 6px',
-      'border: 1px solid var(--tmx-border-primary)',
-      'background: var(--tmx-bg-primary)',
-      'cursor: pointer',
+      BORDER_RADIUS_6,
+      BORDER_PRIMARY,
+      BG_PRIMARY,
+      CURSOR_POINTER,
       'color: var(--tmx-accent-orange, #f59e0b)',
-      'display: inline-flex',
-      'align-items: center',
+      DISPLAY_INLINE_FLEX,
+      ALIGN_CENTER,
       'gap: 4px',
     ].join('; ');
     issuesBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
@@ -147,7 +156,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
         maxWidth: 400,
       });
       // keep reference to suppress unused warning
-      void issuesTippy;
+      void issuesTippy; //NOSONAR
     });
   }
 
@@ -197,13 +206,13 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     catalogBtn.style.cssText = [
       'font-size: 13px',
       'padding: 4px 8px',
-      'border-radius: 6px',
-      'border: 1px solid var(--tmx-border-primary)',
-      'background: var(--tmx-bg-primary)',
-      'cursor: pointer',
-      'color: var(--tmx-color-primary)',
-      'display: inline-flex',
-      'align-items: center',
+      BORDER_RADIUS_6,
+      BORDER_PRIMARY,
+      BG_PRIMARY,
+      CURSOR_POINTER,
+      COLOR_PRIMARY,
+      DISPLAY_INLINE_FLEX,
+      ALIGN_CENTER,
       'opacity: 0.7',
       'margin-right: auto',
     ].join('; ');
@@ -225,13 +234,13 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     printBtn.style.cssText = [
       'font-size: 13px',
       'padding: 5px 10px',
-      'border-radius: 6px',
-      'border: 1px solid var(--tmx-border-primary)',
-      'background: var(--tmx-bg-primary)',
-      'cursor: pointer',
+      BORDER_RADIUS_6,
+      BORDER_PRIMARY,
+      BG_PRIMARY,
+      CURSOR_POINTER,
       'color: var(--tmx-accent-blue, #3b82f6)',
-      'display: inline-flex',
-      'align-items: center',
+      DISPLAY_INLINE_FLEX,
+      ALIGN_CENTER,
       'gap: 4px',
     ].join('; ');
     printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 12px;"></i>';
@@ -314,7 +323,7 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
   for (const d of dates) {
     const chip = document.createElement('div');
     const isSelected = d.date === selectedDate;
-    chip.setAttribute('data-date', d.date);
+    chip.dataset.date = d.date;
     chip.style.cssText = [
       'display: flex',
       'justify-content: space-between',
@@ -467,7 +476,7 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
 function scrollToMatchUp(matchUpIds: string[]): void {
   let cell: HTMLElement | null = null;
   for (const mid of matchUpIds) {
-    cell = document.querySelector(`.spl-grid-cell[data-matchup-id="${mid}"]`) as HTMLElement | null;
+    cell = document.querySelector(`.spl-grid-cell[data-matchup-id="${mid}"]`);
     if (cell) break;
   }
   if (!cell) return;
@@ -475,20 +484,19 @@ function scrollToMatchUp(matchUpIds: string[]): void {
   cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
   cell.classList.remove('spl-cell--issue-pulse');
-  void cell.offsetWidth;
+  void cell.offsetWidth; //NOSONAR
   cell.classList.add('spl-cell--issue-pulse');
-  cell.addEventListener('animationend', () => cell!.classList.remove('spl-cell--issue-pulse'), { once: true });
+  cell.addEventListener('animationend', () => cell.classList.remove('spl-cell--issue-pulse'), { once: true });
 }
 
 // ── Helpers ──
 
 function segmentBtnStyle(active: boolean): string {
-  const base =
-    'font-size: 12px; padding: 5px 12px; border: 1px solid var(--tmx-border-primary); cursor: pointer; display: inline-flex; align-items: center; transition: background 0.15s;';
+  const base = `font-size: 12px; padding: 5px 12px; ${BORDER_PRIMARY}; ${CURSOR_POINTER}; ${DISPLAY_INLINE_FLEX}; ${ALIGN_CENTER}; transition: background 0.15s;`;
   if (active) {
     return base + 'background: var(--tmx-accent-blue); color: #fff; font-weight: 600;';
   }
-  return base + 'background: var(--tmx-bg-primary); color: var(--tmx-color-primary);';
+  return base + `${BG_PRIMARY}; ${COLOR_PRIMARY};`;
 }
 
 function fallbackDates(start: string, end: string, selectedDate: string): ScheduleDate[] {
