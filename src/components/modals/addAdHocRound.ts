@@ -2,7 +2,7 @@
  * Add ad-hoc round modal with automated drawMatic or manual generation.
  * Creates new round with optional dynamic ratings and participant selection.
  */
-import { positionActionConstants, tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { positionActionConstants, entryStatusConstants, drawDefinitionConstants, tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { renderForm } from 'courthive-components';
@@ -13,12 +13,16 @@ import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
-import { ADD_ADHOC_MATCHUPS, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
+import { ADD_ADHOC_MATCHUPS, ADD_DRAW_ENTRIES, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
 import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
+const { DIRECT_ACCEPTANCE } = entryStatusConstants;
+const { VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
-const HELP_TEXT_STYLE = 'color: var(--tmx-text-muted, #888); height: auto; padding: 0 0 0.4em 0; line-height: 1.3;';
+const HELP_TEXT_STYLE =
+  'display: none; font-size: 0.75em; line-height: 1.4; padding: 0.5em 0.7em; margin: 0.15em 0 0.4em;' +
+  ' border-radius: 4px; background: var(--tmx-bg-secondary); color: var(--tmx-text-muted);';
 
 type AddAdHocRoundParams = {
   drawId?: string;
@@ -89,6 +93,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     const drawMaticParams = {
       updateParticipantRatings: true,
       dynamicRatings: useDynamicRatings,
+      convertToELO: useDynamicRatings,
       refreshRatings: true,
       participantIds,
       scaleAccessor,
@@ -103,7 +108,13 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     addRound(result);
   };
 
-  const checkParticipants = ({ participantIds }: { participantIds: string[] }) => {
+  const checkParticipants = ({
+    participantIds,
+    existingEntryIds,
+  }: {
+    participantIds: string[];
+    existingEntryIds?: Set<string>;
+  }) => {
     const participantsAvailable = tournamentEngine.getParticipants({
       participantFilters: { participantIds },
     }).participants;
@@ -125,8 +136,33 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     };
 
     const onSelection = (result: any) => {
-      const participantIds = result.selected?.map(({ participantId }: any) => participantId);
-      drawMaticRound(participantIds);
+      const selectedIds = result.selected?.map(({ participantId }: any) => participantId);
+      if (!selectedIds?.length) return;
+
+      // For VC, add entries for newly eligible players before generating the round
+      const newEntryIds = existingEntryIds ? selectedIds.filter((id: string) => !existingEntryIds.has(id)) : [];
+      if (newEntryIds.length) {
+        mutationRequest({
+          methods: [
+            {
+              method: ADD_DRAW_ENTRIES,
+              params: {
+                entryStatus: DIRECT_ACCEPTANCE,
+                entryStage: VOLUNTARY_CONSOLATION,
+                participantIds: newEntryIds,
+                ignoreStageSpace: true,
+                eventId: tournamentEngine.getEvent({ drawId })?.event?.eventId,
+                drawId,
+              },
+            },
+          ],
+          callback: (entryResult: any) => {
+            if (entryResult.success) drawMaticRound(selectedIds);
+          },
+        });
+      } else {
+        drawMaticRound(selectedIds);
+      }
     };
 
     selectParticipant({
@@ -144,11 +180,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     if (inputs[AUTOMATED].value === AUTOMATED) {
       let participantIds: string[];
 
-      if (structure?.stage === 'VOLUNTARY_CONSOLATION') {
-        // For voluntary consolation, get eligible losers from the main structure
-        const eligible = tournamentEngine.getEligibleVoluntaryConsolationParticipants({ drawId });
-        participantIds = (eligible?.eligibleParticipants || []).map((p: any) => p.participantId);
-      } else if (structure?.sourceStructureIds?.length) {
+      if (structure?.sourceStructureIds?.length) {
         // Structure linked from a source — find eligible participants based on link type
         const { drawDefinition } = tournamentEngine.getEvent({ drawId });
         const loserLinks = drawDefinition?.links?.filter(
@@ -199,6 +231,22 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
         } else {
           participantIds = [];
         }
+      } else if (structure?.stage === VOLUNTARY_CONSOLATION) {
+        // Merge current VC entries with newly eligible players
+        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+        const existingEntryIds = new Set<string>(
+          drawDefinition.entries
+            .filter(
+              ({ entryStatus, entryStage }: any) =>
+                !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && entryStage === structure.stage,
+            )
+            .map(({ participantId }: any) => participantId),
+        );
+        const allIds = new Set(existingEntryIds);
+        const eligible = tournamentEngine.getEligibleVoluntaryConsolationParticipants({ drawId });
+        for (const p of eligible?.eligibleParticipants || []) allIds.add(p.participantId);
+        checkParticipants({ participantIds: [...allIds], existingEntryIds });
+        return;
       } else {
         const { drawDefinition } = tournamentEngine.getEvent({ drawId });
         participantIds = drawDefinition.entries
@@ -261,7 +309,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     { label: '5', value: 5 },
   ];
 
-  const helpIcon = '\u24D8'; // circled i
+  const helpIcon = '<span class="help-toggle" style="cursor: pointer; margin-left: 0.4em; color: var(--tmx-text-muted, #888)">\u24D8</span>';
 
   const options: any[] = [
     {
@@ -283,32 +331,48 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       options: scaleOptions,
     },
     {
-      text: `<small>${t('modals.addRound.levelOfPlayHelp')}</small>`,
+      text: `${t('modals.addRound.levelOfPlayHelp')}`,
       style: HELP_TEXT_STYLE,
     },
     {
       label: `${t('modals.addRound.dynamicRatings')} ${helpIcon}`,
       field: 'dynamicRatings',
+      id: 'dynamicRatings',
       checkbox: true,
       checked: hasRatings,
     },
     {
-      text: `<small>${t('modals.addRound.dynamicRatingsHelp')}</small>`,
+      text: `${t('modals.addRound.dynamicRatingsHelp')}`,
       style: HELP_TEXT_STYLE,
     },
     {
       label: `${t('modals.addRound.teamAvoidance')} ${helpIcon}`,
       field: 'teamAvoidance',
+      id: 'teamAvoidance',
       checkbox: true,
       checked: true,
     },
     {
-      text: `<small>${t('modals.addRound.teamAvoidanceHelp')}</small>`,
+      text: `${t('modals.addRound.teamAvoidanceHelp')}`,
       style: HELP_TEXT_STYLE,
     },
   ];
 
-  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options));
+  const content = (elem: HTMLElement) => {
+    inputs = renderForm(elem, options);
+
+    for (const toggle of elem.querySelectorAll('.help-toggle')) {
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const fieldDiv = (toggle as HTMLElement).closest('.field');
+        const helpField = fieldDiv?.nextElementSibling as HTMLElement;
+        if (helpField) {
+          helpField.style.display = helpField.style.display === 'none' ? '' : 'none';
+        }
+      });
+    }
+  };
 
   update = (openModal as any)({ title: t('modals.addRound.title'), content, structure, buttons }).update;
 }

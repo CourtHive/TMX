@@ -807,7 +807,8 @@
     "practice": "练习",
     "maintenance": "维护",
     "unscheduled": "未安排",
-    "noScheduledMatchUps": "没有已安排的比赛"
+    "noScheduledMatchUps": "没有已安排的比赛",
+    "noTimeSet": "未设定时间"
   },
 
   "penalties": {
@@ -1083,6 +1084,14 @@
     "addFlights": {
       "flightsGenerated": "航班已生成",
       "generationFailed": "航班配置生成失败"
+    },
+    "addConsolation": {
+      "title": "添加自愿安慰赛",
+      "structureName": "结构名称",
+      "groupSize": "小组人数",
+      "structureAdded": "自愿安慰赛结构已添加",
+      "selectEligible": "选择符合条件的参赛者",
+      "noEligible": "未找到符合条件的参赛者"
     },
     "addRRplayoffs": {
       "title": "添加附加赛结构",

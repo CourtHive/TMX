@@ -812,7 +812,8 @@
     "practice": "Practice",
     "maintenance": "Maintenance",
     "unscheduled": "Unscheduled",
-    "noScheduledMatchUps": "No scheduled matchUps"
+    "noScheduledMatchUps": "No scheduled matchUps",
+    "noTimeSet": "No time set"
   },
 
   "penalties": {
@@ -1109,7 +1110,8 @@
       "structureName": "Structure name",
       "groupSize": "Group size",
       "structureAdded": "Voluntary consolation structure added",
-      "selectEligible": "Select eligible participants"
+      "selectEligible": "Select eligible participants",
+      "noEligible": "No eligible participants found"
     },
     "addRRplayoffs": {
       "title": "Add playoff structure",

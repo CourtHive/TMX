@@ -27,7 +27,7 @@ const ROW_STYLE =
 const SELECTED_BG = 'var(--tmx-accent-teal, #00b8a9)';
 
 export function luckyLoserSelection({ roundNumber, structureId, callback, drawId }: LuckyLoserSelectionParams) {
-  const result = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
+  const result = tournamentEngine.getLuckyDrawRoundStatus({ drawId, structureId });
   if (!result?.success || !result.isLuckyDraw) return;
 
   const round = result.rounds?.find((r: any) => r.roundNumber === roundNumber && r.isPreFeedRound);

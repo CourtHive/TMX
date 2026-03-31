@@ -24,6 +24,10 @@ export const POLICY_SCHEDULING = {
         averageTimes: [{ categoryNames: [], minutes: { default: 85 } }]
       },
       {
+        matchUpFormatCodes: ['SET3-S:6NOAD/TB7-F:TB10'],
+        averageTimes: [{ categoryNames: [], minutes: { default: 80 } }]
+      },
+      {
         matchUpFormatCodes: ['SET3-S:6/TB7-F:TB7'],
         averageTimes: [{ categoryNames: [], minutes: { default: 70 } }]
       },
@@ -78,7 +82,7 @@ export const POLICY_SCHEDULING = {
     ],
     matchUpRecoveryTimes: [
       {
-        matchUpFormatCodes: ['SET3-S:6/TB7-F:TB10', 'SET3-S:6/TB7-F:TB7', 'SET3-S:6/TB7'],
+        matchUpFormatCodes: ['SET3-S:6NOAD/TB7-F:TB10', 'SET3-S:6/TB7-F:TB10', 'SET3-S:6/TB7-F:TB7', 'SET3-S:6/TB7'],
         recoveryTimes: [{ minutes: { default: 60, [DOUBLES]: 60 } }]
       },
       {

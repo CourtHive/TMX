@@ -1,7 +1,13 @@
-import { eventConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, eventConstants } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 
 const { SINGLES } = eventConstants;
+const { MAIN, QUALIFYING, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+
+const STAGE_LABELS: Record<string, string> = {
+  [QUALIFYING]: 'Q',
+  [VOLUNTARY_CONSOLATION]: 'VC',
+};
 
 export const flightsFormatter = (onClick: (params: any) => void) => (cell: any): HTMLDivElement => {
   const def = cell.getColumn().getDefinition();
@@ -37,6 +43,20 @@ function createPill({ flight, flightClick }: { flight: any; flightClick: (params
   if (flight.eventType === SINGLES) {
     pill.classList.add('is-light');
   }
-  pill.innerHTML = flight.drawName;
+
+  const stageLabel = flight.entryStage && flight.entryStage !== MAIN ? STAGE_LABELS[flight.entryStage] : undefined;
+  if (stageLabel) {
+    const badge = document.createElement('span');
+    badge.style.cssText =
+      'display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;background:rgba(0,0,0,0.15);margin-right:4px;flex-shrink:0';
+    badge.textContent = stageLabel;
+    pill.appendChild(badge);
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = flight.drawName;
+    pill.appendChild(nameSpan);
+  } else {
+    pill.textContent = flight.drawName;
+  }
+
   return pill;
 }

@@ -12,6 +12,22 @@ const BORDER_PRIMARY = 'var(--tmx-border-primary, #ddd)';
 const TEXT_PRIMARY = 'var(--tmx-text-primary, #333)';
 const BG_PRIMARY = 'var(--tmx-bg-primary, #fff)';
 
+function navButtonStyles(enabled: boolean): string {
+  return [
+    'padding: 0.2em 0.5em',
+    'border-radius: 4px',
+    `border: 1px solid ${enabled ? BORDER_PRIMARY : 'transparent'}`,
+    `background: ${enabled ? BG_PRIMARY : 'transparent'}`,
+    `color: ${enabled ? TEXT_PRIMARY : 'var(--tmx-text-secondary, #aaa)'}`,
+    `cursor: ${enabled ? 'pointer' : 'default'}`,
+    'font-size: 0.85em',
+    'font-weight: 600',
+    'line-height: 1',
+    `opacity: ${enabled ? '1' : '0.4'}`,
+    'transition: all 0.15s',
+  ].join('; ');
+}
+
 function chipStyles(isSelected: boolean): string {
   return [
     'padding: 0.3em 0.8em',
@@ -47,7 +63,25 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
   wrapper.style.cssText = 'display: flex; gap: 0.5em; align-items: center; padding: 0.4em 0.5em; overflow-x: auto; width: 100%; box-sizing: border-box;';
 
   if (manyEvents) {
-    // Only show selected event chip + "All Events" link
+    const selectedIndex = events.findIndex((e: any) => e.eventId === eventId);
+
+    // [<<] Previous event button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'event-selector-nav';
+    prevBtn.innerHTML = '&#171;'; // «
+    prevBtn.title = 'Previous event';
+    prevBtn.style.cssText = navButtonStyles(selectedIndex > 0);
+    prevBtn.disabled = selectedIndex <= 0;
+    if (selectedIndex > 0) {
+      prevBtn.onclick = () => {
+        const prev = events[selectedIndex - 1];
+        const draws = prev.drawDefinitions || [];
+        navigateToEvent({ eventId: prev.eventId, renderDraw: draws.length > 0, drawId: draws.length === 1 ? draws[0].drawId : undefined });
+      };
+    }
+    wrapper.appendChild(prevBtn);
+
+    // Selected event chip
     const selectedEvent = events.find((e: any) => e.eventId === eventId);
     if (selectedEvent) {
       const chip = document.createElement('button');
@@ -56,6 +90,22 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
       chip.style.cssText = chipStyles(true);
       wrapper.appendChild(chip);
     }
+
+    // [>>] Next event button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'event-selector-nav';
+    nextBtn.innerHTML = '&#187;'; // »
+    nextBtn.title = 'Next event';
+    nextBtn.style.cssText = navButtonStyles(selectedIndex < events.length - 1);
+    nextBtn.disabled = selectedIndex >= events.length - 1;
+    if (selectedIndex < events.length - 1) {
+      nextBtn.onclick = () => {
+        const next = events[selectedIndex + 1];
+        const draws = next.drawDefinitions || [];
+        navigateToEvent({ eventId: next.eventId, renderDraw: draws.length > 0, drawId: draws.length === 1 ? draws[0].drawId : undefined });
+      };
+    }
+    wrapper.appendChild(nextBtn);
   } else {
     for (const event of events) {
       const isSelected = event.eventId === eventId;

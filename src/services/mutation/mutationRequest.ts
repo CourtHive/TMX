@@ -130,7 +130,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
     queryDateRange({ state, providerIds, mutate });
     return;
   }
-  if (providerIds.length && !offline) {
+  if (providerIds.length && !offline && state) {
     checkPermissions({ state, providerIds, mutate });
     return;
   }

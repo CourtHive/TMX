@@ -83,7 +83,7 @@ export function printSchedule(options: PrintScheduleOptions): void {
           .value;
 
         try {
-          await generateSchedulePDF({
+          generateSchedulePDF({
             tournament,
             scheduledDate,
             courts,
@@ -113,7 +113,7 @@ export function printSchedule(options: PrintScheduleOptions): void {
           .value;
 
         try {
-          await generateSchedulePDF({
+          generateSchedulePDF({
             tournament,
             scheduledDate,
             courts,

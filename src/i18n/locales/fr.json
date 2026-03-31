@@ -773,7 +773,8 @@
     "practice": "Entraînement",
     "maintenance": "Maintenance",
     "unscheduled": "Non programmés",
-    "noScheduledMatchUps": "Aucun match programmé"
+    "noScheduledMatchUps": "Aucun match programmé",
+    "noTimeSet": "Heure non définie"
   },
 
   "penalties": {
@@ -1047,6 +1048,14 @@
     "addFlights": {
       "flightsGenerated": "Tableaux générés",
       "generationFailed": "Échec de la génération du profil de tableau"
+    },
+    "addConsolation": {
+      "title": "Ajouter une consolation volontaire",
+      "structureName": "Nom de la structure",
+      "groupSize": "Taille du groupe",
+      "structureAdded": "Structure de consolation volontaire ajoutée",
+      "selectEligible": "Sélectionner les participants éligibles",
+      "noEligible": "Aucun participant éligible trouvé"
     },
     "addRRplayoffs": {
       "title": "Ajouter une structure de barrage",

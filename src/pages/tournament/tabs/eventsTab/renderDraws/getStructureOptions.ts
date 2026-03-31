@@ -5,15 +5,25 @@
 import { tools, drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editStructureNames } from 'components/modals/editStructureNames';
-import { addConsolation } from 'components/modals/addConsolation';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { editGroupNames } from 'components/modals/editGroupNames';
 import { addStructures } from 'components/modals/addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { renderDrawView } from './renderDrawView';
 
-const { FINISHING_POSITIONS, CONTAINER, MAIN, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+import { ATTACH_CONSOLATION_STRUCTURES, REMOVE_STAGE_ENTRIES } from 'constants/mutationConstants';
 
-export function getStructureOptions({ drawData, eventId, structureId }: { drawData: any; eventId: string; structureId: string }): any[] {
+const { FINISHING_POSITIONS, CONTAINER, MAIN, AD_HOC, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+
+export function getStructureOptions({
+  drawData,
+  eventId,
+  structureId,
+}: {
+  drawData: any;
+  eventId: string;
+  structureId: string;
+}): any[] {
   if (!drawData) return [];
   const drawId = drawData.drawId;
 
@@ -25,7 +35,14 @@ export function getStructureOptions({ drawData, eventId, structureId }: { drawDa
   };
   const profiles = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
   const canAddPlayoffs = profiles?.playoffRounds?.length || profiles?.playoffFinishingPositionRanges?.length;
-  const canAddQualifying = tournamentEngine.isValidForQualifying({ drawId, structureId })?.valid;
+  const canAddQualifying = (() => {
+    if (!tournamentEngine.isValidForQualifying({ drawId, structureId })?.valid) return false;
+    // Hide when all positions are already filled (participants or byes)
+    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+    const mainStructure = drawDefinition?.structures?.find((s: any) => s.structureId === structureId);
+    const positions = mainStructure?.positionAssignments || [];
+    return positions.some((p: any) => !p.participantId && !p.bye);
+  })();
 
   const addNewQualifying = () => {
     addDraw({
@@ -46,19 +63,17 @@ export function getStructureOptions({ drawData, eventId, structureId }: { drawDa
   const structure = drawData.structures.find((structure: any) => structure.structureId === structureId);
   const isRoundRobin = structure?.structureType === CONTAINER;
 
-  // Consolation can be added when the current structure is a MAIN elimination draw
-  // and no VOLUNTARY_CONSOLATION structure already exists with matchUps
+  // Consolation can be added for elimination draws (SE, Lucky) — not AD_HOC or RR
   const isMainStructure = structure?.stage === MAIN && structure?.stageSequence === 1;
-  const hasConsolation = drawData.structures.some(
-    (s: any) => s.stage === VOLUNTARY_CONSOLATION && s.matchUps?.length,
-  );
-  const canAddConsolation = isMainStructure && !isRoundRobin && !hasConsolation;
+  const isAdHocDraw = drawData.drawType === AD_HOC;
+  const hasConsolation = drawData.structures.some((s: any) => s.stage === VOLUNTARY_CONSOLATION);
+  const canAddConsolation = isMainStructure && !isRoundRobin && !isAdHocDraw && !hasConsolation;
 
   return drawData.structures
     .sort((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
     .map((structure: any) => ({
       onClick: () => {
-        navigateToEvent({ eventId, drawId, structureId: structure.structureId, renderDraw: true });
+        renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true });
       },
       label: structure.structureName || structure.stage || 'Structure',
       close: true,
@@ -93,7 +108,48 @@ export function getStructureOptions({ drawData, eventId, structureId }: { drawDa
         close: true,
       },
       {
-        onClick: () => (addConsolation as any)({ drawId, callback: refreshAfterStructuralChange }),
+        onClick: () => {
+          // First purge any leftover VC entries, then create empty structure
+          const purgeAndCreate = () => {
+            const genResult = tournamentEngine.generateVoluntaryConsolation({
+              structureName: 'Consolation',
+              attachConsolation: false,
+              drawId,
+            });
+            if (genResult.error || !genResult.structures?.length) {
+              console.error('[addVC] generateVoluntaryConsolation failed:', genResult.error || 'no structures');
+              return;
+            }
+            const vcStructureId = genResult.structures[0].structureId;
+            mutationRequest({
+              methods: [
+                {
+                  method: ATTACH_CONSOLATION_STRUCTURES,
+                  params: { structures: genResult.structures, links: genResult.links, drawId },
+                },
+              ],
+              callback: (result: any) => {
+                if (result.success) {
+                  navigateToEvent({ eventId, drawId, structureId: vcStructureId, renderDraw: true });
+                }
+              },
+            });
+          };
+
+          // Check for leftover VC entries and remove them first
+          const { drawDefinition: dd } = tournamentEngine.getEvent({ drawId });
+          const hasVcEntries = dd?.entries?.some((e: any) => e.entryStage === VOLUNTARY_CONSOLATION);
+          if (hasVcEntries) {
+            mutationRequest({
+              methods: [{ method: REMOVE_STAGE_ENTRIES, params: { drawId, entryStage: VOLUNTARY_CONSOLATION } }],
+              callback: (result: any) => {
+                if (result.success) purgeAndCreate();
+              },
+            });
+          } else {
+            purgeAndCreate();
+          }
+        },
         hide: !canAddConsolation,
         label: 'Add voluntary consolation',
         modifyLabel: false,

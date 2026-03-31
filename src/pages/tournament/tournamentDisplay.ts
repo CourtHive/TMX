@@ -35,6 +35,7 @@ import {
   hadDisconnect,
   clearDisconnectFlag,
 } from 'services/messaging/socketIo';
+import { connectRelay, disconnectRelay, onTournamentScore } from 'services/messaging/scoreRelay';
 import {
   MATCHUPS_TAB,
   PARTICIPANTS,
@@ -65,6 +66,7 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     slog('[tournament] switching from %s to %s (loggedIn=%s)', prevId, config.tournamentId, !!getLoginState());
     context.ee.emit(LEAVE_TOURNAMENT, prevId);
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
+    disconnectRelay();
     tmx2db
       .findTournament(config.tournamentId)
       .then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
@@ -87,6 +89,12 @@ function renderTournament({ config }: { config: any }): void {
       config.tournamentId,
       !!getLoginState(),
     );
+  }
+
+  // Connect to score relay for live scores from trackers
+  if (config.tournamentId) {
+    connectRelay(config.tournamentId);
+    onTournamentScore(handleRelayScore);
   }
 }
 
@@ -169,6 +177,47 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
   } else {
     tournamentEngine.setState(tournamentRecord);
     renderTournament({ config });
+  }
+}
+
+/**
+ * Handle a live score arriving from the score relay.
+ * Pulses the matchUp's score cell in any visible table and refreshes data.
+ */
+function handleRelayScore(data: any): void {
+  slog('[relay] tournament score update:', data.matchUpId);
+  pulseMatchUpScore(data.matchUpId);
+
+  if (context.refreshActiveTable) {
+    context.refreshActiveTable();
+  }
+}
+
+/**
+ * Add a brief pulse animation to the score cell of the given matchUpId
+ * in any active Tabulator table that uses matchUpId as its index.
+ */
+function pulseMatchUpScore(matchUpId: string): void {
+  if (!context.tables) return;
+
+  for (const table of Object.values(context.tables) as any[]) {
+    if (!table?.getRow) continue;
+
+    try {
+      const row = table.getRow(matchUpId);
+      if (!row) continue;
+
+      const cell = row.getCell('score');
+      if (!cell) continue;
+
+      const el = cell.getElement();
+      if (el) {
+        el.classList.add('live-score-pulse');
+        setTimeout(() => el.classList.remove('live-score-pulse'), 3000);
+      }
+    } catch {
+      // Row doesn't exist in this table — skip
+    }
   }
 }
 

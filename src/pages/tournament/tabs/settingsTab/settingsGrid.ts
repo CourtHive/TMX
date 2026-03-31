@@ -56,7 +56,6 @@ function persistAll(
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
-    pdfPrinting: displayInputs.pdfPrinting?.checked || false,
     googleSheetsImport: displayInputs.googleSheetsImport?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
     enableChat: displayInputs.enableChat?.checked || false,
@@ -295,14 +294,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
     {
-      label: t('modals.settings.pdfPrinting'),
-      checked: featureFlags.get().pdfPrinting || false,
-      field: 'pdfPrinting',
-      id: 'pdfPrinting',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
       label: t('modals.settings.googleSheetsImport'),
       checked: featureFlags.get().googleSheetsImport || false,
       field: 'googleSheetsImport',
@@ -483,11 +474,11 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     const providerId = provider?.organisationId;
     const state = getLoginState();
     const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-    const canDelete = superAdmin || state?.permissions?.includes('deleteTournament');
+    const canDeleteOnServer = superAdmin || state?.permissions?.includes('deleteTournament');
     const activeProvider = context.provider || state?.provider;
 
-    // Show for local tournaments (no provider) or when user has delete permission
-    if (tournamentRecord && (!providerId || canDelete)) {
+    const isProviderTournament = !!(activeProvider && providerId);
+    if (tournamentRecord && (!isProviderTournament || canDeleteOnServer)) {
       const deletePanel = document.createElement('div');
       deletePanel.className = 'settings-panel panel-red';
       deletePanel.style.gridColumn = '3 / 5';
@@ -500,8 +491,9 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       deleteBtn.addEventListener('click', () => {
         const tournamentId = tournamentRecord.tournamentId;
         const provId = state?.providerId || providerId;
-        const navigateAway = () => {
-          if (provId) removeProviderTournament({ tournamentId, providerId: provId });
+        const navigateAway = async () => {
+          tournamentEngine.reset();
+          if (provId) await removeProviderTournament({ tournamentId, providerId: provId });
           context.router?.navigate(`/${TMX_TOURNAMENTS}`);
         };
         const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
@@ -509,8 +501,11 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
         tmxToast({
           action: {
             onClick: () => {
-              if (activeProvider && provId) {
-                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => console.log(err));
+              if (activeProvider && provId && canDeleteOnServer) {
+                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => {
+                  console.error('[deleteTournament] server error:', err);
+                  localDelete();
+                });
               } else {
                 localDelete();
               }

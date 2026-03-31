@@ -2,6 +2,8 @@
  * Ratings progression table for ad-hoc (DrawMatic) draws.
  * Shows dynamic rating changes per participant across rounds.
  */
+import { formatParticipant } from '../common/formatters/participantFormatter';
+import { participantSorter } from '../common/sorters/participantSorter';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
@@ -13,6 +15,21 @@ import { scalesMap } from 'config/scalesConfig';
 import tippy, { type Instance } from 'tippy.js';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
+
+const { ratingsParameters } = fixtures;
+const ELO_RANGE = ratingsParameters.ELO?.range || [0, 3000];
+
+/** Convert a source-scale rating to ELO via linear range interpolation. */
+function convertToElo(sourceRating: number, sourceRatingType: string): number | undefined {
+  const params = ratingsParameters[sourceRatingType];
+  if (!params?.range) return undefined;
+  const range = params.range;
+  const inverted = range[0] > range[1];
+  const value = inverted ? range[0] - sourceRating : sourceRating;
+  const [minS, maxS] = inverted ? [range[1], range[0]] : range;
+  const [minT, maxT] = ELO_RANGE;
+  return Math.round(((value - minS) * (maxT - minT)) / (maxS - minS) + minT);
+}
 
 type CreateRatingsTableParams = {
   structureId: string;
@@ -156,16 +173,19 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     .map((mu: any) => mu.matchUpId);
 
   let computedRatings: Record<string, any> = {};
+  let isEloDynamic = false;
   if (completedMatchUpIds.length) {
     const { tournamentRecord } = tournamentEngine.getTournament();
     scaleEngine.setState(tournamentRecord);
     const result = scaleEngine.generateDynamicRatings({
       matchUpIds: completedMatchUpIds,
       ratingType: activeScale,
+      convertToELO: true,
       asDynamic: true,
     });
     if (result.modifiedScaleValues) {
       computedRatings = result.modifiedScaleValues;
+      isEloDynamic = !!result.sourceRatingType;
     }
   }
 
@@ -180,6 +200,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     const row: any = {
       participantId: pid,
       participantName: participant.participantName || 'Unknown',
+      participant,
     };
 
     const ratings = participant.ratings?.[matchUpType] || [];
@@ -190,16 +211,29 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
 
     // Dynamic rating: prefer on-the-fly calculation, fall back to persisted value
     const computedEntry = computedRatings[pid];
-    const computedValue = computedEntry ? extractNumeric(computedEntry.scaleValue, accessor) : undefined;
-    const dynEntry = ratings.find((r: any) => r.scaleName === dynamicScaleName);
-    const persistedValue = extractNumeric(dynEntry?.scaleValue, accessor);
+    // When convertToELO, computed values are plain numbers (no accessor wrapping)
+    const computedValue = computedEntry
+      ? isEloDynamic
+        ? computedEntry.scaleValue
+        : extractNumeric(computedEntry.scaleValue, accessor)
+      : undefined;
+    const dynEntry = ratings.find((r: any) => r.scaleName === dynamicScaleName || r.scaleName === 'ELO.DYNAMIC');
+    const persistedValue = dynEntry
+      ? dynEntry.scaleName === 'ELO.DYNAMIC'
+        ? extractNumeric(dynEntry.scaleValue, undefined)
+        : extractNumeric(dynEntry.scaleValue, accessor)
+      : undefined;
     const dynValue = computedValue ?? persistedValue;
 
     if (dynValue != null) {
       hasDynamic = true;
-      row.dynamicRating = dynValue;
+      const roundedDyn = isEloDynamic ? Math.round(dynValue) : dynValue;
+      row.dynamicRating = roundedDyn;
       if (row.rating != null) {
-        row.ratingChange = +(dynValue - row.rating).toFixed(2);
+        const baseValue = isEloDynamic ? convertToElo(row.rating, activeScale) : row.rating;
+        if (baseValue) {
+          row.ratingChange = +((( roundedDyn - baseValue) / baseValue) * 100).toFixed(1);
+        }
       }
     }
 
@@ -249,7 +283,9 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     {
       title: 'Participant',
       field: 'participantName',
-      minWidth: 140,
+      formatter: formatParticipant(undefined),
+      sorter: participantSorter,
+      minWidth: 180,
       frozen: true,
     },
     {
@@ -322,27 +358,35 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   if (hasDynamic) {
     columns.push(
       {
-        title: 'Dynamic',
+        title: isEloDynamic ? `ELO<br>(from ${activeScale})` : 'Dynamic',
         field: 'dynamicRating',
+        headerHozAlign: 'center',
         hozAlign: 'center',
-        width: 100,
-        formatter: ratingFormatter,
+        width: 150,
+        formatter: (cell: any) => {
+          const val = cell.getValue();
+          if (val == null) return '-';
+          return isEloDynamic ? Math.round(val).toString() : val.toFixed(2);
+        },
       },
       {
         title: 'Change',
         field: 'ratingChange',
         hozAlign: 'center',
+        headerHozAlign: 'center',
         width: 100,
         formatter: (cell: any) => {
           const val = cell.getValue();
           if (val == null) return '-';
-          // ascending: lower is better (WTN) → negative change is good (green)
-          // !ascending: higher is better (UTR) → positive change is good (green)
-          const isImprovement = ascending ? val < 0 : val > 0;
-          const isDecline = ascending ? val > 0 : val < 0;
+          // Positive % = numeric value went up
+          // ELO: higher is always better, so positive % is always improvement
+          // Source scale: ascending=true means lower is better (WTN), so positive % is decline
+          const pctAscending = isEloDynamic ? false : ascending;
+          const isImprovement = pctAscending ? val < 0 : val > 0;
+          const isDecline = pctAscending ? val > 0 : val < 0;
           const color = isImprovement ? 'green' : isDecline ? 'red' : '';
           const prefix = val > 0 ? '+' : '';
-          return `<span style="color: ${color}; font-weight: bold;">${prefix}${val.toFixed(2)}</span>`;
+          return `<span style="color: ${color}; font-weight: bold;">${prefix}${val.toFixed(1)}%</span>`;
         },
       },
     );

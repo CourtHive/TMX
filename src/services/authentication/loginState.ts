@@ -40,7 +40,9 @@ export function logOut(): void {
   removeToken();
   checkDevState();
   disconnectSocket();
-  context.provider = undefined; // clear provider
+  tournamentEngine.reset();
+  context.provider = undefined;
+  context.matchUpFilters = {};
   context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
 }

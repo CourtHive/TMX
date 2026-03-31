@@ -1,255 +1,175 @@
 /**
- * Draw Sheet PDF Generator
- * Generates PDF documents for tournament draws
+ * Draw Sheet PDF Generator — uses pdf-factory
+ *
+ * Generates PDFs for tournament draws using getEventData/drawsData pipeline.
+ * Context-sensitive: detects draw type and routes to the appropriate renderer.
  */
-import { savePDF, openPDF } from '../export/pdfExport';
-import { formatDate } from '../utils/primitives';
-import { renderDrawToPNG, canRenderDraw } from '../utils/drawRenderer';
-import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+
+import { tournamentEngine } from 'tods-competition-factory';
+import { openPDF, savePDF } from '../export/pdfExport';
+import {
+  getCatalogPreset,
+  structureToDrawData,
+  findStructure,
+  generateTraditionalDrawPDF,
+  generateSplitDrawPDF,
+  generateConsolationDrawPDF,
+  generateDoubleEliminationPDF,
+  generateBackdrawPDF,
+  generateMirroredDrawPDF,
+} from 'pdf-factory';
 
 interface DrawPDFOptions {
   drawTitle?: string;
   includeSeeding?: boolean;
-  includeRankings?: boolean;
   includeTimestamp?: boolean;
   includeOrganizers?: boolean;
+  catalogPreset?: string;
+  headerLayout?: string;
+  footerLayout?: string;
+  mirrored?: boolean;
+  backdraw?: boolean;
+  splitPages?: boolean;
 }
 
 interface GenerateDrawPDFParams {
   tournament?: any;
-  event: any;
-  drawDefinition: any;
+  event?: any;
+  drawDefinition?: any;
+  drawId?: string;
+  eventId?: string;
   structureId?: string;
   options?: DrawPDFOptions;
   action?: 'open' | 'download';
 }
 
 /**
- * Generate a PDF for a draw
+ * Generate a PDF for a draw structure.
+ *
+ * Uses getEventData() → drawsData pipeline for all draw data.
+ * Automatically detects draw type (single elimination, consolation,
+ * double elimination, feed-in, etc.) and routes to the correct renderer.
  */
-export async function generateDrawPDF({
+export function generateDrawPDF({
   tournament,
   event,
-  drawDefinition,
+  drawId,
   structureId,
   options = {},
   action = 'download',
-}: GenerateDrawPDFParams): Promise<void> {
-  const {
-    drawTitle = drawDefinition.drawName || event.eventName,
-    includeSeeding = true,
-    includeTimestamp = true,
-    includeOrganizers = true,
-  } = options;
+}: GenerateDrawPDFParams): void {
+  const { drawTitle, includeTimestamp = true, catalogPreset, headerLayout, footerLayout } = options;
 
-  // Try to render the draw
-  let drawImageDataURI: string | undefined;
-  const canRender = canRenderDraw(drawDefinition.drawId, structureId);
-  
-  if (canRender) {
-    try {
-      drawImageDataURI = await renderDrawToPNG({
-        drawId: drawDefinition.drawId,
-        structureId,
-        width: 1600,
-        height: 10000, // Very tall to capture full draw
-      });
-    } catch (error) {
-      console.error('Error rendering draw to PNG:', error);
-      // Continue without draw image
-    }
-  }
+  // Get eventData via the standard pipeline
+  const { eventData } = tournamentEngine.getEventData({ drawId }) as any;
+  if (!eventData?.drawsData?.length) return;
 
-  // Build document definition
-  const docDefinition: TDocumentDefinitions = {
-    pageSize: 'LETTER',
-    pageOrientation: 'portrait',
-    pageMargins: [20, 40, 20, 40], // Smaller margins for more space
+  const tournamentInfo = eventData.tournamentInfo || tournament || {};
+  const eventInfo = eventData.eventInfo || event || {};
 
-    content: [
-      // Header
-      {
-        columns: [
-          {
-            width: '*',
-            stack: [
-              {
-                text: tournament?.tournamentName || event.eventName || 'Tournament',
-                style: 'tournamentName',
-              },
-              {
-                text: formatDate(tournament?.startDate || event.startDate || new Date()),
-                style: 'tournamentDate',
-              },
-            ],
-          },
-          // Space for logo (future)
-          {
-            width: 80,
-            text: '',
-          },
-        ],
-      },
-      {
-        text: drawTitle,
-        style: 'drawTitle',
-        alignment: 'center',
-        margin: [0, 10, 0, 20],
-      },
+  // Resolve composition catalog preset for header/footer/format defaults
+  const catalog = catalogPreset ? getCatalogPreset(catalogPreset) : undefined;
 
-      // Event details - compact inline format
-      {
-        text: [
-          { text: 'Event: ', bold: true },
-          { text: event.eventName || '' },
-          { text: ' | Category: ', bold: true },
-          { text: event.category?.categoryName || '' },
-          { text: ' | Draw Size: ', bold: true },
-          { text: drawDefinition.drawSize || '' },
-        ],
-        fontSize: 9,
-        margin: [0, 5, 0, 10],
-      },
-
-      // Draw content
-      ...(drawImageDataURI
-        ? [
-            {
-              image: drawImageDataURI,
-              width: 550, // Full width in portrait
-              alignment: 'center',
-              margin: [0, 10, 0, 10],
-            },
-          ]
-        : [
-            {
-              text: '[Draw Bracket]',
-              alignment: 'center',
-              fontSize: 14,
-              italics: true,
-              color: '#999',
-              margin: [0, 40, 0, 40],
-            },
-            {
-              text: 'Unable to render draw bracket. Ensure draw has participants and matches.',
-              alignment: 'center',
-              fontSize: 10,
-              color: '#666',
-              margin: [0, 0, 0, 40],
-            },
-          ]),
-
-      // Seeding information (if enabled)
-      ...(includeSeeding ? getSeededPlayersContent() : []),
-
-      // Footer information
-      ...(includeTimestamp
-        ? [
-            {
-              text: `Generated: ${new Date().toLocaleString()}`,
-              fontSize: 8,
-              color: '#666',
-              margin: [0, 20, 0, 0],
-            },
-          ]
-        : []),
-      ...(includeOrganizers && tournament?.organizers
-        ? [
-            {
-              text: `Organizers: ${tournament.organizers}`,
-              fontSize: 8,
-              color: '#666',
-            },
-          ]
-        : []),
-    ],
-
-    styles: {
-      tournamentName: {
-        fontSize: 16,
-        bold: true,
-      },
-      tournamentDate: {
-        fontSize: 10,
-        color: '#666',
-      },
-      drawTitle: {
-        fontSize: 18,
-        bold: true,
-      },
-      label: {
-        fontSize: 10,
-        bold: true,
-        color: '#666',
-      },
-      value: {
-        fontSize: 10,
-      },
-      sectionHeader: {
-        fontSize: 12,
-        bold: true,
-        margin: [0, 10, 0, 5],
-      },
-      seededPlayer: {
-        fontSize: 9,
-      },
-    },
+  // Build header — explicit headerLayout overrides catalog, catalog overrides default
+  const resolvedHeaderLayout = headerLayout || catalog?.header?.layout || 'itf';
+  const header: any = {
+    layout: resolvedHeaderLayout,
+    tournamentName: drawTitle || tournamentInfo.tournamentName || eventInfo.eventName || 'Tournament',
+    subtitle: eventInfo.eventName,
+    startDate: tournamentInfo.startDate,
+    endDate: tournamentInfo.endDate,
+    location: tournamentInfo.venues?.[0]?.venueName,
+    city: tournamentInfo.venues?.[0]?.city,
+    country: tournamentInfo.hostCountryCode,
+    surface: eventInfo.surfaceCategory,
   };
 
-  // Execute action based on parameter
+  // Build footer — explicit footerLayout overrides catalog, catalog overrides default
+  const resolvedFooterLayout = footerLayout || catalog?.footer?.layout || 'standard';
+  const footer: any = {
+    layout: resolvedFooterLayout,
+    showPageNumbers: catalog?.footer?.showPageNumbers ?? true,
+    showTimestamp: includeTimestamp,
+  };
+
+  // Format preset: catalog's drawFormatPreset, or fallback to itfJunior
+  const formatPreset = catalog?.drawFormatPreset || 'itfJunior';
+
+  const pdfOpts = { header, footer, preset: formatPreset };
+
+  // Detect draw type from structures
+  const structures = eventData.drawsData[0].structures || [];
+  const hasConsolation = structures.some((s: any) => s.stage === 'CONSOLATION');
+  const hasPlayOff = structures.some((s: any) => s.stage === 'PLAY_OFF');
+  const mainStruct = structures.find((s: any) => s.stage === 'MAIN');
+
+  let doc;
+
+  // Mirrored bracket (NCAA)
+  if (options.mirrored && mainStruct) {
+    doc = generateMirroredDrawPDF(structureToDrawData(mainStruct), pdfOpts);
+  }
+  // Backdraw (USTA Playback — FIRST_ROUND_LOSER_CONSOLATION)
+  else if (options.backdraw && hasConsolation && mainStruct) {
+    doc = generateBackdrawPDF(
+      {
+        mainDraw: structureToDrawData(mainStruct),
+        consolation: structureToDrawData(findStructure(eventData.drawsData, 'CONSOLATION')),
+      },
+      pdfOpts,
+    );
+  }
+  // Double elimination (MAIN + CONSOLATION + PLAY_OFF)
+  else if (hasConsolation && hasPlayOff) {
+    doc = generateDoubleEliminationPDF(
+      {
+        winnersBracket: mainStruct ? structureToDrawData(mainStruct) : emptyDraw(),
+        losersBracket: findStructure(eventData.drawsData, 'CONSOLATION')
+          ? structureToDrawData(findStructure(eventData.drawsData, 'CONSOLATION'))
+          : emptyDraw(),
+        deciderMatch: findStructure(eventData.drawsData, 'PLAY_OFF')
+          ? structureToDrawData(findStructure(eventData.drawsData, 'PLAY_OFF'))
+          : undefined,
+      },
+      pdfOpts,
+    );
+  }
+  // Consolation (MAIN + CONSOLATION)
+  else if (hasConsolation) {
+    const consolStructures = structures.map((s: any) => ({
+      name: s.structureName,
+      stage: s.stage,
+      drawData: structureToDrawData(s),
+    }));
+    doc = generateConsolationDrawPDF(consolStructures, pdfOpts);
+  }
+  // Specific structure requested
+  else if (structureId) {
+    const targetStruct = structures.find((s: any) => s.structureId === structureId) || mainStruct;
+    if (targetStruct) {
+      const drawData = structureToDrawData(targetStruct);
+      doc = options.splitPages
+        ? generateSplitDrawPDF(drawData, pdfOpts)
+        : generateTraditionalDrawPDF(drawData, pdfOpts);
+    }
+  }
+  // Single structure — auto-detect
+  else if (mainStruct) {
+    const drawData = structureToDrawData(mainStruct);
+    doc = generateTraditionalDrawPDF(drawData, pdfOpts);
+  }
+
+  if (!doc) return;
+
+  const filename = `${(header.tournamentName || 'draw').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+
   if (action === 'open') {
-    await openPDF({ docDefinition });
+    openPDF({ doc });
   } else {
-    const filename = `${drawTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-    await savePDF({ docDefinition, filename });
+    savePDF({ doc, filename });
   }
 }
 
-/**
- * Get seeded players content for PDF
- */
-function getSeededPlayersContent(): any[] {
-  // TODO: Extract seeded participants from drawDefinition
-  // For now, return placeholder
-  
-  const content = [
-    {
-      text: 'Seeded Players',
-      style: 'sectionHeader',
-    },
-    {
-      text: 'Seeded players list will be populated from draw data.',
-      fontSize: 9,
-      italics: true,
-      color: '#999',
-      margin: [0, 5, 0, 0],
-    },
-  ];
-
-  // Example of how seeded players would be displayed:
-  // const seededPlayers = extractSeededParticipants(drawDefinition);
-  // if (seededPlayers.length > 0) {
-  //   content.push({
-  //     ol: seededPlayers.map(p => {
-  //       const name = fullName(p.participant);
-  //       const ranking = includeRankings ? ` [${p.ranking || 'NR'}]` : '';
-  //       return `${name}${ranking}`;
-  //     }),
-  //     fontSize: 9,
-  //   });
-  // }
-
-  return content;
+function emptyDraw() {
+  return { drawName: '', drawSize: 0, drawType: '', totalRounds: 0, slots: [], matchUps: [], seedAssignments: [] };
 }
-
-/**
- * Extract seeded participants from draw definition
- * TODO: Implement when integrating with factory data
- */
-// function extractSeededParticipants(drawDefinition: any): any[] {
-//   // Get all participants from structures
-//   // Filter for seeded participants
-//   // Sort by seed number
-//   // Return formatted list
-//   return [];
-// }

@@ -1,5 +1,5 @@
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { setTieScore } from 'components/overlays/scorecard/scorecard';
+import { updateTieScore } from 'courthive-components';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
@@ -18,7 +18,7 @@ export function scoreHandler(_e: any, cell: any): void {
       table.redraw(true);
 
       const tieResult = result.results.find(({ methodName }: any) => methodName === SET_MATCHUP_STATUS)?.tieMatchUpResult;
-      setTieScore(tieResult);
+      updateTieScore(tieResult);
     } else {
       console.log({ result });
     }

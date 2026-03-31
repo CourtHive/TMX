@@ -3,22 +3,20 @@
  * Provides menu options for editing, removing, and resetting draw structures.
  */
 import { tournamentEngine, eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
-import { t } from 'i18n';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openConfigureDraft } from 'components/modals/draftConfigure';
+import { openResolveDraft } from 'components/modals/draftResolve';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { resetDraws } from 'components/modals/resetDraws';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { removeStructure } from './removeStructure';
 import { printDraw } from 'components/modals/printDraw';
-
-import { openConfigureDraft } from 'components/modals/draftConfigure';
-import { openResolveDraft } from 'components/modals/draftResolve';
+import { removeStructure } from './removeStructure';
 import { renderDrawView } from './renderDrawView';
-import { featureFlags } from 'config/featureFlags';
+import { t } from 'i18n';
 
 // constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
@@ -71,9 +69,7 @@ export function getActionOptions({
 
   // Check position assignments for menu item visibility
   const { positionAssignments } = tournamentEngine.getPositionAssignments({ structureId, drawId });
-  const isEmptyDraw = positionAssignments?.every(
-    (pa: any) => !pa.participantId && !pa.bye && !pa.qualifier,
-  );
+  const isEmptyDraw = positionAssignments?.every((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier);
   const hasUnassignedPositions = positionAssignments?.some((pa: any) => !pa.participantId && !pa.bye);
 
   const scorecardUpdated = () => {
@@ -168,7 +164,6 @@ export function getActionOptions({
       close: true,
     },
     {
-      hide: !featureFlags.get().pdfPrinting, // Only show if PDF printing beta feature is enabled
       onClick: () => printDraw({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.printDraw'),
       close: true,

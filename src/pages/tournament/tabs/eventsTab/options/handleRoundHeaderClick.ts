@@ -5,12 +5,14 @@
 import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHocRoundOptions';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
+import { printRoundMatchCards } from 'components/modals/printMatchCards';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tournamentEngine } from 'tods-competition-factory';
-import { scheduleRound } from './scheduleRound';
 import { tipster } from 'components/popovers/tipster';
+import { scheduleRound } from './scheduleRound';
 
+// Constants
 import { BOTTOM } from 'constants/tmxConstants';
 
 export function handleRoundHeaderClick(props: any): void {
@@ -42,7 +44,7 @@ export function handleRoundHeaderClick(props: any): void {
   }
 
   // Lucky draw: show round panel for any pre-feed round
-  const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId });
+  const luckyStatus = tournamentEngine.getLuckyDrawRoundStatus({ drawId, structureId });
   if (luckyStatus?.isLuckyDraw && roundNumber) {
     const round = luckyStatus.rounds?.find((r: any) => r.roundNumber === roundNumber);
 
@@ -77,6 +79,11 @@ export function handleRoundHeaderClick(props: any): void {
           callback: props.callback,
         }),
       text: 'Schedule round...',
+    });
+
+    roundActions.push({
+      onClick: () => printRoundMatchCards({ drawId, structureId, roundNumber, action: 'open' }),
+      text: 'Print round match cards',
     });
   }
 

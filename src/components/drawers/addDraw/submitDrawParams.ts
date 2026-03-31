@@ -444,6 +444,7 @@ export function submitDrawParams({
         roundsCount,
         drawMatic: {
           dynamicRatings,
+          convertToELO: dynamicRatings,
           ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
           ...(teamAvoidance === false && { sameTeamValue: 0 }),
         },

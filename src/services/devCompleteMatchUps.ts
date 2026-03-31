@@ -45,7 +45,7 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
     : [structureId];
 
   // Check if this is a lucky draw — stop before requiring lucky loser decisions
-  const luckyStatus = te.getLuckyDrawRoundStatus({ drawId });
+  const luckyStatus = te.getLuckyDrawRoundStatus({ drawId, structureId });
   const isLucky = luckyStatus?.isLuckyDraw;
 
   const getStructureMatchUps = () => {
@@ -117,7 +117,6 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
         if (isLucky) console.log('Lucky draw — stopping before lucky loser selection');
 
         if (shouldStop) {
-          console.log(`Completed ${totalCompleted} matchUps`);
           reRenderCurrentView(drawId, structureId);
         } else {
           // Elimination: next pass after server ack

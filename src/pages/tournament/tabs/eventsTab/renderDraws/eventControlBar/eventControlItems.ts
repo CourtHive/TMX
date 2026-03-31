@@ -7,6 +7,7 @@ import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
 import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
+import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getStructureOptions } from '../getStructureOptions';
 import { editMatchUpFormat } from '../editMatchUpFormat';
@@ -77,7 +78,18 @@ export function getEventControlItems({
     },
   ];
 
-  // RIGHT side icon buttons (order: display, inline scoring, scoring, topology, then assign participants)
+  // RIGHT side icon buttons (order: complete all, display, inline scoring, scoring, topology, then assign participants)
+
+  // Complete all matchUps (local mode only — no provider)
+  const hasProvider = !!tournamentEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
+  if (!hasProvider) {
+    items.push({
+      onClick: () => completeMatchUps({ drawId, structureId }),
+      label: '<i class="fa-solid fa-check-double"></i>',
+      toolTip: { content: 'Complete all matchUps', placement: 'bottom' },
+      location: RIGHT,
+    });
+  }
 
   // Display settings
   items.push({

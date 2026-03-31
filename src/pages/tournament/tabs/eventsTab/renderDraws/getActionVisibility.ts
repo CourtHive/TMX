@@ -13,7 +13,6 @@ export interface ActionVisibilityParams {
   hasQualifying: boolean;
   stageIsMain: boolean;
   stageSequence: number;
-  pdfPrinting: boolean;
   isDual: boolean;
 }
 
@@ -40,7 +39,6 @@ export function getActionVisibility(params: ActionVisibilityParams): ActionVisib
     hasQualifying,
     stageIsMain,
     stageSequence,
-    pdfPrinting,
     isDual,
   } = params;
 
@@ -51,7 +49,7 @@ export function getActionVisibility(params: ActionVisibilityParams): ActionVisib
     resolveDraft: hasDraft,
     editScorecard: isTeamEvent,
     removeStructure: !(stageIsMain && stageSequence === 1 && !hasQualifying),
-    printDraw: pdfPrinting,
+    printDraw: true,
     removePlayers: isDual,
     clearResults: isDual,
   };

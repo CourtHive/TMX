@@ -26,11 +26,12 @@ export async function renderPoliciesPage(): Promise<void> {
     catalogControl = null;
   }
 
+  const builtinPolicies = getBuiltinPolicies();
   const userPolicies = await loadUserPolicies();
 
   catalogControl = createPolicyCatalog(
     {
-      builtinPolicies: getBuiltinPolicies(),
+      builtinPolicies,
       userPolicies,
       onPolicySaved: (item) => saveUserPolicy(item),
     },

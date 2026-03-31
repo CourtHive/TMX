@@ -773,7 +773,8 @@
     "practice": "Training",
     "maintenance": "Wartung",
     "unscheduled": "Nicht geplant",
-    "noScheduledMatchUps": "Keine geplanten Spiele"
+    "noScheduledMatchUps": "Keine geplanten Spiele",
+    "noTimeSet": "Keine Uhrzeit festgelegt"
   },
 
   "penalties": {
@@ -1047,6 +1048,14 @@
     "addFlights": {
       "flightsGenerated": "Flights generiert",
       "generationFailed": "Flight-Profil-Generierung fehlgeschlagen"
+    },
+    "addConsolation": {
+      "title": "Freiwillige Trostrunde hinzufügen",
+      "structureName": "Strukturname",
+      "groupSize": "Gruppengröße",
+      "structureAdded": "Freiwillige Trostrundenstruktur hinzugefügt",
+      "selectEligible": "Berechtigte Teilnehmer auswählen",
+      "noEligible": "Keine berechtigten Teilnehmer gefunden"
     },
     "addRRplayoffs": {
       "title": "Playoff-Struktur hinzufügen",

@@ -749,7 +749,8 @@
     "practice": "تدريب",
     "maintenance": "صيانة",
     "unscheduled": "غير مجدولة",
-    "noScheduledMatchUps": "لا توجد مباريات مجدولة"
+    "noScheduledMatchUps": "لا توجد مباريات مجدولة",
+    "noTimeSet": "لم يتم تحديد وقت"
   },
   "penalties": {
     "fail2signout": "عدم تسجيل الانصراف",
@@ -1019,6 +1020,14 @@
     "addFlights": {
       "flightsGenerated": "تم إنشاء المجموعات الفرعية",
       "generationFailed": "فشل في إنشاء ملف المجموعات الفرعية"
+    },
+    "addConsolation": {
+      "title": "إضافة مواساة طوعية",
+      "structureName": "اسم الهيكل",
+      "groupSize": "حجم المجموعة",
+      "structureAdded": "تمت إضافة هيكل المواساة الطوعية",
+      "selectEligible": "اختيار المشاركين المؤهلين",
+      "noEligible": "لم يتم العثور على مشاركين مؤهلين"
     },
     "addRRplayoffs": {
       "title": "إضافة هيكل المباريات الفاصلة",

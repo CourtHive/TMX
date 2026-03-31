@@ -2,7 +2,6 @@
  * Feature flags — beta toggles persisted to localStorage.
  */
 export interface FeatureFlags {
-  pdfPrinting: boolean;
   googleSheetsImport: boolean;
   schedule2: boolean;
   usePublishState: boolean;
@@ -10,7 +9,6 @@ export interface FeatureFlags {
 }
 
 const defaults: FeatureFlags = {
-  pdfPrinting: false,
   googleSheetsImport: false,
   schedule2: false,
   usePublishState: false,

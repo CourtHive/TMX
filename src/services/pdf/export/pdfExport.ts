@@ -1,125 +1,36 @@
 /**
- * PDF Export utilities using pdfMake
- * Ported from TMX-Suite-Legacy
- * 
- * Provides functions to open, save, or emit PDFs from docDefinitions
+ * PDF Export utilities using pdf-factory (jsPDF)
+ *
+ * Provides functions to open, save, or get PDF data from jsPDF documents.
  */
 
-import type { TDocumentDefinitions } from 'pdfmake/interfaces';
-
-// Types for pdfMake (imported dynamically)
-interface PdfMakeStatic {
-  createPdf(documentDefinitions: TDocumentDefinitions): PdfDocument;
-  vfs: any;
-}
-
-interface PdfDocument {
-  open(): void;
-  download(filename?: string): void;
-  getBase64(callback: (result: string) => void): void;
-  getBlob(callback: (result: Blob) => void): void;
-}
-
-/**
- * Dynamically import pdfMake to avoid bloating main bundle
- * @returns Promise resolving to pdfMake instance
- */
-async function loadPdfMake(): Promise<PdfMakeStatic> {
-  // Dynamic import for code splitting
-  const pdfMakeModule = await import('pdfmake/build/pdfmake');
-  const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
-  
-  // Get the default exports
-  const pdfMake = (pdfMakeModule as any).default || pdfMakeModule;
-  const pdfFonts = (pdfFontsModule as any).default || pdfFontsModule;
-  
-  // Assign fonts
-  if (pdfMake && pdfFonts) {
-    pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
-  }
-  
-  return pdfMake;
-}
+import type jsPDF from 'jspdf';
 
 /**
  * Open PDF in new browser tab/window
- * @param docDefinition - pdfMake document definition
  */
-export async function openPDF({ 
-  docDefinition 
-}: { 
-  docDefinition: TDocumentDefinitions 
-}): Promise<void> {
-  const pdfMake = await loadPdfMake();
-  pdfMake.createPdf(docDefinition).open();
+export function openPDF({ doc }: { doc: jsPDF }): void {
+  const blob = doc.output('blob');
+  window.open(URL.createObjectURL(blob));
 }
 
 /**
  * Download PDF file to user's computer
- * @param docDefinition - pdfMake document definition
- * @param filename - Output filename (default: 'document.pdf')
  */
-export async function savePDF({ 
-  docDefinition, 
-  filename = 'document.pdf' 
-}: { 
-  docDefinition: TDocumentDefinitions;
-  filename?: string;
-}): Promise<void> {
-  const pdfMake = await loadPdfMake();
-  pdfMake.createPdf(docDefinition).download(filename);
+export function savePDF({ doc, filename = 'document.pdf' }: { doc: jsPDF; filename?: string }): void {
+  doc.save(filename);
 }
 
 /**
  * Get PDF as base64 string (useful for sending to server)
- * @param docDefinition - pdfMake document definition
- * @returns Promise resolving to base64 string
  */
-export async function getPDFBase64({
-  docDefinition
-}: {
-  docDefinition: TDocumentDefinitions
-}): Promise<string> {
-  const pdfMake = await loadPdfMake();
-  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-  return new Promise((resolve) => {
-    pdfDocGenerator.getBase64((data) => {
-      resolve(data);
-    });
-  });
+export function getPDFBase64({ doc }: { doc: jsPDF }): string {
+  return doc.output('datauristring');
 }
 
 /**
  * Get PDF as Blob (useful for uploading or further processing)
- * @param docDefinition - pdfMake document definition
- * @returns Promise resolving to Blob
  */
-export async function getPDFBlob({
-  docDefinition
-}: {
-  docDefinition: TDocumentDefinitions
-}): Promise<Blob> {
-  const pdfMake = await loadPdfMake();
-  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-  return new Promise((resolve) => {
-    pdfDocGenerator.getBlob((blob) => {
-      resolve(blob);
-    });
-  });
-}
-
-/**
- * Emit PDF to server or callback
- * @param docDefinition - pdfMake document definition
- * @param callback - Function to call with base64 data
- */
-export async function emitPDF({ 
-  docDefinition, 
-  callback 
-}: { 
-  docDefinition: TDocumentDefinitions;
-  callback: (data: string) => void;
-}): Promise<void> {
-  const base64 = await getPDFBase64({ docDefinition });
-  callback(base64);
+export function getPDFBlob({ doc }: { doc: jsPDF }): Blob {
+  return doc.output('blob');
 }
