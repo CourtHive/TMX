@@ -6,10 +6,10 @@
  * type and localStorage format remain unchanged for backward compatibility with
  * existing user data.
  */
-import { serverConfig } from 'config/serverConfig';
-import { featureFlags } from 'config/featureFlags';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { scheduleConfig } from 'config/scheduleConfig';
+import { featureFlags } from 'config/featureFlags';
+import { serverConfig } from 'config/serverConfig';
 
 const SETTINGS_KEY = 'tmx_settings';
 
@@ -18,7 +18,6 @@ export type TMXSettings = {
   scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
   saveLocal?: boolean;
   smartComplements?: boolean;
-  pdfPrinting?: boolean;
   googleSheetsImport?: boolean;
   schedule2?: boolean;
   enableChat?: boolean;
@@ -93,7 +92,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
 
   // Feature flags
   const flagsPatch: Record<string, any> = {};
-  if (settings.pdfPrinting !== undefined) flagsPatch.pdfPrinting = settings.pdfPrinting;
   if (settings.googleSheetsImport !== undefined) flagsPatch.googleSheetsImport = settings.googleSheetsImport;
   if (settings.schedule2 !== undefined) flagsPatch.schedule2 = settings.schedule2;
   if (settings.enableChat !== undefined) flagsPatch.enableChat = settings.enableChat;
@@ -116,7 +114,9 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
  * localStorage blob. Call this after programmatic config changes that
  * should survive a page reload.
  */
-export function persistConfigToStorage(extras?: Pick<TMXSettings, 'language' | 'theme' | 'fontFamily' | 'fontSize'>): void {
+export function persistConfigToStorage(
+  extras?: Pick<TMXSettings, 'language' | 'theme' | 'fontFamily' | 'fontSize'>,
+): void {
   const prefs = preferencesConfig.get();
   const flags = featureFlags.get();
   const server = serverConfig.get();
@@ -127,7 +127,6 @@ export function persistConfigToStorage(extras?: Pick<TMXSettings, 'language' | '
     scoringApproach: prefs.scoringApproach,
     smartComplements: prefs.smartComplements,
     saveLocal: server.saveLocal,
-    pdfPrinting: flags.pdfPrinting,
     googleSheetsImport: flags.googleSheetsImport,
     schedule2: flags.schedule2,
     enableChat: flags.enableChat,

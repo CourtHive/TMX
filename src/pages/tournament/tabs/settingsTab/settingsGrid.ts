@@ -56,7 +56,6 @@ function persistAll(
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
-    pdfPrinting: displayInputs.pdfPrinting?.checked || false,
     googleSheetsImport: displayInputs.googleSheetsImport?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
     enableChat: displayInputs.enableChat?.checked || false,
@@ -294,14 +293,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
 
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
-    {
-      label: t('modals.settings.pdfPrinting'),
-      checked: featureFlags.get().pdfPrinting || false,
-      field: 'pdfPrinting',
-      id: 'pdfPrinting',
-      onChange: persist,
-      checkbox: true,
-    },
     {
       label: t('modals.settings.googleSheetsImport'),
       checked: featureFlags.get().googleSheetsImport || false,

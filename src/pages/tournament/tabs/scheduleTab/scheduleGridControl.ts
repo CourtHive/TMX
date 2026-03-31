@@ -3,13 +3,13 @@
  * Provides date selection, search, team highlighting, and schedule activation toggle.
  */
 import { competitionEngine, tools } from 'tods-competition-factory';
-import { controlBar } from 'courthive-components';
 import { printSchedule } from 'components/modals/printSchedule';
+import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
-import { featureFlags } from 'config/featureFlags';
-import { t } from 'i18n';
 import dayjs from 'dayjs';
+import { t } from 'i18n';
 
+// Constants
 import { LEFT, RIGHT, SCHEDULED_DATE_FILTER } from 'constants/tmxConstants';
 
 type ScheduleGridControlParams = {
@@ -68,22 +68,17 @@ export function scheduleGridControl({
       align: LEFT,
     },
     {
-      visible: !!courtsCount && featureFlags.get().pdfPrinting, // Only show if PDF printing beta feature is enabled
+      visible: !!courtsCount,
       onClick: () => {
-        // Get schedule data from competitionEngine with grid rows
         const matchUpFilters = { localPerspective: true, scheduledDate };
         const result = competitionEngine.competitionScheduleMatchUps({
           courtCompletedMatchUps: true,
           withCourtGridRows: true,
           minCourtGridRows: 10,
-          nextMatchUps: true, // Include potentialParticipants for upcoming matches
+          nextMatchUps: true,
           matchUpFilters,
         });
-        
         const { courtsData = [], rows = [] } = result;
-        
-
-        
         printSchedule({
           scheduledDate: scheduledDate || startDate,
           courts: courtsData,

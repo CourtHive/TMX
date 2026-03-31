@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getActionVisibility, ActionVisibilityParams } from './getActionVisibility';
+import { describe, expect, it } from 'vitest';
 
 const defaults: ActionVisibilityParams = {
   isMainStage: true,
@@ -11,7 +11,6 @@ const defaults: ActionVisibilityParams = {
   hasQualifying: false,
   stageIsMain: true,
   stageSequence: 1,
-  pdfPrinting: false,
   isDual: false,
 };
 
@@ -97,12 +96,8 @@ describe('getActionVisibility', () => {
   });
 
   describe('printDraw', () => {
-    it('visible when pdfPrinting enabled', () => {
-      expect(vis({ pdfPrinting: true }).printDraw).toBe(true);
-    });
-
-    it('hidden when pdfPrinting disabled', () => {
-      expect(vis({ pdfPrinting: false }).printDraw).toBe(false);
+    it('always visible', () => {
+      expect(vis().printDraw).toBe(true);
     });
   });
 

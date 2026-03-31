@@ -6,7 +6,9 @@
  */
 
 import { tournamentEngine } from 'tods-competition-factory';
+import { openPDF, savePDF } from '../export/pdfExport';
 import {
+  getCatalogPreset,
   structureToDrawData,
   findStructure,
   generateTraditionalDrawPDF,
@@ -16,7 +18,6 @@ import {
   generateBackdrawPDF,
   generateMirroredDrawPDF,
 } from 'pdf-factory';
-import { openPDF, savePDF } from '../export/pdfExport';
 
 interface DrawPDFOptions {
   drawTitle?: string;
@@ -66,9 +67,13 @@ export function generateDrawPDF({
   const tournamentInfo = eventData.tournamentInfo || tournament || {};
   const eventInfo = eventData.eventInfo || event || {};
 
-  // Build header from tournament/event info
+  // Resolve composition catalog preset for header/footer/format defaults
+  const catalog = catalogPreset ? getCatalogPreset(catalogPreset) : undefined;
+
+  // Build header — explicit headerLayout overrides catalog, catalog overrides default
+  const resolvedHeaderLayout = headerLayout || catalog?.header?.layout || 'itf';
   const header: any = {
-    layout: headerLayout || 'itf',
+    layout: resolvedHeaderLayout,
     tournamentName: drawTitle || tournamentInfo.tournamentName || eventInfo.eventName || 'Tournament',
     subtitle: eventInfo.eventName,
     startDate: tournamentInfo.startDate,
@@ -79,13 +84,18 @@ export function generateDrawPDF({
     surface: eventInfo.surfaceCategory,
   };
 
+  // Build footer — explicit footerLayout overrides catalog, catalog overrides default
+  const resolvedFooterLayout = footerLayout || catalog?.footer?.layout || 'standard';
   const footer: any = {
-    layout: footerLayout || 'standard',
-    showPageNumbers: true,
+    layout: resolvedFooterLayout,
+    showPageNumbers: catalog?.footer?.showPageNumbers ?? true,
     showTimestamp: includeTimestamp,
   };
 
-  const pdfOpts = { header, footer, preset: catalogPreset || 'itfJunior' };
+  // Format preset: catalog's drawFormatPreset, or fallback to itfJunior
+  const formatPreset = catalog?.drawFormatPreset || 'itfJunior';
+
+  const pdfOpts = { header, footer, preset: formatPreset };
 
   // Detect draw type from structures
   const structures = eventData.drawsData[0].structures || [];
@@ -138,7 +148,9 @@ export function generateDrawPDF({
     const targetStruct = structures.find((s: any) => s.structureId === structureId) || mainStruct;
     if (targetStruct) {
       const drawData = structureToDrawData(targetStruct);
-      doc = options.splitPages ? generateSplitDrawPDF(drawData, pdfOpts) : generateTraditionalDrawPDF(drawData, pdfOpts);
+      doc = options.splitPages
+        ? generateSplitDrawPDF(drawData, pdfOpts)
+        : generateTraditionalDrawPDF(drawData, pdfOpts);
     }
   }
   // Single structure — auto-detect

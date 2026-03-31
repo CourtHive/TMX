@@ -18,20 +18,21 @@ import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { signInParticipants } from './controlBar/signInParticipants';
+import { printPlayerList } from 'components/modals/printPlayerList';
 import { signOutUnapproved } from './controlBar/signOutUnapproved';
 import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
+import { participantConstants } from 'tods-competition-factory';
 import { eventFromParticipants } from './eventFromParticipants';
-import { controlBar } from 'courthive-components';
 import { selectItem } from 'components/modals/selectItem';
 import { participantChips } from './participantChips';
-import { participantConstants } from 'tods-competition-factory';
 import { providerConfig } from 'config/providerConfig';
-import { printPlayerList } from 'components/modals/printPlayerList';
 import { featureFlags } from 'config/featureFlags';
+import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
+// Constants
 import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 import { context } from 'services/context';
 
@@ -52,12 +53,31 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   const { eventOptions, events, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getEventFilter(table);
   const { sexOptions, isFiltered: isSexFiltered, activeIndex: sexActiveIndex } = getSexFilter(table);
-  const { teamOptions, isFiltered: isTeamFiltered, activeIndex: teamActiveIndex } = getTeamFilter({ table, teamParticipants });
+  const {
+    teamOptions,
+    isFiltered: isTeamFiltered,
+    activeIndex: teamActiveIndex,
+  } = getTeamFilter({ table, teamParticipants });
 
   const filterSections = [
-    { label: t('pages.participants.allEvents'), options: events.length ? eventOptions : [], isFiltered: isEventFiltered, activeIndex: eventActiveIndex },
-    { label: t('pages.participants.anyTeam'), options: teamParticipants?.length ? teamOptions : [], isFiltered: isTeamFiltered, activeIndex: teamActiveIndex },
-    { label: t('pages.participants.allGenders'), options: sexOptions, isFiltered: isSexFiltered, activeIndex: sexActiveIndex },
+    {
+      label: t('pages.participants.allEvents'),
+      options: events.length ? eventOptions : [],
+      isFiltered: isEventFiltered,
+      activeIndex: eventActiveIndex,
+    },
+    {
+      label: t('pages.participants.anyTeam'),
+      options: teamParticipants?.length ? teamOptions : [],
+      isFiltered: isTeamFiltered,
+      activeIndex: teamActiveIndex,
+    },
+    {
+      label: t('pages.participants.allGenders'),
+      options: sexOptions,
+      isFiltered: isSexFiltered,
+      activeIndex: sexActiveIndex,
+    },
   ];
   const { item: filterButton } = filterPopoverButton(filterSections);
 
@@ -99,11 +119,15 @@ export function renderIndividuals({ view }: { view: string }): void {
     {
       onClick: () => printPlayerList({}),
       label: '<i class="fa-solid fa-print"></i> Print Player List',
-      hide: !featureFlags.get().pdfPrinting,
       close: true,
     },
     { divider: true } as any,
-    { hide: !featureFlags.get().googleSheetsImport || !providerConfig.isAllowed('canImportParticipants'), label: t('pages.participants.importGoogleSheet'), onClick: editRegistrationLink, close: true },
+    {
+      hide: !featureFlags.get().googleSheetsImport || !providerConfig.isAllowed('canImportParticipants'),
+      label: t('pages.participants.importGoogleSheet'),
+      onClick: editRegistrationLink,
+      close: true,
+    },
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
       label: t('pages.participants.newParticipant'),

@@ -76,8 +76,8 @@ importers:
         specifier: 2.6.0
         version: 2.6.0
       pdf-factory:
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.2.0
+        version: 0.2.0
       pikaday:
         specifier: 1.8.2
         version: 1.8.2
@@ -3653,8 +3653,8 @@ packages:
     resolution: {integrity: sha512-Q3CG/cYvCO1ye4QKkuH7EXxs3VC/rI1/trd+qX2+PolbaKG0H+bgcZzrTt96mMyRtejk+JMCiLUn3y29W8qmFQ==}
     engines: {node: '>= 0.10'}
 
-  pdf-factory@0.1.0:
-    resolution: {integrity: sha512-XfdaHwZ9oGJxBTP2OGmBQhFpPew0Xkqxd7gVtfd+Z857/AKZCMyp6wv0nMrnsr29cIY4aCAA236t6hJMsQFxmg==}
+  pdf-factory@0.2.0:
+    resolution: {integrity: sha512-rNu6jiCQBZnAZInezEvd6nLK79rJhxuzh82A4V4RgTg4i/lSf44NHeod44g1nRHh1FN5jMFQos50ErtVrL3Z3Q==}
     engines: {node: '>=20', npm: please-use-pnpm, pnpm: '>=8'}
 
   pe-library@0.4.1:
@@ -8294,7 +8294,7 @@ snapshots:
       sha.js: 2.4.12
       to-buffer: 1.2.2
 
-  pdf-factory@0.1.0:
+  pdf-factory@0.2.0:
     dependencies:
       jspdf: 4.2.1
       jspdf-autotable: 5.0.7(jspdf@4.2.1)

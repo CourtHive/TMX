@@ -6,6 +6,7 @@ import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSc
 import { tournamentEngine, participantRoles, tools } from 'tods-competition-factory';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { printMatchCards } from 'components/modals/printMatchCards';
 import { logMutationError } from 'functions/logMutationError';
 import { timePicker } from 'components/modals/timePicker';
 import { datePicker } from 'components/modals/datePicker';
@@ -314,6 +315,10 @@ export function matchUpActions({
     {
       onClick: selectOfficial,
       text: 'Select official',
+    },
+    {
+      onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
+      text: 'Print match card',
     },
   ];
 

@@ -5,11 +5,14 @@
  * tippy popover with date chips (matching courthive-components dateStrip style).
  * An issues icon appears when there are scheduling conflicts.
  */
-import { providerConfig } from 'config/providerConfig';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import type { ScheduleDate, ScheduleIssue } from 'courthive-components';
-import type { Schedule2View } from './schedule2Tab';
+import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import { printSchedule } from 'components/modals/printSchedule';
+import { competitionEngine } from 'tods-competition-factory';
+import { providerConfig } from 'config/providerConfig';
 
+// Types
+import type { Schedule2View } from './schedule2Tab';
 export type ScheduleSearchMode = 'individual' | 'team';
 
 interface Schedule2HeaderParams {
@@ -30,9 +33,19 @@ interface Schedule2HeaderParams {
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
   const {
-    selectedDate, activeView, startDate, endDate, bulkMode,
-    catalogVisible = true, scheduleDates, issues,
-    onDateChange, onViewChange, onBulkModeChange, onToggleCatalog, onSearch,
+    selectedDate,
+    activeView,
+    startDate,
+    endDate,
+    bulkMode,
+    catalogVisible = true,
+    scheduleDates,
+    issues,
+    onDateChange,
+    onViewChange,
+    onBulkModeChange,
+    onToggleCatalog,
+    onSearch,
   } = params;
 
   const bar = document.createElement('div');
@@ -49,14 +62,24 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   const selectedDateInfo = dates.find((d) => d.date === selectedDate);
   const dateBtn = document.createElement('button');
   dateBtn.style.cssText = [
-    'font-size: 13px', 'font-weight: 600', 'padding: 5px 12px',
-    'border-radius: 6px', 'border: 1px solid var(--tmx-border-primary)',
-    'background: var(--tmx-bg-primary)', 'color: var(--tmx-color-primary)',
-    'cursor: pointer', 'display: inline-flex', 'align-items: center', 'gap: 6px',
+    'font-size: 13px',
+    'font-weight: 600',
+    'padding: 5px 12px',
+    'border-radius: 6px',
+    'border: 1px solid var(--tmx-border-primary)',
+    'background: var(--tmx-bg-primary)',
+    'color: var(--tmx-color-primary)',
+    'cursor: pointer',
+    'display: inline-flex',
+    'align-items: center',
+    'gap: 6px',
   ].join('; ');
   const matchUpCount = selectedDateInfo?.matchUpCount ?? 0;
-  dateBtn.innerHTML = `<i class="fa-solid fa-calendar-days" style="font-size: 12px;"></i>${formatDateLabel(selectedDate)}` +
-    (matchUpCount > 0 ? ` <span style="font-size: 10px; font-weight: 400; padding: 1px 6px; border-radius: 10px; background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); color: var(--tmx-muted);">${matchUpCount}</span>` : '') +
+  dateBtn.innerHTML =
+    `<i class="fa-solid fa-calendar-days" style="font-size: 12px;"></i>${formatDateLabel(selectedDate)}` +
+    (matchUpCount > 0
+      ? ` <span style="font-size: 10px; font-weight: 400; padding: 1px 6px; border-radius: 10px; background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); color: var(--tmx-muted);">${matchUpCount}</span>`
+      : '') +
     ' <i class="fa-solid fa-chevron-down" style="font-size: 9px; opacity: 0.6;"></i>';
 
   let dateTippy: TippyInstance | undefined;
@@ -87,10 +110,17 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   if (issues && issues.length > 0) {
     const issuesBtn = document.createElement('button');
     issuesBtn.style.cssText = [
-      'position: relative', 'font-size: 14px', 'padding: 4px 8px',
-      'border-radius: 6px', 'border: 1px solid var(--tmx-border-primary)',
-      'background: var(--tmx-bg-primary)', 'cursor: pointer',
-      'color: var(--tmx-accent-orange, #f59e0b)', 'display: inline-flex', 'align-items: center', 'gap: 4px',
+      'position: relative',
+      'font-size: 14px',
+      'padding: 4px 8px',
+      'border-radius: 6px',
+      'border: 1px solid var(--tmx-border-primary)',
+      'background: var(--tmx-bg-primary)',
+      'cursor: pointer',
+      'color: var(--tmx-accent-orange, #f59e0b)',
+      'display: inline-flex',
+      'align-items: center',
+      'gap: 4px',
     ].join('; ');
     issuesBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
 
@@ -165,11 +195,17 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   if (onToggleCatalog) {
     const catalogBtn = document.createElement('button');
     catalogBtn.style.cssText = [
-      'font-size: 13px', 'padding: 4px 8px', 'border-radius: 6px',
+      'font-size: 13px',
+      'padding: 4px 8px',
+      'border-radius: 6px',
       'border: 1px solid var(--tmx-border-primary)',
-      'background: var(--tmx-bg-primary)', 'cursor: pointer',
-      'color: var(--tmx-color-primary)', 'display: inline-flex', 'align-items: center',
-      'opacity: 0.7', 'margin-right: auto',
+      'background: var(--tmx-bg-primary)',
+      'cursor: pointer',
+      'color: var(--tmx-color-primary)',
+      'display: inline-flex',
+      'align-items: center',
+      'opacity: 0.7',
+      'margin-right: auto',
     ].join('; ');
     catalogBtn.innerHTML = '<i class="fa-solid fa-table-columns"></i>';
     catalogBtn.title = catalogVisible ? 'Hide catalog' : 'Show catalog';
@@ -182,6 +218,38 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   // ── Right: Bulk mode toggle + View switcher ──
   const right = document.createElement('div');
   right.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+
+  // Print schedule button
+  {
+    const printBtn = document.createElement('button');
+    printBtn.style.cssText = [
+      'font-size: 13px',
+      'padding: 5px 10px',
+      'border-radius: 6px',
+      'border: 1px solid var(--tmx-border-primary)',
+      'background: var(--tmx-bg-primary)',
+      'cursor: pointer',
+      'color: var(--tmx-accent-blue, #3b82f6)',
+      'display: inline-flex',
+      'align-items: center',
+      'gap: 4px',
+    ].join('; ');
+    printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 12px;"></i>';
+    printBtn.title = 'Print schedule';
+    printBtn.addEventListener('click', () => {
+      const matchUpFilters = { localPerspective: true, scheduledDate: selectedDate };
+      const result = competitionEngine.competitionScheduleMatchUps({
+        courtCompletedMatchUps: true,
+        withCourtGridRows: true,
+        minCourtGridRows: 10,
+        nextMatchUps: true,
+        matchUpFilters,
+      });
+      const { courtsData = [], rows = [] } = result;
+      printSchedule({ scheduledDate: selectedDate, courts: courtsData, rows });
+    });
+    right.appendChild(printBtn);
+  }
 
   // Bulk mode toggle (grid view only, if permitted)
   if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
@@ -239,11 +307,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
 
 // ── Date Popover ──
 
-function buildDatePopover(
-  dates: ScheduleDate[],
-  selectedDate: string,
-  onSelect: (date: string) => void,
-): HTMLElement {
+function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect: (date: string) => void): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'padding: 8px; max-height: 320px; overflow-y: auto; min-width: 220px;';
 
@@ -252,9 +316,14 @@ function buildDatePopover(
     const isSelected = d.date === selectedDate;
     chip.setAttribute('data-date', d.date);
     chip.style.cssText = [
-      'display: flex', 'justify-content: space-between', 'align-items: center',
-      'padding: 8px 10px', 'border-radius: 8px', 'cursor: pointer',
-      'margin-bottom: 2px', 'transition: background 0.15s',
+      'display: flex',
+      'justify-content: space-between',
+      'align-items: center',
+      'padding: 8px 10px',
+      'border-radius: 8px',
+      'cursor: pointer',
+      'margin-bottom: 2px',
+      'transition: background 0.15s',
       isSelected ? 'background: var(--tmx-accent-blue, #3b82f6); color: #fff;' : '',
     ].join('; ');
 
@@ -323,7 +392,8 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
 
   for (const issue of issues.slice(0, 30)) {
     const row = document.createElement('div');
-    row.style.cssText = 'display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--tmx-border-primary, #e5e7eb);';
+    row.style.cssText =
+      'display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--tmx-border-primary, #e5e7eb);';
 
     if (issue.matchUpId) {
       row.style.cursor = 'pointer';
