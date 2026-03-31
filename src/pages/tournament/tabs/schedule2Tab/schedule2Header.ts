@@ -15,6 +15,9 @@ import { providerConfig } from 'config/providerConfig';
 import type { Schedule2View } from './schedule2Tab';
 export type ScheduleSearchMode = 'individual' | 'team';
 
+const PULSE = 'spl-cell--issue-pulse';
+const FONT13 = 'font-size: 13px';
+
 // Repeated CSS property literals (extracted to satisfy sonar duplicate-literal rule)
 const BORDER_RADIUS_6 = 'border-radius: 6px';
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
@@ -71,7 +74,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   const selectedDateInfo = dates.find((d) => d.date === selectedDate);
   const dateBtn = document.createElement('button');
   dateBtn.style.cssText = [
-    'font-size: 13px',
+    FONT13,
     'font-weight: 600',
     'padding: 5px 12px',
     BORDER_RADIUS_6,
@@ -204,7 +207,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   if (onToggleCatalog) {
     const catalogBtn = document.createElement('button');
     catalogBtn.style.cssText = [
-      'font-size: 13px',
+      FONT13,
       'padding: 4px 8px',
       BORDER_RADIUS_6,
       BORDER_PRIMARY,
@@ -232,7 +235,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   {
     const printBtn = document.createElement('button');
     printBtn.style.cssText = [
-      'font-size: 13px',
+      FONT13,
       'padding: 5px 10px',
       BORDER_RADIUS_6,
       BORDER_PRIMARY,
@@ -483,10 +486,10 @@ function scrollToMatchUp(matchUpIds: string[]): void {
 
   cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
-  cell.classList.remove('spl-cell--issue-pulse');
+  cell.classList.remove(PULSE);
   void cell.offsetWidth; //NOSONAR
-  cell.classList.add('spl-cell--issue-pulse');
-  cell.addEventListener('animationend', () => cell.classList.remove('spl-cell--issue-pulse'), { once: true });
+  cell.classList.add(PULSE);
+  cell.addEventListener('animationend', () => cell.classList.remove(PULSE), { once: true });
 }
 
 // ── Helpers ──
