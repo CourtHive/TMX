@@ -2,8 +2,7 @@
  * Map draw definition with publish state and scale values.
  * Returns draw metadata including entries count, ratings averages, and formats.
  */
-import { tournamentEngine, entryStatusConstants } from 'tods-competition-factory';
-import { isEmbargoActive } from 'functions/isEmbargoActive';
+import { tournamentEngine, publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
 
 // constants
 const { WITHDRAWN } = entryStatusConstants;
@@ -16,7 +15,7 @@ export const mapDrawDefinition =
     const publishState = tournamentEngine.getPublishState({ drawId }).publishState;
     const published = publishState?.status?.published;
     const drawDetail = publishState?.status?.drawDetails?.[drawId]?.publishingDetail;
-    const embargoActive = isEmbargoActive(drawDetail?.embargo);
+    const embargoActive = publishingGovernor.isEmbargoed(drawDetail);
     const entriesCount = entries?.filter(({ entryStatus }: any) => entryStatus !== WITHDRAWN)?.length;
     const assignedParticipantIds = tournamentEngine
       .getAssignedParticipantIds({
