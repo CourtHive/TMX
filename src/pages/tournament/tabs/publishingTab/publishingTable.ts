@@ -8,7 +8,6 @@ import { tournamentEngine, publishingGovernor } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { isEmbargoActive } from 'functions/isEmbargoActive';
 import { renderPublishingTab } from './renderPublishingTab';
 import { getPublishingTableData } from './publishingData';
 import { openEmbargoModal } from './embargoModal';
@@ -315,7 +314,7 @@ function handleScheduleEmbargoClick(cell: any): void {
   for (const [, sd] of Object.entries(existingStructureDetails) as [string, any][]) {
     const scheduledRounds = sd?.scheduledRounds || {};
     for (const [, rd] of Object.entries(scheduledRounds) as [string, any][]) {
-      if (isEmbargoActive(rd?.embargo)) {
+      if (publishingGovernor.isEmbargoed(rd)) {
         currentScheduleEmbargo = rd.embargo;
         break;
       }

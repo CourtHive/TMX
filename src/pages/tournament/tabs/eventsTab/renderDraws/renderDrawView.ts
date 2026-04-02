@@ -7,7 +7,6 @@ import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
-import { computeRoundVisibilityState } from 'functions/computeRoundVisibilityState';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
@@ -202,7 +201,7 @@ export function renderDrawView({
     } else {
       const { event: currentEvent } = tournamentEngine.getEvent({ drawId });
       const structureDetail = currentEvent ? getStructureDetail(drawId, structureId!, currentEvent) : undefined;
-      const roundVisibilityState = computeRoundVisibilityState(structureDetail, displayMatchUps);
+      const roundVisibilityState = publishingGovernor.getRoundVisibilityState(structureDetail, displayMatchUps as any);
 
       // Identify matchUps eligible for inline scoring wrapping
       const irregularStatuses = new Set(['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED']);

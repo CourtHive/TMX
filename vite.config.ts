@@ -1,5 +1,6 @@
 import EnvironmentPlugin from 'vite-plugin-environment';
 import { defineConfig, loadEnv } from 'vite';
+import path from 'path';
 
 const viteconfigFactory = ({ mode }: { mode: string }) => {
   // Load app-level env vars to node-level env vars.
@@ -9,7 +10,12 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
 
   return defineConfig({
     plugins: [EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' })],
-    resolve: { tsconfigPaths: true },
+    resolve: {
+      tsconfigPaths: true,
+      alias: {
+        styles: path.resolve(__dirname, 'src/styles'),
+      },
+    },
     build: {
       sourcemap: true,
       rolldownOptions: {

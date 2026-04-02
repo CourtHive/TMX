@@ -1,11 +1,24 @@
 import { tournamentEngine } from 'tods-competition-factory';
 import { env } from 'settings/env';
 
+function isLocalDev(): boolean {
+  const { hostname } = globalThis.location;
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+}
+
 export function getPublicBaseUrl(): string {
   if (env.PUBLIC_URL) return env.PUBLIC_URL;
   if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL;
 
   const url = new URL(globalThis.location.href);
+
+  // When running standalone on localhost (not served by the factory server),
+  // assume courthive-public is on the next port
+  if (isLocalDev() && url.port && !url.pathname.includes('/tmx')) {
+    const publicPort = parseInt(url.port, 10) + 1;
+    return `${url.protocol}//${url.hostname}:${publicPort}`;
+  }
+
   url.pathname = url.pathname.replace(/\/tmx\b/, '/pub');
   url.hash = '';
   url.search = '';

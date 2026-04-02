@@ -5,7 +5,6 @@
  */
 import { tournamentEngine, publishingGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { isEmbargoActive } from 'functions/isEmbargoActive';
 import { openEmbargoModal } from '../../publishingTab/embargoModal';
 import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
@@ -90,7 +89,7 @@ export function handleRoundVisibilityClick(props: any): void {
 
   // Option 2: Schedule embargo for this round — all draw types
   const roundEmbargoDetail = currentScheduledRounds[roundNumber];
-  const hasEmbargo = isEmbargoActive(roundEmbargoDetail?.embargo);
+  const hasEmbargo = publishingGovernor.isEmbargoed(roundEmbargoDetail);
 
   items.push({
     text: hasEmbargo
