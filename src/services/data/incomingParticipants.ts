@@ -25,6 +25,112 @@ const modelParticipant = {
   },
 };
 
+const FEMALE_PREFIXES = new Set(['F', 'W', 'G']);
+const MALE_PREFIXES = new Set(['M', 'B']);
+const VALID_SEX_VALUES = new Set(['MALE', 'FEMALE']);
+
+function normalizeSex(sex: string): string | undefined {
+  const upperSex = sex.toUpperCase();
+  if (VALID_SEX_VALUES.has(upperSex)) return upperSex;
+  if (FEMALE_PREFIXES.has(sex[0])) return 'FEMALE';
+  if (MALE_PREFIXES.has(sex[0])) return 'MALE';
+  return undefined;
+}
+
+function applyUtrProfile(participant: any, utrProfile: string): void {
+  if (!participant.onlineResources) participant.onlineResources = [];
+  const identifier = utrProfile.split('profiles/')?.reverse()[0];
+  if (!identifier) return;
+
+  if (!participant.person.personOtherIds) participant.person.personOtherIds = [];
+  participant.person.personOtherIds.push({ uniqueOrganisationName: 'UTR', personId: identifier });
+  if (utrProfile.startsWith('http')) {
+    participant.onlineResources.push({
+      resourceSubType: 'PROFILE',
+      identifier: utrProfile,
+      name: 'UTR Profile',
+      resource: 'URL',
+    });
+  }
+}
+
+function applyScaleTimeItem(
+  participant: any,
+  rowParser: (attrs: string[]) => any,
+  field: string,
+  itemType: string,
+  accessor: string,
+): void {
+  const value = rowParser([field]);
+  if (!value) return;
+  if (!participant.timeItems) participant.timeItems = [];
+  participant.timeItems.push({
+    itemType,
+    itemValue: { [accessor]: value },
+  });
+}
+
+function parseParticipantRow(
+  row: any,
+  findAttr: (row: any) => (attrs?: string[]) => any,
+  validNationalityCodes: Set<string>,
+): any | undefined {
+  const loweredRow = Object.assign({}, ...Object.keys(row).map((key) => ({ [key.toLowerCase()]: row[key] })));
+  const rowParser = findAttr(loweredRow);
+
+  const participant: any = { participantType: 'INDIVIDUAL', participantRole: 'COMPETITOR', person: {} };
+  const rawParticipantName = rowParser(modelParticipant.participantName);
+  participant.participantName =
+    typeof rawParticipantName === 'string' ? rawParticipantName.trim() : rawParticipantName;
+
+  const tennisId = rowParser(['tennis id', 'tennisid']);
+  if (tennisId) participant.person.tennisId = tennisId;
+
+  const rawFamilyName = rowParser(modelParticipant.person.standardFamilyName);
+  const rawGivenName = rowParser(modelParticipant.person.standardGivenName);
+  const standardFamilyName = typeof rawFamilyName === 'string' ? rawFamilyName.trim() : rawFamilyName;
+  const standardGivenName = typeof rawGivenName === 'string' ? rawGivenName.trim() : rawGivenName;
+  if (!standardFamilyName || !standardGivenName) return undefined;
+
+  participant.person.standardFamilyName = standardFamilyName;
+  participant.person.standardGivenName = standardGivenName;
+  participant.participantName = `${standardGivenName} ${standardFamilyName}`;
+
+  const state = rowParser(modelParticipant.person.address.state);
+  const city = rowParser(modelParticipant.person.address.city);
+  if (city || state) participant.person.addresses = [{ city, state }];
+
+  const nationalityCode = rowParser(modelParticipant.person.nationalityCode);
+  if (nationalityCode && validNationalityCodes.has(nationalityCode.toUpperCase())) {
+    participant.person.nationalityCode = nationalityCode;
+  }
+
+  const birthDate = rowParser(modelParticipant.person.birthDate);
+  if (tools.dateTime.dateValidation.test(birthDate)) {
+    const date = tools.dateTime.extractDate(birthDate);
+    if (date) participant.person.birthDate = date;
+  }
+
+  const sex = rowParser(modelParticipant.person.sex);
+  if (sex) {
+    const normalizedSex = normalizeSex(sex);
+    if (normalizedSex) participant.person.sex = normalizedSex;
+  }
+
+  const utrProfile = rowParser(['utr profile']);
+  if (utrProfile) {
+    applyUtrProfile(participant, utrProfile);
+  }
+
+  applyScaleTimeItem(participant, rowParser, 'utr', 'SCALE.RATING.SINGLES.UTR', 'utrRating');
+  applyScaleTimeItem(participant, rowParser, 'wtn', 'SCALE.RATING.SINGLES.WTN', 'wtnRating');
+
+  participant.participantId =
+    rowParser(modelParticipant.participantId) || `XXX-${hashCode(participant.participantName)}`;
+
+  return participant;
+}
+
 export function incomingParticipants({
   data,
   sheetId,
@@ -56,99 +162,10 @@ export function incomingParticipants({
     };
 
   for (const row of data || []) {
-    const loweredRow = Object.assign({}, ...Object.keys(row).map((key) => ({ [key.toLowerCase()]: row[key] })));
-    const rowParser = findAttr(loweredRow);
-
-    const participant: any = { participantType: 'INDIVIDUAL', participantRole: 'COMPETITOR', person: {} };
-    const rawParticipantName = rowParser(modelParticipant.participantName);
-    participant.participantName =
-      typeof rawParticipantName === 'string' ? rawParticipantName.trim() : rawParticipantName;
-
-    const tennisId = rowParser(['tennis id', 'tennisid']);
-    if (tennisId) participant.person.tennisId = tennisId;
-
-    const rawFamilyName = rowParser(modelParticipant.person.standardFamilyName);
-    const rawGivenName = rowParser(modelParticipant.person.standardGivenName);
-    const standardFamilyName = typeof rawFamilyName === 'string' ? rawFamilyName.trim() : rawFamilyName;
-    const standardGivenName = typeof rawGivenName === 'string' ? rawGivenName.trim() : rawGivenName;
-    if (standardFamilyName && standardGivenName) {
-      participant.person.standardFamilyName = standardFamilyName;
-      participant.person.standardGivenName = standardGivenName;
-      participant.participantName = `${standardGivenName} ${standardFamilyName}`;
-    } else {
-      continue;
-    }
-
-    const state = rowParser(modelParticipant.person.address.state);
-    const city = rowParser(modelParticipant.person.address.city);
-    if (city || state) participant.person.addresses = [{ city, state }];
-
-    const nationalityCode = rowParser(modelParticipant.person.nationalityCode);
-    if (nationalityCode && validNationalityCodes.has(nationalityCode.toUpperCase())) {
-      participant.person.nationalityCode = nationalityCode;
-    }
-
-    const birthDate = rowParser(modelParticipant.person.birthDate);
-    if (tools.dateTime.dateValidation.test(birthDate)) {
-      const date = tools.dateTime.extractDate(birthDate);
-      if (date) participant.person.birthDate = date;
-    }
-
-    const sex = rowParser(modelParticipant.person.sex);
-    if (sex) {
-      const upperSex = sex.toUpperCase();
-      if (['MALE', 'FEMALE'].includes(upperSex)) {
-        participant.person.sex = upperSex;
-      } else if (['F', 'W', 'G'].includes(sex[0])) {
-        participant.person.sex = 'FEMALE';
-      } else if (['M', 'B'].includes(sex[0])) {
-        participant.person.sex = 'MALE';
-      }
-    }
-
-    const utrProfile = rowParser(['utr profile']);
-    if (utrProfile) {
-      if (!participant.onlineResources) participant.onlineResources = [];
-      const identifier = utrProfile.split('profiles/')?.reverse()[0];
-      if (identifier) {
-        if (!participant.person.personOtherIds) participant.person.personOtherIds = [];
-        participant.person.personOtherIds.push({ uniqueOrganisationName: 'UTR', personId: identifier });
-        if (utrProfile.startsWith('http')) {
-          participant.onlineResources.push({
-            resourceSubType: 'PROFILE',
-            identifier: utrProfile,
-            name: 'UTR Profile',
-            resource: 'URL',
-          });
-        }
-      }
-    }
-
-    const utr = rowParser(['utr']);
-    if (utr) {
-      if (!participant.timeItems) participant.timeItems = [];
-      const timeItem = {
-        itemType: 'SCALE.RATING.SINGLES.UTR',
-        itemValue: { utrRating: utr },
-      };
-      participant.timeItems.push(timeItem);
-    }
-    const wtn = rowParser(['wtn']);
-    if (wtn) {
-      if (!participant.timeItems) participant.timeItems = [];
-      const timeItem = {
-        itemType: 'SCALE.RATING.SINGLES.WTN',
-        itemValue: { wtnRating: wtn },
-      };
-      participant.timeItems.push(timeItem);
-    }
-
-    participant.participantId =
-      rowParser(modelParticipant.participantId) || `XXX-${hashCode(participant.participantName)}`;
-
-    const participantExists = participantIds.has(participant.participantId);
-    if (!participantExists) {
-      participants.push(tools.definedAttributes(participant));
+    const parsed = parseParticipantRow(row, findAttr, validNationalityCodes);
+    if (!parsed) continue;
+    if (!participantIds.has(parsed.participantId)) {
+      participants.push(tools.definedAttributes(parsed));
     }
   }
 

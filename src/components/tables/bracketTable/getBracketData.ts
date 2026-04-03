@@ -18,6 +18,85 @@ type GetBracketDataParams = {
   drawId: string;
 };
 
+function buildPositionMaps(allMatchUps: any[]): {
+  positionParticipant: Record<string, Record<number, string>>;
+  byePositions: Record<string, Set<number>>;
+} {
+  const positionParticipant: Record<string, Record<number, string>> = {};
+  const byePositions: Record<string, Set<number>> = {};
+
+  for (const matchUp of allMatchUps) {
+    const gId = matchUp.structureId;
+    if (!positionParticipant[gId]) positionParticipant[gId] = {};
+    if (matchUp.matchUpStatus === 'BYE') {
+      if (!byePositions[gId]) byePositions[gId] = new Set();
+      for (const side of matchUp.sides ?? []) {
+        if (side.drawPosition && !side.participantId) {
+          byePositions[gId].add(side.drawPosition);
+        }
+      }
+    }
+    for (const side of matchUp.sides ?? []) {
+      if (side.drawPosition) {
+        if (side.participantId) {
+          positionParticipant[gId][side.drawPosition] = side.participantId;
+        } else if (!positionParticipant[gId][side.drawPosition]) {
+          positionParticipant[gId][side.drawPosition] = '';
+        }
+      }
+    }
+  }
+
+  return { positionParticipant, byePositions };
+}
+
+function buildGroupRow(
+  rowP: GroupParticipant,
+  participants: GroupParticipant[],
+  posMap: Record<number, string>,
+  groupByePositions: Set<number> | undefined,
+  resultsMap: Record<string, any>,
+  h2hMap: Record<string, any>,
+  groupId: string,
+  drawId: string,
+): any {
+  const isAssigned = !!posMap[rowP.drawPosition];
+  const pr = isAssigned
+    ? (resultsMap[posMap[rowP.drawPosition]]?.participantResult ?? resultsMap[posMap[rowP.drawPosition]] ?? {})
+    : {};
+  const row: any = {
+    participantId: isAssigned ? posMap[rowP.drawPosition] : '',
+    participantName: rowP.participantName,
+    drawPosition: rowP.drawPosition,
+    structureId: groupId,
+    drawId,
+    result: isAssigned ? `${pr.matchUpsWon ?? 0}/${pr.matchUpsLost ?? 0}` : '',
+    setsResult: isAssigned ? `${pr.setsWon ?? 0}/${pr.setsLost ?? 0}` : '',
+    gamesResult: isAssigned ? `${pr.gamesWon ?? 0}/${pr.gamesLost ?? 0}` : '',
+    matchUpsPct: pr.matchUpsPct ?? pr.result ?? '',
+    setsPct: pr.setsPct ?? '',
+    order: pr.groupOrder ?? pr.provisionalOrder ?? '',
+    ties: pr.ties ?? 0,
+    subOrder: pr.subOrder ?? 0,
+  };
+
+  for (const colP of participants) {
+    if (colP.drawPosition === rowP.drawPosition) {
+      row[`opponent_${colP.participantId}`] = { self: true };
+    } else if (groupByePositions?.has(rowP.drawPosition) || groupByePositions?.has(colP.drawPosition)) {
+      row[`opponent_${colP.participantId}`] = { bye: true };
+    } else if (isAssigned && !!posMap[colP.drawPosition]) {
+      const key = `${posMap[rowP.drawPosition]}_${posMap[colP.drawPosition]}`;
+      const h2h = h2hMap[key];
+      row[`opponent_${colP.participantId}`] = h2h ?? {};
+    } else {
+      row[`opponent_${colP.participantId}`] = {};
+    }
+  }
+
+  return row;
+}
+
 export function getBracketData({ structure, participantMap, participantResults, drawId }: GetBracketDataParams): GroupData[] {
   const roundMatchUps = structure?.roundMatchUps ?? {};
   const allMatchUps: any[] = Object.values(roundMatchUps).flat();
@@ -70,32 +149,7 @@ export function getBracketData({ structure, participantMap, participantResults, 
     h2hMap[`${p2}_${p1}`] = { score: score2, won: winningSide === 2, ...shared };
   }
 
-  // Build position-to-participantId map from matchUp sides (covers assigned positions)
-  // Also build drawPosition-to-structureId map
-  const positionParticipant: Record<string, Record<number, string>> = {}; // groupId → { drawPosition → participantId }
-  // Track draw positions that are BYEs (from matchUps with matchUpStatus === 'BYE')
-  const byePositions: Record<string, Set<number>> = {}; // groupId → Set of BYE drawPositions
-  for (const matchUp of allMatchUps) {
-    const gId = matchUp.structureId;
-    if (!positionParticipant[gId]) positionParticipant[gId] = {};
-    if (matchUp.matchUpStatus === 'BYE') {
-      if (!byePositions[gId]) byePositions[gId] = new Set();
-      for (const side of matchUp.sides ?? []) {
-        if (side.drawPosition && !side.participantId) {
-          byePositions[gId].add(side.drawPosition);
-        }
-      }
-    }
-    for (const side of matchUp.sides ?? []) {
-      if (side.drawPosition) {
-        if (side.participantId) {
-          positionParticipant[gId][side.drawPosition] = side.participantId;
-        } else if (!positionParticipant[gId][side.drawPosition]) {
-          positionParticipant[gId][side.drawPosition] = '';
-        }
-      }
-    }
-  }
+  const { positionParticipant, byePositions } = buildPositionMaps(allMatchUps);
 
   const groups: GroupData[] = [];
 
@@ -121,47 +175,9 @@ export function getBracketData({ structure, participantMap, participantResults, 
       };
     });
 
-    // Build rows: one per draw position
-    const rows = participants.map((rowP) => {
-      const isAssigned = !!posMap[rowP.drawPosition];
-      const pr = isAssigned
-        ? (resultsMap[posMap[rowP.drawPosition]]?.participantResult ?? resultsMap[posMap[rowP.drawPosition]] ?? {})
-        : {};
-      const row: any = {
-        participantId: isAssigned ? posMap[rowP.drawPosition] : '',
-        participantName: rowP.participantName,
-        drawPosition: rowP.drawPosition,
-        structureId: groupId,
-        drawId,
-        result: isAssigned ? `${pr.matchUpsWon ?? 0}/${pr.matchUpsLost ?? 0}` : '',
-        setsResult: isAssigned ? `${pr.setsWon ?? 0}/${pr.setsLost ?? 0}` : '',
-        gamesResult: isAssigned ? `${pr.gamesWon ?? 0}/${pr.gamesLost ?? 0}` : '',
-        matchUpsPct: pr.matchUpsPct ?? pr.result ?? '',
-        setsPct: pr.setsPct ?? '',
-        order: pr.groupOrder ?? pr.provisionalOrder ?? '',
-        ties: pr.ties ?? 0,
-        subOrder: pr.subOrder ?? 0,
-      };
-
-      // Add opponent columns
-      for (const colP of participants) {
-        if (colP.drawPosition === rowP.drawPosition) {
-          row[`opponent_${colP.participantId}`] = { self: true };
-        } else if (groupByePositions?.has(rowP.drawPosition) || groupByePositions?.has(colP.drawPosition)) {
-          // Either this row or the column is a BYE position
-          row[`opponent_${colP.participantId}`] = { bye: true };
-        } else if (isAssigned && !!posMap[colP.drawPosition]) {
-          // Both positions assigned — look up h2h
-          const key = `${posMap[rowP.drawPosition]}_${posMap[colP.drawPosition]}`;
-          const h2h = h2hMap[key];
-          row[`opponent_${colP.participantId}`] = h2h ?? {};
-        } else {
-          row[`opponent_${colP.participantId}`] = {};
-        }
-      }
-
-      return row;
-    });
+    const rows = participants.map((rowP) =>
+      buildGroupRow(rowP, participants, posMap, groupByePositions, resultsMap, h2hMap, groupId, drawId),
+    );
 
     groups.push({
       groupId,

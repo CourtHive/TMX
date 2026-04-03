@@ -571,11 +571,87 @@ function selectTieFormatItem(item: TieFormatCatalogItem | undefined, readOnly?: 
   }
 }
 
+function buildCollectionCard(col: any): HTMLDivElement {
+  const card = document.createElement('div');
+  card.className = 'tfp-collection';
+
+  const header = document.createElement('div');
+  header.className = 'tfp-collection__header';
+
+  const name = document.createElement('div');
+  name.className = 'tfp-collection__name';
+  name.textContent = col.collectionName || 'Unnamed';
+
+  const typeBadge = document.createElement('span');
+  const matchUpType = (col.matchUpType || '').toUpperCase();
+  typeBadge.className = `tfp-type-badge tfp-type-badge--${matchUpType === 'DOUBLES' ? 'doubles' : 'singles'}`;
+  typeBadge.textContent = matchUpType === 'DOUBLES' ? 'D' : 'S';
+
+  header.appendChild(name);
+  header.appendChild(typeBadge);
+  card.appendChild(header);
+
+  const stats = document.createElement('div');
+  stats.className = 'tfp-collection__stats';
+
+  const countEl = document.createElement('div');
+  countEl.className = 'tfp-collection__count';
+  countEl.textContent = String(col.matchUpCount || 0);
+  const countLabel = document.createElement('span');
+  countLabel.className = 'tfp-collection__count-label';
+  countLabel.textContent = (col.matchUpCount || 0) === 1 ? ' match' : ' matches';
+  countEl.appendChild(countLabel);
+  stats.appendChild(countEl);
+
+  if (col.gender) {
+    const gender = col.gender.toUpperCase();
+    const genderBadge = document.createElement('span');
+    const genderClass = gender === 'MALE' ? 'male' : gender === 'FEMALE' ? 'female' : 'mixed';
+    genderBadge.className = `tfp-gender-badge tfp-gender-badge--${genderClass}`;
+    genderBadge.textContent = gender === 'MALE' ? 'Male' : gender === 'FEMALE' ? 'Female' : 'Mixed';
+    stats.appendChild(genderBadge);
+  }
+
+  card.appendChild(stats);
+
+  if (col.matchUpFormat) {
+    const formatRow = document.createElement('div');
+    formatRow.className = 'tfp-collection__format';
+    const pill = document.createElement('button');
+    pill.className = 'tpl-format-pill';
+    pill.textContent = col.matchUpFormat;
+    pill.onclick = () =>
+      getMatchUpFormatModal({
+        existingMatchUpFormat: col.matchUpFormat,
+        config: { labels: getMatchFormatLabels() },
+      });
+    formatRow.appendChild(pill);
+    card.appendChild(formatRow);
+  }
+
+  const awardLabel =
+    col.collectionValue == null
+      ? col.scoreValue == null
+        ? col.setValue == null
+          ? 'Match value'
+          : 'Set value'
+        : 'Score value'
+      : 'Collection value';
+  const awardVal = col.collectionValue ?? col.scoreValue ?? col.setValue ?? col.matchUpValue;
+  if (awardVal != null) {
+    const award = document.createElement('div');
+    award.className = 'tfp-collection__award';
+    award.textContent = `${awardLabel}: ${awardVal}`;
+    card.appendChild(award);
+  }
+
+  return card;
+}
+
 function renderTieFormatPreview(container: HTMLElement, tieFormat: any): void {
   const wrap = document.createElement('div');
   wrap.className = 'tfp';
 
-  // Win criteria header
   const goal = tieFormat.winCriteria?.valueGoal;
   const aggregate = tieFormat.winCriteria?.aggregateValue;
   const totalMatchUps = (tieFormat.collectionDefinitions || []).reduce(
@@ -606,92 +682,12 @@ function renderTieFormatPreview(container: HTMLElement, tieFormat: any): void {
 
   wrap.appendChild(summary);
 
-  // Collection cards
   if (tieFormat.collectionDefinitions?.length) {
     const grid = document.createElement('div');
     grid.className = 'tfp-grid';
 
     for (const col of tieFormat.collectionDefinitions) {
-      const card = document.createElement('div');
-      card.className = 'tfp-collection';
-
-      // Card header with name and type badge
-      const header = document.createElement('div');
-      header.className = 'tfp-collection__header';
-
-      const name = document.createElement('div');
-      name.className = 'tfp-collection__name';
-      name.textContent = col.collectionName || 'Unnamed';
-
-      const typeBadge = document.createElement('span');
-      const matchUpType = (col.matchUpType || '').toUpperCase();
-      typeBadge.className = `tfp-type-badge tfp-type-badge--${matchUpType === 'DOUBLES' ? 'doubles' : 'singles'}`;
-      typeBadge.textContent = matchUpType === 'DOUBLES' ? 'D' : 'S';
-
-      header.appendChild(name);
-      header.appendChild(typeBadge);
-      card.appendChild(header);
-
-      // Stats row
-      const stats = document.createElement('div');
-      stats.className = 'tfp-collection__stats';
-
-      // Match count
-      const countEl = document.createElement('div');
-      countEl.className = 'tfp-collection__count';
-      countEl.textContent = String(col.matchUpCount || 0);
-      const countLabel = document.createElement('span');
-      countLabel.className = 'tfp-collection__count-label';
-      countLabel.textContent = (col.matchUpCount || 0) === 1 ? ' match' : ' matches';
-      countEl.appendChild(countLabel);
-
-      stats.appendChild(countEl);
-
-      // Gender badge (if specified)
-      if (col.gender) {
-        const gender = col.gender.toUpperCase();
-        const genderBadge = document.createElement('span');
-        genderBadge.className = `tfp-gender-badge tfp-gender-badge--${gender === 'MALE' ? 'male' : gender === 'FEMALE' ? 'female' : 'mixed'}`;
-        genderBadge.textContent = gender === 'MALE' ? 'Male' : gender === 'FEMALE' ? 'Female' : 'Mixed';
-        stats.appendChild(genderBadge);
-      }
-
-      card.appendChild(stats);
-
-      // Format pill
-      if (col.matchUpFormat) {
-        const formatRow = document.createElement('div');
-        formatRow.className = 'tfp-collection__format';
-        const pill = document.createElement('button');
-        pill.className = 'tpl-format-pill';
-        pill.textContent = col.matchUpFormat;
-        pill.onclick = () =>
-          getMatchUpFormatModal({
-            existingMatchUpFormat: col.matchUpFormat,
-            config: { labels: getMatchFormatLabels() },
-          });
-        formatRow.appendChild(pill);
-        card.appendChild(formatRow);
-      }
-
-      // Award info
-      const awardLabel =
-        col.collectionValue == null
-          ? col.scoreValue == null
-            ? col.setValue == null
-              ? 'Match value'
-              : 'Set value'
-            : 'Score value'
-          : 'Collection value';
-      const awardVal = col.collectionValue ?? col.scoreValue ?? col.setValue ?? col.matchUpValue;
-      if (awardVal != null) {
-        const award = document.createElement('div');
-        award.className = 'tfp-collection__award';
-        award.textContent = `${awardLabel}: ${awardVal}`;
-        card.appendChild(award);
-      }
-
-      grid.appendChild(card);
+      grid.appendChild(buildCollectionCard(col));
     }
 
     wrap.appendChild(grid);

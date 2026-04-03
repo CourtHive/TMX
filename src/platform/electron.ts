@@ -23,50 +23,31 @@ function getBridge(): ElectronBridge | undefined {
   return (window as any).electronAPI;
 }
 
+function buildBridgeMethods(bridge: ElectronBridge | undefined): Partial<PlatformAdapter> {
+  if (!bridge) return {};
+
+  return {
+    showSaveDialog: (options: SaveDialogOptions) => bridge.showSaveDialog(options),
+    showOpenDialog: (options: OpenDialogOptions) => bridge.showOpenDialog(options),
+    readFile: (filePath: string) => bridge.readFile(filePath),
+    writeFile: (filePath: string, data: Uint8Array) => bridge.writeFile(filePath, data),
+    getAppDataPath: () => bridge.getAppDataPath(),
+    setServerUrl: (url: string) => bridge.setServerUrl(url),
+    toggleDevTools: () => bridge.toggleDevTools(),
+    onMenuAction: (callback: (action: string) => void) => bridge.onMenuAction(callback),
+  };
+}
+
 export function createElectronPlatform(): PlatformAdapter {
   const bridge = getBridge();
+  const bridgeMethods = buildBridgeMethods(bridge);
 
   return {
     type: 'electron',
     canAccessFileSystem: () => !!bridge,
     canAutoUpdate: () => true,
     isDesktop: () => true,
-
-    getDefaultServerUrl: () => {
-      // Electron app may have a stored server URL preference
-      return bridge?.getServerUrl() || 'http://localhost:8383';
-    },
-
-    showSaveDialog: bridge
-      ? (options: SaveDialogOptions) => bridge.showSaveDialog(options)
-      : undefined,
-
-    showOpenDialog: bridge
-      ? (options: OpenDialogOptions) => bridge.showOpenDialog(options)
-      : undefined,
-
-    readFile: bridge
-      ? (filePath: string) => bridge.readFile(filePath)
-      : undefined,
-
-    writeFile: bridge
-      ? (filePath: string, data: Uint8Array) => bridge.writeFile(filePath, data)
-      : undefined,
-
-    getAppDataPath: bridge
-      ? () => bridge.getAppDataPath()
-      : undefined,
-
-    setServerUrl: bridge
-      ? (url: string) => bridge.setServerUrl(url)
-      : undefined,
-
-    toggleDevTools: bridge
-      ? () => bridge.toggleDevTools()
-      : undefined,
-
-    onMenuAction: bridge
-      ? (callback: (action: string) => void) => bridge.onMenuAction(callback)
-      : undefined,
+    getDefaultServerUrl: () => bridge?.getServerUrl() || 'http://localhost:8383',
+    ...bridgeMethods,
   };
 }

@@ -118,16 +118,231 @@ function showMatchUpTipster(target: HTMLElement, drawId: string, matchUpId: stri
   activeTip.show();
 }
 
+function computeDynamicRatings(
+  matchUps: any[],
+  activeScale: string,
+): { computedRatings: Record<string, any>; isEloDynamic: boolean } {
+  const completedMatchUpIds = matchUps
+    .filter((mu: any) => mu.winningSide)
+    .map((mu: any) => mu.matchUpId);
+
+  if (!completedMatchUpIds.length) {
+    return { computedRatings: {}, isEloDynamic: false };
+  }
+
+  const { tournamentRecord } = tournamentEngine.getTournament();
+  scaleEngine.setState(tournamentRecord);
+  const result = scaleEngine.generateDynamicRatings({
+    matchUpIds: completedMatchUpIds,
+    ratingType: activeScale,
+    convertToELO: true,
+    asDynamic: true,
+  });
+
+  if (result.modifiedScaleValues) {
+    return {
+      computedRatings: result.modifiedScaleValues,
+      isEloDynamic: !!result.sourceRatingType,
+    };
+  }
+
+  return { computedRatings: {}, isEloDynamic: false };
+}
+
+function resolveDynamicValue(
+  pid: string,
+  ratings: any[],
+  dynamicScaleName: string,
+  accessor: string | undefined,
+  computedRatings: Record<string, any>,
+  isEloDynamic: boolean,
+): number | undefined {
+  const computedEntry = computedRatings[pid];
+  const computedValue = computedEntry
+    ? isEloDynamic
+      ? computedEntry.scaleValue
+      : extractNumeric(computedEntry.scaleValue, accessor)
+    : undefined;
+  const dynEntry = ratings.find((r: any) => r.scaleName === dynamicScaleName || r.scaleName === 'ELO.DYNAMIC');
+  const persistedValue = dynEntry
+    ? dynEntry.scaleName === 'ELO.DYNAMIC'
+      ? extractNumeric(dynEntry.scaleValue, undefined)
+      : extractNumeric(dynEntry.scaleValue, accessor)
+    : undefined;
+  return computedValue ?? persistedValue;
+}
+
+function populateRoundData(
+  row: any,
+  pid: string,
+  roundNumbers: number[],
+  roundMap: Record<number, any[]>,
+): { result: string; score: string; matchUpId: string }[] {
+  const scorelines: { result: string; score: string; matchUpId: string }[] = [];
+  for (const rn of roundNumbers) {
+    const roundMatchUps = roundMap[rn];
+    const mu = roundMatchUps.find((m: any) => m.sides?.some((s: any) => s.participantId === pid));
+    if (!mu) continue;
+
+    const mySide = (mu as any).sides.find((s: any) => s.participantId === pid);
+    const oppSide = (mu as any).sides.find((s: any) => s.participantId !== pid);
+    const oppName = oppSide?.participant?.participantName || oppSide?.participantId || '-';
+    const won = (mu as any).winningSide === mySide?.sideNumber;
+    const lost = (mu as any).winningSide && (mu as any).winningSide !== mySide?.sideNumber;
+    const participantScore = getParticipantScore(mu, mySide?.sideNumber);
+    const matchUpId = (mu as any).matchUpId;
+    row[`r${rn}_opponent`] = oppName;
+    row[`r${rn}_result`] = won ? 'W' : lost ? 'L' : '';
+    row[`r${rn}_score`] = participantScore;
+    row[`r${rn}_matchUpId`] = matchUpId;
+
+    if (participantScore) {
+      const result = won ? 'W' : lost ? 'L' : '';
+      scorelines.push({ result, score: participantScore, matchUpId });
+    }
+  }
+  return scorelines;
+}
+
+function buildParticipantRow(
+  pid: string,
+  participantMap: Record<string, any>,
+  matchUpType: string,
+  activeScale: string,
+  dynamicScaleName: string,
+  accessor: string | undefined,
+  computedRatings: Record<string, any>,
+  isEloDynamic: boolean,
+  roundNumbers: number[],
+  roundMap: Record<number, any[]>,
+): { row: any; hasDynamic: boolean } | undefined {
+  const participant = participantMap[pid];
+  if (!participant) return undefined;
+
+  const row: any = {
+    participantId: pid,
+    participantName: participant.participantName || 'Unknown',
+    participant,
+  };
+
+  const ratings = participant.ratings?.[matchUpType] || [];
+  const baseEntry = ratings.find((r: any) => r.scaleName === activeScale);
+  row.rating = extractNumeric(baseEntry?.scaleValue, accessor);
+
+  const dynValue = resolveDynamicValue(pid, ratings, dynamicScaleName, accessor, computedRatings, isEloDynamic);
+
+  let hasDynamic = false;
+  if (dynValue != null) {
+    hasDynamic = true;
+    const roundedDyn = isEloDynamic ? Math.round(dynValue) : dynValue;
+    row.dynamicRating = roundedDyn;
+    if (row.rating != null) {
+      const baseValue = isEloDynamic ? convertToElo(row.rating, activeScale) : row.rating;
+      if (baseValue) {
+        row.ratingChange = +(((roundedDyn - baseValue) / baseValue) * 100).toFixed(1);
+      }
+    }
+  }
+
+  row.scorelines = populateRoundData(row, pid, roundNumbers, roundMap);
+  return { row, hasDynamic };
+}
+
+function buildScorelineFormatter(drawId: string) {
+  return (cell: any) => {
+    const entries: { result: string; score: string; matchUpId: string }[] = cell.getValue() || [];
+    if (!entries.length) return '';
+
+    const container = document.createElement('span');
+    entries.forEach((entry, i) => {
+      if (i > 0) container.appendChild(document.createTextNode(', '));
+
+      const span = document.createElement('span');
+      span.style.cursor = 'pointer';
+      const color = entry.result === 'W' ? 'green' : entry.result === 'L' ? 'red' : '';
+      const prefix = entry.result ? `<span style="color:${color};font-weight:bold;">${entry.result}</span> ` : '';
+      span.innerHTML = `${prefix}${entry.score}`;
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showMatchUpTipster(span, drawId, entry.matchUpId);
+      });
+      container.appendChild(span);
+    });
+
+    return container;
+  };
+}
+
+function buildRoundColumn(rn: number, drawId: string): any {
+  return {
+    title: `R${rn}`,
+    field: `r${rn}_result`,
+    hozAlign: 'center',
+    width: 55,
+    formatter: (cell: any) => {
+      const val = cell.getValue();
+      const rowData = cell.getRow().getData();
+      const score = rowData[`r${rn}_score`];
+      const opponent = rowData[`r${rn}_opponent`] || '';
+      const matchUpId = rowData[`r${rn}_matchUpId`];
+      const color = val === 'W' ? 'green' : val === 'L' ? 'red' : '';
+      const tooltip = `${opponent}${score ? ' ' + score : ''}`;
+      const cursor = matchUpId && val ? 'cursor:pointer;' : '';
+      return `<span style="color:${color}; font-weight:bold; ${cursor}" title="${tooltip}">${val || '-'}</span>`;
+    },
+    cellClick: (_e: any, cell: any) => {
+      const rowData = cell.getRow().getData();
+      const matchUpId = rowData[`r${rn}_matchUpId`];
+      const val = rowData[`r${rn}_result`];
+      if (!matchUpId || !val) return;
+
+      showMatchUpTipster(cell.getElement(), drawId, matchUpId);
+    },
+  };
+}
+
+function buildDynamicColumns(isEloDynamic: boolean, activeScale: string, ascending: boolean): any[] {
+  return [
+    {
+      title: isEloDynamic ? `ELO<br>(from ${activeScale})` : 'Dynamic',
+      field: 'dynamicRating',
+      headerHozAlign: 'center',
+      hozAlign: 'center',
+      width: 150,
+      formatter: (cell: any) => {
+        const val = cell.getValue();
+        if (val == null) return '-';
+        return isEloDynamic ? Math.round(val).toString() : val.toFixed(2);
+      },
+    },
+    {
+      title: 'Change',
+      field: 'ratingChange',
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      width: 100,
+      formatter: (cell: any) => {
+        const val = cell.getValue();
+        if (val == null) return '-';
+        const pctAscending = isEloDynamic ? false : ascending;
+        const isImprovement = pctAscending ? val < 0 : val > 0;
+        const isDecline = pctAscending ? val > 0 : val < 0;
+        const color = isImprovement ? 'green' : isDecline ? 'red' : '';
+        const prefix = val > 0 ? '+' : '';
+        return `<span style="color: ${color}; font-weight: bold;">${prefix}${val.toFixed(1)}%</span>`;
+      },
+    },
+  ];
+}
+
 export function createRatingsTable({ structureId, drawId }: CreateRatingsTableParams): void {
   const { ratingsParameters } = fixtures;
 
-  // Get draw matchups grouped by round
   const { matchUps = [] } = tournamentEngine.allDrawMatchUps({
     matchUpFilters: { structureIds: [structureId] },
     drawId,
   });
 
-  // Get participants with hydrated scale values (ratings, rankings)
   const { participants = [] } = tournamentEngine.getParticipants({
     withScaleValues: true,
   });
@@ -137,7 +352,6 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     participantMap[(p as any).participantId] = p;
   }
 
-  // Group matchups by round
   const roundMap: Record<number, any[]> = {};
   for (const mu of matchUps) {
     const rn = (mu as any).roundNumber;
@@ -149,17 +363,13 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     .map(Number)
     .sort((a, b) => a - b);
 
-  // Determine matchUp type for rating lookup (SINGLES, DOUBLES, etc.)
   const matchUpType = (matchUps[0] as any)?.matchUpType || 'SINGLES';
-
-  // Determine active scale and accessor for extracting numeric values
   const activeScale = preferencesConfig.get().activeScale?.toUpperCase() || 'WTN';
   const dynamicScaleName = `${activeScale}.DYNAMIC`;
   const rp = (ratingsParameters as any)[activeScale];
   const accessor = rp?.accessor;
-  const ascending = rp?.ascending ?? false; // true = lower is better (WTN), false = higher is better (UTR)
+  const ascending = rp?.ascending ?? false;
 
-  // Collect unique participants from the draw
   const drawParticipantIds = new Set<string>();
   for (const mu of matchUps) {
     for (const side of (mu as any).sides || []) {
@@ -167,113 +377,35 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     }
   }
 
-  // Compute dynamic ratings on-the-fly from all completed matchups
-  const completedMatchUpIds = matchUps
-    .filter((mu: any) => mu.winningSide)
-    .map((mu: any) => mu.matchUpId);
+  const { computedRatings, isEloDynamic } = computeDynamicRatings(matchUps, activeScale);
 
-  let computedRatings: Record<string, any> = {};
-  let isEloDynamic = false;
-  if (completedMatchUpIds.length) {
-    const { tournamentRecord } = tournamentEngine.getTournament();
-    scaleEngine.setState(tournamentRecord);
-    const result = scaleEngine.generateDynamicRatings({
-      matchUpIds: completedMatchUpIds,
-      ratingType: activeScale,
-      convertToELO: true,
-      asDynamic: true,
-    });
-    if (result.modifiedScaleValues) {
-      computedRatings = result.modifiedScaleValues;
-      isEloDynamic = !!result.sourceRatingType;
-    }
-  }
-
-  // Build table data: one row per participant
   let hasDynamic = false;
   const tableData: any[] = [];
 
   for (const pid of drawParticipantIds) {
-    const participant = participantMap[pid];
-    if (!participant) continue;
-
-    const row: any = {
-      participantId: pid,
-      participantName: participant.participantName || 'Unknown',
-      participant,
-    };
-
-    const ratings = participant.ratings?.[matchUpType] || [];
-
-    // Base rating (the non-dynamic scale value)
-    const baseEntry = ratings.find((r: any) => r.scaleName === activeScale);
-    row.rating = extractNumeric(baseEntry?.scaleValue, accessor);
-
-    // Dynamic rating: prefer on-the-fly calculation, fall back to persisted value
-    const computedEntry = computedRatings[pid];
-    // When convertToELO, computed values are plain numbers (no accessor wrapping)
-    const computedValue = computedEntry
-      ? isEloDynamic
-        ? computedEntry.scaleValue
-        : extractNumeric(computedEntry.scaleValue, accessor)
-      : undefined;
-    const dynEntry = ratings.find((r: any) => r.scaleName === dynamicScaleName || r.scaleName === 'ELO.DYNAMIC');
-    const persistedValue = dynEntry
-      ? dynEntry.scaleName === 'ELO.DYNAMIC'
-        ? extractNumeric(dynEntry.scaleValue, undefined)
-        : extractNumeric(dynEntry.scaleValue, accessor)
-      : undefined;
-    const dynValue = computedValue ?? persistedValue;
-
-    if (dynValue != null) {
-      hasDynamic = true;
-      const roundedDyn = isEloDynamic ? Math.round(dynValue) : dynValue;
-      row.dynamicRating = roundedDyn;
-      if (row.rating != null) {
-        const baseValue = isEloDynamic ? convertToElo(row.rating, activeScale) : row.rating;
-        if (baseValue) {
-          row.ratingChange = +((( roundedDyn - baseValue) / baseValue) * 100).toFixed(1);
-        }
-      }
-    }
-
-    // Per-round: find this participant's matchup and extract opponent + result + scoreline
-    const scorelines: { result: string; score: string; matchUpId: string }[] = [];
-    for (const rn of roundNumbers) {
-      const roundMatchUps = roundMap[rn];
-      const mu = roundMatchUps.find((m: any) => m.sides?.some((s: any) => s.participantId === pid));
-      if (mu) {
-        const mySide = (mu as any).sides.find((s: any) => s.participantId === pid);
-        const oppSide = (mu as any).sides.find((s: any) => s.participantId !== pid);
-        const oppName = oppSide?.participant?.participantName || oppSide?.participantId || '-';
-        const won = (mu as any).winningSide === mySide?.sideNumber;
-        const lost = (mu as any).winningSide && (mu as any).winningSide !== mySide?.sideNumber;
-        const participantScore = getParticipantScore(mu, mySide?.sideNumber);
-        const matchUpId = (mu as any).matchUpId;
-        row[`r${rn}_opponent`] = oppName;
-        row[`r${rn}_result`] = won ? 'W' : lost ? 'L' : '';
-        row[`r${rn}_score`] = participantScore;
-        row[`r${rn}_matchUpId`] = matchUpId;
-
-        if (participantScore) {
-          const result = won ? 'W' : lost ? 'L' : '';
-          scorelines.push({ result, score: participantScore, matchUpId });
-        }
-      }
-    }
-
-    row.scorelines = scorelines;
-    tableData.push(row);
+    const result = buildParticipantRow(
+      pid,
+      participantMap,
+      matchUpType,
+      activeScale,
+      dynamicScaleName,
+      accessor,
+      computedRatings,
+      isEloDynamic,
+      roundNumbers,
+      roundMap,
+    );
+    if (!result) continue;
+    if (result.hasDynamic) hasDynamic = true;
+    tableData.push(result.row);
   }
 
-  // Sort by dynamic rating if available, otherwise by base rating (best first)
   tableData.sort((a, b) => {
     const aVal = a.dynamicRating ?? a.rating ?? (ascending ? 999 : -1);
     const bVal = b.dynamicRating ?? b.rating ?? (ascending ? 999 : -1);
     return ascending ? aVal - bVal : bVal - aVal;
   });
 
-  // Build columns
   const ratingFormatter = (cell: any) => {
     const val = cell.getValue();
     return val != null ? val.toFixed(2) : '-';
@@ -292,28 +424,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
       title: 'Scorelines',
       field: 'scorelines',
       minWidth: 200,
-      formatter: (cell: any) => {
-        const entries: { result: string; score: string; matchUpId: string }[] = cell.getValue() || [];
-        if (!entries.length) return '';
-
-        const container = document.createElement('span');
-        entries.forEach((entry, i) => {
-          if (i > 0) container.appendChild(document.createTextNode(', '));
-
-          const span = document.createElement('span');
-          span.style.cursor = 'pointer';
-          const color = entry.result === 'W' ? 'green' : entry.result === 'L' ? 'red' : '';
-          const prefix = entry.result ? `<span style="color:${color};font-weight:bold;">${entry.result}</span> ` : '';
-          span.innerHTML = `${prefix}${entry.score}`;
-          span.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showMatchUpTipster(span, drawId, entry.matchUpId);
-          });
-          container.appendChild(span);
-        });
-
-        return container;
-      },
+      formatter: buildScorelineFormatter(drawId),
     },
     {
       title: `Rating<br>(${activeScale})`,
@@ -325,74 +436,14 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     },
   ];
 
-  // Round columns
   for (const rn of roundNumbers) {
-    columns.push({
-      title: `R${rn}`,
-      field: `r${rn}_result`,
-      hozAlign: 'center',
-      width: 55,
-      formatter: (cell: any) => {
-        const val = cell.getValue();
-        const rowData = cell.getRow().getData();
-        const score = rowData[`r${rn}_score`];
-        const opponent = rowData[`r${rn}_opponent`] || '';
-        const matchUpId = rowData[`r${rn}_matchUpId`];
-        const color = val === 'W' ? 'green' : val === 'L' ? 'red' : '';
-        const tooltip = `${opponent}${score ? ' ' + score : ''}`;
-        const cursor = matchUpId && val ? 'cursor:pointer;' : '';
-        return `<span style="color:${color}; font-weight:bold; ${cursor}" title="${tooltip}">${val || '-'}</span>`;
-      },
-      cellClick: (_e: any, cell: any) => {
-        const rowData = cell.getRow().getData();
-        const matchUpId = rowData[`r${rn}_matchUpId`];
-        const val = rowData[`r${rn}_result`];
-        if (!matchUpId || !val) return;
-
-        showMatchUpTipster(cell.getElement(), drawId, matchUpId);
-      },
-    });
+    columns.push(buildRoundColumn(rn, drawId));
   }
 
-  // Only show dynamic rating and change columns when dynamic ratings exist
   if (hasDynamic) {
-    columns.push(
-      {
-        title: isEloDynamic ? `ELO<br>(from ${activeScale})` : 'Dynamic',
-        field: 'dynamicRating',
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        width: 150,
-        formatter: (cell: any) => {
-          const val = cell.getValue();
-          if (val == null) return '-';
-          return isEloDynamic ? Math.round(val).toString() : val.toFixed(2);
-        },
-      },
-      {
-        title: 'Change',
-        field: 'ratingChange',
-        hozAlign: 'center',
-        headerHozAlign: 'center',
-        width: 100,
-        formatter: (cell: any) => {
-          const val = cell.getValue();
-          if (val == null) return '-';
-          // Positive % = numeric value went up
-          // ELO: higher is always better, so positive % is always improvement
-          // Source scale: ascending=true means lower is better (WTN), so positive % is decline
-          const pctAscending = isEloDynamic ? false : ascending;
-          const isImprovement = pctAscending ? val < 0 : val > 0;
-          const isDecline = pctAscending ? val > 0 : val < 0;
-          const color = isImprovement ? 'green' : isDecline ? 'red' : '';
-          const prefix = val > 0 ? '+' : '';
-          return `<span style="color: ${color}; font-weight: bold;">${prefix}${val.toFixed(1)}%</span>`;
-        },
-      },
-    );
+    columns.push(...buildDynamicColumns(isEloDynamic, activeScale, ascending));
   }
 
-  // Render table
   destroyTable({ anchorId: DRAWS_VIEW });
   const element = document.getElementById(DRAWS_VIEW);
 
