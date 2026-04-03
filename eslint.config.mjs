@@ -49,7 +49,7 @@ export default [
       'preserve-caught-error': 'off',
       'prefer-const': 'off',
       'no-prototype-builtins': 'off',
-      'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/cognitive-complexity': ['warn', 30],
       'sonarjs/no-commented-code': 'off',
       'sonarjs/no-nested-functions': 'off',
       'sonarjs/no-hardcoded-passwords': 'off',
