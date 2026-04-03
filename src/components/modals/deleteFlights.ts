@@ -22,17 +22,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   const { eventData, drawIds, callback } = params;
   const eventId = params.eventId ?? eventData.eventInfo.eventId;
 
-  // Skip reason modal if env.skipReason is true
-  if (isDev()) {
-    const auditData = { auditReason: 'Reason skipped' };
-    const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData, force: true },
-      method: DELETE_FLIGHT_AND_DRAW,
-    }));
-    const postMutation = (result: any) => (callback ? callback(result) : navigateToEvent({ eventId }));
-    mutationRequest({ methods, callback: postMutation });
-    return;
-  }
+  const devMode = isDev();
 
   const drawName =
     drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
@@ -40,7 +30,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
 
   let inputs: any;
   const deleteAction = () => {
-    const auditData = { auditReason: inputs['drawDeletionReason'].value };
+    const auditData = devMode ? undefined : { auditReason: inputs['drawDeletionReason'].value };
     const methods = drawIds.map((drawId) => ({
       params: { eventId, drawId, auditData, force: true },
       method: DELETE_FLIGHT_AND_DRAW,
@@ -56,6 +46,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     {
       placeholder: 'Explanation',
       field: 'drawDeletionReason',
+      value: devMode ? 'this is only a test' : undefined,
       validator: validators.wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
@@ -85,7 +76,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteDraw', disabled: true, intent: 'is-danger', close: true, onClick: deleteAction },
+      { label: 'Delete', id: 'deleteDraw', disabled: !devMode, intent: 'is-danger', close: true, onClick: deleteAction },
     ],
   });
 }

@@ -14,20 +14,7 @@ import { NONE } from 'constants/tmxConstants';
 
 export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: string[] }): void {
   const eventId = eventData.eventInfo.eventId;
-  if (isDev()) {
-    const auditData = { auditReason: 'Reason skipped' };
-    const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData, removeAssignments: false, removeScheduling: true },
-      method: RESET_DRAW_DEFINITION,
-    }));
-    const postMutation = (result: any) => {
-      if (result.success) {
-        renderEventsTab({ eventId, drawId: drawIds[0], renderDraw: true });
-      }
-    };
-    mutationRequest({ methods, callback: postMutation });
-    return;
-  }
+  const devMode = isDev();
 
   const drawName =
     drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
@@ -35,7 +22,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
 
   let inputs: any;
   const resetAction = () => {
-    const auditData = { auditReason: inputs['drawResetReason'].value };
+    const auditData = devMode ? undefined : { auditReason: inputs['drawResetReason'].value };
     const removeAssignments = inputs['removeAssignments']?.checked ?? false;
     const methods = drawIds.map((drawId) => ({
       params: { eventId, drawId, auditData, removeAssignments, removeScheduling: true },
@@ -56,6 +43,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     {
       placeholder: 'Explanation',
       field: 'drawResetReason',
+      value: devMode ? 'this is only a test' : undefined,
       validator: validators.wordValidator(5),
       error: 'Five word minimum',
       autocomplete: 'on',
@@ -91,7 +79,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Reset', id: 'resetDraw', disabled: true, intent: 'is-warning', close: true, onClick: resetAction },
+      { label: 'Reset', id: 'resetDraw', disabled: !devMode, intent: 'is-warning', close: true, onClick: resetAction },
     ],
   });
 }
