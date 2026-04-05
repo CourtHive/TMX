@@ -192,7 +192,7 @@ export function getEventControlItems({
   const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
   if (isMainStage && !isTeam && !draftExt) {
     const unassignedCount =
-      structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye).length ?? 0;
+      structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier).length ?? 0;
     if (unassignedCount > 0) {
       items.push({
         onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),

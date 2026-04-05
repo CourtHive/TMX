@@ -1130,6 +1130,7 @@
       "qualifying": "Qualifying",
       "directAcceptance": "Direct Acceptance",
       "alternate": "Alternate",
+      "qualifier": "Qualifier",
       "wildcard": "Wildcard",
       "ungrouped": "Ungrouped",
       "eventStage": "Event stage",

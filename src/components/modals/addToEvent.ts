@@ -16,7 +16,7 @@ import {
 
 import { NONE } from 'constants/tmxConstants';
 
-const { ALTERNATE, WILDCARD, DIRECT_ACCEPTANCE, UNGROUPED } = entryStatusConstants;
+const { ALTERNATE, QUALIFIER: _QUALIFIER, WILDCARD, DIRECT_ACCEPTANCE, UNGROUPED } = entryStatusConstants;
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { INDIVIDUAL } = participantConstants;
 const { TEAM, DOUBLES } = eventConstants;
@@ -45,6 +45,9 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
   const entryStatusOptions = [
     { hide: ungroupedOnly, label: t('modals.addToEvent.directAcceptance'), value: DIRECT_ACCEPTANCE, selected: true },
     { hide: ungroupedOnly, label: t('modals.addToEvent.alternate'), value: ALTERNATE },
+    // QUALIFIER status is set automatically when a participant qualifies from a QUALIFYING structure;
+    // it should not be manually selectable here — use entryStage: QUALIFYING with DIRECT_ACCEPTANCE instead
+    // { hide: ungroupedOnly, label: t('modals.addToEvent.qualifier'), value: QUALIFIER },
     { hide: ungroupedOnly, label: t('modals.addToEvent.wildcard'), value: WILDCARD },
     { hide: participantType === TEAM, label: t('modals.addToEvent.ungrouped'), value: UNGROUPED, selected: ungroupedOnly }
   ];

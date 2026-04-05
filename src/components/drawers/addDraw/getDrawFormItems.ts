@@ -77,16 +77,28 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
   const drawType = SINGLE_ELIMINATION;
 
   const drawDefinition = drawId && event.drawDefinitions?.find((def: any) => def.drawId === drawId);
+  const isAttachingQualifying = isQualifying && !!structureId;
   const structurePositionAssignments =
-    structureId && tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments;
+    structureId && !isAttachingQualifying
+      ? tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments
+      : undefined;
+  const qualifierPositionCount = isAttachingQualifying
+    ? (tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments?.filter(
+        (p: any) => p.qualifier,
+      ).length ?? 0)
+    : 0;
   const entryProfile = tournamentEngine.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension
     ?.value;
-  const initialQualifiersCount = structureId ? 1 : 0;
+  const initialQualifiersCount = isAttachingQualifying ? qualifierPositionCount || 1 : structureId ? 1 : 0;
   const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
 
+  const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;
   const drawSize =
-    structurePositionAssignments?.length || tools.nextPowerOf2(acceptedEntriesCount({ drawId, event, stage }));
+    structurePositionAssignments?.length ||
+    (isQualifying && qualifyingEntriesCount
+      ? qualifyingEntriesCount
+      : tools.nextPowerOf2(acceptedEntriesCount({ drawId, event, stage })));
   const maxDrawSize = Math.max(drawSize, 512); // Allow at least 512, or the next power of 2 above entries
 
   // Check for existing seeding policy at event or tournament level
@@ -141,10 +153,11 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     { label: '4', value: 4 },
   ];
 
+  const disableAutomated = !!structureId && !isAttachingQualifying;
   const allCreationOptions = [
-    { label: AUTOMATED, value: AUTOMATED, selected: !structureId, disabled: !!structureId },
-    { label: DRAFT, value: DRAFT, disabled: !!structureId },
-    { label: MANUAL, value: false, selected: structureId },
+    { label: AUTOMATED, value: AUTOMATED, selected: !disableAutomated, disabled: disableAutomated },
+    { label: DRAFT, value: DRAFT, disabled: disableAutomated },
+    { label: MANUAL, value: false, selected: disableAutomated },
   ];
 
   // Filter creation methods by provider config
@@ -327,7 +340,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       value: '',
     },
     {
-      disabled: isQualifying && !structureId,
+      disabled: isQualifying,
       validator: validators.numericValidator,
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,
