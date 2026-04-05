@@ -221,6 +221,10 @@ export function renderDrawView({
     structures = drawData?.structures || [];
     structureId = structureId || structures?.[0]?.structureId;
     structure = structures.find((s: any) => s.structureId === structureId);
+    if (!structure && structures.length) {
+      structureId = structures[0].structureId;
+      structure = structures[0];
+    }
     isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
     matchUps = Object.values(roundMatchUps || {}).flat();

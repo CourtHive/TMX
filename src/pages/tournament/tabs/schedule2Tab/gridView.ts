@@ -25,6 +25,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { tmx2db } from 'services/storage/tmx2db';
+import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 import {
   createSchedulePage,
@@ -69,10 +70,14 @@ let pendingMethods: any[][] = []; // Each entry is a methods array from one drop
 let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
+let hiddenCourtIds = new Set<string>();
+let visibilityTip: Instance | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
+  if (currentDate !== scheduledDate) hiddenCourtIds = new Set();
   currentDate = scheduledDate;
   actionBarContainer = container;
+  destroyVisibilityTip();
 
   // Late-binding refresh: grid cells reference this via closure, but grid is built
   // before activeControl exists. The wrapper defers to the real refresh once ready.
@@ -618,14 +623,13 @@ function buildRowCourtCells(
   grid: HTMLElement,
   row: any | null,
   ri: number,
-  courtCount: number,
-  courtsData: any[],
+  visibleCourts: { court: any; originalIndex: number }[],
   courtPrefix: string,
   emptyCellStyle: string,
   allRows: any[],
   callbacks: GridCallbacks,
 ): void {
-  for (let ci = 0; ci < courtCount; ci++) {
+  for (let ci = 0; ci < visibleCourts.length; ci++) {
     if (!row) {
       const emptyCell = document.createElement('div');
       emptyCell.style.cssText = emptyCellStyle;
@@ -633,10 +637,10 @@ function buildRowCourtCells(
       continue;
     }
 
-    const cellKey = `${courtPrefix}${ci}`;
+    const cellKey = `${courtPrefix}${visibleCourts[ci].originalIndex}`;
     const cellData = row[cellKey];
 
-    const courtInfo = courtsData[ci];
+    const courtInfo = visibleCourts[ci].court;
     const courtId = cellData?.schedule?.courtId ?? courtInfo?.courtId ?? '';
     const venueId = cellData?.schedule?.venueId ?? courtInfo?.venueId ?? '';
     const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
@@ -763,6 +767,127 @@ function attachCellDropTarget(cell: HTMLElement): void {
   });
 }
 
+// ============================================================================
+// Court Visibility
+// ============================================================================
+
+function getCourtMatchUpCounts(rows: any[], courtsData: any[], courtPrefix: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const court of courtsData) counts.set(court.courtId, 0);
+  for (const row of rows) {
+    for (let ci = 0; ci < courtsData.length; ci++) {
+      const cellData = row[`${courtPrefix}${ci}`];
+      if (cellData?.matchUpId) {
+        const courtId = courtsData[ci].courtId;
+        counts.set(courtId, (counts.get(courtId) ?? 0) + 1);
+      }
+    }
+  }
+  return counts;
+}
+
+function destroyVisibilityTip(): void {
+  if (visibilityTip) {
+    visibilityTip.destroy();
+    visibilityTip = null;
+  }
+}
+
+function buildVisibilityPopover(
+  allCourtsData: any[],
+  matchUpCounts: Map<string, number>,
+  onChanged: () => void,
+): HTMLElement {
+  const pop = document.createElement('div');
+  pop.style.cssText = 'padding: 10px; min-width: 220px; max-width: 300px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px;';
+
+  // quick actions
+  const actions = document.createElement('div');
+  actions.style.cssText = DISPLAY_FLEX + '; gap: 6px; margin-bottom: 8px;';
+
+  const showAllBtn = document.createElement('button');
+  showAllBtn.className = 'button font-medium';
+  showAllBtn.style.cssText = 'font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;';
+  showAllBtn.textContent = t('schedule.showAll');
+  showAllBtn.addEventListener('click', () => {
+    hiddenCourtIds.clear();
+    destroyVisibilityTip();
+    onChanged();
+  });
+
+  const hideEmptyBtn = document.createElement('button');
+  hideEmptyBtn.className = 'button font-medium';
+  hideEmptyBtn.style.cssText = 'font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;';
+  hideEmptyBtn.textContent = t('schedule.hideEmpty');
+  hideEmptyBtn.addEventListener('click', () => {
+    for (const court of allCourtsData) {
+      if ((matchUpCounts.get(court.courtId) ?? 0) === 0) {
+        hiddenCourtIds.add(court.courtId);
+      }
+    }
+    destroyVisibilityTip();
+    onChanged();
+  });
+
+  actions.appendChild(showAllBtn);
+  actions.appendChild(hideEmptyBtn);
+  pop.appendChild(actions);
+
+  // court list grouped by venue
+  const venueMap = new Map<string, any[]>();
+  for (const court of allCourtsData) {
+    const key = court.venueName || court.venueId || '';
+    if (!venueMap.has(key)) venueMap.set(key, []);
+    venueMap.get(key)!.push(court);
+  }
+
+  for (const [venueName, courts] of venueMap) {
+    if (venueMap.size > 1) {
+      const venueLabel = document.createElement('div');
+      venueLabel.style.cssText = 'font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--sp-muted, #9ca3af); margin: 6px 0 2px;';
+      venueLabel.textContent = venueName;
+      pop.appendChild(venueLabel);
+    }
+
+    for (const court of courts) {
+      const count = matchUpCounts.get(court.courtId) ?? 0;
+      const isHidden = hiddenCourtIds.has(court.courtId);
+
+      const row = document.createElement('label');
+      row.style.cssText = DISPLAY_FLEX + '; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer;' + (count === 0 ? ' opacity: 0.5;' : '');
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = !isHidden;
+      checkbox.style.cssText = 'cursor: pointer; accent-color: var(--tmx-accent-blue, #3b82f6);';
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          hiddenCourtIds.delete(court.courtId);
+        } else {
+          hiddenCourtIds.add(court.courtId);
+        }
+        destroyVisibilityTip();
+        onChanged();
+      });
+
+      const name = document.createElement('span');
+      name.style.cssText = 'flex: 1;';
+      name.textContent = court.courtName || court.courtId;
+
+      const badge = document.createElement('span');
+      badge.style.cssText = 'font-size: 10px; color: var(--sp-muted, #9ca3af);';
+      badge.textContent = count > 0 ? `${count}` : t('schedule.empty');
+
+      row.appendChild(checkbox);
+      row.appendChild(name);
+      row.appendChild(badge);
+      pop.appendChild(row);
+    }
+  }
+
+  return pop;
+}
+
 function buildGridHeaders(
   grid: HTMLElement,
   stickyHeader: string,
@@ -770,10 +895,41 @@ function buildGridHeaders(
   courtCount: number,
   emptyCount: number,
   handleAddVenue: () => void,
+  allCourtsData?: any[],
+  matchUpCounts?: Map<string, number>,
+  onVisibilityChanged?: () => void,
 ): HTMLElement[] {
   const corner = document.createElement('div');
-  corner.style.cssText = stickyHeader + '; left: 0; z-index: 3; color: var(--sp-muted);';
-  corner.textContent = 'Row';
+  corner.style.cssText = stickyHeader + '; left: 0; z-index: 3; color: var(--sp-muted); cursor: pointer;' + DISPLAY_FLEX + '; align-items: center; justify-content: center; gap: 4px;';
+
+  const eyeIcon = document.createElement('i');
+  eyeIcon.className = hiddenCourtIds.size > 0 ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+  eyeIcon.style.cssText = 'font-size: 12px;';
+  corner.appendChild(eyeIcon);
+
+  if (hiddenCourtIds.size > 0) {
+    const badge = document.createElement('span');
+    badge.style.cssText = 'font-size: 9px; font-weight: 700; background: var(--tmx-accent-blue, #3b82f6); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
+    badge.textContent = String(hiddenCourtIds.size);
+    corner.appendChild(badge);
+  }
+
+  if (allCourtsData && matchUpCounts && onVisibilityChanged) {
+    corner.addEventListener('click', () => {
+      destroyVisibilityTip();
+      const content = buildVisibilityPopover(allCourtsData, matchUpCounts, onVisibilityChanged);
+      visibilityTip = tippy(corner, {
+        content,
+        theme: 'light-border',
+        trigger: 'manual',
+        interactive: true,
+        placement: 'bottom-start',
+        appendTo: () => document.body,
+      });
+      visibilityTip.show();
+    });
+  }
+
   grid.appendChild(corner);
 
   const courtHeaders: HTMLElement[] = [];
@@ -837,12 +993,28 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     });
 
     const rows: any[] = scheduleResult.rows || [];
-    const courtsData: any[] = scheduleResult.courtsData || [];
+    const allCourtsData: any[] = scheduleResult.courtsData || [];
     const courtPrefix: string = scheduleResult.courtPrefix || 'C|';
 
     // Run proConflicts and annotate cell data with issue styling info
-    if (courtsData.length) annotateConflicts(rows, courtsData, courtPrefix);
+    if (allCourtsData.length) annotateConflicts(rows, allCourtsData, courtPrefix);
 
+    // Court visibility: compute matchUp counts, then filter to visible courts
+    const matchUpCounts = getCourtMatchUpCounts(rows, allCourtsData, courtPrefix);
+
+    // Prune hiddenCourtIds of courts that no longer exist
+    for (const id of hiddenCourtIds) {
+      if (!allCourtsData.some((c) => c.courtId === id)) hiddenCourtIds.delete(id);
+    }
+
+    // Build visible courts with mapping to original indices (for cell data lookup)
+    const visibleCourts: { court: any; originalIndex: number }[] = [];
+    for (let i = 0; i < allCourtsData.length; i++) {
+      if (!hiddenCourtIds.has(allCourtsData[i].courtId)) {
+        visibleCourts.push({ court: allCourtsData[i], originalIndex: i });
+      }
+    }
+    const courtsData = visibleCourts.map((vc) => vc.court);
     const courtCount = courtsData.length;
 
     // Calculate placeholder columns to fill remaining space (always at least 1 for "Add venue")
@@ -892,7 +1064,14 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
 
     const EMPTY_CELL = 'min-height: 60px; background: var(--sp-panel-bg, #fff); opacity: 0.4;';
 
-    const courtHeaders = buildGridHeaders(grid, STICKY_HEADER, courtsData, courtCount, emptyCount, handleAddVenue);
+    const onVisibilityChanged = () => {
+      destroyVisibilityTip();
+      render(date);
+    };
+    const courtHeaders = buildGridHeaders(
+      grid, STICKY_HEADER, courtsData, courtCount, emptyCount, handleAddVenue,
+      allCourtsData, matchUpCounts, onVisibilityChanged,
+    );
 
     // ── Data rows ──
 
@@ -917,7 +1096,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       rowLabels.push(rowCell);
       grid.appendChild(rowCell);
 
-      buildRowCourtCells(grid, row, ri, courtCount, courtsData, courtPrefix, EMPTY_CELL, rows, callbacks);
+      buildRowCourtCells(grid, row, ri, visibleCourts, courtPrefix, EMPTY_CELL, rows, callbacks);
 
       // Placeholder cells for empty columns
       for (let ei = 0; ei < emptyCount; ei++) {

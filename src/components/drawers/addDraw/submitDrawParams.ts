@@ -19,7 +19,7 @@ import {
 } from 'tods-competition-factory';
 
 // constants
-import { ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
+import { ADD_DRAW_ENTRIES, ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
@@ -256,7 +256,7 @@ function handleQualifyingStructure(params: {
 
   if (generationResult.success) {
     const qualifyingStructureId = generationResult.structure?.structureId;
-    const methods = [
+    const methods: any[] = [
       {
         method: ATTACH_QUALIFYING_STRUCTURE,
         params: {
@@ -267,6 +267,19 @@ function handleQualifyingStructure(params: {
         },
       },
     ];
+
+    // Add qualifying entries to the draw so automatedPositioning can find them
+    const event = tournamentEngine.getEvent({ eventId }).event;
+    const qualifyingParticipantIds = (event?.entries ?? [])
+      .filter((e: any) => e.entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(e.entryStatus))
+      .map((e: any) => e.participantId);
+    if (qualifyingParticipantIds.length) {
+      methods.push({
+        method: ADD_DRAW_ENTRIES,
+        params: { participantIds: qualifyingParticipantIds, entryStage: QUALIFYING, ignoreStageSpace: true, eventId, drawId },
+      });
+    }
+
     const postMutation = (result: any) => {
       if (result.success && automated && qualifyingStructureId) {
         const positionResult = tournamentEngine.automatedPositioning({

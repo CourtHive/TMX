@@ -89,8 +89,30 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
     : 0;
   const entryProfile = tournamentEngine.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension
     ?.value;
-  const initialQualifiersCount = isAttachingQualifying ? qualifierPositionCount || 1 : structureId ? 1 : 0;
-  const qualifiersCount = (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
+
+  // Default qualifiers to the gap between draw size and accepted entries when qualifying entries exist
+  const qualifyingEntriesExist = acceptedEntriesCount({ event, stage: QUALIFYING }) > 0;
+
+  const mainStructure = isQualifying
+    ? drawDefinition?.structures?.find((s: any) => s.stage === MAIN && s.stageSequence === 1)
+    : undefined;
+  const mainDrawSize = mainStructure?.positionAssignments?.length || 0;
+  const mainEntryCount = isQualifying ? acceptedEntriesCount({ drawId, event, stage: MAIN }) : 0;
+  const qualifyingSpotsFromMain = qualifyingEntriesExist ? Math.max(0, mainDrawSize - mainEntryCount) : 0;
+
+  // For new MAIN draws: compute gap from the draw size we'll use
+  const mainAcceptedCount = !isQualifying ? acceptedEntriesCount({ drawId, event, stage: MAIN }) : 0;
+  const mainDrawSizeForGap = !isQualifying ? tools.nextPowerOf2(mainAcceptedCount) : 0;
+  const qualifyingSpotsFromEntries = qualifyingEntriesExist ? Math.max(0, mainDrawSizeForGap - mainAcceptedCount) : 0;
+
+  const initialQualifiersCount = isAttachingQualifying
+    ? qualifierPositionCount || qualifyingSpotsFromMain || 1
+    : isQualifying
+      ? qualifyingSpotsFromMain
+      : structureId ? 1 : qualifyingSpotsFromEntries;
+  const qualifiersCount = isQualifying
+    ? initialQualifiersCount
+    : (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
   const structureName = 'Qualifying';
 
   const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;
@@ -340,7 +362,6 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       value: '',
     },
     {
-      disabled: isQualifying,
       validator: validators.numericValidator,
       field: QUALIFIERS_COUNT,
       value: qualifiersCount,

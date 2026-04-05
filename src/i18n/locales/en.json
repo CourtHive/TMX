@@ -813,7 +813,10 @@
     "maintenance": "Maintenance",
     "unscheduled": "Unscheduled",
     "noScheduledMatchUps": "No scheduled matchUps",
-    "noTimeSet": "No time set"
+    "noTimeSet": "No time set",
+    "showAll": "Show all",
+    "hideEmpty": "Hide empty",
+    "empty": "empty"
   },
 
   "penalties": {
