@@ -23,6 +23,10 @@ import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 const { IN_PROGRESS } = matchUpStatusConstants;
 
+const COLOR_ACCENT_BLUE = 'var(--tmx-accent-blue, #3b82f6)';
+const ICON_BAN = 'fa-ban';
+const TINT_DANGER = 'rgba(244, 63, 94, 0.15)';
+
 // Singleton tippy instance for cell menus
 let cellTip: Instance | undefined;
 
@@ -347,7 +351,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     timeRow.appendChild(
       makePill(t('schedule.startMatch'), startMatch, {
         icon: 'fa-play',
-        color: 'var(--tmx-accent-blue, #3b82f6)',
+        color: COLOR_ACCENT_BLUE,
         outline: true,
       }),
     );
@@ -376,7 +380,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   if (readyToScore)
     actionsRow.appendChild(
       makeIconBtn(t('schedule.enterScore'), 'fa-pen-to-square', scoreMatchUp, {
-        color: 'var(--tmx-accent-blue, #3b82f6)',
+        color: COLOR_ACCENT_BLUE,
       }),
     );
   if (matchUp?.drawId || cellData.drawId)
@@ -475,22 +479,22 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   blockRow.style.cssText = PILL_ROW_CSS;
   blockRow.appendChild(
     makePill('1 row', () => blockCourt(1, 'BLOCKED'), {
-      icon: 'fa-ban',
-      tint: 'rgba(244, 63, 94, 0.15)',
+      icon: ICON_BAN,
+      tint: TINT_DANGER,
       color: '#f43f5e',
     }),
   );
   blockRow.appendChild(
     makePill('2 rows', () => blockCourt(2, 'BLOCKED'), {
-      icon: 'fa-ban',
-      tint: 'rgba(244, 63, 94, 0.15)',
+      icon: ICON_BAN,
+      tint: TINT_DANGER,
       color: '#f43f5e',
     }),
   );
   blockRow.appendChild(
     makePill('3 rows', () => blockCourt(3, 'BLOCKED'), {
-      icon: 'fa-ban',
-      tint: 'rgba(244, 63, 94, 0.15)',
+      icon: ICON_BAN,
+      tint: TINT_DANGER,
       color: '#f43f5e',
     }),
   );
@@ -582,7 +586,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   row.appendChild(
     makePill(`Shotgun start (${startableMatchUps.length})`, shotgunStart, {
       icon: 'fa-bolt',
-      color: 'var(--tmx-accent-blue, #3b82f6)',
+      color: COLOR_ACCENT_BLUE,
       outline: true,
     }),
   );

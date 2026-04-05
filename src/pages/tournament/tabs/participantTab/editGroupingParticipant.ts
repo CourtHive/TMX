@@ -70,6 +70,14 @@ export function editGroupingParticipant({
     footer,
   });
 
+  const postMutation = (result: any) => {
+    if (result.success) {
+      isFunction(refresh) && refresh?.();
+    } else {
+      console.log({ result });
+    }
+  };
+
   function saveParticipant(): void {
     table?.deselectRow();
     if (participant?.participantId) {
@@ -94,13 +102,6 @@ export function editGroupingParticipant({
         },
       },
     ];
-    const postMutation = (result: any) => {
-      if (result.success) {
-        isFunction(refresh) && refresh?.();
-      } else {
-        console.log({ result });
-      }
-    };
     mutationRequest({ methods, callback: postMutation });
   }
 
@@ -113,13 +114,6 @@ export function editGroupingParticipant({
       participantType,
     };
 
-    const postMutation = (result: any) => {
-      if (result.success) {
-        isFunction(refresh) && refresh?.();
-      } else {
-        console.log({ result });
-      }
-    };
     const methods = [
       {
         params: { participants: [newParticipant] },

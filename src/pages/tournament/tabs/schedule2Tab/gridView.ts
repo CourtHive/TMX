@@ -59,6 +59,8 @@ const DATA_COURT_ORDER = 'data-court-order';
 const DATA_MATCHUP_ID = 'data-matchup-id';
 const DATA_DRAW_ID = 'data-draw-id';
 const POSITION_STICKY = 'position: sticky';
+const FONT_SIZE_11 = 'font-size: 11px';
+const DISPLAY_FLEX = 'display: flex';
 
 let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
@@ -215,7 +217,7 @@ function injectSidebarControls(container: HTMLElement): void {
   const schedTab = document.createElement('button');
   const tabStyle = (active: boolean) =>
     [
-      'font-size: 11px',
+      FONT_SIZE_11,
       'padding: 3px 8px',
       'border-radius: 10px',
       'cursor: pointer',
@@ -274,12 +276,12 @@ function injectSidebarControls(container: HTMLElement): void {
         'padding: 6px 8px',
         'margin-bottom: 4px',
         'border-radius: 8px',
-        'font-size: 11px',
+        FONT_SIZE_11,
         'background: var(--sp-card-bg, var(--tmx-bg-secondary))',
         `border: 1px ${hasTime ? 'solid' : 'dashed'} var(--sp-border, var(--tmx-border-primary))`,
         `opacity: ${hasTime ? '1' : '0.7'}`,
         'cursor: grab',
-        'display: flex',
+        DISPLAY_FLEX,
         'flex-direction: column',
         'gap: 2px',
       ].join('; ');
@@ -554,7 +556,7 @@ function updateActionBar(): void {
       POSITION_STICKY,
       'bottom: 0',
       'z-index: 10',
-      'display: flex',
+      DISPLAY_FLEX,
       'align-items: center',
       'gap: 12px',
       'padding: 10px 16px',
@@ -866,7 +868,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       'z-index: 2',
       'background: var(--sp-panel-bg, #fff)',
       'padding: 6px 4px',
-      'font-size: 11px',
+      FONT_SIZE_11,
       'font-weight: 700',
       'text-align: center',
       'white-space: nowrap',
@@ -880,10 +882,10 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       'z-index: 1',
       'background: var(--sp-panel-bg, #fff)',
       'padding: 6px 4px',
-      'font-size: 11px',
+      FONT_SIZE_11,
       'font-weight: 600',
       'color: var(--sp-muted, #888)',
-      'display: flex',
+      DISPLAY_FLEX,
       'align-items: center',
       'justify-content: center',
     ].join('; ');
