@@ -563,36 +563,56 @@ html {
   border-color: var(--tmx-border-primary);
 }
 
-/* --- Quill editor dark overrides --- */
-[data-theme='dark'] .ql-toolbar {
-  background-color: var(--tmx-bg-secondary);
-  border-color: var(--tmx-border-primary);
+/* --- Notes editor (TipTap) --- */
+.notes-editor-content {
+  border: 1px solid var(--tmx-border-primary);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
 }
-[data-theme='dark'] .ql-container {
+.notes-editor-content .tiptap {
+  min-height: 300px;
+  padding: 0.75em;
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--tmx-text-primary);
+}
+.notes-editor-content .tiptap p.is-editor-empty:first-child::before {
+  color: var(--tmx-text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.notes-editor-content .tiptap ul,
+.notes-editor-content .tiptap ol {
+  padding-left: 1.5em;
+  margin-left: 0.75em;
+  list-style-position: outside;
+}
+.notes-editor-content .tiptap blockquote {
+  border-left: 3px solid var(--tmx-border-primary);
+  padding-left: 1em;
+  margin-left: 0;
+}
+.notes-editor-content .tiptap pre {
+  background: var(--tmx-bg-secondary);
+  border-radius: 4px;
+  padding: 0.75em;
+  font-family: monospace;
+}
+
+/* --- Notes editor (TipTap) dark overrides --- */
+[data-theme='dark'] .notes-editor-content {
   background-color: var(--tmx-bg-primary);
   border-color: var(--tmx-border-primary);
   color: var(--tmx-text-primary);
 }
-[data-theme='dark'] .ql-editor.ql-blank::before {
+[data-theme='dark'] .notes-editor-content .tiptap {
+  color: var(--tmx-text-primary);
+}
+[data-theme='dark'] .notes-editor-content .tiptap p.is-editor-empty:first-child::before {
   color: var(--tmx-text-muted);
-}
-[data-theme='dark'] .ql-toolbar .ql-stroke {
-  stroke: var(--tmx-text-primary);
-}
-[data-theme='dark'] .ql-toolbar .ql-fill {
-  fill: var(--tmx-text-primary);
-}
-[data-theme='dark'] .ql-toolbar .ql-picker-label {
-  color: var(--tmx-text-primary);
-}
-[data-theme='dark'] .ql-toolbar .ql-picker-options {
-  background-color: var(--tmx-bg-elevated);
-  border-color: var(--tmx-border-primary);
-}
-[data-theme='dark'] .ql-snow .ql-tooltip {
-  background-color: var(--tmx-bg-elevated);
-  border-color: var(--tmx-border-primary);
-  color: var(--tmx-text-primary);
 }
 
 /* --- Pikaday datepicker dark overrides --- */

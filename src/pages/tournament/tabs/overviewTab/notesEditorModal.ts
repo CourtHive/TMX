@@ -1,49 +1,97 @@
+import { notesToolbar, updateToolbarState, updateHeadingSelect } from 'courthive-components';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
-import Quill from 'quill';
+import { TextStyle } from '@tiptap/extension-text-style';
+import TextAlign from '@tiptap/extension-text-align';
+import Highlight from '@tiptap/extension-highlight';
+import { Color } from '@tiptap/extension-color';
+import Youtube from '@tiptap/extension-youtube';
+import StarterKit from '@tiptap/starter-kit';
+import { Editor } from '@tiptap/core';
 import { t } from 'i18n';
 
 export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (html: string) => void }): void {
   const content = document.createElement('div');
+  let editor: Editor | undefined;
+
+  const toolbar = notesToolbar({
+    onHeading: (level) => {
+      if (!editor) return;
+      if (level === false) {
+        editor.chain().focus().setParagraph().run();
+      } else {
+        editor.chain().focus().toggleHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 }).run();
+      }
+    },
+    onBold: () => editor?.chain().focus().toggleBold().run(),
+    onItalic: () => editor?.chain().focus().toggleItalic().run(),
+    onUnderline: () => editor?.chain().focus().toggleUnderline().run(),
+    onStrike: () => editor?.chain().focus().toggleStrike().run(),
+    onColor: (color) => editor?.chain().focus().setColor(color).run(),
+    onBackground: (color) => editor?.chain().focus().setHighlight({ color }).run(),
+    onBulletList: () => editor?.chain().focus().toggleBulletList().run(),
+    onOrderedList: () => editor?.chain().focus().toggleOrderedList().run(),
+    onAlign: (align) => editor?.chain().focus().setTextAlign(align).run(),
+    onBlockquote: () => editor?.chain().focus().toggleBlockquote().run(),
+    onCodeBlock: () => editor?.chain().focus().toggleCodeBlock().run(),
+    onLink: (url) => editor?.chain().focus().setLink({ href: url }).run(),
+    onVideo: (url) => editor?.commands.setYoutubeVideo({ src: url }),
+    onClearFormatting: () => editor?.chain().focus().clearNodes().unsetAllMarks().run(),
+  });
+
+  content.appendChild(toolbar);
 
   const editorContainer = document.createElement('div');
-  editorContainer.id = 'notesEditorQuill';
+  editorContainer.className = 'notes-editor-content';
   editorContainer.style.minHeight = '300px';
   content.appendChild(editorContainer);
 
-  const initQuill = () => {
-    const quill = new Quill('#notesEditorQuill', {
-      modules: {
-        toolbar: [
-          [{ header: [1, 2, 3, 4, 5, 6, false] }],
-          [{ font: [] }],
-          ['bold', 'italic', 'underline'],
-          [{ color: [] }, { background: [] }],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ align: [] }],
-          ['blockquote', 'code-block', 'link', 'video'],
-          ['clean'],
-        ],
-      },
-      theme: 'snow',
+  const syncToolbarState = () => {
+    if (!editor) return;
+    updateToolbarState(toolbar, {
+      bold: editor.isActive('bold'),
+      italic: editor.isActive('italic'),
+      underline: editor.isActive('underline'),
+      strike: editor.isActive('strike'),
+      orderedList: editor.isActive('orderedList'),
+      bulletList: editor.isActive('bulletList'),
+      blockquote: editor.isActive('blockquote'),
+      codeBlock: editor.isActive('codeBlock'),
+      alignLeft: editor.isActive({ textAlign: 'left' }),
+      alignCenter: editor.isActive({ textAlign: 'center' }),
+      alignRight: editor.isActive({ textAlign: 'right' }),
+      alignJustify: editor.isActive({ textAlign: 'justify' }),
     });
 
-    if (notes) {
-      const editor = editorContainer.querySelector('.ql-editor') as HTMLElement;
-      if (editor) editor.innerHTML = notes;
+    for (let i = 1; i <= 6; i++) {
+      if (editor.isActive('heading', { level: i })) {
+        updateHeadingSelect(toolbar, i);
+        return;
+      }
     }
-
-    return quill;
+    updateHeadingSelect(toolbar, false);
   };
 
-  // Defer Quill init to after the modal has rendered the content into the DOM
   requestAnimationFrame(() => {
-    initQuill();
+    editor = new Editor({
+      element: editorContainer,
+      extensions: [
+        StarterKit,
+        TextStyle,
+        Color,
+        Highlight.configure({ multicolor: true }),
+        TextAlign.configure({ types: ['heading', 'paragraph'] }),
+        Youtube.configure({ inline: false }),
+      ],
+      content: notes || '',
+      onSelectionUpdate: syncToolbarState,
+      onTransaction: syncToolbarState,
+    });
   });
 
   const handleSave = () => {
-    const editor = document.querySelector('#notesEditorQuill .ql-editor') as HTMLElement;
-    const innerText = editor?.innerText?.replace('\n', '');
-    const html = innerText ? editor.innerHTML : '';
+    if (!editor) return;
+    const html = editor.isEmpty ? '' : editor.getHTML();
+    editor.destroy();
     onSave(html);
     closeModal();
   };
