@@ -13,6 +13,7 @@ import { ADD_PARTICIPANTS, ADD_TOURNAMENT_EXTENSION } from 'constants/mutationCo
 import { REGISTRATION } from 'constants/tmxConstants';
 
 const modelParticipant = {
+  participantOtherName: ['nickname', 'other name', 'othername', 'display name', 'displayname'],
   participantName: ['full name', 'name'],
   participantId: ['id', 'participantid'],
   person: {
@@ -86,15 +87,22 @@ function parseParticipantRow(
   const tennisId = rowParser(['tennis id', 'tennisid']);
   if (tennisId) participant.person.tennisId = tennisId;
 
+  const rawOtherName = rowParser(modelParticipant.participantOtherName);
+  const participantOtherName = typeof rawOtherName === 'string' ? rawOtherName.trim() : rawOtherName;
+
   const rawFamilyName = rowParser(modelParticipant.person.standardFamilyName);
   const rawGivenName = rowParser(modelParticipant.person.standardGivenName);
   const standardFamilyName = typeof rawFamilyName === 'string' ? rawFamilyName.trim() : rawFamilyName;
   const standardGivenName = typeof rawGivenName === 'string' ? rawGivenName.trim() : rawGivenName;
-  if (!standardFamilyName || !standardGivenName) return undefined;
+  const hasFullName = standardFamilyName && standardGivenName;
+  if (!hasFullName && !participantOtherName && !participant.participantName) return undefined;
 
-  participant.person.standardFamilyName = standardFamilyName;
-  participant.person.standardGivenName = standardGivenName;
-  participant.participantName = `${standardGivenName} ${standardFamilyName}`;
+  if (standardFamilyName) participant.person.standardFamilyName = standardFamilyName;
+  if (standardGivenName) participant.person.standardGivenName = standardGivenName;
+  if (participantOtherName) participant.participantOtherName = participantOtherName;
+  participant.participantName = hasFullName
+    ? `${standardGivenName} ${standardFamilyName}`
+    : (participantOtherName || participant.participantName);
 
   const state = rowParser(modelParticipant.person.address.state);
   const city = rowParser(modelParticipant.person.address.city);

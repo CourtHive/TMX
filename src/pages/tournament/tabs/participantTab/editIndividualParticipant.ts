@@ -42,13 +42,17 @@ export function editIndividualParticipant({
 
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
-  const validValues = ({ firstName, lastName }: any) =>
-    validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
+  const validValues = ({ firstName, lastName, nickname }: any) => {
+    const hasFullName = validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
+    const hasNickname = nickname && nickname.trim().length >= 2;
+    return hasFullName || hasNickname;
+  };
 
   const enableSubmit = ({ inputs }: any) => {
     const valid = validValues({
       firstName: inputs['firstName'].value,
       lastName: inputs['lastName'].value,
+      nickname: inputs['nickname']?.value,
     });
     const saveButton = document.getElementById('saveParticipant');
     if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;
@@ -62,6 +66,10 @@ export function editIndividualParticipant({
     {
       onInput: enableSubmit,
       control: 'lastName',
+    },
+    {
+      onInput: enableSubmit,
+      control: 'nickname',
     },
   ];
 
