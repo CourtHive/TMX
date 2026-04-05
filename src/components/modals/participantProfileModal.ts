@@ -119,6 +119,14 @@ function buildInfoHeader(participant: any): HTMLElement {
   nameEl.style.cssText = 'font-size: 1.1em; font-weight: 600;';
   nameEl.textContent = participant.participantName || '';
   nameBlock.appendChild(nameEl);
+
+  if (participant.participantOtherName) {
+    const nicknameEl = document.createElement('span');
+    nicknameEl.style.cssText = 'font-size: 0.95em; font-style: italic; color: var(--tmx-text-secondary, #666);';
+    nicknameEl.textContent = `"${participant.participantOtherName}"`;
+    nameBlock.appendChild(nicknameEl);
+  }
+
   header.appendChild(nameBlock);
 
   // Country name
