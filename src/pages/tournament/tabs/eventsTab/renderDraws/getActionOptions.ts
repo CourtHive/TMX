@@ -41,9 +41,9 @@ export function getActionOptions({
   drawData,
   drawId,
 }: ActionOptionsParams): any[] {
-  const hasQualifying = drawData.structures?.find((structure: any) => structure?.stage === QUALIFYING);
-  const structure = drawData.structures?.find((structure: any) => structure?.structureId === structureId);
-  const eventId = eventData.eventInfo.eventId;
+  const hasQualifying = drawData?.structures?.find((structure: any) => structure?.stage === QUALIFYING);
+  const structure = drawData?.structures?.find((structure: any) => structure?.structureId === structureId);
+  const eventId = eventData?.eventInfo?.eventId;
 
   // Check for active draft
   const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
@@ -84,7 +84,7 @@ export function getActionOptions({
   const options = [
     {
       // Hide when: not main stage, blocked by scores, TEAM event, or button already visible in control bar
-      hide: !isMainStage || blockAssignment || eventData.eventInfo.eventType === TEAM || hasUnassignedPositions,
+      hide: !isMainStage || blockAssignment || eventData?.eventInfo?.eventType === TEAM || hasUnassignedPositions,
       onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.assignParticipants'),
       close: true,
@@ -151,7 +151,7 @@ export function getActionOptions({
       close: true,
     },
     {
-      hide: eventData.eventInfo.eventType !== TEAM,
+      hide: eventData?.eventInfo?.eventType !== TEAM,
       onClick: () =>
         updateTieFormat({ matchUpId: dualMatchUp.matchUpId, structureId, eventId, drawId, callback: scorecardUpdated }),
       label: t('pages.events.actionOptions.editScorecard'),

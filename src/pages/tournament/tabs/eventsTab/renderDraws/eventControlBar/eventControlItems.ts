@@ -221,7 +221,7 @@ export function getTopologyControlItems({
   eventId: string;
   drawId: string;
 }): any[] {
-  const drawsOptions = getDrawsOptions({ eventData });
+  const drawsOptions = eventData?.eventInfo ? getDrawsOptions({ eventData }) : [];
   const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
 
   return [

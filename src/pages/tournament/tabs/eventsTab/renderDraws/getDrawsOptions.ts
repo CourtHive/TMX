@@ -9,7 +9,7 @@ import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
 export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const deleteFlights = () => selectAndDeleteEventFlights({ eventData });
 
-  const eventId = eventData.eventInfo.eventId;
+  const eventId = eventData?.eventInfo?.eventId;
 
   // Count total draw items including ungenerated flights
   const event = tournamentEngine.getEvent({ eventId })?.event;
