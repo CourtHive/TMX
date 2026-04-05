@@ -29,6 +29,76 @@ interface ConfigureDraftParams {
   callback?: () => void;
 }
 
+function buildConfigBarHtml(params: {
+  selectStyle: string;
+  disabledAttr: string;
+  lockedOpacity: string;
+  configLocked: boolean;
+  currentTierMethod: string;
+  currentScaleName: string;
+  currentAscending: boolean;
+  showScaleSelect: boolean;
+  activeOptions: ScaleOption[];
+  totalParticipants: number;
+  tiersTotal: number;
+  availableCount: number;
+  preferencesCount: number;
+}): string {
+  const {
+    selectStyle,
+    disabledAttr,
+    lockedOpacity,
+    configLocked,
+    currentTierMethod,
+    currentScaleName,
+    currentAscending,
+    showScaleSelect,
+    activeOptions,
+    totalParticipants,
+    tiersTotal,
+    availableCount,
+    preferencesCount,
+  } = params;
+  const scaleDisplay = showScaleSelect && activeOptions.length ? 'flex' : 'none';
+  const noScaleDisplay = showScaleSelect && !activeOptions.length ? 'inline' : 'none';
+  const noScaleLabel = currentTierMethod === 'RATING' ? 'ratings' : 'rankings';
+  const labelStyle = `display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}`;
+
+  return `<div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);">
+    <label style="${labelStyle}">
+      Tiers:
+      <select id="draft-tier-count" style="${selectStyle}"${disabledAttr}>${tierCountOptions(totalParticipants, tiersTotal)}</select>
+    </label>
+    <label style="${labelStyle}">
+      Sort by:
+      <select id="draft-tier-method" style="${selectStyle}"${disabledAttr}>
+        <option value="ENTRY_ORDER" ${currentTierMethod === 'ENTRY_ORDER' ? 'selected' : ''}>Entry order</option>
+        <option value="RANKING" ${currentTierMethod === 'RANKING' ? 'selected' : ''}>Ranking</option>
+        <option value="RATING" ${currentTierMethod === 'RATING' ? 'selected' : ''}>Rating</option>
+      </select>
+    </label>
+    <label id="draft-scale-name-label" style="display: ${scaleDisplay}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
+      Scale:
+      <select id="draft-scale-name" style="${selectStyle}"${disabledAttr}>${scaleSelectOptions(activeOptions, currentScaleName)}</select>
+    </label>
+    <label id="draft-direction-label" style="display: ${scaleDisplay}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
+      Tier 1:
+      <select id="draft-sort-direction" style="${selectStyle}"${disabledAttr}>
+        <option value="asc" ${currentAscending ? 'selected' : ''}>Lowest first</option>
+        <option value="desc" ${!currentAscending ? 'selected' : ''}>Highest first</option>
+      </select>
+    </label>
+    <span id="draft-no-scales-msg" style="display: ${noScaleDisplay}; font-size: 12px; color: #e65100; font-style: italic;">No ${noScaleLabel} in tournament</span>
+    <label style="${labelStyle}">
+      Max preferences:
+      <select id="draft-pref-count" style="${selectStyle}"${disabledAttr}>${prefCountOptions(availableCount, preferencesCount)}</select>
+    </label>
+    <button id="draft-clear-prefs-btn" ${configLocked ? '' : 'disabled'} style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid #e65100; background: transparent; color: #e65100; cursor: pointer; font-weight: 500; opacity: ${configLocked ? '1' : '0.4'};">
+      Clear preferences
+    </button>
+  </div>`;
+}
+
 export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraftParams): void {
   const { draftState, summary, error } = tournamentEngine.getDraftState({ drawId });
 
@@ -76,45 +146,21 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   const lockedOpacity = configLocked ? ' opacity: 0.5;' : '';
 
   const configBar = showConfigBar
-    ? `<div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);">
-        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
-          Tiers:
-          <select id="draft-tier-count" style="${selectStyle}"${disabledAttr}>
-            ${tierCountOptions(summary.totalParticipants, summary.tiersTotal)}
-          </select>
-        </label>
-        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
-          Sort by:
-          <select id="draft-tier-method" style="${selectStyle}"${disabledAttr}>
-            <option value="ENTRY_ORDER" ${currentTierMethod === 'ENTRY_ORDER' ? 'selected' : ''}>Entry order</option>
-            <option value="RANKING" ${currentTierMethod === 'RANKING' ? 'selected' : ''}>Ranking</option>
-            <option value="RATING" ${currentTierMethod === 'RATING' ? 'selected' : ''}>Rating</option>
-          </select>
-        </label>
-        <label id="draft-scale-name-label" style="display: ${showScaleSelect && activeOptions.length ? 'flex' : 'none'}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
-          Scale:
-          <select id="draft-scale-name" style="${selectStyle}"${disabledAttr}>
-            ${scaleSelectOptions(activeOptions, currentScaleName)}
-          </select>
-        </label>
-        <label id="draft-direction-label" style="display: ${showScaleSelect && activeOptions.length ? 'flex' : 'none'}; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
-          Tier 1:
-          <select id="draft-sort-direction" style="${selectStyle}"${disabledAttr}>
-            <option value="asc" ${currentAscending ? 'selected' : ''}>Lowest first</option>
-            <option value="desc" ${!currentAscending ? 'selected' : ''}>Highest first</option>
-          </select>
-        </label>
-        <span id="draft-no-scales-msg" style="display: ${showScaleSelect && !activeOptions.length ? 'inline' : 'none'}; font-size: 12px; color: #e65100; font-style: italic;">No ${currentTierMethod === 'RATING' ? 'ratings' : 'rankings'} in tournament</span>
-        <label style="display: flex; align-items: center; gap: 6px; color: var(--tmx-text-primary, #363636);${lockedOpacity}">
-          Max preferences:
-          <select id="draft-pref-count" style="${selectStyle}"${disabledAttr}>
-            ${prefCountOptions(availablePositions.length, draftState.preferencesCount ?? 3)}
-          </select>
-        </label>
-        <button id="draft-clear-prefs-btn" ${configLocked ? '' : 'disabled'} style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid #e65100; background: transparent; color: #e65100; cursor: pointer; font-weight: 500; opacity: ${configLocked ? '1' : '0.4'};">
-          Clear preferences
-        </button>
-      </div>`
+    ? buildConfigBarHtml({
+        selectStyle,
+        disabledAttr,
+        lockedOpacity,
+        configLocked,
+        currentTierMethod,
+        currentScaleName,
+        currentAscending,
+        showScaleSelect,
+        activeOptions,
+        totalParticipants: summary.totalParticipants,
+        tiersTotal: summary.tiersTotal,
+        availableCount: availablePositions.length,
+        preferencesCount: draftState.preferencesCount ?? 3,
+      })
     : '';
 
   const content = `
@@ -143,103 +189,125 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
     config: { padding: '.5', maxWidth: 700 },
   });
 
-  // Wire up interactions after DOM is ready
   setTimeout(() => {
     if (showConfigBar) {
-      const tierSelect = document.getElementById('draft-tier-count') as HTMLSelectElement;
-      const prefSelect = document.getElementById('draft-pref-count') as HTMLSelectElement;
-      const tierMethodSelect = document.getElementById('draft-tier-method') as HTMLSelectElement;
-      const scaleNameLabel = document.getElementById('draft-scale-name-label') as HTMLElement;
-      const scaleNameSelect = document.getElementById('draft-scale-name') as HTMLSelectElement;
-      const directionLabel = document.getElementById('draft-direction-label') as HTMLElement;
-      const directionSelect = document.getElementById('draft-sort-direction') as HTMLSelectElement;
-      const noScalesMsg = document.getElementById('draft-no-scales-msg') as HTMLElement;
-      const clearPrefsBtn = document.getElementById('draft-clear-prefs-btn') as HTMLButtonElement;
-
-      const getSelectedAscending = () => directionSelect?.value === 'asc';
-
-      /** Build scaleAttributes from current control values, including accessor and eventType. */
-      const getScaleAttributes = () => {
-        const method = tierMethodSelect?.value || '';
-        const scale = scaleNameSelect?.value || '';
-        if (method === 'RATING' && scale) {
-          const accessor = (ratingsParameters as any)?.[scale]?.accessor;
-          return {
-            scaleType: 'RATING',
-            scaleName: scale,
-            ...(eventType && { eventType }),
-            ...(accessor && { accessor }),
-          };
-        }
-        if (method === 'RANKING' && scale) {
-          return { scaleType: 'RANKING', scaleName: scale, ...(eventType && { eventType }) };
-        }
-        return undefined;
-      };
-
-      /** Read current config values from controls, re-initialize draft, and refresh tiers in-place. */
-      const applyConfig = () => {
-        const params = {
-          drawId,
-          eventId,
-          tierCount: Number.parseInt(tierSelect?.value || '3'),
-          preferencesCount: Number.parseInt(prefSelect?.value || '3'),
-          tierMethod: tierMethodSelect?.value || 'ENTRY_ORDER',
-          ascending: getSelectedAscending(),
-          scaleAttributes: getScaleAttributes(),
-          force: true,
-        };
-        mutationRequest({
-          methods: [{ method: INITIALIZE_DRAFT, params }],
-          callback: (result: any) => {
-            if (result.success) {
-              refreshTierList({ drawId, eventId, callback });
-            } else {
-              tmxToast({ message: result.error?.message || 'Reconfigure failed', intent: IS_WARNING });
-            }
-          },
-        });
-      };
-
-      const updateScaleDropdown = () => {
-        const method = tierMethodSelect?.value;
-        const needsScale = method === 'RATING' || method === 'RANKING';
-        const opts = method === 'RATING' ? ratingOptions : rankingOptions;
-
-        if (scaleNameLabel) scaleNameLabel.style.display = needsScale && opts.length ? 'flex' : 'none';
-        if (directionLabel) directionLabel.style.display = needsScale && opts.length ? 'flex' : 'none';
-        if (noScalesMsg) {
-          noScalesMsg.style.display = needsScale && !opts.length ? 'inline' : 'none';
-          noScalesMsg.textContent = `No ${method === 'RATING' ? 'ratings' : 'rankings'} in tournament`;
-        }
-        if (scaleNameSelect && needsScale) {
-          scaleNameSelect.innerHTML = scaleSelectOptions(opts, currentScaleName);
-        }
-        if (directionSelect && needsScale) {
-          const newDefault = defaultAscending(method, scaleNameSelect?.value || '');
-          directionSelect.value = newDefault ? 'asc' : 'desc';
-        }
-        applyConfig();
-      };
-
-      tierSelect?.addEventListener('change', applyConfig);
-      prefSelect?.addEventListener('change', applyConfig);
-      tierMethodSelect?.addEventListener('change', updateScaleDropdown);
-      scaleNameSelect?.addEventListener('change', () => {
-        if (directionSelect) {
-          const method = tierMethodSelect?.value || '';
-          const newDefault = defaultAscending(method, scaleNameSelect.value);
-          directionSelect.value = newDefault ? 'asc' : 'desc';
-        }
-        applyConfig();
+      wireConfigBarInteractions({
+        drawId,
+        eventId,
+        eventType,
+        ratingOptions,
+        rankingOptions,
+        currentScaleName,
+        callback,
       });
-      directionSelect?.addEventListener('change', applyConfig);
-
-      clearPrefsBtn?.addEventListener('click', applyConfig);
     }
 
     rewireParticipantClicks(drawId, eventId, draftState, participants, callback);
   }, 0);
+}
+
+function wireConfigBarInteractions({
+  drawId,
+  eventId,
+  eventType,
+  ratingOptions,
+  rankingOptions,
+  currentScaleName,
+  callback,
+}: {
+  drawId: string;
+  eventId: string;
+  eventType: string | undefined;
+  ratingOptions: ScaleOption[];
+  rankingOptions: ScaleOption[];
+  currentScaleName: string;
+  callback?: () => void;
+}): void {
+  const tierSelect = document.getElementById('draft-tier-count') as HTMLSelectElement;
+  const prefSelect = document.getElementById('draft-pref-count') as HTMLSelectElement;
+  const tierMethodSelect = document.getElementById('draft-tier-method') as HTMLSelectElement;
+  const scaleNameLabel = document.getElementById('draft-scale-name-label') as HTMLElement;
+  const scaleNameSelect = document.getElementById('draft-scale-name') as HTMLSelectElement;
+  const directionLabel = document.getElementById('draft-direction-label') as HTMLElement;
+  const directionSelect = document.getElementById('draft-sort-direction') as HTMLSelectElement;
+  const noScalesMsg = document.getElementById('draft-no-scales-msg') as HTMLElement;
+  const clearPrefsBtn = document.getElementById('draft-clear-prefs-btn') as HTMLButtonElement;
+
+  const getScaleAttributes = () => {
+    const method = tierMethodSelect?.value || '';
+    const scale = scaleNameSelect?.value || '';
+    if (method === 'RATING' && scale) {
+      const accessor = (ratingsParameters as any)?.[scale]?.accessor;
+      return {
+        scaleType: 'RATING',
+        scaleName: scale,
+        ...(eventType && { eventType }),
+        ...(accessor && { accessor }),
+      };
+    }
+    if (method === 'RANKING' && scale) {
+      return { scaleType: 'RANKING', scaleName: scale, ...(eventType && { eventType }) };
+    }
+    return undefined;
+  };
+
+  const applyConfig = () => {
+    const params = {
+      drawId,
+      eventId,
+      tierCount: Number.parseInt(tierSelect?.value || '3'),
+      preferencesCount: Number.parseInt(prefSelect?.value || '3'),
+      tierMethod: tierMethodSelect?.value || 'ENTRY_ORDER',
+      ascending: directionSelect?.value === 'asc',
+      scaleAttributes: getScaleAttributes(),
+      force: true,
+    };
+    mutationRequest({
+      methods: [{ method: INITIALIZE_DRAFT, params }],
+      callback: (result: any) => {
+        if (result.success) {
+          refreshTierList({ drawId, eventId, callback });
+        } else {
+          tmxToast({ message: result.error?.message || 'Reconfigure failed', intent: IS_WARNING });
+        }
+      },
+    });
+  };
+
+  const updateScaleDropdown = () => {
+    const method = tierMethodSelect?.value;
+    const needsScale = method === 'RATING' || method === 'RANKING';
+    const opts = method === 'RATING' ? ratingOptions : rankingOptions;
+
+    if (scaleNameLabel) scaleNameLabel.style.display = needsScale && opts.length ? 'flex' : 'none';
+    if (directionLabel) directionLabel.style.display = needsScale && opts.length ? 'flex' : 'none';
+    if (noScalesMsg) {
+      noScalesMsg.style.display = needsScale && !opts.length ? 'inline' : 'none';
+      noScalesMsg.textContent = `No ${method === 'RATING' ? 'ratings' : 'rankings'} in tournament`;
+    }
+    if (scaleNameSelect && needsScale) {
+      scaleNameSelect.innerHTML = scaleSelectOptions(opts, currentScaleName);
+    }
+    if (directionSelect && needsScale) {
+      const newDefault = defaultAscending(method, scaleNameSelect?.value || '');
+      directionSelect.value = newDefault ? 'asc' : 'desc';
+    }
+    applyConfig();
+  };
+
+  tierSelect?.addEventListener('change', applyConfig);
+  prefSelect?.addEventListener('change', applyConfig);
+  tierMethodSelect?.addEventListener('change', updateScaleDropdown);
+  scaleNameSelect?.addEventListener('change', () => {
+    if (directionSelect) {
+      const method = tierMethodSelect?.value || '';
+      const newDefault = defaultAscending(method, scaleNameSelect.value);
+      directionSelect.value = newDefault ? 'asc' : 'desc';
+    }
+    applyConfig();
+  });
+  directionSelect?.addEventListener('change', applyConfig);
+  clearPrefsBtn?.addEventListener('click', applyConfig);
 }
 
 /**

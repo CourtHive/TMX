@@ -19,7 +19,7 @@ import {
 } from 'tods-competition-factory';
 
 // constants
-import { ATTACH_QUALIFYING_STRUCTURE } from 'constants/mutationConstants';
+import { ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
@@ -255,6 +255,7 @@ function handleQualifyingStructure(params: {
   });
 
   if (generationResult.success) {
+    const qualifyingStructureId = generationResult.structure?.structureId;
     const methods = [
       {
         method: ATTACH_QUALIFYING_STRUCTURE,
@@ -267,6 +268,33 @@ function handleQualifyingStructure(params: {
       },
     ];
     const postMutation = (result: any) => {
+      if (result.success && automated && qualifyingStructureId) {
+        const positionResult = tournamentEngine.automatedPositioning({
+          structureId: qualifyingStructureId,
+          applyPositioning: false,
+          drawId,
+        });
+        if (positionResult.success && positionResult.positionAssignments?.length) {
+          mutationRequest({
+            methods: [
+              {
+                method: SET_POSITION_ASSIGNMENTS,
+                params: {
+                  structurePositionAssignments: [
+                    { structureId: qualifyingStructureId, positionAssignments: positionResult.positionAssignments },
+                  ],
+                  structureId: qualifyingStructureId,
+                  drawId,
+                },
+              },
+            ],
+            callback: (positionMutationResult: any) => {
+              if (isFunction(callback)) callback({ ...generationResult, ...positionMutationResult.results?.[0] });
+            },
+          });
+          return;
+        }
+      }
       if (isFunction(callback)) callback({ ...generationResult, ...result.results?.[0] });
     };
     mutationRequest({ methods, callback: postMutation });
@@ -405,6 +433,7 @@ export function submitDrawParams({
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const drawSize =
     ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC].includes(drawType) && drawSizeInteger) ||
+    (isQualifying && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
     ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),

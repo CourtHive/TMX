@@ -11,6 +11,141 @@ const { ABANDONED, CANCELLED, DEFAULTED, DOUBLE_DEFAULT, DOUBLE_WALKOVER, IN_PRO
   factoryConstants.matchUpStatusConstants;
 const { completedMatchUpStatuses } = factoryConstants;
 
+function buildBlockedCell(content: HTMLSpanElement, booking: any): HTMLSpanElement {
+  content.className = 'schedule-cell blocked-cell';
+  content.dataset.bookingType = booking.bookingType || 'BLOCKED';
+
+  const blockLabel = document.createElement('div');
+  blockLabel.className = 'block-label';
+
+  const blockType = document.createElement('div');
+  blockType.className = 'block-type';
+  blockType.textContent = booking.bookingType || 'BLOCKED';
+  blockLabel.appendChild(blockType);
+
+  if (booking.rowCount && booking.rowCount > 1) {
+    const rowInfo = document.createElement('div');
+    rowInfo.className = 'block-rows';
+    rowInfo.textContent = `${booking.rowCount} rows`;
+    blockLabel.appendChild(rowInfo);
+  }
+
+  if (booking.notes) {
+    const notes = document.createElement('div');
+    notes.className = 'block-notes';
+    notes.textContent = booking.notes;
+    blockLabel.appendChild(notes);
+  }
+
+  content.appendChild(blockLabel);
+  return content;
+}
+
+function applyMatchUpStatusClass(
+  content: HTMLSpanElement,
+  matchUpStatus: string | undefined,
+  winningSide: any,
+  scheduleState: string | undefined,
+  issueType: string | undefined,
+): void {
+  if (matchUpStatus === ABANDONED) {
+    content.classList.add('matchup-abandoned');
+  } else if (matchUpStatus === CANCELLED) {
+    content.classList.add('matchup-cancelled');
+  } else if (matchUpStatus === DOUBLE_WALKOVER || matchUpStatus === DOUBLE_DEFAULT) {
+    content.classList.add('matchup-double-walkover-default');
+  } else if (winningSide) {
+    content.classList.add('matchup-complete');
+  } else if (matchUpStatus === IN_PROGRESS) {
+    content.classList.add('matchup-inprogress');
+  } else if (scheduleState === SCHEDULE_CONFLICT) {
+    if (issueType === CONFLICT_COURT_DOUBLE_BOOKING) {
+      content.classList.add('matchup-double-booking');
+    } else {
+      content.classList.add('matchup-conflict');
+    }
+  } else if (scheduleState === SCHEDULE_ISSUE) {
+    content.classList.add('matchup-issue');
+  } else if (scheduleState === SCHEDULE_WARNING) {
+    content.classList.add('matchup-warning');
+  } else if (scheduleState === SCHEDULE_ERROR) {
+    content.classList.add('matchup-error');
+  }
+}
+
+function attachConflictHighlighters(
+  content: HTMLSpanElement,
+  issueIds: string[],
+): void {
+  content.addEventListener('mouseenter', () => {
+    for (const relatedId of issueIds) {
+      const relatedCell = document.getElementById(relatedId);
+      if (relatedCell) {
+        relatedCell.classList.add('conflict-highlight');
+      }
+    }
+  });
+
+  content.addEventListener('mouseleave', () => {
+    for (const relatedId of issueIds) {
+      const relatedCell = document.getElementById(relatedId);
+      if (relatedCell) {
+        relatedCell.classList.remove('conflict-highlight');
+      }
+    }
+  });
+}
+
+function buildSideElement(
+  side: { text: string; bold: boolean } | undefined,
+  potential: string | undefined,
+): HTMLDivElement {
+  const el = document.createElement('div');
+  el.className = 'scheduled_team';
+  el.style.fontSize = '1em';
+  if (side) {
+    el.textContent = side.text;
+    if (side.bold) el.style.fontWeight = 'bold';
+  } else if (potential) {
+    el.innerHTML = potential;
+  } else {
+    el.textContent = 'Unknown';
+  }
+  return el;
+}
+
+function appendMatchResult(
+  scheduledTeams: HTMLDivElement,
+  matchUpStatus: string | undefined,
+  winningSide: any,
+  score: any,
+): void {
+  if (winningSide) {
+    const scoreLine = document.createElement('div');
+    scoreLine.className = 'match_status';
+
+    if (matchUpStatus === WALKOVER) {
+      scoreLine.innerHTML = 'WALKOVER';
+    } else if (matchUpStatus === DEFAULTED) {
+      scoreLine.innerHTML = 'DEFAULTED';
+    } else {
+      scoreLine.innerHTML = score?.scoreStringSide1 || '';
+    }
+
+    scheduledTeams.appendChild(scoreLine);
+  } else if ([DOUBLE_DEFAULT, DOUBLE_WALKOVER].includes(matchUpStatus)) {
+    const statusLine = document.createElement('div');
+    statusLine.className = 'match_status';
+    statusLine.innerHTML = matchUpStatus === DOUBLE_DEFAULT ? 'DBL DEFAULT' : 'DBL WALKOVER';
+    scheduledTeams.appendChild(statusLine);
+  } else if (matchUpStatus && [ABANDONED, CANCELLED].includes(matchUpStatus)) {
+    const statusLine = document.createElement('div');
+    statusLine.className = 'match_status';
+    statusLine.innerHTML = matchUpStatus;
+    scheduledTeams.appendChild(statusLine);
+  }
+}
+
 export function scheduleCell(cell: any): HTMLSpanElement {
   const content = document.createElement('span');
 
@@ -23,37 +158,10 @@ export function scheduleCell(cell: any): HTMLSpanElement {
 
   const value = cell.getValue();
 
-  // Handle blocked cells
   if (value?.isBlocked) {
-    const booking = value.booking;
-    content.className = 'schedule-cell blocked-cell';
-    content.dataset.bookingType = booking.bookingType || 'BLOCKED';
-
-    const blockLabel = document.createElement('div');
-    blockLabel.className = 'block-label';
-
-    const blockType = document.createElement('div');
-    blockType.className = 'block-type';
-    blockType.textContent = booking.bookingType || 'BLOCKED';
-    blockLabel.appendChild(blockType);
-
-    if (booking.rowCount && booking.rowCount > 1) {
-      const rowInfo = document.createElement('div');
-      rowInfo.className = 'block-rows';
-      rowInfo.textContent = `${booking.rowCount} rows`;
-      blockLabel.appendChild(rowInfo);
-    }
-
-    if (booking.notes) {
-      const notes = document.createElement('div');
-      notes.className = 'block-notes';
-      notes.textContent = booking.notes;
-      blockLabel.appendChild(notes);
-    }
-
-    content.appendChild(blockLabel);
-    return content;
+    return buildBlockedCell(content, value.booking);
   }
+
   const {
     potentialParticipants,
     eventName = '',
@@ -67,7 +175,14 @@ export function scheduleCell(cell: any): HTMLSpanElement {
     issueIds,
   } = value || {};
 
-  const { courtOrder = '', scheduledTime = '', startTime = '', courtId = '', timeModifiers, venueId = '' } = schedule;
+  const {
+    courtOrder = '',
+    scheduledTime = '',
+    startTime = '',
+    courtId = '',
+    timeModifiers,
+    venueId = '',
+  } = schedule;
   content.setAttribute('courtOrder', courtOrder);
   content.setAttribute('courtId', courtId);
   content.setAttribute('venueId', venueId);
@@ -78,67 +193,20 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   if (matchUpId) {
     content.draggable = true;
     content.id = matchUpId;
-
-    if (matchUpStatus === ABANDONED) {
-      content.classList.add('matchup-abandoned');
-    } else if (matchUpStatus === CANCELLED) {
-      content.classList.add('matchup-cancelled');
-    } else if (matchUpStatus === DOUBLE_WALKOVER || matchUpStatus === DOUBLE_DEFAULT) {
-      content.classList.add('matchup-double-walkover-default');
-    } else if (winningSide) {
-      content.classList.add('matchup-complete');
-    } else {
-      const scheduleState = schedule[SCHEDULE_STATE];
-      if (matchUpStatus === IN_PROGRESS) {
-        content.classList.add('matchup-inprogress');
-      } else if (scheduleState === SCHEDULE_CONFLICT) {
-        // Check for specific conflict type (use destructured issueType)
-        if (issueType === CONFLICT_COURT_DOUBLE_BOOKING) {
-          content.classList.add('matchup-double-booking');
-        } else {
-          content.classList.add('matchup-conflict');
-        }
-      } else if (scheduleState === SCHEDULE_ISSUE) {
-        content.classList.add('matchup-issue');
-      } else if (scheduleState === SCHEDULE_WARNING) {
-        content.classList.add('matchup-warning');
-      } else if (scheduleState === SCHEDULE_ERROR) {
-        content.classList.add('matchup-error');
-      }
-    }
+    const schedState = schedule[SCHEDULE_STATE];
+    applyMatchUpStatusClass(content, matchUpStatus, winningSide, schedState, issueType);
   }
 
   content.addEventListener('drop', (e) => matchUpDrop(e, cell));
   content.addEventListener('dragstart', matchUpDragStart);
 
-  // Add hover handlers for highlighting related conflict cells
-  // Only enable if there's an actual schedule conflict/warning/error/issue
-  // AND the matchUp is not completed
   const scheduleState = schedule[SCHEDULE_STATE];
   const isCompleted = matchUpStatus && completedMatchUpStatuses.includes(matchUpStatus);
-  const hasConflict =
-    scheduleState && [SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ERROR, SCHEDULE_ISSUE].includes(scheduleState);
+  const conflictStates = new Set([SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ERROR, SCHEDULE_ISSUE]);
+  const hasConflict = scheduleState && conflictStates.has(scheduleState);
 
   if (matchUpId && issueIds && issueIds.length > 0 && hasConflict && !isCompleted) {
-    content.addEventListener('mouseenter', () => {
-      // Highlight all cells with matchUpIds in the issueIds array
-      issueIds.forEach((relatedId: string) => {
-        const relatedCell = document.getElementById(relatedId);
-        if (relatedCell) {
-          relatedCell.classList.add('conflict-highlight');
-        }
-      });
-    });
-
-    content.addEventListener('mouseleave', () => {
-      // Remove highlight from all related cells
-      issueIds.forEach((relatedId: string) => {
-        const relatedCell = document.getElementById(relatedId);
-        if (relatedCell) {
-          relatedCell.classList.remove('conflict-highlight');
-        }
-      });
-    });
+    attachConflictHighlighters(content, issueIds);
   }
 
   if (!matchUpId) {
@@ -155,7 +223,7 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   );
   const getParticipantName = (sideNumber: number): { text: string; bold: boolean } | undefined => {
     const participantName = sides?.find((side: any) => sideNumber === side.sideNumber)?.participant?.participantName;
-    if (!participantName) return;
+    if (!participantName) return undefined;
     return { text: participantName, bold: winningSide === sideNumber };
   };
   const side1 = getParticipantName(1);
@@ -180,63 +248,16 @@ export function scheduleCell(cell: any): HTMLSpanElement {
   const scheduledTeams = document.createElement('div');
   scheduledTeams.className = 'scheduled_teams';
 
-  const side1El = document.createElement('div');
-  side1El.className = 'scheduled_team';
-  side1El.style.fontSize = '1em';
-  if (side1) {
-    side1El.textContent = side1.text;
-    if (side1.bold) side1El.style.fontWeight = 'bold';
-  } else if (side1Potential) {
-    side1El.innerHTML = side1Potential;
-  } else {
-    side1El.textContent = 'Unknown';
-  }
-  scheduledTeams.appendChild(side1El);
+  scheduledTeams.appendChild(buildSideElement(side1, side1Potential));
 
   const divider = document.createElement('div');
   divider.className = 'divider';
   divider.textContent = 'vs.';
   scheduledTeams.appendChild(divider);
 
-  const side2El = document.createElement('div');
-  side2El.className = 'scheduled_team';
-  side2El.style.fontSize = '1em';
-  if (side2) {
-    side2El.textContent = side2.text;
-    if (side2.bold) side2El.style.fontWeight = 'bold';
-  } else if (side2Potential) {
-    side2El.innerHTML = side2Potential;
-  } else {
-    side2El.textContent = 'Unknown';
-  }
-  scheduledTeams.appendChild(side2El);
+  scheduledTeams.appendChild(buildSideElement(side2, side2Potential));
 
-  if (winningSide) {
-    const scoreLine = document.createElement('div');
-    scoreLine.className = 'match_status';
-
-    // Check if the match was won by WALKOVER or DEFAULTED
-    if (matchUpStatus === WALKOVER) {
-      scoreLine.innerHTML = 'WALKOVER';
-    } else if (matchUpStatus === DEFAULTED) {
-      scoreLine.innerHTML = 'DEFAULTED';
-    } else {
-      // Display normal score
-      scoreLine.innerHTML = value.score?.scoreStringSide1 || '';
-    }
-
-    scheduledTeams.appendChild(scoreLine);
-  } else if ([DOUBLE_DEFAULT, DOUBLE_WALKOVER].includes(matchUpStatus)) {
-    const statusLine = document.createElement('div');
-    statusLine.className = 'match_status';
-    statusLine.innerHTML = matchUpStatus === DOUBLE_DEFAULT ? 'DBL DEFAULT' : 'DBL WALKOVER';
-    scheduledTeams.appendChild(statusLine);
-  } else if ([ABANDONED, CANCELLED].includes(matchUpStatus)) {
-    const statusLine = document.createElement('div');
-    statusLine.className = 'match_status';
-    statusLine.innerHTML = matchUpStatus;
-    scheduledTeams.appendChild(statusLine);
-  }
+  appendMatchResult(scheduledTeams, matchUpStatus, winningSide, value?.score);
 
   content.appendChild(scheduledTeams);
 

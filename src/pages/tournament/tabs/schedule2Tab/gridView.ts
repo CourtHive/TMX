@@ -151,7 +151,7 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId ?? '',
           schedule: {
-            courtOrder: parseInt(courtOrder, 10),
+            courtOrder: Number.parseInt(courtOrder, 10),
             scheduledDate: currentDate,
             courtId,
             venueId,
@@ -612,6 +612,201 @@ interface GridCallbacks {
   executeMethods: (methods: any[], onRefresh: () => void) => void;
 }
 
+function buildRowCourtCells(
+  grid: HTMLElement,
+  row: any | null,
+  ri: number,
+  courtCount: number,
+  courtsData: any[],
+  courtPrefix: string,
+  emptyCellStyle: string,
+  allRows: any[],
+  callbacks: GridCallbacks,
+): void {
+  for (let ci = 0; ci < courtCount; ci++) {
+    if (!row) {
+      const emptyCell = document.createElement('div');
+      emptyCell.style.cssText = emptyCellStyle;
+      grid.appendChild(emptyCell);
+      continue;
+    }
+
+    const cellKey = `${courtPrefix}${ci}`;
+    const cellData = row[cellKey];
+
+    const courtInfo = courtsData[ci];
+    const courtId = cellData?.schedule?.courtId ?? courtInfo?.courtId ?? '';
+    const venueId = cellData?.schedule?.venueId ?? courtInfo?.venueId ?? '';
+    const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
+
+    const cellContent = buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
+
+    const cell = document.createElement('div');
+    cell.style.cssText = 'min-height: 60px; font-size: 11px;';
+    cell.setAttribute(DATA_COURT_ID, courtId);
+    cell.setAttribute(DATA_VENUE_ID, venueId);
+    cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
+
+    const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
+    const drawId = cellContent.getAttribute(DATA_DRAW_ID);
+    if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
+    if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
+
+    cell.appendChild(cellContent);
+
+    if (cellData?.matchUpId) {
+      attachCellDragSource(cell, cellData);
+    }
+
+    if (!cellData?.isBlocked) {
+      attachCellDropTarget(cell);
+    }
+
+    cell.addEventListener('click', (e: MouseEvent) => {
+      if (cell.draggable && cell.style.opacity === '0.4') return;
+
+      handleSchedule2CellClick(e, {
+        cellData,
+        courtId,
+        venueId,
+        courtOrder,
+        scheduledDate: currentDate,
+        allRows,
+        courtPrefix,
+        rowIndex: ri,
+        onRefresh: callbacks.onRefresh,
+        executeMethods: callbacks.executeMethods,
+        matchUpListProvider: () => getFilteredMatchUpList(currentDate, activeControl),
+        findCatalogItem: (mid: string) => buildCatalog(currentDate).find((m) => m.matchUpId === mid),
+      });
+    });
+    cell.style.cursor = cell.draggable ? 'grab' : 'pointer';
+
+    grid.appendChild(cell);
+  }
+}
+
+function getFilteredMatchUpList(
+  date: string,
+  control: SchedulePageControl | null,
+): { label: string; value: string }[] {
+  const catalog = buildCatalog(date);
+  const storeState = control?.getStore().getState();
+  const filters = storeState?.catalogFilters;
+  const showCompleted = storeState?.showCompleted ?? false;
+  return catalog
+    .filter(
+      (m) =>
+        !m.isScheduled &&
+        (m.sides?.length ?? 0) >= 1 &&
+        (showCompleted || !isCompletedStatus(m.matchUpStatus)) &&
+        (!filters?.eventType || m.matchUpType === filters.eventType) &&
+        (!filters?.eventName || m.eventName === filters.eventName) &&
+        (!filters?.drawName || (m.drawName ?? m.drawId) === filters.drawName) &&
+        (!filters?.gender || m.gender === filters.gender) &&
+        (!filters?.roundName || m.roundName === filters.roundName),
+    )
+    .map((m) => ({
+      label: `${m.eventName} ${m.roundName || ''} — ${matchUpLabel(m)}`.trim(),
+      value: m.matchUpId,
+    }));
+}
+
+function attachCellDragSource(cell: HTMLElement, cellData: any): void {
+  cell.draggable = true;
+  cell.title = `${cellData.eventName || ''} ${cellData.roundName || ''}`.trim();
+
+  cell.addEventListener('dragstart', (e) => {
+    e.dataTransfer!.setData(
+      'application/json',
+      JSON.stringify({
+        type: 'GRID_MATCHUP',
+        matchUp: {
+          matchUpId: cellData.matchUpId,
+          drawId: cellData.drawId,
+          eventId: cellData.eventId,
+          eventName: cellData.eventName,
+          roundName: cellData.roundName,
+          matchUpType: cellData.matchUpType,
+          sides: (cellData.sides || []).map((s: any) => ({
+            participantName: s.participant?.participantName ?? s.participantName,
+            participantId: s.participantId ?? s.participant?.participantId,
+          })),
+        },
+      }),
+    );
+    e.dataTransfer!.effectAllowed = 'move';
+    cell.style.opacity = '0.4';
+  });
+  cell.addEventListener('dragend', () => {
+    cell.style.opacity = '';
+  });
+}
+
+function attachCellDropTarget(cell: HTMLElement): void {
+  cell.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    cell.style.outline = '2px solid var(--sp-accent-focus, #3b82f6)';
+    cell.style.outlineOffset = '-2px';
+    e.dataTransfer!.dropEffect = 'move';
+  });
+  cell.addEventListener('dragleave', () => {
+    cell.style.outline = '';
+    cell.style.outlineOffset = '';
+  });
+  cell.addEventListener('drop', (e) => {
+    e.preventDefault();
+    cell.style.outline = '';
+    cell.style.outlineOffset = '';
+  });
+}
+
+function buildGridHeaders(
+  grid: HTMLElement,
+  stickyHeader: string,
+  courtsData: any[],
+  courtCount: number,
+  emptyCount: number,
+  handleAddVenue: () => void,
+): HTMLElement[] {
+  const corner = document.createElement('div');
+  corner.style.cssText = stickyHeader + '; left: 0; z-index: 3; color: var(--sp-muted);';
+  corner.textContent = 'Row';
+  grid.appendChild(corner);
+
+  const courtHeaders: HTMLElement[] = [];
+  for (let ci = 0; ci < courtCount; ci++) {
+    const court = courtsData[ci];
+    const th = document.createElement('div');
+    th.style.cssText = stickyHeader;
+    th.title = court.courtName || `Court ${ci + 1}`;
+    th.textContent = court.courtName || `Court ${ci + 1}`;
+    courtHeaders.push(th);
+    grid.appendChild(th);
+  }
+
+  for (let ei = 0; ei < emptyCount; ei++) {
+    const th = document.createElement('div');
+    th.style.cssText = stickyHeader + '; opacity: 0.6;';
+    if (ei === 0) {
+      const addVenueLabel = t('pages.venues.addVenue.title');
+      if (courtCount === 0) {
+        th.innerHTML = `<button style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--tmx-accent-blue, #3b82f6); background: var(--tmx-bg-primary, #fff); color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</button>`;
+      } else {
+        th.innerHTML = `<span style="font-weight: normal; color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</span>`;
+      }
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleAddVenue();
+      });
+    }
+    grid.appendChild(th);
+  }
+
+  return courtHeaders;
+}
+
 function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): InteractiveGrid {
   const MIN_COURT_WIDTH = 110;
   const TIME_COL_WIDTH = 50;
@@ -695,46 +890,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
 
     const EMPTY_CELL = 'min-height: 60px; background: var(--sp-panel-bg, #fff); opacity: 0.4;';
 
-    // ── Header row ──
-
-    // Corner
-    const corner = document.createElement('div');
-    corner.style.cssText = STICKY_HEADER + '; left: 0; z-index: 3; color: var(--sp-muted);';
-    corner.textContent = 'Row';
-    grid.appendChild(corner);
-
-    // Court headers
-    const courtHeaders: HTMLElement[] = [];
-    for (let ci = 0; ci < courtCount; ci++) {
-      const court = courtsData[ci];
-      const th = document.createElement('div');
-      th.style.cssText = STICKY_HEADER;
-      th.title = court.courtName || `Court ${ci + 1}`;
-      th.textContent = court.courtName || `Court ${ci + 1}`;
-      courtHeaders.push(th);
-      grid.appendChild(th);
-    }
-
-    // Placeholder column headers
-    for (let ei = 0; ei < emptyCount; ei++) {
-      const th = document.createElement('div');
-      th.style.cssText = STICKY_HEADER + '; opacity: 0.6;';
-      if (ei === 0) {
-        // First empty column: prominent button when no courts, subtle text otherwise
-        const addVenueLabel = t('pages.venues.addVenue.title');
-        if (courtCount === 0) {
-          th.innerHTML = `<button style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--tmx-accent-blue, #3b82f6); background: var(--tmx-bg-primary, #fff); color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</button>`;
-        } else {
-          th.innerHTML = `<span style="font-weight: normal; color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</span>`;
-        }
-        th.style.cursor = 'pointer';
-        th.addEventListener('click', (e) => {
-          e.stopPropagation();
-          handleAddVenue();
-        });
-      }
-      grid.appendChild(th);
-    }
+    const courtHeaders = buildGridHeaders(grid, STICKY_HEADER, courtsData, courtCount, emptyCount, handleAddVenue);
 
     // ── Data rows ──
 
@@ -759,141 +915,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       rowLabels.push(rowCell);
       grid.appendChild(rowCell);
 
-      // Active court cells
-      for (let ci = 0; ci < courtCount; ci++) {
-        if (!row) {
-          // Placeholder row for active court column
-          const emptyCell = document.createElement('div');
-          emptyCell.style.cssText = EMPTY_CELL;
-          grid.appendChild(emptyCell);
-          continue;
-        }
-
-        const cellKey = `${courtPrefix}${ci}`;
-        const cellData = row[cellKey];
-
-        const courtInfo = courtsData[ci];
-        const courtId = cellData?.schedule?.courtId ?? courtInfo?.courtId ?? '';
-        const venueId = cellData?.schedule?.venueId ?? courtInfo?.venueId ?? '';
-        const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
-
-        // Build the cell content using the configurable renderer
-        const cellContent = buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
-
-        // Wrap in a container that carries grid-level data attributes
-        const cell = document.createElement('div');
-        cell.style.cssText = 'min-height: 60px; font-size: 11px;';
-        cell.setAttribute(DATA_COURT_ID, courtId);
-        cell.setAttribute(DATA_VENUE_ID, venueId);
-        cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
-
-        // Transfer matchUp/draw IDs from rendered cell
-        const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
-        const drawId = cellContent.getAttribute(DATA_DRAW_ID);
-        if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
-        if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
-
-        cell.appendChild(cellContent);
-
-        // ── Filled cells are draggable ──
-        if (cellData?.matchUpId) {
-          cell.draggable = true;
-          cell.title = `${cellData.eventName || ''} ${cellData.roundName || ''}`.trim();
-
-          cell.addEventListener('dragstart', (e) => {
-            e.dataTransfer!.setData(
-              'application/json',
-              JSON.stringify({
-                type: 'GRID_MATCHUP',
-                matchUp: {
-                  matchUpId: cellData.matchUpId,
-                  drawId: cellData.drawId,
-                  eventId: cellData.eventId,
-                  eventName: cellData.eventName,
-                  roundName: cellData.roundName,
-                  matchUpType: cellData.matchUpType,
-                  sides: (cellData.sides || []).map((s: any) => ({
-                    participantName: s.participant?.participantName ?? s.participantName,
-                    participantId: s.participantId ?? s.participant?.participantId,
-                  })),
-                },
-              }),
-            );
-            e.dataTransfer!.effectAllowed = 'move';
-            cell.style.opacity = '0.4';
-          });
-          cell.addEventListener('dragend', () => {
-            cell.style.opacity = '';
-          });
-        }
-
-        // ── All cells are drop targets (unless blocked) ──
-        if (!cellData?.isBlocked) {
-          cell.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            cell.style.outline = '2px solid var(--sp-accent-focus, #3b82f6)';
-            cell.style.outlineOffset = '-2px';
-            e.dataTransfer!.dropEffect = 'move';
-          });
-          cell.addEventListener('dragleave', () => {
-            cell.style.outline = '';
-            cell.style.outlineOffset = '';
-          });
-          cell.addEventListener('drop', (e) => {
-            e.preventDefault();
-            cell.style.outline = '';
-            cell.style.outlineOffset = '';
-          });
-        }
-
-        // ── Click handler for popover menu ──
-        cell.addEventListener('click', (e: MouseEvent) => {
-          // Ignore clicks that are part of a drag operation
-          if (cell.draggable && cell.style.opacity === '0.4') return;
-
-          handleSchedule2CellClick(e, {
-            cellData,
-            courtId,
-            venueId,
-            courtOrder,
-            scheduledDate: currentDate,
-            allRows: rows,
-            courtPrefix,
-            rowIndex: ri,
-            onRefresh: callbacks.onRefresh,
-            executeMethods: callbacks.executeMethods,
-            matchUpListProvider: () => {
-              const catalog = buildCatalog(currentDate);
-              const storeState = activeControl?.getStore().getState();
-              const filters = storeState?.catalogFilters;
-              const showCompleted = storeState?.showCompleted ?? false;
-              return catalog
-                .filter(
-                  (m) =>
-                    !m.isScheduled &&
-                    (m.sides?.length ?? 0) >= 1 &&
-                    (showCompleted || !isCompletedStatus(m.matchUpStatus)) &&
-                    (!filters?.eventType || m.matchUpType === filters.eventType) &&
-                    (!filters?.eventName || m.eventName === filters.eventName) &&
-                    (!filters?.drawName || (m.drawName ?? m.drawId) === filters.drawName) &&
-                    (!filters?.gender || m.gender === filters.gender) &&
-                    (!filters?.roundName || m.roundName === filters.roundName),
-                )
-                .map((m) => ({
-                  label: `${m.eventName} ${m.roundName || ''} — ${matchUpLabel(m)}`.trim(),
-                  value: m.matchUpId,
-                }));
-            },
-            findCatalogItem: (matchUpId: string) => {
-              const catalog = buildCatalog(currentDate);
-              return catalog.find((m) => m.matchUpId === matchUpId);
-            },
-          });
-        });
-        cell.style.cursor = cell.draggable ? 'grab' : 'pointer';
-
-        grid.appendChild(cell);
-      }
+      buildRowCourtCells(grid, row, ri, courtCount, courtsData, courtPrefix, EMPTY_CELL, rows, callbacks);
 
       // Placeholder cells for empty columns
       for (let ei = 0; ei < emptyCount; ei++) {
@@ -1042,8 +1064,8 @@ function applyHeaderRowIssueIndicators(
   // Row labels: rowIssues keyed by row index
   const rowIssueEntries = conflicts.rowIssues || {};
   for (const [rowIdx, issues] of Object.entries(rowIssueEntries)) {
-    const ri = parseInt(rowIdx);
-    if (isNaN(ri) || ri >= rowLabels.length || !(issues as any[])?.length) continue;
+    const ri = Number.parseInt(rowIdx);
+    if (Number.isNaN(ri) || ri >= rowLabels.length || !(issues as any[])?.length) continue;
     const topIssue = (issues as any[])[0].issue;
     rowLabels[ri].style.borderRight = `3px solid ${severityColor(topIssue)}`;
     rowLabels[ri].style.background = severityBgOpaque(topIssue);
@@ -1105,6 +1127,29 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
   }
 }
 
+function buildIssueEntry(
+  issue: any,
+  mapSeverity: (issue: string) => ScheduleIssueSeverity,
+  labelFn: (id: string) => string,
+  selectedDate: string,
+  prefix?: string,
+): ScheduleIssue {
+  const participants = labelFn(issue.matchUpId);
+  const conflictLabels = (issue.issueIds || []).map((id: string) => labelFn(id));
+  const messagePrefix = prefix || '';
+  return {
+    severity: mapSeverity(issue.issue),
+    message: `${messagePrefix}${issue.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
+    issueType: issue.issueType,
+    ...(prefix && { prefix }),
+    participants,
+    conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
+    conflictMatchUpIds: issue.issueIds?.length ? [issue.matchUpId, ...issue.issueIds] : undefined,
+    matchUpId: issue.matchUpId,
+    date: selectedDate,
+  };
+}
+
 export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
   // lack fields that proConflicts needs to detect certain conflict types.
@@ -1146,46 +1191,22 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
     return sorted.join('|');
   };
 
-  // Court issues
   for (const [, courtIssues] of Object.entries(conflictsResult.courtIssues || {})) {
     for (const ci of courtIssues as any[]) {
       const key = dedupKey(ci.matchUpId, ci.issueIds || []);
       if (seenPairs.has(key)) continue;
       seenPairs.add(key);
-      const participants = matchUpLabel(ci.matchUpId);
-      const conflictLabels = (ci.issueIds || []).map((id: string) => matchUpLabel(id));
-      issues.push({
-        severity: mapSeverity(ci.issue),
-        message: `${ci.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
-        issueType: ci.issueType,
-        participants,
-        conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
-        conflictMatchUpIds: ci.issueIds?.length ? [ci.matchUpId, ...ci.issueIds] : undefined,
-        matchUpId: ci.matchUpId,
-        date: selectedDate,
-      });
+      issues.push(buildIssueEntry(ci, mapSeverity, matchUpLabel, selectedDate));
     }
   }
 
-  // Row issues
   for (const [rowIdx, rowIssues] of Object.entries(conflictsResult.rowIssues || {})) {
     for (const ri of rowIssues as any[]) {
       const key = dedupKey(ri.matchUpId, ri.issueIds || []);
       if (seenPairs.has(key)) continue;
       seenPairs.add(key);
-      const participants = matchUpLabel(ri.matchUpId);
-      const conflictLabels = (ri.issueIds || []).map((id: string) => matchUpLabel(id));
-      issues.push({
-        severity: mapSeverity(ri.issue),
-        message: `Row ${parseInt(rowIdx) + 1}: ${ri.issueType}: ${participants}${conflictLabels.length ? ' conflicts with ' + conflictLabels.join(', ') : ''}`,
-        issueType: ri.issueType,
-        prefix: `Row ${parseInt(rowIdx) + 1}: `,
-        participants,
-        conflictParticipants: conflictLabels.length ? conflictLabels : undefined,
-        conflictMatchUpIds: ri.issueIds?.length ? [ri.matchUpId, ...ri.issueIds] : undefined,
-        matchUpId: ri.matchUpId,
-        date: selectedDate,
-      });
+      const rowPrefix = `Row ${Number.parseInt(rowIdx) + 1}: `;
+      issues.push(buildIssueEntry(ri, mapSeverity, matchUpLabel, selectedDate, rowPrefix));
     }
   }
 

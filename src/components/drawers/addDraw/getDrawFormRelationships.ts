@@ -156,41 +156,39 @@ export function getDrawFormRelationships({
     }
   };
 
-  const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
+  const updateFieldVisibility = (fields: Record<string, HTMLElement>, drawType: string, inputs: Record<string, any>) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
+    const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
+    const isDrawMatic = drawType === DRAW_MATIC;
+    const isAdHocType = drawType === AD_HOC || isDrawMatic;
+
+    fields[ADVANCE_PER_GROUP].style.display = isRRPlayoff && playoffType === TOP_FINISHERS ? '' : NONE;
+    fields[TOTAL_ADVANCE].style.display = isRRPlayoff && playoffType === BEST_FINISHERS ? '' : NONE;
+    fields[GROUP_REMAINING].style.display =
+      isRRPlayoff && (playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS) ? '' : NONE;
+    fields[PLAYOFF_TYPE].style.display = isRRPlayoff ? '' : NONE;
+    fields[PLAYOFF_DRAW_TYPE].style.display = isRRPlayoff ? '' : NONE;
+    const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
+    fields[PLAYOFF_GROUP_SIZE].style.display = isRRPlayoff && playoffDrawType === ROUND_ROBIN ? '' : NONE;
+    fields[GROUP_SIZE].style.display = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) ? '' : NONE;
+
+    fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
+    fields[RATING_SCALE].style.display = isDrawMatic ? '' : NONE;
+    fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
+    fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
+
+    fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
+    fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
+  };
+
+  const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const drawType = (e!.target as HTMLSelectElement).value;
 
     if (!maxQualifiers) updateDrawSize({ drawId, drawType, fields, inputs });
     checkCreationMethod({ fields, inputs });
 
     if (fields) {
-      fields[ADVANCE_PER_GROUP].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === TOP_FINISHERS ? '' : NONE;
-      fields[TOTAL_ADVANCE].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === BEST_FINISHERS ? '' : NONE;
-      fields[GROUP_REMAINING].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && (playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS)
-          ? ''
-          : NONE;
-      fields[PLAYOFF_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
-      fields[PLAYOFF_DRAW_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
-      const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
-      fields[PLAYOFF_GROUP_SIZE].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffDrawType === ROUND_ROBIN ? '' : NONE;
-      const groupSizeVisible = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType);
-      fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
-
-      // DrawMatic-specific fields
-      const isDrawMatic = drawType === DRAW_MATIC;
-      fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
-      fields[RATING_SCALE].style.display = isDrawMatic ? '' : NONE;
-      fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
-      fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
-
-      // Hide seeding policy and qualifiers for ad-hoc draw types
-      const isAdHocType = drawType === AD_HOC || isDrawMatic;
-      fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
-      fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
+      updateFieldVisibility(fields, drawType, inputs);
     }
   };
 

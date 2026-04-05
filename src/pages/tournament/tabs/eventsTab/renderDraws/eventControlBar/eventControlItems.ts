@@ -2,20 +2,25 @@
  * Event control bar items configuration.
  * Provides search, event/draw/structure navigation, and action options.
  */
-import { drawDefinitionConstants, eventConstants, extensionConstants, tournamentEngine } from 'tods-competition-factory';
-import { openConfigureDraft } from 'components/modals/draftConfigure';
-import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
-import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
-import { completeMatchUps } from 'services/devCompleteMatchUps';
+import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
+import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
+import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { getStructureOptions } from '../getStructureOptions';
 import { editMatchUpFormat } from '../editMatchUpFormat';
 import { getDrawsOptions } from '../getDrawsOptions';
-import { displayConfig } from 'config/displayConfig';
-import { renderDrawView } from '../renderDrawView';
 import { compositions } from 'courthive-components';
+import { renderDrawView } from '../renderDrawView';
+import { displayConfig } from 'config/displayConfig';
 import { t } from 'i18n';
+import {
+  drawDefinitionConstants,
+  eventConstants,
+  extensionConstants,
+  tournamentEngine,
+} from 'tods-competition-factory';
 
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { LEFT, RIGHT } from 'constants/tmxConstants';
@@ -158,13 +163,15 @@ export function getEventControlItems({
     });
   }
 
-  // View topology
-  items.push({
-    onClick: () => renderInlineTopology({ eventId, drawId, structureId }),
-    label: '<i class="fa-solid fa-sitemap"></i>',
-    toolTip: { content: t('pages.events.actionOptions.viewTopology'), placement: 'bottom' },
-    location: RIGHT,
-  });
+  // View topology (only when draw has multiple structures)
+  if (drawData?.structures?.length > 1) {
+    items.push({
+      onClick: () => renderInlineTopology({ eventId, drawId, structureId }),
+      label: '<i class="fa-solid fa-sitemap"></i>',
+      toolTip: { content: t('pages.events.actionOptions.viewTopology'), placement: 'bottom' },
+      location: RIGHT,
+    });
+  }
 
   // Draft status button when a draft is active
   const drawDefinition = drawId ? tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition : undefined;
@@ -173,7 +180,8 @@ export function getEventControlItems({
   if (draftExt) {
     const draftComplete = draftExt.value?.status === 'COMPLETE';
     items.push({
-      onClick: () => openConfigureDraft({ drawId, eventId, callback: () => renderDrawView({ eventId, drawId, structureId }) }),
+      onClick: () =>
+        openConfigureDraft({ drawId, eventId, callback: () => renderDrawView({ eventId, drawId, structureId }) }),
       label: t('pages.events.actionOptions.draftStatus'),
       intent: draftComplete ? 'is-info' : 'is-primary',
       location: RIGHT,
@@ -184,7 +192,7 @@ export function getEventControlItems({
   const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
   if (isMainStage && !isTeam && !draftExt) {
     const unassignedCount =
-      structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye).length ?? 0;
+      structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier).length ?? 0;
     if (unassignedCount > 0) {
       items.push({
         onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),

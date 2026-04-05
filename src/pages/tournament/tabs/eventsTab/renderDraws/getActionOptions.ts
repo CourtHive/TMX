@@ -41,8 +41,8 @@ export function getActionOptions({
   drawData,
   drawId,
 }: ActionOptionsParams): any[] {
-  const hasQualifying = drawData.structures?.find((structure: any) => structure.stage === QUALIFYING);
-  const structure = drawData.structures?.find((structure: any) => structure.structureId === structureId);
+  const hasQualifying = drawData.structures?.find((structure: any) => structure?.stage === QUALIFYING);
+  const structure = drawData.structures?.find((structure: any) => structure?.structureId === structureId);
   const eventId = eventData.eventInfo.eventId;
 
   // Check for active draft
@@ -70,7 +70,7 @@ export function getActionOptions({
   // Check position assignments for menu item visibility
   const { positionAssignments } = tournamentEngine.getPositionAssignments({ structureId, drawId });
   const isEmptyDraw = positionAssignments?.every((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier);
-  const hasUnassignedPositions = positionAssignments?.some((pa: any) => !pa.participantId && !pa.bye);
+  const hasUnassignedPositions = positionAssignments?.some((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier);
 
   const scorecardUpdated = () => {
     const matchUpId = dualMatchUp.matchUpId;

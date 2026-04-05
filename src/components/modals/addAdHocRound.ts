@@ -24,6 +24,48 @@ const HELP_TEXT_STYLE =
   'display: none; font-size: 0.75em; line-height: 1.4; padding: 0.5em 0.7em; margin: 0.15em 0 0.4em;' +
   ' border-radius: 4px; background: var(--tmx-bg-secondary); color: var(--tmx-text-muted);';
 
+function resolveLoserLinkParticipants(loserLinks: any[], structure: any, drawId: string | undefined): string[] {
+  const sourceStructureId = structure.sourceStructureIds[0];
+  const sourceRoundNumbers = new Set(loserLinks.map((l: any) => l.source?.roundNumber).filter(Boolean));
+  const result = tournamentEngine.allDrawMatchUps({ drawId, inContext: true });
+  const sourceMatchUps = (result?.matchUps || []).filter(
+    (m: any) => m.structureId === sourceStructureId && m.winningSide && sourceRoundNumbers.has(m.roundNumber),
+  );
+
+  const ids: string[] = [];
+  for (const m of sourceMatchUps) {
+    const losingSide = m.sides?.find((_: any, i: number) => i + 1 !== m.winningSide);
+    if (losingSide?.participantId) ids.push(losingSide.participantId);
+  }
+  return ids;
+}
+
+function resolvePositionLinkParticipants(positionLink: any, structure: any, drawId: string | undefined): string[] {
+  const targetFinishingPositions = positionLink.source?.finishingPositions || [];
+  const sourceStructureId = structure.sourceStructureIds[0];
+  const { event: drawEvent } = tournamentEngine.getEvent({ drawId });
+  const { eventData: evData } = tournamentEngine.getEventData({
+    includePositionAssignments: true,
+    eventId: drawEvent?.eventId,
+  });
+  const drawDataForParticipants = evData?.drawsData?.find((d: any) => d.drawId === drawId);
+  const sourceStructure = drawDataForParticipants?.structures?.find(
+    (s: any) => s.structureId === sourceStructureId,
+  );
+
+  const ids: string[] = [];
+  const positionAssignments = sourceStructure?.positionAssignments || [];
+  for (const pa of positionAssignments) {
+    if (!pa.participantId) continue;
+    const tally = pa.extensions?.find((e: any) => e.name === 'tally')?.value;
+    const groupOrder = tally?.groupOrder || tally?.rankOrder;
+    if (!targetFinishingPositions.length || (groupOrder && targetFinishingPositions.includes(groupOrder))) {
+      ids.push(pa.participantId);
+    }
+  }
+  return ids;
+}
+
 type AddAdHocRoundParams = {
   drawId?: string;
   structure?: any;
@@ -48,7 +90,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     return roundNumbers;
   }, []);
 
-  const lastRoundNumber = roundNumbers[roundNumbers.length - 1];
+  const lastRoundNumber = roundNumbers.at(-1);
 
   const maxRoundNumber = Math.max(...roundNumbers, 1);
   if (matchUps.length) roundNumbers.push(maxRoundNumber + 1);
@@ -176,63 +218,43 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     });
   };
 
+  const resolveLinkedParticipants = (): string[] => {
+    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+    const loserLinks = drawDefinition?.links?.filter(
+      (link: any) => link.linkType === 'LOSER' && link.target?.structureId === structureId,
+    );
+    const positionLink = drawDefinition?.links?.find(
+      (link: any) => link.linkType === 'POSITION' && link.target?.structureId === structureId,
+    );
+
+    if (loserLinks?.length) {
+      return resolveLoserLinkParticipants(loserLinks, structure, drawId);
+    }
+
+    if (positionLink) {
+      return resolvePositionLinkParticipants(positionLink, structure, drawId);
+    }
+
+    return [];
+  };
+
+  const resolveEntryParticipants = (): string[] => {
+    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+    return drawDefinition.entries
+      .filter(
+        ({ entryStatus, entryStage }: any) =>
+          !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
+      )
+      .map(({ participantId }: any) => participantId);
+  };
+
   const addMatchUps = () => {
     if (inputs[AUTOMATED].value === AUTOMATED) {
       let participantIds: string[];
 
       if (structure?.sourceStructureIds?.length) {
-        // Structure linked from a source — find eligible participants based on link type
-        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-        const loserLinks = drawDefinition?.links?.filter(
-          (link: any) => link.linkType === 'LOSER' && link.target?.structureId === structureId,
-        );
-        const positionLink = drawDefinition?.links?.find(
-          (link: any) => link.linkType === 'POSITION' && link.target?.structureId === structureId,
-        );
-
-        if (loserLinks?.length) {
-          // LOSER links: collect losers from completed matchUps in source rounds
-          const sourceStructureId = structure.sourceStructureIds[0];
-          const sourceRoundNumbers = new Set(loserLinks.map((l: any) => l.source?.roundNumber).filter(Boolean));
-          const result = tournamentEngine.allDrawMatchUps({ drawId, inContext: true });
-          const sourceMatchUps = (result?.matchUps || []).filter(
-            (m: any) => m.structureId === sourceStructureId && m.winningSide && sourceRoundNumbers.has(m.roundNumber),
-          );
-
-          participantIds = [];
-          for (const m of sourceMatchUps) {
-            const losingSide = m.sides?.find((_: any, i: number) => i + 1 !== m.winningSide);
-            if (losingSide?.participantId) participantIds.push(losingSide.participantId);
-          }
-        } else if (positionLink) {
-          // POSITION links: find participants by finishing position (RR group results)
-          const targetFinishingPositions = positionLink.source?.finishingPositions || [];
-          const sourceStructureId = structure.sourceStructureIds[0];
-          const { event: drawEvent } = tournamentEngine.getEvent({ drawId });
-          const { eventData: evData } = tournamentEngine.getEventData({
-            includePositionAssignments: true,
-            eventId: drawEvent?.eventId,
-          });
-          const drawDataForParticipants = evData?.drawsData?.find((d: any) => d.drawId === drawId);
-          const sourceStructure = drawDataForParticipants?.structures?.find(
-            (s: any) => s.structureId === sourceStructureId,
-          );
-
-          participantIds = [];
-          const positionAssignments = sourceStructure?.positionAssignments || [];
-          for (const pa of positionAssignments) {
-            if (!pa.participantId) continue;
-            const tally = pa.extensions?.find((e: any) => e.name === 'tally')?.value;
-            const groupOrder = tally?.groupOrder || tally?.rankOrder;
-            if (!targetFinishingPositions.length || (groupOrder && targetFinishingPositions.includes(groupOrder))) {
-              participantIds.push(pa.participantId);
-            }
-          }
-        } else {
-          participantIds = [];
-        }
+        participantIds = resolveLinkedParticipants();
       } else if (structure?.stage === VOLUNTARY_CONSOLATION) {
-        // Merge current VC entries with newly eligible players
         const { drawDefinition } = tournamentEngine.getEvent({ drawId });
         const existingEntryIds = new Set<string>(
           drawDefinition.entries
@@ -248,13 +270,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
         checkParticipants({ participantIds: [...allIds], existingEntryIds });
         return;
       } else {
-        const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-        participantIds = drawDefinition.entries
-          .filter(
-            ({ entryStatus, entryStage }: any) =>
-              !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
-          )
-          .map(({ participantId }: any) => participantId);
+        participantIds = resolveEntryParticipants();
       }
 
       checkParticipants({ participantIds });

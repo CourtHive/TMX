@@ -28,6 +28,70 @@ const { DOUBLES, SINGLES, TEAM } = eventConstants;
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { MAIN } = drawDefinitionConstants;
 
+const DEFAULT_AGE_CATEGORIES = [
+  { code: 'U10', label: '10 and Under' },
+  { code: 'U12', label: '12 and Under' },
+  { code: 'U14', label: '14 and Under' },
+  { code: 'U16', label: '16 and Under' },
+  { code: 'U18', label: '18 and Under' },
+];
+
+function resolveEnteredGenderOptions(event: any, enteredParticipantGenders: any[]): string[] {
+  const options = [ANY];
+  if (event.gender && event.gender !== ANY) options.push(event.gender);
+  if (event.eventType === DOUBLES && !options.includes(MIXED)) options.push(MIXED);
+  const uniqueEnteredGenders = tools.unique(enteredParticipantGenders.flat());
+  if (uniqueEnteredGenders.length === 1 && !options.includes(uniqueEnteredGenders[0])) {
+    options.push(...uniqueEnteredGenders);
+  }
+  return options;
+}
+
+function buildCategoryOptionsList(
+  tournamentCategories: any[],
+  isCategoryAllowed: (code: string) => boolean,
+  selectedCode: string | undefined,
+): any[] {
+  const options: any[] = [
+    {
+      selected: ['', undefined].includes(selectedCode),
+      label: '------------',
+      value: '',
+    },
+  ];
+
+  if (tournamentCategories.length > 0) {
+    tournamentCategories
+      .filter((cat: any) => isCategoryAllowed(cat.ageCategoryCode || cat.categoryName))
+      .forEach((cat: any) => {
+        const label = cat.ageCategoryCode ? `${cat.categoryName} (${cat.ageCategoryCode})` : cat.categoryName;
+        options.push({
+          selected: selectedCode === (cat.ageCategoryCode || cat.categoryName),
+          label,
+          value: cat.ageCategoryCode || cat.categoryName,
+        });
+      });
+  } else {
+    DEFAULT_AGE_CATEGORIES
+      .filter(({ code }) => isCategoryAllowed(code))
+      .forEach(({ code, label }) => {
+        options.push({
+          selected: selectedCode === code,
+          label,
+          value: code,
+        });
+      });
+  }
+
+  options.push({
+    selected: false,
+    label: t('pages.events.editEvent.custom'),
+    value: 'custom',
+  });
+
+  return options;
+}
+
 export function editEvent({
   table,
   event,
@@ -103,13 +167,7 @@ export function editEvent({
   if (categories.length === 1) values.ageCategoryCode = categories[0];
 
   if (enteredParticipantGenders.length) {
-    genderOptions = [ANY];
-    if (event.gender && event.gender !== ANY) genderOptions.push(event.gender);
-    if (event.eventType === DOUBLES && !genderOptions.includes(MIXED)) genderOptions.push(MIXED);
-    const uniqueEnteredGenders = tools.unique(enteredParticipantGenders.flat());
-    if (uniqueEnteredGenders.length === 1 && !genderOptions.includes(uniqueEnteredGenders[0])) {
-      genderOptions.push(...uniqueEnteredGenders);
-    }
+    genderOptions = resolveEnteredGenderOptions(event, enteredParticipantGenders);
   } else if (event) {
     genderOptions = [ANY, MALE, MIXED, FEMALE];
   }
@@ -123,56 +181,12 @@ export function editEvent({
   const isCategoryAllowed = (code: string) =>
     !allowedCategories.length || allowedCategories.some((c: any) => c.ageCategoryCode === code);
 
-  const buildCategoryOptions = () => {
-    const options = [
-      {
-        selected: ['', undefined].includes(values.ageCategoryCode),
-        label: '------------',
-        value: '',
-      },
-    ];
-
-    // Add tournament-defined categories first
-    if (tournamentCategories.length > 0) {
-      tournamentCategories
-        .filter((cat: any) => isCategoryAllowed(cat.ageCategoryCode || cat.categoryName))
-        .forEach((cat: any) => {
-          const label = cat.ageCategoryCode ? `${cat.categoryName} (${cat.ageCategoryCode})` : cat.categoryName;
-          options.push({
-            selected: values.ageCategoryCode === (cat.ageCategoryCode || cat.categoryName),
-            label,
-            value: cat.ageCategoryCode || cat.categoryName,
-          });
-        });
-    } else {
-      // Fallback to default categories if tournament has none defined
-      const defaults = [
-        { code: 'U10', label: '10 and Under' },
-        { code: 'U12', label: '12 and Under' },
-        { code: 'U14', label: '14 and Under' },
-        { code: 'U16', label: '16 and Under' },
-        { code: 'U18', label: '18 and Under' },
-      ];
-      defaults
-        .filter(({ code }) => isCategoryAllowed(code))
-        .forEach(({ code, label }) => {
-          options.push({
-            selected: values.ageCategoryCode === code,
-            label,
-            value: code,
-          });
-        });
-    }
-
-    // Always add Custom option at the end
-    options.push({
-      selected: false,
-      label: t('pages.events.editEvent.custom'),
-      value: 'custom',
-    });
-
-    return options;
-  };
+  const buildCategoryOptions = () =>
+    buildCategoryOptionsList(
+      tournamentCategories,
+      isCategoryAllowed,
+      values.ageCategoryCode,
+    );
 
   const valueChange = () => {
     // Placeholder for future functionality

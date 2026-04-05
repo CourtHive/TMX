@@ -10,6 +10,10 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import {
+  forceExitAssignmentMode,
+  isAssignmentMode,
+} from 'pages/tournament/tabs/eventsTab/renderDraws/participantAssignmentMode';
 import { context } from 'services/context';
 import Navigo from 'navigo';
 
@@ -46,6 +50,7 @@ export function routeTMX() {
   // Reconnect socket on any navigation if it was lost
   router.hooks({
     before(done) {
+      if (isAssignmentMode()) forceExitAssignmentMode();
       ensureConnected();
       resetActivityTimer();
       done();

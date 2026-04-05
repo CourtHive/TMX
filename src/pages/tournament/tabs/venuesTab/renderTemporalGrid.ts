@@ -52,6 +52,74 @@ export function renderTemporalGrid(
   };
 }
 
+function buildCourtAvailabilityMethod(
+  engine: any,
+  tournamentRecord: any,
+  venue: any,
+  court: any,
+  tournamentDays: string[],
+): { method: string; params: any } | undefined {
+  const courtRef = {
+    tournamentId: tournamentRecord.tournamentId,
+    venueId: venue.venueId,
+    courtId: court.courtId,
+  };
+
+  const courtKeys = engine.getCourtAvailabilityKeys(courtRef);
+  const hasOverrides = courtKeys.length > 0;
+
+  const dateAvailability: any[] = [];
+  let hasBlocks = false;
+
+  for (const day of tournamentDays) {
+    const dayBlocks = engine
+      .getDayBlocks(day)
+      .filter((block: any) => block.court.courtId === court.courtId && block.court.venueId === venue.venueId);
+
+    if (dayBlocks.length) hasBlocks = true;
+
+    const dayHasOverride = courtKeys.includes(day) || courtKeys.includes('DEFAULT');
+    if (!dayHasOverride && !dayBlocks.length) continue;
+
+    const avail = engine.getCourtAvailability(courtRef, day);
+    const bookings = dayBlocks.map((block: any) => ({
+      startTime: extractTime(block.start),
+      endTime: extractTime(block.end),
+      bookingType: block.type,
+    }));
+
+    const entry: any = {
+      date: day,
+      startTime: avail.startTime,
+      endTime: avail.endTime,
+    };
+    if (bookings.length) entry.bookings = bookings;
+
+    dateAvailability.push(entry);
+  }
+
+  const hadPrevious = (court.dateAvailability?.length ?? 0) > 0;
+
+  if (!hasOverrides && !hasBlocks) {
+    if (hadPrevious) {
+      return {
+        method: MODIFY_COURT_AVAILABILITY,
+        params: { courtId: court.courtId, dateAvailability: [] },
+      };
+    }
+    return undefined;
+  }
+
+  if (dateAvailability.length) {
+    return {
+      method: MODIFY_COURT_AVAILABILITY,
+      params: { courtId: court.courtId, dateAvailability },
+    };
+  }
+
+  return undefined;
+}
+
 function saveGridState(grid: TemporalGrid): void {
   const engine = grid.getEngine();
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -81,66 +149,9 @@ function saveGridState(grid: TemporalGrid): void {
       }
     }
 
-    // 2. Per-court — only emit modifyCourtAvailability for courts with overrides or blocks
     for (const court of venue.courts ?? []) {
-      const courtRef = {
-        tournamentId: tournamentRecord.tournamentId,
-        venueId: venue.venueId,
-        courtId: court.courtId,
-      };
-
-      const courtKeys = engine.getCourtAvailabilityKeys(courtRef);
-      const hasOverrides = courtKeys.length > 0;
-
-      // Collect blocks for this court across all days
-      const dateAvailability: any[] = [];
-      let hasBlocks = false;
-
-      for (const day of tournamentDays) {
-        const dayBlocks = engine
-          .getDayBlocks(day)
-          .filter((block: any) => block.court.courtId === court.courtId && block.court.venueId === venue.venueId);
-
-        if (dayBlocks.length) hasBlocks = true;
-
-        // Only include days where this court has overrides or blocks
-        const dayHasOverride = courtKeys.includes(day) || courtKeys.includes('DEFAULT');
-        if (!dayHasOverride && !dayBlocks.length) continue;
-
-        const avail = engine.getCourtAvailability(courtRef, day);
-        const bookings = dayBlocks.map((block: any) => ({
-          startTime: extractTime(block.start),
-          endTime: extractTime(block.end),
-          bookingType: block.type,
-        }));
-
-        const entry: any = {
-          date: day,
-          startTime: avail.startTime,
-          endTime: avail.endTime,
-        };
-        if (bookings.length) entry.bookings = bookings;
-
-        dateAvailability.push(entry);
-      }
-
-      const hadPrevious = (court.dateAvailability?.length ?? 0) > 0;
-
-      if (!hasOverrides && !hasBlocks) {
-        // No court-level state — clear stale data if it existed
-        if (hadPrevious) {
-          methods.push({
-            method: MODIFY_COURT_AVAILABILITY,
-            params: { courtId: court.courtId, dateAvailability: [] },
-          });
-        }
-        // else: nothing to save, skip
-      } else if (dateAvailability.length) {
-        methods.push({
-          method: MODIFY_COURT_AVAILABILITY,
-          params: { courtId: court.courtId, dateAvailability },
-        });
-      }
+      const courtMethod = buildCourtAvailabilityMethod(engine, tournamentRecord, venue, court, tournamentDays);
+      if (courtMethod) methods.push(courtMethod);
     }
   }
 

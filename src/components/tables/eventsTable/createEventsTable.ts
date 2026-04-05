@@ -28,12 +28,14 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
   const getTableData = () => {
     const eventData = tournamentEngine.getEvents({ withScaleValues: !lightMode });
 
-    return eventData?.events?.map((event: any) =>
-      mapEvent({
-        scaleValues: eventData.eventScaleValues?.[event.eventId],
-        lightMode,
-        event,
-      }),
+    return (
+      eventData?.events?.map((event: any) =>
+        mapEvent({
+          scaleValues: eventData.eventScaleValues?.[event.eventId],
+          lightMode,
+          event,
+        }),
+      ) || []
     );
   };
 
