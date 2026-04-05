@@ -7,7 +7,7 @@ import { scalesMap } from 'config/scalesConfig';
 const { MALE, FEMALE } = genderConstants;
 const { PAIR } = participantConstants;
 
-export const formatParticipant = (onClick, config?: { participantDetail?: string }) => (cell, placeholder, layout) => {
+export const formatParticipant = (onClick, config?: { participantDetail?: string; useParticipantName?: boolean }) => (cell, placeholder, layout) => {
   const def = cell.getColumn().getDefinition();
   const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
   const elem = document.createElement('div');
@@ -29,6 +29,7 @@ export const formatParticipant = (onClick, config?: { participantDetail?: string
           theme: 'default',
           configuration: {
             participantDetail: config?.participantDetail || 'TEAM',
+            useParticipantName: config?.useParticipantName,
             genderColor: true,
             winnerColor: !!sideNumber,
             scaleAttributes,

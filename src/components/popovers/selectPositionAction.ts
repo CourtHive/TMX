@@ -12,6 +12,7 @@ const actionLabels: Record<string, string> = {
   ALTERNATE: 'Assign alternate',
   ASSIGN: 'Assign participant',
   BYE: 'Assign BYE',
+  NICKNAME: 'Set nickname',
   REMOVE_PARTICIPANT: 'Remove assignment',
   REMOVE: 'Remove assignment',
   QUALIFIER: 'Assign qualifier',
@@ -38,6 +39,7 @@ export function selectPositionAction({
       assignParticipant({ action, callback });
     if (['SEED_CASCADE'].includes(action.type)) seedCascadeAction({ action, callback });
     if (['SEED_VALUE'].includes(action.type)) assignSeed({ target, action, callback });
+    if (['NICKNAME'].includes(action.type)) assignNickname({ target, action, callback });
   };
   const options = actions
     ?.filter(({ type }) => actionLabels[type])
@@ -120,6 +122,39 @@ function assignSeed({ target, action, callback }: { target: HTMLElement; action:
       placeholder: 'Seed number',
       field: 'seedNumber',
       id: 'seedNumber',
+      type: 'input',
+      focus: true,
+      onKeyDown,
+    },
+  ];
+
+  tip = tipster({ menuItems, target, config: { arrow: false, offset: [0, 0] } });
+}
+
+function assignNickname({ target, action, callback }: { target: HTMLElement; action: any; callback: () => void }) {
+  let tip: any;
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e?.key === 'Enter') {
+      const participantOtherName = (e.target as HTMLInputElement).value || undefined;
+      const postMutation = (result: any) => (result.success ? callback() : console.log({ result }));
+      const methods = [
+        {
+          params: { ...action.payload, participantOtherName },
+          method: action.method,
+        },
+      ];
+      mutationRequest({ methods, callback: postMutation });
+      tip.destroy();
+    }
+  }
+  const menuItems = [
+    {
+      label: 'Nickname ',
+      placeholder: action.participant?.participantOtherName || 'Nickname',
+      value: action.participant?.participantOtherName || '',
+      field: 'nickname',
+      id: 'nickname',
       type: 'input',
       focus: true,
       onKeyDown,

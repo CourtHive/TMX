@@ -1482,7 +1482,8 @@
       "club": "Club",
       "events": "Events",
       "teams": "Teams",
-      "cityState": "City/State"
+      "cityState": "City/State",
+      "nickname": "Nickname"
     },
     "bracket": {
       "participant": "Participant",
@@ -1742,7 +1743,9 @@
         "dateOfBirth": "Date of birth",
         "birthdayPlaceholder": "Birthday",
         "country": "Country",
-        "countryPlaceholder": "Country of origin"
+        "countryPlaceholder": "Country of origin",
+        "nickname": "Nickname",
+        "nicknamePlaceholder": "Display name"
       },
       "newTeam": "New team",
       "newGroup": "New group",

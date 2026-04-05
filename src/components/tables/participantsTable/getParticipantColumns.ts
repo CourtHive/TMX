@@ -5,6 +5,7 @@
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { renderParticipant } from 'courthive-components';
 import { genderConstants, tournamentEngine } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
@@ -59,21 +60,24 @@ export function getParticipantColumns({
       width: 65,
     },
     {
-      formatter: formatParticipant((params: any) => {
-        const clickedParticipant = params?.individualParticipant || params?.participant;
-        const rowData = params?.cell?.getRow().getData();
-        if (!rowData) return;
-        const { participantType } = rowData;
-        if (participantType !== 'INDIVIDUAL') return;
-        const participantId = clickedParticipant?.participantId || rowData.participantId;
-        if (!participantId) return;
-        const table = params?.cell?.getTable();
-        if (!table) return;
-        const participantIds = (table.getData() as any[])
-          .filter((r: any) => r.participantType === 'INDIVIDUAL')
-          .map((r: any) => r.participantId);
-        participantProfileModal({ participantId, participantIds });
-      }),
+      formatter: formatParticipant(
+        (params: any) => {
+          const clickedParticipant = params?.individualParticipant || params?.participant;
+          const rowData = params?.cell?.getRow().getData();
+          if (!rowData) return;
+          const { participantType } = rowData;
+          if (participantType !== 'INDIVIDUAL') return;
+          const participantId = clickedParticipant?.participantId || rowData.participantId;
+          if (!participantId) return;
+          const table = params?.cell?.getTable();
+          if (!table) return;
+          const participantIds = (table.getData() as any[])
+            .filter((r: any) => r.participantType === 'INDIVIDUAL')
+            .map((r: any) => r.participantId);
+          participantProfileModal({ participantId, participantIds });
+        },
+        { useParticipantName: true },
+      ),
       sorter: participantSorter,
       field: 'participant',
       responsive: false,
@@ -102,6 +106,21 @@ export function getParticipantColumns({
       title: t('tables.participants.lastName'),
       field: 'lastName',
       visible: false,
+      width: 150,
+    },
+    {
+      formatter: (cell: any) => {
+        const nickname = cell.getValue();
+        if (!nickname) return '';
+        const participant = cell.getRow().getData().participant;
+        return renderParticipant({
+          composition: { theme: 'default', configuration: { genderColor: true, flag: false } },
+          participant,
+        });
+      },
+      title: t('tables.participants.nickname'),
+      visible: data.some((p) => p.nickname),
+      field: 'nickname',
       width: 150,
     },
     {

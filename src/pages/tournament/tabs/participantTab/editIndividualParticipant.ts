@@ -34,6 +34,7 @@ export function editIndividualParticipant({
     nationalityCode: participant?.person?.nationalityCode,
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
+    nickname: participant?.participantOtherName,
     birthDate: participant?.person?.birthDate,
     sex: participant?.person?.sex,
   };
@@ -84,6 +85,12 @@ export function editIndividualParticipant({
           placeholder: t('pages.participants.editParticipant.lastNamePlaceholder'),
           label: t('pages.participants.editParticipant.lastName'),
           field: 'lastName',
+        },
+        {
+          value: values.nickname || '',
+          placeholder: t('pages.participants.editParticipant.nicknamePlaceholder'),
+          label: t('pages.participants.editParticipant.nickname'),
+          field: 'nickname',
         },
         {
           value: undefined,
@@ -153,9 +160,12 @@ export function editIndividualParticipant({
         birthdate: inputs.birthday.value,
         sex: inputs.sex.value,
       };
+      const participantOtherName = inputs.nickname?.value || undefined;
       const methods = [
         {
-          params: { participant: { participantId: participant.participantId, person } },
+          params: {
+            participant: { participantId: participant.participantId, participantOtherName, person },
+          },
           method: MODIFY_PARTICIPANT,
         },
       ];
