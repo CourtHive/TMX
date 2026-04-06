@@ -1,6 +1,15 @@
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
-import { ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_RATINGS, ROUNDS_STANDINGS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
+// Constants
+import {
+  ROUNDS_BRACKET,
+  ROUNDS_COLUMNS,
+  ROUNDS_RATINGS,
+  ROUNDS_STANDINGS,
+  ROUNDS_STATS,
+  ROUNDS_SWISS_CHART,
+  ROUNDS_TABLE,
+} from 'constants/tmxConstants';
 const { CONTAINER, SWISS } = drawDefinitionConstants;
 
 export function getRoundTabs({ callback, structure, existingView, drawId }: any) {
@@ -31,6 +40,14 @@ export function getRoundTabs({ callback, structure, existingView, drawId }: any)
     label: isAdHoc ? 'Columns' : 'Cards',
     close: true,
   });
+
+  if (isSwiss)
+    actionOptions.push({
+      active: existingView === ROUNDS_SWISS_CHART,
+      onClick: () => displayUpdate(ROUNDS_SWISS_CHART),
+      label: 'Chart',
+      close: true,
+    });
 
   actionOptions.push({
     active: existingView === ROUNDS_TABLE,

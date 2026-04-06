@@ -252,6 +252,7 @@ export const TEAM_AVOIDANCE = 'teamAvoidance';
 export const RATING_SCALE = 'ratingScale';
 export const ROUNDS_RATINGS = 'roundsRatings';
 export const ROUNDS_STANDINGS = 'roundsStandings';
+export const ROUNDS_SWISS_CHART = 'roundsSwissChart';
 export const FIC_DEPTH = 'ficDepth';
 
 export const SYSTEM = 'system';

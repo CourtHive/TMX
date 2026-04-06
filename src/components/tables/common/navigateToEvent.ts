@@ -12,6 +12,7 @@ import {
   ROUNDS_COLUMNS,
   ROUNDS_RATINGS,
   ROUNDS_STANDINGS,
+  ROUNDS_SWISS_CHART,
   ROUNDS_TABLE,
   ROUNDS_STATS,
   VIEW,
@@ -67,7 +68,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
     if (structureId) {
       route += `/${STRUCTURE}/${structureId}`;
     }
-    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_STANDINGS].includes(view || '')) {
+    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_STANDINGS, ROUNDS_SWISS_CHART].includes(view || '')) {
       route += `/${VIEW}/${view}`;
     }
   } else if (renderDraw && !drawId) {

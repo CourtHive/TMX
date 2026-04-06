@@ -3,22 +3,24 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { compositions, controlBar, renderContainer, renderInlineMatchUp, renderStructure } from 'courthive-components';
-import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
+import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
+import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
-import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
+import { renderSwissChart } from 'components/tables/swissChartView/renderSwissChart';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
+import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
+import { renderSwissGenerateButton } from './generateSwissRound';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { renderSwissGenerateButton } from './generateSwissRound';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -44,6 +46,7 @@ import {
   ROUNDS_BRACKET,
   ROUNDS_RATINGS,
   ROUNDS_STANDINGS,
+  ROUNDS_SWISS_CHART,
   ROUNDS_TABLE,
   ROUNDS_STATS,
 } from 'constants/tmxConstants';
@@ -139,11 +142,7 @@ function applyMorphdomUpdate(
     node instanceof HTMLElement && (node.classList?.contains('tmx-p') || node.classList?.contains('tmx-i'));
 
   const isActiveInlineScoringEl = (node: any) => {
-    if (
-      !inlineManager ||
-      !(node instanceof HTMLElement) ||
-      !node.classList?.contains('chc-inline-scoring-wrapper')
-    ) {
+    if (!inlineManager || !(node instanceof HTMLElement) || !node.classList?.contains('chc-inline-scoring-wrapper')) {
       return false;
     }
     const matchUpId = node.dataset.matchupId;
@@ -233,6 +232,11 @@ export function renderDrawView({
     }
     isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
+
+    if (drawData?.drawType === SWISS && roundMatchUps) {
+      sortSwissRoundMatchUpsByScoreGroup(roundMatchUps, drawId);
+    }
+
     matchUps = Object.values(roundMatchUps || {}).flat();
     if (isAdHoc) matchUps.sort(tools.matchUpScheduleSort);
   };
@@ -317,6 +321,8 @@ export function renderDrawView({
       (createRoundsTable as any)({ matchUps: displayMatchUps, eventData });
     } else if (roundsView === ROUNDS_STANDINGS) {
       createSwissStandingsTable({ eventId, drawId, structureId: structureId! });
+    } else if (roundsView === ROUNDS_SWISS_CHART) {
+      renderSwissChart({ eventId, drawId, structureId: structureId! });
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId: structureId! });
     } else if (roundsView === ROUNDS_RATINGS) {
@@ -363,18 +369,14 @@ export function renderDrawView({
         theme: composition.theme,
       });
 
-      applyMorphdomUpdate(
-        drawsView,
-        content,
-        displayMatchUps as any[],
-        inlineManager,
-      );
+      applyMorphdomUpdate(drawsView, content, displayMatchUps as any[], inlineManager);
 
       // Apply after DOM insertion so click listeners attach to live nodes, not the morphdom template
       const liveNode = drawsView?.firstChild as HTMLElement;
       if (liveNode) {
         applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
         applyRRGroupCompletionHighlighting(liveNode, displayMatchUps as any[]);
+        applySwissScoreGroupShading(liveNode, drawId);
       }
     }
   };

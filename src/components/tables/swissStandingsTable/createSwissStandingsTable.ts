@@ -1,11 +1,15 @@
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
-import { navigateToEvent } from '../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
+import { navigateToEvent } from '../common/navigateToEvent';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { renderParticipant } from 'courthive-components';
+import { scalesMap } from 'config/scalesConfig';
 
+// Constants
 import { DRAWS_VIEW, ROUNDS_STANDINGS } from 'constants/tmxConstants';
 
 type CreateSwissStandingsTableParams = {
@@ -36,6 +40,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
     const rows = standingsResult.standings.map((standing) => {
       const participant = participantMap[standing.participantId];
       return {
+        participant,
         participantName: participant?.participantName ?? standing.participantId,
         rank: standing.rank,
         wins: standing.wins,
@@ -52,14 +57,92 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
   };
 
   const columns = [
-    { title: '#', field: 'rank', width: 40, hozAlign: 'center', headerSort: false, headerTooltip: 'Rank' },
-    { title: 'Participant', field: 'participantName', minWidth: 180, headerSort: false },
-    { title: 'W', field: 'wins', width: 45, hozAlign: 'center', headerSort: false, headerTooltip: 'Wins' },
-    { title: 'L', field: 'losses', width: 45, hozAlign: 'center', headerSort: false, headerTooltip: 'Losses' },
-    { title: 'T', field: 'draws', width: 45, hozAlign: 'center', headerSort: false, headerTooltip: 'Ties' },
-    { title: 'Pts', field: 'points', width: 50, hozAlign: 'center', headerSort: false, headerTooltip: 'Points' },
-    { title: 'B', field: 'buchholz', width: 45, hozAlign: 'center', headerSort: false, headerTooltip: 'Buchholz tiebreaker' },
-    { title: 'SB', field: 'sonnebornBerger', width: 50, hozAlign: 'center', headerSort: false, headerTooltip: 'Sonneborn-Berger tiebreaker' },
+    {
+      title: '#',
+      field: 'rank',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Rank',
+    },
+    {
+      title: 'Participant',
+      field: 'participantName',
+      minWidth: 180,
+      headerSort: true,
+      headerSortTristate: true,
+      formatter: (cell: any) => {
+        const data = cell.getRow().getData();
+        if (!data.participant) return data.participantName || '';
+        const scaleAttributes = scalesMap[preferencesConfig.get().activeScale];
+        return renderParticipant({
+          composition: { theme: 'default', configuration: { genderColor: true, scaleAttributes, flag: false } },
+          participant: data.participant,
+        });
+      },
+    },
+    {
+      title: 'W',
+      field: 'wins',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Wins',
+    },
+    {
+      title: 'L',
+      field: 'losses',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Losses',
+    },
+    {
+      title: 'T',
+      field: 'draws',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Ties',
+    },
+    {
+      title: 'Pts',
+      field: 'points',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Points',
+    },
+    {
+      title: 'B',
+      field: 'buchholz',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Buchholz tiebreaker',
+    },
+    {
+      title: 'SB',
+      field: 'sonnebornBerger',
+      width: 60,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: true,
+      headerSortTristate: true,
+      headerTooltip: 'Sonneborn-Berger tiebreaker',
+    },
   ];
 
   const { rows } = getData();
@@ -73,6 +156,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
   drawsView.appendChild(tableEl);
 
   table = new Tabulator(tableEl, {
+    headerSortElement: () => '',
     layout: 'fitColumns',
     data: rows,
     columns,

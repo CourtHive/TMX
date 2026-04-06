@@ -1,5 +1,6 @@
 import { generateSwissRound } from '../renderDraws/generateSwissRound';
 
+// Constants
 import { RIGHT } from 'constants/tmxConstants';
 
 export function getSwissRoundOptions({
@@ -13,19 +14,10 @@ export function getSwissRoundOptions({
 }): any {
   const refreshCallback = () => callback({ refresh: true });
 
-  const actionOptions = [
-    {
-      onClick: () => generateSwissRound({ structure, drawId, callback: refreshCallback }),
-      label: 'Generate next round',
-      color: '#5ba0d0',
-    },
-  ];
-
   return {
-    label: 'Swiss actions',
-    options: actionOptions,
-    selection: false,
+    label: 'Generate Swiss Round',
+    onClick: () => generateSwissRound({ structure, drawId, callback: refreshCallback }),
     location: RIGHT,
-    align: RIGHT,
+    intent: 'is-info',
   };
 }
