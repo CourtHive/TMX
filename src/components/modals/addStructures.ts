@@ -80,12 +80,19 @@ export function addStructures({
   const range34 = sortedRanges.find((r: any) => r.finishingPositions?.includes(3) && r.finishingPositions?.includes(4));
   const range34FieldId = range34?.finishingPositionRange;
 
+  const PAGE_PLAYOFF_NAME_FIELD = `${PAGE_PLAYOFF_FIELD}-name`;
   const pagePlayoffField = pagePlayoffAvailable
     ? {
-        label: '1-4 Page Playoff',
+        label: '1-4',
         field: PAGE_PLAYOFF_FIELD,
         id: PAGE_PLAYOFF_FIELD,
         checkbox: true,
+        fieldPair: {
+          field: PAGE_PLAYOFF_NAME_FIELD,
+          placeholder: 'Page Playoff',
+          id: PAGE_PLAYOFF_NAME_FIELD,
+          width: '350px',
+        },
       }
     : undefined;
 
@@ -97,9 +104,9 @@ export function addStructures({
     const isPagePlayoff = inputs[PAGE_PLAYOFF_FIELD]?.checked;
 
     if (isPagePlayoff) {
-      // Generate PAGE_PLAYOFF via playoffGroups with POSITION link
+      const structureName = inputs[PAGE_PLAYOFF_NAME_FIELD]?.value || undefined;
       const genResult = tournamentEngine.generateAndPopulatePlayoffStructures({
-        playoffGroups: [{ drawType: PAGE_PLAYOFF, finishingPositions: [1, 2, 3, 4] }],
+        playoffGroups: [{ drawType: PAGE_PLAYOFF, finishingPositions: [1, 2, 3, 4], structureName }],
         structureId,
         drawId,
       });
