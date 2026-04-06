@@ -28,6 +28,7 @@ import {
   DRAW_SIZE,
   DRAW_TYPE,
   DYNAMIC_RATINGS,
+  FIC_DEPTH,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
@@ -339,6 +340,17 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       field: TEAM_AVOIDANCE,
       id: TEAM_AVOIDANCE,
       checkbox: true,
+      visible: false,
+    },
+    {
+      options: [
+        { label: 'Final', value: 'F', selected: true },
+        { label: 'Semifinal', value: 'SF' },
+        { label: 'Quarterfinal', value: 'QF' },
+        { label: 'Round of 16', value: 'R16' },
+      ],
+      label: 'Consolation feed depth',
+      field: FIC_DEPTH,
       visible: false,
     },
     {

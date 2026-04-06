@@ -14,6 +14,7 @@ const {
   AD_HOC,
   ADAPTIVE,
   FEED_IN,
+  FEED_IN_CHAMPIONSHIP,
   LUCKY_DRAW,
   MAIN,
   PAGE_PLAYOFF,
@@ -32,6 +33,7 @@ import {
   DRAW_SIZE,
   DRAW_TYPE,
   DYNAMIC_RATINGS,
+  FIC_DEPTH,
   GROUP_REMAINING,
   GROUP_SIZE,
   MANUAL,
@@ -167,11 +169,21 @@ export function getDrawFormRelationships({
     }
   };
 
+  const updateFicDepthOptions = (inputs: Record<string, any>) => {
+    const drawSize = Number.parseInt(inputs[DRAW_SIZE]?.value) || 0;
+    for (const option of inputs[FIC_DEPTH]?.options ?? []) {
+      if (option.value === 'R16') option.disabled = drawSize <= 16;
+      if (option.value === 'QF') option.disabled = drawSize <= 8;
+      if (option.value === 'SF') option.disabled = drawSize <= 4;
+    }
+  };
+
   const updateFieldVisibility = (fields: Record<string, HTMLElement>, drawType: string, inputs: Record<string, any>) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
     const isDrawMatic = drawType === DRAW_MATIC;
     const isAdHocType = drawType === AD_HOC || drawType === SWISS || isDrawMatic;
+    const isFIC = drawType === FEED_IN_CHAMPIONSHIP;
 
     fields[ADVANCE_PER_GROUP].style.display = isRRPlayoff && playoffType === TOP_FINISHERS ? '' : NONE;
     fields[TOTAL_ADVANCE].style.display = isRRPlayoff && playoffType === BEST_FINISHERS ? '' : NONE;
@@ -188,9 +200,10 @@ export function getDrawFormRelationships({
     fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
     fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
 
-    const isSwiss = drawType === SWISS;
+    if (isFIC) updateFicDepthOptions(inputs);
+    fields[FIC_DEPTH].style.display = isFIC ? '' : NONE;
 
-    fields[AUTOMATED].style.display = isSwiss ? NONE : '';
+    fields[AUTOMATED].style.display = drawType === SWISS ? NONE : '';
     fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
     fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
   };

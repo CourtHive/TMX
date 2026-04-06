@@ -31,6 +31,7 @@ import {
   DRAW_SIZE,
   DRAW_TYPE,
   DYNAMIC_RATINGS,
+  FIC_DEPTH,
   GROUP_REMAINING,
   GROUP_SIZE,
   MATCHUP_FORMAT,
@@ -56,6 +57,10 @@ const {
   MAIN,
   PAGE_PLAYOFF,
   QUALIFYING,
+  FEED_IN_CHAMPIONSHIP,
+  FEED_IN_CHAMPIONSHIP_TO_QF,
+  FEED_IN_CHAMPIONSHIP_TO_R16,
+  FEED_IN_CHAMPIONSHIP_TO_SF,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
   SEPARATE,
@@ -466,7 +471,17 @@ export function submitDrawParams({
 }): void {
   const rawDrawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
   const isDrawMatic = rawDrawType === DRAW_MATIC;
-  const drawType = isDrawMatic ? AD_HOC : rawDrawType;
+
+  const FIC_DEPTH_MAP: Record<string, string> = {
+    F: FEED_IN_CHAMPIONSHIP,
+    SF: FEED_IN_CHAMPIONSHIP_TO_SF,
+    QF: FEED_IN_CHAMPIONSHIP_TO_QF,
+    R16: FEED_IN_CHAMPIONSHIP_TO_R16,
+  };
+  const resolvedFIC =
+    rawDrawType === FEED_IN_CHAMPIONSHIP ? FIC_DEPTH_MAP[inputs[FIC_DEPTH]?.value] || FEED_IN_CHAMPIONSHIP : undefined;
+
+  const drawType = resolvedFIC || (isDrawMatic ? AD_HOC : rawDrawType);
   const matchUpFormat = providedMatchUpFormat || inputs[MATCHUP_FORMAT]?.value;
   const selectedSeedingPolicy = inputs[SEEDING_POLICY]?.value;
 
