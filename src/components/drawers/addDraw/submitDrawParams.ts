@@ -550,7 +550,11 @@ export function submitDrawParams({
   }
 
   if (drawType === SWISS) {
-    Object.assign(drawOptions, { automated: false });
+    const selectedScale = inputs[RATING_SCALE]?.value || '';
+    Object.assign(drawOptions, {
+      automated: false,
+      ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
+    });
   }
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);

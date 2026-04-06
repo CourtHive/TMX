@@ -195,8 +195,9 @@ export function getDrawFormRelationships({
     fields[PLAYOFF_GROUP_SIZE].style.display = isRRPlayoff && playoffDrawType === ROUND_ROBIN ? '' : NONE;
     fields[GROUP_SIZE].style.display = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) ? '' : NONE;
 
+    const isSwiss = drawType === SWISS;
     fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
-    fields[RATING_SCALE].style.display = isDrawMatic ? '' : NONE;
+    fields[RATING_SCALE].style.display = isDrawMatic || isSwiss ? '' : NONE;
     fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
     fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
 

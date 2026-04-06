@@ -27,7 +27,11 @@ export function generateSwissRound({
     return;
   }
 
-  const result = tournamentEngine.generateSwissRound({ drawId });
+  const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+  const swissScaleExt = drawDefinition?.extensions?.find((e: any) => e.name === 'swissScaleName');
+  const scaleName = swissScaleExt?.value;
+
+  const result = tournamentEngine.generateSwissRound({ drawId, ...(scaleName && { scaleName }) });
   if (!result.success || !result.matchUps?.length) {
     tmxToast({ message: result.error?.message || 'Failed to generate Swiss round', intent: 'is-danger' });
     return;

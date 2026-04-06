@@ -10,7 +10,8 @@ import { preferencesConfig } from 'config/preferencesConfig';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 
-import { ADD_DRAW_DEFINITION, INITIALIZE_DRAFT } from 'constants/mutationConstants';
+// Constants
+import { ADD_DRAW_DEFINITION, ADD_DRAW_DEFINITION_EXTENSION, INITIALIZE_DRAFT } from 'constants/mutationConstants';
 
 export function generateDraw({
   eventId,
@@ -27,14 +28,24 @@ export function generateDraw({
     scaleAccessor: scale?.accessor,
     scaleName: scale?.scaleName,
   };
-  const result = tournamentEngine.generateDrawDefinition({ ...restOptions, ...adHocConfig, ignoreStageSpace: true });
+  const { scaleName: swissScaleName, ...genOptions } = restOptions;
+  const result = tournamentEngine.generateDrawDefinition({ ...genOptions, ...adHocConfig, ignoreStageSpace: true });
 
   if (result.success) {
     const drawDefinition = result.drawDefinition;
     const drawId = drawDefinition.drawId;
-    const methods: any[] = [{ method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true } }];
+    const methods: any[] = [
+      { method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true } },
+    ];
 
-    const courtMethod = getAutoCourtImageMethod(eventId, restOptions?.matchUpFormat || drawDefinition?.matchUpFormat);
+    if (swissScaleName) {
+      methods.push({
+        method: ADD_DRAW_DEFINITION_EXTENSION,
+        params: { drawId, extension: { name: 'swissScaleName', value: swissScaleName } },
+      });
+    }
+
+    const courtMethod = getAutoCourtImageMethod(eventId, genOptions?.matchUpFormat || drawDefinition?.matchUpFormat);
     if (courtMethod) methods.push(courtMethod);
 
     if (isDraft) {
