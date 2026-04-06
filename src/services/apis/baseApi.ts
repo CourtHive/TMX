@@ -3,7 +3,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import axios from 'axios';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
-const baseURL = process.env.SERVER || window.location.origin;
+const baseURL = process.env.SERVER || globalThis.location?.origin || '';
 console.log('[baseApi] server URL:', baseURL);
 const axiosInstance = axios.create({ baseURL });
 
