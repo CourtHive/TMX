@@ -10,7 +10,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getTopologyTemplates } from './topologyTemplates';
 
-const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
+const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, PAGE_PLAYOFF, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
   drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
@@ -209,10 +209,22 @@ export function getDrawFormRelationships({
     checkCreationMethod({ fields, inputs });
   };
 
-  const playoffDrawTypeChange = ({ e, fields }: FormInteractionParams) => {
+  const playoffDrawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const playoffDrawType = (e!.target as HTMLSelectElement).value;
     if (fields) {
       fields[PLAYOFF_GROUP_SIZE].style.display = playoffDrawType === ROUND_ROBIN ? '' : NONE;
+
+      // PAGE_PLAYOFF requires exactly 4 finishers — ensure TOP_FINISHERS is selected
+      // so the user has explicit control over how many advance per group
+      if (playoffDrawType === PAGE_PLAYOFF && inputs) {
+        const currentPlayoffType = inputs[PLAYOFF_TYPE]?.value;
+        if (currentPlayoffType !== TOP_FINISHERS && currentPlayoffType !== BEST_FINISHERS) {
+          inputs[PLAYOFF_TYPE].value = TOP_FINISHERS;
+          fields[ADVANCE_PER_GROUP].style.display = '';
+          fields[GROUP_REMAINING].style.display = '';
+          fields[TOTAL_ADVANCE].style.display = NONE;
+        }
+      }
     }
   };
 

@@ -33,6 +33,7 @@ const {
   FIRST_ROUND_LOSER_CONSOLATION,
   LUCKY_DRAW,
   OLYMPIC,
+  PAGE_PLAYOFF,
   PLAY_OFF,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
@@ -109,6 +110,7 @@ export function getDrawTypeOptions({
     { label: t('drawers.addDraw.drawTypeFirstRoundLoser'), value: FIRST_ROUND_LOSER_CONSOLATION, hide: isQualifying },
     { label: t('drawers.addDraw.drawTypeLucky'), value: LUCKY_DRAW, hide: isPlayoff || isQualifying },
     { label: t('drawers.addDraw.drawTypeOlympic'), value: OLYMPIC, hide: isQualifying },
+    { label: t('drawers.addDraw.drawTypePagePlayoff'), value: PAGE_PLAYOFF, hide: !isPlayoff },
     { label: t('drawers.addDraw.drawTypePlayoff'), value: PLAY_OFF, hide: isQualifying },
     {
       label: t('drawers.addDraw.drawTypeRoundRobinWithPlayoff'),

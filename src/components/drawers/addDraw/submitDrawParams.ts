@@ -48,8 +48,19 @@ import {
   TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
-const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
-  drawDefinitionConstants;
+const {
+  AD_HOC,
+  ADAPTIVE,
+  FEED_IN,
+  LUCKY_DRAW,
+  MAIN,
+  PAGE_PLAYOFF,
+  QUALIFYING,
+  ROUND_ROBIN,
+  ROUND_ROBIN_WITH_PLAYOFF,
+  SEPARATE,
+  CLUSTER,
+} = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { POLICY_TYPE_SEEDING } = policyConstants;
 
@@ -167,6 +178,26 @@ function getPlayoffGroups(
   return playoffGroups;
 }
 
+function validatePagePlayoff(structureOptions: any, inputs: any, groupSize: number): boolean | undefined {
+  const pagePlayoffGroup = structureOptions?.playoffGroups?.find((pg: any) => pg.drawType === PAGE_PLAYOFF);
+  if (!pagePlayoffGroup) return undefined;
+
+  const drawSizeValue = Number.parseInt(inputs[DRAW_SIZE]?.value || '0');
+  const groupCount = Math.floor(drawSizeValue / groupSize);
+  const finishingPositions = pagePlayoffGroup.finishingPositions || [];
+  const expectedCount = pagePlayoffGroup.bestOf || groupCount * finishingPositions.length;
+
+  if (expectedCount !== 4) {
+    tmxToast({
+      message: `Page Playoff requires exactly 4 finishers (current configuration produces ${expectedCount})`,
+      intent: 'is-warning',
+      pauseOnHover: true,
+    });
+    return false;
+  }
+  return true;
+}
+
 function getStructureOptions(drawType: string, inputs: any): any {
   const groupSize = Number.parseInt(inputs[GROUP_SIZE].value);
 
@@ -180,7 +211,7 @@ function getStructureOptions(drawType: string, inputs: any): any {
     if (playoffGroups.length) {
       structureOptions.playoffGroups = playoffGroups;
     } else {
-      // WINNERS case: no explicit playoffGroups, but pass drawType if non-default
+      // WINNERS case: group winners advance; pass drawType if non-default
       const playoffDrawType = inputs?.[PLAYOFF_DRAW_TYPE]?.value;
       const playoffGroupSize = inputs?.[PLAYOFF_GROUP_SIZE]?.value
         ? Number.parseInt(inputs[PLAYOFF_GROUP_SIZE].value)
@@ -188,6 +219,7 @@ function getStructureOptions(drawType: string, inputs: any): any {
       if (playoffDrawType) {
         structureOptions.playoffGroups = [
           {
+            finishingPositions: [1],
             drawType: playoffDrawType,
             ...(playoffDrawType === ROUND_ROBIN && playoffGroupSize
               ? { structureOptions: { groupSize: playoffGroupSize } }
@@ -196,6 +228,10 @@ function getStructureOptions(drawType: string, inputs: any): any {
         ];
       }
     }
+
+    // Validate PAGE_PLAYOFF requires exactly 4 participants in the playoff
+    if (validatePagePlayoff(structureOptions, inputs, groupSize) === false) return undefined;
+
     return structureOptions;
   } else if (drawType === ROUND_ROBIN) {
     return { groupSize };
@@ -474,6 +510,7 @@ export function submitDrawParams({
   };
 
   const structureOptions = getStructureOptions(drawType, inputs);
+  if (structureOptions === undefined && drawType === ROUND_ROBIN_WITH_PLAYOFF) return;
 
   if (drawType === AD_HOC) {
     if (isDrawMatic) {
