@@ -60,8 +60,8 @@ export async function createStatsTable({
     const matchUps = structure?.roundMatchUps ? Object.values(structure.roundMatchUps).flat() : [];
     matchUps.forEach(({ sides, structureName, structureId }: any) => {
       groupNames[structureId] = structureName;
-      sides.forEach((side: any) => {
-        if (side.participantId) {
+      sides?.forEach((side: any) => {
+        if (side.participantId && participantMap[side.participantId]) {
           participantMap[side.participantId].groupName = structureName;
         }
       });

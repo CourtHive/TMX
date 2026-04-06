@@ -36,6 +36,7 @@ const {
   PAGE_PLAYOFF,
   PLAY_OFF,
   ROUND_ROBIN,
+  SWISS,
   ROUND_ROBIN_WITH_PLAYOFF,
   SINGLE_ELIMINATION,
 } = drawDefinitionConstants;
@@ -93,6 +94,7 @@ export function getDrawTypeOptions({
     { label: t('drawers.addDraw.drawTypeSingleElimination'), value: SINGLE_ELIMINATION },
     { label: t('drawers.addDraw.drawTypeRoundRobin'), value: ROUND_ROBIN },
     { label: t('drawers.addDraw.drawTypeDrawMatic'), value: DRAW_MATIC, hide: isQualifying || isPlayoff },
+    { label: t('drawers.addDraw.drawTypeSwiss'), value: SWISS, hide: isQualifying || isPlayoff },
   ];
 
   const builtIn = [

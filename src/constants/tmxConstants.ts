@@ -251,6 +251,7 @@ export const DYNAMIC_RATINGS = 'dynamicRatings';
 export const TEAM_AVOIDANCE = 'teamAvoidance';
 export const RATING_SCALE = 'ratingScale';
 export const ROUNDS_RATINGS = 'roundsRatings';
+export const ROUNDS_STANDINGS = 'roundsStandings';
 
 export const SYSTEM = 'system';
 export const PROVIDERS_TAB = 'providers';

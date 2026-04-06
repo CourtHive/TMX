@@ -1,12 +1,14 @@
 import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
 
-import { ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_RATINGS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
-const { CONTAINER } = drawDefinitionConstants;
+import { ROUNDS_BRACKET, ROUNDS_COLUMNS, ROUNDS_RATINGS, ROUNDS_STANDINGS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
+const { CONTAINER, SWISS } = drawDefinitionConstants;
 
-export function getRoundTabs({ callback, structure, existingView }) {
+export function getRoundTabs({ callback, structure, existingView, drawId }: any) {
   const displayUpdate = (view) => existingView !== view && callback({ refresh: true, view });
   const isRoundRobin = structure?.structureType === CONTAINER;
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
+  const { drawDefinition } = drawId ? tournamentEngine.getEvent({ drawId }) : ({} as any);
+  const isSwiss = drawDefinition?.drawType === SWISS;
 
   const actionOptions: Array<{
     active: boolean;
@@ -45,7 +47,15 @@ export function getRoundTabs({ callback, structure, existingView }) {
       close: true,
     });
 
-  if (isAdHoc)
+  if (isSwiss)
+    actionOptions.push({
+      active: existingView === ROUNDS_STANDINGS,
+      onClick: () => displayUpdate(ROUNDS_STANDINGS),
+      label: 'Standings',
+      close: true,
+    });
+
+  if (isAdHoc && !isSwiss)
     actionOptions.push({
       active: existingView === ROUNDS_RATINGS,
       onClick: () => displayUpdate(ROUNDS_RATINGS),

@@ -11,6 +11,7 @@ import {
   ROUNDS_BRACKET,
   ROUNDS_COLUMNS,
   ROUNDS_RATINGS,
+  ROUNDS_STANDINGS,
   ROUNDS_TABLE,
   ROUNDS_STATS,
   VIEW,
@@ -66,7 +67,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
     if (structureId) {
       route += `/${STRUCTURE}/${structureId}`;
     }
-    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET, ROUNDS_RATINGS].includes(view || '')) {
+    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_STANDINGS].includes(view || '')) {
       route += `/${VIEW}/${view}`;
     }
   } else if (renderDraw && !drawId) {

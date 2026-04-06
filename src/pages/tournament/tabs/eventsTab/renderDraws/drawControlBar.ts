@@ -4,6 +4,7 @@
  */
 import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getSwissRoundOptions } from '../options/swissRoundOptions';
 import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getRoundTabs } from '../options/getRoundTabs';
@@ -13,7 +14,7 @@ import { controlBar } from 'courthive-components';
 import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
 import { SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 
-const { MAIN, QUALIFYING } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, SWISS } = drawDefinitionConstants;
 const AUTO_POSITION_PLAYOFF = 'autoPositionPlayoff';
 
 export function drawControlBar({
@@ -109,8 +110,13 @@ export function drawControlBar({
   const setDisplay = ({ refresh, view }: any) => typeof callback === 'function' && callback?.({ refresh, view });
 
   if (isAdHoc) {
-    const adHocOptions = (getAdHocRoundOptions as any)({ structure, drawId, callback });
-    drawControlItems.push(adHocOptions);
+    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+    const isSwiss = drawDefinition?.drawType === SWISS;
+    if (isSwiss) {
+      drawControlItems.push(getSwissRoundOptions({ structure, drawId, callback: callback ?? (() => {}) }));
+    } else {
+      drawControlItems.push((getAdHocRoundOptions as any)({ structure, drawId, callback }));
+    }
   }
 
   const isRoundRobin = structure?.structureType === drawDefinitionConstants.CONTAINER;

@@ -21,6 +21,7 @@ const {
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
   SINGLE_ELIMINATION,
+  SWISS,
 } = drawDefinitionConstants;
 
 const drawTypeToKey: Record<string, string> = {
@@ -40,6 +41,7 @@ const drawTypeToKey: Record<string, string> = {
   [PLAY_OFF]: 'PLAY_OFF',
   [ROUND_ROBIN_WITH_PLAYOFF]: 'ROUND_ROBIN_WITH_PLAYOFF',
   [FEED_IN]: 'FEED_IN',
+  [SWISS]: 'SWISS',
 };
 
 export function getDrawTypeInfoKey(drawTypeValue: string): string {

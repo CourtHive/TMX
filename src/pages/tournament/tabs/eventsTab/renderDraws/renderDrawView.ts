@@ -8,6 +8,7 @@ import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHigh
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
@@ -17,6 +18,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import { renderSwissGenerateButton } from './generateSwissRound';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -41,12 +43,13 @@ import {
   QUALIFYING,
   ROUNDS_BRACKET,
   ROUNDS_RATINGS,
+  ROUNDS_STANDINGS,
   ROUNDS_TABLE,
   ROUNDS_STATS,
 } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
-const { VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+const { SWISS, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
 function getStructureDetail(drawId: string, structureId: string, event: any): any {
   const pubState = publishingGovernor.getPublishState({ event })?.publishState;
@@ -66,10 +69,13 @@ function renderEmptyStructure(
   },
 ): void {
   const { drawData, structure, structures, drawId, eventId, callback } = params;
+  const isSwiss = drawData?.drawType === SWISS;
   if (stage === QUALIFYING) {
     generateQualifying({ drawData, drawId, eventId });
   } else if (stage === VOLUNTARY_CONSOLATION && !isAdHoc) {
     voluntaryConsolationPanel({ structure, drawId, eventId, callback });
+  } else if (isSwiss) {
+    renderSwissGenerateButton({ structure, drawId, callback });
   } else if (isAdHoc) {
     generateAdHocRound({ structure, drawId, callback });
   } else {
@@ -309,6 +315,8 @@ export function renderDrawView({
       });
     } else if (roundsView === ROUNDS_TABLE) {
       (createRoundsTable as any)({ matchUps: displayMatchUps, eventData });
+    } else if (roundsView === ROUNDS_STANDINGS) {
+      createSwissStandingsTable({ eventId, drawId, structureId: structureId! });
     } else if (roundsView === ROUNDS_STATS) {
       createStatsTable({ eventId, drawId, structureId: structureId! });
     } else if (roundsView === ROUNDS_RATINGS) {

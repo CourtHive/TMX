@@ -59,6 +59,7 @@ const {
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
   SEPARATE,
+  SWISS,
   CLUSTER,
 } = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
@@ -481,7 +482,7 @@ export function submitDrawParams({
   const drawSizeValue = inputs[DRAW_SIZE].value || 0;
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const drawSize =
-    ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC].includes(drawType) && drawSizeInteger) ||
+    ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC, SWISS].includes(drawType) && drawSizeInteger) ||
     (isQualifying && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
@@ -531,6 +532,10 @@ export function submitDrawParams({
     } else {
       Object.assign(drawOptions, { roundsCount: 1 });
     }
+  }
+
+  if (drawType === SWISS) {
+    Object.assign(drawOptions, { automated: false });
   }
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);

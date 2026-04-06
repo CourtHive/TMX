@@ -21,6 +21,7 @@ const {
   QUALIFYING,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
+  SWISS,
 } = drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
@@ -170,7 +171,7 @@ export function getDrawFormRelationships({
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
     const isDrawMatic = drawType === DRAW_MATIC;
-    const isAdHocType = drawType === AD_HOC || isDrawMatic;
+    const isAdHocType = drawType === AD_HOC || drawType === SWISS || isDrawMatic;
 
     fields[ADVANCE_PER_GROUP].style.display = isRRPlayoff && playoffType === TOP_FINISHERS ? '' : NONE;
     fields[TOTAL_ADVANCE].style.display = isRRPlayoff && playoffType === BEST_FINISHERS ? '' : NONE;
@@ -187,6 +188,9 @@ export function getDrawFormRelationships({
     fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
     fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
 
+    const isSwiss = drawType === SWISS;
+
+    fields[AUTOMATED].style.display = isSwiss ? NONE : '';
     fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
     fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
   };
