@@ -115,7 +115,8 @@ export function showTallyReportModal({ groupMatchUps, groupName, eventId, drawId
         const resolved = entry.resolved;
         const row = document.createElement('div');
         row.style.cssText = `padding: 2px 0; ${resolved ? '' : 'color: var(--tmx-text-muted); font-style: italic;'}`;
-        row.textContent = `${pos}. ${getName(entry.participantId)}${resolved ? '' : ` (${t('modals.tallyReport.unresolved')})`}`;
+        const unresolvedSuffix = resolved ? '' : ` (${t('modals.tallyReport.unresolved')})`;
+        row.textContent = `${pos}. ${getName(entry.participantId)}${unresolvedSuffix}`;
         orderSection.appendChild(row);
       }
 

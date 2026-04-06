@@ -31,7 +31,13 @@ export function removeStructure({
     structure?.stage === VOLUNTARY_CONSOLATION ||
     structure?.structures?.some((s: any) => s.stage === VOLUNTARY_CONSOLATION);
 
-  const navigate = () => navigateToEvent({ eventId, drawId, renderDraw: true });
+  const navigate = () => {
+    // After removal, navigate explicitly to the first remaining structure (MAIN).
+    // Without a structureId the URL may match the current one, causing the router to skip re-render.
+    const { drawDefinition: dd } = tournamentEngine.getEvent({ drawId });
+    const mainStructureId = dd?.structures?.[0]?.structureId;
+    navigateToEvent({ eventId, drawId, structureId: mainStructureId, renderDraw: true });
+  };
   const showError = (result: any) =>
     tmxToast({ message: result.error?.message || t('common.error'), intent: 'is-danger' });
 

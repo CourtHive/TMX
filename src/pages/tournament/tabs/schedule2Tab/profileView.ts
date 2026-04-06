@@ -29,6 +29,9 @@ import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
 const { calculateCapacityStats } = temporal;
 
+const INTENT_SUCCESS = 'is-success';
+const INTENT_WARNING = 'is-warning';
+const INTENT_DANGER = 'is-danger';
 const AVG_MATCH_MINUTES = 75;
 
 let activeControl: SchedulingProfileControl | null = null;
@@ -341,7 +344,7 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   saveBtn.addEventListener('click', () => {
     if (!activeControl) return;
     saveProfile(activeControl.getProfile(), () => {
-      tmxToast({ message: 'Scheduling profile saved', intent: 'is-success' });
+      tmxToast({ message: 'Scheduling profile saved', intent: INTENT_SUCCESS });
       statusEl.textContent = 'Profile saved.';
     });
   });
@@ -378,7 +381,7 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
       methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: null } }],
       engine: COMPETITION_ENGINE,
       callback: () => {
-        tmxToast({ message: 'Scheduling profile cleared', intent: 'is-warning' });
+        tmxToast({ message: 'Scheduling profile cleared', intent: INTENT_WARNING });
         statusEl.textContent = 'Profile cleared.';
       },
     });
@@ -405,7 +408,7 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
   if (state.issueIndex.counts.ERROR > 0) {
     tmxToast({
       message: `Cannot apply schedule: ${state.issueIndex.counts.ERROR} error(s) in profile. Fix errors first.`,
-      intent: 'is-danger',
+      intent: INTENT_DANGER,
     });
     return;
   }
@@ -424,7 +427,7 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
           const err = result?.error || eqResult?.error;
           tmxToast({
             message: `Scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
-            intent: 'is-danger',
+            intent: INTENT_DANGER,
           });
           statusEl.textContent = 'Scheduling failed. Check console for details.';
           console.error('[schedule2] scheduleProfileRounds error:', eqResult);
@@ -449,7 +452,7 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
         tmxToast({
           message,
-          intent: totalOverLimit > 0 ? 'is-warning' : 'is-success',
+          intent: totalOverLimit > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
 
         statusEl.textContent = message;
@@ -468,7 +471,7 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
   if (state.issueIndex.counts.ERROR > 0) {
     tmxToast({
       message: `Cannot apply grid: ${state.issueIndex.counts.ERROR} error(s) in profile. Fix errors first.`,
-      intent: 'is-danger',
+      intent: INTENT_DANGER,
     });
     return;
   }
@@ -485,7 +488,7 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
           const err = result?.error || eqResult?.error;
           tmxToast({
             message: `Grid scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
-            intent: 'is-danger',
+            intent: INTENT_DANGER,
           });
           statusEl.textContent = 'Grid scheduling failed.';
           return;
@@ -509,7 +512,7 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
         tmxToast({
           message,
-          intent: totalNotScheduled > 0 ? 'is-warning' : 'is-success',
+          intent: totalNotScheduled > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
 
         statusEl.textContent = message;

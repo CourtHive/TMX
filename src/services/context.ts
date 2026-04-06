@@ -33,7 +33,6 @@ export const context: {
   refreshActiveTable?: () => void;
   router?: { navigate: (path: string) => void; resolve: () => void; current: any[] | null };
   provider?: ProviderValue;
-  quill?: any;
   dragMatch?: any;
   dragMatchLight?: any;
 } = {

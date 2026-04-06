@@ -5,7 +5,6 @@ import 'vanillajs-datepicker/css/datepicker.css';
 import 'timepicker-ui/main.css';
 
 import 'animate.css/animate.min.css';
-import 'quill/dist/quill.snow.css';
 import 'pikaday/css/pikaday.css';
 
 import 'tippy.js/themes/light-border.css';

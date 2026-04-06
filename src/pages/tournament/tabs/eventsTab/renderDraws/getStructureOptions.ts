@@ -11,7 +11,9 @@ import { addStructures } from 'components/modals/addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { renderDrawView } from './renderDrawView';
 
+// Constants
 import { ATTACH_CONSOLATION_STRUCTURES, REMOVE_STAGE_ENTRIES } from 'constants/mutationConstants';
+import { ROUNDS_BRACKET, ROUNDS_COLUMNS } from 'constants/tmxConstants';
 
 const { FINISHING_POSITIONS, CONTAINER, MAIN, AD_HOC, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
@@ -70,10 +72,11 @@ export function getStructureOptions({
   const canAddConsolation = isMainStructure && !isRoundRobin && !isAdHocDraw && !hasConsolation;
 
   return drawData.structures
-    .sort((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
+    .toSorted((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
     .map((structure: any) => ({
       onClick: () => {
-        renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true });
+        const roundsView = structure.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
+        renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true, roundsView });
       },
       label: structure.structureName || structure.stage || 'Structure',
       close: true,

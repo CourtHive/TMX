@@ -233,9 +233,14 @@ export function renderTournamentControls(grid: HTMLElement): void {
 
   wrapper.appendChild(topPanel);
 
-  // ============================================================
-  // Panel 2 — Order of Play
-  // ============================================================
+  wrapper.appendChild(buildOopPanel(data, publicUrl));
+
+  wrapper.appendChild(buildParticipantsPanel(data, publicUrl));
+
+  grid.appendChild(wrapper);
+}
+
+function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
   const oopPanel = document.createElement('div');
   oopPanel.className = PUB_PANEL_YELLOW;
 
@@ -262,71 +267,74 @@ export function renderTournamentControls(grid: HTMLElement): void {
     createEmbargoButton(data.oopEmbargo, PUBLISH_ORDER_OF_PLAY, () => renderPublishingTab()),
   );
 
-  // Per-date OOP chips
   if (data.tournamentDateRange.length > 0) {
-    const dateSection = document.createElement('div');
-    dateSection.style.cssText = 'width:100%; margin-top:8px;';
-
-    const dateLabel = document.createElement('div');
-    dateLabel.style.cssText = 'font-size:0.8rem; color:var(--tmx-text-secondary); margin-bottom:4px;';
-    dateLabel.textContent = t('publishing.publishedDatesToggle');
-    dateSection.appendChild(dateLabel);
-
-    const dateGrid = document.createElement('div');
-    dateGrid.className = 'pub-date-grid';
-
-    const publishedDates = data.oopScheduledDates || [];
-    // Empty scheduledDates means "all dates" — but only when OOP is actually published
-    const allDatesPublished = data.oopPublished && publishedDates.length === 0;
-
-    for (const date of data.tournamentDateRange) {
-      const chip = document.createElement('button');
-      chip.className = 'pub-date-chip';
-      if (allDatesPublished || publishedDates.includes(date)) chip.classList.add('active');
-      chip.textContent = dayjs(date).format('ddd MMM D');
-
-      chip.addEventListener('click', () => {
-        const isPublished = chip.classList.contains('active');
-        // When all dates are implicitly published (empty array), deselecting one
-        // must explicitly list all remaining dates
-        const effectiveDates = allDatesPublished ? [...data.tournamentDateRange] : [...publishedDates];
-        let newDates: string[];
-
-        if (isPublished) {
-          newDates = effectiveDates.filter((d) => d !== date);
-        } else {
-          newDates = [...effectiveDates, date];
-        }
-
-        // If no dates remain, unpublish order of play entirely
-        if (!newDates.length) {
-          mutationRequest({
-            methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
-            callback: () => renderPublishingTab(),
-          });
-        } else {
-          mutationRequest({
-            methods: [
-              { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
-            ],
-            callback: () => renderPublishingTab(),
-          });
-        }
-      });
-
-      dateGrid.appendChild(chip);
-    }
-
-    dateSection.appendChild(dateGrid);
-    oopRow.appendChild(dateSection);
+    oopRow.appendChild(buildOopDateChips(data));
   }
 
   oopPanel.appendChild(oopRow);
-  wrapper.appendChild(oopPanel);
+  return oopPanel;
+}
 
-  // ============================================================
-  // Panel 3 — Participant Publishing
-  // ============================================================
+function buildOopDateChips(data: any): HTMLElement {
+  const dateSection = document.createElement('div');
+  dateSection.style.cssText = 'width:100%; margin-top:8px;';
+
+  const dateLabel = document.createElement('div');
+  dateLabel.style.cssText = 'font-size:0.8rem; color:var(--tmx-text-secondary); margin-bottom:4px;';
+  dateLabel.textContent = t('publishing.publishedDatesToggle');
+  dateSection.appendChild(dateLabel);
+
+  const dateGrid = document.createElement('div');
+  dateGrid.className = 'pub-date-grid';
+
+  const publishedDates = data.oopScheduledDates || [];
+  const allDatesPublished = data.oopPublished && publishedDates.length === 0;
+
+  for (const date of data.tournamentDateRange) {
+    const chip = document.createElement('button');
+    chip.className = 'pub-date-chip';
+    if (allDatesPublished || publishedDates.includes(date)) chip.classList.add('active');
+    chip.textContent = dayjs(date).format('ddd MMM D');
+
+    chip.addEventListener('click', () => {
+      const isPublished = chip.classList.contains('active');
+      const effectiveDates = allDatesPublished ? [...data.tournamentDateRange] : [...publishedDates];
+      const newDates = isPublished
+        ? effectiveDates.filter((d) => d !== date)
+        : [...effectiveDates, date];
+
+      if (!newDates.length) {
+        mutationRequest({
+          methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
+          callback: () => renderPublishingTab(),
+        });
+      } else {
+        mutationRequest({
+          methods: [
+            { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
+          ],
+          callback: () => renderPublishingTab(),
+        });
+      }
+    });
+
+    dateGrid.appendChild(chip);
+  }
+
+  dateSection.appendChild(dateGrid);
+  return dateSection;
+}
+
+function extractColumnsFromSelection(selectedValues: string[]): any {
+  return {
+    country: selectedValues.includes('country'),
+    events: selectedValues.includes('events'),
+    ratings: selectedValues.filter((v: string) => v.startsWith('rating:')).map((v: string) => v.split(':')[1]),
+    rankings: selectedValues.filter((v: string) => v.startsWith('ranking:')).map((v: string) => v.split(':')[1]),
+  };
+}
+
+function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLElement {
   const partPanel = document.createElement('div');
   partPanel.className = PUB_PANEL_YELLOW;
 
@@ -345,7 +353,6 @@ export function renderTournamentControls(grid: HTMLElement): void {
     : 'off';
   partRow.appendChild(createStateBadge(partState as 'live' | 'embargoed' | 'off', partState === 'live' ? publicUrl : undefined));
 
-  // Declared here so the toggle handler can read current column selections via closure
   let columnInputs: any;
 
   const partToggle = createToggle(data.participantsPublished, (checked) => {
@@ -353,12 +360,7 @@ export function renderTournamentControls(grid: HTMLElement): void {
       mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
     } else {
       const selectedValues: string[] = columnInputs?.columns?.selectedValues || [];
-      const columns: any = {
-        country: selectedValues.includes('country'),
-        events: selectedValues.includes('events'),
-        ratings: selectedValues.filter((v: string) => v.startsWith('rating:')).map((v: string) => v.split(':')[1]),
-        rankings: selectedValues.filter((v: string) => v.startsWith('ranking:')).map((v: string) => v.split(':')[1]),
-      };
+      const columns = extractColumnsFromSelection(selectedValues);
       mutationRequest({ methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }], callback: () => renderPublishingTab() });
     }
   });
@@ -370,101 +372,90 @@ export function renderTournamentControls(grid: HTMLElement): void {
     );
   }
 
-  // Participant publish config controls (column multi-selector + publish button handler)
-  {
-    const configSection = document.createElement('div');
-    configSection.style.cssText = 'width:100%; margin-top:8px;';
-
-    // Discover available ratings and rankings from tournament participants
-    const { participants: allParticipants = [] } =
-      tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
-    const discoveredRatings = new Set<string>();
-    let hasRanking = false;
-    for (const p of allParticipants as any[]) {
-      for (const item of p.ratings?.[SINGLES] || []) {
-        const upperName = item.scaleName?.toUpperCase();
-        if (upperName && ratingsParameters[upperName]) discoveredRatings.add(upperName);
-      }
-      if (p.rankings?.[SINGLES]?.length) hasRanking = true;
-    }
-
-    // Determine current config from publish state
-    const currentColumns = data.participantsColumns;
-
-    // Build column options
-    const columnOptions: { label: string; value: string; selected: boolean; disabled?: boolean }[] = [
-      {
-        label: t('publishing.name'),
-        value: 'name',
-        selected: true,
-        disabled: true,
-      },
-      {
-        label: t('publishing.country'),
-        value: 'country',
-        selected: currentColumns ? currentColumns.country !== false : false,
-      },
-      {
-        label: t('publishing.event') + 's',
-        value: 'events',
-        selected: currentColumns ? currentColumns.events !== false : false,
-      },
-    ];
-    if (hasRanking) {
-      const rankingSelected = currentColumns?.rankings
-        ? currentColumns.rankings.includes('SINGLES')
-        : false;
-      columnOptions.push({
-        label: `Rank (SINGLES)`,
-        value: 'ranking:SINGLES',
-        selected: rankingSelected,
-      });
-    }
-    for (const ratingName of [...discoveredRatings].sort()) {
-      const ratingSelected = currentColumns?.ratings
-        ? currentColumns.ratings.map((r) => r.toUpperCase()).includes(ratingName)
-        : false;
-      columnOptions.push({
-        label: ratingName,
-        value: `rating:${ratingName}`,
-        selected: ratingSelected,
-      });
-    }
-
-    const columnFormContainer = document.createElement('div');
-    columnInputs = renderForm(columnFormContainer, [
-      {
-        label: t('publishing.participantColumns'),
-        field: 'columns',
-        multiple: true,
-        options: columnOptions,
-        onChange: () => {
-          if (!data.participantsPublished) return;
-          const selectedValues: string[] = columnInputs.columns?.selectedValues || [];
-
-          const columns: any = {
-            country: selectedValues.includes('country'),
-            events: selectedValues.includes('events'),
-            ratings: selectedValues.filter((v: string) => v.startsWith('rating:')).map((v: string) => v.split(':')[1]),
-            rankings: selectedValues.filter((v: string) => v.startsWith('ranking:')).map((v: string) => v.split(':')[1]),
-          };
-
-          mutationRequest({
-            methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
-          });
-        },
-      },
-    ]);
-    // Remove .field bottom margin
-    const colField = columnFormContainer.querySelector('.field') as HTMLElement;
-    if (colField) colField.style.marginBottom = '0';
-
-    configSection.appendChild(columnFormContainer);
-    partRow.appendChild(configSection);
-  }
+  const { columnFormContainer, inputs } = buildColumnSelector(data);
+  columnInputs = inputs;
+  const configSection = document.createElement('div');
+  configSection.style.cssText = 'width:100%; margin-top:8px;';
+  configSection.appendChild(columnFormContainer);
+  partRow.appendChild(configSection);
 
   partPanel.appendChild(partRow);
-  wrapper.appendChild(partPanel);
+  return partPanel;
+}
 
-  grid.appendChild(wrapper);
+function buildColumnSelector(data: any): { columnFormContainer: HTMLElement; inputs: any } {
+  const { participants: allParticipants = [] } =
+    tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const discoveredRatings = new Set<string>();
+  let hasRanking = false;
+  for (const p of allParticipants as any[]) {
+    for (const item of p.ratings?.[SINGLES] || []) {
+      const upperName = item.scaleName?.toUpperCase();
+      if (upperName && ratingsParameters[upperName]) discoveredRatings.add(upperName);
+    }
+    if (p.rankings?.[SINGLES]?.length) hasRanking = true;
+  }
+
+  const currentColumns = data.participantsColumns;
+
+  const columnOptions: { label: string; value: string; selected: boolean; disabled?: boolean }[] = [
+    {
+      label: t('publishing.name'),
+      value: 'name',
+      selected: true,
+      disabled: true,
+    },
+    {
+      label: t('publishing.country'),
+      value: 'country',
+      selected: currentColumns ? currentColumns.country !== false : false,
+    },
+    {
+      label: t('publishing.event') + 's',
+      value: 'events',
+      selected: currentColumns ? currentColumns.events !== false : false,
+    },
+  ];
+  if (hasRanking) {
+    const rankingSelected = currentColumns?.rankings
+      ? currentColumns.rankings.includes('SINGLES')
+      : false;
+    columnOptions.push({
+      label: `Rank (SINGLES)`,
+      value: 'ranking:SINGLES',
+      selected: rankingSelected,
+    });
+  }
+  for (const ratingName of [...discoveredRatings].sort()) {
+    const ratingSelected = currentColumns?.ratings
+      ? currentColumns.ratings.map((r) => r.toUpperCase()).includes(ratingName)
+      : false;
+    columnOptions.push({
+      label: ratingName,
+      value: `rating:${ratingName}`,
+      selected: ratingSelected,
+    });
+  }
+
+  const columnFormContainer = document.createElement('div');
+  const inputs = renderForm(columnFormContainer, [
+    {
+      label: t('publishing.participantColumns'),
+      field: 'columns',
+      multiple: true,
+      options: columnOptions,
+      onChange: () => {
+        if (!data.participantsPublished) return;
+        const selectedValues: string[] = inputs.columns?.selectedValues || [];
+        const columns = extractColumnsFromSelection(selectedValues);
+        mutationRequest({
+          methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
+        });
+      },
+    },
+  ]);
+  const colField = columnFormContainer.querySelector('.field') as HTMLElement;
+  if (colField) colField.style.marginBottom = '0';
+
+  return { columnFormContainer, inputs };
 }

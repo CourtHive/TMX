@@ -50,8 +50,8 @@ describe('participantSorter', () => {
     expect(participantSorter(a, b)).toBeLessThan(0);
   });
 
-  it('returns 1 when both have no name', () => {
-    expect(participantSorter({}, {})).toBe(1);
+  it('returns 0 when both have no name', () => {
+    expect(participantSorter({}, {})).toBe(0);
   });
 
   it('accesses person from nested participant', () => {

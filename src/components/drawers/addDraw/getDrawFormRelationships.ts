@@ -10,8 +10,18 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getTopologyTemplates } from './topologyTemplates';
 
-const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF } =
-  drawDefinitionConstants;
+const {
+  AD_HOC,
+  ADAPTIVE,
+  FEED_IN,
+  LUCKY_DRAW,
+  MAIN,
+  PAGE_PLAYOFF,
+  PLAY_OFF,
+  QUALIFYING,
+  ROUND_ROBIN,
+  ROUND_ROBIN_WITH_PLAYOFF,
+} = drawDefinitionConstants;
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
@@ -156,41 +166,39 @@ export function getDrawFormRelationships({
     }
   };
 
-  const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
+  const updateFieldVisibility = (fields: Record<string, HTMLElement>, drawType: string, inputs: Record<string, any>) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
+    const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
+    const isDrawMatic = drawType === DRAW_MATIC;
+    const isAdHocType = drawType === AD_HOC || isDrawMatic;
+
+    fields[ADVANCE_PER_GROUP].style.display = isRRPlayoff && playoffType === TOP_FINISHERS ? '' : NONE;
+    fields[TOTAL_ADVANCE].style.display = isRRPlayoff && playoffType === BEST_FINISHERS ? '' : NONE;
+    fields[GROUP_REMAINING].style.display =
+      isRRPlayoff && (playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS) ? '' : NONE;
+    fields[PLAYOFF_TYPE].style.display = isRRPlayoff ? '' : NONE;
+    fields[PLAYOFF_DRAW_TYPE].style.display = isRRPlayoff ? '' : NONE;
+    const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
+    fields[PLAYOFF_GROUP_SIZE].style.display = isRRPlayoff && playoffDrawType === ROUND_ROBIN ? '' : NONE;
+    fields[GROUP_SIZE].style.display = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) ? '' : NONE;
+
+    fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
+    fields[RATING_SCALE].style.display = isDrawMatic ? '' : NONE;
+    fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
+    fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
+
+    fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
+    fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
+  };
+
+  const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const drawType = (e!.target as HTMLSelectElement).value;
 
     if (!maxQualifiers) updateDrawSize({ drawId, drawType, fields, inputs });
     checkCreationMethod({ fields, inputs });
 
     if (fields) {
-      fields[ADVANCE_PER_GROUP].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === TOP_FINISHERS ? '' : NONE;
-      fields[TOTAL_ADVANCE].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffType === BEST_FINISHERS ? '' : NONE;
-      fields[GROUP_REMAINING].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && (playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS)
-          ? ''
-          : NONE;
-      fields[PLAYOFF_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
-      fields[PLAYOFF_DRAW_TYPE].style.display = drawType === ROUND_ROBIN_WITH_PLAYOFF ? '' : NONE;
-      const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
-      fields[PLAYOFF_GROUP_SIZE].style.display =
-        drawType === ROUND_ROBIN_WITH_PLAYOFF && playoffDrawType === ROUND_ROBIN ? '' : NONE;
-      const groupSizeVisible = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType);
-      fields[GROUP_SIZE].style.display = groupSizeVisible ? '' : NONE;
-
-      // DrawMatic-specific fields
-      const isDrawMatic = drawType === DRAW_MATIC;
-      fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
-      fields[RATING_SCALE].style.display = isDrawMatic ? '' : NONE;
-      fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
-      fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
-
-      // Hide seeding policy and qualifiers for ad-hoc draw types
-      const isAdHocType = drawType === AD_HOC || isDrawMatic;
-      fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
-      fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
+      updateFieldVisibility(fields, drawType, inputs);
     }
   };
 
@@ -211,20 +219,44 @@ export function getDrawFormRelationships({
     checkCreationMethod({ fields, inputs });
   };
 
-  const playoffDrawTypeChange = ({ e, fields }: FormInteractionParams) => {
+  const playoffDrawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const playoffDrawType = (e!.target as HTMLSelectElement).value;
     if (fields) {
       fields[PLAYOFF_GROUP_SIZE].style.display = playoffDrawType === ROUND_ROBIN ? '' : NONE;
+
+      // PAGE_PLAYOFF requires exactly 4 finishers — force TOP_FINISHERS with advance=2
+      if (playoffDrawType === PAGE_PLAYOFF && inputs) {
+        inputs[PLAYOFF_TYPE].value = TOP_FINISHERS;
+        inputs[ADVANCE_PER_GROUP].value = '2';
+        fields[ADVANCE_PER_GROUP].style.display = '';
+        fields[GROUP_REMAINING].style.display = '';
+        fields[TOTAL_ADVANCE].style.display = NONE;
+      }
     }
   };
 
-  const playoffTypeChange = ({ e, fields }: FormInteractionParams) => {
+  const playoffTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const playoffType = (e!.target as HTMLSelectElement).value;
     if (fields) {
       fields[ADVANCE_PER_GROUP].style.display = playoffType === TOP_FINISHERS ? '' : NONE;
       fields[TOTAL_ADVANCE].style.display = playoffType === BEST_FINISHERS ? '' : NONE;
       fields[GROUP_REMAINING].style.display =
         playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS ? '' : NONE;
+
+      // PAGE_PLAYOFF requires TOP_FINISHERS; reset if user changes away
+      if (playoffType !== TOP_FINISHERS && inputs?.[PLAYOFF_DRAW_TYPE]?.value === PAGE_PLAYOFF) {
+        inputs[PLAYOFF_DRAW_TYPE].value = PLAY_OFF;
+        fields[PLAYOFF_GROUP_SIZE].style.display = NONE;
+      }
+    }
+  };
+
+  const advancePerGroupChange = ({ e, fields, inputs }: FormInteractionParams) => {
+    const advancePerGroup = Number.parseInt((e!.target as HTMLSelectElement).value);
+    // PAGE_PLAYOFF requires exactly 2 per group; reset if user changes away
+    if (advancePerGroup !== 2 && inputs?.[PLAYOFF_DRAW_TYPE]?.value === PAGE_PLAYOFF && fields) {
+      inputs[PLAYOFF_DRAW_TYPE].value = PLAY_OFF;
+      fields[PLAYOFF_GROUP_SIZE].style.display = NONE;
     }
   };
 
@@ -278,6 +310,10 @@ export function getDrawFormRelationships({
     {
       onChange: playoffDrawTypeChange,
       control: PLAYOFF_DRAW_TYPE,
+    },
+    {
+      onChange: advancePerGroupChange,
+      control: ADVANCE_PER_GROUP,
     },
     {
       onInput: drawSizeChange,

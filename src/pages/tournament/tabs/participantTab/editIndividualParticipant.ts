@@ -34,6 +34,7 @@ export function editIndividualParticipant({
     nationalityCode: participant?.person?.nationalityCode,
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
+    nickname: participant?.participantOtherName,
     birthDate: participant?.person?.birthDate,
     sex: participant?.person?.sex,
   };
@@ -41,13 +42,17 @@ export function editIndividualParticipant({
 
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
-  const validValues = ({ firstName, lastName }: any) =>
-    validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
+  const validValues = ({ firstName, lastName, nickname }: any) => {
+    const hasFullName = validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
+    const hasNickname = nickname && nickname.trim().length >= 2;
+    return hasFullName || hasNickname;
+  };
 
   const enableSubmit = ({ inputs }: any) => {
     const valid = validValues({
       firstName: inputs['firstName'].value,
       lastName: inputs['lastName'].value,
+      nickname: inputs['nickname']?.value,
     });
     const saveButton = document.getElementById('saveParticipant');
     if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;
@@ -61,6 +66,10 @@ export function editIndividualParticipant({
     {
       onInput: enableSubmit,
       control: 'lastName',
+    },
+    {
+      onInput: enableSubmit,
+      control: 'nickname',
     },
   ];
 
@@ -84,6 +93,12 @@ export function editIndividualParticipant({
           placeholder: t('pages.participants.editParticipant.lastNamePlaceholder'),
           label: t('pages.participants.editParticipant.lastName'),
           field: 'lastName',
+        },
+        {
+          value: values.nickname || '',
+          placeholder: t('pages.participants.editParticipant.nicknamePlaceholder'),
+          label: t('pages.participants.editParticipant.nickname'),
+          field: 'nickname',
         },
         {
           value: undefined,
@@ -153,9 +168,12 @@ export function editIndividualParticipant({
         birthdate: inputs.birthday.value,
         sex: inputs.sex.value,
       };
+      const participantOtherName = inputs.nickname?.value || undefined;
       const methods = [
         {
-          params: { participant: { participantId: participant.participantId, person } },
+          params: {
+            participant: { participantId: participant.participantId, participantOtherName, person },
+          },
           method: MODIFY_PARTICIPANT,
         },
       ];

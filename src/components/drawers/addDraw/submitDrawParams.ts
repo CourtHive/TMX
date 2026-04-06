@@ -19,7 +19,7 @@ import {
 } from 'tods-competition-factory';
 
 // constants
-import { ATTACH_QUALIFYING_STRUCTURE } from 'constants/mutationConstants';
+import { ADD_DRAW_ENTRIES, ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
@@ -48,8 +48,19 @@ import {
   TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
-const { AD_HOC, ADAPTIVE, FEED_IN, LUCKY_DRAW, MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } =
-  drawDefinitionConstants;
+const {
+  AD_HOC,
+  ADAPTIVE,
+  FEED_IN,
+  LUCKY_DRAW,
+  MAIN,
+  PAGE_PLAYOFF,
+  QUALIFYING,
+  ROUND_ROBIN,
+  ROUND_ROBIN_WITH_PLAYOFF,
+  SEPARATE,
+  CLUSTER,
+} = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
 const { POLICY_TYPE_SEEDING } = policyConstants;
 
@@ -167,6 +178,26 @@ function getPlayoffGroups(
   return playoffGroups;
 }
 
+function validatePagePlayoff(structureOptions: any, inputs: any, groupSize: number): boolean | undefined {
+  const pagePlayoffGroup = structureOptions?.playoffGroups?.find((pg: any) => pg.drawType === PAGE_PLAYOFF);
+  if (!pagePlayoffGroup) return undefined;
+
+  const drawSizeValue = Number.parseInt(inputs[DRAW_SIZE]?.value || '0');
+  const groupCount = Math.floor(drawSizeValue / groupSize);
+  const finishingPositions = pagePlayoffGroup.finishingPositions || [];
+  const expectedCount = pagePlayoffGroup.bestOf || groupCount * finishingPositions.length;
+
+  if (expectedCount !== 4) {
+    tmxToast({
+      message: `Page Playoff requires exactly 4 finishers (current configuration produces ${expectedCount})`,
+      intent: 'is-warning',
+      pauseOnHover: true,
+    });
+    return false;
+  }
+  return true;
+}
+
 function getStructureOptions(drawType: string, inputs: any): any {
   const groupSize = Number.parseInt(inputs[GROUP_SIZE].value);
 
@@ -180,7 +211,7 @@ function getStructureOptions(drawType: string, inputs: any): any {
     if (playoffGroups.length) {
       structureOptions.playoffGroups = playoffGroups;
     } else {
-      // WINNERS case: no explicit playoffGroups, but pass drawType if non-default
+      // WINNERS case: group winners advance; pass drawType if non-default
       const playoffDrawType = inputs?.[PLAYOFF_DRAW_TYPE]?.value;
       const playoffGroupSize = inputs?.[PLAYOFF_GROUP_SIZE]?.value
         ? Number.parseInt(inputs[PLAYOFF_GROUP_SIZE].value)
@@ -188,6 +219,7 @@ function getStructureOptions(drawType: string, inputs: any): any {
       if (playoffDrawType) {
         structureOptions.playoffGroups = [
           {
+            finishingPositions: [1],
             drawType: playoffDrawType,
             ...(playoffDrawType === ROUND_ROBIN && playoffGroupSize
               ? { structureOptions: { groupSize: playoffGroupSize } }
@@ -196,6 +228,10 @@ function getStructureOptions(drawType: string, inputs: any): any {
         ];
       }
     }
+
+    // Validate PAGE_PLAYOFF requires exactly 4 participants in the playoff
+    if (validatePagePlayoff(structureOptions, inputs, groupSize) === false) return undefined;
+
     return structureOptions;
   } else if (drawType === ROUND_ROBIN) {
     return { groupSize };
@@ -255,7 +291,8 @@ function handleQualifyingStructure(params: {
   });
 
   if (generationResult.success) {
-    const methods = [
+    const qualifyingStructureId = generationResult.structure?.structureId;
+    const methods: any[] = [
       {
         method: ATTACH_QUALIFYING_STRUCTURE,
         params: {
@@ -266,7 +303,47 @@ function handleQualifyingStructure(params: {
         },
       },
     ];
+
+    // Add qualifying entries to the draw so automatedPositioning can find them
+    const event = tournamentEngine.getEvent({ eventId }).event;
+    const qualifyingParticipantIds = (event?.entries ?? [])
+      .filter((e: any) => e.entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(e.entryStatus))
+      .map((e: any) => e.participantId);
+    if (qualifyingParticipantIds.length) {
+      methods.push({
+        method: ADD_DRAW_ENTRIES,
+        params: { participantIds: qualifyingParticipantIds, entryStage: QUALIFYING, ignoreStageSpace: true, eventId, drawId },
+      });
+    }
+
     const postMutation = (result: any) => {
+      if (result.success && automated && qualifyingStructureId) {
+        const positionResult = tournamentEngine.automatedPositioning({
+          structureId: qualifyingStructureId,
+          applyPositioning: false,
+          drawId,
+        });
+        if (positionResult.success && positionResult.positionAssignments?.length) {
+          mutationRequest({
+            methods: [
+              {
+                method: SET_POSITION_ASSIGNMENTS,
+                params: {
+                  structurePositionAssignments: [
+                    { structureId: qualifyingStructureId, positionAssignments: positionResult.positionAssignments },
+                  ],
+                  structureId: qualifyingStructureId,
+                  drawId,
+                },
+              },
+            ],
+            callback: (positionMutationResult: any) => {
+              if (isFunction(callback)) callback({ ...generationResult, ...positionMutationResult.results?.[0] });
+            },
+          });
+          return;
+        }
+      }
       if (isFunction(callback)) callback({ ...generationResult, ...result.results?.[0] });
     };
     mutationRequest({ methods, callback: postMutation });
@@ -405,6 +482,7 @@ export function submitDrawParams({
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const drawSize =
     ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC].includes(drawType) && drawSizeInteger) ||
+    (isQualifying && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
     ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
@@ -432,6 +510,7 @@ export function submitDrawParams({
   };
 
   const structureOptions = getStructureOptions(drawType, inputs);
+  if (structureOptions === undefined && drawType === ROUND_ROBIN_WITH_PLAYOFF) return;
 
   if (drawType === AD_HOC) {
     if (isDrawMatic) {

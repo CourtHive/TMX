@@ -6,15 +6,18 @@ vi.mock('i18n', () => ({ t: (k: string) => k }));
 
 import { logMutationError } from './logMutationError';
 
+const METHOD = 'test';
+const ERROR_MSG = 'Something failed';
+
 describe('logMutationError', () => {
   it('logs error to console and shows toast by default', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockToast.mockClear();
 
-    logMutationError('test', { error: { message: 'Something failed' } });
+    logMutationError(METHOD, { error: { message: ERROR_MSG } });
 
-    expect(spy).toHaveBeenCalledWith('[test]', { message: 'Something failed' });
-    expect(mockToast).toHaveBeenCalledWith({ message: 'Something failed', intent: 'is-danger' });
+    expect(spy).toHaveBeenCalledWith('[test]', { message: ERROR_MSG });
+    expect(mockToast).toHaveBeenCalledWith({ message: ERROR_MSG, intent: 'is-danger' });
     spy.mockRestore();
   });
 
@@ -22,7 +25,7 @@ describe('logMutationError', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockToast.mockClear();
 
-    logMutationError('test', { error: { message: 'raw' } }, { message: 'Custom message' });
+    logMutationError(METHOD, { error: { message: 'raw' } }, { message: 'Custom message' });
 
     expect(mockToast).toHaveBeenCalledWith({ message: 'Custom message', intent: 'is-danger' });
     spy.mockRestore();
@@ -32,7 +35,7 @@ describe('logMutationError', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockToast.mockClear();
 
-    logMutationError('test', {});
+    logMutationError(METHOD, {});
 
     expect(mockToast).toHaveBeenCalledWith({ message: 'common.error', intent: 'is-danger' });
     spy.mockRestore();
@@ -42,7 +45,7 @@ describe('logMutationError', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockToast.mockClear();
 
-    logMutationError('test', { error: { message: 'silent' } }, { toast: false });
+    logMutationError(METHOD, { error: { message: 'silent' } }, { toast: false });
 
     expect(spy).toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();

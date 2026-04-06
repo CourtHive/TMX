@@ -109,7 +109,7 @@ export function getDashboardData(): DashboardData {
     teamParticipantCount: tournamentInfo?.teamParticipantCount || 0,
     courtSvgSport: courtSvgResource?.identifier,
     tournamentName: tournamentInfo?.tournamentName,
-    matchUpStats: tournamentInfo?.matchUpStats,
+    matchUpStats: tournamentInfo?.matchUpStats || { total: 0, completed: 0, scheduled: 0, percentComplete: 0 },
     eventCount: tournamentInfo?.eventCount,
     startDate: tournamentInfo?.startDate,
     imageUrl: tournamentInfo?.imageUrl,

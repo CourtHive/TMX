@@ -813,7 +813,10 @@
     "maintenance": "Maintenance",
     "unscheduled": "Unscheduled",
     "noScheduledMatchUps": "No scheduled matchUps",
-    "noTimeSet": "No time set"
+    "noTimeSet": "No time set",
+    "showAll": "Show all",
+    "hideEmpty": "Hide empty",
+    "empty": "empty"
   },
 
   "penalties": {
@@ -1130,6 +1133,7 @@
       "qualifying": "Qualifying",
       "directAcceptance": "Direct Acceptance",
       "alternate": "Alternate",
+      "qualifier": "Qualifier",
       "wildcard": "Wildcard",
       "ungrouped": "Ungrouped",
       "eventStage": "Event stage",
@@ -1340,6 +1344,7 @@
       "drawTypeFirstRoundLoser": "First round loser consolation",
       "drawTypeLucky": "Lucky",
       "drawTypeOlympic": "Olympic",
+      "drawTypePagePlayoff": "Page playoff",
       "drawTypePlayoff": "Playoff",
       "drawTypeRoundRobinWithPlayoff": "Round robin w/ playoff",
       "drawTypeAdaptive": "Adaptive",
@@ -1357,6 +1362,7 @@
         "FIRST_ROUND_LOSER_CONSOLATION": "First-round losers enter a separate consolation draw.",
         "LUCKY_DRAW": "Single elimination with randomized advancement for unplayed positions.",
         "OLYMPIC": "Four-draw Olympic format with consolation and placement brackets.",
+        "PAGE_PLAYOFF": "Four-participant hybrid knockout (IPL/NBA/curling). Top two seeds get double elimination; all four positions resolved.",
         "PLAY_OFF": "Playoff bracket used as a secondary structure.",
         "ROUND_ROBIN_WITH_PLAYOFF": "Round robin group stage followed by single elimination playoffs.",
         "FEED_IN": "Staggered entry draw where participants enter the bracket at different rounds."
@@ -1481,7 +1487,8 @@
       "club": "Club",
       "events": "Events",
       "teams": "Teams",
-      "cityState": "City/State"
+      "cityState": "City/State",
+      "nickname": "Nickname"
     },
     "bracket": {
       "participant": "Participant",
@@ -1741,7 +1748,9 @@
         "dateOfBirth": "Date of birth",
         "birthdayPlaceholder": "Birthday",
         "country": "Country",
-        "countryPlaceholder": "Country of origin"
+        "countryPlaceholder": "Country of origin",
+        "nickname": "Nickname",
+        "nicknamePlaceholder": "Display name"
       },
       "newTeam": "New team",
       "newGroup": "New group",

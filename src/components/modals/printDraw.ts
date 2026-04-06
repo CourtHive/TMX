@@ -44,6 +44,8 @@ const FOOTER_LAYOUTS = [
   { label: 'None', value: 'none' },
 ];
 
+const DEFAULT_PRESET = 'club-basic';
+
 interface PrintDrawParams {
   drawId: string;
   eventId: string;
@@ -75,7 +77,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
     includeSeeding: true,
     includeTimestamp: true,
     splitPages: false,
-    catalogPreset: 'club-basic',
+    catalogPreset: DEFAULT_PRESET,
     headerLayout: undefined,
     footerLayout: undefined,
   };
@@ -92,7 +94,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
           label: 'Preset',
           options: CATALOG_PRESETS.map((p) => ({
             ...p,
-            selected: p.value === (printOptions.catalogPreset || 'club-basic'),
+            selected: p.value === (printOptions.catalogPreset || DEFAULT_PRESET),
           })),
         },
         { divider: true },

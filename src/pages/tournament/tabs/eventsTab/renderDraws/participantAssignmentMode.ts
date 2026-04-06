@@ -17,6 +17,12 @@ export function isAssignmentMode(): boolean {
   return assignmentMode;
 }
 
+/** Silently exit assignment mode without re-rendering (used by router navigation guard) */
+export function forceExitAssignmentMode(): void {
+  assignmentMode = false;
+  stateManager = null;
+}
+
 export function enterParticipantAssignmentMode({
   drawId,
   eventId,
