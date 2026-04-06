@@ -368,7 +368,7 @@ function injectSidebarControls(container: HTMLElement): void {
     if (activeTab === 'scheduled') updateScheduledPanel();
   });
   // Store unsubscribe for cleanup (will be handled by destroyGridView → activeControl.destroy)
-  void origRefresh;
+  void origRefresh; //NOSONAR
 }
 
 export function destroyGridView(): void {
@@ -619,17 +619,18 @@ interface GridCallbacks {
   executeMethods: (methods: any[], onRefresh: () => void) => void;
 }
 
-function buildRowCourtCells(
-  grid: HTMLElement,
-  row: any | null,
-  ri: number,
-  visibleCourts: { court: any; originalIndex: number }[],
-  courtPrefix: string,
-  emptyCellStyle: string,
-  allRows: any[],
-  callbacks: GridCallbacks,
-): void {
-  for (let ci = 0; ci < visibleCourts.length; ci++) {
+function buildRowCourtCells(params: {
+  grid: HTMLElement;
+  row: any;
+  ri: number;
+  visibleCourts: { court: any; originalIndex: number }[];
+  courtPrefix: string;
+  emptyCellStyle: string;
+  allRows: any[];
+  callbacks: GridCallbacks;
+}): void {
+  const { grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle, allRows, callbacks } = params;
+  for (const visibleCourt of visibleCourts) {
     if (!row) {
       const emptyCell = document.createElement('div');
       emptyCell.style.cssText = emptyCellStyle;
@@ -637,10 +638,10 @@ function buildRowCourtCells(
       continue;
     }
 
-    const cellKey = `${courtPrefix}${visibleCourts[ci].originalIndex}`;
+    const cellKey = `${courtPrefix}${visibleCourt.originalIndex}`;
     const cellData = row[cellKey];
 
-    const courtInfo = visibleCourts[ci].court;
+    const courtInfo = visibleCourt.court;
     const courtId = cellData?.schedule?.courtId ?? courtInfo?.courtId ?? '';
     const venueId = cellData?.schedule?.venueId ?? courtInfo?.venueId ?? '';
     const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
@@ -692,10 +693,7 @@ function buildRowCourtCells(
   }
 }
 
-function getFilteredMatchUpList(
-  date: string,
-  control: SchedulePageControl | null,
-): { label: string; value: string }[] {
+function getFilteredMatchUpList(date: string, control: SchedulePageControl | null): { label: string; value: string }[] {
   const catalog = buildCatalog(date);
   const storeState = control?.getStore().getState();
   const filters = storeState?.catalogFilters;
@@ -799,7 +797,8 @@ function buildVisibilityPopover(
   onChanged: () => void,
 ): HTMLElement {
   const pop = document.createElement('div');
-  pop.style.cssText = 'padding: 10px; min-width: 220px; max-width: 300px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px;';
+  pop.style.cssText =
+    'padding: 10px; min-width: 220px; max-width: 300px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px;';
 
   // quick actions
   const actions = document.createElement('div');
@@ -844,7 +843,8 @@ function buildVisibilityPopover(
   for (const [venueName, courts] of venueMap) {
     if (venueMap.size > 1) {
       const venueLabel = document.createElement('div');
-      venueLabel.style.cssText = 'font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--sp-muted, #9ca3af); margin: 6px 0 2px;';
+      venueLabel.style.cssText =
+        'font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--sp-muted, #9ca3af); margin: 6px 0 2px;';
       venueLabel.textContent = venueName;
       pop.appendChild(venueLabel);
     }
@@ -854,7 +854,10 @@ function buildVisibilityPopover(
       const isHidden = hiddenCourtIds.has(court.courtId);
 
       const row = document.createElement('label');
-      row.style.cssText = DISPLAY_FLEX + '; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer;' + (count === 0 ? ' opacity: 0.5;' : '');
+      row.style.cssText =
+        DISPLAY_FLEX +
+        '; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer;' +
+        (count === 0 ? ' opacity: 0.5;' : '');
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -888,19 +891,24 @@ function buildVisibilityPopover(
   return pop;
 }
 
-function buildGridHeaders(
-  grid: HTMLElement,
-  stickyHeader: string,
-  courtsData: any[],
-  courtCount: number,
-  emptyCount: number,
-  handleAddVenue: () => void,
-  allCourtsData?: any[],
-  matchUpCounts?: Map<string, number>,
-  onVisibilityChanged?: () => void,
-): HTMLElement[] {
+function buildGridHeaders(params: {
+  grid: HTMLElement;
+  stickyHeader: string;
+  courtsData: any[];
+  courtCount: number;
+  emptyCount: number;
+  handleAddVenue: () => void;
+  allCourtsData?: any[];
+  matchUpCounts?: Map<string, number>;
+  onVisibilityChanged?: () => void;
+}): HTMLElement[] {
+  const { grid, stickyHeader, courtsData, courtCount, emptyCount, handleAddVenue, allCourtsData, matchUpCounts, onVisibilityChanged } = params;
   const corner = document.createElement('div');
-  corner.style.cssText = stickyHeader + '; left: 0; z-index: 3; color: var(--sp-muted); cursor: pointer;' + DISPLAY_FLEX + '; align-items: center; justify-content: center; gap: 4px;';
+  corner.style.cssText =
+    stickyHeader +
+    '; left: 0; z-index: 3; color: var(--sp-muted); cursor: pointer;' +
+    DISPLAY_FLEX +
+    '; align-items: center; justify-content: center; gap: 4px;';
 
   const eyeIcon = document.createElement('i');
   eyeIcon.className = hiddenCourtIds.size > 0 ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
@@ -909,7 +917,8 @@ function buildGridHeaders(
 
   if (hiddenCourtIds.size > 0) {
     const badge = document.createElement('span');
-    badge.style.cssText = 'font-size: 9px; font-weight: 700; background: var(--tmx-accent-blue, #3b82f6); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
+    badge.style.cssText =
+      'font-size: 9px; font-weight: 700; background: var(--tmx-accent-blue, #3b82f6); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
     badge.textContent = String(hiddenCourtIds.size);
     corner.appendChild(badge);
   }
@@ -1068,10 +1077,17 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       destroyVisibilityTip();
       render(date);
     };
-    const courtHeaders = buildGridHeaders(
-      grid, STICKY_HEADER, courtsData, courtCount, emptyCount, handleAddVenue,
-      allCourtsData, matchUpCounts, onVisibilityChanged,
-    );
+    const courtHeaders = buildGridHeaders({
+      grid,
+      stickyHeader: STICKY_HEADER,
+      courtsData,
+      courtCount,
+      emptyCount,
+      handleAddVenue,
+      allCourtsData,
+      matchUpCounts,
+      onVisibilityChanged,
+    });
 
     // ── Data rows ──
 
@@ -1096,7 +1112,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       rowLabels.push(rowCell);
       grid.appendChild(rowCell);
 
-      buildRowCourtCells(grid, row, ri, visibleCourts, courtPrefix, EMPTY_CELL, rows, callbacks);
+      buildRowCourtCells({ grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle: EMPTY_CELL, allRows: rows, callbacks });
 
       // Placeholder cells for empty columns
       for (let ei = 0; ei < emptyCount; ei++) {
@@ -1368,7 +1384,7 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // keep only the first occurrence by tracking seen matchUpId pairs.
   const seenPairs = new Set<string>();
   const dedupKey = (mid: string, ids: string[]): string => {
-    const sorted = [mid, ...ids].sort();
+    const sorted = [mid, ...ids].sort((a, b) => a.localeCompare(b));
     return sorted.join('|');
   };
 
