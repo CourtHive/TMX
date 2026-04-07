@@ -18,7 +18,7 @@ interface PrintCourtCardParams {
 export function printCourtCard({ courtId, scheduledDate }: PrintCourtCardParams): void {
   const tournamentInfoResult = tournamentEngine.getTournamentInfo();
   const tournamentName = tournamentInfoResult?.tournamentInfo?.tournamentName ?? '';
-  const { venues } = tournamentEngine.getVenues();
+  const { venues } = tournamentEngine.getVenuesAndCourts();
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
     matchUpFilters: { scheduledDate },
   });
@@ -41,7 +41,7 @@ export function printCourtCard({ courtId, scheduledDate }: PrintCourtCardParams)
 export function printAllCourtCards({ scheduledDate }: { scheduledDate?: string }): void {
   const tournamentInfoResult = tournamentEngine.getTournamentInfo();
   const tournamentName = tournamentInfoResult?.tournamentInfo?.tournamentName ?? '';
-  const { venues } = tournamentEngine.getVenues();
+  const { venues } = tournamentEngine.getVenuesAndCourts();
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
     matchUpFilters: { scheduledDate },
   });
