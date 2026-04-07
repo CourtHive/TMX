@@ -6,6 +6,7 @@ import { addMatchUpsAction, addRoundAction, deleteMatchUpsAction } from './adHoc
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { printRoundMatchCards } from 'components/modals/printMatchCards';
+import { printAllCourtCards } from 'components/modals/printCourtCards';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -84,6 +85,11 @@ export function handleRoundHeaderClick(props: any): void {
     roundActions.push({
       onClick: () => printRoundMatchCards({ drawId, structureId, roundNumber, action: 'open' }),
       text: 'Print round match cards',
+    });
+
+    roundActions.push({
+      onClick: () => printAllCourtCards({}),
+      text: 'Print court cards',
     });
   }
 

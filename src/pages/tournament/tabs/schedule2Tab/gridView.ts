@@ -21,6 +21,7 @@
  */
 import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
+import { printCourtCard } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { scheduleConfig } from 'config/scheduleConfig';
@@ -945,9 +946,13 @@ function buildGridHeaders(params: {
   for (let ci = 0; ci < courtCount; ci++) {
     const court = courtsData[ci];
     const th = document.createElement('div');
-    th.style.cssText = stickyHeader;
+    th.style.cssText = stickyHeader + '; cursor: pointer;';
     th.title = court.courtName || `Court ${ci + 1}`;
     th.textContent = court.courtName || `Court ${ci + 1}`;
+    th.addEventListener('click', (e: MouseEvent) => {
+      e.stopPropagation();
+      printCourtCard({ courtId: court.courtId, courtName: court.courtName });
+    });
     courtHeaders.push(th);
     grid.appendChild(th);
   }
