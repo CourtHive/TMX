@@ -1,9 +1,10 @@
 /**
  * Print Court Cards — generates court signage showing current and next match per court.
  */
-import { competitionEngine, tournamentEngine } from 'tods-competition-factory';
 import { generateCourtCardPDF } from 'pdf-factory';
+import { tournamentEngine } from 'tods-competition-factory';
 import { openPDF } from 'services/pdf/export/pdfExport';
+import { tmxToast } from 'services/notifications/tmxToast';
 
 // Types
 import type { CourtCardData, CourtCardMatch } from 'pdf-factory';
@@ -18,19 +19,25 @@ interface PrintCourtCardParams {
 
 /**
  * Print a court card for a single court.
- * Shows current match (NOW PLAYING) and next match (UP NEXT).
  */
 export function printCourtCard({ courtId, courtName, scheduledDate }: PrintCourtCardParams): void {
-  const tournamentName = getTournamentName();
-  const matchUps = getScheduledMatchUps(scheduledDate);
+  const { matchUps } = tournamentEngine.allTournamentMatchUps({
+    matchUpFilters: { scheduledDate },
+  });
 
   const courtMatchUps = matchUps.filter(
     (mu: any) => mu.schedule?.courtId === courtId || mu.schedule?.venueCourtId === courtId,
   );
 
+  if (!courtMatchUps.length) {
+    tmxToast({ message: 'No scheduled matches on this court', intent: 'is-warning' });
+    return;
+  }
+
   const card = buildCourtCard(courtMatchUps, courtName || courtId);
   if (!card) return;
 
+  const tournamentName = tournamentEngine.getTournamentInfo()?.tournamentInfo?.tournamentName ?? '';
   const doc = generateCourtCardPDF([card], { tournamentName });
   openPDF({ doc });
 }
@@ -39,42 +46,33 @@ export function printCourtCard({ courtId, courtName, scheduledDate }: PrintCourt
  * Print court cards for all courts with scheduled matchUps.
  */
 export function printAllCourtCards({ scheduledDate }: { scheduledDate?: string }): void {
-  const tournamentName = getTournamentName();
-  const matchUps = getScheduledMatchUps(scheduledDate);
-
-  const cards = buildAllCourtCards(matchUps);
-  if (!cards.length) return;
-
-  const doc = generateCourtCardPDF(cards, { tournamentName });
-  openPDF({ doc });
-}
-
-function getTournamentName(): string {
-  return tournamentEngine.getTournamentInfo()?.tournamentInfo?.tournamentName ?? '';
-}
-
-/**
- * Get scheduled matchUps using competitionScheduleMatchUps — the same data source
- * that powers the schedule grid. This ensures court assignments are resolved.
- */
-function getScheduledMatchUps(scheduledDate?: string): any[] {
-  const result = competitionEngine.competitionScheduleMatchUps({
+  const { matchUps } = tournamentEngine.allTournamentMatchUps({
     matchUpFilters: { scheduledDate },
-    courtCompletedMatchUps: true,
   });
 
-  return result?.dateMatchUps ?? result?.matchUps ?? [];
+  const cards = buildAllCourtCards(matchUps);
+  if (!cards.length) {
+    tmxToast({ message: 'No matches scheduled on courts', intent: 'is-warning' });
+    return;
+  }
+
+  const tournamentName = tournamentEngine.getTournamentInfo()?.tournamentInfo?.tournamentName ?? '';
+  const doc = generateCourtCardPDF(cards, { tournamentName });
+  openPDF({ doc });
 }
 
 function buildAllCourtCards(matchUps: any[]): CourtCardData[] {
   const courtGroups = new Map<string, { matchUps: any[]; courtName: string }>();
 
   for (const mu of matchUps) {
-    const courtId = mu.schedule?.courtId || mu.schedule?.venueCourtId;
+    const courtId = mu.schedule?.courtId;
     if (!courtId) continue;
 
     if (!courtGroups.has(courtId)) {
-      courtGroups.set(courtId, { matchUps: [], courtName: mu.schedule?.courtName || courtId });
+      courtGroups.set(courtId, {
+        matchUps: [],
+        courtName: mu.schedule?.courtName || courtId,
+      });
     }
     courtGroups.get(courtId)!.matchUps.push(mu);
   }
@@ -105,7 +103,7 @@ function buildCourtCard(matchUps: any[], courtName: string): CourtCardData | und
 
   return {
     courtName,
-    venueName: currentMu?.schedule?.venueName || currentMu?.venue?.venueName || '',
+    venueName: currentMu?.schedule?.venueName || '',
     currentMatch: currentMu ? mapMatch(currentMu) : undefined,
     nextMatch: nextMu ? mapMatch(nextMu) : undefined,
   };
@@ -116,16 +114,16 @@ function mapMatch(mu: any): CourtCardMatch {
   const side2 = mu.sides?.[1];
 
   return {
-    eventName: mu.eventName || mu.tournamentName || '',
+    eventName: mu.eventName || '',
     roundName: mu.roundName || mu.abbreviatedRoundName || '',
     scheduledTime: mu.schedule?.scheduledTime,
     side1: {
-      name: side1?.participant?.participantName || side1?.participantName || 'TBD',
-      nationality: side1?.participant?.nationalityCode || side1?.nationalityCode || '',
+      name: side1?.participant?.participantName || 'TBD',
+      nationality: side1?.participant?.nationalityCode || '',
     },
     side2: {
-      name: side2?.participant?.participantName || side2?.participantName || 'TBD',
-      nationality: side2?.participant?.nationalityCode || side2?.nationalityCode || '',
+      name: side2?.participant?.participantName || 'TBD',
+      nationality: side2?.participant?.nationalityCode || '',
     },
   };
 }
