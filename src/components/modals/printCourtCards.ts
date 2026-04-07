@@ -62,8 +62,17 @@ export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
     matchUpFilters: { drawIds: [drawId], structureIds: [structureId], roundNumbers: [roundNumber] },
   });
 
+  console.log('--- printRoundCourtCards debug ---');
+  console.log('matchUps count:', matchUps.length);
+  console.log('sample matchUp schedule:', JSON.stringify(matchUps[0]?.schedule, null, 2));
+  console.log('sample matchUp sides:', JSON.stringify(matchUps[0]?.sides?.map((s: any) => ({ participantId: s.participantId, participant: s.participant?.participantName })), null, 2));
+  console.log('venues:', JSON.stringify(venues?.map((v: any) => ({ venueName: v.venueName, courts: v.courts?.map((c: any) => ({ courtId: c.courtId, courtName: c.courtName })) })), null, 2));
+
   const scheduledMatchUps = matchUps.filter((mu: any) => mu.schedule?.courtId);
+  console.log('scheduledMatchUps (with courtId):', scheduledMatchUps.length);
+
   const cards = extractCourtCardData({ matchUps: scheduledMatchUps, venues });
+  console.log('extracted cards:', JSON.stringify(cards, null, 2));
 
   if (!cards.length) {
     tmxToast({ message: 'No matches in this round are assigned to courts', intent: 'is-warning' });
@@ -71,6 +80,7 @@ export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
   }
 
   const doc = generateCourtCardPDF(cards, { tournamentName });
+  console.log('PDF generated, pages:', doc.getNumberOfPages());
   openPDF({ doc });
 }
 
