@@ -902,8 +902,9 @@ function buildGridHeaders(params: {
   allCourtsData?: any[];
   matchUpCounts?: Map<string, number>;
   onVisibilityChanged?: () => void;
+  scheduledDate?: string;
 }): HTMLElement[] {
-  const { grid, stickyHeader, courtsData, courtCount, emptyCount, handleAddVenue, allCourtsData, matchUpCounts, onVisibilityChanged } = params;
+  const { grid, stickyHeader, courtsData, courtCount, emptyCount, handleAddVenue, allCourtsData, matchUpCounts, onVisibilityChanged, scheduledDate } = params;
   const corner = document.createElement('div');
   corner.style.cssText =
     stickyHeader +
@@ -951,7 +952,7 @@ function buildGridHeaders(params: {
     th.textContent = court.courtName || `Court ${ci + 1}`;
     th.addEventListener('click', (e: MouseEvent) => {
       e.stopPropagation();
-      printCourtCard({ courtId: court.courtId, courtName: court.courtName });
+      printCourtCard({ courtId: court.courtId, courtName: court.courtName, scheduledDate });
     });
     courtHeaders.push(th);
     grid.appendChild(th);
@@ -1092,6 +1093,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       allCourtsData,
       matchUpCounts,
       onVisibilityChanged,
+      scheduledDate: date,
     });
 
     // ── Data rows ──
