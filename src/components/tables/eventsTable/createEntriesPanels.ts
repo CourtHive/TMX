@@ -2,13 +2,14 @@
  * Creates entry panels for events with dynamic tables for different entry statuses.
  * Manages multiple Tabulator instances for accepted, qualifying, alternates, etc.
  */
+import { createUnifiedEntriesPanel } from './unified/createUnifiedEntriesPanel';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { findAncestor, getParent } from 'services/dom/parentAndChild';
+import { addFlights } from 'components/modals/addFlights/addFlights';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { addFlights } from 'components/modals/addFlights/addFlights';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
@@ -17,6 +18,7 @@ import { panelDefinitions } from './panelDefinitions';
 import { controlBar } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import { env } from 'settings/env';
 
 import {
   CONTROL_BAR,
@@ -40,6 +42,10 @@ export function createEntriesPanels({
   drawId?: string;
 }): void {
   if (!eventId || eventId === 'undefined') context.router?.navigate('/');
+
+  if (env.unifiedEntriesTable) {
+    return createUnifiedEntriesPanel({ headerElement, eventId, drawId });
+  }
 
   let searchFilter: ((rowData: any) => boolean) | undefined;
   const setSearchFilter = (value: string) => {
@@ -86,7 +92,10 @@ export function createEntriesPanels({
 
     // Build participantId → draws map from all drawDefinitions' entries
     // This ensures draw chips show regardless of position assignment or flight profile status
-    const participantDrawsMap: Record<string, { drawId: string; drawName: string; entryStage?: string; eventId: string }[]> = {};
+    const participantDrawsMap: Record<
+      string,
+      { drawId: string; drawName: string; entryStage?: string; eventId: string }[]
+    > = {};
     if (hasDrawDefinitions) {
       for (const dd of event.drawDefinitions) {
         for (const entry of dd.entries || []) {

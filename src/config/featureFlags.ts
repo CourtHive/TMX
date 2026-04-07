@@ -6,6 +6,7 @@ export interface FeatureFlags {
   schedule2: boolean;
   usePublishState: boolean;
   enableChat: boolean;
+  unifiedEntriesTable: boolean;
 }
 
 const defaults: FeatureFlags = {
@@ -13,6 +14,7 @@ const defaults: FeatureFlags = {
   schedule2: false,
   usePublishState: false,
   enableChat: false,
+  unifiedEntriesTable: false,
 };
 
 let current: FeatureFlags = { ...defaults };

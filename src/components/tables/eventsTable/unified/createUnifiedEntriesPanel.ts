@@ -1,0 +1,438 @@
+/**
+ * Unified entries panel — single table with sort-segregated segments.
+ * Replaces the 5-panel approach behind the env.unifiedEntriesTable feature flag.
+ */
+import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
+import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
+import { headerSortElement } from '../../common/sorters/headerSortElement';
+import { addFlights } from 'components/modals/addFlights/addFlights';
+import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { getOverlayItems, getRightItems } from './segmentOverlay';
+import { navigateToEvent } from '../../common/navigateToEvent';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { entryActions } from '../../../popovers/entryActions';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { getUnifiedColumns } from './unifiedColumns';
+import { pairFromUnified } from './pairFromUnified';
+import { controlBar } from 'courthive-components';
+import type { SortState } from './segmentSorter';
+import { context } from 'services/context';
+import {
+  drawDefinitionConstants,
+  entryStatusConstants,
+  eventConstants,
+  tournamentEngine,
+} from 'tods-competition-factory';
+
+// constants
+import {
+  CONTROL_BAR,
+  ENTRIES_VIEW,
+  EVENT_CONTROL,
+  LEFT,
+  RIGHT,
+  TMX_TABLE,
+  ACCEPTED,
+  QUALIFYING,
+} from 'constants/tmxConstants';
+
+const { MAIN } = drawDefinitionConstants;
+const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
+const { DOUBLES } = eventConstants;
+
+const UNIFIED_TABLE_KEY = 'unifiedEntries';
+
+// Search scope options
+const SCOPE_ALL = 'ALL';
+const SCOPE_ACCEPTED = 'ACCEPTED';
+const SCOPE_QUALIFYING = 'QUALIFYING';
+const SCOPE_ALTERNATES = 'ALTERNATES';
+const SCOPE_UNGROUPED = 'UNGROUPED';
+const SCOPE_WITHDRAWN = 'WITHDRAWN';
+
+const SCOPE_RANK_MAP: Record<string, number | undefined> = {
+  [SCOPE_ACCEPTED]: 0,
+  [SCOPE_QUALIFYING]: 1,
+  [SCOPE_ALTERNATES]: 2,
+  [SCOPE_UNGROUPED]: 3,
+  [SCOPE_WITHDRAWN]: 4,
+};
+
+export function createUnifiedEntriesPanel({
+  headerElement,
+  eventId,
+  drawId,
+}: {
+  headerElement?: HTMLElement;
+  eventId: string;
+  drawId?: string;
+}): void {
+  const sortState: SortState = { secondaryField: '', secondaryDir: 'asc' };
+  let table: any;
+  let searchScope = SCOPE_ALL;
+  let searchFilter: ((rowData: any) => boolean) | undefined;
+  const pairingMode = { enabled: false };
+
+  // ── Data loading ──
+  const getTableData = () => {
+    const { event, drawDefinition } = tournamentEngine.getEvent({ eventId, drawId });
+    if (headerElement) headerElement.innerHTML = event?.eventName;
+    if (!event) return { error: 'EVENT_NOT_FOUND' };
+
+    const { participants, derivedDrawInfo } =
+      tournamentEngine.getParticipants({
+        participantFilters: { eventIds: [eventId] },
+        withIndividualParticipants: true,
+        withScaleValues: true,
+        withDraws: true,
+        withISO2: true,
+      }) ?? {};
+
+    const hasDrawDefinitions = event?.drawDefinitions?.length > 0;
+    const categoryName = event.category?.categoryName ?? event.category?.ageCategoryCode;
+    const isDoubles = event?.eventType === DOUBLES;
+    const drawCreated = !!drawDefinition;
+
+    // Build participantId → drawPosition map
+    const drawPositionMap: Record<string, number> = {};
+    if (drawDefinition?.structures) {
+      for (const structure of drawDefinition.structures) {
+        for (const pa of structure.positionAssignments || []) {
+          if (pa.participantId && pa.drawPosition) {
+            drawPositionMap[pa.participantId] = pa.drawPosition;
+          }
+        }
+      }
+    }
+
+    // Build participantId → draws map
+    const participantDrawsMap: Record<
+      string,
+      { drawId: string; drawName: string; entryStage?: string; eventId: string }[]
+    > = {};
+    if (hasDrawDefinitions) {
+      for (const dd of event.drawDefinitions) {
+        for (const entry of dd.entries || []) {
+          if (!participantDrawsMap[entry.participantId]) participantDrawsMap[entry.participantId] = [];
+          participantDrawsMap[entry.participantId].push({
+            drawId: dd.drawId,
+            drawName: dd.drawName,
+            entryStage: entry.entryStage,
+            eventId,
+          });
+        }
+      }
+    }
+
+    const entries = (drawDefinition?.entries || event?.entries || []).map((entry: any) =>
+      mapEntry({
+        eventType: event.eventType,
+        participantDrawsMap,
+        drawPositionMap,
+        derivedDrawInfo,
+        categoryName,
+        participants,
+        eventId,
+        entry,
+      }),
+    );
+
+    // Add segment rank to each entry
+    for (const entry of entries) {
+      const stage = entry.entryStage || MAIN;
+      entry._segmentRank = segmentRank(stage, entry.entryStatus);
+    }
+
+    // Filter out ungrouped for singles events
+    const filteredEntries = isDoubles ? entries : entries.filter((e: any) => e.entryStatus !== UNGROUPED);
+
+    // Filter out withdrawn when draw is created
+    const visibleEntries = drawCreated
+      ? filteredEntries.filter((e: any) => e.entryStatus !== WITHDRAWN)
+      : filteredEntries;
+
+    return { entries: visibleEntries, event, drawDefinition, hasDrawDefinitions, isDoubles, drawCreated };
+  };
+
+  const refresh = () => {
+    const result = getTableData();
+    if (result.error || !table) return;
+    table.replaceData(result.entries);
+    applySort();
+  };
+
+  const applySort = () => {
+    if (!table) return;
+    table.setSort([{ column: '_segmentRank', dir: 'asc' }]);
+  };
+
+  // ── Search with scope ──
+  const applySearchFilter = (value: string) => {
+    if (!table) return;
+    if (searchFilter) table.removeFilter(searchFilter);
+
+    const text = value?.toLowerCase();
+    const scopeRank = SCOPE_RANK_MAP[searchScope];
+
+    searchFilter = (rowData: any) => {
+      if (rowData._isSeparator) return true;
+      const matchesText = !text || rowData.searchText?.includes(text);
+      const matchesScope = scopeRank === undefined || rowData._segmentRank === scopeRank;
+      return matchesText && matchesScope;
+    };
+
+    if (text || scopeRank !== undefined) {
+      table.addFilter(searchFilter);
+    } else {
+      searchFilter = undefined;
+    }
+  };
+
+  const updateSearchScope = (newScope: string) => {
+    searchScope = newScope;
+    const searchInput = document.getElementById('unifiedSearch') as HTMLInputElement;
+    applySearchFilter(searchInput?.value || '');
+  };
+
+  // ── Segment counts ──
+  const getSegmentCounts = (entries: any[]): Record<number, number> => {
+    const counts: Record<number, number> = {};
+    for (const entry of entries) {
+      const rank = entry._segmentRank ?? 5;
+      counts[rank] = (counts[rank] || 0) + 1;
+    }
+    return counts;
+  };
+
+  // ── Entry actions (per-row three-dots) ──
+  const onEntryAction = (e: MouseEvent, cell: any) => {
+    const rowData = cell.getRow().getData();
+    const rank = rowData._segmentRank;
+
+    // Compute valid actions based on segment
+    let actions: string[] = [];
+    if (rank === 0) actions = [ALTERNATE, WITHDRAWN];
+    else if (rank === 1) actions = [ACCEPTED, QUALIFYING, ALTERNATE, WITHDRAWN];
+    else if (rank === 2) actions = [ACCEPTED, QUALIFYING, WITHDRAWN, UNGROUPED];
+    else if (rank === 3) actions = [WITHDRAWN];
+    else if (rank === 4) actions = [ALTERNATE];
+
+    entryActions(actions, eventId, drawId)(e, cell);
+  };
+
+  // ── Build ──
+  const result = getTableData();
+  if (result.error) return;
+
+  const { entries, event, hasDrawDefinitions, isDoubles, drawCreated } = result;
+  const drawName = event?.drawDefinitions?.find((d: any) => d?.drawId === drawId)?.drawName;
+
+  // ── Render into ENTRIES_VIEW ──
+  const entriesView = document.getElementById(ENTRIES_VIEW);
+  if (!entriesView) return;
+
+  removeAllChildNodes(entriesView);
+
+  const tableContainer = document.createElement('div');
+  tableContainer.className = `${TMX_TABLE} flexcol flexcenter`;
+  entriesView.appendChild(tableContainer);
+
+  // ── Table columns ──
+  const columns = getUnifiedColumns({
+    entries,
+    drawCreated,
+    hasDrawDefinitions,
+    sortState,
+    onEntryAction,
+  });
+
+  const ratingFields = columns.filter((col: any) => col.field?.startsWith('ratings.')).map((col: any) => col.field);
+
+  // ── Create Tabulator ──
+  const tableHeight = Math.floor(window.innerHeight * 0.7);
+
+  table = new Tabulator(tableContainer, {
+    headerSortElement: headerSortElement([
+      ...ratingFields,
+      'drawPosition',
+      'seedNumber',
+      'ranking',
+      'status',
+      'flights',
+    ]),
+    selectableRows: true,
+    selectableRowsCheck: (row: any) => !row.getData()._isSeparator,
+    columns,
+    responsiveLayout: 'collapse',
+    index: 'participantId',
+    layout: 'fitColumns',
+    reactiveData: true,
+    height: `${tableHeight}px`,
+    data: entries,
+    placeholder: 'No entries',
+    rowFormatter: (row: any) => {
+      const data = row.getData();
+      if (data._isSeparator) {
+        const el = row.getElement();
+        el.style.cssText = 'background:var(--tmx-bg-secondary,#f5f5f5);pointer-events:none;height:4px;min-height:4px';
+        return;
+      }
+      if (data._segmentRank === 4) {
+        row.getElement().style.opacity = '0.6';
+      }
+    },
+  });
+
+  context.tables[UNIFIED_TABLE_KEY] = table;
+
+  // ── Header click for secondary sort ──
+  table.on('headerClick', (_e: Event, column: any) => {
+    const field = column.getField();
+    handleHeaderClick(sortState, field, applySort);
+  });
+
+  // ── Doubles pairing mode: auto-pair on 2 ungrouped selected ──
+  if (isDoubles) {
+    table.on('rowSelected', () => {
+      if (!pairingMode.enabled) return;
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      // Only auto-pair when both selected are ungrouped
+      if (selected.length === 2 && selected.every((r: any) => r._segmentRank === 3)) {
+        const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
+        table.deselectRow();
+        pairFromUnified(event, ids, () => refresh());
+      }
+    });
+  }
+
+  // ── Table built → apply sort + render control bars ──
+  table.on('tableBuilt', () => {
+    applySort();
+    renderEventControlBar();
+    renderTableControlBar();
+  });
+
+  // ── EVENT_CONTROL bar (top-level: search, draw selector, avoidances, add draw) ──
+  const renderEventControlBar = () => {
+    const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
+    if (!eventControlElement) return;
+
+    const counts = getSegmentCounts(entries);
+    const totalCount = entries.length;
+
+    const scopeOptions = [
+      { label: `All (${totalCount})`, onClick: () => updateSearchScope(SCOPE_ALL), close: true },
+      counts[0] && { label: `Accepted (${counts[0]})`, onClick: () => updateSearchScope(SCOPE_ACCEPTED), close: true },
+      counts[1] && {
+        label: `Qualifying (${counts[1]})`,
+        onClick: () => updateSearchScope(SCOPE_QUALIFYING),
+        close: true,
+      },
+      counts[2] && {
+        label: `Alternates (${counts[2]})`,
+        onClick: () => updateSearchScope(SCOPE_ALTERNATES),
+        close: true,
+      },
+      isDoubles &&
+        counts[3] && {
+          label: `Ungrouped (${counts[3]})`,
+          onClick: () => updateSearchScope(SCOPE_UNGROUPED),
+          close: true,
+        },
+      counts[4] && {
+        label: `Withdrawn (${counts[4]})`,
+        onClick: () => updateSearchScope(SCOPE_WITHDRAWN),
+        close: true,
+      },
+    ].filter(Boolean);
+
+    const ALL_ENTRIES = 'All entries';
+    const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
+    const entriesOptions = (event.drawDefinitions || [])
+      .map((dd: any) => ({
+        onClick: () => navigateToEvent({ eventId, drawId: dd.drawId }),
+        label: dd?.drawName,
+        close: true,
+      }))
+      .concat([{ divider: true } as any, eventEntries]);
+
+    const drawAdded = (result: any) => {
+      if (result.success) {
+        navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
+      }
+    };
+
+    const items = [
+      {
+        onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && applySearchFilter(''),
+        onChange: (e: any) => applySearchFilter(e.target.value),
+        onKeyUp: (e: any) => applySearchFilter(e.target.value),
+        clearSearch: () => applySearchFilter(''),
+        placeholder: 'Search entries',
+        id: 'unifiedSearch',
+        location: LEFT,
+        search: true,
+      },
+      {
+        label: searchScope === SCOPE_ALL ? 'All' : SEGMENT_LABELS[SCOPE_RANK_MAP[searchScope] ?? 0] || 'All',
+        options: scopeOptions,
+        selection: false,
+        location: LEFT,
+      },
+      { label: drawName || ALL_ENTRIES, options: entriesOptions, location: LEFT },
+      {
+        onClick: () => editAvoidances({ eventId }),
+        intent: 'is-warning',
+        id: 'editAvoidances',
+        label: 'Avoidances',
+        location: RIGHT,
+      },
+      {
+        onClick: () => addFlights({ eventId, callback: () => navigateToEvent({ eventId }) }),
+        intent: 'is-info',
+        label: 'Add flights',
+        location: RIGHT,
+        hide: !!drawId,
+      },
+      {
+        onClick: () => addDraw({ eventId, callback: drawAdded }),
+        intent: 'is-primary',
+        label: 'Add draw',
+        location: RIGHT,
+      },
+    ];
+
+    controlBar({ target: eventControlElement, items });
+  };
+
+  // ── Table-level control bar (overlay actions + right-side tools) ──
+  const renderTableControlBar = () => {
+    const overlayItems = getOverlayItems({
+      event,
+      drawId,
+      drawCreated: drawCreated ?? false,
+      isDoubles: isDoubles ?? false,
+      onRefresh: refresh,
+    });
+
+    const rightItems = getRightItems({
+      event,
+      drawCreated: drawCreated ?? false,
+      isDoubles: isDoubles ?? false,
+      pairingMode,
+    });
+
+    const items = [...overlayItems, ...rightItems];
+
+    // The controlBar needs a target — create one above the table
+    let controlEl = entriesView?.querySelector(`.${CONTROL_BAR}`) as HTMLElement;
+    if (!controlEl) {
+      controlEl = document.createElement('div');
+      controlEl.className = `${CONTROL_BAR} flexcol flexcenter`;
+      entriesView?.insertBefore(controlEl, tableContainer);
+    }
+
+    controlBar({ target: controlEl, table, items });
+  };
+}

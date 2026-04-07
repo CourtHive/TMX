@@ -55,8 +55,6 @@ const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
 const { SINGLES } = factoryConstants.eventConstants;
 const { TEAM } = eventConstants;
 
-const { ENTRY_PROFILE } = factoryConstants.extensionConstants;
-
 // Seeding policy constants
 const CLUSTER = 'CLUSTER';
 const SEPARATE = 'SEPARATE';
@@ -88,8 +86,6 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
         (p: any) => p.qualifier,
       ).length ?? 0)
     : 0;
-  const entryProfile = tournamentEngine.findExtension({ element: drawDefinition, name: ENTRY_PROFILE })?.extension
-    ?.value;
 
   // Default qualifiers to the gap between draw size and accepted entries when qualifying entries exist
   const qualifyingEntriesExist = acceptedEntriesCount({ event, stage: QUALIFYING }) > 0;
@@ -113,7 +109,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, structureId }: D
       : structureId ? 1 : qualifyingSpotsFromEntries;
   const qualifiersCount = isQualifying
     ? initialQualifiersCount
-    : (!structureId && entryProfile?.[MAIN]?.qualifiersCount) || initialQualifiersCount;
+    : initialQualifiersCount;
   const structureName = 'Qualifying';
 
   const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;

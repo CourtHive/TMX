@@ -97,6 +97,12 @@ export const env: any = {
   set usePublishState(v: boolean) {
     featureFlags.set({ usePublishState: v });
   },
+  get unifiedEntriesTable() {
+    return featureFlags.get().unifiedEntriesTable;
+  },
+  set unifiedEntriesTable(v: boolean) {
+    featureFlags.set({ unifiedEntriesTable: v });
+  },
 
   // User preferences — delegates to preferencesConfig
   get activeScale() {
