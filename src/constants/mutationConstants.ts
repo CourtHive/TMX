@@ -16,7 +16,6 @@ export const ADD_ONLINE_RESOURCE = 'addOnlineResource';
 export const ADD_PARTICIPANTS = 'addParticipants';
 export const ADD_PARTICIPANT_TIME_ITEM = 'addParticipantTimeItem';
 
-export const ADD_VOLUNTARY_CONSOLATION_STAGE = 'addVoluntaryConsolationStage';
 export const ATTACH_CONSOLATION_STRUCTURES = 'attachConsolationStructures';
 export const ATTACH_PLAYOFF_STRUCTURES = 'attachPlayoffStructures';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
