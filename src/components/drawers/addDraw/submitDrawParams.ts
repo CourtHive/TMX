@@ -514,7 +514,13 @@ export function submitDrawParams({
 
   const creationValue = inputs[AUTOMATED].value;
   const isDraft = creationValue === DRAFT;
-  const automated = drawSize < drawEntries.length ? false : isDraft ? { seedsOnly: true } : creationValue === AUTOMATED;
+  const isLucky = drawType === LUCKY_DRAW;
+  const automated =
+    drawSize < drawEntries.length
+      ? false
+      : isDraft
+        ? { seedsOnly: true }
+        : isLucky || creationValue === AUTOMATED;
 
   const eventId = event.eventId;
   const drawOptions: any = {
@@ -582,6 +588,16 @@ export function submitDrawParams({
       drawId,
       eventId,
       callback,
+    });
+    return;
+  }
+
+  const requiredPositions = drawEntries.length + qualifiersCount;
+  if (!isQualifying && qualifiersCount && drawSize < requiredPositions) {
+    tmxToast({
+      message: `Draw size (${drawSize}) must be at least ${requiredPositions} (${drawEntries.length} entries + ${qualifiersCount} qualifiers)`,
+      intent: 'is-warning',
+      pauseOnHover: true,
     });
     return;
   }

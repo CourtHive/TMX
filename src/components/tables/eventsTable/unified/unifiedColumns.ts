@@ -82,7 +82,7 @@ export function getUnifiedColumns({
       width: 5,
     },
     {
-      title: 'Segment',
+      title: 'Grouping',
       field: 'segment',
       formatter: segmentFormatter,
       hozAlign: CENTER,

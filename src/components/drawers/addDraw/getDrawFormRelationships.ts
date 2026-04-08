@@ -125,9 +125,9 @@ export function getDrawFormRelationships({
 
   const updateDrawSize = ({ drawType, drawId, fields, inputs }: FormInteractionParams): number => {
     const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount({ drawId, event, stage });
-    const qualifiersValue = inputs['qualifiersCount'].value || 1;
+    const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount =
-      (validators.numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue)) || maxQualifiers ? 1 : 0;
+      (validators.numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue)) || (maxQualifiers ? 1 : 0);
     const drawSizeInteger =
       isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const effectiveType = resolveEffectiveDrawType(drawType as string);

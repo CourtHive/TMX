@@ -16,6 +16,7 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { getUnifiedColumns } from './unifiedColumns';
 import { pairFromUnified } from './pairFromUnified';
 import { controlBar } from 'courthive-components';
+import { isFunction } from 'functions/typeOf';
 import type { SortState } from './segmentSorter';
 import { context } from 'services/context';
 import {
@@ -408,7 +409,7 @@ export function createUnifiedEntriesPanel({
 
   // ── Table-level control bar (overlay actions + right-side tools) ──
   const renderTableControlBar = () => {
-    const overlayItems = getOverlayItems({
+    const overlayItemDefs = getOverlayItems({
       event,
       drawId,
       drawCreated: drawCreated ?? false,
@@ -423,7 +424,11 @@ export function createUnifiedEntriesPanel({
       pairingMode,
     });
 
-    const items = [...overlayItems, ...rightItems];
+    // Evaluate function items (overlay items are functions that receive the table)
+    const evalItems = () => [
+      ...overlayItemDefs.map((item: any) => (isFunction(item) ? item(table) : item)),
+      ...rightItems,
+    ];
 
     // The controlBar needs a target — create one above the table
     let controlEl = entriesView?.querySelector(`.${CONTROL_BAR}`) as HTMLElement;
@@ -433,6 +438,11 @@ export function createUnifiedEntriesPanel({
       entriesView?.insertBefore(controlEl, tableContainer);
     }
 
-    controlBar({ target: controlEl, table, items });
+    controlBar({ target: controlEl, table, items: evalItems() });
+
+    // Re-render overlay items on selection change so actions reflect selected segments
+    table.on('rowSelectionChanged', () => {
+      controlBar({ target: controlEl, table, items: evalItems() });
+    });
   };
 }

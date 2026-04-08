@@ -1,12 +1,10 @@
 /**
- * Event tabs bar with Draws, Entries, Rankings tabs and Edit Event button.
+ * Event tabs bar with Entries, Draws, Rankings tabs and Edit Event button.
  * Renders below the compact event selector when an event is selected.
- * Tab order: Draws first if event has draws, otherwise Entries first.
  */
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { controlBar } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
 
 import { EVENT_TABS_BAR } from 'constants/tmxConstants';
 import { t } from 'i18n';
@@ -30,9 +28,6 @@ export function renderEventTabsBar({
 
   container.style.display = '';
   container.innerHTML = '';
-
-  const event = tournamentEngine.getEvent({ eventId })?.event;
-  const hasDraws = (event?.drawDefinitions?.length ?? 0) > 0;
 
   const bar = document.createElement('div');
   bar.className = 'event-tabs-bar';
@@ -62,8 +57,7 @@ export function renderEventTabsBar({
     onClick: () => navigateToEvent({ eventId, renderPoints: true }),
   };
 
-  // Draws first if event has draws, otherwise Entries first
-  const tabs = hasDraws ? [drawsTab, entriesTab, pointsTab] : [entriesTab, drawsTab, pointsTab];
+  const tabs = [entriesTab, drawsTab, pointsTab];
 
   for (const tab of tabs) {
     const btn = document.createElement('button');

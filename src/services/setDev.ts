@@ -133,6 +133,17 @@ export function setDev(): void {
   addDev({ tmx2db, load, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 
+  addDev({
+    mutationRequest: (params: any) => {
+      const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+      if (!tournamentId) {
+        tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
+        return;
+      }
+      return mutationRequest(params);
+    },
+  });
+
   addDev({ completeMatchUps, forceStalenessOverlay });
   addDev({ providerConfig });
 
