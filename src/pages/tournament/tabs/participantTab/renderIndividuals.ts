@@ -79,7 +79,31 @@ export function renderIndividuals({ view }: { view: string }): void {
       activeIndex: sexActiveIndex,
     },
   ];
-  const { item: filterButton } = filterPopoverButton(filterSections);
+  const { item: filterButton, clearAllFilters, updateBadge } = filterPopoverButton(filterSections);
+
+  // Update placeholder when filters hide all participants
+  // Tabulator re-reads table.options.placeholder each time it renders the
+  // placeholder, so we swap the option value rather than mutating the DOM.
+  const buildFilteredPlaceholder = () => {
+    const el = document.createElement('div');
+    el.style.textAlign = 'center';
+    el.textContent = 'No matches — adjust or clear filters';
+    const btn = document.createElement('button');
+    btn.className = 'clear-filters-btn';
+    btn.textContent = 'Clear Filters';
+    btn.onclick = () => {
+      clearAllFilters();
+      renderIndividuals({ view });
+    };
+    el.appendChild(document.createElement('br'));
+    el.appendChild(btn);
+    return el;
+  };
+
+  table.on('dataFiltered', (filters: any, rows: any[]) => {
+    table.options.placeholder =
+      rows.length === 0 && filters?.length ? buildFilteredPlaceholder() : 'No participants';
+  });
 
   const editRegistrationLink = () => sheetsLink({ callback: replaceTableData });
 
@@ -266,4 +290,7 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   const participantControl = document.getElementById(PARTICIPANT_CONTROL) || undefined;
   controlBar({ table, target: participantControl, items, selectItemFn: selectItem });
+
+  // Apply filter-active styling if a filter was persisted from a previous session
+  updateBadge();
 }

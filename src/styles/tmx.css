@@ -1049,6 +1049,40 @@ img {
   display: none;
 }
 
+/* ── Filter icon active state ────────────────────────────────────────── */
+#filterPopoverButton.filter-active {
+  color: #e67e22 !important;
+  border-color: #e67e22 !important;
+  animation: filter-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes filter-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ── Clear-filters button inside empty-table placeholder ─────────────── */
+.clear-filters-btn {
+  display: inline-block;
+  margin-top: 0.75em;
+  padding: 0.4em 1.2em;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #fff;
+  background: #e67e22;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.clear-filters-btn:hover {
+  background: #cf6d17;
+}
+
 /* ── Participant type chips ──────────────────────────────────────────── */
 .participant-chip {
   font-size: 0.85rem !important;

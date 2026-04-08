@@ -20,8 +20,18 @@ function destroyTip() {
   }
 }
 
-export function filterPopoverButton(sections: FilterSection[]): { item: any; updateBadge: () => void } {
+export function filterPopoverButton(
+  sections: FilterSection[],
+): { item: any; updateBadge: () => void; clearAllFilters: () => void } {
   const visibleSections = sections.filter((s) => s.options.length > 0);
+
+  const clearAllFilters = () => {
+    for (const section of visibleSections) {
+      const resetOption = section.options.filter((opt: any) => !opt.divider && !opt.heading)[0];
+      if (resetOption?.onClick) resetOption.onClick();
+    }
+    updateBadge();
+  };
 
   const updateBadge = () => {
     const button = document.getElementById(FILTER_BUTTON_ID);
@@ -29,10 +39,11 @@ export function filterPopoverButton(sections: FilterSection[]): { item: any; upd
     const badge = button.querySelector('.filter-badge') as HTMLElement;
     const anyActive = visibleSections.some((s) => s.isFiltered());
     if (badge) badge.style.display = anyActive ? '' : 'none';
+    button.classList.toggle('filter-active', anyActive);
   };
 
   if (!visibleSections.length) {
-    return { item: { hide: true }, updateBadge };
+    return { item: { hide: true }, updateBadge, clearAllFilters };
   }
 
   const stripHtml = (html: string) => html?.replace(/<[^>]*>/g, '').trim() || '';
@@ -132,5 +143,5 @@ export function filterPopoverButton(sections: FilterSection[]): { item: any; upd
     },
   };
 
-  return { item, updateBadge };
+  return { item, updateBadge, clearAllFilters };
 }
