@@ -206,7 +206,7 @@ export function getDrawFormRelationships({
 
     fields[AUTOMATED].style.display = drawType === SWISS ? NONE : '';
     fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
-    fields[QUALIFIERS_COUNT].style.display = isAdHocType ? NONE : '';
+    fields[QUALIFIERS_COUNT].style.display = isAdHocType && !isSwiss ? NONE : '';
   };
 
   const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
