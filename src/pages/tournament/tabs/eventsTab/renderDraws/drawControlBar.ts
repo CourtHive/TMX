@@ -109,13 +109,19 @@ export function drawControlBar({
 
   const setDisplay = ({ refresh, view }: any) => typeof callback === 'function' && callback?.({ refresh, view });
 
-  if (isAdHoc) {
+  if (isAdHoc && structure?.stage !== QUALIFYING) {
     const { drawDefinition } = tournamentEngine.getEvent({ drawId });
     const isSwiss = drawDefinition?.drawType === SWISS;
-    if (isSwiss) {
-      drawControlItems.push(getSwissRoundOptions({ structure, drawId, callback: callback ?? (() => {}) }));
-    } else {
-      drawControlItems.push((getAdHocRoundOptions as any)({ structure, drawId, callback }));
+    const isAdHocDrawType = drawDefinition?.drawType === drawDefinitionConstants.AD_HOC;
+    // Only show round-generation controls when the draw type is actually Swiss or AD_HOC.
+    // An empty MAIN structure in qualifying-first mode has isAdHoc=true structurally, but the
+    // draw type may be any (SE, RR, etc.) and needs full draw generation, not round generation.
+    if (isSwiss || isAdHocDrawType) {
+      if (isSwiss) {
+        drawControlItems.push(getSwissRoundOptions({ structure, drawId, callback: callback ?? (() => {}) }));
+      } else {
+        drawControlItems.push((getAdHocRoundOptions as any)({ structure, drawId, callback }));
+      }
     }
   }
 

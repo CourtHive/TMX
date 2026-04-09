@@ -39,6 +39,8 @@ import {
   PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
   POSITIONS,
+  QUALIFYING_FIRST,
+  QUALIFYING_POSITIONS,
   QUALIFIERS_COUNT,
   RATING_SCALE,
   ROUNDS_COUNT,
@@ -386,7 +388,7 @@ function configureDrawOptions(params: {
   } = params;
 
   if (isQualifying) {
-    drawOptions.drawName = existingDrawName;
+    drawOptions.drawName = existingDrawName || drawName;
     drawOptions.qualifyingProfiles = [
       {
         structureProfiles: [
@@ -453,6 +455,7 @@ function handleDrawGeneration(params: {
 export function submitDrawParams({
   drawName: existingDrawName,
   matchUpFormat: providedMatchUpFormat,
+  isPopulateMain,
   isQualifying,
   structureId,
   callback,
@@ -462,6 +465,7 @@ export function submitDrawParams({
 }: {
   drawName?: string;
   matchUpFormat?: string;
+  isPopulateMain?: boolean;
   isQualifying?: boolean;
   structureId?: string;
   callback?: (result: any) => void;
@@ -469,6 +473,7 @@ export function submitDrawParams({
   drawId?: string;
   event: any;
 }): void {
+  const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked && !drawId && !structureId;
   const rawDrawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
   const isDrawMatic = rawDrawType === DRAW_MATIC;
 
@@ -496,21 +501,31 @@ export function submitDrawParams({
 
   const drawSizeValue = inputs[DRAW_SIZE].value || 0;
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
+  const effectiveIsQualifying = isQualifying || isQualifyingFirst;
   const drawSize =
     ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC, SWISS].includes(drawType) && drawSizeInteger) ||
-    (isQualifying && drawSizeInteger) ||
+    (effectiveIsQualifying && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
     ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
   );
+  const mainEntriesFromEvent = event.entries.filter(
+    ({ entryStage, entryStatus }: any) =>
+      (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+  );
+  // flight.drawEntries may only contain one stage (e.g. qualifying-first creates
+  // a flight with QUALIFYING entries only); fall through to event MAIN entries
+  // when the flight has no main entries.
+  const flightMainEntries = (flight?.drawEntries || []).filter(
+    ({ entryStage, entryStatus }: any) =>
+      (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+  );
   const drawEntries =
-    isQualifying && qualifyingEntries.length
+    effectiveIsQualifying && qualifyingEntries.length
       ? qualifyingEntries
-      : flight?.drawEntries ||
-        event.entries.filter(
-          ({ entryStage, entryStatus }: any) =>
-            (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
-        );
+      : flightMainEntries.length
+        ? flightMainEntries
+        : mainEntriesFromEvent;
 
   const creationValue = inputs[AUTOMATED].value;
   const isDraft = creationValue === DRAFT;
@@ -571,9 +586,9 @@ export function submitDrawParams({
     drawSizeProgression: true,
   })?.seedsCount;
 
-  const qualifiersCount =
-    (validators.numericValidator(inputs[QUALIFIERS_COUNT].value) && Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) ||
-    0;
+  const qualifiersCount = isQualifyingFirst
+    ? (validators.numericValidator(inputs[QUALIFYING_POSITIONS]?.value) && Number.parseInt(inputs[QUALIFYING_POSITIONS]?.value)) || 4
+    : (validators.numericValidator(inputs[QUALIFIERS_COUNT].value) && Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
 
   if (structureId && drawId) {
     handleQualifyingStructure({
@@ -593,7 +608,7 @@ export function submitDrawParams({
   }
 
   const requiredPositions = drawEntries.length + qualifiersCount;
-  if (!isQualifying && qualifiersCount && drawSize < requiredPositions) {
+  if (!effectiveIsQualifying && !isPopulateMain && qualifiersCount && drawSize < requiredPositions) {
     tmxToast({
       message: `Draw size (${drawSize}) must be at least ${requiredPositions} (${drawEntries.length} entries + ${qualifiersCount} qualifiers)`,
       intent: 'is-warning',
@@ -602,8 +617,13 @@ export function submitDrawParams({
     return;
   }
 
+  // Qualifying-first: add qualifyingOnly flag so factory creates MAIN placeholder
+  if (isQualifyingFirst) {
+    drawOptions.qualifyingOnly = true;
+  }
+
   configureDrawOptions({
-    isQualifying: isQualifying ?? false,
+    isQualifying: effectiveIsQualifying ?? false,
     existingDrawName,
     qualifiersCount,
     structureOptions,
@@ -617,8 +637,46 @@ export function submitDrawParams({
     drawOptions,
   });
 
+  // Qualifying-first: wrap callback to auto-position qualifying entries after draw creation
+  const effectiveCallback = isQualifyingFirst && automated
+    ? (result: any) => {
+        const qualifyingStructureId = result.drawDefinition?.structures?.find(
+          (s: any) => s.stage === QUALIFYING,
+        )?.structureId;
+        const generatedDrawId = result.drawDefinition?.drawId;
+        if (qualifyingStructureId && generatedDrawId) {
+          const positionResult = tournamentEngine.automatedPositioning({
+            structureId: qualifyingStructureId,
+            applyPositioning: false,
+            drawId: generatedDrawId,
+          });
+          if (positionResult.success && positionResult.positionAssignments?.length) {
+            mutationRequest({
+              methods: [
+                {
+                  method: SET_POSITION_ASSIGNMENTS,
+                  params: {
+                    structurePositionAssignments: [
+                      { structureId: qualifyingStructureId, positionAssignments: positionResult.positionAssignments },
+                    ],
+                    structureId: qualifyingStructureId,
+                    drawId: generatedDrawId,
+                  },
+                },
+              ],
+              callback: () => {
+                if (isFunction(callback)) callback(result);
+              },
+            });
+            return;
+          }
+        }
+        if (isFunction(callback)) callback(result);
+      }
+    : callback;
+
   if (drawSizeInteger) {
-    handleDrawGeneration({ drawOptions, tieFormatName, seedingPolicyDefinition, eventId, callback });
+    handleDrawGeneration({ drawOptions, tieFormatName, seedingPolicyDefinition, eventId, callback: effectiveCallback });
   } else {
     tmxToast({
       message: t('drawers.addDraw.invalidDrawSize'),

@@ -23,6 +23,7 @@ import { isAssignmentMode } from './participantAssignmentMode';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
+import { generateMain } from './generateMain';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
@@ -52,7 +53,7 @@ import {
 } from 'constants/tmxConstants';
 
 const { DOUBLES, TEAM } = eventConstants;
-const { SWISS, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+const { MAIN, SWISS, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
 function getStructureDetail(drawId: string, structureId: string, event: any): any {
   const pubState = publishingGovernor.getPublishState({ event })?.publishState;
@@ -73,8 +74,15 @@ function renderEmptyStructure(
 ): void {
   const { drawData, structure, structures, drawId, eventId, callback } = params;
   const isSwiss = drawData?.drawType === SWISS;
+  const hasGeneratedQualifying = structures.some(
+    (s: any) =>
+      s.stage === QUALIFYING &&
+      (s.matchUps?.length > 0 || Object.values(s.roundMatchUps || {}).some((r: any) => r?.length > 0)),
+  );
   if (stage === QUALIFYING) {
     generateQualifying({ drawData, drawId, eventId });
+  } else if (stage === MAIN && hasGeneratedQualifying) {
+    generateMain({ drawData, drawId, eventId });
   } else if (stage === VOLUNTARY_CONSOLATION && !isAdHoc) {
     voluntaryConsolationPanel({ structure, drawId, eventId, callback });
   } else if (isSwiss) {
@@ -233,12 +241,12 @@ export function renderDrawView({
     isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
 
-    if (drawData?.drawType === SWISS && roundMatchUps) {
+    if (drawData?.drawType === SWISS && roundMatchUps && stage !== QUALIFYING) {
       sortSwissRoundMatchUpsByScoreGroup(roundMatchUps, drawId);
     }
 
     matchUps = Object.values(roundMatchUps || {}).flat();
-    if (isAdHoc) matchUps.sort(tools.matchUpScheduleSort);
+    if (isAdHoc && stage !== QUALIFYING) matchUps.sort(tools.matchUpScheduleSort);
   };
 
   destroyTables();
@@ -376,7 +384,9 @@ export function renderDrawView({
       if (liveNode) {
         applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
         applyRRGroupCompletionHighlighting(liveNode, displayMatchUps as any[]);
-        applySwissScoreGroupShading(liveNode, drawId);
+        if (drawData?.drawType === SWISS && stage !== QUALIFYING) {
+          applySwissScoreGroupShading(liveNode, drawId);
+        }
       }
     }
   };

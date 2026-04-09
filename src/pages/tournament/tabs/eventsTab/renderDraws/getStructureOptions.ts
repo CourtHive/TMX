@@ -73,14 +73,17 @@ export function getStructureOptions({
 
   return drawData.structures
     .toSorted((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
-    .map((structure: any) => ({
-      onClick: () => {
-        const roundsView = structure.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
-        renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true, roundsView });
-      },
-      label: structure.structureName || structure.stage || 'Structure',
-      close: true,
-    }))
+    .map((structure: any) => {
+      const name = structure.structureName || structure.stage || 'Structure';
+      return {
+        onClick: () => {
+          const roundsView = structure.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
+          renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true, roundsView });
+        },
+        label: name,
+        close: true,
+      };
+    })
     .concat([
       { divider: true },
       {

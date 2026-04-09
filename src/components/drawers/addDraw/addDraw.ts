@@ -32,6 +32,7 @@ import {
   DRAW_NAME,
   DRAW_TYPE,
   NONE,
+  QUALIFYING_FIRST,
   RIGHT,
   STRUCTURE_NAME,
   TOPOLOGY_TEMPLATE_PREFIX,
@@ -39,6 +40,7 @@ import {
 
 type AddDrawParams = {
   callback?: (result: any) => void;
+  isPopulateMain?: boolean;
   isQualifying?: boolean;
   flightNumber?: number;
   drawName?: string;
@@ -48,6 +50,7 @@ type AddDrawParams = {
 };
 
 export function addDraw({
+  isPopulateMain,
   isQualifying,
   flightNumber,
   structureId,
@@ -59,10 +62,17 @@ export function addDraw({
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
-  const { items, structurePositionAssignments } = getDrawFormItems({ event, drawId, isQualifying, structureId });
+  const { items, structurePositionAssignments } = getDrawFormItems({
+    event,
+    drawId,
+    isQualifying,
+    isPopulateMain,
+    structureId,
+  });
   const relationships = getDrawFormRelationships({
     maxQualifiers: structurePositionAssignments?.length,
     isQualifying,
+    isPopulateMain,
     drawId,
     event,
   });
@@ -73,10 +83,13 @@ export function addDraw({
     attachDrawTypeHelp(inputs);
   };
 
-  const isValid = () =>
-    isQualifying
-      ? validators.nameValidator(4)(inputs[STRUCTURE_NAME].value)
-      : validators.nameValidator(3)(inputs[DRAW_NAME].value);
+  const isValid = () => {
+    const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked;
+    if (isQualifying || isQualifyingFirst) {
+      return validators.nameValidator(4)(inputs[STRUCTURE_NAME].value);
+    }
+    return validators.nameValidator(3)(inputs[DRAW_NAME].value);
+  };
 
   const checkParams = () => {
     const selectedDrawType =
@@ -94,6 +107,7 @@ export function addDraw({
       const setMatchUpFormat = (matchUpFormat: string) => {
         if (matchUpFormat) {
           (submitDrawParams as any)({
+            isPopulateMain,
             event,
             inputs,
             callback,
@@ -116,7 +130,16 @@ export function addDraw({
         },
       });
     } else {
-      (submitDrawParams as any)({ event, inputs, callback, structureId, drawId, drawName, isQualifying });
+      (submitDrawParams as any)({
+        isPopulateMain,
+        event,
+        inputs,
+        callback,
+        structureId,
+        drawId,
+        drawName,
+        isQualifying,
+      });
     }
   };
 
@@ -131,7 +154,11 @@ export function addDraw({
     },
   ];
 
-  const title = flightNumber ? t('drawers.addDraw.generateFlight') : t('drawers.addDraw.configureDraw');
+  const title = isPopulateMain
+    ? t('drawers.addDraw.generateMainDraw')
+    : flightNumber
+      ? t('drawers.addDraw.generateFlight')
+      : t('drawers.addDraw.configureDraw');
 
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });

@@ -15,10 +15,14 @@ export function acceptedEntriesCount({
 }): number {
   const flightProfile = event?.extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
+  const matchesStage = ({ entryStage = MAIN, entryStatus }: any) =>
+    acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`);
 
-  const entriesCount = (flight?.drawEntries || event?.entries || []).filter(({ entryStage = MAIN, entryStatus }: any) =>
-    acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`),
-  ).length;
+  // Prefer flight drawEntries when they contain entries for the target stage.
+  // Otherwise fall through to event.entries — e.g. qualifying-first flights only
+  // track QUALIFYING entries, so counting MAIN must use event.entries.
+  const flightEntries = flight?.drawEntries?.filter(matchesStage) ?? [];
+  if (flightEntries.length) return flightEntries.length;
 
-  return entriesCount;
+  return (event?.entries || []).filter(matchesStage).length;
 }

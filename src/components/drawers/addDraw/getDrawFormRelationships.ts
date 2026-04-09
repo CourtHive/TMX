@@ -9,7 +9,9 @@ import { renderOptions, validators } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getTopologyTemplates } from './topologyTemplates';
+import { getDrawTypeOptions } from './getDrawTypeOptions';
 
+// Constants
 const {
   AD_HOC,
   ADAPTIVE,
@@ -41,6 +43,8 @@ import {
   PLAYOFF_DRAW_TYPE,
   PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
+  QUALIFYING_FIRST,
+  QUALIFYING_POSITIONS,
   QUALIFIERS_COUNT,
   RATING_SCALE,
   ROUNDS_COUNT,
@@ -81,6 +85,7 @@ function resolveEffectiveDrawType(drawType: string): string {
 
 interface FormRelationshipParams {
   isQualifying?: boolean;
+  isPopulateMain?: boolean;
   maxQualifiers?: number;
   drawId?: string;
   event: any;
@@ -99,6 +104,7 @@ interface FormInteractionParams {
 
 export function getDrawFormRelationships({
   isQualifying,
+  isPopulateMain,
   maxQualifiers,
   drawId,
   event,
@@ -108,11 +114,15 @@ export function getDrawFormRelationships({
   const checkCreationMethod = ({ fields, inputs }: FormInteractionParams) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
-    const entriesCount = acceptedEntriesCount({ drawId, event, stage });
+    const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked;
+    const effectiveStage = isQualifyingFirst ? QUALIFYING : stage;
+    const entriesCount = acceptedEntriesCount({ drawId, event, stage: effectiveStage });
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount = validators.numericValidator(qualifiersValue) ? Number.parseInt(qualifiersValue) : 0;
-    const manualOnly =
-      maxQualifiers || (isQualifying && drawSize < entriesCount) || drawSize < entriesCount + qualifiersCount;
+    const effectiveIsQualifying = isQualifying || isQualifyingFirst;
+    const manualOnly = effectiveIsQualifying
+      ? maxQualifiers || drawSize < entriesCount
+      : maxQualifiers || drawSize < entriesCount + qualifiersCount;
     if (manualOnly) inputs[AUTOMATED].value = MANUAL;
     const help = fields && getChildrenByClassName(fields[AUTOMATED], 'help')?.[0];
     if (help) help.style.display = manualOnly ? '' : NONE;
@@ -124,12 +134,17 @@ export function getDrawFormRelationships({
   };
 
   const updateDrawSize = ({ drawType, drawId, fields, inputs }: FormInteractionParams): number => {
-    const entriesCount = maxQualifiers ? inputs[DRAW_SIZE].value : acceptedEntriesCount({ drawId, event, stage });
+    const isQualifyingFirst = inputs?.[QUALIFYING_FIRST]?.checked;
+    const effectiveStage = isQualifyingFirst ? QUALIFYING : stage;
+    const effectiveIsQualifying = isQualifying || isQualifyingFirst;
+    const entriesCount = maxQualifiers
+      ? inputs[DRAW_SIZE].value
+      : acceptedEntriesCount({ drawId, event, stage: effectiveStage });
     const qualifiersValue = inputs['qualifiersCount'].value || 0;
     const qualifiersCount =
       (validators.numericValidator(qualifiersValue) && Number.parseInt(qualifiersValue)) || (maxQualifiers ? 1 : 0);
     const drawSizeInteger =
-      isQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
+      effectiveIsQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const effectiveType = resolveEffectiveDrawType(drawType as string);
     const drawSize =
       ((maxQualifiers || NON_POW2_TYPES.has(effectiveType)) && drawSizeInteger) || tools.nextPowerOf2(drawSizeInteger);
@@ -178,7 +193,11 @@ export function getDrawFormRelationships({
     }
   };
 
-  const updateFieldVisibility = (fields: Record<string, HTMLElement>, drawType: string, inputs: Record<string, any>) => {
+  const updateFieldVisibility = (
+    fields: Record<string, HTMLElement>,
+    drawType: string,
+    inputs: Record<string, any>,
+  ) => {
     const playoffType = inputs[PLAYOFF_TYPE].value;
     const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
     const isDrawMatic = drawType === DRAW_MATIC;
@@ -304,6 +323,33 @@ export function getDrawFormRelationships({
     if (generateButton) generateButton.disabled = !valid;
   };
 
+  const qualifyingFirstChange = ({ fields, inputs }: FormInteractionParams) => {
+    const checked = inputs[QUALIFYING_FIRST]?.checked;
+    if (fields) {
+      if (fields[DRAW_NAME]) fields[DRAW_NAME].style.display = checked ? NONE : '';
+      if (fields[STRUCTURE_NAME]) fields[STRUCTURE_NAME].style.display = checked ? '' : NONE;
+      if (fields[QUALIFIERS_COUNT]) fields[QUALIFIERS_COUNT].style.display = checked ? NONE : '';
+      if (fields[QUALIFYING_POSITIONS]) fields[QUALIFYING_POSITIONS].style.display = checked ? '' : NONE;
+      if (fields[SEEDING_POLICY]) fields[SEEDING_POLICY].style.display = checked ? NONE : '';
+    }
+
+    // Update draw type options to qualifying-appropriate subset
+    const drawTypeSelect = inputs[DRAW_TYPE];
+    const currentDrawType = drawTypeSelect.value;
+    removeAllChildNodes(drawTypeSelect);
+    renderOptions(drawTypeSelect, { options: getDrawTypeOptions({ isQualifying: checked }) });
+    // Restore previous value if still available, otherwise default to first option
+    const hasOption = Array.from(drawTypeSelect.options).some((o: any) => o.value === currentDrawType);
+    if (hasOption) drawTypeSelect.value = currentDrawType;
+
+    // Re-derive draw size from qualifying or main entries
+    const entryStage = checked ? QUALIFYING : MAIN;
+    const entriesCount = acceptedEntriesCount({ drawId, event, stage: entryStage });
+    inputs[DRAW_SIZE].value = checked ? entriesCount || 16 : tools.nextPowerOf2(entriesCount);
+
+    checkCreationMethod({ fields, inputs });
+  };
+
   return [
     {
       onInput: ({ inputs }: FormInteractionParams) => structureNameChange({ inputs, name: DRAW_NAME }),
@@ -341,5 +387,14 @@ export function getDrawFormRelationships({
       onInput: qualifiersCountChange,
       control: QUALIFIERS_COUNT,
     },
+    // QUALIFYING_FIRST checkbox only exists when not isQualifying, not isPopulateMain, and no existing drawId
+    ...(!isQualifying && !isPopulateMain && !drawId
+      ? [
+          {
+            onChange: qualifyingFirstChange,
+            control: QUALIFYING_FIRST,
+          },
+        ]
+      : []),
   ];
 }
