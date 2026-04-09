@@ -116,7 +116,7 @@
     "@tiptap/extension-youtube": "^3.22.2",
     "@tiptap/starter-kit": "^3.22.2",
     "animate.css": "4.1.1",
-    "axios": "1.14.0",
+    "axios": "1.15.0",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
     "courthive-components": "link:../courthive-components",
