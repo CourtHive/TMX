@@ -52,8 +52,10 @@ export function importTournaments({ table }: { table: any }): void {
     return;
   }
 
-  (dropzoneModal as any)({
+  dropzoneModal({
     callback: (data: string) => processImportData(data, tournamentIds, table),
+    extensions: ['json'],
+    accept: 'application/json',
   });
 }
 

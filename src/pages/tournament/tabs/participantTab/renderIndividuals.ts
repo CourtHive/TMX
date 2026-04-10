@@ -26,6 +26,7 @@ import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { participantConstants } from 'tods-competition-factory';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
+import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
 import { providerConfig } from 'config/providerConfig';
 import { featureFlags } from 'config/featureFlags';
@@ -150,6 +151,12 @@ export function renderIndividuals({ view }: { view: string }): void {
       hide: !featureFlags.get().googleSheetsImport || !providerConfig.isAllowed('canImportParticipants'),
       label: t('pages.participants.importGoogleSheet'),
       onClick: editRegistrationLink,
+      close: true,
+    },
+    {
+      hide: !providerConfig.isAllowed('canImportParticipants'),
+      label: t('pages.participants.importFromCsv'),
+      onClick: () => importPlayersCsv({ callback: replaceTableData }),
       close: true,
     },
     {

@@ -1,6 +1,13 @@
 /**
  * Dropzone modal for file upload with drag-and-drop.
- * Accepts JSON and CSV files with FileReader processing and callback support.
+ *
+ * Now caller-configurable: callers pass the allowed file extensions, the
+ * `<input accept>` attribute, and the modal title / instruction strings so
+ * the same modal serves multiple flows (tournament JSON import, participant
+ * CSV/TSV import, etc.).
+ *
+ * Defaults preserve the historical behavior — the participant import callsite
+ * passes its own options.
  */
 import { closeModal, openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
@@ -8,14 +15,31 @@ import { t } from 'i18n';
 
 import 'styles/dropzone.css';
 
+export type DropzoneModalOptions = {
+  callback?: (data: string) => void;
+  autoClose?: boolean;
+  extensions?: string[];
+  accept?: string;
+  title?: string;
+  instruction?: string;
+};
+
+const DEFAULT_EXTENSIONS = ['csv', 'tsv', 'json'];
+
 export function dropzoneModal({
   callback,
   autoClose = true,
-}: { callback?: (data: string) => void; autoClose?: boolean } = {}): void {
-  const loadFile = async (file: File) => {
-    const ending = file.name.split('.').reverse()[0];
+  extensions = DEFAULT_EXTENSIONS,
+  accept = '',
+  title,
+  instruction,
+}: DropzoneModalOptions = {}): void {
+  const allowedExtensions = new Set(extensions.map((ext) => ext.toLowerCase()));
 
-    if (['csv', 'json'].includes(ending)) {
+  const loadFile = async (file: File) => {
+    const ending = file.name.split('.').at(-1)?.toLowerCase() ?? '';
+
+    if (allowedExtensions.has(ending)) {
       try {
         const fileContent = await file.text();
         if (!fileContent.length) return;
@@ -38,18 +62,18 @@ export function dropzoneModal({
 
   const label = document.createElement('label');
   label.className = 'dzx-inputLabel';
-  label.innerHTML = t('phrases.draganddrop');
+  label.innerHTML = instruction ?? t('phrases.draganddrop');
 
   const dropzone_input = document.createElement('input');
   dropzone_input.className = 'dzx-input';
   dropzone_input.setAttribute('type', 'file');
-  dropzone_input.setAttribute('accept', 'application/json');
+  if (accept) dropzone_input.setAttribute('accept', accept);
   label.appendChild(dropzone_input);
   dropzone.appendChild(label);
 
   openModal({
     buttons: [{ label: t('common.cancel'), intent: 'none', close: true }, { label: t('actions.done') }],
-    title: t('modals.dropzone.title'),
+    title: title ?? t('modals.dropzone.title'),
     content: dropzone,
   });
 

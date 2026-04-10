@@ -1741,6 +1741,7 @@
       "editWTID": "Edit WTID",
       "generateMock": "Generate mock participants",
       "importGoogleSheet": "Import from Google sheet",
+      "importFromCsv": "Import from CSV/TSV",
       "newParticipant": "New participant",
       "editParticipant": {
         "newParticipantTitle": "New participant",
