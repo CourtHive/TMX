@@ -6,6 +6,8 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openPDF } from 'services/pdf/export/pdfExport';
 
+const IS_WARNING = 'is-warning';
+
 interface PrintCourtCardParams {
   courtId: string;
   courtName?: string;
@@ -24,7 +26,7 @@ export function printCourtCard({ courtId, scheduledDate }: PrintCourtCardParams)
 
   const cards = extractCourtCardData({ matchUps: courtMatchUps, venues });
   if (!cards.length) {
-    tmxToast({ message: 'No scheduled matches on this court', intent: 'is-warning' });
+    tmxToast({ message: 'No scheduled matches on this court', intent: IS_WARNING });
     return;
   }
 
@@ -40,7 +42,7 @@ export function printAllCourtCards({ scheduledDate }: { scheduledDate?: string }
 
   const cards = extractCourtCardData({ matchUps, venues, scheduledDate });
   if (!cards.length) {
-    tmxToast({ message: 'No matches scheduled on courts', intent: 'is-warning' });
+    tmxToast({ message: 'No matches scheduled on courts', intent: IS_WARNING });
     return;
   }
 
@@ -66,7 +68,7 @@ export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
   const cards = extractCourtCardData({ matchUps: scheduledMatchUps, venues });
 
   if (!cards.length) {
-    tmxToast({ message: 'No matches in this round are assigned to courts', intent: 'is-warning' });
+    tmxToast({ message: 'No matches in this round are assigned to courts', intent: IS_WARNING });
     return;
   }
 

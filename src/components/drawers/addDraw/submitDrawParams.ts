@@ -75,6 +75,8 @@ const { POLICY_TYPE_SEEDING } = policyConstants;
 // Seeding policy constants
 const INHERIT = 'INHERIT';
 
+const IS_WARNING = 'is-warning';
+
 // Seeding policy definitions matching factory defaults
 const POLICY_SEEDING_DEFAULT = {
   [POLICY_TYPE_SEEDING]: {
@@ -117,6 +119,105 @@ const POLICY_SEEDING_ITF = {
     ],
   },
 };
+
+/**
+ * Apply draw-type-specific options into the in-progress drawOptions object.
+ * Currently handles the AD_HOC (with optional DrawMatic configuration) and
+ * SWISS branches; other draw types pass through unchanged.
+ */
+function applyDrawTypeOptions({
+  drawOptions,
+  drawType,
+  isDrawMatic,
+  inputs,
+}: {
+  drawOptions: any;
+  drawType: string;
+  isDrawMatic: boolean;
+  inputs: any;
+}): void {
+  if (drawType === AD_HOC) {
+    if (isDrawMatic) {
+      const roundsCount = Number.parseInt(inputs[ROUNDS_COUNT]?.value) || 1;
+      const selectedScale = inputs[RATING_SCALE]?.value || '';
+      const dynamicRatings = inputs[DYNAMIC_RATINGS]?.checked || false;
+      const teamAvoidance = inputs[TEAM_AVOIDANCE]?.checked || false;
+      Object.assign(drawOptions, {
+        automated: true,
+        roundsCount,
+        drawMatic: {
+          dynamicRatings,
+          convertToELO: dynamicRatings,
+          ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
+          ...(teamAvoidance === false && { sameTeamValue: 0 }),
+        },
+      });
+    } else {
+      Object.assign(drawOptions, { roundsCount: 1 });
+    }
+    return;
+  }
+
+  if (drawType === SWISS) {
+    const selectedScale = inputs[RATING_SCALE]?.value || '';
+    Object.assign(drawOptions, {
+      automated: false,
+      ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
+    });
+  }
+}
+
+/**
+ * Wrap a draw-creation callback so that, after a qualifying-first draw is
+ * generated, the qualifying-stage entries are auto-positioned in the new
+ * qualifying structure before the original callback fires.
+ *
+ * Returns the original callback unchanged when qualifying-first auto-positioning
+ * doesn't apply (no auto-positioning or no qualifying-first flag).
+ */
+function buildQualifyingFirstCallback(
+  isQualifyingFirst: boolean,
+  automated: any,
+  callback?: (result: any) => void,
+): ((result: any) => void) | undefined {
+  if (!isQualifyingFirst || !automated) return callback;
+
+  return (result: any) => {
+    const qualifyingStructureId = result.drawDefinition?.structures?.find(
+      (s: any) => s.stage === QUALIFYING,
+    )?.structureId;
+    const generatedDrawId = result.drawDefinition?.drawId;
+
+    if (qualifyingStructureId && generatedDrawId) {
+      const positionResult = tournamentEngine.automatedPositioning({
+        structureId: qualifyingStructureId,
+        applyPositioning: false,
+        drawId: generatedDrawId,
+      });
+      if (positionResult.success && positionResult.positionAssignments?.length) {
+        mutationRequest({
+          methods: [
+            {
+              method: SET_POSITION_ASSIGNMENTS,
+              params: {
+                structurePositionAssignments: [
+                  { structureId: qualifyingStructureId, positionAssignments: positionResult.positionAssignments },
+                ],
+                structureId: qualifyingStructureId,
+                drawId: generatedDrawId,
+              },
+            },
+          ],
+          callback: () => {
+            if (isFunction(callback)) callback(result);
+          },
+        });
+        return;
+      }
+    }
+    if (isFunction(callback)) callback(result);
+  };
+}
 
 function getPlayoffGroups(
   playoffType: string,
@@ -198,7 +299,7 @@ function validatePagePlayoff(structureOptions: any, inputs: any, groupSize: numb
   if (expectedCount !== 4) {
     tmxToast({
       message: `Page Playoff requires exactly 4 finishers (current configuration produces ${expectedCount})`,
-      intent: 'is-warning',
+      intent: IS_WARNING,
       pauseOnHover: true,
     });
     return false;
@@ -549,34 +650,7 @@ export function submitDrawParams({
   const structureOptions = getStructureOptions(drawType, inputs);
   if (structureOptions === undefined && drawType === ROUND_ROBIN_WITH_PLAYOFF) return;
 
-  if (drawType === AD_HOC) {
-    if (isDrawMatic) {
-      const roundsCount = Number.parseInt(inputs[ROUNDS_COUNT]?.value) || 1;
-      const selectedScale = inputs[RATING_SCALE]?.value || '';
-      const dynamicRatings = inputs[DYNAMIC_RATINGS]?.checked || false;
-      const teamAvoidance = inputs[TEAM_AVOIDANCE]?.checked || false;
-      Object.assign(drawOptions, {
-        automated: true,
-        roundsCount,
-        drawMatic: {
-          dynamicRatings,
-          convertToELO: dynamicRatings,
-          ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
-          ...(teamAvoidance === false && { sameTeamValue: 0 }),
-        },
-      });
-    } else {
-      Object.assign(drawOptions, { roundsCount: 1 });
-    }
-  }
-
-  if (drawType === SWISS) {
-    const selectedScale = inputs[RATING_SCALE]?.value || '';
-    Object.assign(drawOptions, {
-      automated: false,
-      ...(selectedScale && { scaleName: selectedScale.toUpperCase() }),
-    });
-  }
+  applyDrawTypeOptions({ drawOptions, drawType, isDrawMatic, inputs });
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);
 
@@ -611,7 +685,7 @@ export function submitDrawParams({
   if (!effectiveIsQualifying && !isPopulateMain && qualifiersCount && drawSize < requiredPositions) {
     tmxToast({
       message: `Draw size (${drawSize}) must be at least ${requiredPositions} (${drawEntries.length} entries + ${qualifiersCount} qualifiers)`,
-      intent: 'is-warning',
+      intent: IS_WARNING,
       pauseOnHover: true,
     });
     return;
@@ -638,49 +712,14 @@ export function submitDrawParams({
   });
 
   // Qualifying-first: wrap callback to auto-position qualifying entries after draw creation
-  const effectiveCallback = isQualifyingFirst && automated
-    ? (result: any) => {
-        const qualifyingStructureId = result.drawDefinition?.structures?.find(
-          (s: any) => s.stage === QUALIFYING,
-        )?.structureId;
-        const generatedDrawId = result.drawDefinition?.drawId;
-        if (qualifyingStructureId && generatedDrawId) {
-          const positionResult = tournamentEngine.automatedPositioning({
-            structureId: qualifyingStructureId,
-            applyPositioning: false,
-            drawId: generatedDrawId,
-          });
-          if (positionResult.success && positionResult.positionAssignments?.length) {
-            mutationRequest({
-              methods: [
-                {
-                  method: SET_POSITION_ASSIGNMENTS,
-                  params: {
-                    structurePositionAssignments: [
-                      { structureId: qualifyingStructureId, positionAssignments: positionResult.positionAssignments },
-                    ],
-                    structureId: qualifyingStructureId,
-                    drawId: generatedDrawId,
-                  },
-                },
-              ],
-              callback: () => {
-                if (isFunction(callback)) callback(result);
-              },
-            });
-            return;
-          }
-        }
-        if (isFunction(callback)) callback(result);
-      }
-    : callback;
+  const effectiveCallback = buildQualifyingFirstCallback(!!isQualifyingFirst, automated, callback);
 
   if (drawSizeInteger) {
     handleDrawGeneration({ drawOptions, tieFormatName, seedingPolicyDefinition, eventId, callback: effectiveCallback });
   } else {
     tmxToast({
       message: t('drawers.addDraw.invalidDrawSize'),
-      intent: 'is-warning',
+      intent: IS_WARNING,
       pauseOnHover: true,
     });
   }

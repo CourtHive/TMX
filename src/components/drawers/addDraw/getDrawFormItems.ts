@@ -70,28 +70,49 @@ interface DrawFormParams {
   structureId?: string;
 }
 
-export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): {
+type QualifyingState = {
+  qualifiersCount: number;
   structurePositionAssignments: any;
-  items: any[];
-} {
-  const stage = isQualifying ? QUALIFYING : MAIN;
-  const drawsCount = event.drawDefinitions?.length || 0; // need to take into consideration flightProfile.flights
-  const drawType = SINGLE_ELIMINATION;
+};
 
-  const drawDefinition = drawId && event.drawDefinitions?.find((def: any) => def.drawId === drawId);
-  const isAttachingQualifying = isQualifying && !!structureId;
-  const structurePositionAssignments =
+/**
+ * Compute the suggested qualifier count for the draw form based on the
+ * draw context (existing qualifying structure, attaching to a main draw,
+ * populating from qualifying, etc.).
+ *
+ * Extracted from `getDrawFormItems` to keep that function under the
+ * cognitive-complexity threshold; the inputs and the resolution rules
+ * stay co-located here.
+ */
+function computeQualifyingState({
+  event,
+  drawId,
+  structureId,
+  isQualifying,
+  isPopulateMain,
+}: {
+  event: any;
+  drawId?: string;
+  structureId?: string;
+  isQualifying?: boolean;
+  isPopulateMain?: boolean;
+}): QualifyingState {
+  const isAttachingQualifying = !!isQualifying && !!structureId;
+
+  const positionAssignments =
     structureId && !isAttachingQualifying
       ? tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments
       : undefined;
+
   const qualifierPositionCount = isAttachingQualifying
     ? (tournamentEngine
         .getPositionAssignments({ drawId, structureId })
         ?.positionAssignments?.filter((p: any) => p.qualifier).length ?? 0)
     : 0;
 
-  // Default qualifiers to the gap between draw size and accepted entries when qualifying entries exist
   const qualifyingEntriesExist = acceptedEntriesCount({ event, stage: QUALIFYING }) > 0;
+
+  const drawDefinition = drawId && event.drawDefinitions?.find((def: any) => def.drawId === drawId);
 
   const mainStructure =
     isQualifying || isPopulateMain
@@ -112,11 +133,10 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
     : undefined;
   const qualifyingFinalRoundMatchUpsCount =
     qualifyingSourceStructure && qualifyingLink?.source?.roundNumber
-      ? qualifyingSourceStructure.matchUps?.filter((m: any) => m.roundNumber === qualifyingLink.source.roundNumber)
-          .length ?? 0
+      ? (qualifyingSourceStructure.matchUps?.filter((m: any) => m.roundNumber === qualifyingLink.source.roundNumber)
+          .length ?? 0)
       : 0;
-  const qualifyingSpotsFromLink =
-    qualifyingLink?.source?.qualifyingPositions ?? qualifyingFinalRoundMatchUpsCount;
+  const qualifyingSpotsFromLink = qualifyingLink?.source?.qualifyingPositions ?? qualifyingFinalRoundMatchUpsCount;
   const qualifyingSpotsFromMain = qualifyingEntriesExist
     ? qualifyingSpotsFromLink || Math.max(0, mainDrawSize - mainEntryCount)
     : 0;
@@ -126,16 +146,63 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const mainDrawSizeForGap = !isQualifying ? tools.nextPowerOf2(mainAcceptedCount) : 0;
   const qualifyingSpotsFromEntries = qualifyingEntriesExist ? Math.max(0, mainDrawSizeForGap - mainAcceptedCount) : 0;
 
-  const initialQualifiersCount = isAttachingQualifying
-    ? qualifierPositionCount || qualifyingSpotsFromMain || 1
-    : isQualifying
-      ? qualifyingSpotsFromMain
-      : isPopulateMain
-        ? qualifyingSpotsFromLink
-        : structureId
-          ? 1
-          : qualifyingSpotsFromEntries;
-  const qualifiersCount = isQualifying ? initialQualifiersCount : initialQualifiersCount;
+  const qualifiersCount = resolveQualifiersCount({
+    isAttachingQualifying,
+    isQualifying,
+    isPopulateMain,
+    structureId,
+    qualifierPositionCount,
+    qualifyingSpotsFromMain,
+    qualifyingSpotsFromLink,
+    qualifyingSpotsFromEntries,
+  });
+
+  return { qualifiersCount, structurePositionAssignments: positionAssignments };
+}
+
+function resolveQualifiersCount({
+  isAttachingQualifying,
+  isQualifying,
+  isPopulateMain,
+  structureId,
+  qualifierPositionCount,
+  qualifyingSpotsFromMain,
+  qualifyingSpotsFromLink,
+  qualifyingSpotsFromEntries,
+}: {
+  isAttachingQualifying: boolean;
+  isQualifying?: boolean;
+  isPopulateMain?: boolean;
+  structureId?: string;
+  qualifierPositionCount: number;
+  qualifyingSpotsFromMain: number;
+  qualifyingSpotsFromLink: number;
+  qualifyingSpotsFromEntries: number;
+}): number {
+  if (isAttachingQualifying) return qualifierPositionCount || qualifyingSpotsFromMain || 1;
+  if (isQualifying) return qualifyingSpotsFromMain;
+  if (isPopulateMain) return qualifyingSpotsFromLink;
+  if (structureId) return 1;
+  return qualifyingSpotsFromEntries;
+}
+
+export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): {
+  structurePositionAssignments: any;
+  items: any[];
+} {
+  const stage = isQualifying ? QUALIFYING : MAIN;
+  const drawsCount = event.drawDefinitions?.length || 0; // need to take into consideration flightProfile.flights
+  const drawType = SINGLE_ELIMINATION;
+  const isAttachingQualifying = !!isQualifying && !!structureId;
+
+  const { qualifiersCount, structurePositionAssignments } = computeQualifyingState({
+    event,
+    drawId,
+    structureId,
+    isQualifying,
+    isPopulateMain,
+  });
+
   const structureName = 'Qualifying';
 
   const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;
