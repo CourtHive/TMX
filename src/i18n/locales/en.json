@@ -973,7 +973,7 @@
         "utrProfile": "UTR profile",
         "participantId": "Participant ID",
         "rating": "Rating",
-        "eventEntry": "Event entry (M4)",
+        "eventEntry": "Event entry",
         "participantName": "Participant name",
         "representing": "Representing",
         "notes": "Notes",
@@ -981,6 +981,7 @@
         "ignore": "Ignore"
       },
       "ratingAuto": "Auto-detect",
+      "eventPickerPlaceholder": "(select event…)",
       "splitNotConfigured": "(not configured)",
       "splitConfigure": "Configure split…",
       "splitDelimiterPrompt": "Delimiter to split on (sample: \"{{sample}}\")",
@@ -990,7 +991,7 @@
       "row": "Row",
       "previewHeading": "Preview (first 3 rows)",
       "previewEmpty": "No previewable participants — make sure first/last name (or full name) are mapped.",
-      "entryDefaultsHeading": "Event entry defaults (used in M4)",
+      "entryDefaultsHeading": "Event entry defaults",
       "entryStatusLabel": "Entry status",
       "entryStageLabel": "Entry stage"
     },
@@ -1440,6 +1441,7 @@
     "noConnection": "No connection",
     "offlineMustConnect": "Offline: must be connected to internet",
     "addedParticipants": "Added {{count}} participant(s)",
+    "addedEventEntries": "Entered {{entries}} into {{events}} event(s)",
     "noNewParticipants": "No new participants found",
     "tmxClassicNotConverted": "TMX Classic file not converted",
     "calendarReceived": "Calendar Received",

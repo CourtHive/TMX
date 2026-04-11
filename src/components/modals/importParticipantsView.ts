@@ -22,6 +22,7 @@
 import { commitParticipantImport } from 'services/import/commitParticipantImport';
 import { autoMapColumns } from 'services/import/autoMapColumns';
 import { parseRatingCell } from 'services/import/parseRatingCell';
+import { tournamentEngine } from 'tods-competition-factory';
 import { dedupeByEmail } from 'services/import/dedupeByEmail';
 import { openModal } from './baseModal/baseModal';
 import { hashCode } from 'functions/hashCode';
@@ -57,6 +58,8 @@ export type ImportParticipantsViewArgs = {
   callback?: (result: any) => void;
 };
 
+type TournamentEventOption = { eventId: string; eventName: string };
+
 type State = {
   headers: string[];
   rows: string[][];
@@ -65,6 +68,7 @@ type State = {
   ratingOverrides: Map<string, string>;
   entryStatus: string;
   entryStage: string;
+  events: TournamentEventOption[];
 };
 
 export function openImportParticipantsView(args: ImportParticipantsViewArgs): void {
@@ -75,6 +79,7 @@ export function openImportParticipantsView(args: ImportParticipantsViewArgs): vo
     ratingOverrides: new Map(),
     entryStatus: 'DIRECT_ACCEPTANCE',
     entryStage: 'MAIN',
+    events: loadTournamentEvents(),
   };
 
   let body: HTMLElement | undefined;
@@ -109,6 +114,8 @@ export function openImportParticipantsView(args: ImportParticipantsViewArgs): vo
       rows: finalRows,
       mapping: state.mapping,
       additionalMethods: args.additionalMethods,
+      entryStatus: state.entryStatus,
+      entryStage: state.entryStage,
       callback: args.callback,
     });
   };
@@ -209,6 +216,9 @@ function buildMappingRow(state: State, colIdx: number, headerLabel: string, refr
   if (field?.kind === 'split') {
     targetCell.appendChild(buildSplitConfigButton(state, colIdx, refresh));
   }
+  if (field?.kind === 'eventEntry') {
+    targetCell.appendChild(buildEventPickerSelect(state, colIdx, refresh));
+  }
   tr.appendChild(targetCell);
 
   return tr;
@@ -221,15 +231,16 @@ function buildTargetSelect(state: State, colIdx: number, refresh: () => void): H
   const current = state.mapping[colIdx];
   const currentKind: TargetFieldKind = current?.kind ?? 'ignore';
 
+  const noEvents = state.events.length === 0;
   for (const group of TARGET_FIELD_GROUPS) {
     const optgroup = document.createElement('optgroup');
     optgroup.label = group.label;
     for (const kind of group.fields) {
-      // Event entries are M4 — render disabled so the affordance is visible.
       const option = document.createElement('option');
       option.value = kind;
       option.textContent = t(`modals.importParticipants.target.${kind}`);
-      if (kind === 'eventEntry') option.disabled = true;
+      // Event entry requires at least one tournament event to target.
+      if (kind === 'eventEntry' && noEvents) option.disabled = true;
       if (kind === currentKind) option.selected = true;
       optgroup.appendChild(option);
     }
@@ -352,7 +363,47 @@ function buildFieldForKind(kind: TargetFieldKind, previous: TargetField | undefi
   if (kind === 'split') {
     return { kind: 'split', split: previous?.split ?? { delimiter: SPLIT_DEFAULT_DELIMITER, pieces: [] } };
   }
+  if (kind === 'eventEntry') {
+    return { kind: 'eventEntry', eventId: previous?.kind === 'eventEntry' ? previous.eventId : undefined };
+  }
   return { kind };
+}
+
+function buildEventPickerSelect(state: State, colIdx: number, refresh: () => void): HTMLElement {
+  const select = document.createElement('select');
+  select.className = 'ipv-event-picker-select';
+
+  const current = state.mapping[colIdx]?.eventId;
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = t('modals.importParticipants.eventPickerPlaceholder');
+  if (!current) placeholder.selected = true;
+  select.appendChild(placeholder);
+
+  for (const event of state.events) {
+    const option = document.createElement('option');
+    option.value = event.eventId;
+    option.textContent = event.eventName;
+    if (event.eventId === current) option.selected = true;
+    select.appendChild(option);
+  }
+
+  select.addEventListener('change', (e) => {
+    const value = (e.target as HTMLSelectElement).value;
+    state.mapping[colIdx] = { kind: 'eventEntry', eventId: value || undefined };
+    refresh();
+  });
+
+  return select;
+}
+
+function loadTournamentEvents(): TournamentEventOption[] {
+  const events = tournamentEngine.getEvents()?.events ?? [];
+  return events.map((event: any) => ({
+    eventId: event.eventId,
+    eventName: event.eventName ?? event.eventId,
+  }));
 }
 
 // ─── Unresolved ratings panel ─────────────────────────────────────────

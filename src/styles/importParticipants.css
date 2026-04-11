@@ -83,6 +83,7 @@
 
 .ipv-target-select,
 .ipv-rating-scale-select,
+.ipv-event-picker-select,
 .ipv-unresolved-select {
   font-size: 0.8rem;
   padding: 0.2rem 0.35rem;

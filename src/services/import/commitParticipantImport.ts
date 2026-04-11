@@ -4,20 +4,21 @@
  * Consumes the canonical `{ headers, rows }` shape produced by `parseDelimited`
  * (or by the Google Sheet normalizer) plus an explicit column-index → `TargetField`
  * mapping, builds TODS-shaped INDIVIDUAL participants, and dispatches them via
- * `mutationRequest` as a single `ADD_PARTICIPANTS` call.
+ * `mutationRequest`.
+ *
+ * The dispatched mutation request batches:
+ *   1. `ADD_PARTICIPANTS` — creates the new participants in one call
+ *   2. one `ADD_EVENT_ENTRIES` per mapped event-entry column — enters the
+ *      participants whose corresponding row had a non-empty cell in that
+ *      column. Fires with `enforceCategory: false, enforceGender: false`
+ *      so a category/gender mismatch surfaces in the result context as a
+ *      warning rather than aborting the whole import.
+ *   3. any `additionalMethods` provided by the caller (the Google Sheet
+ *      flow chains a `ADD_TOURNAMENT_EXTENSION` write to record the sheet ID)
  *
  * Validation is best-effort (Decision E from the import-enhancement plan): when a
  * field can't be parsed, the field is dropped, the row still imports, and the
  * caller receives a `warnings` array describing what was skipped and why.
- *
- * Event-entry mapping (`{ kind: 'eventEntry', eventId }`) is recognized here but
- * not yet committed — Milestone 4 wires up the post-`ADD_PARTICIPANTS` event-entry
- * dispatch. For now the column is silently ignored at commit time so the rest of
- * the row still imports cleanly.
- *
- * Additional mutation methods may be passed via `additionalMethods` so callers
- * (e.g. the Google Sheet flow) can chain a `ADD_TOURNAMENT_EXTENSION` write into
- * the same mutation request.
  */
 
 import { fixtures, tools, tournamentEngine } from 'tods-competition-factory';
@@ -31,7 +32,7 @@ import { t } from 'i18n';
 
 // constants and types
 import { TargetField, TargetFieldKind } from './participantFieldModel';
-import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
+import { ADD_EVENT_ENTRIES, ADD_PARTICIPANTS } from 'constants/mutationConstants';
 
 export type ImportRowWarning = {
   rowIndex: number;
@@ -45,7 +46,16 @@ export type CommitImportArgs = {
   rows: string[][];
   mapping: Record<number, TargetField>;
   additionalMethods?: any[];
+  /** Default `entryStatus` applied to every event-entry column in this import. */
+  entryStatus?: string;
+  /** Default `entryStage` applied to every event-entry column in this import. */
+  entryStage?: string;
   callback?: (result: any) => void;
+};
+
+export type EventEntryDispatch = {
+  eventId: string;
+  participantIds: string[];
 };
 
 export type CommitImportResult = {
@@ -53,6 +63,7 @@ export type CommitImportResult = {
   addedCount: number;
   warnings: ImportRowWarning[];
   mergeCount: number;
+  eventEntries: EventEntryDispatch[];
   raw?: any;
 };
 
@@ -68,6 +79,8 @@ export function commitParticipantImport({
   rows,
   mapping,
   additionalMethods = [],
+  entryStatus = 'DIRECT_ACCEPTANCE',
+  entryStage = 'MAIN',
   callback,
 }: CommitImportArgs): void {
   void headers; // headers are reserved for future preview / debug surfaces
@@ -84,34 +97,55 @@ export function commitParticipantImport({
 
   const warnings: ImportRowWarning[] = [];
   const participants: any[] = [];
+  // rowIdx → participantId — populated for every row that yielded a valid
+  // participant draft, including rows whose participantId already exists in
+  // the tournament (so subsequent re-imports can add them to new events).
+  const rowParticipantIds = new Map<number, string>();
 
   for (let r = 0; r < mergedRows.length; r++) {
     const built = buildParticipantFromRow(mergedRows[r], mapping, validNationalityCodes, r, warnings);
-    if (built && !existingIds.has(built.participantId)) {
+    if (!built) continue;
+    rowParticipantIds.set(r, built.participantId);
+    if (!existingIds.has(built.participantId)) {
       participants.push(tools.definedAttributes(built));
       existingIds.add(built.participantId);
     }
   }
 
-  if (!participants.length) {
+  const eventEntries = buildEventEntryDispatch(mergedRows, mapping, rowParticipantIds);
+
+  if (!participants.length && !eventEntries.length) {
     tmxToast({ message: t('toasts.noNewParticipants'), intent: 'is-primary' });
     if (isFunction(callback)) {
-      callback({ success: false, addedCount: 0, warnings, mergeCount });
+      callback({ success: false, addedCount: 0, warnings, mergeCount, eventEntries: [] });
     }
     return;
   }
 
-  const methods = [{ method: ADD_PARTICIPANTS, params: { participants } }, ...additionalMethods];
+  const methods: any[] = [];
+  if (participants.length) methods.push({ method: ADD_PARTICIPANTS, params: { participants } });
+  for (const dispatch of eventEntries) {
+    methods.push({
+      method: ADD_EVENT_ENTRIES,
+      params: {
+        eventId: dispatch.eventId,
+        participantIds: dispatch.participantIds,
+        entryStatus,
+        entryStage,
+        enforceCategory: false,
+        enforceGender: false,
+      },
+    });
+  }
+  methods.push(...additionalMethods);
 
   mutationRequest({
     methods,
     callback: (result: any) => {
       const addedCount = result?.results?.[0]?.addedCount ?? participants.length;
       if (result?.success) {
-        tmxToast({
-          message: t('toasts.addedParticipants', { count: addedCount }),
-          intent: 'is-success',
-        });
+        const message = buildSuccessMessage(addedCount, eventEntries);
+        tmxToast({ message, intent: 'is-success' });
       } else {
         console.error('participant import failed', result);
       }
@@ -121,12 +155,44 @@ export function commitParticipantImport({
           addedCount,
           warnings,
           mergeCount,
+          eventEntries,
           raw: result,
         };
         callback(finalResult);
       }
     },
   });
+}
+
+function buildEventEntryDispatch(
+  rows: string[][],
+  mapping: Record<number, TargetField>,
+  rowParticipantIds: Map<number, string>,
+): EventEntryDispatch[] {
+  const grouped = new Map<string, string[]>();
+  for (const [key, field] of Object.entries(mapping)) {
+    if (field?.kind !== 'eventEntry' || !field.eventId) continue;
+    const colIdx = Number(key);
+    for (let r = 0; r < rows.length; r++) {
+      const cell = rows[r]?.[colIdx];
+      if (cell == null || String(cell).trim() === '') continue;
+      const participantId = rowParticipantIds.get(r);
+      if (!participantId) continue;
+      const list = grouped.get(field.eventId) ?? [];
+      if (!list.includes(participantId)) list.push(participantId);
+      grouped.set(field.eventId, list);
+    }
+  }
+  return Array.from(grouped.entries()).map(([eventId, participantIds]) => ({ eventId, participantIds }));
+}
+
+function buildSuccessMessage(addedCount: number, eventEntries: EventEntryDispatch[]): string {
+  const participantsMsg = t('toasts.addedParticipants', { count: addedCount });
+  if (!eventEntries.length) return participantsMsg;
+  const entriesTotal = eventEntries.reduce((sum, e) => sum + e.participantIds.length, 0);
+  const eventsCount = eventEntries.length;
+  const entriesMsg = t('toasts.addedEventEntries', { entries: entriesTotal, events: eventsCount });
+  return `${participantsMsg}. ${entriesMsg}`;
 }
 
 function findColumnByKind(mapping: Record<number, TargetField>, kind: TargetFieldKind): number | undefined {
