@@ -142,8 +142,8 @@ function computeQualifyingState({
     : 0;
 
   // For new MAIN draws: compute gap from the draw size we'll use
-  const mainAcceptedCount = !isQualifying ? acceptedEntriesCount({ drawId, event, stage: MAIN }) : 0;
-  const mainDrawSizeForGap = !isQualifying ? tools.nextPowerOf2(mainAcceptedCount) : 0;
+  const mainAcceptedCount = isQualifying ? 0 : acceptedEntriesCount({ drawId, event, stage: MAIN });
+  const mainDrawSizeForGap = isQualifying ? 0 : tools.nextPowerOf2(mainAcceptedCount);
   const qualifyingSpotsFromEntries = qualifyingEntriesExist ? Math.max(0, mainDrawSizeForGap - mainAcceptedCount) : 0;
 
   const qualifiersCount = resolveQualifiersCount({
@@ -291,7 +291,7 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
   const presentRatings = new Set<string>();
   for (const p of allParticipants) {
-    for (const item of (p as any).ratings?.[SINGLES] || []) {
+    for (const item of p.ratings?.[SINGLES] || []) {
       presentRatings.add(item.scaleName);
     }
   }
