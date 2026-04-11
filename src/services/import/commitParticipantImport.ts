@@ -6,6 +6,15 @@
  * mapping, builds TODS-shaped INDIVIDUAL participants, and dispatches them via
  * `mutationRequest`.
  *
+ * The flow is **parse first, merge after** — every input row is parsed to a
+ * participant draft independently, then drafts that share an email address are
+ * merged per-field via `mergeParticipantDrafts`. This is critical for handling
+ * registration forms where a person submits multiple times: a later submission
+ * with placeholder text in some columns (e.g. "TBD" in a combined "City / State"
+ * column) cannot erase fields that an earlier, fuller submission successfully
+ * parsed. Merging raw cell strings before parsing — the previous approach —
+ * would silently drop the parsed state in that scenario.
+ *
  * The dispatched mutation request batches:
  *   1. `ADD_PARTICIPANTS` — creates the new participants in one call
  *   2. one `ADD_EVENT_ENTRIES` per mapped event-entry column — enters the
@@ -22,17 +31,17 @@
  */
 
 import { fixtures, tools, tournamentEngine } from 'tods-competition-factory';
+import { mergeParticipantDrafts } from './mergeParticipantDrafts';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { parseRatingCell } from './parseRatingCell';
-import { dedupeByEmail } from './dedupeByEmail';
 import { isFunction } from 'functions/typeOf';
 import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';
 
 // constants and types
 import { TargetField, TargetFieldKind } from './participantFieldModel';
-import { ADD_EVENT_ENTRIES, ADD_PARTICIPANTS } from 'constants/mutationConstants';
+import { ADD_EVENT_ENTRIES, ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 
 export type ImportRowWarning = {
   rowIndex: number;
@@ -40,6 +49,9 @@ export type ImportRowWarning = {
   originalValue: string;
   reason: string;
 };
+
+/** Identifier-like target kinds the user can pick for grouping duplicate rows. */
+export type DedupeKey = 'email' | 'phone' | 'mobilePhone' | 'tennisId' | 'ustaId' | 'itfId' | 'participantId';
 
 export type CommitImportArgs = {
   headers: string[];
@@ -50,6 +62,19 @@ export type CommitImportArgs = {
   entryStatus?: string;
   /** Default `entryStage` applied to every event-entry column in this import. */
   entryStage?: string;
+  /**
+   * Identifier kind used to group rows that represent the same person.
+   * `null` disables grouping entirely — every parsed row becomes its own participant.
+   * Defaults to `'email'` to preserve historical behavior.
+   */
+  dedupeKey?: DedupeKey | null;
+  /**
+   * When true, drafts whose `participantId` already exists in the tournament
+   * are dispatched as `MODIFY_PARTICIPANT` instead of being skipped, so the
+   * existing record is updated per-field with new data. Default `false` —
+   * the safe behavior is to leave existing participants alone on re-import.
+   */
+  updateExisting?: boolean;
   callback?: (result: any) => void;
 };
 
@@ -81,40 +106,34 @@ export function commitParticipantImport({
   additionalMethods = [],
   entryStatus = 'DIRECT_ACCEPTANCE',
   entryStage = 'MAIN',
+  dedupeKey = 'email',
+  updateExisting = false,
   callback,
 }: CommitImportArgs): void {
   void headers; // headers are reserved for future preview / debug surfaces
-
-  const emailColumnIndex = findColumnByKind(mapping, 'email');
-  const { mergedRows, mergeCount } = dedupeByEmail(rows, emailColumnIndex);
 
   const validNationalityCodes = new Set<string>(
     fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean),
   );
 
   const existingParticipants = tournamentEngine.getParticipants().participants ?? [];
-  const existingIds = new Set(existingParticipants.map(({ participantId }: any) => participantId));
+  const existingIds = new Set<string>(existingParticipants.map(({ participantId }: any) => participantId));
 
   const warnings: ImportRowWarning[] = [];
-  const participants: any[] = [];
-  // rowIdx → participantId — populated for every row that yielded a valid
-  // participant draft, including rows whose participantId already exists in
-  // the tournament (so subsequent re-imports can add them to new events).
-  const rowParticipantIds = new Map<number, string>();
 
-  for (let r = 0; r < mergedRows.length; r++) {
-    const built = buildParticipantFromRow(mergedRows[r], mapping, validNationalityCodes, r, warnings);
-    if (!built) continue;
-    rowParticipantIds.set(r, built.participantId);
-    if (!existingIds.has(built.participantId)) {
-      participants.push(tools.definedAttributes(built));
-      existingIds.add(built.participantId);
-    }
-  }
+  const { participants, updates, mergeCount, rowParticipantIds } = parseGroupAndResolve({
+    rows,
+    mapping,
+    validNationalityCodes,
+    dedupeKey,
+    updateExisting,
+    existingIds,
+    warnings,
+  });
 
-  const eventEntries = buildEventEntryDispatch(mergedRows, mapping, rowParticipantIds);
+  const eventEntries = buildEventEntryDispatch(rows, mapping, rowParticipantIds);
 
-  if (!participants.length && !eventEntries.length) {
+  if (!participants.length && !updates.length && !eventEntries.length) {
     tmxToast({ message: t('toasts.noNewParticipants'), intent: 'is-primary' });
     if (isFunction(callback)) {
       callback({ success: false, addedCount: 0, warnings, mergeCount, eventEntries: [] });
@@ -124,6 +143,9 @@ export function commitParticipantImport({
 
   const methods: any[] = [];
   if (participants.length) methods.push({ method: ADD_PARTICIPANTS, params: { participants } });
+  for (const participant of updates) {
+    methods.push({ method: MODIFY_PARTICIPANT, params: { participant } });
+  }
   for (const dispatch of eventEntries) {
     methods.push({
       method: ADD_EVENT_ENTRIES,
@@ -143,8 +165,9 @@ export function commitParticipantImport({
     methods,
     callback: (result: any) => {
       const addedCount = result?.results?.[0]?.addedCount ?? participants.length;
+      const updatedCount = updates.length;
       if (result?.success) {
-        const message = buildSuccessMessage(addedCount, eventEntries);
+        const message = buildSuccessMessage(addedCount, updatedCount, eventEntries);
         tmxToast({ message, intent: 'is-success' });
       } else {
         console.error('participant import failed', result);
@@ -186,20 +209,168 @@ function buildEventEntryDispatch(
   return Array.from(grouped.entries()).map(([eventId, participantIds]) => ({ eventId, participantIds }));
 }
 
-function buildSuccessMessage(addedCount: number, eventEntries: EventEntryDispatch[]): string {
-  const participantsMsg = t('toasts.addedParticipants', { count: addedCount });
-  if (!eventEntries.length) return participantsMsg;
-  const entriesTotal = eventEntries.reduce((sum, e) => sum + e.participantIds.length, 0);
-  const eventsCount = eventEntries.length;
-  const entriesMsg = t('toasts.addedEventEntries', { entries: entriesTotal, events: eventsCount });
-  return `${participantsMsg}. ${entriesMsg}`;
+function buildSuccessMessage(
+  addedCount: number,
+  updatedCount: number,
+  eventEntries: EventEntryDispatch[],
+): string {
+  const parts: string[] = [];
+  if (addedCount > 0) parts.push(t('toasts.addedParticipants', { count: addedCount }));
+  if (updatedCount > 0) parts.push(t('toasts.updatedParticipants', { count: updatedCount }));
+  if (eventEntries.length) {
+    const entriesTotal = eventEntries.reduce((sum, e) => sum + e.participantIds.length, 0);
+    parts.push(t('toasts.addedEventEntries', { entries: entriesTotal, events: eventEntries.length }));
+  }
+  return parts.join('. ');
 }
 
-function findColumnByKind(mapping: Record<number, TargetField>, kind: TargetFieldKind): number | undefined {
-  for (const [key, field] of Object.entries(mapping)) {
-    if (field?.kind === kind) return Number(key);
+type ResolvedDrafts = {
+  participants: any[];
+  updates: any[];
+  mergeCount: number;
+  rowParticipantIds: Map<number, string>;
+};
+
+/**
+ * Parse → group → merge → resolve-against-existing pipeline. Extracted from
+ * `commitParticipantImport` to keep that function under the cognitive-complexity
+ * threshold; this helper owns every per-row decision and returns ready-to-dispatch
+ * lists for the mutation request builder.
+ */
+function parseGroupAndResolve({
+  rows,
+  mapping,
+  validNationalityCodes,
+  dedupeKey,
+  updateExisting,
+  existingIds,
+  warnings,
+}: {
+  rows: string[][];
+  mapping: Record<number, TargetField>;
+  validNationalityCodes: Set<string>;
+  dedupeKey: DedupeKey | null;
+  updateExisting: boolean;
+  existingIds: Set<string>;
+  warnings: ImportRowWarning[];
+}): ResolvedDrafts {
+  // Phase 1 — parse every input row into a participant draft independently.
+  const rowDrafts: Array<{ rowIdx: number; draft: any; groupKey: string }> = [];
+  for (let r = 0; r < rows.length; r++) {
+    const built = buildParticipantFromRow(rows[r], mapping, validNationalityCodes, r, warnings);
+    if (!built) continue;
+    rowDrafts.push({ rowIdx: r, draft: built, groupKey: computeDedupeGroupKey(built, dedupeKey, r) });
   }
-  return undefined;
+
+  // Phase 2 — group drafts by the chosen identifier (or unique sentinel when
+  // dedupeKey is null) and merge each group per-field.
+  const groups = new Map<string, typeof rowDrafts>();
+  const groupOrder: string[] = [];
+  for (const item of rowDrafts) {
+    if (!groups.has(item.groupKey)) {
+      groups.set(item.groupKey, []);
+      groupOrder.push(item.groupKey);
+    }
+    groups.get(item.groupKey)!.push(item);
+  }
+
+  const participants: any[] = [];
+  const updates: any[] = [];
+  const rowParticipantIds = new Map<number, string>();
+  let mergeCount = 0;
+
+  for (const key of groupOrder) {
+    const group = groups.get(key)!;
+    const mergedDraft = group.length === 1 ? group[0].draft : mergeParticipantDrafts(group.map((g) => g.draft));
+    if (!mergedDraft) continue;
+    if (group.length > 1) mergeCount += group.length - 1;
+
+    // ParticipantId resolution:
+    //   - Single-row groups (or no-merge mode) keep the per-row ID computed in
+    //     `buildParticipantFromRow`, which already honors any column the user
+    //     mapped to `participantId` (hashed via `XXX-${hashCode(...)}`).
+    //   - Multi-row merged groups need a single deterministic ID; recompute it
+    //     from the merged participantName so it stays stable across re-imports
+    //     even though the merger drops the per-draft IDs.
+    const finalParticipantId =
+      group.length === 1 && group[0].draft.participantId
+        ? group[0].draft.participantId
+        : `XXX-${hashCode(mergedDraft.participantName)}`;
+    mergedDraft.participantId = finalParticipantId;
+
+    for (const item of group) rowParticipantIds.set(item.rowIdx, finalParticipantId);
+
+    routeDraft({ mergedDraft, finalParticipantId, existingIds, updateExisting, participants, updates });
+  }
+
+  return { participants, updates, mergeCount, rowParticipantIds };
+}
+
+function routeDraft({
+  mergedDraft,
+  finalParticipantId,
+  existingIds,
+  updateExisting,
+  participants,
+  updates,
+}: {
+  mergedDraft: any;
+  finalParticipantId: string;
+  existingIds: Set<string>;
+  updateExisting: boolean;
+  participants: any[];
+  updates: any[];
+}): void {
+  if (existingIds.has(finalParticipantId)) {
+    if (updateExisting) updates.push(tools.definedAttributes(mergedDraft));
+    return;
+  }
+  participants.push(tools.definedAttributes(mergedDraft));
+  existingIds.add(finalParticipantId);
+}
+
+/**
+ * Resolves the duplicate-detection group key for a parsed draft.
+ *
+ * Returns a normalized (lowercased + trimmed) string for the chosen identifier
+ * field, or a per-row unique sentinel when grouping is disabled (`dedupeKey: null`)
+ * or the draft has no value for the chosen field. The sentinel ensures rows
+ * without an identifier always end up in their own group instead of being merged
+ * together under a shared empty key.
+ */
+function computeDedupeGroupKey(draft: any, dedupeKey: DedupeKey | null, rowIdx: number): string {
+  if (dedupeKey == null) return `__no_merge_${rowIdx}__`;
+  const raw = readDedupeValue(draft, dedupeKey);
+  if (!raw) return `__no_${dedupeKey}_${rowIdx}__`;
+  return String(raw).trim().toLowerCase();
+}
+
+function readDedupeValue(draft: any, dedupeKey: DedupeKey): string | undefined {
+  switch (dedupeKey) {
+    case 'email':
+      return draft.person?.contacts?.[0]?.emailAddress;
+    case 'phone':
+      return draft.person?.contacts?.[0]?.telephone;
+    case 'mobilePhone':
+      return draft.person?.contacts?.[0]?.mobileTelephone;
+    case 'tennisId':
+      return draft.person?.tennisId;
+    case 'ustaId':
+      return findOtherId(draft, 'USTA');
+    case 'itfId':
+      return findOtherId(draft, 'ITF');
+    case 'participantId':
+      return draft.participantId;
+    default:
+      return undefined;
+  }
+}
+
+function findOtherId(draft: any, organisationName: string): string | undefined {
+  const ids = draft.person?.personOtherIds;
+  if (!Array.isArray(ids)) return undefined;
+  const match = ids.find((id: any) => id?.uniqueOrganisationName === organisationName);
+  return match?.personId;
 }
 
 type ParsedRow = {
@@ -231,8 +402,13 @@ function buildParticipantFromRow(
   applyMisc(participant, collected, validNationalityCodes, rowIndex, warnings);
   applyRatings(participant, ratingItems);
 
-  participant.participantId =
-    collected.participantId || `XXX-${hashCode(participant.participantName)}`;
+  // ParticipantId source: when a column is mapped to `participantId`, hash that
+  // column's value (so e.g. "Submission ID" or any unique-per-row column gives
+  // each row a distinct, deterministic ID). Otherwise fall back to hashing the
+  // participant's display name. The post-merge step in commitParticipantImport
+  // recomputes the ID from the merged identity, so this per-row ID is provisional.
+  const idSource = collected.participantId || participant.participantName;
+  participant.participantId = `XXX-${hashCode(idSource)}`;
 
   return participant;
 }

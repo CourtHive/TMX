@@ -1,10 +1,18 @@
+/* All colors come from --tmx-* variables defined in theme.css so the modal
+ * adapts to light and dark themes automatically. Do not introduce hardcoded
+ * fallbacks — that masks missing variables. */
+
 .import-participants-view {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   font-size: 0.85rem;
+  color: var(--tmx-text-primary);
+  /* Constrain the whole panel so the modal stays inside the viewport. */
   max-height: 70vh;
-  overflow-y: auto;
+  overflow: hidden;
+  /* Allow children to shrink so the inner scroll containers actually scroll. */
+  min-height: 0;
 }
 
 .ipv-summary {
@@ -12,49 +20,65 @@
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.5rem 0.75rem;
-  background: var(--surface-2, #f5f5f5);
+  background: var(--tmx-bg-secondary);
+  color: var(--tmx-text-primary);
+  border: 1px solid var(--tmx-border-secondary);
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .ipv-summary-merge {
   font-size: 0.8rem;
-  color: var(--text-muted, #666);
+  color: var(--tmx-text-muted);
 }
 
 .ipv-section-heading {
   margin: 0.5rem 0 0.25rem 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-strong, #222);
+  color: var(--tmx-text-primary);
 }
 
+/* The mapping table is the tall element — it owns the scroll. */
 .ipv-mapping-wrap {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--tmx-border-primary);
   border-radius: 4px;
-  overflow: hidden;
+  background: var(--tmx-bg-elevated);
+  /* Inner scroll container — bounded so even with 100+ columns the modal
+   * stays viewport-sized. */
+  max-height: 32vh;
+  overflow-y: auto;
+  flex-shrink: 1;
+  min-height: 0;
 }
 
 .ipv-mapping-table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
 }
 
 .ipv-mapping-table thead th {
-  background: var(--surface-2, #f5f5f5);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--tmx-bg-secondary);
   text-align: left;
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #555);
+  color: var(--tmx-text-secondary);
   padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid var(--border, #ddd);
+  border-bottom: 1px solid var(--tmx-border-primary);
 }
 
 .ipv-mapping-row td {
   padding: 0.35rem 0.6rem;
-  border-bottom: 1px solid var(--border, #eee);
+  border-bottom: 1px solid var(--tmx-border-secondary);
   vertical-align: middle;
+  color: var(--tmx-text-primary);
 }
 
 .ipv-mapping-row:last-child td {
@@ -67,8 +91,8 @@
 }
 
 .ipv-sample-cell {
-  font-family: var(--font-monospace, monospace);
-  color: var(--text-muted, #666);
+  font-family: Menlo, Monaco, Consolas, monospace;
+  color: var(--tmx-text-secondary);
   width: 30%;
   word-break: break-word;
 }
@@ -81,42 +105,113 @@
   flex-wrap: wrap;
 }
 
+/* Theme-aware form controls. The native <select> + <button> defaults
+ * pull from the OS, which doesn't follow our theme — so set every
+ * surface explicitly. */
 .ipv-target-select,
 .ipv-rating-scale-select,
 .ipv-event-picker-select,
 .ipv-unresolved-select {
   font-size: 0.8rem;
   padding: 0.2rem 0.35rem;
-  border: 1px solid var(--border, #ccc);
+  border: 1px solid var(--tmx-border-primary);
   border-radius: 3px;
-  background: var(--surface, #fff);
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
 }
 
-.ipv-split-config {
-  display: inline-flex;
+.ipv-target-select:focus,
+.ipv-rating-scale-select:focus,
+.ipv-event-picker-select:focus,
+.ipv-unresolved-select:focus {
+  outline: none;
+  border-color: var(--tmx-border-focus);
+}
+
+.ipv-split-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  margin-top: 0.25rem;
+  background: var(--tmx-bg-secondary);
+  border: 1px solid var(--tmx-border-secondary);
+  border-radius: 3px;
+  color: var(--tmx-text-primary);
+}
+
+.ipv-split-delimiter-row {
+  display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--tmx-text-secondary);
+}
+
+.ipv-split-delimiter-input {
+  font-family: Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 3px;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+  min-width: 3rem;
+}
+
+.ipv-split-delimiter-input:focus {
+  outline: none;
+  border-color: var(--tmx-border-focus);
+}
+
+.ipv-split-piece-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.75rem;
 }
 
-.ipv-split-summary {
-  color: var(--text-muted, #666);
+.ipv-split-piece-preview {
+  font-family: Menlo, Monaco, Consolas, monospace;
+  color: var(--tmx-text-secondary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.ipv-split-edit {
-  font-size: 0.7rem;
-  padding: 0.15rem 0.4rem;
-  border: 1px solid var(--border, #ccc);
-  background: var(--surface, #fff);
+.ipv-split-arrow {
+  color: var(--tmx-text-muted);
+  flex-shrink: 0;
+}
+
+.ipv-split-piece-select {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--tmx-border-primary);
   border-radius: 3px;
-  cursor: pointer;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+  flex-shrink: 0;
+}
+
+.ipv-split-piece-select:focus {
+  outline: none;
+  border-color: var(--tmx-border-focus);
 }
 
 .ipv-unresolved-wrap {
-  border: 1px solid var(--warning-border, #f0c040);
+  border: 1px solid var(--tmx-status-warning);
   border-radius: 4px;
   padding: 0.5rem 0.75rem;
-  background: var(--warning-bg, #fff8e1);
+  background: var(--tmx-panel-yellow-bg);
+  color: var(--tmx-text-primary);
+  /* Per-cell list can be long — scroll independently. */
+  max-height: 18vh;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .ipv-unresolved-table {
@@ -129,10 +224,11 @@
   padding: 0.25rem 0.4rem;
   font-size: 0.78rem;
   vertical-align: middle;
+  color: var(--tmx-text-primary);
 }
 
 .ipv-unresolved-row-label {
-  color: var(--text-muted, #777);
+  color: var(--tmx-text-muted);
   white-space: nowrap;
 }
 
@@ -141,14 +237,17 @@
 }
 
 .ipv-unresolved-value {
-  font-family: var(--font-monospace, monospace);
-  color: var(--text-strong, #222);
+  font-family: Menlo, Monaco, Consolas, monospace;
+  color: var(--tmx-text-primary);
 }
 
 .ipv-preview-wrap {
-  border: 1px solid var(--border, #ddd);
+  border: 1px solid var(--tmx-border-primary);
   border-radius: 4px;
   padding: 0.5rem 0.75rem;
+  background: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+  flex-shrink: 0;
 }
 
 .ipv-preview-list {
@@ -163,28 +262,83 @@
   flex-direction: column;
   gap: 0.1rem;
   padding: 0.3rem 0.5rem;
-  border-left: 3px solid var(--accent, #4a90e2);
-  background: var(--surface-2, #fafafa);
+  border-left: 3px solid var(--tmx-accent-blue);
+  background: var(--tmx-bg-secondary);
+  color: var(--tmx-text-primary);
 }
 
 .ipv-preview-name {
   font-weight: 600;
+  color: var(--tmx-text-primary);
 }
 
 .ipv-preview-facts {
   font-size: 0.75rem;
-  color: var(--text-muted, #666);
+  color: var(--tmx-text-secondary);
 }
 
 .ipv-preview-empty {
   font-size: 0.78rem;
-  color: var(--text-muted, #888);
+  color: var(--tmx-text-muted);
   font-style: italic;
 }
 
 .ipv-entry-defaults {
-  border-top: 1px solid var(--border, #eee);
+  border-top: 1px solid var(--tmx-border-secondary);
   padding-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.ipv-dedupe-controls {
+  margin-bottom: 0.5rem;
+}
+
+.ipv-dedupe-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ipv-dedupe-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--tmx-text-primary);
+  cursor: pointer;
+}
+
+.ipv-dedupe-toggle input[type='checkbox'] {
+  cursor: pointer;
+  accent-color: var(--tmx-accent-blue);
+}
+
+.ipv-dedupe-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--tmx-text-secondary);
+}
+
+.ipv-dedupe-match select {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.35rem;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 3px;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+}
+
+.ipv-dedupe-match select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ipv-dedupe-match select:focus {
+  outline: none;
+  border-color: var(--tmx-border-focus);
 }
 
 .ipv-entry-defaults-row {
@@ -198,13 +352,19 @@
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.75rem;
-  color: var(--text-muted, #666);
+  color: var(--tmx-text-secondary);
 }
 
 .ipv-entry-default-field select {
   font-size: 0.8rem;
   padding: 0.2rem 0.35rem;
-  border: 1px solid var(--border, #ccc);
+  border: 1px solid var(--tmx-border-primary);
   border-radius: 3px;
-  background: var(--surface, #fff);
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+}
+
+.ipv-entry-default-field select:focus {
+  outline: none;
+  border-color: var(--tmx-border-focus);
 }

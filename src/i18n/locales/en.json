@@ -982,10 +982,8 @@
       },
       "ratingAuto": "Auto-detect",
       "eventPickerPlaceholder": "(select event…)",
-      "splitNotConfigured": "(not configured)",
-      "splitConfigure": "Configure split…",
-      "splitDelimiterPrompt": "Delimiter to split on (sample: \"{{sample}}\")",
-      "splitPiecePrompt": "Target field for piece \"{{piece}}\" (e.g. city, state, ignore)",
+      "splitDelimiter": "Split on",
+      "splitPieceEmpty": "(empty)",
       "unresolvedHeading": "Unresolved rating values ({{count}})",
       "unresolvedPickerPlaceholder": "Pick scale…",
       "row": "Row",
@@ -993,7 +991,11 @@
       "previewEmpty": "No previewable participants — make sure first/last name (or full name) are mapped.",
       "entryDefaultsHeading": "Event entry defaults",
       "entryStatusLabel": "Entry status",
-      "entryStageLabel": "Entry stage"
+      "entryStageLabel": "Entry stage",
+      "dedupeHeading": "Duplicate detection",
+      "mergeDuplicatesLabel": "Merge rows that share the same identifier",
+      "matchByLabel": "Match by",
+      "updateExistingLabel": "Update existing participants on re-import"
     },
     "addMatches": {
       "title": "Add matches",
@@ -1441,6 +1443,7 @@
     "noConnection": "No connection",
     "offlineMustConnect": "Offline: must be connected to internet",
     "addedParticipants": "Added {{count}} participant(s)",
+    "updatedParticipants": "Updated {{count}} existing participant(s)",
     "addedEventEntries": "Entered {{entries}} into {{events}} event(s)",
     "noNewParticipants": "No new participants found",
     "tmxClassicNotConverted": "TMX Classic file not converted",

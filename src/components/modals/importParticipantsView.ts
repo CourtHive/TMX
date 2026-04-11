@@ -19,11 +19,12 @@
  *      assignment flow (UI only in M3; passed through to commitParticipantImport
  *      so M4 can wire it up without further view changes)
  */
-import { commitParticipantImport } from 'services/import/commitParticipantImport';
+import { DedupeKey, commitParticipantImport } from 'services/import/commitParticipantImport';
+import { mergeParticipantDrafts } from 'services/import/mergeParticipantDrafts';
+import { normalizeHeader } from 'services/import/participantFieldModel';
 import { autoMapColumns } from 'services/import/autoMapColumns';
 import { parseRatingCell } from 'services/import/parseRatingCell';
 import { tournamentEngine } from 'tods-competition-factory';
-import { dedupeByEmail } from 'services/import/dedupeByEmail';
 import { openModal } from './baseModal/baseModal';
 import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';
@@ -49,6 +50,20 @@ const SECTION_HEADING_CLASS = 'ipv-section-heading';
 const ENTRY_STATUS_OPTIONS = ['DIRECT_ACCEPTANCE', 'ALTERNATE', 'WILDCARD', 'QUALIFIER', 'LUCKY_LOSER'];
 const ENTRY_STAGE_OPTIONS = ['MAIN', 'QUALIFYING', 'PLAYOFFS'];
 
+/** Identifier-like target kinds the user can pick to merge duplicate rows.
+ *  Deliberately excludes semantic fields (firstName, city, state, etc.) since
+ *  collapsing on those would merge unrelated people. */
+const DEDUPE_KEY_OPTIONS: DedupeKey[] = [
+  'email',
+  'phone',
+  'mobilePhone',
+  'tennisId',
+  'ustaId',
+  'itfId',
+  'participantId',
+];
+const DEFAULT_DEDUPE_KEY: DedupeKey = 'email';
+
 const SPLIT_DEFAULT_DELIMITER = '/';
 
 export type ImportParticipantsViewArgs = {
@@ -68,17 +83,31 @@ type State = {
   ratingOverrides: Map<string, string>;
   entryStatus: string;
   entryStage: string;
+  /** When true, drafts that share the chosen `dedupeKey` value get merged into one participant. */
+  mergeDuplicates: boolean;
+  /** Identifier kind used as the merge key. Ignored when `mergeDuplicates` is false. */
+  dedupeKey: DedupeKey;
+  /** When true, drafts whose participantId already exists in the tournament are
+   *  dispatched as MODIFY_PARTICIPANT (per-field merge into the existing record).
+   *  Default false — safe behavior leaves existing participants alone. */
+  updateExisting: boolean;
   events: TournamentEventOption[];
 };
 
 export function openImportParticipantsView(args: ImportParticipantsViewArgs): void {
+  const initialMapping = autoMapColumns(args.headers);
+  applySplitAutoDetection(initialMapping, args.headers, args.rows);
+
   const state: State = {
     headers: args.headers,
     rows: args.rows,
-    mapping: autoMapColumns(args.headers),
+    mapping: initialMapping,
     ratingOverrides: new Map(),
     entryStatus: 'DIRECT_ACCEPTANCE',
     entryStage: 'MAIN',
+    mergeDuplicates: true,
+    dedupeKey: DEFAULT_DEDUPE_KEY,
+    updateExisting: false,
     events: loadTournamentEvents(),
   };
 
@@ -116,6 +145,8 @@ export function openImportParticipantsView(args: ImportParticipantsViewArgs): vo
       additionalMethods: args.additionalMethods,
       entryStatus: state.entryStatus,
       entryStage: state.entryStage,
+      dedupeKey: state.mergeDuplicates ? state.dedupeKey : null,
+      updateExisting: state.updateExisting,
       callback: args.callback,
     });
   };
@@ -139,8 +170,7 @@ function buildSummary(state: State): HTMLElement {
   wrap.className = 'ipv-summary';
 
   const totalRows = state.rows.length;
-  const emailColumnIndex = findColumnByKind(state.mapping, 'email');
-  const { mergeCount } = dedupeByEmail(state.rows, emailColumnIndex);
+  const mergeCount = state.mergeDuplicates ? countDuplicateMerges(state) : 0;
   const importable = totalRows - mergeCount;
 
   const main = document.createElement('div');
@@ -214,7 +244,7 @@ function buildMappingRow(state: State, colIdx: number, headerLabel: string, refr
     targetCell.appendChild(buildRatingScaleSelect(state, colIdx, refresh));
   }
   if (field?.kind === 'split') {
-    targetCell.appendChild(buildSplitConfigButton(state, colIdx, refresh));
+    targetCell.appendChild(buildSplitPanel(state, colIdx, refresh));
   }
   if (field?.kind === 'eventEntry') {
     targetCell.appendChild(buildEventPickerSelect(state, colIdx, refresh));
@@ -249,7 +279,8 @@ function buildTargetSelect(state: State, colIdx: number, refresh: () => void): H
 
   select.addEventListener('change', (e) => {
     const newKind = (e.target as HTMLSelectElement).value as TargetFieldKind;
-    state.mapping[colIdx] = buildFieldForKind(newKind, state.mapping[colIdx]);
+    const sample = firstNonEmptySample(state.rows, colIdx);
+    state.mapping[colIdx] = buildFieldForKind(newKind, state.mapping[colIdx], sample);
     // Drop any per-cell rating overrides for this column when the kind changes.
     if (newKind !== 'rating') {
       for (const key of [...state.ratingOverrides.keys()]) {
@@ -298,75 +329,202 @@ function buildRatingScaleSelect(state: State, colIdx: number, refresh: () => voi
   return select;
 }
 
-function buildSplitConfigButton(state: State, colIdx: number, refresh: () => void): HTMLElement {
-  const wrap = document.createElement('span');
-  wrap.className = 'ipv-split-config';
+/** Targets that make sense as the destination of a split piece. */
+const SPLITTABLE_TARGETS: TargetFieldKind[] = [
+  'ignore',
+  'firstName',
+  'lastName',
+  'fullName',
+  'otherName',
+  'city',
+  'state',
+  'countryCode',
+  'postalCode',
+  'addressLine1',
+];
+
+/** Common delimiters tried in order when smart-defaulting a Split target. */
+const SPLIT_DELIMITER_CANDIDATES = [', ', ' / ', ' - ', ' | ', '/', '|', ',', ';'];
+
+function detectSplitDelimiter(sample: string): string {
+  if (!sample) return SPLIT_DEFAULT_DELIMITER;
+  for (const candidate of SPLIT_DELIMITER_CANDIDATES) {
+    const pieces = sample.split(candidate);
+    if (pieces.length >= 2 && pieces.every((p) => p.trim().length > 0)) {
+      return candidate;
+    }
+  }
+  return SPLIT_DEFAULT_DELIMITER;
+}
+
+function buildSplitPanel(state: State, colIdx: number, refresh: () => void): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'ipv-split-panel';
 
   const field = state.mapping[colIdx];
-  const split = field?.split;
+  if (field?.kind !== 'split' || !field.split) return wrap;
 
-  const summary = document.createElement('span');
-  summary.className = 'ipv-split-summary';
-  if (split) {
-    const piecesLabel = split.pieces.map((p) => p.kind).join(', ');
-    summary.textContent = `"${split.delimiter}" → ${piecesLabel}`;
-  } else {
-    summary.textContent = t('modals.importParticipants.splitNotConfigured');
+  const sample = firstNonEmptySample(state.rows, colIdx);
+  const { delimiter, pieces: piecesConfig } = field.split;
+  const previewPieces = sample ? sample.split(delimiter) : [];
+  const pieceCount = Math.max(previewPieces.length, piecesConfig.length, 1);
+
+  wrap.appendChild(buildSplitDelimiterRow(state, colIdx, delimiter, sample, refresh));
+  for (let i = 0; i < pieceCount; i++) {
+    wrap.appendChild(buildSplitPieceRow(state, colIdx, i, previewPieces[i] ?? '', refresh));
   }
-  wrap.appendChild(summary);
-
-  const editBtn = document.createElement('button');
-  editBtn.type = 'button';
-  editBtn.className = 'ipv-split-edit';
-  editBtn.textContent = t('modals.importParticipants.splitConfigure');
-  editBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    promptSplitConfig(state, colIdx, refresh);
-  });
-  wrap.appendChild(editBtn);
-
   return wrap;
 }
 
-function promptSplitConfig(state: State, colIdx: number, refresh: () => void): void {
-  const sample = firstNonEmptySample(state.rows, colIdx);
-  const existing = state.mapping[colIdx]?.split;
+function buildSplitDelimiterRow(
+  state: State,
+  colIdx: number,
+  delimiter: string,
+  sample: string,
+  refresh: () => void,
+): HTMLElement {
+  const row = document.createElement('label');
+  row.className = 'ipv-split-delimiter-row';
 
-  const delimiter = window.prompt(
-    t('modals.importParticipants.splitDelimiterPrompt', { sample }),
-    existing?.delimiter ?? SPLIT_DEFAULT_DELIMITER,
-  );
-  if (delimiter == null || delimiter === '') return;
+  const label = document.createElement('span');
+  label.className = 'ipv-split-delimiter-label';
+  label.textContent = t('modals.importParticipants.splitDelimiter');
+  row.appendChild(label);
 
-  const pieces = sample ? sample.split(delimiter) : [''];
-  const pieceFields: TargetField[] = [];
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'ipv-split-delimiter-input';
+  input.value = delimiter;
+  input.size = 4;
+  input.spellcheck = false;
+  input.addEventListener('input', (e) => {
+    const newDelimiter = (e.target as HTMLInputElement).value;
+    const field = state.mapping[colIdx];
+    if (field?.kind !== 'split' || !field.split) return;
+    const newPreview = sample ? sample.split(newDelimiter) : [];
+    // Preserve previous piece-target picks by index, extend with `ignore` for any new pieces.
+    const newPieceCount = Math.max(newPreview.length, 1);
+    const nextPieces: TargetField[] = [];
+    for (let i = 0; i < newPieceCount; i++) {
+      nextPieces.push(field.split.pieces[i] ?? { kind: 'ignore' });
+    }
+    state.mapping[colIdx] = { kind: 'split', split: { delimiter: newDelimiter, pieces: nextPieces } };
+    refresh();
+  });
+  row.appendChild(input);
 
-  for (let i = 0; i < pieces.length; i++) {
-    const piecePreview = pieces[i].trim() || `(piece ${i + 1})`;
-    const existingKind = existing?.pieces[i]?.kind;
-    const value = window.prompt(
-      t('modals.importParticipants.splitPiecePrompt', { piece: piecePreview }),
-      existingKind ?? 'ignore',
-    );
-    if (value == null) return;
-    pieceFields.push({ kind: (value || 'ignore') as TargetFieldKind });
-  }
-
-  state.mapping[colIdx] = { kind: 'split', split: { delimiter, pieces: pieceFields } };
-  refresh();
+  return row;
 }
 
-function buildFieldForKind(kind: TargetFieldKind, previous: TargetField | undefined): TargetField {
+function buildSplitPieceRow(
+  state: State,
+  colIdx: number,
+  pieceIdx: number,
+  preview: string,
+  refresh: () => void,
+): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'ipv-split-piece-row';
+
+  const previewEl = document.createElement('span');
+  previewEl.className = 'ipv-split-piece-preview';
+  previewEl.textContent = preview.trim() ? `"${preview.trim()}"` : t('modals.importParticipants.splitPieceEmpty');
+  row.appendChild(previewEl);
+
+  const arrow = document.createElement('span');
+  arrow.className = 'ipv-split-arrow';
+  arrow.textContent = '→';
+  row.appendChild(arrow);
+
+  const select = document.createElement('select');
+  select.className = 'ipv-split-piece-select';
+  const currentKind = state.mapping[colIdx]?.split?.pieces[pieceIdx]?.kind ?? 'ignore';
+  for (const kind of SPLITTABLE_TARGETS) {
+    const option = document.createElement('option');
+    option.value = kind;
+    option.textContent = t(`modals.importParticipants.target.${kind}`);
+    if (kind === currentKind) option.selected = true;
+    select.appendChild(option);
+  }
+  select.addEventListener('change', (e) => {
+    const newKind = (e.target as HTMLSelectElement).value as TargetFieldKind;
+    const field = state.mapping[colIdx];
+    if (field?.kind !== 'split' || !field.split) return;
+    const nextPieces = [...field.split.pieces];
+    while (nextPieces.length <= pieceIdx) nextPieces.push({ kind: 'ignore' });
+    nextPieces[pieceIdx] = { kind: newKind };
+    state.mapping[colIdx] = { kind: 'split', split: { delimiter: field.split.delimiter, pieces: nextPieces } };
+    refresh();
+  });
+  row.appendChild(select);
+
+  return row;
+}
+
+function buildFieldForKind(
+  kind: TargetFieldKind,
+  previous: TargetField | undefined,
+  sample: string,
+): TargetField {
   if (kind === 'rating') {
     return { kind: 'rating', ratingScaleName: previous?.kind === 'rating' ? previous.ratingScaleName : undefined };
   }
   if (kind === 'split') {
-    return { kind: 'split', split: previous?.split ?? { delimiter: SPLIT_DEFAULT_DELIMITER, pieces: [] } };
+    if (previous?.kind === 'split' && previous.split) return previous;
+    const delimiter = detectSplitDelimiter(sample);
+    const pieces = sample ? sample.split(delimiter) : [''];
+    return {
+      kind: 'split',
+      split: { delimiter, pieces: pieces.map(() => ({ kind: 'ignore' })) },
+    };
   }
   if (kind === 'eventEntry') {
     return { kind: 'eventEntry', eventId: previous?.kind === 'eventEntry' ? previous.eventId : undefined };
   }
   return { kind };
+}
+
+/**
+ * Post-pass over the auto-mapped column mapping that recognizes common
+ * "splittable" header patterns (e.g. "Home City / State", "City, State",
+ * "First Last") and pre-configures them as Split targets so the user
+ * doesn't have to discover the feature manually.
+ *
+ * Only runs against columns the synonym auto-mapper left as `ignore` —
+ * never overrides an explicit recognised mapping.
+ */
+function applySplitAutoDetection(mapping: ColumnMapping, headers: string[], rows: string[][]): void {
+  for (let i = 0; i < headers.length; i++) {
+    if (mapping[i]?.kind !== 'ignore') continue;
+    const detected = detectSplitFromHeader(headers[i], firstNonEmptySample(rows, i));
+    if (detected) mapping[i] = detected;
+  }
+}
+
+function detectSplitFromHeader(header: string, sample: string): TargetField | null {
+  if (!sample) return null;
+  const normalized = normalizeHeader(header);
+  const cityIdx = normalized.indexOf('city');
+  const stateIdx = normalized.indexOf('state');
+
+  if (cityIdx >= 0 && stateIdx >= 0) {
+    const delimiter = detectSplitDelimiter(sample);
+    const pieces = sample.split(delimiter);
+    if (pieces.length === 2) {
+      const cityFirst = cityIdx < stateIdx;
+      return {
+        kind: 'split',
+        split: {
+          delimiter,
+          pieces: cityFirst
+            ? [{ kind: 'city' }, { kind: 'state' }]
+            : [{ kind: 'state' }, { kind: 'city' }],
+        },
+      };
+    }
+  }
+
+  return null;
 }
 
 function buildEventPickerSelect(state: State, colIdx: number, refresh: () => void): HTMLElement {
@@ -561,15 +719,69 @@ function summarizeParticipant(participant: any): string {
 }
 
 function buildPreviewParticipants(state: State): any[] {
+  // Mirror the committer's parse-then-merge flow so the preview shows the same
+  // resolved participants the user will get on commit.
   const finalRows = applyRatingOverrides(state);
-  const emailColumnIndex = findColumnByKind(state.mapping, 'email');
-  const { mergedRows } = dedupeByEmail(finalRows, emailColumnIndex);
+  const drafts: Array<{ key: string; draft: any }> = [];
+  for (let r = 0; r < finalRows.length; r++) {
+    const built = previewBuildParticipant(state, finalRows[r]);
+    if (!built) continue;
+    const key = state.mergeDuplicates
+      ? readDraftDedupeValue(built, state.dedupeKey, r)
+      : `__no_merge_${r}__`;
+    drafts.push({ key, draft: built });
+  }
+
+  const groups = new Map<string, any[]>();
+  const order: string[] = [];
+  for (const item of drafts) {
+    if (!groups.has(item.key)) {
+      groups.set(item.key, []);
+      order.push(item.key);
+    }
+    groups.get(item.key)!.push(item.draft);
+  }
+
   const participants: any[] = [];
-  for (let r = 0; r < mergedRows.length && participants.length < PREVIEW_ROW_LIMIT; r++) {
-    const built = previewBuildParticipant(state, mergedRows[r]);
-    if (built) participants.push(built);
+  for (const key of order) {
+    if (participants.length >= PREVIEW_ROW_LIMIT) break;
+    const group = groups.get(key)!;
+    const merged = group.length === 1 ? group[0] : mergeParticipantDrafts(group);
+    if (merged) participants.push(merged);
   }
   return participants;
+}
+
+function readDraftDedupeValue(draft: any, dedupeKey: DedupeKey, rowIdx: number): string {
+  const raw = ((): string | undefined => {
+    switch (dedupeKey) {
+      case 'email':
+        return draft.person?.contacts?.[0]?.emailAddress;
+      case 'phone':
+        return draft.person?.contacts?.[0]?.telephone;
+      case 'mobilePhone':
+        return draft.person?.contacts?.[0]?.mobileTelephone;
+      case 'tennisId':
+        return draft.person?.tennisId;
+      case 'ustaId':
+        return findOtherIdInDraft(draft, 'USTA');
+      case 'itfId':
+        return findOtherIdInDraft(draft, 'ITF');
+      case 'participantId':
+        return draft.participantId;
+      default:
+        return undefined;
+    }
+  })();
+  if (!raw) return `__no_${dedupeKey}_${rowIdx}__`;
+  return String(raw).trim().toLowerCase();
+}
+
+function findOtherIdInDraft(draft: any, organisationName: string): string | undefined {
+  const ids = draft.person?.personOtherIds;
+  if (!Array.isArray(ids)) return undefined;
+  const match = ids.find((id: any) => id?.uniqueOrganisationName === organisationName);
+  return match?.personId;
 }
 
 type CollectedPreviewRow = {
@@ -673,6 +885,8 @@ function buildEntryDefaults(state: State, refresh: () => void): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'ipv-entry-defaults';
 
+  wrap.appendChild(buildDedupeControls(state, refresh));
+
   const heading = document.createElement('h4');
   heading.className = SECTION_HEADING_CLASS;
   heading.textContent = t('modals.importParticipants.entryDefaultsHeading');
@@ -689,6 +903,77 @@ function buildEntryDefaults(state: State, refresh: () => void): HTMLElement {
     state.entryStage = value;
     refresh();
   }));
+
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function buildDedupeControls(state: State, refresh: () => void): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'ipv-dedupe-controls';
+
+  const heading = document.createElement('h4');
+  heading.className = SECTION_HEADING_CLASS;
+  heading.textContent = t('modals.importParticipants.dedupeHeading');
+  wrap.appendChild(heading);
+
+  const row = document.createElement('div');
+  row.className = 'ipv-dedupe-row';
+
+  // Toggle: merge duplicates on/off
+  const toggleLabel = document.createElement('label');
+  toggleLabel.className = 'ipv-dedupe-toggle';
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.checked = state.mergeDuplicates;
+  checkbox.addEventListener('change', () => {
+    state.mergeDuplicates = checkbox.checked;
+    refresh();
+  });
+  toggleLabel.appendChild(checkbox);
+  const toggleText = document.createElement('span');
+  toggleText.textContent = t('modals.importParticipants.mergeDuplicatesLabel');
+  toggleLabel.appendChild(toggleText);
+  row.appendChild(toggleLabel);
+
+  // Selector: which identifier to match on
+  const matchLabel = document.createElement('label');
+  matchLabel.className = 'ipv-dedupe-match';
+  const matchText = document.createElement('span');
+  matchText.textContent = t('modals.importParticipants.matchByLabel');
+  matchLabel.appendChild(matchText);
+
+  const select = document.createElement('select');
+  select.disabled = !state.mergeDuplicates;
+  for (const key of DEDUPE_KEY_OPTIONS) {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = t(`modals.importParticipants.target.${key}`);
+    if (key === state.dedupeKey) option.selected = true;
+    select.appendChild(option);
+  }
+  select.addEventListener('change', (e) => {
+    state.dedupeKey = (e.target as HTMLSelectElement).value as DedupeKey;
+    refresh();
+  });
+  matchLabel.appendChild(select);
+  row.appendChild(matchLabel);
+
+  // Toggle: update existing participants on re-import
+  const updateLabel = document.createElement('label');
+  updateLabel.className = 'ipv-dedupe-toggle';
+  const updateCheckbox = document.createElement('input');
+  updateCheckbox.type = 'checkbox';
+  updateCheckbox.checked = state.updateExisting;
+  updateCheckbox.addEventListener('change', () => {
+    state.updateExisting = updateCheckbox.checked;
+    refresh();
+  });
+  updateLabel.appendChild(updateCheckbox);
+  const updateText = document.createElement('span');
+  updateText.textContent = t('modals.importParticipants.updateExistingLabel');
+  updateLabel.appendChild(updateText);
+  row.appendChild(updateLabel);
 
   wrap.appendChild(row);
   return wrap;
@@ -723,11 +1008,34 @@ function buildEntryDefaultSelect(
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
-function findColumnByKind(mapping: ColumnMapping, kind: TargetFieldKind): number | undefined {
-  for (const [key, field] of Object.entries(mapping)) {
-    if (field?.kind === kind) return Number(key);
+/**
+ * Counts how many rows would collapse into existing groups under the user's
+ * current dedupe setting. Walks raw rows and looks up the column mapped to
+ * the chosen dedupe key — no parsing required.
+ *
+ * Returns 0 when no column is mapped to the chosen key, or when merging is
+ * disabled (the caller checks `state.mergeDuplicates` before calling).
+ */
+function countDuplicateMerges(state: State): number {
+  let dedupeColIdx: number | undefined;
+  for (const [key, field] of Object.entries(state.mapping)) {
+    if (field?.kind === state.dedupeKey) {
+      dedupeColIdx = Number(key);
+      break;
+    }
   }
-  return undefined;
+  if (dedupeColIdx === undefined) return 0;
+
+  const seen = new Set<string>();
+  let merges = 0;
+  for (const row of state.rows) {
+    const cell = row[dedupeColIdx];
+    const value = cell == null ? '' : String(cell).trim().toLowerCase();
+    if (!value) continue;
+    if (seen.has(value)) merges++;
+    else seen.add(value);
+  }
+  return merges;
 }
 
 function firstNonEmptySample(rows: string[][], colIdx: number): string {

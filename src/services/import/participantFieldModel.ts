@@ -121,15 +121,19 @@ export const RATING_SYNONYMS: Array<{ scaleName: string; synonyms: string[] }> =
   { scaleName: 'BWF', synonyms: ['bwf'] },
 ];
 
-/** Grouped target fields for the import view's per-column dropdown. */
+/** Grouped target fields for the import view's per-column dropdown.
+ *  Identifiers come first because the participantId source is typically the
+ *  most important mapping decision — it determines whether rows for the same
+ *  underlying person collapse together (and how reliably). Person attributes
+ *  follow. */
 export const TARGET_FIELD_GROUPS: Array<{ label: string; fields: TargetFieldKind[] }> = [
+  { label: 'Identifiers', fields: ['participantId', 'tennisId', 'ustaId', 'itfId', 'utrProfile'] },
   {
     label: 'Person',
     fields: ['firstName', 'lastName', 'fullName', 'otherName', 'sex', 'birthDate', 'nationalityCode', 'wheelchair'],
   },
   { label: 'Address', fields: ['city', 'state', 'countryCode', 'postalCode', 'addressLine1'] },
   { label: 'Contact', fields: ['email', 'phone', 'mobilePhone'] },
-  { label: 'Identifiers', fields: ['tennisId', 'ustaId', 'itfId', 'utrProfile', 'participantId'] },
   { label: 'Rating', fields: ['rating'] },
   { label: 'Event entry', fields: ['eventEntry'] },
   { label: 'Participant', fields: ['participantName', 'representing', 'notes'] },
