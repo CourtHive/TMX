@@ -2,14 +2,11 @@ import { createSearchFilter } from 'components/tables/common/filters/createSearc
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { editUserModal } from 'components/modals/editUserModal';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { inviteModal } from 'components/modals/inviteUser';
-import { removeUser } from 'services/apis/servicesApi';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { inviteModal } from 'components/modals/inviteUser';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { copyClick } from 'services/dom/copyClick';
+import { removeUser } from 'services/apis/servicesApi';
 import { t } from 'i18n';
-
-import { INVITE } from 'constants/tmxConstants';
 
 const USERS_TABLE = 'systemUsersTable';
 
@@ -124,21 +121,10 @@ export function renderUsersPanel({ container, providers, users, onRefresh }: Ren
     return rows?.[0]?.getData();
   };
 
-  // Invite button
+  // Invite button — inviteModal handles URL log + clipboard copy and surfaces
+  // failures via toast; we just need to refresh the user list afterwards.
   inviteBtn.addEventListener('click', () => {
-    const processInviteResult = (inviteResult) => {
-      const inviteCode = inviteResult?.data?.inviteCode;
-      if (inviteCode) {
-        const inviteURL = `${globalThis.location.origin}${globalThis.location.pathname}/#/${INVITE}/${inviteCode}`;
-        console.log('Invite URL:', inviteURL);
-        copyClick(inviteURL);
-      } else {
-        console.warn('Invite failed — no inviteCode in response:', inviteResult);
-        tmxToast({ message: t('system.inviteFailed'), intent: 'is-danger' });
-      }
-      onRefresh();
-    };
-    inviteModal(processInviteResult, providers as any);
+    inviteModal(() => onRefresh(), providers as any);
   });
 
   // Edit button

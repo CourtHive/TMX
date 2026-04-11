@@ -1,8 +1,8 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { editProviderModal } from 'components/modals/editProvider';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { inviteModal } from 'components/modals/inviteUser';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { inviteModal } from 'components/modals/inviteUser';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -166,11 +166,16 @@ function renderProviderDetail({ detailPane, provider, providers, users, onRefres
   const inviteBtn = document.createElement('button');
   inviteBtn.className = 'btn-invite';
   inviteBtn.textContent = t('system.inviteUser');
+  // inviteModal handles the URL log + clipboard copy and surfaces failures via
+  // toast — refresh the provider/user lists whenever an inviteCode came back.
   inviteBtn.addEventListener('click', () => {
-    const processInviteResult = (result: any) => {
-      if (result?.success) onRefresh();
-    };
-    inviteModal(processInviteResult, providers as any, provider.organisationId);
+    inviteModal(
+      (result: any) => {
+        if (result?.data?.inviteCode) onRefresh();
+      },
+      providers as any,
+      provider.organisationId,
+    );
   });
 
   actions.appendChild(impersonateBtn);
@@ -201,7 +206,7 @@ function renderProviderDetail({ detailPane, provider, providers, users, onRefres
 
   destroyTable({ anchorId: PROVIDER_USERS_TABLE });
 
-  new Tabulator(assocTableEl, {
+  Tabulator(assocTableEl, {
     placeholder: t('system.noUsersForProvider'),
     layout: 'fitColumns',
     maxHeight: 300,
