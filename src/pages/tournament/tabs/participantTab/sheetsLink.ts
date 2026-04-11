@@ -2,15 +2,19 @@
  * Edit Google Sheets registration link modal.
  * Validates and imports participants from Google Sheets with shared link.
  */
-import { incomingParticipants } from 'services/data/incomingParticipants';
-import { fetchGoogleSheet } from 'services/sheets/fetchGoogleSheet';
+import { openImportParticipantsView } from 'components/modals/importParticipantsView';
+import { fetchGoogleSheetRaw } from 'services/sheets/fetchGoogleSheet';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { renderForm } from 'courthive-components';
 import { t } from 'i18n';
 
+// constants and types
+import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 import { REGISTRATION } from 'constants/tmxConstants';
+
+const IS_PRIMARY = 'is-primary';
 
 const instructions = `
   <b>Sharing Requirements</b>
@@ -20,13 +24,13 @@ const instructions = `
     <li>Set to "Anyone with the link can view"</li>
     <li>Copy the shareable link</li>
   </ul>
-  <br> 
+  <br>
   <b>Required Columns</b>
   <ul>
     <li><strong>First Name</strong> (or "first", "first_name")</li>
     <li><strong>Last Name</strong> (or "last", "last_name")</li>
   </ul>
-  <br> 
+  <br>
   <b>Optional Columns</b>
   <ul>
     <li><strong>id</strong> or <strong>participantid</strong> - Unique identifier</li>
@@ -40,12 +44,12 @@ const instructions = `
     <li><strong>WTN</strong> - World Tennis Number (numeric)</li>
     <li><strong>UTR Profile</strong> - Link to UTR profile page</li>
   </ul>
-  <br> 
+  <br>
   <b>Column Name Flexibility</b>
   <ul>
     <li>Column names are case-insensitive</li>
     <li>Spaces and underscores are treated the same</li>
-    <li>Partial matches work</li>
+    <li>You can correct any auto-detected mapping in the import view</li>
   </ul>`;
 
 export function editRegistrationLink({ callback }: { callback?: () => void }): void {
@@ -73,26 +77,46 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
 
   const submit = () => {
     const value = inputs.url.value;
-    if (value) {
-      const parts = value.split('/');
-      const registered = parts.reduce(
-        (p: string | undefined, c: string) => (!p || c.length > p.length ? c : p),
-        undefined,
-      );
-      const newURL = !existingLink || (existingLink && registered !== existingLink);
-      const validBits = existingLink || (parts.indexOf('docs.google.com') > 0 && parts.indexOf('spreadsheets') > 0);
-      const sheetId = newURL ? registered : existingLink;
-      if (!validBits) {
-        const message = t('phrases.invalidsheeturl');
-        tmxToast({ message, intent: 'is-danger' });
-        inputs.url.value = '';
-      } else if (validBits) {
-        fetchGoogleSheet({ sheetId }).then((data: any) => incomingParticipants({ data, sheetId, callback }));
-      } else {
-        tmxToast({ message: t('pages.participants.sheetsLink.urlUnchanged'), intent: 'is-info' });
-      }
+    if (!value) return;
+
+    const parts = value.split('/');
+    const registered = parts.reduce(
+      (p: string | undefined, c: string) => (!p || c.length > p.length ? c : p),
+      undefined,
+    );
+    const newURL = !existingLink || (existingLink && registered !== existingLink);
+    const validBits = existingLink || (parts.indexOf('docs.google.com') > 0 && parts.indexOf('spreadsheets') > 0);
+    const sheetId = newURL ? registered : existingLink;
+
+    if (!validBits) {
+      tmxToast({ message: t('phrases.invalidsheeturl'), intent: 'is-danger' });
+      inputs.url.value = '';
+      return;
     }
+
+    fetchGoogleSheetRaw({ sheetId }).then(({ headers, rows }) => {
+      if (!rows.length) {
+        tmxToast({ message: t('toasts.noNewParticipants'), intent: IS_PRIMARY });
+        if (callback) callback();
+        return;
+      }
+      const additionalMethods = [
+        {
+          method: ADD_TOURNAMENT_EXTENSION,
+          params: { extension: { name: REGISTRATION, value: sheetId } },
+        },
+      ];
+      openImportParticipantsView({
+        headers,
+        rows,
+        additionalMethods,
+        callback: () => {
+          if (callback) callback();
+        },
+      });
+    });
   };
+
   const enterLink = () => {
     update({ buttons, content, title });
   };
@@ -100,7 +124,7 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
     update({
       buttons: [
         { label: t('common.close'), intent: 'is-nothing', close: true },
-        { label: t('pages.participants.sheetsLink.enter'), intent: 'is-primary', onClick: enterLink, close: false },
+        { label: t('pages.participants.sheetsLink.enter'), intent: IS_PRIMARY, onClick: enterLink, close: false },
       ],
       title: t('pages.participants.sheetsLink.instructionsTitle'),
       content: instructions,
@@ -110,7 +134,7 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
   const buttons = [
     { label: t('common.cancel'), intent: 'is-nothing' },
     { label: t('pages.participants.sheetsLink.info'), intent: 'is-info', onClick: getInfo, close: false },
-    { label: t('common.submit'), intent: 'is-primary', onClick: submit, close: true },
+    { label: t('common.submit'), intent: IS_PRIMARY, onClick: submit, close: true },
   ];
   update({ buttons });
 }

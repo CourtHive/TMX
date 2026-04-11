@@ -4,16 +4,12 @@
  * Opens the dropzone modal scoped to CSV/TSV files, then runs the dropped
  * file through the import pipeline:
  *
- *   parseDelimited → autoMapColumns → commitParticipantImport
+ *   parseDelimited → openImportParticipantsView → commitParticipantImport
  *
- * Milestone 2 ships with auto-mapping only — there is no manual mapping UI
- * yet. Columns the auto-mapper does not recognize are silently ignored at
- * commit time. The mapping view is added in Milestone 3, at which point
- * this orchestrator will be extended to open it between the auto-mapper
- * and the committer.
+ * The mapping view (M3) lets the user inspect and adjust the auto-detected
+ * column mapping before committing.
  */
-import { commitParticipantImport } from 'services/import/commitParticipantImport';
-import { autoMapColumns } from 'services/import/autoMapColumns';
+import { openImportParticipantsView } from 'components/modals/importParticipantsView';
 import { parseDelimited } from 'services/import/parseDelimited';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -32,12 +28,9 @@ export function importPlayersCsv({ callback }: { callback?: () => void } = {}): 
         return;
       }
 
-      const mapping = autoMapColumns(headers);
-
-      commitParticipantImport({
+      openImportParticipantsView({
         headers,
         rows,
-        mapping,
         callback: () => {
           if (callback) callback();
         },
