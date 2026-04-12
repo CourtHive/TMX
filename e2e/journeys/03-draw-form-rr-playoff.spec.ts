@@ -17,7 +17,7 @@ const PROFILE_EVENT_NO_DRAW: MockProfile = {
   tournamentName: 'E2E RR Playoff',
   tournamentAttributes: { tournamentId: 'e2e-rr-playoff' },
   participantsProfile: { scaledParticipantsCount: 16 },
-  eventProfiles: [{ eventName: 'Singles', drawProfiles: [] }],
+  drawProfiles: [{ eventName: 'Singles', drawSize: 16, generate: false }],
 };
 
 async function openDrawFormWithRRPlayoff(page: any): Promise<DrawFormDrawer> {
@@ -25,7 +25,7 @@ async function openDrawFormWithRRPlayoff(page: any): Promise<DrawFormDrawer> {
   const tournamentPage = new TournamentPage(page);
   await tournamentPage.goto(tournamentId);
   await tournamentPage.navigateToEvents();
-  await page.locator(`${tournamentPage.eventsTable.toString()} .tabulator-row`).first().click();
+  await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
   await page.getByRole('button', { name: 'Add draw' }).click();
 
@@ -48,7 +48,7 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
   test('2.1.1 — WINNERS: advance/total/remaining fields hidden', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
-    await drawer.fieldSelect('Playoff type').selectOption('WINNERS');
+    await drawer.fieldSelect('Playoff Type').selectOption('winners');
     await drawer.expectFieldHidden('Advance per group');
     await drawer.expectFieldHidden('Total to advance');
     await drawer.expectCheckboxHidden('groupRemaining');
@@ -59,7 +59,7 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
   test('2.1.2 — POSITIONS: advance/total/remaining fields hidden', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
-    await drawer.fieldSelect('Playoff type').selectOption('POSITIONS');
+    await drawer.fieldSelect('Playoff Type').selectOption('positions');
     await drawer.expectFieldHidden('Advance per group');
     await drawer.expectFieldHidden('Total to advance');
     await drawer.expectCheckboxHidden('groupRemaining');
@@ -70,7 +70,7 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
   test('2.1.3 — TOP_FINISHERS: advance per group + remaining visible', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
-    await drawer.fieldSelect('Playoff type').selectOption('TOP_FINISHERS');
+    await drawer.fieldSelect('Playoff Type').selectOption('top');
     await drawer.expectFieldVisible('Advance per group');
     await drawer.expectFieldHidden('Total to advance');
     await drawer.expectCheckboxVisible('groupRemaining');
@@ -81,7 +81,7 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
   test('2.1.4 — BEST_FINISHERS: total advance + remaining visible', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
-    await drawer.fieldSelect('Playoff type').selectOption('BEST_FINISHERS');
+    await drawer.fieldSelect('Playoff Type').selectOption('bestFinishers');
     await drawer.expectFieldHidden('Advance per group');
     await drawer.expectFieldVisible('Total to advance');
     await drawer.expectCheckboxVisible('groupRemaining');
@@ -94,9 +94,9 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
   test('2.2.3 — playoff draw type ROUND_ROBIN: playoff group size appears', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
-    await drawer.expectFieldHidden('Playoff group size');
-    await drawer.fieldSelect('Playoff draw type').selectOption('ROUND_ROBIN');
-    await drawer.expectFieldVisible('Playoff group size');
+    await drawer.expectFieldHidden('Playoff Group Size');
+    await drawer.fieldSelect('Playoff Draw Type').selectOption('ROUND_ROBIN');
+    await drawer.expectFieldVisible('Playoff Group Size');
 
     await drawer.clickCancel();
   });
@@ -106,10 +106,10 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
   test('2.3.1 — PAGE_PLAYOFF forces TOP_FINISHERS + advancePerGroup=2', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
-    await drawer.fieldSelect('Playoff draw type').selectOption('PAGE_PLAYOFF');
+    await drawer.fieldSelect('Playoff Draw Type').selectOption('PAGE_PLAYOFF');
 
     // Should force playoff type to TOP_FINISHERS
-    await expect(drawer.fieldSelect('Playoff type')).toHaveValue('TOP_FINISHERS');
+    await expect(drawer.fieldSelect('Playoff Type')).toHaveValue('top');
     // And advance per group to 2
     await expect(drawer.fieldSelect('Advance per group')).toHaveValue('2');
 
@@ -122,14 +122,14 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
     // Set PAGE_PLAYOFF (forces TOP_FINISHERS)
-    await drawer.fieldSelect('Playoff draw type').selectOption('PAGE_PLAYOFF');
-    await expect(drawer.fieldSelect('Playoff type')).toHaveValue('TOP_FINISHERS');
+    await drawer.fieldSelect('Playoff Draw Type').selectOption('PAGE_PLAYOFF');
+    await expect(drawer.fieldSelect('Playoff Type')).toHaveValue('top');
 
     // Change playoff type away from TOP_FINISHERS
-    await drawer.fieldSelect('Playoff type').selectOption('BEST_FINISHERS');
+    await drawer.fieldSelect('Playoff Type').selectOption('bestFinishers');
 
     // Playoff draw type should reset to PLAY_OFF
-    await expect(drawer.fieldSelect('Playoff draw type')).toHaveValue('PLAY_OFF');
+    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('PLAY_OFF');
 
     await drawer.clickCancel();
   });
@@ -138,14 +138,14 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
     // Set PAGE_PLAYOFF (forces advancePerGroup=2)
-    await drawer.fieldSelect('Playoff draw type').selectOption('PAGE_PLAYOFF');
+    await drawer.fieldSelect('Playoff Draw Type').selectOption('PAGE_PLAYOFF');
     await expect(drawer.fieldSelect('Advance per group')).toHaveValue('2');
 
     // Change advance per group to 3
     await drawer.fieldSelect('Advance per group').selectOption('3');
 
     // Playoff draw type should reset to PLAY_OFF
-    await expect(drawer.fieldSelect('Playoff draw type')).toHaveValue('PLAY_OFF');
+    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('PLAY_OFF');
 
     await drawer.clickCancel();
   });

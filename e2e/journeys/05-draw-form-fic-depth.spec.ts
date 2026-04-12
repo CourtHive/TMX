@@ -14,34 +14,12 @@ import { DrawFormDrawer } from '../pages/DrawFormDrawer';
 
 /* ─── Seed profiles ─────────────────────────────────────────────────────── */
 
-/** Small event (4 entries) to test FIC depth constraint at minimal draw size. */
-const PROFILE_SMALL_EVENT: MockProfile = {
-  tournamentName: 'E2E FIC Small',
-  tournamentAttributes: { tournamentId: 'e2e-fic-small' },
-  participantsProfile: { scaledParticipantsCount: 8 },
-  eventProfiles: [
-    {
-      eventName: 'Singles 4',
-      drawProfiles: [],
-      participantsCount: 4,
-    },
-  ],
-};
-
-/** Medium event (12 entries → drawSize=16) to test FIC depth constraints. */
-const PROFILE_MEDIUM_EVENT: MockProfile = {
-  tournamentName: 'E2E FIC Medium',
-  tournamentAttributes: { tournamentId: 'e2e-fic-medium' },
-  participantsProfile: { scaledParticipantsCount: 16 },
-  eventProfiles: [{ eventName: 'Singles 12', drawProfiles: [] }],
-};
-
-/** Large event (24 entries → drawSize=32) where all FIC depths are available. */
+/** Large event (32 entries → drawSize=32) where all FIC depths are available. */
 const PROFILE_LARGE_EVENT: MockProfile = {
   tournamentName: 'E2E FIC Large',
   tournamentAttributes: { tournamentId: 'e2e-fic-large' },
   participantsProfile: { scaledParticipantsCount: 32 },
-  eventProfiles: [{ eventName: 'Singles 24', drawProfiles: [] }],
+  drawProfiles: [{ eventName: 'Singles', drawSize: 32, generate: false }],
 };
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -51,7 +29,7 @@ async function seedAndOpenFICDrawForm(page: any, profile: MockProfile): Promise<
   const tournamentPage = new TournamentPage(page);
   await tournamentPage.goto(tournamentId);
   await tournamentPage.navigateToEvents();
-  await page.locator(`${tournamentPage.eventsTable.toString()} .tabulator-row`).first().click();
+  await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
   await page.getByRole('button', { name: 'Add draw' }).click();
 

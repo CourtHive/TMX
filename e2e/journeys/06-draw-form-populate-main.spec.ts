@@ -22,7 +22,7 @@ const PROFILE_FOR_GENERATION: MockProfile = {
   tournamentName: 'E2E Draw Generation',
   tournamentAttributes: { tournamentId: 'e2e-draw-gen' },
   participantsProfile: { scaledParticipantsCount: 16 },
-  eventProfiles: [{ eventName: 'Singles', drawProfiles: [] }],
+  drawProfiles: [{ eventName: 'Singles', drawSize: 16, generate: false }],
 };
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -36,7 +36,7 @@ async function seedAndOpenDrawForm(page: any): Promise<{
   const tournamentPage = new TournamentPage(page);
   await tournamentPage.goto(tournamentId);
   await tournamentPage.navigateToEvents();
-  await page.locator(`${tournamentPage.eventsTable.toString()} .tabulator-row`).first().click();
+  await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
   await page.getByRole('button', { name: 'Add draw' }).click();
 

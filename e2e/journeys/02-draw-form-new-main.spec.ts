@@ -17,12 +17,16 @@ import { DrawFormDrawer } from '../pages/DrawFormDrawer';
 /* ─── Seed profiles ─────────────────────────────────────────────────────── */
 
 /** Tournament with 16 participants and a SINGLES event with accepted
- *  entries but NO draw generated. The draw form opens in NEW_MAIN mode. */
+ *  entries but NO draw generated. The draw form opens in NEW_MAIN mode.
+ *
+ *  Uses drawProfiles with generate:false to create the event with entries
+ *  but skip draw generation. eventProfiles alone doesn't auto-populate
+ *  entries from the participant pool. */
 const PROFILE_EVENT_NO_DRAW: MockProfile = {
   tournamentName: 'E2E Draw Form',
   tournamentAttributes: { tournamentId: 'e2e-draw-form' },
   participantsProfile: { scaledParticipantsCount: 16 },
-  eventProfiles: [{ eventName: 'Singles', drawProfiles: [] }],
+  drawProfiles: [{ eventName: 'Singles', drawSize: 16, generate: false }],
 };
 
 /** Same but with qualifying entries to test qualifiers-count inference. */
@@ -50,7 +54,7 @@ async function seedAndOpenDrawForm(
   await tournamentPage.navigateToEvents();
 
   // Click the first event row to enter the event detail
-  await page.locator(`${tournamentPage.eventsTable.toString()} .tabulator-row`).first().click();
+  await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
 
   // Wait for the event tabs bar to appear
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
@@ -79,7 +83,7 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     const { drawer } = await seedAndOpenDrawForm(page);
 
     // Default draw type should be SINGLE_ELIMINATION
-    await expect(drawer.fieldSelect('Draw type')).toHaveValue('SINGLE_ELIMINATION');
+    await expect(drawer.fieldSelect('Draw Type')).toHaveValue('SINGLE_ELIMINATION');
 
     // Draw size should be next power of 2 of the entry count
     const drawSize = await drawer.getInputValue('Draw size');
@@ -88,7 +92,7 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
 
     // Standard fields visible
     await drawer.expectFieldVisible('Draw name');
-    await drawer.expectFieldVisible('Draw type');
+    await drawer.expectFieldVisible('Draw Type');
     await drawer.expectFieldVisible('Draw size');
     await drawer.expectFieldVisible('Qualifiers');
     await drawer.expectFieldVisible('Seeding policy');
@@ -96,8 +100,8 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
 
     // RR/playoff/drawmatic fields hidden
     await drawer.expectFieldHidden('Group size');
-    await drawer.expectFieldHidden('Playoff type');
-    await drawer.expectFieldHidden('Rounds');
+    await drawer.expectFieldHidden('Playoff Type');
+    await drawer.expectFieldHidden('Rounds to generate');
     await drawer.expectFieldHidden('Rating scale');
 
     // Structure name hidden (only for qualifying modes)
@@ -115,8 +119,8 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.expectFieldVisible('Seeding policy');
 
     // Playoff fields still hidden
-    await drawer.expectFieldHidden('Playoff type');
-    await drawer.expectFieldHidden('Playoff draw type');
+    await drawer.expectFieldHidden('Playoff Type');
+    await drawer.expectFieldHidden('Playoff Draw Type');
 
     await drawer.clickCancel();
   });
@@ -126,8 +130,8 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.selectDrawType('ROUND_ROBIN_WITH_PLAYOFF');
 
     await drawer.expectFieldVisible('Group size');
-    await drawer.expectFieldVisible('Playoff type');
-    await drawer.expectFieldVisible('Playoff draw type');
+    await drawer.expectFieldVisible('Playoff Type');
+    await drawer.expectFieldVisible('Playoff Draw Type');
     await drawer.expectFieldVisible('Seeding policy');
 
     await drawer.clickCancel();
@@ -203,7 +207,7 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     const { drawer } = await seedAndOpenDrawForm(page);
     await drawer.selectDrawType('DRAW_MATIC');
 
-    await drawer.expectFieldVisible('Rounds');
+    await drawer.expectFieldVisible('Rounds to generate');
     await drawer.expectFieldVisible('Rating scale');
     // Dynamic ratings and team avoidance are checkboxes
     await drawer.expectCheckboxVisible('dynamicRatings');
@@ -219,7 +223,7 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     const { drawer } = await seedAndOpenDrawForm(page);
 
     // Start at SE
-    await expect(drawer.fieldSelect('Draw type')).toHaveValue('SINGLE_ELIMINATION');
+    await expect(drawer.fieldSelect('Draw Type')).toHaveValue('SINGLE_ELIMINATION');
     await drawer.expectFieldHidden('Group size');
 
     // Switch to RR
@@ -234,8 +238,8 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.selectDrawType('ROUND_ROBIN_WITH_PLAYOFF');
 
     await drawer.expectFieldVisible('Group size');
-    await drawer.expectFieldVisible('Playoff type');
-    await drawer.expectFieldVisible('Playoff draw type');
+    await drawer.expectFieldVisible('Playoff Type');
+    await drawer.expectFieldVisible('Playoff Draw Type');
 
     await drawer.clickCancel();
   });
@@ -246,13 +250,13 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     // Start at RR_PLAYOFF
     await drawer.selectDrawType('ROUND_ROBIN_WITH_PLAYOFF');
     await drawer.expectFieldVisible('Group size');
-    await drawer.expectFieldVisible('Playoff type');
+    await drawer.expectFieldVisible('Playoff Type');
 
     // Switch back to SE
     await drawer.selectDrawType('SINGLE_ELIMINATION');
     await drawer.expectFieldHidden('Group size');
-    await drawer.expectFieldHidden('Playoff type');
-    await drawer.expectFieldHidden('Playoff draw type');
+    await drawer.expectFieldHidden('Playoff Type');
+    await drawer.expectFieldHidden('Playoff Draw Type');
 
     await drawer.clickCancel();
   });
@@ -301,8 +305,8 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.toggleCheckbox('qualifyingFirst');
     await drawer.expectFieldVisible('Structure name');
 
-    // Toggle back
-    await drawer.checkbox('qualifyingFirst').uncheck();
+    // Toggle back (click the label again — it's a toggle)
+    await drawer.toggleCheckbox('qualifyingFirst');
     await drawer.expectFieldVisible('Draw name');
     await drawer.expectFieldHidden('Structure name');
     await drawer.expectFieldVisible('Seeding policy');

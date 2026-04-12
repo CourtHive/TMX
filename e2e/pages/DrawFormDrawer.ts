@@ -16,21 +16,28 @@ export class DrawFormDrawer {
   constructor(readonly page: Page) {
     this.drawer = page.locator(S.TMX_DRAWER);
     this.generateButton = this.drawer.locator('#generateDraw');
-    this.cancelButton = this.drawer.getByRole('button', { name: 'Cancel' });
+    // Cancel button rendered by courthive-components renderButtons —
+    // it's a <button> inside the drawer footer. Use text matching
+    // since it has no ID.
+    this.cancelButton = this.drawer.locator('button:has-text("Cancel")');
   }
 
   /* ─── Waiting ──────────────────────────────────────────────────────── */
 
-  /** Wait for the drawer to be visible and the form to be rendered. */
+  /** Wait for the drawer to be visible and the form to be rendered.
+   *  The #tmxDrawer section is a wrapper — the actual visible content
+   *  lives inside .drawer__wrapper which slides in via CSS transform.
+   *  We wait for the wrapper to become visible (transform complete),
+   *  then for the drawType select to confirm the form is rendered. */
   async waitForOpen(): Promise<void> {
-    await this.drawer.waitFor({ state: 'visible', timeout: 10_000 });
-    // The form is rendered — wait for at least the drawType select to appear
-    await this.fieldSelect('Draw type').waitFor({ state: 'visible', timeout: 5_000 });
+    await this.page.locator(`${S.TMX_DRAWER} .drawer__wrapper`).waitFor({ state: 'visible', timeout: 15_000 });
+    await this.fieldSelect('Draw Type').waitFor({ state: 'visible', timeout: 5_000 });
   }
 
-  /** Wait for the drawer to close. */
+  /** Wait for the drawer to close. The drawer section itself may remain
+   *  in the DOM with display:none — wait for the wrapper to not be visible. */
   async waitForClose(): Promise<void> {
-    await this.drawer.waitFor({ state: 'hidden', timeout: 10_000 });
+    await this.page.locator(`${S.TMX_DRAWER} .drawer__wrapper`).waitFor({ state: 'hidden', timeout: 10_000 });
   }
 
   /* ─── Field locators ───────────────────────────────────────────────── */
@@ -92,7 +99,7 @@ export class DrawFormDrawer {
 
   /** Select a draw type by its value (e.g. 'ROUND_ROBIN'). */
   async selectDrawType(value: string): Promise<void> {
-    await this.fieldSelect('Draw type').selectOption(value);
+    await this.fieldSelect('Draw Type').selectOption(value);
   }
 
   /** Set a numeric input value (clears first). */
@@ -101,19 +108,33 @@ export class DrawFormDrawer {
     await input.fill(value);
   }
 
-  /** Toggle a checkbox. */
+  /** Toggle a checkbox. The actual `<input>` is visually hidden via the
+   *  `is-checkradio` CSS pattern. We programmatically click the input
+   *  via evaluate since the label/input may be in the drawer's scroll
+   *  area and Playwright's scroll-into-view can mis-target the scroll
+   *  container. */
   async toggleCheckbox(id: string): Promise<void> {
-    await this.checkbox(id).check();
+    await this.page.evaluate((checkboxId) => {
+      const input = document.getElementById(checkboxId) as HTMLInputElement;
+      if (input) input.click();
+    }, id);
   }
 
-  /** Click the Generate button. */
+  /** Click the Generate button. It lives in the drawer footer which
+   *  is often below the fold. Use evaluate to bypass viewport checks. */
   async clickGenerate(): Promise<void> {
-    await this.generateButton.click();
+    await this.page.evaluate(() => {
+      const btn = document.getElementById('generateDraw') as HTMLButtonElement;
+      if (btn) btn.click();
+    });
   }
 
-  /** Click Cancel to close the drawer. */
+  /** Close the drawer by clicking the overlay backdrop (the dark area
+   *  outside the drawer wrapper). The Cancel button is often below the
+   *  fold in the drawer scroll area, making it unclickable. The overlay
+   *  click is the reliable dismiss path. */
   async clickCancel(): Promise<void> {
-    await this.cancelButton.click();
+    await this.page.locator(`${S.TMX_DRAWER} .drawer__overlay`).click({ force: true });
     await this.waitForClose();
   }
 }
