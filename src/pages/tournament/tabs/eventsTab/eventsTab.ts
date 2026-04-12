@@ -4,7 +4,6 @@
  * 2. Event tabs bar (Draws / Entries / Rankings)
  * 3. Tab content (draw view, entries panels, points table, or add-draw placeholder)
  */
-import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createPointsTable } from 'components/tables/pointsTable/createPointsTable';
@@ -15,7 +14,6 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';
-import { getActionOptions } from './renderDraws/getActionOptions';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
@@ -26,17 +24,9 @@ import { cleanupDrawPanel } from './cleanupDrawPanel';
 import { renderDrawPanel } from './renderDrawPanel';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
-import { editEvent } from './editEvent';
-import { t } from 'i18n';
 
 // constants
-import {
-  tournamentEngine,
-  drawDefinitionConstants,
-  eventConstants,
-  extensionConstants,
-  tools,
-} from 'tods-competition-factory';
+import { tournamentEngine, drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import {
   DRAWS_VIEW,
@@ -53,9 +43,6 @@ import {
 } from 'constants/tmxConstants';
 
 const { CONTAINER } = drawDefinitionConstants;
-const { TEAM } = eventConstants;
-
-const FLEX_CENTER = 'display: flex; align-items: center;';
 
 type RenderEventsTabParams = {
   eventId?: string;
@@ -109,26 +96,6 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
   }
 }
 
-function buildDrawActionsElement(eventId: string, drawId: string, structureId: string | undefined): HTMLElement | undefined {
-  const eventData = tournamentEngine.getEventData({ eventId })?.eventData;
-  const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
-  const sid = structureId || drawData?.structures?.[0]?.structureId;
-  const structure = drawData?.structures?.find((s: any) => s.structureId === sid);
-  const { roundMatchUps } = tools.makeDeepCopy(structure || {});
-  const matchUps = Object.values(roundMatchUps || {}).flat();
-  const dual = matchUps?.length === 1 && eventData?.eventInfo?.eventType === TEAM;
-
-  const actionOptions = (getActionOptions as any)({
-    dualMatchUp: dual && matchUps[0],
-    structureId: sid,
-    eventData,
-    drawData,
-    drawId,
-  });
-
-  return buildActionsElement(actionOptions);
-}
-
 function renderDrawTab(
   eventId: string,
   drawId: string | undefined,
@@ -136,11 +103,7 @@ function renderDrawTab(
   renderDraw: boolean | undefined,
   roundsView: string | undefined,
 ): void {
-  let actionsElement: HTMLElement | undefined;
-  if (drawId) {
-    actionsElement = buildDrawActionsElement(eventId, drawId, structureId);
-  }
-  renderEventTabsBar({ eventId, drawId, activeTab: 'draws', rightContent: actionsElement });
+  renderEventTabsBar({ eventId, drawId, activeTab: 'draws' });
   if (drawId) {
     const result = renderDrawPanel({ eventId, drawId });
     if (result.success) {
@@ -181,21 +144,8 @@ function renderDrawsListOrPlaceholder(eventId: string, renderDraw: boolean | und
   }
 }
 
-function renderDrawsTableView(eventId: string, event: any, renderDraw: boolean | undefined): void {
-  const drawsActionsElement = buildActionsElement([
-    {
-      onClick: () => editDisplaySettings({ eventId }),
-      label: 'Display settings',
-      close: true,
-    },
-    {
-      onClick: () => editEvent({ event, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
-      label: t('pages.events.editEventAction', 'Edit event'),
-      close: true,
-    },
-  ]);
-
-  renderEventTabsBar({ eventId, activeTab: 'draws', rightContent: drawsActionsElement });
+function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean | undefined): void {
+  renderEventTabsBar({ eventId, activeTab: 'draws' });
   setEventView({ renderDraw });
   const contentEl = document.getElementById(DRAWS_VIEW);
   if (!contentEl) return;
@@ -280,31 +230,7 @@ function renderNoDrawsView(eventId: string, renderDraw: boolean | undefined): vo
 }
 
 function renderEntriesTab(eventId: string, drawId: string | undefined): void {
-  const event = tournamentEngine.getEvent({ eventId })?.event;
-  const entriesActionsElement = buildActionsElement([
-    {
-      onClick: () => editDisplaySettings({ eventId }),
-      label: 'Display settings',
-      close: true,
-    },
-    {
-      onClick: () => editEvent({ event, callback: () => navigateToEvent({ eventId }) }),
-      label: t('pages.events.editEventAction', 'Edit event'),
-      close: true,
-    },
-  ]);
-
-  renderEventTabsBar({ eventId, drawId, activeTab: 'entries', rightContent: entriesActionsElement });
+  renderEventTabsBar({ eventId, drawId, activeTab: 'entries' });
   (createEntriesPanels as any)({ eventId, drawId });
   setEventView({ eventId });
-}
-
-function buildActionsElement(options: any[]): HTMLElement {
-  const element = document.createElement('div');
-  element.style.cssText = FLEX_CENTER;
-  controlBar({
-    target: element,
-    items: [{ options, intent: 'is-info', label: 'Actions', location: 'right', align: 'right' }],
-  });
-  return element;
 }

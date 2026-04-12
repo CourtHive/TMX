@@ -10,6 +10,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { getStructureOptions } from '../getStructureOptions';
 import { editMatchUpFormat } from '../editMatchUpFormat';
+import { getActionOptions } from '../getActionOptions';
 import { getDrawsOptions } from '../getDrawsOptions';
 import { compositions } from 'courthive-components';
 import { renderDrawView } from '../renderDrawView';
@@ -188,7 +189,7 @@ export function getEventControlItems({
     });
   }
 
-  // "Assign participants" button when there are unassigned positions (furthest right)
+  // "Assign participants" button when there are unassigned positions
   const isAssignableStage =
     (structure?.stage === MAIN && structure?.stageSequence === 1) || structure?.stage === QUALIFYING;
   if (isAssignableStage && !isTeam && !draftExt) {
@@ -202,6 +203,19 @@ export function getEventControlItems({
         location: RIGHT,
       });
     }
+  }
+
+  // [Actions ▼] dropdown — draw-specific actions (furthest right)
+  const actionOptions = getActionOptions({ structureId, eventData, drawData, drawId });
+  const visibleActions = actionOptions.filter((opt: any) => !opt.hide);
+  if (visibleActions.length > 0) {
+    items.push({
+      options: visibleActions,
+      label: t('pages.events.actions', 'Actions'),
+      intent: 'is-info',
+      location: RIGHT,
+      align: RIGHT,
+    });
   }
 
   return items;

@@ -2,14 +2,16 @@
  * Event tabs bar with Entries, Draws, Rankings tabs and Edit Event button.
  * Renders below the compact event selector when an event is selected.
  */
-import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { controlBar } from 'courthive-components';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { tournamentEngine } from 'tods-competition-factory';
+import { editEvent } from './editEvent';
 
 import { EVENT_TABS_BAR } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const CURSOR_POINTER = 'cursor: pointer';
+const ACCENT_BLUE = 'var(--tmx-accent-blue, #3273dc)';
 
 type ActiveTab = 'draws' | 'entries' | 'points';
 
@@ -71,8 +73,8 @@ export function renderEventTabsBar({
       CURSOR_POINTER,
       'font-size: 0.95em',
       `font-weight: ${isActive ? '600' : '400'}`,
-      `color: ${isActive ? 'var(--tmx-accent-blue, #3273dc)' : 'var(--tmx-text-secondary, #888)'}`,
-      `border-bottom: 2px solid ${isActive ? 'var(--tmx-accent-blue, #3273dc)' : 'transparent'}`,
+      `color: ${isActive ? ACCENT_BLUE : 'var(--tmx-text-secondary, #888)'}`,
+      `border-bottom: 2px solid ${isActive ? ACCENT_BLUE : 'transparent'}`,
       'margin-bottom: -2px',
       'transition: color 0.15s, border-color 0.15s',
     ].join('; ');
@@ -88,22 +90,42 @@ export function renderEventTabsBar({
 
   bar.appendChild(tabsLeft);
 
-  // Right-side content in a consistent wrapper
+  // Right-side: Edit Event button + optional extra controls (e.g. Rankings policy selectors)
   const rightWrapper = document.createElement('div');
-  rightWrapper.style.cssText = 'display: flex; align-items: center; margin-right: 0.5em; margin-bottom: 4px;';
+  rightWrapper.style.cssText = 'display: flex; align-items: center; gap: 0.5em; margin-right: 0.5em; margin-bottom: 4px;';
 
   if (rightContent) {
     rightWrapper.appendChild(rightContent);
-  } else {
-    // Invisible placeholder matching Actions button height to prevent tab bar jump
-    const placeholder = document.createElement('div');
-    controlBar({
-      target: placeholder,
-      items: [{ label: '\u200B', location: 'right' }],
-    });
-    placeholder.style.visibility = 'hidden';
-    rightWrapper.appendChild(placeholder);
   }
+
+  const event = tournamentEngine.getEvent({ eventId })?.event;
+  if (event) {
+    const editBtn = document.createElement('button');
+    editBtn.textContent = t('pages.events.editEventAction', 'Edit Event');
+    editBtn.style.cssText = [
+      'padding: 0.4em 1em',
+      `border: 1px solid ${ACCENT_BLUE}`,
+      'background: transparent',
+      `color: ${ACCENT_BLUE}`,
+      'border-radius: 4px',
+      CURSOR_POINTER,
+      'font-size: 0.85em',
+      'font-weight: 500',
+      'white-space: nowrap',
+      'transition: background 0.15s, color 0.15s',
+    ].join('; ');
+    editBtn.onmouseenter = () => {
+      editBtn.style.background = ACCENT_BLUE;
+      editBtn.style.color = '#fff';
+    };
+    editBtn.onmouseleave = () => {
+      editBtn.style.background = 'transparent';
+      editBtn.style.color = ACCENT_BLUE;
+    };
+    editBtn.onclick = () => editEvent({ event, callback: () => navigateToEvent({ eventId }) });
+    rightWrapper.appendChild(editBtn);
+  }
+
   bar.appendChild(rightWrapper);
 
   container.appendChild(bar);
@@ -135,7 +157,7 @@ export function renderNoDrawsPlaceholder({
   btn.style.cssText = [
     'padding: 0.6em 1.5em',
     'border: none',
-    'background: var(--tmx-accent-blue, #3273dc)',
+    `background: ${ACCENT_BLUE}`,
     'color: #fff',
     'border-radius: 4px',
     CURSOR_POINTER,
