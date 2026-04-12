@@ -133,6 +133,18 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.clickCancel();
   });
 
+  test('1.1.4 — FEED_IN: standard elimination fields, raw draw size', async ({ page }) => {
+    const { drawer } = await seedAndOpenDrawForm(page);
+    await drawer.selectDrawType('FEED_IN');
+
+    await drawer.expectFieldVisible('Qualifiers');
+    await drawer.expectFieldVisible('Seeding policy');
+    await drawer.expectFieldHidden('Group size');
+    await drawer.expectFieldHidden('Consolation feed depth');
+
+    await drawer.clickCancel();
+  });
+
   test('1.1.5 — FEED_IN_CHAMPIONSHIP: FIC depth visible', async ({ page }) => {
     const { drawer } = await seedAndOpenDrawForm(page);
     await drawer.selectDrawType('FEED_IN_CHAMPIONSHIP');
@@ -140,6 +152,28 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.expectFieldVisible('Consolation feed depth');
     await drawer.expectFieldHidden('Group size');
     await drawer.expectFieldVisible('Seeding policy');
+
+    await drawer.clickCancel();
+  });
+
+  test('1.1.6 — ADAPTIVE: standard fields, raw draw size', async ({ page }) => {
+    const { drawer } = await seedAndOpenDrawForm(page);
+    await drawer.selectDrawType('ADAPTIVE');
+
+    await drawer.expectFieldVisible('Qualifiers');
+    await drawer.expectFieldVisible('Seeding policy');
+    await drawer.expectFieldHidden('Group size');
+
+    await drawer.clickCancel();
+  });
+
+  test('1.1.7 — LUCKY_DRAW: standard fields, raw draw size', async ({ page }) => {
+    const { drawer } = await seedAndOpenDrawForm(page);
+    await drawer.selectDrawType('LUCKY_DRAW');
+
+    await drawer.expectFieldVisible('Qualifiers');
+    await drawer.expectFieldVisible('Seeding policy');
+    await drawer.expectFieldHidden('Group size');
 
     await drawer.clickCancel();
   });

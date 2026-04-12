@@ -114,4 +114,52 @@ test.describe('Journey 6 — Draw generation mutations', () => {
     expect(entry).toBeDefined();
     collector.detach();
   });
+
+  test('FEED_IN generation emits addDrawDefinition', async ({ page }) => {
+    const { drawer, collector } = await seedAndOpenDrawForm(page);
+
+    await drawer.setInputValue('Draw name', 'Feed In Draw');
+    await drawer.selectDrawType('FEED_IN');
+    await drawer.clickGenerate();
+
+    const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
+    expect(entry).toBeDefined();
+    collector.detach();
+  });
+
+  test('ADAPTIVE generation emits addDrawDefinition', async ({ page }) => {
+    const { drawer, collector } = await seedAndOpenDrawForm(page);
+
+    await drawer.setInputValue('Draw name', 'Adaptive Draw');
+    await drawer.selectDrawType('ADAPTIVE');
+    await drawer.clickGenerate();
+
+    const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
+    expect(entry).toBeDefined();
+    collector.detach();
+  });
+
+  test('LUCKY_DRAW generation emits addDrawDefinition', async ({ page }) => {
+    const { drawer, collector } = await seedAndOpenDrawForm(page);
+
+    await drawer.setInputValue('Draw name', 'Lucky Draw');
+    await drawer.selectDrawType('LUCKY_DRAW');
+    await drawer.clickGenerate();
+
+    const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
+    expect(entry).toBeDefined();
+    collector.detach();
+  });
+
+  test('SWISS generation emits addDrawDefinition', async ({ page }) => {
+    const { drawer, collector } = await seedAndOpenDrawForm(page);
+
+    await drawer.setInputValue('Draw name', 'Swiss Draw');
+    await drawer.selectDrawType('SWISS');
+    await drawer.clickGenerate();
+
+    const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
+    expect(entry).toBeDefined();
+    collector.detach();
+  });
 });
