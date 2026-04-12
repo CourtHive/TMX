@@ -195,6 +195,10 @@ function resolveModelView({ event, drawId, isQualifying, isPopulateMain, structu
   if (isQualifying && !structureId && !drawId) return drawFormModel({ kind: 'NEW_QUALIFYING', event }, {});
   if (isPopulateMain && draw) return drawFormModel({ kind: 'POPULATE_MAIN', event, draw }, {});
   if (isQualifying && !structureId && drawId && draw) return drawFormModel({ kind: 'GENERATE_QUALIFYING', event, draw }, {});
+  if (isQualifying && structureId && draw) {
+    const structure = draw.structures?.find((s: any) => s.structureId === structureId);
+    if (structure) return drawFormModel({ kind: 'ATTACH_QUALIFYING', event, draw, structure }, {});
+  }
   return undefined;
 }
 
@@ -212,7 +216,10 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const modelView = resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId });
 
   const { qualifiersCount, structurePositionAssignments } = modelView
-    ? { qualifiersCount: modelView.derivedValues.qualifiersCount, structurePositionAssignments: undefined }
+    ? {
+        qualifiersCount: modelView.derivedValues.qualifiersCount,
+        structurePositionAssignments: modelView.derivedValues.structurePositionAssignments,
+      }
     : computeQualifyingState({
         event,
         drawId,
