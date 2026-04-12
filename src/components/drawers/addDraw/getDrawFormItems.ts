@@ -4,7 +4,7 @@
  */
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
-import { drawFormModel } from './drawFormModel';
+import { drawFormModel, DrawFormView } from './drawFormModel';
 import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
@@ -187,6 +187,17 @@ function resolveQualifiersCount({
   return qualifyingSpotsFromEntries;
 }
 
+/** Resolve the drawFormModel view for migrated modes (Phase B). Returns
+ *  undefined for modes that still use the legacy in-place computation. */
+function resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): DrawFormView | undefined {
+  const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
+  if (!isQualifying && !isPopulateMain && !structureId) return drawFormModel({ kind: 'NEW_MAIN', event }, {});
+  if (isQualifying && !structureId && !drawId) return drawFormModel({ kind: 'NEW_QUALIFYING', event }, {});
+  if (isPopulateMain && draw) return drawFormModel({ kind: 'POPULATE_MAIN', event, draw }, {});
+  if (isQualifying && !structureId && drawId && draw) return drawFormModel({ kind: 'GENERATE_QUALIFYING', event, draw }, {});
+  return undefined;
+}
+
 export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): {
   structurePositionAssignments: any;
   items: any[];
@@ -196,20 +207,9 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const drawType = SINGLE_ELIMINATION;
   const isAttachingQualifying = !!isQualifying && !!structureId;
 
-  // Phase B: modes that have been migrated to the state-engine model get
-  // their drawSize + qualifiersCount from drawFormModel(). Other modes still
-  // fall through to the legacy in-place computation until they are migrated
-  // in turn. See `Mentat/statuses/2026-04-11-tmx-session-handoff.md`.
-  const isNewMain = !isQualifying && !isPopulateMain && !structureId;
-  const isNewQualifying = !!isQualifying && !structureId && !drawId;
-  const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
-  const modelView = isNewMain
-    ? drawFormModel({ kind: 'NEW_MAIN', event }, {})
-    : isNewQualifying
-      ? drawFormModel({ kind: 'NEW_QUALIFYING', event }, {})
-      : isPopulateMain && draw
-        ? drawFormModel({ kind: 'POPULATE_MAIN', event, draw }, {})
-        : undefined;
+  // Phase B: migrated modes get drawSize + qualifiersCount from the
+  // state-engine model. Unmigrated modes fall through to legacy computation.
+  const modelView = resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId });
 
   const { qualifiersCount, structurePositionAssignments } = modelView
     ? { qualifiersCount: modelView.derivedValues.qualifiersCount, structurePositionAssignments: undefined }
