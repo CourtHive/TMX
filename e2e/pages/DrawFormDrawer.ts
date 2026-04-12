@@ -129,12 +129,18 @@ export class DrawFormDrawer {
     });
   }
 
-  /** Close the drawer by clicking the overlay backdrop (the dark area
-   *  outside the drawer wrapper). The Cancel button is often below the
-   *  fold in the drawer scroll area, making it unclickable. The overlay
-   *  click is the reliable dismiss path. */
+  /** Close the drawer. Tries the overlay backdrop first; falls back
+   *  to clicking outside the drawer wrapper if the overlay isn't
+   *  rendered (e.g. ATTACH_QUALIFYING mode where the drawer opens
+   *  without an overlay). */
   async clickCancel(): Promise<void> {
-    await this.page.locator(`${S.TMX_DRAWER} .drawer__overlay`).click({ force: true });
+    const overlay = this.page.locator(`${S.TMX_DRAWER} .drawer__overlay`);
+    if (await overlay.isVisible().catch(() => false)) {
+      await overlay.click({ force: true });
+    } else {
+      // Fallback: click at (0,0) — outside the drawer wrapper
+      await this.page.mouse.click(0, 0);
+    }
     await this.waitForClose();
   }
 }

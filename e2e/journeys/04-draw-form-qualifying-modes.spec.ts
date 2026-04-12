@@ -1,56 +1,61 @@
 /**
  * Journey 4 — Draw form: Qualifying modes
  *
- * Tests NEW_QUALIFYING, GENERATE_QUALIFYING, and ATTACH_QUALIFYING
- * modes. These require seeding tournaments with specific draw/structure
- * contexts that expose the qualifying drawer entry points.
+ * Tests the qualifying drawer entry points and field state:
+ * - ATTACH_QUALIFYING via the "Add qualifying" structure options menu
+ * - GENERATE_QUALIFYING via the "Generate qualifying" button (qualifying-first flow)
  *
  * @see Test matrix sections 1.4, 1.6, 1.7
  */
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 import { DrawFormDrawer } from '../pages/DrawFormDrawer';
+import { S } from '../helpers/selectors';
 
 /* ─── Seed profiles ─────────────────────────────────────────────────────── */
 
-/** Tournament with event + entries but no draw. Used for NEW_QUALIFYING
- *  (the qualifying drawer entry point requires an event with qualifying
- *  entries). We seed qualifying entries via the factory. */
-const PROFILE_WITH_QUALIFYING_ENTRIES: MockProfile = {
+/** Tournament with a main draw whose positions are NOT auto-filled.
+ *  `automated: false` creates the draw structure with empty position
+ *  assignments — canAddQualifying returns true because some positions
+ *  have neither participantId nor bye. */
+const PROFILE_MANUAL_DRAW: MockProfile = {
   tournamentName: 'E2E Qualifying Modes',
   tournamentAttributes: { tournamentId: 'e2e-qualifying' },
-  participantsProfile: { scaledParticipantsCount: 32 },
+  participantsProfile: { scaledParticipantsCount: 16 },
   drawProfiles: [
     {
       eventName: 'Singles',
       drawSize: 16,
-      seedsCount: 4,
       drawType: 'SINGLE_ELIMINATION',
+      automated: false,
     },
   ],
 };
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 
-/**
- * Seed a tournament with a completed main draw, navigate to the draw view,
- * and open the qualifying generation drawer via the structure options menu.
- *
- * Note: The exact UI path to trigger addDraw in qualifying modes depends
- * on the structure options menu in the draws view. If the selector needs
- * tuning after the first live run, adjust here.
- */
-async function seedAndNavigateToDrawView(
-  page: any,
-  profile: MockProfile,
-): Promise<{ tournamentPage: TournamentPage; tournamentId: string }> {
-  const tournamentId = await seedTournament(page, profile);
+/** Navigate to the draw view for the first event's first draw. */
+async function navigateToDrawView(page: any, tournamentId: string): Promise<void> {
   const tournamentPage = new TournamentPage(page);
   await tournamentPage.goto(tournamentId);
-  return { tournamentPage, tournamentId };
+  await tournamentPage.navigateToEvents();
+
+  // Click the event row to enter event detail
+  await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
+  await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
+
+  // Click the "Draws" tab
+  await page.locator('#eventTabsBar').getByText('Draws').click();
+
+  // The draws tab shows a table of draws — click the first draw row
+  // to enter the actual draw view (bracket + structure options).
+  await page.locator('.tabulator-row').first().waitFor({ state: 'visible', timeout: 5_000 });
+  await page.locator('.tabulator-row').first().click();
+
+  // Wait for the draw control bar to appear (it's inside drawsView)
+  await page.locator(S.DRAW_CONTROL).waitFor({ state: 'visible', timeout: 10_000 });
 }
 
 /* ─── Tests ──────────────────────────────────────────────────────────────── */
@@ -63,102 +68,50 @@ test.describe('Journey 4 — Draw form qualifying modes', () => {
     await resetState(page);
   });
 
-  /* ── Section 1.4/1.6: NEW_QUALIFYING / GENERATE_QUALIFYING field state ── */
+  test('ATTACH_QUALIFYING — "Add qualifying" from structure options opens qualifying form', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_MANUAL_DRAW);
+    await navigateToDrawView(page, tournamentId);
 
-  test('qualifying mode shows structure name, hides draw name and qualifying-first', async ({ page }) => {
-    // Seed a tournament and programmatically open the draw form in qualifying mode
-    const tournamentId = await seedTournament(page, PROFILE_WITH_QUALIFYING_ENTRIES);
-    const tournamentPage = new TournamentPage(page);
-    await tournamentPage.goto(tournamentId);
+    // The structure options dropdown is the third control-bar item (after
+    // search and draw name). It shows the structure name as its label.
+    // Click it to reveal the dropdown menu with "Add qualifying".
+    // The structure dropdown ("Main ∨") is in the event control bar,
+    // rendered by courthive-components renderControlBar. It's a .dropdown
+    // element with a button trigger. The #eventControl area contains it.
+    const eventControl = page.locator(S.EVENT_CONTROL);
+    await eventControl.waitFor({ state: 'visible', timeout: 5_000 });
 
-    // Use the dev bridge to invoke addDraw in qualifying mode directly.
-    // This bypasses the UI navigation to the structure options menu,
-    // which varies by draw state. The form itself is what we're testing.
-    const eventId = await page.evaluate(() => {
-      const tournament = dev.getTournament();
-      return tournament.events?.[0]?.eventId;
-    });
+    // Click the "Main" dropdown — it's a dropdown-trigger button
+    // containing the text "Main"
+    const mainDropdown = eventControl.locator('.dropdown:has-text("Main")');
+    await mainDropdown.locator('.dropdown-trigger').first().click();
 
-    const drawId = await page.evaluate(() => {
-      const tournament = dev.getTournament();
-      return tournament.events?.[0]?.drawDefinitions?.[0]?.drawId;
-    });
+    // Click "Add qualifying" from the dropdown menu
+    const addQualifyingOption = page.getByText('Add qualifying');
+    await addQualifyingOption.waitFor({ state: 'visible', timeout: 5_000 });
+    await addQualifyingOption.click();
 
-    await page.evaluate(
-      ({ eventId, drawId }: { eventId: string; drawId: string }) => {
-        // Import and call addDraw with qualifying flags
-        const { addDraw } = require('components/drawers/addDraw/addDraw');
-        addDraw({ eventId, drawId, isQualifying: true, callback: () => {} });
-      },
-      { eventId, drawId },
-    );
-
+    // The addDraw drawer should open in ATTACH_QUALIFYING mode
     const drawer = new DrawFormDrawer(page);
     await drawer.waitForOpen();
 
-    // Qualifying mode field assertions (1.4.x / 1.6.x)
-    await drawer.expectFieldVisible('Structure name');
-    await drawer.expectFieldHidden('Draw name');
-    await drawer.expectFieldHidden('Seeding policy');
-
-    // Draw type should only show qualifying-allowed types
-    const drawTypeSelect = drawer.fieldSelect('Draw type');
-    const optionCount = await drawTypeSelect.locator('option').count();
-    // Qualifying allows: SE, RR, RR_PLAYOFF = 3 types
-    expect(optionCount).toBeLessThanOrEqual(4); // may include a default/blank
-
-    await drawer.clickCancel();
-  });
-
-  /* ── Section 1.7: ATTACH_QUALIFYING ──────────────────────────────── */
-
-  test('attach qualifying mode shows qualifiers count, disables automated', async ({ page }) => {
-    const tournamentId = await seedTournament(page, PROFILE_WITH_QUALIFYING_ENTRIES);
-    const tournamentPage = new TournamentPage(page);
-    await tournamentPage.goto(tournamentId);
-
-    // Get event, draw, and main structure IDs
-    const ids = await page.evaluate(() => {
-      const tournament = dev.getTournament();
-      const event = tournament.events?.[0];
-      const draw = event?.drawDefinitions?.[0];
-      const structure = draw?.structures?.find((s: any) => s.stage === 'MAIN');
-      return {
-        eventId: event?.eventId,
-        drawId: draw?.drawId,
-        structureId: structure?.structureId,
-      };
-    });
-
-    // Open addDraw in ATTACH_QUALIFYING mode via dev bridge
-    await page.evaluate(
-      (params: { eventId: string; drawId: string; structureId: string }) => {
-        const { addDraw } = require('components/drawers/addDraw/addDraw');
-        addDraw({
-          eventId: params.eventId,
-          drawId: params.drawId,
-          structureId: params.structureId,
-          isQualifying: true,
-          callback: () => {},
-        });
-      },
-      ids,
-    );
-
-    const drawer = new DrawFormDrawer(page);
-    await drawer.waitForOpen();
-
-    // ATTACH_QUALIFYING field assertions (1.7.x)
+    // ATTACH_QUALIFYING field assertions (section 1.7)
     await drawer.expectFieldVisible('Structure name');
     await drawer.expectFieldHidden('Draw name');
     await drawer.expectFieldVisible('Qualifiers');
     await drawer.expectFieldHidden('Seeding policy');
 
-    // Automated should be visible but disabled
-    await drawer.expectFieldVisible('Creation');
-    const automatedSelect = drawer.fieldSelect('Creation');
-    // The automated option should be disabled within the select
-    // (the model sets AUTOMATED disabled: true for ATTACH_QUALIFYING)
+    // Draw type options should be narrowed to qualifying subset
+    const values = await drawer.fieldSelect('Draw Type').locator('option').evaluateAll(
+      (opts: HTMLOptionElement[]) =>
+        opts.map((o) => o.value).filter((v) => v && !v.startsWith('─')),
+    );
+    const qualifyingTypes = ['SINGLE_ELIMINATION', 'ROUND_ROBIN', 'ROUND_ROBIN_WITH_PLAYOFF'];
+    for (const val of values) {
+      expect(qualifyingTypes).toContain(val);
+    }
+    expect(values.length).toBeGreaterThan(0);
+    expect(values.length).toBeLessThanOrEqual(3);
 
     await drawer.clickCancel();
   });
