@@ -202,11 +202,14 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   // in turn. See `Mentat/statuses/2026-04-11-tmx-session-handoff.md`.
   const isNewMain = !isQualifying && !isPopulateMain && !structureId;
   const isNewQualifying = !!isQualifying && !structureId && !drawId;
+  const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
   const modelView = isNewMain
     ? drawFormModel({ kind: 'NEW_MAIN', event }, {})
     : isNewQualifying
       ? drawFormModel({ kind: 'NEW_QUALIFYING', event }, {})
-      : undefined;
+      : isPopulateMain && draw
+        ? drawFormModel({ kind: 'POPULATE_MAIN', event, draw }, {})
+        : undefined;
 
   const { qualifiersCount, structurePositionAssignments } = modelView
     ? { qualifiersCount: modelView.derivedValues.qualifiersCount, structurePositionAssignments: undefined }
