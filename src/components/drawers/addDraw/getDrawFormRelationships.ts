@@ -10,6 +10,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { drawFormModel } from './drawFormModel';
 
 // Constants
 const {
@@ -342,10 +343,14 @@ export function getDrawFormRelationships({
     const hasOption = Array.from(drawTypeSelect.options).some((o: any) => o.value === currentDrawType);
     if (hasOption) drawTypeSelect.value = currentDrawType;
 
-    // Re-derive draw size from qualifying or main entries
-    const entryStage = checked ? QUALIFYING : MAIN;
-    const entriesCount = acceptedEntriesCount({ drawId, event, stage: entryStage });
-    inputs[DRAW_SIZE].value = checked ? entriesCount || 16 : tools.nextPowerOf2(entriesCount);
+    // Re-derive draw size via the state-engine model (Phase B mode 5/6).
+    // The model uses STRUCTURE_SELECTED_STATUSES (factory canonical) for
+    // entry counting — not the drifted TMX helper.
+    const toggleMode = checked
+      ? ({ kind: 'NEW_MAIN_WITH_QUALIFYING_FIRST', event } as const)
+      : ({ kind: 'NEW_MAIN', event } as const);
+    const toggleView = drawFormModel(toggleMode, {});
+    inputs[DRAW_SIZE].value = toggleView.derivedValues.drawSize;
 
     checkCreationMethod({ fields, inputs });
   };
