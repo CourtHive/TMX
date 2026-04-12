@@ -196,15 +196,20 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const drawType = SINGLE_ELIMINATION;
   const isAttachingQualifying = !!isQualifying && !!structureId;
 
-  // Phase B (Mode 1 of 6): NEW_MAIN routes through the state-engine model.
-  // Other modes still use the legacy in-place computation until they are
-  // migrated in turn. See `Mentat/statuses/2026-04-11-tmx-session-handoff.md`
-  // for the migration order.
+  // Phase B: modes that have been migrated to the state-engine model get
+  // their drawSize + qualifiersCount from drawFormModel(). Other modes still
+  // fall through to the legacy in-place computation until they are migrated
+  // in turn. See `Mentat/statuses/2026-04-11-tmx-session-handoff.md`.
   const isNewMain = !isQualifying && !isPopulateMain && !structureId;
-  const newMainView = isNewMain ? drawFormModel({ kind: 'NEW_MAIN', event }, {}) : undefined;
+  const isNewQualifying = !!isQualifying && !structureId && !drawId;
+  const modelView = isNewMain
+    ? drawFormModel({ kind: 'NEW_MAIN', event }, {})
+    : isNewQualifying
+      ? drawFormModel({ kind: 'NEW_QUALIFYING', event }, {})
+      : undefined;
 
-  const { qualifiersCount, structurePositionAssignments } = isNewMain
-    ? { qualifiersCount: newMainView!.derivedValues.qualifiersCount, structurePositionAssignments: undefined }
+  const { qualifiersCount, structurePositionAssignments } = modelView
+    ? { qualifiersCount: modelView.derivedValues.qualifiersCount, structurePositionAssignments: undefined }
     : computeQualifyingState({
         event,
         drawId,
@@ -216,8 +221,8 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const structureName = 'Qualifying';
 
   const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;
-  const drawSize = isNewMain
-    ? newMainView!.derivedValues.drawSize
+  const drawSize = modelView
+    ? modelView.derivedValues.drawSize
     : structurePositionAssignments?.length ||
       (isQualifying && qualifyingEntriesCount
         ? qualifyingEntriesCount
