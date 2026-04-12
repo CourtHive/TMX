@@ -23,6 +23,7 @@
  */
 
 // constants and types
+import { entryStatusConstants } from 'tods-competition-factory';
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
@@ -47,6 +48,14 @@ import {
   TEAM_AVOIDANCE,
 } from 'constants/tmxConstants';
 
+/** Canonical entry-status whitelist for structure selection. Mirrors the
+ *  factory's `STRUCTURE_SELECTED_STATUSES` so the model never drifts from
+ *  `validateAndDeriveDrawValues.getFilteredEntries`. Do NOT route this through
+ *  TMX's `constants/acceptedEntryStatuses.ts` helper — that file is drifted
+ *  (only 5 of the 8 statuses) and is tracked as a separate cleanup. */
+const { STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
+const SELECTED_STATUS_SET = new Set<string>(STRUCTURE_SELECTED_STATUSES);
+
 /* ─── Mode discriminated union ──────────────────────────────────────── */
 
 export type DrawFormMode =
@@ -65,8 +74,12 @@ export type DrawFormMode =
    *  with a placeholder qualifying link. */
   | { kind: 'GENERATE_QUALIFYING'; event: any; draw: any }
   /** Attaching a qualifying structure to an existing main structure (the user
-   *  picked a target structure to attach to). */
-  | { kind: 'ATTACH_QUALIFYING'; event: any; draw: any; structure: any };
+   *  picked a target structure to attach to). `maxQualifiers` is the upper
+   *  bound on the qualifiers-count input — defaults to the target structure's
+   *  position-assignment count. The model clamps `inputs[QUALIFIERS_COUNT]`
+   *  into `[1, maxQualifiers]` so the adapter does not have to reproduce the
+   *  clamp at `getDrawFormRelationships.ts:167-177`. */
+  | { kind: 'ATTACH_QUALIFYING'; event: any; draw: any; structure: any; maxQualifiers?: number };
 
 export type DrawFormModeKind = DrawFormMode['kind'];
 
@@ -136,6 +149,9 @@ export type DerivedValues = {
   drawEntries: any[];
   /** Existing position assignments when attaching to a structure. */
   structurePositionAssignments?: any[];
+  /** Upper bound on `qualifiersCount`. Only set in `ATTACH_QUALIFYING` flows.
+   *  The adapter should reject any user input above this value. */
+  maxQualifiers?: number;
   /** True when this mode produces a placeholder main draw alongside the
    *  qualifying generation (the qualifying-first flow). */
   qualifyingOnly: boolean;
@@ -248,7 +264,6 @@ function computeNewMain(
   inputs: DrawFormInputs,
   _options: DrawFormModelOptions,
 ): DrawFormView {
-  void _options;
   const drawType = pickDrawType(inputs, MAIN_DRAW_TYPES, SINGLE_ELIMINATION);
   const mainEntries = filterEntriesForStage(mode.event, 'MAIN');
   const drawSize = coerceDrawSize(mainEntries.length, drawType);
@@ -281,7 +296,6 @@ function computeNewMainWithQualifyingFirst(
   inputs: DrawFormInputs,
   _options: DrawFormModelOptions,
 ): DrawFormView {
-  void _options;
   const drawType = pickDrawType(inputs, QUALIFYING_DRAW_TYPES, SINGLE_ELIMINATION);
   const qualifyingEntries = filterEntriesForStage(mode.event, 'QUALIFYING');
   // Qualifying draw size: raw entries count, defaulting to 16 when there are
@@ -318,7 +332,6 @@ function computeNewQualifying(
   inputs: DrawFormInputs,
   _options: DrawFormModelOptions,
 ): DrawFormView {
-  void _options;
   const drawType = pickDrawType(inputs, QUALIFYING_DRAW_TYPES, SINGLE_ELIMINATION);
   const qualifyingEntries = filterEntriesForStage(mode.event, 'QUALIFYING');
   const drawSize = qualifyingEntries.length || 0;
@@ -350,7 +363,6 @@ function computePopulateMain(
   inputs: DrawFormInputs,
   _options: DrawFormModelOptions,
 ): DrawFormView {
-  void _options;
   const drawType = pickDrawType(inputs, MAIN_DRAW_TYPES, SINGLE_ELIMINATION);
   const flightEntries = readFlightMainEntries(mode.draw, mode.event);
   const drawSize = coerceDrawSize(flightEntries.length, drawType);
@@ -396,14 +408,17 @@ function computeAttachQualifying(
   inputs: DrawFormInputs,
   _options: DrawFormModelOptions,
 ): DrawFormView {
-  void _options;
   const drawType = pickDrawType(inputs, QUALIFYING_DRAW_TYPES, SINGLE_ELIMINATION);
   const positionAssignments = mode.structure?.positionAssignments ?? [];
-  // Existing qualifier count from the structure being attached to.
-  const qualifierPositionCount = positionAssignments.filter((p: any) => p.qualifier).length;
-  const qualifiersCount = qualifierPositionCount || 1;
   // Draw size for an attaching flow comes from the existing structure.
   const drawSize = positionAssignments.length || 0;
+  // Upper bound on qualifiersCount: explicit override on the mode payload, or
+  // the position-assignment count of the target structure (today's behavior
+  // at addDraw.ts:73). Mirrors `getDrawFormRelationships.ts:167-177`.
+  const maxQualifiers = mode.maxQualifiers ?? drawSize;
+  // Existing qualifier count from the structure being attached to.
+  const qualifierPositionCount = positionAssignments.filter((p: any) => p.qualifier).length;
+  const qualifiersCount = clampQualifiersCount(inputs[QUALIFIERS_COUNT], qualifierPositionCount || 1, maxQualifiers);
   const mainEntries = filterEntriesForStage(mode.event, 'MAIN');
 
   return {
@@ -422,6 +437,7 @@ function computeAttachQualifying(
       qualifiersCount,
       drawEntries: mainEntries,
       structurePositionAssignments: positionAssignments,
+      maxQualifiers,
       qualifyingOnly: false,
     },
     validationErrors: validateAttachQualifying(drawSize, qualifiersCount),
@@ -429,6 +445,23 @@ function computeAttachQualifying(
     availableSeedingPolicies: [],
     tieFormatRequired: false,
   };
+}
+
+/** Resolve `qualifiersCount` for an ATTACH_QUALIFYING flow. Honors a user
+ *  input value when present and finite, falls back to the existing structure's
+ *  qualifier-position count, then clamps the result into `[1, maxQualifiers]`.
+ *  When `maxQualifiers` is zero (empty target structure), the floor of 1 is
+ *  preserved so the validation layer surfaces `ATTACH_DRAW_SIZE_MISSING`
+ *  rather than a confusing zero-count. */
+function clampQualifiersCount(
+  inputValue: number | string | undefined,
+  fallback: number,
+  maxQualifiers: number,
+): number {
+  const requested = readNumericInput(inputValue, fallback);
+  const floor = Math.max(1, requested);
+  if (maxQualifiers <= 0) return floor;
+  return Math.min(floor, maxQualifiers);
 }
 
 /* ─── Shared helpers ─────────────────────────────────────────────────── */
@@ -472,19 +505,21 @@ function pickDrawType(inputs: DrawFormInputs, allowed: string[], fallback: strin
   return fallback;
 }
 
+/** Two-pass filter mirroring `validateAndDeriveDrawValues.ts:99-109`:
+ *  first by entry status against the factory whitelist, then by stage. The
+ *  MAIN pass treats a missing `entryStage` as MAIN (the factory default);
+ *  the QUALIFYING pass requires an explicit `entryStage === 'QUALIFYING'`. */
 function filterEntriesForStage(event: any, stage: 'MAIN' | 'QUALIFYING'): any[] {
   if (!event?.entries) return [];
-  return event.entries.filter((entry: any) => {
+  const statusFiltered = event.entries.filter((entry: any) => isAcceptedEntry(entry?.entryStatus));
+  return statusFiltered.filter((entry: any) => {
     const entryStage = entry?.entryStage;
-    const matchesStage = stage === 'MAIN' ? !entryStage || entryStage === 'MAIN' : entryStage === 'QUALIFYING';
-    return matchesStage && isAcceptedEntry(entry?.entryStatus);
+    return stage === 'MAIN' ? !entryStage || entryStage === 'MAIN' : entryStage === 'QUALIFYING';
   });
 }
 
-const ACCEPTED_ENTRY_STATUSES = new Set<string>(['DIRECT_ACCEPTANCE', 'ALTERNATE', 'WILDCARD', 'QUALIFIER']);
-
 function isAcceptedEntry(entryStatus?: string): boolean {
-  return entryStatus !== undefined && ACCEPTED_ENTRY_STATUSES.has(entryStatus);
+  return typeof entryStatus === 'string' && SELECTED_STATUS_SET.has(entryStatus);
 }
 
 /** Coerce an entry count into a draw size: power-of-2 for elimination-style

@@ -1,6 +1,7 @@
-import { drawFormModel } from './drawFormModel';
-import type { DrawFormInputs, DrawFormMode } from './drawFormModel';
 import { describe, expect, it } from 'vitest';
+
+// constants and types
+import { drawFormModel, DrawFormInputs, DrawFormMode } from './drawFormModel';
 
 import {
   AUTOMATED,
@@ -245,6 +246,51 @@ describe('drawFormModel — ATTACH_QUALIFYING', () => {
     };
     const view = drawFormModel(mode, EMPTY_INPUTS);
     expect(view.validationErrors.some((e) => e.code === 'ATTACH_DRAW_SIZE_MISSING')).toBe(true);
+  });
+
+  it('clamps a user-supplied QUALIFIERS_COUNT above maxQualifiers down to the cap', () => {
+    const event = makeEvent({ mainCount: 8 });
+    const structure = {
+      structureId: 'S1',
+      positionAssignments: Array.from({ length: 8 }, (_, i) => ({ drawPosition: i + 1 })),
+    };
+    const mode: DrawFormMode = { kind: 'ATTACH_QUALIFYING', event, draw: { drawId: 'D1' }, structure };
+    const view = drawFormModel(mode, { [QUALIFIERS_COUNT]: 99 });
+
+    expect(view.derivedValues.maxQualifiers).toBe(8);
+    expect(view.derivedValues.qualifiersCount).toBe(8);
+    expect(view.fieldStates[QUALIFIERS_COUNT]?.value).toBe(8);
+  });
+
+  it('floors a user-supplied QUALIFIERS_COUNT below 1 to 1', () => {
+    const event = makeEvent({ mainCount: 4 });
+    const structure = {
+      structureId: 'S1',
+      positionAssignments: Array.from({ length: 4 }, (_, i) => ({ drawPosition: i + 1 })),
+    };
+    const mode: DrawFormMode = { kind: 'ATTACH_QUALIFYING', event, draw: { drawId: 'D1' }, structure };
+    const view = drawFormModel(mode, { [QUALIFIERS_COUNT]: 0 });
+
+    expect(view.derivedValues.qualifiersCount).toBe(1);
+  });
+
+  it('honors an explicit mode.maxQualifiers override below the structure size', () => {
+    const event = makeEvent({ mainCount: 8 });
+    const structure = {
+      structureId: 'S1',
+      positionAssignments: Array.from({ length: 16 }, (_, i) => ({ drawPosition: i + 1 })),
+    };
+    const mode: DrawFormMode = {
+      kind: 'ATTACH_QUALIFYING',
+      event,
+      draw: { drawId: 'D1' },
+      structure,
+      maxQualifiers: 4,
+    };
+    const view = drawFormModel(mode, { [QUALIFIERS_COUNT]: 10 });
+
+    expect(view.derivedValues.maxQualifiers).toBe(4);
+    expect(view.derivedValues.qualifiersCount).toBe(4);
   });
 });
 
