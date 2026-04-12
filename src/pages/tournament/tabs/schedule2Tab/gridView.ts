@@ -1380,9 +1380,9 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Build lookup from matchUpId to participant display string
   const matchUpLabel = (id: string): string => {
     const m = scheduledMatchUps.find((mu: any) => mu.matchUpId === id);
-    if (!m) return id;
+    if (!m) return 'Unknown';
     const names = (m.sides || []).map((s: any) => s.participant?.participantName ?? s.participantName).filter(Boolean);
-    return names.length ? names.join(' vs ') : id;
+    return names.length ? names.join(' vs ') : m.roundName || 'TBD vs TBD';
   };
 
   const issues: ScheduleIssue[] = [];
