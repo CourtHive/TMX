@@ -68,25 +68,15 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   structurePositionAssignments: any;
   items: any[];
 } {
-  // Derive the legacy boolean flags from the mode — still referenced by
-  // items visibility / hide rules and the disableAutomated gate. Phase D
-  // eliminates the flags as an *input*; the items array references will
-  // migrate to fieldStates in a future polish pass.
-  const isQualifying = QUALIFYING_KINDS.has(mode.kind);
-  const isPopulateMain = mode.kind === 'POPULATE_MAIN';
-  const drawId = 'draw' in mode ? mode.draw?.drawId : undefined;
-  const structureId = mode.kind === 'ATTACH_QUALIFYING' ? mode.structure?.structureId : undefined;
-  const isAttachingQualifying = mode.kind === 'ATTACH_QUALIFYING';
-
-  const drawsCount = event.drawDefinitions?.length || 0;
-  const drawType = SINGLE_ELIMINATION;
-
   const modelView = drawFormModel(mode, {});
+  const fs = modelView.fieldStates;
   const qualifiersCount = modelView.derivedValues.qualifiersCount;
   const structurePositionAssignments = modelView.derivedValues.structurePositionAssignments;
   const drawSize = modelView.derivedValues.drawSize;
   const maxDrawSize = Math.max(drawSize, 512);
-  const structureName = 'Qualifying';
+  const drawId = 'draw' in mode ? mode.draw?.drawId : undefined;
+  const drawsCount = event.drawDefinitions?.length || 0;
+  const drawType = SINGLE_ELIMINATION;
 
   // Check for existing seeding policy at event or tournament level
   const tournamentRecord = tournamentEngine.getTournamentInfo()?.tournamentRecord;
@@ -140,11 +130,13 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     { label: '4', value: 4 },
   ];
 
-  const disableAutomated = !!structureId && !isAttachingQualifying;
+  // disableAutomated was `!!structureId && !isAttachingQualifying` — always
+  // false for every real mode (structureId only present in ATTACH_QUALIFYING,
+  // where isAttachingQualifying is also true). Simplified to a constant.
   const allCreationOptions = [
-    { label: AUTOMATED, value: AUTOMATED, selected: !disableAutomated, disabled: disableAutomated },
-    { label: DRAFT, value: DRAFT, disabled: disableAutomated },
-    { label: MANUAL, value: false, selected: disableAutomated },
+    { label: AUTOMATED, value: AUTOMATED, selected: true },
+    { label: DRAFT, value: DRAFT },
+    { label: MANUAL, value: false },
   ];
 
   // Filter creation methods by provider config
@@ -195,17 +187,17 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       placeholder: t('drawers.addDraw.structureNamePlaceholder'),
       validator: validators.nameValidator(4),
       label: t('drawers.addDraw.structureName'),
-      value: structureName,
+      value: fs[STRUCTURE_NAME]?.value ?? 'Qualifying',
       field: STRUCTURE_NAME,
       selectOnFocus: true,
-      visible: !!isQualifying,
+      visible: fs[STRUCTURE_NAME]?.visible ?? false,
     },
     {
       label: t('drawers.addDraw.qualifyingFirst'),
       field: QUALIFYING_FIRST,
       id: QUALIFYING_FIRST,
       checkbox: true,
-      hide: !!isQualifying || !!isPopulateMain || !!drawId,
+      hide: !fs[QUALIFYING_FIRST]?.visible,
     },
     {
       error: t('drawers.addDraw.minCharsError'),
@@ -213,13 +205,13 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       value: flight?.drawName || `Draw ${drawsCount + 1}`,
       validator: validators.nameValidator(4),
       selectOnFocus: true,
-      visible: !isQualifying && !isPopulateMain,
+      visible: fs[DRAW_NAME]?.visible ?? false,
       label: t('drawers.addDraw.drawName'),
       field: DRAW_NAME,
       focus: true,
     },
     {
-      options: getDrawTypeOptions({ isQualifying }),
+      options: getDrawTypeOptions({ isQualifying: QUALIFYING_KINDS.has(mode.kind) }),
       label: t('drawers.addDraw.drawType'),
       field: DRAW_TYPE,
       value: drawType,

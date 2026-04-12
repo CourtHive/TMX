@@ -207,8 +207,7 @@ describe('drawFormModel — POPULATE_MAIN', () => {
 
     expect(view.derivedValues.drawSize).toBe(16);
     expect(view.derivedValues.drawEntries).toHaveLength(10);
-    expect(view.fieldStates[DRAW_NAME]?.visible).toBe(true);
-    expect(view.fieldStates[DRAW_NAME]?.value).toBe('Main Draw');
+    expect(view.fieldStates[DRAW_NAME]?.visible).toBe(false);
     expect(view.fieldStates[STRUCTURE_NAME]?.visible).toBe(false);
     expect(view.fieldStates[QUALIFYING_FIRST]?.visible).toBe(false);
   });

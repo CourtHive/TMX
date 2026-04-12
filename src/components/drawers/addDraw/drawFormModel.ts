@@ -406,7 +406,10 @@ function computePopulateMain(
   return {
     fieldStates: {
       ...newDrawCommonFieldStates(drawType),
-      [DRAW_NAME]: { visible: true, disabled: false, value: mode.draw?.drawName },
+      // DRAW_NAME is hidden for POPULATE_MAIN — the draw already has a name
+      // set from the flight profile. The user renames via flight management,
+      // not the populate-main drawer.
+      [DRAW_NAME]: { visible: false, disabled: true },
       [STRUCTURE_NAME]: { visible: false, disabled: true },
       [QUALIFYING_FIRST]: { visible: false, disabled: true },
       [QUALIFIERS_COUNT]: { visible: !AD_HOC_FAMILY.has(drawType), disabled: false, value: qualifiersCount },
