@@ -2,7 +2,6 @@
  * Draw form items configuration.
  * Generates form field definitions for draw creation with validation and options.
  */
-import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { drawFormModel, DrawFormView } from './drawFormModel';
 import { providerConfig } from 'config/providerConfig';
@@ -15,7 +14,6 @@ import {
   eventConstants,
   policyConstants,
   fixtures,
-  tools,
 } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
@@ -51,7 +49,7 @@ import {
   WINNERS,
 } from 'constants/tmxConstants';
 
-const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION, QUALIFYING, MAIN } = drawDefinitionConstants;
+const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION } = drawDefinitionConstants;
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
 const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
@@ -71,124 +69,9 @@ interface DrawFormParams {
   structureId?: string;
 }
 
-type QualifyingState = {
-  qualifiersCount: number;
-  structurePositionAssignments: any;
-};
-
-/**
- * Compute the suggested qualifier count for the draw form based on the
- * draw context (existing qualifying structure, attaching to a main draw,
- * populating from qualifying, etc.).
- *
- * Extracted from `getDrawFormItems` to keep that function under the
- * cognitive-complexity threshold; the inputs and the resolution rules
- * stay co-located here.
- */
-function computeQualifyingState({
-  event,
-  drawId,
-  structureId,
-  isQualifying,
-  isPopulateMain,
-}: {
-  event: any;
-  drawId?: string;
-  structureId?: string;
-  isQualifying?: boolean;
-  isPopulateMain?: boolean;
-}): QualifyingState {
-  const isAttachingQualifying = !!isQualifying && !!structureId;
-
-  const positionAssignments =
-    structureId && !isAttachingQualifying
-      ? tournamentEngine.getPositionAssignments({ drawId, structureId })?.positionAssignments
-      : undefined;
-
-  const qualifierPositionCount = isAttachingQualifying
-    ? (tournamentEngine
-        .getPositionAssignments({ drawId, structureId })
-        ?.positionAssignments?.filter((p: any) => p.qualifier).length ?? 0)
-    : 0;
-
-  const qualifyingEntriesExist = acceptedEntriesCount({ event, stage: QUALIFYING }) > 0;
-
-  const drawDefinition = drawId && event.drawDefinitions?.find((def: any) => def.drawId === drawId);
-
-  const mainStructure =
-    isQualifying || isPopulateMain
-      ? drawDefinition?.structures?.find((s: any) => s.stage === MAIN && s.stageSequence === 1)
-      : undefined;
-  const mainDrawSize = mainStructure?.positionAssignments?.length || 0;
-  const mainEntryCount = isQualifying ? acceptedEntriesCount({ drawId, event, stage: MAIN }) : 0;
-
-  // Derive qualifier count from the qualifying link. Placeholder links store the count
-  // directly on `source.qualifyingPositions`; real links from generated qualifying structures
-  // don't carry that field, so count the matchUps in the qualifying final round instead.
-  const qualifyingLink =
-    (isQualifying || isPopulateMain) && mainStructure
-      ? drawDefinition?.links?.find((l: any) => l.target?.structureId === mainStructure.structureId)
-      : undefined;
-  const qualifyingSourceStructure = qualifyingLink
-    ? drawDefinition?.structures?.find((s: any) => s.structureId === qualifyingLink.source?.structureId)
-    : undefined;
-  const qualifyingFinalRoundMatchUpsCount =
-    qualifyingSourceStructure && qualifyingLink?.source?.roundNumber
-      ? (qualifyingSourceStructure.matchUps?.filter((m: any) => m.roundNumber === qualifyingLink.source.roundNumber)
-          .length ?? 0)
-      : 0;
-  const qualifyingSpotsFromLink = qualifyingLink?.source?.qualifyingPositions ?? qualifyingFinalRoundMatchUpsCount;
-  const qualifyingSpotsFromMain = qualifyingEntriesExist
-    ? qualifyingSpotsFromLink || Math.max(0, mainDrawSize - mainEntryCount)
-    : 0;
-
-  // For new MAIN draws: compute gap from the draw size we'll use
-  const mainAcceptedCount = isQualifying ? 0 : acceptedEntriesCount({ drawId, event, stage: MAIN });
-  const mainDrawSizeForGap = isQualifying ? 0 : tools.nextPowerOf2(mainAcceptedCount);
-  const qualifyingSpotsFromEntries = qualifyingEntriesExist ? Math.max(0, mainDrawSizeForGap - mainAcceptedCount) : 0;
-
-  const qualifiersCount = resolveQualifiersCount({
-    isAttachingQualifying,
-    isQualifying,
-    isPopulateMain,
-    structureId,
-    qualifierPositionCount,
-    qualifyingSpotsFromMain,
-    qualifyingSpotsFromLink,
-    qualifyingSpotsFromEntries,
-  });
-
-  return { qualifiersCount, structurePositionAssignments: positionAssignments };
-}
-
-function resolveQualifiersCount({
-  isAttachingQualifying,
-  isQualifying,
-  isPopulateMain,
-  structureId,
-  qualifierPositionCount,
-  qualifyingSpotsFromMain,
-  qualifyingSpotsFromLink,
-  qualifyingSpotsFromEntries,
-}: {
-  isAttachingQualifying: boolean;
-  isQualifying?: boolean;
-  isPopulateMain?: boolean;
-  structureId?: string;
-  qualifierPositionCount: number;
-  qualifyingSpotsFromMain: number;
-  qualifyingSpotsFromLink: number;
-  qualifyingSpotsFromEntries: number;
-}): number {
-  if (isAttachingQualifying) return qualifierPositionCount || qualifyingSpotsFromMain || 1;
-  if (isQualifying) return qualifyingSpotsFromMain;
-  if (isPopulateMain) return qualifyingSpotsFromLink;
-  if (structureId) return 1;
-  return qualifyingSpotsFromEntries;
-}
-
-/** Resolve the drawFormModel view for migrated modes (Phase B). Returns
- *  undefined for modes that still use the legacy in-place computation. */
+/** Resolve the drawFormModel view for the current mode. All 6 modes are
+ *  covered (Phase B complete); the undefined return is a defensive
+ *  fallback for corrupt state (drawId present but draw missing). */
 function resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): DrawFormView | undefined {
   const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
   if (!isQualifying && !isPopulateMain && !structureId) return drawFormModel({ kind: 'NEW_MAIN', event }, {});
@@ -206,38 +89,17 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   structurePositionAssignments: any;
   items: any[];
 } {
-  const stage = isQualifying ? QUALIFYING : MAIN;
   const drawsCount = event.drawDefinitions?.length || 0; // need to take into consideration flightProfile.flights
   const drawType = SINGLE_ELIMINATION;
   const isAttachingQualifying = !!isQualifying && !!structureId;
 
-  // Phase B: migrated modes get drawSize + qualifiersCount from the
-  // state-engine model. Unmigrated modes fall through to legacy computation.
+  // All 6 modes route through the state-engine model (Phase B complete).
   const modelView = resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId });
-
-  const { qualifiersCount, structurePositionAssignments } = modelView
-    ? {
-        qualifiersCount: modelView.derivedValues.qualifiersCount,
-        structurePositionAssignments: modelView.derivedValues.structurePositionAssignments,
-      }
-    : computeQualifyingState({
-        event,
-        drawId,
-        structureId,
-        isQualifying,
-        isPopulateMain,
-      });
-
+  const qualifiersCount = modelView?.derivedValues.qualifiersCount ?? 0;
+  const structurePositionAssignments = modelView?.derivedValues.structurePositionAssignments;
+  const drawSize = modelView?.derivedValues.drawSize ?? 0;
+  const maxDrawSize = Math.max(drawSize, 512);
   const structureName = 'Qualifying';
-
-  const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;
-  const drawSize = modelView
-    ? modelView.derivedValues.drawSize
-    : structurePositionAssignments?.length ||
-      (isQualifying && qualifyingEntriesCount
-        ? qualifyingEntriesCount
-        : tools.nextPowerOf2(acceptedEntriesCount({ drawId, event, stage })));
-  const maxDrawSize = Math.max(drawSize, 512); // Allow at least 512, or the next power of 2 above entries
 
   // Check for existing seeding policy at event or tournament level
   const tournamentRecord = tournamentEngine.getTournamentInfo()?.tournamentRecord;
