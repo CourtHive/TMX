@@ -2,6 +2,7 @@ packages:
   - .
 
 ignoredBuiltDependencies:
+  - core-js
   - cypress
   - electron
   - electron-winstaller

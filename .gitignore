@@ -11,6 +11,9 @@ pnpm-debug.log*
 
 # testing
 /coverage
+/e2e/test-results
+/e2e/playwright-report
+/e2e/.playwright
 
 # sandbox
 scratch
