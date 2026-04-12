@@ -106,6 +106,8 @@ export function getUnifiedColumns({
         };
         return (formatParticipant(onClick, { participantDetail: 'ADDRESS' }) as any)(cell, undefined, 'sideBySide');
       },
+      sorter: (a: any, b: any) =>
+        (a?.participantName ?? '').localeCompare(b?.participantName ?? '', undefined, { numeric: true }),
       field: 'participant',
       responsive: false,
       resizable: false,
@@ -175,6 +177,8 @@ export function getUnifiedColumns({
         if (cell.getRow().getData()._isSeparator) return '';
         return (flightsFormatter(navigateToEvent) as any)(cell);
       },
+      sorter: (a: any, b: any) =>
+        (a?.[0]?.drawName ?? '').localeCompare(b?.[0]?.drawName ?? '', undefined, { numeric: true }),
       title: t('tables.entries.flights'),
       visible: !!hasDrawDefinitions,
       responsive: true,
@@ -186,6 +190,7 @@ export function getUnifiedColumns({
       formatter: statusFormatter,
       responsive: false,
       resizable: false,
+      sorter: 'string',
       title: t('tables.entries.status'),
       field: 'status',
       maxWidth: 80,

@@ -224,8 +224,9 @@ function renderAssignmentView({
   const compositionName = display?.compositionName;
   const composition = compositions[compositionName] || compositions.National;
 
-  // Check if draw has qualifying structure
-  const hasQualifying = drawData?.structures?.some((s: any) => s.stage === 'QUALIFYING');
+  // Show QUALIFIER option only when the current structure receives qualifiers from another structure
+  const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
+  const hasQualifying = drawDefinition?.links?.some((link: any) => link.target?.structureId === structureId);
 
   // Configure for inline assignment with persist mode
   const assignmentComposition = {

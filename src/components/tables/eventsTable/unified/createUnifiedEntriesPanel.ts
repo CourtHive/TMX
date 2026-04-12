@@ -307,6 +307,11 @@ export function createUnifiedEntriesPanel({
     });
   }
 
+  // ── Selection change → re-render table control bar overlay ──
+  table.on('rowSelectionChanged', () => {
+    renderTableControlBar();
+  });
+
   // ── Table built → apply sort + render control bars ──
   table.on('tableBuilt', () => {
     applySort();
@@ -439,10 +444,5 @@ export function createUnifiedEntriesPanel({
     }
 
     controlBar({ target: controlEl, table, items: evalItems() });
-
-    // Re-render overlay items on selection change so actions reflect selected segments
-    table.on('rowSelectionChanged', () => {
-      controlBar({ target: controlEl, table, items: evalItems() });
-    });
   };
 }

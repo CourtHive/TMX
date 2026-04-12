@@ -63,9 +63,10 @@ export function getActionOptions({
   // Only block assignment if scoring policy requires participants AND scores exist
   const blockAssignment = requireParticipants && hasScores;
 
-  // IMPORTANT: Only allow participant assignment for MAIN stage with stageSequence 1
-  // to avoid propagation issues with qualifying or playoff structures
-  const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
+  // Allow participant assignment for MAIN stage (stageSequence 1) and QUALIFYING stages
+  // Playoff structures are excluded — their positions are fed from other structures
+  const isAssignableStage =
+    (structure?.stage === MAIN && structure?.stageSequence === 1) || structure?.stage === QUALIFYING;
 
   // Check position assignments for menu item visibility
   const { positionAssignments } = tournamentEngine.getPositionAssignments({ structureId, drawId });
@@ -83,14 +84,14 @@ export function getActionOptions({
 
   const options = [
     {
-      // Hide when: not main stage, blocked by scores, TEAM event, or button already visible in control bar
-      hide: !isMainStage || blockAssignment || eventData?.eventInfo?.eventType === TEAM || hasUnassignedPositions,
+      // Hide when: not assignable stage, blocked by scores, TEAM event, or button already visible in control bar
+      hide: !isAssignableStage || blockAssignment || eventData?.eventInfo?.eventType === TEAM || hasUnassignedPositions,
       onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.assignParticipants'),
       close: true,
     },
     {
-      hide: !isMainStage || !isEmptyDraw,
+      hide: !isAssignableStage || !isEmptyDraw,
       onClick: () => {
         const result = tournamentEngine.automatedPositioning({
           applyPositioning: false,

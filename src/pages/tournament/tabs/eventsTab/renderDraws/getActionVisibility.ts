@@ -4,7 +4,7 @@
  */
 
 export interface ActionVisibilityParams {
-  isMainStage: boolean;
+  isAssignableStage: boolean;
   blockAssignment: boolean;
   isTeamEvent: boolean;
   hasUnassignedPositions: boolean;
@@ -30,7 +30,7 @@ export interface ActionVisibility {
 
 export function getActionVisibility(params: ActionVisibilityParams): ActionVisibility {
   const {
-    isMainStage,
+    isAssignableStage,
     blockAssignment,
     isTeamEvent,
     hasUnassignedPositions,
@@ -43,8 +43,8 @@ export function getActionVisibility(params: ActionVisibilityParams): ActionVisib
   } = params;
 
   return {
-    assignParticipants: isMainStage && !blockAssignment && !isTeamEvent && !hasUnassignedPositions,
-    autoPlace: isMainStage && isEmptyDraw,
+    assignParticipants: isAssignableStage && !blockAssignment && !isTeamEvent && !hasUnassignedPositions,
+    autoPlace: isAssignableStage && isEmptyDraw,
     configureDraft: hasDraft,
     resolveDraft: hasDraft,
     editScorecard: isTeamEvent,

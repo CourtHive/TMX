@@ -25,7 +25,7 @@ import {
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { LEFT, RIGHT } from 'constants/tmxConstants';
 
-const { MAIN } = drawDefinitionConstants;
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
 
 export function getEventControlItems({
@@ -189,8 +189,9 @@ export function getEventControlItems({
   }
 
   // "Assign participants" button when there are unassigned positions (furthest right)
-  const isMainStage = structure?.stage === MAIN && structure?.stageSequence === 1;
-  if (isMainStage && !isTeam && !draftExt) {
+  const isAssignableStage =
+    (structure?.stage === MAIN && structure?.stageSequence === 1) || structure?.stage === QUALIFYING;
+  if (isAssignableStage && !isTeam && !draftExt) {
     const unassignedCount =
       structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier).length ?? 0;
     if (unassignedCount > 0) {

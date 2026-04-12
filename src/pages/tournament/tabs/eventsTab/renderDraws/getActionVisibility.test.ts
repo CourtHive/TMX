@@ -2,7 +2,7 @@ import { getActionVisibility, ActionVisibilityParams } from './getActionVisibili
 import { describe, expect, it } from 'vitest';
 
 const defaults: ActionVisibilityParams = {
-  isMainStage: true,
+  isAssignableStage: true,
   blockAssignment: false,
   isTeamEvent: false,
   hasUnassignedPositions: false,
@@ -18,12 +18,16 @@ const vis = (overrides: Partial<ActionVisibilityParams> = {}) => getActionVisibi
 
 describe('getActionVisibility', () => {
   describe('assignParticipants', () => {
-    it('visible for main stage without blocks', () => {
+    it('visible for assignable stage without blocks', () => {
       expect(vis().assignParticipants).toBe(true);
     });
 
-    it('hidden when not main stage', () => {
-      expect(vis({ isMainStage: false }).assignParticipants).toBe(false);
+    it('visible for qualifying stage', () => {
+      expect(vis({ isAssignableStage: true }).assignParticipants).toBe(true);
+    });
+
+    it('hidden when not an assignable stage', () => {
+      expect(vis({ isAssignableStage: false }).assignParticipants).toBe(false);
     });
 
     it('hidden when assignment blocked by scores', () => {
@@ -40,7 +44,7 @@ describe('getActionVisibility', () => {
   });
 
   describe('autoPlace', () => {
-    it('visible for main stage with empty draw', () => {
+    it('visible for assignable stage with empty draw', () => {
       expect(vis({ isEmptyDraw: true }).autoPlace).toBe(true);
     });
 
@@ -48,8 +52,8 @@ describe('getActionVisibility', () => {
       expect(vis({ isEmptyDraw: false }).autoPlace).toBe(false);
     });
 
-    it('hidden when not main stage', () => {
-      expect(vis({ isMainStage: false, isEmptyDraw: true }).autoPlace).toBe(false);
+    it('hidden when not an assignable stage', () => {
+      expect(vis({ isAssignableStage: false, isEmptyDraw: true }).autoPlace).toBe(false);
     });
   });
 
