@@ -2,19 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { acceptedEntryStatuses } from './acceptedEntryStatuses';
 
 describe('acceptedEntryStatuses', () => {
-  it('returns 5 statuses for default MAIN stage', () => {
+  it('returns 8 statuses matching factory STRUCTURE_SELECTED_STATUSES', () => {
     const statuses = acceptedEntryStatuses();
-    expect(statuses).toHaveLength(5);
+    expect(statuses).toHaveLength(8);
     expect(statuses.every((s: string) => s.startsWith('MAIN.'))).toBe(true);
   });
 
-  it('includes expected entry status types', () => {
+  it('includes all STRUCTURE_SELECTED_STATUSES members', () => {
     const statuses = acceptedEntryStatuses();
+    expect(statuses).toContain('MAIN.CONFIRMED');
     expect(statuses).toContain('MAIN.DIRECT_ACCEPTANCE');
+    expect(statuses).toContain('MAIN.JUNIOR_EXEMPT');
+    expect(statuses).toContain('MAIN.LUCKY_LOSER');
+    expect(statuses).toContain('MAIN.QUALIFIER');
     expect(statuses).toContain('MAIN.ORGANISER_ACCEPTANCE');
     expect(statuses).toContain('MAIN.SPECIAL_EXEMPT');
-    expect(statuses).toContain('MAIN.JUNIOR_EXEMPT');
     expect(statuses).toContain('MAIN.WILDCARD');
+  });
+
+  it('excludes non-structure statuses', () => {
+    const statuses = acceptedEntryStatuses();
+    expect(statuses).not.toContain('MAIN.ALTERNATE');
+    expect(statuses).not.toContain('MAIN.WITHDRAWN');
+    expect(statuses).not.toContain('MAIN.REGISTERED');
   });
 
   it('uses provided stage prefix', () => {
@@ -25,6 +35,6 @@ describe('acceptedEntryStatuses', () => {
   });
 
   it('returns consistent count for any stage', () => {
-    expect(acceptedEntryStatuses('CONSOLATION')).toHaveLength(5);
+    expect(acceptedEntryStatuses('CONSOLATION')).toHaveLength(8);
   });
 });

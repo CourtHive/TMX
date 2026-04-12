@@ -50,9 +50,7 @@ import {
 
 /** Canonical entry-status whitelist for structure selection. Mirrors the
  *  factory's `STRUCTURE_SELECTED_STATUSES` so the model never drifts from
- *  `validateAndDeriveDrawValues.getFilteredEntries`. Do NOT route this through
- *  TMX's `constants/acceptedEntryStatuses.ts` helper — that file is drifted
- *  (only 5 of the 8 statuses) and is tracked as a separate cleanup. */
+ *  `validateAndDeriveDrawValues.getFilteredEntries`. */
 const { STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const SELECTED_STATUS_SET = new Set<string>(STRUCTURE_SELECTED_STATUSES);
 
