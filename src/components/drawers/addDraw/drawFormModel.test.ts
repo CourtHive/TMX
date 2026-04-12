@@ -95,6 +95,35 @@ describe('drawFormModel — NEW_MAIN', () => {
     const view = drawFormModel(mode, EMPTY_INPUTS);
     expect(view.tieFormatRequired).toBe(true);
   });
+
+  it('infers a default qualifiersCount equal to the power-of-2 gap when QUALIFYING entries exist', () => {
+    // 12 main entries → drawSize=16 → gap=4. Qualifying entries exist, so the
+    // model should suggest 4 as the default qualifiers count.
+    const mode: DrawFormMode = {
+      kind: 'NEW_MAIN',
+      event: makeEvent({ mainCount: 12, qualifyingCount: 6 }),
+    };
+    const view = drawFormModel(mode, EMPTY_INPUTS);
+    expect(view.derivedValues.drawSize).toBe(16);
+    expect(view.derivedValues.qualifiersCount).toBe(4);
+    expect(view.fieldStates[QUALIFIERS_COUNT]?.value).toBe(4);
+  });
+
+  it('keeps the inferred qualifiersCount at 0 when no QUALIFYING entries exist', () => {
+    const mode: DrawFormMode = { kind: 'NEW_MAIN', event: makeEvent({ mainCount: 12 }) };
+    const view = drawFormModel(mode, EMPTY_INPUTS);
+    expect(view.derivedValues.drawSize).toBe(16);
+    expect(view.derivedValues.qualifiersCount).toBe(0);
+  });
+
+  it('honors a user-supplied QUALIFIERS_COUNT input over the inferred default', () => {
+    const mode: DrawFormMode = {
+      kind: 'NEW_MAIN',
+      event: makeEvent({ mainCount: 12, qualifyingCount: 6 }),
+    };
+    const view = drawFormModel(mode, { [QUALIFIERS_COUNT]: 2 });
+    expect(view.derivedValues.qualifiersCount).toBe(2);
+  });
 });
 
 /* ─── NEW_MAIN_WITH_QUALIFYING_FIRST ────────────────────────────────── */

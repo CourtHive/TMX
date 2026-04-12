@@ -4,6 +4,7 @@
  */
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { drawFormModel } from './drawFormModel';
 import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
@@ -195,22 +196,32 @@ export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, 
   const drawType = SINGLE_ELIMINATION;
   const isAttachingQualifying = !!isQualifying && !!structureId;
 
-  const { qualifiersCount, structurePositionAssignments } = computeQualifyingState({
-    event,
-    drawId,
-    structureId,
-    isQualifying,
-    isPopulateMain,
-  });
+  // Phase B (Mode 1 of 6): NEW_MAIN routes through the state-engine model.
+  // Other modes still use the legacy in-place computation until they are
+  // migrated in turn. See `Mentat/statuses/2026-04-11-tmx-session-handoff.md`
+  // for the migration order.
+  const isNewMain = !isQualifying && !isPopulateMain && !structureId;
+  const newMainView = isNewMain ? drawFormModel({ kind: 'NEW_MAIN', event }, {}) : undefined;
+
+  const { qualifiersCount, structurePositionAssignments } = isNewMain
+    ? { qualifiersCount: newMainView!.derivedValues.qualifiersCount, structurePositionAssignments: undefined }
+    : computeQualifyingState({
+        event,
+        drawId,
+        structureId,
+        isQualifying,
+        isPopulateMain,
+      });
 
   const structureName = 'Qualifying';
 
   const qualifyingEntriesCount = isQualifying ? acceptedEntriesCount({ event, stage }) : 0;
-  const drawSize =
-    structurePositionAssignments?.length ||
-    (isQualifying && qualifyingEntriesCount
-      ? qualifyingEntriesCount
-      : tools.nextPowerOf2(acceptedEntriesCount({ drawId, event, stage })));
+  const drawSize = isNewMain
+    ? newMainView!.derivedValues.drawSize
+    : structurePositionAssignments?.length ||
+      (isQualifying && qualifyingEntriesCount
+        ? qualifyingEntriesCount
+        : tools.nextPowerOf2(acceptedEntriesCount({ drawId, event, stage })));
   const maxDrawSize = Math.max(drawSize, 512); // Allow at least 512, or the next power of 2 above entries
 
   // Check for existing seeding policy at event or tournament level

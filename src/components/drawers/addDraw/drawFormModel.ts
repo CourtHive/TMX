@@ -267,7 +267,14 @@ function computeNewMain(
   const drawType = pickDrawType(inputs, MAIN_DRAW_TYPES, SINGLE_ELIMINATION);
   const mainEntries = filterEntriesForStage(mode.event, 'MAIN');
   const drawSize = coerceDrawSize(mainEntries.length, drawType);
-  const qualifiersCount = readNumericInput(inputs[QUALIFIERS_COUNT], 0);
+  // When qualifying entries already exist on the event, suggest a default
+  // qualifiers count equal to the power-of-2 gap above the main entries.
+  // Mirrors `getDrawFormItems.computeQualifyingState.qualifyingSpotsFromEntries`.
+  // For NON_POWER_OF_TWO_TYPES draw types `drawSize === mainEntries.length`,
+  // so the inferred default collapses to 0 — same as the legacy path.
+  const qualifyingEntriesExist = filterEntriesForStage(mode.event, 'QUALIFYING').length > 0;
+  const inferredQualifiers = qualifyingEntriesExist ? Math.max(0, drawSize - mainEntries.length) : 0;
+  const qualifiersCount = readNumericInput(inputs[QUALIFIERS_COUNT], inferredQualifiers);
 
   return {
     fieldStates: {
