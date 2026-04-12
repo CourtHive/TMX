@@ -2,8 +2,8 @@
  * Draw form items configuration.
  * Generates form field definitions for draw creation with validation and options.
  */
+import { drawFormModel, DrawFormMode } from './drawFormModel';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
-import { drawFormModel, DrawFormView } from './drawFormModel';
 import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
@@ -61,43 +61,30 @@ const CLUSTER = 'CLUSTER';
 const SEPARATE = 'SEPARATE';
 const INHERIT = 'INHERIT';
 
-interface DrawFormParams {
-  event: any;
-  drawId?: string;
-  isQualifying?: boolean;
-  isPopulateMain?: boolean;
-  structureId?: string;
-}
+/** Qualifying-side mode kinds that drive isQualifying-derived UI flags. */
+const QUALIFYING_KINDS = new Set(['NEW_QUALIFYING', 'GENERATE_QUALIFYING', 'ATTACH_QUALIFYING']);
 
-/** Resolve the drawFormModel view for the current mode. All 6 modes are
- *  covered (Phase B complete); the undefined return is a defensive
- *  fallback for corrupt state (drawId present but draw missing). */
-function resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): DrawFormView | undefined {
-  const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
-  if (!isQualifying && !isPopulateMain && !structureId) return drawFormModel({ kind: 'NEW_MAIN', event }, {});
-  if (isQualifying && !structureId && !drawId) return drawFormModel({ kind: 'NEW_QUALIFYING', event }, {});
-  if (isPopulateMain && draw) return drawFormModel({ kind: 'POPULATE_MAIN', event, draw }, {});
-  if (isQualifying && !structureId && drawId && draw) return drawFormModel({ kind: 'GENERATE_QUALIFYING', event, draw }, {});
-  if (isQualifying && structureId && draw) {
-    const structure = draw.structures?.find((s: any) => s.structureId === structureId);
-    if (structure) return drawFormModel({ kind: 'ATTACH_QUALIFYING', event, draw, structure }, {});
-  }
-  return undefined;
-}
-
-export function getDrawFormItems({ event, drawId, isQualifying, isPopulateMain, structureId }: DrawFormParams): {
+export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMode }): {
   structurePositionAssignments: any;
   items: any[];
 } {
-  const drawsCount = event.drawDefinitions?.length || 0; // need to take into consideration flightProfile.flights
-  const drawType = SINGLE_ELIMINATION;
-  const isAttachingQualifying = !!isQualifying && !!structureId;
+  // Derive the legacy boolean flags from the mode — still referenced by
+  // items visibility / hide rules and the disableAutomated gate. Phase D
+  // eliminates the flags as an *input*; the items array references will
+  // migrate to fieldStates in a future polish pass.
+  const isQualifying = QUALIFYING_KINDS.has(mode.kind);
+  const isPopulateMain = mode.kind === 'POPULATE_MAIN';
+  const drawId = 'draw' in mode ? mode.draw?.drawId : undefined;
+  const structureId = mode.kind === 'ATTACH_QUALIFYING' ? mode.structure?.structureId : undefined;
+  const isAttachingQualifying = mode.kind === 'ATTACH_QUALIFYING';
 
-  // All 6 modes route through the state-engine model (Phase B complete).
-  const modelView = resolveModelView({ event, drawId, isQualifying, isPopulateMain, structureId });
-  const qualifiersCount = modelView?.derivedValues.qualifiersCount ?? 0;
-  const structurePositionAssignments = modelView?.derivedValues.structurePositionAssignments;
-  const drawSize = modelView?.derivedValues.drawSize ?? 0;
+  const drawsCount = event.drawDefinitions?.length || 0;
+  const drawType = SINGLE_ELIMINATION;
+
+  const modelView = drawFormModel(mode, {});
+  const qualifiersCount = modelView.derivedValues.qualifiersCount;
+  const structurePositionAssignments = modelView.derivedValues.structurePositionAssignments;
+  const drawSize = modelView.derivedValues.drawSize;
   const maxDrawSize = Math.max(drawSize, 512);
   const structureName = 'Qualifying';
 

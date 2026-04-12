@@ -229,7 +229,35 @@ const MAIN_DRAW_TYPES: string[] = [
   DRAW_MATIC,
 ];
 
-/* ─── Public entry point ─────────────────────────────────────────────── */
+/* ─── Public entry points ────────────────────────────────────────────── */
+
+/** Resolve the legacy `(isQualifying, isPopulateMain, structureId, drawId)`
+ *  flag tuple into a single `DrawFormMode` discriminated union value.
+ *  Called at the `addDraw` boundary so downstream functions receive the
+ *  mode directly instead of reconstructing it from booleans. */
+export function resolveDrawFormMode({
+  event,
+  drawId,
+  isQualifying,
+  isPopulateMain,
+  structureId,
+}: {
+  event: any;
+  drawId?: string;
+  isQualifying?: boolean;
+  isPopulateMain?: boolean;
+  structureId?: string;
+}): DrawFormMode {
+  const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
+  if (isPopulateMain && draw) return { kind: 'POPULATE_MAIN', event, draw };
+  if (isQualifying && structureId && draw) {
+    const structure = draw.structures?.find((s: any) => s.structureId === structureId);
+    if (structure) return { kind: 'ATTACH_QUALIFYING', event, draw, structure };
+  }
+  if (isQualifying && drawId && draw) return { kind: 'GENERATE_QUALIFYING', event, draw };
+  if (isQualifying) return { kind: 'NEW_QUALIFYING', event };
+  return { kind: 'NEW_MAIN', event };
+}
 
 export function drawFormModel(
   mode: DrawFormMode,

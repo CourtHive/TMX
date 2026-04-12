@@ -9,6 +9,7 @@ import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { informModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { resolveDrawFormMode } from './drawFormModel';
 import { getDrawTypeInfoKey } from './drawTypeDescriptions';
 import { getTopologyTemplates } from './topologyTemplates';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -62,13 +63,10 @@ export function addDraw({
   const event = tournamentEngine.getEvent({ eventId }).event;
   if (!event) return;
 
-  const { items, structurePositionAssignments } = getDrawFormItems({
-    event,
-    drawId,
-    isQualifying,
-    isPopulateMain,
-    structureId,
-  });
+  // Phase D: resolve the flag tuple into a single DrawFormMode at the
+  // drawer boundary. Downstream functions receive the mode directly.
+  const mode = resolveDrawFormMode({ event, drawId, isQualifying, isPopulateMain, structureId });
+  const { items, structurePositionAssignments } = getDrawFormItems({ event, mode });
   const relationships = getDrawFormRelationships({
     maxQualifiers: structurePositionAssignments?.length,
     isQualifying,
