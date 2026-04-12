@@ -95,10 +95,11 @@ export function createUnifiedEntriesPanel({
     const isDoubles = event?.eventType === DOUBLES;
     const drawCreated = !!drawDefinition;
 
-    // Build participantId → drawPosition map
+    // Build participantId → drawPosition map from ALL draw definitions
+    // so participants with positions in any draw are marked as non-movable
     const drawPositionMap: Record<string, number> = {};
-    if (drawDefinition?.structures) {
-      for (const structure of drawDefinition.structures) {
+    for (const dd of event?.drawDefinitions || []) {
+      for (const structure of dd.structures || []) {
         for (const pa of structure.positionAssignments || []) {
           if (pa.participantId && pa.drawPosition) {
             drawPositionMap[pa.participantId] = pa.drawPosition;
@@ -263,7 +264,10 @@ export function createUnifiedEntriesPanel({
       'flights',
     ]),
     selectableRows: true,
-    selectableRowsCheck: (row: any) => !row.getData()._isSeparator,
+    selectableRowsCheck: (row: any) => {
+      const data = row.getData();
+      return !data._isSeparator && !data.drawPosition;
+    },
     columns,
     responsiveLayout: 'collapse',
     index: 'participantId',

@@ -71,8 +71,8 @@ export function getUnifiedColumns({
     {
       cellClick: (_: Event, cell: any) => {
         const rowData = cell.getRow().getData();
-        if (rowData._isSeparator) return;
-        if (!drawCreated || !rowData.drawPosition) cell.getRow().toggleSelect();
+        if (rowData._isSeparator || rowData.drawPosition) return;
+        cell.getRow().toggleSelect();
       },
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
