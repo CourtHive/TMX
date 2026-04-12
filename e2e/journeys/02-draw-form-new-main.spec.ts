@@ -323,22 +323,112 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.clickCancel();
   });
 
-  /* ── Mutation verification: SE draw generation ────────────────────── */
+  /* ── Section 3.1: Draw size coercion ────────────────────────────── */
+
+  test('3.1.1 — SE → RR: draw size changes from power-of-2 to raw count', async ({ page }) => {
+    const { drawer } = await seedAndOpenDrawForm(page);
+
+    // SE: draw size = nextPowerOf2(16) = 16
+    const seSize = Number(await drawer.getInputValue('Draw size'));
+    expect(seSize).toBe(16);
+
+    // Switch to RR: draw size = raw entry count = 16
+    await drawer.selectDrawType('ROUND_ROBIN');
+    const rrSize = Number(await drawer.getInputValue('Draw size'));
+    expect(rrSize).toBe(16);
+
+    // Switch to AD_HOC: draw size = raw = 16
+    await drawer.selectDrawType('AD_HOC');
+    const adHocSize = Number(await drawer.getInputValue('Draw size'));
+    expect(adHocSize).toBe(16);
+
+    // Switch back to SE: draw size should coerce back to power-of-2
+    await drawer.selectDrawType('SINGLE_ELIMINATION');
+    const seSize2 = Number(await drawer.getInputValue('Draw size'));
+    expect(seSize2).toBe(16); // 16 is already a power of 2
+
+    await drawer.clickCancel();
+  });
+
+  /* ── Section 1.2: TEAM event variant ──────────────────────────── */
+
+  test('1.2.1 — TEAM event: tieFormat visible, score format hidden', async ({ page }) => {
+    // Seed a TEAM event tournament
+    const tournamentId = await seedTournament(page, {
+      tournamentName: 'E2E Team Event',
+      tournamentAttributes: { tournamentId: 'e2e-team-event' },
+      participantsProfile: { scaledParticipantsCount: 16, participantType: 'TEAM' },
+      drawProfiles: [
+        {
+          eventName: 'Teams',
+          drawSize: 8,
+          eventType: 'TEAM',
+          generate: false,
+        },
+      ],
+    });
+    const tournamentPage = new TournamentPage(page);
+    await tournamentPage.goto(tournamentId);
+    await tournamentPage.navigateToEvents();
+    await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
+    await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
+    await page.getByRole('button', { name: 'Add draw' }).click();
+
+    const drawer = new DrawFormDrawer(page);
+    await drawer.waitForOpen();
+
+    // Score format should be hidden for TEAM events
+    await drawer.expectFieldHidden('Score format');
+
+    // Scorecard (tieFormat) should be visible
+    await drawer.expectFieldVisible('Scorecard');
+
+    await drawer.clickCancel();
+  });
+
+  /* ── Mutation verification ────────────────────────────────────────── */
 
   test('generates a SINGLE_ELIMINATION draw and emits the right mutation', async ({ page }) => {
     const collector = createMutationCollector(page);
     const { drawer } = await seedAndOpenDrawForm(page);
 
-    // Fill draw name (required, min 3 chars)
     await drawer.setInputValue('Draw name', 'Main Draw');
-
-    // Generate
     await drawer.clickGenerate();
 
-    // Wait for the addDrawDefinition mutation
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
     expect(entry).toBeDefined();
     expect(entry.methods[0].method).toBe('addDrawDefinition');
+
+    collector.detach();
+  });
+
+  test('mutation payload includes drawDefinition with drawType and correct structure', async ({ page }) => {
+    const collector = createMutationCollector(page);
+    const { drawer } = await seedAndOpenDrawForm(page);
+
+    await drawer.setInputValue('Draw name', 'SE Payload Test');
+    await drawer.clickGenerate();
+
+    const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
+    const params = entry.methods[0].params;
+    // drawDefinition is nested inside params (generateDraw.ts:38)
+    expect(params.drawDefinition).toBeDefined();
+    expect(params.drawDefinition.drawType).toBe('SINGLE_ELIMINATION');
+    expect(params.eventId).toBeDefined();
+
+    collector.detach();
+  });
+
+  test('RR mutation drawDefinition has drawType ROUND_ROBIN', async ({ page }) => {
+    const collector = createMutationCollector(page);
+    const { drawer } = await seedAndOpenDrawForm(page);
+
+    await drawer.setInputValue('Draw name', 'RR Payload Test');
+    await drawer.selectDrawType('ROUND_ROBIN');
+    await drawer.clickGenerate();
+
+    const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
+    expect(entry.methods[0].params.drawDefinition.drawType).toBe('ROUND_ROBIN');
 
     collector.detach();
   });
