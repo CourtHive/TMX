@@ -1127,6 +1127,18 @@
       "online": "Online",
       "uploadWarning": "Warning: This action will replace the tournament record on the server"
     },
+    "manageAccess": {
+      "title": "Manage access",
+      "grantedAccess": "Granted access",
+      "addUser": "Add user",
+      "emailPlaceholder": "user@email.com",
+      "grant": "Grant",
+      "revoke": "Revoke",
+      "noAssignments": "No users have been granted access",
+      "loadError": "Failed to load assignments",
+      "grantError": "Failed to grant access",
+      "revokeError": "Failed to revoke access"
+    },
     "inviteUser": {
       "title": "Invite user",
       "roles": "Roles",

@@ -1,3 +1,4 @@
+import { manageTournamentAccess } from 'components/modals/manageTournamentAccess';
 import { createCourtSvg, type CourtSport } from 'services/courtSvg/courtSvgUtil';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
@@ -308,6 +309,20 @@ export function createActionsPanel(): HTMLElement {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.exportTods'), 'fa-download', () => {
         downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+      }),
+    );
+  }
+
+  // Manage access — allows admins to grant/revoke user access to this tournament
+  if (tournamentRecord && admin && providerId) {
+    btnContainer.appendChild(
+      createActionButton(t('modals.manageAccess.title'), 'fa-shield', () => {
+        manageTournamentAccess({
+          tournamentId: tournamentRecord.tournamentId,
+          tournamentName: tournamentRecord.tournamentName || tournamentRecord.tournamentId,
+          providerId,
+          onRefresh: () => renderOverview(),
+        });
       }),
     );
   }

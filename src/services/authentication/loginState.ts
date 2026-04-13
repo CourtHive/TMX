@@ -1,5 +1,6 @@
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
+import { clearUserContext, fetchUserContext } from './getUserContext';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
@@ -38,6 +39,7 @@ export function getLoginState(): LoginState | undefined {
 
 export function logOut(): void {
   removeToken();
+  clearUserContext();
   checkDevState();
   disconnectSocket();
   tournamentEngine.reset();
@@ -52,6 +54,11 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
   const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
   if (valid) {
     setToken(data.token);
+    clearUserContext();
+    // Fire-and-forget: fetch the multi-provider user context from the server.
+    // The context will be available by the time the user interacts with the
+    // tournaments table or any provider-scoped UI element.
+    fetchUserContext();
     tmxToast({ intent: 'is-success', message: t('toasts.loggedIn') });
     disconnectSocket();
     if (!tournamentInState) tournamentEngine.reset();

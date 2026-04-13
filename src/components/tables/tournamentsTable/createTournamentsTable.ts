@@ -2,6 +2,7 @@ import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
 import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/mockTournaments';
+import { getUserContext } from 'services/authentication/getUserContext';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
 import { listPicker } from 'components/modals/listPicker';
 import { getLoginState } from 'services/authentication/loginState';
@@ -9,7 +10,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getTournamentColumns } from './getTournamentColumn';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { getCalendar } from 'services/apis/servicesApi';
+import { getCalendar, getMyCalendars } from 'services/apis/servicesApi';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { displayConfig } from 'config/displayConfig';
@@ -94,10 +95,48 @@ export function createTournamentsTable(): { table: any } {
   };
   const loginState = getLoginState();
   const provider = loginState?.provider || context?.provider;
+  const userContext = getUserContext();
 
   const noProvider = () => tmx2db.findAllTournaments().then(render, handleError);
 
-  if (provider?.organisationAbbreviation) {
+  if (userContext) {
+    // Logged in with a user context — use the authenticated, user-scoped
+    // multi-provider calendar endpoint. Merges tournaments across all
+    // providers the user is associated with.
+    const showMyCalendars = (result: any) => {
+      const calendars = result?.data?.calendars;
+      if (calendars?.length) {
+        // Merge all per-provider calendars into a single tournaments array
+        const allTournaments: any[] = [];
+        let mergedProvider = provider;
+        for (const cal of calendars) {
+          if (!mergedProvider && cal.provider) mergedProvider = cal.provider;
+          for (const t of cal.tournaments ?? []) {
+            allTournaments.push(t);
+          }
+        }
+        if (allTournaments.length) {
+          renderCalendarTable({ tournaments: allTournaments, provider: mergedProvider });
+        } else {
+          noProvider();
+        }
+      } else {
+        noProvider();
+      }
+    };
+    getMyCalendars().then(showMyCalendars, () => {
+      // Authenticated endpoint failed (offline?) — fall back to public calendar
+      if (provider?.organisationAbbreviation) {
+        getCalendar({ providerAbbr: provider.organisationAbbreviation }).then((result) => {
+          if (result?.data?.calendar) renderCalendarTable(result.data.calendar);
+          else noProvider();
+        }, noProvider);
+      } else {
+        noProvider();
+      }
+    });
+  } else if (provider?.organisationAbbreviation) {
+    // Not logged in but have a provider context — use the public calendar
     const showResults = (result: any) => {
       if (result?.data?.calendar) {
         renderCalendarTable(result.data.calendar);

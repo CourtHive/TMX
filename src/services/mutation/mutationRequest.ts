@@ -4,6 +4,7 @@
  */
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
+import { getUserContext } from 'services/authentication/getUserContext';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
@@ -171,16 +172,22 @@ function checkPermissions({
     return tmxToast({ message: t('toasts.notLoggedIn'), intent: 'is-warning' });
   }
 
-  const isProvider = !!(
-    state?.providerIds?.includes(providerIds[0]) || state?.provider?.organisationId === providerIds[0]
-  );
-  const isSuperAdmin = state?.roles?.includes(SUPER_ADMIN);
-  const impersonating = context.provider?.organisationId === providerIds[0];
+  const targetProviderId = providerIds[0];
+
+  // Use the multi-provider userContext if available (preferred source —
+  // reflects current user_providers state without JWT staleness), falling
+  // back to the legacy JWT fields for backwards compatibility.
+  const userContext = getUserContext();
+  const isProvider = userContext
+    ? userContext.providerIds.includes(targetProviderId)
+    : !!(state?.providerIds?.includes(targetProviderId) || state?.provider?.organisationId === targetProviderId);
+  const isSuperAdmin = userContext ? userContext.isSuperAdmin : state?.roles?.includes(SUPER_ADMIN);
+  const impersonating = context.provider?.organisationId === targetProviderId;
 
   if (!isProvider && !isSuperAdmin) return tmxToast({ message: t('toasts.notAuthorized'), intent: 'is-danger' });
   if (!isProvider && isSuperAdmin && !impersonating) {
     const impersonateProvider = () => {
-      context.provider = { organisationId: providerIds[0] };
+      context.provider = { organisationId: targetProviderId };
       return mutate(false);
     };
 

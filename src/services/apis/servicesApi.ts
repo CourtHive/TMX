@@ -27,6 +27,14 @@ export async function getCalendar({ providerAbbr }: { providerAbbr: string }) {
   return await baseApi.post('/provider/calendar', { providerAbbr });
 }
 
+/**
+ * Authenticated multi-provider calendar — returns one filtered calendar
+ * per provider the user is associated with. Used by TMX when logged in.
+ */
+export async function getMyCalendars({ providerAbbr }: { providerAbbr?: string } = {}) {
+  return await baseApi.post('/provider/my-calendars', { providerAbbr });
+}
+
 export async function getProviders(): Promise<ProvidersResponse> {
   return await baseApi.post('/provider/allProviders', {});
 }

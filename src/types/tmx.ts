@@ -14,6 +14,7 @@
 /** Decoded JWT token returned by `getLoginState()` via `validateToken()`. */
 export interface LoginState {
   email: string;
+  userId?: string;
   roles: string[];
   permissions: string[];
   services: string[];
@@ -21,6 +22,23 @@ export interface LoginState {
   providerId?: string;
   providerIds?: string[];
   exp: number;
+}
+
+/**
+ * Multi-provider user context returned by `GET /auth/me`.
+ * Provider-scoped roles are resolved from the `user_providers` table at
+ * request time — they are NOT in the JWT, so role changes take effect
+ * immediately without forced re-login.
+ */
+export interface UserContext {
+  userId: string;
+  email: string;
+  isSuperAdmin: boolean;
+  globalRoles: string[];
+  /** Per-provider role map, keyed by providerId. */
+  providerRoles: Record<string, string>;
+  /** Convenience: Object.keys(providerRoles). */
+  providerIds: string[];
 }
 
 // ---------------------------------------------------------------------------
