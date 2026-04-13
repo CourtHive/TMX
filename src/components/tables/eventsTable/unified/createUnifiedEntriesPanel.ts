@@ -160,6 +160,17 @@ export function createUnifiedEntriesPanel({
   const refresh = () => {
     const result = getTableData();
     if (result.error || !table) return;
+
+    // Rebuild columns so newly relevant columns appear (ratings, ranking, seeding, etc.)
+    const freshColumns = getUnifiedColumns({
+      entries: result.entries,
+      drawCreated: result.drawCreated,
+      hasDrawDefinitions: result.hasDrawDefinitions,
+      sortState,
+      onEntryAction,
+    });
+    table.setColumns(freshColumns);
+
     table.replaceData(result.entries);
     applySort();
   };
@@ -430,6 +441,7 @@ export function createUnifiedEntriesPanel({
       event,
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,
+      onRefresh: refresh,
       pairingMode,
     });
 

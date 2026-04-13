@@ -15,7 +15,7 @@ import { ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { QUALIFYING, RIGHT } from 'constants/tmxConstants';
 
 export const addEntries =
-  (event: any, group: string) =>
+  (event: any, group: string, onRefresh?: () => void) =>
   (table: any): any => {
     const onClick = () => {
       const { entries = [], eventId, eventType } = event;
@@ -46,24 +46,28 @@ export const addEntries =
 
         const postMutation = (result: any) => {
           if (result.success) {
-            const { participants, derivedDrawInfo } = tournamentEngine.getParticipants({
-              participantFilters: { participantIds },
-              withIndividualParticipants: true,
-              withScaleValues: true,
-              withDraws: true,
-            });
+            if (onRefresh) {
+              onRefresh();
+            } else {
+              const { participants, derivedDrawInfo } = tournamentEngine.getParticipants({
+                participantFilters: { participantIds },
+                withIndividualParticipants: true,
+                withScaleValues: true,
+                withDraws: true,
+              });
 
-            const newEntries = participantIds.map((participantId: string) =>
-              (mapEntry as any)({
-                entry: { participantId, entryStage, entryStatus },
-                derivedDrawInfo,
-                participants,
-                eventType,
-                eventId,
-              }),
-            );
+              const newEntries = participantIds.map((participantId: string) =>
+                (mapEntry as any)({
+                  entry: { participantId, entryStage, entryStatus },
+                  derivedDrawInfo,
+                  participants,
+                  eventType,
+                  eventId,
+                }),
+              );
 
-            table.addRow(newEntries);
+              table.addRow(newEntries);
+            }
           } else {
             // Transform error context into invalidParticipants format
             const context = result.context;
