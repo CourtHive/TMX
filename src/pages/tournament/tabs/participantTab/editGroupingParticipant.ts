@@ -30,12 +30,12 @@ export function editGroupingParticipant({
   table?: any;
 }): any {
   const PARTICIPANT_NAME = 'participantName';
-  const values = { [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME] };
-  let inputs: any;
-
-  const valueChange = () => {
-    // Placeholder for future functionality
+  const values = {
+    [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME],
+    nickname: participant?.participantOtherName || '',
+    useOtherName: participant?.useOtherName ?? false,
   };
+  let inputs: any;
 
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, [
@@ -45,8 +45,20 @@ export function editGroupingParticipant({
         value: values[PARTICIPANT_NAME] || '',
         validator: validators.nameValidator(3),
         field: PARTICIPANT_NAME,
-        onChange: valueChange,
         label: 'Name',
+      },
+      {
+        placeholder: 'Nickname / abbreviation',
+        value: values.nickname,
+        field: 'nickname',
+        label: 'Nickname',
+      },
+      {
+        checked: values.useOtherName,
+        id: 'useOtherName',
+        field: 'useOtherName',
+        label: 'Prefer nickname in draws',
+        checkbox: true,
       },
     ]);
   };
@@ -91,13 +103,18 @@ export function editGroupingParticipant({
     const participantName = inputs[PARTICIPANT_NAME]?.value;
     if (!participantName || participantName.length < 3) return;
 
+    const participantOtherName = inputs.nickname?.value || undefined;
+    const useOtherName = inputs.useOtherName?.checked ?? false;
+
     const methods = [
       {
         method: MODIFY_PARTICIPANT,
         params: {
           participant: {
             participantId: participant.participantId,
+            participantOtherName,
             participantName,
+            useOtherName,
           },
         },
       },

@@ -206,7 +206,7 @@ function renderProviderDetail({ detailPane, provider, providers, users, onRefres
 
   destroyTable({ anchorId: PROVIDER_USERS_TABLE });
 
-  Tabulator(assocTableEl, {
+  new Tabulator(assocTableEl, {
     placeholder: t('system.noUsersForProvider'),
     layout: 'fitColumns',
     maxHeight: 300,
