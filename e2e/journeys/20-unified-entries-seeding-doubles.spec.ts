@@ -57,35 +57,32 @@ test.describe('Journey 20 — Seeding controls and doubles pairing', () => {
 
   /* ── Section 8: Seeding ───────────────────────────────────────────── */
 
-  test('8.1 — Seeding dropdown visible with segment-scoped options', async ({ page }) => {
+  test('8.1 — Seeding split into Accepted and Qualifying dropdowns', async ({ page }) => {
     await navigateToEntries(page, PROFILE_SINGLES);
 
-    // The "Seeding" dropdown should be in the right toolbar
+    // Two seeding buttons: "Seeding" (accepted) and "Seeding (Q)"
     const seedingBtn = page.getByText('Seeding', { exact: true });
-    await seedingBtn.waitFor({ state: 'visible', timeout: 5_000 });
-    await seedingBtn.click();
+    const seedingQBtn = page.getByText('Seeding (Q)', { exact: true });
 
-    // Should show segment labels and seeding options
-    const manualSeeding = page.getByText('Manual seeding', { exact: true });
+    await seedingBtn.waitFor({ state: 'visible', timeout: 5_000 });
+    await seedingQBtn.waitFor({ state: 'visible', timeout: 5_000 });
+
+    // Click the accepted seeding dropdown
+    await seedingBtn.click();
+    const manualSeeding = page.getByText('Manual seeding', { exact: true }).first();
     await manualSeeding.waitFor({ state: 'visible', timeout: 3_000 });
     expect(await manualSeeding.isVisible()).toBe(true);
 
-    // Should have Accepted and Qualifying sections
-    const acceptedHeader = page.getByText('── Accepted ──');
-    const qualifyingHeader = page.getByText('── Qualifying ──');
-    expect(await acceptedHeader.isVisible()).toBe(true);
-    expect(await qualifyingHeader.isVisible()).toBe(true);
-
-    // Should have "Clear accepted seeding"
-    const clearAccepted = page.getByText('Clear accepted seeding');
-    expect(await clearAccepted.isVisible()).toBe(true);
+    // Should have "Clear seeding"
+    const clearSeeding = page.getByText('Clear seeding').first();
+    expect(await clearSeeding.isVisible()).toBe(true);
   });
 
-  test('8.2 — Manual seeding available for accepted segment', async ({ page }) => {
+  test('8.2 — Manual seeding activates from accepted seeding dropdown', async ({ page }) => {
     await navigateToEntries(page, PROFILE_SINGLES);
 
     await page.getByText('Seeding', { exact: true }).click();
-    const manualOption = page.getByText('Manual seeding', { exact: true });
+    const manualOption = page.getByText('Manual seeding', { exact: true }).first();
     await manualOption.waitFor({ state: 'visible', timeout: 3_000 });
 
     // Click Manual seeding — should enable seeding mode
@@ -105,23 +102,17 @@ test.describe('Journey 20 — Seeding controls and doubles pairing', () => {
     expect(saveVisible || cancelVisible).toBe(true);
   });
 
-  test('8.3 — Clear seeding per segment', async ({ page }) => {
+  test('8.3 — Clear seeding available in both dropdowns', async ({ page }) => {
     await navigateToEntries(page, PROFILE_SINGLES);
 
+    // Check accepted dropdown has "Clear seeding"
     await page.getByText('Seeding', { exact: true }).click();
-    const clearOption = page.getByText('Clear accepted seeding');
+    const clearOption = page.getByText('Clear seeding').first();
     await clearOption.waitFor({ state: 'visible', timeout: 3_000 });
     expect(await clearOption.isVisible()).toBe(true);
-
-    // Also verify qualifying clear option
-    const clearQual = page.getByText('Clear qualifying seeding');
-    expect(await clearQual.isVisible()).toBe(true);
   });
 
-  test('8.5 — Seeding visible on "All entries" view even with generated draw', async ({ page }) => {
-    // Seeding visibility depends on drawCreated = !!drawDefinition,
-    // which requires a specific drawId in the URL. On the "All entries"
-    // view (no drawId selected), seeding is always available.
+  test('8.5 — Both seeding dropdowns visible on "All entries" view with generated draw', async ({ page }) => {
     const profile: MockProfile = {
       ...PROFILE_SINGLES,
       tournamentAttributes: { tournamentId: 'e2e-seeding-created' },
@@ -130,14 +121,10 @@ test.describe('Journey 20 — Seeding controls and doubles pairing', () => {
     await navigateToEntries(page, profile);
 
     const seedingBtn = page.getByText('Seeding', { exact: true });
-    const isVisible = await seedingBtn
-      .waitFor({ state: 'visible', timeout: 5_000 })
-      .then(() => true)
-      .catch(() => false);
+    const seedingQBtn = page.getByText('Seeding (Q)', { exact: true });
 
-    // On "All entries" view, seeding IS visible (drawCreated is false
-    // because no specific drawId is selected)
-    expect(isVisible).toBe(true);
+    expect(await seedingBtn.isVisible().catch(() => false)).toBe(true);
+    expect(await seedingQBtn.isVisible().catch(() => false)).toBe(true);
   });
 
   /* ── Section 9: Doubles-specific ──────────────────────────────────── */
@@ -239,17 +226,19 @@ test.describe('Journey 20 — Seeding controls and doubles pairing', () => {
     expect(isVisible).toBe(false);
   });
 
-  test('seeding and add entries both visible together in toolbar', async ({ page }) => {
+  test('seeding dropdowns and add entries all visible together in toolbar', async ({ page }) => {
     await navigateToEntries(page, PROFILE_SINGLES);
 
-    // Both should be visible simultaneously
     const seedingBtn = page.getByText('Seeding', { exact: true });
+    const seedingQBtn = page.getByText('Seeding (Q)', { exact: true });
     const addEntriesBtn = page.getByText('Add entries', { exact: true });
 
     await seedingBtn.waitFor({ state: 'visible', timeout: 5_000 });
+    await seedingQBtn.waitFor({ state: 'visible', timeout: 5_000 });
     await addEntriesBtn.waitFor({ state: 'visible', timeout: 5_000 });
 
     expect(await seedingBtn.isVisible()).toBe(true);
+    expect(await seedingQBtn.isVisible()).toBe(true);
     expect(await addEntriesBtn.isVisible()).toBe(true);
   });
 });

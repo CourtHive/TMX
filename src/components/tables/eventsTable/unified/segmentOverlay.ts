@@ -186,45 +186,39 @@ type RightItemsParams = {
 export function getRightItems({ event, drawCreated, isDoubles, pairingMode }: RightItemsParams): any[] {
   const items: any[] = [];
 
-  // Seeding — segment-scoped, flat dropdown with labeled groups
+  // Seeding — split into two compact dropdowns (Accepted + Qualifying).
+  // Each dropdown contains only the actions for that segment, keeping
+  // the menu short regardless of how many rating scales exist. This
+  // prevents overflow on mobile views.
   if (!drawCreated) {
-    const seedingHandler = (table: any): any => {
+    const buildSeedingDropdown = (table: any, group: string, label: string) => {
       const seedingColumns = table
         .getColumns()
         .map((col: any) => col.getDefinition())
         .filter((def: any) => def.field?.startsWith('ratings.'));
 
       const options: any[] = [
-        { label: '── Accepted ──', disabled: true },
         { label: 'Manual seeding', onClick: (e: any) => enableManualSeeding(e, table), close: true },
-        { label: 'Clear accepted seeding', onClick: () => clearSeeding({ event, table }), close: true },
+        { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true },
         ...seedingColumns.map((column: any) => ({
-          onClick: () => generateSeedValues({ event, group: ACCEPTED, table, field: column.field }),
+          onClick: () => generateSeedValues({ event, group, table, field: column.field }),
           label: `Seed by ${column.title}`,
-          close: true,
-        })),
-        { divider: true },
-        { label: '── Qualifying ──', disabled: true },
-        { label: 'Manual seeding (Q)', onClick: (e: any) => enableManualSeeding(e, table), close: true },
-        { label: 'Clear qualifying seeding', onClick: () => clearSeeding({ event, table }), close: true },
-        ...seedingColumns.map((column: any) => ({
-          onClick: () => generateSeedValues({ event, group: QUALIFYING, table, field: column.field }),
-          label: `Seed by ${column.title} (Q)`,
           close: true,
         })),
       ];
 
       return {
         class: 'seedingOptions',
-        label: 'Seeding',
         selection: false,
         location: RIGHT,
         align: RIGHT,
         options,
+        label,
       };
     };
 
-    items.push(seedingHandler);
+    items.push((table: any) => buildSeedingDropdown(table, ACCEPTED, 'Seeding'));
+    items.push((table: any) => buildSeedingDropdown(table, QUALIFYING, 'Seeding (Q)'));
     items.push(cancelManualSeeding(event));
     items.push(saveSeeding(event));
   }
