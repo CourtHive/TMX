@@ -433,10 +433,11 @@ export function createUnifiedEntriesPanel({
       pairingMode,
     });
 
-    // Evaluate function items (overlay items are functions that receive the table)
+    // Evaluate function items — both overlay and right items are functions
+    // that receive the table and return item config objects.
     const evalItems = () => [
       ...overlayItemDefs.map((item: any) => (isFunction(item) ? item(table) : item)),
-      ...rightItems,
+      ...rightItems.map((item: any) => (isFunction(item) ? item(table) : item)),
     ];
 
     // The controlBar needs a target — create one above the table
