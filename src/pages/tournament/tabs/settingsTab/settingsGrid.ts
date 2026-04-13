@@ -59,6 +59,7 @@ function persistAll(
     googleSheetsImport: displayInputs.googleSheetsImport?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
     enableChat: displayInputs.enableChat?.checked || false,
+    unifiedEntriesTable: displayInputs.unifiedEntriesTable?.checked || false,
   });
 
   // Immediately update nav icon visibility
@@ -314,6 +315,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       checked: featureFlags.get().enableChat || false,
       field: 'enableChat',
       id: 'enableChat',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: 'Unified Entries Table',
+      checked: featureFlags.get().unifiedEntriesTable || false,
+      field: 'unifiedEntriesTable',
+      id: 'unifiedEntriesTable',
       onChange: persist,
       checkbox: true,
     },

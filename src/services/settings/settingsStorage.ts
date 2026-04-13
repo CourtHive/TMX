@@ -21,6 +21,7 @@ export type TMXSettings = {
   googleSheetsImport?: boolean;
   schedule2?: boolean;
   enableChat?: boolean;
+  unifiedEntriesTable?: boolean;
   minCourtGridRows?: number;
   language?: string;
   theme?: 'light' | 'dark' | 'system';
@@ -95,6 +96,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.googleSheetsImport !== undefined) flagsPatch.googleSheetsImport = settings.googleSheetsImport;
   if (settings.schedule2 !== undefined) flagsPatch.schedule2 = settings.schedule2;
   if (settings.enableChat !== undefined) flagsPatch.enableChat = settings.enableChat;
+  if (settings.unifiedEntriesTable !== undefined) flagsPatch.unifiedEntriesTable = settings.unifiedEntriesTable;
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -130,6 +132,7 @@ export function persistConfigToStorage(
     googleSheetsImport: flags.googleSheetsImport,
     schedule2: flags.schedule2,
     enableChat: flags.enableChat,
+    unifiedEntriesTable: flags.unifiedEntriesTable,
     minCourtGridRows: schedule.minCourtGridRows,
     ...extras,
   });
