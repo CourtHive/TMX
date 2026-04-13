@@ -71,7 +71,7 @@ async function seedAndOpenDrawForm(
 
 test.describe('Journey 2 — Draw form NEW_MAIN', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'load' });
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
@@ -305,8 +305,16 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.toggleCheckbox('qualifyingFirst');
     await drawer.expectFieldVisible('Structure name');
 
-    // Toggle back (click the label again — it's a toggle)
+    // Toggle back
     await drawer.toggleCheckbox('qualifyingFirst');
+
+    // Verify the checkbox is actually unchecked
+    const isChecked = await page.evaluate(() => {
+      const cb = document.getElementById('qualifyingFirst') as HTMLInputElement;
+      return cb?.checked;
+    });
+    console.log('4.2: qualifyingFirst checked after second toggle:', isChecked);
+
     await drawer.expectFieldVisible('Draw name');
     await drawer.expectFieldHidden('Structure name');
     await drawer.expectFieldVisible('Seeding policy');

@@ -112,11 +112,38 @@ export class DrawFormDrawer {
    *  `is-checkradio` CSS pattern. We programmatically click the input
    *  via evaluate since the label/input may be in the drawer's scroll
    *  area and Playwright's scroll-into-view can mis-target the scroll
-   *  container. */
+   *  container.
+   *
+   *  For qualifyingFirst, the change handler (qualifyingFirstChange)
+   *  re-renders draw type options, toggles field visibility, and
+   *  re-derives draw size. We wait for the draw type select's options
+   *  to change as a signal that the handler completed. */
   async toggleCheckbox(id: string): Promise<void> {
+    // Capture the draw type option count before toggle
+    const optionCountBefore = await this.fieldSelect('Draw Type')
+      .locator('option')
+      .count()
+      .catch(() => 0);
+
+    // Click the checkbox and wait for the change event handler to
+    // complete its DOM mutations. We use a Promise that resolves
+    // when the handler finishes by watching for a known DOM change.
     await this.page.evaluate((checkboxId) => {
-      const input = document.getElementById(checkboxId) as HTMLInputElement;
-      if (input) input.click();
+      return new Promise<void>((resolve) => {
+        const input = document.getElementById(checkboxId) as HTMLInputElement;
+        if (!input) { resolve(); return; }
+
+        // Listen for the NEXT change event on the input — when the
+        // handler is done, the DOM has been mutated.
+        const handler = () => {
+          input.removeEventListener('change', handler);
+          // Use requestAnimationFrame to let any synchronous DOM
+          // mutations from the handler flush before resolving
+          requestAnimationFrame(() => resolve());
+        };
+        input.addEventListener('change', handler);
+        input.click();
+      });
     }, id);
   }
 
