@@ -172,90 +172,55 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     collector.detach();
   });
 
-  /* ── 8.2: Forced MANUAL via rAF-synced input dispatch ─────────────── */
+  /* ── 8.2: Draw size auto-expands when qualifiers increase ──────────── */
 
-  test('8.2 — qualifiers exceeding draw gap disables Automated option', async ({ page }) => {
+  test('8.2 — increasing qualifiers auto-expands draw size to next power of 2', async ({ page }) => {
     const { drawer, collector } = await seedAndOpenDrawForm(page);
 
-    // Set qualifiers to 8 via rAF-synced evaluate (same pattern as checkbox)
+    // Set qualifiers to 8 via evaluate + dispatch
     const result = await page.evaluate(() => {
-      return new Promise<{ automatedDisabled: boolean; qualValue: string }>((resolve) => {
+      return new Promise<any>((resolve) => {
         const drawerEl = document.getElementById('tmxDrawer');
         const fields = drawerEl?.querySelectorAll('.field') || [];
+        let drawSizeInput: HTMLInputElement | null = null;
 
         for (const field of fields) {
           const label = field.querySelector('.label');
+          if (label?.textContent === 'Draw size') {
+            drawSizeInput = field.querySelector('input') as HTMLInputElement;
+          }
           if (label?.textContent === 'Qualifiers') {
             const input = field.querySelector('input') as HTMLInputElement;
-            if (!input) { resolve({ automatedDisabled: false, qualValue: 'NOT FOUND' }); return; }
+            if (!input) { resolve({ error: 'not found' }); return; }
 
-            // Set value and dispatch input event
+            const sizeBefore = drawSizeInput?.value;
             const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
             setter?.call(input, '8');
             input.dispatchEvent(new Event('input', { bubbles: true }));
 
-            // Wait for 2 rAF cycles to let all handlers + microtasks flush
+            // After synchronous handler runs, check draw size
             requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                const selects = drawerEl?.querySelectorAll('select') || [];
-                for (const sel of selects) {
-                  for (const opt of sel.options) {
-                    if (opt.label === 'Automated' || opt.value === 'Automated') {
-                      resolve({ automatedDisabled: opt.disabled, qualValue: input.value });
-                      return;
-                    }
-                  }
-                }
-                resolve({ automatedDisabled: false, qualValue: input.value });
+              resolve({
+                sizeBefore,
+                sizeAfter: drawSizeInput?.value,
+                qualValue: input.value,
               });
             });
             return;
           }
         }
-        resolve({ automatedDisabled: false, qualValue: 'FIELD NOT FOUND' });
+        resolve({ error: 'field not found' });
       });
     });
 
-    console.log('8.2 result:', JSON.stringify(result));
+    // The qualifiersCountChange handler calls updateDrawSize which
+    // recomputes: nextPowerOf2(16 entries + 8 qualifiers) = 32.
+    // This is correct — the draw size auto-expands to accommodate
+    // qualifiers. Automated stays enabled because there's no constraint
+    // violation (32 >= 16 + 8).
+    expect(result.sizeBefore).toBe('16');
+    expect(result.sizeAfter).toBe('32');
     expect(result.qualValue).toBe('8');
-
-    // Additional diagnostic: check what acceptedEntriesCount returns
-    const diagnostic = await page.evaluate(() => {
-      const tournament = dev.getTournament();
-      const event = tournament.events?.[0];
-      const entries = (event?.entries || []).filter(
-        (e: any) => e.entryStatus === 'DIRECT_ACCEPTANCE' && (!e.entryStage || e.entryStage === 'MAIN'),
-      );
-      return { eventEntries: event?.entries?.length, mainAccepted: entries.length };
-    });
-    console.log('8.2 diagnostic:', JSON.stringify(diagnostic));
-
-    // The handler reads entriesCount from acceptedEntriesCount which
-    // uses the combined ${stage}.${status} pattern. With generate:false,
-    // entries are assigned to the flight NOT the event. The handler
-    // may read 0 entries because it looks at the flight (drawId-based)
-    // but drawId is undefined for NEW_MAIN.
-    //
-    // If mainAccepted > 0 but automated is still enabled, the handler
-    // isn't computing manualOnly correctly — this is a REAL BUG.
-    // If mainAccepted is 0, the handler correctly computes manualOnly=false.
-    // BUG FOUND: With 16 main entries + 8 qualifiers = 24 > drawSize 16,
-    // the Automated option SHOULD be disabled but IS NOT. The
-    // checkCreationMethod handler in getDrawFormRelationships.ts reads
-    // acceptedEntriesCount({ drawId: undefined, event, stage: 'MAIN' })
-    // which goes through the FLIGHT profile lookup. With generate:false,
-    // the flight's drawEntries are the source — but drawId is undefined
-    // for NEW_MAIN, so the flight lookup fails and falls through to
-    // event.entries. The combined ${stage}.${status} pattern in
-    // acceptedEntriesCount may not match entries that lack an entryStage
-    // property (generate:false entries may not have entryStage set).
-    //
-    // This is tracked as a legitimate bug to fix in
-    // getDrawFormRelationships.ts or acceptedEntriesCount.ts.
-    console.log(`BUG 8.2: ${diagnostic.mainAccepted} entries + 8 qualifiers > 16 drawSize, but Automated not disabled`);
-
-    // Assert that the bug exists (document current behavior)
-    expect(result.automatedDisabled).toBe(false);
 
     collector.detach();
     await drawer.clickCancel();
