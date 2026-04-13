@@ -14,7 +14,7 @@ const defaults: FeatureFlags = {
   schedule2: false,
   usePublishState: false,
   enableChat: false,
-  unifiedEntriesTable: false,
+  unifiedEntriesTable: true,
 };
 
 let current: FeatureFlags = { ...defaults };
