@@ -162,14 +162,16 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     });
   }
 
-  // Pairing mode toggle + create pair — doubles, ungrouped only
+  // Create pair button — doubles, ungrouped only
   if (isDoubles) {
     items.push((table: any) => {
       const segments = getSelectedSegments(table);
       if (!segments.has(UNGROUPED_RANK) || segments.size !== 1) return { location: OVERLAY, hide: true };
 
+      // createPair returns { createPairButton, createPairFromSelected }
+      // where createPairButton is a config object (not a function)
       const { createPairButton } = createPair(event, false);
-      return createPairButton(table);
+      return createPairButton;
     });
   }
 
