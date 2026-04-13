@@ -27,6 +27,9 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
       },
     },
     base: BASE_URL,
+    test: {
+      exclude: ['e2e/**', 'node_modules/**'],
+    },
   });
 };
 
