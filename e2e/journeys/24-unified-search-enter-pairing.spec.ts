@@ -190,6 +190,42 @@ test.describe('Journey 24 — Search Enter-to-select and rapid pairing', () => {
     // Should have 2 selected rows (no auto-pairing)
     const selected = await page.locator(`${S.ENTRIES_VIEW} .tabulator-row.tabulator-selected`).count();
     expect(selected).toBe(2);
+
+    // "Create pair" button should appear in the overlay
+    const createPairBtn = page.getByText('Create pair');
+    await createPairBtn.first().waitFor({ state: 'visible', timeout: 3_000 });
+    expect(await createPairBtn.first().isVisible()).toBe(true);
+  });
+
+  test('Create pair button pairs 2 selected ungrouped (pairing OFF)', async ({ page }) => {
+    const collector = createMutationCollector(page);
+    const { names } = await seedAndNavigate(page);
+    expect(names.length).toBeGreaterThanOrEqual(2);
+
+    await page.getByText('Pairing: OFF').waitFor({ state: 'visible', timeout: 5_000 });
+    const searchInput = page.locator('input[placeholder="Search entries"]');
+    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
+
+    // Select two ungrouped via search-Enter
+    for (const name of names.slice(0, 2)) {
+      const term = name.split(',')[0].trim().substring(0, 4);
+      await searchInput.pressSequentially(term, { delay: 30 });
+      await page.waitForTimeout(300);
+      await searchInput.press('Enter');
+      await page.waitForTimeout(500);
+    }
+
+    // Click the Create pair button
+    const createPairBtn = page.getByText('Create pair');
+    await createPairBtn.first().waitFor({ state: 'visible', timeout: 3_000 });
+    await createPairBtn.first().click();
+
+    // Should emit the pairing mutation
+    const entry = await collector.waitForMethod('addEventEntryPairs', 10_000);
+    expect(entry.methods[0].params.participantIdPairs).toBeDefined();
+    expect(entry.methods[0].params.participantIdPairs[0]).toHaveLength(2);
+
+    collector.detach();
   });
 
   test('no JS errors during search-enter workflow', async ({ page }) => {
