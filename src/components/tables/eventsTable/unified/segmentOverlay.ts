@@ -17,8 +17,8 @@ import { clearSeeding } from '../seeding/removeSeeding';
 import { saveSeeding } from '../seeding/saveSeeding';
 import { destroySelected } from '../destroyPairs';
 import { addEntries } from '../addEntries';
+import { pairFromUnified } from './pairFromUnified';
 import { addToDraw } from '../addToDraw';
-import { createPair } from '../createPair';
 
 // Constants
 import { REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
@@ -164,16 +164,25 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     });
   }
 
-  // Create pair button — doubles, ungrouped only
+  // Create pair button — doubles, ungrouped only, exactly 2 selected
   if (isDoubles) {
     items.push((table: any) => {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
       const segments = getSelectedSegments(table);
-      if (!segments.has(UNGROUPED_RANK) || segments.size !== 1) return { location: OVERLAY, hide: true };
+      if (segments.size !== 1 || !segments.has(UNGROUPED_RANK) || selected.length !== 2) {
+        return { location: OVERLAY, hide: true };
+      }
 
-      // createPair returns { createPairButton, createPairFromSelected }
-      // where createPairButton is a config object (not a function)
-      const { createPairButton } = createPair(event, false);
-      return createPairButton;
+      return {
+        onClick: () => {
+          const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
+          table.deselectRow();
+          pairFromUnified(event, ids, () => onRefresh());
+        },
+        label: 'Create pair',
+        intent: 'is-info',
+        location: OVERLAY,
+      };
     });
   }
 
