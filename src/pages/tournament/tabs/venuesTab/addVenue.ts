@@ -38,8 +38,6 @@ const saveVenue = (callback?: (result: any) => void, engine?: string) => {
   const addCourtsParams: any = { courtsCount: count, venueId, courtIds };
   if (courtNameBase) {
     addCourtsParams.courtNameRoot = courtNameBase;
-  } else {
-    addCourtsParams.venueAbbreviationRoot = true;
   }
 
   const methods = [
