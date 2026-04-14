@@ -12,14 +12,13 @@ import { getRatingColumns } from '../../common/getRatingColumns';
 import { cellBorder } from '../../common/formatters/cellBorder';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { tournamentEngine } from 'tods-competition-factory';
-import { threeDots } from '../../common/formatters/threeDots';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import type { SortState } from './segmentSorter';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
 // Constants
-import { CENTER, LEFT, RIGHT, PARTICIPANTS, entryStatusMapping } from 'constants/tmxConstants';
+import { CENTER, LEFT, PARTICIPANTS, entryStatusMapping } from 'constants/tmxConstants';
 
 const SEGMENT_COLORS: Record<number, { bg: string; text: string }> = {
   0: { bg: 'var(--chc-success, hsl(141, 53%, 53%))', text: '#fff' },
@@ -48,18 +47,14 @@ function statusFormatter(cell: any) {
 
 type UnifiedColumnsParams = {
   entries: any[];
-  drawCreated?: boolean;
   hasDrawDefinitions?: boolean;
   sortState: SortState;
-  onEntryAction: (e: MouseEvent, cell: any) => void;
 };
 
 export function getUnifiedColumns({
   entries,
-  drawCreated,
   hasDrawDefinitions,
   sortState,
-  onEntryAction,
 }: UnifiedColumnsParams): any[] {
   const teams = entries.find((entry) => entry.participant?.teams?.length);
   const ratingColumns = getRatingColumns(entries, 'entry');
@@ -199,21 +194,6 @@ export function getUnifiedColumns({
       field: '_segmentRank',
       sorter: createGroupedSorter(sortState),
       visible: false,
-    },
-    {
-      cellClick: (e: MouseEvent, cell: any) => {
-        if (cell.getRow().getData()._isSeparator) return;
-        onEntryAction(e, cell);
-      },
-      visible: !drawCreated,
-      formatter: (cell: any) => {
-        if (cell.getRow().getData()._isSeparator) return '';
-        return (threeDots as any)(cell);
-      },
-      responsive: false,
-      headerSort: false,
-      hozAlign: RIGHT,
-      maxWidth: 40,
     },
   ];
 }

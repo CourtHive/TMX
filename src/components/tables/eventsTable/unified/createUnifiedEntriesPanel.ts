@@ -11,7 +11,6 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { getOverlayItems, getRightItems } from './segmentOverlay';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { entryActions } from '../../../popovers/entryActions';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { getUnifiedColumns } from './unifiedColumns';
 import { pairFromUnified } from './pairFromUnified';
@@ -34,12 +33,10 @@ import {
   LEFT,
   RIGHT,
   TMX_TABLE,
-  ACCEPTED,
-  QUALIFYING,
 } from 'constants/tmxConstants';
 
 const { MAIN } = drawDefinitionConstants;
-const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
+const { UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
 
 const UNIFIED_TABLE_KEY = 'unifiedEntries';
@@ -164,10 +161,8 @@ export function createUnifiedEntriesPanel({
     // Rebuild columns so newly relevant columns appear (ratings, ranking, seeding, etc.)
     const freshColumns = getUnifiedColumns({
       entries: result.entries,
-      drawCreated: result.drawCreated,
       hasDrawDefinitions: result.hasDrawDefinitions,
       sortState,
-      onEntryAction,
     });
     table.setColumns(freshColumns);
 
@@ -250,22 +245,6 @@ export function createUnifiedEntriesPanel({
     return counts;
   };
 
-  // ── Entry actions (per-row three-dots) ──
-  const onEntryAction = (e: MouseEvent, cell: any) => {
-    const rowData = cell.getRow().getData();
-    const rank = rowData._segmentRank;
-
-    // Compute valid actions based on segment
-    let actions: string[] = [];
-    if (rank === 0) actions = [ALTERNATE, WITHDRAWN];
-    else if (rank === 1) actions = [ACCEPTED, QUALIFYING, ALTERNATE, WITHDRAWN];
-    else if (rank === 2) actions = [ACCEPTED, QUALIFYING, WITHDRAWN, UNGROUPED];
-    else if (rank === 3) actions = [WITHDRAWN];
-    else if (rank === 4) actions = [ALTERNATE];
-
-    entryActions(actions, eventId, drawId)(e, cell);
-  };
-
   // ── Build ──
   const result = getTableData();
   if (result.error) return;
@@ -286,10 +265,8 @@ export function createUnifiedEntriesPanel({
   // ── Table columns ──
   const columns = getUnifiedColumns({
     entries,
-    drawCreated,
     hasDrawDefinitions,
     sortState,
-    onEntryAction,
   });
 
   const ratingFields = columns.filter((col: any) => col.field?.startsWith('ratings.')).map((col: any) => col.field);
