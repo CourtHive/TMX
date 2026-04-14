@@ -8,6 +8,8 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { invalidParticipantsModal } from 'components/modals/invalidParticipantsModal';
+import { isFunction } from 'functions/typeOf';
+import { context } from 'services/context';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
@@ -46,7 +48,11 @@ export const addEntries =
 
         const postMutation = (result: any) => {
           if (result.success) {
-            if (onRefresh) {
+            // Prefer the table-attached refresh (unified panel) over the closure-passed onRefresh
+            const unifiedTable = context.tables['unifiedEntries'];
+            if (unifiedTable && isFunction(unifiedTable._unifiedRefresh)) {
+              unifiedTable._unifiedRefresh();
+            } else if (onRefresh) {
               onRefresh();
             } else {
               const { participants, derivedDrawInfo } = tournamentEngine.getParticipants({

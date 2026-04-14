@@ -168,6 +168,8 @@ export function createUnifiedEntriesPanel({
 
     table.replaceData(result.entries);
     applySort();
+    renderEventControlBar();
+    renderTableControlBar();
   };
 
   const applySort = () => {
@@ -310,6 +312,7 @@ export function createUnifiedEntriesPanel({
   });
 
   context.tables[UNIFIED_TABLE_KEY] = table;
+  table._unifiedRefresh = refresh;
 
   // ── Header click for secondary sort ──
   table.on('headerClick', (_e: Event, column: any) => {
@@ -348,8 +351,14 @@ export function createUnifiedEntriesPanel({
     const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
     if (!eventControlElement) return;
 
-    const counts = getSegmentCounts(entries);
-    const totalCount = entries.length;
+    // Fetch fresh data so counts and draw selectors stay current after mutations
+    const freshResult = getTableData();
+    const freshEntries = freshResult.entries ?? [];
+    const freshEvent = freshResult.event;
+    const freshIsDoubles = freshResult.isDoubles;
+
+    const counts = getSegmentCounts(freshEntries);
+    const totalCount = freshEntries.length;
 
     const scopeOptions = [
       { label: `All (${totalCount})`, onClick: () => updateSearchScope(SCOPE_ALL), close: true },
@@ -364,7 +373,7 @@ export function createUnifiedEntriesPanel({
         onClick: () => updateSearchScope(SCOPE_ALTERNATES),
         close: true,
       },
-      isDoubles &&
+      freshIsDoubles &&
         counts[3] && {
           label: `Ungrouped (${counts[3]})`,
           onClick: () => updateSearchScope(SCOPE_UNGROUPED),
@@ -379,7 +388,7 @@ export function createUnifiedEntriesPanel({
 
     const ALL_ENTRIES = 'All entries';
     const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
-    const entriesOptions = (event.drawDefinitions || [])
+    const entriesOptions = (freshEvent?.drawDefinitions || [])
       .map((dd: any) => ({
         onClick: () => navigateToEvent({ eventId, drawId: dd.drawId }),
         label: dd?.drawName,

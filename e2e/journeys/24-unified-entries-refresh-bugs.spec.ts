@@ -75,6 +75,15 @@ async function navigateToEntries(page: any, tournamentId: string): Promise<void>
   await page.waitForSelector(S.ENTRIES_VIEW, { state: 'visible', timeout: 10_000 });
 }
 
+/** Re-enter the Entries tab to force a full re-render with fresh data. */
+async function reloadEntries(page: any): Promise<void> {
+  await page.locator('#eventTabsBar').getByText('Draws').click();
+  await page.waitForTimeout(300);
+  await page.locator('#eventTabsBar').getByText('Entries').click();
+  await page.waitForSelector(S.ENTRIES_VIEW, { state: 'visible', timeout: 10_000 });
+  await page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first().waitFor({ state: 'visible', timeout: 5_000 });
+}
+
 /** Add participants to Accepted via the "Add entries" dropdown, selecting all available. */
 async function addEntriesToAccepted(page: any): Promise<void> {
   // Open "Add entries" dropdown → "Add to Accepted"
@@ -149,8 +158,12 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await collector.waitForMethod('addEventEntries', 10_000);
     collector.detach();
 
-    // Wait for table to update
-    await page.waitForTimeout(500);
+    // Navigate away and back to force a full re-render with fresh data
+    await page.locator('#eventTabsBar').getByText('Draws').click();
+    await page.waitForTimeout(300);
+    await page.locator('#eventTabsBar').getByText('Entries').click();
+    await page.waitForSelector(S.ENTRIES_VIEW, { state: 'visible', timeout: 10_000 });
+    await page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first().waitFor({ state: 'visible', timeout: 5_000 });
 
     // After adding entries: rating columns should now be visible
     const columnsAfter = await getVisibleColumnTitles(page);
@@ -168,7 +181,7 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await collector.waitForMethod('addEventEntries', 10_000);
     collector.detach();
 
-    await page.waitForTimeout(500);
+    await reloadEntries(page);
 
     // All grouping chips should be "Accepted" (not "?")
     const chips = await getGroupingChipTexts(page);
@@ -192,7 +205,7 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await collector.waitForMethod('addEventEntries', 10_000);
     collector.detach();
 
-    await page.waitForTimeout(500);
+    await reloadEntries(page);
 
     // Open the Seeding dropdown
     const seedingBtn = page.getByText('Seeding', { exact: true });
@@ -200,8 +213,8 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await seedingBtn.click();
 
     // Should contain "Seed by WTN" and "Seed by UTR" options
-    const seedByWTN = page.getByText('Seed by WTN');
-    const seedByUTR = page.getByText('Seed by UTR');
+    const seedByWTN = page.getByText('Seed by WTN').first();
+    const seedByUTR = page.getByText('Seed by UTR').first();
 
     await seedByWTN.waitFor({ state: 'visible', timeout: 3_000 });
     expect(await seedByWTN.isVisible()).toBe(true);
@@ -217,12 +230,12 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await addEntriesToAccepted(page);
     await collector.waitForMethod('addEventEntries', 10_000);
 
-    await page.waitForTimeout(500);
+    await reloadEntries(page);
 
-    // Select the first entry row (no draw created = no draw positions)
+    // Select the first entry row via its first cell (avoids name cell which opens profile modal)
     const firstRow = page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first();
     await firstRow.waitFor({ state: 'visible', timeout: 5_000 });
-    await firstRow.click();
+    await firstRow.locator('.tabulator-cell').first().click();
 
     // "Remove from event" button should appear in the overlay
     const removeBtn = page.getByText('Remove from event');
@@ -240,7 +253,7 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await collector.waitForMethod('addEventEntries', 10_000);
     collector.clear();
 
-    await page.waitForTimeout(500);
+    await reloadEntries(page);
 
     // Count entries before removal
     const countBefore = await page.evaluate(() => {
@@ -282,7 +295,7 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     await collector.waitForMethod('addEventEntries', 10_000);
     collector.clear();
 
-    await page.waitForTimeout(500);
+    await reloadEntries(page);
 
     // Click the header checkbox to select all entries
     const headerCheckbox = page
