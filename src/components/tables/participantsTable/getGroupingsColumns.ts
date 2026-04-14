@@ -61,7 +61,7 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       widthGrow: 1,
     },
     {
-      sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
+      sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName, undefined, { numeric: true }),
       formatter: eventsFormatter(navigateToEvent),
       visible: view !== GROUP,
       hozAlign: LEFT,

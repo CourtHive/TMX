@@ -184,7 +184,7 @@ export function getParticipantColumns({
       visible: false,
     },
     {
-      sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName),
+      sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName, undefined, { numeric: true }),
       formatter: eventsFormatter(navigateToEvent),
       title: t('tables.participants.events'),
       field: 'events',
