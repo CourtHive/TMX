@@ -334,10 +334,9 @@ export function createUnifiedEntriesPanel({
     });
   }
 
-  // ── Selection change → re-render table control bar overlay ──
-  table.on('rowSelectionChanged', () => {
-    renderTableControlBar();
-  });
+  // Note: the controlBar's internal rowSelectionChanged listener handles overlay
+  // container visibility toggling. We do NOT rebuild the entire controlBar on
+  // selection change — doing so destroys DOM and causes cascading deselection.
 
   // ── Table built → apply sort + render control bars ──
   table.on('tableBuilt', () => {
@@ -481,6 +480,47 @@ export function createUnifiedEntriesPanel({
       entriesView?.insertBefore(controlEl, tableContainer);
     }
 
-    controlBar({ target: controlEl, table, items: evalItems() });
+    // Re-evaluate overlay items when selection changes, replacing just the overlay
+    // container content — avoids full controlBar rebuild which causes cascading deselection.
+    const onSelection = () => {
+      const overlayEl = controlEl.querySelector('.options_overlay') as HTMLElement;
+      if (!overlayEl) return;
+      removeAllChildNodes(overlayEl);
+      const freshOverlay = overlayItemDefs.map((item: any) => (isFunction(item) ? item(table) : item));
+      for (const item of freshOverlay) {
+        if (!item || item.hide) continue;
+        const btn = document.createElement('button');
+        btn.className = `button is-small ${item.intent || 'is-light'}`;
+        btn.textContent = item.label || '';
+        if (item.options) {
+          // Dropdown-style overlay item — render as a simple dropdown
+          const wrapper = document.createElement('div');
+          wrapper.className = 'dropdown is-hoverable';
+          const trigger = document.createElement('div');
+          trigger.className = 'dropdown-trigger';
+          trigger.appendChild(btn);
+          wrapper.appendChild(trigger);
+          const menu = document.createElement('div');
+          menu.className = 'dropdown-menu';
+          const content = document.createElement('div');
+          content.className = 'dropdown-content';
+          for (const opt of item.options) {
+            const a = document.createElement('a');
+            a.className = 'dropdown-item';
+            a.textContent = opt.label || '';
+            a.onclick = (e) => { e.stopPropagation(); opt.onClick?.(); };
+            content.appendChild(a);
+          }
+          menu.appendChild(content);
+          wrapper.appendChild(menu);
+          overlayEl.appendChild(wrapper);
+        } else {
+          btn.onclick = (e) => { e.stopPropagation(); item.onClick?.(); };
+          overlayEl.appendChild(btn);
+        }
+      }
+    };
+
+    controlBar({ target: controlEl, table, items: evalItems(), onSelection });
   };
 }

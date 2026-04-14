@@ -222,6 +222,7 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
   });
 
   test('24.4 — "Remove from event" button appears for selected entries without draw positions', async ({ page }) => {
+    page.on('console', (msg) => { if (msg.text().includes('CONTROLBAR')) console.log('  [browser]', msg.text()); });
     const tournamentId = await seedTournamentWithRatedParticipants(page);
     await navigateToEntries(page, tournamentId);
 
@@ -232,10 +233,10 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
 
     await reloadEntries(page);
 
-    // Select the first entry row via its first cell (avoids name cell which opens profile modal)
+    // Select the first entry row via the grouping chip cell (avoids name cell which opens profile modal)
     const firstRow = page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first();
     await firstRow.waitFor({ state: 'visible', timeout: 5_000 });
-    await firstRow.locator('.tabulator-cell').first().click();
+    await firstRow.locator('.tag').first().click();
 
     // "Remove from event" button should appear in the overlay
     const removeBtn = page.getByText('Remove from event');
@@ -262,10 +263,10 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
     });
     expect(countBefore).toBeGreaterThan(0);
 
-    // Select the first entry row
+    // Select the first entry row via the grouping chip
     const firstRow = page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first();
     await firstRow.waitFor({ state: 'visible', timeout: 5_000 });
-    await firstRow.click();
+    await firstRow.locator('.tag').first().click();
 
     // Click "Remove from event"
     const removeBtn = page.getByText('Remove from event');
@@ -297,11 +298,14 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
 
     await reloadEntries(page);
 
-    // Click the header checkbox to select all entries
-    const headerCheckbox = page
-      .locator(`${S.ENTRIES_VIEW} .tabulator-col[tabulator-field="rowSelection"]`);
-    if (await headerCheckbox.count()) {
-      await headerCheckbox.first().click();
+    // Select all entries by clicking each row's grouping chip
+    const entryRows = page.locator(`${S.ENTRIES_VIEW} .tabulator-row`);
+    const rowCount = await entryRows.count();
+    for (let i = 0; i < rowCount; i++) {
+      const chip = entryRows.nth(i).locator('.tag').first();
+      if (await chip.isVisible().catch(() => false)) {
+        await chip.click();
+      }
     }
 
     // "Remove from event" should be visible
