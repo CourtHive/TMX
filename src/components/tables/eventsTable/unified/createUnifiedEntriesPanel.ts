@@ -180,6 +180,38 @@ export function createUnifiedEntriesPanel({
     table.setSort([{ column: '_segmentRank', dir: 'asc' }]);
   };
 
+  // ── Enter-to-select (and pair in pairing mode) ──
+  const handleSearchEnter = (inputElement: HTMLInputElement) => {
+    if (!table) return;
+
+    const visibleRows = table.getRows('active');
+    const firstMatch = visibleRows.find((row: any) => !row.getData()._isSeparator);
+    if (!firstMatch) return;
+
+    const matchData = firstMatch.getData();
+
+    if (pairingMode.enabled) {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      if (
+        selected.length === 1 &&
+        selected[0]._segmentRank === 3 &&
+        matchData._segmentRank === 3 &&
+        selected[0].participantId !== matchData.participantId
+      ) {
+        const ids: [string, string] = [selected[0].participantId, matchData.participantId];
+        table.deselectRow();
+        inputElement.value = '';
+        applySearchFilter('');
+        pairFromUnified(event, ids, () => refresh());
+        return;
+      }
+    }
+
+    table.selectRow(firstMatch);
+    inputElement.value = '';
+    applySearchFilter('');
+  };
+
   // ── Search with scope ──
   const applySearchFilter = (value: string) => {
     if (!table) return;
@@ -386,7 +418,10 @@ export function createUnifiedEntriesPanel({
 
     const items = [
       {
-        onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && applySearchFilter(''),
+        onKeyDown: (e: any) => {
+          if (e.keyCode === 8 && e.target.value.length === 1) applySearchFilter('');
+          if (e.key === 'Enter' || e.keyCode === 13) handleSearchEnter(e.target);
+        },
         onChange: (e: any) => applySearchFilter(e.target.value),
         onKeyUp: (e: any) => applySearchFilter(e.target.value),
         clearSearch: () => applySearchFilter(''),
