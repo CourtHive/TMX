@@ -1,5 +1,6 @@
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
 import { registrationModal } from 'components/modals/registrationModal';
+import { ssoLoginWithToken } from 'services/authentication/authApi';
 import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
@@ -10,6 +11,7 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import { logIn, logOut } from 'services/authentication/loginState';
 import {
   forceExitAssignmentMode,
   isAssignmentMode,
@@ -136,6 +138,26 @@ export function routeTMX() {
   router.on(`/${TMX_TOURNAMENTS}`, tmxTournaments);
 
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
+
+  // SSO login: provisioner redirects user here with a one-time token
+  router.on('/sso', async () => {
+    const params = new URLSearchParams(globalThis.location?.hash?.split('?')[1] ?? '');
+    const token = params.get('token');
+    if (token) {
+      try {
+        const res = await ssoLoginWithToken(token);
+        if (res?.status === 200 && res.data?.accessToken) {
+          logIn({ data: { token: res.data.accessToken } });
+        } else {
+          logOut();
+        }
+      } catch {
+        logOut();
+      }
+    } else {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+    }
+  });
 
   router.on(`/${TEMPLATES}/:templateView`, (match) => renderTemplatesPage(match?.data ?? undefined));
   router.on(`/${TEMPLATES}`, () => renderTemplatesPage());

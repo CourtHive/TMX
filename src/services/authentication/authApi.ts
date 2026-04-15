@@ -44,3 +44,7 @@ export async function forgotPassword(email) {
 export async function resetPassword(email, password, code) {
   return baseApi.post('/auth/reset-password', { email, password, code });
 }
+
+export async function ssoLoginWithToken(token: string) {
+  return baseApi.post('/auth/sso/login-with-token', { token });
+}
