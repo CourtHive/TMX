@@ -225,9 +225,6 @@ function newBlock(): HTMLDivElement {
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
       <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
-      <span id='assistantIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
-        <i class="nav-icon fa-solid fa-robot"></i>
-      </span>
       <span id='chatIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Tournament Chat">
         <i class="nav-icon fa-solid fa-comments"></i>
         <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>
@@ -251,6 +248,9 @@ function newBlock(): HTMLDivElement {
       </div>
     </div>
     <div class="navbar-item" style="font-size: 1em; display: flex; align-items: center; gap: 2px;">
+      <span id='assistantIndicator' style="display:none; position:relative; cursor:pointer; align-items:center; padding: 0 .3em;" title="Ask TMX">
+        <i class="fa-solid fa-robot" style="font-size: 1em;"></i>
+      </span>
       <i id="themeToggle" style="cursor: pointer; padding: 0 .4em; opacity: 0.7;" class="fa-solid fa-moon" title="Toggle theme"></i>
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
     </div>
