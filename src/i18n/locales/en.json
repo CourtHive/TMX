@@ -1622,7 +1622,8 @@
       "score": "Score",
       "profile": "Profile",
       "official": "Official",
-      "status": "Status"
+      "status": "Status",
+      "updatedAt": "Updated"
     },
     "tournaments": {
       "open": "Open"

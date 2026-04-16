@@ -312,6 +312,37 @@ export function getMatchUpColumns({
       width: 70,
     },
     {
+      title: t('tables.matchUps.updatedAt'),
+      field: 'updatedAt',
+      // Initially hidden — users enable via the header menu when they
+      // need to audit freshness (cache-bust, stale-sync diagnosis, etc.).
+      visible: false,
+      width: 150,
+      // Local-time HH:MM:SS display with full ISO string tooltip so the
+      // raw timestamp is always recoverable on hover.
+      formatter: (cell: any) => {
+        const value = cell.getValue();
+        if (!value || typeof value !== 'string') return '';
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '';
+        const now = new Date();
+        const sameDay =
+          d.getFullYear() === now.getFullYear() &&
+          d.getMonth() === now.getMonth() &&
+          d.getDate() === now.getDate();
+        const hh = d.getHours().toString().padStart(2, '0');
+        const mm = d.getMinutes().toString().padStart(2, '0');
+        const ss = d.getSeconds().toString().padStart(2, '0');
+        const display = sameDay
+          ? `${hh}:${mm}:${ss}`
+          : `${d.toLocaleDateString()} ${hh}:${mm}:${ss}`;
+        cell.getElement().setAttribute('title', value);
+        return display;
+      },
+      // Lexicographic compare works correctly on ISO 8601 UTC strings.
+      sorter: 'string',
+    },
+    {
       cellClick: (e: Event, cell: any) => matchUpActions({ pointerEvent: e as PointerEvent, cell, ...cell.getData() }),
       formatter: threeDots,
       responsive: false,
