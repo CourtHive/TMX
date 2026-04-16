@@ -117,17 +117,18 @@ describe('TMX scoreRelay client', () => {
   });
 
   it('dispatches per-matchUp callbacks on score event', () => {
+    const MU_ID = 'mu-specific';
     const matchCallback = vi.fn();
     connectRelay('tid-004');
     triggerConnect();
 
-    subscribeToMatchUp('mu-specific', matchCallback);
-    expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', 'mu-specific');
+    subscribeToMatchUp(MU_ID, matchCallback);
+    expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', MU_ID);
 
-    triggerScore({ matchUpId: 'mu-specific', score: { scoreStringSide1: '3-2' } });
+    triggerScore({ matchUpId: MU_ID, score: { scoreStringSide1: '3-2' } });
 
     expect(matchCallback).toHaveBeenCalledWith(
-      expect.objectContaining({ matchUpId: 'mu-specific' }),
+      expect.objectContaining({ matchUpId: MU_ID }),
     );
   });
 
