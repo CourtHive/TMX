@@ -1355,7 +1355,10 @@
       "startDateLabel": "Start date",
       "endDateLabel": "End date",
       "selectActiveDates": "Select active dates",
-      "activeDates": "Active Dates"
+      "activeDates": "Active Dates",
+      "timeZoneLabel": "Time zone",
+      "timeZonePlaceholder": "e.g. America/New_York",
+      "timeZoneInvalid": "Not a recognised IANA time zone"
     },
     "addDraw": {
       "missingName": "Missing Draw name",

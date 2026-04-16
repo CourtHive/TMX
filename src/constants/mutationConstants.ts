@@ -71,6 +71,7 @@ export const SET_PARTICIPANT_SCALE_ITEMS = 'setParticipantScaleItems';
 export const SEED_WITHDRAWAL_CASCADE = 'seedWithdrawalCascade';
 export const SET_SUB_ORDER = 'setSubOrder';
 export const SET_TOURNAMENT_DATES = 'setTournamentDates';
+export const SET_TOURNAMENT_LOCAL_TIME_ZONE = 'setTournamentLocalTimeZone';
 export const SET_TOURNAMENT_NAME = 'setTournamentName';
 export const SET_TOURNAMENT_NOTES = 'setTournamentNotes';
 export const PUBLISH_ORDER_OF_PLAY = 'publishOrderOfPlay';

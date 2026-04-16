@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatUpdatedAt, updatedAtFormatter } from './updatedAtFormatter';
+import { formatUpdatedAt, makeUpdatedAtFormatter, updatedAtFormatter } from './updatedAtFormatter';
 
 /**
  * The test suite runs with TZ=UTC (see TMX `package.json` scripts), so
@@ -11,6 +11,8 @@ import { formatUpdatedAt, updatedAtFormatter } from './updatedAtFormatter';
 
 const SAMPLE_ISO = '2026-04-16T14:32:05Z';
 const SAMPLE_DISPLAY = '2026-04-16 14:32';
+const TZ_NY = 'America/New_York';
+const SAMPLE_IN_NY = '2026-04-16 10:32';
 
 describe('formatUpdatedAt', () => {
   it('renders a standard ISO UTC string as YYYY-MM-DD HH:MM', () => {
@@ -50,6 +52,47 @@ describe('formatUpdatedAt', () => {
   it('accepts a numeric epoch millisecond value', () => {
     const ms = Date.UTC(2026, 3, 16, 14, 32, 5); // April is month index 3
     expect(formatUpdatedAt(ms)).toBe(SAMPLE_DISPLAY);
+  });
+
+  // ── Timezone parameter ─────────────────────────────────────
+
+  it('renders in the supplied IANA zone when provided', () => {
+    // 14:32 UTC → 10:32 in America/New_York (UTC−4 during April).
+    expect(formatUpdatedAt(SAMPLE_ISO, TZ_NY)).toBe(SAMPLE_IN_NY);
+  });
+
+  it('handles a zone whose local date differs from UTC', () => {
+    // 23:00 UTC → 08:00 NEXT DAY in Asia/Tokyo (UTC+9). The date field
+    // must roll over; a naive UTC-slice would miss this.
+    expect(formatUpdatedAt('2026-04-16T23:00:00Z', 'Asia/Tokyo')).toBe('2026-04-17 08:00');
+  });
+
+  it('handles a zone whose local date is BEFORE UTC', () => {
+    // 03:00 UTC → 20:00 previous day in America/Los_Angeles (UTC−7 DST).
+    expect(formatUpdatedAt('2026-04-16T03:00:00Z', 'America/Los_Angeles')).toBe('2026-04-15 20:00');
+  });
+
+  it('handles Europe/London (DST in April)', () => {
+    // 14:32 UTC → 15:32 in Europe/London (BST = UTC+1).
+    expect(formatUpdatedAt(SAMPLE_ISO, 'Europe/London')).toBe('2026-04-16 15:32');
+  });
+
+  it('handles a half-hour offset zone (India)', () => {
+    // 14:32 UTC → 20:02 in Asia/Kolkata (UTC+5:30).
+    expect(formatUpdatedAt(SAMPLE_ISO, 'Asia/Kolkata')).toBe('2026-04-16 20:02');
+  });
+
+  it('falls back to viewer-local zone when the timezone is invalid', () => {
+    // Test suite runs with TZ=UTC, so local = UTC.
+    expect(formatUpdatedAt(SAMPLE_ISO, 'Narnia/Cair_Paravel')).toBe(SAMPLE_DISPLAY);
+  });
+
+  it('falls back to viewer-local zone when the timezone is empty', () => {
+    expect(formatUpdatedAt(SAMPLE_ISO, '')).toBe(SAMPLE_DISPLAY);
+  });
+
+  it('falls back to viewer-local zone when the timezone is undefined', () => {
+    expect(formatUpdatedAt(SAMPLE_ISO, undefined)).toBe(SAMPLE_DISPLAY);
   });
 });
 
@@ -96,5 +139,35 @@ describe('updatedAtFormatter (Tabulator cell wrapper)', () => {
     };
     expect(() => updatedAtFormatter(cell)).not.toThrow();
     expect(updatedAtFormatter(cell)).toBe(SAMPLE_DISPLAY);
+  });
+});
+
+describe('makeUpdatedAtFormatter(timeZone)', () => {
+  function makeCell(value: unknown) {
+    const element = {
+      setAttribute: (_k: string, _v: string) => {},
+    } as HTMLElement & { setAttribute: (k: string, v: string) => void };
+    return {
+      getValue: () => value,
+      getElement: () => element,
+    };
+  }
+
+  it('closes over the given zone and uses it on every cell render', () => {
+    const fmt = makeUpdatedAtFormatter(TZ_NY);
+    expect(fmt(makeCell(SAMPLE_ISO))).toBe(SAMPLE_IN_NY);
+  });
+
+  it('different formatters can be built for different zones without interference', () => {
+    const ny = makeUpdatedAtFormatter(TZ_NY);
+    const tokyo = makeUpdatedAtFormatter('Asia/Tokyo');
+    const cell = makeCell(SAMPLE_ISO);
+    expect(ny(cell)).toBe(SAMPLE_IN_NY);
+    expect(tokyo(cell)).toBe('2026-04-16 23:32');
+  });
+
+  it('no-zone factory matches the default updatedAtFormatter', () => {
+    const fmt = makeUpdatedAtFormatter();
+    expect(fmt(makeCell(SAMPLE_ISO))).toBe(updatedAtFormatter(makeCell(SAMPLE_ISO)));
   });
 });
