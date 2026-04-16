@@ -29,7 +29,6 @@ import { selectItem } from 'components/modals/selectItem';
 import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
 import { providerConfig } from 'config/providerConfig';
-import { featureFlags } from 'config/featureFlags';
 import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -148,7 +147,7 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     { divider: true } as any,
     {
-      hide: !featureFlags.get().googleSheetsImport || !providerConfig.isAllowed('canImportParticipants'),
+      hide: !providerConfig.isAllowed('canImportParticipants'),
       label: t('pages.participants.importGoogleSheet'),
       onClick: editRegistrationLink,
       close: true,

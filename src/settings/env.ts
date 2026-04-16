@@ -79,12 +79,6 @@ export const env: any = {
   },
 
   // Feature flags — delegates to featureFlags
-  get googleSheetsImport() {
-    return featureFlags.get().googleSheetsImport;
-  },
-  set googleSheetsImport(v: boolean) {
-    featureFlags.set({ googleSheetsImport: v });
-  },
   get schedule2() {
     return featureFlags.get().schedule2;
   },
@@ -97,11 +91,11 @@ export const env: any = {
   set usePublishState(v: boolean) {
     featureFlags.set({ usePublishState: v });
   },
-  get unifiedEntriesTable() {
-    return featureFlags.get().unifiedEntriesTable;
+  get legacyEntriesTable() {
+    return featureFlags.get().legacyEntriesTable;
   },
-  set unifiedEntriesTable(v: boolean) {
-    featureFlags.set({ unifiedEntriesTable: v });
+  set legacyEntriesTable(v: boolean) {
+    featureFlags.set({ legacyEntriesTable: v });
   },
 
   // User preferences — delegates to preferencesConfig

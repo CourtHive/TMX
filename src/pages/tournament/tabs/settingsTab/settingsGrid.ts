@@ -56,17 +56,13 @@ function persistAll(
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
-    googleSheetsImport: displayInputs.googleSheetsImport?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
-    enableChat: displayInputs.enableChat?.checked || false,
-    unifiedEntriesTable: displayInputs.unifiedEntriesTable?.checked || false,
+    legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
   });
 
-  // Immediately update nav icon visibility
+  // Immediately update schedule2 nav icon visibility
   const s2Icon = document.getElementById('s2-route');
   if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
-  const chatEl = document.getElementById('chatIndicator');
-  if (chatEl) chatEl.style.display = featureFlags.get().enableChat ? '' : 'none';
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
   if (scoringInputs.dynamicSets.checked) {
@@ -295,14 +291,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
     {
-      label: t('modals.settings.googleSheetsImport'),
-      checked: featureFlags.get().googleSheetsImport || false,
-      field: 'googleSheetsImport',
-      id: 'googleSheetsImport',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
       label: t('modals.settings.schedule2'),
       checked: featureFlags.get().schedule2 || false,
       field: 'schedule2',
@@ -310,23 +298,31 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       onChange: persist,
       checkbox: true,
     },
+  ]);
+
+  // Fallback options row — power users only. Kept in this panel because the
+  // underlying behavior is still experimental; default is off.
+  const fallbackHeader = document.createElement('div');
+  fallbackHeader.style.cssText = 'margin-top: 12px; font-size: 0.75rem; font-weight: 600; color: var(--chc-text-secondary, #888); text-transform: uppercase; letter-spacing: 0.04em;';
+  fallbackHeader.textContent = 'Fallback Options';
+  displayForm.appendChild(fallbackHeader);
+  const fallbackHint = document.createElement('div');
+  fallbackHint.style.cssText = 'font-size: 0.75rem; color: var(--chc-text-secondary, #888); margin-bottom: 6px;';
+  fallbackHint.textContent = 'Enable only if you run into an issue with the standard experience.';
+  displayForm.appendChild(fallbackHint);
+
+  const fallbackInputs = renderForm(displayForm, [
     {
-      label: 'Tournament Chat',
-      checked: featureFlags.get().enableChat || false,
-      field: 'enableChat',
-      id: 'enableChat',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: 'Unified Entries Table',
-      checked: featureFlags.get().unifiedEntriesTable || false,
-      field: 'unifiedEntriesTable',
-      id: 'unifiedEntriesTable',
+      label: 'Legacy entries table (split by status)',
+      checked: featureFlags.get().legacyEntriesTable || false,
+      field: 'legacyEntriesTable',
+      id: 'legacyEntriesTable',
       onChange: persist,
       checkbox: true,
     },
   ]);
+  // Merge fallback inputs into displayInputs so persistAll sees them
+  Object.assign(displayInputs, fallbackInputs);
   if (deviceConfig.get().isElectron) {
     const notifRow = document.createElement('div');
     notifRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';

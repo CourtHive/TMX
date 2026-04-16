@@ -1,6 +1,7 @@
 /**
  * Unified entries panel — single table with sort-segregated segments.
- * Replaces the 5-panel approach behind the env.unifiedEntriesTable feature flag.
+ * Standard view for event entries. The legacy 5-panel approach remains
+ * available behind the `legacyEntriesTable` setting as a power-user fallback.
  */
 import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';

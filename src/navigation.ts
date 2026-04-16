@@ -120,9 +120,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Panel toggles — assistant and chat (non-route items)
   addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
-  if (featureFlags.get().enableChat) {
-    addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
-  }
+  addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
 
   // Toggle dropdown on click
   toggle.onclick = () => {
@@ -255,10 +253,12 @@ function setupChatIndicator(): void {
   const badgeEl = document.getElementById('chatBadge');
   if (!chatEl) return;
 
+  // Chat is always available inside a tournament; the indicator lives
+  // in the tournament nav so its container controls context visibility.
+  chatEl.style.display = 'inline-flex';
+
   const updateVisibility = () => {
-    const enabled = featureFlags.get().enableChat;
     const unread = getUnreadCount();
-    chatEl.style.display = enabled || unread > 0 ? 'inline-flex' : 'none';
     if (badgeEl) badgeEl.style.display = unread > 0 ? 'block' : 'none';
   };
 
@@ -271,23 +271,23 @@ function setupChatIndicator(): void {
 }
 
 function setupAssistantIndicator(): void {
-  const el = document.getElementById('assistantIndicator');
-  if (!el) return;
+  const ids = ['assistantIndicator', 'assistantIndicatorHome'];
+  const elements = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+  if (elements.length === 0) return;
 
-  el.onclick = (e) => {
-    e.stopPropagation();
-    openAssistantPanel();
-  };
+  for (const el of elements) {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      openAssistantPanel();
+    };
+  }
 
-  // Check health and show/grey out accordingly
+  // One health check drives visibility/opacity for both icons.
   checkAssistantHealth().then((healthy) => {
-    el.style.display = 'inline-flex';
-    if (!healthy) {
-      el.style.opacity = '0.35';
-      el.title = 'Ask TMX (unavailable)';
-    } else {
-      el.style.opacity = '1';
-      el.title = 'Ask TMX';
+    for (const el of elements) {
+      el.style.display = 'inline-flex';
+      el.style.opacity = healthy ? '1' : '0.35';
+      el.title = healthy ? 'Ask TMX' : 'Ask TMX (unavailable)';
     }
   });
 }
