@@ -230,6 +230,9 @@ function newBlock(): HTMLDivElement {
         <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>
       </span>
       <i id='syncIndicator' class="nav-icon fa-solid fa-rotate" style="display:none; cursor:pointer;" title="Data updated — click to refresh"></i>
+      <span id='assistantIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
+        <i class="nav-icon fa-solid fa-robot"></i>
+      </span>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
       <div id="mobileNav" class="mobile-nav">
         <button id="mobileNavToggle" class="mobile-nav-toggle"></button>
@@ -241,6 +244,9 @@ function newBlock(): HTMLDivElement {
 
       <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
+      <span id='assistantIndicatorHome' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
+        <i class="home-nav-icon fa-solid fa-robot"></i>
+      </span>
       <i id='h-settings' class="home-nav-icon fa-solid fa-sliders"></i>
       <div id="mobileHomeNav" class="mobile-nav">
         <button id="mobileHomeNavToggle" class="mobile-nav-toggle"></button>
@@ -248,9 +254,6 @@ function newBlock(): HTMLDivElement {
       </div>
     </div>
     <div class="navbar-item" style="font-size: 1em; display: flex; align-items: center; gap: 2px;">
-      <span id='assistantIndicator' style="display:none; position:relative; cursor:pointer; align-items:center; padding: 0 .3em;" title="Ask TMX">
-        <i class="fa-solid fa-robot" style="font-size: 1em;"></i>
-      </span>
       <i id="themeToggle" style="cursor: pointer; padding: 0 .4em; opacity: 0.7;" class="fa-solid fa-moon" title="Toggle theme"></i>
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
     </div>

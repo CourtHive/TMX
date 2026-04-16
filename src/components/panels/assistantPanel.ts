@@ -23,6 +23,121 @@ let conversationId: string | undefined;
 let messages: AssistantMessage[] = [];
 let isStreaming = false;
 
+// --- Rendering helpers ---
+
+function buildMessageBubble(msg: AssistantMessage): HTMLElement {
+  const isUser = msg.role === 'user';
+  const bubble = document.createElement('div');
+  bubble.style.cssText = [
+    `background: ${isUser ? 'var(--tmx-accent-blue, #3273dc)' : 'var(--chc-bg-secondary, #f0f0f0)'}`,
+    `color: ${isUser ? '#fff' : 'var(--chc-text-primary, #333)'}`,
+    'padding: 8px 14px',
+    'border-radius: 12px',
+    'max-width: 90%',
+    'word-break: break-word',
+    'font-size: 0.875rem',
+    'line-height: 1.5',
+    'white-space: pre-wrap',
+  ].join('; ');
+  bubble.textContent = msg.content;
+  return bubble;
+}
+
+function buildAssistantLabel(): HTMLElement {
+  const label = document.createElement('div');
+  label.style.cssText =
+    'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-bottom: 2px; font-weight: 600;';
+  label.textContent = 'TMX Assistant';
+  return label;
+}
+
+function buildFeedbackButton(
+  msg: AssistantMessage,
+  score: 1 | -1,
+  icon: string,
+  title: string,
+  onFeedback: (msg: AssistantMessage, score: 1 | -1) => void,
+): HTMLButtonElement {
+  const btn = document.createElement('button');
+  const active = msg.feedbackScore === score;
+  const activeColor = score === 1 ? 'var(--tmx-accent-green, #48c774)' : 'var(--tmx-accent-red, #f14668)';
+  btn.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+  btn.title = title;
+  btn.style.cssText = [
+    'background: none',
+    'border: none',
+    'cursor: pointer',
+    `color: ${active ? activeColor : 'var(--chc-text-secondary, #888)'}`,
+    'font-size: 0.8rem',
+    'padding: 2px 6px',
+    `opacity: ${active ? '1' : '0.6'}`,
+  ].join('; ');
+  btn.onclick = () => onFeedback(msg, score);
+  return btn;
+}
+
+function buildFeedbackRow(
+  msg: AssistantMessage,
+  onFeedback: (msg: AssistantMessage, score: 1 | -1) => void,
+): HTMLElement {
+  const row = document.createElement('div');
+  row.style.cssText = 'display: flex; gap: 6px; margin-top: 4px; padding: 0 4px; align-items: center;';
+  row.appendChild(buildFeedbackButton(msg, 1, 'fa-thumbs-up', 'Helpful', onFeedback));
+  row.appendChild(buildFeedbackButton(msg, -1, 'fa-thumbs-down', 'Not helpful', onFeedback));
+  return row;
+}
+
+function buildMessageRow(
+  msg: AssistantMessage,
+  onFeedback: (msg: AssistantMessage, score: 1 | -1) => void,
+): HTMLElement {
+  const row = document.createElement('div');
+  const align = msg.role === 'user' ? 'flex-end' : 'flex-start';
+  row.style.cssText = `display: flex; flex-direction: column; align-items: ${align}; margin-bottom: 10px;`;
+
+  if (msg.role !== 'user') row.appendChild(buildAssistantLabel());
+  row.appendChild(buildMessageBubble(msg));
+  if (msg.role !== 'user' && msg.id) row.appendChild(buildFeedbackRow(msg, onFeedback));
+
+  return row;
+}
+
+// --- SSE stream parsing ---
+
+interface StreamChunkHandler {
+  onContent: (delta: string) => void;
+  onConversationId: (id: string) => void;
+  onAssistantMessageId: (id: string) => void;
+}
+
+function processSseLine(line: string, handlers: StreamChunkHandler): void {
+  if (!line.startsWith('data: ')) return;
+  try {
+    const data = JSON.parse(line.slice(6));
+    if (data.content) handlers.onContent(data.content);
+    if (data.conversationId) handlers.onConversationId(data.conversationId);
+    if (data.assistantMessageId) handlers.onAssistantMessageId(data.assistantMessageId);
+  } catch {
+    // skip malformed SSE lines
+  }
+}
+
+async function consumeSseStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  handlers: StreamChunkHandler,
+): Promise<void> {
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+    for (const line of lines) processSseLine(line, handlers);
+  }
+}
+
 export function openAssistantPanel(): void {
   if (document.getElementById(PANEL_ID)) {
     closeAssistantPanel();
@@ -36,66 +151,9 @@ export function openAssistantPanel(): void {
   const renderMessages = () => {
     if (!messagesContainer) return;
     messagesContainer.innerHTML = '';
-
     for (const msg of messages) {
-      const row = document.createElement('div');
-      row.style.cssText = `display: flex; flex-direction: column; align-items: ${msg.role === 'user' ? 'flex-end' : 'flex-start'}; margin-bottom: 10px;`;
-
-      const bubble = document.createElement('div');
-      const isUser = msg.role === 'user';
-      bubble.style.cssText = [
-        `background: ${isUser ? 'var(--tmx-accent-blue, #3273dc)' : 'var(--chc-bg-secondary, #f0f0f0)'}`,
-        `color: ${isUser ? '#fff' : 'var(--chc-text-primary, #333)'}`,
-        'padding: 8px 14px',
-        'border-radius: 12px',
-        'max-width: 90%',
-        'word-break: break-word',
-        'font-size: 0.875rem',
-        'line-height: 1.5',
-        'white-space: pre-wrap',
-      ].join('; ');
-      bubble.textContent = msg.content;
-
-      if (!isUser) {
-        const label = document.createElement('div');
-        label.style.cssText = 'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-bottom: 2px; font-weight: 600;';
-        label.textContent = 'TMX Assistant';
-        row.appendChild(label);
-      }
-
-      row.appendChild(bubble);
-
-      // Feedback row for assistant messages (once the server-assigned ID is present)
-      if (!isUser && msg.id) {
-        const feedbackRow = document.createElement('div');
-        feedbackRow.style.cssText = 'display: flex; gap: 6px; margin-top: 4px; padding: 0 4px; align-items: center;';
-
-        const makeBtn = (score: 1 | -1, icon: string, title: string) => {
-          const btn = document.createElement('button');
-          const active = msg.feedbackScore === score;
-          btn.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-          btn.title = title;
-          btn.style.cssText = [
-            'background: none',
-            'border: none',
-            'cursor: pointer',
-            `color: ${active ? (score === 1 ? 'var(--tmx-accent-green, #48c774)' : 'var(--tmx-accent-red, #f14668)') : 'var(--chc-text-secondary, #888)'}`,
-            'font-size: 0.8rem',
-            'padding: 2px 6px',
-            'opacity: ' + (active ? '1' : '0.6'),
-          ].join('; ');
-          btn.onclick = () => sendFeedback(msg, score);
-          return btn;
-        };
-
-        feedbackRow.appendChild(makeBtn(1, 'fa-thumbs-up', 'Helpful'));
-        feedbackRow.appendChild(makeBtn(-1, 'fa-thumbs-down', 'Not helpful'));
-        row.appendChild(feedbackRow);
-      }
-
-      messagesContainer.appendChild(row);
+      messagesContainer.appendChild(buildMessageRow(msg, sendFeedback));
     }
-
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   };
 
@@ -169,53 +227,36 @@ export function openAssistantPanel(): void {
         throw new Error(err.error ?? `HTTP ${response.status}`);
       }
 
-      // Process SSE stream
       const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      let buffer = '';
+      if (!reader) throw new Error('No response body');
 
       const assistantMsg: AssistantMessage = { role: 'assistant', content: '', timestamp: Date.now() };
       messages.push(assistantMsg);
       renderMessages();
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                  assistantContent += data.content;
-                  assistantMsg.content = assistantContent;
-                  // Update the last bubble directly for performance
-                  const bubbles = messagesContainer.querySelectorAll('div > div:not([style*="font-weight"])');
-                  const lastBubble = bubbles[bubbles.length - 1] as HTMLElement;
-                  if (lastBubble) {
-                    lastBubble.textContent = assistantContent;
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                  }
-                }
-                if (data.conversationId) {
-                  conversationId = data.conversationId;
-                }
-                if (data.assistantMessageId) {
-                  assistantMsg.id = data.assistantMessageId;
-                }
-              } catch {
-                // skip malformed SSE lines
-              }
-            }
-          }
+      let assistantContent = '';
+      const updateLastBubble = () => {
+        const bubbles = messagesContainer.querySelectorAll('div > div:not([style*="font-weight"])');
+        const lastBubble = bubbles[bubbles.length - 1] as HTMLElement | undefined;
+        if (lastBubble) {
+          lastBubble.textContent = assistantContent;
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-      }
+      };
+
+      await consumeSseStream(reader, {
+        onContent: (delta) => {
+          assistantContent += delta;
+          assistantMsg.content = assistantContent;
+          updateLastBubble();
+        },
+        onConversationId: (id) => {
+          conversationId = id;
+        },
+        onAssistantMessageId: (id) => {
+          assistantMsg.id = id;
+        },
+      });
     } catch (err) {
       const errorMsg: AssistantMessage = {
         role: 'assistant',
@@ -230,8 +271,12 @@ export function openAssistantPanel(): void {
     input?.focus();
   };
 
-  // Position near the assistant icon
-  const assistantIcon = document.getElementById('assistantIndicator');
+  // Position near whichever assistant icon is currently visible
+  const candidates = [
+    document.getElementById('assistantIndicator'),
+    document.getElementById('assistantIndicatorHome'),
+  ];
+  const assistantIcon = candidates.find((el) => el && el.offsetParent !== null) ?? candidates[0];
   const iconRect = assistantIcon?.getBoundingClientRect();
   const topPos = iconRect ? `${iconRect.bottom + 8}px` : '60px';
   const rightPos = iconRect ? `${globalThis.innerWidth - iconRect.right}px` : '16px';
