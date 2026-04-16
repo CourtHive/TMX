@@ -6,6 +6,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { updatedAtFormatter } from '../common/formatters/updatedAtFormatter';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
@@ -318,28 +319,12 @@ export function getMatchUpColumns({
       // need to audit freshness (cache-bust, stale-sync diagnosis, etc.).
       visible: false,
       width: 150,
-      // Local-time HH:MM:SS display with full ISO string tooltip so the
-      // raw timestamp is always recoverable on hover.
-      formatter: (cell: any) => {
-        const value = cell.getValue();
-        if (!value || typeof value !== 'string') return '';
-        const d = new Date(value);
-        if (Number.isNaN(d.getTime())) return '';
-        const now = new Date();
-        const sameDay =
-          d.getFullYear() === now.getFullYear() &&
-          d.getMonth() === now.getMonth() &&
-          d.getDate() === now.getDate();
-        const hh = d.getHours().toString().padStart(2, '0');
-        const mm = d.getMinutes().toString().padStart(2, '0');
-        const ss = d.getSeconds().toString().padStart(2, '0');
-        const display = sameDay
-          ? `${hh}:${mm}:${ss}`
-          : `${d.toLocaleDateString()} ${hh}:${mm}:${ss}`;
-        cell.getElement().setAttribute('title', value);
-        return display;
-      },
-      // Lexicographic compare works correctly on ISO 8601 UTC strings.
+      // Display `YYYY-MM-DD HH:MM` (local time, locale-neutral). Raw
+      // ISO stamp is attached to the cell title for full-fidelity
+      // hover recoverability. See updatedAtFormatter.test.ts.
+      formatter: updatedAtFormatter,
+      // The underlying cell value is still the raw ISO string, so
+      // lexicographic sort is correct for ISO 8601 ordering.
       sorter: 'string',
     },
     {
