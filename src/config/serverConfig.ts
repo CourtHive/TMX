@@ -9,6 +9,7 @@ export interface ServerConfig {
   saveLocal: boolean;
   socketPath: string;
   socketIo: { tmx: string };
+  assistantUrl: string;
 }
 
 const defaults: ServerConfig = {
@@ -17,6 +18,7 @@ const defaults: ServerConfig = {
   saveLocal: false,
   socketPath: '',
   socketIo: { tmx: '/tmx' },
+  assistantUrl: import.meta.env.VITE_ASSISTANT_URL ?? '',
 };
 
 let current: ServerConfig | undefined;

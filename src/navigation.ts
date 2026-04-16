@@ -3,6 +3,7 @@
  * Manages tab navigation and highlighting for tournament sections.
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
+import { openAssistantPanel, checkAssistantHealth } from 'components/panels/assistantPanel';
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
@@ -94,7 +95,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
   // Set toggle label to translated current page name
   toggle.textContent = t(i18nKeys[currentId]);
 
-  // Build dropdown items
+  // Build dropdown items — route-based nav items
   menu.innerHTML = '';
   const ids = Object.keys(routeMap).filter((id) => id !== 's2-route' || featureFlags.get().schedule2);
   ids.forEach((id) => {
@@ -116,6 +117,12 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
     menu.appendChild(item);
   });
+
+  // Panel toggles — assistant and chat (non-route items)
+  addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
+  if (featureFlags.get().enableChat) {
+    addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
+  }
 
   // Toggle dropdown on click
   toggle.onclick = () => {
@@ -206,6 +213,41 @@ export function tmxNavigation(): void {
 
   // Chat icon — show/hide based on feature flag and unread count
   setupChatIndicator();
+
+  // Ask TMX assistant button
+  setupAssistantIndicator();
+}
+
+function addMobilePanelItem(
+  menu: HTMLElement,
+  toggle: HTMLElement,
+  label: string,
+  action: () => void,
+  visibilityId?: string,
+): void {
+  // Skip if the corresponding desktop indicator is hidden
+  if (visibilityId) {
+    const indicator = document.getElementById(visibilityId);
+    if (indicator && indicator.style.display === 'none') return;
+  }
+
+  const divider = menu.querySelector('.mobile-nav-divider');
+  if (!divider && menu.children.length > 0) {
+    const hr = document.createElement('div');
+    hr.className = 'mobile-nav-divider';
+    hr.style.cssText = 'border-top: 1px solid var(--chc-border-primary, #ddd); margin: 4px 0;';
+    menu.appendChild(hr);
+  }
+
+  const item = document.createElement('button');
+  item.className = 'mobile-nav-item';
+  item.textContent = label;
+  item.onclick = () => {
+    menu.classList.remove(MENU_OPEN_CLASS);
+    toggle.setAttribute(ARIA_EXPANDED, 'false');
+    action();
+  };
+  menu.appendChild(item);
 }
 
 function setupChatIndicator(): void {
@@ -226,6 +268,28 @@ function setupChatIndicator(): void {
   };
   onChatUpdate(updateVisibility);
   updateVisibility();
+}
+
+function setupAssistantIndicator(): void {
+  const el = document.getElementById('assistantIndicator');
+  if (!el) return;
+
+  el.onclick = (e) => {
+    e.stopPropagation();
+    openAssistantPanel();
+  };
+
+  // Check health and show/grey out accordingly
+  checkAssistantHealth().then((healthy) => {
+    el.style.display = 'inline-flex';
+    if (!healthy) {
+      el.style.opacity = '0.35';
+      el.title = 'Ask TMX (unavailable)';
+    } else {
+      el.style.opacity = '1';
+      el.title = 'Ask TMX';
+    }
+  });
 }
 
 export function highlightTab(selectedTab: string): void {
