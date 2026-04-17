@@ -106,7 +106,7 @@ describe('deleteEvents', () => {
     const call = mockOpenModal.mock.calls[0][0];
     const deleteBtn = call.buttons.find((b: any) => b.id === 'deleteEvent');
     expect(deleteBtn).toBeDefined();
-    expect(deleteBtn.disabled).toBe(false);
+    expect(deleteBtn?.disabled).toBe(false);
   });
 
   it('delete button is disabled by default in prod (awaiting valid reason)', () => {
@@ -116,6 +116,6 @@ describe('deleteEvents', () => {
     const call = mockOpenModal.mock.calls[0][0];
     const deleteBtn = call.buttons.find((b: any) => b.id === 'deleteEvent');
     expect(deleteBtn).toBeDefined();
-    expect(deleteBtn.disabled).toBe(true);
+    expect(deleteBtn?.disabled).toBe(true);
   });
 });
