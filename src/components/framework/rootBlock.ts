@@ -27,7 +27,6 @@ import {
   NONE,
   TOURNAMENT_CONTAINER,
   TMX_ADMIN,
-  TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 const flexColFlexGrow = 'flexcol flexgrow';
@@ -176,13 +175,6 @@ export function rootBlock(): HTMLElement {
   admin.id = TMX_ADMIN;
 
   main.appendChild(admin);
-
-  const system = document.createElement('div');
-  system.className = flexColFlexGrow;
-  system.style.display = NONE;
-  system.id = TMX_SYSTEM;
-
-  main.appendChild(system);
 
   const templates = document.createElement('div');
   templates.className = flexColFlexGrow;

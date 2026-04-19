@@ -123,11 +123,6 @@ export function initLoginToggle(id: string): void {
           onClick: () => context.router?.navigate('/admin'),
         },
         {
-          text: t('loginMenu.system'),
-          hide: !superAdmin,
-          onClick: () => context.router?.navigate('/system'),
-        },
-        {
           text: t('loginMenu.logOut'),
           hide: !loggedIn,
           onClick: logOut,

@@ -51,7 +51,6 @@ export const TMX_TEMPLATES = 'tmxTemplates';
 export const TMX_POLICIES = 'tmxPolicies';
 export const TMX_SETTINGS = 'tmxSettings';
 export const TMX_ADMIN = 'tmxAdmin';
-export const TMX_SYSTEM = 'tmxSystem';
 export const TEMPLATES = 'templates';
 export const POLICIES = 'policies';
 export const SETTINGS = 'settings';
@@ -256,7 +255,3 @@ export const ROUNDS_RATINGS = 'roundsRatings';
 export const ROUNDS_STANDINGS = 'roundsStandings';
 export const ROUNDS_SWISS_CHART = 'roundsSwissChart';
 export const FIC_DEPTH = 'ficDepth';
-
-export const SYSTEM = 'system';
-export const PROVIDERS_TAB = 'providers';
-export const USERS_TAB = 'users';

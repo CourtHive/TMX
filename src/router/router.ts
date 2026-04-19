@@ -6,7 +6,6 @@ import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
-import { renderSystemPage } from 'pages/system/renderSystemPage';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
@@ -27,7 +26,6 @@ import {
   PARTICIPANTS,
   SPLASH,
   STRUCTURE,
-  SYSTEM,
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE_TAB,
@@ -164,9 +162,6 @@ export function routeTMX() {
   router.on(`/${POLICIES}`, renderPoliciesPage);
   router.on(`/${SETTINGS}`, renderSettingsPage);
   router.on('/admin', renderAdminPage);
-  router.on(`/${SYSTEM}/:selectedTab`, (match) => renderSystemPage(match?.data?.selectedTab));
-  router.on(`/${SYSTEM}`, () => renderSystemPage());
-
   router.on(`/actionKey/:key`, (match) => {
     const key = match?.data?.key;
     if (key) queueKey(key);
