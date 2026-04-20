@@ -4,6 +4,8 @@ import { exportReportPDF } from './exportReportPDF';
 import { downloadJSON } from 'services/export/download';
 import { downloadText } from 'services/export/download';
 import { controlBar } from 'courthive-components';
+import { env } from 'settings/env';
+import axios from 'axios';
 
 import { LEFT, REPORTS_CONTROL, RIGHT, TOURNAMENT_REPORTS } from 'constants/tmxConstants';
 
@@ -29,7 +31,7 @@ export function renderReportsTab(): void {
   const reportOptions = reports.map((r: any) => ({
     label: r.name,
     value: r.reportId,
-    onClick: () => selectReport(r.reportId, r.name),
+    onClick: () => selectReport(r),
   }));
 
   const items = [
@@ -67,16 +69,47 @@ export function renderReportsTab(): void {
   controlBar({ target: controlTarget, items });
 
   // Auto-select first report
-  selectReport(reports[0].reportId, reports[0].name);
+  selectReport(reports[0]);
 }
 
-function selectReport(reportId: string, reportName: string): void {
-  const result: any = tournamentEngine.generateReport({ reportId });
-  if (result.error) return;
+async function selectReport(report: any): Promise<void> {
+  const { reportId, name, source } = report;
+  activeReportName = name;
 
-  activeReport = { columns: result.columns, rows: result.rows };
-  activeReportName = reportName;
-  createReportsTable({ columns: result.columns, rows: result.rows });
+  if (source === 'server') {
+    await fetchServerReport(reportId);
+  } else {
+    const result: any = tournamentEngine.generateReport({ reportId });
+    if (result.error) return;
+    activeReport = { columns: result.columns, rows: result.rows };
+    createReportsTable({ columns: result.columns, rows: result.rows });
+  }
+}
+
+async function fetchServerReport(reportId: string): Promise<void> {
+  const { tournamentRecord } = tournamentEngine.getTournament();
+  const tournamentId = tournamentRecord?.tournamentId;
+  if (!tournamentId) return;
+
+  const baseUrl = env.auditWorkerUrl || `${globalThis.location?.origin?.replace(/:\d+$/, '')}:8385`;
+  const reportType = reportId;
+
+  const reportContainer = document.getElementById(TOURNAMENT_REPORTS);
+  if (reportContainer) reportContainer.innerHTML = '<div style="padding: 2em;">Loading audit data...</div>';
+
+  try {
+    const response = await axios.post(`${baseUrl}/condense/${tournamentId}/${reportType}`);
+    const data = response?.data;
+    if (data?.columns && data?.rows) {
+      activeReport = { columns: data.columns, rows: data.rows };
+      createReportsTable({ columns: data.columns, rows: data.rows });
+    } else {
+      if (reportContainer) reportContainer.innerHTML = '<div style="padding: 2em; color: var(--tmx-text-secondary);">No audit data available.</div>';
+    }
+  } catch (err: any) {
+    console.warn('[reports] audit-worker fetch failed:', err.message);
+    if (reportContainer) reportContainer.innerHTML = '<div style="padding: 2em; color: var(--tmx-accent-red);">Audit worker unavailable. Ensure the audit worker is running.</div>';
+  }
 }
 
 function exportCSV(report: { columns: any[]; rows: any[] }, reportName: string): void {
