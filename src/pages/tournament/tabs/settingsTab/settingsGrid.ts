@@ -56,6 +56,7 @@ function persistAll(
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
+    assistant: displayInputs.assistant?.checked || false,
     reports: displayInputs.reports?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
     legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
@@ -293,6 +294,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
 
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
+    {
+      label: 'Ask TMX assistant',
+      checked: featureFlags.get().assistant || false,
+      field: 'assistant',
+      id: 'assistant',
+      onChange: persist,
+      checkbox: true,
+    },
     {
       label: 'Reports tab',
       checked: featureFlags.get().reports || false,

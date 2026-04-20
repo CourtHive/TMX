@@ -123,7 +123,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
   });
 
   // Panel toggles — assistant and chat (non-route items)
-  addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
+  if (featureFlags.get().assistant) addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
   addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
 
   // Toggle dropdown on click
@@ -218,8 +218,8 @@ export function tmxNavigation(): void {
   // Chat icon — show/hide based on feature flag and unread count
   setupChatIndicator();
 
-  // Ask TMX assistant button
-  setupAssistantIndicator();
+  // Ask TMX assistant button (behind beta flag)
+  if (featureFlags.get().assistant) setupAssistantIndicator();
 }
 
 function addMobilePanelItem(

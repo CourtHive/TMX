@@ -6,6 +6,7 @@
  * beta features (schedule2) or fallback toggles for power users.
  */
 export interface FeatureFlags {
+  assistant: boolean;
   reports: boolean;
   schedule2: boolean;
   usePublishState: boolean;
@@ -18,6 +19,7 @@ export interface FeatureFlags {
 }
 
 const defaults: FeatureFlags = {
+  assistant: false,
   reports: false,
   schedule2: false,
   usePublishState: false,
