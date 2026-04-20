@@ -53,6 +53,7 @@ function persistAll(
   storageInputs: any,
   displayInputs: any,
 ): void {
+  const previousAssistant = featureFlags.get().assistant;
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
@@ -95,9 +96,11 @@ function persistAll(
 
   if (activeScale) setActiveScale(activeScale);
 
+  const assistantChanged = (displayInputs.assistant?.checked || false) !== previousAssistant;
+
   persistConfigToStorage({ language });
 
-  if (languageChanged) {
+  if (languageChanged || assistantChanged) {
     globalThis.location.reload();
   }
 }
