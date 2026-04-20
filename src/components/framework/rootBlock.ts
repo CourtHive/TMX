@@ -217,6 +217,7 @@ function newBlock(): HTMLDivElement {
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
       <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
+      <i id='r-route' class="nav-icon fa-solid fa-chart-bar"></i>
       <span id='chatIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Tournament Chat">
         <i class="nav-icon fa-solid fa-comments"></i>
         <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>

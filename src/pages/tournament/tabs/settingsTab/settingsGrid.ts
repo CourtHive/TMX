@@ -56,13 +56,16 @@ function persistAll(
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
+    reports: displayInputs.reports?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
     legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
   });
 
-  // Immediately update schedule2 nav icon visibility
+  // Immediately update beta nav icon visibility
   const s2Icon = document.getElementById('s2-route');
   if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
+  const rIcon = document.getElementById('r-route');
+  if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
   if (scoringInputs.dynamicSets.checked) {
@@ -290,6 +293,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
 
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
+    {
+      label: 'Reports tab',
+      checked: featureFlags.get().reports || false,
+      field: 'reports',
+      id: 'reports',
+      onChange: persist,
+      checkbox: true,
+    },
     {
       label: t('modals.settings.schedule2'),
       checked: featureFlags.get().schedule2 || false,

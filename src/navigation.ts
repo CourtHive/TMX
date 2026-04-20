@@ -22,6 +22,7 @@ import {
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
+  REPORTS_TAB,
   SCHEDULE_TAB,
   SCHEDULE2_TAB,
   TOURNAMENT,
@@ -44,6 +45,7 @@ const routeMap: Record<string, string> = {
   's-route': SCHEDULE_TAB,
   's2-route': SCHEDULE2_TAB,
   'v-route': VENUES_TAB,
+  'r-route': REPORTS_TAB,
   'b-route': PUBLISHING_TAB,
   'c-route': SETTINGS_TAB,
 };
@@ -56,6 +58,7 @@ const tips: Record<string, string> = {
   's-route': 'Schedule',
   's2-route': 'Schedule 2',
   'v-route': 'Venues',
+  'r-route': 'Reports',
   'b-route': 'Publishing',
   'c-route': 'Settings',
 };
@@ -69,6 +72,7 @@ const i18nKeys: Record<string, string> = {
   's-route': 'sch',
   's2-route': 'sch2',
   'v-route': 'ven',
+  'r-route': 'rpt',
   'b-route': 'pub',
   'c-route': 'set',
 };
@@ -158,9 +162,11 @@ export function tmxNavigation(): void {
 
   const ids = Object.keys(routeMap);
 
-  // Hide schedule2 nav icon when beta flag is off
+  // Hide beta nav icons when flags are off
   const s2Icon = document.getElementById('s2-route');
   if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
+  const rIcon = document.getElementById('r-route');
+  if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
   const selectedTab = context.router?.current?.[0]?.data?.selectedTab;
 

@@ -72,6 +72,9 @@ export const EVENTS_TAB = 'events';
 export const VENUES_TAB = 'venues';
 export const PUBLISHING_TAB = 'publishing';
 export const SETTINGS_TAB = 'settings';
+export const REPORTS_TAB = 'reports';
+export const REPORTS_CONTROL = 'reportsControl';
+export const TOURNAMENT_REPORTS = 'tournamentReports';
 
 export const SETTINGS_CONTROL = 'settingsControl';
 export const TOURNAMENT_SETTINGS = 'tournamentSettings';

@@ -18,6 +18,7 @@ export type TMXSettings = {
   scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
   saveLocal?: boolean;
   smartComplements?: boolean;
+  reports?: boolean;
   schedule2?: boolean;
   legacyEntriesTable?: boolean;
   minCourtGridRows?: number;
@@ -107,6 +108,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
 
   // Feature flags
   const flagsPatch: Record<string, any> = {};
+  if (settings.reports !== undefined) flagsPatch.reports = settings.reports;
   if (settings.schedule2 !== undefined) flagsPatch.schedule2 = settings.schedule2;
   if (settings.legacyEntriesTable !== undefined) {
     flagsPatch.legacyEntriesTable = settings.legacyEntriesTable;
@@ -146,6 +148,7 @@ export function persistConfigToStorage(
     scoringApproach: prefs.scoringApproach,
     smartComplements: prefs.smartComplements,
     saveLocal: server.saveLocal,
+    reports: flags.reports,
     schedule2: flags.schedule2,
     legacyEntriesTable: flags.legacyEntriesTable,
     minCourtGridRows: schedule.minCourtGridRows,

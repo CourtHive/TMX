@@ -48,6 +48,9 @@ import {
   SETTINGS_TAB,
   SETTINGS_CONTROL,
   TOURNAMENT_SETTINGS,
+  REPORTS_TAB,
+  REPORTS_CONTROL,
+  TOURNAMENT_REPORTS,
 } from 'constants/tmxConstants';
 
 const refMap: Record<string, string> = {
@@ -59,6 +62,7 @@ const refMap: Record<string, string> = {
   [SCHEDULE2_TAB]: 's2-tab',
   [VENUES_TAB]: 'v-tab',
   [PUBLISHING_TAB]: 'b-tab',
+  [REPORTS_TAB]: 'r-tab',
   [SETTINGS_TAB]: 'c-tab',
 };
 
@@ -144,12 +148,22 @@ export function tournamentContent(): void {
         </div>
         `;
 
+  const reportsTab = `
+        <div class='tab_section reports_tab'>
+            <div class='section' style='min-height: auto;'>
+              <div id='${REPORTS_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_REPORTS}' class='tableClass flexcol flexcenter'></div>
+            </div>
+        </div>
+        `;
+
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's-tab': scheduleTab,
     's2-tab': schedule2Tab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
+    'r-tab': reportsTab,
     'b-tab': publishingTab,
     'c-tab': settingsTab,
   };
@@ -216,6 +230,8 @@ export function removeTournamentContent(): void {
     TOURNAMENT_VENUES,
     TEMPORAL_GRID_CONTAINER,
     TOURNAMENT_PUBLISHING,
+    REPORTS_CONTROL,
+    TOURNAMENT_REPORTS,
   ];
 
   ids.forEach((key) => {
