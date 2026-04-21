@@ -27,6 +27,8 @@ claude.*
 # development
 *.code-workspace
 .eslintcache
+.env
+.vite
 
 node_modules
 dist
