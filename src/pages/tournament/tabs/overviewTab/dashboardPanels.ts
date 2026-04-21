@@ -15,6 +15,7 @@ import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
+import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
 import { tmx2db } from 'services/storage/tmx2db';
@@ -85,9 +86,20 @@ export function createNotesPanel(notes?: string): HTMLElement {
   }
   panel.appendChild(notesView);
 
+  const btnContainer = document.createElement('div');
+  btnContainer.style.cssText = 'position:absolute; bottom:8px; right:8px; display:flex; gap:4px;';
+
+  const profileBtn = document.createElement('button');
+  profileBtn.style.cssText =
+    'background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
+  profileBtn.innerHTML = '<i class="fa fa-clipboard-list"></i>';
+  profileBtn.title = 'Edit Registration Profile';
+  profileBtn.addEventListener('click', () => openRegistrationProfileEditor());
+  btnContainer.appendChild(profileBtn);
+
   const editBtn = document.createElement('button');
   editBtn.style.cssText =
-    'position:absolute; bottom:8px; right:8px; background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
+    'background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = t('dashboard.editNotes');
   editBtn.addEventListener('click', () => {
@@ -100,7 +112,8 @@ export function createNotesPanel(notes?: string): HTMLElement {
       },
     });
   });
-  panel.appendChild(editBtn);
+  btnContainer.appendChild(editBtn);
+  panel.appendChild(btnContainer);
 
   return panel;
 }

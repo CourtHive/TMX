@@ -74,6 +74,7 @@ export const SET_TOURNAMENT_DATES = 'setTournamentDates';
 export const SET_TOURNAMENT_LOCAL_TIME_ZONE = 'setTournamentLocalTimeZone';
 export const SET_TOURNAMENT_NAME = 'setTournamentName';
 export const SET_TOURNAMENT_NOTES = 'setTournamentNotes';
+export const SET_REGISTRATION_PROFILE = 'setRegistrationProfile';
 export const PUBLISH_ORDER_OF_PLAY = 'publishOrderOfPlay';
 export const UNPUBLISH_ORDER_OF_PLAY = 'unPublishOrderOfPlay';
 export const PUBLISH_PARTICIPANTS = 'publishParticipants';

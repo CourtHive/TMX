@@ -1,4 +1,5 @@
 import { notesToolbar, updateToolbarState, updateHeadingSelect } from 'courthive-components';
+import { buildContactCardHtml } from './contactCardInsert';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { TextStyle } from '@tiptap/extension-text-style';
 import TextAlign from '@tiptap/extension-text-align';
@@ -39,6 +40,24 @@ export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (ht
   });
 
   content.appendChild(toolbar);
+
+  const insertBar = document.createElement('div');
+  insertBar.style.cssText =
+    'display:flex; gap:8px; padding:4px 8px; border-bottom:1px solid var(--tmx-border-primary); background:var(--tmx-bg-secondary);';
+
+  const contactBtn = document.createElement('button');
+  contactBtn.type = 'button';
+  contactBtn.style.cssText =
+    'padding:4px 10px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary); cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:4px;';
+  contactBtn.innerHTML = '<i class="fa fa-address-card"></i> Insert Contacts';
+  contactBtn.title = 'Insert tournament personnel contact card';
+  contactBtn.addEventListener('click', () => {
+    if (!editor) return;
+    const html = buildContactCardHtml();
+    editor.chain().focus().insertContent(html).run();
+  });
+  insertBar.appendChild(contactBtn);
+  content.appendChild(insertBar);
 
   const editorContainer = document.createElement('div');
   editorContainer.className = 'notes-editor-content';

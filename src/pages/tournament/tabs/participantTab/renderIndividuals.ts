@@ -23,7 +23,8 @@ import { signOutUnapproved } from './controlBar/signOutUnapproved';
 import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
-import { participantConstants } from 'tods-competition-factory';
+import { participantConstants, participantRoles } from 'tods-competition-factory';
+import { openPersonnelWizard } from './personnelWizard';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
 import { importPlayersCsv } from './importPlayersCsv';
@@ -37,6 +38,7 @@ import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstant
 import { context } from 'services/context';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
+const { OFFICIAL } = participantRoles;
 
 const isPrimary = 'is-primary';
 
@@ -121,6 +123,12 @@ export function renderIndividuals({ view }: { view: string }): void {
   const isLoggedIn = !!state;
 
   const actionOptions: any[] = [
+    {
+      onClick: () => openPersonnelWizard({ callback: replaceTableData }),
+      label: '<i class="fa fa-user-tie"></i> Add Personnel',
+      hide: view !== OFFICIAL,
+      close: true,
+    },
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: t('pages.participants.signOutUnapproved'),
