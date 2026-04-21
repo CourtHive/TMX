@@ -1,22 +1,22 @@
 import { manageTournamentAccess } from 'components/modals/manageTournamentAccess';
 import { createCourtSvg, type CourtSport } from 'services/courtSvg/courtSvgUtil';
-import { editTournamentImage } from 'components/modals/tournamentImage';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { openRegistrationProfileEditor } from './registrationProfileEditor';
+import { editTournamentImage } from 'components/modals/tournamentImage';
+import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { getLoginState } from 'services/authentication/loginState';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getLoginState } from 'services/authentication/loginState';
+import { openModal } from 'components/modals/baseModal/baseModal';
+import { printFactSheet } from 'components/modals/printFactSheet';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
-import { openModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
-import { openRegistrationProfileEditor } from './registrationProfileEditor';
-import { printFactSheet } from 'components/modals/printFactSheet';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
 import { tmx2db } from 'services/storage/tmx2db';
@@ -94,24 +94,21 @@ export function createNotesPanel(notes?: string): HTMLElement {
   btnContainer.style.cssText = 'position:absolute; bottom:8px; right:8px; display:flex; gap:4px;';
 
   const factSheetBtn = document.createElement('button');
-  factSheetBtn.style.cssText =
-    ICON_BTN_STYLE;
+  factSheetBtn.style.cssText = ICON_BTN_STYLE;
   factSheetBtn.innerHTML = '<i class="fa fa-file-pdf"></i>';
   factSheetBtn.title = 'Print Fact Sheet';
   factSheetBtn.addEventListener('click', () => printFactSheet());
   btnContainer.appendChild(factSheetBtn);
 
   const profileBtn = document.createElement('button');
-  profileBtn.style.cssText =
-    ICON_BTN_STYLE;
+  profileBtn.style.cssText = ICON_BTN_STYLE;
   profileBtn.innerHTML = '<i class="fa fa-clipboard-list"></i>';
   profileBtn.title = 'Edit Registration Profile';
   profileBtn.addEventListener('click', () => openRegistrationProfileEditor());
   btnContainer.appendChild(profileBtn);
 
   const editBtn = document.createElement('button');
-  editBtn.style.cssText =
-    ICON_BTN_STYLE;
+  editBtn.style.cssText = ICON_BTN_STYLE;
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = t('dashboard.editNotes');
   editBtn.addEventListener('click', () => {

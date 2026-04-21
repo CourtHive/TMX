@@ -1,11 +1,11 @@
 /**
  * Print Fact Sheet Modal — generates tournament fact sheet PDF
  */
-import { renderForm } from 'courthive-components';
-import { openModal } from './baseModal/baseModal';
-import { tournamentEngine } from 'tods-competition-factory';
 import { generateFactSheet, listFactSheetTemplates } from 'pdf-factory';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
+import { tournamentEngine } from 'tods-competition-factory';
+import { renderForm } from 'courthive-components';
+import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 
 export function printFactSheet(): void {
