@@ -109,6 +109,7 @@ function createTextarea(label: string, value: string, rows = 3): { container: HT
 function createSection(title: string, icon: string): HTMLElement {
   const section = document.createElement('div');
   section.style.cssText = SECTION_STYLE;
+  section.dataset.section = title.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-');
 
   const header = document.createElement('div');
   header.style.cssText = SECTION_TITLE_STYLE;
