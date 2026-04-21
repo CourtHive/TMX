@@ -32,7 +32,7 @@ interface Sponsor {
 }
 
 const SPONSOR_TIERS = ['TITLE', 'PRESENTING', 'OFFICIAL', 'SUPPORTING'];
-const ENTRY_METHODS = ['ONLINE', 'EMAIL', 'POSTAL', 'OTHER'];
+const ENTRY_METHODS = ['ONLINE', 'EMAIL', 'OTHER'];
 
 const INPUT_STYLE =
   'width:100%; padding:6px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary); font-size:0.85rem;';
@@ -118,6 +118,107 @@ function createSection(title: string, icon: string): HTMLElement {
   return section;
 }
 
+const ADD_BTN_STYLE =
+  'margin:8px 0; padding:4px 10px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary); cursor:pointer; font-size:0.8rem;';
+const FORM_PANEL_STYLE =
+  'margin:8px 0; padding:10px; border-radius:6px; border:1px solid var(--tmx-accent, #4a9eff); background:var(--tmx-bg-secondary);';
+const FORM_BTN_STYLE =
+  'padding:4px 12px; border-radius:4px; border:1px solid var(--tmx-border-primary); cursor:pointer; font-size:0.8rem;';
+const REMOVE_BTN_STYLE = 'border:none; background:none; color:var(--tmx-text-danger, red); cursor:pointer; font-size:0.85rem;';
+const LIST_ROW_STYLE = 'display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--tmx-border-primary);';
+
+interface FieldDef {
+  key: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  options?: string[];
+  gridSpan?: number;
+}
+
+function buildInlineForm(
+  fields: FieldDef[],
+  onSave: (values: Record<string, string>) => void,
+  onCancel: () => void,
+): HTMLElement {
+  const panel = document.createElement('div');
+  panel.style.cssText = FORM_PANEL_STYLE;
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:6px;';
+
+  const inputs: Record<string, HTMLInputElement | HTMLSelectElement> = {};
+
+  for (const field of fields) {
+    let fieldEl: { container: HTMLElement; input?: HTMLInputElement; select?: HTMLSelectElement };
+
+    if (field.options) {
+      fieldEl = createSelect(field.label, field.options, '');
+      inputs[field.key] = fieldEl.select!;
+    } else {
+      fieldEl = createField(field.label, '', field.type || 'text');
+      inputs[field.key] = fieldEl.input!;
+    }
+
+    if (field.gridSpan === 2) {
+      fieldEl.container.style.gridColumn = 'span 2';
+    }
+
+    grid.appendChild(fieldEl.container);
+  }
+
+  panel.appendChild(grid);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex; gap:6px; justify-content:flex-end; margin-top:8px;';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.style.cssText = `${FORM_BTN_STYLE} background:var(--tmx-bg-primary); color:var(--tmx-text-secondary);`;
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', onCancel);
+  btnRow.appendChild(cancelBtn);
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.style.cssText = `${FORM_BTN_STYLE} background:var(--tmx-accent, #4a9eff); color:#fff; border-color:var(--tmx-accent, #4a9eff);`;
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', () => {
+    const requiredFields = fields.filter((f) => f.required);
+    for (const f of requiredFields) {
+      if (!inputs[f.key].value.trim()) {
+        inputs[f.key].style.borderColor = 'var(--tmx-text-danger, red)';
+        inputs[f.key].focus();
+        return;
+      }
+    }
+    const values: Record<string, string> = {};
+    for (const [key, input] of Object.entries(inputs)) {
+      const val = input.value.trim();
+      if (val) values[key] = val;
+    }
+    onSave(values);
+  });
+  btnRow.appendChild(saveBtn);
+
+  panel.appendChild(btnRow);
+
+  // Focus the first input
+  const firstInput = Object.values(inputs)[0];
+  setTimeout(() => firstInput?.focus(), 0);
+
+  return panel;
+}
+
+function createRemoveButton(onClick: () => void): HTMLElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.style.cssText = REMOVE_BTN_STYLE;
+  btn.innerHTML = '<i class="fa fa-times"></i>';
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
 function createLogisticsEditor(
   title: string,
   icon: string,
@@ -130,12 +231,14 @@ function createLogisticsEditor(
   const listContainer = document.createElement('div');
   section.appendChild(listContainer);
 
+  const formSlot = document.createElement('div');
+  section.appendChild(formSlot);
+
   function renderList() {
     listContainer.innerHTML = '';
-    options.forEach((opt, idx) => {
+    for (const [idx, opt] of options.entries()) {
       const row = document.createElement('div');
-      row.style.cssText =
-        'display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--tmx-border-primary);';
+      row.style.cssText = LIST_ROW_STYLE;
 
       const info = document.createElement('span');
       info.style.cssText = 'flex:1; font-size:0.85rem;';
@@ -144,45 +247,48 @@ function createLogisticsEditor(
       info.textContent = opt.name + suffix;
       row.appendChild(info);
 
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.style.cssText =
-        'border:none; background:none; color:var(--tmx-text-danger, red); cursor:pointer; font-size:0.85rem;';
-      removeBtn.innerHTML = '<i class="fa fa-times"></i>';
-      removeBtn.addEventListener('click', () => {
-        options.splice(idx, 1);
-        renderList();
-      });
-      row.appendChild(removeBtn);
+      row.appendChild(
+        createRemoveButton(() => {
+          options.splice(idx, 1);
+          renderList();
+        }),
+      );
 
       listContainer.appendChild(row);
-    });
+    }
   }
 
   renderList();
 
+  const logisticsFields: FieldDef[] = [
+    { key: 'name', label: 'Name', required: true, gridSpan: 2 },
+    { key: 'phone', label: 'Phone' },
+    { key: 'email', label: 'Email', type: 'email' },
+    { key: 'address', label: 'Address', gridSpan: 2 },
+    { key: 'priceRange', label: 'Price Range' },
+    { key: 'url', label: 'URL', type: 'url' },
+  ];
+
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.style.cssText =
-    'margin:8px 0; padding:4px 10px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary); cursor:pointer; font-size:0.8rem;';
+  addBtn.style.cssText = ADD_BTN_STYLE;
   addBtn.innerHTML = '<i class="fa fa-plus"></i> Add';
   addBtn.addEventListener('click', () => {
-    const nameInput = prompt('Name:');
-    if (!nameInput?.trim()) return;
-    const phone = prompt('Phone (optional):') || '';
-    const email = prompt('Email (optional):') || '';
-    const address = prompt('Address (optional):') || '';
-    const priceRange = prompt('Price range (optional):') || '';
-    const url = prompt('URL (optional):') || '';
-    options.push({
-      name: nameInput.trim(),
-      ...(phone && { phone }),
-      ...(email && { email }),
-      ...(address && { address }),
-      ...(priceRange && { priceRange }),
-      ...(url && { url }),
-    });
-    renderList();
+    addBtn.style.display = 'none';
+    const form = buildInlineForm(
+      logisticsFields,
+      (values) => {
+        options.push(values as unknown as LogisticsOption);
+        renderList();
+        formSlot.innerHTML = '';
+        addBtn.style.display = '';
+      },
+      () => {
+        formSlot.innerHTML = '';
+        addBtn.style.display = '';
+      },
+    );
+    formSlot.appendChild(form);
   });
   section.appendChild(addBtn);
 
@@ -200,7 +306,7 @@ function createItemListEditor<T extends { name: string }>(
   title: string,
   icon: string,
   existingItems: T[],
-  promptFn: () => T | null,
+  fields: FieldDef[],
   displayFn: (item: T) => string,
 ): { section: HTMLElement; getItems: () => T[] } {
   const section = createSection(title, icon);
@@ -209,46 +315,53 @@ function createItemListEditor<T extends { name: string }>(
   const listContainer = document.createElement('div');
   section.appendChild(listContainer);
 
+  const formSlot = document.createElement('div');
+  section.appendChild(formSlot);
+
   function renderList() {
     listContainer.innerHTML = '';
-    items.forEach((item, idx) => {
+    for (const [idx, item] of items.entries()) {
       const row = document.createElement('div');
-      row.style.cssText =
-        'display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--tmx-border-primary);';
+      row.style.cssText = LIST_ROW_STYLE;
 
       const info = document.createElement('span');
       info.style.cssText = 'flex:1; font-size:0.85rem;';
       info.textContent = displayFn(item);
       row.appendChild(info);
 
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.style.cssText =
-        'border:none; background:none; color:var(--tmx-text-danger, red); cursor:pointer; font-size:0.85rem;';
-      removeBtn.innerHTML = '<i class="fa fa-times"></i>';
-      removeBtn.addEventListener('click', () => {
-        items.splice(idx, 1);
-        renderList();
-      });
-      row.appendChild(removeBtn);
+      row.appendChild(
+        createRemoveButton(() => {
+          items.splice(idx, 1);
+          renderList();
+        }),
+      );
 
       listContainer.appendChild(row);
-    });
+    }
   }
 
   renderList();
 
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.style.cssText =
-    'margin:8px 0; padding:4px 10px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary); cursor:pointer; font-size:0.8rem;';
+  addBtn.style.cssText = ADD_BTN_STYLE;
   addBtn.innerHTML = '<i class="fa fa-plus"></i> Add';
   addBtn.addEventListener('click', () => {
-    const item = promptFn();
-    if (item) {
-      items.push(item);
-      renderList();
-    }
+    addBtn.style.display = 'none';
+    const form = buildInlineForm(
+      fields,
+      (values) => {
+        items.push(values as unknown as T);
+        renderList();
+        formSlot.innerHTML = '';
+        addBtn.style.display = '';
+      },
+      () => {
+        formSlot.innerHTML = '';
+        addBtn.style.display = '';
+      },
+    );
+    formSlot.appendChild(form);
   });
   section.appendChild(addBtn);
 
@@ -341,21 +454,13 @@ export function openRegistrationProfileEditor(): void {
     'Social Events',
     'fa-calendar-alt',
     rp.socialEvents || [],
-    () => {
-      const name = prompt('Event name:');
-      if (!name?.trim()) return null;
-      const date = prompt('Date (optional, YYYY-MM-DD):') || '';
-      const time = prompt('Time (optional, HH:MM):') || '';
-      const location = prompt('Location (optional):') || '';
-      const description = prompt('Description (optional):') || '';
-      return {
-        name: name.trim(),
-        ...(date && { date }),
-        ...(time && { time }),
-        ...(location && { location }),
-        ...(description && { description }),
-      };
-    },
+    [
+      { key: 'name', label: 'Event Name', required: true, gridSpan: 2 },
+      { key: 'date', label: 'Date', type: 'date' },
+      { key: 'time', label: 'Time', type: 'time' },
+      { key: 'location', label: 'Location' },
+      { key: 'description', label: 'Description' },
+    ],
     (e) => {
       const datePart = e.date ? ' (' + e.date + ')' : '';
       const locPart = e.location ? ' — ' + e.location : '';
@@ -370,17 +475,11 @@ export function openRegistrationProfileEditor(): void {
     'Sponsors',
     'fa-handshake',
     rp.sponsors || [],
-    () => {
-      const name = prompt('Sponsor name:');
-      if (!name?.trim()) return null;
-      const tier = prompt(`Tier (${SPONSOR_TIERS.join(', ')}):`) || '';
-      const websiteUrl = prompt('Website URL (optional):') || '';
-      return {
-        name: name.trim(),
-        ...(tier && { tier }),
-        ...(websiteUrl && { websiteUrl }),
-      };
-    },
+    [
+      { key: 'name', label: 'Sponsor Name', required: true },
+      { key: 'tier', label: 'Tier', options: SPONSOR_TIERS },
+      { key: 'websiteUrl', label: 'Website URL', type: 'url', gridSpan: 2 },
+    ],
     (s) => s.name + (s.tier ? ' [' + s.tier + ']' : ''),
   );
   content.appendChild(sponsorEditor.section);
