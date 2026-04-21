@@ -284,4 +284,28 @@ test.describe('Journey 26 — Registration Profile Round-Trip', () => {
     // The inline form should still be visible (not dismissed)
     await expect(section.locator('button:has-text("Cancel")').first()).toBeVisible();
   });
+
+  test('fact sheet print modal shows template selector and action buttons', async ({ page }) => {
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToOverview();
+
+    // Open fact sheet print modal
+    await page.locator('button[title="Print Fact Sheet"]').click();
+    const modal = page.locator(MODAL);
+    await modal.waitFor({ timeout: 5000 });
+
+    // Title
+    await expect(modal.locator('text=Print Fact Sheet')).toBeVisible();
+
+    // Template dropdown with 5 options
+    const templateSelect = modal.locator('select').first();
+    const options = await templateSelect.locator('option').allTextContents();
+    expect(options).toHaveLength(5);
+
+    // View and Download buttons exist
+    await expect(modal.locator('button:has-text("View")')).toBeVisible();
+    await expect(modal.locator('button:has-text("Download")')).toBeVisible();
+    await expect(modal.locator('button:has-text("Cancel")')).toBeVisible();
+  });
 });
