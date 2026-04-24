@@ -502,7 +502,9 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     const providerId = provider?.organisationId;
     const state = getLoginState();
     const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-    const canDeleteOnServer = superAdmin || state?.permissions?.includes('deleteTournament');
+    const createdByUserId = tournamentRecord?.extensions?.find((e) => e?.name === 'createdByUserId')?.value;
+    const isCreator = !!createdByUserId && createdByUserId === state?.userId;
+    const canDeleteOnServer = superAdmin || isCreator || state?.permissions?.includes('deleteTournament');
     const activeProvider = context.provider || state?.provider;
 
     const isProviderTournament = !!(activeProvider && providerId);
