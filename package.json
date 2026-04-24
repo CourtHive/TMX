@@ -127,7 +127,7 @@
     "dayjs": "1.11.20",
     "dexie": "4.4.2",
     "esri-leaflet": "3.0.19",
-    "focus-trap": "8.0.1",
+    "focus-trap": "8.1.0",
     "hotkeys-js": "4.0.3",
     "html2canvas": "^1.4.1",
     "https-browserify": "1.0.0",
