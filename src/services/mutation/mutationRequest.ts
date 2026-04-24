@@ -213,7 +213,7 @@ function engineExecution({ factoryEngine, methods }: { factoryEngine: any; metho
 
 async function localSave(saveLocal: boolean): Promise<void> {
   if (saveLocal || serverConfig.get().saveLocal) {
-    await saveTournamentRecord();
+    await saveTournamentRecord({ forceSave: saveLocal });
   }
 }
 

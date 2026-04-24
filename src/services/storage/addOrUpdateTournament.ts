@@ -11,6 +11,6 @@ export async function addOrUpdateTournament({
   const provider = getLoginState()?.provider;
 
   if (provider && !tournamentRecord.parentOrganisation) tournamentRecord.parentOrganisation = provider;
-  await saveTournamentRecord({ tournamentRecord });
+  await saveTournamentRecord({ tournamentRecord, forceSave: true });
   callback?.();
 }
