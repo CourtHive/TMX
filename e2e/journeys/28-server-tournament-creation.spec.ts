@@ -129,12 +129,16 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     expect(fetchData.tournamentRecords?.[tournamentId]).toBeTruthy();
 
     // ── Open the tournament ──
-    // The tournament should be in the local table — click it
+    // Navigate to tournaments list — this fetches the calendar from the server
+    await page.goto('/#/tournaments');
+    await page.waitForTimeout(2000);
+
+    // The tournament should appear in the server-fetched calendar list
     const row = page.locator('.tabulator-row').filter({ hasText: tournamentName });
-    await expect(row).toBeVisible({ timeout: 5000 });
+    await expect(row).toBeVisible({ timeout: 10000 });
     await row.click();
 
-    // Should navigate into the tournament — URL should contain tournament
+    // Should navigate into the tournament
     await page.waitForTimeout(2000);
     expect(page.url()).toContain('tournament');
 

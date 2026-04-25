@@ -3,15 +3,13 @@ import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { tmx2db } from './tmx2db';
 
-export async function saveTournamentRecord(params?: { tournamentRecord?: any; forceSave?: boolean }): Promise<void> {
+export async function saveTournamentRecord(params?: { tournamentRecord?: any }): Promise<void> {
   const tournamentRecord = params?.tournamentRecord ?? tournamentEngine.getTournament()?.tournamentRecord;
   if (!tournamentRecord) return;
 
-  // Provider-owned tournaments are only saved locally if "Save local copies"
-  // is enabled OR if the caller explicitly requests a save (new tournament
-  // creation, ERR_MISSING_TOURNAMENT recovery).
+  // Provider-owned tournaments are only saved locally if "Save local copies" is enabled
   const hasProvider = !!tournamentRecord.parentOrganisation?.organisationId;
-  if (hasProvider && !params?.forceSave && !serverConfig.get().saveLocal) {
+  if (hasProvider && !serverConfig.get().saveLocal) {
     debugConfig.get().log?.verbose && console.log('%c localSave skipped (saveLocal disabled)', 'color: orange');
     return;
   }
