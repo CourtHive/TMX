@@ -156,7 +156,7 @@
       "pdf-factory": "link:../pdf-factory",
       "@xmldom/xmldom": "^0.8.13",
       "brace-expansion@1": "^1.1.13",
-      "brace-expansion@2": "^2.0.3",
+      "brace-expansion@2": "^5.0.0",
       "brace-expansion@>=4 <5.0.5": "^5.0.5",
       "follow-redirects": "^1.16.0",
       "picomatch": "^4.0.4",
