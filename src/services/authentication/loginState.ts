@@ -1,6 +1,8 @@
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
+import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { clearUserContext, fetchUserContext } from './getUserContext';
+import { clearActiveProvider } from 'services/provider/providerState';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
@@ -43,7 +45,7 @@ export function logOut(): void {
   checkDevState();
   disconnectSocket();
   tournamentEngine.reset();
-  context.provider = undefined;
+  clearActiveProvider();
   context.matchUpFilters = {};
   context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
@@ -63,6 +65,7 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
     disconnectSocket();
     if (!tournamentInState) tournamentEngine.reset();
     styleLogin(valid);
+    initProviderSwitcher();
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {
@@ -87,7 +90,7 @@ function reRenderActiveTab(): void {
 }
 
 export function cancelImpersonation(): void {
-  context.provider = undefined;
+  clearActiveProvider();
   context.router?.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
 }
 

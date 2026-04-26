@@ -248,6 +248,7 @@ function newBlock(): HTMLDivElement {
     </div>
     <div class="navbar-item" style="font-size: 1em; display: flex; align-items: center; gap: 2px;">
       <i id="themeToggle" style="cursor: pointer; padding: 0 .4em; opacity: 0.7;" class="fa-solid fa-moon" title="Toggle theme"></i>
+      <i id="h-stop-impersonating" class="fa-solid fa-xmark" title="Stop impersonating" style="display:none; cursor: pointer; padding: 0 .4em; color: var(--tmx-accent-orange, #f5a623);"></i>
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
     </div>
   </div>
