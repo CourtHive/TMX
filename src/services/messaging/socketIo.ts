@@ -2,7 +2,7 @@
  * Socket.IO client for real-time communication.
  * Handles WebSocket connections, message emission, and acknowledgements.
  */
-import { setChatSendFn, receiveMessage } from 'services/chat/chatService';
+import { setChatSendFn, receiveMessage, setOnlineCount } from 'services/chat/chatService';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
@@ -98,6 +98,7 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('tournamentMutation', handleTournamentMutation);
     oi.socket.on('chatMessage', receiveMessage);
+    oi.socket.on('roomPresence', setOnlineCount);
     oi.socket.on('connect', () => connectionEvent(callback));
 
     setChatSendFn((data: any) => socketEmit('chatMessage', data));
