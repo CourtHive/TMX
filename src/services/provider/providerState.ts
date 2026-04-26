@@ -68,7 +68,7 @@ function updateProviderBranding(): void {
       stopBtn.style.display = '';
       stopBtn.onclick = () => {
         clearActiveProvider();
-        context.router?.navigate(`/${TMX_TOURNAMENTS}`);
+        context.router?.navigate(`/${TMX_TOURNAMENTS}/${Date.now()}`);
       };
     } else {
       stopBtn.style.display = 'none';

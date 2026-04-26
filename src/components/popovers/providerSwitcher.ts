@@ -23,7 +23,9 @@ type OpenProviderSwitcherParams = {
 };
 
 function refreshAfterSwitch(): void {
-  context.router?.navigate(`/${TMX_TOURNAMENTS}`);
+  // Append a unique suffix so Navigo re-resolves the route even when
+  // the user is already on /tournaments. Mirrors the pattern in logIn.
+  context.router?.navigate(`/${TMX_TOURNAMENTS}/${Date.now()}`);
 }
 
 export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): void {

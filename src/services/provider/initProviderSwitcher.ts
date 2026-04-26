@@ -22,11 +22,15 @@ export function initProviderSwitcher(): void {
   const providerEl = document.getElementById('provider');
   if (providerEl && !providerClickWired) {
     providerClickWired = true;
-    providerEl.style.cursor = 'pointer';
     providerEl.addEventListener('click', () => {
       if (!isSuperAdmin()) return;
       openProviderSwitcher({ target: providerEl });
     });
+  }
+
+  if (providerEl && isSuperAdmin()) {
+    providerEl.style.cursor = 'pointer';
+    providerEl.title = 'Switch provider';
   }
 
   if (isSuperAdmin() && !getActiveProvider()) {
