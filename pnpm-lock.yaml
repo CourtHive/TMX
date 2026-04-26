@@ -15,7 +15,7 @@ overrides:
   follow-redirects: ^1.16.0
   picomatch: ^4.0.4
   socket.io-parser: ^4.2.6
-  undici: ^6.24.0
+  undici: ^8.0.0
 
 importers:
 
@@ -4469,9 +4469,9 @@ packages:
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
-  undici@6.25.0:
-    resolution: {integrity: sha512-ZgpWDC5gmNiuY9CnLVXEH8rl50xhRCuLNA97fAUnKi8RRuV4E6KG31pDTsLVUKnohJE0I3XDrTeEydAXRw47xg==}
-    engines: {node: '>=18.17'}
+  undici@8.1.0:
+    resolution: {integrity: sha512-E9MkTS4xXLnRPYqxH2e6Hr2/49e7WFDKczKcCaFH4VaZs2iNvHMqeIkyUAD9vM8kujy9TjVrRlQ5KkdEJxB2pw==}
+    engines: {node: '>=22.19.0'}
 
   unique-filename@4.0.0:
     resolution: {integrity: sha512-XSnEewXmQ+veP7xX2dS5Q4yZAvO40cBN2MWkJ7D/6sW4Dg6wYBNwM1Vrnz1FhH5AdeLIlUXRI9e28z1YZi71NQ==}
@@ -4792,7 +4792,7 @@ snapshots:
   '@actions/http-client@2.2.3':
     dependencies:
       tunnel: 0.0.6
-      undici: 6.25.0
+      undici: 8.1.0
 
   '@actions/io@1.1.3': {}
 
@@ -9403,7 +9403,7 @@ snapshots:
 
   undici-types@7.16.0: {}
 
-  undici@6.25.0: {}
+  undici@8.1.0: {}
 
   unique-filename@4.0.0:
     dependencies:
