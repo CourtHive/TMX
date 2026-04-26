@@ -11,6 +11,7 @@
  *   /#/tournament/:id/schedule2/:date/grid      → Grid view
  *   /#/tournament/:id/schedule2/:date/profile   → Profile view
  */
+import { columnVisibility, saveColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { competitionEngine } from 'tods-competition-factory';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
@@ -27,8 +28,10 @@ interface Schedule2State {
   selectedDate: string;
 }
 
+const CATALOG_VISIBILITY_KEY = 'schedule2:catalog';
+
 let state: Schedule2State | null = null;
-let catalogVisible = true;
+let catalogVisible = columnVisibility(CATALOG_VISIBILITY_KEY, true);
 
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
@@ -79,6 +82,8 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     },
     onToggleCatalog: () => {
       catalogVisible = !catalogVisible;
+      context.columns[CATALOG_VISIBILITY_KEY] = catalogVisible;
+      saveColumnVisibility();
       const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement;
       if (layout) {
         layout.classList.toggle('spl-sidebar-collapsed', !catalogVisible);
@@ -100,6 +105,12 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     renderProfileView(container, scheduledDate);
   } else {
     renderGridView(container, scheduledDate);
+  }
+
+  // Apply persisted catalog visibility to the freshly rendered layout
+  if (!catalogVisible) {
+    const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement | null;
+    if (layout) layout.classList.add('spl-sidebar-collapsed');
   }
 }
 
