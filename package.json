@@ -161,7 +161,7 @@
       "follow-redirects": "^1.16.0",
       "picomatch": "^4.0.4",
       "socket.io-parser": "^4.2.6",
-      "undici": "^6.24.0"
+      "undici": "^8.0.0"
     }
   }
 }
