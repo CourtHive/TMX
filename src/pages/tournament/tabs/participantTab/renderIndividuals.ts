@@ -169,7 +169,9 @@ export function renderIndividuals({ view }: { view: string }): void {
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
       label: t('pages.participants.newParticipant'),
-      hide: !providerConfig.isAllowed('canCreateCompetitors'),
+      // Different cap depending on whether the user is creating a COMPETITOR
+      // or an OFFICIAL — both are PARTICIPANTS but are gated separately.
+      hide: !providerConfig.isAllowed(view === OFFICIAL ? 'canCreateOfficials' : 'canCreateCompetitors'),
       close: true,
     },
   ];

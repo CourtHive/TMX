@@ -4,6 +4,8 @@
  * The persisted key is shared with the admin-client app so super-admins
  * can impersonate from /admin and have TMX pick up the selection on load.
  */
+import { providerConfig } from 'config/providerConfig';
+import { baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
 
 import type { ProviderValue } from 'types/tmx';
@@ -20,6 +22,25 @@ export function setActiveProvider(provider: ProviderValue): void {
     /* localStorage unavailable (private mode / SSR) — non-fatal */
   }
   updateProviderBranding();
+  // Refetch the impersonated provider's effective config and re-apply.
+  // Fire-and-forget — the calendar/route reload below is the visible work,
+  // and providerConfig.set() repaints branding + re-evaluates permission
+  // gates on the next render.
+  if (provider?.organisationId) {
+    fetchEffectiveConfig(provider.organisationId).then(
+      (effective) => {
+        if (effective) providerConfig.set(effective);
+      },
+      () => {
+        /* fetch failure — keep prior providerConfig (better than wiping) */
+      },
+    );
+  }
+}
+
+async function fetchEffectiveConfig(providerId: string): Promise<any | undefined> {
+  const response = await baseApi.get(`/provider/${providerId}/effective-config`);
+  return response?.data?.effective;
 }
 
 export function clearActiveProvider(): void {

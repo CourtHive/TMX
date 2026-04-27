@@ -1,6 +1,7 @@
 import { tournamentEngine, participantRoles } from 'tods-competition-factory';
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { openModal } from 'components/modals/baseModal/baseModal';
+import { providerConfig } from 'config/providerConfig';
 import { t } from 'i18n';
 
 const { OFFICIAL } = participantRoles;
@@ -73,9 +74,16 @@ export function openPersonnelWizard({ callback }: { callback: () => void }): voi
     addBtn.style.cssText =
       'padding:4px 12px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary); cursor:pointer; font-size:0.8rem;';
     addBtn.innerHTML = '<i class="fa fa-plus"></i> Add';
-    addBtn.addEventListener('click', () => {
-      editIndividualParticipant({ callback, view: OFFICIAL });
-    });
+    const canAddOfficials = providerConfig.isAllowed('canCreateOfficials');
+    if (!canAddOfficials) {
+      addBtn.disabled = true;
+      addBtn.style.opacity = '0.4';
+      addBtn.title = 'Provider does not allow adding officials';
+    } else {
+      addBtn.addEventListener('click', () => {
+        editIndividualParticipant({ callback, view: OFFICIAL });
+      });
+    }
     row.appendChild(addBtn);
 
     roleList.appendChild(row);

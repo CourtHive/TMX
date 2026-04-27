@@ -8,18 +8,10 @@ vi.mock('tods-competition-factory', () => ({
   tools: { unique: (a: any[]) => [...new Set(a)], makeDeepCopy: (a: any) => JSON.parse(JSON.stringify(a)) },
 }));
 vi.mock('constants/tmxConstants', () => ({ SUPER_ADMIN: 'superadmin', TOURNAMENT_ENGINE: 'tournamentEngine' }));
-vi.mock('constants/mutationConstants', () => ({
-  ADD_PARTICIPANTS: 'addParticipants',
-  DELETE_PARTICIPANTS: 'deleteParticipants',
-  ADD_EVENT: 'addEvent',
-  DELETE_EVENTS: 'deleteEvents',
-  ADD_MATCHUP_SCHEDULE_ITEMS: 'addMatchUpScheduleItems',
-  BULK_SCHEDULE_MATCHUPS: 'bulkScheduleMatchUps',
-  ADD_VENUE: 'addVenue',
-  DELETE_VENUES: 'deleteVenues',
-  ADD_DRAW_DEFINITION: 'addDrawDefinition',
-  DELETE_DRAW_DEFINITIONS: 'deleteDrawDefinitions',
-}));
+// `constants/mutationConstants` is now consumed transitively via
+// `constants/mutationPermissions`. Mock the permissions module directly
+// so this test stays decoupled from the full mutation-name list.
+vi.mock('constants/mutationPermissions', () => ({ isMutationAllowed: () => true }));
 vi.mock('config/providerConfig', () => ({ providerConfig: { isAllowed: () => true } }));
 vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({}) } }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
