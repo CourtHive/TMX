@@ -3,6 +3,7 @@
  * Handles WebSocket connections, message emission, and acknowledgements.
  */
 import { setChatSendFn, receiveMessage, setOnlineCount } from 'services/chat/chatService';
+import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
@@ -105,6 +106,7 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on('disconnect', (reason: string) => {
       slog('[socket] disconnected — reason:', reason);
       disconnectedSinceLastNav = true;
+      resetFactoryVersionCheck();
       showOSNotification({ title: 'TMX', body: 'Server connection lost' });
     });
     oi.socket.on('exception', (data: any) => {
@@ -209,6 +211,8 @@ function connectionEvent(callback?: () => void): void {
     slog('[socket] re-joining tournament room after reconnect:', currentTournamentRoom);
     oi.socket.emit(JOIN_TOURNAMENT, { tournamentId: currentTournamentRoom });
   }
+
+  void checkFactoryVersion();
 
   if (isFunction(callback)) callback();
 }

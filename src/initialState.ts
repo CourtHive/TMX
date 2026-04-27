@@ -10,6 +10,7 @@ import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
+import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { courthiveComponentsVersion } from 'courthive-components';
 import { registerMenuHandler } from 'platform/menuHandler';
@@ -107,6 +108,7 @@ function tmxReady(): void {
   registerMenuHandler();
   initRemoteMutationHandler();
   initStalenessGuard();
+  initTmxVersionCheck();
   routeTMX();
   tmxNavigation();
 }
