@@ -17,6 +17,29 @@ interface LuckyLoserSelectionParams {
   drawId: string;
 }
 
+function clearSpans(row: Element) {
+  row.querySelectorAll('span').forEach((s) => (s.style.color = ''));
+}
+
+function clearRowSelection(rows: NodeListOf<Element>) {
+  rows.forEach((r) => {
+    (r as HTMLElement).style.backgroundColor = '';
+    (r as HTMLElement).style.color = '';
+    clearSpans(r);
+  });
+}
+
+function highlightRow(row: HTMLElement) {
+  row.style.backgroundColor = SELECTED_BG;
+  row.querySelectorAll('span').forEach((s) => (s.style.color = '#fff'));
+}
+
+function enableAdvanceButton(btn: HTMLButtonElement | null) {
+  if (!btn) return;
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
 function formatRatio(value: number | undefined): string {
   if (value == null || !Number.isFinite(value)) return '-';
   return (value * 100).toFixed(1) + '%';
@@ -170,33 +193,15 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
       const advanceBtn = document.getElementById('lucky-advance-btn') as HTMLButtonElement;
       const rows = document.querySelectorAll('.lucky-loser-row');
 
-      rows.forEach((row) => {
-        row.addEventListener('click', () => {
-          const idx = parseInt((row as HTMLElement).dataset.index || '');
-          if (isNaN(idx)) return;
-
-          selectedIndex = idx;
-
-          // Clear previous selection
-          rows.forEach((r) => {
-            (r as HTMLElement).style.backgroundColor = '';
-            (r as HTMLElement).style.color = '';
-            const spans = r.querySelectorAll('span');
-            spans.forEach((s) => (s.style.color = ''));
-          });
-
-          // Highlight selected row
-          (row as HTMLElement).style.backgroundColor = SELECTED_BG;
-          const spans = row.querySelectorAll('span');
-          spans.forEach((s) => (s.style.color = '#fff'));
-
-          // Enable advance button
-          if (advanceBtn) {
-            advanceBtn.disabled = false;
-            advanceBtn.style.opacity = '1';
-          }
-        });
-      });
+      const onRowClick = (row: Element) => {
+        const idx = Number.parseInt((row as HTMLElement).dataset.index || '');
+        if (Number.isNaN(idx)) return;
+        selectedIndex = idx;
+        clearRowSelection(rows);
+        highlightRow(row as HTMLElement);
+        enableAdvanceButton(advanceBtn);
+      };
+      rows.forEach((row) => row.addEventListener('click', () => onRowClick(row)));
     }, 0);
   }
 }

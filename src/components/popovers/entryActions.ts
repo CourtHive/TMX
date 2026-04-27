@@ -12,26 +12,32 @@ import { ACCEPTED, BOTTOM } from 'constants/tmxConstants';
 const { ALTERNATE, DIRECT_ACCEPTANCE, WITHDRAWN, UNGROUPED } = entryStatusConstants;
 const { QUALIFYING } = drawDefinitionConstants;
 
+function onModifyEntryStatusResult(result: any, cell: any, group: string) {
+  if (!result.success) {
+    console.log({ result });
+    return;
+  }
+  const row = cell.getRow();
+  const targetGroup = group === ACCEPTED ? DIRECT_ACCEPTANCE : group;
+  context.tables[targetGroup]?.addRow(row.getData());
+  row.delete();
+}
+
 export const entryActions = (actions: string[], eventId: string, drawId?: string) => (e: MouseEvent, cell: any): void => {
   const rowData = cell.getRow().getData();
   const { participant } = rowData;
   const hasDrawPosition = !!rowData.drawPosition;
 
-  const modifyEntryStatus = (group: string) => () => {
-    const callback = (result: any) => {
-      if (result.success) {
-        const row = cell.getRow();
-        const targetGroup = group === ACCEPTED ? DIRECT_ACCEPTANCE : group;
-        context.tables[targetGroup]?.addRow(row.getData());
-        row.delete();
-      } else {
-        console.log({ result });
-      }
-    };
-
-    const participantIds = [participant.participantId];
-    modifyEntriesStatus({ participantIds, callback, eventId, drawId, group });
+  const runModifyEntryStatus = (group: string) => {
+    modifyEntriesStatus({
+      participantIds: [participant.participantId],
+      callback: (result: any) => onModifyEntryStatusResult(result, cell, group),
+      eventId,
+      drawId,
+      group,
+    });
   };
+  const modifyEntryStatus = (group: string) => () => runModifyEntryStatus(group);
 
   const destroyPairEntry = () => {
     const result = tournamentEngine.destroyPairEntry({

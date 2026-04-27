@@ -48,6 +48,53 @@ const MOVE_TARGETS_DOUBLES: Record<number, string[]> = {
   [WITHDRAWN_RANK]: [UNGROUPED],
 };
 
+function isSelectableForMove(p: any) {
+  return !p._isSeparator && !p.drawPosition;
+}
+
+function pickParticipantId({ participantId }: any) {
+  return participantId;
+}
+
+function runMoveSelection({
+  table,
+  group,
+  eventId,
+  drawId,
+  onRefresh,
+}: {
+  table: any;
+  group: string;
+  eventId: string;
+  drawId?: string;
+  onRefresh: () => void;
+}) {
+  const selected = table.getSelectedData();
+  const participantIds = selected.filter(isSelectableForMove).map(pickParticipantId);
+  if (!participantIds.length) {
+    table.deselectRow();
+    tmxToast({
+      message: selected.length ? 'Selected participants have assigned draw positions' : 'No participants selected',
+      intent: 'is-warning',
+    });
+    return;
+  }
+  modifyEntriesStatus({
+    participantIds,
+    group,
+    eventId,
+    drawId,
+    callback: (result: any) => {
+      if (result?.success) {
+        onRefresh();
+        return;
+      }
+      table.deselectRow();
+      tmxToast({ message: result.error?.message ?? 'Error moving participants', intent: 'is-danger' });
+    },
+  });
+}
+
 function getSelectedSegments(table: any): Set<number> {
   const selected = table.getSelectedData();
   const segments = new Set<number>();
@@ -89,34 +136,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     if (!targets.length) return { location: OVERLAY, hide: true };
 
     const options = targets.map((group) => ({
-      onClick: () => {
-        const selected = table.getSelectedData();
-        const participantIds = selected
-          .filter((p: any) => !p._isSeparator && !p.drawPosition)
-          .map(({ participantId }: any) => participantId);
-
-        if (!participantIds.length) {
-          table.deselectRow();
-          tmxToast({
-            message: selected.length
-              ? 'Selected participants have assigned draw positions'
-              : 'No participants selected',
-            intent: 'is-warning',
-          });
-          return;
-        }
-
-        const callback = (result: any) => {
-          if (result?.success) {
-            onRefresh();
-          } else {
-            table.deselectRow();
-            tmxToast({ message: result.error?.message ?? 'Error moving participants', intent: 'is-danger' });
-          }
-        };
-
-        modifyEntriesStatus({ participantIds, group, eventId, drawId, callback });
-      },
+      onClick: () => runMoveSelection({ table, group, eventId, drawId, onRefresh }),
       stateChange: true,
       label: group,
       value: group,
