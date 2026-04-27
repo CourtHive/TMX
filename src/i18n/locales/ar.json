@@ -1322,6 +1322,13 @@
     "admin": "Admin",
     "system": "System"
   },
+  "providerSwitcher": {
+    "title": "المزود",
+    "titleImpersonating": "انتحال شخصية {{name}}",
+    "selectProvider": "اختر مزودًا…",
+    "switchProvider": "تبديل المزود…",
+    "clearImpersonation": "إيقاف انتحال الشخصية"
+  },
   "tables": {
     "unscheduled": {
       "event": "الحدث",

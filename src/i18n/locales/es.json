@@ -1354,6 +1354,14 @@
     "system": "System"
   },
 
+  "providerSwitcher": {
+    "title": "Proveedor",
+    "titleImpersonating": "Suplantando a {{name}}",
+    "selectProvider": "Seleccionar proveedor…",
+    "switchProvider": "Cambiar de proveedor…",
+    "clearImpersonation": "Dejar de suplantar"
+  },
+
   "tables": {
     "unscheduled": {
       "event": "Evento",
