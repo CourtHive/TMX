@@ -109,5 +109,9 @@ export const mapMatchUp = (matchUp: any): any => {
     side1,
     side2,
     score,
+    // ISO UTC string stamped by factory on every matchUp modification.
+    // Surfaced as an initially-hidden "Updated" column — scorekeepers
+    // and admins can enable it to spot stale vs freshly-touched rows.
+    updatedAt: matchUp.updatedAt,
   };
 };

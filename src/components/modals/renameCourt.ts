@@ -17,6 +17,7 @@ export function renameCourt({ column, courtInfo }: { column: any; courtInfo: any
     if (value.length && value !== courtInfo.courtName) {
       const postMutation = (result: any) => {
         if (result.success) {
+          courtInfo.courtName = value;
           column.updateDefinition({ title: value });
         } else {
           console.log({ result });

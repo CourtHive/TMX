@@ -23,13 +23,13 @@ import { signOutUnapproved } from './controlBar/signOutUnapproved';
 import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
-import { participantConstants } from 'tods-competition-factory';
+import { participantConstants, participantRoles } from 'tods-competition-factory';
+import { openPersonnelWizard } from './personnelWizard';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
 import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
 import { providerConfig } from 'config/providerConfig';
-import { featureFlags } from 'config/featureFlags';
 import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -38,6 +38,7 @@ import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstant
 import { context } from 'services/context';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
+const { OFFICIAL } = participantRoles;
 
 const isPrimary = 'is-primary';
 
@@ -123,6 +124,12 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   const actionOptions: any[] = [
     {
+      onClick: () => openPersonnelWizard({ callback: replaceTableData }),
+      label: '<i class="fa fa-user-tie"></i> Add Personnel',
+      hide: view !== OFFICIAL,
+      close: true,
+    },
+    {
       onClick: () => signOutUnapproved(replaceTableData),
       label: t('pages.participants.signOutUnapproved'),
       hide: !hasParticipants,
@@ -148,7 +155,7 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     { divider: true } as any,
     {
-      hide: !featureFlags.get().googleSheetsImport || !providerConfig.isAllowed('canImportParticipants'),
+      hide: !providerConfig.isAllowed('canImportParticipants'),
       label: t('pages.participants.importGoogleSheet'),
       onClick: editRegistrationLink,
       close: true,
@@ -162,7 +169,9 @@ export function renderIndividuals({ view }: { view: string }): void {
     {
       onClick: () => editIndividualParticipant({ callback: replaceTableData, view }),
       label: t('pages.participants.newParticipant'),
-      hide: !providerConfig.isAllowed('canCreateCompetitors'),
+      // Different cap depending on whether the user is creating a COMPETITOR
+      // or an OFFICIAL — both are PARTICIPANTS but are gated separately.
+      hide: !providerConfig.isAllowed(view === OFFICIAL ? 'canCreateOfficials' : 'canCreateCompetitors'),
       close: true,
     },
   ];

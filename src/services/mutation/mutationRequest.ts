@@ -8,7 +8,6 @@ import { getUserContext } from 'services/authentication/getUserContext';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
-import { providerConfig } from 'config/providerConfig';
 import * as factory from 'tods-competition-factory';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
@@ -22,18 +21,7 @@ import type { MutationMethod, ExecutionResult } from 'types/services';
 
 // constants
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
-import {
-  ADD_PARTICIPANTS,
-  DELETE_PARTICIPANTS,
-  ADD_EVENT,
-  DELETE_EVENTS,
-  ADD_MATCHUP_SCHEDULE_ITEMS,
-  BULK_SCHEDULE_MATCHUPS,
-  ADD_VENUE,
-  DELETE_VENUES,
-  ADD_DRAW_DEFINITION,
-  DELETE_DRAW_DEFINITIONS,
-} from 'constants/mutationConstants';
+import { isMutationAllowed } from 'constants/mutationPermissions';
 
 interface MutationParams {
   tournamentRecord?: any;
@@ -286,24 +274,5 @@ async function makeMutation({
   if (strategy === LOCAL_FIRST) return completion(factoryResult);
 }
 
-// ── Provider mutation gating ──
-
-/** Map of mutation method names to provider permission keys. */
-const MUTATION_PERMISSION_MAP: Record<string, keyof import('config/providerConfig').ProviderPermissions> = {
-  [ADD_PARTICIPANTS]: 'canCreateCompetitors',
-  [DELETE_PARTICIPANTS]: 'canDeleteParticipants',
-  [ADD_EVENT]: 'canCreateEvents',
-  [DELETE_EVENTS]: 'canDeleteEvents',
-  [ADD_MATCHUP_SCHEDULE_ITEMS]: 'canModifySchedule',
-  [BULK_SCHEDULE_MATCHUPS]: 'canModifySchedule',
-  [ADD_VENUE]: 'canCreateVenues',
-  [DELETE_VENUES]: 'canDeleteVenues',
-  [ADD_DRAW_DEFINITION]: 'canCreateDraws',
-  [DELETE_DRAW_DEFINITIONS]: 'canDeleteDraws',
-};
-
-function isMutationAllowed(method: string): boolean {
-  const permKey = MUTATION_PERMISSION_MAP[method];
-  if (!permKey) return true; // Unmapped mutations are allowed by default
-  return providerConfig.isAllowed(permKey);
-}
+// Provider mutation gating lives at constants/mutationPermissions.ts
+// (imported as `isMutationAllowed`).

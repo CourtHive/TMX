@@ -53,20 +53,21 @@ function persistAll(
   storageInputs: any,
   displayInputs: any,
 ): void {
+  const previousAssistant = featureFlags.get().assistant;
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
-    googleSheetsImport: displayInputs.googleSheetsImport?.checked || false,
+    assistant: displayInputs.assistant?.checked || false,
+    reports: displayInputs.reports?.checked || false,
     schedule2: displayInputs.schedule2?.checked || false,
-    enableChat: displayInputs.enableChat?.checked || false,
-    unifiedEntriesTable: displayInputs.unifiedEntriesTable?.checked || false,
+    legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
   });
 
-  // Immediately update nav icon visibility
+  // Immediately update beta nav icon visibility
   const s2Icon = document.getElementById('s2-route');
   if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
-  const chatEl = document.getElementById('chatIndicator');
-  if (chatEl) chatEl.style.display = featureFlags.get().enableChat ? '' : 'none';
+  const rIcon = document.getElementById('r-route');
+  if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
   if (scoringInputs.dynamicSets.checked) {
@@ -95,9 +96,11 @@ function persistAll(
 
   if (activeScale) setActiveScale(activeScale);
 
+  const assistantChanged = (displayInputs.assistant?.checked || false) !== previousAssistant;
+
   persistConfigToStorage({ language });
 
-  if (languageChanged) {
+  if (languageChanged || assistantChanged) {
     globalThis.location.reload();
   }
 }
@@ -295,10 +298,18 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
     {
-      label: t('modals.settings.googleSheetsImport'),
-      checked: featureFlags.get().googleSheetsImport || false,
-      field: 'googleSheetsImport',
-      id: 'googleSheetsImport',
+      label: 'Ask TMX assistant',
+      checked: featureFlags.get().assistant || false,
+      field: 'assistant',
+      id: 'assistant',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: 'Reports tab',
+      checked: featureFlags.get().reports || false,
+      field: 'reports',
+      id: 'reports',
       onChange: persist,
       checkbox: true,
     },
@@ -310,23 +321,31 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       onChange: persist,
       checkbox: true,
     },
+  ]);
+
+  // Fallback options row — power users only. Kept in this panel because the
+  // underlying behavior is still experimental; default is off.
+  const fallbackHeader = document.createElement('div');
+  fallbackHeader.style.cssText = 'margin-top: 12px; font-size: 0.75rem; font-weight: 600; color: var(--chc-text-secondary, #888); text-transform: uppercase; letter-spacing: 0.04em;';
+  fallbackHeader.textContent = 'Fallback Options';
+  displayForm.appendChild(fallbackHeader);
+  const fallbackHint = document.createElement('div');
+  fallbackHint.style.cssText = 'font-size: 0.75rem; color: var(--chc-text-secondary, #888); margin-bottom: 6px;';
+  fallbackHint.textContent = 'Enable only if you run into an issue with the standard experience.';
+  displayForm.appendChild(fallbackHint);
+
+  const fallbackInputs = renderForm(displayForm, [
     {
-      label: 'Tournament Chat',
-      checked: featureFlags.get().enableChat || false,
-      field: 'enableChat',
-      id: 'enableChat',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: 'Unified Entries Table',
-      checked: featureFlags.get().unifiedEntriesTable || false,
-      field: 'unifiedEntriesTable',
-      id: 'unifiedEntriesTable',
+      label: 'Legacy entries table (split by status)',
+      checked: featureFlags.get().legacyEntriesTable || false,
+      field: 'legacyEntriesTable',
+      id: 'legacyEntriesTable',
       onChange: persist,
       checkbox: true,
     },
   ]);
+  // Merge fallback inputs into displayInputs so persistAll sees them
+  Object.assign(displayInputs, fallbackInputs);
   if (deviceConfig.get().isElectron) {
     const notifRow = document.createElement('div');
     notifRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';
@@ -483,7 +502,9 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     const providerId = provider?.organisationId;
     const state = getLoginState();
     const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-    const canDeleteOnServer = superAdmin || state?.permissions?.includes('deleteTournament');
+    const createdByUserId = tournamentRecord?.extensions?.find((e) => e?.name === 'createdByUserId')?.value;
+    const isCreator = !!createdByUserId && createdByUserId === state?.userId;
+    const canDeleteOnServer = superAdmin || isCreator || state?.permissions?.includes('deleteTournament');
     const activeProvider = context.provider || state?.provider;
 
     const isProviderTournament = !!(activeProvider && providerId);

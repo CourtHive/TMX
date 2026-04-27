@@ -84,9 +84,9 @@ test.describe('Journey 21 — Feature flag toggle + edge cases', () => {
     // Verify unified is active
     expect(await isUnifiedView(page)).toBe(true);
 
-    // Disable the flag via dev bridge
+    // Enable legacy mode via dev bridge (replaces old unifiedEntriesTable=false)
     await page.evaluate(() => {
-      dev.env.unifiedEntriesTable = false;
+      dev.env.legacyEntriesTable = true;
     });
 
     // Navigate away and back to reload the entries view
@@ -106,30 +106,30 @@ test.describe('Journey 21 — Feature flag toggle + edge cases', () => {
     // At least one indicator should match
     expect(isOld || !isUnified).toBe(true);
 
-    // Re-enable for other tests
+    // Disable legacy mode for other tests
     await page.evaluate(() => {
-      dev.env.unifiedEntriesTable = true;
+      dev.env.legacyEntriesTable = false;
     });
   });
 
   test('1.3 — flag persists via localStorage after settings save', async ({ page }) => {
     await navigateToEntries(page, PROFILE_16);
 
-    // Disable via the settings API (simulates what the settings page does)
+    // Enable legacy mode via the settings API (simulates what the settings page does)
     await page.evaluate(() => {
-      dev.env.unifiedEntriesTable = false;
+      dev.env.legacyEntriesTable = true;
       // Trigger persist
       const event = new Event('storage');
       globalThis.dispatchEvent(event);
     });
 
     // Read back from the featureFlags module
-    const flagValue = await page.evaluate(() => dev.env.unifiedEntriesTable);
-    expect(flagValue).toBe(false);
+    const flagValue = await page.evaluate(() => dev.env.legacyEntriesTable);
+    expect(flagValue).toBe(true);
 
-    // Re-enable
+    // Disable legacy mode
     await page.evaluate(() => {
-      dev.env.unifiedEntriesTable = true;
+      dev.env.legacyEntriesTable = false;
     });
   });
 

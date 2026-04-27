@@ -188,7 +188,7 @@ export function getBracketData({ structure, participantMap, participantResults, 
   }
 
   // Sort groups by name
-  groups.sort((a, b) => a.groupName.localeCompare(b.groupName));
+  groups.sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { numeric: true }));
 
   return groups;
 }

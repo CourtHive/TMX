@@ -191,7 +191,10 @@ function makeDivider(): HTMLElement {
 }
 
 function showPopover(target: HTMLElement, content: HTMLElement): void {
+  // Toggle off when the same target is clicked twice in a row.
+  const sameTarget = cellTip?.reference === target;
   destroyCellTip();
+  if (sameTarget) return;
   cellTip = tippy(target, {
     content,
     theme: 'light-border',

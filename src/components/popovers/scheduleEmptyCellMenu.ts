@@ -13,6 +13,87 @@ import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
 const { SINGLES, DOUBLES } = eventConstants;
 
+function hasNoCourtAndNotBye(m: any) {
+  return !m.schedule?.courtId && !m.sides?.some(isByeSide);
+}
+
+function isByeSide({ bye }: any) {
+  return bye;
+}
+
+function matchUpToTypeAheadOption(m: any) {
+  const side1 = m.sides?.[0]?.participant?.participantName || '';
+  const side2 = m.sides?.[1]?.participant?.participantName || '';
+  const vs = side1 && side2 ? `${side1} vs ${side2}` : side1 || side2 || 'TBD';
+  return {
+    label: `${m.eventName || ''} ${m.roundName || ''} — ${vs}`.trim(),
+    value: m.matchUpId,
+  };
+}
+
+function buildUnscheduledMatchUpList(scheduledDate: string | null) {
+  const matchUpsWithNoCourt =
+    competitionEngine
+      .allCompetitionMatchUps({
+        matchUpFilters: {
+          matchUpStatuses: factoryConstants.upcomingMatchUpStatuses,
+          matchUpTypes: [SINGLES, DOUBLES],
+        },
+        nextMatchUps: true,
+      })
+      .matchUps?.filter(hasNoCourtAndNotBye) || [];
+  const unscheduled = matchUpsWithNoCourt.filter(
+    (m: any) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === scheduledDate,
+  );
+  return unscheduled.map(matchUpToTypeAheadOption);
+}
+
+function deleteUnscheduledRow(matchUpId: string) {
+  const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)?.[0];
+  unscheduledTable?.deleteRow(matchUpId).catch(noop);
+}
+
+function noop() {}
+
+function scheduleSelectedMatchUp({
+  matchUpId,
+  courtId,
+  venueId,
+  courtOrder,
+  scheduledDate,
+  updateScheduleTable,
+}: {
+  matchUpId: string;
+  courtId: string;
+  venueId: string;
+  courtOrder: number;
+  scheduledDate: string | null;
+  updateScheduleTable?: (params: { scheduledDate: string }) => void;
+}) {
+  const { matchUps = [] } = competitionEngine.allCompetitionMatchUps({
+    matchUpFilters: { matchUpIds: [matchUpId] },
+  });
+  const matchUp = matchUps[0];
+  mutationRequest({
+    methods: [
+      {
+        method: ADD_MATCHUP_SCHEDULE_ITEMS,
+        params: {
+          matchUpId,
+          drawId: matchUp?.drawId ?? '',
+          schedule: { courtId, venueId, courtOrder, scheduledDate },
+          removePriorValues: true,
+        },
+      },
+    ],
+    callback: (result: any) => {
+      if (!result.success) return;
+      deleteUnscheduledRow(matchUpId);
+      if (updateScheduleTable && scheduledDate) updateScheduleTable({ scheduledDate });
+    },
+  });
+}
+
 export function scheduleEmptyCellMenu({
   e,
   cell,
@@ -36,74 +117,18 @@ export function scheduleEmptyCellMenu({
   const scheduledDate = context.displayed.selectedScheduleDate;
 
   const assignMatchUp = () => {
-    // Get the Tabulator cell's DOM element for the typeahead
-    const cellElement = cell.getElement() as HTMLElement;
-
     activateScheduleCellTypeAhead({
-      cell: cellElement,
-      listProvider: () => {
-        // Use same query as the unscheduled table to match what users see
-        const matchUpsWithNoCourt =
-          competitionEngine
-            .allCompetitionMatchUps({
-              matchUpFilters: {
-                matchUpStatuses: factoryConstants.upcomingMatchUpStatuses,
-                matchUpTypes: [SINGLES, DOUBLES],
-              },
-              nextMatchUps: true,
-            })
-            .matchUps?.filter((m: any) => !m.schedule?.courtId && !m.sides?.some(({ bye }: any) => bye)) || [];
-
-        // Filter to current date (same as unscheduled table)
-        const unscheduled = matchUpsWithNoCourt.filter(
-          (m: any) => !m.schedule?.scheduledDate || m.schedule.scheduledDate === scheduledDate,
-        );
-
-        return unscheduled.map((m: any) => {
-          const side1 = m.sides?.[0]?.participant?.participantName || '';
-          const side2 = m.sides?.[1]?.participant?.participantName || '';
-          const vs = side1 && side2 ? `${side1} vs ${side2}` : side1 || side2 || 'TBD';
-          return {
-            label: `${m.eventName || ''} ${m.roundName || ''} — ${vs}`.trim(),
-            value: m.matchUpId,
-          };
-        });
-      },
-      onSelect: (matchUpId: string) => {
-        // Look up the matchUp to get drawId
-        const { matchUps = [] } = competitionEngine.allCompetitionMatchUps({
-          matchUpFilters: { matchUpIds: [matchUpId] },
-        });
-        const matchUp = matchUps[0];
-
-        const methods = [
-          {
-            method: ADD_MATCHUP_SCHEDULE_ITEMS,
-            params: {
-              matchUpId,
-              drawId: matchUp?.drawId ?? '',
-              schedule: { courtId, venueId, courtOrder, scheduledDate },
-              removePriorValues: true,
-            },
-          },
-        ];
-
-        mutationRequest({
-          methods,
-          callback: (result: any) => {
-            if (result.success) {
-              // Remove from unscheduled table (same pattern as drag-drop)
-              const unscheduledTable = Tabulator.findTable(`#${UNSCHEDULED_MATCHUPS}`)?.[0];
-              if (unscheduledTable) {
-                unscheduledTable.deleteRow(matchUpId).catch(() => {});
-              }
-              if (updateScheduleTable && scheduledDate) {
-                updateScheduleTable({ scheduledDate });
-              }
-            }
-          },
-        });
-      },
+      cell: cell.getElement() as HTMLElement,
+      listProvider: () => buildUnscheduledMatchUpList(scheduledDate),
+      onSelect: (matchUpId: string) =>
+        scheduleSelectedMatchUp({
+          matchUpId,
+          courtId,
+          venueId,
+          courtOrder,
+          scheduledDate,
+          updateScheduleTable,
+        }),
     });
   };
 

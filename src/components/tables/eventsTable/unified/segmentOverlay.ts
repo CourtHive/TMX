@@ -9,6 +9,7 @@ import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
 import { cancelManualSeeding } from '../seeding/canceManuallSeeding';
 import { generateSeedValues } from '../seeding/generateSeedValues';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { modifyEntriesStatus } from '../modifyEntriesStatus';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { changeEntryStatus } from '../changeEntryStatus';
@@ -16,10 +17,11 @@ import { clearSeeding } from '../seeding/removeSeeding';
 import { saveSeeding } from '../seeding/saveSeeding';
 import { destroySelected } from '../destroyPairs';
 import { addEntries } from '../addEntries';
+import { pairFromUnified } from './pairFromUnified';
 import { addToDraw } from '../addToDraw';
-import { createPair } from '../createPair';
 
 // Constants
+import { REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING: QUAL_STAGE } = drawDefinitionConstants;
@@ -45,6 +47,53 @@ const MOVE_TARGETS_DOUBLES: Record<number, string[]> = {
   ...MOVE_TARGETS,
   [WITHDRAWN_RANK]: [UNGROUPED],
 };
+
+function isSelectableForMove(p: any) {
+  return !p._isSeparator && !p.drawPosition;
+}
+
+function pickParticipantId({ participantId }: any) {
+  return participantId;
+}
+
+function runMoveSelection({
+  table,
+  group,
+  eventId,
+  drawId,
+  onRefresh,
+}: {
+  table: any;
+  group: string;
+  eventId: string;
+  drawId?: string;
+  onRefresh: () => void;
+}) {
+  const selected = table.getSelectedData();
+  const participantIds = selected.filter(isSelectableForMove).map(pickParticipantId);
+  if (!participantIds.length) {
+    table.deselectRow();
+    tmxToast({
+      message: selected.length ? 'Selected participants have assigned draw positions' : 'No participants selected',
+      intent: 'is-warning',
+    });
+    return;
+  }
+  modifyEntriesStatus({
+    participantIds,
+    group,
+    eventId,
+    drawId,
+    callback: (result: any) => {
+      if (result?.success) {
+        onRefresh();
+        return;
+      }
+      table.deselectRow();
+      tmxToast({ message: result.error?.message ?? 'Error moving participants', intent: 'is-danger' });
+    },
+  });
+}
 
 function getSelectedSegments(table: any): Set<number> {
   const selected = table.getSelectedData();
@@ -87,34 +136,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     if (!targets.length) return { location: OVERLAY, hide: true };
 
     const options = targets.map((group) => ({
-      onClick: () => {
-        const selected = table.getSelectedData();
-        const participantIds = selected
-          .filter((p: any) => !p._isSeparator && !p.drawPosition)
-          .map(({ participantId }: any) => participantId);
-
-        if (!participantIds.length) {
-          table.deselectRow();
-          tmxToast({
-            message: selected.length
-              ? 'Selected participants have assigned draw positions'
-              : 'No participants selected',
-            intent: 'is-warning',
-          });
-          return;
-        }
-
-        const callback = (result: any) => {
-          if (result?.success) {
-            onRefresh();
-          } else {
-            table.deselectRow();
-            tmxToast({ message: result.error?.message ?? 'Error moving participants', intent: 'is-danger' });
-          }
-        };
-
-        modifyEntriesStatus({ participantIds, group, eventId, drawId, callback });
-      },
+      onClick: () => runMoveSelection({ table, group, eventId, drawId, onRefresh }),
       stateChange: true,
       label: group,
       value: group,
@@ -162,17 +184,59 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     });
   }
 
-  // Create pair button — doubles, ungrouped only
+  // Create pair button — doubles, ungrouped only, exactly 2 selected
   if (isDoubles) {
     items.push((table: any) => {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
       const segments = getSelectedSegments(table);
-      if (!segments.has(UNGROUPED_RANK) || segments.size !== 1) return { location: OVERLAY, hide: true };
+      if (segments.size !== 1 || !segments.has(UNGROUPED_RANK) || selected.length !== 2) {
+        return { location: OVERLAY, hide: true };
+      }
 
-      // createPair returns { createPairButton, createPairFromSelected }
-      // where createPairButton is a config object (not a function)
-      const { createPairButton } = createPair(event, false);
-      return createPairButton;
+      return {
+        onClick: () => {
+          const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
+          table.deselectRow();
+          pairFromUnified(event, ids, () => onRefresh());
+        },
+        label: 'Create pair',
+        intent: 'is-info',
+        location: OVERLAY,
+      };
     });
+  }
+
+  // Remove from event — only when no draw created and selected entries have no draw position
+  if (!drawCreated) {
+    const removeHandler = (table: any): any => {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      if (!selected.length) return { location: OVERLAY, hide: true };
+
+      // Only show when all selected have no draw position
+      const removable = selected.filter((r: any) => !r.drawPosition);
+      if (!removable.length) return { location: OVERLAY, hide: true };
+
+      return {
+        onClick: () => {
+          const participantIds = removable.map(({ participantId }: any) => participantId);
+          const methods = [{ method: REMOVE_EVENT_ENTRIES, params: { eventId, participantIds } }];
+          const callback = (result: any) => {
+            if (result?.success) {
+              table.deselectRow();
+              onRefresh();
+            } else {
+              tmxToast({ message: result?.error?.message ?? 'Error removing entries', intent: 'is-danger' });
+            }
+          };
+          mutationRequest({ methods, callback });
+        },
+        label: 'Remove from event',
+        intent: 'is-danger',
+        location: OVERLAY,
+      };
+    };
+
+    items.push(removeHandler);
   }
 
   return items;
@@ -183,9 +247,10 @@ type RightItemsParams = {
   drawCreated: boolean;
   isDoubles: boolean;
   pairingMode: { enabled: boolean };
+  onRefresh: () => void;
 };
 
-export function getRightItems({ event, drawCreated, isDoubles, pairingMode }: RightItemsParams): any[] {
+export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRefresh }: RightItemsParams): any[] {
   const items: any[] = [];
 
   // Seeding — split into two compact dropdowns (Accepted + Qualifying).
@@ -228,9 +293,9 @@ export function getRightItems({ event, drawCreated, isDoubles, pairingMode }: Ri
   // Add entries — with segment target
   if (!drawCreated) {
     const addEntriesHandler = (table: any): any => {
-      const addAccepted = addEntries(event, ACCEPTED)(table);
-      const addQualifying = addEntries(event, QUALIFYING)(table);
-      const addAlternate = addEntries(event, ALTERNATE)(table);
+      const addAccepted = addEntries(event, ACCEPTED, onRefresh)(table);
+      const addQualifying = addEntries(event, QUALIFYING, onRefresh)(table);
+      const addAlternate = addEntries(event, ALTERNATE, onRefresh)(table);
 
       const options: any[] = [
         { label: 'Add to Accepted', onClick: addAccepted.onClick, close: true },

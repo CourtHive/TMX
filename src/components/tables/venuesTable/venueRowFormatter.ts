@@ -50,8 +50,6 @@ function addCourtsToVenue(venueId: string, courtsTable: any): void {
     const addCourtsParams: any = { courtsCount, venueId };
     if (courtNameRoot) {
       addCourtsParams.courtNameRoot = courtNameRoot;
-    } else {
-      addCourtsParams.venueAbbreviationRoot = true;
     }
 
     const methods = [{ method: ADD_COURTS, params: addCourtsParams }];

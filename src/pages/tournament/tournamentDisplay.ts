@@ -3,6 +3,7 @@
  * Handles tournament loading, navigation, and tab rendering.
  */
 import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
+import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderSchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
@@ -47,6 +48,7 @@ import {
   VENUES_TAB,
   EVENTS_TAB,
   TOURNAMENT_OVERVIEW,
+  REPORTS_TAB,
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
 
@@ -125,6 +127,7 @@ export function routeTo(config: any): void {
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
     if (selectedTab === VENUES_TAB) renderVenueTab({ venueView: config.venueView });
+    if (selectedTab === REPORTS_TAB) renderReportsTab();
     if (selectedTab === PUBLISHING_TAB) renderPublishingTab();
     if (selectedTab === SETTINGS_TAB) renderSettingsTab();
   }

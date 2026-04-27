@@ -1390,6 +1390,14 @@
     "system": "系统"
   },
 
+  "providerSwitcher": {
+    "title": "提供商",
+    "titleImpersonating": "正在模拟 {{name}}",
+    "selectProvider": "选择提供商…",
+    "switchProvider": "切换提供商…",
+    "clearImpersonation": "停止模拟"
+  },
+
   "tables": {
     "unscheduled": {
       "event": "赛事",

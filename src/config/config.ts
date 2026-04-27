@@ -34,9 +34,12 @@ const catchAsync =
 
 function initDB(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const initTMXdb = () => new Promise<void>((rz, rj) => catchAsync(tmx2db.initDB)().then(() => resolve(), dbUpgrade).then(rz, rj));
-    initTMXdb().then(resolve, reject);
+    initTMXdb(resolve).then(resolve, reject);
   });
+}
+
+function initTMXdb(outerResolve: () => void): Promise<void> {
+  return new Promise<void>((rz, rj) => catchAsync(tmx2db.initDB)().then(outerResolve, dbUpgrade).then(rz, rj));
 }
 
 function dbUpgrade(): void {

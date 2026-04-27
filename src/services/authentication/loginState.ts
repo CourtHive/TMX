@@ -1,12 +1,15 @@
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
+import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { clearUserContext, fetchUserContext } from './getUserContext';
+import { clearActiveProvider } from 'services/provider/providerState';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { loginModal } from 'components/modals/loginModal';
+import { providerConfig } from 'config/providerConfig';
 import { getLoginColor } from 'functions/getLoginColor';
 import { tipster } from 'components/popovers/tipster';
 import { checkDevState } from './checkDevState';
@@ -33,7 +36,14 @@ export function styleLogin(valid: LoginState | undefined | false): void {
 export function getLoginState(): LoginState | undefined {
   const token = getToken();
   const valid = validateToken(token);
-  if (valid) styleLogin(valid);
+  if (valid) {
+    styleLogin(valid);
+    // Apply effective provider config from the JWT on each load. Boot path
+    // (existing valid token + page reload) reaches here without hitting
+    // logIn(), so the apply must live here too. Default-permissive when
+    // the field is absent (older token / no provider).
+    if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
+  }
   return valid;
 }
 
@@ -43,7 +53,8 @@ export function logOut(): void {
   checkDevState();
   disconnectSocket();
   tournamentEngine.reset();
-  context.provider = undefined;
+  clearActiveProvider();
+  providerConfig.reset();
   context.matchUpFilters = {};
   context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
@@ -59,10 +70,12 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
     // The context will be available by the time the user interacts with the
     // tournaments table or any provider-scoped UI element.
     fetchUserContext();
+    if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
     tmxToast({ intent: 'is-success', message: t('toasts.loggedIn') });
     disconnectSocket();
     if (!tournamentInState) tournamentEngine.reset();
     styleLogin(valid);
+    initProviderSwitcher();
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {
@@ -87,7 +100,14 @@ function reRenderActiveTab(): void {
 }
 
 export function cancelImpersonation(): void {
-  context.provider = undefined;
+  clearActiveProvider();
+  // Re-apply the JWT user's home effective config when stopping impersonation.
+  // For full correctness on impersonation switch (not stop) the provider
+  // switcher fetches GET /provider/:id/effective-config — see
+  // initProviderSwitcher.ts.
+  const valid = getLoginState();
+  if (valid?.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
+  else providerConfig.reset();
   context.router?.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
 }
 
@@ -121,11 +141,6 @@ export function initLoginToggle(id: string): void {
           text: t('loginMenu.admin'),
           hide: !(superAdmin || (loggedIn?.roles?.includes(ADMIN) && context?.provider)),
           onClick: () => context.router?.navigate('/admin'),
-        },
-        {
-          text: t('loginMenu.system'),
-          hide: !superAdmin,
-          onClick: () => context.router?.navigate('/system'),
         },
         {
           text: t('loginMenu.logOut'),

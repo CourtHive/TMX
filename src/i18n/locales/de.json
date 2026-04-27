@@ -1354,6 +1354,14 @@
     "system": "System"
   },
 
+  "providerSwitcher": {
+    "title": "Anbieter",
+    "titleImpersonating": "{{name}} imitieren",
+    "selectProvider": "Anbieter auswählen…",
+    "switchProvider": "Anbieter wechseln…",
+    "clearImpersonation": "Imitation beenden"
+  },
+
   "tables": {
     "unscheduled": {
       "event": "Bewerb",

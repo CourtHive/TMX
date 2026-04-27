@@ -27,7 +27,6 @@ import {
   NONE,
   TOURNAMENT_CONTAINER,
   TMX_ADMIN,
-  TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 const flexColFlexGrow = 'flexcol flexgrow';
@@ -177,13 +176,6 @@ export function rootBlock(): HTMLElement {
 
   main.appendChild(admin);
 
-  const system = document.createElement('div');
-  system.className = flexColFlexGrow;
-  system.style.display = NONE;
-  system.id = TMX_SYSTEM;
-
-  main.appendChild(system);
-
   const templates = document.createElement('div');
   templates.className = flexColFlexGrow;
   templates.style.display = NONE;
@@ -225,12 +217,16 @@ function newBlock(): HTMLDivElement {
       <i id='s-route' class="nav-icon fa-solid fa-clock"></i>
       <i id='s2-route' class="nav-icon fa-solid fa-calendar-days"></i>
       <i id='v-route' class="nav-icon fa-solid fa-location-dot"></i>
-      <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
+      <i id='r-route' class="nav-icon fa-solid fa-chart-bar"></i>
       <span id='chatIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Tournament Chat">
         <i class="nav-icon fa-solid fa-comments"></i>
         <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>
       </span>
       <i id='syncIndicator' class="nav-icon fa-solid fa-rotate" style="display:none; cursor:pointer;" title="Data updated — click to refresh"></i>
+      <span id='assistantIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
+        <i class="nav-icon fa-solid fa-robot"></i>
+      </span>
+      <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
       <div id="mobileNav" class="mobile-nav">
         <button id="mobileNavToggle" class="mobile-nav-toggle"></button>
         <div id="mobileNavMenu" class="mobile-nav-menu"></div>
@@ -241,6 +237,9 @@ function newBlock(): HTMLDivElement {
 
       <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
+      <span id='assistantIndicatorHome' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
+        <i class="home-nav-icon fa-solid fa-robot"></i>
+      </span>
       <i id='h-settings' class="home-nav-icon fa-solid fa-sliders"></i>
       <div id="mobileHomeNav" class="mobile-nav">
         <button id="mobileHomeNavToggle" class="mobile-nav-toggle"></button>
@@ -249,6 +248,7 @@ function newBlock(): HTMLDivElement {
     </div>
     <div class="navbar-item" style="font-size: 1em; display: flex; align-items: center; gap: 2px;">
       <i id="themeToggle" style="cursor: pointer; padding: 0 .4em; opacity: 0.7;" class="fa-solid fa-moon" title="Toggle theme"></i>
+      <i id="h-stop-impersonating" class="fa-solid fa-xmark" title="Stop impersonating" style="display:none; cursor: pointer; padding: 0 .4em; color: var(--tmx-accent-orange, #f5a623);"></i>
       <i id="login" style="padding-left: .5em" class="fa-solid fa-circle-user"></i>
     </div>
   </div>

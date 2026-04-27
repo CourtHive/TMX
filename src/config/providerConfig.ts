@@ -108,6 +108,52 @@ export interface ProviderConfigData {
   defaults?: ProviderDefaults;
 }
 
+// ── Canonical key enumerations ──
+//
+// MIRROR of the canonical lists in
+// `competition-factory-server/src/modules/providers/provider-config.types.ts`.
+// A contract test (`providerConfig.contract.test.ts`) asserts these arrays
+// stay in lockstep. When a permission key is added on the server side, both
+// this file and the contract test's canonical list must be updated together.
+
+export const BOOLEAN_PERMISSION_KEYS = [
+  'canCreateCompetitors',
+  'canCreateOfficials',
+  'canDeleteParticipants',
+  'canImportParticipants',
+  'canEditParticipantDetails',
+  'canCreateEvents',
+  'canDeleteEvents',
+  'canModifyEventFormat',
+  'canCreateDraws',
+  'canDeleteDraws',
+  'canUseDraftPositioning',
+  'canUseManualPositioning',
+  'canModifySchedule',
+  'canUseBulkScheduling',
+  'canCreateVenues',
+  'canDeleteVenues',
+  'canModifyCourtAvailability',
+  'canEnterScores',
+  'canModifyCompletedScores',
+  'canPublish',
+  'canUnpublish',
+  'canModifyTournamentDetails',
+  'canModifyPolicies',
+  'canAccessProviderAdmin',
+] as const satisfies ReadonlyArray<keyof ProviderPermissions>;
+
+export const ARRAY_PERMISSION_KEYS = [
+  'allowedDrawTypes',
+  'allowedCreationMethods',
+  'allowedScoringApproaches',
+] as const satisfies ReadonlyArray<keyof ProviderPermissions>;
+
+export const PERMISSIONS_DEFAULT_FALSE: ReadonlySet<keyof ProviderPermissions> = new Set([
+  'canModifyCompletedScores',
+  'canAccessProviderAdmin',
+]);
+
 // ── Default permissions (all allowed) ──
 
 const DEFAULT_PERMISSIONS: Required<ProviderPermissions> = {

@@ -21,10 +21,7 @@ export function displayKeyActions(): void {
     const ctx = (elem: HTMLElement, close: () => void) => {
       const items = (provider?.settings?.keys || [])
         .sort((a: any, b: any) => stringSort(a.description, b.description))
-        .map((key: any) => ({
-          text: key.description,
-          onClick: () => submitKey(key.keyid),
-        }));
+        .map(toStoredKeyMenuItem);
       const menu = [
         {
           label: 'Enter new key',
@@ -57,6 +54,10 @@ export function displayKeyActions(): void {
       },
     });
   });
+}
+
+function toStoredKeyMenuItem(key: any) {
+  return { text: key.description, onClick: () => submitKey(key.keyid) };
 }
 
 function onKeyDown(e: KeyboardEvent) {

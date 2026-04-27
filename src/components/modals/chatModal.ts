@@ -2,7 +2,7 @@
  * Tournament chat panel.
  * Floating panel (not a modal) so the user can keep it open while working.
  */
-import { getMessages, sendMessage, setChatModalOpen, onChatUpdate } from 'services/chat/chatService';
+import { getMessages, getOnlineCount, sendMessage, setChatModalOpen, onChatUpdate } from 'services/chat/chatService';
 
 const PANEL_ID = 'chatPanel';
 
@@ -19,6 +19,19 @@ export function openChatModal(): void {
 
   let messagesContainer: HTMLElement;
   let input: HTMLInputElement;
+  let presenceLabel: HTMLElement;
+
+  const renderPresence = () => {
+    if (!presenceLabel) return;
+    const count = getOnlineCount();
+    if (count > 0) {
+      presenceLabel.style.display = 'inline-flex';
+      presenceLabel.title = `${count} online`;
+      presenceLabel.querySelector('span')!.textContent = String(count);
+    } else {
+      presenceLabel.style.display = 'none';
+    }
+  };
 
   const renderMessages = () => {
     if (!messagesContainer) return;
@@ -101,16 +114,43 @@ export function openChatModal(): void {
   // Make header draggable
   enableDrag(header, panel);
 
+  const titleGroup = document.createElement('div');
+  titleGroup.style.cssText = 'display: flex; align-items: center; gap: 8px; min-width: 0;';
+
   const title = document.createElement('span');
   title.textContent = 'Tournament Chat';
   title.style.cssText = 'font-weight: 600; font-size: 0.9rem; user-select: none;';
+
+  presenceLabel = document.createElement('span');
+  presenceLabel.style.cssText = [
+    'display: none',
+    'align-items: center',
+    'gap: 4px',
+    'font-size: 0.72rem',
+    'color: var(--chc-text-secondary, #6b7280)',
+    'background: var(--chc-bg-primary, #fff)',
+    'border: 1px solid var(--chc-border-primary, #e5e7eb)',
+    'border-radius: 999px',
+    'padding: 1px 8px',
+    'user-select: none',
+  ].join('; ');
+  const presenceIcon = document.createElement('i');
+  presenceIcon.className = 'fa-solid fa-user-group';
+  presenceIcon.style.cssText = 'font-size: 0.65rem;';
+  const presenceCount = document.createElement('span');
+  presenceCount.textContent = '0';
+  presenceLabel.appendChild(presenceIcon);
+  presenceLabel.appendChild(presenceCount);
+
+  titleGroup.appendChild(title);
+  titleGroup.appendChild(presenceLabel);
 
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times;';
   closeBtn.style.cssText = 'background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--chc-text-secondary, #888); line-height: 1;';
   closeBtn.onclick = closeChatPanel;
 
-  header.appendChild(title);
+  header.appendChild(titleGroup);
   header.appendChild(closeBtn);
   panel.appendChild(header);
 
@@ -150,7 +190,11 @@ export function openChatModal(): void {
   document.body.appendChild(panel);
 
   renderMessages();
-  unsubscribe = onChatUpdate(renderMessages);
+  renderPresence();
+  unsubscribe = onChatUpdate(() => {
+    renderMessages();
+    renderPresence();
+  });
   requestAnimationFrame(() => input.focus());
 }
 

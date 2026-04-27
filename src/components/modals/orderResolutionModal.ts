@@ -13,6 +13,33 @@ import { t } from 'i18n';
 import { SET_SUB_ORDER } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
+function remainingValuesForParticipant(
+  orderOptions: { value: number }[],
+  participants: any[],
+  inputs: any,
+  participant: any,
+): number[] {
+  return orderOptions
+    .map((opt) => opt.value)
+    .filter((value) =>
+      participants.every(
+        (p) => p.participantId === participant.participantId || inputs[p.participantId]?.value !== value,
+      ),
+    );
+}
+
+function applyRemainingToSelect(participantId: string, remainingValues: number[], inputs: any) {
+  const select = document.getElementById(participantId) as HTMLSelectElement | null;
+  if (!select) return;
+  if (remainingValues.length === 1) {
+    select.value = remainingValues[0].toString();
+    inputs[participantId].value = remainingValues[0];
+  } else {
+    select.value = '';
+    inputs[participantId].value = undefined;
+  }
+}
+
 type TiedAssignment = {
   participantId: string;
   drawPosition: number;
@@ -73,32 +100,11 @@ export function orderResolutionModal({
 
     if (changedValue) {
       participants.forEach((participant) => {
-        if (participant.participantId !== changedParticipantId) {
-          const currentValue = inputs[participant.participantId]?.value;
-          if (currentValue === changedValue) {
-            const remainingValues = orderOptions
-              .map((opt) => opt.value)
-              .filter((value) =>
-                participants.every(
-                  (p) => p.participantId === participant.participantId || inputs[p.participantId]?.value !== value,
-                ),
-              );
-
-            if (remainingValues.length === 1) {
-              const select = document.getElementById(participant.participantId) as HTMLSelectElement;
-              if (select) {
-                select.value = remainingValues[0].toString();
-                inputs[participant.participantId].value = remainingValues[0];
-              }
-            } else {
-              const select = document.getElementById(participant.participantId) as HTMLSelectElement;
-              if (select) {
-                select.value = '';
-                inputs[participant.participantId].value = undefined;
-              }
-            }
-          }
-        }
+        if (participant.participantId === changedParticipantId) return;
+        const currentValue = inputs[participant.participantId]?.value;
+        if (currentValue !== changedValue) return;
+        const remainingValues = remainingValuesForParticipant(orderOptions, participants, inputs, participant);
+        applyRemainingToSelect(participant.participantId, remainingValues, inputs);
       });
     }
 

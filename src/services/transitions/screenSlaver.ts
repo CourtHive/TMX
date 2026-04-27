@@ -13,7 +13,6 @@ import {
   TMX_POLICIES,
   TMX_SETTINGS,
   TMX_ADMIN,
-  TMX_SYSTEM,
 } from 'constants/tmxConstants';
 
 let content: string | undefined;
@@ -27,7 +26,6 @@ function selectDisplay(which: string): void {
   setState(TMX_TOURNAMENTS, which);
   setState(TMX_TOPOLOGY, which);
   setState(TMX_ADMIN, which);
-  setState(TMX_SYSTEM, which);
   setState(TMX_TEMPLATES, which);
   setState(TMX_POLICIES, which);
   setState(TMX_SETTINGS, which);
@@ -36,7 +34,7 @@ function selectDisplay(which: string): void {
   const homenav = document.getElementById('homenav');
   const dnav = document.getElementById('dnav');
 
-  const allManagedPages = [...HOME_CONTEXT_PAGES, ...TOURNAMENT_CONTEXT_PAGES, TMX_ADMIN, TMX_SYSTEM];
+  const allManagedPages = [...HOME_CONTEXT_PAGES, ...TOURNAMENT_CONTEXT_PAGES, TMX_ADMIN];
   if (allManagedPages.includes(which)) {
     if (dnav) dnav.style.display = '';
 
@@ -123,14 +121,6 @@ export const showTMXadmin = (): void => {
     tournamentElement.innerHTML = `<div class='tmx-title'>Admin</div>`;
   }
   content = TMX_ADMIN;
-  selectDisplay(content);
-};
-export const showTMXsystem = (): void => {
-  const tournamentElement = document.getElementById('pageTitle');
-  if (tournamentElement) {
-    tournamentElement.innerHTML = `<div class='tmx-title'>System</div>`;
-  }
-  content = TMX_SYSTEM;
   selectDisplay(content);
 };
 export const splashActive = (): boolean => isActive(SPLASH);

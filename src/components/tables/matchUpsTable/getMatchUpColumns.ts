@@ -6,6 +6,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { makeUpdatedAtFormatter } from '../common/formatters/updatedAtFormatter';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
@@ -205,13 +206,13 @@ export function getMatchUpColumns({
       field: 'matchUpType',
       titleFormatter,
       title: t('tables.matchUps.type'),
-      minWidth: 90,
+      minWidth: 70,
     },
     {
       field: 'roundName',
       title: t('tables.matchUps.round'),
       titleFormatter,
-      minWidth: 90,
+      minWidth: 70,
     },
     {
       cellClick: matchUpDateClick,
@@ -253,7 +254,7 @@ export function getMatchUpColumns({
       sorter: participantSorter,
       responsive: false,
       title: t('tables.matchUps.side1'),
-      minWidth: 180,
+      minWidth: 240,
       field: 'side1',
       widthGrow: 1,
     },
@@ -263,7 +264,7 @@ export function getMatchUpColumns({
       sorter: participantSorter,
       responsive: false,
       title: t('tables.matchUps.side2'),
-      minWidth: 180,
+      minWidth: 240,
       field: 'side2',
       widthGrow: 1,
     },
@@ -311,6 +312,29 @@ export function getMatchUpColumns({
       visible: false,
       width: 70,
     },
+    (() => {
+      // Resolve the tournament's canonical IANA zone (if set on the
+      // record) once when columns are built. Falls back to the viewer's
+      // local zone when no zone is stored. Re-opening the matchUps
+      // view after editing the tournament's timezone rebuilds columns,
+      // so the formatter closes over the fresh value.
+      const localTimeZone = tournamentEngine.getTournament()?.tournamentRecord?.localTimeZone;
+      return {
+        title: t('tables.matchUps.updatedAt'),
+        field: 'updatedAt',
+        // Initially hidden — users enable via the header menu when they
+        // need to audit freshness (cache-bust, stale-sync diagnosis, etc.).
+        visible: false,
+        width: 150,
+        // Display `YYYY-MM-DD HH:MM` in the tournament zone (or local
+        // fallback). Raw ISO stamp is attached to the cell title for
+        // full-fidelity hover recoverability.
+        formatter: makeUpdatedAtFormatter(localTimeZone),
+        // Underlying cell value is still the raw ISO string, so
+        // lexicographic sort is correct for ISO 8601 ordering.
+        sorter: 'string',
+      };
+    })(),
     {
       cellClick: (e: Event, cell: any) => matchUpActions({ pointerEvent: e as PointerEvent, cell, ...cell.getData() }),
       formatter: threeDots,

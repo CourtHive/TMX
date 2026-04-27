@@ -43,7 +43,9 @@ export function createEntriesPanels({
 }): void {
   if (!eventId || eventId === 'undefined') context.router?.navigate('/');
 
-  if (env.unifiedEntriesTable) {
+  // Unified entries table is standard. Power users can fall back to the
+  // legacy split-by-status panels via the legacyEntriesTable setting.
+  if (!env.legacyEntriesTable) {
     return createUnifiedEntriesPanel({ headerElement, eventId, drawId });
   }
 

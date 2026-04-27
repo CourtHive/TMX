@@ -82,6 +82,7 @@
   "sch": "Schedule",
   "sch2": "Schedule 2",
   "ven": "Venues",
+  "rpt": "Reports",
   "pub": "Publishing",
   "rename": "Rename",
   "crt": "Courts",
@@ -1355,7 +1356,10 @@
       "startDateLabel": "Start date",
       "endDateLabel": "End date",
       "selectActiveDates": "Select active dates",
-      "activeDates": "Active Dates"
+      "activeDates": "Active Dates",
+      "timeZoneLabel": "Time zone",
+      "timeZonePlaceholder": "e.g. America/New_York",
+      "timeZoneInvalid": "Not a recognised IANA time zone"
     },
     "addDraw": {
       "missingName": "Missing Draw name",
@@ -1492,6 +1496,14 @@
     "system": "System"
   },
 
+  "providerSwitcher": {
+    "title": "Provider",
+    "titleImpersonating": "Impersonating {{name}}",
+    "selectProvider": "Select provider…",
+    "switchProvider": "Switch provider…",
+    "clearImpersonation": "Stop impersonating"
+  },
+
   "tables": {
     "unscheduled": {
       "event": "Event",
@@ -1622,7 +1634,8 @@
       "score": "Score",
       "profile": "Profile",
       "official": "Official",
-      "status": "Status"
+      "status": "Status",
+      "updatedAt": "Updated"
     },
     "tournaments": {
       "open": "Open"
@@ -1649,6 +1662,9 @@
       "allTeams": "All teams",
       "allStatuses": "All statuses",
       "allTypes": "All Types",
+      "allDates": "All dates",
+      "today": "Today",
+      "noDate": "No date",
       "readyToScore": "Ready to score",
       "complete": "Complete",
       "singles": "Singles",

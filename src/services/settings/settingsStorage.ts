@@ -18,15 +18,31 @@ export type TMXSettings = {
   scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
   saveLocal?: boolean;
   smartComplements?: boolean;
-  googleSheetsImport?: boolean;
+  assistant?: boolean;
+  reports?: boolean;
   schedule2?: boolean;
-  enableChat?: boolean;
-  unifiedEntriesTable?: boolean;
+  legacyEntriesTable?: boolean;
   minCourtGridRows?: number;
   language?: string;
   theme?: 'light' | 'dark' | 'system';
   fontFamily?: string;
   fontSize?: string;
+  /**
+   * @deprecated — promoted to standard features. Retained in the type only so
+   * existing localStorage values deserialize cleanly; ignored on hydrate.
+   */
+  googleSheetsImport?: boolean;
+  /**
+   * @deprecated — promoted to standard features. Retained in the type only so
+   * existing localStorage values deserialize cleanly; ignored on hydrate.
+   */
+  enableChat?: boolean;
+  /**
+   * @deprecated — unified entries table is now standard. A stored `false`
+   * migrates to `legacyEntriesTable: true` on hydrate so existing power users
+   * keep their fallback.
+   */
+  unifiedEntriesTable?: boolean;
 };
 
 /**
@@ -93,10 +109,15 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
 
   // Feature flags
   const flagsPatch: Record<string, any> = {};
-  if (settings.googleSheetsImport !== undefined) flagsPatch.googleSheetsImport = settings.googleSheetsImport;
+  if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
+  if (settings.reports !== undefined) flagsPatch.reports = settings.reports;
   if (settings.schedule2 !== undefined) flagsPatch.schedule2 = settings.schedule2;
-  if (settings.enableChat !== undefined) flagsPatch.enableChat = settings.enableChat;
-  if (settings.unifiedEntriesTable !== undefined) flagsPatch.unifiedEntriesTable = settings.unifiedEntriesTable;
+  if (settings.legacyEntriesTable !== undefined) {
+    flagsPatch.legacyEntriesTable = settings.legacyEntriesTable;
+  } else if (settings.unifiedEntriesTable === false) {
+    // Migration: a user who had opted out of the unified table stays on legacy
+    flagsPatch.legacyEntriesTable = true;
+  }
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -129,10 +150,10 @@ export function persistConfigToStorage(
     scoringApproach: prefs.scoringApproach,
     smartComplements: prefs.smartComplements,
     saveLocal: server.saveLocal,
-    googleSheetsImport: flags.googleSheetsImport,
+    assistant: flags.assistant,
+    reports: flags.reports,
     schedule2: flags.schedule2,
-    enableChat: flags.enableChat,
-    unifiedEntriesTable: flags.unifiedEntriesTable,
+    legacyEntriesTable: flags.legacyEntriesTable,
     minCourtGridRows: schedule.minCourtGridRows,
     ...extras,
   });

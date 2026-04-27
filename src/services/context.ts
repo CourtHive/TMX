@@ -22,6 +22,7 @@ export const context: {
     status?: string;
     type?: string;
     search?: string;
+    scheduledDate?: string;
   };
   participantFilters: {
     eventId?: string;

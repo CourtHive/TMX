@@ -1,6 +1,7 @@
 /**
  * Unified entries panel — single table with sort-segregated segments.
- * Replaces the 5-panel approach behind the env.unifiedEntriesTable feature flag.
+ * Standard view for event entries. The legacy 5-panel approach remains
+ * available behind the `legacyEntriesTable` setting as a power-user fallback.
  */
 import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
@@ -11,7 +12,6 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { getOverlayItems, getRightItems } from './segmentOverlay';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { entryActions } from '../../../popovers/entryActions';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { getUnifiedColumns } from './unifiedColumns';
 import { pairFromUnified } from './pairFromUnified';
@@ -34,12 +34,10 @@ import {
   LEFT,
   RIGHT,
   TMX_TABLE,
-  ACCEPTED,
-  QUALIFYING,
 } from 'constants/tmxConstants';
 
 const { MAIN } = drawDefinitionConstants;
-const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
+const { UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
 
 const UNIFIED_TABLE_KEY = 'unifiedEntries';
@@ -160,13 +158,56 @@ export function createUnifiedEntriesPanel({
   const refresh = () => {
     const result = getTableData();
     if (result.error || !table) return;
+
+    // Rebuild columns so newly relevant columns appear (ratings, ranking, seeding, etc.)
+    const freshColumns = getUnifiedColumns({
+      entries: result.entries,
+      hasDrawDefinitions: result.hasDrawDefinitions,
+      sortState,
+    });
+    table.setColumns(freshColumns);
+
     table.replaceData(result.entries);
     applySort();
+    renderEventControlBar();
+    renderTableControlBar();
   };
 
   const applySort = () => {
     if (!table) return;
     table.setSort([{ column: '_segmentRank', dir: 'asc' }]);
+  };
+
+  // ── Enter-to-select (and pair in pairing mode) ──
+  const handleSearchEnter = (inputElement: HTMLInputElement) => {
+    if (!table) return;
+
+    const visibleRows = table.getRows('active');
+    const firstMatch = visibleRows.find((row: any) => !row.getData()._isSeparator);
+    if (!firstMatch) return;
+
+    const matchData = firstMatch.getData();
+
+    if (pairingMode.enabled) {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      if (
+        selected.length === 1 &&
+        selected[0]._segmentRank === 3 &&
+        matchData._segmentRank === 3 &&
+        selected[0].participantId !== matchData.participantId
+      ) {
+        const ids: [string, string] = [selected[0].participantId, matchData.participantId];
+        table.deselectRow();
+        inputElement.value = '';
+        applySearchFilter('');
+        pairFromUnified(event, ids, () => refresh());
+        return;
+      }
+    }
+
+    table.selectRow(firstMatch);
+    inputElement.value = '';
+    applySearchFilter('');
   };
 
   // ── Search with scope ──
@@ -207,22 +248,6 @@ export function createUnifiedEntriesPanel({
     return counts;
   };
 
-  // ── Entry actions (per-row three-dots) ──
-  const onEntryAction = (e: MouseEvent, cell: any) => {
-    const rowData = cell.getRow().getData();
-    const rank = rowData._segmentRank;
-
-    // Compute valid actions based on segment
-    let actions: string[] = [];
-    if (rank === 0) actions = [ALTERNATE, WITHDRAWN];
-    else if (rank === 1) actions = [ACCEPTED, QUALIFYING, ALTERNATE, WITHDRAWN];
-    else if (rank === 2) actions = [ACCEPTED, QUALIFYING, WITHDRAWN, UNGROUPED];
-    else if (rank === 3) actions = [WITHDRAWN];
-    else if (rank === 4) actions = [ALTERNATE];
-
-    entryActions(actions, eventId, drawId)(e, cell);
-  };
-
   // ── Build ──
   const result = getTableData();
   if (result.error) return;
@@ -243,10 +268,8 @@ export function createUnifiedEntriesPanel({
   // ── Table columns ──
   const columns = getUnifiedColumns({
     entries,
-    drawCreated,
     hasDrawDefinitions,
     sortState,
-    onEntryAction,
   });
 
   const ratingFields = columns.filter((col: any) => col.field?.startsWith('ratings.')).map((col: any) => col.field);
@@ -290,6 +313,7 @@ export function createUnifiedEntriesPanel({
   });
 
   context.tables[UNIFIED_TABLE_KEY] = table;
+  table._unifiedRefresh = refresh;
 
   // ── Header click for secondary sort ──
   table.on('headerClick', (_e: Event, column: any) => {
@@ -311,10 +335,9 @@ export function createUnifiedEntriesPanel({
     });
   }
 
-  // ── Selection change → re-render table control bar overlay ──
-  table.on('rowSelectionChanged', () => {
-    renderTableControlBar();
-  });
+  // Note: the controlBar's internal rowSelectionChanged listener handles overlay
+  // container visibility toggling. We do NOT rebuild the entire controlBar on
+  // selection change — doing so destroys DOM and causes cascading deselection.
 
   // ── Table built → apply sort + render control bars ──
   table.on('tableBuilt', () => {
@@ -328,8 +351,14 @@ export function createUnifiedEntriesPanel({
     const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
     if (!eventControlElement) return;
 
-    const counts = getSegmentCounts(entries);
-    const totalCount = entries.length;
+    // Fetch fresh data so counts and draw selectors stay current after mutations
+    const freshResult = getTableData();
+    const freshEntries = freshResult.entries ?? [];
+    const freshEvent = freshResult.event;
+    const freshIsDoubles = freshResult.isDoubles;
+
+    const counts = getSegmentCounts(freshEntries);
+    const totalCount = freshEntries.length;
 
     const scopeOptions = [
       { label: `All (${totalCount})`, onClick: () => updateSearchScope(SCOPE_ALL), close: true },
@@ -344,7 +373,7 @@ export function createUnifiedEntriesPanel({
         onClick: () => updateSearchScope(SCOPE_ALTERNATES),
         close: true,
       },
-      isDoubles &&
+      freshIsDoubles &&
         counts[3] && {
           label: `Ungrouped (${counts[3]})`,
           onClick: () => updateSearchScope(SCOPE_UNGROUPED),
@@ -359,7 +388,7 @@ export function createUnifiedEntriesPanel({
 
     const ALL_ENTRIES = 'All entries';
     const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
-    const entriesOptions = (event.drawDefinitions || [])
+    const entriesOptions = (freshEvent?.drawDefinitions || [])
       .map((dd: any) => ({
         onClick: () => navigateToEvent({ eventId, drawId: dd.drawId }),
         label: dd?.drawName,
@@ -375,7 +404,10 @@ export function createUnifiedEntriesPanel({
 
     const items = [
       {
-        onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && applySearchFilter(''),
+        onKeyDown: (e: any) => {
+          if (e.keyCode === 8 && e.target.value.length === 1) applySearchFilter('');
+          if (e.key === 'Enter' || e.keyCode === 13) handleSearchEnter(e.target);
+        },
         onChange: (e: any) => applySearchFilter(e.target.value),
         onKeyUp: (e: any) => applySearchFilter(e.target.value),
         clearSearch: () => applySearchFilter(''),
@@ -430,6 +462,7 @@ export function createUnifiedEntriesPanel({
       event,
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,
+      onRefresh: refresh,
       pairingMode,
     });
 
@@ -448,6 +481,47 @@ export function createUnifiedEntriesPanel({
       entriesView?.insertBefore(controlEl, tableContainer);
     }
 
-    controlBar({ target: controlEl, table, items: evalItems() });
+    // Re-evaluate overlay items when selection changes, replacing just the overlay
+    // container content — avoids full controlBar rebuild which causes cascading deselection.
+    const onSelection = () => {
+      const overlayEl = controlEl.querySelector('.options_overlay') as HTMLElement;
+      if (!overlayEl) return;
+      removeAllChildNodes(overlayEl);
+      const freshOverlay = overlayItemDefs.map((item: any) => (isFunction(item) ? item(table) : item));
+      for (const item of freshOverlay) {
+        if (!item || item.hide) continue;
+        const btn = document.createElement('button');
+        btn.className = `button is-small ${item.intent || 'is-light'}`;
+        btn.textContent = item.label || '';
+        if (item.options) {
+          // Dropdown-style overlay item — render as a simple dropdown
+          const wrapper = document.createElement('div');
+          wrapper.className = 'dropdown is-hoverable';
+          const trigger = document.createElement('div');
+          trigger.className = 'dropdown-trigger';
+          trigger.appendChild(btn);
+          wrapper.appendChild(trigger);
+          const menu = document.createElement('div');
+          menu.className = 'dropdown-menu';
+          const content = document.createElement('div');
+          content.className = 'dropdown-content';
+          for (const opt of item.options) {
+            const a = document.createElement('a');
+            a.className = 'dropdown-item';
+            a.textContent = opt.label || '';
+            a.onclick = (e) => { e.stopPropagation(); opt.onClick?.(); };
+            content.appendChild(a);
+          }
+          menu.appendChild(content);
+          wrapper.appendChild(menu);
+          overlayEl.appendChild(wrapper);
+        } else {
+          btn.onclick = (e) => { e.stopPropagation(); item.onClick?.(); };
+          overlayEl.appendChild(btn);
+        }
+      }
+    };
+
+    controlBar({ target: controlEl, table, items: evalItems(), onSelection });
   };
 }

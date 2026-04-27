@@ -21,6 +21,14 @@ export interface LoginState {
   provider?: ProviderValue;
   providerId?: string;
   providerIds?: string[];
+  /**
+   * Effective provider config (caps ∩ settings) computed server-side at login.
+   * TMX consumes this directly via `providerConfig.set()` — see
+   * `Mentat/planning/TMX_PROVIDER_CONFIG_FEATURES.md`. Typed loosely as `any`
+   * here because the canonical shape lives in `config/providerConfig.ts` and
+   * importing it would create a circular dependency through this types file.
+   */
+  activeProviderConfig?: any;
   exp: number;
 }
 

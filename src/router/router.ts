@@ -1,15 +1,16 @@
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
 import { registrationModal } from 'components/modals/registrationModal';
+import { ssoLoginWithToken } from 'services/authentication/authApi';
 import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
-import { renderSystemPage } from 'pages/system/renderSystemPage';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import { logIn, logOut } from 'services/authentication/loginState';
 import {
   forceExitAssignmentMode,
   isAssignmentMode,
@@ -25,7 +26,6 @@ import {
   PARTICIPANTS,
   SPLASH,
   STRUCTURE,
-  SYSTEM,
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE_TAB,
@@ -137,14 +137,31 @@ export function routeTMX() {
 
   router.on(`/${INVITE}/:inviteKey`, registrationModal);
 
+  // SSO login: provisioner redirects user here with a one-time token
+  router.on('/sso', async () => {
+    const params = new URLSearchParams(globalThis.location?.hash?.split('?')[1] ?? '');
+    const token = params.get('token');
+    if (token) {
+      try {
+        const res = await ssoLoginWithToken(token);
+        if (res?.status === 200 && res.data?.accessToken) {
+          logIn({ data: { token: res.data.accessToken } });
+        } else {
+          logOut();
+        }
+      } catch {
+        logOut();
+      }
+    } else {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+    }
+  });
+
   router.on(`/${TEMPLATES}/:templateView`, (match) => renderTemplatesPage(match?.data ?? undefined));
   router.on(`/${TEMPLATES}`, () => renderTemplatesPage());
   router.on(`/${POLICIES}`, renderPoliciesPage);
   router.on(`/${SETTINGS}`, renderSettingsPage);
   router.on('/admin', renderAdminPage);
-  router.on(`/${SYSTEM}/:selectedTab`, (match) => renderSystemPage(match?.data?.selectedTab));
-  router.on(`/${SYSTEM}`, () => renderSystemPage());
-
   router.on(`/actionKey/:key`, (match) => {
     const key = match?.data?.key;
     if (key) queueKey(key);

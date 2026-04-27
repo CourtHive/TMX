@@ -131,8 +131,11 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
 
 function reRenderCurrentView(drawId: string, structureId: string) {
   const eventId = getHashSegment('event');
+  const view = getHashSegment('view');
   // Navigo won't re-trigger if the hash is unchanged, so force by
   // navigating away momentarily then back to the draw view.
+  // The setTimeout ensures the first navigation's route handler completes
+  // before the second fires — without it, Navigo may skip the re-resolve.
   navigateToEvent({ eventId });
-  navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
+  setTimeout(() => navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view }), 0);
 }

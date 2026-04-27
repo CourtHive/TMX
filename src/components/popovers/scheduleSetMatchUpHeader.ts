@@ -22,6 +22,22 @@ const { IN_PROGRESS } = matchUpStatusConstants;
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 
+function findMatchUpColumnKey(rowData: any, matchUpId: string): string | undefined {
+  return Object.keys(rowData).find((key) => {
+    const cellData = rowData[key];
+    return cellData && typeof cellData === 'object' && cellData.matchUpId === matchUpId;
+  });
+}
+
+function locateScheduleRow(scheduleTable: any, matchUpId: string): { row: any; columnKey: string } | undefined {
+  for (const row of scheduleTable.getRows()) {
+    const data = row.getData();
+    const columnKey = findMatchUpColumnKey(data, matchUpId);
+    if (columnKey) return { row: data, columnKey };
+  }
+  return undefined;
+}
+
 export function scheduleSetMatchUpHeader(
   {
     e,
@@ -231,27 +247,12 @@ export function scheduleSetMatchUpHeader(
         matchUp.schedule = updatedSchedule;
 
         // Update the schedule table row to clear the matchUp
-        const tableRows = scheduleTable.getRows();
-        let sourceColumnKey: string | undefined;
-        let sourceRow: any;
-        const tabulatorRow = tableRows.find((row: any) => {
-          sourceRow = row.getData();
-          sourceColumnKey = Object.keys(sourceRow).find((key) => {
-            const cellData = sourceRow[key];
-            return cellData && typeof cellData === 'object' && cellData.matchUpId === matchUp.matchUpId;
-          });
-          return sourceColumnKey;
-        });
-
-        if (tabulatorRow && sourceRow && sourceColumnKey) {
-          sourceRow[sourceColumnKey] = {
-            schedule: {
-              courtOrder,
-              courtId,
-              venueId,
-            },
+        const located = locateScheduleRow(scheduleTable, matchUp.matchUpId);
+        if (located) {
+          located.row[located.columnKey] = {
+            schedule: { courtOrder, courtId, venueId },
           };
-          scheduleTable.updateData([sourceRow]);
+          scheduleTable.updateData([located.row]);
         }
 
         // Add to unscheduled table

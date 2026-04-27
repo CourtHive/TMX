@@ -11,6 +11,7 @@ pnpm-debug.log*
 
 # testing
 /coverage
+/test-results
 /e2e/test-results
 /e2e/playwright-report
 /e2e/.playwright
@@ -26,6 +27,8 @@ claude.*
 # development
 *.code-workspace
 .eslintcache
+.env
+.vite
 
 node_modules
 dist

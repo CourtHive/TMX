@@ -122,7 +122,10 @@ export function renderEventTabsBar({
       editBtn.style.background = 'transparent';
       editBtn.style.color = ACCENT_BLUE;
     };
-    editBtn.onclick = () => editEvent({ event, callback: () => navigateToEvent({ eventId }) });
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      editEvent({ event, callback: () => navigateToEvent({ eventId }) });
+    };
     rightWrapper.appendChild(editBtn);
   }
 

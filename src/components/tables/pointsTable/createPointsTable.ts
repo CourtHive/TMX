@@ -18,6 +18,12 @@ import { displayConfig } from 'config/displayConfig';
 
 import { POINTS_VIEW, RIGHT } from 'constants/tmxConstants';
 
+function getEventDrawId(eventId: string): { drawId?: string } {
+  const { event } = tournamentEngine.getEvent({ eventId }) ?? {};
+  const drawId = event?.drawDefinitions?.[0]?.drawId;
+  return { drawId };
+}
+
 type CreatePointsTableParams = {
   eventId: string;
 };
@@ -164,7 +170,17 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
 
     // Level selector — only shown when policy requires a level
     if (policy?.requiresLevel) {
-      const levelOptions = policy.availableLevels.map((lvl) => ({
+      // Use factory to filter levels by draw/event context
+      const { drawId } = getEventDrawId(eventId);
+      const { levels: applicableLevels } =
+        tournamentEngine.getApplicableAwardProfileLevels({
+          policyDefinitions: policy.policyData,
+          eventId,
+          drawId,
+        }) ?? {};
+      const filteredLevels = applicableLevels?.length ? applicableLevels : policy.availableLevels;
+
+      const levelOptions = filteredLevels.map((lvl) => ({
         label: getLevelDisplayLabel(lvl, policy),
         close: true,
         active: lvl === selectedLevel,

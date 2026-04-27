@@ -3,6 +3,7 @@
  * Manages tab navigation and highlighting for tournament sections.
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
+import { openAssistantPanel, checkAssistantHealth } from 'components/panels/assistantPanel';
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
@@ -21,6 +22,7 @@ import {
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
+  REPORTS_TAB,
   SCHEDULE_TAB,
   SCHEDULE2_TAB,
   TOURNAMENT,
@@ -43,6 +45,7 @@ const routeMap: Record<string, string> = {
   's-route': SCHEDULE_TAB,
   's2-route': SCHEDULE2_TAB,
   'v-route': VENUES_TAB,
+  'r-route': REPORTS_TAB,
   'b-route': PUBLISHING_TAB,
   'c-route': SETTINGS_TAB,
 };
@@ -55,6 +58,7 @@ const tips: Record<string, string> = {
   's-route': 'Schedule',
   's2-route': 'Schedule 2',
   'v-route': 'Venues',
+  'r-route': 'Reports',
   'b-route': 'Publishing',
   'c-route': 'Settings',
 };
@@ -68,6 +72,7 @@ const i18nKeys: Record<string, string> = {
   's-route': 'sch',
   's2-route': 'sch2',
   'v-route': 'ven',
+  'r-route': 'rpt',
   'b-route': 'pub',
   'c-route': 'set',
 };
@@ -94,7 +99,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
   // Set toggle label to translated current page name
   toggle.textContent = t(i18nKeys[currentId]);
 
-  // Build dropdown items
+  // Build dropdown items — route-based nav items
   menu.innerHTML = '';
   const ids = Object.keys(routeMap).filter((id) => id !== 's2-route' || featureFlags.get().schedule2);
   ids.forEach((id) => {
@@ -116,6 +121,10 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
     menu.appendChild(item);
   });
+
+  // Panel toggles — assistant and chat (non-route items)
+  if (featureFlags.get().assistant) addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
+  addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
 
   // Toggle dropdown on click
   toggle.onclick = () => {
@@ -153,9 +162,11 @@ export function tmxNavigation(): void {
 
   const ids = Object.keys(routeMap);
 
-  // Hide schedule2 nav icon when beta flag is off
+  // Hide beta nav icons when flags are off
   const s2Icon = document.getElementById('s2-route');
   if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
+  const rIcon = document.getElementById('r-route');
+  if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
   const selectedTab = context.router?.current?.[0]?.data?.selectedTab;
 
@@ -206,6 +217,41 @@ export function tmxNavigation(): void {
 
   // Chat icon — show/hide based on feature flag and unread count
   setupChatIndicator();
+
+  // Ask TMX assistant button (behind beta flag)
+  if (featureFlags.get().assistant) setupAssistantIndicator();
+}
+
+function addMobilePanelItem(
+  menu: HTMLElement,
+  toggle: HTMLElement,
+  label: string,
+  action: () => void,
+  visibilityId?: string,
+): void {
+  // Skip if the corresponding desktop indicator is hidden
+  if (visibilityId) {
+    const indicator = document.getElementById(visibilityId);
+    if (indicator && indicator.style.display === 'none') return;
+  }
+
+  const divider = menu.querySelector('.mobile-nav-divider');
+  if (!divider && menu.children.length > 0) {
+    const hr = document.createElement('div');
+    hr.className = 'mobile-nav-divider';
+    hr.style.cssText = 'border-top: 1px solid var(--chc-border-primary, #ddd); margin: 4px 0;';
+    menu.appendChild(hr);
+  }
+
+  const item = document.createElement('button');
+  item.className = 'mobile-nav-item';
+  item.textContent = label;
+  item.onclick = () => {
+    menu.classList.remove(MENU_OPEN_CLASS);
+    toggle.setAttribute(ARIA_EXPANDED, 'false');
+    action();
+  };
+  menu.appendChild(item);
 }
 
 function setupChatIndicator(): void {
@@ -213,10 +259,12 @@ function setupChatIndicator(): void {
   const badgeEl = document.getElementById('chatBadge');
   if (!chatEl) return;
 
+  // Chat is always available inside a tournament; the indicator lives
+  // in the tournament nav so its container controls context visibility.
+  chatEl.style.display = 'inline-flex';
+
   const updateVisibility = () => {
-    const enabled = featureFlags.get().enableChat;
     const unread = getUnreadCount();
-    chatEl.style.display = enabled || unread > 0 ? 'inline-flex' : 'none';
     if (badgeEl) badgeEl.style.display = unread > 0 ? 'block' : 'none';
   };
 
@@ -226,6 +274,28 @@ function setupChatIndicator(): void {
   };
   onChatUpdate(updateVisibility);
   updateVisibility();
+}
+
+function setupAssistantIndicator(): void {
+  const ids = ['assistantIndicator', 'assistantIndicatorHome'];
+  const elements = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+  if (elements.length === 0) return;
+
+  for (const el of elements) {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      openAssistantPanel();
+    };
+  }
+
+  // One health check drives visibility/opacity for both icons.
+  checkAssistantHealth().then((healthy) => {
+    for (const el of elements) {
+      el.style.display = 'inline-flex';
+      el.style.opacity = healthy ? '1' : '0.35';
+      el.title = healthy ? 'Ask TMX' : 'Ask TMX (unavailable)';
+    }
+  });
 }
 
 export function highlightTab(selectedTab: string): void {

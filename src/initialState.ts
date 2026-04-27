@@ -6,9 +6,11 @@ import { factoryConstants, globalState, tournamentEngine } from 'tods-competitio
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
+import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
+import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { courthiveComponentsVersion } from 'courthive-components';
 import { registerMenuHandler } from 'platform/menuHandler';
@@ -87,6 +89,7 @@ export function setupTMX(): void {
   initLoginToggle('login');
   initLoginToggle('burger');
   initThemeToggle('themeToggle');
+  initProviderSwitcher();
   if (!(Array.prototype as any).toSorted) {
     (Array.prototype as any).toSorted = function (compareFn?: (a: any, b: any) => number) {
       return this.slice().sort(compareFn);
@@ -105,6 +108,7 @@ function tmxReady(): void {
   registerMenuHandler();
   initRemoteMutationHandler();
   initStalenessGuard();
+  initTmxVersionCheck();
   routeTMX();
   tmxNavigation();
 }
