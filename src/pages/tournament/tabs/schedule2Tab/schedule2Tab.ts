@@ -17,7 +17,7 @@ import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 
 export type Schedule2View = 'grid' | 'profile';
@@ -145,8 +145,12 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   // Render the active view
   if (view === 'profile') {
     renderProfileView(container, scheduledDate);
+    // Profile view is configuration, not live data — let the sync indicator handle remote mutations
+    context.refreshActiveTable = undefined;
   } else {
     renderGridView(container, scheduledDate);
+    // Wire remote-mutation refresh so cells update when other clients schedule matchUps
+    context.refreshActiveTable = refreshGridView;
   }
 
   // Apply persisted catalog visibility to the freshly rendered layout

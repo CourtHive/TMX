@@ -73,6 +73,9 @@ let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
 let hiddenCourtIds = new Set<string>();
 let visibilityTip: Instance | null = null;
+// Late-bound refresh closure for the active grid render. Exposed via refreshGridView()
+// so remote mutations (other clients editing the tournament) can update cells in place.
+let currentRefresh: (() => void) | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   if (currentDate !== scheduledDate) hiddenCourtIds = new Set();
@@ -89,6 +92,7 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     activeControl.setScheduleDates(buildScheduleDates(currentDate));
     activeControl.setIssues(buildIssues(currentDate));
   }
+  currentRefresh = refresh;
 
   const gridCallbacks: GridCallbacks = { onRefresh: refresh, executeMethods };
 
@@ -381,6 +385,12 @@ export function destroyGridView(): void {
   pendingMethods = [];
   actionBarContainer = null;
   gridRootElement = null;
+  currentRefresh = null;
+}
+
+/** Refresh grid cells, catalog, dates, and issues from current factory state. */
+export function refreshGridView(): void {
+  currentRefresh?.();
 }
 
 /** Whether there are unsaved bulk scheduling changes. */
