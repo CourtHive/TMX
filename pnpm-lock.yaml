@@ -158,16 +158,16 @@ importers:
         specifier: ^1.59.1
         version: 1.59.1
       '@storybook/addon-docs':
-        specifier: ^10.1.11
+        specifier: ^10.2.17
         version: 10.3.5(@types/react@19.2.14)(esbuild@0.27.7)(rollup@4.59.0)(storybook@10.3.5(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.27.7)(jiti@2.6.1)(yaml@2.8.2))
       '@storybook/addon-links':
-        specifier: ^10.1.11
+        specifier: ^10.2.17
         version: 10.3.5(react@19.2.4)(storybook@10.3.5(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@storybook/html':
-        specifier: ^10.1.11
+        specifier: ^10.2.17
         version: 10.3.5(storybook@10.3.5(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@storybook/html-vite':
-        specifier: ^10.1.11
+        specifier: ^10.2.17
         version: 10.3.5(esbuild@0.27.7)(rollup@4.59.0)(storybook@10.3.5(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.27.7)(jiti@2.6.1)(yaml@2.8.2))
       '@types/babel__traverse':
         specifier: 7.28.0
@@ -254,7 +254,7 @@ importers:
         specifier: 7.7.4
         version: 7.7.4
       storybook:
-        specifier: ^10.1.11
+        specifier: ^10.2.17
         version: 10.3.5(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       stream-browserify:
         specifier: 3.0.0
