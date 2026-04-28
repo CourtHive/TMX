@@ -41,6 +41,7 @@ interface Schedule2HeaderParams {
   onBulkModeChange: (enabled: boolean) => void;
   onToggleCatalog?: () => void;
   onSearch?: (text: string, mode: ScheduleSearchMode) => void;
+  onClearSchedule?: (target: HTMLElement) => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
@@ -58,6 +59,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     onBulkModeChange,
     onToggleCatalog,
     onSearch,
+    onClearSchedule,
   } = params;
 
   const bar = document.createElement('div');
@@ -261,6 +263,32 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
       printSchedule({ scheduledDate: selectedDate, courts: courtsData, rows });
     });
     right.appendChild(printBtn);
+  }
+
+  // Clear schedule actions (grid view only)
+  if (activeView === 'grid' && onClearSchedule) {
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.style.cssText = [
+      FONT13,
+      'padding: 5px 10px',
+      BORDER_RADIUS_6,
+      BORDER_PRIMARY,
+      BG_PRIMARY,
+      bulkMode ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;' : 'color: var(--tmx-color-primary); cursor: pointer;',
+      DISPLAY_INLINE_FLEX,
+      ALIGN_CENTER,
+      'gap: 6px',
+    ].join('; ');
+    clearBtn.disabled = bulkMode;
+    clearBtn.title = bulkMode ? 'Exit bulk mode to use Clear actions' : 'Clear schedule data';
+    clearBtn.innerHTML =
+      '<i class="fa-solid fa-eraser" style="font-size: 12px;"></i>Clear <i class="fa-solid fa-chevron-down" style="font-size: 9px; opacity: 0.6;"></i>';
+    clearBtn.addEventListener('click', () => {
+      if (bulkMode) return;
+      onClearSchedule(clearBtn);
+    });
+    right.appendChild(clearBtn);
   }
 
   // Bulk mode toggle (grid view only, if permitted)

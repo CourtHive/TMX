@@ -19,6 +19,7 @@ import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants
 import { buildSchedule2Header } from './schedule2Header';
 import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
+import { openClearScheduleMenu } from './clearScheduleActions';
 
 export type Schedule2View = 'grid' | 'profile';
 
@@ -139,6 +140,12 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
         renderSchedule2Tab(params);
       }
     },
+    onClearSchedule: (target) =>
+      openClearScheduleMenu({
+        target,
+        scheduledDate,
+        onCleared: () => refreshGridView(),
+      }),
   });
   controlAnchor.appendChild(header);
 
