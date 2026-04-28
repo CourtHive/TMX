@@ -90,7 +90,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   dateBtn.innerHTML =
     `<i class="fa-solid fa-calendar-days" style="font-size: 12px;"></i>${formatDateLabel(selectedDate)}` +
     (matchUpCount > 0
-      ? ` <span style="font-size: 10px; font-weight: 400; padding: 1px 6px; border-radius: 10px; background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); color: var(--tmx-muted);">${matchUpCount}</span>`
+      ? ` <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${matchUpCount}</span>`
       : '') +
     ' <i class="fa-solid fa-chevron-down" style="font-size: 9px; opacity: 0.6;"></i>';
 
@@ -361,7 +361,7 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
 
     if (d.matchUpCount != null && d.matchUpCount > 0) {
       const b = document.createElement('span');
-      b.style.cssText = `font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--tmx-bg-secondary, rgba(128,128,128,0.1)); color: var(--tmx-muted);'}`;
+      b.style.cssText = `font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: rgba(127,127,127,0.25); color: currentColor;'}`;
       b.textContent = `${d.matchUpCount}`;
       badges.appendChild(b);
     }
