@@ -1,4 +1,3 @@
-import { manageTournamentAccess } from 'components/modals/manageTournamentAccess';
 import { createCourtSvg, type CourtSport } from 'services/courtSvg/courtSvgUtil';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -335,19 +334,9 @@ export function createActionsPanel(): HTMLElement {
     );
   }
 
-  // Manage access — allows admins to grant/revoke user access to this tournament
-  if (tournamentRecord && admin && providerId) {
-    btnContainer.appendChild(
-      createActionButton(t('modals.manageAccess.title'), 'fa-shield', () => {
-        manageTournamentAccess({
-          tournamentId: tournamentRecord.tournamentId,
-          tournamentName: tournamentRecord.tournamentName || tournamentRecord.tournamentId,
-          providerId,
-          onRefresh: () => renderOverview(),
-        });
-      }),
-    );
-  }
+  // Manage access moved to admin-client (provider admin work belongs there,
+  // not in TMX which is end-user-only). The button used to live here; users
+  // now access it via the admin-client `/admin` page → TournamentDetail panel.
 
   if (providerId) {
     btnContainer.appendChild(

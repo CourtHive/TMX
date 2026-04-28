@@ -54,11 +54,6 @@ export function clearUserContext(): void {
 
 // ── Convenience queries ──
 
-/** Is the current user a PROVIDER_ADMIN at the given provider? */
-export function isProviderAdmin(providerId: string): boolean {
-  return cached?.providerRoles?.[providerId] === 'PROVIDER_ADMIN';
-}
-
 /** Does the current user have any association with the given provider? */
 export function hasProviderAccess(providerId: string): boolean {
   return !!cached?.providerRoles?.[providerId];
