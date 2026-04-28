@@ -17,7 +17,7 @@ import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
-import { requestTournament } from 'services/apis/servicesApi';
+import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -141,14 +141,25 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
   const state = getLoginState();
   const provider = state?.provider || context?.provider;
 
+  const goToTournaments = () => context.router?.navigate('/tournaments');
+
   const notFound = () => {
+    const providerId = (context?.provider || state?.provider)?.organisationId;
+    const action = providerId
+      ? {
+          text: t('remove'),
+          onClick: () => {
+            removeTournament({ providerId, tournamentId: config.tournamentId }).then(goToTournaments, goToTournaments);
+          },
+        }
+      : undefined;
     tmxToast({
       message: t('toasts.tournamentNotFound'),
-      onClose: () => {
-        context.router?.navigate('/tournaments');
-      },
+      onClose: goToTournaments,
       intent: 'is-warning',
       pauseOnHover: true,
+      duration: 8000,
+      action,
     });
   };
 
@@ -175,7 +186,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     if (config.tournamentId) {
       const offline = tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
       if (offline) return tryLocal();
-      requestTournament({ tournamentId: config.tournamentId }).then(showResult, tryLocal);
+      requestTournament({ tournamentId: config.tournamentId, silent: true }).then(showResult, tryLocal);
     }
   } else {
     tournamentEngine.setState(tournamentRecord);
