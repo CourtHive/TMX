@@ -7,8 +7,8 @@ export async function fetchTournamentDetails({ identifier }: { identifier: strin
   return await baseApi.post('/service/tournamentdetails', { identifier });
 }
 
-export async function requestTournament({ tournamentId }: { tournamentId: string }) {
-  return await baseApi.post('/factory/fetch', { tournamentId });
+export async function requestTournament({ tournamentId, silent }: { tournamentId: string; silent?: boolean }) {
+  return await baseApi.post('/factory/fetch', { tournamentId }, silent ? { silenceErrors: true } : undefined);
 }
 
 export async function addProvider({ provider }: { provider: any }) {

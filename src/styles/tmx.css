@@ -403,6 +403,17 @@ body {
 .nav-icon { width: 2em; text-align: center; }
 .home-nav-icon { width: 2em; text-align: center; cursor: pointer; }
 
+#provider {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+#provider:hover {
+  background-color: var(--tmx-text-primary);
+  color: var(--tmx-text-inverse);
+}
+
 /* Sync indicator — pulses when remote mutations are pending */
 .sync-indicator--active {
   color: var(--tmx-accent-orange, #f59e0b);

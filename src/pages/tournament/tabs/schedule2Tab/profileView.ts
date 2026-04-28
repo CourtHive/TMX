@@ -24,8 +24,10 @@ import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-fa
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { hiddenCourtIds } from './visibilityState';
+import { context } from 'services/context';
 
-import { COMPETITION_ENGINE } from 'constants/tmxConstants';
+import { COMPETITION_ENGINE, SCHEDULE2_TAB } from 'constants/tmxConstants';
 
 const { calculateCapacityStats } = temporal;
 
@@ -372,6 +374,9 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   applyWrap.appendChild(applyGridBtn);
   bar.appendChild(applyWrap);
 
+  const scopePill = buildApplyScopePill();
+  if (scopePill) bar.appendChild(scopePill);
+
   // Clear button
   const clearBtn = document.createElement('button');
   clearBtn.className = 'sp-btn sp-btn--danger';
@@ -397,6 +402,60 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
   return bar;
 }
 
+/**
+ * Renders an "Apply scope" pill when courts are hidden in gridView, so the
+ * operator knows the upcoming Apply runs against a subset. Click jumps to
+ * gridView (where visibility is adjusted).
+ */
+function buildApplyScopePill(): HTMLElement | null {
+  if (hiddenCourtIds.size === 0) return null;
+  const { courts } = competitionEngine.getVenuesAndCourts() || {};
+  const total = Array.isArray(courts) ? (courts as any[]).length : 0;
+  if (!total) return null;
+  const visible = total - hiddenCourtIds.size;
+
+  const pill = document.createElement('button');
+  pill.type = 'button';
+  pill.title = 'Court visibility set in the Grid view restricts where Apply Times / Apply Grid will operate. Click to adjust.';
+  pill.style.cssText = [
+    'display: inline-flex',
+    'align-items: center',
+    'gap: 6px',
+    'padding: 4px 10px',
+    'border-radius: 999px',
+    'border: 1px solid var(--tmx-accent-blue, #3b82f6)',
+    'background: transparent',
+    'color: var(--tmx-accent-blue, #3b82f6)',
+    'font-size: 0.75rem',
+    'cursor: pointer',
+  ].join('; ');
+  pill.innerHTML = `<i class="fa-solid fa-eye" style="font-size: 11px;"></i><span>Apply scope: ${visible} of ${total} courts</span>`;
+  pill.addEventListener('click', () => {
+    const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
+    const date = (context as any).displayed?.selectedScheduleDate;
+    if (!tournamentId) return;
+    const path = date
+      ? `/tournament/${tournamentId}/${SCHEDULE2_TAB}/${date}/grid`
+      : `/tournament/${tournamentId}/${SCHEDULE2_TAB}`;
+    context.router?.navigate(path);
+  });
+  return pill;
+}
+
+/**
+ * Returns the visible court IDs (all courts minus hidden ones), or undefined
+ * when no courts are hidden — matching the factory default of "consider all
+ * courts" so we don't send a redundant payload.
+ */
+function getVisibleCourtIdsOrUndefined(): string[] | undefined {
+  if (hiddenCourtIds.size === 0) return undefined;
+  const { courts } = competitionEngine.getVenuesAndCourts() || {};
+  if (!Array.isArray(courts)) return undefined;
+  return (courts as any[])
+    .filter((c) => !hiddenCourtIds.has(c.courtId))
+    .map((c) => c.courtId);
+}
+
 function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
   if (!activeControl) return;
 
@@ -416,8 +475,11 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
   // Save profile first, then run the factory scheduler in the callback
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
+    const courtIds = getVisibleCourtIdsOrUndefined();
+    const params: any = { scheduleDates };
+    if (courtIds) params.courtIds = courtIds;
     mutationRequest({
-      methods: [{ method: 'scheduleProfileRounds', params: { scheduleDates } }],
+      methods: [{ method: 'scheduleProfileRounds', params }],
       engine: COMPETITION_ENGINE,
       callback: (eqResult: any) => {
         // executionQueue wraps method results in { success, results: [{ ...methodResult }] }
@@ -478,8 +540,11 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
+    const courtIds = getVisibleCourtIdsOrUndefined();
+    const params: any = { scheduleDates };
+    if (courtIds) params.courtIds = courtIds;
     mutationRequest({
-      methods: [{ method: 'scheduleProfileGrid', params: { scheduleDates } }],
+      methods: [{ method: 'scheduleProfileGrid', params }],
       engine: COMPETITION_ENGINE,
       callback: (eqResult: any) => {
         const result = eqResult?.results?.[0] ?? eqResult;

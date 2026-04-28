@@ -49,6 +49,7 @@ import type {
 import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
+import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { renderSchedule2Tab } from './schedule2Tab';
 
 const { scheduleConstants } = factoryConstants;
@@ -71,14 +72,13 @@ let pendingMethods: any[][] = []; // Each entry is a methods array from one drop
 let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
-let hiddenCourtIds = new Set<string>();
 let visibilityTip: Instance | null = null;
 // Late-bound refresh closure for the active grid render. Exposed via refreshGridView()
 // so remote mutations (other clients editing the tournament) can update cells in place.
 let currentRefresh: (() => void) | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
-  if (currentDate !== scheduledDate) hiddenCourtIds = new Set();
+  syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
   actionBarContainer = container;
   destroyVisibilityTip();

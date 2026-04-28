@@ -21,7 +21,9 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    if (response.data?.error) tmxToast({ message: response.data.error?.message, intent: 'is-danger' });
+    if (response.data?.error && !(response.config as any)?.silenceErrors) {
+      tmxToast({ message: response.data.error?.message, intent: 'is-danger' });
+    }
     return response;
   },
   (error) => {

@@ -105,7 +105,9 @@ function ensureStyles(): void {
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '—';
-  const d = new Date(dateStr + 'T00:00:00');
+  const isoLike = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? `${dateStr}T00:00:00` : dateStr;
+  const d = new Date(isoLike);
+  if (isNaN(d.getTime())) return '—';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
