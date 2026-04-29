@@ -52,7 +52,7 @@ test.describe('Journey 1 — Create and verify tournament', () => {
     await expect(page.locator(S.NAV_PARTICIPANTS)).toBeVisible();
     await expect(page.locator(S.NAV_EVENTS)).toBeVisible();
     await expect(page.locator(S.NAV_MATCHUPS)).toBeVisible();
-    await expect(page.locator(S.NAV_SCHEDULE)).toBeVisible();
+    await expect(page.locator(S.NAV_SCHEDULE2)).toBeVisible();
     await expect(page.locator(S.NAV_VENUES)).toBeVisible();
   });
 
