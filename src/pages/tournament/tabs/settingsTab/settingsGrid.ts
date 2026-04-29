@@ -59,13 +59,13 @@ function persistAll(
   featureFlags.set({
     assistant: displayInputs.assistant?.checked || false,
     reports: displayInputs.reports?.checked || false,
-    schedule2: displayInputs.schedule2?.checked || false,
     legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
+    legacySchedule: displayInputs.legacySchedule?.checked || false,
   });
 
-  // Immediately update beta nav icon visibility
-  const s2Icon = document.getElementById('s2-route');
-  if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
+  // Immediately update legacy/beta nav icon visibility
+  const sIcon = document.getElementById('s-route');
+  if (sIcon) sIcon.style.display = featureFlags.get().legacySchedule ? '' : 'none';
   const rIcon = document.getElementById('r-route');
   if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
@@ -313,14 +313,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       onChange: persist,
       checkbox: true,
     },
-    {
-      label: t('modals.settings.schedule2'),
-      checked: featureFlags.get().schedule2 || false,
-      field: 'schedule2',
-      id: 'schedule2',
-      onChange: persist,
-      checkbox: true,
-    },
   ]);
 
   // Fallback options row — power users only. Kept in this panel because the
@@ -340,6 +332,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       checked: featureFlags.get().legacyEntriesTable || false,
       field: 'legacyEntriesTable',
       id: 'legacyEntriesTable',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: 'Legacy schedule tab',
+      checked: featureFlags.get().legacySchedule || false,
+      field: 'legacySchedule',
+      id: 'legacySchedule',
       onChange: persist,
       checkbox: true,
     },

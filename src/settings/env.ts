@@ -79,12 +79,6 @@ export const env: any = {
   },
 
   // Feature flags — delegates to featureFlags
-  get schedule2() {
-    return featureFlags.get().schedule2;
-  },
-  set schedule2(v: boolean) {
-    featureFlags.set({ schedule2: v });
-  },
   get usePublishState() {
     return featureFlags.get().usePublishState;
   },
@@ -96,6 +90,12 @@ export const env: any = {
   },
   set legacyEntriesTable(v: boolean) {
     featureFlags.set({ legacyEntriesTable: v });
+  },
+  get legacySchedule() {
+    return featureFlags.get().legacySchedule;
+  },
+  set legacySchedule(v: boolean) {
+    featureFlags.set({ legacySchedule: v });
   },
 
   // User preferences — delegates to preferencesConfig

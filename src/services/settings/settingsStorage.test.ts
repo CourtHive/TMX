@@ -69,9 +69,37 @@ describe('settingsStorage — hydrateConfigFromStorage', () => {
     expect(flags.enableChat).toBeUndefined();
   });
 
-  it('applies schedule2 (still a live beta flag)', () => {
-    saveSettings({ schedule2: true });
+  it('applies legacySchedule when stored', () => {
+    saveSettings({ legacySchedule: true });
     hydrateConfigFromStorage();
-    expect(featureFlags.get().schedule2).toBe(true);
+    expect(featureFlags.get().legacySchedule).toBe(true);
+  });
+
+  it('leaves legacySchedule at default when nothing is stored', () => {
+    hydrateConfigFromStorage();
+    expect(featureFlags.get().legacySchedule).toBe(false);
+  });
+
+  describe('migration from deprecated schedule2', () => {
+    it('migrates schedule2=false into legacySchedule=true', () => {
+      // A power user previously opted out of schedule2. That opt-out must
+      // survive the promotion / flag rename — they still see the legacy
+      // schedule tab.
+      saveSettings({ schedule2: false });
+      hydrateConfigFromStorage();
+      expect(featureFlags.get().legacySchedule).toBe(true);
+    });
+
+    it('does NOT migrate schedule2=true (that was the opt-in path)', () => {
+      saveSettings({ schedule2: true });
+      hydrateConfigFromStorage();
+      expect(featureFlags.get().legacySchedule).toBe(false);
+    });
+
+    it('an explicit new legacySchedule setting takes precedence over legacy schedule2', () => {
+      saveSettings({ schedule2: false, legacySchedule: false });
+      hydrateConfigFromStorage();
+      expect(featureFlags.get().legacySchedule).toBe(false);
+    });
   });
 });

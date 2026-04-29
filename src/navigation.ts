@@ -55,8 +55,8 @@ const tips: Record<string, string> = {
   'p-route': 'Participants',
   'e-route': 'Events',
   'm-route': 'MatchUps',
-  's-route': 'Schedule',
-  's2-route': 'Schedule 2',
+  's-route': 'Schedule (legacy)',
+  's2-route': 'Schedule',
   'v-route': 'Venues',
   'r-route': 'Reports',
   'b-route': 'Publishing',
@@ -101,7 +101,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Build dropdown items — route-based nav items
   menu.innerHTML = '';
-  const ids = Object.keys(routeMap).filter((id) => id !== 's2-route' || featureFlags.get().schedule2);
+  const ids = Object.keys(routeMap).filter((id) => id !== 's-route' || featureFlags.get().legacySchedule);
   ids.forEach((id) => {
     const item = document.createElement('button');
     item.className = 'mobile-nav-item';
@@ -162,9 +162,9 @@ export function tmxNavigation(): void {
 
   const ids = Object.keys(routeMap);
 
-  // Hide beta nav icons when flags are off
-  const s2Icon = document.getElementById('s2-route');
-  if (s2Icon) s2Icon.style.display = featureFlags.get().schedule2 ? '' : 'none';
+  // Hide legacy/beta nav icons based on flags
+  const sIcon = document.getElementById('s-route');
+  if (sIcon) sIcon.style.display = featureFlags.get().legacySchedule ? '' : 'none';
   const rIcon = document.getElementById('r-route');
   if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 

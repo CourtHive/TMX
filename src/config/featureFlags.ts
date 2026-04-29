@@ -2,13 +2,12 @@
  * Feature flags — beta toggles persisted to localStorage.
  *
  * Standard features (Google Sheets import, tournament chat, unified entries
- * table) are no longer flagged. The remaining flags are either in-flight
- * beta features (schedule2) or fallback toggles for power users.
+ * table, schedule2) are no longer flagged. The remaining flags are either
+ * in-flight beta features or fallback toggles for power users.
  */
 export interface FeatureFlags {
   assistant: boolean;
   reports: boolean;
-  schedule2: boolean;
   usePublishState: boolean;
   /**
    * Power-user fallback: render the legacy split-by-status entries table
@@ -16,14 +15,20 @@ export interface FeatureFlags {
    * while the unified table beds in. Default: false.
    */
   legacyEntriesTable: boolean;
+  /**
+   * Power-user fallback: expose the original schedule tab in navigation.
+   * The new schedule (schedule2) is now the default; this flag re-enables
+   * the legacy tab as an escape hatch. Default: false.
+   */
+  legacySchedule: boolean;
 }
 
 const defaults: FeatureFlags = {
   assistant: false,
   reports: false,
-  schedule2: false,
   usePublishState: false,
   legacyEntriesTable: false,
+  legacySchedule: false,
 };
 
 let current: FeatureFlags = { ...defaults };

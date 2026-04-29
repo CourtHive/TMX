@@ -20,8 +20,14 @@ export type TMXSettings = {
   smartComplements?: boolean;
   assistant?: boolean;
   reports?: boolean;
-  schedule2?: boolean;
   legacyEntriesTable?: boolean;
+  legacySchedule?: boolean;
+  /**
+   * @deprecated — schedule2 is now the standard schedule tab. A stored
+   * `false` migrates to `legacySchedule: true` on hydrate so existing power
+   * users keep their familiar schedule.
+   */
+  schedule2?: boolean;
   minCourtGridRows?: number;
   language?: string;
   theme?: 'light' | 'dark' | 'system';
@@ -111,12 +117,17 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   const flagsPatch: Record<string, any> = {};
   if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
   if (settings.reports !== undefined) flagsPatch.reports = settings.reports;
-  if (settings.schedule2 !== undefined) flagsPatch.schedule2 = settings.schedule2;
   if (settings.legacyEntriesTable !== undefined) {
     flagsPatch.legacyEntriesTable = settings.legacyEntriesTable;
   } else if (settings.unifiedEntriesTable === false) {
     // Migration: a user who had opted out of the unified table stays on legacy
     flagsPatch.legacyEntriesTable = true;
+  }
+  if (settings.legacySchedule !== undefined) {
+    flagsPatch.legacySchedule = settings.legacySchedule;
+  } else if (settings.schedule2 === false) {
+    // Migration: a user who had opted out of the new schedule stays on legacy
+    flagsPatch.legacySchedule = true;
   }
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
@@ -152,8 +163,8 @@ export function persistConfigToStorage(
     saveLocal: server.saveLocal,
     assistant: flags.assistant,
     reports: flags.reports,
-    schedule2: flags.schedule2,
     legacyEntriesTable: flags.legacyEntriesTable,
+    legacySchedule: flags.legacySchedule,
     minCourtGridRows: schedule.minCourtGridRows,
     ...extras,
   });
