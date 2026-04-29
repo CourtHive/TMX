@@ -8,6 +8,7 @@
 import { competitionEngine, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { activateScheduleCellTypeAhead } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -211,7 +212,7 @@ function showPopover(target: HTMLElement, content: HTMLElement): void {
 // ============================================================================
 
 function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
-  const { cellData, allRows, courtPrefix, rowIndex, onRefresh, executeMethods } = ctx;
+  const { cellData, allRows, courtPrefix, rowIndex, scheduledDate, onRefresh, executeMethods } = ctx;
   const matchUpId = cellData.matchUpId;
 
   const fullMatchUp = competitionEngine.allTournamentMatchUps({
@@ -376,6 +377,11 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
   pop.appendChild(annoRow);
 
+  const printCard = () => printMatchUpCourtCard({ matchUpId, scheduledDate });
+  const sideHasParticipant = (s: any) => !!(s?.participantId || s?.participant?.participantId);
+  const sides = matchUp?.sides || [];
+  const bothSidesAssigned = sides.length >= 2 && sideHasParticipant(sides[0]) && sideHasParticipant(sides[1]);
+
   // Section 3: Actions (icon buttons)
   pop.appendChild(makeDivider());
   const actionsRow = document.createElement('div');
@@ -394,6 +400,12 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
         color: 'var(--tmx-accent-orange, #ef4444)',
       }),
     );
+  const isFinished = !!matchUp?.winningSide || isTerminal;
+  if (bothSidesAssigned && !isFinished && !isInProgress) {
+    const printBtn = makeIconBtn('Print court card', 'fa-print', printCard);
+    printBtn.style.marginLeft = 'auto';
+    actionsRow.appendChild(printBtn);
+  }
   if (actionsRow.children.length) pop.appendChild(actionsRow);
 
   // Walk up to the grid cell for accurate popover positioning

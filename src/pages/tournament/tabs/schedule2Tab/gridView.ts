@@ -21,10 +21,12 @@
  */
 import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
-import { printCourtCard } from 'components/modals/printCourtCards';
+import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { renameCourt } from 'components/modals/renameCourt';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { scheduleConfig } from 'config/scheduleConfig';
+import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
@@ -954,15 +956,50 @@ function buildGridHeaders(params: {
   grid.appendChild(corner);
 
   const courtHeaders: HTMLElement[] = [];
+  const showCourtIdentifiers = () => scheduleConfig.get().court_identifiers !== false;
   for (let ci = 0; ci < courtCount; ci++) {
     const court = courtsData[ci];
+    const courtName = court.courtName || `Court ${ci + 1}`;
     const th = document.createElement('div');
     th.style.cssText = stickyHeader + '; cursor: pointer;';
-    th.title = court.courtName || `Court ${ci + 1}`;
-    th.textContent = court.courtName || `Court ${ci + 1}`;
+    th.title = courtName;
+    th.textContent = showCourtIdentifiers() ? courtName : '';
     th.addEventListener('click', (e: MouseEvent) => {
       e.stopPropagation();
-      printCourtCard({ courtId: court.courtId, courtName: court.courtName, scheduledDate });
+      const visible = showCourtIdentifiers();
+      const addremove = visible ? t('remove') : t('add');
+      const courtInfo = { courtId: court.courtId, courtName };
+      const columnShim = {
+        updateDefinition: ({ title }: { title: string }) => {
+          th.textContent = showCourtIdentifiers() ? title : '';
+          th.title = title;
+        },
+      };
+      tipster({
+        target: e.currentTarget as HTMLElement,
+        options: [
+          {
+            option: `${addremove} ${t('settings.courtidentifiers')}`,
+            onClick: () => {
+              scheduleConfig.set({ court_identifiers: !visible });
+              const showing = showCourtIdentifiers();
+              for (let i = 0; i < courtHeaders.length; i++) {
+                const c = courtsData[i];
+                const name = c?.courtName || `Court ${i + 1}`;
+                courtHeaders[i].textContent = showing ? name : '';
+              }
+            },
+          },
+          {
+            option: t('rename'),
+            onClick: () => renameCourt({ column: columnShim, courtInfo }),
+          },
+          {
+            option: 'Print court card(s)',
+            onClick: () => printCourtMatchUpCards({ courtId: court.courtId, courtName, scheduledDate }),
+          },
+        ],
+      });
     });
     courtHeaders.push(th);
     grid.appendChild(th);
