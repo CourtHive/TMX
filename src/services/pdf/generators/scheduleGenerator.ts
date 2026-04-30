@@ -4,7 +4,7 @@
  * Generates OOP/schedule PDFs from TMX schedule grid data.
  */
 
-import { generateScheduleV2PDF } from 'pdf-factory';
+import { generateOrderOfPlayPDF } from 'pdf-factory';
 import { openPDF, savePDF } from '../export/pdfExport';
 
 interface ScheduleGeneratorOptions {
@@ -72,7 +72,7 @@ export function generateSchedulePDF(params: ScheduleGeneratorOptions): void {
 
   const orientation = courts.length >= 5 || options.landscape ? 'landscape' : 'portrait';
 
-  const doc = generateScheduleV2PDF(scheduleData, {
+  const doc = generateOrderOfPlayPDF(scheduleData, {
     header: options.includeHeader
       ? {
           layout: 'itf',
