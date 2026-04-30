@@ -233,7 +233,9 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   const right = document.createElement('div');
   right.style.cssText = 'display: flex; align-items: center; gap: 8px;';
 
-  // Print schedule button
+  // Print schedule button. Disabled in bulk mode — the dispatcher prints
+  // saved engine state, so unsaved bulk-staged edits would be silently
+  // omitted from the PDF. Force the user out of bulk mode first.
   {
     const printBtn = document.createElement('button');
     printBtn.style.cssText = [
@@ -242,15 +244,18 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
       BORDER_RADIUS_6,
       BORDER_PRIMARY,
       BG_PRIMARY,
-      CURSOR_POINTER,
-      'color: var(--tmx-accent-blue, #3b82f6)',
+      bulkMode
+        ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;'
+        : `${CURSOR_POINTER}; color: var(--tmx-accent-blue, #3b82f6)`,
       DISPLAY_INLINE_FLEX,
       ALIGN_CENTER,
       'gap: 4px',
     ].join('; ');
     printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 12px;"></i>';
-    printBtn.title = 'Print schedule';
+    printBtn.title = bulkMode ? 'Exit bulk mode to print the saved schedule' : 'Print schedule';
+    printBtn.disabled = bulkMode;
     printBtn.addEventListener('click', () => {
+      if (bulkMode) return;
       const matchUpFilters = { localPerspective: true, scheduledDate: selectedDate };
       const result = competitionEngine.competitionScheduleMatchUps({
         courtCompletedMatchUps: true,
