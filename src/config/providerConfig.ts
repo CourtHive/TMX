@@ -74,6 +74,13 @@ export interface ProviderPermissions {
   canAccessProviderAdmin?: boolean;
 }
 
+/**
+ * Per-print-type composition policies. Keys are pdf-factory PrintType
+ * values; values are partial CompositionConfig overrides. Resolved at
+ * print time via pdf-factory's `resolveCompositionConfig` helper.
+ */
+export type PrintPoliciesByType = Record<string, unknown>;
+
 export interface ProviderPolicyDefaults {
   /** Scheduling policy applied to new tournaments */
   schedulingPolicy?: any;
@@ -88,6 +95,8 @@ export interface ProviderPolicyDefaults {
     ageCategoryCode: string;
     categoryName?: string;
   }>;
+  /** Per-print-type composition policies (pdf-factory CompositionConfig per type) */
+  printPolicies?: PrintPoliciesByType;
 }
 
 export interface ProviderDefaults {
