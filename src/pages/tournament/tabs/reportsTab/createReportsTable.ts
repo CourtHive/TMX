@@ -39,6 +39,11 @@ export function createReportsTable({
     }
   }
 
+  const numberCellFormatter = (cell: any) => {
+    const value = cell.getValue();
+    return typeof value === 'number' && Number.isFinite(value) ? String(value) : 'N/A';
+  };
+
   const tabulatorColumns = columns
     .filter((col) => !HIDDEN_FIELDS.includes(col.key))
     .map((col) => {
@@ -56,6 +61,7 @@ export function createReportsTable({
         title: col.title,
         field: col.key,
         headerSort: true,
+        formatter: isNumber ? numberCellFormatter : undefined,
         hozAlign: isNumber ? ('center' as const) : undefined,
         headerHozAlign: isNumber ? ('center' as const) : undefined,
         width: isNumber ? 125 : col.width || undefined,
