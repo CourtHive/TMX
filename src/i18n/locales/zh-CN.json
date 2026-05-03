@@ -792,6 +792,8 @@
     "scheduled": "已安排",
     "time": "时间",
     "setTime": "设置时间",
+    "setMatchTimes": "设置比赛时间",
+    "shotgunStart": "同时开赛",
     "startMatch": "开始比赛",
     "startTime": "开始时间",
     "endTime": "结束时间",
@@ -1249,7 +1251,9 @@
     "noTournamentImage": "无锦标赛图片",
     "noTournamentInfo": "无锦标赛信息",
     "editNotes": "编辑备注",
-    "noEliminationStructures": "无淘汰赛结构"
+    "noEliminationStructures": "无淘汰赛结构",
+    "viewCompetitiveness": "查看竞争力",
+    "viewBracket": "查看签表"
   },
 
   "drawers": {

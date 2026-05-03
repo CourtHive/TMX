@@ -758,6 +758,8 @@
     "scheduled": "Programado",
     "time": "Hora",
     "setTime": "Definir horário",
+    "setMatchTimes": "Definir horários de partidas",
+    "shotgunStart": "Início simultâneo",
     "startMatch": "Iniciar partida",
     "startTime": "Hora de início",
     "endTime": "Hora de término",
@@ -1213,7 +1215,9 @@
     "noTournamentImage": "Sem imagem do torneio",
     "noTournamentInfo": "Sem informações do torneio",
     "editNotes": "Editar notas",
-    "noEliminationStructures": "Sem estruturas de eliminação"
+    "noEliminationStructures": "Sem estruturas de eliminação",
+    "viewCompetitiveness": "Ver competitividade",
+    "viewBracket": "Ver chave"
   },
 
   "drawers": {

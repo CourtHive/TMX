@@ -798,6 +798,8 @@
     "scheduled": "Scheduled",
     "time": "Time",
     "setTime": "Set time",
+    "setMatchTimes": "Set match times",
+    "shotgunStart": "Shotgun start",
     "startMatch": "Start match",
     "startTime": "Start time",
     "endTime": "End time",
@@ -1342,7 +1344,9 @@
     "noTournamentImage": "No tournament image",
     "noTournamentInfo": "No tournament information",
     "editNotes": "Edit notes",
-    "noEliminationStructures": "No elimination structures"
+    "noEliminationStructures": "No elimination structures",
+    "viewCompetitiveness": "View competitiveness",
+    "viewBracket": "View bracket"
   },
 
   "drawers": {

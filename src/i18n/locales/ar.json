@@ -734,6 +734,8 @@
     "scheduled": "مجدول",
     "time": "الوقت",
     "setTime": "تحديد الوقت",
+    "setMatchTimes": "تعيين أوقات المباريات",
+    "shotgunStart": "بداية موحدة",
     "startMatch": "بدء المباراة",
     "startTime": "وقت البدء",
     "endTime": "وقت الانتهاء",
@@ -1184,7 +1186,9 @@
     "noTournamentImage": "لا توجد صورة للبطولة",
     "noTournamentInfo": "لا توجد معلومات عن البطولة",
     "editNotes": "تعديل الملاحظات",
-    "noEliminationStructures": "لا توجد هياكل إقصاء"
+    "noEliminationStructures": "لا توجد هياكل إقصاء",
+    "viewCompetitiveness": "عرض التنافسية",
+    "viewBracket": "عرض الجدول"
   },
 
   "drawers": {

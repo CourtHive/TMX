@@ -758,6 +758,8 @@
     "scheduled": "Programmé",
     "time": "Heure",
     "setTime": "Définir l'heure",
+    "setMatchTimes": "Définir les horaires des matchs",
+    "shotgunStart": "Départ groupé",
     "startMatch": "Démarrer le match",
     "startTime": "Heure de début",
     "endTime": "Heure de fin",
@@ -1213,7 +1215,9 @@
     "noTournamentImage": "Pas d'image du tournoi",
     "noTournamentInfo": "Pas d'informations sur le tournoi",
     "editNotes": "Modifier les notes",
-    "noEliminationStructures": "Pas de structures d'élimination"
+    "noEliminationStructures": "Pas de structures d'élimination",
+    "viewCompetitiveness": "Afficher la compétitivité",
+    "viewBracket": "Afficher le tableau"
   },
 
   "drawers": {
