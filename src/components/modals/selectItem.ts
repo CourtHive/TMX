@@ -13,7 +13,7 @@ export function selectItem(params) {
   const { title, placeholder, options, selectionLimit } = params;
   const controlId = 'selectionControl';
   const anchorId = 'selectionTable';
-  const buttons = [{ label: 'Cancel', intent: 'is-none', close: true }];
+  const buttons = [{ label: 'Cancel', intent: 'none', close: true }];
   const onClose = () => {
     const table = context.tables['selectionTable'];
     table?.destroy();

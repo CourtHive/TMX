@@ -26,7 +26,7 @@ export function editNotes({ notice, notes, callback }: { notice?: string; notes?
     if (typeof callback === 'function') callback({ notice: updatedNotice, notes: updatedNotes });
   };
   const buttons = [
-    { label: t('common.cancel'), intent: 'is-nothing' },
+    { label: t('common.cancel'), intent: 'none' },
     { label: t('common.save'), intent: 'is-info', onClick: submit, close: true }
   ];
   openModal({ title: t('modals.scheduleNotes.title'), buttons, content });

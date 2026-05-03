@@ -156,7 +156,7 @@ export function openImportParticipantsView(args: ImportParticipantsViewArgs): vo
     config: { padding: '.5', maxWidth: 980 },
     content,
     buttons: [
-      { label: t('common.cancel'), intent: 'is-nothing', close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
       { label: t('modals.importParticipants.reAutoDetect'), intent: 'is-info', onClick: handleReautoDetect, close: false },
       { label: t('modals.importParticipants.import'), intent: 'is-primary', onClick: handleImport, close: true },
     ],

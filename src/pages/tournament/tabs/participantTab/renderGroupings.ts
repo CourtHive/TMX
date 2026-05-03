@@ -94,7 +94,7 @@ export function renderGroupings({ view }: { view: string }): void {
       options: addToEventOptions,
       label: 'Add to event',
       hide: !events.length || !isTeamView,
-      intent: 'is-none',
+      intent: 'none',
       location: OVERLAY,
     },
     {

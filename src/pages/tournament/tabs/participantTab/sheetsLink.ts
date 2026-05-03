@@ -123,7 +123,7 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
   const getInfo = () => {
     update({
       buttons: [
-        { label: t('common.close'), intent: 'is-nothing', close: true },
+        { label: t('common.close'), intent: 'none', close: true },
         { label: t('pages.participants.sheetsLink.enter'), intent: IS_PRIMARY, onClick: enterLink, close: false },
       ],
       title: t('pages.participants.sheetsLink.instructionsTitle'),
@@ -132,7 +132,7 @@ export function editRegistrationLink({ callback }: { callback?: () => void }): v
   };
 
   const buttons = [
-    { label: t('common.cancel'), intent: 'is-nothing' },
+    { label: t('common.cancel'), intent: 'none' },
     { label: t('pages.participants.sheetsLink.info'), intent: 'is-info', onClick: getInfo, close: false },
     { label: t('common.submit'), intent: IS_PRIMARY, onClick: submit, close: true },
   ];

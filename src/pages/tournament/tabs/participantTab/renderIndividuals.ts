@@ -219,7 +219,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       options: addToEventOptions,
       label: t('pages.participants.addToEvent.label'),
       hide: !events.length,
-      intent: 'is-none',
+      intent: 'none',
       location: OVERLAY,
     },
     {
@@ -233,14 +233,14 @@ export function renderIndividuals({ view }: { view: string }): void {
       selection: addToTeam,
       selectionTitle: t('pages.participants.addToTeam'),
       label: t('pages.participants.addToTeam'),
-      intent: 'is-none',
+      intent: 'none',
       location: OVERLAY,
     },
     {
       selection: addToGroup,
       selectionTitle: t('pages.participants.addToGroup'),
       label: t('pages.participants.addToGroup'),
-      intent: 'is-none',
+      intent: 'none',
       location: OVERLAY,
     },
     {

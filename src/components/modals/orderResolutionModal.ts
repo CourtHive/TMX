@@ -160,7 +160,7 @@ export function orderResolutionModal({
           callback(selectedOrders);
         }
       } else {
-        tmxToast({ message: t('modals.orderResolution.updateFailed'), intent: 'is-error' });
+        tmxToast({ message: t('modals.orderResolution.updateFailed'), intent: 'is-danger' });
       }
     };
 

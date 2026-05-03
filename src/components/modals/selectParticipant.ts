@@ -83,7 +83,7 @@ export function selectParticipant(params: any): void {
   const controlId = 'selectionControl';
   const anchorId = 'selectionTable';
   const buttons = [
-    { label: t('common.cancel'), intent: 'is-none', close: true },
+    { label: t('common.cancel'), intent: 'none', close: true },
     { hide: selectionLimit === 1, label: t('select'), intent: 'is-info', onClick, close: true },
   ];
   const onClose = () => {

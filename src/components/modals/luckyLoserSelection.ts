@@ -166,7 +166,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'is-none', close: true },
+    { label: 'Cancel', intent: 'none', close: true },
     ...(canAdvance
       ? [
           {
