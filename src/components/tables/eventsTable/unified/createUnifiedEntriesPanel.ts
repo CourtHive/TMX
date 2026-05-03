@@ -15,7 +15,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { getUnifiedColumns } from './unifiedColumns';
 import { pairFromUnified } from './pairFromUnified';
-import { controlBar } from 'courthive-components';
+import { controlBar, dropDownButton } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import type { SortState } from './segmentSorter';
 import { context } from 'services/context';
@@ -287,10 +287,10 @@ export function createUnifiedEntriesPanel({
       'flights',
     ]),
     selectableRows: true,
-    selectableRowsCheck: (row: any) => {
-      const data = row.getData();
-      return !data._isSeparator && !data.drawPosition;
-    },
+    // Allow selection of placed participants so they can be added to sibling
+    // draws within the same event (e.g. Main → Backdraw). Action handlers
+    // filter for placement when an action would be invalid for placed entries.
+    selectableRowsCheck: (row: any) => !row.getData()._isSeparator,
     columns,
     responsiveLayout: 'collapse',
     index: 'participantId',
@@ -483,6 +483,9 @@ export function createUnifiedEntriesPanel({
 
     // Re-evaluate overlay items when selection changes, replacing just the overlay
     // container content — avoids full controlBar rebuild which causes cascading deselection.
+    // Uses the shared dropDownButton component so dropdown triggers toggle on click
+    // (a hand-rolled `is-hoverable` rebuild silently swallowed clicks on touch and
+    // forced users to hover before the menu would appear).
     const onSelection = () => {
       const overlayEl = controlEl.querySelector('.options_overlay') as HTMLElement;
       if (!overlayEl) return;
@@ -490,33 +493,16 @@ export function createUnifiedEntriesPanel({
       const freshOverlay = overlayItemDefs.map((item: any) => (isFunction(item) ? item(table) : item));
       for (const item of freshOverlay) {
         if (!item || item.hide) continue;
-        const btn = document.createElement('button');
-        btn.className = `button is-small ${item.intent || 'is-light'}`;
-        btn.textContent = item.label || '';
         if (item.options) {
-          // Dropdown-style overlay item — render as a simple dropdown
-          const wrapper = document.createElement('div');
-          wrapper.className = 'dropdown is-hoverable';
-          const trigger = document.createElement('div');
-          trigger.className = 'dropdown-trigger';
-          trigger.appendChild(btn);
-          wrapper.appendChild(trigger);
-          const menu = document.createElement('div');
-          menu.className = 'dropdown-menu';
-          const content = document.createElement('div');
-          content.className = 'dropdown-content';
-          for (const opt of item.options) {
-            const a = document.createElement('a');
-            a.className = 'dropdown-item';
-            a.textContent = opt.label || '';
-            a.onclick = (e) => { e.stopPropagation(); opt.onClick?.(); };
-            content.appendChild(a);
-          }
-          menu.appendChild(content);
-          wrapper.appendChild(menu);
-          overlayEl.appendChild(wrapper);
+          dropDownButton({ target: overlayEl, button: item });
         } else {
-          btn.onclick = (e) => { e.stopPropagation(); item.onClick?.(); };
+          const btn = document.createElement('button');
+          btn.className = `button is-small ${item.intent || 'is-light'}`;
+          btn.textContent = item.label || '';
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            item.onClick?.();
+          };
           overlayEl.appendChild(btn);
         }
       }

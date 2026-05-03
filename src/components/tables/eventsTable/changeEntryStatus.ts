@@ -4,8 +4,8 @@ import { OVERLAY, entryStatusMapping } from 'constants/tmxConstants';
 import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
 const modifyStatus = (table: any, group: string, eventId: string, drawId?: string) => {
-  const selected = table.getSelectedData();
-  const participantIds = selected.filter((p: any) => !p.events?.length).map(({ participantId }: any) => participantId);
+  const selected = table.getSelectedData().filter((p: any) => !p._isSeparator);
+  const participantIds = selected.map(({ participantId }: any) => participantId);
   const [entryStage, entryStatus] = group.split('.');
 
   const params = {
