@@ -1,25 +1,26 @@
 import { createCourtSvg, type CourtSport } from 'services/courtSvg/courtSvgUtil';
+import { donutChartFromMatchUps } from '@tennisvisuals/scoring-visualizations';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
-import { openModal } from 'components/modals/baseModal/baseModal';
 import { printFactSheet } from 'components/modals/printFactSheet';
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'tods-competition-factory';
 import { sendTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
-import { success } from 'components/notices/success';
-import { failure } from 'components/notices/failure';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
-import { tmx2db } from 'services/storage/tmx2db';
+import { success } from 'components/notices/success';
+import { failure } from 'components/notices/failure';
 import { renderOverview } from './renderOverview';
+import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -202,14 +203,21 @@ export function createSunburstPlaceholder(): HTMLElement {
   return panel;
 }
 
+type SunburstView = 'burst' | 'donut';
+
 export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   const panel = document.createElement('div');
   panel.className = 'dash-panel dash-panel-green';
 
-  // Dropdown selector
+  let view: SunburstView = 'burst';
+
+  // Header row: structure dropdown + view toggle
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:12px;';
+
   const select = document.createElement('select');
   select.style.cssText =
-    'margin-bottom:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
+    'flex:1; min-width:0; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
 
   for (const s of structures) {
     const option = document.createElement('option');
@@ -217,22 +225,31 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     option.textContent = `${s.eventName} — ${s.drawName} — ${s.structureName}`;
     select.appendChild(option);
   }
+  header.appendChild(select);
 
-  panel.appendChild(select);
+  const toggleBtn = document.createElement('button');
+  toggleBtn.style.cssText = ICON_BTN_STYLE;
+  const setToggleAppearance = () => {
+    const showingBurst = view === 'burst';
+    toggleBtn.innerHTML = `<i class="fa ${showingBurst ? 'fa-chart-pie' : 'fa-circle-notch'}"></i>`;
+    toggleBtn.title = showingBurst
+      ? t('dashboard.viewCompetitiveness')
+      : t('dashboard.viewBracket');
+  };
+  setToggleAppearance();
+  header.appendChild(toggleBtn);
+
+  panel.appendChild(header);
 
   const chartDiv = document.createElement('div');
   chartDiv.style.cssText = 'display:flex; justify-content:center;';
   panel.appendChild(chartDiv);
 
-  const renderStructure = (structureId: string) => {
-    const info = structures.find((s) => s.structureId === structureId);
-    if (!info) return;
-
-    // Fetch event data lazily — only for the selected event, not all events
+  const renderBurst = (info: StructureInfo) => {
     const eventData = tournamentEngine.getEventData({ eventId: info.eventId })?.eventData;
     const drawData = eventData?.drawsData
       ?.find((d: any) => d.drawId === info.drawId)
-      ?.structures?.find((s: any) => s.structureId === structureId);
+      ?.structures?.find((s: any) => s.structureId === info.structureId);
     if (!drawData) return;
 
     chartDiv.innerHTML = '';
@@ -256,9 +273,38 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     burstChart({ width: 500, height: 500, eventHandlers }).render(chartDiv, fromFactoryDrawData(drawData), title);
   };
 
+  const renderDonut = (info: StructureInfo) => {
+    const { matchUps = [] } = tournamentEngine.allTournamentMatchUps({
+      contextFilters: { drawIds: [info.drawId], structureIds: [info.structureId] },
+      contextProfile: { withCompetitiveness: true },
+    });
+
+    chartDiv.innerHTML = '';
+    donutChartFromMatchUps(chartDiv, matchUps, {
+      width: 500,
+      height: 500,
+      title: `${info.eventName} — ${info.drawName}`,
+    });
+  };
+
+  const renderStructure = (structureId: string) => {
+    const info = structures.find((s) => s.structureId === structureId);
+    if (!info) return;
+    if (view === 'donut') {
+      renderDonut(info);
+    } else {
+      renderBurst(info);
+    }
+  };
+
+  toggleBtn.addEventListener('click', () => {
+    view = view === 'burst' ? 'donut' : 'burst';
+    setToggleAppearance();
+    renderStructure(select.value);
+  });
+
   select.addEventListener('change', () => renderStructure(select.value));
 
-  // Render first structure on load
   if (structures.length) {
     requestAnimationFrame(() => renderStructure(structures[0].structureId));
   }

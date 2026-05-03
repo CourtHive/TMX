@@ -118,6 +118,7 @@
     "@tiptap/extension-text-style": "^3.22.2",
     "@tiptap/extension-youtube": "^3.22.2",
     "@tiptap/starter-kit": "^3.22.2",
+    "@tennisvisuals/scoring-visualizations": "^0.2.1",
     "animate.css": "4.1.1",
     "axios": "1.15.2",
     "camelcase": "9.0.0",
@@ -153,6 +154,7 @@
     "overrides": {
       "tods-competition-factory": "link:../factory",
       "courthive-components": "link:../courthive-components",
+      "@tennisvisuals/scoring-visualizations": "link:../scoringVisualizations",
       "pdf-factory": "link:../pdf-factory",
       "@xmldom/xmldom": "^0.9.0",
       "brace-expansion@1": "^5.0.0",
