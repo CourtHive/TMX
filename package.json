@@ -120,7 +120,7 @@
     "@tiptap/starter-kit": "^3.22.2",
     "@tennisvisuals/scoring-visualizations": "^0.2.1",
     "animate.css": "4.1.1",
-    "axios": "1.15.2",
+    "axios": "1.16.0",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
     "courthive-components": "^1.0.1",
