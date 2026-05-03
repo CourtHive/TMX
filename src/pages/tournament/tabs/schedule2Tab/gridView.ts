@@ -89,6 +89,9 @@ let visibilityTip: Instance | null = null;
 let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
+// Latest schedule snapshot used by the strip — also consulted by the strip's
+// click handler so popovers open against the same row data the cell renders.
+let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] } | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   syncVisibilityDate(scheduledDate);
@@ -272,6 +275,14 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
   syncStripOffset(initialState.activeStripVisible);
   activeStrip.setData(buildActiveStripData(currentDate));
 
+  // Strip cell clicks open the same popover as grid-cell clicks. Delegated
+  // listener so it survives the strip's render() rebuilds.
+  activeStrip.element.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement | null)?.closest('.spl-active-strip-cell') as HTMLElement | null;
+    if (!target) return;
+    handleStripCellClick(e as MouseEvent, target, refresh);
+  });
+
   // ── Inject sidebar controls: collapse toggle + Unscheduled/Scheduled tabs ──
   injectSidebarControls(container);
 }
@@ -452,6 +463,7 @@ export function destroyGridView(): void {
     activeStripUnsubscribe = null;
   }
   activeStrip = null;
+  latestStripSnapshot = null;
   if (activeControl) {
     activeControl.destroy();
     activeControl = null;
@@ -1309,6 +1321,10 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const allCourtsData: any[] = result.courtsData ?? [];
   const courtPrefix: string = result.courtPrefix ?? 'C|';
 
+  // Cache the full snapshot so the strip's delegated click handler can resolve
+  // cellData via courtId + rowIndex without re-querying the engine.
+  latestStripSnapshot = { rows, courtPrefix, courtsData: allCourtsData };
+
   // Mirror gridView's visible-court filter so the strip and grid agree
   const visibleCourts: { court: any; originalIndex: number }[] = [];
   for (let i = 0; i < allCourtsData.length; i++) {
@@ -1353,6 +1369,43 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const minWidth = `${GRID_TIME_COL_WIDTH_PX + totalColumns * GRID_MIN_COURT_WIDTH_PX}px`;
 
   return { grid: { columns }, courts, gridTemplateColumns, minWidth };
+}
+
+/**
+ * Click handler for active-strip cells — opens the same popover as grid cells.
+ * Resolves cellData from the cached schedule snapshot via courtId + rowIndex.
+ */
+function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh: () => void): void {
+  if (!latestStripSnapshot) return;
+
+  const courtId = cellRoot.getAttribute('data-court-id') ?? '';
+  if (!courtId) return;
+
+  const rowAttr = cellRoot.getAttribute('data-row-index');
+  const rowIndex = rowAttr === null ? 0 : Number(rowAttr);
+
+  const courtIndex = latestStripSnapshot.courtsData.findIndex((c) => c.courtId === courtId);
+  if (courtIndex < 0) return;
+
+  const court = latestStripSnapshot.courtsData[courtIndex];
+  const cellKey = `${latestStripSnapshot.courtPrefix}${courtIndex}`;
+  const cellData = latestStripSnapshot.rows[rowIndex]?.[cellKey];
+  const courtOrder = cellData?.schedule?.courtOrder ?? rowIndex + 1;
+
+  handleSchedule2CellClick(event, {
+    cellData,
+    courtId,
+    venueId: court?.venueId ?? '',
+    courtOrder,
+    scheduledDate: currentDate,
+    allRows: latestStripSnapshot.rows,
+    courtPrefix: latestStripSnapshot.courtPrefix,
+    rowIndex,
+    onRefresh: refresh,
+    executeMethods,
+    matchUpListProvider: () => getFilteredMatchUpList(currentDate, activeControl),
+    findCatalogItem: (mid: string) => buildCatalog(currentDate).find((m) => m.matchUpId === mid),
+  });
 }
 
 /** Drop handler for the active strip — uses the resolved (courtId, rowIndex). */

@@ -155,6 +155,32 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     await expect(cell.locator(STATE_PILL_SELECTOR)).toHaveText('LIVE');
   });
 
+  test('clicking a strip cell opens the same popover as a grid cell', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_STRIP);
+    const target = await scheduleFirstMatchUp(page);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+
+    // Capture how many tippy popovers exist before the click — other UI on the
+    // page (date dropdown, issues icon, etc.) may already have tippy instances
+    // mounted in the DOM. We assert the count grows by clicking a strip cell.
+    const tippiesBefore = await page.locator('.tippy-box').count();
+
+    // Click the strip cell whose court has the scheduled matchUp.
+    const cell = page.locator(`${CELL_SELECTOR}[data-court-id="${target.courtId}"]`);
+    await cell.click();
+
+    // Same cell-click popover used by grid cells — wait for an additional
+    // tippy-box to appear.
+    await expect(async () => {
+      const after = await page.locator('.tippy-box').count();
+      expect(after).toBeGreaterThan(tippiesBefore);
+    }).toPass({ timeout: 5_000 });
+  });
+
   test('header toggle hides and re-shows the strip', async ({ page }) => {
     const tournamentId = await seedTournament(page, PROFILE_STRIP);
     const tournament = new TournamentPage(page);
