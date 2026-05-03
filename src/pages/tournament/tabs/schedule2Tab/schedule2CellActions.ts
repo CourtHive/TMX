@@ -540,7 +540,9 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   showPopover(target || (e.target as HTMLElement), pop);
 }
 
-// ── Row number click (shotgun start) ──
+// ============================================================================
+// Row Number Popover (bulk actions across all matchUps in the row)
+// ============================================================================
 
 export interface Schedule2RowContext {
   rowData: any;
@@ -570,21 +572,55 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   }
   if (!rowMatchUps.length) return;
 
-  const startableMatchUps = rowMatchUps.filter((m: any) => {
-    const status = m.matchUpStatus;
+  // Time mods, set time, and clear apply to anything not in a terminal status.
+  const applicableMatchUps = rowMatchUps.filter((m: any) => !terminalStatuses.has(m.matchUpStatus));
+  // Shotgun start additionally requires ≥2 participants assigned, not already in progress, no winner.
+  const startableMatchUps = applicableMatchUps.filter((m: any) => {
     const participantCount = m.sides?.filter((s: any) => s?.participantId || s?.participant?.participantId).length || 0;
-    return participantCount >= 2 && !terminalStatuses.has(status) && status !== IN_PROGRESS && !m.winningSide;
+    return participantCount >= 2 && m.matchUpStatus !== IN_PROGRESS && !m.winningSide;
   });
 
-  if (!startableMatchUps.length) return;
+  if (!applicableMatchUps.length) return;
+
+  const applicableIds = applicableMatchUps.map((m: any) => m.matchUpId);
+
+  const setSchedule = (schedule: any) => {
+    executeMethods(
+      [
+        {
+          params: { matchUpIds: applicableIds, schedule, removePriorValues: true },
+          method: BULK_SCHEDULE_MATCHUPS,
+        },
+      ],
+      onRefresh,
+    );
+  };
+
+  const modifyTime = (modifier: string) => setSchedule({ timeModifiers: [modifier] });
+  // Leaves startTime intact so matches already shotgun-started keep their actual start time.
+  const clearTimeSettings = () => setSchedule({ scheduledTime: '', timeModifiers: [] });
+
+  const setMatchTimes = () => {
+    const existing = applicableMatchUps.find((m: any) => m?.schedule?.scheduledTime)?.schedule?.scheduledTime;
+    timePicker({
+      time: existing || '8:00 AM',
+      callback: ({ time: picked }: { time: string }) => {
+        const scheduledTime = tools.dateTime.convertTime(picked, true) || '';
+        if (scheduledTime) setSchedule({ scheduledTime });
+      },
+    });
+  };
 
   const shotgunStart = () => {
     const now = new Date();
     const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const matchUpIds = startableMatchUps.map((m: any) => m.matchUpId);
+    const startableIds = startableMatchUps.map((m: any) => m.matchUpId);
     executeMethods(
       [
-        { params: { matchUpIds, schedule: { startTime }, removePriorValues: true }, method: BULK_SCHEDULE_MATCHUPS },
+        {
+          params: { matchUpIds: startableIds, schedule: { startTime }, removePriorValues: true },
+          method: BULK_SCHEDULE_MATCHUPS,
+        },
         ...startableMatchUps.map((m: any) => ({
           method: SET_MATCHUP_STATUS,
           params: { matchUpId: m.matchUpId, drawId: m.drawId, outcome: { matchUpStatus: IN_PROGRESS } },
@@ -594,18 +630,37 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
     );
   };
 
+  // ── Build popover DOM ──
   const pop = document.createElement('div');
   pop.style.cssText = POPOVER_CSS;
-  const row = document.createElement('div');
-  row.style.cssText = PILL_ROW_CSS;
-  row.appendChild(
-    makePill(`Shotgun start (${startableMatchUps.length})`, shotgunStart, {
-      icon: 'fa-bolt',
-      color: COLOR_ACCENT_BLUE,
-      outline: true,
-    }),
-  );
-  pop.appendChild(row);
+
+  // Section: Time
+  pop.appendChild(makeSectionLabel(t('schedule.time')));
+  const timeRow = document.createElement('div');
+  timeRow.style.cssText = PILL_ROW_CSS;
+  timeRow.appendChild(makePill(t('schedule.setMatchTimes'), setMatchTimes, { icon: 'fa-clock' }));
+  if (startableMatchUps.length) {
+    timeRow.appendChild(
+      makePill(`${t('schedule.shotgunStart')} (${startableMatchUps.length})`, shotgunStart, {
+        icon: 'fa-bolt',
+        color: COLOR_ACCENT_BLUE,
+        outline: true,
+      }),
+    );
+  }
+  pop.appendChild(timeRow);
+
+  // Section: Annotations
+  pop.appendChild(makeSectionLabel(t('schedule.annotations')));
+  const annoRow = document.createElement('div');
+  annoRow.style.cssText = PILL_ROW_CSS;
+  annoRow.appendChild(makePill(timeModifierText[FOLLOWED_BY], () => modifyTime(FOLLOWED_BY)));
+  annoRow.appendChild(makePill(timeModifierText[NEXT_AVAILABLE], () => modifyTime(NEXT_AVAILABLE)));
+  annoRow.appendChild(makePill(timeModifierText[NOT_BEFORE], () => modifyTime(NOT_BEFORE)));
+  annoRow.appendChild(makePill(timeModifierText[AFTER_REST], () => modifyTime(AFTER_REST)));
+  annoRow.appendChild(makePill(timeModifierText[TO_BE_ANNOUNCED], () => modifyTime(TO_BE_ANNOUNCED)));
+  annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
+  pop.appendChild(annoRow);
 
   showPopover(e.target as HTMLElement, pop);
 }
