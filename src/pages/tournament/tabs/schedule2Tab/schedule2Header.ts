@@ -34,12 +34,14 @@ interface Schedule2HeaderParams {
   endDate: string;
   bulkMode: boolean;
   catalogVisible?: boolean;
+  activeStripVisible?: boolean;
   scheduleDates?: ScheduleDate[];
   issues?: ScheduleIssue[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
   onToggleCatalog?: () => void;
+  onToggleActiveStrip?: () => void;
   onSearch?: (text: string, mode: ScheduleSearchMode) => void;
   onClearSchedule?: (target: HTMLElement) => void;
 }
@@ -52,12 +54,14 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     endDate,
     bulkMode,
     catalogVisible = true,
+    activeStripVisible = true,
     scheduleDates,
     issues,
     onDateChange,
     onViewChange,
     onBulkModeChange,
     onToggleCatalog,
+    onToggleActiveStrip,
     onSearch,
     onClearSchedule,
   } = params;
@@ -206,25 +210,42 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   }
 
   // ── Catalog toggle (floats far left) ──
+  const farLeftGroup = document.createElement('div');
+  farLeftGroup.style.cssText = [DISPLAY_INLINE_FLEX, ALIGN_CENTER, 'gap: 4px', 'margin-right: auto'].join('; ');
+
+  const toggleBtnStyle = [
+    FONT13,
+    'padding: 4px 8px',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
+    BG_PRIMARY,
+    CURSOR_POINTER,
+    COLOR_PRIMARY,
+    DISPLAY_INLINE_FLEX,
+    ALIGN_CENTER,
+    'opacity: 0.7',
+  ].join('; ');
+
   if (onToggleCatalog) {
     const catalogBtn = document.createElement('button');
-    catalogBtn.style.cssText = [
-      FONT13,
-      'padding: 4px 8px',
-      BORDER_RADIUS_6,
-      BORDER_PRIMARY,
-      BG_PRIMARY,
-      CURSOR_POINTER,
-      COLOR_PRIMARY,
-      DISPLAY_INLINE_FLEX,
-      ALIGN_CENTER,
-      'opacity: 0.7',
-      'margin-right: auto',
-    ].join('; ');
+    catalogBtn.style.cssText = toggleBtnStyle;
     catalogBtn.innerHTML = '<i class="fa-solid fa-table-columns"></i>';
     catalogBtn.title = catalogVisible ? 'Hide catalog' : 'Show catalog';
     catalogBtn.addEventListener('click', onToggleCatalog);
-    bar.appendChild(catalogBtn);
+    farLeftGroup.appendChild(catalogBtn);
+  }
+
+  if (onToggleActiveStrip) {
+    const stripBtn = document.createElement('button');
+    stripBtn.style.cssText = toggleBtnStyle + (activeStripVisible ? '' : '; opacity: 0.4');
+    stripBtn.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
+    stripBtn.title = activeStripVisible ? 'Hide active courts strip' : 'Show active courts strip';
+    stripBtn.addEventListener('click', onToggleActiveStrip);
+    farLeftGroup.appendChild(stripBtn);
+  }
+
+  if (farLeftGroup.children.length > 0) {
+    bar.appendChild(farLeftGroup);
   }
 
   bar.appendChild(left);

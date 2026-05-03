@@ -17,7 +17,7 @@ import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView, setGridActiveStripVisible } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
 
@@ -32,23 +32,41 @@ interface Schedule2State {
 // tmx_columns/context.columns helper because that store is hydrated
 // inside setupTMX() — after this module's top-level code has already run.
 const CATALOG_VISIBILITY_KEY = 'schedule2:catalog';
+const ACTIVE_STRIP_VISIBILITY_KEY = 'schedule2:activeStrip';
 const SELECTED_DATE_KEY = 'schedule2:selectedDate';
 
-function readCatalogVisible(): boolean {
+function readBoolFlag(key: string, fallback: boolean): boolean {
   try {
-    const stored = localStorage.getItem(CATALOG_VISIBILITY_KEY);
-    return stored === null ? true : stored !== 'false';
+    const stored = localStorage.getItem(key);
+    if (stored === null) return fallback;
+    return stored !== 'false';
   } catch {
-    return true;
+    return fallback;
   }
 }
 
-function writeCatalogVisible(visible: boolean): void {
+function writeBoolFlag(key: string, value: boolean): void {
   try {
-    localStorage.setItem(CATALOG_VISIBILITY_KEY, String(visible));
+    localStorage.setItem(key, String(value));
   } catch {
     // storage unavailable
   }
+}
+
+function readCatalogVisible(): boolean {
+  return readBoolFlag(CATALOG_VISIBILITY_KEY, true);
+}
+
+function writeCatalogVisible(visible: boolean): void {
+  writeBoolFlag(CATALOG_VISIBILITY_KEY, visible);
+}
+
+function readActiveStripVisible(): boolean {
+  return readBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, true);
+}
+
+function writeActiveStripVisible(visible: boolean): void {
+  writeBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, visible);
 }
 
 function readPersistedDate(): string | null {
@@ -69,11 +87,13 @@ function writePersistedDate(date: string): void {
 
 let state: Schedule2State | null = null;
 let catalogVisible: boolean | undefined;
+let activeStripVisible: boolean | undefined;
 
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
 
   catalogVisible ??= readCatalogVisible();
+  activeStripVisible ??= readActiveStripVisible();
 
   // Resolve date — redirect if missing. Prefer the user's last-selected date
   // (when still inside this tournament's date range) over today's fallback so
@@ -112,6 +132,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     endDate,
     bulkMode: getGridBulkMode(),
     catalogVisible,
+    activeStripVisible,
     scheduleDates: buildScheduleDates(scheduledDate),
     issues: buildIssues(scheduledDate),
     onDateChange: (date: string) => {
@@ -131,6 +152,11 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       if (layout) {
         layout.classList.toggle('spl-sidebar-collapsed', !catalogVisible);
       }
+    },
+    onToggleActiveStrip: () => {
+      activeStripVisible = !activeStripVisible;
+      writeActiveStripVisible(activeStripVisible);
+      setGridActiveStripVisible(activeStripVisible);
     },
     onSearch: (text, mode) => searchGridCells(text, mode),
     onBulkModeChange: (enabled: boolean) => {

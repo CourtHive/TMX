@@ -37,6 +37,7 @@ import {
   DEFAULT_SCHEDULE_CELL_CONFIG,
   matchUpLabel,
   isCompletedStatus,
+  buildActiveStripPanel,
 } from 'courthive-components';
 import type {
   SchedulePageConfig,
@@ -45,6 +46,8 @@ import type {
   ScheduleDate,
   ScheduleIssue,
   ScheduleIssueSeverity,
+  ActiveStripPanel,
+  ActiveStripPanelData,
 } from 'courthive-components';
 
 // constants
@@ -67,6 +70,12 @@ const POSITION_STICKY = 'position: sticky';
 const FONT_SIZE_11 = 'font-size: 11px';
 const DISPLAY_FLEX = 'display: flex';
 
+// Grid layout constants — shared with the active strip so its leading spacer
+// matches the row-number column and its court cells align with grid columns.
+const GRID_TIME_COL_WIDTH_PX = 50;
+const GRID_MIN_COURT_WIDTH_PX = 110;
+const STRIP_CELL_HEIGHT_PX = 80;
+
 let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
 let bulkMode = false;
@@ -78,6 +87,8 @@ let visibilityTip: Instance | null = null;
 // Late-bound refresh closure for the active grid render. Exposed via refreshGridView()
 // so remote mutations (other clients editing the tournament) can update cells in place.
 let currentRefresh: (() => void) | null = null;
+let activeStrip: ActiveStripPanel | null = null;
+let activeStripUnsubscribe: (() => void) | null = null;
 
 export function renderGridView(container: HTMLElement, scheduledDate: string): void {
   syncVisibilityDate(scheduledDate);
@@ -93,6 +104,7 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     activeControl.setMatchUpCatalog(buildCatalog(currentDate));
     activeControl.setScheduleDates(buildScheduleDates(currentDate));
     activeControl.setIssues(buildIssues(currentDate));
+    activeStrip?.setData(buildActiveStripData(currentDate));
   }
   currentRefresh = refresh;
 
@@ -103,11 +115,51 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
   const grid = buildInteractiveGrid(scheduledDate, gridCallbacks);
   const issues = buildIssues(scheduledDate);
 
+  // ── Active Strip: one-row court summary above the grid ──
+  activeStrip = buildActiveStripPanel(
+    {
+      onMatchUpDrop: (payload, target) => {
+        handleActiveStripDrop(payload, target, refresh);
+      },
+    },
+    {
+      cellHeight: `${STRIP_CELL_HEIGHT_PX}px`,
+      // Small label in the leading spacer cell. TODO i18n via t('schedule.now') when key exists.
+      spacerLabel: 'Now',
+      renderCell: (matchUp) => {
+        const cellData = matchUp.payload as any;
+        if (!cellData) return null;
+        return buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
+      },
+    },
+  );
+
+  // Wrap strip + grid in a single scroll container so they pan horizontally as
+  // one. The grid root's own overflow:auto is overridden — only the wrapper
+  // scrolls, ensuring the strip's columns stay aligned with the grid below.
+  // The strip is sticky-pinned so it stays visible while the grid scrolls
+  // vertically. Grid column headers reference --strip-offset to stick BELOW
+  // the strip rather than overlapping it; the offset toggles to 0 when the
+  // strip is hidden.
+  const gridWrapper = document.createElement('div');
+  gridWrapper.style.cssText = 'display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: auto;';
+  // +2 accounts for the strip's bottom accent rule.
+  gridWrapper.style.setProperty('--strip-offset', `${STRIP_CELL_HEIGHT_PX + 2}px`);
+  activeStrip.element.style.position = 'sticky';
+  activeStrip.element.style.top = '0';
+  activeStrip.element.style.zIndex = '3';
+  activeStrip.element.style.flexShrink = '0';
+  gridWrapper.appendChild(activeStrip.element);
+  grid.element.style.overflow = 'visible';
+  grid.element.style.flex = '1';
+  grid.element.style.minHeight = '0';
+  gridWrapper.appendChild(grid.element);
+
   const config: SchedulePageConfig = {
     matchUpCatalog: catalog,
     scheduleDates,
     issues,
-    courtGridElement: grid.element,
+    courtGridElement: gridWrapper,
     hideLeft: true,
     catalogSide: 'left',
     scheduledBehavior: 'dim',
@@ -203,6 +255,22 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
   };
 
   activeControl = createSchedulePage(config, container);
+
+  // Wire the strip's visibility toggle through the schedule page store, and
+  // push the initial data snapshot now that the activeControl exists. We also
+  // sync the --strip-offset CSS var on the wrapper so the grid's sticky column
+  // headers stick BELOW the strip when it's visible, and at top:0 when hidden.
+  const syncStripOffset = (visible: boolean) => {
+    gridWrapper.style.setProperty('--strip-offset', visible ? `${STRIP_CELL_HEIGHT_PX + 2}px` : '0px');
+  };
+  activeStripUnsubscribe = activeControl.getStore().subscribe((nextState) => {
+    activeStrip?.update(nextState);
+    syncStripOffset(nextState.activeStripVisible);
+  });
+  const initialState = activeControl.getStore().getState();
+  activeStrip.update(initialState);
+  syncStripOffset(initialState.activeStripVisible);
+  activeStrip.setData(buildActiveStripData(currentDate));
 
   // ── Inject sidebar controls: collapse toggle + Unscheduled/Scheduled tabs ──
   injectSidebarControls(container);
@@ -379,6 +447,11 @@ function injectSidebarControls(container: HTMLElement): void {
 }
 
 export function destroyGridView(): void {
+  if (activeStripUnsubscribe) {
+    activeStripUnsubscribe();
+    activeStripUnsubscribe = null;
+  }
+  activeStrip = null;
   if (activeControl) {
     activeControl.destroy();
     activeControl = null;
@@ -388,6 +461,11 @@ export function destroyGridView(): void {
   actionBarContainer = null;
   gridRootElement = null;
   currentRefresh = null;
+}
+
+/** Toggle visibility of the one-row active courts strip via the store flag. */
+export function setGridActiveStripVisible(visible: boolean): void {
+  activeControl?.setActiveStripVisible(visible);
 }
 
 /** Refresh grid cells, catalog, dates, and issues from current factory state. */
@@ -1028,8 +1106,8 @@ function buildGridHeaders(params: {
 }
 
 function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): InteractiveGrid {
-  const MIN_COURT_WIDTH = 110;
-  const TIME_COL_WIDTH = 50;
+  const MIN_COURT_WIDTH = GRID_MIN_COURT_WIDTH_PX;
+  const TIME_COL_WIDTH = GRID_TIME_COL_WIDTH_PX;
   const MIN_PLACEHOLDER_ROWS = 8;
 
   const root = document.createElement('div');
@@ -1098,7 +1176,10 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
 
     const STICKY_HEADER = [
       POSITION_STICKY,
-      'top: 0',
+      // top tracks the sticky strip above (set on the scroll wrapper). When
+      // the strip is hidden the var resolves to 0px so headers stick to the
+      // viewport top.
+      'top: var(--strip-offset, 0px)',
       'z-index: 2',
       'background: var(--sp-panel-bg, #fff)',
       'padding: 6px 4px',
@@ -1195,6 +1276,132 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
 // ============================================================================
 // Factory Data Helpers
 // ============================================================================
+
+/** Pull side participant IDs out of a factory matchUp (handles team/individual nesting). */
+function extractParticipantIds(matchUp: any): string[] {
+  const ids: string[] = [];
+  for (const side of matchUp?.sides ?? []) {
+    const participant = side.participant;
+    if (!participant) {
+      const sideId = side.participantId;
+      if (sideId) ids.push(sideId);
+      continue;
+    }
+    if (participant.individualParticipantIds?.length) {
+      for (const id of participant.individualParticipantIds) ids.push(id);
+    } else if (participant.participantId) {
+      ids.push(participant.participantId);
+    }
+  }
+  return ids;
+}
+
+/** Translate the factory schedule snapshot into the active-strip pure-logic shape. */
+function buildActiveStripData(date: string): ActiveStripPanelData {
+  const result = competitionEngine.competitionScheduleMatchUps({
+    matchUpFilters: { scheduledDate: date },
+    courtCompletedMatchUps: true,
+    withCourtGridRows: true,
+    minCourtGridRows: scheduleConfig.get().minCourtGridRows,
+  });
+
+  const rows: any[] = result.rows ?? [];
+  const allCourtsData: any[] = result.courtsData ?? [];
+  const courtPrefix: string = result.courtPrefix ?? 'C|';
+
+  // Mirror gridView's visible-court filter so the strip and grid agree
+  const visibleCourts: { court: any; originalIndex: number }[] = [];
+  for (let i = 0; i < allCourtsData.length; i++) {
+    if (!hiddenCourtIds.has(allCourtsData[i].courtId)) {
+      visibleCourts.push({ court: allCourtsData[i], originalIndex: i });
+    }
+  }
+
+  const columns = visibleCourts.map(({ court, originalIndex }) => ({
+    courtId: court.courtId,
+    cells: rows.map((row) => {
+      const cell = row?.[`${courtPrefix}${originalIndex}`];
+      if (!cell?.matchUpId) return null;
+      return {
+        matchUpId: cell.matchUpId,
+        drawId: cell.drawId,
+        roundNumber: cell.roundNumber,
+        matchUpStatus: cell.matchUpStatus,
+        winningSide: cell.winningSide,
+        hasScore: !!(cell.score?.scoreStringSide1 || cell.score?.scoreStringSide2),
+        participantIds: extractParticipantIds(cell),
+        // Stash the raw factory cell so the panel's renderCell can build the
+        // same grid-cell DOM (eventName, sides, score, etc.) as the grid below.
+        payload: cell,
+      };
+    }),
+  }));
+
+  const courts = visibleCourts.map(({ court }) => ({
+    courtId: court.courtId,
+    label: court.courtName ?? court.courtId,
+  }));
+
+  // Match the grid's grid-template-columns (sticky row-number col + visible
+  // courts + placeholder columns) so the strip's leading spacer + court cells
+  // line up exactly with the grid below.
+  const courtCount = visibleCourts.length;
+  const emptyCalc = MINIMUM_SCHEDULE_COLUMNS - courtCount;
+  const emptyCount = emptyCalc <= 0 ? 1 : emptyCalc;
+  const totalColumns = courtCount + emptyCount;
+  const gridTemplateColumns = `${GRID_TIME_COL_WIDTH_PX}px repeat(${totalColumns}, minmax(${GRID_MIN_COURT_WIDTH_PX}px, 1fr))`;
+  const minWidth = `${GRID_TIME_COL_WIDTH_PX + totalColumns * GRID_MIN_COURT_WIDTH_PX}px`;
+
+  return { grid: { columns }, courts, gridTemplateColumns, minWidth };
+}
+
+/** Drop handler for the active strip — uses the resolved (courtId, rowIndex). */
+function handleActiveStripDrop(
+  payload: { type: 'CATALOG_MATCHUP' | 'GRID_MATCHUP'; matchUp: any },
+  target: { courtId: string; rowIndex: number },
+  refresh: () => void,
+): void {
+  const result = competitionEngine.competitionScheduleMatchUps({
+    matchUpFilters: { scheduledDate: currentDate },
+    withCourtGridRows: true,
+    minCourtGridRows: scheduleConfig.get().minCourtGridRows,
+  });
+  const courtsData: any[] = result.courtsData ?? [];
+  const court = courtsData.find((c) => c.courtId === target.courtId);
+  if (!court) return;
+
+  const courtOrder = target.rowIndex + 1;
+  const methods: any[] = [];
+
+  if (payload.type === 'GRID_MATCHUP') {
+    methods.push({
+      method: ADD_MATCHUP_SCHEDULE_ITEMS,
+      params: {
+        matchUpId: payload.matchUp.matchUpId,
+        drawId: payload.matchUp.drawId ?? '',
+        schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
+        removePriorValues: true,
+      },
+    });
+  }
+
+  methods.push({
+    method: ADD_MATCHUP_SCHEDULE_ITEMS,
+    params: {
+      matchUpId: payload.matchUp.matchUpId,
+      drawId: payload.matchUp.drawId ?? '',
+      schedule: {
+        courtOrder,
+        scheduledDate: currentDate,
+        courtId: target.courtId,
+        venueId: court.venueId,
+      },
+      removePriorValues: true,
+    },
+  });
+
+  executeMethods(methods, refresh);
+}
 
 function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   const { matchUps } = competitionEngine.allTournamentMatchUps({
