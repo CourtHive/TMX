@@ -2,6 +2,19 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('tods-competition-factory', () => ({
   eventConstants: { TEAM: 'TEAM' },
+  factoryConstants: {
+    completedMatchUpStatuses: [
+      'CANCELLED',
+      'ABANDONED',
+      'COMPLETED',
+      'DEAD_RUBBER',
+      'DEFAULTED',
+      'DOUBLE_WALKOVER',
+      'DOUBLE_DEFAULT',
+      'RETIRED',
+      'WALKOVER',
+    ],
+  },
   tournamentEngine: {
     getParticipants: () => ({ participants: [{ participantName: 'Ref Jones' }] }),
   },
@@ -69,7 +82,7 @@ describe('mapMatchUp', () => {
   });
 
   it('maps winning side', () => {
-    let result: any = mapMatchUp(makeMatchUp({ winningSide: 1 }));
+    let result: any = mapMatchUp(makeMatchUp({ winningSide: 1, matchUpStatus: 'COMPLETED' }));
     expect(result.winningSide).toBe('side1');
     expect(result.complete).toBe(true);
   });
@@ -77,6 +90,22 @@ describe('mapMatchUp', () => {
   it('returns undefined winningSide when no winner', () => {
     let result: any = mapMatchUp(makeMatchUp());
     expect(result.winningSide).toBeUndefined();
+    expect(result.complete).toBe(false);
+  });
+
+  it('marks DOUBLE_WALKOVER as complete even without a winningSide', () => {
+    let result: any = mapMatchUp(makeMatchUp({ matchUpStatus: 'DOUBLE_WALKOVER' }));
+    expect(result.winningSide).toBeUndefined();
+    expect(result.complete).toBe(true);
+  });
+
+  it('marks DOUBLE_DEFAULT as complete even without a winningSide', () => {
+    let result: any = mapMatchUp(makeMatchUp({ matchUpStatus: 'DOUBLE_DEFAULT' }));
+    expect(result.complete).toBe(true);
+  });
+
+  it('does not mark IN_PROGRESS as complete', () => {
+    let result: any = mapMatchUp(makeMatchUp({ matchUpStatus: 'IN_PROGRESS' }));
     expect(result.complete).toBe(false);
   });
 

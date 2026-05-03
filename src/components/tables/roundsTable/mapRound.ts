@@ -1,7 +1,8 @@
-import { eventConstants } from 'tods-competition-factory';
+import { eventConstants, factoryConstants } from 'tods-competition-factory';
 import { normalizeDiacritics } from 'normalize-text';
 
 const { TEAM } = eventConstants;
+const { completedMatchUpStatuses } = factoryConstants;
 
 export const mapRound = (matchUp: any): any => {
   const {
@@ -44,7 +45,7 @@ export const mapRound = (matchUp: any): any => {
     .filter(Boolean);
 
   const winningSide = (rest.winningSide === 1 && 'side1') || (rest.winningSide === 2 && 'side2') || undefined;
-  const complete = !!rest.winningSide;
+  const complete = completedMatchUpStatuses.includes(matchUp.matchUpStatus);
 
   const readyToScore = !!(rest.winningSide || rest.readyToScore);
   const score = rest.score?.scoreStringSide1;
