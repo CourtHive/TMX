@@ -2,6 +2,7 @@
  * Select position action popover for draw assignments.
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -20,6 +21,7 @@ const actionLabels: Record<string, string> = {
   SEED_CASCADE: 'Withdraw seed (cascade)',
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
+  VIEW_PLAYER_CARD: 'View player card',
   WITHDRAW: 'Withdraw participant',
 };
 
@@ -40,6 +42,7 @@ export function selectPositionAction({
     if (['SEED_CASCADE'].includes(action.type)) seedCascadeAction({ action, callback });
     if (['SEED_VALUE'].includes(action.type)) assignSeed({ target, action, callback });
     if (['NICKNAME'].includes(action.type)) assignNickname({ target, action, callback });
+    if (['VIEW_PLAYER_CARD'].includes(action.type)) viewPlayerCard({ action });
   };
   const options = actions
     ?.filter(({ type }) => actionLabels[type])
@@ -79,6 +82,12 @@ export function highlightDrawPosition(drawPosition: number) {
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   el.classList.add('draw-position-highlight');
   setTimeout(() => el.classList.remove('draw-position-highlight'), 4000);
+}
+
+function viewPlayerCard({ action }: { action: any }) {
+  const participantId = action.payload?.participantId;
+  if (!participantId) return;
+  participantProfileModal({ participantId, readOnly: true });
 }
 
 function assignParticipant({ action, callback }: { action: any; callback: () => void }) {

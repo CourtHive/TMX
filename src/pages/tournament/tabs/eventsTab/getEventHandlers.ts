@@ -69,7 +69,12 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
         })) ||
       {};
 
-    selectPositionAction({ ...props, actions, callback });
+    const participantId = side?.participantId || side?.participant?.participantId;
+    const augmentedActions = participantId
+      ? [...(actions || []), { type: 'VIEW_PLAYER_CARD', payload: { participantId } }]
+      : actions;
+
+    selectPositionAction({ ...props, actions: augmentedActions, callback });
   };
   const scoreClick = (props: any) => {
     const sideNumber = getSideNumber(props);
