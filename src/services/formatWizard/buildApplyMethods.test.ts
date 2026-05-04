@@ -5,6 +5,9 @@ import { expect, it, describe } from 'vitest';
 import { ADD_EVENT, ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { FlightStructure, RankedPlan, StructureKind } from 'tods-competition-factory';
 
+const TIER_1_LABEL = 'Tier 1 of 2';
+const TIER_2_LABEL = 'Tier 2 of 2';
+
 let uuidCounter = 0;
 const deterministicUuid = (): string => `id-${++uuidCounter}`;
 
@@ -129,8 +132,8 @@ describe('buildApplyMethods — output shape', () => {
   it('emits ADD_EVENT and ADD_EVENT_ENTRIES per flight', () => {
     uuidCounter = 0;
     const plan = makePlan([
-      makeFlightStructure('Tier 1 of 2', ['p0', 'p1', 'p2', 'p3'], 'SINGLE_ELIMINATION'),
-      makeFlightStructure('Tier 2 of 2', ['p4', 'p5', 'p6', 'p7'], 'SINGLE_ELIMINATION'),
+      makeFlightStructure(TIER_1_LABEL, ['p0', 'p1', 'p2', 'p3'], 'SINGLE_ELIMINATION'),
+      makeFlightStructure(TIER_2_LABEL, ['p4', 'p5', 'p6', 'p7'], 'SINGLE_ELIMINATION'),
     ]);
     const result = buildApplyMethods({ plan, scaleName: 'utr', uuid: deterministicUuid });
 
@@ -142,12 +145,12 @@ describe('buildApplyMethods — output shape', () => {
 
   it('encodes the rating scale into the event name', () => {
     uuidCounter = 0;
-    const plan = makePlan([makeFlightStructure('Tier 1 of 2', ['p0', 'p1'], 'SINGLE_ELIMINATION')]);
+    const plan = makePlan([makeFlightStructure(TIER_1_LABEL, ['p0', 'p1'], 'SINGLE_ELIMINATION')]);
     const result = buildApplyMethods({ plan, scaleName: 'utr', uuid: deterministicUuid });
 
     const addEvent = result.eventMethods.find((m) => m.method === ADD_EVENT);
     expect(addEvent.params.event.eventName).toContain('UTR');
-    expect(addEvent.params.event.eventName).toContain('Tier 1 of 2');
+    expect(addEvent.params.event.eventName).toContain(TIER_1_LABEL);
   });
 
   it('honors eventNamePrefix when supplied', () => {
@@ -161,8 +164,8 @@ describe('buildApplyMethods — output shape', () => {
   it('generates one drawSpec per applied flight, with eventId/drawId pairing', () => {
     uuidCounter = 0;
     const plan = makePlan([
-      makeFlightStructure('Tier 1 of 2', ['p0', 'p1', 'p2', 'p3'], 'SINGLE_ELIMINATION'),
-      makeFlightStructure('Tier 2 of 2', ['p4', 'p5', 'p6', 'p7'], 'ROUND_ROBIN', { groupSize: 4 }),
+      makeFlightStructure(TIER_1_LABEL, ['p0', 'p1', 'p2', 'p3'], 'SINGLE_ELIMINATION'),
+      makeFlightStructure(TIER_2_LABEL, ['p4', 'p5', 'p6', 'p7'], 'ROUND_ROBIN', { groupSize: 4 }),
     ]);
     const result = buildApplyMethods({ plan, uuid: deterministicUuid });
 

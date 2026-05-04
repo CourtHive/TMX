@@ -4,7 +4,6 @@
  */
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
-import { openFormatWizardModal } from 'components/modals/formatWizard';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
@@ -147,7 +146,25 @@ export function setDev(): void {
 
   addDev({ completeMatchUps, forceStalenessOverlay });
   addDev({ providerConfig });
-  addDev({ openFormatWizardModal });
+  addDev({
+    openFormatWizard: () => {
+      const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+      if (!tournamentId) {
+        console.warn('[dev.openFormatWizard] no tournament loaded');
+        return;
+      }
+      context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/format-wizard`);
+    },
+    // Backward-compat alias for the previous modal-era API.
+    openFormatWizardModal: () => {
+      const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+      if (!tournamentId) {
+        console.warn('[dev.openFormatWizardModal] no tournament loaded');
+        return;
+      }
+      context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/format-wizard`);
+    },
+  });
 
   addDev({
     setServer: (url: string) => {

@@ -14,12 +14,14 @@ import {
   createStatCard,
   createSunburstPanel,
   createSunburstPlaceholder,
+  shouldShowFormatWizard,
 } from './dashboardPanels';
 
 // constants
 import {
   ADMIN,
   EVENTS_TAB,
+  FORMAT_WIZARD_LAUNCHER,
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
@@ -234,6 +236,16 @@ export function renderOverview(): void {
   const state = getLoginState();
   const isAdmin =
     state?.roles?.includes(SUPER_ADMIN) || (state?.roles?.includes(ADMIN) && state?.provider?.organisationId);
+
+  // Format Wizard launcher — NOT admin-gated. Visible whenever the
+  // wizard's visibility conditions are met (no events, or
+  // participants without entries). This is the entry point for demo
+  // mode where there's no logged-in user.
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  if (tournamentId && shouldShowFormatWizard()) {
+    leftColumn.appendChild(createFormatWizardLauncher(tournamentId));
+  }
+
   if (isAdmin) {
     leftColumn.appendChild(createActionsPanel());
   }
@@ -251,4 +263,37 @@ export function renderOverview(): void {
   }
 
   element.appendChild(grid);
+}
+
+function createFormatWizardLauncher(tournamentId: string): HTMLElement {
+  const panel = document.createElement('div');
+  panel.className = 'dash-panel';
+  panel.style.cssText =
+    'display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--tmx-accent-teal, #00b8a9); background: var(--tmx-bg-primary, #fff); border-radius: 6px; margin-top: 12px;';
+
+  const icon = document.createElement('i');
+  icon.className = 'fa fa-magic';
+  icon.style.cssText = 'color: var(--tmx-accent-teal, #00b8a9); font-size: 20px;';
+  panel.appendChild(icon);
+
+  const text = document.createElement('div');
+  text.style.cssText = 'flex: 1;';
+  text.innerHTML = `
+    <div style="font-weight: 600; font-size: 14px; color: var(--tmx-text-primary, #222);">${t('formatWizard.title')}</div>
+    <div style="font-size: 12px; color: var(--tmx-text-secondary, #777);">${t('formatWizard.launcherSubtitle')}</div>
+  `;
+  panel.appendChild(text);
+
+  const button = document.createElement('button');
+  button.id = FORMAT_WIZARD_LAUNCHER;
+  button.type = 'button';
+  button.style.cssText =
+    'background: var(--tmx-accent-teal, #00b8a9); color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer;';
+  button.textContent = t('formatWizard.launch');
+  button.addEventListener('click', () => {
+    context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/format-wizard`);
+  });
+  panel.appendChild(button);
+
+  return panel;
 }

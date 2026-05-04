@@ -9,6 +9,7 @@ import {
   TMX_CONTENT,
   TMX_TOURNAMENTS,
   TMX_TOPOLOGY,
+  TMX_FORMAT_WIZARD,
   TMX_TEMPLATES,
   TMX_POLICIES,
   TMX_SETTINGS,
@@ -18,13 +19,14 @@ import {
 let content: string | undefined;
 
 const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
-const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY];
+const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY, TMX_FORMAT_WIZARD];
 
 function selectDisplay(which: string): void {
   setState(TMX_CONTENT, which);
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
   setState(TMX_TOPOLOGY, which);
+  setState(TMX_FORMAT_WIZARD, which);
   setState(TMX_ADMIN, which);
   setState(TMX_TEMPLATES, which);
   setState(TMX_POLICIES, which);
@@ -89,6 +91,10 @@ export const showTMXtournaments = (): void => {
 };
 export const showTopology = (): void => {
   content = TMX_TOPOLOGY;
+  selectDisplay(content);
+};
+export const showFormatWizard = (): void => {
+  content = TMX_FORMAT_WIZARD;
   selectDisplay(content);
 };
 export const showTMXtemplates = (): void => {

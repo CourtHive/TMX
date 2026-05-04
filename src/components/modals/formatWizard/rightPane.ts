@@ -19,11 +19,14 @@ export interface RightPaneHandle {
   element: HTMLElement;
 }
 
-const RIGHT_PANE_STYLE = 'flex: 1; display: flex; flex-direction: column; min-height: 320px; background: var(--tmx-bg-secondary, #fafafa);';
-const PLAN_LIST_SECTION_STYLE = 'padding: 16px; flex: 1; overflow-y: auto;';
+const RIGHT_PANE_STYLE =
+  'flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: auto; background: var(--tmx-bg-secondary, #fafafa);';
+const PLAN_LIST_SECTION_STYLE = 'padding: 16px; flex: 1;';
 const HEADER_STYLE =
   'font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tmx-text-secondary, #777); margin-bottom: 8px;';
-const PLAN_LIST_STYLE = 'display: flex; flex-direction: column; gap: 8px;';
+// Responsive 2-column grid; reflows to a single column when the
+// viewport / pane is narrower than ~720 px.
+const PLAN_LIST_STYLE = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px;';
 const EMPTY_STYLE =
   'padding: 32px 16px; color: var(--tmx-text-muted, #999); font-style: italic; text-align: center;';
 

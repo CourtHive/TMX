@@ -266,11 +266,11 @@ test.describe('Journey 30 — Format Wizard modal', () => {
       await expect(wizard.appetiteSelect).toHaveValue('LIGHT');
     });
 
-    test('honors initialScaleName override', async ({ page }) => {
-      const wizard = new FormatWizardModal(page);
-      await wizard.openViaDevBridge('wtn');
-      await expect(wizard.scaleSelect).toHaveValue('wtn');
-    });
+    // The previous "honors initialScaleName override" test was
+    // covered by the modal-era openFormatWizardModal({ initialScaleName })
+    // option. The page architecture hydrates from the persisted
+    // extension; scale-override semantics are exercised by the
+    // persistence tests in the actions-menu describe block.
 
     test('user can change form values', async ({ page }) => {
       const wizard = new FormatWizardModal(page);

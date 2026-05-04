@@ -279,3 +279,7 @@ export const FORMAT_WIZARD_HEADER_PLANS = 'formatWizardHeaderPlans';
 export const FORMAT_WIZARD_ACTION_BUTTON = 'formatWizardActionButton';
 export const FORMAT_WIZARD_RESET_LINK = 'formatWizardResetLink';
 export const FORMAT_WIZARD_CAPACITY_CUE = 'formatWizardCapacityCue';
+export const TMX_FORMAT_WIZARD = 'tmxFormatWizard';
+export const FORMAT_WIZARD_PAGE = 'formatWizardPage';
+export const FORMAT_WIZARD_LAUNCHER = 'formatWizardLauncher';
+export const FORMAT_WIZARD_BACK = 'formatWizardBack';

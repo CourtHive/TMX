@@ -82,6 +82,12 @@ export function routeTMX() {
     });
   });
 
+  router.on(`/${TOURNAMENT}/:tournamentId/format-wizard`, (match) => {
+    displayTournament({
+      config: { ...match?.data, selectedTab: 'format-wizard' },
+    });
+  });
+
   router.on(`/${TOURNAMENT}/:tournamentId`, (match) => {
     displayRoute({ data: match?.data });
   });

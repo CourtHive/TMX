@@ -2,13 +2,15 @@ import type { Page } from '@playwright/test';
 import { S } from '../helpers/selectors';
 
 /**
- * Page object for the Format Wizard modal.
+ * Page object for the Format Wizard.
  *
- * The modal is opened in tests via `dev.openFormatWizardModal(...)`
- * — the user-facing entry point (Tournament Actions menu) lands in
- * Phase 1.C.4. Tests can observe the form's live state via
- * `getFormState()` which mirrors what `getState()` on the form
- * handle returns.
+ * As of Phase 2.D the wizard is a tournament-context page (route
+ * `/tournament/:tournamentId/format-wizard`), not a modal. Open it
+ * via the launcher button on the overview, the admin actions panel
+ * button, or the dev backdoor.
+ *
+ * The class name `FormatWizardModal` is preserved for binary
+ * compatibility with existing journeys; rename in a follow-up.
  */
 export class FormatWizardModal {
   constructor(private page: Page) {}
@@ -25,25 +27,42 @@ export class FormatWizardModal {
   }
 
   /**
-   * Open the wizard via the dev-bridge backdoor. Useful when a test
-   * cares about modal behaviour but not about the entry-point flow,
-   * or when the seed deliberately violates the menu's visibility
-   * conditions (e.g., for hidden-button assertions).
+   * Open the wizard via the always-visible launcher button on the
+   * overview page (NOT admin-gated — the demo-mode entry point).
    */
-  async openViaDevBridge(initialScaleName?: string): Promise<void> {
-    await this.page.evaluate((scaleName) => {
-      (globalThis as any).dev.openFormatWizardModal({ initialScaleName: scaleName });
-    }, initialScaleName);
+  async openViaLauncher(): Promise<void> {
+    await this.launchButton.click();
     await this.content.waitFor({ state: 'visible' });
   }
 
-  /** @deprecated Prefer openViaActionsMenu / openViaDevBridge — kept for drop-in compatibility. */
-  async open(initialScaleName?: string): Promise<void> {
-    return this.openViaDevBridge(initialScaleName);
+  /**
+   * Open the wizard via the dev-bridge backdoor. Useful when a test
+   * cares about page behaviour but not about the entry-point flow,
+   * or when the seed deliberately violates the visibility
+   * conditions (e.g., for hidden-button assertions).
+   */
+  async openViaDevBridge(): Promise<void> {
+    await this.page.evaluate(() => {
+      (globalThis as any).dev.openFormatWizard();
+    });
+    await this.content.waitFor({ state: 'visible' });
+  }
+
+  /** @deprecated Prefer openViaActionsMenu / openViaLauncher / openViaDevBridge — kept for drop-in compatibility. */
+  async open(): Promise<void> {
+    return this.openViaDevBridge();
   }
 
   get actionButton() {
     return this.page.locator(S.FORMAT_WIZARD_ACTION_BUTTON);
+  }
+
+  get launchButton() {
+    return this.page.locator(S.FORMAT_WIZARD_LAUNCHER);
+  }
+
+  get backButton() {
+    return this.page.locator(S.FORMAT_WIZARD_BACK);
   }
 
   get content() {
@@ -123,13 +142,11 @@ export class FormatWizardModal {
   }
 
   async close(): Promise<void> {
-    // Programmatic click — the modal's Close button can sit below
-    // the viewport when the right pane is tall.
-    await this.page
-      .locator('button', { hasText: /^close$/i })
-      .first()
-      .evaluate((b: HTMLButtonElement) => b.click());
-    await this.content.waitFor({ state: 'detached', timeout: 5_000 });
+    await this.backButton.evaluate((b: HTMLButtonElement) => b.click());
+    // The page container hides (display:none) on back-nav; the inner
+    // content stays in the DOM until the next renderFormatWizardPage
+    // call. Wait for hidden, not detached.
+    await this.content.waitFor({ state: 'hidden', timeout: 5_000 });
   }
 
   async clickReset(): Promise<void> {

@@ -22,6 +22,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderTopologyPage } from './topologyPage';
+import { renderFormatWizardPage } from './formatWizardPage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
@@ -111,6 +112,13 @@ export function routeTo(config: any): void {
       drawId: config.drawId,
       readOnly: config.readOnly,
     });
+    return;
+  }
+
+  // Format Wizard is also standalone — full-page tournament-context
+  // surface with no navbar icon. Launched from overview.
+  if (selectedTab === 'format-wizard') {
+    renderFormatWizardPage();
     return;
   }
 

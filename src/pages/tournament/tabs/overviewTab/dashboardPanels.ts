@@ -6,7 +6,6 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { openFormatWizardModal } from 'components/modals/formatWizard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
 import { printFactSheet } from 'components/modals/printFactSheet';
@@ -27,7 +26,7 @@ import { t } from 'i18n';
 
 // constants
 import { ADD_TOURNAMENT_TIMEITEM, SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
-import { ADMIN, FORMAT_WIZARD_ACTION_BUTTON, SUPER_ADMIN } from 'constants/tmxConstants';
+import { ADMIN, FORMAT_WIZARD_ACTION_BUTTON, SUPER_ADMIN, TOURNAMENT } from 'constants/tmxConstants';
 
 const ICON_BTN_STYLE =
   'background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
@@ -368,15 +367,22 @@ function createActionButton(label: string, icon: string, onClick: () => void, id
 
 // The format wizard is most useful early in tournament setup —
 // before flighting / event-entry decisions have been made. Show
-// it when there are no events at all, or when participants exist
-// but no event has been populated with entries yet.
-function shouldShowFormatWizard(): boolean {
+// the launch button when there are no events at all, or when
+// participants exist but no event has been populated with entries
+// yet.
+export function shouldShowFormatWizard(): boolean {
   const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
   if (events.length === 0) return true;
   const participants: any[] = (tournamentEngine.getParticipants?.({}) as any)?.participants ?? [];
   if (participants.length === 0) return false;
   const totalEntries = events.reduce((sum, e) => sum + ((e?.entries as any[])?.length ?? 0), 0);
   return totalEntries === 0;
+}
+
+function navigateToFormatWizard(): void {
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  if (!tournamentId) return;
+  context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/format-wizard`);
 }
 
 export function createActionsPanel(): HTMLElement {
@@ -412,7 +418,7 @@ export function createActionsPanel(): HTMLElement {
         createActionButton(
           t('formatWizard.title'),
           'fa-magic',
-          () => openFormatWizardModal(),
+          () => navigateToFormatWizard(),
           FORMAT_WIZARD_ACTION_BUTTON,
         ),
       );

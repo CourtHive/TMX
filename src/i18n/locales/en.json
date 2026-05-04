@@ -839,6 +839,7 @@
   "datelocalization": "en-EN",
 
   "common": {
+    "back": "Back",
     "cancel": "Cancel",
     "delete": "Delete",
     "save": "Save",
@@ -1927,6 +1928,8 @@
 
   "formatWizard": {
     "title": "Format Wizard",
+    "launch": "Launch",
+    "launcherSubtitle": "Suggest level-based formats for the participant pool",
     "placeholder": "Plan results will appear here as you adjust constraints.",
     "fields": {
       "scale": "Rating scale",
