@@ -1942,6 +1942,7 @@
       "light": "Light (single consolation round)",
       "full": "Full (cascading consolation)"
     },
+    "reset": "Reset to defaults",
     "headers": {
       "distribution": "Rating distribution",
       "plans": "Suggested plans"

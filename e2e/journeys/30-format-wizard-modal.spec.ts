@@ -182,6 +182,52 @@ test.describe('Journey 30 — Format Wizard modal', () => {
     });
   });
 
+  test.describe('Persistence — formatWizard tournament extension', () => {
+    test.beforeEach(async ({ page }) => {
+      await seedRatedNoEvents(page);
+      const tournament = new TournamentPage(page);
+      await tournament.goto(TOURNAMENT_ID_NO_EVENTS);
+    });
+
+    test('constraints persist across modal close + reopen', async ({ page }) => {
+      const wizard = new FormatWizardModal(page);
+      await wizard.openViaActionsMenu();
+
+      await wizard.setCourts(7);
+      await wizard.setDays(4);
+      await wizard.selectAppetite('FULL');
+      // Wait past the 500 ms debounce + give the mutation pipeline a beat
+      await page.waitForTimeout(800);
+
+      await wizard.close();
+      await wizard.openViaActionsMenu();
+
+      await expect(wizard.courtsInput).toHaveValue('7');
+      await expect(wizard.daysInput).toHaveValue('4');
+      await expect(wizard.appetiteSelect).toHaveValue('FULL');
+    });
+
+    test('reset link restores defaults and persists them', async ({ page }) => {
+      const wizard = new FormatWizardModal(page);
+      await wizard.openViaActionsMenu();
+
+      await wizard.setCourts(9);
+      await page.waitForTimeout(800);
+
+      await wizard.clickReset();
+      await expect(wizard.courtsInput).toHaveValue('4');
+      await expect(wizard.daysInput).toHaveValue('2');
+      await expect(wizard.appetiteSelect).toHaveValue('LIGHT');
+
+      await page.waitForTimeout(800);
+      await wizard.close();
+      await wizard.openViaActionsMenu();
+
+      // Reset values are persisted, so reopen still shows defaults.
+      await expect(wizard.courtsInput).toHaveValue('4');
+    });
+  });
+
   test.describe('Modal behaviour — opened via dev backdoor', () => {
     // These tests focus on form behaviour and don't depend on the
     // actions-menu visibility. Using the dev backdoor lets us seed

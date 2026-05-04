@@ -1,7 +1,13 @@
 import { openModal, closeModal, confirmModal } from '../baseModal/baseModal';
 import { buildConstraintsForm } from './constraintsForm';
 import { buildRightPane } from './rightPane';
-import { applyFormatPlan, runFormatWizard, buildApplyMethods } from 'services/formatWizard';
+import {
+  applyFormatPlan,
+  buildApplyMethods,
+  readWizardState,
+  runFormatWizard,
+  writeWizardState,
+} from 'services/formatWizard';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 
@@ -18,6 +24,7 @@ export interface OpenFormatWizardModalOptions {
 
 const MODAL_MAX_WIDTH = 1000;
 const MODAL_MIN_HEIGHT = 480;
+const PERSIST_DEBOUNCE_MS = 500;
 
 function buildContent(formHandle: ConstraintsFormHandle, rightPane: RightPaneHandle): HTMLElement {
   const wrapper = document.createElement('div');
@@ -93,8 +100,23 @@ function handleApply(plan: RankedPlan, scaleName: string): void {
 // debounce; the prior-art research recommends live re-projection
 // as the canonical UX for this kind of tool.
 export function openFormatWizardModal(options: OpenFormatWizardModalOptions = {}): ConstraintsFormHandle {
-  const formHandle = buildConstraintsForm({ initialScaleName: options.initialScaleName });
+  // Hydrate from the persisted formatWizard tournament extension so
+  // navigating away and back keeps the TD's last-used constraints.
+  const persisted = readWizardState();
+  const formHandle = buildConstraintsForm({
+    initialScaleName: options.initialScaleName ?? persisted?.scaleName,
+    initialConstraints: persisted?.constraints,
+  });
   const rightPane = buildRightPane();
+
+  let persistTimer: ReturnType<typeof setTimeout> | undefined;
+  function schedulePersist(state: ConstraintsFormState): void {
+    if (persistTimer) clearTimeout(persistTimer);
+    persistTimer = setTimeout(() => {
+      writeWizardState({ scaleName: state.scaleName, constraints: state.constraints });
+      persistTimer = undefined;
+    }, PERSIST_DEBOUNCE_MS);
+  }
 
   rightPane.setOnApply((plan) => {
     handleApply(plan, formHandle.getState().scaleName);
@@ -102,6 +124,7 @@ export function openFormatWizardModal(options: OpenFormatWizardModalOptions = {}
 
   formHandle.setOnChange((state) => {
     recompute(state, rightPane);
+    schedulePersist(state);
     if (options.onConstraintsChange) options.onConstraintsChange(state);
   });
 
@@ -109,7 +132,17 @@ export function openFormatWizardModal(options: OpenFormatWizardModalOptions = {}
     title: t('formatWizard.title'),
     content: buildContent(formHandle, rightPane),
     buttons: [{ label: t('close'), close: true }],
-    onClose: () => formHandle.setOnChange(() => undefined),
+    onClose: () => {
+      // Flush a pending debounced save so the most-recent edit makes
+      // it into the extension even if the user closes fast.
+      if (persistTimer) {
+        clearTimeout(persistTimer);
+        persistTimer = undefined;
+        const state = formHandle.getState();
+        writeWizardState({ scaleName: state.scaleName, constraints: state.constraints });
+      }
+      formHandle.setOnChange(() => undefined);
+    },
     config: { padding: '0', maxWidth: MODAL_MAX_WIDTH },
   });
 

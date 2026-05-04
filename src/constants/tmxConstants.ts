@@ -277,3 +277,4 @@ export const FORMAT_WIZARD_EMPTY = 'formatWizardEmpty';
 export const FORMAT_WIZARD_HEADER_DISTRIBUTION = 'formatWizardHeaderDistribution';
 export const FORMAT_WIZARD_HEADER_PLANS = 'formatWizardHeaderPlans';
 export const FORMAT_WIZARD_ACTION_BUTTON = 'formatWizardActionButton';
+export const FORMAT_WIZARD_RESET_LINK = 'formatWizardResetLink';

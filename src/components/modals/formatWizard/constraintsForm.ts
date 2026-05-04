@@ -8,6 +8,7 @@ import {
   FORMAT_WIZARD_FORM,
   FORMAT_WIZARD_HOURS_PER_DAY,
   FORMAT_WIZARD_MIN_FLOOR,
+  FORMAT_WIZARD_RESET_LINK,
   FORMAT_WIZARD_SCALE,
   FORMAT_WIZARD_TARGET_CT,
 } from 'constants/tmxConstants';
@@ -21,6 +22,7 @@ export interface ConstraintsFormState {
 export interface ConstraintsFormHandle {
   setOnChange: (cb: (state: ConstraintsFormState) => void) => void;
   getState: () => ConstraintsFormState;
+  reset: () => void;
   element: HTMLElement;
 }
 
@@ -36,7 +38,7 @@ const DEFAULT_SCALE_OPTIONS = [
   { value: 'ntrp', label: 'NTRP' },
 ];
 
-const DEFAULT_CONSTRAINTS: WizardConstraints = {
+export const DEFAULT_CONSTRAINTS: WizardConstraints = {
   consolationAppetite: 'LIGHT',
   targetCompetitivePct: 0.65,
   minMatchesFloor: 3,
@@ -44,6 +46,7 @@ const DEFAULT_CONSTRAINTS: WizardConstraints = {
   courts: 4,
   days: 2,
 };
+export const DEFAULT_SCALE_NAME = 'utr';
 
 const APPETITE_OPTIONS: ConsolationAppetite[] = ['NONE', 'LIGHT', 'FULL'];
 
@@ -161,11 +164,36 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
     control.addEventListener('input', notify);
   }
 
+  const resetLink = document.createElement('button');
+  resetLink.type = 'button';
+  resetLink.id = FORMAT_WIZARD_RESET_LINK;
+  resetLink.textContent = t('formatWizard.reset');
+  resetLink.style.cssText =
+    'background: none; border: none; padding: 4px 0; margin-top: 8px; color: var(--tmx-text-link, #3273dc); cursor: pointer; font-size: 12px; text-align: left;';
+  resetLink.addEventListener('click', () => reset());
+  root.appendChild(resetLink);
+
+  function setControlsFromState(scaleName: string, c: WizardConstraints): void {
+    scaleSelect.value = scaleName;
+    courtsInput.value = String(c.courts);
+    daysInput.value = String(c.days);
+    hoursInput.value = String(c.hoursPerDay ?? 8);
+    floorInput.value = String(c.minMatchesFloor ?? 3);
+    targetInput.value = String((c.targetCompetitivePct ?? 0.65) * 100);
+    appetiteSelect.value = c.consolationAppetite ?? 'LIGHT';
+  }
+
+  function reset(): void {
+    setControlsFromState(DEFAULT_SCALE_NAME, DEFAULT_CONSTRAINTS);
+    notify();
+  }
+
   return {
     setOnChange: (cb) => {
       onChange = cb;
     },
     getState: () => readState(),
+    reset,
     element: root,
   };
 }

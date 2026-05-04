@@ -114,6 +114,24 @@ export class FormatWizardModal {
     return this.page.locator(`.tmx-format-wizard-apply-btn[data-rank="${rank}"]`);
   }
 
+  get resetLink() {
+    return this.page.locator(S.FORMAT_WIZARD_RESET_LINK);
+  }
+
+  async close(): Promise<void> {
+    // Programmatic click — the modal's Close button can sit below
+    // the viewport when the right pane is tall.
+    await this.page
+      .locator('button', { hasText: /^close$/i })
+      .first()
+      .evaluate((b: HTMLButtonElement) => b.click());
+    await this.content.waitFor({ state: 'detached', timeout: 5_000 });
+  }
+
+  async clickReset(): Promise<void> {
+    await this.resetLink.evaluate((b: HTMLButtonElement) => b.click());
+  }
+
   async setCourts(value: number): Promise<void> {
     await this.courtsInput.fill(String(value));
   }
