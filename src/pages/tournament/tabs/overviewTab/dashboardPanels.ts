@@ -6,6 +6,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { openFormatWizardModal } from 'components/modals/formatWizard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
 import { printFactSheet } from 'components/modals/printFactSheet';
@@ -26,7 +27,7 @@ import { t } from 'i18n';
 
 // constants
 import { ADD_TOURNAMENT_TIMEITEM, SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
-import { ADMIN, SUPER_ADMIN } from 'constants/tmxConstants';
+import { ADMIN, FORMAT_WIZARD_ACTION_BUTTON, SUPER_ADMIN } from 'constants/tmxConstants';
 
 const ICON_BTN_STYLE =
   'background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
@@ -356,12 +357,26 @@ function changeOnlineState({
   });
 }
 
-function createActionButton(label: string, icon: string, onClick: () => void): HTMLElement {
+function createActionButton(label: string, icon: string, onClick: () => void, id?: string): HTMLElement {
   const btn = document.createElement('button');
   btn.className = 'dash-action-btn';
+  if (id) btn.id = id;
   btn.innerHTML = `<i class="fa ${icon}"></i> ${label}`;
   btn.addEventListener('click', onClick);
   return btn;
+}
+
+// The format wizard is most useful early in tournament setup —
+// before flighting / event-entry decisions have been made. Show
+// it when there are no events at all, or when participants exist
+// but no event has been populated with entries yet.
+function shouldShowFormatWizard(): boolean {
+  const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
+  if (events.length === 0) return true;
+  const participants: any[] = (tournamentEngine.getParticipants?.({}) as any)?.participants ?? [];
+  if (participants.length === 0) return false;
+  const totalEntries = events.reduce((sum, e) => sum + ((e?.entries as any[])?.length ?? 0), 0);
+  return totalEntries === 0;
 }
 
 export function createActionsPanel(): HTMLElement {
@@ -392,6 +407,16 @@ export function createActionsPanel(): HTMLElement {
   const activeProvider = context.provider || state?.provider;
 
   if (tournamentRecord && admin) {
+    if (shouldShowFormatWizard()) {
+      btnContainer.appendChild(
+        createActionButton(
+          t('formatWizard.title'),
+          'fa-magic',
+          () => openFormatWizardModal(),
+          FORMAT_WIZARD_ACTION_BUTTON,
+        ),
+      );
+    }
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.exportUtr'), 'fa-download', () => downloadUTRmatches()),
     );

@@ -52,3 +52,51 @@ export async function waitForAppReady(page: Page): Promise<void> {
 export async function isDevAvailable(page: Page): Promise<boolean> {
   return page.evaluate(() => typeof globalThis.dev !== 'undefined');
 }
+
+/**
+ * Inject a synthetic super-admin JWT into localStorage so admin-gated
+ * surfaces (Tournament Actions panel, super-admin-only pages) render
+ * during e2e runs. The JWT is unsigned — `validateToken` uses
+ * `jwtDecode` which does NOT verify the signature, so a base64-encoded
+ * payload with the right claims is enough for the client.
+ *
+ * Must be called via `page.addInitScript` BEFORE the first navigation
+ * so the token is in localStorage when TMX boots. Use the helper
+ * `seedSuperAdminTokenInitScript` below for that wiring.
+ */
+export async function loginAsSuperAdmin(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(
+      JSON.stringify({
+        roles: ['superadmin'],
+        sub: 'e2e-superadmin',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    localStorage.setItem('tmxToken', `${header}.${payload}.fake-signature`);
+  });
+}
+
+/**
+ * Add an init script that seeds the super-admin token before any TMX
+ * code runs. This is the right hook for tests where role-gated UI
+ * needs to render correctly on the first paint.
+ *
+ * Call once in `test.beforeAll` (or before your first `page.goto`) —
+ * Playwright re-runs init scripts on every navigation, so the token
+ * stays present across `page.goto` calls within the same test.
+ */
+export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(
+      JSON.stringify({
+        roles: ['superadmin'],
+        sub: 'e2e-superadmin',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    localStorage.setItem('tmxToken', `${header}.${payload}.fake-signature`);
+  });
+}

@@ -13,11 +13,37 @@ import { S } from '../helpers/selectors';
 export class FormatWizardModal {
   constructor(private page: Page) {}
 
-  async open(initialScaleName?: string): Promise<void> {
+  /**
+   * Open the wizard via the Tournament Actions menu — the canonical
+   * user flow. Requires the test to have navigated to a tournament
+   * whose visibility conditions are met (no events OR participants
+   * with no event entries) and the active role is admin / super-admin.
+   */
+  async openViaActionsMenu(): Promise<void> {
+    await this.actionButton.click();
+    await this.content.waitFor({ state: 'visible' });
+  }
+
+  /**
+   * Open the wizard via the dev-bridge backdoor. Useful when a test
+   * cares about modal behaviour but not about the entry-point flow,
+   * or when the seed deliberately violates the menu's visibility
+   * conditions (e.g., for hidden-button assertions).
+   */
+  async openViaDevBridge(initialScaleName?: string): Promise<void> {
     await this.page.evaluate((scaleName) => {
       (globalThis as any).dev.openFormatWizardModal({ initialScaleName: scaleName });
     }, initialScaleName);
     await this.content.waitFor({ state: 'visible' });
+  }
+
+  /** @deprecated Prefer openViaActionsMenu / openViaDevBridge — kept for drop-in compatibility. */
+  async open(initialScaleName?: string): Promise<void> {
+    return this.openViaDevBridge(initialScaleName);
+  }
+
+  get actionButton() {
+    return this.page.locator(S.FORMAT_WIZARD_ACTION_BUTTON);
   }
 
   get content() {
