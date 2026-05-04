@@ -3,6 +3,7 @@ import { buildConstraintsForm } from './constraintsForm';
 import { t } from 'i18n';
 
 // constants and types
+import { FORMAT_WIZARD_CONTENT, FORMAT_WIZARD_RIGHT_PANE } from 'constants/tmxConstants';
 import { ConstraintsFormHandle, ConstraintsFormState } from './constraintsForm';
 
 export interface OpenFormatWizardModalOptions {
@@ -18,11 +19,13 @@ const RIGHT_PANE_PLACEHOLDER_STYLE =
 
 function buildContent(formHandle: ConstraintsFormHandle): HTMLElement {
   const wrapper = document.createElement('div');
+  wrapper.id = FORMAT_WIZARD_CONTENT;
   wrapper.className = 'tmx-format-wizard-content';
   wrapper.style.cssText = `display: flex; min-height: ${MODAL_MIN_HEIGHT}px;`;
   wrapper.appendChild(formHandle.element);
 
   const rightPane = document.createElement('div');
+  rightPane.id = FORMAT_WIZARD_RIGHT_PANE;
   rightPane.className = 'tmx-format-wizard-right-pane';
   rightPane.style.cssText = RIGHT_PANE_PLACEHOLDER_STYLE;
   rightPane.textContent = t('formatWizard.placeholder');

@@ -4,6 +4,7 @@
  */
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
+import { openFormatWizardModal } from 'components/modals/formatWizard';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
@@ -146,6 +147,7 @@ export function setDev(): void {
 
   addDev({ completeMatchUps, forceStalenessOverlay });
   addDev({ providerConfig });
+  addDev({ openFormatWizardModal });
 
   addDev({
     setServer: (url: string) => {

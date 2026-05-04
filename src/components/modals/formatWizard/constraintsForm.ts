@@ -1,6 +1,16 @@
 import { t } from 'i18n';
 
 // constants and types
+import {
+  FORMAT_WIZARD_APPETITE,
+  FORMAT_WIZARD_COURTS,
+  FORMAT_WIZARD_DAYS,
+  FORMAT_WIZARD_FORM,
+  FORMAT_WIZARD_HOURS_PER_DAY,
+  FORMAT_WIZARD_MIN_FLOOR,
+  FORMAT_WIZARD_SCALE,
+  FORMAT_WIZARD_TARGET_CT,
+} from 'constants/tmxConstants';
 import { ConsolationAppetite, WizardConstraints } from 'tods-competition-factory';
 
 export interface ConstraintsFormState {
@@ -94,20 +104,28 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   let onChange: ((state: ConstraintsFormState) => void) | undefined;
 
   const root = document.createElement('div');
+  root.id = FORMAT_WIZARD_FORM;
   root.className = 'tmx-format-wizard-constraints';
   root.style.cssText =
     'display: flex; flex-direction: column; gap: 4px; padding: 16px; min-width: 280px; border-right: 1px solid var(--tmx-border-secondary, #eee);';
 
   const scaleSelect = buildSelect(scaleOptions, initialScale);
+  scaleSelect.id = FORMAT_WIZARD_SCALE;
   const courtsInput = buildNumberInput(initial.courts, 1, 1);
+  courtsInput.id = FORMAT_WIZARD_COURTS;
   const daysInput = buildNumberInput(initial.days, 1, 1);
+  daysInput.id = FORMAT_WIZARD_DAYS;
   const hoursInput = buildNumberInput(initial.hoursPerDay ?? 8, 1, 0.5);
+  hoursInput.id = FORMAT_WIZARD_HOURS_PER_DAY;
   const floorInput = buildNumberInput(initial.minMatchesFloor ?? 3, 1, 1);
+  floorInput.id = FORMAT_WIZARD_MIN_FLOOR;
   const targetInput = buildNumberInput((initial.targetCompetitivePct ?? 0.65) * 100, 0, 1);
+  targetInput.id = FORMAT_WIZARD_TARGET_CT;
   const appetiteSelect = buildSelect(
     APPETITE_OPTIONS.map((value) => ({ value, label: t(`formatWizard.appetite.${value.toLowerCase()}`) })),
     initial.consolationAppetite ?? 'LIGHT',
   );
+  appetiteSelect.id = FORMAT_WIZARD_APPETITE;
 
   root.appendChild(buildField(t('formatWizard.fields.scale'), scaleSelect));
   root.appendChild(buildField(t('formatWizard.fields.courts'), courtsInput));

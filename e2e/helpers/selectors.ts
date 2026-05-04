@@ -107,4 +107,16 @@ export const S = {
   CONTROL_BAR: id('controlBar'),
   BUTTON_BAR: id('buttonBar'),
   SYNC_INDICATOR: id('syncIndicator'),
+
+  // Format Wizard
+  FORMAT_WIZARD_CONTENT: id('formatWizardContent'),
+  FORMAT_WIZARD_FORM: id('formatWizardForm'),
+  FORMAT_WIZARD_RIGHT_PANE: id('formatWizardRightPane'),
+  FORMAT_WIZARD_SCALE: id('formatWizardScale'),
+  FORMAT_WIZARD_COURTS: id('formatWizardCourts'),
+  FORMAT_WIZARD_DAYS: id('formatWizardDays'),
+  FORMAT_WIZARD_HOURS_PER_DAY: id('formatWizardHoursPerDay'),
+  FORMAT_WIZARD_MIN_FLOOR: id('formatWizardMinFloor'),
+  FORMAT_WIZARD_TARGET_CT: id('formatWizardTargetCt'),
+  FORMAT_WIZARD_APPETITE: id('formatWizardAppetite'),
 } as const;

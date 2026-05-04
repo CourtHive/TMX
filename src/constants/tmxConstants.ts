@@ -258,3 +258,16 @@ export const ROUNDS_RATINGS = 'roundsRatings';
 export const ROUNDS_STANDINGS = 'roundsStandings';
 export const ROUNDS_SWISS_CHART = 'roundsSwissChart';
 export const FIC_DEPTH = 'ficDepth';
+
+// Format Wizard (Phase 1.C)
+export const FORMAT_WIZARD_MODAL = 'formatWizardModal';
+export const FORMAT_WIZARD_CONTENT = 'formatWizardContent';
+export const FORMAT_WIZARD_FORM = 'formatWizardForm';
+export const FORMAT_WIZARD_RIGHT_PANE = 'formatWizardRightPane';
+export const FORMAT_WIZARD_SCALE = 'formatWizardScale';
+export const FORMAT_WIZARD_COURTS = 'formatWizardCourts';
+export const FORMAT_WIZARD_DAYS = 'formatWizardDays';
+export const FORMAT_WIZARD_HOURS_PER_DAY = 'formatWizardHoursPerDay';
+export const FORMAT_WIZARD_MIN_FLOOR = 'formatWizardMinFloor';
+export const FORMAT_WIZARD_TARGET_CT = 'formatWizardTargetCt';
+export const FORMAT_WIZARD_APPETITE = 'formatWizardAppetite';
