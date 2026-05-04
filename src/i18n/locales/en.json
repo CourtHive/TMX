@@ -1968,6 +1968,17 @@
       "WITHDRAWAL_RISK": "Withdrawal risk",
       "MIXED_GENDER_VARIANT": "Mixed gender",
       "COLLAPSED_CATEGORY": "Collapsed category"
+    },
+    "apply": {
+      "button": "Apply",
+      "confirmTitle": "Apply this format plan?",
+      "confirmBody": "This will create {{eventCount}} events with {{participantCount}} participants entered.",
+      "confirmBodyUnsupported": "{{unsupportedCount}} flight cannot be materialized automatically (unsupported structure) and will be skipped.",
+      "confirm": "Apply",
+      "success": "Plan applied: {{eventCount}} events created. Open each event to generate its draw.",
+      "successPartial": "Plan applied with skipped flights — see toast log",
+      "errorEvents": "Could not create events from the plan",
+      "errorEmpty": "Nothing to apply — every flight was unsupported or empty"
     }
   }
 }

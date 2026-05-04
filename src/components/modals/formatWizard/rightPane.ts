@@ -9,9 +9,11 @@ import {
   FORMAT_WIZARD_PLAN_LIST,
   FORMAT_WIZARD_RIGHT_PANE,
 } from 'constants/tmxConstants';
+import { RankedPlan } from 'tods-competition-factory';
 import { RunFormatWizardResult } from 'services/formatWizard';
 
 export interface RightPaneHandle {
+  setOnApply: (cb: (plan: RankedPlan) => void) => void;
   setData: (result: RunFormatWizardResult) => void;
   setEmpty: (message: string) => void;
   element: HTMLElement;
@@ -63,6 +65,8 @@ export function buildRightPane(): RightPaneHandle {
 
   root.appendChild(plansSection);
 
+  let onApply: ((plan: RankedPlan) => void) | undefined;
+
   function setData(result: RunFormatWizardResult): void {
     distributionPanel.setData(result.distribution, {
       rated: result.ratedParticipants,
@@ -80,7 +84,9 @@ export function buildRightPane(): RightPaneHandle {
     }
 
     empty.hidden = true;
-    const cards = result.plans.map(buildPlanCard);
+    const cards = result.plans.map((plan) =>
+      buildPlanCard(plan, { onApply: onApply ? (p) => onApply!(p) : undefined }),
+    );
     planList.replaceChildren(...cards);
   }
 
@@ -90,5 +96,9 @@ export function buildRightPane(): RightPaneHandle {
     empty.textContent = message;
   }
 
-  return { setData, setEmpty, element: root };
+  function setOnApply(cb: (plan: RankedPlan) => void): void {
+    onApply = cb;
+  }
+
+  return { setOnApply, setData, setEmpty, element: root };
 }

@@ -110,6 +110,63 @@ test.describe('Journey 30 — Format Wizard modal', () => {
         .count();
       expect(initial !== next || overCapacity > 0).toBe(true);
     });
+
+    test('apply button confirms and creates events + draws', async ({ page }) => {
+      const wizard = new FormatWizardModal(page);
+      await wizard.openViaActionsMenu();
+      await expect(wizard.applyButtonByRank(1)).toBeVisible();
+
+      const eventsBefore = await page.evaluate(
+        () => ((globalThis as any).dev.factory.tournamentEngine.getEvents()?.events ?? []).length,
+      );
+      expect(eventsBefore).toEqual(0);
+
+      // Programmatic click bypasses viewport-edge issues — the apply
+      // button can be inside the modal's scrollable plan list.
+      await wizard.applyButtonByRank(1).evaluate((b: HTMLButtonElement) => b.click());
+      // Confirmation modal — click the Ok button
+      await page.locator('button', { hasText: 'Ok' }).first().click();
+
+      // Apply Plan creates events + entries only — TMX's convention
+      // is that draws are generated per-flight when the TD navigates
+      // to the event tab. Poll for the events to appear in factory
+      // state, then assert entries are populated.
+      await expect
+        .poll(
+          () =>
+            page.evaluate(
+              () => ((globalThis as any).dev.factory.tournamentEngine.getEvents()?.events ?? []).length,
+            ),
+          { timeout: 10_000 },
+        )
+        .toBeGreaterThan(0);
+
+      const after = await page.evaluate(() => {
+        const events = (globalThis as any).dev.factory.tournamentEngine.getEvents()?.events ?? [];
+        const entryCounts = events.map((e: any) => (e.entries ?? []).length);
+        return { eventCount: events.length, entryCounts };
+      });
+      expect(after.eventCount).toBeGreaterThan(0);
+      expect(after.entryCounts.every((c: number) => c > 0)).toBe(true);
+    });
+
+    test('apply cancel does not create events', async ({ page }) => {
+      const wizard = new FormatWizardModal(page);
+      await wizard.openViaActionsMenu();
+
+      // Programmatic click bypasses viewport-edge issues — the apply
+      // button can be inside the modal's scrollable plan list.
+      await wizard.applyButtonByRank(1).evaluate((b: HTMLButtonElement) => b.click());
+      await page.locator('button', { hasText: 'Cancel' }).first().click();
+
+      // Wizard stays open
+      await expect(wizard.content).toBeVisible();
+
+      const eventCount = await page.evaluate(
+        () => ((globalThis as any).dev.factory.tournamentEngine.getEvents()?.events ?? []).length,
+      );
+      expect(eventCount).toEqual(0);
+    });
   });
 
   test.describe('Actions-menu visibility — events with entries', () => {

@@ -110,6 +110,10 @@ export class FormatWizardModal {
     return this.planCards.count();
   }
 
+  applyButtonByRank(rank: number) {
+    return this.page.locator(`.tmx-format-wizard-apply-btn[data-rank="${rank}"]`);
+  }
+
   async setCourts(value: number): Promise<void> {
     await this.courtsInput.fill(String(value));
   }

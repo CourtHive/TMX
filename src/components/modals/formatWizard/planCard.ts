@@ -3,6 +3,8 @@ import { t } from 'i18n';
 // constants and types
 import { PlanWarning, RankedPlan } from 'tods-competition-factory';
 
+const APPLY_BUTTON_CLASS = 'tmx-format-wizard-apply-btn';
+
 const CARD_STYLE =
   'border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 6px; background: var(--tmx-bg-primary, #fff); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;';
 const TOP_ROW_STYLE = 'display: flex; align-items: center; gap: 8px;';
@@ -19,8 +21,11 @@ const NUMBER_LABEL_STYLE =
 const WARNINGS_ROW_STYLE = 'display: flex; flex-wrap: wrap; gap: 6px;';
 const WARNING_CHIP_STYLE_BASE =
   'font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; background: var(--tmx-warning-bg, #fff3cd); color: var(--tmx-warning-text, #856404);';
-const SCORE_FOOTER_STYLE =
-  'font-size: 11px; color: var(--tmx-text-muted, #999); display: flex; justify-content: flex-end;';
+const FOOTER_ROW_STYLE =
+  'display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;';
+const SCORE_FOOTER_STYLE = 'font-size: 11px; color: var(--tmx-text-muted, #999);';
+const APPLY_BUTTON_STYLE =
+  'background: var(--tmx-accent-teal, #00b8a9); color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer;';
 
 function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -79,8 +84,13 @@ function buildWarningChips(warnings: PlanWarning[]): HTMLDivElement {
 
 // Renders a single ranked plan as a card. Layout follows the
 // prior-art UX synthesis: archetype banner + flighting summary + three
-// big numbers + warning chips + de-emphasized score footer.
-export function buildPlanCard(plan: RankedPlan): HTMLDivElement {
+// big numbers + warning chips + apply-button + de-emphasized score
+// footer.
+export interface PlanCardOptions {
+  onApply?: (plan: RankedPlan) => void;
+}
+
+export function buildPlanCard(plan: RankedPlan, options: PlanCardOptions = {}): HTMLDivElement {
   const card = document.createElement('div');
   card.className = 'tmx-format-wizard-plan-card';
   card.dataset.rank = String(plan.rank);
@@ -133,10 +143,27 @@ export function buildPlanCard(plan: RankedPlan): HTMLDivElement {
     card.appendChild(buildWarningChips(plan.warnings));
   }
 
-  const scoreFooter = document.createElement('div');
+  const footerRow = document.createElement('div');
+  footerRow.style.cssText = FOOTER_ROW_STYLE;
+
+  if (options.onApply) {
+    const applyBtn = document.createElement('button');
+    applyBtn.className = APPLY_BUTTON_CLASS;
+    applyBtn.dataset.rank = String(plan.rank);
+    applyBtn.style.cssText = APPLY_BUTTON_STYLE;
+    applyBtn.textContent = t('formatWizard.apply.button');
+    applyBtn.addEventListener('click', () => options.onApply!(plan));
+    footerRow.appendChild(applyBtn);
+  } else {
+    footerRow.appendChild(document.createElement('span'));
+  }
+
+  const scoreFooter = document.createElement('span');
   scoreFooter.style.cssText = SCORE_FOOTER_STYLE;
   scoreFooter.textContent = `${t('formatWizard.card.score')} ${formatPercent(plan.score)}`;
-  card.appendChild(scoreFooter);
+  footerRow.appendChild(scoreFooter);
+
+  card.appendChild(footerRow);
 
   return card;
 }
