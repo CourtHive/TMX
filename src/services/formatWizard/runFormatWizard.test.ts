@@ -16,7 +16,10 @@ function poolWithRatings(values: Array<number | undefined>) {
   return values.map((rating, i) => ({
     participantId: `p${i}`,
     person: { sex: 'MALE' },
-    ratings: rating === undefined ? {} : { utr: { utrRating: rating, confidence: 90 } },
+    ratings:
+      rating === undefined
+        ? {}
+        : { SINGLES: [{ scaleName: 'UTR', scaleValue: { utrRating: rating }, scaleDate: '2026-05-04' }] },
   }));
 }
 

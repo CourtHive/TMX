@@ -119,4 +119,7 @@ export const S = {
   FORMAT_WIZARD_MIN_FLOOR: id('formatWizardMinFloor'),
   FORMAT_WIZARD_TARGET_CT: id('formatWizardTargetCt'),
   FORMAT_WIZARD_APPETITE: id('formatWizardAppetite'),
+  FORMAT_WIZARD_DISTRIBUTION: id('formatWizardDistribution'),
+  FORMAT_WIZARD_PLAN_LIST: id('formatWizardPlanList'),
+  FORMAT_WIZARD_EMPTY: id('formatWizardEmpty'),
 } as const;

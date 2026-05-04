@@ -1,10 +1,13 @@
 import { openModal, closeModal } from '../baseModal/baseModal';
 import { buildConstraintsForm } from './constraintsForm';
+import { buildRightPane } from './rightPane';
+import { runFormatWizard } from 'services/formatWizard';
 import { t } from 'i18n';
 
 // constants and types
-import { FORMAT_WIZARD_CONTENT, FORMAT_WIZARD_RIGHT_PANE } from 'constants/tmxConstants';
+import { FORMAT_WIZARD_CONTENT } from 'constants/tmxConstants';
 import { ConstraintsFormHandle, ConstraintsFormState } from './constraintsForm';
+import { RightPaneHandle } from './rightPane';
 
 export interface OpenFormatWizardModalOptions {
   onConstraintsChange?: (state: ConstraintsFormState) => void;
@@ -14,48 +17,53 @@ export interface OpenFormatWizardModalOptions {
 const MODAL_MAX_WIDTH = 1000;
 const MODAL_MIN_HEIGHT = 480;
 
-const RIGHT_PANE_PLACEHOLDER_STYLE =
-  'flex: 1; padding: 24px; display: flex; align-items: center; justify-content: center; color: var(--tmx-text-muted, #999); font-style: italic; min-height: 320px;';
-
-function buildContent(formHandle: ConstraintsFormHandle): HTMLElement {
+function buildContent(formHandle: ConstraintsFormHandle, rightPane: RightPaneHandle): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.id = FORMAT_WIZARD_CONTENT;
   wrapper.className = 'tmx-format-wizard-content';
   wrapper.style.cssText = `display: flex; min-height: ${MODAL_MIN_HEIGHT}px;`;
   wrapper.appendChild(formHandle.element);
-
-  const rightPane = document.createElement('div');
-  rightPane.id = FORMAT_WIZARD_RIGHT_PANE;
-  rightPane.className = 'tmx-format-wizard-right-pane';
-  rightPane.style.cssText = RIGHT_PANE_PLACEHOLDER_STYLE;
-  rightPane.textContent = t('formatWizard.placeholder');
-  wrapper.appendChild(rightPane);
-
+  wrapper.appendChild(rightPane.element);
   return wrapper;
 }
 
-// Opens the format wizard modal. Phase 1.C.2 ships only the
-// scaffold + constraints form (left pane) — the right pane is a
-// placeholder until 1.C.3 adds the distribution chart and plan
-// cards. The caller can subscribe to constraint changes via
-// `onConstraintsChange`; in 1.C.3 the modal owns its own
-// recompute and that callback becomes optional.
-export function openFormatWizardModal(options: OpenFormatWizardModalOptions = {}): ConstraintsFormHandle {
-  const formHandle = buildConstraintsForm({
-    initialScaleName: options.initialScaleName,
+function recompute(formState: ConstraintsFormState, rightPane: RightPaneHandle): void {
+  const result = runFormatWizard({
+    constraints: formState.constraints,
+    scaleName: formState.scaleName,
   });
-
-  if (options.onConstraintsChange) {
-    formHandle.setOnChange(options.onConstraintsChange);
+  if (result.error === 'INSUFFICIENT_RATED_PARTICIPANTS' && result.totalParticipants === 0) {
+    rightPane.setEmpty(t('formatWizard.summary.loadTournament'));
+    return;
   }
+  rightPane.setData(result);
+}
+
+// Opens the format wizard modal. The modal owns its own recompute
+// loop: every form change triggers `runFormatWizard` and pushes
+// the result into the right pane. Engine is sub-millisecond so no
+// debounce; the prior-art research recommends live re-projection
+// as the canonical UX for this kind of tool.
+export function openFormatWizardModal(options: OpenFormatWizardModalOptions = {}): ConstraintsFormHandle {
+  const formHandle = buildConstraintsForm({ initialScaleName: options.initialScaleName });
+  const rightPane = buildRightPane();
+
+  formHandle.setOnChange((state) => {
+    recompute(state, rightPane);
+    if (options.onConstraintsChange) options.onConstraintsChange(state);
+  });
 
   openModal({
     title: t('formatWizard.title'),
-    content: buildContent(formHandle),
+    content: buildContent(formHandle, rightPane),
     buttons: [{ label: t('close'), close: true }],
     onClose: () => formHandle.setOnChange(() => undefined),
     config: { padding: '0', maxWidth: MODAL_MAX_WIDTH },
   });
+
+  // Initial render so the user sees plans (or an empty-state hint)
+  // before they touch the form.
+  recompute(formHandle.getState(), rightPane);
 
   return formHandle;
 }

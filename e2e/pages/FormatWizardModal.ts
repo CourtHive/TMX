@@ -60,6 +60,30 @@ export class FormatWizardModal {
     return this.page.locator(S.FORMAT_WIZARD_APPETITE);
   }
 
+  get distribution() {
+    return this.page.locator(S.FORMAT_WIZARD_DISTRIBUTION);
+  }
+
+  get planList() {
+    return this.page.locator(S.FORMAT_WIZARD_PLAN_LIST);
+  }
+
+  get emptyState() {
+    return this.page.locator(S.FORMAT_WIZARD_EMPTY);
+  }
+
+  get planCards() {
+    return this.page.locator('.tmx-format-wizard-plan-card');
+  }
+
+  planCardByRank(rank: number) {
+    return this.page.locator(`.tmx-format-wizard-plan-card[data-rank="${rank}"]`);
+  }
+
+  async planCount(): Promise<number> {
+    return this.planCards.count();
+  }
+
   async setCourts(value: number): Promise<void> {
     await this.courtsInput.fill(String(value));
   }

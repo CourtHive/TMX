@@ -1941,6 +1941,33 @@
       "none": "None",
       "light": "Light (single consolation round)",
       "full": "Full (cascading consolation)"
+    },
+    "headers": {
+      "distribution": "Rating distribution",
+      "plans": "Suggested plans"
+    },
+    "summary": {
+      "ratedOf": "{{rated}} of {{total}} rated on {{scale}}",
+      "noRatedParticipants": "No rated participants on this scale",
+      "loadTournament": "Open a tournament to populate the wizard",
+      "constraintsRequired": "Adjust the constraints to see plans"
+    },
+    "card": {
+      "matchesPerPlayer": "matches/player",
+      "competitive": "competitive",
+      "courtHours": "court-hours",
+      "score": "Score",
+      "of": "of",
+      "matches": "{{count}} matches",
+      "flightCount": "{{count}} flight",
+      "flightCount_plural": "{{count}} flights"
+    },
+    "warnings": {
+      "BELOW_FLOOR": "Below match-floor",
+      "OVER_CAPACITY": "Over court capacity",
+      "WITHDRAWAL_RISK": "Withdrawal risk",
+      "MIXED_GENDER_VARIANT": "Mixed gender",
+      "COLLAPSED_CATEGORY": "Collapsed category"
     }
   }
 }

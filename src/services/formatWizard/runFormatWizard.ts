@@ -53,10 +53,15 @@ function emptyResult(scaleName: string, error?: string): RunFormatWizardResult {
 
 // Pulls participants from the live tournamentEngine unless a caller
 // supplies their own list (useful for tests and for dry-run "what
-// if I added these people" flows in the future).
+// if I added these people" flows in the future). `withScaleValues`
+// is required to hydrate `participant.ratings.<scale>.<accessor>`
+// from the underlying `timeItems` — without it, ratings is `{}`.
 function readParticipants(participantsOverride: any[] | undefined): any[] {
   if (Array.isArray(participantsOverride)) return participantsOverride;
-  const result: any = tournamentEngine.getParticipants?.({ withIndividualParticipants: true });
+  const result: any = tournamentEngine.getParticipants?.({
+    withIndividualParticipants: true,
+    withScaleValues: true,
+  });
   return Array.isArray(result?.participants) ? result.participants : [];
 }
 

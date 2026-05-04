@@ -19,13 +19,25 @@ test.describe('Journey 30 — Format Wizard modal', () => {
     await initDevBridge(page);
     await resetState(page);
 
-    // Seed a small tournament so the dev bridge has factory state to operate
-    // on; the modal itself doesn't read participants until 1.C.3 wires the
-    // recompute, but having a tournament loaded is closer to real usage.
+    // Seed a tournament whose draw category specifies a rating scale —
+    // this is how mocksEngine attaches `ratings.utr.utrRating` to each
+    // generated participant. The wizard reads participants from
+    // tournamentEngine.getParticipants and resolves a numeric rating
+    // via the active scale, so a non-rating-aware seed yields zero
+    // rated participants and an empty plan list.
     await seedTournament(page, {
       tournamentName: 'Format Wizard E2E',
       tournamentAttributes: { tournamentId: 'e2e-format-wizard-001' },
-      participantsProfile: { scaledParticipantsCount: 16 },
+      drawProfiles: [
+        {
+          eventName: 'UTR 4-7 SINGLES',
+          category: { ratingType: 'UTR', ratingMin: 4, ratingMax: 7 },
+          scaledParticipantsCount: 16,
+          drawType: 'SINGLE_ELIMINATION',
+          drawSize: 16,
+          seedsCount: 4,
+        },
+      ],
     });
   });
 
@@ -81,13 +93,52 @@ test.describe('Journey 30 — Format Wizard modal', () => {
     await expect(wizard.appetiteSelect).toHaveValue('FULL');
   });
 
-  test('right-pane shows placeholder copy until 1.C.3 wires content', async ({ page }) => {
+  test('renders the distribution chart for the seeded participant pool', async ({ page }) => {
     const wizard = new FormatWizardModal(page);
     await wizard.open();
 
-    // Localized placeholder text — exact string assertions are brittle
-    // across locale changes, so just assert non-empty content
-    const text = (await wizard.rightPane.textContent()) ?? '';
-    expect(text.trim().length).toBeGreaterThan(0);
+    await expect(wizard.distribution).toBeVisible();
+    // The chart is an SVG appended into the distribution holder
+    const svgCount = await wizard.distribution.locator('svg').count();
+    expect(svgCount).toBeGreaterThan(0);
+  });
+
+  test('renders ranked plan cards for the seeded pool', async ({ page }) => {
+    const wizard = new FormatWizardModal(page);
+    await wizard.open();
+
+    await expect(wizard.planList).toBeVisible();
+    const planCount = await wizard.planCount();
+    expect(planCount).toBeGreaterThan(0);
+
+    // Rank 1 card exists and shows a non-empty archetype label
+    const rank1 = wizard.planCardByRank(1);
+    await expect(rank1).toBeVisible();
+    const archetypeText = (await rank1.locator('.tmx-format-wizard-plan-archetype').textContent()) ?? '';
+    expect(archetypeText.trim().length).toBeGreaterThan(0);
+  });
+
+  test('plan cards re-rank when constraints change (live recompute)', async ({ page }) => {
+    const wizard = new FormatWizardModal(page);
+    await wizard.open();
+
+    // Capture rank-1 archetype with default constraints
+    const initialArchetype = await wizard.planCardByRank(1).locator('.tmx-format-wizard-plan-archetype').textContent();
+
+    // Force-rank by squeezing capacity hard — fewer courts/days
+    // re-orders the plan list because court-utilization scoring shifts
+    await wizard.setCourts(1);
+    await wizard.setDays(1);
+
+    // The plan list re-renders synchronously (engine is sub-ms);
+    // the rank-1 card may now have a different archetype OR an
+    // OVER_CAPACITY warning chip — either signals recompute fired.
+    const newArchetype = await wizard.planCardByRank(1).locator('.tmx-format-wizard-plan-archetype').textContent();
+    const hasWarning = await wizard
+      .planCardByRank(1)
+      .locator('.tmx-format-wizard-warning-chip[data-warning="OVER_CAPACITY"]')
+      .count();
+
+    expect(initialArchetype !== newArchetype || hasWarning > 0).toBe(true);
   });
 });
