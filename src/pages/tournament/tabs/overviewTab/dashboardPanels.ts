@@ -205,11 +205,32 @@ export function createSunburstPlaceholder(): HTMLElement {
 
 type SunburstView = 'burst' | 'donut';
 
+// Per-user (not per-tournament) preference for the overview chart toggle.
+const SUNBURST_VIEW_KEY = 'tmx:overview:sunburstView';
+const SUNBURST_VIEW_DEFAULT: SunburstView = 'donut';
+
+function readSunburstView(): SunburstView {
+  try {
+    const stored = localStorage.getItem(SUNBURST_VIEW_KEY);
+    return stored === 'burst' || stored === 'donut' ? stored : SUNBURST_VIEW_DEFAULT;
+  } catch {
+    return SUNBURST_VIEW_DEFAULT;
+  }
+}
+
+function writeSunburstView(view: SunburstView): void {
+  try {
+    localStorage.setItem(SUNBURST_VIEW_KEY, view);
+  } catch {
+    // storage unavailable
+  }
+}
+
 export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   const panel = document.createElement('div');
   panel.className = 'dash-panel dash-panel-green';
 
-  let view: SunburstView = 'burst';
+  let view: SunburstView = readSunburstView();
 
   // Header row: structure dropdown + view toggle
   const header = document.createElement('div');
@@ -299,6 +320,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
   toggleBtn.addEventListener('click', () => {
     view = view === 'burst' ? 'donut' : 'burst';
+    writeSunburstView(view);
     setToggleAppearance();
     renderStructure(select.value);
   });
