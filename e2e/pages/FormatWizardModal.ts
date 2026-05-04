@@ -118,6 +118,10 @@ export class FormatWizardModal {
     return this.page.locator(S.FORMAT_WIZARD_RESET_LINK);
   }
 
+  get capacityCue() {
+    return this.page.locator(S.FORMAT_WIZARD_CAPACITY_CUE);
+  }
+
   async close(): Promise<void> {
     // Programmatic click — the modal's Close button can sit below
     // the viewport when the right pane is tall.

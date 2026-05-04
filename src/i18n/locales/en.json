@@ -1943,6 +1943,12 @@
       "full": "Full (cascading consolation)"
     },
     "reset": "Reset to defaults",
+    "cues": {
+      "noVenues": "No courts defined — set up venues first",
+      "savedExceedsAvailable": "Wizard expects {{saved}} courts but the tournament has {{available}}",
+      "savedLessThanAvailable": "Tournament has {{available}} courts; wizard configured for {{saved}}",
+      "effectiveCourtCount": "On average {{effective}} courts available per day across {{dayCount}} days"
+    },
     "headers": {
       "distribution": "Rating distribution",
       "plans": "Suggested plans"

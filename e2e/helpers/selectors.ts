@@ -124,4 +124,5 @@ export const S = {
   FORMAT_WIZARD_EMPTY: id('formatWizardEmpty'),
   FORMAT_WIZARD_ACTION_BUTTON: id('formatWizardActionButton'),
   FORMAT_WIZARD_RESET_LINK: id('formatWizardResetLink'),
+  FORMAT_WIZARD_CAPACITY_CUE: id('formatWizardCapacityCue'),
 } as const;

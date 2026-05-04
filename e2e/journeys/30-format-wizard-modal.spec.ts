@@ -228,6 +228,23 @@ test.describe('Journey 30 — Format Wizard modal', () => {
     });
   });
 
+  test.describe('Capacity cues — venues vs. saved courts', () => {
+    test.beforeEach(async ({ page }) => {
+      await seedRatedNoEvents(page);
+      const tournament = new TournamentPage(page);
+      await tournament.goto(TOURNAMENT_ID_NO_EVENTS);
+    });
+
+    test('shows the no-venues cue when no courts are defined', async ({ page }) => {
+      const wizard = new FormatWizardModal(page);
+      await wizard.openViaActionsMenu();
+      // The seed had no venueProfiles, so courts.length === 0.
+      await expect(wizard.capacityCue).toBeVisible();
+      const cue = (await wizard.capacityCue.textContent()) ?? '';
+      expect(cue.length).toBeGreaterThan(0);
+    });
+  });
+
   test.describe('Modal behaviour — opened via dev backdoor', () => {
     // These tests focus on form behaviour and don't depend on the
     // actions-menu visibility. Using the dev backdoor lets us seed

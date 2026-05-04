@@ -3,6 +3,7 @@ import { t } from 'i18n';
 // constants and types
 import {
   FORMAT_WIZARD_APPETITE,
+  FORMAT_WIZARD_CAPACITY_CUE,
   FORMAT_WIZARD_COURTS,
   FORMAT_WIZARD_DAYS,
   FORMAT_WIZARD_FORM,
@@ -13,6 +14,7 @@ import {
   FORMAT_WIZARD_TARGET_CT,
 } from 'constants/tmxConstants';
 import { ConsolationAppetite, WizardConstraints } from 'tods-competition-factory';
+import { TournamentCapacity } from 'services/formatWizard';
 
 export interface ConstraintsFormState {
   scaleName: string;
@@ -20,6 +22,7 @@ export interface ConstraintsFormState {
 }
 
 export interface ConstraintsFormHandle {
+  setCapacity: (capacity: TournamentCapacity | undefined) => void;
   setOnChange: (cb: (state: ConstraintsFormState) => void) => void;
   getState: () => ConstraintsFormState;
   reset: () => void;
@@ -164,6 +167,54 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
     control.addEventListener('input', notify);
   }
 
+  const capacityCue = document.createElement('div');
+  capacityCue.id = FORMAT_WIZARD_CAPACITY_CUE;
+  capacityCue.style.cssText =
+    'font-size: 11px; color: var(--tmx-warning-text, #856404); background: var(--tmx-warning-bg, #fff3cd); border: 1px solid var(--tmx-warning-border, #ffe69c); border-radius: 4px; padding: 6px 8px; margin-top: 4px; line-height: 1.3;';
+  capacityCue.hidden = true;
+  root.appendChild(capacityCue);
+
+  let lastCapacity: TournamentCapacity | undefined;
+  function renderCapacityCue(): void {
+    if (!lastCapacity) {
+      capacityCue.hidden = true;
+      return;
+    }
+    const lines: string[] = [];
+    const saved = clampNumber(Number(courtsInput.value), 1, 4);
+    if (!lastCapacity.hasVenues) {
+      lines.push(t('formatWizard.cues.noVenues'));
+    } else if (saved > lastCapacity.courtCount) {
+      lines.push(t('formatWizard.cues.savedExceedsAvailable', { saved, available: lastCapacity.courtCount }));
+    } else if (saved < lastCapacity.courtCount) {
+      lines.push(t('formatWizard.cues.savedLessThanAvailable', { saved, available: lastCapacity.courtCount }));
+    }
+    if (lastCapacity.hasTemporalInfo && typeof lastCapacity.effectiveCourtCount === 'number') {
+      const rounded = Math.round(lastCapacity.effectiveCourtCount * 10) / 10;
+      if (Math.abs(lastCapacity.effectiveCourtCount - lastCapacity.courtCount) > 0.05) {
+        lines.push(
+          t('formatWizard.cues.effectiveCourtCount', { effective: rounded, dayCount: lastCapacity.dayCount }),
+        );
+      }
+    }
+    if (lines.length === 0) {
+      capacityCue.hidden = true;
+      capacityCue.textContent = '';
+      return;
+    }
+    capacityCue.hidden = false;
+    capacityCue.textContent = lines.join(' · ');
+  }
+
+  function setCapacity(capacity: TournamentCapacity | undefined): void {
+    lastCapacity = capacity;
+    renderCapacityCue();
+  }
+
+  // Re-render the cue when courts change so the message follows the
+  // user's input live.
+  courtsInput.addEventListener('input', renderCapacityCue);
+
   const resetLink = document.createElement('button');
   resetLink.type = 'button';
   resetLink.id = FORMAT_WIZARD_RESET_LINK;
@@ -189,6 +240,7 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   }
 
   return {
+    setCapacity,
     setOnChange: (cb) => {
       onChange = cb;
     },

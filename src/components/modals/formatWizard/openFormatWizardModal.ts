@@ -4,6 +4,7 @@ import { buildRightPane } from './rightPane';
 import {
   applyFormatPlan,
   buildApplyMethods,
+  getTournamentCapacity,
   readWizardState,
   runFormatWizard,
   writeWizardState,
@@ -121,6 +122,11 @@ export function openFormatWizardModal(options: OpenFormatWizardModalOptions = {}
   rightPane.setOnApply((plan) => {
     handleApply(plan, formHandle.getState().scaleName);
   });
+
+  // Capture the live tournament capacity once on open and feed it
+  // to the form so the courts-input cue can render. The cue
+  // rerenders on every courts-input change.
+  formHandle.setCapacity(getTournamentCapacity());
 
   formHandle.setOnChange((state) => {
     recompute(state, rightPane);
