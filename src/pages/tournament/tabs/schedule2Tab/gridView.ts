@@ -1222,6 +1222,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const onVisibilityChanged = () => {
       destroyVisibilityTip();
       render(date);
+      activeStrip?.setData(buildActiveStripData(date));
     };
     const courtHeaders = buildGridHeaders({
       grid,
