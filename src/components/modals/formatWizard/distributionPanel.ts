@@ -14,7 +14,12 @@ const PANEL_STYLE = 'padding: 16px; border-bottom: 1px solid var(--tmx-border-se
 const HEADER_STYLE =
   'font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tmx-text-secondary, #777); margin-bottom: 8px;';
 const SUMMARY_STYLE = 'font-size: 12px; color: var(--tmx-text-secondary, #777); margin-top: 4px;';
-const CHART_HOLDER_STYLE = 'min-height: 120px;';
+// Width fills the available right-pane real estate up to 1000 px;
+// past that the chart stops growing so labels stay readable on
+// ultra-wide panes.
+const CHART_HOLDER_STYLE = 'min-height: 200px; width: 100%; max-width: 1000px;';
+const CHART_VIEWBOX_WIDTH = 1000;
+const CHART_VIEWBOX_HEIGHT = 240;
 
 export function buildDistributionPanel(): DistributionPanelHandle {
   const root = document.createElement('div');
@@ -41,7 +46,17 @@ export function buildDistributionPanel(): DistributionPanelHandle {
   ): void {
     chartHolder.replaceChildren();
     if (stats.count > 0) {
-      const chart = buildRatingDistributionChart(stats, { width: 480, height: 160 });
+      const chart = buildRatingDistributionChart(stats, {
+        width: CHART_VIEWBOX_WIDTH,
+        height: CHART_VIEWBOX_HEIGHT,
+      });
+      // Let the SVG's viewBox handle the scaling — width: 100% makes
+      // it stretch to the panel; height: auto preserves the 800:220
+      // aspect ratio so band labels don't crowd.
+      chart.setAttribute('width', '100%');
+      chart.style.width = '100%';
+      chart.style.height = 'auto';
+      chart.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       chartHolder.appendChild(chart);
     }
     summary.textContent =

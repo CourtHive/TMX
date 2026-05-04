@@ -1936,9 +1936,11 @@
       "courts": "Courts",
       "days": "Days",
       "hoursPerDay": "Hours per day",
-      "minMatchesFloor": "Min matches per player",
+      "targetMatchesPerPlayer": "Target matches per player",
       "targetCompetitivePct": "Target competitive % (0–100)",
-      "consolationAppetite": "Consolation appetite"
+      "consolationAppetite": "Consolation appetite",
+      "voluntaryConsolation": "Include voluntary consolation",
+      "selectedEvent": "Apply to event"
     },
     "appetite": {
       "none": "None",
@@ -1954,16 +1956,27 @@
     },
     "headers": {
       "distribution": "Rating distribution",
-      "plans": "Suggested plans"
+      "plans": "Suggested plans",
+      "consideration": "Under consideration"
     },
     "summary": {
       "ratedOf": "{{rated}} of {{total}} rated on {{scale}}",
       "noRatedParticipants": "No rated participants on this scale",
       "loadTournament": "Open a tournament to populate the wizard",
-      "constraintsRequired": "Adjust the constraints to see plans"
+      "constraintsRequired": "Adjust the constraints to see plans",
+      "allParticipants": "All participants"
+    },
+    "actions": {
+      "clearStale": "Clear stale considerations"
     },
     "card": {
       "matchesPerPlayer": "matches/player",
+      "bandHeading": "{{count}} matches per player",
+      "bandHeading_plural": "{{count}} matches per player",
+      "bandTargetTag": "target",
+      "vcTag": "+VC",
+      "staleTag": "stale",
+      "considerTag": "consider",
       "competitive": "competitive",
       "courtHours": "court-hours",
       "score": "Score",
@@ -1973,7 +1986,7 @@
       "flightCount_plural": "{{count}} flights"
     },
     "warnings": {
-      "BELOW_FLOOR": "Below match-floor",
+      "BELOW_FLOOR": "Below target",
       "OVER_CAPACITY": "Over court capacity",
       "WITHDRAWAL_RISK": "Withdrawal risk",
       "MIXED_GENDER_VARIANT": "Mixed gender",

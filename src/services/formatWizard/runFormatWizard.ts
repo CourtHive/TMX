@@ -14,6 +14,7 @@ export interface RunFormatWizardArgs {
   constraints: WizardConstraints;
   governance?: WizardGovernance;
   scaleName: string;
+  selectedEventId?: string;
   participantsOverride?: any[];
 }
 
@@ -56,13 +57,23 @@ function emptyResult(scaleName: string, error?: string): RunFormatWizardResult {
 // if I added these people" flows in the future). `withScaleValues`
 // is required to hydrate `participant.ratings.<scale>.<accessor>`
 // from the underlying `timeItems` — without it, ratings is `{}`.
-function readParticipants(participantsOverride: any[] | undefined): any[] {
+//
+// When `selectedEventId` is set, filters the pool to that event's
+// entries — the per-event UX path. When undefined, returns all
+// tournament participants (the default tournament-level path).
+function readParticipants(participantsOverride: any[] | undefined, selectedEventId: string | undefined): any[] {
   if (Array.isArray(participantsOverride)) return participantsOverride;
   const result: any = tournamentEngine.getParticipants?.({
     withIndividualParticipants: true,
     withScaleValues: true,
   });
-  return Array.isArray(result?.participants) ? result.participants : [];
+  const all: any[] = Array.isArray(result?.participants) ? result.participants : [];
+  if (!selectedEventId) return all;
+  const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
+  const event = events.find((e: any) => e?.eventId === selectedEventId);
+  const entries: any[] = (event?.entries as any[]) ?? [];
+  const ids = new Set<string>(entries.map((e: any) => e.participantId).filter(Boolean));
+  return all.filter((p) => ids.has(p?.participantId));
 }
 
 // Bridge between TMX runtime context and the factory's Phase 1.A engine.
@@ -75,6 +86,7 @@ export function runFormatWizard({
   constraints,
   governance,
   scaleName,
+  selectedEventId,
 }: RunFormatWizardArgs): RunFormatWizardResult {
   if (!constraints || typeof constraints.courts !== 'number' || typeof constraints.days !== 'number') {
     return emptyResult(scaleName, 'INVALID_CONSTRAINTS');
@@ -83,7 +95,7 @@ export function runFormatWizard({
     return emptyResult(scaleName, 'MISSING_SCALE');
   }
 
-  const allParticipants = readParticipants(participantsOverride);
+  const allParticipants = readParticipants(participantsOverride, selectedEventId);
   const totalParticipants = allParticipants.length;
   const wizardParticipants: WizardParticipant[] = [];
   const excludedParticipantIds: string[] = [];

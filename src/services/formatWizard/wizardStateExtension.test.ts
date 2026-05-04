@@ -26,7 +26,7 @@ const validState: PersistedWizardState = {
     courts: 4,
     days: 2,
     hoursPerDay: 8,
-    minMatchesFloor: 3,
+    targetMatchesPerPlayer: 3,
     targetCompetitivePct: 0.65,
     consolationAppetite: 'LIGHT',
   },
@@ -73,6 +73,24 @@ describe('readWizardState', () => {
       },
     });
     expect(readWizardState()).toBeUndefined();
+  });
+
+  it('hydrates targetMatchesPerPlayer from legacy minMatchesFloor key', () => {
+    getTournamentMock.mockReturnValue({
+      tournamentRecord: {
+        extensions: [
+          {
+            name: FORMAT_WIZARD_EXTENSION_NAME,
+            value: {
+              scaleName: 'utr',
+              constraints: { courts: 4, days: 2, minMatchesFloor: 4 },
+            },
+          },
+        ],
+      },
+    });
+    const state = readWizardState();
+    expect(state?.constraints.targetMatchesPerPlayer).toEqual(4);
   });
 
   it('strips invalid optional fields rather than rejecting the whole state', () => {

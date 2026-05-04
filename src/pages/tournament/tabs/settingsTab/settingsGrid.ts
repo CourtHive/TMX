@@ -58,6 +58,7 @@ function persistAll(
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
   featureFlags.set({
     assistant: displayInputs.assistant?.checked || false,
+    formatWizard: displayInputs.formatWizard?.checked || false,
     reports: displayInputs.reports?.checked || false,
     legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
     legacySchedule: displayInputs.legacySchedule?.checked || false,
@@ -310,6 +311,14 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       checked: featureFlags.get().reports || false,
       field: 'reports',
       id: 'reports',
+      onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: 'Format Wizard',
+      checked: featureFlags.get().formatWizard || false,
+      field: 'formatWizard',
+      id: 'formatWizard',
       onChange: persist,
       checkbox: true,
     },

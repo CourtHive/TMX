@@ -6,14 +6,22 @@
  * admin-gated — works in demo mode against the local-only
  * mutation path.
  */
-import { buildConstraintsForm, ConstraintsFormHandle, ConstraintsFormState } from 'components/modals/formatWizard/constraintsForm';
+import {
+  buildConstraintsForm,
+  ConstraintsFormHandle,
+  ConstraintsFormState,
+  EventOption,
+} from 'components/modals/formatWizard/constraintsForm';
 import { buildRightPane, RightPaneHandle } from 'components/modals/formatWizard/rightPane';
 import {
   applyFormatPlan,
   buildApplyMethods,
+  ConsiderationMap,
   getTournamentCapacity,
+  planFingerprint,
   readWizardState,
   runFormatWizard,
+  RunFormatWizardResult,
   writeWizardState,
 } from 'services/formatWizard';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
@@ -35,6 +43,7 @@ import {
 import { RankedPlan } from 'tods-competition-factory';
 
 const PERSIST_DEBOUNCE_MS = 500;
+const ALL_SCOPE = '_all';
 
 const PAGE_HEADER_STYLE =
   'display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--tmx-border-secondary, #e5e5e5); background: var(--tmx-bg-primary, #fff); position: sticky; top: 0; z-index: 1;';
@@ -52,16 +61,18 @@ function navigateToOverview(): void {
   context.router?.navigate(`/${TOURNAMENT}/${tournamentId}`);
 }
 
-function recompute(formState: ConstraintsFormState, rightPane: RightPaneHandle): void {
-  const result = runFormatWizard({
-    constraints: formState.constraints,
-    scaleName: formState.scaleName,
-  });
-  if (result.error === 'INSUFFICIENT_RATED_PARTICIPANTS' && result.totalParticipants === 0) {
-    rightPane.setEmpty(t('formatWizard.summary.loadTournament'));
-    return;
-  }
-  rightPane.setData(result);
+function readEventOptions(): EventOption[] {
+  const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
+  return events
+    .filter((e: any) => typeof e?.eventId === 'string')
+    .map((e: any) => ({
+      eventId: e.eventId,
+      label: typeof e.eventName === 'string' && e.eventName.length > 0 ? e.eventName : e.eventId,
+    }));
+}
+
+function scopeKey(state: ConstraintsFormState): string {
+  return state.selectedEventId ? state.selectedEventId : ALL_SCOPE;
 }
 
 function handleApply(plan: RankedPlan, scaleName: string): void {
@@ -151,26 +162,110 @@ export function renderFormatWizardPage(): void {
   showFormatWizard();
 
   const persisted = readWizardState();
+  const considerationMap: ConsiderationMap = { ...(persisted?.consideration ?? {}) };
+  let lastResult: RunFormatWizardResult | undefined;
+
+  const eventOptions = readEventOptions();
   const formHandle = buildConstraintsForm({
     initialScaleName: persisted?.scaleName,
+    initialSelectedEventId: persisted?.selectedEventId,
     initialConstraints: persisted?.constraints,
+    eventOptions,
   });
   const rightPane = buildRightPane();
   activeFormHandle = formHandle;
 
   let persistTimer: ReturnType<typeof setTimeout> | undefined;
+  const persist = (state: ConstraintsFormState): void => {
+    writeWizardState({
+      scaleName: state.scaleName,
+      selectedEventId: state.selectedEventId,
+      constraints: state.constraints,
+      consideration: considerationMap,
+    });
+  };
   const schedulePersist = (state: ConstraintsFormState): void => {
     if (persistTimer) clearTimeout(persistTimer);
     persistTimer = setTimeout(() => {
-      writeWizardState({ scaleName: state.scaleName, constraints: state.constraints });
+      persist(state);
       persistTimer = undefined;
     }, PERSIST_DEBOUNCE_MS);
   };
 
+  function staleCount(state: ConstraintsFormState): number {
+    if (!lastResult) return 0;
+    const considered = considerationMap[scopeKey(state)] ?? [];
+    if (considered.length === 0) return 0;
+    const present = new Set(lastResult.plans.map(planFingerprint));
+    return considered.filter((fp) => !present.has(fp)).length;
+  }
+
+  function recompute(state: ConstraintsFormState): void {
+    const result = runFormatWizard({
+      constraints: state.constraints,
+      scaleName: state.scaleName,
+      selectedEventId: state.selectedEventId,
+    });
+    lastResult = result;
+    if (result.error === 'INSUFFICIENT_RATED_PARTICIPANTS' && result.totalParticipants === 0) {
+      rightPane.setEmpty(t('formatWizard.summary.loadTournament'));
+      formHandle.setStaleCount(0);
+      return;
+    }
+    rightPane.setData(result, {
+      targetMatchesPerPlayer: state.constraints.targetMatchesPerPlayer,
+      consideredFingerprints: considerationMap[scopeKey(state)] ?? [],
+      fingerprintForPlan: planFingerprint,
+    });
+    formHandle.setStaleCount(staleCount(state));
+  }
+
   rightPane.setOnApply((plan) => handleApply(plan, formHandle.getState().scaleName));
+
+  rightPane.setOnToggleConsider((_plan, fingerprint) => {
+    const state = formHandle.getState();
+    const key = scopeKey(state);
+    const current = considerationMap[key] ?? [];
+    const next = current.includes(fingerprint)
+      ? current.filter((fp) => fp !== fingerprint)
+      : [...current, fingerprint];
+    if (next.length === 0) {
+      delete considerationMap[key];
+    } else {
+      considerationMap[key] = next;
+    }
+    recompute(state);
+    schedulePersist(state);
+  });
+
+  rightPane.setOnRemoveStale((fingerprint) => {
+    const state = formHandle.getState();
+    const key = scopeKey(state);
+    const current = considerationMap[key] ?? [];
+    const next = current.filter((fp) => fp !== fingerprint);
+    if (next.length === 0) delete considerationMap[key];
+    else considerationMap[key] = next;
+    recompute(state);
+    schedulePersist(state);
+  });
+
+  formHandle.setOnClearStale(() => {
+    if (!lastResult) return;
+    const state = formHandle.getState();
+    const key = scopeKey(state);
+    const current = considerationMap[key] ?? [];
+    if (current.length === 0) return;
+    const present = new Set(lastResult.plans.map(planFingerprint));
+    const next = current.filter((fp) => present.has(fp));
+    if (next.length === 0) delete considerationMap[key];
+    else considerationMap[key] = next;
+    recompute(state);
+    schedulePersist(state);
+  });
+
   formHandle.setCapacity(getTournamentCapacity());
   formHandle.setOnChange((state) => {
-    recompute(state, rightPane);
+    recompute(state);
     schedulePersist(state);
   });
 
@@ -183,5 +278,5 @@ export function renderFormatWizardPage(): void {
 
   // Initial render so the user sees plans (or empty-state hint)
   // before they touch the form.
-  recompute(formHandle.getState(), rightPane);
+  recompute(formHandle.getState());
 }

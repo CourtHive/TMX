@@ -4,26 +4,38 @@ import { t } from 'i18n';
 import {
   FORMAT_WIZARD_APPETITE,
   FORMAT_WIZARD_CAPACITY_CUE,
+  FORMAT_WIZARD_CLEAR_STALE,
   FORMAT_WIZARD_COURTS,
   FORMAT_WIZARD_DAYS,
+  FORMAT_WIZARD_EVENT_SELECT,
   FORMAT_WIZARD_FORM,
   FORMAT_WIZARD_HOURS_PER_DAY,
   FORMAT_WIZARD_MIN_FLOOR,
   FORMAT_WIZARD_RESET_LINK,
   FORMAT_WIZARD_SCALE,
   FORMAT_WIZARD_TARGET_CT,
+  FORMAT_WIZARD_VC_TOGGLE,
 } from 'constants/tmxConstants';
 import { ConsolationAppetite, WizardConstraints } from 'tods-competition-factory';
 import { TournamentCapacity } from 'services/formatWizard';
 
 export interface ConstraintsFormState {
   scaleName: string;
+  selectedEventId?: string;
   constraints: WizardConstraints;
+}
+
+export interface EventOption {
+  eventId: string;
+  label: string;
 }
 
 export interface ConstraintsFormHandle {
   setCapacity: (capacity: TournamentCapacity | undefined) => void;
+  setEventOptions: (events: EventOption[]) => void;
   setOnChange: (cb: (state: ConstraintsFormState) => void) => void;
+  setOnClearStale: (cb: () => void) => void;
+  setStaleCount: (count: number) => void;
   getState: () => ConstraintsFormState;
   reset: () => void;
   element: HTMLElement;
@@ -31,8 +43,10 @@ export interface ConstraintsFormHandle {
 
 export interface ConstraintsFormOptions {
   initialScaleName?: string;
+  initialSelectedEventId?: string;
   initialConstraints?: Partial<WizardConstraints>;
   scaleOptions?: Array<{ value: string; label: string }>;
+  eventOptions?: EventOption[];
 }
 
 const DEFAULT_SCALE_OPTIONS = [
@@ -43,8 +57,8 @@ const DEFAULT_SCALE_OPTIONS = [
 
 export const DEFAULT_CONSTRAINTS: WizardConstraints = {
   consolationAppetite: 'LIGHT',
+  targetMatchesPerPlayer: 3,
   targetCompetitivePct: 0.65,
-  minMatchesFloor: 3,
   hoursPerDay: 8,
   courts: 4,
   days: 2,
@@ -97,6 +111,31 @@ function clampNumber(value: number, min: number, fallback: number): number {
   return value;
 }
 
+function buildEventSelect(events: EventOption[], selectedId: string | undefined): HTMLSelectElement {
+  const opts: Array<{ value: string; label: string }> = [{ value: '', label: t('formatWizard.summary.allParticipants') }];
+  for (const ev of events) opts.push({ value: ev.eventId, label: ev.label });
+  return buildSelect(opts, selectedId ?? '');
+}
+
+function buildCheckboxField(label: string, checked: boolean): { wrapper: HTMLDivElement; input: HTMLInputElement } {
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display: flex; align-items: center; gap: 8px; margin-bottom: 12px;';
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.checked = checked;
+  input.style.cssText = 'cursor: pointer;';
+  const labelEl = document.createElement('label');
+  labelEl.textContent = label;
+  labelEl.style.cssText = `${LABEL_STYLE} cursor: pointer;`;
+  labelEl.addEventListener('click', () => {
+    input.checked = !input.checked;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  wrapper.appendChild(input);
+  wrapper.appendChild(labelEl);
+  return { wrapper, input };
+}
+
 // Builds the left-pane constraints form. The factory returns a handle
 // the parent can use to read the current state and subscribe to
 // changes. No engine calls happen here — the parent wires `onChange`
@@ -106,8 +145,13 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   const initialScale = options.initialScaleName ?? scaleOptions[0]?.value ?? 'utr';
   const initial: WizardConstraints = { ...DEFAULT_CONSTRAINTS, ...(options.initialConstraints ?? {}) };
 
-  const state: ConstraintsFormState = { scaleName: initialScale, constraints: initial };
+  const state: ConstraintsFormState = {
+    scaleName: initialScale,
+    selectedEventId: options.initialSelectedEventId,
+    constraints: initial,
+  };
   let onChange: ((state: ConstraintsFormState) => void) | undefined;
+  let onClearStale: (() => void) | undefined;
 
   const root = document.createElement('div');
   root.id = FORMAT_WIZARD_FORM;
@@ -115,6 +159,11 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   root.style.cssText =
     'display: flex; flex-direction: column; gap: 4px; padding: 16px; min-width: 280px; border-right: 1px solid var(--tmx-border-secondary, #eee);';
 
+  let eventOptions = options.eventOptions ?? [];
+  let eventSelect = buildEventSelect(eventOptions, options.initialSelectedEventId);
+  eventSelect.id = FORMAT_WIZARD_EVENT_SELECT;
+  const eventField = buildField(t('formatWizard.fields.selectedEvent'), eventSelect);
+  eventField.hidden = eventOptions.length === 0;
   const scaleSelect = buildSelect(scaleOptions, initialScale);
   scaleSelect.id = FORMAT_WIZARD_SCALE;
   const courtsInput = buildNumberInput(initial.courts, 1, 1);
@@ -123,8 +172,8 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   daysInput.id = FORMAT_WIZARD_DAYS;
   const hoursInput = buildNumberInput(initial.hoursPerDay ?? 8, 1, 0.5);
   hoursInput.id = FORMAT_WIZARD_HOURS_PER_DAY;
-  const floorInput = buildNumberInput(initial.minMatchesFloor ?? 3, 1, 1);
-  floorInput.id = FORMAT_WIZARD_MIN_FLOOR;
+  const targetMatchesInput = buildNumberInput(initial.targetMatchesPerPlayer ?? 3, 1, 1);
+  targetMatchesInput.id = FORMAT_WIZARD_MIN_FLOOR;
   const targetInput = buildNumberInput((initial.targetCompetitivePct ?? 0.65) * 100, 0, 1);
   targetInput.id = FORMAT_WIZARD_TARGET_CT;
   const appetiteSelect = buildSelect(
@@ -132,22 +181,29 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
     initial.consolationAppetite ?? 'LIGHT',
   );
   appetiteSelect.id = FORMAT_WIZARD_APPETITE;
+  const vc = buildCheckboxField(t('formatWizard.fields.voluntaryConsolation'), initial.voluntaryConsolation === true);
+  vc.input.id = FORMAT_WIZARD_VC_TOGGLE;
 
+  root.appendChild(eventField);
   root.appendChild(buildField(t('formatWizard.fields.scale'), scaleSelect));
   root.appendChild(buildField(t('formatWizard.fields.courts'), courtsInput));
   root.appendChild(buildField(t('formatWizard.fields.days'), daysInput));
   root.appendChild(buildField(t('formatWizard.fields.hoursPerDay'), hoursInput));
-  root.appendChild(buildField(t('formatWizard.fields.minMatchesFloor'), floorInput));
+  root.appendChild(buildField(t('formatWizard.fields.targetMatchesPerPlayer'), targetMatchesInput));
   root.appendChild(buildField(t('formatWizard.fields.targetCompetitivePct'), targetInput));
   root.appendChild(buildField(t('formatWizard.fields.consolationAppetite'), appetiteSelect));
+  root.appendChild(vc.wrapper);
 
   function readState(): ConstraintsFormState {
+    const eventValue = eventSelect.value;
     return {
       scaleName: scaleSelect.value,
+      selectedEventId: eventValue.length > 0 ? eventValue : undefined,
       constraints: {
         consolationAppetite: appetiteSelect.value as ConsolationAppetite,
+        voluntaryConsolation: vc.input.checked,
         targetCompetitivePct: clampNumber(Number(targetInput.value) / 100, 0, 0.65),
-        minMatchesFloor: clampNumber(Number(floorInput.value), 0, 3),
+        targetMatchesPerPlayer: clampNumber(Number(targetMatchesInput.value), 1, 3),
         hoursPerDay: clampNumber(Number(hoursInput.value), 0.5, 8),
         courts: clampNumber(Number(courtsInput.value), 1, 4),
         days: clampNumber(Number(daysInput.value), 1, 2),
@@ -158,11 +214,22 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   function notify() {
     const next = readState();
     state.scaleName = next.scaleName;
+    state.selectedEventId = next.selectedEventId;
     state.constraints = next.constraints;
     if (onChange) onChange(next);
   }
 
-  for (const control of [scaleSelect, courtsInput, daysInput, hoursInput, floorInput, targetInput, appetiteSelect]) {
+  for (const control of [
+    eventSelect,
+    scaleSelect,
+    courtsInput,
+    daysInput,
+    hoursInput,
+    targetMatchesInput,
+    targetInput,
+    appetiteSelect,
+    vc.input,
+  ]) {
     control.addEventListener('change', notify);
     control.addEventListener('input', notify);
   }
@@ -224,14 +291,28 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
   resetLink.addEventListener('click', () => reset());
   root.appendChild(resetLink);
 
+  // "Clear stale considerations" button — only enabled when one or
+  // more pinned-considered plans no longer appear in the current
+  // results. Lives at the bottom of the configuration column so it
+  // stays out of the way until needed.
+  const clearStaleBtn = document.createElement('button');
+  clearStaleBtn.type = 'button';
+  clearStaleBtn.id = FORMAT_WIZARD_CLEAR_STALE;
+  clearStaleBtn.style.cssText =
+    'margin-top: auto; padding: 6px 10px; border: 1px solid var(--tmx-border-secondary, #ddd); border-radius: 4px; background: var(--tmx-bg-primary, #fff); color: var(--tmx-text-secondary, #555); cursor: pointer; font-size: 12px; display: none; align-items: center; gap: 6px;';
+  clearStaleBtn.innerHTML = '<i class="fa fa-trash"></i><span></span>';
+  clearStaleBtn.addEventListener('click', () => onClearStale?.());
+  root.appendChild(clearStaleBtn);
+
   function setControlsFromState(scaleName: string, c: WizardConstraints): void {
     scaleSelect.value = scaleName;
     courtsInput.value = String(c.courts);
     daysInput.value = String(c.days);
     hoursInput.value = String(c.hoursPerDay ?? 8);
-    floorInput.value = String(c.minMatchesFloor ?? 3);
+    targetMatchesInput.value = String(c.targetMatchesPerPlayer ?? 3);
     targetInput.value = String((c.targetCompetitivePct ?? 0.65) * 100);
     appetiteSelect.value = c.consolationAppetite ?? 'LIGHT';
+    vc.input.checked = c.voluntaryConsolation === true;
   }
 
   function reset(): void {
@@ -239,11 +320,34 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
     notify();
   }
 
+  function setEventOptions(events: EventOption[]): void {
+    eventOptions = events;
+    const current = eventSelect.value;
+    const replacement = buildEventSelect(events, current);
+    replacement.id = FORMAT_WIZARD_EVENT_SELECT;
+    replacement.addEventListener('change', notify);
+    replacement.addEventListener('input', notify);
+    eventSelect.replaceWith(replacement);
+    eventSelect = replacement;
+    eventField.hidden = events.length === 0;
+  }
+
+  function setStaleCount(count: number): void {
+    const span = clearStaleBtn.querySelector('span');
+    if (span) span.textContent = count > 0 ? `${t('formatWizard.actions.clearStale')} (${count})` : '';
+    clearStaleBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+
   return {
     setCapacity,
+    setEventOptions,
     setOnChange: (cb) => {
       onChange = cb;
     },
+    setOnClearStale: (cb) => {
+      onClearStale = cb;
+    },
+    setStaleCount,
     getState: () => readState(),
     reset,
     element: root,

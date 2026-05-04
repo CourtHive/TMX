@@ -23,7 +23,6 @@ function makeFlightStructure(
     structure: {
       kind,
       minMatchesPerPlayer: 1,
-      effectiveMinMatchesPerPlayer: 1,
       withdrawalRiskFactor: 0,
       totalMatches: participantIds.length - 1,
       ...extras,
@@ -39,7 +38,6 @@ function makePlan(flights: FlightStructure[], strategy: RankedPlan['strategy'] =
     strategy,
     flightStructures: flights,
     aggregate: {
-      effectiveMinMatchesPerPlayer: 1,
       minMatchesPerPlayer: 1,
       courtHoursAvailable: 64,
       courtHoursRequired: 16,
@@ -68,7 +66,6 @@ describe('structureKindToDrawSpec', () => {
       const spec = structureKindToDrawSpec({
         kind,
         minMatchesPerPlayer: 1,
-        effectiveMinMatchesPerPlayer: 1,
         withdrawalRiskFactor: 0,
         totalMatches: 7,
       });
@@ -80,7 +77,6 @@ describe('structureKindToDrawSpec', () => {
     const spec = structureKindToDrawSpec({
       kind: 'ROUND_ROBIN',
       minMatchesPerPlayer: 3,
-      effectiveMinMatchesPerPlayer: 3,
       withdrawalRiskFactor: 0,
       totalMatches: 6,
       groupSize: 4,
@@ -93,7 +89,6 @@ describe('structureKindToDrawSpec', () => {
     const spec = structureKindToDrawSpec({
       kind: 'SWISS',
       minMatchesPerPlayer: 5,
-      effectiveMinMatchesPerPlayer: 5,
       withdrawalRiskFactor: 0,
       totalMatches: 40,
       rounds: 5,
@@ -106,7 +101,6 @@ describe('structureKindToDrawSpec', () => {
     const spec = structureKindToDrawSpec({
       kind: 'DRAW_MATIC',
       minMatchesPerPlayer: 5,
-      effectiveMinMatchesPerPlayer: 5,
       withdrawalRiskFactor: 0.1,
       totalMatches: 40,
       rounds: 5,
@@ -115,13 +109,12 @@ describe('structureKindToDrawSpec', () => {
     expect((spec?.extras.drawMatic as any).roundsCount).toEqual(5);
   });
 
-  it('returns null for STAGGERED_FRENCH (unsupported in MVP)', () => {
+  it('returns null for FEED_IN family (preview-only in MVP)', () => {
     expect(
       structureKindToDrawSpec({
-        kind: 'STAGGERED_FRENCH',
+        kind: 'FEED_IN',
         minMatchesPerPlayer: 1,
-        effectiveMinMatchesPerPlayer: 1,
-        withdrawalRiskFactor: 0.1,
+        withdrawalRiskFactor: 0.05,
         totalMatches: 15,
       }),
     ).toBeNull();
@@ -190,14 +183,14 @@ describe('buildApplyMethods — output shape', () => {
     expect(result.drawSpecs[0].drawSize).toEqual(8);
   });
 
-  it('reports STAGGERED_FRENCH flights as unsupported instead of emitting methods', () => {
+  it('reports FEED_IN flights as unsupported instead of emitting methods', () => {
     const plan = makePlan([
-      makeFlightStructure('Open', ['p0', 'p1', 'p2', 'p3'], 'STAGGERED_FRENCH'),
+      makeFlightStructure('Open', ['p0', 'p1', 'p2', 'p3'], 'FEED_IN'),
       makeFlightStructure('Backdraw', ['p4', 'p5'], 'SINGLE_ELIMINATION'),
     ]);
     const result = buildApplyMethods({ plan });
     expect(result.unsupported).toHaveLength(1);
-    expect(result.unsupported[0].kind).toEqual('STAGGERED_FRENCH');
+    expect(result.unsupported[0].kind).toEqual('FEED_IN');
     expect(result.eventCount).toEqual(1);
     expect(result.drawSpecs).toHaveLength(1);
   });

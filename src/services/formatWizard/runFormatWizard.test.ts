@@ -8,7 +8,7 @@ const baseConstraints: WizardConstraints = {
   courts: 4,
   days: 2,
   hoursPerDay: 8,
-  minMatchesFloor: 3,
+  targetMatchesPerPlayer: 3,
   consolationAppetite: 'LIGHT',
 };
 

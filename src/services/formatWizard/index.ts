@@ -1,4 +1,5 @@
 export { runFormatWizard } from './runFormatWizard';
+export { planFingerprint } from './planFingerprint';
 export { extractParticipantRating } from './extractRating';
 export { applyFormatPlan } from './applyFormatPlan';
 export { buildApplyMethods, structureKindToDrawSpec } from './buildApplyMethods';
@@ -12,5 +13,5 @@ export type {
   DrawSpec,
   UnsupportedFlight,
 } from './buildApplyMethods';
-export type { PersistedWizardState } from './wizardStateExtension';
+export type { ConsiderationMap, PersistedWizardState } from './wizardStateExtension';
 export type { TournamentCapacity } from './getTournamentCapacity';

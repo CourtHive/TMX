@@ -7,6 +7,7 @@
  */
 export interface FeatureFlags {
   assistant: boolean;
+  formatWizard: boolean;
   reports: boolean;
   usePublishState: boolean;
   /**
@@ -25,6 +26,7 @@ export interface FeatureFlags {
 
 const defaults: FeatureFlags = {
   assistant: false,
+  formatWizard: false,
   reports: false,
   usePublishState: false,
   legacyEntriesTable: false,

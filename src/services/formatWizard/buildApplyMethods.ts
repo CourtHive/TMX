@@ -1,8 +1,8 @@
 import { factoryConstants } from 'tods-competition-factory';
 
 // constants and types
-import { ADD_EVENT, ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { FlightStructure, RankedPlan, StructureKind } from 'tods-competition-factory';
+import { ADD_EVENT, ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 
 const { entryStatusConstants, drawDefinitionConstants } = factoryConstants;
 const { DIRECT_ACCEPTANCE } = entryStatusConstants;
@@ -36,8 +36,9 @@ export function structureKindToDrawSpec(
       return { drawType: 'SWISS', extras: rounds ? { roundsCount: rounds } : {} };
     case 'DRAW_MATIC':
       return { drawType: 'AD_HOC', extras: { drawMatic: { roundsCount: rounds ?? 5 } } };
-    case 'STAGGERED_FRENCH':
-      // Needs the topology builder for multi-tier entry; not in MVP.
+    case 'FEED_IN':
+      // FEED_IN family (incl. FIC variants) needs the topology
+      // builder for multi-tier entry; preview-only in MVP.
       return null;
     default: {
       const _exhaustive: never = kind as never;

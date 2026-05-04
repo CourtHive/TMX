@@ -15,6 +15,7 @@ import { sendTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
+import { featureFlags } from 'config/featureFlags';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
 import { success } from 'components/notices/success';
@@ -371,6 +372,7 @@ function createActionButton(label: string, icon: string, onClick: () => void, id
 // participants exist but no event has been populated with entries
 // yet.
 export function shouldShowFormatWizard(): boolean {
+  if (!featureFlags.get().formatWizard) return false;
   const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
   if (events.length === 0) return true;
   const participants: any[] = (tournamentEngine.getParticipants?.({}) as any)?.participants ?? [];

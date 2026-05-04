@@ -1,15 +1,22 @@
-import { tournamentEngine } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'tods-competition-factory';
 
 // constants and types
-import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 import { ConsolationAppetite, WizardConstraints } from 'tods-competition-factory';
+import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 
 export const FORMAT_WIZARD_EXTENSION_NAME = 'formatWizard';
 
+// `_all` is the tournament-level scope (no event filter); per-event
+// considerations key off the eventId. Each value is an array of
+// plan fingerprints — see `services/formatWizard/planFingerprint.ts`.
+export type ConsiderationMap = Record<string, string[]>;
+
 export interface PersistedWizardState {
   scaleName: string;
+  selectedEventId?: string;
   constraints: WizardConstraints;
+  consideration?: ConsiderationMap;
   updatedAt?: string;
 }
 
@@ -34,13 +41,17 @@ function parsePersistedState(value: unknown): PersistedWizardState | undefined {
   if (!isFiniteNumber(c.courts) || !isFiniteNumber(c.days)) return undefined;
   if (typeof v.scaleName !== 'string' || v.scaleName.length === 0) return undefined;
 
+  // Read legacy `minMatchesFloor` as a fallback so tournaments that
+  // saved the wizard state under the old key continue to hydrate.
+  const legacyTarget = isFiniteNumber(c.minMatchesFloor) ? c.minMatchesFloor : undefined;
   const constraints: WizardConstraints = {
     courts: c.courts,
     days: c.days,
     hoursPerDay: isFiniteNumber(c.hoursPerDay) ? c.hoursPerDay : undefined,
     avgMinutes: isFiniteNumber(c.avgMinutes) ? c.avgMinutes : undefined,
-    minMatchesFloor: isFiniteNumber(c.minMatchesFloor) ? c.minMatchesFloor : undefined,
+    targetMatchesPerPlayer: isFiniteNumber(c.targetMatchesPerPlayer) ? c.targetMatchesPerPlayer : legacyTarget,
     targetCompetitivePct: isFiniteNumber(c.targetCompetitivePct) ? c.targetCompetitivePct : undefined,
+    voluntaryConsolation: typeof c.voluntaryConsolation === 'boolean' ? c.voluntaryConsolation : undefined,
     consolationAppetite: isAppetite(c.consolationAppetite) ? c.consolationAppetite : undefined,
     matchUpFormat: typeof c.matchUpFormat === 'string' ? c.matchUpFormat : undefined,
     allowMixedGender: typeof c.allowMixedGender === 'boolean' ? c.allowMixedGender : undefined,
@@ -48,11 +59,26 @@ function parsePersistedState(value: unknown): PersistedWizardState | undefined {
       typeof c.allowCollapsedCategories === 'boolean' ? c.allowCollapsedCategories : undefined,
   };
 
+  const consideration = parseConsideration(v.consideration);
+
   return {
     scaleName: v.scaleName,
+    selectedEventId: typeof v.selectedEventId === 'string' && v.selectedEventId.length > 0 ? v.selectedEventId : undefined,
     constraints,
+    consideration,
     updatedAt: typeof v.updatedAt === 'string' ? v.updatedAt : undefined,
   };
+}
+
+function parseConsideration(value: unknown): ConsiderationMap | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const result: ConsiderationMap = {};
+  for (const [key, list] of Object.entries(value as Record<string, unknown>)) {
+    if (!Array.isArray(list)) continue;
+    const stringList = list.filter((item): item is string => typeof item === 'string' && item.length > 0);
+    if (stringList.length > 0) result[key] = stringList;
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 // Reads the persisted wizard state from the live tournament record's

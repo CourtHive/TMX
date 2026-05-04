@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { initDevBridge, resetState, seedSuperAdminTokenInitScript, waitForAppReady } from '../helpers/dev-bridge';
+import {
+  initDevBridge,
+  resetState,
+  seedFeatureFlagInitScript,
+  seedSuperAdminTokenInitScript,
+  waitForAppReady,
+} from '../helpers/dev-bridge';
 import { seedTournament } from '../helpers/seed';
 import { FormatWizardModal } from '../pages/FormatWizardModal';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -52,10 +58,12 @@ async function seedRatedWithDraw(page) {
 
 test.describe('Journey 30 — Format Wizard modal', () => {
   test.beforeEach(async ({ page }) => {
-    // Format wizard is admin-gated; inject the super-admin token
-    // BEFORE the first navigation so the Actions panel renders on
-    // first paint of the tournament overview.
+    // Format wizard is admin-gated AND beta-flagged; inject the
+    // super-admin token + enable the formatWizard flag BEFORE the
+    // first navigation so the Actions panel and overview launcher
+    // render on first paint of the tournament overview.
     await seedSuperAdminTokenInitScript(page);
+    await seedFeatureFlagInitScript(page, 'formatWizard');
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);

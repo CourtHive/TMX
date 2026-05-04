@@ -19,6 +19,7 @@ export type TMXSettings = {
   saveLocal?: boolean;
   smartComplements?: boolean;
   assistant?: boolean;
+  formatWizard?: boolean;
   reports?: boolean;
   legacyEntriesTable?: boolean;
   legacySchedule?: boolean;
@@ -116,6 +117,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   // Feature flags
   const flagsPatch: Record<string, any> = {};
   if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
+  if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
   if (settings.reports !== undefined) flagsPatch.reports = settings.reports;
   if (settings.legacyEntriesTable !== undefined) {
     flagsPatch.legacyEntriesTable = settings.legacyEntriesTable;
@@ -162,6 +164,7 @@ export function persistConfigToStorage(
     smartComplements: prefs.smartComplements,
     saveLocal: server.saveLocal,
     assistant: flags.assistant,
+    formatWizard: flags.formatWizard,
     reports: flags.reports,
     legacyEntriesTable: flags.legacyEntriesTable,
     legacySchedule: flags.legacySchedule,

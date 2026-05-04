@@ -100,3 +100,22 @@ export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
     localStorage.setItem('tmxToken', `${header}.${payload}.fake-signature`);
   });
 }
+
+/**
+ * Enable a beta feature flag in localStorage before the app boots.
+ * Format Wizard, for example, is hidden from the UI until the user
+ * opts in via Settings; e2e tests need the flag pre-seeded so the
+ * launcher / actions-menu entry render on first paint.
+ */
+export async function seedFeatureFlagInitScript(
+  page: Page,
+  flag: 'formatWizard' | 'assistant' | 'reports',
+): Promise<void> {
+  await page.addInitScript((flagName: string) => {
+    const KEY = 'tmx_settings';
+    const existing = localStorage.getItem(KEY);
+    const parsed = existing ? JSON.parse(existing) : {};
+    parsed[flagName] = true;
+    localStorage.setItem(KEY, JSON.stringify(parsed));
+  }, flag);
+}
