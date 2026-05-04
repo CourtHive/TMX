@@ -1923,5 +1923,24 @@
     "defaultLanguage": "Default Language",
     "publishParticipants": "Publish Participants",
     "country": "Country"
+  },
+
+  "formatWizard": {
+    "title": "Format Wizard",
+    "placeholder": "Plan results will appear here as you adjust constraints.",
+    "fields": {
+      "scale": "Rating scale",
+      "courts": "Courts",
+      "days": "Days",
+      "hoursPerDay": "Hours per day",
+      "minMatchesFloor": "Min matches per player",
+      "targetCompetitivePct": "Target competitive % (0–100)",
+      "consolationAppetite": "Consolation appetite"
+    },
+    "appetite": {
+      "none": "None",
+      "light": "Light (single consolation round)",
+      "full": "Full (cascading consolation)"
+    }
   }
 }
