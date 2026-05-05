@@ -227,6 +227,8 @@ function writeSunburstView(view: SunburstView): void {
   }
 }
 
+const ALL_STRUCTURES = 'all';
+
 export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   const panel = document.createElement('div');
   panel.className = 'dash-panel dash-panel-green';
@@ -241,6 +243,11 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   select.style.cssText =
     'flex:1; min-width:0; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
 
+  const allOption = document.createElement('option');
+  allOption.value = ALL_STRUCTURES;
+  allOption.textContent = t('dashboard.allStructures');
+  select.appendChild(allOption);
+
   for (const s of structures) {
     const option = document.createElement('option');
     option.value = s.structureId;
@@ -254,12 +261,14 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   const setToggleAppearance = () => {
     const showingBurst = view === 'burst';
     toggleBtn.innerHTML = `<i class="fa ${showingBurst ? 'fa-chart-pie' : 'fa-circle-notch'}"></i>`;
-    toggleBtn.title = showingBurst
-      ? t('dashboard.viewCompetitiveness')
-      : t('dashboard.viewBracket');
+    toggleBtn.title = showingBurst ? t('dashboard.viewCompetitiveness') : t('dashboard.viewBracket');
   };
   setToggleAppearance();
   header.appendChild(toggleBtn);
+
+  const setToggleVisibility = (visible: boolean) => {
+    toggleBtn.style.display = visible ? '' : 'none';
+  };
 
   panel.appendChild(header);
 
@@ -295,23 +304,28 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     burstChart({ width: 500, height: 500, eventHandlers }).render(chartDiv, fromFactoryDrawData(drawData), title);
   };
 
-  const renderDonut = (info: StructureInfo) => {
+  const renderDonut = (info: StructureInfo | null) => {
+    const matchUpFilters = info ? { drawIds: [info.drawId], structureIds: [info.structureId] } : undefined;
     const { matchUps = [] } = tournamentEngine.allTournamentMatchUps({
-      contextFilters: { drawIds: [info.drawId], structureIds: [info.structureId] },
       contextProfile: { withCompetitiveness: true },
+      inContext: false,
+      matchUpFilters,
     });
 
     chartDiv.innerHTML = '';
-    donutChartFromMatchUps(chartDiv, matchUps, {
-      width: 500,
-      height: 500,
-      title: `${info.eventName} — ${info.drawName}`,
-    });
+    const title = info ? `${info.eventName} — ${info.drawName}` : t('dashboard.allStructures');
+    donutChartFromMatchUps(chartDiv, matchUps, { width: 500, height: 500, title });
   };
 
-  const renderStructure = (structureId: string) => {
-    const info = structures.find((s) => s.structureId === structureId);
+  const renderStructure = (value: string) => {
+    if (value === ALL_STRUCTURES) {
+      setToggleVisibility(false);
+      renderDonut(null);
+      return;
+    }
+    const info = structures.find((s) => s.structureId === value);
     if (!info) return;
+    setToggleVisibility(true);
     if (view === 'donut') {
       renderDonut(info);
     } else {
@@ -328,9 +342,8 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
   select.addEventListener('change', () => renderStructure(select.value));
 
-  if (structures.length) {
-    requestAnimationFrame(() => renderStructure(structures[0].structureId));
-  }
+  select.value = ALL_STRUCTURES;
+  requestAnimationFrame(() => renderStructure(ALL_STRUCTURES));
 
   return panel;
 }
