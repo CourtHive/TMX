@@ -2,11 +2,11 @@
  * Column definitions for matchUps table.
  * Displays match details, participants, scores, schedule, and completion status.
  */
-import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
-import { formatParticipant } from '../common/formatters/participantFormatter';
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { makeUpdatedAtFormatter } from '../common/formatters/updatedAtFormatter';
+import { formatParticipant } from '../common/formatters/participantFormatter';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
@@ -15,8 +15,8 @@ import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { titleFormatter } from '../common/formatters/titleFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { tournamentEngine, tools } from 'tods-competition-factory';
-import { handleScoreClick } from './handleMatchUpScoreClick';
 import { applyColumnVisibility } from '../common/columnIsVisible';
+import { handleScoreClick } from './handleMatchUpScoreClick';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
@@ -206,13 +206,13 @@ export function getMatchUpColumns({
       field: 'matchUpType',
       titleFormatter,
       title: t('tables.matchUps.type'),
-      width: 80,
+      width: 90,
     },
     {
       field: 'roundName',
       title: t('tables.matchUps.round'),
       titleFormatter,
-      width: 90,
+      width: 100,
     },
     {
       cellClick: matchUpDateClick,

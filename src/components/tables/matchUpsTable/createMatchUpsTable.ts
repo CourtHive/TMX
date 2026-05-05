@@ -2,15 +2,15 @@
  * Create matchUps table with scoring and predictive accuracy.
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
+import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
-import { hotKeyScoring } from './hotKeyScoring';
 import { displayConfig } from 'config/displayConfig';
+import { hotKeyScoring } from './hotKeyScoring';
 import { t } from 'i18n';
 
 // constants
@@ -62,8 +62,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
       headerElement && (headerElement.innerHTML = `${t('pages.matchUps.title')} (${matchUps.length})`);
 
       // Discover which ratings are present in tournament participants
-      const { participants: allParticipants = [] } =
-        tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+      const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
       const presentRatings = new Set<string>();
       for (const p of allParticipants) {
         for (const item of p.ratings?.[SINGLES] || []) {
