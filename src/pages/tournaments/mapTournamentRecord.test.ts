@@ -8,6 +8,10 @@ vi.mock('courthive-components', () => ({
   pickleballCourt: vi.fn(),
   badmintonCourt: vi.fn(),
   padelCourt: vi.fn(),
+  createCourtSvg: vi.fn(),
+  resolveCourtSport: vi.fn(),
+  sportFromMatchUpFormat: vi.fn(),
+  COURT_SVG_RESOURCE_SUB_TYPE: 'COURT_SVG',
 }));
 
 import { mapTournamentRecord } from './mapTournamentRecord';

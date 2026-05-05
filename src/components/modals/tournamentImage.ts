@@ -1,8 +1,7 @@
-import { createCourtSvg, COURT_SVG_RESOURCE_SUB_TYPE, type CourtSport } from 'services/courtSvg/courtSvgUtil';
+import { createCourtSvg, COURT_SVG_RESOURCE_SUB_TYPE, CourtSport, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';

@@ -1,5 +1,5 @@
 import { tournamentEngine, publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
-import { COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+import { COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
 
 const { CONTAINER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
 

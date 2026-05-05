@@ -1,10 +1,9 @@
-import { createCourtSvg, type CourtSport } from 'services/courtSvg/courtSvgUtil';
+import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
 import { donutChartFromMatchUps } from '@tennisvisuals/scoring-visualizations';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editTournamentImage } from 'components/modals/tournamentImage';
-import { burstChart, fromFactoryDrawData } from 'courthive-components';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';

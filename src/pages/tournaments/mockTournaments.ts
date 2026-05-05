@@ -2,7 +2,7 @@
  * Mock tournament generation for testing and demo purposes.
  * Creates sample tournaments with various draw types and categories.
  */
-import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
 import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';

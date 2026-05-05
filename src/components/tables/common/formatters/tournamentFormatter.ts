@@ -1,4 +1,4 @@
-import { createCourtSvg } from 'services/courtSvg/courtSvgUtil';
+import { createCourtSvg } from 'courthive-components';
 
 export const tournamentFormatter =
   (isMobile: boolean) =>

@@ -4,7 +4,7 @@
  */
 import { tournamentEngine } from 'tods-competition-factory';
 
-import { resolveCourtSport, sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+import { resolveCourtSport, sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
 import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
 
 /**

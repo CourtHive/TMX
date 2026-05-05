@@ -1,4 +1,4 @@
-import { COURT_SVG_RESOURCE_SUB_TYPE } from 'services/courtSvg/courtSvgUtil';
+import { COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
 
 export function mapTournamentRecord(tournamentRecord: any): any {
   const searchText = tournamentRecord.tournamentName?.toLowerCase() || 'Error';
