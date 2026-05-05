@@ -3,6 +3,7 @@
  * Displays all tournament matches with search and popover-based filters for event, flight, team, status, and type.
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
+import { createCompetitivenessSummary } from 'components/tables/matchUpsTable/competitivenessSummary';
 import { tournamentEngine, eventConstants, fixtures } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
@@ -73,6 +74,14 @@ export function renderMatchUpTab(): void {
 
   const target = document.getElementById(MATCHUPS_CONTROL)!;
   controlBar({ table, target, items });
+
+  const optionsRight = target.getElementsByClassName('options_right')[0] as HTMLElement | undefined;
+  if (optionsRight) {
+    const { element: summary, update: updateSummary } = createCompetitivenessSummary();
+    optionsRight.insertBefore(summary, optionsRight.firstChild);
+    updateSummary(data);
+    table.on('dataFiltered', (_filters: any, rows: any[]) => updateSummary(rows));
+  }
 }
 
 const intentColors = ['is-danger', 'is-info', 'is-success', 'is-warning', 'is-link', 'is-primary'];
