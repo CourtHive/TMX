@@ -1725,6 +1725,7 @@
     "participantColumns": "الأعمدة المرئية",
     "defaultLanguage": "اللغة الافتراضية",
     "publishParticipants": "نشر المشاركين",
-    "country": "البلد"
+    "country": "البلد",
+    "cityState": "المدينة / المنطقة"
   }
 }

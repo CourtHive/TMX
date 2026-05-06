@@ -1760,6 +1760,7 @@
     "participantColumns": "Sichtbare Spalten",
     "defaultLanguage": "Standardsprache",
     "publishParticipants": "Teilnehmer veröffentlichen",
-    "country": "Land"
+    "country": "Land",
+    "cityState": "Stadt / Bundesland"
   }
 }

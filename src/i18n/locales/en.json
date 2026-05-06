@@ -1927,7 +1927,8 @@
     "participantColumns": "Visible Columns",
     "defaultLanguage": "Default Language",
     "publishParticipants": "Publish Participants",
-    "country": "Country"
+    "country": "Country",
+    "cityState": "City / State"
   },
 
   "formatWizard": {

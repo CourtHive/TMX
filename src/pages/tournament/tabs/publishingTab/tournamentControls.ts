@@ -9,6 +9,7 @@ import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab'
 import { tmxToast } from 'services/notifications/tmxToast';
 import { barButton, renderForm } from 'courthive-components';
 import { openEmbargoModal } from './embargoModal';
+import { providerConfig } from 'config/providerConfig';
 import { tournamentEngine, eventConstants, fixtures } from 'tods-competition-factory';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
@@ -328,6 +329,7 @@ function buildOopDateChips(data: any): HTMLElement {
 function extractColumnsFromSelection(selectedValues: string[]): any {
   return {
     country: selectedValues.includes('country'),
+    cityState: selectedValues.includes('cityState'),
     events: selectedValues.includes('events'),
     ratings: selectedValues.filter((v: string) => v.startsWith('rating:')).map((v: string) => v.split(':')[1]),
     rankings: selectedValues.filter((v: string) => v.startsWith('ranking:')).map((v: string) => v.split(':')[1]),
@@ -416,6 +418,18 @@ function buildColumnSelector(data: any): { columnFormContainer: HTMLElement; inp
       selected: currentColumns ? currentColumns.events !== false : false,
     },
   ];
+
+  // City / State publish-column toggle is gated on the provider's
+  // `participantPrivacy.cityState` cap. The server's privacy policy
+  // would strip addresses anyway when the cap is off, so showing the
+  // toggle would be misleading.
+  if (providerConfig.get().participantPrivacy?.cityState) {
+    columnOptions.push({
+      label: t('publishing.cityState'),
+      value: 'cityState',
+      selected: currentColumns ? currentColumns.cityState !== false : false,
+    });
+  }
   if (hasRanking) {
     const rankingSelected = currentColumns?.rankings
       ? currentColumns.rankings.includes('SINGLES')

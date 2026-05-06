@@ -1760,6 +1760,7 @@
     "participantColumns": "Columnas Visibles",
     "defaultLanguage": "Idioma Predeterminado",
     "publishParticipants": "Publicar Participantes",
-    "country": "País"
+    "country": "País",
+    "cityState": "Ciudad / Provincia"
   }
 }

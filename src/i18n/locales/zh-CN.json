@@ -1805,6 +1805,7 @@
     "participantColumns": "可见列",
     "defaultLanguage": "默认语言",
     "publishParticipants": "发布参赛者",
-    "country": "国家"
+    "country": "国家",
+    "cityState": "城市 / 省份"
   }
 }
