@@ -75,10 +75,10 @@ export function renderMatchUpTab(): void {
   const target = document.getElementById(MATCHUPS_CONTROL)!;
   controlBar({ table, target, items });
 
-  const optionsRight = target.getElementsByClassName('options_right')[0] as HTMLElement | undefined;
-  if (optionsRight) {
+  const optionsCenter = target.getElementsByClassName('options_center')[0] as HTMLElement | undefined;
+  if (optionsCenter) {
     const { element: summary, update: updateSummary } = createCompetitivenessSummary();
-    optionsRight.insertBefore(summary, optionsRight.firstChild);
+    optionsCenter.appendChild(summary);
     updateSummary(data);
     table.on('dataFiltered', (_filters: any, rows: any[]) => updateSummary(rows));
   }
