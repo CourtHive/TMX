@@ -79,7 +79,7 @@
     "c8": "11.0.0",
     "crypto-browserify": "3.12.1",
     "cz-git": "1.13.0",
-    "electron": "^41.0.0",
+    "electron": "^42.0.0",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",
     "envfile": "7.1.0",
