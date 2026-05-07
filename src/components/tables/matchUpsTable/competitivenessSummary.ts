@@ -1,7 +1,7 @@
 /**
  * Compact segmented bar showing competitiveness distribution for the
  * currently visible matchUps. Same buckets as the overview donut chart
- * (@tennisvisuals/scoring-visualizations donutChartFromMatchUps); colors
+ * (@courthive/scoring-visualizations donutChartFromMatchUps); colors
  * mirror the profile-column accent vars.
  */
 

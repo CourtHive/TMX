@@ -1,5 +1,5 @@
 import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
-import { donutChartFromMatchUps } from '@tennisvisuals/scoring-visualizations';
+import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
