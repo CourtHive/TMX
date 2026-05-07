@@ -21,7 +21,8 @@ import type { MutationMethod, ExecutionResult } from 'types/services';
 
 // constants
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
-import { isMutationAllowed } from 'constants/mutationPermissions';
+import { isMutationAllowed } from '@courthive/provider-config';
+import { providerConfig } from 'config/providerConfig';
 
 interface MutationParams {
   tournamentRecord?: any;
@@ -89,8 +90,9 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const factoryEngine = factory[engine];
   if (!factoryEngine) return completion();
 
-  // Provider-level mutation gating (defense-in-depth)
-  const blocked = methods.find((m) => !isMutationAllowed(m.method));
+  // Provider-level mutation gating (defense-in-depth — server mirrors this in executionQueue)
+  const currentPermissions = providerConfig.get().permissions ?? {};
+  const blocked = methods.find((m) => !isMutationAllowed(m.method, currentPermissions));
   if (blocked) {
     return completion({ error: { message: `Action not permitted: ${blocked.method}` } });
   }
