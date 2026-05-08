@@ -97,7 +97,7 @@ importers:
         version: 1.0.0
       i18next:
         specifier: ^26.0.0
-        version: 26.0.9(typescript@6.0.3)
+        version: 26.0.10(typescript@6.0.3)
       jwt-decode:
         specifier: 4.0.0
         version: 4.0.0
@@ -2861,8 +2861,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  i18next@26.0.9:
-    resolution: {integrity: sha512-htjWlK5lGpjIDJxUdDLD6dO2jPl/RZHBpeZC80T5yr6Lci/tN3Oq9Doh9110ihliAIb4xmb45ngM76WcbP6GjA==}
+  i18next@26.0.10:
+    resolution: {integrity: sha512-k3yGPAlWR2RdMYoVXJoDZDT87qeHIWKH7gVksdZMpRty7QX/D9QZeYGvN08KGbKHke9wn01eYT+EEsrqX/YTlw==}
     peerDependencies:
       typescript: ^5 || ^6
     peerDependenciesMeta:
@@ -7568,7 +7568,7 @@ snapshots:
 
   husky@9.1.7: {}
 
-  i18next@26.0.9(typescript@6.0.3):
+  i18next@26.0.10(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 
