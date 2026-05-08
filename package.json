@@ -69,7 +69,7 @@
     "@storybook/html": "^10.2.17",
     "@storybook/html-vite": "^10.2.17",
     "@types/babel__traverse": "7.28.0",
-    "@types/node": "24.12.2",
+    "@types/node": "24.12.3",
     "@typescript-eslint/eslint-plugin": "8.59.2",
     "@typescript-eslint/parser": "8.59.2",
     "@vitest/coverage-v8": "4.1.5",
