@@ -1,6 +1,10 @@
 packages:
   - .
 
+allowBuilds:
+  electron-winstaller: true
+  esbuild: true
+
 ignoredBuiltDependencies:
   - core-js
   - cypress
