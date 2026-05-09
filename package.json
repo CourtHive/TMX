@@ -167,6 +167,17 @@
       "picomatch": "^4.0.4",
       "socket.io-parser": "^4.2.6",
       "undici": "^8.0.0"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "@dep-tree/cli",
+      "@nestjs/core",
+      "@scarf/scarf",
+      "@swc/core",
+      "classic-level",
+      "core-js",
+      "esbuild",
+      "rollup",
+      "unrs-resolver"
+    ]
   }
 }
