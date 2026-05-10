@@ -36,6 +36,7 @@ export function loginModal(callback?: () => void): void {
           autocomplete: 'email',
           label: t('modals.login.emailLabel'),
           field: 'email',
+          type: 'email',
         },
         {
           placeholder: t('modals.login.passwordPlaceholder'),
