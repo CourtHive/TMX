@@ -17,6 +17,7 @@ import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
+import { buildGridHeaderActions } from './gridHeaderActions';
 import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView, setGridActiveStripVisible } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
@@ -124,15 +125,30 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   state = { currentView: view, selectedDate: scheduledDate };
 
-  // Build header with rich date dropdown + issues icon + catalog toggle + view switcher
+  // Shared visibility togglers — used by both the top schedule2Header bar AND
+  // (during the dual-render test phase) the new headerActions slot injected
+  // into the courthive-components court grid header.
+  function applyCatalogVisible(next: boolean): void {
+    catalogVisible = next;
+    writeCatalogVisible(next);
+    const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement | null;
+    if (layout) layout.classList.toggle('spl-sidebar-collapsed', !next);
+  }
+  function applyActiveStripVisible(next: boolean): void {
+    activeStripVisible = next;
+    writeActiveStripVisible(next);
+    setGridActiveStripVisible(next);
+  }
+
+  // Build header with rich date dropdown + issues icon + view switcher
+  // (Catalog/strip/print toggles live in the court grid header — see
+  // gridHeaderActions.ts and the headerActions slot in courthive-components.)
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
     startDate,
     endDate,
     bulkMode: getGridBulkMode(),
-    catalogVisible,
-    activeStripVisible,
     scheduleDates: buildScheduleDates(scheduledDate),
     issues: buildIssues(scheduledDate),
     onDateChange: (date: string) => {
@@ -144,19 +160,6 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       if (!confirmUnsavedChanges()) return;
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
-    },
-    onToggleCatalog: () => {
-      catalogVisible = !catalogVisible;
-      writeCatalogVisible(catalogVisible);
-      const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement;
-      if (layout) {
-        layout.classList.toggle('spl-sidebar-collapsed', !catalogVisible);
-      }
-    },
-    onToggleActiveStrip: () => {
-      activeStripVisible = !activeStripVisible;
-      writeActiveStripVisible(activeStripVisible);
-      setGridActiveStripVisible(activeStripVisible);
     },
     onSearch: (text, mode) => searchGridCells(text, mode),
     onBulkModeChange: (enabled: boolean) => {
@@ -181,7 +184,18 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     // Profile view is configuration, not live data — let the sync indicator handle remote mutations
     context.refreshActiveTable = undefined;
   } else {
-    renderGridView(container, scheduledDate);
+    // Inject the catalog/strip/print icons into the court grid's header slot.
+    // During the test phase these mirror the icons in schedule2Header above —
+    // toggles call the same shared appliers so both stay in sync via persistence.
+    const headerActions = buildGridHeaderActions({
+      selectedDate: scheduledDate,
+      bulkMode: getGridBulkMode(),
+      catalogVisible: catalogVisible ?? true,
+      activeStripVisible: activeStripVisible ?? true,
+      onToggleCatalog: applyCatalogVisible,
+      onToggleActiveStrip: applyActiveStripVisible,
+    });
+    renderGridView(container, scheduledDate, { headerActions, activeStripVisible });
     // Wire remote-mutation refresh so cells update when other clients schedule matchUps
     context.refreshActiveTable = refreshGridView;
   }

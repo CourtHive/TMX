@@ -93,7 +93,11 @@ let activeStripUnsubscribe: (() => void) | null = null;
 // click handler so popovers open against the same row data the cell renders.
 let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] } | null = null;
 
-export function renderGridView(container: HTMLElement, scheduledDate: string): void {
+export function renderGridView(
+  container: HTMLElement,
+  scheduledDate: string,
+  options?: { headerActions?: HTMLElement[]; activeStripVisible?: boolean },
+): void {
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
   actionBarContainer = container;
@@ -163,6 +167,11 @@ export function renderGridView(container: HTMLElement, scheduledDate: string): v
     scheduleDates,
     issues,
     courtGridElement: gridWrapper,
+    headerActions: options?.headerActions,
+    // Seed the store with the persisted visibility so the very first click
+    // dispatches a real state change (default-true store + false-localStorage
+    // otherwise causes a no-op on first toggle).
+    activeStripVisible: options?.activeStripVisible ?? true,
     hideLeft: true,
     catalogSide: 'left',
     scheduledBehavior: 'dim',

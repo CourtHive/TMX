@@ -7,8 +7,6 @@
  */
 import type { ScheduleDate, ScheduleIssue } from 'courthive-components';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import { printSchedule } from 'components/modals/printSchedule';
-import { competitionEngine } from 'tods-competition-factory';
 import { providerConfig } from 'config/providerConfig';
 
 // Types
@@ -33,15 +31,11 @@ interface Schedule2HeaderParams {
   startDate: string;
   endDate: string;
   bulkMode: boolean;
-  catalogVisible?: boolean;
-  activeStripVisible?: boolean;
   scheduleDates?: ScheduleDate[];
   issues?: ScheduleIssue[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
-  onToggleCatalog?: () => void;
-  onToggleActiveStrip?: () => void;
   onSearch?: (text: string, mode: ScheduleSearchMode) => void;
   onClearSchedule?: (target: HTMLElement) => void;
 }
@@ -53,15 +47,11 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     startDate,
     endDate,
     bulkMode,
-    catalogVisible = true,
-    activeStripVisible = true,
     scheduleDates,
     issues,
     onDateChange,
     onViewChange,
     onBulkModeChange,
-    onToggleCatalog,
-    onToggleActiveStrip,
     onSearch,
     onClearSchedule,
   } = params;
@@ -209,87 +199,11 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     left.appendChild(searchWrap);
   }
 
-  // ── Catalog toggle (floats far left) ──
-  const farLeftGroup = document.createElement('div');
-  farLeftGroup.style.cssText = [DISPLAY_INLINE_FLEX, ALIGN_CENTER, 'gap: 4px', 'margin-right: auto'].join('; ');
-
-  const toggleBtnStyle = [
-    FONT13,
-    'padding: 4px 8px',
-    BORDER_RADIUS_6,
-    BORDER_PRIMARY,
-    BG_PRIMARY,
-    CURSOR_POINTER,
-    COLOR_PRIMARY,
-    DISPLAY_INLINE_FLEX,
-    ALIGN_CENTER,
-    'opacity: 0.7',
-  ].join('; ');
-
-  if (onToggleCatalog) {
-    const catalogBtn = document.createElement('button');
-    catalogBtn.style.cssText = toggleBtnStyle;
-    catalogBtn.innerHTML = '<i class="fa-solid fa-table-columns"></i>';
-    catalogBtn.title = catalogVisible ? 'Hide catalog' : 'Show catalog';
-    catalogBtn.addEventListener('click', onToggleCatalog);
-    farLeftGroup.appendChild(catalogBtn);
-  }
-
-  if (onToggleActiveStrip) {
-    const stripBtn = document.createElement('button');
-    stripBtn.style.cssText = toggleBtnStyle + (activeStripVisible ? '' : '; opacity: 0.4');
-    stripBtn.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
-    stripBtn.title = activeStripVisible ? 'Hide active courts strip' : 'Show active courts strip';
-    stripBtn.addEventListener('click', onToggleActiveStrip);
-    farLeftGroup.appendChild(stripBtn);
-  }
-
-  if (farLeftGroup.children.length > 0) {
-    bar.appendChild(farLeftGroup);
-  }
-
   bar.appendChild(left);
 
   // ── Right: Bulk mode toggle + View switcher ──
   const right = document.createElement('div');
   right.style.cssText = 'display: flex; align-items: center; gap: 8px;';
-
-  // Print schedule button. Disabled in bulk mode — the dispatcher prints
-  // saved engine state, so unsaved bulk-staged edits would be silently
-  // omitted from the PDF. Force the user out of bulk mode first.
-  {
-    const printBtn = document.createElement('button');
-    printBtn.style.cssText = [
-      FONT13,
-      'padding: 5px 10px',
-      BORDER_RADIUS_6,
-      BORDER_PRIMARY,
-      BG_PRIMARY,
-      bulkMode
-        ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;'
-        : `${CURSOR_POINTER}; color: var(--tmx-accent-blue, #3b82f6)`,
-      DISPLAY_INLINE_FLEX,
-      ALIGN_CENTER,
-      'gap: 4px',
-    ].join('; ');
-    printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 12px;"></i>';
-    printBtn.title = bulkMode ? 'Exit bulk mode to print the saved schedule' : 'Print schedule';
-    printBtn.disabled = bulkMode;
-    printBtn.addEventListener('click', () => {
-      if (bulkMode) return;
-      const matchUpFilters = { localPerspective: true, scheduledDate: selectedDate };
-      const result = competitionEngine.competitionScheduleMatchUps({
-        courtCompletedMatchUps: true,
-        withCourtGridRows: true,
-        minCourtGridRows: 10,
-        nextMatchUps: true,
-        matchUpFilters,
-      });
-      const { courtsData = [], rows = [] } = result;
-      printSchedule({ scheduledDate: selectedDate, courts: courtsData, rows });
-    });
-    right.appendChild(printBtn);
-  }
 
   // Clear schedule actions (grid view only)
   if (activeView === 'grid' && onClearSchedule) {
