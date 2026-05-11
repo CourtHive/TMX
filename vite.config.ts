@@ -25,6 +25,10 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
 
   return defineConfig({
     plugins: [EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }), emitVersionJson()],
+    server: {
+      port: 5173,
+      strictPort: true,
+    },
     resolve: {
       tsconfigPaths: true,
       alias: {
