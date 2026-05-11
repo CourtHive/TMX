@@ -570,12 +570,26 @@ function getVisibleCourtIdsOrUndefined(): string[] | undefined {
     .map((c) => c.courtId);
 }
 
+function hasAnyPlannedRounds(profile: SchedulingProfile | undefined): boolean {
+  if (!profile?.length) return false;
+  return profile.some((day) => day.venues?.some((v) => Array.isArray(v.rounds) && v.rounds.length > 0));
+}
+
 function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
   if (!activeControl) return;
 
   const profile = activeControl.getProfile();
   const store = activeControl.getStore();
   const state = store.getState();
+
+  // No-op when the Day Plan is empty: nothing to schedule.
+  if (!hasAnyPlannedRounds(profile)) {
+    tmxToast({
+      message: 'No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.',
+      intent: INTENT_WARNING,
+    });
+    return;
+  }
 
   // Check for errors
   if (state.issueIndex.counts.ERROR > 0) {
@@ -664,6 +678,15 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
   const profile = activeControl.getProfile();
   const store = activeControl.getStore();
   const state = store.getState();
+
+  // No-op when the Day Plan is empty: nothing to place on the grid.
+  if (!hasAnyPlannedRounds(profile)) {
+    tmxToast({
+      message: 'No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.',
+      intent: INTENT_WARNING,
+    });
+    return;
+  }
 
   if (state.issueIndex.counts.ERROR > 0) {
     tmxToast({

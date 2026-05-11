@@ -89,6 +89,24 @@ let visibilityTip: Instance | null = null;
 let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
+// Persisted across grid-view rebuilds (e.g. on date change) so switching
+// dates doesn't snap the user back to the Unscheduled tab.
+const SIDEBAR_TAB_KEY = 'schedule2:sidebar-tab';
+type SidebarTab = 'unscheduled' | 'scheduled';
+function readSidebarTab(): SidebarTab {
+  try {
+    return localStorage.getItem(SIDEBAR_TAB_KEY) === 'scheduled' ? 'scheduled' : 'unscheduled';
+  } catch {
+    return 'unscheduled';
+  }
+}
+function writeSidebarTab(tab: SidebarTab): void {
+  try {
+    localStorage.setItem(SIDEBAR_TAB_KEY, tab);
+  } catch {
+    // storage unavailable
+  }
+}
 // Latest schedule snapshot used by the strip — also consulted by the strip's
 // click handler so popovers open against the same row data the cell renders.
 let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] } | null = null;
@@ -327,9 +345,7 @@ function injectSidebarControls(container: HTMLElement): void {
         ? 'background: var(--sp-accent, var(--tmx-accent-blue, #3b82f6)); color: #fff; font-weight: 600;'
         : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
     ].join('; ');
-  unschedTab.style.cssText = tabStyle(true);
   unschedTab.textContent = t('schedule.unscheduled');
-  schedTab.style.cssText = tabStyle(false);
   schedTab.textContent = t('schedule.scheduled');
 
   controlBar.appendChild(unschedTab);
@@ -346,7 +362,7 @@ function injectSidebarControls(container: HTMLElement): void {
   sidebar.insertBefore(controlBar, sidebar.firstChild);
   sidebar.appendChild(scheduledPanel);
 
-  let activeTab: 'unscheduled' | 'scheduled' = 'unscheduled';
+  let activeTab: SidebarTab = readSidebarTab();
 
   function updateScheduledPanel(): void {
     scheduledPanel.innerHTML = '';
@@ -440,8 +456,9 @@ function injectSidebarControls(container: HTMLElement): void {
     }
   }
 
-  function setTab(tab: 'unscheduled' | 'scheduled'): void {
+  function setTab(tab: SidebarTab): void {
     activeTab = tab;
+    writeSidebarTab(tab);
     unschedTab.style.cssText = tabStyle(tab === 'unscheduled');
     schedTab.style.cssText = tabStyle(tab === 'scheduled');
 
@@ -457,6 +474,10 @@ function injectSidebarControls(container: HTMLElement): void {
 
   unschedTab.addEventListener('click', () => setTab('unscheduled'));
   schedTab.addEventListener('click', () => setTab('scheduled'));
+
+  // Apply the persisted tab (also restores Scheduled view + populates panel
+  // on a date change when the user was already on the Scheduled tab).
+  setTab(activeTab);
 
   // Hook into refresh to update scheduled panel when visible
   const origRefresh = activeControl?.getStore().subscribe(() => {

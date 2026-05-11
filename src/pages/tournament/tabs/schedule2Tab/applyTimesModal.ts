@@ -12,17 +12,11 @@
  * If the user picks the option that matches what's already attached we
  * pass `null` so the caller can skip a redundant attachPolicies round-trip.
  */
-import { competitionEngine, fixtures } from 'tods-competition-factory';
-
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { competitionEngine, fixtures } from 'tods-competition-factory';
+import { readSavedPolicies } from './schedulingPolicyEditor';
 
-const STORAGE_KEY = 'tmx:scheduling-policies';
 const POLICY_TYPE_SCHEDULING = 'scheduling';
-
-export interface SavedSchedulingPolicy {
-  name: string;
-  definition: Record<string, any>;
-}
 
 export interface PolicyChoice {
   id: string;
@@ -34,21 +28,6 @@ export interface PolicyChoice {
 export interface ApplyTimesModalParams {
   onApply: (params: { selected: PolicyChoice; mustAttach: boolean }) => void;
   onCancel?: () => void;
-}
-
-function readSavedPolicies(): SavedSchedulingPolicy[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (p): p is SavedSchedulingPolicy =>
-        p && typeof p.name === 'string' && p.definition && typeof p.definition === 'object',
-    );
-  } catch {
-    return [];
-  }
 }
 
 /** Quick structural fingerprint so we can spot whether the attached
@@ -110,7 +89,7 @@ export function openApplyTimesModal(params: ApplyTimesModalParams): void {
   let selectedId = matchingChoiceId ?? choices[0]?.id ?? '';
 
   const content = (root: HTMLElement) => {
-    root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; font-size: 13px;';
+    root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 13px;';
 
     const summary = document.createElement('div');
     summary.style.cssText =
@@ -126,42 +105,44 @@ export function openApplyTimesModal(params: ApplyTimesModalParams): void {
     }
     root.appendChild(summary);
 
-    const intro = document.createElement('div');
-    intro.textContent = 'Select the scheduling policy to use for Apply Times:';
-    root.appendChild(intro);
-
-    const list = document.createElement('div');
-    list.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
-    for (const choice of choices) {
-      const label = document.createElement('label');
-      label.style.cssText =
-        'display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--tmx-border-primary); border-radius: 6px; cursor: pointer;';
-      const input = document.createElement('input');
-      input.type = 'radio';
-      input.name = 'applyTimes-policy';
-      input.value = choice.id;
-      input.checked = choice.id === selectedId;
-      input.addEventListener('change', () => {
-        if (input.checked) selectedId = choice.id;
-      });
-      const text = document.createElement('span');
-      text.textContent = choice.label;
-      label.appendChild(input);
-      label.appendChild(text);
-      list.appendChild(label);
-    }
+    const fieldRow = document.createElement('label');
+    fieldRow.style.cssText = 'display: flex; align-items: center; gap: 10px;';
+    const fieldLabel = document.createElement('span');
+    fieldLabel.style.cssText = 'flex: 0 0 auto; font-size: 12px;';
+    fieldLabel.textContent = 'Policy:';
+    const select = document.createElement('select');
+    select.style.cssText = [
+      'flex: 1',
+      'padding: 5px 8px',
+      'font-size: 13px',
+      'border-radius: 4px',
+      'border: 1px solid var(--tmx-border-primary)',
+      'background: var(--tmx-bg-primary)',
+      'color: var(--tmx-color-primary)',
+      'cursor: pointer',
+    ].join('; ');
     if (!choices.length) {
-      const empty = document.createElement('div');
-      empty.style.cssText = 'color: var(--tmx-text-muted); font-style: italic;';
-      empty.textContent = 'No scheduling policies available.';
-      list.appendChild(empty);
+      const opt = document.createElement('option');
+      opt.textContent = 'No scheduling policies available';
+      opt.disabled = true;
+      opt.selected = true;
+      select.appendChild(opt);
+      select.disabled = true;
+    } else {
+      for (const choice of choices) {
+        const opt = document.createElement('option');
+        opt.value = choice.id;
+        opt.textContent = choice.label;
+        if (choice.id === selectedId) opt.selected = true;
+        select.appendChild(opt);
+      }
+      select.addEventListener('change', () => {
+        selectedId = select.value;
+      });
     }
-    root.appendChild(list);
-
-    const hint = document.createElement('div');
-    hint.style.cssText = 'font-size: 11px; color: var(--tmx-text-muted);';
-    hint.textContent = `Saved policies are read from localStorage key "${STORAGE_KEY}".`;
-    root.appendChild(hint);
+    fieldRow.appendChild(fieldLabel);
+    fieldRow.appendChild(select);
+    root.appendChild(fieldRow);
   };
 
   openModal({
