@@ -32,7 +32,11 @@ interface Schedule2State {
 // localStorage keys for cross-refresh persistence. We don't use the
 // tmx_columns/context.columns helper because that store is hydrated
 // inside setupTMX() — after this module's top-level code has already run.
-const CATALOG_VISIBILITY_KEY = 'schedule2:catalog';
+// Grid and profile have INDEPENDENT catalog visibility — they're
+// different user journeys (matchUp catalog vs round catalog) and a user
+// hiding one shouldn't hide the other.
+const GRID_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:grid';
+const PROFILE_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:profile';
 const ACTIVE_STRIP_VISIBILITY_KEY = 'schedule2:activeStrip';
 const SELECTED_DATE_KEY = 'schedule2:selectedDate';
 
@@ -54,12 +58,20 @@ function writeBoolFlag(key: string, value: boolean): void {
   }
 }
 
-function readCatalogVisible(): boolean {
-  return readBoolFlag(CATALOG_VISIBILITY_KEY, true);
+function readGridCatalogVisible(): boolean {
+  return readBoolFlag(GRID_CATALOG_VISIBILITY_KEY, true);
 }
 
-function writeCatalogVisible(visible: boolean): void {
-  writeBoolFlag(CATALOG_VISIBILITY_KEY, visible);
+function writeGridCatalogVisible(visible: boolean): void {
+  writeBoolFlag(GRID_CATALOG_VISIBILITY_KEY, visible);
+}
+
+function readProfileCatalogVisible(): boolean {
+  return readBoolFlag(PROFILE_CATALOG_VISIBILITY_KEY, true);
+}
+
+function writeProfileCatalogVisible(visible: boolean): void {
+  writeBoolFlag(PROFILE_CATALOG_VISIBILITY_KEY, visible);
 }
 
 function readActiveStripVisible(): boolean {
@@ -86,14 +98,21 @@ function writePersistedDate(date: string): void {
   }
 }
 
+// Shared layout selectors / class names — used by the per-view catalog
+// visibility appliers and the post-render initial-collapse pass.
+const LAYOUT_SEL = '.spl-layout, .sp-layout';
+const COLLAPSED_CLASS = 'spl-sidebar-collapsed';
+
 let state: Schedule2State | null = null;
-let catalogVisible: boolean | undefined;
+let gridCatalogVisible: boolean | undefined;
+let profileCatalogVisible: boolean | undefined;
 let activeStripVisible: boolean | undefined;
 
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
 
-  catalogVisible ??= readCatalogVisible();
+  gridCatalogVisible ??= readGridCatalogVisible();
+  profileCatalogVisible ??= readProfileCatalogVisible();
   activeStripVisible ??= readActiveStripVisible();
 
   // Resolve date — redirect if missing. Prefer the user's last-selected date
@@ -125,14 +144,21 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   state = { currentView: view, selectedDate: scheduledDate };
 
-  // Shared visibility togglers — used by both the top schedule2Header bar AND
-  // (during the dual-render test phase) the new headerActions slot injected
-  // into the courthive-components court grid header.
-  function applyCatalogVisible(next: boolean): void {
-    catalogVisible = next;
-    writeCatalogVisible(next);
-    const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement | null;
-    if (layout) layout.classList.toggle('spl-sidebar-collapsed', !next);
+  // Per-view visibility togglers. Grid and profile have independent catalog
+  // state — hiding one must NOT hide the other. The DOM operation is the
+  // same in both cases (toggle .spl-sidebar-collapsed on whichever layout
+  // the active view rendered) since only one view is mounted at a time.
+  function applyGridCatalogVisible(next: boolean): void {
+    gridCatalogVisible = next;
+    writeGridCatalogVisible(next);
+    const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+    if (layout) layout.classList.toggle(COLLAPSED_CLASS, !next);
+  }
+  function applyProfileCatalogVisible(next: boolean): void {
+    profileCatalogVisible = next;
+    writeProfileCatalogVisible(next);
+    const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+    if (layout) layout.classList.toggle(COLLAPSED_CLASS, !next);
   }
   function applyActiveStripVisible(next: boolean): void {
     activeStripVisible = next;
@@ -180,19 +206,20 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
 
   // Render the active view
   if (view === 'profile') {
-    renderProfileView(container, scheduledDate);
+    renderProfileView(container, scheduledDate, {
+      catalogVisible: profileCatalogVisible ?? true,
+      onToggleCatalog: applyProfileCatalogVisible,
+    });
     // Profile view is configuration, not live data — let the sync indicator handle remote mutations
     context.refreshActiveTable = undefined;
   } else {
     // Inject the catalog/strip/print icons into the court grid's header slot.
-    // During the test phase these mirror the icons in schedule2Header above —
-    // toggles call the same shared appliers so both stay in sync via persistence.
     const headerActions = buildGridHeaderActions({
       selectedDate: scheduledDate,
       bulkMode: getGridBulkMode(),
-      catalogVisible: catalogVisible ?? true,
+      catalogVisible: gridCatalogVisible ?? true,
       activeStripVisible: activeStripVisible ?? true,
-      onToggleCatalog: applyCatalogVisible,
+      onToggleCatalog: applyGridCatalogVisible,
       onToggleActiveStrip: applyActiveStripVisible,
     });
     renderGridView(container, scheduledDate, { headerActions, activeStripVisible });
@@ -200,10 +227,13 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     context.refreshActiveTable = refreshGridView;
   }
 
-  // Apply persisted catalog visibility to the freshly rendered layout
-  if (!catalogVisible) {
-    const layout = container.querySelector('.spl-layout, .sp-layout') as HTMLElement | null;
-    if (layout) layout.classList.add('spl-sidebar-collapsed');
+  // Apply persisted catalog visibility to the freshly rendered layout —
+  // use the value for the active view only, since each view tracks
+  // catalog visibility independently.
+  const currentCatalogVisible = view === 'profile' ? profileCatalogVisible : gridCatalogVisible;
+  if (!currentCatalogVisible) {
+    const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+    if (layout) layout.classList.add(COLLAPSED_CLASS);
   }
 }
 

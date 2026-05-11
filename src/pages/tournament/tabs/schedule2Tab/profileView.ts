@@ -38,7 +38,16 @@ const AVG_MATCH_MINUTES = 75;
 
 let activeControl: SchedulingProfileControl | null = null;
 
-export function renderProfileView(target: HTMLElement, scheduledDate?: string): void {
+export interface ProfileViewOptions {
+  catalogVisible: boolean;
+  onToggleCatalog: (visible: boolean) => void;
+}
+
+export function renderProfileView(
+  target: HTMLElement,
+  scheduledDate?: string,
+  options?: ProfileViewOptions,
+): void {
   target.innerHTML = '';
 
   const setup = buildProfileSetup();
@@ -63,7 +72,7 @@ export function renderProfileView(target: HTMLElement, scheduledDate?: string): 
   statusEl.style.cssText = 'font-size: 0.75rem; color: var(--sp-muted, var(--tmx-text-muted));';
   statusEl.textContent = 'Drag rounds from the catalog to venue lanes. Click "Apply Schedule" to assign times.';
 
-  const headerActions = buildProfileHeaderActions(setup, statusEl);
+  const headerActions = buildProfileHeaderActions(setup, statusEl, options);
 
   const config: SchedulingProfileConfig = {
     ...setup.config,
@@ -356,21 +365,54 @@ interface ProfileHeaderActions {
   labels: HTMLSpanElement[];
 }
 
-function buildProfileHeaderActions(setup: ProfileSetup, statusEl: HTMLElement): ProfileHeaderActions {
-  const BTN_STYLE = [
-    'font-size: 12px',
-    'padding: 4px 8px',
-    'border-radius: 6px',
-    'border: 1px solid var(--tmx-border-primary)',
-    'background: transparent',
-    'cursor: pointer',
-    'display: inline-flex',
-    'align-items: center',
-    'transition: background 0.15s, opacity 0.15s',
-  ].join('; ');
+const BTN_BASE = [
+  'font-size: 12px',
+  'padding: 4px 8px',
+  'border-radius: 6px',
+  'border: 1px solid var(--tmx-border-primary)',
+  'cursor: pointer',
+  'display: inline-flex',
+  'align-items: center',
+  'transition: background 0.15s, opacity 0.15s, color 0.15s',
+].join('; ');
 
+// Tinted pill for view-state toggles (matches the grid view's catalog toggle).
+const TOGGLE_BG_PRESSED = 'rgba(59, 130, 246, 0.18)';
+
+function buildCatalogToggle(initial: boolean, onChange: (visible: boolean) => void): HTMLButtonElement {
+  const btn = document.createElement('button');
+  btn.innerHTML = '<i class="fa-solid fa-table-columns" style="font-size: 12px;"></i>';
+  const applyState = (pressed: boolean) => {
+    btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    btn.style.cssText =
+      BTN_BASE +
+      `; color: var(--tmx-color-primary)` +
+      `; background: ${pressed ? TOGGLE_BG_PRESSED : 'transparent'}` +
+      `; opacity: ${pressed ? '1' : '0.45'}`;
+    btn.title = pressed ? 'Hide round catalog' : 'Show round catalog';
+  };
+  applyState(initial);
+  btn.addEventListener('click', () => {
+    const next = btn.getAttribute('aria-pressed') !== 'true';
+    applyState(next);
+    onChange(next);
+  });
+  return btn;
+}
+
+function buildProfileHeaderActions(
+  setup: ProfileSetup,
+  statusEl: HTMLElement,
+  options?: ProfileViewOptions,
+): ProfileHeaderActions {
   const buttons: HTMLButtonElement[] = [];
   const labels: HTMLSpanElement[] = [];
+
+  // View-state toggle first — visually distinct (tinted pill) from the
+  // action buttons that follow.
+  if (options) {
+    buttons.push(buildCatalogToggle(options.catalogVisible, options.onToggleCatalog));
+  }
 
   const makeIcon = (
     icon: string,
@@ -380,7 +422,7 @@ function buildProfileHeaderActions(setup: ProfileSetup, statusEl: HTMLElement): 
     onClick: () => void,
   ): HTMLButtonElement => {
     const btn = document.createElement('button');
-    btn.style.cssText = BTN_STYLE + `; color: ${color}`;
+    btn.style.cssText = BTN_BASE + `; background: transparent; color: ${color}`;
     btn.title = hover;
     btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 12px;"></i>`;
     // Label span — hidden by default; the resize observer reveals it when
