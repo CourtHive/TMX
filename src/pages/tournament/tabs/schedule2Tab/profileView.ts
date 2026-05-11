@@ -22,6 +22,7 @@ import {
 } from 'courthive-components';
 import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openApplyTimesModal } from './applyTimesModal';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { hiddenCourtIds } from './visibilityState';
@@ -585,18 +586,39 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
     return;
   }
 
-  // Save profile first, then run the factory scheduler in the callback
+  // Confirm policy choice before running the scheduler.
+  openApplyTimesModal({
+    onApply: ({ selected, mustAttach }) => runScheduleWithPolicy(profile, statusEl, selected.definition, mustAttach),
+  });
+}
+
+function runScheduleWithPolicy(
+  profile: SchedulingProfile,
+  statusEl: HTMLElement,
+  policyDefinitions: Record<string, any>,
+  mustAttach: boolean,
+): void {
+  // Save profile first, then optionally attach the chosen policy, then run
+  // the factory scheduler.
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
     const courtIds = getVisibleCourtIdsOrUndefined();
     const params: any = { scheduleDates };
     if (courtIds) params.courtIds = courtIds;
+
+    const methods: any[] = [];
+    if (mustAttach) {
+      methods.push({ method: 'attachPolicies', params: { policyDefinitions } });
+    }
+    methods.push({ method: 'scheduleProfileRounds', params });
+
     mutationRequest({
-      methods: [{ method: 'scheduleProfileRounds', params }],
+      methods,
       engine: COMPETITION_ENGINE,
       callback: (eqResult: any) => {
-        // executionQueue wraps method results in { success, results: [{ ...methodResult }] }
-        const result = eqResult?.results?.[0] ?? eqResult;
+        // executionQueue wraps multiple results; the scheduling result is last.
+        const results = eqResult?.results;
+        const result = Array.isArray(results) ? results[results.length - 1] : eqResult;
 
         if (result?.error || eqResult?.error) {
           const err = result?.error || eqResult?.error;
