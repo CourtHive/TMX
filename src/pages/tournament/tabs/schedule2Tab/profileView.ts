@@ -55,10 +55,21 @@ export function renderProfileView(target: HTMLElement, scheduledDate?: string): 
   // Load existing profile from factory
   const existingProfile = loadExistingProfile(setup);
 
+  // Build the status element first so the header-action handlers and the
+  // bottom-bar share the same live reference. Apply* functions update its
+  // text with run-specific detail (scheduled counts, errors) that's richer
+  // than a toast.
+  const statusEl = document.createElement('span');
+  statusEl.style.cssText = 'font-size: 0.75rem; color: var(--sp-muted, var(--tmx-text-muted));';
+  statusEl.textContent = 'Drag rounds from the catalog to venue lanes. Click "Apply Schedule" to assign times.';
+
+  const headerActions = buildProfileHeaderActions(setup, statusEl);
+
   const config: SchedulingProfileConfig = {
     ...setup.config,
     selectedDate: scheduledDate,
     initialProfile: existingProfile,
+    headerActions: headerActions.buttons,
     onProfileChanged: (profile) => {
       // Persist profile to factory as a tournament extension
       saveProfile(profile);
@@ -67,8 +78,14 @@ export function renderProfileView(target: HTMLElement, scheduledDate?: string): 
 
   activeControl = createSchedulingProfile(config, wrapper);
 
-  // Action bar below the profile
-  const actionBar = buildActionBar(setup);
+  // After the panel mounts, observe its header width and reveal button labels
+  // when there's room. Icon-only below the threshold; labels appear once the
+  // header has space for them.
+  installResponsiveLabels(wrapper, headerActions);
+
+  // Slimmer bottom bar: status text + (conditional) Apply-scope pill.
+  // The four buttons moved into the Day Plan header (see headerActions above).
+  const actionBar = buildActionBar(statusEl);
   target.appendChild(actionBar);
 }
 
@@ -334,54 +351,52 @@ function saveProfile(profile: SchedulingProfile, callback?: () => void): void {
 // Action Bar
 // ============================================================================
 
-function buildActionBar(setup: ProfileSetup): HTMLElement {
-  const bar = document.createElement('div');
-  bar.style.cssText =
-    'display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
+interface ProfileHeaderActions {
+  buttons: HTMLButtonElement[];
+  labels: HTMLSpanElement[];
+}
 
-  // Save profile button
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'sp-btn';
-  saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i>Save Profile';
-  saveBtn.addEventListener('click', () => {
-    if (!activeControl) return;
-    saveProfile(activeControl.getProfile(), () => {
-      tmxToast({ message: 'Scheduling profile saved', intent: INTENT_SUCCESS });
-      statusEl.textContent = 'Profile saved.';
-    });
-  });
-  bar.appendChild(saveBtn);
+function buildProfileHeaderActions(setup: ProfileSetup, statusEl: HTMLElement): ProfileHeaderActions {
+  const BTN_STYLE = [
+    'font-size: 12px',
+    'padding: 4px 8px',
+    'border-radius: 6px',
+    'border: 1px solid var(--tmx-border-primary)',
+    'background: transparent',
+    'cursor: pointer',
+    'display: inline-flex',
+    'align-items: center',
+    'transition: background 0.15s, opacity 0.15s',
+  ].join('; ');
 
-  // Apply schedule — segmented control: Times | Grid
-  const applyWrap = document.createElement('div');
-  applyWrap.style.cssText = 'display: flex; align-items: center; gap: 0;';
+  const buttons: HTMLButtonElement[] = [];
+  const labels: HTMLSpanElement[] = [];
 
-  const applyTimesBtn = document.createElement('button');
-  applyTimesBtn.className = 'sp-btn sp-btn--success';
-  applyTimesBtn.style.cssText += '; border-radius: 6px 0 0 6px;';
-  applyTimesBtn.innerHTML = '<i class="fa-solid fa-clock" style="margin-right:6px;"></i>Apply Times';
-  applyTimesBtn.title = 'Assign scheduled times using the Garman algorithm';
-  applyTimesBtn.addEventListener('click', () => applySchedule(setup, statusEl));
+  const makeIcon = (
+    icon: string,
+    label: string,
+    hover: string,
+    color: string,
+    onClick: () => void,
+  ): HTMLButtonElement => {
+    const btn = document.createElement('button');
+    btn.style.cssText = BTN_STYLE + `; color: ${color}`;
+    btn.title = hover;
+    btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 12px;"></i>`;
+    // Label span — hidden by default; the resize observer reveals it when
+    // the panel header has room.
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.marginLeft = '6px';
+    span.style.display = 'none';
+    btn.appendChild(span);
+    btn.addEventListener('click', onClick);
+    buttons.push(btn);
+    labels.push(span);
+    return btn;
+  };
 
-  const applyGridBtn = document.createElement('button');
-  applyGridBtn.className = 'sp-btn sp-btn--success';
-  applyGridBtn.style.cssText += '; border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.3);';
-  applyGridBtn.innerHTML = '<i class="fa-solid fa-table-cells" style="margin-right:6px;"></i>Apply Grid';
-  applyGridBtn.title = 'Assign court grid positions without times (pro scheduling)';
-  applyGridBtn.addEventListener('click', () => applyGrid(setup, statusEl));
-
-  applyWrap.appendChild(applyTimesBtn);
-  applyWrap.appendChild(applyGridBtn);
-  bar.appendChild(applyWrap);
-
-  const scopePill = buildApplyScopePill();
-  if (scopePill) bar.appendChild(scopePill);
-
-  // Clear button
-  const clearBtn = document.createElement('button');
-  clearBtn.className = 'sp-btn sp-btn--danger';
-  clearBtn.innerHTML = '<i class="fa-solid fa-eraser" style="margin-right:6px;"></i>Clear Profile';
-  clearBtn.addEventListener('click', () => {
+  makeIcon('fa-eraser', 'Clear Profile', 'Clear Profile', 'var(--tmx-accent-red, #ef4444)', () => {
     mutationRequest({
       methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: null } }],
       engine: COMPETITION_ENGINE,
@@ -391,12 +406,68 @@ function buildActionBar(setup: ProfileSetup): HTMLElement {
       },
     });
   });
-  bar.appendChild(clearBtn);
 
-  // Status text
-  const statusEl = document.createElement('span');
-  statusEl.style.cssText = 'font-size: 0.75rem; color: var(--sp-muted, var(--tmx-text-muted));';
-  statusEl.textContent = 'Drag rounds from the catalog to venue lanes. Click "Apply Schedule" to assign times.';
+  makeIcon(
+    'fa-clock',
+    'Apply Times',
+    'Apply Times — assign scheduled times using the Garman algorithm',
+    'var(--tmx-accent-green, #10b981)',
+    () => applySchedule(setup, statusEl),
+  );
+
+  makeIcon(
+    'fa-table-cells',
+    'Apply Grid',
+    'Apply Grid — assign court grid positions without times (pro scheduling)',
+    'var(--tmx-accent-green, #10b981)',
+    () => applyGrid(setup, statusEl),
+  );
+
+  makeIcon('fa-floppy-disk', 'Save Profile', 'Save Profile', 'var(--tmx-color-primary)', () => {
+    if (!activeControl) return;
+    saveProfile(activeControl.getProfile(), () => {
+      tmxToast({ message: 'Scheduling profile saved', intent: INTENT_SUCCESS });
+      statusEl.textContent = 'Profile saved.';
+    });
+  });
+
+  return { buttons, labels };
+}
+
+// Width below which we render icons only. Tuned so the four labelled buttons
+// plus the "Day Plan" title fit comfortably without wrapping.
+const LABEL_BREAKPOINT_PX = 560;
+
+function installResponsiveLabels(wrapper: HTMLElement, actions: ProfileHeaderActions): void {
+  // Defer until after createSchedulingProfile has appended its DOM so the
+  // panel header is mounted. Anchor to the unique `.sp-panel-actions`
+  // container (only the venue board carries one) and walk up to *its*
+  // panel header — `querySelector('.sp-panel-header')` would otherwise
+  // resolve to the date-strip header in the left column.
+  queueMicrotask(() => {
+    const actionsEl = wrapper.querySelector('.sp-panel-actions') as HTMLElement | null;
+    const header = actionsEl?.closest('.sp-panel-header') as HTMLElement | null;
+    if (!header) return;
+    const apply = (width: number) => {
+      const show = width >= LABEL_BREAKPOINT_PX;
+      for (const span of actions.labels) span.style.display = show ? 'inline' : 'none';
+    };
+    apply(header.getBoundingClientRect().width);
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) apply(entry.contentRect.width);
+    });
+    observer.observe(header);
+  });
+}
+
+function buildActionBar(statusEl: HTMLElement): HTMLElement {
+  const bar = document.createElement('div');
+  bar.style.cssText =
+    'display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
+
+  const scopePill = buildApplyScopePill();
+  if (scopePill) bar.appendChild(scopePill);
+
   bar.appendChild(statusEl);
 
   return bar;
