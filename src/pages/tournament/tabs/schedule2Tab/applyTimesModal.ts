@@ -3,26 +3,27 @@
  * the Garman scheduler.
  *
  * Reads the currently-attached scheduling policy from the tournament and
- * shows it for confirmation, then offers a radio-button selection over:
- *   - Factory default: POLICY_SCHEDULING_DEFAULT (built into the factory)
- *   - Any user-saved policies stored in localStorage under
- *     `tmx:scheduling-policies` (Array<{ name, definition }>).
+ * shows it for confirmation, then offers a <select> over the policies
+ * registered with the `/policies` page: factory built-ins plus any user
+ * policies persisted to IndexedDB via `policyBridge.saveUserPolicy`.
  *
- * On Apply, the chosen policy's definition is handed back via onApply.
- * If the user picks the option that matches what's already attached we
- * pass `null` so the caller can skip a redundant attachPolicies round-trip.
+ * Creating or editing a scheduling policy is out of scope here — that
+ * lives on the `/policies` page and persists through `policyBridge`.
  */
+import { competitionEngine } from 'tods-competition-factory';
+import { PolicyCatalogItem } from 'courthive-components';
+
+import { getBuiltinPolicies, loadUserPolicies } from 'pages/policies/policyBridge';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
-import { competitionEngine, fixtures } from 'tods-competition-factory';
-import { readSavedPolicies } from './schedulingPolicyEditor';
 
 const POLICY_TYPE_SCHEDULING = 'scheduling';
 
 export interface PolicyChoice {
   id: string;
   label: string;
+  /** attachPolicies({ policyDefinitions }) input shape: `{ scheduling: {...} }`. */
   definition: Record<string, any>;
-  source: 'factory-default' | 'saved';
+  source: 'builtin' | 'user';
 }
 
 export interface ApplyTimesModalParams {
@@ -30,9 +31,9 @@ export interface ApplyTimesModalParams {
   onCancel?: () => void;
 }
 
-/** Quick structural fingerprint so we can spot whether the attached
- *  scheduling policy matches one of our offered choices. JSON stringify is
- *  fine here — policies are small, deterministic, JSON-safe objects. */
+/** JSON fingerprint to compare a choice against the currently-attached
+ *  scheduling policy. JSON.stringify is fine — policies are small,
+ *  deterministic, JSON-safe objects. */
 function fingerprint(policy: Record<string, any> | undefined | null): string {
   if (!policy) return '';
   try {
@@ -51,27 +52,28 @@ function getAttachedSchedulingPolicy(): Record<string, any> | null {
   }
 }
 
-export function openApplyTimesModal(params: ApplyTimesModalParams): void {
-  const factoryDefault = (fixtures as any).policies?.POLICY_SCHEDULING_DEFAULT;
-  const factoryDefaultPolicy = factoryDefault?.[POLICY_TYPE_SCHEDULING];
+function toChoice(item: PolicyCatalogItem): PolicyChoice {
+  return {
+    id: item.id,
+    label: item.name,
+    // policyBridge stores policyData as the INNER block (not wrapped in
+    // a `{ scheduling: ... }` key); attachPolicies expects the wrapper.
+    definition: { [POLICY_TYPE_SCHEDULING]: item.policyData },
+    source: item.source === 'builtin' ? 'builtin' : 'user',
+  };
+}
 
-  const choices: PolicyChoice[] = [];
-  if (factoryDefaultPolicy) {
-    choices.push({
-      id: 'factory-default',
-      label: 'Factory default (POLICY_SCHEDULING_DEFAULT)',
-      definition: factoryDefault,
-      source: 'factory-default',
-    });
+export async function openApplyTimesModal(params: ApplyTimesModalParams): Promise<void> {
+  const builtins = getBuiltinPolicies().filter((p) => p.policyType === POLICY_TYPE_SCHEDULING);
+  let userPolicies: PolicyCatalogItem[] = [];
+  try {
+    const all = await loadUserPolicies();
+    userPolicies = all.filter((p) => p.policyType === POLICY_TYPE_SCHEDULING);
+  } catch (err) {
+    console.error('loadUserPolicies failed', err);
   }
-  for (const saved of readSavedPolicies()) {
-    choices.push({
-      id: `saved:${saved.name}`,
-      label: saved.name,
-      definition: saved.definition,
-      source: 'saved',
-    });
-  }
+
+  const choices: PolicyChoice[] = [...builtins.map(toChoice), ...userPolicies.map(toChoice)];
 
   const attached = getAttachedSchedulingPolicy();
   const attachedFp = fingerprint(attached ?? undefined);
@@ -105,6 +107,10 @@ export function openApplyTimesModal(params: ApplyTimesModalParams): void {
     }
     root.appendChild(summary);
 
+    const intro = document.createElement('div');
+    intro.textContent = 'Select the scheduling policy to use for Apply Times:';
+    root.appendChild(intro);
+
     const fieldRow = document.createElement('label');
     fieldRow.style.cssText = 'display: flex; align-items: center; gap: 10px;';
     const fieldLabel = document.createElement('span');
@@ -129,13 +135,8 @@ export function openApplyTimesModal(params: ApplyTimesModalParams): void {
       select.appendChild(opt);
       select.disabled = true;
     } else {
-      for (const choice of choices) {
-        const opt = document.createElement('option');
-        opt.value = choice.id;
-        opt.textContent = choice.label;
-        if (choice.id === selectedId) opt.selected = true;
-        select.appendChild(opt);
-      }
+      appendChoiceGroup(select, 'Built-in', choices, 'builtin', selectedId);
+      appendChoiceGroup(select, 'Saved', choices, 'user', selectedId);
       select.addEventListener('change', () => {
         selectedId = select.value;
       });
@@ -174,4 +175,28 @@ export function openApplyTimesModal(params: ApplyTimesModalParams): void {
       },
     ],
   });
+}
+
+/** Append a labelled `<optgroup>` for one source ("builtin" or "user")
+ *  containing only choices from that source. Empty groups are skipped so
+ *  the select doesn't show an empty "Saved" header when there are none. */
+function appendChoiceGroup(
+  select: HTMLSelectElement,
+  label: string,
+  choices: PolicyChoice[],
+  source: 'builtin' | 'user',
+  selectedId: string,
+): void {
+  const filtered = choices.filter((c) => c.source === source);
+  if (!filtered.length) return;
+  const group = document.createElement('optgroup');
+  group.label = label;
+  for (const choice of filtered) {
+    const opt = document.createElement('option');
+    opt.value = choice.id;
+    opt.textContent = choice.label;
+    if (choice.id === selectedId) opt.selected = true;
+    group.appendChild(opt);
+  }
+  select.appendChild(group);
 }
