@@ -21,6 +21,11 @@ import { buildGridHeaderActions } from './gridHeaderActions';
 import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView, setGridActiveStripVisible } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
+import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
+import { scheduleConfig } from 'config/scheduleConfig';
 
 export type Schedule2View = 'grid' | 'profile';
 
@@ -169,12 +174,18 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   // Build header with rich date dropdown + issues icon + view switcher
   // (Catalog/strip/print toggles live in the court grid header — see
   // gridHeaderActions.ts and the headerActions slot in courthive-components.)
+  // Tournament-scoped minRows overrides the per-user scheduleConfig default
+  // so all directors on a tournament see the same grid density.
+  const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
+  const effectiveMinRows = extensionMinRows ?? scheduleConfig.get().minCourtGridRows;
+
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
     startDate,
     endDate,
     bulkMode: getGridBulkMode(),
+    minRows: effectiveMinRows,
     scheduleDates: buildScheduleDates(scheduledDate),
     issues: buildIssues(scheduledDate),
     onDateChange: (date: string) => {
@@ -194,6 +205,10 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
         controlAnchor.innerHTML = '';
         renderSchedule2Tab(params);
       }
+    },
+    onMinRowsChange: (rows: number) => {
+      writeScheduleDisplayConfig({ minCourtGridRows: rows });
+      refreshGridView();
     },
     onClearSchedule: (target) =>
       openClearScheduleMenu({

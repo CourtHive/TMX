@@ -21,6 +21,7 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openApplyTimesModal } from './applyTimesModal';
 import { getScheduleDateRange } from '../scheduleUtils';
@@ -667,9 +668,26 @@ function runScheduleWithPolicy(
         });
 
         statusEl.textContent = message;
+
+        // Surface the full scheduler return value (deferred matchUps, conflicts,
+        // no-time, etc.) — the toast only summarizes Scheduled + Over Limit.
+        // Skip the drawer when nothing beyond Scheduled needs attention.
+        if (result && hasActionableResults(result)) openScheduleResultsDrawer(result);
       },
     });
   });
+}
+
+function hasActionableResults(result: any): boolean {
+  const dateMapHasEntries = (m: any) =>
+    m && Object.values(m).some((v) => (Array.isArray(v) ? v.length : Object.keys(v ?? {}).length) > 0);
+  return (
+    dateMapHasEntries(result.overLimitMatchUpIds) ||
+    dateMapHasEntries(result.noTimeMatchUpIds) ||
+    dateMapHasEntries(result.recoveryTimeDeferredMatchUpIds) ||
+    dateMapHasEntries(result.dependencyDeferredMatchUpIds) ||
+    dateMapHasEntries(result.requestConflicts)
+  );
 }
 
 function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {

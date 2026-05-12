@@ -31,14 +31,19 @@ interface Schedule2HeaderParams {
   startDate: string;
   endDate: string;
   bulkMode: boolean;
+  minRows: number;
   scheduleDates?: ScheduleDate[];
   issues?: ScheduleIssue[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
+  onMinRowsChange: (rows: number) => void;
   onSearch?: (text: string, mode: ScheduleSearchMode) => void;
   onClearSchedule?: (target: HTMLElement) => void;
 }
+
+const MIN_ROWS_FLOOR = 1;
+const MIN_ROWS_CEILING = 200;
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
   const {
@@ -47,11 +52,13 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     startDate,
     endDate,
     bulkMode,
+    minRows,
     scheduleDates,
     issues,
     onDateChange,
     onViewChange,
     onBulkModeChange,
+    onMinRowsChange,
     onSearch,
     onClearSchedule,
   } = params;
@@ -231,6 +238,13 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     right.appendChild(clearBtn);
   }
 
+  // Min-rows stepper (grid view only) — controls the minimum number of time
+  // rows rendered in the court grid. Persisted as a tournament extension so
+  // multiple directors editing the same tournament see the same value.
+  if (activeView === 'grid') {
+    right.appendChild(buildMinRowsStepper(minRows, onMinRowsChange));
+  }
+
   // Bulk mode toggle (grid view only, if permitted)
   if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
     const bulkLabel = document.createElement('label');
@@ -283,6 +297,75 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   bar.appendChild(right);
 
   return bar;
+}
+
+// ── Min-rows Stepper ──
+
+function buildMinRowsStepper(initial: number, onChange: (rows: number) => void): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.title = 'Minimum number of time rows in the schedule grid';
+  wrap.style.cssText = [
+    DISPLAY_INLINE_FLEX,
+    ALIGN_CENTER,
+    'gap: 2px',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
+    'overflow: hidden',
+    'height: 26px',
+  ].join('; ');
+
+  const label = document.createElement('span');
+  label.textContent = 'Rows';
+  label.style.cssText = `font-size: 11px; padding: 0 6px 0 8px; ${COLOR_PRIMARY}; ${ALIGN_CENTER}; display: inline-flex; height: 100%;`;
+  wrap.appendChild(label);
+
+  let current = clampRows(initial);
+
+  const minus = makeStepperButton('−');
+  const plus = makeStepperButton('+');
+
+  const value = document.createElement('span');
+  value.style.cssText = `font-size: 12px; font-weight: 600; min-width: 22px; text-align: center; ${COLOR_PRIMARY}; ${ALIGN_CENTER}; display: inline-flex; justify-content: center; height: 100%;`;
+  value.textContent = String(current);
+
+  const apply = (next: number) => {
+    const clamped = clampRows(next);
+    if (clamped === current) return;
+    current = clamped;
+    value.textContent = String(clamped);
+    onChange(clamped);
+  };
+
+  minus.addEventListener('click', () => apply(current - 1));
+  plus.addEventListener('click', () => apply(current + 1));
+
+  wrap.appendChild(minus);
+  wrap.appendChild(value);
+  wrap.appendChild(plus);
+  return wrap;
+}
+
+function makeStepperButton(symbol: string): HTMLButtonElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = symbol;
+  btn.style.cssText = [
+    'font-size: 14px',
+    'font-weight: 600',
+    'width: 22px',
+    'height: 100%',
+    'border: 0',
+    'background: transparent',
+    COLOR_PRIMARY,
+    CURSOR_POINTER,
+    'padding: 0',
+  ].join('; ');
+  return btn;
+}
+
+function clampRows(value: number): number {
+  if (!Number.isFinite(value)) return MIN_ROWS_FLOOR;
+  return Math.max(MIN_ROWS_FLOOR, Math.min(MIN_ROWS_CEILING, Math.floor(value)));
 }
 
 // ── Date Popover ──

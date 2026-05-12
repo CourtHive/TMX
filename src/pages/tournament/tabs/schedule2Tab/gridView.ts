@@ -30,6 +30,7 @@ import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
+import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -311,14 +312,14 @@ export function renderGridView(
   });
 
   // ── Inject sidebar controls: collapse toggle + Unscheduled/Scheduled tabs ──
-  injectSidebarControls(container);
+  injectSidebarControls(container, refresh);
 }
 
 // ============================================================================
 // Sidebar Controls (collapse + scheduled matchUp list)
 // ============================================================================
 
-function injectSidebarControls(container: HTMLElement): void {
+function injectSidebarControls(container: HTMLElement, refresh: () => void): void {
   const layout = container.querySelector('.spl-layout') as HTMLElement;
   if (!layout) return;
 
@@ -346,7 +347,17 @@ function injectSidebarControls(container: HTMLElement): void {
         : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
     ].join('; ');
   unschedTab.textContent = t('schedule.unscheduled');
+  // Build the Scheduled tab with an inline (n) count badge — populated on
+  // initial render and refreshed whenever the store ticks. The badge gives
+  // operators an at-a-glance hint that timed-but-unplaced matchUps exist
+  // after running the scheduler.
   schedTab.textContent = t('schedule.scheduled');
+  schedTab.appendChild(document.createTextNode(' '));
+  const schedBadge = document.createElement('span');
+  schedBadge.style.cssText =
+    'display: inline-block; font-size: 10px; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
+  schedBadge.textContent = '0';
+  schedTab.appendChild(schedBadge);
 
   controlBar.appendChild(unschedTab);
   controlBar.appendChild(schedTab);
@@ -364,17 +375,27 @@ function injectSidebarControls(container: HTMLElement): void {
 
   let activeTab: SidebarTab = readSidebarTab();
 
-  function updateScheduledPanel(): void {
-    scheduledPanel.innerHTML = '';
-    // Show matchUps that have a scheduled time on this date but are NOT yet placed on a court
+  // Single source of truth for "scheduled but not placed" — used by both the
+  // panel renderer and the tab badge so they cannot drift.
+  function getScheduledNotPlacedOnCourt(): any[] {
     const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true, nextMatchUps: true });
-    const scheduled = (matchUps || []).filter((m: any) => {
+    return (matchUps || []).filter((m: any) => {
       if (m.matchUpStatus === BYE) return false;
       if (isCompletedStatus(m.matchUpStatus)) return false;
       if (m.schedule?.scheduledDate !== currentDate) return false;
       if (m.schedule?.courtId) return false; // already on a court — don't show
       return true; // date match is sufficient — time is optional
     });
+  }
+
+  function updateBadge(): void {
+    const count = getScheduledNotPlacedOnCourt().length;
+    schedBadge.textContent = String(count);
+  }
+
+  function updateScheduledPanel(): void {
+    scheduledPanel.innerHTML = '';
+    const scheduled = getScheduledNotPlacedOnCourt();
 
     if (!scheduled.length) {
       const hint = document.createElement('div');
@@ -475,16 +496,87 @@ function injectSidebarControls(container: HTMLElement): void {
   unschedTab.addEventListener('click', () => setTab('unscheduled'));
   schedTab.addEventListener('click', () => setTab('scheduled'));
 
+  // Drop-to-unschedule: dragging a placed matchUp onto the Scheduled tab or
+  // its panel removes the court assignment. If the matchUp has a scheduled
+  // time it stays in the Scheduled list; if it has no time it routes back
+  // to Unscheduled. Without this, the only way to free a court was to
+  // switch tabs and drop on Unscheduled.
+  attachUnscheduleDropTarget(schedTab, refresh);
+  attachUnscheduleDropTarget(scheduledPanel, refresh);
+
   // Apply the persisted tab (also restores Scheduled view + populates panel
   // on a date change when the user was already on the Scheduled tab).
   setTab(activeTab);
+  updateBadge();
 
-  // Hook into refresh to update scheduled panel when visible
+  // Hook into refresh to update scheduled panel when visible. The badge
+  // updates regardless of which tab is active so operators can see the
+  // count grow after running the scheduler without switching tabs.
   const origRefresh = activeControl?.getStore().subscribe(() => {
+    updateBadge();
     if (activeTab === 'scheduled') updateScheduledPanel();
   });
   // Store unsubscribe for cleanup (will be handled by destroyGridView → activeControl.destroy)
   void origRefresh; //NOSONAR
+}
+
+function attachUnscheduleDropTarget(el: HTMLElement, refresh: () => void): void {
+  el.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer!.dropEffect = 'move';
+    el.style.outline = '2px dashed var(--sp-accent-focus, #3b82f6)';
+    el.style.outlineOffset = '-2px';
+  });
+  el.addEventListener('dragleave', () => {
+    el.style.outline = '';
+    el.style.outlineOffset = '';
+  });
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    el.style.outline = '';
+    el.style.outlineOffset = '';
+    const raw = e.dataTransfer?.getData('application/json');
+    if (!raw) return;
+    let payload: any;
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (payload?.type !== 'GRID_MATCHUP') return;
+    const matchUp = payload.matchUp;
+    if (!matchUp?.matchUpId) return;
+    unscheduleFromCourt(matchUp.matchUpId, matchUp.drawId ?? '', refresh);
+  });
+}
+
+function unscheduleFromCourt(matchUpId: string, drawId: string, refresh: () => void): void {
+  // Inspect the live matchUp to decide whether to preserve the scheduled
+  // time. With a time → keep it (stays on the Scheduled tab). Without a
+  // time → clear the date too (drops onto the Unscheduled tab).
+  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const matchUp = (matchUps || []).find((m: any) => m.matchUpId === matchUpId);
+  const hasTime = !!matchUp?.schedule?.scheduledTime;
+
+  const schedule: Record<string, string> = {
+    courtId: '',
+    venueId: '',
+    courtOrder: '',
+  };
+  if (!hasTime) {
+    schedule.scheduledDate = '';
+    schedule.scheduledTime = '';
+  }
+
+  executeMethods(
+    [
+      {
+        method: ADD_MATCHUP_SCHEDULE_ITEMS,
+        params: { matchUpId, drawId, schedule, removePriorValues: true },
+      },
+    ],
+    refresh,
+  );
 }
 
 export function destroyGridView(): void {
@@ -1167,11 +1259,16 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
   function render(date: string): void {
     root.innerHTML = '';
 
+    // Tournament-level minCourtGridRows extension wins over the per-user
+    // scheduleConfig default so all directors editing the tournament see
+    // the same grid density.
+    const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
+    const minCourtGridRows = extensionMinRows ?? scheduleConfig.get().minCourtGridRows;
     const scheduleResult = competitionEngine.competitionScheduleMatchUps({
       matchUpFilters: { scheduledDate: date },
       courtCompletedMatchUps: true,
       withCourtGridRows: true,
-      minCourtGridRows: scheduleConfig.get().minCourtGridRows,
+      minCourtGridRows,
     });
 
     const rows: any[] = scheduleResult.rows || [];
