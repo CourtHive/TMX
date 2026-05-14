@@ -10,7 +10,7 @@
  * Each matchUp row is clickable and navigates the operator into the owning
  * draw so they can inspect or remediate.
  */
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine, tournamentEngine } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 
@@ -31,11 +31,32 @@ type MatchUpLookup = Map<
   }
 >;
 
+type ParticipantLookup = Map<string, string>;
+
+interface Lookups {
+  matchUps: MatchUpLookup;
+  participants: ParticipantLookup;
+}
+
+export interface OverLimitAttempt {
+  matchUpId: string;
+  attemptedTime?: string;
+  participants: {
+    participantId: string;
+    atLimitCounters: { counter: string; count: number; limit: number }[];
+  }[];
+}
+
 export type ScheduleProfileRoundsResult = {
   scheduledMatchUpIds?: { [date: string]: string[] };
   overLimitMatchUpIds?: { [date: string]: string[] };
+  overLimitMatchUpDetails?: { [date: string]: OverLimitAttempt[] };
   noTimeMatchUpIds?: { [date: string]: string[] };
-  recoveryTimeDeferredMatchUpIds?: { [date: string]: { [matchUpId: string]: { scheduleTime: string }[] } };
+  recoveryTimeDeferredMatchUpIds?: {
+    [date: string]: {
+      [matchUpId: string]: { scheduleTime: string; blockingParticipantIds?: string[]; notBeforeTime?: string }[];
+    };
+  };
   dependencyDeferredMatchUpIds?: {
     [date: string]: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] };
   };
@@ -44,7 +65,10 @@ export type ScheduleProfileRoundsResult = {
 };
 
 export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): void {
-  const lookup = buildMatchUpLookup();
+  const lookups: Lookups = {
+    matchUps: buildMatchUpLookup(),
+    participants: buildParticipantLookup(),
+  };
   const dates = collectAllDates(result);
 
   const content = document.createElement('div');
@@ -57,7 +81,7 @@ export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): 
   }
 
   for (const date of dates) {
-    content.appendChild(buildDateSection(date, result, lookup));
+    content.appendChild(buildDateSection(date, result, lookups));
   }
 
   openWideModal(content);
@@ -117,6 +141,21 @@ function formatRoundLabel(matchUp: any): string {
   return '';
 }
 
+function buildParticipantLookup(): ParticipantLookup {
+  const lookup: ParticipantLookup = new Map();
+  try {
+    const { participants } = tournamentEngine.getParticipants?.() || ({} as any);
+    if (Array.isArray(participants)) {
+      for (const p of participants) {
+        if (p?.participantId) lookup.set(p.participantId, p.participantName || p.participantId);
+      }
+    }
+  } catch (err) {
+    console.error('buildParticipantLookup failed', err);
+  }
+  return lookup;
+}
+
 // ---------------------------------------------------------------------------
 // Date collection
 // ---------------------------------------------------------------------------
@@ -137,7 +176,7 @@ function collectAllDates(result: ScheduleProfileRoundsResult): string[] {
 // Section builders
 // ---------------------------------------------------------------------------
 
-function buildDateSection(date: string, result: ScheduleProfileRoundsResult, lookup: MatchUpLookup): HTMLElement {
+function buildDateSection(date: string, result: ScheduleProfileRoundsResult, lookups: Lookups): HTMLElement {
   const section = document.createElement('section');
   section.style.cssText =
     'border: 1px solid var(--sp-line, var(--tmx-border-secondary)); border-radius: 8px; padding: 12px; background: var(--sp-panel-bg, var(--tmx-bg-primary));';
@@ -150,6 +189,7 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
 
   const scheduled = result.scheduledMatchUpIds?.[date] ?? [];
   const overLimit = result.overLimitMatchUpIds?.[date] ?? [];
+  const overLimitDetails = result.overLimitMatchUpDetails?.[date] ?? [];
   const noTime = result.noTimeMatchUpIds?.[date] ?? [];
   const recoveryDeferred = result.recoveryTimeDeferredMatchUpIds?.[date] ?? {};
   const dependencyDeferred = result.dependencyDeferredMatchUpIds?.[date] ?? {};
@@ -172,27 +212,88 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
   }
 
   if (scheduled.length) {
-    section.appendChild(buildCategoryBlock('Scheduled', scheduled, lookup, 'success'));
+    section.appendChild(buildCategoryBlock('Scheduled', scheduled, lookups.matchUps, 'success'));
   }
   if (overLimit.length) {
-    section.appendChild(buildCategoryBlock('Over Limit', overLimit, lookup, 'warning'));
+    section.appendChild(buildOverLimitBlock(overLimit, overLimitDetails, lookups));
   }
   if (noTime.length) {
-    section.appendChild(buildCategoryBlock('No Time', noTime, lookup, 'warning'));
+    section.appendChild(buildCategoryBlock('No Time', noTime, lookups.matchUps, 'warning'));
   }
   const recoveryIds = Object.keys(recoveryDeferred);
   if (recoveryIds.length) {
-    section.appendChild(buildDeferredBlock('Deferred — Recovery', recoveryDeferred, lookup));
+    section.appendChild(buildRecoveryDeferredBlock(recoveryDeferred, lookups));
   }
   const dependencyIds = Object.keys(dependencyDeferred);
   if (dependencyIds.length) {
-    section.appendChild(buildDeferredBlock('Deferred — Dependency', dependencyDeferred, lookup));
+    section.appendChild(buildDependencyDeferredBlock(dependencyDeferred, lookups));
   }
   if (conflicts.length) {
-    section.appendChild(buildConflictsBlock(conflicts, lookup));
+    section.appendChild(buildConflictsBlock(conflicts, lookups.matchUps));
   }
 
   return section;
+}
+
+// Over-limit refusals get a richer treatment than the generic
+// buildCategoryBlock: per matchUp we group the attempts (one per attempted
+// time slot) and render the participants that hit a cap, with which
+// counter they reached and at what value vs. its limit.
+function buildOverLimitBlock(ids: string[], details: OverLimitAttempt[], lookups: Lookups): HTMLElement {
+  const block = document.createElement('div');
+  block.style.cssText = BLOCK_STYLE;
+
+  const header = buildCategoryHeader('Over Limit', ids.length, 'warning');
+  block.appendChild(header);
+
+  // Group attempts by matchUpId so multiple attempted times collapse into one row.
+  const byMatchUpId = new Map<string, OverLimitAttempt[]>();
+  for (const d of details) {
+    const list = byMatchUpId.get(d.matchUpId) ?? [];
+    list.push(d);
+    byMatchUpId.set(d.matchUpId, list);
+  }
+
+  const list = document.createElement('ul');
+  list.style.cssText = LIST_STYLE;
+  for (const id of ids) {
+    const attempts = byMatchUpId.get(id) ?? [];
+    const detailText = describeOverLimitAttempts(attempts, lookups.participants);
+    list.appendChild(buildMatchUpRow(id, lookups.matchUps, detailText));
+  }
+  block.appendChild(list);
+  return block;
+}
+
+// "Amelie Paz @ SINGLES (2 of 2), Aravis Ellul @ total (3 of 3) — tried 12:30, 13:00"
+function describeOverLimitAttempts(attempts: OverLimitAttempt[], participants: ParticipantLookup): string {
+  if (!attempts.length) return '';
+
+  // Dedupe (participantId + counter) across all attempts — same person at
+  // same counter on multiple attempts is the same blocker.
+  const seen = new Set<string>();
+  const fragments: string[] = [];
+  for (const attempt of attempts) {
+    for (const p of attempt.participants ?? []) {
+      for (const c of p.atLimitCounters ?? []) {
+        const key = `${p.participantId}::${c.counter}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const name = participants.get(p.participantId) ?? p.participantId;
+        fragments.push(`${name} @ ${c.counter} (${c.count} of ${c.limit})`);
+      }
+    }
+  }
+
+  const times = uniqueAttemptedTimes(attempts);
+  const timesFragment = times.length ? ` — tried ${times.join(', ')}` : '';
+  return fragments.length ? `${fragments.join(', ')}${timesFragment}` : timesFragment.replace(/^ — /, '');
+}
+
+function uniqueAttemptedTimes(attempts: OverLimitAttempt[]): string[] {
+  const set = new Set<string>();
+  for (const a of attempts) if (a.attemptedTime) set.add(a.attemptedTime);
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 
 type Intent = 'success' | 'warning' | 'danger' | 'neutral';
@@ -226,40 +327,95 @@ function buildCategoryBlock(label: string, ids: string[], lookup: MatchUpLookup,
   return block;
 }
 
-function buildDeferredBlock(
-  label: string,
-  deferred: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] },
-  lookup: MatchUpLookup,
+// Deferred for recovery time: the participants whose existing bookings
+// overlap the proposed slot are the blockers. Render their names plus
+// a notBefore hint when present (e.g. "not before 13:30").
+function buildRecoveryDeferredBlock(
+  deferred: { [matchUpId: string]: { scheduleTime: string; blockingParticipantIds?: string[]; notBeforeTime?: string }[] },
+  lookups: Lookups,
 ): HTMLElement {
   const block = document.createElement('div');
   block.style.cssText = BLOCK_STYLE;
 
   const ids = Object.keys(deferred);
-  const header = buildCategoryHeader(label, ids.length, 'neutral');
+  const header = buildCategoryHeader('Deferred — Recovery', ids.length, 'neutral');
   block.appendChild(header);
 
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
   for (const id of ids) {
     const attempts = deferred[id] ?? [];
-    const detail = describeDeferred(attempts);
-    list.appendChild(buildMatchUpRow(id, lookup, detail));
+    const detail = describeRecoveryDeferred(attempts, lookups.participants);
+    list.appendChild(buildMatchUpRow(id, lookups.matchUps, detail));
   }
   block.appendChild(list);
   return block;
 }
 
-function describeDeferred(attempts: { scheduleTime: string; remainingDependencies?: string[] }[]): string {
+function describeRecoveryDeferred(
+  attempts: { scheduleTime: string; blockingParticipantIds?: string[]; notBeforeTime?: string }[],
+  participants: ParticipantLookup,
+): string {
   if (!attempts.length) return '';
-  const lastAttempt = attempts.at(-1);
-  const times = attempts
-    .map((a) => a.scheduleTime)
-    .filter(Boolean)
-    .join(', ');
-  const remaining = lastAttempt?.remainingDependencies?.length
-    ? ` — waiting on ${lastAttempt.remainingDependencies.length} match${lastAttempt.remainingDependencies.length === 1 ? '' : 'es'}`
-    : '';
-  return times ? `tried ${times}${remaining}` : remaining.replace(/^ — /, '');
+  const blockerNames = new Set<string>();
+  const notBefore = new Set<string>();
+  for (const attempt of attempts) {
+    for (const pid of attempt.blockingParticipantIds ?? []) {
+      blockerNames.add(participants.get(pid) ?? pid);
+    }
+    if (attempt.notBeforeTime) notBefore.add(attempt.notBeforeTime);
+  }
+  const times = attempts.map((a) => a.scheduleTime).filter(Boolean);
+  const fragments: string[] = [];
+  if (blockerNames.size) fragments.push(`${[...blockerNames].join(', ')} need recovery time`);
+  if (notBefore.size) fragments.push(`not before ${[...notBefore].sort((a, b) => a.localeCompare(b)).join(', ')}`);
+  if (times.length) fragments.push(`tried ${times.join(', ')}`);
+  return fragments.join(' — ');
+}
+
+// Deferred for dependencies: surface the upstream matchUps still pending.
+// remainingDependencies is an array of matchUpIds; resolve each to its
+// participants/round label via the matchUp lookup when available.
+function buildDependencyDeferredBlock(
+  deferred: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] },
+  lookups: Lookups,
+): HTMLElement {
+  const block = document.createElement('div');
+  block.style.cssText = BLOCK_STYLE;
+
+  const ids = Object.keys(deferred);
+  const header = buildCategoryHeader('Deferred — Dependency', ids.length, 'neutral');
+  block.appendChild(header);
+
+  const list = document.createElement('ul');
+  list.style.cssText = LIST_STYLE;
+  for (const id of ids) {
+    const attempts = deferred[id] ?? [];
+    const detail = describeDependencyDeferred(attempts, lookups.matchUps);
+    list.appendChild(buildMatchUpRow(id, lookups.matchUps, detail));
+  }
+  block.appendChild(list);
+  return block;
+}
+
+function describeDependencyDeferred(
+  attempts: { scheduleTime: string; remainingDependencies?: string[] }[],
+  matchUps: MatchUpLookup,
+): string {
+  if (!attempts.length) return '';
+  const blockerLabels = new Set<string>();
+  for (const attempt of attempts) {
+    for (const depId of attempt.remainingDependencies ?? []) {
+      const info = matchUps.get(depId);
+      const label = info ? `${info.roundLabel || ''} ${info.participantsLabel}`.trim() : depId;
+      blockerLabels.add(label);
+    }
+  }
+  const times = attempts.map((a) => a.scheduleTime).filter(Boolean);
+  const fragments: string[] = [];
+  if (blockerLabels.size) fragments.push(`waiting on ${[...blockerLabels].join(', ')}`);
+  if (times.length) fragments.push(`tried ${times.join(', ')}`);
+  return fragments.join(' — ');
 }
 
 function buildConflictsBlock(conflicts: any[], lookup: MatchUpLookup): HTMLElement {
