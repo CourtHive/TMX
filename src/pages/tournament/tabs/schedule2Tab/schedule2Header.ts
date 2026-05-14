@@ -65,8 +65,12 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
+  // Horizontal padding gives the header content breathing room from the
+  // viewport edges on mobile, where the .section wrapper provides zero
+  // padding. row-gap is also tightened so the wrapped second row doesn't
+  // sit awkwardly far from the first.
   bar.style.cssText =
-    'display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; flex-wrap: wrap;';
+    'display: flex; align-items: center; justify-content: space-between; column-gap: 12px; row-gap: 6px; padding: 8px 12px; flex-wrap: wrap;';
 
   // ── Left: Date dropdown + issues icon ──
   const left = document.createElement('div');
