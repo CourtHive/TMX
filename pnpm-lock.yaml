@@ -3428,8 +3428,8 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  linkifyjs@4.3.2:
-    resolution: {integrity: sha512-NT1CJtq3hHIreOianA8aSXn6Cw0JzYOuDQbOrSPe7gqFnCpKP++MQe3ODgO3oh2GJFORkAAdqredOa60z63GbA==}
+  linkifyjs@4.3.3:
+    resolution: {integrity: sha512-P8aEP5U/D1/IlTY2OeYsErdwh9bGuLE30NcXtKEjgdHcahveQoQwM2yZNsioQHsWFz0P7KKudisbrzCgR0sDHg==}
 
   lint-staged@17.0.2:
     resolution: {integrity: sha512-Rbr6rdmbCn1fIDHBZpn0madg0hEkdlh+QwajnL3Qq0ZUq/icAJfLGj9BVBajAXi7657ZzKQ7kobGP9S5XOHYRw==}
@@ -5903,7 +5903,7 @@ snapshots:
     dependencies:
       '@tiptap/core': 3.23.2(@tiptap/pm@3.23.2)
       '@tiptap/pm': 3.23.2
-      linkifyjs: 4.3.2
+      linkifyjs: 4.3.3
 
   '@tiptap/extension-list-item@3.23.2(@tiptap/extension-list@3.23.2(@tiptap/core@3.23.2(@tiptap/pm@3.23.2))(@tiptap/pm@3.23.2))':
     dependencies:
@@ -8268,7 +8268,7 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  linkifyjs@4.3.2: {}
+  linkifyjs@4.3.3: {}
 
   lint-staged@17.0.2:
     dependencies:
