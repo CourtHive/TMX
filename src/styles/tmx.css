@@ -1094,6 +1094,41 @@ img {
   background: #cf6d17;
 }
 
+/* ── Schedule2 header bar (responsive) ───────────────────────────────── */
+/* Layout lives in CSS rather than inline so a media query can adapt the
+   header on phone-sized viewports. The .section wrapper provides zero
+   padding, so this bar owns its own edge gutters. */
+.sch2-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 12px;
+  row-gap: 6px;
+  padding: 8px 12px;
+  flex-wrap: wrap;
+}
+.sch2-header > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .sch2-header {
+    /* Left + right clusters each get their own row, so flex-start beats
+       space-between which would otherwise leave an awkward gap. */
+    justify-content: flex-start;
+    column-gap: 8px;
+    padding: 6px 10px;
+  }
+  .sch2-header > div {
+    /* Each cluster fills its row; inner items wrap onto subsequent rows
+       inside the cluster when the cluster itself overflows. */
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
 /* ── Participant type chips ──────────────────────────────────────────── */
 .participant-chip {
   font-size: 0.85rem !important;
