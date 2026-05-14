@@ -83,11 +83,11 @@ const POPOVER_CSS = [
   'min-width: 200px',
   'max-width: 280px',
   'font-family: ui-sans-serif, system-ui, sans-serif',
-  'font-size: 12px',
+  'font-size: 0.75rem',
 ].join('; ');
 
 const SECTION_LABEL_CSS = [
-  'font-size: 9px',
+  'font-size: 0.5625rem',
   'font-weight: 700',
   'text-transform: uppercase',
   'letter-spacing: 0.5px',
@@ -124,7 +124,7 @@ function makePill(
     `color: ${textColor}`,
     'padding: 4px 10px',
     'border-radius: 14px',
-    'font-size: 11px',
+    'font-size: 0.6875rem',
     'cursor: pointer',
     'white-space: nowrap',
     'display: inline-flex',
@@ -138,7 +138,7 @@ function makePill(
   btn.addEventListener('mouseleave', () => {
     btn.style.opacity = '';
   });
-  if (opts?.icon) btn.innerHTML = `<i class="fa-solid ${opts.icon}" style="font-size: 10px;"></i>${label}`;
+  if (opts?.icon) btn.innerHTML = `<i class="fa-solid ${opts.icon}" style="font-size: 0.625rem;"></i>${label}`;
   else btn.textContent = label;
   btn.addEventListener('click', () => {
     destroyCellTip();
@@ -156,7 +156,7 @@ function makeIconBtn(title: string, icon: string, onClick: () => void, opts?: { 
     'width: 30px',
     'height: 30px',
     'border-radius: 8px',
-    'font-size: 13px',
+    'font-size: 0.8125rem',
     'cursor: pointer',
     'display: inline-flex',
     'align-items: center',
@@ -703,7 +703,7 @@ function showBlockedCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 
   if (booking.notes) {
     const note = document.createElement('div');
-    note.style.cssText = 'font-size: 10px; color: var(--tmx-muted); font-style: italic; padding-top: 4px;';
+    note.style.cssText = 'font-size: 0.625rem; color: var(--tmx-muted); font-style: italic; padding-top: 4px;';
     note.textContent = `Notes: ${booking.notes}`;
     pop.appendChild(note);
   }

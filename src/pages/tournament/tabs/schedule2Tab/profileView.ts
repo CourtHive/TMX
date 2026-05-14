@@ -368,7 +368,7 @@ interface ProfileHeaderActions {
 }
 
 const BTN_BASE = [
-  'font-size: 12px',
+  'font-size: 0.75rem',
   'padding: 4px 8px',
   'border-radius: 6px',
   'border: 1px solid var(--tmx-border-primary)',
@@ -383,7 +383,7 @@ const TOGGLE_BG_PRESSED = 'rgba(59, 130, 246, 0.18)';
 
 function buildCatalogToggle(initial: boolean, onChange: (visible: boolean) => void): HTMLButtonElement {
   const btn = document.createElement('button');
-  btn.innerHTML = '<i class="fa-solid fa-table-columns" style="font-size: 12px;"></i>';
+  btn.innerHTML = '<i class="fa-solid fa-table-columns" style="font-size: 0.75rem;"></i>';
   const applyState = (pressed: boolean) => {
     btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     btn.style.cssText =
@@ -426,7 +426,7 @@ function buildProfileHeaderActions(
     const btn = document.createElement('button');
     btn.style.cssText = BTN_BASE + `; background: transparent; color: ${color}`;
     btn.title = hover;
-    btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 12px;"></i>`;
+    btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 0.75rem;"></i>`;
     // Label span — hidden by default; the resize observer reveals it when
     // the panel header has room.
     const span = document.createElement('span');
@@ -544,7 +544,7 @@ function buildApplyScopePill(): HTMLElement | null {
     'font-size: 0.75rem',
     'cursor: pointer',
   ].join('; ');
-  pill.innerHTML = `<i class="fa-solid fa-eye" style="font-size: 11px;"></i><span>Apply scope: ${visible} of ${total} courts</span>`;
+  pill.innerHTML = `<i class="fa-solid fa-eye" style="font-size: 0.6875rem;"></i><span>Apply scope: ${visible} of ${total} courts</span>`;
   pill.addEventListener('click', () => {
     const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
     const date = (context as any).displayed?.selectedScheduleDate;
@@ -771,7 +771,7 @@ function renderEmpty(target: HTMLElement, message: string): void {
 
   const icon = document.createElement('i');
   icon.className = 'fa-solid fa-layer-group';
-  icon.style.cssText = 'font-size: 48px; opacity: 0.3;';
+  icon.style.cssText = 'font-size: 3rem; opacity: 0.3;';
   placeholder.appendChild(icon);
 
   const desc = document.createElement('div');

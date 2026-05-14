@@ -91,11 +91,11 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
   let selectedId = matchingChoiceId ?? choices[0]?.id ?? '';
 
   const content = (root: HTMLElement) => {
-    root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 13px;';
+    root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 0.8125rem;';
 
     const summary = document.createElement('div');
     summary.style.cssText =
-      'padding: 8px 12px; background: var(--tmx-bg-secondary, rgba(0,0,0,0.04)); border-radius: 6px; font-size: 12px;';
+      'padding: 8px 12px; background: var(--tmx-bg-secondary, rgba(0,0,0,0.04)); border-radius: 6px; font-size: 0.75rem;';
     if (attached) {
       const attachedLabel = matchingChoiceId
         ? choices.find((c) => c.id === matchingChoiceId)?.label ?? 'Custom policy'
@@ -114,13 +114,13 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
     const fieldRow = document.createElement('label');
     fieldRow.style.cssText = 'display: flex; align-items: center; gap: 10px;';
     const fieldLabel = document.createElement('span');
-    fieldLabel.style.cssText = 'flex: 0 0 auto; font-size: 12px;';
+    fieldLabel.style.cssText = 'flex: 0 0 auto; font-size: 0.75rem;';
     fieldLabel.textContent = 'Policy:';
     const select = document.createElement('select');
     select.style.cssText = [
       'flex: 1',
       'padding: 5px 8px',
-      'font-size: 13px',
+      'font-size: 0.8125rem',
       'border-radius: 4px',
       'border: 1px solid var(--tmx-border-primary)',
       'background: var(--tmx-bg-primary)',

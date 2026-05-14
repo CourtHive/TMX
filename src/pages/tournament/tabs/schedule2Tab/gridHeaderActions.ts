@@ -14,7 +14,7 @@ import { printSchedule } from 'components/modals/printSchedule';
 const ARIA_PRESSED = 'aria-pressed';
 
 const BTN_BASE_STYLE = [
-  'font-size: 12px',
+  'font-size: 0.75rem',
   'padding: 4px 8px',
   'border-radius: 6px',
   'border: 1px solid var(--tmx-border-primary)',
@@ -64,7 +64,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): HTMLEle
     BTN_BASE_STYLE +
     `; background: ${BG_UNPRESSED}` +
     (bulkMode ? '; opacity: 0.45; cursor: not-allowed' : '; color: var(--tmx-accent-blue, #3b82f6)');
-  printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 12px;"></i>';
+  printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 0.75rem;"></i>';
   printBtn.title = bulkMode ? 'Exit bulk mode to print the saved schedule' : 'Print schedule';
   printBtn.disabled = bulkMode;
   printBtn.addEventListener('click', () => {
@@ -96,7 +96,7 @@ function buildToggleButton(params: ToggleButtonParams): HTMLButtonElement {
   const { icon, pressed: initial, titleOn, titleOff, onChange } = params;
   const btn = document.createElement('button');
   btn.style.cssText = BTN_BASE_STYLE;
-  btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 12px;"></i>`;
+  btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 0.75rem;"></i>`;
   applyState(btn, initial, titleOn, titleOff);
   btn.addEventListener('click', () => {
     const wasPressed = btn.getAttribute(ARIA_PRESSED) === 'true';

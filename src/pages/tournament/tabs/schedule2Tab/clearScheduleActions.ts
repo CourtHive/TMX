@@ -98,7 +98,7 @@ function executeClear(matchUps: any[], onCleared?: () => void): void {
 
 function buildConfirmContent(bucket: Bucket, summary: string, onShowAllCourts: () => void): HTMLElement {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display: flex; flex-direction: column; gap: 10px; font-size: 14px;';
+  wrap.style.cssText = 'display: flex; flex-direction: column; gap: 10px; font-size: 0.875rem;';
 
   const summaryLine = document.createElement('div');
   summaryLine.textContent = summary;
@@ -114,7 +114,7 @@ function buildConfirmContent(bucket: Bucket, summary: string, onShowAllCourts: (
       'border: 1px solid var(--tmx-panel-yellow-border, #f59e0b)',
       'background: var(--tmx-panel-yellow-bg, rgba(245,158,11,0.08))',
       'border-radius: 6px',
-      'font-size: 13px',
+      'font-size: 0.8125rem',
     ].join('; ');
 
     const msg = document.createElement('div');
@@ -125,7 +125,7 @@ function buildConfirmContent(bucket: Bucket, summary: string, onShowAllCourts: (
     const showAllBtn = document.createElement('button');
     showAllBtn.type = 'button';
     showAllBtn.className = 'button is-light is-small';
-    showAllBtn.style.cssText = 'align-self: flex-start; font-size: 12px;';
+    showAllBtn.style.cssText = 'align-self: flex-start; font-size: 0.75rem;';
     showAllBtn.innerHTML = '<i class="fa-solid fa-eye" style="margin-right:6px;"></i>Show all courts and re-evaluate';
     showAllBtn.addEventListener('click', onShowAllCourts);
     warn.appendChild(showAllBtn);

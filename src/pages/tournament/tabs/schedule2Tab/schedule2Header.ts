@@ -14,7 +14,7 @@ import type { Schedule2View } from './schedule2Tab';
 export type ScheduleSearchMode = 'individual' | 'team';
 
 const PULSE = 'spl-cell--issue-pulse';
-const FONT13 = 'font-size: 13px';
+const FONT13 = 'font-size: 0.8125rem';
 
 // Repeated CSS property literals (extracted to satisfy sonar duplicate-literal rule)
 const BORDER_RADIUS_6 = 'border-radius: 6px';
@@ -91,11 +91,11 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   ].join('; ');
   const matchUpCount = selectedDateInfo?.matchUpCount ?? 0;
   dateBtn.innerHTML =
-    `<i class="fa-solid fa-calendar-days" style="font-size: 12px;"></i>${formatDateLabel(selectedDate)}` +
+    `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +
     (matchUpCount > 0
-      ? ` <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${matchUpCount}</span>`
+      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${matchUpCount}</span>`
       : '') +
-    ' <i class="fa-solid fa-chevron-down" style="font-size: 9px; opacity: 0.6;"></i>';
+    ' <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>';
 
   let dateTippy: TippyInstance | undefined;
   const datePopoverContent = buildDatePopover(dates, selectedDate, (date) => {
@@ -126,7 +126,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     const issuesBtn = document.createElement('button');
     issuesBtn.style.cssText = [
       'position: relative',
-      'font-size: 14px',
+      'font-size: 0.875rem',
       'padding: 4px 8px',
       BORDER_RADIUS_6,
       BORDER_PRIMARY,
@@ -142,7 +142,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     // Count badge
     const badge = document.createElement('span');
     badge.style.cssText =
-      'font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-accent-orange, #f59e0b); color: #fff;';
+      'font-size: 0.625rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-accent-orange, #f59e0b); color: #fff;';
     badge.textContent = String(issues.length);
     issuesBtn.appendChild(badge);
 
@@ -175,12 +175,12 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     searchInput.type = 'search';
     searchInput.placeholder = 'Search schedule\u2026';
     searchInput.style.cssText =
-      'font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); width: 150px;';
+      'font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); width: 150px;';
 
     const modeSelect = document.createElement('select');
     modeSelect.title = 'Search by individual or team name';
     modeSelect.style.cssText =
-      'font-size: 11px; padding: 3px 4px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); cursor: pointer;';
+      'font-size: 0.6875rem; padding: 3px 4px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); cursor: pointer;';
     const indOpt = document.createElement('option');
     indOpt.value = 'individual';
     indOpt.textContent = 'Individual';
@@ -230,7 +230,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     clearBtn.disabled = bulkMode;
     clearBtn.title = bulkMode ? 'Exit bulk mode to use Clear actions' : 'Clear schedule data';
     clearBtn.innerHTML =
-      '<i class="fa-solid fa-eraser" style="font-size: 12px;"></i>Clear <i class="fa-solid fa-chevron-down" style="font-size: 9px; opacity: 0.6;"></i>';
+      '<i class="fa-solid fa-eraser" style="font-size: 0.75rem;"></i>Clear <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>';
     clearBtn.addEventListener('click', () => {
       if (bulkMode) return;
       onClearSchedule(clearBtn);
@@ -249,7 +249,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
     const bulkLabel = document.createElement('label');
     bulkLabel.style.cssText =
-      'font-size: 12px; color: var(--tmx-color-primary); cursor: pointer; display: flex; align-items: center; gap: 6px;';
+      'font-size: 0.75rem; color: var(--tmx-color-primary); cursor: pointer; display: flex; align-items: center; gap: 6px;';
     bulkLabel.title = 'Queue changes, save all at once';
 
     const toggle = document.createElement('input');
@@ -316,7 +316,7 @@ function buildMinRowsStepper(initial: number, onChange: (rows: number) => void):
 
   const label = document.createElement('span');
   label.textContent = 'Rows';
-  label.style.cssText = `font-size: 11px; padding: 0 6px 0 8px; ${COLOR_PRIMARY}; ${ALIGN_CENTER}; display: inline-flex; height: 100%;`;
+  label.style.cssText = `font-size: 0.6875rem; padding: 0 6px 0 8px; ${COLOR_PRIMARY}; ${ALIGN_CENTER}; display: inline-flex; height: 100%;`;
   wrap.appendChild(label);
 
   let current = clampRows(initial);
@@ -325,7 +325,7 @@ function buildMinRowsStepper(initial: number, onChange: (rows: number) => void):
   const plus = makeStepperButton('+');
 
   const value = document.createElement('span');
-  value.style.cssText = `font-size: 12px; font-weight: 600; min-width: 22px; text-align: center; ${COLOR_PRIMARY}; ${ALIGN_CENTER}; display: inline-flex; justify-content: center; height: 100%;`;
+  value.style.cssText = `font-size: 0.75rem; font-weight: 600; min-width: 22px; text-align: center; ${COLOR_PRIMARY}; ${ALIGN_CENTER}; display: inline-flex; justify-content: center; height: 100%;`;
   value.textContent = String(current);
 
   const apply = (next: number) => {
@@ -350,7 +350,7 @@ function makeStepperButton(symbol: string): HTMLButtonElement {
   btn.type = 'button';
   btn.textContent = symbol;
   btn.style.cssText = [
-    'font-size: 14px',
+    'font-size: 0.875rem',
     'font-weight: 600',
     'width: 22px',
     'height: 100%',
@@ -399,10 +399,10 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
 
     const leftSide = document.createElement('div');
     const dateLabel = document.createElement('div');
-    dateLabel.style.cssText = 'font-weight: 700; font-size: 12px;';
+    dateLabel.style.cssText = 'font-weight: 700; font-size: 0.75rem;';
     dateLabel.textContent = formatDateLabel(d.date);
     const statusLabel = document.createElement('div');
-    statusLabel.style.cssText = `font-size: 11px; ${isSelected ? 'color: rgba(255,255,255,0.8);' : 'color: var(--tmx-muted);'}`;
+    statusLabel.style.cssText = `font-size: 0.6875rem; ${isSelected ? 'color: rgba(255,255,255,0.8);' : 'color: var(--tmx-muted);'}`;
     statusLabel.textContent = d.isActive ? 'Active' : 'Inactive';
     leftSide.appendChild(dateLabel);
     leftSide.appendChild(statusLabel);
@@ -412,13 +412,13 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
 
     if (d.matchUpCount != null && d.matchUpCount > 0) {
       const b = document.createElement('span');
-      b.style.cssText = `font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: rgba(127,127,127,0.25); color: currentColor;'}`;
+      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: rgba(127,127,127,0.25); color: currentColor;'}`;
       b.textContent = `${d.matchUpCount}`;
       badges.appendChild(b);
     }
     if (d.issueCount && d.issueCount > 0) {
       const b = document.createElement('span');
-      b.style.cssText = `font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,200,100,0.4); color: #fff;' : 'background: rgba(245, 158, 11, 0.15); color: var(--tmx-accent-orange, #f59e0b);'}`;
+      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,200,100,0.4); color: #fff;' : 'background: rgba(245, 158, 11, 0.15); color: var(--tmx-accent-orange, #f59e0b);'}`;
       b.textContent = `${d.issueCount} !`;
       badges.appendChild(b);
     }
@@ -439,7 +439,7 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
   container.style.cssText = 'padding: 8px; max-height: 360px; overflow-y: auto; min-width: 280px;';
 
   const title = document.createElement('div');
-  title.style.cssText = 'font-weight: 700; font-size: 12px; margin-bottom: 8px; color: var(--tmx-color-primary);';
+  title.style.cssText = 'font-weight: 700; font-size: 0.75rem; margin-bottom: 8px; color: var(--tmx-color-primary);';
   title.textContent = `Scheduling Issues (${issues.length})`;
   container.appendChild(title);
 
@@ -466,11 +466,11 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
 
     const badge = document.createElement('span');
     const colors = severityColors[issue.severity] ?? severityColors.WARN;
-    badge.style.cssText = `font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; background: ${colors.bg}; color: ${colors.color};`;
+    badge.style.cssText = `font-size: 0.5625rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; background: ${colors.bg}; color: ${colors.color};`;
     badge.textContent = issue.severity;
 
     const msg = document.createElement('span');
-    msg.style.cssText = 'font-size: 11px; color: var(--tmx-color-primary); line-height: 1.4;';
+    msg.style.cssText = 'font-size: 0.6875rem; color: var(--tmx-color-primary); line-height: 1.4;';
 
     if (issue.participants) {
       if (issue.prefix) {
@@ -519,7 +519,7 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
 
   if (issues.length > 30) {
     const more = document.createElement('div');
-    more.style.cssText = 'font-size: 11px; color: var(--tmx-muted); padding: 6px 0; text-align: center;';
+    more.style.cssText = 'font-size: 0.6875rem; color: var(--tmx-muted); padding: 6px 0; text-align: center;';
     more.textContent = `\u2026and ${issues.length - 30} more`;
     container.appendChild(more);
   }
@@ -546,7 +546,7 @@ function scrollToMatchUp(matchUpIds: string[]): void {
 // ── Helpers ──
 
 function segmentBtnStyle(active: boolean): string {
-  const base = `font-size: 12px; padding: 5px 12px; ${BORDER_PRIMARY}; ${CURSOR_POINTER}; ${DISPLAY_INLINE_FLEX}; ${ALIGN_CENTER}; transition: background 0.15s;`;
+  const base = `font-size: 0.75rem; padding: 5px 12px; ${BORDER_PRIMARY}; ${CURSOR_POINTER}; ${DISPLAY_INLINE_FLEX}; ${ALIGN_CENTER}; transition: background 0.15s;`;
   if (active) {
     return base + 'background: var(--tmx-accent-blue); color: #fff; font-weight: 600;';
   }

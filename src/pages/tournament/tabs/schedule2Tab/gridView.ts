@@ -68,7 +68,7 @@ const DATA_COURT_ORDER = 'data-court-order';
 const DATA_MATCHUP_ID = 'data-matchup-id';
 const DATA_DRAW_ID = 'data-draw-id';
 const POSITION_STICKY = 'position: sticky';
-const FONT_SIZE_11 = 'font-size: 11px';
+const FONT_SIZE_11 = 'font-size: 0.6875rem';
 const DISPLAY_FLEX = 'display: flex';
 
 // Grid layout constants — shared with the active strip so its leading spacer
@@ -355,7 +355,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   schedTab.appendChild(document.createTextNode(' '));
   const schedBadge = document.createElement('span');
   schedBadge.style.cssText =
-    'display: inline-block; font-size: 10px; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
+    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
   schedBadge.textContent = '0';
   schedTab.appendChild(schedBadge);
 
@@ -410,7 +410,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     if (!scheduled.length) {
       const hint = document.createElement('div');
       hint.style.cssText =
-        'font-size: 11px; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
+        'font-size: 0.6875rem; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
       hint.textContent = t('schedule.noScheduledMatchUps');
       scheduledPanel.appendChild(hint);
       return;
@@ -434,17 +434,17 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       ].join('; ');
 
       const titleEl = document.createElement('div');
-      titleEl.style.cssText = 'font-weight: 700; font-size: 11px;';
+      titleEl.style.cssText = 'font-weight: 700; font-size: 0.6875rem;';
       titleEl.textContent = `${m.eventName || ''} ${m.roundName || ''}`.trim();
 
       const sidesEl = document.createElement('div');
-      sidesEl.style.cssText = 'font-size: 10px; color: var(--sp-text, inherit);';
+      sidesEl.style.cssText = 'font-size: 0.625rem; color: var(--sp-text, inherit);';
       sidesEl.textContent = (m.sides || [])
         .map((s: any) => s.participant?.participantName ?? s.participantName ?? '?')
         .join(' vs ');
 
       const metaEl = document.createElement('div');
-      metaEl.style.cssText = 'font-size: 10px; color: var(--sp-muted, var(--tmx-muted));';
+      metaEl.style.cssText = 'font-size: 0.625rem; color: var(--sp-muted, var(--tmx-muted));';
       metaEl.textContent = hasTime ? m.schedule.scheduledTime : t('schedule.noTimeSet');
       if (!hasTime) {
         metaEl.style.fontStyle = 'italic';
@@ -896,7 +896,7 @@ function buildRowCourtCells(params: {
     const cellContent = buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
 
     const cell = document.createElement('div');
-    cell.style.cssText = 'min-height: 60px; font-size: 11px;';
+    cell.style.cssText = 'min-height: 60px; font-size: 0.6875rem;';
     cell.setAttribute(DATA_COURT_ID, courtId);
     cell.setAttribute(DATA_VENUE_ID, venueId);
     cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
@@ -1045,7 +1045,7 @@ function buildVisibilityPopover(
 ): HTMLElement {
   const pop = document.createElement('div');
   pop.style.cssText =
-    'padding: 10px; min-width: 220px; max-width: 300px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px;';
+    'padding: 10px; min-width: 220px; max-width: 300px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem;';
 
   // quick actions
   const actions = document.createElement('div');
@@ -1053,7 +1053,7 @@ function buildVisibilityPopover(
 
   const showAllBtn = document.createElement('button');
   showAllBtn.className = 'button font-medium';
-  showAllBtn.style.cssText = 'font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;';
+  showAllBtn.style.cssText = 'font-size: 0.6875rem; padding: 2px 8px; border-radius: 4px; cursor: pointer;';
   showAllBtn.textContent = t('schedule.showAll');
   showAllBtn.addEventListener('click', () => {
     hiddenCourtIds.clear();
@@ -1063,7 +1063,7 @@ function buildVisibilityPopover(
 
   const hideEmptyBtn = document.createElement('button');
   hideEmptyBtn.className = 'button font-medium';
-  hideEmptyBtn.style.cssText = 'font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;';
+  hideEmptyBtn.style.cssText = 'font-size: 0.6875rem; padding: 2px 8px; border-radius: 4px; cursor: pointer;';
   hideEmptyBtn.textContent = t('schedule.hideEmpty');
   hideEmptyBtn.addEventListener('click', () => {
     for (const court of allCourtsData) {
@@ -1091,7 +1091,7 @@ function buildVisibilityPopover(
     if (venueMap.size > 1) {
       const venueLabel = document.createElement('div');
       venueLabel.style.cssText =
-        'font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--sp-muted, #9ca3af); margin: 6px 0 2px;';
+        'font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--sp-muted, #9ca3af); margin: 6px 0 2px;';
       venueLabel.textContent = venueName;
       pop.appendChild(venueLabel);
     }
@@ -1125,7 +1125,7 @@ function buildVisibilityPopover(
       name.textContent = court.courtName || court.courtId;
 
       const badge = document.createElement('span');
-      badge.style.cssText = 'font-size: 10px; color: var(--sp-muted, #9ca3af);';
+      badge.style.cssText = 'font-size: 0.625rem; color: var(--sp-muted, #9ca3af);';
       badge.textContent = count > 0 ? `${count}` : t('schedule.empty');
 
       row.appendChild(checkbox);
@@ -1160,13 +1160,13 @@ function buildGridHeaders(params: {
 
   const eyeIcon = document.createElement('i');
   eyeIcon.className = hiddenCourtIds.size > 0 ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
-  eyeIcon.style.cssText = 'font-size: 12px;';
+  eyeIcon.style.cssText = 'font-size: 0.75rem;';
   corner.appendChild(eyeIcon);
 
   if (hiddenCourtIds.size > 0) {
     const badge = document.createElement('span');
     badge.style.cssText =
-      'font-size: 9px; font-weight: 700; background: var(--tmx-accent-blue, #3b82f6); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
+      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-accent-blue, #3b82f6); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
     badge.textContent = String(hiddenCourtIds.size);
     corner.appendChild(badge);
   }
@@ -1245,7 +1245,7 @@ function buildGridHeaders(params: {
     if (ei === 0) {
       const addVenueLabel = t('pages.venues.addVenue.title');
       if (courtCount === 0) {
-        th.innerHTML = `<button style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--tmx-accent-blue, #3b82f6); background: var(--tmx-bg-primary, #fff); color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</button>`;
+        th.innerHTML = `<button style="font-size: 0.6875rem; font-weight: 600; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--tmx-accent-blue, #3b82f6); background: var(--tmx-bg-primary, #fff); color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</button>`;
       } else {
         th.innerHTML = `<span style="font-weight: normal; color: var(--tmx-accent-blue, #3b82f6); cursor: pointer;">${addVenueLabel}</span>`;
       }
