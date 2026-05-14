@@ -376,16 +376,26 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   let activeTab: SidebarTab = readSidebarTab();
 
   // Single source of truth for "scheduled but not placed" — used by both the
-  // panel renderer and the tab badge so they cannot drift.
+  // panel renderer and the tab badge so they cannot drift. Sorted by
+  // scheduledTime ascending (no-time entries fall to the bottom) so that
+  // the list reflects the play order produced by the scheduler, with a
+  // stable tie-break on matchUpId.
   function getScheduledNotPlacedOnCourt(): any[] {
     const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true, nextMatchUps: true });
-    return (matchUps || []).filter((m: any) => {
+    const filtered = (matchUps || []).filter((m: any) => {
       if (m.matchUpStatus === BYE) return false;
       if (isCompletedStatus(m.matchUpStatus)) return false;
       if (m.schedule?.scheduledDate !== currentDate) return false;
       if (m.schedule?.courtId) return false; // already on a court — don't show
       return true; // date match is sufficient — time is optional
     });
+    filtered.sort((a: any, b: any) => {
+      const am = scheduledTimeToMinutes(a.schedule?.scheduledTime);
+      const bm = scheduledTimeToMinutes(b.schedule?.scheduledTime);
+      if (am !== bm) return am - bm;
+      return String(a.matchUpId).localeCompare(String(b.matchUpId));
+    });
+    return filtered;
   }
 
   function updateBadge(): void {
@@ -577,6 +587,18 @@ function unscheduleFromCourt(matchUpId: string, drawId: string, refresh: () => v
     ],
     refresh,
   );
+}
+
+// Convert an "HH:mm" schedule string to total minutes; missing/invalid times
+// sort to the bottom of the Scheduled tab by returning +Infinity.
+function scheduledTimeToMinutes(time: string | undefined): number {
+  if (!time || typeof time !== 'string') return Number.POSITIVE_INFINITY;
+  const parts = time.split(':');
+  if (parts.length < 2) return Number.POSITIVE_INFINITY;
+  const h = Number.parseInt(parts[0], 10);
+  const m = Number.parseInt(parts[1], 10);
+  if (Number.isNaN(h) || Number.isNaN(m)) return Number.POSITIVE_INFINITY;
+  return h * 60 + m;
 }
 
 export function destroyGridView(): void {
