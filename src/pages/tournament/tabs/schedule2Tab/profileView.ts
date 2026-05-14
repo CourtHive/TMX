@@ -24,6 +24,7 @@ import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-fa
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openApplyTimesModal } from './applyTimesModal';
+import { openApplyGridModal } from './applyGridModal';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { hiddenCourtIds } from './visibilityState';
@@ -714,16 +715,40 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
     return;
   }
 
+  openApplyGridModal({
+    onApply: ({ selected, mustAttach }) => runGridWithPolicy(profile, statusEl, selected, mustAttach),
+  });
+}
+
+function runGridWithPolicy(
+  profile: SchedulingProfile,
+  statusEl: HTMLElement,
+  selectedPolicy: { definition: Record<string, any> } | null,
+  mustAttach: boolean,
+): void {
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
     const courtIds = getVisibleCourtIdsOrUndefined();
     const params: any = { scheduleDates };
     if (courtIds) params.courtIds = courtIds;
+
+    // Extract daily limits from the chosen policy (if any). Mirrors what the
+    // factory's `getMatchUpDailyLimits` would read from an attached policy.
+    const matchUpDailyLimits = selectedPolicy?.definition?.scheduling?.defaultDailyLimits;
+    if (matchUpDailyLimits) params.matchUpDailyLimits = matchUpDailyLimits;
+
+    const methods: any[] = [];
+    if (selectedPolicy && mustAttach) {
+      methods.push({ method: 'attachPolicies', params: { policyDefinitions: selectedPolicy.definition } });
+    }
+    methods.push({ method: 'scheduleProfileGrid', params });
+
     mutationRequest({
-      methods: [{ method: 'scheduleProfileGrid', params }],
+      methods,
       engine: COMPETITION_ENGINE,
       callback: (eqResult: any) => {
-        const result = eqResult?.results?.[0] ?? eqResult;
+        const results = eqResult?.results;
+        const result = Array.isArray(results) ? results[results.length - 1] : eqResult;
 
         if (result?.error || eqResult?.error) {
           const err = result?.error || eqResult?.error;
@@ -747,13 +772,21 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
           totalNotScheduled += (ids as string[]).length;
         }
 
+        const overLimitIds = result?.overLimitMatchUpIds || {};
+        let totalOverLimit = 0;
+        for (const ids of Object.values(overLimitIds)) {
+          totalOverLimit += (ids as string[]).length;
+        }
+
         const dateCount = (result?.scheduledDates || []).length;
-        const notSchedSuffix = totalNotScheduled > 0 ? ` (${totalNotScheduled} could not be placed)` : '';
-        const message = `Placed ${totalScheduled} matchUps on grid across ${dateCount} dates.${notSchedSuffix}`;
+        const segments = [`Placed ${totalScheduled} matchUps on grid across ${dateCount} dates`];
+        if (totalNotScheduled > 0) segments.push(`${totalNotScheduled} could not be placed`);
+        if (totalOverLimit > 0) segments.push(`${totalOverLimit} over daily limit`);
+        const message = segments.join(' — ') + '.';
 
         tmxToast({
           message,
-          intent: totalNotScheduled > 0 ? INTENT_WARNING : INTENT_SUCCESS,
+          intent: totalNotScheduled > 0 || totalOverLimit > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
 
         statusEl.textContent = message;
