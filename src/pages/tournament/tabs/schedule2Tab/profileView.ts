@@ -23,10 +23,10 @@ import {
 import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { openApplyTimesModal } from './applyTimesModal';
-import { openApplyGridModal } from './applyGridModal';
-import { getScheduleDateRange } from '../scheduleUtils';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { openApplyTimesModal } from './applyTimesModal';
+import { getScheduleDateRange } from '../scheduleUtils';
+import { openApplyGridModal } from './applyGridModal';
 import { hiddenCourtIds } from './visibilityState';
 import { context } from 'services/context';
 
