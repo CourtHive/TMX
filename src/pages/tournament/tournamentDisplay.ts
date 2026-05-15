@@ -18,7 +18,7 @@ import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
-import { tournamentEngine } from 'tods-competition-factory';
+import { factoryConstants, tournamentEngine } from 'tods-competition-factory';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderTopologyPage } from './topologyPage';
@@ -38,6 +38,12 @@ import {
   clearDisconnectFlag,
 } from 'services/messaging/socketIo';
 import { connectRelay, disconnectRelay, onTournamentScore } from 'services/messaging/scoreRelay';
+import {
+  loadCrowdsourcedScores,
+  markMatchUpCrowdsourced,
+  pruneCompletedMatchUps,
+  clearActiveCrowdsourcedScores,
+} from 'services/messaging/crowdsourcedScores';
 import {
   MATCHUPS_TAB,
   PARTICIPANTS,
@@ -70,6 +76,7 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     context.ee.emit(LEAVE_TOURNAMENT, prevId);
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
     disconnectRelay();
+    clearActiveCrowdsourcedScores();
     tmx2db
       .findTournament(config.tournamentId)
       .then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
@@ -98,6 +105,30 @@ function renderTournament({ config }: { config: any }): void {
   if (config.tournamentId) {
     connectRelay(config.tournamentId);
     onTournamentScore(handleRelayScore);
+    loadCrowdsourcedScores(config.tournamentId);
+    pruneCompletedCrowdsourcedFromEngine();
+  }
+}
+
+const COMPLETED_MATCH_UP_STATUSES = new Set<string>(factoryConstants.completedMatchUpStatuses);
+
+/**
+ * Read the engine's current matchUps, pick out the completed ones, and ask
+ * the crowdsourced-score store to drop them. Called on tournament load and
+ * after each relay score arrival so badges fall away as soon as a match
+ * wraps up.
+ */
+function pruneCompletedCrowdsourcedFromEngine(): void {
+  try {
+    const { matchUps = [] } = tournamentEngine.allTournamentMatchUps() || {};
+    const completedIds: string[] = [];
+    for (const matchUp of matchUps as any[]) {
+      const isComplete = matchUp.winningSide || COMPLETED_MATCH_UP_STATUSES.has(matchUp.matchUpStatus);
+      if (isComplete && matchUp.matchUpId) completedIds.push(matchUp.matchUpId);
+    }
+    if (completedIds.length) pruneCompletedMatchUps(completedIds);
+  } catch (err) {
+    slog('[crowdsourced] prune failed', err);
   }
 }
 
@@ -208,11 +239,18 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
  */
 function handleRelayScore(data: any): void {
   slog('[relay] tournament score update:', data.matchUpId);
+  markMatchUpCrowdsourced(data.matchUpId);
   pulseMatchUpScore(data.matchUpId);
 
   if (context.refreshActiveTable) {
     context.refreshActiveTable();
   }
+
+  // The relay event itself may carry an already-complete matchUp (the
+  // official submitted a final score), or the server mutation may have
+  // landed between the relay broadcast and our handler. Sweep the
+  // engine so completed matchUps lose their badge immediately.
+  pruneCompletedCrowdsourcedFromEngine();
 }
 
 /**

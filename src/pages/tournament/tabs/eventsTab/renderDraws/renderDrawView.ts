@@ -20,6 +20,7 @@ import { renderSwissGenerateButton } from './generateSwissRound';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
+import { applyCrowdsourcedBadges } from './applyCrowdsourcedBadges';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
@@ -384,6 +385,7 @@ export function renderDrawView({
       if (liveNode) {
         applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
         applyRRGroupCompletionHighlighting(liveNode, displayMatchUps as any[]);
+        applyCrowdsourcedBadges(liveNode);
         if (drawData?.drawType === SWISS && stage !== QUALIFYING) {
           applySwissScoreGroupShading(liveNode, drawId);
         }
