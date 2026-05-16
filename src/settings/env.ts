@@ -91,12 +91,6 @@ export const env: any = {
   set legacyEntriesTable(v: boolean) {
     featureFlags.set({ legacyEntriesTable: v });
   },
-  get legacySchedule() {
-    return featureFlags.get().legacySchedule;
-  },
-  set legacySchedule(v: boolean) {
-    featureFlags.set({ legacySchedule: v });
-  },
 
   // User preferences — delegates to preferencesConfig
   get activeScale() {

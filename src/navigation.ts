@@ -23,7 +23,6 @@ import {
   PARTICIPANTS,
   PUBLISHING_TAB,
   REPORTS_TAB,
-  SCHEDULE_TAB,
   SCHEDULE2_TAB,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
@@ -42,7 +41,6 @@ const routeMap: Record<string, string> = {
   'p-route': PARTICIPANTS,
   'e-route': EVENTS_TAB,
   'm-route': MATCHUPS_TAB,
-  's-route': SCHEDULE_TAB,
   's2-route': SCHEDULE2_TAB,
   'v-route': VENUES_TAB,
   'r-route': REPORTS_TAB,
@@ -55,7 +53,6 @@ const tips: Record<string, string> = {
   'p-route': 'Participants',
   'e-route': 'Events',
   'm-route': 'MatchUps',
-  's-route': 'Schedule (legacy)',
   's2-route': 'Schedule',
   'v-route': 'Venues',
   'r-route': 'Reports',
@@ -69,7 +66,6 @@ const i18nKeys: Record<string, string> = {
   'p-route': 'prt',
   'e-route': 'evt',
   'm-route': 'mts',
-  's-route': 'sch',
   's2-route': 'sch2',
   'v-route': 'ven',
   'r-route': 'rpt',
@@ -101,7 +97,7 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Build dropdown items — route-based nav items
   menu.innerHTML = '';
-  const ids = Object.keys(routeMap).filter((id) => id !== 's-route' || featureFlags.get().legacySchedule);
+  const ids = Object.keys(routeMap);
   ids.forEach((id) => {
     const item = document.createElement('button');
     item.className = 'mobile-nav-item';
@@ -162,9 +158,7 @@ export function tmxNavigation(): void {
 
   const ids = Object.keys(routeMap);
 
-  // Hide legacy/beta nav icons based on flags
-  const sIcon = document.getElementById('s-route');
-  if (sIcon) sIcon.style.display = featureFlags.get().legacySchedule ? '' : 'none';
+  // Hide beta nav icons based on flags
   const rIcon = document.getElementById('r-route');
   if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 

@@ -69,37 +69,13 @@ describe('settingsStorage — hydrateConfigFromStorage', () => {
     expect(flags.enableChat).toBeUndefined();
   });
 
-  it('applies legacySchedule when stored', () => {
-    saveSettings({ legacySchedule: true });
+  it('ignores deprecated legacySchedule and schedule2 values', () => {
+    // The legacy schedule tab was removed in TMX 3.3.0; stored values for
+    // these flags must deserialize cleanly but produce no FeatureFlags entry.
+    saveSettings({ legacySchedule: true, schedule2: false });
     hydrateConfigFromStorage();
-    expect(featureFlags.get().legacySchedule).toBe(true);
-  });
-
-  it('leaves legacySchedule at default when nothing is stored', () => {
-    hydrateConfigFromStorage();
-    expect(featureFlags.get().legacySchedule).toBe(false);
-  });
-
-  describe('migration from deprecated schedule2', () => {
-    it('migrates schedule2=false into legacySchedule=true', () => {
-      // A power user previously opted out of schedule2. That opt-out must
-      // survive the promotion / flag rename — they still see the legacy
-      // schedule tab.
-      saveSettings({ schedule2: false });
-      hydrateConfigFromStorage();
-      expect(featureFlags.get().legacySchedule).toBe(true);
-    });
-
-    it('does NOT migrate schedule2=true (that was the opt-in path)', () => {
-      saveSettings({ schedule2: true });
-      hydrateConfigFromStorage();
-      expect(featureFlags.get().legacySchedule).toBe(false);
-    });
-
-    it('an explicit new legacySchedule setting takes precedence over legacy schedule2', () => {
-      saveSettings({ schedule2: false, legacySchedule: false });
-      hydrateConfigFromStorage();
-      expect(featureFlags.get().legacySchedule).toBe(false);
-    });
+    const flags = featureFlags.get() as unknown as Record<string, unknown>;
+    expect(flags.legacySchedule).toBeUndefined();
+    expect(flags.schedule2).toBeUndefined();
   });
 });

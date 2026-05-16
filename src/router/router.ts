@@ -28,7 +28,6 @@ import {
   STRUCTURE,
   TOURNAMENT,
   EVENTS_TAB,
-  SCHEDULE_TAB,
   SCHEDULE2_TAB,
   VENUES_TAB,
   TEMPLATES,
@@ -121,8 +120,14 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${PARTICIPANTS}/:participantView`, (match) => {
     displayRoute({ selectedTab: PARTICIPANTS, data: match?.data });
   });
-  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE_TAB}/:scheduledDate`, (match) => {
-    displayRoute({ selectedTab: SCHEDULE_TAB, data: match?.data });
+  // Bookmarked `/schedule/:date` URLs from before the schedule2 cutover
+  // redirect to the new tab.
+  router.on(`/${TOURNAMENT}/:tournamentId/schedule/:scheduledDate`, (match) => {
+    const tournamentId = match?.data?.tournamentId;
+    const scheduledDate = match?.data?.scheduledDate;
+    if (tournamentId && scheduledDate) {
+      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`);
+    }
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}/:scheduledDate/:scheduleView`, (match) => {
     displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });

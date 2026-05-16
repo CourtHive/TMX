@@ -7,12 +7,11 @@ import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReports
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderSchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
-import { renderScheduleTab } from 'pages/tournament/tabs/scheduleTab/scheduleTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { clearChat } from 'services/chat/chatService';
-import { renderVenueTab } from 'pages/tournament/tabs/scheduleTab/venuesTab';
+import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
@@ -48,7 +47,6 @@ import {
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
-  SCHEDULE_TAB,
   SCHEDULE2_TAB,
   SYNC_INDICATOR,
   TOURNAMENT,
@@ -159,7 +157,6 @@ export function routeTo(config: any): void {
 
   if (displayTab(selectedTab)) {
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
-    if (selectedTab === SCHEDULE_TAB) renderScheduleTab({ scheduledDate: config.scheduledDate });
     if (selectedTab === SCHEDULE2_TAB)
       renderSchedule2Tab({ scheduledDate: config.scheduledDate, scheduleView: config.scheduleView });
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();

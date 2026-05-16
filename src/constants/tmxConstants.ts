@@ -65,7 +65,6 @@ export const VIEW = 'view';
 export const TOURNAMENT_EVENTS = 'tournamentEvents';
 export const TOURNAMENT_OVERVIEW = 'overview';
 export const PARTICIPANTS = 'participants';
-export const SCHEDULE_TAB = 'schedule';
 export const SCHEDULE2_TAB = 'schedule2';
 export const MATCHUPS_TAB = 'matchUps';
 export const EVENTS_TAB = 'events';
@@ -84,7 +83,6 @@ export const TOURNAMENT_PUBLISHING = 'tournamentPublishing';
 
 export const LEGACY_EVENTS = 'legacyEvents';
 
-export const UNSCHEDULED = 'unscheduled';
 export const SUCCESS = { success: true };
 
 export const MINIMUM_SCHEDULE_COLUMNS = 10;
@@ -109,10 +107,8 @@ export const scheduleClass: Record<string, string> = {
 export const TOURNAMENT_PARTICIPANTS = 'tournamentParticipants';
 export const TEMPORAL_GRID_CONTAINER = 'temporalGridContainer';
 export const SCHEDULED_DATE_FILTER = 'scheduledDateFilter';
-export const UNSCHEDULED_MATCHUPS = 'unscheduledMatchUps';
 
 export const TOURNAMENT_MATCHUPS = 'tournamentMatchUps';
-export const TOURNAMENT_SCHEDULE = 'tournamentSchedule';
 export const TOURNAMENTS_TABLE = 'tournamentsTable';
 export const TOURNAMENT_TEAMS = 'tournamentTeams';
 export const TOURNAMENT_VENUES = 'venuesTable';
@@ -144,13 +140,10 @@ export const QUALIFYING_PANEL = 'qualifyingPanel';
 export const UNGROUPED_PANEL = 'ungroupedPanel';
 export const WITHDRAWN_PANEL = 'withdrawaPanel';
 
-export const UNSCHEDULED_VISIBILITY = 'unscheduledVisibility';
 export const SCHEDULE2_CONTAINER = 'schedule2Container';
 export const SCHEDULE2_CONTROL = 'schedule2Control';
 export const TOURNAMENTS_CONTROL = 'tournamentsControl';
 export const PARTICIPANT_CONTROL = 'participantControl';
-export const UNSCHEDULED_CONTROL = 'unscheduledControl';
-export const SCHEDULE_CONTROL = 'scheduleControl';
 export const MATCHUPS_CONTROL = 'matchUpsControl';
 export const VENUES_CONTROL = 'venuesControl';
 export const EVENTS_CONTROL = 'eventsControl';

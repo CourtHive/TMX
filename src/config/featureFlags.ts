@@ -16,12 +16,6 @@ export interface FeatureFlags {
    * while the unified table beds in. Default: false.
    */
   legacyEntriesTable: boolean;
-  /**
-   * Power-user fallback: expose the original schedule tab in navigation.
-   * The new schedule (schedule2) is now the default; this flag re-enables
-   * the legacy tab as an escape hatch. Default: false.
-   */
-  legacySchedule: boolean;
 }
 
 const defaults: FeatureFlags = {
@@ -30,7 +24,6 @@ const defaults: FeatureFlags = {
   reports: false,
   usePublishState: false,
   legacyEntriesTable: false,
-  legacySchedule: false,
 };
 
 let current: FeatureFlags = { ...defaults };

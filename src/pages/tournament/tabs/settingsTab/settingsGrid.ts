@@ -61,12 +61,9 @@ function persistAll(
     formatWizard: displayInputs.formatWizard?.checked || false,
     reports: displayInputs.reports?.checked || false,
     legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
-    legacySchedule: displayInputs.legacySchedule?.checked || false,
   });
 
-  // Immediately update legacy/beta nav icon visibility
-  const sIcon = document.getElementById('s-route');
-  if (sIcon) sIcon.style.display = featureFlags.get().legacySchedule ? '' : 'none';
+  // Immediately update beta nav icon visibility
   const rIcon = document.getElementById('r-route');
   if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
@@ -99,7 +96,9 @@ function persistAll(
 
   const assistantChanged = (displayInputs.assistant?.checked || false) !== previousAssistant;
 
-  persistConfigToStorage({ language });
+  // User explicitly picked a language here — mark as explicit so provider
+  // default-language no longer overrides on subsequent boots.
+  persistConfigToStorage({ language, languageExplicit: true });
 
   if (languageChanged || assistantChanged) {
     globalThis.location.reload();
@@ -341,14 +340,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
       checked: featureFlags.get().legacyEntriesTable || false,
       field: 'legacyEntriesTable',
       id: 'legacyEntriesTable',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: 'Legacy schedule tab',
-      checked: featureFlags.get().legacySchedule || false,
-      field: 'legacySchedule',
-      id: 'legacySchedule',
       onChange: persist,
       checkbox: true,
     },

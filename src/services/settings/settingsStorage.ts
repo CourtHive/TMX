@@ -22,15 +22,27 @@ export type TMXSettings = {
   formatWizard?: boolean;
   reports?: boolean;
   legacyEntriesTable?: boolean;
+  /**
+   * @deprecated — legacy schedule tab has been removed. Stored values are
+   * ignored on hydrate. Retained in the type only so existing localStorage
+   * blobs deserialize cleanly.
+   */
   legacySchedule?: boolean;
   /**
-   * @deprecated — schedule2 is now the standard schedule tab. A stored
-   * `false` migrates to `legacySchedule: true` on hydrate so existing power
-   * users keep their familiar schedule.
+   * @deprecated — schedule2 is the only schedule tab. Stored values are
+   * ignored on hydrate. Retained in the type only so existing localStorage
+   * blobs deserialize cleanly.
    */
   schedule2?: boolean;
   minCourtGridRows?: number;
   language?: string;
+  /**
+   * True when the user explicitly chose `language` via selectIdiom.
+   * Distinguishes "user picked this" from "passively inherited from a
+   * provider default". When unset/false, the provider's defaultLanguage
+   * overrides on boot. See Mentat/planning/I18N_DELIVERY.md.
+   */
+  languageExplicit?: boolean;
   theme?: 'light' | 'dark' | 'system';
   fontFamily?: string;
   fontSize?: string;
@@ -125,12 +137,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
     // Migration: a user who had opted out of the unified table stays on legacy
     flagsPatch.legacyEntriesTable = true;
   }
-  if (settings.legacySchedule !== undefined) {
-    flagsPatch.legacySchedule = settings.legacySchedule;
-  } else if (settings.schedule2 === false) {
-    // Migration: a user who had opted out of the new schedule stays on legacy
-    flagsPatch.legacySchedule = true;
-  }
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -151,7 +157,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
  * should survive a page reload.
  */
 export function persistConfigToStorage(
-  extras?: Pick<TMXSettings, 'language' | 'theme' | 'fontFamily' | 'fontSize'>,
+  extras?: Pick<TMXSettings, 'language' | 'languageExplicit' | 'theme' | 'fontFamily' | 'fontSize'>,
 ): void {
   const prefs = preferencesConfig.get();
   const flags = featureFlags.get();
@@ -167,7 +173,6 @@ export function persistConfigToStorage(
     formatWizard: flags.formatWizard,
     reports: flags.reports,
     legacyEntriesTable: flags.legacyEntriesTable,
-    legacySchedule: flags.legacySchedule,
     minCourtGridRows: schedule.minCourtGridRows,
     ...extras,
   });

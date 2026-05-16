@@ -28,7 +28,7 @@ import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
 // constants
-import { CENTER, LEFT, RIGHT, SCHEDULE_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { CENTER, LEFT, RIGHT, SCHEDULE2_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 export function getMatchUpColumns({
@@ -46,9 +46,9 @@ export function getMatchUpColumns({
     const { courtName, scheduledDate } = data;
     if (courtName && scheduledDate) {
       const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
-      const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE_TAB}/${scheduledDate}`;
+      const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`;
       context.router?.navigate(route);
-      highlightTab(SCHEDULE_TAB);
+      highlightTab(SCHEDULE2_TAB);
     }
   };
 
