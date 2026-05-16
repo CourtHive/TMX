@@ -25,7 +25,7 @@ import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
-import { i18next } from 'i18n';
+import { ensureLocaleCurrent, i18next } from 'i18n';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
@@ -77,6 +77,16 @@ export function setupTMX(): void {
   } catch (err) {
     console.error('Failed to hydrate config from storage:', err);
   }
+
+  // Background upgrade: if CFS has a newer version of the active locale,
+  // fetch and swap it in transparently. Bundled locales (above) already
+  // rendered the UI; this is a non-blocking refresh.
+  // See Mentat/planning/I18N_DELIVERY.md for the runtime-fetch architecture.
+  queueMicrotask(() => {
+    void ensureLocaleCurrent(i18next.language).catch((err) => {
+      console.warn('i18n background upgrade failed:', err);
+    });
+  });
 
   loadColumnVisibility();
 
