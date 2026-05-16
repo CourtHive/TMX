@@ -433,6 +433,16 @@ body {
   50% { background-color: rgba(16, 185, 129, 0.15); }
 }
 
+/* Phase 4 — three-dot icon glow when the matchUp has active crowd-scoring sessions. */
+.three-dot-glow {
+  color: var(--tmx-status-info, #3273dc);
+  animation: three-dot-glow-pulse 2.5s ease-in-out infinite;
+}
+@keyframes three-dot-glow-pulse {
+  0%, 100% { text-shadow: 0 0 0 rgba(50, 115, 220, 0); }
+  50%      { text-shadow: 0 0 6px rgba(50, 115, 220, 0.7); }
+}
+
 img {
   max-width: 200%; /* override minireset */
 }

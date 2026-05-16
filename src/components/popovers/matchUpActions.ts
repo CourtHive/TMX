@@ -4,7 +4,9 @@
  */
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { tournamentEngine, participantRoles, tools } from 'tods-competition-factory';
+import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
+import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
 import { logMutationError } from 'functions/logMutationError';
@@ -288,6 +290,8 @@ export function matchUpActions({
   const isTerminal = terminalStatuses.includes(matchUpStatus);
   const hideTimeOptions = noParticipants || isTerminal;
 
+  const crowdTrackerCount = matchUp?.matchUpId ? getActiveSessionCount(matchUp.matchUpId) : 0;
+
   const items = [
     {
       onClick: clearSchedule,
@@ -319,6 +323,15 @@ export function matchUpActions({
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
       text: 'Print match card',
+    },
+    {
+      onClick: () =>
+        openCrowdTrackersModal({
+          matchUpId: matchUp.matchUpId,
+          matchUpLabel: matchUp?.roundName ? `${matchUp.roundName}` : undefined,
+        }),
+      text: `View crowd trackers (${crowdTrackerCount})`,
+      hide: crowdTrackerCount === 0,
     },
   ];
 

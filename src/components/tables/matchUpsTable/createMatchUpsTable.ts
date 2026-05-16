@@ -8,6 +8,8 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { findAncestor } from 'services/dom/parentAndChild';
+import { startCrowdPoller, type CrowdPoller } from 'services/crowd/crowdPoller';
+import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { getMatchUpColumns } from './getMatchUpColumns';
 import { displayConfig } from 'config/displayConfig';
 import { hotKeyScoring } from './hotKeyScoring';
@@ -101,6 +103,29 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
   };
 
   render(data);
+
+  // ─── Phase 4 — crowd activity poller + row reformat on change ───────────
+  // Start a tournament-level poll into the crowdActivityIndex so the three-dot
+  // icon can glow and the "View crowd trackers (N)" menu item knows whether
+  // to render. Stop on tableDestroyed so a tab switch doesn't leak the timer.
+  const tournamentId = tournamentEngine.getState?.()?.tournamentRecord?.tournamentId;
+  let crowdPoller: CrowdPoller | undefined;
+  let unsubscribeCrowd: (() => void) | undefined;
+  if (tournamentId) {
+    crowdPoller = startCrowdPoller({ tournamentId });
+    unsubscribeCrowd = subscribeCrowdActivity((matchUpId: string) => {
+      try {
+        const row = table.getRow(matchUpId);
+        if (row) row.reformat();
+      } catch {
+        // Row may not exist on this table view; ignore.
+      }
+    });
+    table.on('tableDestroyed', () => {
+      crowdPoller?.stop();
+      unsubscribeCrowd?.();
+    });
+  }
 
   return { table, data, replaceTableData };
 }

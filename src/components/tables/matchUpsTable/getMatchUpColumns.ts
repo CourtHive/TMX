@@ -19,7 +19,7 @@ import { applyColumnVisibility } from '../common/columnIsVisible';
 import { handleScoreClick } from './handleMatchUpScoreClick';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
-import { threeDots } from '../common/formatters/threeDots';
+import { matchUpThreeDotsFormatter } from './matchUpThreeDotsFormatter';
 import { setMatchUpSchedule } from './setMatchUpSchedule';
 import { datePicker } from 'components/modals/datePicker';
 import { timePicker } from 'components/modals/timePicker';
@@ -337,7 +337,7 @@ export function getMatchUpColumns({
     })(),
     {
       cellClick: (e: Event, cell: any) => matchUpActions({ pointerEvent: e as PointerEvent, cell, ...cell.getData() }),
-      formatter: threeDots,
+      formatter: matchUpThreeDotsFormatter,
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
