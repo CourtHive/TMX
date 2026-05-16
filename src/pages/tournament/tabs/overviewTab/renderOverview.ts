@@ -117,6 +117,12 @@ export function renderOverview(): void {
   const element = document.getElementById(TOURNAMENT_OVERVIEW);
   if (!element) return;
 
+  // Wire the remote-mutation refresh hook so the dashboard stats stay in sync
+  // when other clients mutate the tournament — same pattern as schedule2 grid
+  // and matchUps. renderOverview() is idempotent and rebuilds from current
+  // factory state, so it's safe to call as the refresh.
+  context.refreshActiveTable = renderOverview;
+
   removeAllChildNodes(element);
   element.style.minHeight = '';
   ensureStyles();
