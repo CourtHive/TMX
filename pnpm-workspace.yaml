@@ -13,6 +13,8 @@ ignoredBuiltDependencies:
   - esbuild
 
 overrides:
+  '@courthive/provider-config': link:../provider-config
+  '@courthive/scoring-visualizations': link:../scoringVisualizations
   courthive-components: link:../courthive-components
   pdf-factory: link:../pdf-factory
   tods-competition-factory: link:../factory
