@@ -116,7 +116,7 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
   openModal({ title: t('modals.getLatLong.title'), content: html, buttons });
 
   const container = idObj(ids);
-  const { map, marker } = locationMap({
+  let { map, marker } = locationMap({
     successElement: container.map.element,
     mapElementId: container.map.id,
     coords,
@@ -135,18 +135,29 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
 
   function updateMarker({ latitude, longitude }: Coords) {
     coords = { latitude, longitude };
+    if (!map) return;
     const newLatLng = new L.LatLng(latitude, longitude);
-    marker.setLatLng(newLatLng);
+    if (marker) {
+      marker.setLatLng(newLatLng);
+    } else {
+      marker = L.marker(newLatLng).addTo(map);
+    }
   }
 
   function updateCoords({ latitude = 0, longitude = 0 }: Partial<Coords> = {}): boolean | undefined {
+    if (!map) return false;
     if (latitude && longitude) {
       coords = { latitude: +latitude, longitude: +longitude };
       map.setView([+latitude, +longitude], 16);
+      updateMarker({ latitude: +latitude, longitude: +longitude });
       return true;
     } else {
       coords = { latitude: 0, longitude: 0 };
       map.fitWorld();
+      if (marker) {
+        map.removeLayer(marker);
+        marker = undefined;
+      }
       return false;
     }
   }
@@ -166,31 +177,27 @@ function locationMap({
   const nav = getNavigator();
   if (!nav?.onLine) return {} as any;
 
-  // zoom is always a number per function signature, no need to check for undefined
-  if (coords.latitude && coords.longitude) {
-    if (successElement) successElement.style.display = 'inline';
-    return gpsLocation(coords.latitude, coords.longitude, zoom);
-  } else {
-    return {} as any;
+  if (successElement) successElement.style.display = 'inline';
+
+  const view = locationConfig.get().map_view || 'map';
+  const leaflet = leafletConfig.get();
+  const layer = L.tileLayer(leaflet[view].tileLayer, {
+    attribution: leaflet[view].attribution,
+    maxZoom: leaflet[view].maxZoom ?? 16,
+  });
+  const map = L.map(mapElementId).fitWorld().addLayer(layer);
+
+  const hasCoords =
+    !!coords.latitude && !!coords.longitude && !Number.isNaN(+coords.latitude) && !Number.isNaN(+coords.longitude);
+  let marker: any;
+  if (hasCoords) {
+    map.setView([+coords.latitude, +coords.longitude], zoom);
+    marker = L.marker([+coords.latitude, +coords.longitude]).addTo(map);
   }
 
-  function gpsLocation(lat: number, lng: number, zoom: number): { map: any; marker: any } {
-    if (Number.isNaN(lat) || Number.isNaN(lng)) return {} as any;
-    const view = locationConfig.get().map_view || 'map';
-    const leaflet = leafletConfig.get();
-    const layer = L.tileLayer(leaflet[view].tileLayer, {
-      attribution: leaflet[view].attribution,
-      maxZoom: leaflet[view].maxZoom ?? 16,
-    });
-    const map = L.map(mapElementId).fitWorld().addLayer(layer);
-    if (lat || lng) map.setView([+lat, +lng], zoom);
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 300);
 
-    const marker = L.marker([+lat, +lng]).addTo(map);
-
-    setTimeout(function () {
-      map.invalidateSize();
-    }, 300);
-
-    return { map, marker };
-  }
+  return { map, marker };
 }
