@@ -1,0 +1,56 @@
+name: release-please
+
+# release-please maintains a perpetual release PR on main that
+# accumulates conventional commits since the last release. Merging
+# the PR creates a GitHub release + a `v{version}` tag and bumps
+# package.json + CHANGELOG.md.
+#
+# TMX is private (not published to npm) so no downstream npm-publish
+# workflow needs to fire. We still mint a GitHub App token for
+# parity with factory / courthive-components / pdf-factory — same
+# `courthive-release-bot` App, same secrets, same operator habits.
+# A plain `secrets.GITHUB_TOKEN` would also work today (no chained
+# workflows to gate against the GITHUB_TOKEN recursion rule).
+#
+# Required repo secrets:
+#   RELEASE_BOT_APP_ID         — numeric App ID
+#   RELEASE_BOT_PRIVATE_KEY    — PEM contents (BEGIN/END markers included)
+#
+# The App needs Contents: Write + Pull requests: Write on this repo.
+#
+# Day-to-day flow:
+#   1. Land feature/fix PRs on main with conventional commits
+#      (feat:, fix:, chore:, docs:, etc.)
+#   2. The bot updates a `chore: release X.Y.Z` PR automatically
+#   3. Merge the release PR → GitHub release + tag are created
+#      and package.json is bumped.
+#
+# To force a specific version, edit `.release-please-manifest.json`
+# on main directly.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
