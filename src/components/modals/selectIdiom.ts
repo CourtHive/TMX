@@ -1,11 +1,14 @@
 /**
  * Select language/locale idiom modal.
  * Allows country selection with type-ahead and flag display for language switching.
+ *
+ * Sources available locales from the CFS manifest when reachable; falls back
+ * to whatever's bundled in i18next. See Mentat/planning/I18N_DELIVERY.md.
  */
+import { ensureLocaleCurrent, fetchManifest, i18next, t } from 'i18n';
 import { renderForm } from 'courthive-components';
 import { fixtures } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
-import { i18next, t } from 'i18n';
 import { preferencesConfig } from 'config/preferencesConfig';
 
 // IOC country code to BCP47 language tag mapping
@@ -43,12 +46,14 @@ const iocToLang: Record<string, string> = {
   CAN: 'en',
 };
 
-export function selectIdiom(): void {
-  // Build list of available languages from i18next resources
-  const availableLanguages = Object.keys(i18next.options?.resources || {});
-  const availableSet = new Set(availableLanguages);
+export async function selectIdiom(): Promise<void> {
+  // Source available locales from CFS manifest; fall back to bundled set.
+  const manifest = await fetchManifest();
+  const bundledLanguages = Object.keys(i18next.options?.resources || {});
+  const manifestLanguages = manifest?.locales?.map((l) => l.code) ?? [];
+  const availableSet = new Set<string>([...bundledLanguages, ...manifestLanguages]);
 
-  // Filter countries to those that have translations available
+  // Filter countries to those that have translations available.
   const list = fixtures.countries
     .filter((c: any) => {
       const ioc = c.ioc?.toUpperCase();
@@ -60,7 +65,8 @@ export function selectIdiom(): void {
       value: country.ioc?.toUpperCase(),
     }));
 
-  // If no translations are loaded beyond 'en', show all mapped countries
+  // If no translations are available at all (e.g. fresh install, CFS unreachable, no bundled),
+  // fall back to showing all mapped countries so the modal isn't empty.
   const displayList =
     list.length > 0
       ? list
@@ -85,11 +91,15 @@ export function selectIdiom(): void {
     ]);
   };
 
-  const saveLanguage = () => {
-    if (selectedIoc) {
-      const lang = iocToLang[selectedIoc] || 'en';
-      i18next.changeLanguage(lang);
+  const saveLanguage = async () => {
+    if (!selectedIoc) return;
+    const lang = iocToLang[selectedIoc] || 'en';
+
+    // If the locale isn't bundled, fetch it from CFS before switching i18next.
+    if (!bundledLanguages.includes(lang) && manifestLanguages.includes(lang)) {
+      await ensureLocaleCurrent(lang);
     }
+    void i18next.changeLanguage(lang);
   };
 
   openModal({
