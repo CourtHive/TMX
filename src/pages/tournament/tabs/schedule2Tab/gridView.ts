@@ -28,6 +28,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
+import { context } from 'services/context';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
@@ -90,6 +91,7 @@ let visibilityTip: Instance | null = null;
 let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
+let catalogStateUnsubscribe: (() => void) | null = null;
 // Persisted across grid-view rebuilds (e.g. on date change) so switching
 // dates doesn't snap the user back to the Unscheduled tab.
 const SIDEBAR_TAB_KEY = 'schedule2:sidebar-tab';
@@ -196,6 +198,9 @@ export function renderGridView(
     // dispatches a real state change (default-true store + false-localStorage
     // otherwise causes a no-op on first toggle).
     activeStripVisible: options?.activeStripVisible ?? true,
+    // Restore catalog filter state captured from a previous mount within
+    // this tournament session. Cleared on tournament load (see loadTournament).
+    initialCatalogState: context.scheduleCatalogState,
     hideLeft: true,
     catalogSide: 'left',
     scheduledBehavior: 'dim',
@@ -302,6 +307,20 @@ export function renderGridView(
   activeStripUnsubscribe = activeControl.getStore().subscribe((nextState) => {
     activeStrip?.update(nextState);
     syncStripOffset(nextState.activeStripVisible);
+  });
+
+  // Capture catalog filter changes into context so they survive tab navigation
+  // within the same tournament. Cleared on tournament load (see loadTournament
+  // in tournamentDisplay.ts). Stored as a fresh object reference on every
+  // change so the next renderGridView seeds from the latest snapshot.
+  catalogStateUnsubscribe = activeControl.getStore().subscribe((nextState) => {
+    context.scheduleCatalogState = {
+      catalogSearchQuery: nextState.catalogSearchQuery,
+      catalogGroupBy: nextState.catalogGroupBy,
+      catalogFilters: nextState.catalogFilters,
+      showCompleted: nextState.showCompleted,
+      showScheduled: nextState.showScheduled,
+    };
   });
   const initialState = activeControl.getStore().getState();
   activeStrip.update(initialState);
@@ -610,6 +629,10 @@ export function destroyGridView(): void {
   if (activeStripUnsubscribe) {
     activeStripUnsubscribe();
     activeStripUnsubscribe = null;
+  }
+  if (catalogStateUnsubscribe) {
+    catalogStateUnsubscribe();
+    catalogStateUnsubscribe = null;
   }
   activeStrip = null;
   latestStripSnapshot = null;

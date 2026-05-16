@@ -1,3 +1,5 @@
+import type { SchedulePageCatalogState } from 'courthive-components';
+
 import type { ProviderValue } from 'types/tmx';
 
 export const context: {
@@ -36,6 +38,9 @@ export const context: {
   provider?: ProviderValue;
   dragMatch?: any;
   dragMatchLight?: any;
+  /** schedule2 matchUp catalog filter state, persisted across tab navigation
+   *  within a single tournament. Cleared on tournament load. */
+  scheduleCatalogState?: SchedulePageCatalogState;
 } = {
   matchUpsToBroadcast: [],
   tables: [],

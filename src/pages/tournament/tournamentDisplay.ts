@@ -172,6 +172,7 @@ export function routeTo(config: any): void {
 export function loadTournament({ tournamentRecord, config }: { tournamentRecord?: any; config: any }): void {
   // Clear per-tournament transient state
   context.matchUpFilters = {};
+  context.scheduleCatalogState = undefined;
   clearChat();
 
   const state = getLoginState();
