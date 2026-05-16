@@ -82,6 +82,7 @@ export function renderProfileView(
     selectedDate: scheduledDate,
     initialProfile: existingProfile,
     headerActions: headerActions.buttons,
+    titleLeadingActions: headerActions.leading,
     onProfileChanged: (profile) => {
       // Persist profile to factory as a tournament extension
       saveProfile(profile);
@@ -364,6 +365,10 @@ function saveProfile(profile: SchedulingProfile, callback?: () => void): void {
 // ============================================================================
 
 interface ProfileHeaderActions {
+  /** Rendered immediately before the "Day Plan" title — co-located with the
+   *  catalog it controls (left column). */
+  leading: HTMLButtonElement[];
+  /** Right-aligned action buttons (Clear / Apply Times / Apply Grid / Save). */
   buttons: HTMLButtonElement[];
   labels: HTMLSpanElement[];
 }
@@ -408,13 +413,14 @@ function buildProfileHeaderActions(
   statusEl: HTMLElement,
   options?: ProfileViewOptions,
 ): ProfileHeaderActions {
+  const leading: HTMLButtonElement[] = [];
   const buttons: HTMLButtonElement[] = [];
   const labels: HTMLSpanElement[] = [];
 
-  // View-state toggle first — visually distinct (tinted pill) from the
-  // action buttons that follow.
+  // Catalog toggle sits in the leading slot, next to the "Day Plan" title —
+  // co-located with the catalog it controls (left column).
   if (options) {
-    buttons.push(buildCatalogToggle(options.catalogVisible, options.onToggleCatalog));
+    leading.push(buildCatalogToggle(options.catalogVisible, options.onToggleCatalog));
   }
 
   const makeIcon = (
@@ -476,7 +482,7 @@ function buildProfileHeaderActions(
     });
   });
 
-  return { buttons, labels };
+  return { leading, buttons, labels };
 }
 
 // Width below which we render icons only. Tuned so the four labelled buttons

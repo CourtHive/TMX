@@ -115,7 +115,11 @@ let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] }
 export function renderGridView(
   container: HTMLElement,
   scheduledDate: string,
-  options?: { headerActions?: HTMLElement[]; activeStripVisible?: boolean },
+  options?: {
+    headerActions?: HTMLElement[];
+    titleLeadingActions?: HTMLElement[];
+    activeStripVisible?: boolean;
+  },
 ): void {
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
@@ -187,6 +191,7 @@ export function renderGridView(
     issues,
     courtGridElement: gridWrapper,
     headerActions: options?.headerActions,
+    titleLeadingActions: options?.titleLeadingActions,
     // Seed the store with the persisted visibility so the very first click
     // dispatches a real state change (default-true store + false-localStorage
     // otherwise causes a no-op on first toggle).

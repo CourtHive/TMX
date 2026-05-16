@@ -228,8 +228,10 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     // Profile view is configuration, not live data — let the sync indicator handle remote mutations
     context.refreshActiveTable = undefined;
   } else {
-    // Inject the catalog/strip/print icons into the court grid's header slot.
-    const headerActions = buildGridHeaderActions({
+    // Inject the strip/print icons into the right-aligned header slot, and the
+    // catalog toggle into the leading slot so it sits next to "Court Grid" —
+    // co-located with the catalog it controls (left column).
+    const gridActions = buildGridHeaderActions({
       selectedDate: scheduledDate,
       bulkMode: getGridBulkMode(),
       catalogVisible: gridCatalogVisible ?? true,
@@ -237,7 +239,11 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       onToggleCatalog: applyGridCatalogVisible,
       onToggleActiveStrip: applyActiveStripVisible,
     });
-    renderGridView(container, scheduledDate, { headerActions, activeStripVisible });
+    renderGridView(container, scheduledDate, {
+      headerActions: gridActions.trailing,
+      titleLeadingActions: gridActions.leading,
+      activeStripVisible,
+    });
     // Wire remote-mutation refresh so cells update when other clients schedule matchUps
     context.refreshActiveTable = refreshGridView;
   }

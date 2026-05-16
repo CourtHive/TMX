@@ -40,7 +40,15 @@ export interface GridHeaderActionsParams {
   onToggleActiveStrip: (visible: boolean) => void;
 }
 
-export function buildGridHeaderActions(params: GridHeaderActionsParams): HTMLElement[] {
+export interface GridHeaderActions {
+  /** Rendered immediately before the "Court Grid" title — co-located with the
+   *  catalog it controls (left column). */
+  leading: HTMLElement[];
+  /** Rendered right-aligned in the header — actions that operate on the grid itself. */
+  trailing: HTMLElement[];
+}
+
+export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHeaderActions {
   const { selectedDate, bulkMode, catalogVisible, activeStripVisible, onToggleCatalog, onToggleActiveStrip } = params;
 
   const catalogBtn = buildToggleButton({
@@ -81,7 +89,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): HTMLEle
     printSchedule({ scheduledDate: selectedDate, courts: courtsData, rows });
   });
 
-  return [catalogBtn, stripBtn, printBtn];
+  return { leading: [catalogBtn], trailing: [stripBtn, printBtn] };
 }
 
 interface ToggleButtonParams {
