@@ -67,13 +67,37 @@ import 'styles/fa.min.css';
 import 'styles/icons.css';
 import 'styles/tmx.css';
 
+import { providerConfig } from 'config/providerConfig';
+import type { TMXSettings } from 'services/settings/settingsStorage';
+
+/**
+ * Boot-time language resolution per Mentat/planning/I18N_DELIVERY.md:
+ *   1. settings.language (user explicit, marked via languageExplicit)
+ *   2. providerConfig.defaults.defaultLanguage (provider hint)
+ *   3. navigator.language if it matches a known locale
+ *   4. fallback 'en'
+ *
+ * If settings.language exists but languageExplicit is not true, treat it
+ * as inherited and let provider default override.
+ */
+function resolveBootLanguage(savedSettings: TMXSettings | null): string | undefined {
+  if (savedSettings?.language && savedSettings.languageExplicit) {
+    return savedSettings.language;
+  }
+  const providerDefault = providerConfig.get().defaults?.defaultLanguage;
+  if (providerDefault) return providerDefault;
+  if (savedSettings?.language) return savedSettings.language;
+  const navLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
+  if (navLang) return navLang;
+  return undefined;
+}
+
 export function setupTMX(): void {
   // Hydrate typed config modules from localStorage
   try {
     const savedSettings = hydrateConfigFromStorage();
-    if (savedSettings?.language) {
-      i18next.changeLanguage(savedSettings.language);
-    }
+    const resolved = resolveBootLanguage(savedSettings);
+    if (resolved) i18next.changeLanguage(resolved);
   } catch (err) {
     console.error('Failed to hydrate config from storage:', err);
   }

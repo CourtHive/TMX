@@ -9,6 +9,7 @@ import { ensureLocaleCurrent, fetchManifest, i18next, t } from 'i18n';
 import { renderForm } from 'courthive-components';
 import { fixtures } from 'tods-competition-factory';
 import { openModal } from './baseModal/baseModal';
+import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { preferencesConfig } from 'config/preferencesConfig';
 
 // IOC country code to BCP47 language tag mapping
@@ -100,6 +101,9 @@ export async function selectIdiom(): Promise<void> {
       await ensureLocaleCurrent(lang);
     }
     void i18next.changeLanguage(lang);
+
+    // Mark as user-explicit so provider default-language doesn't override on next boot.
+    persistConfigToStorage({ language: lang, languageExplicit: true });
   };
 
   openModal({
