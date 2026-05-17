@@ -26,6 +26,7 @@
     "lint:staged": "TZ=UTC lint-staged",
     "pre-commit": "lint-staged",
     "prepare": "husky",
+    "postinstall": "playwright install chromium",
     "preview": "vite preview",
     "start": "pnpm run config --check && vite --open",
     "lint:report": "eslint src & eslint --cache src -f json > eslint-report.json",
