@@ -7,6 +7,7 @@
  */
 import type { ScheduleDate, ScheduleIssue } from 'courthive-components';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import { wrapSearchWithClear } from 'courthive-components';
 import { providerConfig } from 'config/providerConfig';
 
 // Types
@@ -200,7 +201,16 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     searchInput.addEventListener('input', doSearch);
     modeSelect.addEventListener('change', doSearch);
 
-    searchWrap.appendChild(searchInput);
+    const inputWithClear = wrapSearchWithClear(searchInput, () => {
+      searchInput.value = '';
+      onSearch('', modeSelect.value as ScheduleSearchMode);
+      searchInput.focus();
+    });
+    // Native fixed-width input — preserve it inside the helper's flex wrapper.
+    inputWithClear.style.flex = '0 0 auto';
+    inputWithClear.style.minWidth = '0';
+
+    searchWrap.appendChild(inputWithClear);
     searchWrap.appendChild(modeSelect);
     left.appendChild(searchWrap);
   }
