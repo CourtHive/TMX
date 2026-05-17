@@ -15,6 +15,7 @@ import { findAncestor } from 'services/dom/parentAndChild';
 import { displayConfig } from 'config/displayConfig';
 import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
+import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 
 // constants
 import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
@@ -117,10 +118,24 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     });
 
     const headerLabel = view === OFFICIAL ? t('pages.participants.officials') : t('pages.participants.title');
-    const getHeader = (rows: any[]) => `${headerLabel} (${rows.length})`;
-    table.on('dataChanged', (rows: any[]) => headerElement && (headerElement.innerHTML = getHeader(rows)));
+
+    // Reshape the section's .tabHeader from a plain text label into a
+    // flex row: [Participants (n)] on the left, [scale selector + sparkline]
+    // on the right. The chart re-binds against the currently visible rows
+    // so it tracks filter state without needing to re-query the engine.
+    const headerHandle = headerElement ? installScalingsHeader(headerElement as HTMLElement, headerLabel) : null;
+
+    const refreshHeader = (rows: any[]) => {
+      if (!headerHandle) return;
+      headerHandle.setCount(rows.length);
+      const participants = rows.map((r: any) => r.getData?.()?.participant).filter(Boolean);
+      const scales = collectAvailableScales(participants);
+      headerHandle.setScales(scales);
+    };
+
+    table.on('dataChanged', () => refreshHeader(table.getRows('active')));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
-      if (headerElement) headerElement.innerHTML = getHeader(rows);
+      refreshHeader(table.getRows('active'));
       if (!debugConfig.get().averages) return;
 
       // Dynamically calculate averages for all present rating types
@@ -153,4 +168,39 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
   render(data);
 
   return { table, replaceTableData, teamParticipants, groupParticipants };
+}
+
+interface ScalingsHeaderHandle {
+  setCount: (n: number) => void;
+  setScales: (scales: ReturnType<typeof collectAvailableScales>) => void;
+}
+
+/**
+ * Replace the section's `.tabHeader` text with a flex row hosting the
+ * "Participants (n)" label on the left and a compact scalings sparkline
+ * (with optional scale selector) on the right. Returns setters the
+ * caller drives from Tabulator's dataChanged / dataFiltered events.
+ */
+function installScalingsHeader(headerElement: HTMLElement, labelText: string): ScalingsHeaderHandle {
+  headerElement.style.cssText =
+    'display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: nowrap;';
+  headerElement.replaceChildren();
+
+  const label = document.createElement('span');
+  label.textContent = `${labelText} (0)`;
+  headerElement.appendChild(label);
+
+  const chartHandle = buildScalingsChart([], { variant: 'compact' });
+  // Keep the chart on the right and prevent it from pushing the label
+  // off-screen when the participants section is narrow.
+  chartHandle.element.style.minWidth = '0';
+  chartHandle.element.style.flex = '0 1 auto';
+  headerElement.appendChild(chartHandle.element);
+
+  return {
+    setCount: (n: number) => {
+      label.textContent = `${labelText} (${n})`;
+    },
+    setScales: chartHandle.update,
+  };
 }

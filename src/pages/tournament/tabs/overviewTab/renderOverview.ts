@@ -6,6 +6,11 @@ import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import {
+  buildScalingsChart,
+  collectAvailableScales,
+  MAX_PARTICIPANTS_FOR_OVERVIEW,
+} from 'components/charts/participantScalings';
+import {
   createActionsPanel,
   createDualStatCard,
   createTripleStatCard,
@@ -236,6 +241,13 @@ export function renderOverview(): void {
 
   pubHeader.style.cssText += 'flex:1;';
   publishingCard.insertBefore(pubHeader, publishingCard.firstChild);
+
+  // Scalings histogram — full-width panel above the publishing card.
+  // Gated on participant count to avoid pulling + binning thousands of
+  // rating values on the dashboard render path. Hidden silently when
+  // no participants carry numeric scale values.
+  appendScalingsPanel(statsContainer);
+
   statsContainer.appendChild(publishingCard);
   leftColumn.appendChild(statsContainer);
 
@@ -302,4 +314,45 @@ function createFormatWizardLauncher(tournamentId: string): HTMLElement {
   panel.appendChild(button);
 
   return panel;
+}
+
+/**
+ * Append a full-width scalings histogram card to the dashboard stats
+ * grid. No-op when the tournament has too many participants for an
+ * instant render or when no participant carries a numeric scale value.
+ */
+function appendScalingsPanel(statsContainer: HTMLElement): void {
+  const { participants } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  if (!Array.isArray(participants) || participants.length === 0) return;
+  if (participants.length > MAX_PARTICIPANTS_FOR_OVERVIEW) return;
+
+  const scales = collectAvailableScales(participants);
+  if (scales.length === 0) return;
+
+  const card = document.createElement('div');
+  card.className = 'dash-panel dash-panel-yellow';
+  card.style.cssText = 'grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px;';
+
+  const header = document.createElement('div');
+  header.style.cssText =
+    'display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.85rem; color: var(--tmx-text-secondary);';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+  const titleIcon = document.createElement('i');
+  titleIcon.className = 'fa fa-chart-column';
+  titleIcon.style.fontSize = '0.8rem';
+  title.appendChild(titleIcon);
+  title.appendChild(document.createTextNode('Scalings'));
+  header.appendChild(title);
+
+  const { element: chartElement } = buildScalingsChart(scales, { variant: 'full' });
+  // The selector lives inside the chart element. Move it up into the
+  // header so the title and the scale selector share a row.
+  const selectorEl = chartElement.firstElementChild as HTMLElement | null;
+  if (selectorEl?.tagName === 'SELECT') header.appendChild(selectorEl);
+
+  card.appendChild(header);
+  card.appendChild(chartElement);
+  statsContainer.appendChild(card);
 }
