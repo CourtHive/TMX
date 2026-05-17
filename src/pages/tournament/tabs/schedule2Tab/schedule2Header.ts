@@ -114,8 +114,9 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     });
   });
 
-  // ── Issues icon (shown only when issues exist) ──
-  if (issues && issues.length > 0) {
+  // ── Issues icon — grid view only (issues are surfaced as overlays on
+  // grid cells, which the profile view doesn't render). ──
+  if (activeView === 'grid' && issues && issues.length > 0) {
     const issuesBtn = document.createElement('button');
     issuesBtn.style.cssText = [
       'position: relative',
