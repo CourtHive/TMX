@@ -129,6 +129,7 @@ export function renderGridView(
   options?: {
     headerActions?: HTMLElement[];
     titleLeadingActions?: HTMLElement[];
+    titleSlot?: HTMLElement;
     activeStripVisible?: boolean;
   },
 ): void {
@@ -203,6 +204,7 @@ export function renderGridView(
     courtGridElement: gridWrapper,
     headerActions: options?.headerActions,
     titleLeadingActions: options?.titleLeadingActions,
+    titleSlot: options?.titleSlot,
     // Seed the store with the persisted visibility so the very first click
     // dispatches a real state change (default-true store + false-localStorage
     // otherwise causes a no-op on first toggle).
@@ -703,7 +705,7 @@ function ensureSearchHighlightStyle(): void {
 }
 
 /** Highlight grid cells matching search text; scroll first match into view. */
-export function searchGridCells(text: string, _mode: 'individual' | 'team'): void {
+export function searchGridCells(text: string): void {
   if (!gridRootElement) return;
   ensureSearchHighlightStyle();
 
@@ -719,8 +721,6 @@ export function searchGridCells(text: string, _mode: 'individual' | 'team'): voi
 
   for (const cell of cells) {
     const el = cell as HTMLElement;
-    // For 'team' mode, match against team names (data attribute or full text)
-    // For 'individual' mode, match against participant names in the cell
     const cellText = el.textContent?.toLowerCase() || '';
     if (cellText.includes(needle)) {
       el.classList.add(SEARCH_HIGHLIGHT_CLASS);

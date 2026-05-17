@@ -196,7 +196,6 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
     },
-    onSearch: (text, mode) => searchGridCells(text, mode),
     onBulkModeChange: (enabled: boolean) => {
       const result = setGridBulkMode(enabled);
       if (result !== enabled) {
@@ -237,10 +236,12 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
         writeScheduleDisplayConfig({ minCourtGridRows: rows });
         refreshGridView();
       },
+      onSearch: (text) => searchGridCells(text),
     });
     renderGridView(container, scheduledDate, {
       headerActions: gridActions.trailing,
       titleLeadingActions: gridActions.leading,
+      titleSlot: gridActions.titleSlot,
       activeStripVisible,
     });
     // Wire remote-mutation refresh so cells update when other clients schedule matchUps

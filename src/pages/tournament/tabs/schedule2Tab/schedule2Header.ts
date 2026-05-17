@@ -7,12 +7,10 @@
  */
 import type { ScheduleDate, ScheduleIssue } from 'courthive-components';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import { wrapSearchWithClear } from 'courthive-components';
 import { providerConfig } from 'config/providerConfig';
 
 // Types
 import type { Schedule2View } from './schedule2Tab';
-export type ScheduleSearchMode = 'individual' | 'team';
 
 const PULSE = 'spl-cell--issue-pulse';
 const FONT13 = 'font-size: 0.8125rem';
@@ -37,7 +35,6 @@ interface Schedule2HeaderParams {
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
   onBulkModeChange: (enabled: boolean) => void;
-  onSearch?: (text: string, mode: ScheduleSearchMode) => void;
   onClearSchedule?: (target: HTMLElement) => void;
 }
 
@@ -53,7 +50,6 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     onDateChange,
     onViewChange,
     onBulkModeChange,
-    onSearch,
     onClearSchedule,
   } = params;
 
@@ -158,57 +154,6 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
       // keep reference to suppress unused warning
       void issuesTippy; //NOSONAR
     });
-  }
-
-  // ── Search field (grid view only) ──
-  if (activeView === 'grid' && onSearch) {
-    const searchWrap = document.createElement('div');
-    searchWrap.style.cssText = 'display: flex; align-items: center; gap: 4px; margin-left: 4px;';
-
-    const searchInput = document.createElement('input');
-    // Use 'text', not 'search' — search inputs render a native browser
-    // clear (×) that double-stacks with the (×) added by wrapSearchWithClear.
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Search schedule\u2026';
-    searchInput.style.cssText =
-      'font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); width: 150px;';
-
-    const modeSelect = document.createElement('select');
-    modeSelect.title = 'Search by individual or team name';
-    modeSelect.style.cssText =
-      'font-size: 0.6875rem; padding: 3px 4px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); cursor: pointer;';
-    const indOpt = document.createElement('option');
-    indOpt.value = 'individual';
-    indOpt.textContent = 'Individual';
-    const teamOpt = document.createElement('option');
-    teamOpt.value = 'team';
-    teamOpt.textContent = 'Team';
-    modeSelect.appendChild(indOpt);
-    modeSelect.appendChild(teamOpt);
-
-    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-    const doSearch = () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        onSearch(searchInput.value, modeSelect.value as ScheduleSearchMode);
-      }, 200);
-    };
-
-    searchInput.addEventListener('input', doSearch);
-    modeSelect.addEventListener('change', doSearch);
-
-    const inputWithClear = wrapSearchWithClear(searchInput, () => {
-      searchInput.value = '';
-      onSearch('', modeSelect.value as ScheduleSearchMode);
-      searchInput.focus();
-    });
-    // Native fixed-width input — preserve it inside the helper's flex wrapper.
-    inputWithClear.style.flex = '0 0 auto';
-    inputWithClear.style.minWidth = '0';
-
-    searchWrap.appendChild(inputWithClear);
-    searchWrap.appendChild(modeSelect);
-    left.appendChild(searchWrap);
   }
 
   bar.appendChild(left);

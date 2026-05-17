@@ -1,14 +1,16 @@
 /**
- * Grid Header Actions — three icon buttons (catalog, active strip, print)
- * injected into the courthive-components court-grid header slot.
+ * Grid Header Actions — controls injected into the courthive-components
+ * court-grid header slot:
+ *   - leading: catalog show/hide toggle
+ *   - titleSlot: schedule-wide search input (replaces the default "Court Grid"
+ *     label so the header reads as a single clean search field)
+ *   - trailing: active-strip toggle, rows stepper, print
  *
- * During the test phase these run alongside the equivalent icons in
- * schedule2Header.ts so the UX can be compared before removal.
- *
- * Each button manages its own visual state (aria-pressed, opacity, title).
+ * Each control manages its own visual state (aria-pressed, opacity, label).
  * Toggle callbacks receive the new state; the consumer persists + applies it.
  */
 import { competitionEngine } from 'tods-competition-factory';
+import { wrapSearchWithClear } from 'courthive-components';
 import { printSchedule } from 'components/modals/printSchedule';
 
 const ARIA_PRESSED = 'aria-pressed';
@@ -16,12 +18,18 @@ const ARIA_PRESSED = 'aria-pressed';
 const MIN_ROWS_FLOOR = 1;
 const MIN_ROWS_CEILING = 200;
 
+// Shared style fragments — extracted because Sonar flags 3-way literal
+// duplication across BTN_BASE_STYLE, the Rows stepper, and the search slot.
+const BORDER_RADIUS_6 = 'border-radius: 6px';
+const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
+const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
+
 const BTN_BASE_STYLE = [
   'font-size: 0.75rem',
   'padding: 4px 8px',
-  'border-radius: 6px',
-  'border: 1px solid var(--tmx-border-primary)',
-  'color: var(--tmx-color-primary)',
+  BORDER_RADIUS_6,
+  BORDER_PRIMARY,
+  COLOR_PRIMARY,
   'cursor: pointer',
   'display: inline-flex',
   'align-items: center',
@@ -43,12 +51,16 @@ export interface GridHeaderActionsParams {
   onToggleCatalog: (visible: boolean) => void;
   onToggleActiveStrip: (visible: boolean) => void;
   onMinRowsChange: (rows: number) => void;
+  onSearch: (text: string) => void;
 }
 
 export interface GridHeaderActions {
-  /** Rendered immediately before the "Court Grid" title — co-located with the
+  /** Rendered immediately before the title slot — co-located with the
    *  catalog it controls (left column). */
   leading: HTMLElement[];
+  /** Element rendered in place of the default "Court Grid" title — the
+   *  schedule-wide search input. */
+  titleSlot: HTMLElement;
   /** Rendered right-aligned in the header — actions that operate on the grid itself. */
   trailing: HTMLElement[];
 }
@@ -63,6 +75,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     onToggleCatalog,
     onToggleActiveStrip,
     onMinRowsChange,
+    onSearch,
   } = params;
 
   const catalogBtn = buildToggleButton({
@@ -105,7 +118,54 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     printSchedule({ scheduledDate: selectedDate, courts: courtsData, rows });
   });
 
-  return { leading: [catalogBtn], trailing: [stripBtn, rowsStepper, printBtn] };
+  return {
+    leading: [catalogBtn],
+    titleSlot: buildSearchSlot(onSearch),
+    trailing: [stripBtn, rowsStepper, printBtn],
+  };
+}
+
+// ── Search slot ──
+
+/**
+ * Schedule-wide search input that replaces the default "Court Grid" title.
+ * Debounces input by 200ms before invoking the callback; click/Escape via
+ * wrapSearchWithClear clears immediately. Stretches to fill available space
+ * in the header's flex layout so the search reads as the prominent action.
+ */
+function buildSearchSlot(onSearch: (text: string) => void): HTMLElement {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Search schedule…';
+  input.style.cssText = [
+    'font-size: 0.8125rem',
+    'padding: 4px 10px',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
+    'background: var(--tmx-bg-primary)',
+    COLOR_PRIMARY,
+    'width: 260px',
+    'max-width: 100%',
+  ].join('; ');
+
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+  const fire = () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => onSearch(input.value), 200);
+  };
+  input.addEventListener('input', fire);
+
+  const slot = wrapSearchWithClear(input, () => {
+    input.value = '';
+    onSearch('');
+    input.focus();
+  });
+  // The slot defaults to `flex: 1` so it stretches; override with a fixed
+  // width so the trailing actions don't get pushed off-screen on narrow
+  // viewports. min-width: 0 still lets it shrink below its content if the
+  // header is squeezed.
+  slot.style.flex = '0 0 auto';
+  return slot;
 }
 
 // ── Min-rows Stepper ──
@@ -117,16 +177,15 @@ function buildMinRowsStepper(initial: number, onChange: (rows: number) => void):
     'display: inline-flex',
     'align-items: center',
     'gap: 2px',
-    'border-radius: 6px',
-    'border: 1px solid var(--tmx-border-primary)',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
     'overflow: hidden',
     'height: 26px',
   ].join('; ');
 
   const label = document.createElement('span');
   label.textContent = 'Rows';
-  label.style.cssText =
-    'font-size: 0.6875rem; padding: 0 6px 0 8px; color: var(--tmx-color-primary); align-items: center; display: inline-flex; height: 100%;';
+  label.style.cssText = `font-size: 0.6875rem; padding: 0 6px 0 8px; ${COLOR_PRIMARY}; align-items: center; display: inline-flex; height: 100%;`;
   wrap.appendChild(label);
 
   let current = clampRows(initial);
@@ -135,8 +194,7 @@ function buildMinRowsStepper(initial: number, onChange: (rows: number) => void):
   const plus = makeStepperButton('+');
 
   const value = document.createElement('span');
-  value.style.cssText =
-    'font-size: 0.75rem; font-weight: 600; min-width: 22px; text-align: center; color: var(--tmx-color-primary); align-items: center; display: inline-flex; justify-content: center; height: 100%;';
+  value.style.cssText = `font-size: 0.75rem; font-weight: 600; min-width: 22px; text-align: center; ${COLOR_PRIMARY}; align-items: center; display: inline-flex; justify-content: center; height: 100%;`;
   value.textContent = String(current);
 
   const apply = (next: number) => {
@@ -167,7 +225,7 @@ function makeStepperButton(symbol: string): HTMLButtonElement {
     'height: 100%',
     'border: 0',
     'background: transparent',
-    'color: var(--tmx-color-primary)',
+    COLOR_PRIMARY,
     'cursor: pointer',
     'padding: 0',
   ].join('; ');
