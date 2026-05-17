@@ -15,8 +15,25 @@ const SERVER = 'http://localhost:8383';
  */
 test.describe('Journey 28 — Authenticated server tournament creation', () => {
   let authToken: string;
+  let cfsReachable = false;
 
   test.beforeAll(async ({ request }) => {
+    // Probe CFS first — this is the only e2e spec that needs the server up.
+    // Local-only runs without CFS skip cleanly instead of timing out 6+ times.
+    // Any HTTP response (including 301/404) counts as "reachable" — only an
+    // ECONNREFUSED / timeout means the server is actually down.
+    try {
+      await request.get(`${SERVER}/`, {
+        failOnStatusCode: false,
+        maxRedirects: 0,
+        timeout: 2000,
+      });
+      cfsReachable = true;
+    } catch {
+      cfsReachable = false;
+    }
+    if (!cfsReachable) return;
+
     // Ensure the e2e test user exists
     const loginAttempt = await request.post(`${SERVER}/auth/login`, {
       data: { email: E2E_EMAIL, password: E2E_PASSWORD },
@@ -54,6 +71,7 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
   });
 
   test('create tournament via UI, verify on server, open it', async ({ page, request }) => {
+    test.skip(!cfsReachable, `CFS not reachable at ${SERVER}`);
     const tournamentName = `E2E Server ${Date.now()}`;
 
     await page.goto('/');
