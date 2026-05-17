@@ -83,7 +83,11 @@ export function getUnifiedColumns({
       hozAlign: CENTER,
       headerHozAlign: CENTER,
       headerSort: false,
-      width: 95,
+      // 120 fits the longest labels ("Qualifying", "Alternates") with their
+      // 6px chip padding + Tabulator's own cell padding, with breathing
+      // room for the slightly wider rendering when the row is selected.
+      // Was 95, which clipped even the shorter "Accepted" badge into "..."
+      width: 120,
     },
     {
       formatter: (cell: any) => {
