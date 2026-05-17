@@ -138,8 +138,10 @@ export function buildScalingsChart(scales: ScaleRatings[], options: ScalingsChar
     chartHolder.appendChild(chart);
   }
 
-  root.appendChild(select);
+  // Chart first, selector to its right — reads as "the data, then the
+  // knob that changes it" which feels more natural than label-then-chart.
   root.appendChild(chartHolder);
+  root.appendChild(select);
 
   renderSelect();
   redraw();

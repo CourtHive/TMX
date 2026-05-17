@@ -125,17 +125,26 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     // so it tracks filter state without needing to re-query the engine.
     const headerHandle = headerElement ? installScalingsHeader(headerElement as HTMLElement, headerLabel) : null;
 
-    const refreshHeader = (rows: any[]) => {
+    // Refresh from row-data objects (works with both the `dataChanged`
+    // signature, which passes the data array, and our manual call in
+    // `tableBuilt` via `table.getData()`).
+    const refreshFromData = (rowData: any[]) => {
       if (!headerHandle) return;
-      headerHandle.setCount(rows.length);
-      const participants = rows.map((r: any) => r.getData?.()?.participant).filter(Boolean);
-      const scales = collectAvailableScales(participants);
-      headerHandle.setScales(scales);
+      const list = Array.isArray(rowData) ? rowData : [];
+      headerHandle.setCount(list.length);
+      const participants = list.map((d: any) => d?.participant).filter(Boolean);
+      headerHandle.setScales(collectAvailableScales(participants));
     };
 
-    table.on('dataChanged', () => refreshHeader(table.getRows('active')));
+    // Refresh from Row components (the `dataFiltered` signature).
+    const refreshFromRows = (rows: any[]) => refreshFromData((rows || []).map((r: any) => r.getData?.()));
+
+    // `dataChanged` fires with the (possibly empty) data array — use it
+    // directly instead of `table.getRows('active')` which is empty at
+    // initial replaceData time.
+    table.on('dataChanged', (rowData: any[]) => refreshFromData(rowData));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
-      refreshHeader(table.getRows('active'));
+      refreshFromRows(rows);
       if (!debugConfig.get().averages) return;
 
       // Dynamically calculate averages for all present rating types
@@ -162,7 +171,13 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
       }
     });
     table.on('scrollVertical', destroyTipster);
-    table.on('tableBuilt', () => (ready = true));
+    table.on('tableBuilt', () => {
+      ready = true;
+      // Initial render. `dataChanged` may not fire when data is seeded
+      // via the constructor's `data:` option, so prime the header
+      // explicitly the moment the table is interactive.
+      refreshFromData(table.getData());
+    });
   };
 
   render(data);

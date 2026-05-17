@@ -348,9 +348,10 @@ function appendScalingsPanel(statsContainer: HTMLElement): void {
 
   const { element: chartElement } = buildScalingsChart(scales, { variant: 'full' });
   // The selector lives inside the chart element. Move it up into the
-  // header so the title and the scale selector share a row.
-  const selectorEl = chartElement.firstElementChild as HTMLElement | null;
-  if (selectorEl?.tagName === 'SELECT') header.appendChild(selectorEl);
+  // header so the title and the scale selector share a row. The chart
+  // module appends [chart, select] so the selector is the LAST child.
+  const selectorEl = chartElement.querySelector(':scope > select') as HTMLElement | null;
+  if (selectorEl) header.appendChild(selectorEl);
 
   card.appendChild(header);
   card.appendChild(chartElement);
