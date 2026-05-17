@@ -27,13 +27,16 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.message === 'Network Error') {
+    const silenceErrors = (error.config as any)?.silenceErrors;
+    if (error.message === 'Network Error' && !silenceErrors) {
       tmxToast({ message: error.message, intent: 'is-danger' });
     }
     if (error.response) {
       if (error.response?.status === 401) removeAuthorization();
-      const message = error.response.data.message || error.response.data.error || error.response.data;
-      tmxToast({ message, intent: 'is-danger' });
+      if (!silenceErrors) {
+        const message = error.response.data.message || error.response.data.error || error.response.data;
+        tmxToast({ message, intent: 'is-danger' });
+      }
     }
   },
 );
