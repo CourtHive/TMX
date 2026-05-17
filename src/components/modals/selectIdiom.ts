@@ -49,7 +49,12 @@ const iocToLang: Record<string, string> = {
 
 export async function selectIdiom(): Promise<void> {
   // Source available locales from CFS manifest; fall back to bundled set.
-  const manifest = await fetchManifest();
+  // Force-refresh — the modal is user-initiated and low-frequency, and the
+  // user expects to see whatever locales are currently available, not
+  // whatever was cached up to 5 minutes ago. Without `{ force: true }`,
+  // newly-added locales (e.g. cs/hr) wouldn't appear until the cache
+  // naturally expired.
+  const manifest = await fetchManifest({ force: true });
   const bundledLanguages = Object.keys(i18next.options?.resources || {});
   const manifestLanguages = manifest?.locales?.map((l) => l.code) ?? [];
   const availableSet = new Set<string>([...bundledLanguages, ...manifestLanguages]);
