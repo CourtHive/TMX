@@ -18,7 +18,7 @@ import { context } from 'services/context';
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
 import { buildGridHeaderActions } from './gridHeaderActions';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
 import {
@@ -183,9 +183,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     activeView: view,
     startDate,
     endDate,
-    bulkMode: getGridBulkMode(),
     scheduleDates: buildScheduleDates(scheduledDate),
-    issues: buildIssues(scheduledDate),
     onDateChange: (date: string) => {
       if (!confirmUnsavedChanges()) return;
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
@@ -196,19 +194,6 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
       context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
     },
-    onBulkModeChange: (enabled: boolean) => {
-      const result = setGridBulkMode(enabled);
-      if (result !== enabled) {
-        controlAnchor.innerHTML = '';
-        renderSchedule2Tab(params);
-      }
-    },
-    onClearSchedule: (target) =>
-      openClearScheduleMenu({
-        target,
-        scheduledDate,
-        onCleared: () => refreshGridView(),
-      }),
   });
   controlAnchor.appendChild(header);
 
@@ -243,6 +228,20 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       titleLeadingActions: gridActions.leading,
       titleSlot: gridActions.titleSlot,
       activeStripVisible,
+      bulkMode: getGridBulkMode(),
+      onBulkModeChange: (enabled: boolean) => {
+        const result = setGridBulkMode(enabled);
+        if (result !== enabled) {
+          controlAnchor.innerHTML = '';
+          renderSchedule2Tab(params);
+        }
+      },
+      onClearSchedule: (target) =>
+        openClearScheduleMenu({
+          target,
+          scheduledDate,
+          onCleared: () => refreshGridView(),
+        }),
     });
     // Wire remote-mutation refresh so cells update when other clients schedule matchUps
     context.refreshActiveTable = refreshGridView;

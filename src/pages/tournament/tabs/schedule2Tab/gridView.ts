@@ -32,6 +32,7 @@ import { context } from 'services/context';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
+import { buildGridActionBar } from './gridActionBar';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -131,6 +132,9 @@ export function renderGridView(
     titleLeadingActions?: HTMLElement[];
     titleSlot?: HTMLElement;
     activeStripVisible?: boolean;
+    bulkMode?: boolean;
+    onBulkModeChange?: (enabled: boolean) => void;
+    onClearSchedule?: (target: HTMLElement) => void;
   },
 ): void {
   syncVisibilityDate(scheduledDate);
@@ -306,7 +310,33 @@ export function renderGridView(
     },
   };
 
-  activeControl = createSchedulePage(config, container);
+  // Mount the schedule page inside a flex-column wrapper so a bottom
+  // action bar (Issues / Bulk mode / Clear) can sit below the panel —
+  // mirrors the profile view's action-bar pattern. Without the wrapper,
+  // #schedule2Container is plain block layout and the bar would push
+  // outside the fixed-height viewport.
+  const panelWrapper = document.createElement('div');
+  panelWrapper.style.cssText = 'display: flex; flex-direction: column; height: 100%; overflow: hidden;';
+  container.appendChild(panelWrapper);
+
+  const panelArea = document.createElement('div');
+  panelArea.style.cssText = 'flex: 1; min-height: 0; overflow: hidden;';
+  panelWrapper.appendChild(panelArea);
+
+  activeControl = createSchedulePage(config, panelArea);
+
+  // Action bar — only render when there's something to show. The provider
+  // permission check inside buildGridActionBar decides whether the bulk
+  // toggle appears.
+  if (options?.onBulkModeChange || options?.onClearSchedule || issues.length > 0) {
+    const actionBar = buildGridActionBar({
+      issues,
+      bulkMode: options?.bulkMode ?? false,
+      onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
+      onClearSchedule: options?.onClearSchedule,
+    });
+    panelWrapper.appendChild(actionBar);
+  }
 
   // Wire the strip's visibility toggle through the schedule page store, and
   // push the initial data snapshot now that the activeControl exists. We also

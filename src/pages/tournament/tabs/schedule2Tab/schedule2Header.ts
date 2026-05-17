@@ -3,16 +3,15 @@
  *
  * Persistent across view changes. The date selector is a button that opens a
  * tippy popover with date chips (matching courthive-components dateStrip style).
- * An issues icon appears when there are scheduling conflicts.
+ * Issues / Clear / Bulk-mode live in the grid view's bottom action bar
+ * (see gridActionBar.ts).
  */
-import type { ScheduleDate, ScheduleIssue } from 'courthive-components';
+import type { ScheduleDate } from 'courthive-components';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import { providerConfig } from 'config/providerConfig';
 
 // Types
 import type { Schedule2View } from './schedule2Tab';
 
-const PULSE = 'spl-cell--issue-pulse';
 const FONT13 = 'font-size: 0.8125rem';
 
 // Repeated CSS property literals (extracted to satisfy sonar duplicate-literal rule)
@@ -29,29 +28,13 @@ interface Schedule2HeaderParams {
   activeView: Schedule2View;
   startDate: string;
   endDate: string;
-  bulkMode: boolean;
   scheduleDates?: ScheduleDate[];
-  issues?: ScheduleIssue[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
-  onBulkModeChange: (enabled: boolean) => void;
-  onClearSchedule?: (target: HTMLElement) => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
-  const {
-    selectedDate,
-    activeView,
-    startDate,
-    endDate,
-    bulkMode,
-    scheduleDates,
-    issues,
-    onDateChange,
-    onViewChange,
-    onBulkModeChange,
-    onClearSchedule,
-  } = params;
+  const { selectedDate, activeView, startDate, endDate, scheduleDates, onDateChange, onViewChange } = params;
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
@@ -110,100 +93,11 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     });
   });
 
-  // ── Issues icon — grid view only (issues are surfaced as overlays on
-  // grid cells, which the profile view doesn't render). ──
-  if (activeView === 'grid' && issues && issues.length > 0) {
-    const issuesBtn = document.createElement('button');
-    issuesBtn.style.cssText = [
-      'position: relative',
-      'font-size: 0.875rem',
-      'padding: 4px 8px',
-      BORDER_RADIUS_6,
-      BORDER_PRIMARY,
-      BG_PRIMARY,
-      CURSOR_POINTER,
-      'color: var(--tmx-accent-orange, #f59e0b)',
-      DISPLAY_INLINE_FLEX,
-      ALIGN_CENTER,
-      'gap: 4px',
-    ].join('; ');
-    issuesBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-
-    // Count badge
-    const badge = document.createElement('span');
-    badge.style.cssText =
-      'font-size: 0.625rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-fill-warning, #c2410c); color: #fff;';
-    badge.textContent = String(issues.length);
-    issuesBtn.appendChild(badge);
-
-    const issuesPopoverContent = buildIssuesPopover(issues);
-    let issuesTippy: TippyInstance | undefined;
-
-    left.appendChild(issuesBtn);
-
-    requestAnimationFrame(() => {
-      issuesTippy = tippy(issuesBtn, {
-        content: issuesPopoverContent,
-        trigger: 'click',
-        interactive: true,
-        placement: 'bottom-start',
-        theme: 'light-border',
-        appendTo: () => document.body,
-        maxWidth: 400,
-      });
-      // keep reference to suppress unused warning
-      void issuesTippy; //NOSONAR
-    });
-  }
 
   bar.appendChild(left);
 
-  // ── Right: Bulk mode toggle + View switcher ──
+  // ── Right: View switcher ──
   const right = document.createElement('div');
-
-  // Clear schedule actions (grid view only)
-  if (activeView === 'grid' && onClearSchedule) {
-    const clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.style.cssText = [
-      FONT13,
-      'padding: 5px 10px',
-      BORDER_RADIUS_6,
-      BORDER_PRIMARY,
-      BG_PRIMARY,
-      bulkMode ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;' : 'color: var(--tmx-color-primary); cursor: pointer;',
-      DISPLAY_INLINE_FLEX,
-      ALIGN_CENTER,
-      'gap: 6px',
-    ].join('; ');
-    clearBtn.disabled = bulkMode;
-    clearBtn.title = bulkMode ? 'Exit bulk mode to use Clear actions' : 'Clear schedule data';
-    clearBtn.innerHTML =
-      '<i class="fa-solid fa-eraser" style="font-size: 0.75rem;"></i>Clear <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>';
-    clearBtn.addEventListener('click', () => {
-      if (bulkMode) return;
-      onClearSchedule(clearBtn);
-    });
-    right.appendChild(clearBtn);
-  }
-
-  // Bulk mode toggle (grid view only, if permitted)
-  if (activeView === 'grid' && providerConfig.isAllowed('canUseBulkScheduling')) {
-    const bulkLabel = document.createElement('label');
-    bulkLabel.style.cssText =
-      'font-size: 0.75rem; color: var(--tmx-color-primary); cursor: pointer; display: flex; align-items: center; gap: 6px;';
-    bulkLabel.title = 'Queue changes, save all at once';
-
-    const toggle = document.createElement('input');
-    toggle.type = 'checkbox';
-    toggle.checked = bulkMode;
-    toggle.style.cssText = 'cursor: pointer; accent-color: var(--tmx-accent-blue);';
-    toggle.addEventListener('change', () => onBulkModeChange(toggle.checked));
-
-    bulkLabel.appendChild(toggle);
-    bulkLabel.appendChild(document.createTextNode('Bulk mode'));
-    right.appendChild(bulkLabel);
-  }
 
   // View switcher (segmented control)
   const viewSwitcher = document.createElement('div');
@@ -305,116 +199,6 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
   return container;
 }
 
-// ── Issues Popover ──
-
-function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
-  const container = document.createElement('div');
-  container.style.cssText = 'padding: 8px; max-height: 360px; overflow-y: auto; min-width: 280px;';
-
-  const title = document.createElement('div');
-  title.style.cssText = 'font-weight: 700; font-size: 0.75rem; margin-bottom: 8px; color: var(--tmx-color-primary);';
-  title.textContent = `Scheduling Issues (${issues.length})`;
-  container.appendChild(title);
-
-  const severityColors: Record<string, { bg: string; color: string }> = {
-    ERROR: { bg: 'rgba(239,68,68,0.15)', color: '#ef4444' },
-    WARN: { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
-    INFO: { bg: 'rgba(59,130,246,0.15)', color: '#3b82f6' },
-  };
-
-  const P1_COLOR = '#4fc3f7';
-  const P2_COLOR = '#ffb74d';
-  const MUTED = 'opacity: 0.7';
-
-  for (const issue of issues.slice(0, 30)) {
-    const row = document.createElement('div');
-    row.style.cssText =
-      'display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--tmx-border-primary, #e5e7eb);';
-
-    if (issue.matchUpId) {
-      row.style.cursor = 'pointer';
-      const candidates = issue.conflictMatchUpIds || [issue.matchUpId];
-      row.addEventListener('click', () => scrollToMatchUp(candidates));
-    }
-
-    const badge = document.createElement('span');
-    const colors = severityColors[issue.severity] ?? severityColors.WARN;
-    badge.style.cssText = `font-size: 0.5625rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; background: ${colors.bg}; color: ${colors.color};`;
-    badge.textContent = issue.severity;
-
-    const msg = document.createElement('span');
-    msg.style.cssText = 'font-size: 0.6875rem; color: var(--tmx-color-primary); line-height: 1.4;';
-
-    if (issue.participants) {
-      if (issue.prefix) {
-        const s = document.createElement('span');
-        s.style.cssText = MUTED;
-        s.textContent = issue.prefix;
-        msg.appendChild(s);
-      }
-      const typeSpan = document.createElement('span');
-      typeSpan.style.cssText = MUTED;
-      typeSpan.textContent = (issue.issueType || '') + ': ';
-      msg.appendChild(typeSpan);
-
-      const p1 = document.createElement('span');
-      p1.style.cssText = `color: ${P1_COLOR}; font-weight: 600;`;
-      p1.textContent = issue.participants;
-      msg.appendChild(p1);
-
-      if (issue.conflictParticipants?.length) {
-        const sep = document.createElement('span');
-        sep.style.cssText = MUTED;
-        sep.textContent = ' conflicts with ';
-        msg.appendChild(sep);
-
-        issue.conflictParticipants.forEach((cp, i) => {
-          if (i > 0) {
-            const comma = document.createElement('span');
-            comma.style.cssText = MUTED;
-            comma.textContent = ', ';
-            msg.appendChild(comma);
-          }
-          const p2 = document.createElement('span');
-          p2.style.cssText = `color: ${P2_COLOR}; font-weight: 600;`;
-          p2.textContent = cp;
-          msg.appendChild(p2);
-        });
-      }
-    } else {
-      msg.textContent = issue.message;
-    }
-
-    row.appendChild(badge);
-    row.appendChild(msg);
-    container.appendChild(row);
-  }
-
-  if (issues.length > 30) {
-    const more = document.createElement('div');
-    more.style.cssText = 'font-size: 0.6875rem; color: var(--tmx-muted); padding: 6px 0; text-align: center;';
-    more.textContent = `\u2026and ${issues.length - 30} more`;
-    container.appendChild(more);
-  }
-
-  return container;
-}
-
-function scrollToMatchUp(matchUpIds: string[]): void {
-  let cell: HTMLElement | null = null;
-  for (const mid of matchUpIds) {
-    cell = document.querySelector(`.spl-grid-cell[data-matchup-id="${mid}"]`);
-    if (cell) break;
-  }
-  if (!cell) return;
-
-  cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-
-  cell.classList.remove(PULSE);
-  void cell.offsetWidth; //NOSONAR
-  cell.classList.add(PULSE);
-  cell.addEventListener('animationend', () => cell.classList.remove(PULSE), { once: true });
-}
 
 // ── Helpers ──
 
