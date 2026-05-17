@@ -141,7 +141,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     // Count badge
     const badge = document.createElement('span');
     badge.style.cssText =
-      'font-size: 0.625rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-accent-orange, #f59e0b); color: #fff;';
+      'font-size: 0.625rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-fill-warning, #c2410c); color: #fff;';
     badge.textContent = String(issues.length);
     issuesBtn.appendChild(badge);
 
@@ -385,7 +385,7 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
       'cursor: pointer',
       'margin-bottom: 2px',
       'transition: background 0.15s',
-      isSelected ? 'background: var(--tmx-accent-blue, #3b82f6); color: #fff;' : '',
+      isSelected ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff;' : '',
     ].join('; ');
 
     chip.addEventListener('mouseenter', () => {
@@ -546,7 +546,7 @@ function scrollToMatchUp(matchUpIds: string[]): void {
 function segmentBtnStyle(active: boolean): string {
   const base = `font-size: 0.75rem; padding: 5px 12px; ${BORDER_PRIMARY}; ${CURSOR_POINTER}; ${DISPLAY_INLINE_FLEX}; ${ALIGN_CENTER}; transition: background 0.15s;`;
   if (active) {
-    return base + 'background: var(--tmx-accent-blue); color: #fff; font-weight: 600;';
+    return base + 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;';
   }
   return base + `${BG_PRIMARY}; ${COLOR_PRIMARY};`;
 }

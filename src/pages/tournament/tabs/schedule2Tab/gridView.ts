@@ -367,7 +367,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       'border: 1px solid transparent',
       'white-space: nowrap',
       active
-        ? 'background: var(--sp-accent, var(--tmx-accent-blue, #3b82f6)); color: #fff; font-weight: 600;'
+        ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;'
         : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
     ].join('; ');
   unschedTab.textContent = t('schedule.unscheduled');
@@ -1194,7 +1194,7 @@ function buildGridHeaders(params: {
   if (hiddenCourtIds.size > 0) {
     const badge = document.createElement('span');
     badge.style.cssText =
-      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-accent-blue, #3b82f6); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
+      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-fill-accent, #2563eb); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
     badge.textContent = String(hiddenCourtIds.size);
     corner.appendChild(badge);
   }

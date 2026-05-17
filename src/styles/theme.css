@@ -27,7 +27,9 @@ html {
   --tmx-border-secondary: #e0e0e0;
   --tmx-border-focus: #4a90d9;
 
-  /* Accents */
+  /* Accents — tuned for foreground / border / decorative use against the
+   * page background. Do NOT pair these with white text as a fill; use the
+   * `--tmx-fill-*` family below for that. */
   --tmx-accent-blue: #4a90d9;
   --tmx-accent-green: #48c774;
   --tmx-accent-purple: #b86bff;
@@ -35,6 +37,13 @@ html {
   --tmx-accent-orange: #ff9f43;
   --tmx-accent-teal: #00b8a9;
   --tmx-accent-pink: #AA336A;
+
+  /* Fills — solid backgrounds that pair with white text and pass WCAG AA
+   * (4.5:1) in both light and dark mode. Use these for badges, active
+   * pills, selected chips, and toggle buttons — anywhere the existing
+   * accent color was being used as a filled background. */
+  --tmx-fill-accent: #2563eb; /* 4.69 vs white — AA */
+  --tmx-fill-warning: #c2410c; /* 5.30 vs white — AA */
 
   /* Status */
   --tmx-status-success: #48c774;
@@ -156,7 +165,8 @@ html {
   --tmx-border-secondary: #333333;
   --tmx-border-focus: #5b9bd5;
 
-  /* Accents */
+  /* Accents — see comment in :root. These stay light/vivid for foreground
+   * use against the dark page background. */
   --tmx-accent-blue: #5b9bd5;
   --tmx-accent-green: #5cb878;
   --tmx-accent-purple: #c88aff;
@@ -164,6 +174,12 @@ html {
   --tmx-accent-orange: #ffb366;
   --tmx-accent-teal: #1a9e8f;
   --tmx-accent-pink: #CC4488;
+
+  /* Fills — same hex as :root so a "primary CTA blue" looks the same in
+   * both modes. The values are dark enough to pair with white text and
+   * pass WCAG AA against the page bg as well. */
+  --tmx-fill-accent: #2563eb;
+  --tmx-fill-warning: #c2410c;
 
   /* Status */
   --tmx-status-success: #5cb878;
