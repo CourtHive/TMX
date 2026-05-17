@@ -29,6 +29,15 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
       port: 5173,
       strictPort: true,
     },
+    // `@courthive/provider-config` ships CJS only (no `module` field, no
+    // `"type": "module"`). When resolved via pnpm `link:` it bypasses
+    // Vite's dep pre-bundling, so the on-the-fly CJS→ESM transform misses
+    // named exports declared via `Object.defineProperty(exports, ...)` —
+    // exactly what `tsc`-emitted re-exports look like. Force pre-bundling
+    // so esbuild's full CJS-named-exports detection runs instead.
+    optimizeDeps: {
+      include: ['@courthive/provider-config'],
+    },
     resolve: {
       tsconfigPaths: true,
       alias: {
