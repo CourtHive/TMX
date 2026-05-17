@@ -5,8 +5,49 @@
 import { getMessages, getOnlineCount, sendMessage, setChatModalOpen, onChatUpdate } from 'services/chat/chatService';
 
 const PANEL_ID = 'chatPanel';
+const PANEL_WIDTH = 340;
+const POSITION_KEY = 'tmx.chatPanel.position';
+// Minimum number of pixels of the panel that must stay inside the viewport
+// after restore — if the saved spot leaves less than this on screen, we
+// clamp instead. Lets the header stay grabbable after a monitor change.
+const MIN_ONSCREEN = 80;
 
 let unsubscribe: (() => void) | undefined;
+
+interface PanelPosition {
+  left: number;
+  top: number;
+}
+
+function loadPanelPosition(): PanelPosition | null {
+  try {
+    const raw = localStorage.getItem(POSITION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PanelPosition>;
+    if (typeof parsed.left !== 'number' || typeof parsed.top !== 'number') return null;
+    return { left: parsed.left, top: parsed.top };
+  } catch {
+    return null;
+  }
+}
+
+function savePanelPosition(pos: PanelPosition): void {
+  try {
+    localStorage.setItem(POSITION_KEY, JSON.stringify(pos));
+  } catch {
+    // Storage quota or disabled — silently ignore; the panel just won't
+    // remember its position next session.
+  }
+}
+
+function clampPosition(pos: PanelPosition): PanelPosition {
+  const maxLeft = window.innerWidth - MIN_ONSCREEN;
+  const maxTop = window.innerHeight - MIN_ONSCREEN;
+  return {
+    left: Math.max(0, Math.min(pos.left, maxLeft)),
+    top: Math.max(0, Math.min(pos.top, maxTop)),
+  };
+}
 
 export function openChatModal(): void {
   // Toggle — if already open, close it
@@ -75,19 +116,27 @@ export function openChatModal(): void {
     input.focus();
   };
 
-  // Position near the chat icon if possible, otherwise top-right
-  const chatIcon = document.getElementById('chatIndicator');
-  const iconRect = chatIcon?.getBoundingClientRect();
-  const topPos = iconRect ? `${iconRect.bottom + 8}px` : '60px';
-  const rightPos = iconRect ? `${window.innerWidth - iconRect.right}px` : '16px';
+  // Restore saved position if there is one and it's still on screen;
+  // otherwise fall back to "near the chat icon" for first-time users.
+  const savedPosition = loadPanelPosition();
+  const positionStyles: string[] = [];
+  if (savedPosition) {
+    const clamped = clampPosition(savedPosition);
+    positionStyles.push(`left: ${clamped.left}px`, `top: ${clamped.top}px`);
+  } else {
+    const chatIcon = document.getElementById('chatIndicator');
+    const iconRect = chatIcon?.getBoundingClientRect();
+    const topPos = iconRect ? `${iconRect.bottom + 8}px` : '60px';
+    const rightPos = iconRect ? `${window.innerWidth - iconRect.right}px` : '16px';
+    positionStyles.push(`top: ${topPos}`, `right: ${rightPos}`);
+  }
 
   const panel = document.createElement('div');
   panel.id = PANEL_ID;
   panel.style.cssText = [
     'position: fixed',
-    `top: ${topPos}`,
-    `right: ${rightPos}`,
-    'width: 340px',
+    ...positionStyles,
+    `width: ${PANEL_WIDTH}px`,
     'max-height: 480px',
     'display: flex',
     'flex-direction: column',
@@ -225,6 +274,10 @@ function enableDrag(handle: HTMLElement, panel: HTMLElement): void {
   const onMouseUp = () => {
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
+    // Save the panel's final on-screen position so the next open lands
+    // where the user left it.
+    const rect = panel.getBoundingClientRect();
+    savePanelPosition({ left: rect.left, top: rect.top });
   };
 
   handle.addEventListener('mousedown', (e) => {
