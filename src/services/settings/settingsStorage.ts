@@ -19,6 +19,11 @@ export type TMXSettings = {
   smartComplements?: boolean;
   assistant?: boolean;
   formatWizard?: boolean;
+  /**
+   * @deprecated — Reports tab has been promoted to production. The icon
+   * is always visible; the flag is no longer read. Retained in the type
+   * only so existing localStorage blobs deserialize cleanly.
+   */
   reports?: boolean;
   /**
    * @deprecated — the legacy split-by-status entries table has been
@@ -140,7 +145,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   const flagsPatch: Record<string, any> = {};
   if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
   if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
-  if (settings.reports !== undefined) flagsPatch.reports = settings.reports;
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -169,7 +173,6 @@ export function persistConfigToStorage(
     saveLocal: server.saveLocal,
     assistant: flags.assistant,
     formatWizard: flags.formatWizard,
-    reports: flags.reports,
     ...extras,
   });
 }

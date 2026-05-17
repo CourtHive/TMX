@@ -54,4 +54,13 @@ describe('settingsStorage — hydrateConfigFromStorage', () => {
     expect(flags.legacySchedule).toBeUndefined();
     expect(flags.schedule2).toBeUndefined();
   });
+
+  it('ignores deprecated reports flag (now production-promoted)', () => {
+    // Reports tab was promoted to production — its flag no longer exists
+    // on FeatureFlags but old localStorage blobs may still carry the field.
+    saveSettings({ reports: true });
+    hydrateConfigFromStorage();
+    const flags = featureFlags.get() as unknown as Record<string, unknown>;
+    expect(flags.reports).toBeUndefined();
+  });
 });

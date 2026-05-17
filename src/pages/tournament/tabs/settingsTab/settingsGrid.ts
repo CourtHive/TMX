@@ -111,12 +111,7 @@ async function persistAll(
   featureFlags.set({
     assistant: displayInputs.assistant?.checked || false,
     formatWizard: displayInputs.formatWizard?.checked || false,
-    reports: displayInputs.reports?.checked || false,
   });
-
-  // Immediately update beta nav icon visibility
-  const rIcon = document.getElementById('r-route');
-  if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
   if (scoringInputs.dynamicSets.checked) {
@@ -385,14 +380,6 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
       checked: featureFlags.get().assistant || false,
       field: 'assistant',
       id: 'assistant',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: 'Reports tab',
-      checked: featureFlags.get().reports || false,
-      field: 'reports',
-      id: 'reports',
       onChange: persist,
       checkbox: true,
     },

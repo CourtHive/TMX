@@ -8,14 +8,12 @@
 export interface FeatureFlags {
   assistant: boolean;
   formatWizard: boolean;
-  reports: boolean;
   usePublishState: boolean;
 }
 
 const defaults: FeatureFlags = {
   assistant: false,
   formatWizard: false,
-  reports: false,
   usePublishState: false,
 };
 

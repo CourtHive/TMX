@@ -158,10 +158,6 @@ export function tmxNavigation(): void {
 
   const ids = Object.keys(routeMap);
 
-  // Hide beta nav icons based on flags
-  const rIcon = document.getElementById('r-route');
-  if (rIcon) rIcon.style.display = featureFlags.get().reports ? '' : 'none';
-
   const selectedTab = context.router?.current?.[0]?.data?.selectedTab;
 
   const tippyContent = (text: string) => {
