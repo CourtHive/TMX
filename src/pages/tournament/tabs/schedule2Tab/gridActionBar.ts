@@ -9,9 +9,9 @@
  * Matches the visual of the profile view's action bar so both views read
  * as a unified "panel + bottom strip" pair.
  */
-import type { ScheduleIssue } from 'courthive-components';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
+import { ScheduleIssue } from 'courthive-components';
 
 const PULSE = 'spl-cell--issue-pulse';
 const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';

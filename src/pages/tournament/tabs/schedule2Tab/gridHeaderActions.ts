@@ -9,9 +9,9 @@
  * Each control manages its own visual state (aria-pressed, opacity, label).
  * Toggle callbacks receive the new state; the consumer persists + applies it.
  */
+import { printSchedule } from 'components/modals/printSchedule';
 import { competitionEngine } from 'tods-competition-factory';
 import { wrapSearchWithClear } from 'courthive-components';
-import { printSchedule } from 'components/modals/printSchedule';
 
 const ARIA_PRESSED = 'aria-pressed';
 

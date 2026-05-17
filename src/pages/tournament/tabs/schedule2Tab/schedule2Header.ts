@@ -6,11 +6,11 @@
  * Issues / Clear / Bulk-mode live in the grid view's bottom action bar
  * (see gridActionBar.ts).
  */
-import type { ScheduleDate } from 'courthive-components';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { ScheduleDate } from 'courthive-components';
 
 // Types
-import type { Schedule2View } from './schedule2Tab';
+import { Schedule2View } from './schedule2Tab';
 
 const FONT13 = 'font-size: 0.8125rem';
 
