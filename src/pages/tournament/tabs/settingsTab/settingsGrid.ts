@@ -15,7 +15,7 @@ import { serverConfig } from 'config/serverConfig';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import { platform } from 'platform';
-import { fetchManifest } from 'i18n/runtime-loader';
+import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
 import { i18next, t } from 'i18n';
 import {
   applyFont,
@@ -98,13 +98,13 @@ function buildLanguageOptions(
   return out;
 }
 
-function persistAll(
+async function persistAll(
   languageInputs: any,
   ratingInputs: any,
   scoringInputs: any,
   storageInputs: any,
   displayInputs: any,
-): void {
+): Promise<void> {
   const previousAssistant = featureFlags.get().assistant;
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
@@ -145,6 +145,20 @@ function persistAll(
   // User explicitly picked a language here — mark as explicit so provider
   // default-language no longer overrides on subsequent boots.
   persistConfigToStorage({ language, languageExplicit: true });
+
+  if (languageChanged) {
+    // Fetch + cache the new locale BEFORE reload so the post-reload boot
+    // can sync-load it from cache via initialState.ts. Without this, the
+    // first reload after picking a new language renders English fallbacks
+    // until ensureLocaleCurrent's background fetch completes.
+    try {
+      await ensureLocaleCurrent(language);
+    } catch {
+      // Fetch failure — proceed with reload anyway; the boot path will
+      // retry the fetch and the user gets English fallback in the
+      // meantime. Better than blocking the reload indefinitely.
+    }
+  }
 
   if (languageChanged || assistantChanged) {
     globalThis.location.reload();

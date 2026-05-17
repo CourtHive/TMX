@@ -25,7 +25,7 @@ import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
 import { initConfig } from 'config/config';
 import { version } from 'config/version';
-import { ensureLocaleCurrent, i18next } from 'i18n';
+import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
@@ -97,7 +97,21 @@ export function setupTMX(): void {
   try {
     const savedSettings = hydrateConfigFromStorage();
     const resolved = resolveBootLanguage(savedSettings);
-    if (resolved) i18next.changeLanguage(resolved);
+    if (resolved) {
+      // Sync-load the cached locale before changeLanguage so the FIRST
+      // render uses the right strings. Without this, the DOM is built
+      // synchronously below with i18next holding only the bundled `en`
+      // bundle, so all t() calls fall back to English — even though the
+      // user picked (e.g.) `cs`. The background ensureLocaleCurrent call
+      // further down upgrades the cache if a newer SHA is available.
+      if (resolved !== 'en') {
+        const cached = getCachedLocale(resolved);
+        if (cached) {
+          i18next.addResourceBundle(resolved, 'translation', cached.content, true, true);
+        }
+      }
+      i18next.changeLanguage(resolved);
+    }
   } catch (err) {
     console.error('Failed to hydrate config from storage:', err);
   }
