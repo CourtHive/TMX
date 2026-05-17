@@ -172,7 +172,9 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     searchWrap.style.cssText = 'display: flex; align-items: center; gap: 4px; margin-left: 4px;';
 
     const searchInput = document.createElement('input');
-    searchInput.type = 'search';
+    // Use 'text', not 'search' — search inputs render a native browser
+    // clear (×) that double-stacks with the (×) added by wrapSearchWithClear.
+    searchInput.type = 'text';
     searchInput.placeholder = 'Search schedule\u2026';
     searchInput.style.cssText =
       'font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary); width: 150px;';
