@@ -4,7 +4,7 @@
  * 2. Event tabs bar (Draws / Entries / Rankings)
  * 3. Tab content (draw view, entries panels, points table, or add-draw placeholder)
  */
-import { createEntriesPanels } from 'components/tables/eventsTable/createEntriesPanels';
+import { createUnifiedEntriesPanel } from 'components/tables/eventsTable/unified/createUnifiedEntriesPanel';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createPointsTable } from 'components/tables/pointsTable/createPointsTable';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
@@ -118,7 +118,7 @@ function renderDrawTab(
       }
       setEventView({ renderDraw });
     } else {
-      (createEntriesPanels as any)({ eventId, drawId });
+      createUnifiedEntriesPanel({ eventId, drawId });
       setEventView({ eventId });
     }
   } else {
@@ -231,6 +231,6 @@ function renderNoDrawsView(eventId: string, renderDraw: boolean | undefined): vo
 
 function renderEntriesTab(eventId: string, drawId: string | undefined): void {
   renderEventTabsBar({ eventId, drawId, activeTab: 'entries' });
-  (createEntriesPanels as any)({ eventId, drawId });
+  createUnifiedEntriesPanel({ eventId, drawId });
   setEventView({ eventId });
 }

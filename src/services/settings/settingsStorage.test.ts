@@ -24,39 +24,15 @@ describe('settingsStorage — hydrateConfigFromStorage', () => {
     featureFlags.reset();
   });
 
-  it('applies legacyEntriesTable when stored', () => {
-    saveSettings({ legacyEntriesTable: true });
+  it('ignores deprecated legacyEntriesTable and unifiedEntriesTable values', () => {
+    // The legacy split-by-status entries table was removed; the unified
+    // table is the only entries table. Stored values for either flag must
+    // deserialize cleanly but produce no FeatureFlags entry.
+    saveSettings({ legacyEntriesTable: true, unifiedEntriesTable: false });
     hydrateConfigFromStorage();
-    expect(featureFlags.get().legacyEntriesTable).toBe(true);
-  });
-
-  it('leaves legacyEntriesTable at default when nothing is stored', () => {
-    hydrateConfigFromStorage();
-    expect(featureFlags.get().legacyEntriesTable).toBe(false);
-  });
-
-  describe('migration from deprecated unifiedEntriesTable', () => {
-    it('migrates unifiedEntriesTable=false into legacyEntriesTable=true', () => {
-      // A power user previously opted out of the unified table. That opt-out
-      // must survive the promotion / flag rename — they still see the legacy
-      // split-by-status panels.
-      saveSettings({ unifiedEntriesTable: false });
-      hydrateConfigFromStorage();
-      expect(featureFlags.get().legacyEntriesTable).toBe(true);
-    });
-
-    it('does NOT migrate unifiedEntriesTable=true (that was the default path)', () => {
-      saveSettings({ unifiedEntriesTable: true });
-      hydrateConfigFromStorage();
-      expect(featureFlags.get().legacyEntriesTable).toBe(false);
-    });
-
-    it('an explicit new legacyEntriesTable setting takes precedence over legacy unifiedEntriesTable', () => {
-      saveSettings({ unifiedEntriesTable: false, legacyEntriesTable: false });
-      hydrateConfigFromStorage();
-      // The new explicit setting (false) wins over the old implicit migration (true).
-      expect(featureFlags.get().legacyEntriesTable).toBe(false);
-    });
+    const flags = featureFlags.get() as unknown as Record<string, unknown>;
+    expect(flags.legacyEntriesTable).toBeUndefined();
+    expect(flags.unifiedEntriesTable).toBeUndefined();
   });
 
   it('ignores deprecated googleSheetsImport and enableChat values', () => {

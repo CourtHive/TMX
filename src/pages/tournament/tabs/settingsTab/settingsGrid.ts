@@ -15,6 +15,7 @@ import { serverConfig } from 'config/serverConfig';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import { platform } from 'platform';
+import { fetchManifest } from 'i18n/runtime-loader';
 import { i18next, t } from 'i18n';
 import {
   applyFont,
@@ -44,6 +45,59 @@ const { SINGLES } = factoryConstants.eventConstants;
 
 const RATINGS_PANEL_BLUE = 'settings-panel panel-blue';
 
+// Hardcoded display labels for the bundled / always-present `en` locale.
+// Used as the last-resort fallback when the CFS manifest is unreachable
+// AND no other locales are loaded in i18next yet.
+const FALLBACK_LANGUAGES: Record<string, string> = {
+  en: 'English',
+};
+
+interface LanguageOption {
+  value: string;
+  label: string;
+  selected: boolean;
+}
+
+/** Build the radio-button options list for the language panel. Prefers the
+ *  manifest's native labels (e.g. "Čeština" for cs). Falls back to whatever
+ *  i18next already has loaded, then to the bundled-en label. */
+function buildLanguageOptions(
+  manifestLocales: Array<{ code: string; label?: string; nativeLabel?: string }> | undefined,
+  knownInI18next: Set<string>,
+  currentLanguage: string,
+): LanguageOption[] {
+  const seen = new Set<string>();
+  const out: LanguageOption[] = [];
+
+  // Manifest is the primary source. Use nativeLabel so the option reads in
+  // the speaker's own script (e.g. "Čeština", "العربية") — that's the most
+  // self-evident way to recognise your own language in a settings list.
+  for (const entry of manifestLocales ?? []) {
+    if (seen.has(entry.code)) continue;
+    seen.add(entry.code);
+    out.push({
+      value: entry.code,
+      label: entry.nativeLabel || entry.label || entry.code,
+      selected: currentLanguage === entry.code,
+    });
+  }
+
+  // Backstop: any locale i18next has loaded that wasn't in the manifest
+  // (e.g. CFS unreachable, but a prior session fetched the file and it's
+  // still in memory). Include them so the user can keep using them.
+  for (const code of knownInI18next) {
+    if (seen.has(code)) continue;
+    seen.add(code);
+    out.push({
+      value: code,
+      label: FALLBACK_LANGUAGES[code] || code,
+      selected: currentLanguage === code,
+    });
+  }
+
+  return out;
+}
+
 function persistAll(
   languageInputs: any,
   ratingInputs: any,
@@ -58,7 +112,6 @@ function persistAll(
     assistant: displayInputs.assistant?.checked || false,
     formatWizard: displayInputs.formatWizard?.checked || false,
     reports: displayInputs.reports?.checked || false,
-    legacyEntriesTable: displayInputs.legacyEntriesTable?.checked || false,
   });
 
   // Immediately update beta nav icon visibility
@@ -98,7 +151,7 @@ function persistAll(
   }
 }
 
-export function renderSettingsGrid(container: HTMLElement, options?: { excludeTournament?: boolean }): void {
+export async function renderSettingsGrid(container: HTMLElement, options?: { excludeTournament?: boolean }): Promise<void> {
   const currentSettings = loadSettings();
 
   // These are populated after renderForm calls; persist closure captures the refs.
@@ -114,6 +167,15 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   grid.className = 'settings-grid';
 
   // --- Language panel (blue, 1 col) ---
+  // Source the language list from the CFS manifest so newly-added locales
+  // (cs, hr, etc.) appear without a TMX rebuild. force:true so a stale
+  // localStorage cache can't hide a locale that's already live on CFS.
+  // Fall back to whatever i18next has loaded (bundled en + any locale the
+  // runtime-loader already pulled this session) if CFS is unreachable.
+  const manifest = await fetchManifest({ force: true });
+  const knownInI18next = new Set(Object.keys(i18next.options?.resources || {}));
+  const languageOptions = buildLanguageOptions(manifest?.locales, knownInI18next, i18next.language);
+
   const languagePanel = document.createElement('div');
   languagePanel.className = RATINGS_PANEL_BLUE;
   languagePanel.innerHTML = `<h3><i class="fa-solid fa-globe"></i> ${t('modals.settings.language')}</h3>`;
@@ -121,15 +183,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   const languageForm = document.createElement('div');
   languageInputs = renderForm(languageForm, [
     {
-      options: [
-        { value: 'en', label: 'English', selected: i18next.language === 'en' },
-        { value: 'fr', label: 'Fran\u00e7ais', selected: i18next.language === 'fr' },
-        { value: 'es', label: 'Espa\u00f1ol', selected: i18next.language === 'es' },
-        { value: 'pt-BR', label: 'Portugu\u00eas (Brasil)', selected: i18next.language === 'pt-BR' },
-        { value: 'de', label: 'Deutsch', selected: i18next.language === 'de' },
-        { value: 'ar', label: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', selected: i18next.language === 'ar' },
-        { value: 'zh-CN', label: '\u7b80\u4f53\u4e2d\u6587', selected: i18next.language === 'zh-CN' },
-      ],
+      options: languageOptions,
       onChange: persist,
       field: 'language',
       id: 'language',
@@ -290,29 +344,6 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
     },
   ]);
 
-  // Fallback options row — power users only. Kept in this panel because the
-  // underlying behavior is still experimental; default is off.
-  const fallbackHeader = document.createElement('div');
-  fallbackHeader.style.cssText = 'margin-top: 12px; font-size: 0.75rem; font-weight: 600; color: var(--chc-text-secondary, #888); text-transform: uppercase; letter-spacing: 0.04em;';
-  fallbackHeader.textContent = 'Fallback Options';
-  displayForm.appendChild(fallbackHeader);
-  const fallbackHint = document.createElement('div');
-  fallbackHint.style.cssText = 'font-size: 0.75rem; color: var(--chc-text-secondary, #888); margin-bottom: 6px;';
-  fallbackHint.textContent = 'Enable only if you run into an issue with the standard experience.';
-  displayForm.appendChild(fallbackHint);
-
-  const fallbackInputs = renderForm(displayForm, [
-    {
-      label: 'Legacy entries table (split by status)',
-      checked: featureFlags.get().legacyEntriesTable || false,
-      field: 'legacyEntriesTable',
-      id: 'legacyEntriesTable',
-      onChange: persist,
-      checkbox: true,
-    },
-  ]);
-  // Merge fallback inputs into displayInputs so persistAll sees them
-  Object.assign(displayInputs, fallbackInputs);
   if (deviceConfig.get().isElectron) {
     const notifRow = document.createElement('div');
     notifRow.style.cssText = 'display:flex;align-items:center;margin-top:8px';

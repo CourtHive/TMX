@@ -2,20 +2,14 @@
  * Feature flags — beta toggles persisted to localStorage.
  *
  * Standard features (Google Sheets import, tournament chat, unified entries
- * table, schedule2) are no longer flagged. The remaining flags are either
- * in-flight beta features or fallback toggles for power users.
+ * table, schedule2) are no longer flagged. The remaining flags are in-flight
+ * beta features.
  */
 export interface FeatureFlags {
   assistant: boolean;
   formatWizard: boolean;
   reports: boolean;
   usePublishState: boolean;
-  /**
-   * Power-user fallback: render the legacy split-by-status entries table
-   * instead of the standard unified entries table. Kept as an escape hatch
-   * while the unified table beds in. Default: false.
-   */
-  legacyEntriesTable: boolean;
 }
 
 const defaults: FeatureFlags = {
@@ -23,7 +17,6 @@ const defaults: FeatureFlags = {
   formatWizard: false,
   reports: false,
   usePublishState: false,
-  legacyEntriesTable: false,
 };
 
 let current: FeatureFlags = { ...defaults };

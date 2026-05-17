@@ -85,12 +85,6 @@ export const env: any = {
   set usePublishState(v: boolean) {
     featureFlags.set({ usePublishState: v });
   },
-  get legacyEntriesTable() {
-    return featureFlags.get().legacyEntriesTable;
-  },
-  set legacyEntriesTable(v: boolean) {
-    featureFlags.set({ legacyEntriesTable: v });
-  },
 
   // User preferences — delegates to preferencesConfig
   get activeScale() {

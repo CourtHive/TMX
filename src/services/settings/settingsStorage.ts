@@ -20,6 +20,11 @@ export type TMXSettings = {
   assistant?: boolean;
   formatWizard?: boolean;
   reports?: boolean;
+  /**
+   * @deprecated — the legacy split-by-status entries table has been
+   * removed. Stored values are ignored on hydrate. Retained in the type
+   * only so existing localStorage blobs deserialize cleanly.
+   */
   legacyEntriesTable?: boolean;
   /**
    * @deprecated — legacy schedule tab has been removed. Stored values are
@@ -62,9 +67,9 @@ export type TMXSettings = {
    */
   enableChat?: boolean;
   /**
-   * @deprecated — unified entries table is now standard. A stored `false`
-   * migrates to `legacyEntriesTable: true` on hydrate so existing power users
-   * keep their fallback.
+   * @deprecated — unified entries table is now the only entries table.
+   * Stored values are ignored on hydrate. Retained in the type only so
+   * existing localStorage blobs deserialize cleanly.
    */
   unifiedEntriesTable?: boolean;
 };
@@ -136,12 +141,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
   if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
   if (settings.reports !== undefined) flagsPatch.reports = settings.reports;
-  if (settings.legacyEntriesTable !== undefined) {
-    flagsPatch.legacyEntriesTable = settings.legacyEntriesTable;
-  } else if (settings.unifiedEntriesTable === false) {
-    // Migration: a user who had opted out of the unified table stays on legacy
-    flagsPatch.legacyEntriesTable = true;
-  }
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -171,7 +170,6 @@ export function persistConfigToStorage(
     assistant: flags.assistant,
     formatWizard: flags.formatWizard,
     reports: flags.reports,
-    legacyEntriesTable: flags.legacyEntriesTable,
     ...extras,
   });
 }
