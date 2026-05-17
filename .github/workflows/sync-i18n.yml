@@ -1,0 +1,99 @@
+name: sync-i18n
+
+# When TMX's bundled en.json changes on main, propagate the additions /
+# updates upstream to CourtHive/courthive-i18n so all i18n consumers
+# (CFS-served runtime locales for TMX, courthive-public, and any future
+# consumer) stay in sync.
+#
+# The merge script lives in courthive-i18n (scripts/merge-source-en.cjs).
+# Both TMX and courthive-public's sync workflows call into it — single
+# source-of-truth for merge policy.
+#
+# Auth: the courthive-release-bot App needs Contents:Write +
+# Pull requests:Write on courthive-i18n (in addition to TMX). The same
+# RELEASE_BOT_CLIENT_ID + RELEASE_BOT_PRIVATE_KEY secrets are reused.
+#
+# To skip propagation for a particular push, leave en.json untouched
+# (the path filter below means the workflow only fires on en.json edits).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/i18n/locales/en.json
+  workflow_dispatch: # manual re-run from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          # App needs to access both this repo + courthive-i18n
+          owner: CourtHive
+          repositories: TMX,courthive-i18n
+
+      - name: Checkout TMX
+        uses: actions/checkout@v6
+        with:
+          path: source
+
+      - name: Checkout courthive-i18n
+        uses: actions/checkout@v6
+        with:
+          repository: CourtHive/courthive-i18n
+          token: ${{ steps.app-token.outputs.token }}
+          path: i18n
+          # The PR-creation action below pushes to a feature branch on
+          # courthive-i18n's main, so we need write access here.
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Merge en.json into courthive-i18n
+        id: merge
+        working-directory: i18n
+        # Capture the script's markdown summary into a file the PR body step
+        # below reads. Exit code 2 = no changes (script's signal to skip).
+        run: |
+          set +e
+          node scripts/merge-source-en.cjs \
+            --source ../source/src/i18n/locales/en.json \
+            --label TMX > /tmp/pr-body.md
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$code" -ne 0 ]; then
+            echo "merge script failed with exit $code" >&2
+            exit 1
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Open / update PR on courthive-i18n
+        if: steps.merge.outputs.skip != 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          path: i18n
+          base: main
+          branch: chore/sync-i18n-from-tmx
+          delete-branch: true
+          commit-message: |
+            chore(i18n): sync en.json from TMX
+
+            See PR body for the full list of added / updated keys.
+          title: 'chore(i18n): sync en.json from TMX'
+          body-path: /tmp/pr-body.md
