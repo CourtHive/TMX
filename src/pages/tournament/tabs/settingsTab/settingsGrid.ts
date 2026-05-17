@@ -5,11 +5,10 @@ import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-f
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { getLoginState } from 'services/authentication/loginState';
-import { renderForm, validators } from 'courthive-components';
+import { renderForm } from 'courthive-components';
 import { removeTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { setActiveScale } from 'settings/setActiveScale';
-import { scheduleConfig } from 'config/scheduleConfig';
 import { featureFlags } from 'config/featureFlags';
 import { tmx2db } from 'services/storage/tmx2db';
 import { serverConfig } from 'config/serverConfig';
@@ -49,7 +48,6 @@ function persistAll(
   languageInputs: any,
   ratingInputs: any,
   scoringInputs: any,
-  schedulingInputs: any,
   storageInputs: any,
   displayInputs: any,
 ): void {
@@ -84,11 +82,6 @@ function persistAll(
     smartComplements: scoringInputs.smartComplements?.checked || false,
   });
 
-  const minCourtGridRowsValue = schedulingInputs.minCourtGridRows.value;
-  if (validators.numericRange(1, 100)(minCourtGridRowsValue)) {
-    scheduleConfig.set({ minCourtGridRows: Number.parseInt(minCourtGridRowsValue, 10) });
-  }
-
   const language = languageInputs.language.value;
   const languageChanged = language !== i18next.language;
 
@@ -112,12 +105,10 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   let languageInputs: any;
   let ratingInputs: any;
   let scoringInputs: any;
-  let schedulingInputs: any;
   let storageInputs: any;
   let displayInputs: any;
 
-  const persist = () =>
-    persistAll(languageInputs, ratingInputs, scoringInputs, schedulingInputs, storageInputs, displayInputs);
+  const persist = () => persistAll(languageInputs, ratingInputs, scoringInputs, storageInputs, displayInputs);
 
   const grid = document.createElement('div');
   grid.className = 'settings-grid';
@@ -200,31 +191,7 @@ export function renderSettingsGrid(container: HTMLElement, options?: { excludeTo
   scoringPanel.appendChild(scoringForm);
   grid.appendChild(scoringPanel);
 
-  // --- Scheduling panel (orange, cols 1-2) ---
-  const schedulingPanel = document.createElement('div');
-  schedulingPanel.className = 'settings-panel panel-orange';
-  schedulingPanel.innerHTML = `<h3><i class="fa-solid fa-calendar-days"></i> ${t('modals.settings.scheduling')}</h3>`;
-
-  const schedulingForm = document.createElement('div');
-  schedulingInputs = renderForm(schedulingForm, [
-    {
-      label: t('modals.settings.minScheduleGridRows'),
-      value: currentSettings?.minCourtGridRows ?? scheduleConfig.get().minCourtGridRows,
-      field: 'minCourtGridRows',
-      id: 'minCourtGridRows',
-      validator: validators.numericRange(1, 100),
-      error: t('modals.settings.minScheduleGridRowsError'),
-      selectOnFocus: true,
-      onInput: () => {
-        const value = schedulingInputs.minCourtGridRows.value;
-        if (validators.numericRange(1, 100)(value)) persist();
-      },
-    },
-  ]);
-  schedulingPanel.appendChild(schedulingForm);
-  grid.appendChild(schedulingPanel);
-
-  // --- Font panel (blue, 1 col — next to scheduling) ---
+  // --- Font panel (blue, 1 col) ---
   const fontPanel = document.createElement('div');
   fontPanel.className = RATINGS_PANEL_BLUE;
   fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> ${t('modals.settings.font')}</h3>`;

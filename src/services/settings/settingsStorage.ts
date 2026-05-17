@@ -7,7 +7,6 @@
  * existing user data.
  */
 import { preferencesConfig } from 'config/preferencesConfig';
-import { scheduleConfig } from 'config/scheduleConfig';
 import { featureFlags } from 'config/featureFlags';
 import { serverConfig } from 'config/serverConfig';
 
@@ -34,6 +33,12 @@ export type TMXSettings = {
    * blobs deserialize cleanly.
    */
   schedule2?: boolean;
+  /**
+   * @deprecated — settings-page panel removed. Grid row count is now
+   * persisted as a tournament-scoped `scheduleDisplay` extension via the
+   * in-place Rows stepper in the court grid header. Retained in the type
+   * only so existing localStorage blobs deserialize cleanly.
+   */
   minCourtGridRows?: number;
   language?: string;
   /**
@@ -141,11 +146,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
     featureFlags.set(flagsPatch);
   }
 
-  // Schedule config
-  if (settings.minCourtGridRows !== undefined) {
-    scheduleConfig.set({ minCourtGridRows: settings.minCourtGridRows });
-  }
-
   return settings;
 }
 
@@ -162,7 +162,6 @@ export function persistConfigToStorage(
   const prefs = preferencesConfig.get();
   const flags = featureFlags.get();
   const server = serverConfig.get();
-  const schedule = scheduleConfig.get();
 
   saveSettings({
     activeScale: prefs.activeScale as TMXSettings['activeScale'],
@@ -173,7 +172,6 @@ export function persistConfigToStorage(
     formatWizard: flags.formatWizard,
     reports: flags.reports,
     legacyEntriesTable: flags.legacyEntriesTable,
-    minCourtGridRows: schedule.minCourtGridRows,
     ...extras,
   });
 }

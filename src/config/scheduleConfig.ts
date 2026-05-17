@@ -1,5 +1,10 @@
 /**
  * Schedule display preferences.
+ *
+ * `minCourtGridRows` was removed in favour of an in-place stepper in the
+ * court grid header that persists to the tournament's `scheduleDisplay`
+ * extension. The hardcoded fallback for that path lives at
+ * `schedule2Tab/gridView.ts:DEFAULT_MIN_COURT_GRID_ROWS`.
  */
 export interface ScheduleConfig {
   teams: boolean;
@@ -11,7 +16,6 @@ export interface ScheduleConfig {
   completed_matches_in_search: boolean;
   max_matches_per_court: number;
   court_identifiers: boolean;
-  minCourtGridRows: number;
 }
 
 const defaults: ScheduleConfig = {
@@ -24,7 +28,6 @@ const defaults: ScheduleConfig = {
   completed_matches_in_search: false,
   max_matches_per_court: 14,
   court_identifiers: true,
-  minCourtGridRows: 10,
 };
 
 let current: ScheduleConfig = { ...defaults };

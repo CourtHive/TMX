@@ -63,6 +63,15 @@ const { scheduleConstants } = factoryConstants;
 
 const { BYE } = matchUpStatusConstants;
 
+/**
+ * Fallback row count when a tournament hasn't yet had its scheduleDisplay
+ * extension set via the in-grid Rows stepper. Used to seed the very first
+ * render and any code path that doesn't pull from the extension. Exported
+ * so the header (which renders the stepper) can seed its initial display
+ * from the same value.
+ */
+export const DEFAULT_MIN_COURT_GRID_ROWS = 10;
+
 const DATA_COURT_ID = 'data-court-id';
 const DATA_VENUE_ID = 'data-venue-id';
 const DATA_COURT_ORDER = 'data-court-order';
@@ -1309,11 +1318,11 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
   function render(date: string): void {
     root.innerHTML = '';
 
-    // Tournament-level minCourtGridRows extension wins over the per-user
-    // scheduleConfig default so all directors editing the tournament see
-    // the same grid density.
+    // Tournament-level minCourtGridRows extension wins over the hardcoded
+    // default so all directors editing the tournament see the same grid
+    // density once anyone has nudged the Rows stepper in the header.
     const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
-    const minCourtGridRows = extensionMinRows ?? scheduleConfig.get().minCourtGridRows;
+    const minCourtGridRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
     const scheduleResult = competitionEngine.competitionScheduleMatchUps({
       matchUpFilters: { scheduledDate: date },
       courtCompletedMatchUps: true,
@@ -1488,11 +1497,12 @@ function extractParticipantIds(matchUp: any): string[] {
 
 /** Translate the factory schedule snapshot into the active-strip pure-logic shape. */
 function buildActiveStripData(date: string): ActiveStripPanelData {
+  const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
   const result = competitionEngine.competitionScheduleMatchUps({
     matchUpFilters: { scheduledDate: date },
     courtCompletedMatchUps: true,
     withCourtGridRows: true,
-    minCourtGridRows: scheduleConfig.get().minCourtGridRows,
+    minCourtGridRows: extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS,
   });
 
   const rows: any[] = result.rows ?? [];
@@ -1592,10 +1602,11 @@ function handleActiveStripDrop(
   target: { courtId: string; rowIndex: number },
   refresh: () => void,
 ): void {
+  const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
   const result = competitionEngine.competitionScheduleMatchUps({
     matchUpFilters: { scheduledDate: currentDate },
     withCourtGridRows: true,
-    minCourtGridRows: scheduleConfig.get().minCourtGridRows,
+    minCourtGridRows: extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS,
   });
   const courtsData: any[] = result.courtsData ?? [];
   const court = courtsData.find((c) => c.courtId === target.courtId);

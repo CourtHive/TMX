@@ -18,15 +18,13 @@ import { context } from 'services/context';
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
 import { buildGridHeaderActions } from './gridHeaderActions';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView, setGridActiveStripVisible } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, buildIssues, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
-import { scheduleConfig } from 'config/scheduleConfig';
-
 export type Schedule2View = 'grid' | 'profile';
 
 interface Schedule2State {
@@ -174,10 +172,11 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   // Build header with rich date dropdown + issues icon + view switcher.
   // Catalog/strip/Rows/print live in the court grid header — see
   // gridHeaderActions.ts and the headerActions slot in courthive-components.
-  // Tournament-scoped minRows overrides the per-user scheduleConfig default
-  // so all directors on a tournament see the same grid density.
+  // Tournament-scoped minRows overrides the hardcoded default so all
+  // directors on a tournament see the same grid density once anyone has
+  // nudged the Rows stepper.
   const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
-  const effectiveMinRows = extensionMinRows ?? scheduleConfig.get().minCourtGridRows;
+  const effectiveMinRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
 
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
