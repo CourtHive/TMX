@@ -348,29 +348,9 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
 
   grid.appendChild(fontPanel);
 
-  // --- Storage panel (purple, cols 3-4) ---
-  const storagePanel = document.createElement('div');
-  storagePanel.className = 'settings-panel panel-purple';
-  storagePanel.style.gridColumn = '3 / 5';
-  storagePanel.innerHTML = `<h3><i class="fa-solid fa-floppy-disk"></i> ${t('modals.settings.storage')}</h3>`;
-
-  const storageForm = document.createElement('div');
-  storageInputs = renderForm(storageForm, [
-    {
-      label: t('modals.settings.saveLocalCopies'),
-      checked: serverConfig.get().saveLocal,
-      field: 'saveLocal',
-      id: 'saveLocal',
-      onChange: persist,
-      checkbox: true,
-    },
-  ]);
-  storagePanel.appendChild(storageForm);
-  grid.appendChild(storagePanel);
-
-  // --- Beta Features panel (teal, 1 col) ---
+  // --- Beta Features panel (orange, 1 col) — placed between Font and Storage ---
   const displayPanel = document.createElement('div');
-  displayPanel.className = 'settings-panel panel-teal';
+  displayPanel.className = 'settings-panel panel-orange';
   displayPanel.innerHTML = `<h3><i class="fa-solid fa-display"></i> ${t('modals.settings.betaFeatures')}</h3>`;
 
   const displayForm = document.createElement('div');
@@ -411,6 +391,26 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
   }
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
+
+  // --- Storage panel (purple, cols 3-4) ---
+  const storagePanel = document.createElement('div');
+  storagePanel.className = 'settings-panel panel-purple';
+  storagePanel.style.gridColumn = '3 / 5';
+  storagePanel.innerHTML = `<h3><i class="fa-solid fa-floppy-disk"></i> ${t('modals.settings.storage')}</h3>`;
+
+  const storageForm = document.createElement('div');
+  storageInputs = renderForm(storageForm, [
+    {
+      label: t('modals.settings.saveLocalCopies'),
+      checked: serverConfig.get().saveLocal,
+      field: 'saveLocal',
+      id: 'saveLocal',
+      onChange: persist,
+      checkbox: true,
+    },
+  ]);
+  storagePanel.appendChild(storageForm);
+  grid.appendChild(storagePanel);
 
   // --- Connection panel (indigo, cols 3-4) — Electron only ---
   if (deviceConfig.get().isElectron) {
