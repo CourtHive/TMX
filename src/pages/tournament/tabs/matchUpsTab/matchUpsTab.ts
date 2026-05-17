@@ -48,7 +48,7 @@ export function renderMatchUpTab(): void {
     { label: t('pages.matchUps.allTypes'), options: hasTypeOptions ? typeOptions : [], isFiltered: isTypeFiltered, activeIndex: typeActiveIndex },
     { label: t('pages.matchUps.allDates'), options: dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex },
   ];
-  const { item: filterButton } = filterPopoverButton(filterSections);
+  const { item: filterButton, updateBadge } = filterPopoverButton(filterSections);
 
   const items = [
     {
@@ -74,6 +74,12 @@ export function renderMatchUpTab(): void {
 
   const target = document.getElementById(MATCHUPS_CONTROL)!;
   controlBar({ table, target, items });
+
+  // Re-apply the filter-active class once the freshly-mounted button is in
+  // the DOM. Without this, returning to the tab with persisted filters loses
+  // the orange pulse (the inline label HTML doesn't carry the class).
+  // See renderIndividuals for the participants-tab equivalent.
+  updateBadge();
 
   const optionsCenter = target.getElementsByClassName('options_center')[0] as HTMLElement | undefined;
   if (optionsCenter) {
