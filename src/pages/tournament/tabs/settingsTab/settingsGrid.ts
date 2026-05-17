@@ -190,6 +190,54 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
     },
   ]);
   languagePanel.appendChild(languageForm);
+
+  // Active Rating lives below the language selector in the same panel —
+  // tournament-specific so the sub-section only renders inside a tournament.
+  if (!options?.excludeTournament) {
+    const ratingHeader = document.createElement('h3');
+    ratingHeader.style.marginTop = '16px';
+    ratingHeader.innerHTML = `<i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}`;
+    languagePanel.appendChild(ratingHeader);
+
+    // Discover which ratings are present in current tournament participants
+    const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+    const presentRatings = new Set<string>();
+    for (const p of allParticipants) {
+      for (const item of p.ratings?.[SINGLES] || []) {
+        presentRatings.add(item.scaleName);
+      }
+    }
+
+    // Build rating options: tournament ratings first, then all others (excluding deprecated)
+    const allRatingKeys = Object.keys(ratingsParameters).filter((key) => !(ratingsParameters as any)[key].deprecated);
+    const inTournament = allRatingKeys.filter((key) => presentRatings.has(key));
+    const notInTournament = allRatingKeys.filter((key) => !presentRatings.has(key));
+
+    const ratingOptions = [
+      ...inTournament.map((key) => ({
+        label: `${key} (in tournament)`,
+        value: key.toLowerCase(),
+        selected: preferencesConfig.get().activeScale === key.toLowerCase(),
+      })),
+      ...notInTournament.map((key) => ({
+        label: key,
+        value: key.toLowerCase(),
+        selected: preferencesConfig.get().activeScale === key.toLowerCase(),
+      })),
+    ];
+
+    const ratingForm = document.createElement('div');
+    ratingInputs = renderForm(ratingForm, [
+      {
+        options: ratingOptions,
+        onChange: persist,
+        field: 'activeRating',
+        id: 'activeRating',
+      },
+    ]);
+    languagePanel.appendChild(ratingForm);
+  }
+
   grid.appendChild(languagePanel);
 
   // --- Scoring panel (green, cols 3-4) ---
@@ -445,52 +493,6 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
     connectionPanel.appendChild(statusRow);
     connectionPanel.appendChild(offlineRow);
     grid.appendChild(connectionPanel);
-  }
-
-  // --- Active Rating panel (blue, 1 col) — tournament-specific ---
-  if (!options?.excludeTournament) {
-    const ratingPanel = document.createElement('div');
-    ratingPanel.className = RATINGS_PANEL_BLUE;
-    ratingPanel.innerHTML = `<h3><i class="fa-solid fa-star"></i> ${t('modals.settings.activeRating')}</h3>`;
-
-    // Discover which ratings are present in current tournament participants
-    const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
-    const presentRatings = new Set<string>();
-    for (const p of allParticipants) {
-      for (const item of p.ratings?.[SINGLES] || []) {
-        presentRatings.add(item.scaleName);
-      }
-    }
-
-    // Build rating options: tournament ratings first, then all others (excluding deprecated)
-    const allRatingKeys = Object.keys(ratingsParameters).filter((key) => !(ratingsParameters as any)[key].deprecated);
-    const inTournament = allRatingKeys.filter((key) => presentRatings.has(key));
-    const notInTournament = allRatingKeys.filter((key) => !presentRatings.has(key));
-
-    const ratingOptions = [
-      ...inTournament.map((key) => ({
-        label: `${key} (in tournament)`,
-        value: key.toLowerCase(),
-        selected: preferencesConfig.get().activeScale === key.toLowerCase(),
-      })),
-      ...notInTournament.map((key) => ({
-        label: key,
-        value: key.toLowerCase(),
-        selected: preferencesConfig.get().activeScale === key.toLowerCase(),
-      })),
-    ];
-
-    const ratingForm = document.createElement('div');
-    ratingInputs = renderForm(ratingForm, [
-      {
-        options: ratingOptions,
-        onChange: persist,
-        field: 'activeRating',
-        id: 'activeRating',
-      },
-    ]);
-    ratingPanel.appendChild(ratingForm);
-    grid.appendChild(ratingPanel);
   }
 
   // --- Delete Tournament panel (red, full width) — tournament-specific ---

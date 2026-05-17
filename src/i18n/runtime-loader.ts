@@ -148,24 +148,56 @@ export async function fetchLocale(code: string): Promise<CachedLocale | null> {
 
 /**
  * Ensure the in-memory i18next bundle for `code` is current with respect to
- * the latest manifest from CFS. If the manifest's SHA differs from the
- * cached version, fetch the new locale, write to cache, and addResourceBundle.
+ * the latest manifest from CFS. Whether the locale comes from a fresh CFS
+ * fetch or a localStorage cache, the bundle is always loaded into i18next
+ * if it isn't already there — without this, a second page load with a
+ * cached locale would render English fallbacks because i18next.init() in
+ * i18n.ts only seeds `en`, and the cache-version-match path here used to
+ * early-return before calling addResourceBundle.
  *
- * Safe to call multiple times; safe to call when CFS is unreachable (no-ops).
+ * Safe to call multiple times; safe to call when CFS is unreachable (falls
+ * back to whatever's in cache).
  */
 export async function ensureLocaleCurrent(code: string): Promise<void> {
+  // Helper: load content into i18next only when not already loaded, so we
+  // don't churn over the bundle on every call.
+  const ensureBundle = (content: Record<string, unknown>) => {
+    if (i18next.hasResourceBundle(code, 'translation')) return;
+    i18next.addResourceBundle(code, 'translation', content, true, true);
+  };
+
   const manifest = await fetchManifest();
-  if (!manifest) return;
-  const entry = manifest.locales.find((l) => l.code === code);
-  if (!entry) return;
-
   const cached = getCachedLocale(code);
-  if (cached && cached.version === entry.version) return; // Already current.
 
+  // No manifest reachable — fall back to whatever's cached so a returning
+  // user still sees their language even when CFS is offline.
+  if (!manifest) {
+    if (cached) ensureBundle(cached.content);
+    return;
+  }
+
+  const entry = manifest.locales.find((l) => l.code === code);
+  if (!entry) {
+    // Manifest doesn't list this code, but a stale cache might still cover
+    // the user's previous selection. Better to show stale content than
+    // English fallback for keys that don't exist in en.
+    if (cached) ensureBundle(cached.content);
+    return;
+  }
+
+  // Cache matches manifest — load into i18next and skip the network.
+  if (cached && cached.version === entry.version) {
+    ensureBundle(cached.content);
+    return;
+  }
+
+  // Cache is stale or missing — fetch + cache + load.
   const fetched = await fetchLocale(code);
-  if (!fetched) return;
-
-  i18next.addResourceBundle(code, 'translation', fetched.content, true, true);
+  if (!fetched) {
+    if (cached) ensureBundle(cached.content);
+    return;
+  }
+  ensureBundle(fetched.content);
 }
 
 /** Available locale codes per the latest manifest. Used by selectIdiom. */

@@ -19,5 +19,5 @@ export function renderSettingsPage(): void {
 
   ensureSettingsStyles();
   removeAllChildNodes(container);
-  renderSettingsGrid(container, { excludeTournament: true });
+  void renderSettingsGrid(container, { excludeTournament: true });
 }

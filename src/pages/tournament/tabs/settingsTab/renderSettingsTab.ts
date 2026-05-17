@@ -60,5 +60,5 @@ export function renderSettingsTab(): void {
 
   ensureSettingsStyles();
   removeAllChildNodes(settingsContent);
-  renderSettingsGrid(settingsContent);
+  void renderSettingsGrid(settingsContent);
 }
