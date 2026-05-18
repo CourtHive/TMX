@@ -84,7 +84,7 @@ jobs:
 
       - name: Open / update PR on courthive-i18n
         if: steps.merge.outputs.skip != 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           path: i18n
