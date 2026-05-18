@@ -1,0 +1,46 @@
+/* Compact icon-based view toggle for control bars.
+ * Two-segment pill; active segment inverts background/foreground. */
+
+.tmx-view-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--tmx-border-primary, #d1d5db);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: var(--tmx-bg-primary, #ffffff);
+  height: 1.75rem;
+}
+
+.tmx-view-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: 0 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--tmx-text-secondary, #6b7280);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.tmx-view-toggle__btn + .tmx-view-toggle__btn {
+  border-left: 1px solid var(--tmx-border-primary, #d1d5db);
+}
+
+.tmx-view-toggle__btn:hover {
+  background: var(--tmx-bg-secondary, #f3f4f6);
+  color: var(--tmx-text-primary, #111827);
+}
+
+.tmx-view-toggle__btn.is-active {
+  background: var(--tmx-text-primary, #111827);
+  color: var(--tmx-bg-primary, #ffffff);
+}
+
+[data-theme='dark'] .tmx-view-toggle__btn.is-active {
+  background: var(--tmx-text-primary, #f3f4f6);
+  color: var(--tmx-bg-primary, #1a1a2e);
+}
