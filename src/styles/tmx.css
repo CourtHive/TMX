@@ -1087,6 +1087,34 @@ img {
   }
 }
 
+/* ── Filter popover rows + per-select highlight ──────────────────────── */
+.filter-popover-row {
+  margin-bottom: 0.75em;
+}
+
+.filter-popover-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25em;
+  font-size: 0.85em;
+  color: #888;
+}
+
+.filter-popover-select {
+  width: 100%;
+  padding: 0.35em 0.5em;
+  font-size: 0.9em;
+}
+
+.filter-popover-row.is-filtering .filter-popover-label {
+  color: #e67e22;
+}
+
+.filter-popover-row.is-filtering .filter-popover-select {
+  border-color: #e67e22;
+  color: #e67e22;
+}
+
 /* ── Clear-filters button inside empty-table placeholder ─────────────── */
 .clear-filters-btn {
   display: inline-block;

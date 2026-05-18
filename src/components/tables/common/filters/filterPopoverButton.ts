@@ -3,6 +3,7 @@ import tippy, { Instance } from 'tippy.js';
 import { LEFT } from 'constants/tmxConstants';
 
 const FILTER_BUTTON_ID = 'filterPopoverButton';
+const IS_FILTERING = 'is-filtering';
 
 type FilterSection = {
   label: string;
@@ -52,7 +53,7 @@ export function filterPopoverButton(
     const container = document.createElement('div');
     container.style.cssText = 'padding: 0.75em; min-width: 200px;';
 
-    const selects: { select: HTMLSelectElement; resetOption: any }[] = [];
+    const selects: { select: HTMLSelectElement; resetOption: any; row: HTMLElement }[] = [];
 
     // Header row: Clear All + close button
     const header = document.createElement('div');
@@ -63,9 +64,10 @@ export function filterPopoverButton(
     clearAll.textContent = 'Clear All';
     clearAll.onclick = (e) => {
       e.stopPropagation();
-      for (const { select, resetOption } of selects) {
+      for (const { select, resetOption, row } of selects) {
         select.value = '0';
         if (resetOption?.onClick) resetOption.onClick();
+        row.classList.remove(IS_FILTERING);
       }
       updateBadge();
     };
@@ -86,15 +88,17 @@ export function filterPopoverButton(
       const selectableOptions = section.options.filter((opt: any) => !opt.divider && !opt.heading);
       if (!selectableOptions.length) continue;
 
+      const row = document.createElement('div');
+      row.className = 'filter-popover-row';
+      if (section.isFiltered()) row.classList.add(IS_FILTERING);
+
       const label = document.createElement('label');
-      label.className = 'font-medium';
-      label.style.cssText = 'display: block; font-weight: 600; margin-bottom: 0.25em; font-size: 0.85em; color: #888;';
+      label.className = 'filter-popover-label font-medium';
       label.textContent = section.label;
-      container.appendChild(label);
+      row.appendChild(label);
 
       const select = document.createElement('select');
-      select.className = 'input font-medium';
-      select.style.cssText = 'width: 100%; margin-bottom: 0.75em; padding: 0.35em 0.5em; font-size: 0.9em;';
+      select.className = 'filter-popover-select input font-medium';
 
       const activeIdx = section.activeIndex ? section.activeIndex() : 0;
       selectableOptions.forEach((opt: any, index: number) => {
@@ -108,11 +112,13 @@ export function filterPopoverButton(
       select.addEventListener('change', () => {
         const selectedOpt = selectableOptions[parseInt(select.value)];
         if (selectedOpt?.onClick) selectedOpt.onClick();
+        row.classList.toggle(IS_FILTERING, section.isFiltered());
         updateBadge();
       });
 
-      selects.push({ select, resetOption: selectableOptions[0] });
-      container.appendChild(select);
+      row.appendChild(select);
+      selects.push({ select, resetOption: selectableOptions[0], row });
+      container.appendChild(row);
     }
 
     return container;
