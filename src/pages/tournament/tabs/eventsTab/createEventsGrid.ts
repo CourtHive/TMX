@@ -26,12 +26,18 @@ const EMPTY_CLASS = 'tmx-events-empty';
 
 function openEvent(eventId: string): void {
   if (!eventId) return;
-  // Mirror the events table's row-click behaviour: navigate to the event's
-  // first draw if one exists, otherwise just open the event view.
-  const { event } = tournamentEngine.findEvent({ eventId });
-  const drawId = event?.drawDefinitions?.[0]?.drawId;
-  if (drawId) navigateToEvent({ eventId, drawId, renderDraw: true });
-  else navigateToEvent({ eventId, renderDraw: true });
+  // Mirror the events table's row-click behaviour: single draw opens that
+  // draw, multiple draws opens the draws list, no draws falls through to
+  // the event's entries tab.
+  const { event } = tournamentEngine.getEvent({ eventId });
+  const drawDefs = event?.drawDefinitions || [];
+  if (drawDefs.length === 1) {
+    navigateToEvent({ eventId, drawId: drawDefs[0].drawId, renderDraw: true });
+  } else if (drawDefs.length > 1) {
+    navigateToEvent({ eventId, renderDraw: true });
+  } else {
+    navigateToEvent({ eventId });
+  }
 }
 
 function clearAnchor(anchor: HTMLElement): void {
