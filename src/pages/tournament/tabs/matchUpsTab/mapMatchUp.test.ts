@@ -18,6 +18,8 @@ vi.mock('tods-competition-factory', () => ({
   tournamentEngine: {
     getParticipants: () => ({ participants: [{ participantName: 'Ref Jones' }] }),
   },
+  // `services/factory/engine` wrapper also imports competitionEngine; stub it.
+  competitionEngine: {},
 }));
 
 vi.mock('normalize-text', () => ({

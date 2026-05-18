@@ -8,6 +8,8 @@ vi.mock('tods-competition-factory', () => ({
     getPublishState: () => ({ publishState: {} }),
     getTournament: () => ({ tournamentRecord: {} }),
   },
+  // `services/factory/engine` wrapper also imports competitionEngine; stub it.
+  competitionEngine: {},
   publishingGovernor: {
     getPublishState: () => ({ publishState: {} }),
   },
