@@ -15,6 +15,9 @@ import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
+import { renderDrawsGrid } from './renderDraws/renderDrawsGrid';
+import { readDrawsViewMode, writeDrawsViewMode } from './renderDraws/drawsViewMode';
+import { viewToggleItem } from 'components/tables/common/viewToggle';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
@@ -151,11 +154,17 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
   const contentEl = document.getElementById(DRAWS_VIEW);
   if (!contentEl) return;
 
-  contentEl.innerHTML = '';
-  const drawsTable = renderDrawsTable({ eventId, target: contentEl });
-  if (!drawsTable) return;
+  let mode = readDrawsViewMode();
+  let drawsTable: any;
+
+  const drawAdded = (result: any) => {
+    if (result.success) {
+      navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
+    }
+  };
 
   const deleteSelectedDraws = () => {
+    if (!drawsTable) return;
     const selectedDraws = drawsTable.getSelectedData();
     const drawIds = selectedDraws.map(({ drawId }: any) => drawId);
     drawsTable.deselectRow();
@@ -172,14 +181,20 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
     deleteFlights({ eventId, drawIds, callback });
   };
 
-  const drawAdded = (result: any) => {
-    if (result.success) {
-      navigateToEvent({ eventId, drawId: result.drawDefinition?.drawId, renderDraw: true });
+  function renderForMode(): void {
+    contentEl!.innerHTML = '';
+    drawsTable = undefined;
+    if (mode === 'grid') {
+      renderDrawsGrid({ eventId, target: contentEl! });
+    } else {
+      drawsTable = renderDrawsTable({ eventId, target: contentEl! });
     }
-  };
+    renderControls();
+  }
 
-  const controlTarget = document.getElementById(EVENT_CONTROL) || undefined;
-  if (controlTarget) {
+  function renderControls(): void {
+    const controlTarget = document.getElementById(EVENT_CONTROL) || undefined;
+    if (!controlTarget) return;
     controlTarget.innerHTML = '';
     controlBar({
       table: drawsTable,
@@ -190,8 +205,19 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
           label: 'Delete selected',
           intent: 'is-danger',
           stateChange: true,
+          hide: mode === 'grid',
           location: OVERLAY,
         },
+        viewToggleItem({
+          id: 'drawsViewToggle',
+          mode,
+          onChange: (next) => {
+            if (next === mode) return;
+            mode = next;
+            writeDrawsViewMode(next);
+            renderForMode();
+          }
+        }),
         {
           onClick: () =>
             addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
@@ -208,6 +234,8 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
       ],
     });
   }
+
+  renderForMode();
 }
 
 function renderNoDrawsView(eventId: string, renderDraw: boolean | undefined): void {
