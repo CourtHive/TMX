@@ -8,10 +8,8 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'tods-competition-factory';
-import { findAncestor } from 'services/dom/parentAndChild';
 import { getEventColumns } from './getEventColumns';
 import { displayConfig } from 'config/displayConfig';
-import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
@@ -48,11 +46,8 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
   const render = (data: any[]) => {
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     const element = document.getElementById(TOURNAMENT_EVENTS)!;
-    const headerElement = findAncestor(element, 'section')?.querySelector('.tabHeader') as HTMLElement;
-    const getHeader = (rows: any[]) => `${t('pages.events.title')} (${rows.length})`;
-    if (headerElement?.innerHTML) {
-      headerElement.innerHTML = getHeader(data);
-    }
+    // Header text is owned by the orchestrator (`eventsView.ts`) so the same
+    // line can carry the cards/table view toggle.
 
     table = new Tabulator(element, {
       columnDefaults: {},
@@ -72,16 +67,8 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
       data,
     });
     table.on('scrollVertical', destroyTipster);
-    table.on('dataChanged', (rows: any[]) => {
-      if (headerElement) {
-        headerElement.innerHTML = getHeader(rows);
-      }
-    });
-    table.on('dataFiltered', (_filters: any, rows: any[]) => {
-      if (headerElement) {
-        headerElement.innerHTML = getHeader(rows);
-      }
-    });
+    // Header count updates are owned by the orchestrator via dataChanged /
+    // dataFiltered subscriptions on the returned table.
   };
 
   render(getTableData());
