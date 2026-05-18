@@ -9,6 +9,7 @@
 import { setActiveProvider, readPersistedProvider, getActiveProvider } from './providerState';
 import { openProviderSwitcher } from 'components/popovers/providerSwitcher';
 import { getLoginState } from 'services/authentication/loginState';
+import { context } from 'services/context';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
@@ -29,14 +30,15 @@ export function initProviderSwitcher(): void {
   const providerEl = document.getElementById('provider');
   if (providerEl && !providerClickWired) {
     providerClickWired = true;
+    // Single consolidated click handler. Per-page `onclick = navigate`
+    // setters were removed to eliminate the race that caused the popover
+    // to open during navigation back to /tournaments.
     providerEl.addEventListener('click', () => {
-      if (!isSuperAdmin()) return;
-      // The same element also acts as a "go to tournaments" button on every
-      // other route (handler set by `tournamentHeader.ts`). Only present the
-      // switch-provider menu when we're already viewing the tournaments page
-      // — clicking-to-navigate-back-here shouldn't also open the popover.
-      if (!onTournamentsRoute()) return;
-      openProviderSwitcher({ target: providerEl });
+      if (isSuperAdmin() && onTournamentsRoute()) {
+        openProviderSwitcher({ target: providerEl });
+        return;
+      }
+      context.router?.navigate(`/${TMX_TOURNAMENTS}`);
     });
   }
 
