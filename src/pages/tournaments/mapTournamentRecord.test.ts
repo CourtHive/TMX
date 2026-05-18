@@ -12,6 +12,23 @@ vi.mock('courthive-components', () => ({
   resolveCourtSport: vi.fn(),
   sportFromMatchUpFormat: vi.fn(),
   COURT_SVG_RESOURCE_SUB_TYPE: 'COURT_SVG',
+  // The TMX wrapper now delegates field extraction to the shared mapper in
+  // courthive-components; stub it inline to preserve the existing test
+  // contract without pulling in the real implementation.
+  mapTournamentToCardData: (tournament: any) => {
+    const r = tournament?.onlineResources?.find((res: any) => res?.name === 'tournamentImage');
+    const tmxTimeItem = tournament?.timeItems?.find((ti: any) => ti?.itemType === 'TMX');
+    return {
+      tournamentId: tournament?.tournamentId ?? '',
+      tournamentName: tournament?.tournamentName ?? '',
+      startDate: tournament?.startDate,
+      endDate: tournament?.endDate,
+      tournamentImageURL:
+        r?.resourceType === 'URL' ? (r?.url ?? r?.identifier) : undefined,
+      courtSvgSport: r?.resourceSubType === 'COURT_SVG' ? r?.identifier : undefined,
+      offline: tmxTimeItem?.itemValue?.offline,
+    };
+  },
 }));
 
 import { mapTournamentRecord } from './mapTournamentRecord';

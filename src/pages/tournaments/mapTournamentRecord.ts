@@ -1,27 +1,31 @@
-import { COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
+/**
+ * Normalize a TODS tournament record into the row shape consumed by the
+ * tournaments page (both card grid and Tabulator table).
+ *
+ * Delegates field extraction to {@link mapTournamentToCardData} in
+ * courthive-components so TMX and courthive-public share one implementation.
+ *
+ * `searchText` is the lowercased haystack used by the search box; it combines
+ * tournament name + location so users can search by either.
+ */
 
-export function mapTournamentRecord(tournamentRecord: any): any {
-  const searchText = tournamentRecord.tournamentName?.toLowerCase() || 'Error';
-  const imageResource = tournamentRecord.onlineResources?.find(
-    ({ name }: any) => name === 'tournamentImage',
-  );
-  const tournamentImageURL =
-    imageResource?.resourceType === 'URL' ? imageResource.identifier : undefined;
-  const courtSvgSport =
-    imageResource?.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE ? imageResource.identifier : undefined;
-  const offline = tournamentRecord.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
+import { mapTournamentToCardData, TournamentCardData } from 'courthive-components';
 
+export interface TournamentRow {
+  tournamentId: string;
+  id: string;
+  searchText: string;
+  tournament: TournamentCardData;
+}
+
+export function mapTournamentRecord(tournamentRecord: any): TournamentRow {
+  const data = mapTournamentToCardData(tournamentRecord);
+  const searchParts = [data.tournamentName, data.location].filter(Boolean) as string[];
+  const searchText = searchParts.length ? searchParts.join(' ').toLowerCase() : 'Error';
   return {
-    tournamentId: tournamentRecord.tournamentId,
-    id: tournamentRecord.tournamentId,
+    tournamentId: data.tournamentId,
+    id: data.tournamentId,
     searchText,
-    tournament: {
-      startDate: new Date(tournamentRecord.startDate).toISOString()?.split('T')[0],
-      endDate: new Date(tournamentRecord.endDate).toISOString()?.split('T')[0],
-      tournamentName: tournamentRecord.tournamentName,
-      tournamentImageURL,
-      courtSvgSport,
-      offline,
-    },
+    tournament: data
   };
 }

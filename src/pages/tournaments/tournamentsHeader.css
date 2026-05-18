@@ -1,0 +1,41 @@
+/* Tournaments page — banner header row.
+ * Uses tabHeader--banner styling (from setTabHeader.css) for the panel look
+ * plus a 3-column grid layout so the title stays left, chips stay centered,
+ * and the view toggle stays right. */
+
+.tmx-tournaments-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tmx-tournaments-header__title {
+  /* tabHeader__title styles already apply (font-weight: 700; font-size: 0.8125rem) */
+  justify-self: start;
+}
+
+.tmx-tournaments-header__chips {
+  /* Bulma `.tabs` brings its own margin-bottom — neutralize. */
+  margin-bottom: 0 !important;
+  justify-self: center;
+}
+
+.tmx-tournaments-header > .tmx-view-toggle {
+  justify-self: end;
+}
+
+/* Wrapper around the two-row strip — TOURNAMENTS_CONTROL becomes a flex
+ * column. Banner row floats free at the top, the controlBar sub-anchor
+ * holds row 2. */
+
+.tmx-tournaments-strip {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tmx-tournaments-strip__controls {
+  /* Match the banner's horizontal inset so the two rows line up. */
+  padding: 4px 4px 0;
+}
