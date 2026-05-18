@@ -112,6 +112,7 @@ export const TOURNAMENT_MATCHUPS = 'tournamentMatchUps';
 export const TOURNAMENTS_TABLE = 'tournamentsTable';
 export const TOURNAMENT_TEAMS = 'tournamentTeams';
 export const TOURNAMENT_VENUES = 'venuesTable';
+export const VENUE = 'venue';
 export const ENTRIES_COUNT = 'entriesCount';
 export const EVENTS_TABLE = 'eventsTable';
 export const TMX_OVERLAY = 'tmxOverlay';

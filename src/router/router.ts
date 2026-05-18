@@ -30,6 +30,7 @@ import {
   EVENTS_TAB,
   SCHEDULE2_TAB,
   VENUES_TAB,
+  VENUE,
   TEMPLATES,
   POLICIES,
   SETTINGS,
@@ -136,6 +137,9 @@ export function routeTMX() {
     displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${VENUES_TAB}/:venueView`, (match) => {
+    displayRoute({ selectedTab: VENUES_TAB, data: match?.data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/${VENUE}/:venueId`, (match) => {
     displayRoute({ selectedTab: VENUES_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, (match) => {

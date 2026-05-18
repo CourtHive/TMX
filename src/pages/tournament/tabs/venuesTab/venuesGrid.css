@@ -1,0 +1,28 @@
+/* Venues tab — card-grid view styles. */
+
+.tmx-venues-grid-wrap {
+  width: 100%;
+  flex: 1 1 auto;
+  align-self: stretch;
+  padding: 1rem 1.25rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.tmx-venues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tmx-venues-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--chc-text-muted, #6b7280);
+  font-size: 0.9rem;
+}

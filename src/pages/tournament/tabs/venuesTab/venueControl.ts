@@ -1,6 +1,8 @@
 /**
- * Venue control bar with add, delete, and grid toggle buttons.
+ * Venue control bar — add, delete, and Availability grid toggle.
+ * Cards/Table view toggle lives in the banner-style tab header, not here.
  */
+
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { providerConfig } from 'config/providerConfig';
 import { controlBar } from 'courthive-components';
@@ -11,7 +13,7 @@ import { DELETE_VENUES } from 'constants/mutationConstants';
 import { OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 type VenueControlParams = {
-  table: any;
+  table?: any;
   updateVenueRow: (params: any) => void;
   onToggleGrid?: () => void;
   controlAnchor?: HTMLElement;
@@ -26,6 +28,7 @@ export function venueControl({
   if (!controlAnchor) return { elements: {} };
 
   const deleteVenues = () => {
+    if (!table) return;
     const venueIds = table.getSelectedData().map(({ venueId }: any) => venueId);
     const methods = [{ method: DELETE_VENUES, params: { venueIds, force: true } }];
     const callback = (result: any) => result.success && table.deleteRow(venueIds);
