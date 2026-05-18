@@ -9,6 +9,8 @@
 
 import { findAncestor } from 'services/dom/parentAndChild';
 
+import './setTabHeader.css';
+
 interface SetTabHeaderParams {
   anchor: HTMLElement;
   label: string;
@@ -20,10 +22,9 @@ export function setTabHeader({ anchor, label, count, trailing }: SetTabHeaderPar
   const header = findAncestor(anchor, 'section')?.querySelector('.tabHeader') as HTMLElement | null;
   if (!header) return;
 
-  header.style.display = 'flex';
-  header.style.alignItems = 'center';
-  header.style.justifyContent = 'space-between';
-  header.style.gap = '0.75rem';
+  // Layout via class, not inline style, so `setEventView` clearing
+  // `style.display` between renders doesn't undo it.
+  header.classList.add('tabHeader--flex');
 
   while (header.firstChild) header.removeChild(header.firstChild);
 

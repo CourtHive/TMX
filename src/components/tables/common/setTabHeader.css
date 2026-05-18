@@ -1,3 +1,14 @@
+/* Layout-only modifier applied by `setTabHeader()` so the title sits at the
+ * start and an optional trailing widget at the end on the same line. Lives
+ * in a class (not inline styles) so that `setEventView`'s `display = ''`
+ * clear doesn't clobber the flex layout between renders. */
+.tabHeader--flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 /* Banner-style tab header — mirrors `.spl-center-header` from the
  * schedule-page so the events, venues, and other tab top strips share a
  * consistent look. Opt-in via the `.tabHeader--banner` modifier; the base
