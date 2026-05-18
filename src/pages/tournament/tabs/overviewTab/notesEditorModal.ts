@@ -12,6 +12,7 @@ import { t } from 'i18n';
 
 export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (html: string) => void }): void {
   const content = document.createElement('div');
+  content.style.cssText = 'display:flex; flex-direction:column; max-height:calc(100vh - 220px); overflow:hidden;';
   let editor: Editor | undefined;
 
   const toolbar = notesToolbar({
@@ -61,7 +62,7 @@ export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (ht
 
   const editorContainer = document.createElement('div');
   editorContainer.className = 'notes-editor-content';
-  editorContainer.style.minHeight = '300px';
+  editorContainer.style.cssText = 'flex:1 1 auto; min-height:200px; overflow-y:auto;';
   content.appendChild(editorContainer);
 
   const syncToolbarState = () => {
@@ -118,7 +119,7 @@ export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (ht
   openModal({
     title: t('modals.notesEditor.title'),
     content,
-    config: { maxWidth: 800, padding: '1' },
+    config: { maxWidth: 1100, padding: '1' },
     buttons: [
       { label: t('common.cancel'), intent: 'none', close: true },
       { label: t('common.save'), intent: 'is-primary', onClick: handleSave },
