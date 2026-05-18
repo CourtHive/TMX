@@ -127,9 +127,11 @@ export function createNotesPanel(notes?: string): HTMLElement {
   return panel;
 }
 
-const VALUE_STYLE = 'font-size:1.5rem; font-weight:bold; margin-bottom:4px;';
-const LABEL_STYLE = 'font-size:0.85rem; color:var(--tmx-text-secondary);';
-const CARD_BASE_STYLE = 'padding:12px 16px; min-width:0;';
+const VALUE_STYLE =
+  'font-size:1.5rem; font-weight:bold; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+const LABEL_STYLE =
+  'font-size:0.85rem; color:var(--tmx-text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+const CARD_BASE_STYLE = 'padding:12px 16px; min-width:0; overflow:hidden;';
 
 export function createStatCard(label: string, value: string | number, icon?: string): HTMLElement {
   const card = document.createElement('div');
@@ -162,7 +164,9 @@ export function createDualStatCard(stats: { label: string; value: string | numbe
 
   for (const stat of stats) {
     const group = document.createElement('div');
-    group.style.flex = '1';
+    // min-width:0 lets the flex column shrink below its content's intrinsic
+    // size so long labels/values truncate cleanly instead of overflowing.
+    group.style.cssText = 'flex:1; min-width:0; overflow:hidden;';
 
     const valueEl = document.createElement('div');
     valueEl.style.cssText = VALUE_STYLE;
@@ -240,7 +244,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
 
   const select = document.createElement('select');
   select.style.cssText =
-    'flex:1; min-width:0; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary);';
+    'flex:1; min-width:0; padding:4px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary); background:var(--tmx-bg-primary); color:var(--tmx-text-primary);';
 
   const allOption = document.createElement('option');
   allOption.value = ALL_STRUCTURES;
