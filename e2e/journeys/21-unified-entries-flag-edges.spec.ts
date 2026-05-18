@@ -51,12 +51,6 @@ async function isUnifiedView(page: any): Promise<boolean> {
   return chips > 0;
 }
 
-/** Detect if the old 5-panel view is active (has panel containers). */
-async function isOldPanelView(page: any): Promise<boolean> {
-  const accepted = await page.locator(S.ACCEPTED_PANEL).isVisible().catch(() => false);
-  return accepted;
-}
-
 test.describe('Journey 21 — Feature flag toggle + edge cases', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -78,35 +72,28 @@ test.describe('Journey 21 — Feature flag toggle + edge cases', () => {
     expect(chipTexts.some((t: string) => t.trim() === 'Accepted')).toBe(true);
   });
 
-  test('1.2 — disabling flag reverts to old 5-panel view', async ({ page }) => {
+  test('1.2 — legacyEntriesTable flag is deprecated (no-op, unified view persists)', async ({ page }) => {
     await navigateToEntries(page, PROFILE_16);
-
-    // Verify unified is active
     expect(await isUnifiedView(page)).toBe(true);
 
-    // Enable legacy mode via dev bridge (replaces old unifiedEntriesTable=false)
+    // The old 5-panel entries view was removed; legacyEntriesTable is now
+    // a deprecated flag (settingsStorage's hydrate step filters it out,
+    // see services/settings/settingsStorage.test.ts). Toggling it via
+    // dev.env must be a no-op — unified view stays.
     await page.evaluate(() => {
       dev.env.legacyEntriesTable = true;
     });
 
-    // Navigate away and back to reload the entries view
+    // Re-navigate to entries (Rankings → Entries) to force a re-render
     await page.locator('#eventTabsBar').getByText('Rankings').click();
     await page.waitForTimeout(300);
     await page.locator('#eventTabsBar').getByText('Entries').click();
     await page.waitForSelector(S.ENTRIES_VIEW, { state: 'visible', timeout: 10_000 });
-    await page.waitForTimeout(500);
 
-    // Should now show the old panel view (Accepted panel visible)
-    const isOld = await isOldPanelView(page);
-    const isUnified = await isUnifiedView(page);
+    // Unified view still active despite the flag flip
+    expect(await isUnifiedView(page)).toBe(true);
 
-    console.log('1.2: isOld:', isOld, 'isUnified:', isUnified);
-
-    // Old view has #acceptedPanel; unified has .tag chips
-    // At least one indicator should match
-    expect(isOld || !isUnified).toBe(true);
-
-    // Disable legacy mode for other tests
+    // Reset the dev override so later tests in this file aren't influenced
     await page.evaluate(() => {
       dev.env.legacyEntriesTable = false;
     });

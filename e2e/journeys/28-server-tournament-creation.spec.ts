@@ -151,10 +151,24 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     await page.goto('/#/tournaments');
     await page.waitForTimeout(2000);
 
-    // The tournament should appear in the server-fetched calendar list
+    // The tournaments listing defaults to a card-grid (memory:
+    // tournaments-redesign card-grid). Switch to table view so the
+    // `.tabulator-row` assertion below has something to find — the
+    // toggle's onChange early-returns when already in table mode so
+    // re-clicking is idempotent.
+    const tableToggle = page.getByRole('button', { name: 'Table view' });
+    await tableToggle.waitFor({ state: 'visible', timeout: 5_000 });
+    if ((await tableToggle.getAttribute('aria-pressed')) !== 'true') {
+      await tableToggle.click();
+    }
+
+    // The tournament should appear in the server-fetched calendar list.
+    // Click the cell containing the tournament name — the row-level click
+    // doesn't navigate because Tabulator wires `cellClick: openTournament`
+    // on specific columns (name, etc.) rather than the whole row.
     const row = page.locator('.tabulator-row').filter({ hasText: tournamentName });
     await expect(row).toBeVisible({ timeout: 10000 });
-    await row.click();
+    await row.getByText(tournamentName).first().click();
 
     // Should navigate into the tournament
     await page.waitForTimeout(2000);

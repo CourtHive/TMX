@@ -25,9 +25,36 @@ export class TournamentPage {
     await this.page.locator(S.NAV_PARTICIPANTS).click();
   }
 
+  /**
+   * Navigate to the Events tab AND ensure the Tabulator table view is
+   * active. The events tab defaults to a cards grid (memory:
+   * tournaments-redesign); existing specs target `#eventsTable
+   * .tabulator-row` so they need table mode. The toggle's onChange
+   * early-returns when mode already matches, so re-clicking Table view
+   * is idempotent.
+   */
   async navigateToEvents() {
     await this.page.locator(S.NAV_EVENTS).click();
+    // Wait for the view-toggle (always rendered regardless of mode)
+    const tableToggle = this.page.getByRole('button', { name: 'Table view' });
+    await tableToggle.waitFor({ state: 'visible', timeout: 10_000 });
+    const alreadyPressed = (await tableToggle.getAttribute('aria-pressed')) === 'true';
+    if (!alreadyPressed) await tableToggle.click();
     await this.page.waitForSelector(S.EVENTS_TABLE, { state: 'visible' });
+  }
+
+  /**
+   * Navigate to the Events tab AND ensure the cards-grid view is active.
+   * Use this for tests that exercise the default cards-view rendering.
+   * Caller is responsible for resetting `localStorage.tmx_events_view_mode`
+   * beforehand if the test depends on the "fresh visit" default.
+   */
+  async navigateToEventsCardsView() {
+    await this.page.locator(S.NAV_EVENTS).click();
+    const cardsToggle = this.page.getByRole('button', { name: 'Cards view' });
+    await cardsToggle.waitFor({ state: 'visible', timeout: 10_000 });
+    const alreadyPressed = (await cardsToggle.getAttribute('aria-pressed')) === 'true';
+    if (!alreadyPressed) await cardsToggle.click();
   }
 
   async navigateToMatchUps() {

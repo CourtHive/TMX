@@ -28,6 +28,21 @@ export async function resetState(page: Page): Promise<void> {
 }
 
 /**
+ * Clear the persisted events-view mode so the next `navigateToEvents*`
+ * sees the fresh-visit default (cards). Use in `beforeEach` of specs
+ * that assert default-cards-view behaviour.
+ */
+export async function resetEventsViewMode(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    try {
+      localStorage.removeItem('tmx_events_view_mode');
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+/**
  * Wait for the app to be fully ready (splash dismissed, navbar visible).
  *
  * TMX starts with an animated splash screen that dismisses on click,
