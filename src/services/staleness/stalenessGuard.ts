@@ -53,13 +53,14 @@ export function isStale(): boolean {
   return overlayVisible;
 }
 
-/** Reset the inactivity timer. No-op in local-only mode (not logged in). */
+/** Reset the inactivity timer. No-op in local-only mode (not logged in),
+ * but always clears any previously-running timer first so logout / session
+ * expiry stops the cycle (e.g. when called from `logOut`). */
 export function resetActivityTimer(): void {
-  if (!getLoginState()) return;
-
   timerExpired = false;
   if (inactivityTimer) clearTimeout(inactivityTimer);
   if (countdownInterval) clearInterval(countdownInterval);
+  if (!getLoginState()) return;
 
   const timeoutMs = getTimeoutMs();
   const debug = isDebugMode();
@@ -82,6 +83,14 @@ export function resetActivityTimer(): void {
     if (debug) console.log('[staleness] timer expired — checking server');
     slog('[staleness] inactivity timer expired');
 
+    // Re-check login state at fire time — the timer may have been scheduled
+    // while logged in but the user has since logged out / session expired.
+    // Local-only tournaments are never on the server, so this check would
+    // toast a "Missing tournamentRecord" error for no useful reason.
+    if (!getLoginState()) {
+      if (debug) console.log('[staleness] no longer logged in — skipping check');
+      return;
+    }
     const { tournamentRecord } = tournamentEngine.getTournament();
     if (tournamentRecord?.tournamentId) {
       checkAndShowOverlay(tournamentRecord.tournamentId);
@@ -152,7 +161,10 @@ async function checkAndShowOverlay(tournamentId: string): Promise<void> {
   const debug = isDebugMode();
 
   try {
-    const result = await requestTournament({ tournamentId });
+    // Background staleness check — must be silent. A "Missing tournamentRecord"
+    // server response here is normal (e.g. local-only tournaments) and
+    // shouldn't surface as a user-visible toast.
+    const result = await requestTournament({ tournamentId, silent: true });
     const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
 
     if (!serverRecord) {

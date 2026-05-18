@@ -3,6 +3,7 @@ import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
+import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
@@ -55,6 +56,10 @@ export function logOut(): void {
   tournamentEngine.reset();
   clearActiveProvider();
   providerConfig.reset();
+  // Stop the staleness timer so a leftover scheduled check can't fire after
+  // logout and toast a "Missing tournamentRecord" error for a local-only
+  // tournament that was never on the server.
+  resetActivityTimer();
   context.matchUpFilters = {};
   context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
