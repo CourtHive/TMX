@@ -76,9 +76,6 @@ export async function renderTemplatesPage(params?: { templateView?: string }): P
   showTMXtemplates();
   homeNavigation(TEMPLATES);
 
-  const tmxButton = document.getElementById('provider');
-  if (tmxButton) tmxButton.onclick = () => context.router?.navigate('/tournaments');
-
   const container = document.getElementById(TMX_TEMPLATES);
   if (!container) return;
 

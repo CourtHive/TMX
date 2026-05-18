@@ -11,8 +11,8 @@ export function tournamentHeader(): void {
     if (dnav) dnav.style.backgroundColor = 'var(--tmx-bg-highlight)';
   }
 
-  const tmxButton = document.getElementById('provider');
-  if (tmxButton) tmxButton.onclick = () => context.router?.navigate('/tournaments');
+  // Navigation back to /tournaments is owned by `initProviderSwitcher`'s
+  // consolidated click handler — setting onclick here would race with it.
   const tournamentElement = document.getElementById('pageTitle');
   if (tournamentElement && tournamentInfo?.tournamentName) {
     removeAllChildNodes(tournamentElement);
