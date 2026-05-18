@@ -7,7 +7,7 @@ import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { getEventColumns } from './getEventColumns';
 import { displayConfig } from 'config/displayConfig';
 

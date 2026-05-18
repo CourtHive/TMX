@@ -3,7 +3,7 @@
  * Shows tipster menu for venue management actions from table rows.
  */
 import { editVenue } from 'pages/tournament/tabs/venuesTab/editVenue';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';

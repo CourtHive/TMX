@@ -5,7 +5,7 @@
 import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 export const deleteMatchUpsAction = 'Delete matches';
 export const addMatchUpsAction = 'Add matches';

@@ -6,14 +6,8 @@ import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
-import {
-  eventConstants,
-  positionActionConstants,
-  matchUpActionConstants,
-  tournamentEngine,
-  tools,
-  policyConstants,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { eventConstants, positionActionConstants, matchUpActionConstants, tools, policyConstants } from 'tods-competition-factory';
 
 // constants
 import { BOTTOM } from 'constants/tmxConstants';

@@ -6,7 +6,7 @@ import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/s
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { scoringModal } from 'components/modals/scoringV2';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { isFunction } from 'functions/typeOf';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';

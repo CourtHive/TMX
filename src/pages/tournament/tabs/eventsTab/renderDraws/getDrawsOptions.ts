@@ -4,7 +4,8 @@
  */
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { extensionConstants } from 'tods-competition-factory';
 
 export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const deleteFlights = () => selectAndDeleteEventFlights({ eventData });

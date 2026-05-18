@@ -3,7 +3,8 @@
  * Navigates to draw view after successful removal.
  * For VOLUNTARY_CONSOLATION structures, also removes VC stage entries.
  */
-import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';

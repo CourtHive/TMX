@@ -2,7 +2,8 @@
  * MatchUp team filter for filterPopoverButton.
  * Filters matchUps by team participant, with optional stats panel display.
  */
-import { tournamentEngine, participantConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantConstants } from 'tods-competition-factory';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { context } from 'services/context';

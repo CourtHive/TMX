@@ -33,7 +33,7 @@ vi.mock('i18n', () => ({
 import { openModal } from './baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { isDev } from 'functions/isDev';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { deleteEvents } from './deleteEvents';
 
 const mockOpenModal = vi.mocked(openModal);

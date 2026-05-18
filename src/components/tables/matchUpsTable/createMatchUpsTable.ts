@@ -2,7 +2,8 @@
  * Create matchUps table with scoring and predictive accuracy.
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
-import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

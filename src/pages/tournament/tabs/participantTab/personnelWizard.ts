@@ -1,4 +1,5 @@
-import { tournamentEngine, participantRoles } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantRoles } from 'tods-competition-factory';
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { providerConfig } from 'config/providerConfig';

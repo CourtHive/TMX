@@ -1,4 +1,5 @@
-import { tournamentEngine, participantConstants, participantRoles } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

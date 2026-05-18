@@ -7,7 +7,7 @@
  */
 import { renderForm } from 'courthive-components';
 import { generateDrawPDF } from 'services/pdf/generators/drawGenerator';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 

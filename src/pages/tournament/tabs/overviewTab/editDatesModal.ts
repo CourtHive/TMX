@@ -1,7 +1,7 @@
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { getParent } from 'services/dom/parentAndChild';
 import { t, i18next } from 'i18n';
 

@@ -1,7 +1,8 @@
 import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
-import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { getLoginState } from 'services/authentication/loginState';

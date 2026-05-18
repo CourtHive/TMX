@@ -1,4 +1,5 @@
-import { mocksEngine, queryGovernor, tournamentEngine, tools, extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { mocksEngine, queryGovernor, tools, extensionConstants } from 'tods-competition-factory';
 import { compositions, renderMatchUp, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';

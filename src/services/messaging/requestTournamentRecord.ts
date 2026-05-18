@@ -1,5 +1,5 @@
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { connected, emitTmx } from './socketIo';
 import { t } from 'i18n';
 

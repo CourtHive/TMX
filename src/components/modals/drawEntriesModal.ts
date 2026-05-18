@@ -6,7 +6,8 @@ import { drawEntriesSeedingSelector } from './drawEntriesColumns/seeding/drawEnt
 import { cancelManualSeeding } from 'components/tables/eventsTable/seeding/canceManuallSeeding';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { getDrawEntriesColumns } from './drawEntriesColumns/getDrawEntriesColumns';
-import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { extensionConstants } from 'tods-competition-factory';
 import { saveSeeding } from 'components/tables/eventsTable/seeding/saveSeeding';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

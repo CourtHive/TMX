@@ -1,4 +1,4 @@
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { tmx2db } from './tmx2db';

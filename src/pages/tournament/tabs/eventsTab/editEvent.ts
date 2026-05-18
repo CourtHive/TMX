@@ -9,15 +9,8 @@ import { providerConfig } from 'config/providerConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import {
-  drawDefinitionConstants,
-  entryStatusConstants,
-  participantConstants,
-  tournamentEngine,
-  genderConstants,
-  eventConstants,
-  tools,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, tools } from 'tods-competition-factory';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';

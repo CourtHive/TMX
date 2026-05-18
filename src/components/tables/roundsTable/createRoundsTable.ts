@@ -5,7 +5,8 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/eventControlBar';
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
-import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

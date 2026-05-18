@@ -26,7 +26,8 @@ import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
 // constants
-import { tournamentEngine, drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import {
   DRAWS_VIEW,

@@ -7,14 +7,8 @@ import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
-import {
-  factoryConstants,
-  drawDefinitionConstants,
-  tournamentEngine,
-  eventConstants,
-  policyConstants,
-  fixtures,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { factoryConstants, drawDefinitionConstants, eventConstants, policyConstants, fixtures } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {

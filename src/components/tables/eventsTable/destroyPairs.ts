@@ -2,7 +2,8 @@
  * Destroy pair entries action.
  * Removes selected pair participants and returns individuals to ungrouped status.
  */
-import { tournamentEngine, entryStatusConstants, eventConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { toggleOverlay } from 'courthive-components';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';

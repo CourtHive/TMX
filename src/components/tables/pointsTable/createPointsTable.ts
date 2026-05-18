@@ -8,7 +8,7 @@
 import { getAvailablePolicies, getLevelDisplayLabel, PolicyOption } from './policyUtils';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { getPointsColumns } from './getPointsColumns';
 import { controlBar } from 'courthive-components';

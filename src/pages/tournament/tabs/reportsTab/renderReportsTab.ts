@@ -1,4 +1,4 @@
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { createReportsTable } from './createReportsTable';
 import { exportReportPDF } from './exportReportPDF';
 import { downloadJSON } from 'services/export/download';

@@ -13,7 +13,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar } from 'courthive-components';
 import { destroyTipster } from 'components/popovers/tipster';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawsColumns } from './getDrawsColumns';

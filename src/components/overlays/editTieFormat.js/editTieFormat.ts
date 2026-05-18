@@ -2,7 +2,8 @@
  * Edit tie format overlay with card-based collection editor.
  * Manages scorecard structure, win criteria, and collection configurations.
  */
-import { tools, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { tools } from 'tods-competition-factory';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal } from 'courthive-components';
 import { closeOverlay, openOverlay } from '../overlay';

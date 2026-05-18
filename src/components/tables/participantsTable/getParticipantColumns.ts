@@ -5,7 +5,8 @@
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
-import { genderConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { genderConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';

@@ -30,7 +30,8 @@
  * caller receives a `warnings` array describing what was skipped and why.
  */
 
-import { fixtures, tools, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures, tools } from 'tods-competition-factory';
 import { mergeParticipantDrafts } from './mergeParticipantDrafts';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';

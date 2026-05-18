@@ -3,7 +3,8 @@
  * Provides options for start/end time, official selection, and schedule clearing.
  */
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
-import { tournamentEngine, participantRoles, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantRoles, tools } from 'tods-competition-factory';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';

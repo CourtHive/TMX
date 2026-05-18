@@ -5,7 +5,7 @@
 import { openImportParticipantsView } from 'components/modals/importParticipantsView';
 import { fetchGoogleSheetRaw } from 'services/sheets/fetchGoogleSheet';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderForm } from 'courthive-components';
 import { t } from 'i18n';

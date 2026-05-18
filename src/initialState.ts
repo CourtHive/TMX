@@ -2,7 +2,8 @@
  * Application initialization and setup.
  * Sets up context, environment, event listeners, and routing.
  */
-import { factoryConstants, globalState, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { factoryConstants, globalState } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';

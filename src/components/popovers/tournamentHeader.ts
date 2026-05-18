@@ -1,6 +1,6 @@
 import { openEditTournamentNameModal } from 'components/modals/editTournamentName';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
 export function tournamentHeader(): void {

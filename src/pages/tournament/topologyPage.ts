@@ -6,7 +6,8 @@
 import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
 import { saveTopologyTemplate, getTopologyTemplates } from 'components/drawers/addDraw/topologyTemplates';
 import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
-import { entryStatusConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { entryStatusConstants } from 'tods-competition-factory';
 import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';

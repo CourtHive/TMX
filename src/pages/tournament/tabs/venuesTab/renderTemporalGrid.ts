@@ -5,7 +5,7 @@
  */
 import { createTemporalGrid, TemporalGrid, type TemporalGridLabels } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 

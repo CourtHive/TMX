@@ -5,7 +5,8 @@
  * in the schedule2 CSS grid. Uses tippy.js directly with custom DOM for a modern
  * pill/icon layout rather than the legacy flat menu list.
  */
-import { competitionEngine, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
+import { matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';

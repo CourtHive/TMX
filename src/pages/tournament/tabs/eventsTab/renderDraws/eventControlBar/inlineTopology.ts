@@ -3,7 +3,7 @@
  * Replaces the draw and draw control bar with a read-only topology view.
  */
 import { TopologyBuilderControl, controlBar } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { hydrateTopology } from 'pages/tournament/tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { removeAllChildNodes } from 'services/dom/transformers';

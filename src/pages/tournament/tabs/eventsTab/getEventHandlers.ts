@@ -2,7 +2,8 @@
  * Event handlers for draw view interactions.
  * Handles clicks on participants, scores, schedules, venues, and round headers.
  */
-import { fixtures, tournamentEngine, participantConstants, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick';
 import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';

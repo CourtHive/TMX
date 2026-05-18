@@ -2,7 +2,8 @@
  * Map draw definition with publish state and scale values.
  * Returns draw metadata including entries count, ratings averages, and formats.
  */
-import { tournamentEngine, publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
 
 // constants
 const { WITHDRAWN } = entryStatusConstants;

@@ -2,7 +2,8 @@
  * Draw control bar with round tabs and playoff positioning.
  * Provides navigation, auto-positioning for playoffs, and round/view selection.
  */
-import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getSwissRoundOptions } from '../options/swissRoundOptions';
 import { getAdHocRoundOptions } from '../options/adHocRoundOptions';

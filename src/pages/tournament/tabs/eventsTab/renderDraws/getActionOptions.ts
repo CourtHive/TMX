@@ -2,7 +2,8 @@
  * Action options for draw structures.
  * Provides menu options for editing, removing, and resetting draw structures.
  */
-import { tournamentEngine, eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';

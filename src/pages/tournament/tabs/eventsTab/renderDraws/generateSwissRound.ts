@@ -1,5 +1,5 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 // constants

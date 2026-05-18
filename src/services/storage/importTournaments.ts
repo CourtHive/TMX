@@ -5,7 +5,7 @@
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { addOrUpdateTournament } from './addOrUpdateTournament';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as safeJSON from 'utilities/safeJSON';
 import { platform } from 'platform';

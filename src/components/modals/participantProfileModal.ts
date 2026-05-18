@@ -4,7 +4,8 @@
  */
 import { getAvailablePolicies, getLevelDisplayLabel } from 'components/tables/pointsTable/policyUtils';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
-import { tournamentEngine, fixtures, factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar, cModal } from 'courthive-components';

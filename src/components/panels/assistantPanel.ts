@@ -3,7 +3,7 @@
  * Floating panel for AI-powered tournament help.
  * Communicates with tmx-assistant service via REST + SSE.
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
 import { getToken } from 'services/authentication/tokenManagement';
 

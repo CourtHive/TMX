@@ -1,6 +1,6 @@
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderOverview } from './renderOverview';
 import { t } from 'i18n';
 

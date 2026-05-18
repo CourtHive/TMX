@@ -19,7 +19,8 @@
  *  - On Save: all queued methods sent as single mutationRequest
  *  - On Discard: factory state reloaded from IndexedDB
  */
-import { competitionEngine, matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
+import { matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';

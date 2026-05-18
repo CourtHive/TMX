@@ -10,7 +10,8 @@ import { drawEntriesClick } from 'components/tables/eventsTable/drawEntriesClick
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { extensionConstants } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, UTR, WTN } from 'constants/tmxConstants';

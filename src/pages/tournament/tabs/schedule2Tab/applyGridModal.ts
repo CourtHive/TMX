@@ -10,7 +10,7 @@
  * Creating or editing scheduling policies lives on the `/policies` page
  * and persists through `policyBridge`.
  */
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import { PolicyCatalogItem } from 'courthive-components';
 
 import { getBuiltinPolicies, loadUserPolicies } from 'pages/policies/policyBridge';

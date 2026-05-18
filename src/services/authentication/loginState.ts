@@ -7,7 +7,7 @@ import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { validateToken } from 'services/authentication/validateToken';
 import { getToken, removeToken, setToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { loginModal } from 'components/modals/loginModal';
 import { providerConfig } from 'config/providerConfig';

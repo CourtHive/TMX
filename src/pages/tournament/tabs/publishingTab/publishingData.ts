@@ -2,7 +2,8 @@
  * Data aggregation for the publishing tab.
  * Queries factory publish state and structures it for the UI.
  */
-import { tournamentEngine, publishingGovernor, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { publishingGovernor, tools } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 const PUB_ROUND_KEY = 'publishing.round';

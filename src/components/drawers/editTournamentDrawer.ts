@@ -10,7 +10,7 @@ import { getProvider, sendTournament } from 'services/apis/servicesApi';
 import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';

@@ -4,7 +4,7 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 

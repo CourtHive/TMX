@@ -2,7 +2,7 @@
  * Column definitions for events table.
  * Defines columns for event display including name, type, counts, and actions.
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { headerMenu } from '../common/headerMenu';
 

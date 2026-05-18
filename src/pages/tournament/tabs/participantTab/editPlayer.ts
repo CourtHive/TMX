@@ -1,5 +1,5 @@
 import { editIndividualParticipant } from './editIndividualParticipant';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 export function editPlayer({ participantId, callback }: { participantId: string; callback?: () => void }): any {
   const participant = tournamentEngine.getParticipants({

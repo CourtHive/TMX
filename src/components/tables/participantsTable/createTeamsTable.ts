@@ -4,7 +4,8 @@
  */
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapTeamParticipant } from 'pages/tournament/tabs/participantTab/mapTeamParticipant';
-import { tournamentEngine, participantConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantConstants } from 'tods-competition-factory';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';

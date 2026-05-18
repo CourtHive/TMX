@@ -4,7 +4,7 @@
  */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { editEvent } from './editEvent';
 
 import { EVENT_TABS_BAR } from 'constants/tmxConstants';

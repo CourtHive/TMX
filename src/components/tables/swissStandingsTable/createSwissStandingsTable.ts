@@ -3,7 +3,7 @@ import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/draw
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { renderParticipant } from 'courthive-components';

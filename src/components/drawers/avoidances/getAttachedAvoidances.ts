@@ -1,4 +1,5 @@
-import { tournamentEngine, policyConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { policyConstants } from 'tods-competition-factory';
 
 const { POLICY_TYPE_AVOIDANCE } = policyConstants;
 

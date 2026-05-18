@@ -20,7 +20,8 @@ import {
   type DemandAdapter,
   type DependencyAdapter,
 } from 'courthive-components';
-import { competitionEngine, TemporalEngine, temporal } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
+import { TemporalEngine, temporal } from 'tods-competition-factory';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';

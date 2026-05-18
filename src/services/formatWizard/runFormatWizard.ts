@@ -1,4 +1,4 @@
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { extractParticipantRating } from './extractRating';
 
 // constants and types

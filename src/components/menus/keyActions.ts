@@ -3,7 +3,7 @@
  * Allows entry of new keys or selection from stored provider keys.
  */
 import { renderMenu } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { stringSort } from 'functions/sorting/sorting';
 import { emitTmx } from 'services/messaging/socketIo';
 import { tmx2db } from 'services/storage/tmx2db';

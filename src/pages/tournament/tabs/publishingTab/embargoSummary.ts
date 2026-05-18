@@ -5,7 +5,8 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderPublishingTab } from './renderPublishingTab';
 import { getActiveEmbargoes } from './publishingData';
-import { tournamentEngine, publishingGovernor } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { publishingGovernor } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 // constants

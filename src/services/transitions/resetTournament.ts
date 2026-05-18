@@ -1,5 +1,5 @@
 import { leaveTournamentRoom } from 'services/messaging/socketIo';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';

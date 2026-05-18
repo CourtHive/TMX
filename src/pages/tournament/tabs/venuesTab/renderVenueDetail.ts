@@ -10,7 +10,7 @@ import {
   mapVenueToCardData,
   resolveCourtSport
 } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { editCourt } from './editCourt';
 import { editVenue } from './editVenue';
 import { context } from 'services/context';

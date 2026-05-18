@@ -1,4 +1,5 @@
-import { tournamentEngine, participantConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 
 import { MODIFY_SIGN_IN_STATUS } from 'constants/mutationConstants';

@@ -1,4 +1,4 @@
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 export function eventTabDeleteDraws({ eventRow, drawsTable, drawIds }) {
   drawsTable.deleteRow(drawIds);

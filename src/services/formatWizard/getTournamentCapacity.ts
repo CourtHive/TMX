@@ -1,4 +1,5 @@
-import { competitionEngine, TemporalEngine, tournamentEngine } from 'tods-competition-factory';
+import { competitionEngine, tournamentEngine } from 'services/factory/engine';
+import { TemporalEngine } from 'tods-competition-factory';
 
 export interface TournamentCapacity {
   courtCount: number; // raw sum of courts across venues

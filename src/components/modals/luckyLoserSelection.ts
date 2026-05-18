@@ -5,7 +5,7 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 import { LUCKY_DRAW_ADVANCEMENT } from 'constants/mutationConstants';

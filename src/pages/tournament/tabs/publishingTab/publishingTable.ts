@@ -4,7 +4,8 @@
  * clickable names (navigate to draw), and public URL links.
  */
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
-import { tournamentEngine, publishingGovernor } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { publishingGovernor } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

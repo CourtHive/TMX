@@ -9,14 +9,8 @@ import { validators } from 'courthive-components';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
-import {
-  drawDefinitionConstants,
-  entryStatusConstants,
-  factoryConstants,
-  tournamentEngine,
-  tools,
-  policyConstants,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, entryStatusConstants, factoryConstants, tools, policyConstants } from 'tods-competition-factory';
 
 // constants
 import { ADD_DRAW_ENTRIES, ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';

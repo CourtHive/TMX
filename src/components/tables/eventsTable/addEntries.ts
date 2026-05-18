@@ -2,7 +2,8 @@
  * Add entries action for events table.
  * Opens participant selection modal and adds selected entries to event.
  */
-import { positionActionConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { positionActionConstants } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';

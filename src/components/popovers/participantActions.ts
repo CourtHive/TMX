@@ -7,7 +7,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
 

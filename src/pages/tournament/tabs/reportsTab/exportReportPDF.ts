@@ -1,5 +1,5 @@
 import { generateReportPDF } from 'pdf-factory';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openPDF } from 'services/pdf/export/pdfExport';
 
 // ID fields that should not appear in printed PDFs — only names

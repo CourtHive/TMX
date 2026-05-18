@@ -2,7 +2,8 @@
  * Round display view options for draw structures.
  * Provides options to switch between columns/draw view, table view, and statistics.
  */
-import { tournamentEngine, drawDefinitionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 
 import { RIGHT, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
 const { CONTAINER } = drawDefinitionConstants;

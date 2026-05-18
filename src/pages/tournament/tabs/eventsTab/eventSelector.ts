@@ -3,7 +3,7 @@
  * Replaces the full events table with a small scrollable list for quick switching.
  */
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { EVENTS_TABLE, EVENT_SELECTOR_TABLE, NONE } from 'constants/tmxConstants';
 

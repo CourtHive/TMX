@@ -4,12 +4,8 @@
  */
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { mapDrawDefinition } from './mapDrawDefinition';
-import {
-  tournamentEngine,
-  publishingGovernor,
-  drawDefinitionConstants,
-  extensionConstants,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { publishingGovernor, drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
 
 const { MAIN } = drawDefinitionConstants;
 

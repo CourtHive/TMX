@@ -10,7 +10,7 @@
  * rendering for published tournaments.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 

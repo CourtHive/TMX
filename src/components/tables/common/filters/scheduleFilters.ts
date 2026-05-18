@@ -3,7 +3,8 @@
  * Built on a generic factory; each exported function is a thin wrapper
  * that supplies the field, values, and label for its filter type.
  */
-import { tournamentEngine, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { tools } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 // ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@
  *   /#/tournament/:id/schedule2/:date/grid      → Grid view
  *   /#/tournament/:id/schedule2/:date/profile   → Profile view
  */
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import { getScheduleDateRange, resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
 

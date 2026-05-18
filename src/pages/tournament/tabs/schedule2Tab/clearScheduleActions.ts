@@ -15,7 +15,7 @@
  * the count and offers "Show all courts" to clear visibility before proceeding.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import { isCompletedStatus } from 'courthive-components';
 import { tipster } from 'components/popovers/tipster';
 import { confirmModal, closeModal } from 'components/modals/baseModal/baseModal';

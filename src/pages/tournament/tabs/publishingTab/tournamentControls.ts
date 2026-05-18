@@ -10,7 +10,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { barButton, renderForm } from 'courthive-components';
 import { openEmbargoModal } from './embargoModal';
 import { providerConfig } from 'config/providerConfig';
-import { tournamentEngine, eventConstants, fixtures } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { eventConstants, fixtures } from 'tods-competition-factory';
 import { t } from 'i18n';
 import dayjs from 'dayjs';
 

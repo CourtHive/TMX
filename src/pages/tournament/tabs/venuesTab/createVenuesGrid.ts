@@ -7,7 +7,7 @@
  */
 
 import { buildVenueCard, mapVenueToCardData, resolveCourtSport, VenueCardData } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 import './venuesGrid.css';
 

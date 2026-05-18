@@ -1,7 +1,8 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/eventControlBar';
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
-import { tournamentEngine, scoreGovernor, fixtures } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { scoreGovernor, fixtures } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { showTallyReportModal } from 'components/modals/tallyReportModal';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';

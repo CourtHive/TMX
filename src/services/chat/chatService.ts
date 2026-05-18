@@ -6,7 +6,7 @@
  * so the unread badge survives reloads.
  */
 import { getLoginState } from 'services/authentication/loginState';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 export interface ChatMessage {
   userName: string;

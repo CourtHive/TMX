@@ -4,7 +4,8 @@
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
 import { createCompetitivenessSummary } from 'components/tables/matchUpsTable/competitivenessSummary';
-import { tournamentEngine, eventConstants, fixtures } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { eventConstants, fixtures } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
 import { getMatchUpStatusFilter } from 'components/tables/common/filters/matchUpStatusFilter';

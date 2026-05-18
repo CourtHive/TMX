@@ -1,6 +1,6 @@
 import { toggleEditVisibility } from '../../common/toggleEditVisibility';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 // constants
 import { MODIFY_PARTICIPANT } from 'constants/mutationConstants';

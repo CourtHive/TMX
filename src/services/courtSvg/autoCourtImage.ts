@@ -2,7 +2,7 @@
  * Auto-assign a court SVG as tournament image when a draw is created,
  * if the tournament has no existing image.
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { resolveCourtSport, sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
 import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';

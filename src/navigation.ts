@@ -7,7 +7,7 @@ import { openAssistantPanel, checkAssistantHealth } from 'components/panels/assi
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openChatModal } from 'components/modals/chatModal';
 import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';

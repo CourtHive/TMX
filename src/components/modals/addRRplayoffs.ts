@@ -2,7 +2,8 @@
  * Add Round Robin playoff structures modal.
  * Configures playoff groups with finishing positions, draw type, and group size options.
  */
-import { drawDefinitionConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';

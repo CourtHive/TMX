@@ -14,7 +14,7 @@ import { hadDisconnect, clearDisconnectFlag, joinTournamentRoom } from 'services
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
 import { requestTournament } from 'services/apis/servicesApi';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 

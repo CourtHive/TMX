@@ -3,7 +3,8 @@
  * Priority: drawDefinition extension > env.composition > localStorage > default
  * Smart Complements: localStorage settings > env > default
  */
-import { tournamentEngine, extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { extensionConstants } from 'tods-competition-factory';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { displayConfig } from 'config/displayConfig';
 

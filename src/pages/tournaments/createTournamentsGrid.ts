@@ -6,7 +6,7 @@
  */
 
 import { buildSkeletonCard, buildTournamentCard } from 'courthive-components';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { TournamentRow } from './mapTournamentRecord';
 import { context } from 'services/context';
 

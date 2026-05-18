@@ -9,7 +9,7 @@ import { printRoundMatchCards } from 'components/modals/printMatchCards';
 import { printRoundCourtCards } from 'components/modals/printCourtCards';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { scheduleRound } from './scheduleRound';
 

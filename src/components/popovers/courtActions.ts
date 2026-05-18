@@ -3,7 +3,7 @@
  * Shows tipster menu for court management actions from table rows.
  */
 import { editCourt } from 'pages/tournament/tabs/venuesTab/editCourt';
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';

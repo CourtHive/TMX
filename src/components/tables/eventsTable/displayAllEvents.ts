@@ -1,4 +1,4 @@
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
 import { TOURNAMENT, EVENTS_TAB } from 'constants/tmxConstants';

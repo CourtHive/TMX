@@ -8,13 +8,8 @@ import { toggleOverlay } from 'courthive-components';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
-import {
-  drawDefinitionConstants,
-  eventConstants,
-  entryStatusConstants,
-  tournamentEngine,
-  tools,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, eventConstants, entryStatusConstants, tools } from 'tods-competition-factory';
 
 import { ADD_EVENT_ENTRY_PAIRS } from 'constants/mutationConstants';
 import { NONE, OVERLAY } from 'constants/tmxConstants';

@@ -2,7 +2,7 @@
  * MatchUp event filter for filterPopoverButton.
  * Filters matchUps by event (using eventId on row data).
  */
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

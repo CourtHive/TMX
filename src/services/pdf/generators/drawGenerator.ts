@@ -5,7 +5,7 @@
  * Context-sensitive: detects draw type and routes to the appropriate renderer.
  */
 
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openPDF, savePDF } from '../export/pdfExport';
 import {
   getCatalogPreset,

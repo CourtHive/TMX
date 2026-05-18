@@ -19,12 +19,8 @@ import { controlBar, dropDownButton } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import type { SortState } from './segmentSorter';
 import { context } from 'services/context';
-import {
-  drawDefinitionConstants,
-  entryStatusConstants,
-  eventConstants,
-  tournamentEngine,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 
 // constants
 import {

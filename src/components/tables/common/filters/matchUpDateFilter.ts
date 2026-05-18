@@ -8,7 +8,7 @@
  *   - 'YYYY-MM-DD' — a specific date string
  *   - '__none__' — matchUps with no scheduledDate
  */
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

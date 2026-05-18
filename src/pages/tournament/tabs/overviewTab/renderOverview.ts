@@ -1,6 +1,6 @@
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';

@@ -3,7 +3,7 @@
  * Shows table with participant names and reasons for validation failure
  */
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 

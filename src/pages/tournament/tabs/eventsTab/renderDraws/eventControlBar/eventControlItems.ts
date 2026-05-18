@@ -16,12 +16,8 @@ import { compositions } from 'courthive-components';
 import { renderDrawView } from '../renderDrawView';
 import { displayConfig } from 'config/displayConfig';
 import { t } from 'i18n';
-import {
-  drawDefinitionConstants,
-  eventConstants,
-  extensionConstants,
-  tournamentEngine,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, eventConstants, extensionConstants } from 'tods-competition-factory';
 
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { LEFT, RIGHT } from 'constants/tmxConstants';

@@ -5,7 +5,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderButtons, renderForm } from 'courthive-components';
 import { getAvoidanceFormItems } from './getAvoidanceFormItems';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { avoidanceRules } from './avoidanceRules';
 import { context } from 'services/context';

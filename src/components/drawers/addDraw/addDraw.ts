@@ -2,7 +2,8 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
-import { entryStatusConstants, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { entryStatusConstants } from 'tods-competition-factory';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getUserTopologiesSync } from 'pages/templates/topologyBridge';

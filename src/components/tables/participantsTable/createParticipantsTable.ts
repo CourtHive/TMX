@@ -3,7 +3,8 @@
  * Displays individual participant details, ratings, and event assignments.
  * Rating columns and averages are determined dynamically from participant data.
  */
-import { tournamentEngine, participantConstants, participantRoles, tools, fixtures } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { participantConstants, participantRoles, tools, fixtures } from 'tods-competition-factory';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { headerSortElement } from '../common/sorters/headerSortElement';

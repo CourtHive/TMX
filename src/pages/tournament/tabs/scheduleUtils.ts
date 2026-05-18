@@ -4,7 +4,8 @@
  * Resolves which date to display when navigating to a schedule tab,
  * respecting tournamentRecord.activeDates when present.
  */
-import { competitionEngine, tools } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
+import { tools } from 'tods-competition-factory';
 
 /**
  * Returns the valid set of schedule dates for the tournament.

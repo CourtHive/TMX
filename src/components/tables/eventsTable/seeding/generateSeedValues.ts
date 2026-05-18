@@ -2,7 +2,8 @@
  * Generate seed values from participant ratings.
  * Automatically assigns seeding based on rating scales with confidence bands.
  */
-import { tournamentEngine, drawDefinitionConstants, scaleConstants, fixtures } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, scaleConstants, fixtures } from 'tods-competition-factory';
 import { setParticipantScaleItems } from './setParticipantScaleItems';
 import { getConfidenceBand } from 'components/tables/common/sorters/ratingSorter';
 import { isFunction } from 'functions/typeOf';

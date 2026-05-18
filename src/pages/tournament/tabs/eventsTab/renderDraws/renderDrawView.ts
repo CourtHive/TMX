@@ -33,13 +33,8 @@ import { displayConfig } from 'config/displayConfig';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import morphdom from 'morphdom';
-import {
-  tournamentEngine,
-  eventConstants,
-  drawDefinitionConstants,
-  tools,
-  publishingGovernor,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 
 import {
   EVENT_CONTROL,

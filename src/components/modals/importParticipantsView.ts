@@ -24,7 +24,7 @@ import { mergeParticipantDrafts } from 'services/import/mergeParticipantDrafts';
 import { normalizeHeader } from 'services/import/participantFieldModel';
 import { autoMapColumns } from 'services/import/autoMapColumns';
 import { parseRatingCell } from 'services/import/parseRatingCell';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { openModal } from './baseModal/baseModal';
 import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';

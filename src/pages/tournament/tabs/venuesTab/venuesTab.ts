@@ -17,7 +17,7 @@ import { createVenuesTable } from 'components/tables/venuesTable/createVenuesTab
 import { renderVenuesGrid, readVenueCardData } from './createVenuesGrid';
 import { showCourtAvailabilityModal } from 'courthive-components';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderVenueDetail } from './renderVenueDetail';
 import { setTabHeader } from 'components/tables/common/setTabHeader';
 import { destroyTable } from 'pages/tournament/destroyTable';

@@ -2,7 +2,8 @@
  * UTR match export functionality.
  * Formats completed matches for UTR (Universal Tennis Rating) submission.
  */
-import { tournamentEngine, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { tools } from 'tods-competition-factory';
 import { downloadText } from './download';
 
 import { DRAW_NAME, DRAW_TYPE, UTR } from 'constants/tmxConstants';

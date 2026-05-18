@@ -1,6 +1,6 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { logMutationError } from 'functions/logMutationError';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 // constants
 import { PUBLISH_EVENT } from 'constants/mutationConstants';

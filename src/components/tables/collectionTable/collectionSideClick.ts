@@ -1,6 +1,6 @@
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 export const handleSideClick =
   (matchUp: any) =>

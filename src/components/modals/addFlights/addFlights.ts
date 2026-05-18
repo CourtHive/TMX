@@ -1,4 +1,5 @@
-import { factoryConstants, matchUpTypes, tools, tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { factoryConstants, matchUpTypes, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getFlightProfileModal } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';

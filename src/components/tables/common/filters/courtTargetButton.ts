@@ -3,7 +3,7 @@
  * Shows a crosshair icon; opens a popover with checkboxes for each court.
  * Selected courts limit which courts auto-schedule targets.
  */
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import tippy, { Instance } from 'tippy.js';
 import { t } from 'i18n';
 

@@ -16,14 +16,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import {
-  drawDefinitionConstants,
-  entryStatusConstants,
-  factoryConstants,
-  tournamentEngine,
-  fixtures,
-  tools,
-} from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { drawDefinitionConstants, entryStatusConstants, factoryConstants, fixtures, tools } from 'tods-competition-factory';
 
 // constants
 import { DRAWS_VIEW, LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';

@@ -8,7 +8,7 @@ import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderTournamentControls } from './tournamentControls';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderPublishingTable } from './publishingTable';
 import { renderEmbargoSummary } from './embargoSummary';
 import { renderQRimage, getQRuri } from 'services/qrFx';

@@ -6,7 +6,8 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { tournamentEngine, fixtures } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures } from 'tods-competition-factory';
 import { getTournamentScaleOptions, getParticipantScaleValues, ScaleOption } from './draftScaleOptions';
 
 const { ratingsParameters } = fixtures;

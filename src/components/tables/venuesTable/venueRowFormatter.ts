@@ -3,7 +3,7 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { deriveCourtNameBase } from 'components/forms/venue';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCourtColumns } from './getCourtColumns';
 import { context } from 'services/context';

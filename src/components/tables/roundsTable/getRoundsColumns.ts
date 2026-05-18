@@ -10,7 +10,7 @@ import { profileFormatter } from '../common/formatters/profileFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { handleScoreClick } from './handleMatchUpScoreClick';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';

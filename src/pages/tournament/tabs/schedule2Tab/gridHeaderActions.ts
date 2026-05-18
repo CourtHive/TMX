@@ -10,7 +10,7 @@
  * Toggle callbacks receive the new state; the consumer persists + applies it.
  */
 import { printSchedule } from 'components/modals/printSchedule';
-import { competitionEngine } from 'tods-competition-factory';
+import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
 
 const ARIA_PRESSED = 'aria-pressed';

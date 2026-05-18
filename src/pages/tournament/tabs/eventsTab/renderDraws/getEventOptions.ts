@@ -1,6 +1,6 @@
 import { displayAllEvents } from 'components/tables/eventsTable/displayAllEvents';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { tournamentEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { ALL_EVENTS } from 'constants/tmxConstants';
 
