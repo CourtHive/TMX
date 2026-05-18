@@ -10,12 +10,19 @@ import { setActiveProvider, readPersistedProvider, getActiveProvider } from './p
 import { openProviderSwitcher } from 'components/popovers/providerSwitcher';
 import { getLoginState } from 'services/authentication/loginState';
 
-import { SUPER_ADMIN } from 'constants/tmxConstants';
+import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 let providerClickWired = false;
 
 function isSuperAdmin(): boolean {
   return !!getLoginState()?.roles?.includes(SUPER_ADMIN);
+}
+
+function onTournamentsRoute(): boolean {
+  // Navigo uses hash routes prefixed with `#/`. The tournaments page sits at
+  // `#/tournaments` and `#/tournaments/:uuid`.
+  const hash = globalThis.location?.hash ?? '';
+  return hash === `#/${TMX_TOURNAMENTS}` || hash.startsWith(`#/${TMX_TOURNAMENTS}/`);
 }
 
 export function initProviderSwitcher(): void {
@@ -24,6 +31,11 @@ export function initProviderSwitcher(): void {
     providerClickWired = true;
     providerEl.addEventListener('click', () => {
       if (!isSuperAdmin()) return;
+      // The same element also acts as a "go to tournaments" button on every
+      // other route (handler set by `tournamentHeader.ts`). Only present the
+      // switch-provider menu when we're already viewing the tournaments page
+      // — clicking-to-navigate-back-here shouldn't also open the popover.
+      if (!onTournamentsRoute()) return;
       openProviderSwitcher({ target: providerEl });
     });
   }
