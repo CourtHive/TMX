@@ -15,6 +15,14 @@ ignoredBuiltDependencies:
 overrides:
   '@courthive/provider-config': link:../provider-config
   '@courthive/scoring-visualizations': link:../scoringVisualizations
+  '@xmldom/xmldom': ^0.9.0
+  'brace-expansion@1': ^5.0.0
+  'brace-expansion@2': ^5.0.0
+  'brace-expansion@>=4 <5.0.5': ^5.0.5
   courthive-components: link:../courthive-components
+  follow-redirects: ^1.16.0
   pdf-factory: link:../pdf-factory
+  picomatch: ^4.0.4
+  socket.io-parser: ^4.2.6
   tods-competition-factory: link:../factory
+  undici: ^8.0.0

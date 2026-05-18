@@ -152,33 +152,5 @@
     "tods-competition-factory": "3.7.0",
     "@courthive/provider-config": "^0.2.0",
     "vanillajs-datepicker": "1.3.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "tods-competition-factory": "link:../factory",
-      "courthive-components": "link:../courthive-components",
-      "@courthive/scoring-visualizations": "link:../scoringVisualizations",
-      "pdf-factory": "link:../pdf-factory",
-      "@courthive/provider-config": "link:../provider-config",
-      "@xmldom/xmldom": "^0.9.0",
-      "brace-expansion@1": "^5.0.0",
-      "brace-expansion@2": "^5.0.0",
-      "brace-expansion@>=4 <5.0.5": "^5.0.5",
-      "follow-redirects": "^1.16.0",
-      "picomatch": "^4.0.4",
-      "socket.io-parser": "^4.2.6",
-      "undici": "^8.0.0"
-    },
-    "ignoredBuiltDependencies": [
-      "@dep-tree/cli",
-      "@nestjs/core",
-      "@scarf/scarf",
-      "@swc/core",
-      "classic-level",
-      "core-js",
-      "esbuild",
-      "rollup",
-      "unrs-resolver"
-    ]
   }
 }
