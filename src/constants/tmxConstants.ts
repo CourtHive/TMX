@@ -135,6 +135,7 @@ export const QUALIFYING = 'QUALIFYING';
 export const ACCEPTED = 'ACCEPTED';
 
 export const EVENT_INFO = 'eventInfo';
+export const DRAWS_HEADER = 'drawsHeader';
 export const ACCEPTED_PANEL = 'acceptedPanel';
 export const ALTERNATES_PANEL = 'alternatesPanel';
 export const QUALIFYING_PANEL = 'qualifyingPanel';

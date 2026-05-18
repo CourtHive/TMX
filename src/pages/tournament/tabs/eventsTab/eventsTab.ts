@@ -17,7 +17,7 @@ import { addFlights } from 'components/modals/addFlights/addFlights';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
 import { renderDrawsGrid } from './renderDraws/renderDrawsGrid';
 import { readDrawsViewMode, writeDrawsViewMode } from './renderDraws/drawsViewMode';
-import { viewToggleItem } from 'components/tables/common/viewToggle';
+import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
@@ -33,6 +33,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import {
+  DRAWS_HEADER,
   DRAWS_VIEW,
   EVENTS_TAB,
   EVENT_CONTROL,
@@ -148,6 +149,23 @@ function renderDrawsListOrPlaceholder(eventId: string, renderDraw: boolean | und
   }
 }
 
+function renderDrawsHeader({
+  count,
+  mode,
+  onModeChange,
+}: { count: number; mode: 'grid' | 'table'; onModeChange: (next: 'grid' | 'table') => void }): void {
+  const headerEl = document.getElementById(DRAWS_HEADER);
+  if (!headerEl) return;
+  headerEl.style.display = '';
+  while (headerEl.firstChild) headerEl.removeChild(headerEl.firstChild);
+
+  const title = document.createElement('span');
+  title.textContent = `Draws (${count})`;
+  headerEl.appendChild(title);
+
+  headerEl.appendChild(buildViewToggleElement({ mode, onChange: onModeChange }));
+}
+
 function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean | undefined): void {
   renderEventTabsBar({ eventId, activeTab: 'draws' });
   setEventView({ renderDraw });
@@ -156,6 +174,7 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
 
   let mode = readDrawsViewMode();
   let drawsTable: any;
+  let drawCount = 0;
 
   const drawAdded = (result: any) => {
     if (result.success) {
@@ -185,10 +204,21 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
     contentEl!.innerHTML = '';
     drawsTable = undefined;
     if (mode === 'grid') {
-      renderDrawsGrid({ eventId, target: contentEl! });
+      drawCount = renderDrawsGrid({ eventId, target: contentEl! });
     } else {
       drawsTable = renderDrawsTable({ eventId, target: contentEl! });
+      drawCount = drawsTable?.getDataCount?.() ?? 0;
     }
+    renderDrawsHeader({
+      count: drawCount,
+      mode,
+      onModeChange: (next) => {
+        if (next === mode) return;
+        mode = next;
+        writeDrawsViewMode(next);
+        renderForMode();
+      },
+    });
     renderControls();
   }
 
@@ -208,16 +238,6 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
           hide: mode === 'grid',
           location: OVERLAY,
         },
-        viewToggleItem({
-          id: 'drawsViewToggle',
-          mode,
-          onChange: (next) => {
-            if (next === mode) return;
-            mode = next;
-            writeDrawsViewMode(next);
-            renderForMode();
-          }
-        }),
         {
           onClick: () =>
             addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
