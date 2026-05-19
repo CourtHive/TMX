@@ -64,6 +64,20 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
       id: 'venueEndTime',
       onChange,
     },
+    {
+      value: values.venueWebsiteURL || '',
+      label: t('pages.venues.editVenue.websiteLabel'),
+      placeholder: 'https://example.com',
+      field: 'venueWebsiteURL',
+      onChange,
+    },
+    {
+      value: values.venueImageURL || '',
+      label: t('pages.venues.editVenue.imageLabel'),
+      placeholder: 'https://example.com/image.jpg',
+      field: 'venueImageURL',
+      onChange,
+    },
   ];
 }
 
@@ -75,6 +89,8 @@ export function getVenueFormValues(content: any): any {
     defaultEndTime: content?.defaultEndTime?.value,
     courtsCount: content?.courtsCount.value,
     venueName: content?.venueName.value,
+    venueWebsiteURL: (content?.venueWebsiteURL?.value || '').trim(),
+    venueImageURL: (content?.venueImageURL?.value || '').trim(),
   };
 }
 

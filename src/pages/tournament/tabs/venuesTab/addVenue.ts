@@ -14,7 +14,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 import { attachTimePicker, createTimeOrderValidator, toMilitaryTime } from './venueTimeHelpers';
-import { ADD_COURTS, ADD_VENUE } from 'constants/mutationConstants';
+import { ADD_COURTS, ADD_ONLINE_RESOURCE, ADD_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
 // ---------------------------------------------------------------------------
@@ -23,7 +23,16 @@ import { RIGHT } from 'constants/tmxConstants';
 
 const saveVenue = (callback?: (result: any) => void, engine?: string) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
-  const { venueName, venueAbbreviation, courtNameBase, courtsCount, defaultStartTime, defaultEndTime } = values;
+  const {
+    venueName,
+    venueAbbreviation,
+    courtNameBase,
+    courtsCount,
+    defaultStartTime,
+    defaultEndTime,
+    venueWebsiteURL,
+    venueImageURL,
+  } = values;
   const venueId = tools.UUID();
   if (!venueName || !venueAbbreviation || !courtsCount) {
     tmxToast({ message: t('pages.venues.invalidValues'), intent: 'is-danger' });
@@ -41,13 +50,42 @@ const saveVenue = (callback?: (result: any) => void, engine?: string) => {
     addCourtsParams.courtNameRoot = courtNameBase;
   }
 
-  const methods = [
+  const methods: any[] = [
     {
       params: { venue, returnDetails: true },
       method: ADD_VENUE,
     },
     { params: addCourtsParams, method: ADD_COURTS },
   ];
+
+  if (venueWebsiteURL) {
+    methods.push({
+      method: ADD_ONLINE_RESOURCE,
+      params: {
+        venueId,
+        onlineResource: {
+          name: 'venueWebsite',
+          resourceType: 'URL',
+          resourceSubType: 'WEBSITE',
+          identifier: venueWebsiteURL,
+        },
+      },
+    });
+  }
+  if (venueImageURL) {
+    methods.push({
+      method: ADD_ONLINE_RESOURCE,
+      params: {
+        venueId,
+        onlineResource: {
+          name: 'venueImage',
+          resourceType: 'URL',
+          resourceSubType: 'IMAGE',
+          identifier: venueImageURL,
+        },
+      },
+    });
+  }
 
   const postMutation = (result: any) => {
     if (result?.success) {
@@ -93,6 +131,15 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
 
   const numberValidator = (value: string) => value && !Number.isNaN(Number(value));
 
+  const previewImage = document.createElement('img');
+  previewImage.style.cssText = 'max-width: 100%; max-height: 160px; margin-top: 8px; border-radius: 4px; display: none;';
+  previewImage.onerror = () => {
+    previewImage.style.display = 'none';
+  };
+  previewImage.onload = () => {
+    previewImage.style.display = '';
+  };
+
   const enableSubmit = ({ inputs }: any) => {
     const timeError =
       inputs?.defaultStartTime?.classList.contains('is-danger') ||
@@ -110,12 +157,23 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
 
   const validateTimeOrder = createTimeOrderValidator(enableSubmit);
 
+  const onImageURLChange = ({ inputs }: any) => {
+    const url = inputs?.venueImageURL?.value?.trim();
+    if (url) {
+      previewImage.src = url;
+    } else {
+      previewImage.removeAttribute('src');
+      previewImage.style.display = 'none';
+    }
+  };
+
   const relationships = [
     { control: 'venueAbbreviation', onInput: enableSubmit },
     { control: 'courtsCount', onInput: enableSubmit },
     { control: 'venueName', onInput: enableSubmit },
     { control: 'defaultStartTime', onInput: validateTimeOrder },
     { control: 'defaultEndTime', onInput: validateTimeOrder },
+    { control: 'venueImageURL', onInput: onImageURLChange },
   ];
 
   const content = (elem: HTMLElement) => {
@@ -126,6 +184,12 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
 
     if (inputs?.defaultStartTime) attachTimePicker(inputs.defaultStartTime as HTMLInputElement);
     if (inputs?.defaultEndTime) attachTimePicker(inputs.defaultEndTime as HTMLInputElement);
+
+    if (inputs?.venueImageURL?.parentElement) {
+      inputs.venueImageURL.parentElement.appendChild(previewImage);
+    } else {
+      elem.appendChild(previewImage);
+    }
 
     return inputs;
   };

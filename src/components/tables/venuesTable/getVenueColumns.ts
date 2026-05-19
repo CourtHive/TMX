@@ -15,6 +15,19 @@ export function getVenuesColumns(nestedTables: any): any[] {
     return value ? def : undef;
   };
 
+  const websiteFormatter = (cell: any): string => {
+    const url = cell.getValue();
+    if (!url) return '';
+    return `<i class="fa-solid fa-globe" style="color: var(--tmx-accent-blue)"></i>`;
+  };
+
+  const openWebsite = (e: any, cell: any): void => {
+    const url = cell.getValue();
+    if (!url) return;
+    e?.stopPropagation?.();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return [
     {
       cellClick: (_: any, cell: any) => cell.getRow().toggleSelect(),
@@ -89,6 +102,18 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerHozAlign: CENTER,
       cellClick: setLatLong,
       field: 'hasLocation',
+      headerSort: false,
+      hozAlign: CENTER,
+      visible: true,
+      width: 50
+    },
+    {
+      title: `<i class="fa-solid fa-globe"></i>`,
+      formatter: websiteFormatter,
+      headerTooltip: 'Website',
+      headerHozAlign: CENTER,
+      cellClick: openWebsite,
+      field: 'venueWebsiteURL',
       headerSort: false,
       hozAlign: CENTER,
       visible: true,
