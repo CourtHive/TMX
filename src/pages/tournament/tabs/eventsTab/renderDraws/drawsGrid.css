@@ -17,6 +17,23 @@
   margin: 0 auto;
 }
 
+/* Sunburst visualization needs more room — cards expand to ~400px min width. */
+.tmx-draws-grid--expanded {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.tmx-draws-notice {
+  margin: 0 auto 0.75rem;
+  max-width: 1400px;
+  padding: 0.5rem 0.75rem;
+  background: var(--chc-bg-secondary, #f3f4f6);
+  border: 1px solid var(--chc-border-secondary, #ddd);
+  border-radius: 6px;
+  color: var(--chc-text-secondary, #4b5563);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 .tmx-draws-empty {
   display: flex;
   flex-direction: column;

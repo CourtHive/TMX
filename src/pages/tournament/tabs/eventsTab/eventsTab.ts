@@ -15,8 +15,12 @@ import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
-import { renderDrawsGrid } from './renderDraws/renderDrawsGrid';
+import { renderDrawsGrid, readEventDrawsAvailability } from './renderDraws/renderDrawsGrid';
 import { readDrawsViewMode, writeDrawsViewMode } from './renderDraws/drawsViewMode';
+import { readDrawCardDisplayMode, writeDrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
+import type { DrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
+import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
+import { openDisplayOptionsPopover } from './renderDraws/displayOptionsPopover';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
@@ -149,11 +153,44 @@ function renderDrawsListOrPlaceholder(eventId: string, renderDraw: boolean | und
   }
 }
 
+function buildDisplayOptionsButton({
+  current,
+  drawCount,
+  availability,
+  onChange,
+}: {
+  current: DrawCardDisplayMode;
+  drawCount: number;
+  availability: VizDataAvailability;
+  onChange: (next: DrawCardDisplayMode) => void;
+}): HTMLElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'button is-light font-medium';
+  button.style.cssText = 'padding: 0.3em 0.6em; line-height: 1;';
+  button.setAttribute('aria-label', 'Card display options');
+  button.innerHTML = '<i class="fa-solid fa-palette"></i>';
+  button.addEventListener('click', () => {
+    openDisplayOptionsPopover({ anchor: button, current, drawCount, availability, onChange });
+  });
+  return button;
+}
+
 function renderDrawsHeader({
   count,
   mode,
   onModeChange,
-}: { count: number; mode: 'grid' | 'table'; onModeChange: (next: 'grid' | 'table') => void }): void {
+  displayMode,
+  availability,
+  onDisplayModeChange,
+}: {
+  count: number;
+  mode: 'grid' | 'table';
+  onModeChange: (next: 'grid' | 'table') => void;
+  displayMode: DrawCardDisplayMode;
+  availability: VizDataAvailability;
+  onDisplayModeChange: (next: DrawCardDisplayMode) => void;
+}): void {
   const headerEl = document.getElementById(DRAWS_HEADER);
   if (!headerEl) return;
   headerEl.style.display = '';
@@ -163,7 +200,13 @@ function renderDrawsHeader({
   title.textContent = `Draws (${count})`;
   headerEl.appendChild(title);
 
-  headerEl.appendChild(buildViewToggleElement({ mode, onChange: onModeChange }));
+  const trailing = document.createElement('div');
+  trailing.style.cssText = 'display:flex; align-items:center; gap:0.4rem;';
+  trailing.appendChild(
+    buildDisplayOptionsButton({ current: displayMode, drawCount: count, availability, onChange: onDisplayModeChange }),
+  );
+  trailing.appendChild(buildViewToggleElement({ mode, onChange: onModeChange }));
+  headerEl.appendChild(trailing);
 }
 
 function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean | undefined): void {
@@ -173,8 +216,10 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
   if (!contentEl) return;
 
   let mode = readDrawsViewMode();
+  let displayMode = readDrawCardDisplayMode();
   let drawsTable: any;
   let drawCount = 0;
+  let availability: VizDataAvailability = { hasRatings: false, hasCompetitiveness: false };
 
   const drawAdded = (result: any) => {
     if (result.success) {
@@ -204,10 +249,13 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
     contentEl!.innerHTML = '';
     drawsTable = undefined;
     if (mode === 'grid') {
-      drawCount = renderDrawsGrid({ eventId, target: contentEl! });
+      const result = renderDrawsGrid({ eventId, target: contentEl!, displayMode });
+      drawCount = result.count;
+      availability = result.availability;
     } else {
       drawsTable = renderDrawsTable({ eventId, target: contentEl! });
       drawCount = drawsTable?.getDataCount?.() ?? 0;
+      availability = readEventDrawsAvailability(eventId);
     }
     renderDrawsHeader({
       count: drawCount,
@@ -216,6 +264,14 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
         if (next === mode) return;
         mode = next;
         writeDrawsViewMode(next);
+        renderForMode();
+      },
+      displayMode,
+      availability,
+      onDisplayModeChange: (next) => {
+        if (next === displayMode) return;
+        displayMode = next;
+        writeDrawCardDisplayMode(next);
         renderForMode();
       },
     });
