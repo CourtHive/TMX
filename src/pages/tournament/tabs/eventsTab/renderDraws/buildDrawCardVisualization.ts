@@ -77,18 +77,15 @@ function buildHistogramForDraw(drawDefinition: any, scaleName?: string): HTMLEle
   return wrap;
 }
 
-function buildSunburstForDraw(drawData: any, expanded: boolean): HTMLElement | null {
-  const structures = drawData?.structures ?? [];
-  if (!structures.length) return null;
+function buildSunburstForDraw(enrichedStructure: any, expanded: boolean): HTMLElement | null {
+  // `enrichedStructure` is the `getEventData().drawsData[i].structures[j]`
+  // shape that has `roundMatchUps` — NOT the raw `drawDefinition.structures[0]`.
+  if (!enrichedStructure?.roundMatchUps) return null;
   const size = expanded ? SUNBURST_SIZE_EXPANDED : SUNBURST_SIZE;
   const container = document.createElement('div');
   container.style.cssText = `width:${size}px; height:${size}px; max-width:100%;`;
-  try {
-    const data = fromFactoryDrawData(structures[0]);
-    burstChart({ width: size, height: size, eventHandlers: {} }).render(container, data, '');
-  } catch {
-    return null;
-  }
+  const data = fromFactoryDrawData(enrichedStructure);
+  burstChart({ width: size, height: size, eventHandlers: {} }).render(container, data, '');
   return container;
 }
 
@@ -99,9 +96,10 @@ export interface BuildVizParams {
   expanded?: boolean;
   /** Active rating scale name used for histogram data collection. */
   ratingScaleName?: string;
-  /** Pre-built drawData (factory shape) for sunburst — pass when available
-   * so we don't re-resolve from drawDefinition. */
-  drawData?: any;
+  /** Enriched structure from `getEventData().drawsData[i].structures[j]` —
+   * carries `roundMatchUps` which the sunburst transformer needs. Required
+   * for sunburst mode. */
+  enrichedStructure?: any;
 }
 
 export function buildDrawCardVisualization({
@@ -109,12 +107,12 @@ export function buildDrawCardVisualization({
   drawDefinition,
   expanded = false,
   ratingScaleName,
-  drawData,
+  enrichedStructure,
 }: BuildVizParams): HTMLElement | null {
   if (mode === 'none') return null;
   if (!drawDefinition?.structures?.length) return null;
   if (mode === 'competitiveness') return buildCompetitivenessForDraw(drawDefinition);
   if (mode === 'histogram') return buildHistogramForDraw(drawDefinition, ratingScaleName);
-  if (mode === 'sunburst') return buildSunburstForDraw(drawData ?? drawDefinition, expanded);
+  if (mode === 'sunburst') return buildSunburstForDraw(enrichedStructure, expanded);
   return null;
 }

@@ -225,16 +225,28 @@ export function renderDrawsGrid({
   const ratingScaleName = resolvedEvent ? pickRatingScaleName(resolvedEvent.drawDefinitions) : undefined;
   const showViz = resolved.mode !== 'none';
 
+  // Sunburst needs the enriched structures (with `roundMatchUps`) from
+  // getEventData — drawDefinition.structures alone doesn't carry that field.
+  const enrichedDrawsData =
+    resolved.mode === 'sunburst'
+      ? (tournamentEngine as any).getEventData({ eventId })?.eventData?.drawsData ?? []
+      : [];
+
   for (const row of rows) {
     let visualization: HTMLElement | null = null;
     if (showViz && row.generated) {
       const dd = resolvedEvent?.drawDefinitions.find((d: any) => d.drawId === row.drawId);
       if (dd) {
+        const enrichedStructure =
+          resolved.mode === 'sunburst'
+            ? enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures?.[0]
+            : undefined;
         visualization = buildDrawCardVisualization({
           mode: resolved.mode,
           drawDefinition: dd,
           expanded: resolved.mode === 'sunburst',
           ratingScaleName,
+          enrichedStructure,
         });
       }
     }
