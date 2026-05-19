@@ -7,6 +7,7 @@ import { toDisplayTime, deriveCourtNameBase } from 'components/forms/venue';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { fixtures } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -40,6 +41,17 @@ export function editVenue({
   const existingWebsiteURL = existingWebsiteResource?.identifier || '';
 
   const existingAddress = (venueDetails?.addresses && venueDetails.addresses[0]) || {};
+
+  const countryList = fixtures.countries
+    .filter((c: any) => c.iso)
+    .map((c: any) => ({
+      label: fixtures.countryToFlag(c.iso) + ' ' + c.label,
+      value: c.iso,
+    }));
+  let selectedCountryCode: string = existingAddress.countryCode || '';
+  const onCountryCodeChange = (value: string) => {
+    selectedCountryCode = (value || '').toUpperCase();
+  };
 
   const values: any = {
     venueName: venue?.venueName || '',
@@ -200,11 +212,10 @@ export function editVenue({
           onChange: valueChange,
         },
         {
-          value: values.countryCode,
+          typeAhead: { list: countryList, callback: onCountryCodeChange, currentValue: values.countryCode },
           label: t('pages.venues.editVenue.countryCodeLabel'),
-          placeholder: 'USA',
+          placeholder: t('pages.venues.editVenue.countryCodePlaceholder'),
           field: 'countryCode',
-          onChange: valueChange,
         },
       ],
       relationships,
@@ -250,7 +261,7 @@ export function editVenue({
     const city = (context.drawer.attributes.content.city?.value || '').trim();
     const state = (context.drawer.attributes.content.state?.value || '').trim();
     const postalCode = (context.drawer.attributes.content.postalCode?.value || '').trim();
-    const countryCode = (context.drawer.attributes.content.countryCode?.value || '').trim().toUpperCase();
+    const countryCode = (selectedCountryCode || '').trim().toUpperCase();
 
     const addressChanged =
       addressLine1 !== (existingAddress.addressLine1 || '') ||

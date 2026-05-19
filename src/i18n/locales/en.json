@@ -1762,7 +1762,8 @@
         "cityLabel": "City",
         "stateLabel": "State / region",
         "postalCodeLabel": "Postal code",
-        "countryCodeLabel": "Country code"
+        "countryCodeLabel": "Country",
+        "countryCodePlaceholder": "Start typing a country name"
       }
     },
     "events": {

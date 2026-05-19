@@ -5,7 +5,19 @@
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
 
-export function venueForm({ values, valueChange, isValid }: { values: any; valueChange: (e: Event) => void; isValid?: boolean }): any[] {
+export function venueForm({
+  values,
+  valueChange,
+  isValid,
+  countryCodeList,
+  countryCodeChange,
+}: {
+  values: any;
+  valueChange: (e: Event) => void;
+  isValid?: boolean;
+  countryCodeList?: { label: string; value: string }[];
+  countryCodeChange?: (value: string) => void;
+}): any[] {
   if (isValid) {
     // function to call with current validity of form values
   }
@@ -102,13 +114,24 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
       field: 'postalCode',
       onChange,
     },
-    {
-      value: values.countryCode || '',
-      label: t('pages.venues.editVenue.countryCodeLabel'),
-      placeholder: 'USA',
-      field: 'countryCode',
-      onChange,
-    },
+    countryCodeList && countryCodeChange
+      ? {
+          typeAhead: {
+            list: countryCodeList,
+            callback: countryCodeChange,
+            currentValue: values.countryCode,
+          },
+          label: t('pages.venues.editVenue.countryCodeLabel'),
+          placeholder: t('pages.venues.editVenue.countryCodePlaceholder'),
+          field: 'countryCode',
+        }
+      : {
+          value: values.countryCode || '',
+          label: t('pages.venues.editVenue.countryCodeLabel'),
+          placeholder: t('pages.venues.editVenue.countryCodePlaceholder'),
+          field: 'countryCode',
+          onChange,
+        },
   ];
 }
 
@@ -126,7 +149,6 @@ export function getVenueFormValues(content: any): any {
     city: (content?.city?.value || '').trim(),
     state: (content?.state?.value || '').trim(),
     postalCode: (content?.postalCode?.value || '').trim(),
-    countryCode: (content?.countryCode?.value || '').trim().toUpperCase(),
   };
 }
 

@@ -7,7 +7,7 @@ import { validators, renderButtons, renderForm } from 'courthive-components';
 import { getVenueFormValues, venueForm } from 'components/forms/venue';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
-import { tools } from 'tods-competition-factory';
+import { fixtures, tools } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
@@ -21,7 +21,11 @@ import { RIGHT } from 'constants/tmxConstants';
 // Save
 // ---------------------------------------------------------------------------
 
-const saveVenue = (callback?: (result: any) => void, engine?: string) => {
+const saveVenue = (
+  callback?: (result: any) => void,
+  engine?: string,
+  selectedCountryCode?: string,
+) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
   const {
     venueName,
@@ -36,8 +40,8 @@ const saveVenue = (callback?: (result: any) => void, engine?: string) => {
     city,
     state,
     postalCode,
-    countryCode,
   } = values;
+  const countryCode = (selectedCountryCode || '').trim().toUpperCase();
   const venueId = tools.UUID();
   if (!venueName || !venueAbbreviation || !courtsCount) {
     tmxToast({ message: t('pages.venues.invalidValues'), intent: 'is-danger' });
@@ -144,6 +148,17 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
 
   const numberValidator = (value: string) => value && !Number.isNaN(Number(value));
 
+  const countryCodeList = fixtures.countries
+    .filter((c: any) => c.iso)
+    .map((c: any) => ({
+      label: fixtures.countryToFlag(c.iso) + ' ' + c.label,
+      value: c.iso,
+    }));
+  let selectedCountryCode = '';
+  const countryCodeChange = (value: string) => {
+    selectedCountryCode = (value || '').toUpperCase();
+  };
+
   const previewImage = document.createElement('img');
   previewImage.style.cssText = 'max-width: 100%; max-height: 160px; margin-top: 8px; border-radius: 4px; display: none;';
   previewImage.onerror = () => {
@@ -193,7 +208,11 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
     if (hasFacilityService()) {
       elem.appendChild(createExternalLookupButton());
     }
-    const inputs = renderForm(elem, venueForm({ values: {}, valueChange }), relationships);
+    const inputs = renderForm(
+      elem,
+      venueForm({ values: {}, valueChange, countryCodeList, countryCodeChange }),
+      relationships,
+    );
 
     if (inputs?.defaultStartTime) attachTimePicker(inputs.defaultStartTime as HTMLInputElement);
     if (inputs?.defaultEndTime) attachTimePicker(inputs.defaultEndTime as HTMLInputElement);
@@ -213,7 +232,7 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
       [
         { label: t('common.cancel'), close: true },
         {
-          onClick: () => saveVenue(callback, engine),
+          onClick: () => saveVenue(callback, engine, selectedCountryCode),
           id: 'addVenueButton',
           intent: 'is-info',
           disabled: true,
