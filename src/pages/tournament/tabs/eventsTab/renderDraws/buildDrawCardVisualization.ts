@@ -8,7 +8,7 @@
 
 import {
   aggregateCompetitiveness,
-  buildCompetitivenessBar,
+  buildCompetitivenessDonut,
   buildRatingDistributionChart,
   burstChart,
   fromFactoryDrawData,
@@ -29,10 +29,12 @@ function buildCompetitivenessForMatchUps(matchUps: any[]): HTMLElement | null {
   const buckets = aggregateCompetitiveness(matchUps);
   const total = buckets.COMPETITIVE + buckets.ROUTINE + buckets.DECISIVE + buckets.WALKOVER;
   if (total === 0) return null;
-  const { element, update } = buildCompetitivenessBar();
+  const { element, update } = buildCompetitivenessDonut();
   update(buckets);
-  element.style.width = '100%';
-  return element;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%; display:flex; justify-content:center;';
+  wrap.appendChild(element);
+  return wrap;
 }
 
 function unwrapScaleValue(raw: any, accessor: string | undefined): any {
