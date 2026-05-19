@@ -13,6 +13,7 @@ import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
 import { initLoginToggle } from 'services/authentication/loginState';
+import { loadUserCompositions } from 'pages/templates/compositionBridge';
 import { courthiveComponentsVersion } from 'courthive-components';
 import { registerMenuHandler } from 'platform/menuHandler';
 import { EventEmitter } from './services/EventEmitter';
@@ -158,6 +159,13 @@ function tmxReady(): void {
   initRemoteMutationHandler();
   initStalenessGuard();
   initTmxVersionCheck();
+  // Populate the user-composition cache so resolveCompositionByName() can
+  // find custom compositions on the first draw render. Fire-and-forget;
+  // early renders fall through to builtin compositions until the load
+  // completes.
+  void loadUserCompositions().catch((err) =>
+    console.warn('Failed to load user compositions:', err),
+  );
   routeTMX();
   tmxNavigation();
 }

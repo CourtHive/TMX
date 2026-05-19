@@ -1,5 +1,6 @@
 import { compositions } from 'courthive-components';
 import { tmx2db } from 'services/storage/tmx2db';
+import { clearUserCompositionRuntimeCache } from 'services/compositions/resolveCompositionByName';
 
 import type { SavedComposition } from 'courthive-components';
 
@@ -43,6 +44,7 @@ let userCompositionCache: CompositionCatalogItem[] = [];
 
 export async function loadUserCompositions(): Promise<CompositionCatalogItem[]> {
   userCompositionCache = await tmx2db.findAll('compositions');
+  clearUserCompositionRuntimeCache();
   return userCompositionCache;
 }
 
@@ -52,10 +54,10 @@ export function getUserCompositionsSync(): CompositionCatalogItem[] {
 
 export async function saveUserComposition(item: CompositionCatalogItem): Promise<void> {
   await tmx2db.modifyOrAddUnique('compositions', 'id', item.id, item);
-  await loadUserCompositions(); // refresh cache
+  await loadUserCompositions(); // refresh cache + invalidate runtime cache
 }
 
 export async function deleteUserComposition(id: string): Promise<void> {
   await (tmx2db.dex as any).compositions.where('id').equals(id).delete();
-  await loadUserCompositions(); // refresh cache
+  await loadUserCompositions(); // refresh cache + invalidate runtime cache
 }

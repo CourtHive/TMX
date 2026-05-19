@@ -3,6 +3,7 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { compositions, controlBar, renderContainer, renderInlineMatchUp, renderStructure } from 'courthive-components';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
@@ -269,13 +270,21 @@ export function renderDrawView({
   const configuration = display?.configuration;
 
   const composition =
-    compositions[compositionName] ||
+    resolveCompositionByName(compositionName) ||
     displayConfig.get().composition ||
     compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
 
   composition.configuration ??= {};
 
   Object.assign(composition.configuration, configuration);
+
+  // Display extension may carry a colors snapshot (saved when the user
+  // applied a custom composition). Extension colors win over resolver
+  // defaults so display state survives later edits to the underlying
+  // user composition.
+  if (display?.colors) {
+    composition.colors = { ...display.colors };
+  }
 
   // Always inject active scale so ratings display regardless of composition
   composition.configuration.scaleAttributes = scalesMap[preferencesConfig.get().activeScale];

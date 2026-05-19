@@ -917,7 +917,11 @@ function selectCompositionItem(item: CompositionCatalogItem | undefined, readOnl
 
   // Mount the composition editor
   const composition = item
-    ? { theme: item.composition.theme, configuration: item.composition.configuration }
+    ? {
+        theme: item.composition.theme,
+        configuration: item.composition.configuration,
+        colors: item.composition.colors,
+      }
     : undefined;
 
   compositionEditorInstance = createCompositionEditor(builderBody, {

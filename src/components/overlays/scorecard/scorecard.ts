@@ -5,6 +5,7 @@
  */
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { tournamentEngine } from 'services/factory/engine';
 import { extensionConstants } from 'tods-competition-factory';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
@@ -30,11 +31,20 @@ function resolveComposition(matchUp: any): any {
   const compositionName = display?.compositionName;
   const configuration = display?.configuration;
 
-  const composition = compositions[compositionName] || displayConfig.get().composition || compositions['National'];
+  const composition =
+    resolveCompositionByName(compositionName) || displayConfig.get().composition || compositions['National'];
 
   if (configuration) {
     composition.configuration ??= {};
     Object.assign(composition.configuration, configuration);
+  }
+
+  // Display extension may carry a colors snapshot (saved when the user
+  // applied a custom composition). Extension colors win over resolver
+  // defaults so display state survives later edits to the underlying
+  // user composition.
+  if (display?.colors) {
+    composition.colors = { ...display.colors };
   }
 
   return composition;

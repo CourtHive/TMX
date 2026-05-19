@@ -5,6 +5,7 @@
  */
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar, renderStructure, renderContainer, compositions, DrawStateManager } from 'courthive-components';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderDrawView } from './renderDrawView';
 
@@ -222,7 +223,7 @@ function renderAssignmentView({
 
   const display = drawData?.display || eventData?.eventInfo?.display || {};
   const compositionName = display?.compositionName;
-  const composition = compositions[compositionName] || compositions.National;
+  const composition = resolveCompositionByName(compositionName) || compositions.National;
 
   // Show QUALIFIER option only when the current structure receives qualifiers from another structure
   const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;

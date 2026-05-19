@@ -1,6 +1,8 @@
 import { tournamentEngine } from 'services/factory/engine';
 import { mocksEngine, queryGovernor, tools, extensionConstants } from 'tods-competition-factory';
 import { compositions, renderMatchUp, renderForm } from 'courthive-components';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { getUserCompositionsSync, loadUserCompositions } from 'pages/templates/compositionBridge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -11,8 +13,14 @@ import { displayConfig } from 'config/displayConfig';
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-export function editDisplaySettings(params) {
+export async function editDisplaySettings(params) {
   const { eventId, drawId, callback } = params;
+
+  // Ensure the user-composition cache is populated before building the
+  // selector options + render lookup. Idempotent — repeated calls just
+  // re-read IndexedDB.
+  await loadUserCompositions().catch(() => {});
+
   const storedValue = tournamentEngine.findExtension({
     name: extensionConstants.DISPLAY,
     discover: true,
@@ -28,6 +36,7 @@ export function editDisplaySettings(params) {
   const selections: any = {
     compositionName: scopedValue?.compositionName ?? displayConfig.get().composition?.compositionName ?? 'Australian',
     configuration: scopedValue?.configuration ?? {},
+    storedColors: scopedValue?.colors,
     composition: undefined,
     inputs: undefined,
   };
@@ -89,8 +98,19 @@ export function editDisplaySettings(params) {
 
   const render = ({ compositionName, configuration }) => {
     removeAllChildNodes(matchUpNode);
-    selections.composition = compositions[compositionName];
+    const resolved = resolveCompositionByName(compositionName);
+    if (!resolved) return;
+    selections.composition = resolved;
+    selections.composition.configuration ??= {};
     Object.assign(selections.composition.configuration, configuration);
+
+    // Extension-level colors (saved snapshot) win over the resolver's
+    // user-composition colors so the displayed state survives later edits
+    // to the underlying user composition. Only apply on first render
+    // for the originally-stored compositionName.
+    if (selections.storedColors && compositionName === scopedValue?.compositionName) {
+      selections.composition.colors = { ...selections.storedColors };
+    }
 
     selections.composition.genderColor = true;
     selections.composition.compositionName = compositionName;
@@ -100,13 +120,21 @@ export function editDisplaySettings(params) {
 
   render(selections);
 
-  const compositionOptions = Object.keys(compositions)
+  const builtinOptions = Object.keys(compositions)
     .filter((x) => x !== 'Night' && x !== 'InlineScoring')
     .map((key) => ({
       selected: key === selections.compositionName,
       label: key,
       value: key,
     }));
+
+  const userOptions = getUserCompositionsSync().map((u) => ({
+    selected: u.name === selections.compositionName,
+    label: `${u.name} (custom)`,
+    value: u.name,
+  }));
+
+  const compositionOptions = [...builtinOptions, ...userOptions];
 
   const participantDetail = selections.configuration.participantDetail;
   const detailOptions = [
@@ -178,6 +206,7 @@ export function editDisplaySettings(params) {
         compositionName: selections.composition.compositionName,
         theme: selections.composition.theme,
         configuration: selections.configuration,
+        ...(selections.composition.colors ? { colors: selections.composition.colors } : {}),
       },
       name: extensionConstants.DISPLAY,
     };
