@@ -1,7 +1,13 @@
 import type { TemporalEngine } from 'tods-competition-factory';
 
+function findResourceIdentifier(resources: any[] | undefined, name: string): string | undefined {
+  if (!Array.isArray(resources)) return undefined;
+  const resource = resources.find((r) => r?.name === name);
+  return resource?.identifier;
+}
+
 export function mapVenue(venue: any, engine?: TemporalEngine): any {
-  const { venueName, venueAbbreviation, addresses, venueId, courts } = venue;
+  const { venueName, venueAbbreviation, addresses, venueId, courts, onlineResources } = venue;
 
   const mappedCourts = courts?.map((court: any) => {
     if (!engine) return court;
@@ -28,6 +34,8 @@ export function mapVenue(venue: any, engine?: TemporalEngine): any {
     venueAbbreviation,
     venueName,
     venueId,
+    venueImageURL: findResourceIdentifier(onlineResources, 'venueImage'),
+    venueWebsiteURL: findResourceIdentifier(onlineResources, 'venueWebsite'),
     courts: mappedCourts,
     venue,
   };

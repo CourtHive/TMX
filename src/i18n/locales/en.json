@@ -1755,7 +1755,9 @@
         "updateCourtNames": "Update court names",
         "openingTime": "Opening Time",
         "closingTime": "Closing Time",
-        "timeOrderError": "Opening time must be before closing time"
+        "timeOrderError": "Opening time must be before closing time",
+        "websiteLabel": "Website URL",
+        "imageLabel": "Image URL"
       }
     },
     "events": {

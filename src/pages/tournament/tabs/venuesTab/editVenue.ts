@@ -11,9 +11,17 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+import { ADD_ONLINE_RESOURCE, MODIFY_VENUE, REMOVE_ONLINE_RESOURCE } from 'constants/mutationConstants';
 import { attachTimePicker, createTimeOrderValidator, toMilitaryTime } from './venueTimeHelpers';
-import { MODIFY_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
+
+const VENUE_IMAGE_RESOURCE_NAME = 'venueImage';
+const VENUE_WEBSITE_RESOURCE_NAME = 'venueWebsite';
+
+function findResource(resources: any[] | undefined, name: string): any {
+  if (!Array.isArray(resources)) return undefined;
+  return resources.find((r) => r?.name === name);
+}
 
 export function editVenue({
   venue,
@@ -26,13 +34,31 @@ export function editVenue({
   // Derive existing courtNameBase from court names if they follow a pattern
   const existingCourtNameBase = deriveCourtNameBase(courts);
 
+  const existingImageResource = findResource(venueDetails?.onlineResources, VENUE_IMAGE_RESOURCE_NAME);
+  const existingWebsiteResource = findResource(venueDetails?.onlineResources, VENUE_WEBSITE_RESOURCE_NAME);
+  const existingImageURL = existingImageResource?.identifier || '';
+  const existingWebsiteURL = existingWebsiteResource?.identifier || '';
+
   const values: any = {
     venueName: venue?.venueName || '',
     venueAbbreviation: venue?.venueAbbreviation || '',
     courtNameBase: existingCourtNameBase,
     defaultStartTime: venueDetails?.defaultStartTime || '',
     defaultEndTime: venueDetails?.defaultEndTime || '',
+    venueWebsiteURL: existingWebsiteURL,
+    venueImageURL: existingImageURL,
     updateCourtNames: false,
+  };
+
+  const previewImage = document.createElement('img');
+  previewImage.style.cssText = 'max-width: 100%; max-height: 160px; margin-top: 8px; border-radius: 4px;';
+  previewImage.style.display = existingImageURL ? '' : 'none';
+  if (existingImageURL) previewImage.src = existingImageURL;
+  previewImage.onerror = () => {
+    previewImage.style.display = 'none';
+  };
+  previewImage.onload = () => {
+    previewImage.style.display = '';
   };
 
   const valueChange = () => {
@@ -55,11 +81,22 @@ export function editVenue({
 
   const validateTimeOrder = createTimeOrderValidator(enableSubmit);
 
+  const onImageURLChange = ({ inputs }: any) => {
+    const url = inputs?.venueImageURL?.value?.trim();
+    if (url) {
+      previewImage.src = url;
+    } else {
+      previewImage.removeAttribute('src');
+      previewImage.style.display = 'none';
+    }
+  };
+
   const relationships = [
     { control: 'venueAbbreviation', onInput: enableSubmit },
     { control: 'venueName', onInput: enableSubmit },
     { control: 'defaultStartTime', onInput: validateTimeOrder },
     { control: 'defaultEndTime', onInput: validateTimeOrder },
+    { control: 'venueImageURL', onInput: onImageURLChange },
   ];
 
   const content = (elem: HTMLElement) => {
@@ -117,12 +154,32 @@ export function editVenue({
           field: 'defaultEndTime',
           onChange: valueChange,
         },
+        {
+          value: values.venueWebsiteURL,
+          label: t('pages.venues.editVenue.websiteLabel'),
+          placeholder: 'https://example.com',
+          field: 'venueWebsiteURL',
+          onChange: valueChange,
+        },
+        {
+          value: values.venueImageURL,
+          label: t('pages.venues.editVenue.imageLabel'),
+          placeholder: 'https://example.com/image.jpg',
+          field: 'venueImageURL',
+          onChange: valueChange,
+        },
       ],
       relationships,
     );
 
     if (inputs?.defaultStartTime) attachTimePicker(inputs.defaultStartTime as HTMLInputElement);
     if (inputs?.defaultEndTime) attachTimePicker(inputs.defaultEndTime as HTMLInputElement);
+
+    if (inputs?.venueImageURL?.parentElement) {
+      inputs.venueImageURL.parentElement.appendChild(previewImage);
+    } else {
+      elem.appendChild(previewImage);
+    }
 
     return inputs;
   };
@@ -164,17 +221,61 @@ export function editVenue({
 
     const courtsUpdated = updateCourtNames && rootChanged && courts.length > 0;
 
+    const websiteURL = (context.drawer.attributes.content.venueWebsiteURL?.value || '').trim();
+    const imageURL = (context.drawer.attributes.content.venueImageURL?.value || '').trim();
+
+    const venueId = venue.venueId;
+    const methods: any[] = [{ method: MODIFY_VENUE, params: { venueId, modifications: venueUpdates } }];
+
+    const resourceMutation = (
+      name: string,
+      resourceSubType: string,
+      currentURL: string,
+      previousResource: any,
+    ) => {
+      const previousURL = previousResource?.identifier || '';
+      if (currentURL === previousURL) return;
+      if (currentURL) {
+        methods.push({
+          method: ADD_ONLINE_RESOURCE,
+          params: {
+            venueId,
+            onlineResource: { name, resourceType: 'URL', resourceSubType, identifier: currentURL },
+          },
+        });
+      } else if (previousResource) {
+        methods.push({
+          method: REMOVE_ONLINE_RESOURCE,
+          params: {
+            venueId,
+            onlineResource: {
+              resourceType: previousResource.resourceType,
+              resourceSubType: previousResource.resourceSubType,
+              identifier: previousResource.identifier,
+            },
+          },
+        });
+      }
+    };
+
+    resourceMutation(VENUE_WEBSITE_RESOURCE_NAME, 'WEBSITE', websiteURL, existingWebsiteResource);
+    resourceMutation(VENUE_IMAGE_RESOURCE_NAME, 'IMAGE', imageURL, existingImageResource);
+
     const postMutation = (result: any) => {
       if (result.success) {
-        if (isFunction(callback)) callback({ ...result, venueUpdates, courtsUpdated });
+        if (isFunction(callback)) {
+          callback({
+            ...result,
+            venueUpdates: { ...venueUpdates, venueWebsiteURL: websiteURL, venueImageURL: imageURL },
+            courtsUpdated,
+          });
+        }
       } else if (result.error) {
         tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
         if (isFunction(callback)) callback(result);
       }
     };
 
-    const venueId = venue.venueId;
-    const methods = [{ method: MODIFY_VENUE, params: { venueId, modifications: venueUpdates } }];
     mutationRequest({ methods, callback: postMutation });
   };
 

@@ -54,6 +54,7 @@ export const MODIFY_VENUE = 'modifyVenue';
 export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';
 export const PUBLISH_EVENT = 'publishEvent';
 export const REMOVE_INDIVIDUAL_PARTICIPANT_IDS = 'removeIndividualParticipantIds';
+export const REMOVE_ONLINE_RESOURCE = 'removeOnlineResource';
 export const REMOVE_TIE_MATCHUP_PARTICIPANT_ID = 'removeTieMatchUpParticipantId';
 export const REMOVE_DRAW_ENTRIES = 'removeDrawEntries';
 export const REMOVE_EVENT_ENTRIES = 'removeEventEntries';
