@@ -8,7 +8,7 @@
  * @see Test matrix sections 1.4, 1.6, 1.7
  */
 import { test, expect } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 import { DrawFormDrawer } from '../pages/DrawFormDrawer';
@@ -66,6 +66,7 @@ test.describe('Journey 4 — Draw form qualifying modes', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    await ensureDrawsTableMode(page);
   });
 
   test('ATTACH_QUALIFYING — "Add qualifying" from structure options opens qualifying form', async ({ page }) => {

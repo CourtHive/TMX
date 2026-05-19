@@ -7,7 +7,7 @@
  * the flight's entry count.
  */
 import { test, expect } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -26,6 +26,7 @@ test.describe('Journey 15 — Multiple flights', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    await ensureDrawsTableMode(page);
   });
 
   test('creating 2 flights splits entries and each flight has correct draw size', async ({ page }) => {

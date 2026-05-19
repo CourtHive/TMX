@@ -11,7 +11,7 @@
  * - 3.2.4-3.2.5: SE→DRAW_MATIC and SE→SWISS explicit transitions
  */
 import { test, expect } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -76,6 +76,7 @@ test.describe('Journey 11 — Remaining coverage gaps', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    await ensureDrawsTableMode(page);
   });
 
   /* ── 1.2.2 — TEAM event with ROUND_ROBIN_WITH_PLAYOFF ─────────────── */

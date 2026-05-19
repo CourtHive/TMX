@@ -8,7 +8,7 @@
  * @see Mentat/statuses/2026-04-12-draw-form-state-machine-test-matrix.md
  */
 import { test, expect } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -75,6 +75,7 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    await ensureDrawsTableMode(page);
   });
 
   /* ── Section 1.1: Initial state per draw type ─────────────────────── */

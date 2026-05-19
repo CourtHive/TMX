@@ -11,7 +11,7 @@
  * @see Test matrix sections 1.5, 1.6
  */
 import { test, expect } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -46,6 +46,7 @@ test.describe('Journey 7 — POPULATE_MAIN and GENERATE_QUALIFYING flows', () =>
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    await ensureDrawsTableMode(page);
   });
 
   test('qualifying-first draw shows Main structure with "Generate main draw" button', async ({ page }) => {

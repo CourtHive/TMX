@@ -58,6 +58,22 @@ export async function resetDrawsViewState(page: Page): Promise<void> {
 }
 
 /**
+ * Force the draws-list view into Tabulator/table mode so legacy specs that
+ * target `.tabulator-row` selectors keep working. The draws-list defaults to
+ * the card grid (memory: draw-cards rollout) — specs that pre-date that
+ * change need to opt into the older default.
+ */
+export async function ensureDrawsTableMode(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('tmx_draws_view_mode', 'table');
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+/**
  * Wait for the app to be fully ready (splash dismissed, navbar visible).
  *
  * TMX starts with an animated splash screen that dismisses on click,
