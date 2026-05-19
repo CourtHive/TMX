@@ -95,21 +95,24 @@ function pickRatingScaleName(drawDefinitions: any[]): string | undefined {
   return undefined;
 }
 
+function fetchCompetitiveMatchUps(eventId: string): any[] {
+  const result = (tournamentEngine as any).allTournamentMatchUps?.({
+    matchUpFilters: { eventIds: [eventId] },
+    contextProfile: { withCompetitiveness: true },
+  });
+  return result?.matchUps ?? [];
+}
+
 function computeAvailability(eventId: string): VizDataAvailability {
   const resolved = resolveEventData(eventId);
   if (!resolved) return { hasRatings: false, hasCompetitiveness: false };
   const ratingScale = pickRatingScaleName(resolved.drawDefinitions);
-  let hasCompetitiveness = false;
-  outer: for (const dd of resolved.drawDefinitions) {
-    for (const s of dd?.structures ?? []) {
-      for (const m of s?.matchUps ?? []) {
-        if (m?.competitiveProfile?.competitiveness) {
-          hasCompetitiveness = true;
-          break outer;
-        }
-      }
-    }
-  }
+  // Competitiveness is only populated when matchUps are fetched with
+  // contextProfile.withCompetitiveness — raw drawDefinitions don't carry it.
+  const competitiveMatchUps = fetchCompetitiveMatchUps(eventId);
+  const hasCompetitiveness = competitiveMatchUps.some(
+    (m: any) => m?.competitiveProfile?.competitiveness,
+  );
   return { hasRatings: !!ratingScale, hasCompetitiveness };
 }
 
@@ -232,6 +235,17 @@ export function renderDrawsGrid({
       ? (tournamentEngine as any).getEventData({ eventId })?.eventData?.drawsData ?? []
       : [];
 
+  // Competitiveness needs matchUps with `contextProfile.withCompetitiveness`;
+  // fetch once and bucket by drawId.
+  const competitiveByDraw: Map<string, any[]> = new Map();
+  if (resolved.mode === 'competitiveness') {
+    for (const m of fetchCompetitiveMatchUps(eventId)) {
+      const list = competitiveByDraw.get(m.drawId) ?? [];
+      list.push(m);
+      competitiveByDraw.set(m.drawId, list);
+    }
+  }
+
   for (const row of rows) {
     let visualization: HTMLElement | null = null;
     if (showViz && row.generated) {
@@ -241,12 +255,15 @@ export function renderDrawsGrid({
           resolved.mode === 'sunburst'
             ? enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures?.[0]
             : undefined;
+        const competitiveMatchUps =
+          resolved.mode === 'competitiveness' ? competitiveByDraw.get(row.drawId) : undefined;
         visualization = buildDrawCardVisualization({
           mode: resolved.mode,
           drawDefinition: dd,
           expanded: resolved.mode === 'sunburst',
           ratingScaleName,
           enrichedStructure,
+          competitiveMatchUps,
         });
       }
     }

@@ -43,6 +43,21 @@ export async function resetEventsViewMode(page: Page): Promise<void> {
 }
 
 /**
+ * Clear the persisted draws-view mode + draw-card display mode so
+ * draws-list specs see the fresh-visit defaults (grid view, no viz).
+ */
+export async function resetDrawsViewState(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    try {
+      localStorage.removeItem('tmx_draws_view_mode');
+      localStorage.removeItem('tmx_draws_card_display');
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+/**
  * Wait for the app to be fully ready (splash dismissed, navbar visible).
  *
  * TMX starts with an animated splash screen that dismisses on click,

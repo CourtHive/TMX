@@ -21,11 +21,9 @@ const HISTOGRAM_HEIGHT = 80;
 const SUNBURST_SIZE = 240;
 const SUNBURST_SIZE_EXPANDED = 320;
 
-function buildCompetitivenessForDraw(drawDefinition: any): HTMLElement | null {
-  const matchUps: any[] = [];
-  for (const structure of drawDefinition?.structures ?? []) {
-    for (const m of structure?.matchUps ?? []) matchUps.push(m);
-  }
+function buildCompetitivenessForMatchUps(matchUps: any[]): HTMLElement | null {
+  // matchUps must be fetched with `contextProfile: { withCompetitiveness: true }`
+  // — the raw matchUps on a drawDefinition don't carry `competitiveProfile`.
   const buckets = aggregateCompetitiveness(matchUps);
   const total = buckets.COMPETITIVE + buckets.ROUTINE + buckets.DECISIVE + buckets.WALKOVER;
   if (total === 0) return null;
@@ -100,6 +98,10 @@ export interface BuildVizParams {
    * carries `roundMatchUps` which the sunburst transformer needs. Required
    * for sunburst mode. */
   enrichedStructure?: any;
+  /** MatchUps for this draw fetched with `contextProfile: { withCompetitiveness: true }`.
+   * Required for competitiveness mode — the raw `drawDefinition.structures[i].matchUps`
+   * don't carry `competitiveProfile`. */
+  competitiveMatchUps?: any[];
 }
 
 export function buildDrawCardVisualization({
@@ -108,10 +110,11 @@ export function buildDrawCardVisualization({
   expanded = false,
   ratingScaleName,
   enrichedStructure,
+  competitiveMatchUps,
 }: BuildVizParams): HTMLElement | null {
   if (mode === 'none') return null;
   if (!drawDefinition?.structures?.length) return null;
-  if (mode === 'competitiveness') return buildCompetitivenessForDraw(drawDefinition);
+  if (mode === 'competitiveness') return buildCompetitivenessForMatchUps(competitiveMatchUps ?? []);
   if (mode === 'histogram') return buildHistogramForDraw(drawDefinition, ratingScaleName);
   if (mode === 'sunburst') return buildSunburstForDraw(enrichedStructure, expanded);
   return null;
