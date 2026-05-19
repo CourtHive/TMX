@@ -78,6 +78,37 @@ export function venueForm({ values, valueChange, isValid }: { values: any; value
       field: 'venueImageURL',
       onChange,
     },
+    {
+      value: values.addressLine1 || '',
+      label: t('pages.venues.editVenue.addressLine1Label'),
+      field: 'addressLine1',
+      onChange,
+    },
+    {
+      value: values.city || '',
+      label: t('pages.venues.editVenue.cityLabel'),
+      field: 'city',
+      onChange,
+    },
+    {
+      value: values.state || '',
+      label: t('pages.venues.editVenue.stateLabel'),
+      field: 'state',
+      onChange,
+    },
+    {
+      value: values.postalCode || '',
+      label: t('pages.venues.editVenue.postalCodeLabel'),
+      field: 'postalCode',
+      onChange,
+    },
+    {
+      value: values.countryCode || '',
+      label: t('pages.venues.editVenue.countryCodeLabel'),
+      placeholder: 'USA',
+      field: 'countryCode',
+      onChange,
+    },
   ];
 }
 
@@ -91,6 +122,11 @@ export function getVenueFormValues(content: any): any {
     venueName: content?.venueName.value,
     venueWebsiteURL: (content?.venueWebsiteURL?.value || '').trim(),
     venueImageURL: (content?.venueImageURL?.value || '').trim(),
+    addressLine1: (content?.addressLine1?.value || '').trim(),
+    city: (content?.city?.value || '').trim(),
+    state: (content?.state?.value || '').trim(),
+    postalCode: (content?.postalCode?.value || '').trim(),
+    countryCode: (content?.countryCode?.value || '').trim().toUpperCase(),
   };
 }
 

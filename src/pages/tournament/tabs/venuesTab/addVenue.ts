@@ -32,6 +32,11 @@ const saveVenue = (callback?: (result: any) => void, engine?: string) => {
     defaultEndTime,
     venueWebsiteURL,
     venueImageURL,
+    addressLine1,
+    city,
+    state,
+    postalCode,
+    countryCode,
   } = values;
   const venueId = tools.UUID();
   if (!venueName || !venueAbbreviation || !courtsCount) {
@@ -42,6 +47,14 @@ const saveVenue = (callback?: (result: any) => void, engine?: string) => {
   const venue: any = { venueName, venueAbbreviation, venueId };
   if (defaultStartTime) venue.defaultStartTime = toMilitaryTime(defaultStartTime);
   if (defaultEndTime) venue.defaultEndTime = toMilitaryTime(defaultEndTime);
+
+  const address: any = {};
+  if (addressLine1) address.addressLine1 = addressLine1;
+  if (city) address.city = city;
+  if (state) address.state = state;
+  if (postalCode) address.postalCode = postalCode;
+  if (countryCode) address.countryCode = countryCode;
+  if (Object.keys(address).length) venue.addresses = [address];
 
   const count = Number.parseInt(courtsCount);
   const courtIds = Array.from({ length: count }, () => tools.UUID());

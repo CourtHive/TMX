@@ -1757,7 +1757,12 @@
         "closingTime": "Closing Time",
         "timeOrderError": "Opening time must be before closing time",
         "websiteLabel": "Website URL",
-        "imageLabel": "Image URL"
+        "imageLabel": "Image URL",
+        "addressLine1Label": "Street address",
+        "cityLabel": "City",
+        "stateLabel": "State / region",
+        "postalCodeLabel": "Postal code",
+        "countryCodeLabel": "Country code"
       }
     },
     "events": {

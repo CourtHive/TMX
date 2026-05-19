@@ -39,6 +39,8 @@ export function editVenue({
   const existingImageURL = existingImageResource?.identifier || '';
   const existingWebsiteURL = existingWebsiteResource?.identifier || '';
 
+  const existingAddress = (venueDetails?.addresses && venueDetails.addresses[0]) || {};
+
   const values: any = {
     venueName: venue?.venueName || '',
     venueAbbreviation: venue?.venueAbbreviation || '',
@@ -47,6 +49,11 @@ export function editVenue({
     defaultEndTime: venueDetails?.defaultEndTime || '',
     venueWebsiteURL: existingWebsiteURL,
     venueImageURL: existingImageURL,
+    addressLine1: existingAddress.addressLine1 || '',
+    city: existingAddress.city || '',
+    state: existingAddress.state || '',
+    postalCode: existingAddress.postalCode || '',
+    countryCode: existingAddress.countryCode || '',
     updateCourtNames: false,
   };
 
@@ -168,6 +175,37 @@ export function editVenue({
           field: 'venueImageURL',
           onChange: valueChange,
         },
+        {
+          value: values.addressLine1,
+          label: t('pages.venues.editVenue.addressLine1Label'),
+          field: 'addressLine1',
+          onChange: valueChange,
+        },
+        {
+          value: values.city,
+          label: t('pages.venues.editVenue.cityLabel'),
+          field: 'city',
+          onChange: valueChange,
+        },
+        {
+          value: values.state,
+          label: t('pages.venues.editVenue.stateLabel'),
+          field: 'state',
+          onChange: valueChange,
+        },
+        {
+          value: values.postalCode,
+          label: t('pages.venues.editVenue.postalCodeLabel'),
+          field: 'postalCode',
+          onChange: valueChange,
+        },
+        {
+          value: values.countryCode,
+          label: t('pages.venues.editVenue.countryCodeLabel'),
+          placeholder: 'USA',
+          field: 'countryCode',
+          onChange: valueChange,
+        },
       ],
       relationships,
     );
@@ -207,6 +245,34 @@ export function editVenue({
 
     if (defaultStartTime) venueUpdates.defaultStartTime = toMilitaryTime(defaultStartTime);
     if (defaultEndTime) venueUpdates.defaultEndTime = toMilitaryTime(defaultEndTime);
+
+    const addressLine1 = (context.drawer.attributes.content.addressLine1?.value || '').trim();
+    const city = (context.drawer.attributes.content.city?.value || '').trim();
+    const state = (context.drawer.attributes.content.state?.value || '').trim();
+    const postalCode = (context.drawer.attributes.content.postalCode?.value || '').trim();
+    const countryCode = (context.drawer.attributes.content.countryCode?.value || '').trim().toUpperCase();
+
+    const addressChanged =
+      addressLine1 !== (existingAddress.addressLine1 || '') ||
+      city !== (existingAddress.city || '') ||
+      state !== (existingAddress.state || '') ||
+      postalCode !== (existingAddress.postalCode || '') ||
+      countryCode !== (existingAddress.countryCode || '');
+
+    if (addressChanged) {
+      const nextAddress: any = { ...existingAddress };
+      if (addressLine1) nextAddress.addressLine1 = addressLine1;
+      else delete nextAddress.addressLine1;
+      if (city) nextAddress.city = city;
+      else delete nextAddress.city;
+      if (state) nextAddress.state = state;
+      else delete nextAddress.state;
+      if (postalCode) nextAddress.postalCode = postalCode;
+      else delete nextAddress.postalCode;
+      if (countryCode) nextAddress.countryCode = countryCode;
+      else delete nextAddress.countryCode;
+      venueUpdates.addresses = [nextAddress, ...(venueDetails?.addresses?.slice(1) || [])];
+    }
 
     // Update court names when checkbox is selected and the naming root changed
     const nameRoot = courtNameBase || venueAbbreviation;
