@@ -80,15 +80,24 @@ function resolveEventData(eventId: string): ResolvedEvent | null {
   return { event, drawDefinitions, flights };
 }
 
-function pickRatingScaleName(drawDefinitions: any[]): string | undefined {
-  for (const dd of drawDefinitions) {
-    for (const entry of dd?.entries ?? []) {
-      const ratings = entry?.participant?.ratings;
-      if (!ratings) continue;
-      for (const category of Object.values(ratings as Record<string, any>)) {
-        if (!Array.isArray(category)) continue;
-        const item = category.find((r: any) => typeof r?.scaleValue === 'number' && r?.scaleName);
-        if (item) return item.scaleName;
+function pickRatingScaleName(eventId: string): string | undefined {
+  // Resolve participants for the event with their scale values attached.
+  // `getRatingsStats` exists but it returns nothing when ratings live in
+  // `participant.ratings[eventType]` (the resolved shape mocksEngine emits)
+  // rather than the older timeItems history; resolving via getParticipants
+  // is the reliable path.
+  const { participants = [] } =
+    (tournamentEngine as any).getParticipants?.({
+      participantFilters: { eventIds: [eventId] },
+      withScaleValues: true,
+    }) ?? {};
+  for (const p of participants) {
+    const ratings = p?.ratings;
+    if (!ratings) continue;
+    for (const category of Object.values(ratings as Record<string, any>)) {
+      if (!Array.isArray(category)) continue;
+      for (const item of category) {
+        if (item?.scaleName) return item.scaleName;
       }
     }
   }
@@ -104,9 +113,7 @@ function fetchCompetitiveMatchUps(eventId: string): any[] {
 }
 
 function computeAvailability(eventId: string): VizDataAvailability {
-  const resolved = resolveEventData(eventId);
-  if (!resolved) return { hasRatings: false, hasCompetitiveness: false };
-  const ratingScale = pickRatingScaleName(resolved.drawDefinitions);
+  const ratingScale = pickRatingScaleName(eventId);
   // Competitiveness is only populated when matchUps are fetched with
   // contextProfile.withCompetitiveness — raw drawDefinitions don't carry it.
   const competitiveMatchUps = fetchCompetitiveMatchUps(eventId);
@@ -225,7 +232,7 @@ export function renderDrawsGrid({
   wrap.appendChild(grid);
 
   const resolvedEvent = resolveEventData(eventId);
-  const ratingScaleName = resolvedEvent ? pickRatingScaleName(resolvedEvent.drawDefinitions) : undefined;
+  const ratingScaleName = pickRatingScaleName(eventId);
   const showViz = resolved.mode !== 'none';
 
   // Sunburst needs the enriched structures (with `roundMatchUps`) from
@@ -246,6 +253,18 @@ export function renderDrawsGrid({
     }
   }
 
+  // Histogram needs resolved participants (with rating scaleValues) — raw
+  // drawDefinition entries don't carry those. Fetch once for the event.
+  const participantsById: Map<string, any> = new Map();
+  if (resolved.mode === 'histogram') {
+    const { participants = [] } =
+      (tournamentEngine as any).getParticipants?.({
+        participantFilters: { eventIds: [eventId] },
+        withScaleValues: true,
+      }) ?? {};
+    for (const p of participants) participantsById.set(p.participantId, p);
+  }
+
   for (const row of rows) {
     let visualization: HTMLElement | null = null;
     if (showViz && row.generated) {
@@ -257,11 +276,18 @@ export function renderDrawsGrid({
             : undefined;
         const competitiveMatchUps =
           resolved.mode === 'competitiveness' ? competitiveByDraw.get(row.drawId) : undefined;
+        const drawParticipantIds =
+          resolved.mode === 'histogram'
+            ? tournamentEngine.getAssignedParticipantIds({ drawDefinition: dd })
+                .assignedParticipantIds?.filter(Boolean)
+            : undefined;
         visualization = buildDrawCardVisualization({
           mode: resolved.mode,
           drawDefinition: dd,
           expanded: resolved.mode === 'sunburst',
           ratingScaleName,
+          participantsById,
+          drawParticipantIds,
           enrichedStructure,
           competitiveMatchUps,
         });

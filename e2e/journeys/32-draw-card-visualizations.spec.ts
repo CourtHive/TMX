@@ -30,27 +30,33 @@ const VIZ_ZONE = '.chc-dc-viz';
 const COMPETITIVENESS_BAR = '.chc-cb';
 const PALETTE_BUTTON = 'button[aria-label="Card display options"]';
 
-/** Event with two completed draws under the same `eventName` so the
- * mocksEngine merges them into one event with two drawDefinitions —
- * which is the prerequisite for landing on the draws-list view. Both
- * draws are scored to completion so `competitiveProfile` is populated
- * when matchUps are fetched with `withCompetitiveness`. */
+/** One event with two completed draws — so we land on the
+ * draws-list view (renderDrawsTableView only fires when count > 1).
+ * `eventProfiles` is the canonical mocksEngine shape for grouping
+ * multiple drawProfiles under a single event; flat top-level
+ * `drawProfiles` would create N separate events. All matchUps are
+ * scored so `competitiveProfile` is populated when matchUps are
+ * fetched with `contextProfile.withCompetitiveness`. */
 const PROFILE_TWO_DRAWS_COMPLETED = {
   tournamentName: 'E2E Draw Viz',
   tournamentAttributes: { tournamentId: 'e2e-draw-viz' },
-  participantsProfile: { scaledParticipantsCount: 32 },
-  drawProfiles: [
+  // `category` with a `ratingType` + `scaledParticipantsCount` makes
+  // mocksEngine attach numeric scale values to participants — required
+  // for the histogram option to be enabled in the popover.
+  participantsProfile: {
+    scaledParticipantsCount: 32,
+    scaleAllParticipants: true,
+    category: { ratingType: 'WTN', ratingMin: 10, ratingMax: 25 },
+  },
+  eventProfiles: [
     {
+      eventId: 'e2e-singles',
       eventName: 'Singles',
-      drawSize: 16,
-      drawType: 'SINGLE_ELIMINATION' as const,
-      completionGoal: 100,
-    },
-    {
-      eventName: 'Singles',
-      drawSize: 16,
-      drawType: 'SINGLE_ELIMINATION' as const,
-      completionGoal: 100,
+      category: { ratingType: 'WTN', ratingMin: 10, ratingMax: 25 },
+      drawProfiles: [
+        { drawSize: 16, drawType: 'SINGLE_ELIMINATION' as const },
+        { drawSize: 16, drawType: 'SINGLE_ELIMINATION' as const },
+      ],
     },
   ],
   completeAllMatchUps: true,
@@ -77,7 +83,10 @@ async function openDisplayOptions(page: import('@playwright/test').Page): Promis
 
 async function pickDisplayMode(page: import('@playwright/test').Page, value: string): Promise<void> {
   await openDisplayOptions(page);
-  await page.locator(`input[name="drawCardDisplay"][value="${value}"]`).check();
+  // `.click()` (not `.check()`) — the popover destroys itself on change
+  // before Playwright's `.check()` can verify the radio is still in the
+  // DOM as checked. The click fires the change handler the same way.
+  await page.locator(`input[name="drawCardDisplay"][value="${value}"]`).click();
 }
 
 test.describe('Journey 32 — Draw-card visualizations', () => {

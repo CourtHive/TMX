@@ -13,7 +13,9 @@ import {
   burstChart,
   fromFactoryDrawData,
 } from 'courthive-components';
-import { computeRatingDistributionStats } from 'tods-competition-factory';
+import { computeRatingDistributionStats, fixtures } from 'tods-competition-factory';
+
+const { ratingsParameters } = fixtures;
 
 import type { DrawCardDisplayMode } from './drawCardDisplayMode';
 
@@ -33,29 +35,68 @@ function buildCompetitivenessForMatchUps(matchUps: any[]): HTMLElement | null {
   return element;
 }
 
-function collectRatingsFromDraw(drawDefinition: any, scaleName?: string): number[] {
+function unwrapScaleValue(raw: any, accessor: string | undefined): any {
+  if (!raw || typeof raw !== 'object') return raw;
+  if (accessor && raw[accessor] !== undefined) return raw[accessor];
+  // Fallback when the ratingsParameters accessor isn't available — mocksEngine
+  // emits `{ wtnRating, confidence }` and similar; the first numeric field is
+  // always the rating itself.
+  const numeric = Object.values(raw).find((v) => typeof v === 'number');
+  return numeric !== undefined ? numeric : raw;
+}
+
+function extractRatingFromParticipant(participant: any, scaleKey: string, accessor: string | undefined): number | null {
+  const ratings = participant?.ratings;
+  if (!ratings) return null;
+  for (const category of Object.values(ratings as Record<string, any>)) {
+    if (!Array.isArray(category)) continue;
+    for (const item of category) {
+      if (String(item?.scaleName ?? '').toUpperCase() !== scaleKey) continue;
+      const raw = unwrapScaleValue(item.scaleValue, accessor);
+      const n = Number(raw);
+      if (Number.isFinite(n)) return n;
+    }
+  }
+  return null;
+}
+
+/** participantIds → numeric rating values for one scale. */
+function collectRatingsForDraw(
+  participantsById: Map<string, any> | undefined,
+  participantIds: string[] | undefined,
+  scaleName: string | undefined,
+): number[] {
+  if (!scaleName || !participantsById || !participantIds?.length) return [];
+  const key = String(scaleName).toUpperCase();
+  const params: any = (ratingsParameters as any)[key];
+  const accessor = params?.accessor;
   const values: number[] = [];
-  const entries = drawDefinition?.entries ?? [];
-  for (const entry of entries) {
-    const ratings = entry?.participant?.ratings;
-    if (!ratings || !scaleName) continue;
-    for (const category of Object.values(ratings as Record<string, any>)) {
-      if (!Array.isArray(category)) continue;
-      for (const item of category) {
-        if (item?.scaleName === scaleName && typeof item?.scaleValue === 'number') {
-          values.push(item.scaleValue);
-        }
+  for (const id of participantIds) {
+    const p = participantsById.get(id);
+    if (!p) continue;
+    const n = extractRatingFromParticipant(p, key, accessor);
+    if (n !== null) values.push(n);
+    // For pair/team participants, fall back to individualParticipants ratings.
+    if (n === null && Array.isArray(p.individualParticipants)) {
+      for (const ip of p.individualParticipants) {
+        const ipn = extractRatingFromParticipant(ip, key, accessor);
+        if (ipn !== null) values.push(ipn);
       }
     }
   }
   return values;
 }
 
-function buildHistogramForDraw(drawDefinition: any, scaleName?: string): HTMLElement | null {
-  const values = collectRatingsFromDraw(drawDefinition, scaleName);
+function buildHistogramForDraw(
+  participantsById: Map<string, any> | undefined,
+  participantIds: string[] | undefined,
+  scaleName?: string,
+): HTMLElement | null {
+  const values = collectRatingsForDraw(participantsById, participantIds, scaleName);
   if (values.length < 2) return null;
   const stats = (computeRatingDistributionStats as any)({ ratings: values });
-  if (!stats?.bins?.length) return null;
+  // Stats shape: `{ histogram: [{ binStart, binEnd, count }, ...] }` — no `bins`.
+  if (!stats?.histogram?.length) return null;
   const chart = buildRatingDistributionChart(stats, {
     mode: 'HISTOGRAM',
     width: 240,
@@ -94,6 +135,13 @@ export interface BuildVizParams {
   expanded?: boolean;
   /** Active rating scale name used for histogram data collection. */
   ratingScaleName?: string;
+  /** Resolved-participants lookup (participantId → participant with `ratings`).
+   * Required for histogram mode — raw drawDefinition entries don't carry
+   * resolved `participant.ratings`. */
+  participantsById?: Map<string, any>;
+  /** participantIds assigned to this draw — typically from
+   * `tournamentEngine.getAssignedParticipantIds({ drawDefinition })`. */
+  drawParticipantIds?: string[];
   /** Enriched structure from `getEventData().drawsData[i].structures[j]` —
    * carries `roundMatchUps` which the sunburst transformer needs. Required
    * for sunburst mode. */
@@ -109,13 +157,15 @@ export function buildDrawCardVisualization({
   drawDefinition,
   expanded = false,
   ratingScaleName,
+  participantsById,
+  drawParticipantIds,
   enrichedStructure,
   competitiveMatchUps,
 }: BuildVizParams): HTMLElement | null {
   if (mode === 'none') return null;
   if (!drawDefinition?.structures?.length) return null;
   if (mode === 'competitiveness') return buildCompetitivenessForMatchUps(competitiveMatchUps ?? []);
-  if (mode === 'histogram') return buildHistogramForDraw(drawDefinition, ratingScaleName);
+  if (mode === 'histogram') return buildHistogramForDraw(participantsById, drawParticipantIds, ratingScaleName);
   if (mode === 'sunburst') return buildSunburstForDraw(enrichedStructure, expanded);
   return null;
 }
