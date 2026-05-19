@@ -1,5 +1,40 @@
 # Changelog
 
+## [4.1.0](https://github.com/CourtHive/TMX/compare/v4.0.1...v4.1.0) (2026-05-19)
+
+
+### Features
+
+* **drawsView:** per-card visualizations with display-options popover ([61847b7](https://github.com/CourtHive/TMX/commit/61847b7041d23ed7df1363493c8fffe0a4e5e913))
+* **drawsView:** use competitiveness donut on draw cards ([926a78b](https://github.com/CourtHive/TMX/commit/926a78b7f7bb00beff8bf0b5cca5197fa5f6aa14))
+* **eventsTab:** card-grid view for the per-event draws list ([9cc4e1b](https://github.com/CourtHive/TMX/commit/9cc4e1b3ea29945a4b41dd69c7195a9792bb64d9))
+* **eventsTab:** two-row draws view — header with toggle, controls below ([a909899](https://github.com/CourtHive/TMX/commit/a9098997779c4f7c1e715fc6838dcf0697e45526))
+* **filters:** highlight currently-active filters inside popover ([ed95f53](https://github.com/CourtHive/TMX/commit/ed95f53de268d777ab9027ac1354dfd48582d3ab))
+* **venues:** add website + image URL inputs to edit venue drawer ([a5a1be0](https://github.com/CourtHive/TMX/commit/a5a1be019cd82d66fe9bdfa51caac951e0113c31))
+* **venues:** address fields on add + edit venue drawers ([e1e5d21](https://github.com/CourtHive/TMX/commit/e1e5d21613bf5663a90d5c403f8214748084c9c2))
+* **venues:** website column + URL fields on add venue drawer ([69ed4ad](https://github.com/CourtHive/TMX/commit/69ed4adfc41d243b087984bf9a9e8494bd6ff0e2))
+* **views:** default to table view; hide card display options in table mode ([f2a85a9](https://github.com/CourtHive/TMX/commit/f2a85a90dc680bd605633e67e45ebd87b8b516e5))
+
+
+### Bug Fixes
+
+* **compositions:** publish-extension snapshots full configuration ([5d0b652](https://github.com/CourtHive/TMX/commit/5d0b6529f38762795fe3f3a44f74ada5737dfe53))
+* **compositions:** user compositions resolve across draws + load colors ([249cca9](https://github.com/CourtHive/TMX/commit/249cca9e087cd0b97f0a00e64ab8872e0376bb94))
+* **deps:** update dependency @courthive/provider-config to ^0.2.0 ([9191d8a](https://github.com/CourtHive/TMX/commit/9191d8a35507cc835e1757bcf031e362f1b47f40))
+* **deps:** update dependency courthive-components to v1.6.0 ([8581ee2](https://github.com/CourtHive/TMX/commit/8581ee256feacf02a108ffb988f0e47b09f405a6))
+* **deps:** update dependency pdf-factory to v0.6.0 ([498852a](https://github.com/CourtHive/TMX/commit/498852acd322f682b9ab124453c8067d045b921f))
+* **deps:** update dependency pdf-factory to v0.6.1 ([3929b65](https://github.com/CourtHive/TMX/commit/3929b65bc932599618e7cb2d4fb9001c05a58a26))
+* **deps:** update dependency tods-competition-factory to v3.8.0 ([8594a5b](https://github.com/CourtHive/TMX/commit/8594a5bda6b70d62065bb13e7c15118d9878c2ad))
+* **deps:** update dependency tods-competition-factory to v3.9.0 ([149fb9b](https://github.com/CourtHive/TMX/commit/149fb9b3dc69eb57abdd73e8fa9c2925e5ebaeab))
+* **drawsView:** fetch competitiveness with contextProfile; add e2e spec ([6ab394a](https://github.com/CourtHive/TMX/commit/6ab394adb9053221fee0837e51595cffe129c450))
+* **drawsView:** histogram + competitiveness + sunburst data plumbing ([0fceea8](https://github.com/CourtHive/TMX/commit/0fceea846c832c72f00f5b6b70831886a6b64ea7))
+* **drawsView:** pass enriched structure to sunburst transformer ([cdc15e1](https://github.com/CourtHive/TMX/commit/cdc15e16752a3e2ee354cf5d80e71d3014b52c4f))
+* **eventsTab:** wire event card click ([cc8ef15](https://github.com/CourtHive/TMX/commit/cc8ef15fc598f1f511daddc19a55dff57b04e5fb))
+* **eventsView:** keep cards/table toggle right-aligned on every render ([8710d04](https://github.com/CourtHive/TMX/commit/8710d04cd745e31384ab9fe419e1f2ee0b705747))
+* **notesEditor:** wider modal + scroll-contained editor area ([c2507fb](https://github.com/CourtHive/TMX/commit/c2507fb2ca4f5951ac005f09efc361a6a29b3f16))
+* **tournaments:** remove border from page header ([b5fda73](https://github.com/CourtHive/TMX/commit/b5fda73096e6844a4942ec2633b68cd36287e23d))
+* **venues:** replace country-code free-text with country selector ([c405bc1](https://github.com/CourtHive/TMX/commit/c405bc1ad76dd541b55aa0629a1af8526264dc39))
+
 ## [4.0.1](https://github.com/CourtHive/TMX/compare/v4.0.0...v4.0.1) (2026-05-18)
 
 
