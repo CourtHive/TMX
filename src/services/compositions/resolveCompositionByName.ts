@@ -6,20 +6,23 @@
  * Sync — reads from the user composition cache populated at TMX boot
  * by `loadUserCompositions()`. Returns `undefined` if no match.
  *
- * Per-render mutations (e.g. `composition.allDrawPositions` added by
- * the draw renderer) are constructed onto a per-name runtime cache so
- * the mutation pattern that builtin compositions rely on works for
- * user compositions too.
+ * For USER compositions, returns a FRESH runtime object on every call:
+ * each caller gets its own copy of `configuration` and `colors`. This
+ * is intentional — TMX render code mutates `composition.configuration`
+ * in place (adding fields like `allDrawPositions`, scale attributes,
+ * form-controlled toggles). Sharing the runtime object across modal
+ * opens or draw renders would leak those mutations between unrelated
+ * surfaces. The perf cost of constructing a small object is trivial.
+ *
+ * For BUILTIN compositions, returns the singleton from `courthive-
+ * components` directly — the in-place mutation pattern is intended
+ * there (matches existing TMX behavior).
  */
 import { compositions } from 'courthive-components';
 import { getUserCompositionsSync } from 'pages/templates/compositionBridge';
 
-const userRuntimeCache = new Map<string, any>();
-
 export function resolveCompositionByName(name: string | undefined): any | undefined {
   if (!name) return undefined;
-
-  if (userRuntimeCache.has(name)) return userRuntimeCache.get(name);
 
   const userComp = getUserCompositionsSync().find((c) => c.name === name);
   if (userComp) {
@@ -31,7 +34,6 @@ export function resolveCompositionByName(name: string | undefined): any | undefi
     if (userComp.composition.colors) {
       runtime.colors = { ...userComp.composition.colors };
     }
-    userRuntimeCache.set(name, runtime);
     return runtime;
   }
 
@@ -39,19 +41,10 @@ export function resolveCompositionByName(name: string | undefined): any | undefi
 }
 
 /**
- * Drop the runtime cache for a single user composition. Call after
- * saving or deleting the composition so the next resolve picks up
- * fresh state.
- */
-export function invalidateUserComposition(name: string): void {
-  userRuntimeCache.delete(name);
-}
-
-/**
- * Clear the entire user-composition runtime cache. Call after
- * `loadUserCompositions()` runs so the cache reflects the latest
- * IndexedDB snapshot.
+ * Retained as a stable no-op so callers (e.g. `compositionBridge.ts`)
+ * can keep their invalidation calls even though the resolver no longer
+ * caches across calls. Safe to remove once callers drop the import.
  */
 export function clearUserCompositionRuntimeCache(): void {
-  userRuntimeCache.clear();
+  // no-op
 }

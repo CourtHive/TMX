@@ -200,12 +200,24 @@ export async function editDisplaySettings(params) {
       eventId,
       drawId,
     })?.extension?.value;
+    // Capture the FULL merged configuration (composition source +
+    // form overrides) so the saved extension is a self-contained
+    // snapshot. Required for user compositions to render with full
+    // fidelity in courthive-public, where the named-composition
+    // lookup falls back to 'National' (since user compositions live
+    // only in TMX's IndexedDB). Saving the full configuration means
+    // the public-side renderer reads every flag from the extension
+    // and never needs to know what 'MyCustom' resolves to.
+    const fullConfiguration = {
+      ...(selections.composition.configuration || {}),
+      ...selections.configuration,
+    };
     const extension = {
       value: {
         ...existingValue, // order is important!
         compositionName: selections.composition.compositionName,
         theme: selections.composition.theme,
-        configuration: selections.configuration,
+        configuration: fullConfiguration,
         ...(selections.composition.colors ? { colors: selections.composition.colors } : {}),
       },
       name: extensionConstants.DISPLAY,
