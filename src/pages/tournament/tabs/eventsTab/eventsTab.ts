@@ -202,9 +202,11 @@ function renderDrawsHeader({
 
   const trailing = document.createElement('div');
   trailing.style.cssText = 'display:flex; align-items:center; gap:0.4rem;';
-  trailing.appendChild(
-    buildDisplayOptionsButton({ current: displayMode, drawCount: count, availability, onChange: onDisplayModeChange }),
-  );
+  if (mode === 'grid') {
+    trailing.appendChild(
+      buildDisplayOptionsButton({ current: displayMode, drawCount: count, availability, onChange: onDisplayModeChange }),
+    );
+  }
   trailing.appendChild(buildViewToggleElement({ mode, onChange: onModeChange }));
   headerEl.appendChild(trailing);
 }

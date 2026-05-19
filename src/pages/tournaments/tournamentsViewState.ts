@@ -22,9 +22,9 @@ const VIEW_MODE_KEY = 'tmx_tournaments_view_mode';
 function readViewMode(): TournamentsViewMode {
   try {
     const stored = globalThis.localStorage?.getItem(VIEW_MODE_KEY);
-    return stored === 'table' ? 'table' : 'grid';
+    return stored === 'grid' ? 'grid' : 'table';
   } catch {
-    return 'grid';
+    return 'table';
   }
 }
 

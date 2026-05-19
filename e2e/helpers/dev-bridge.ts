@@ -29,8 +29,8 @@ export async function resetState(page: Page): Promise<void> {
 
 /**
  * Clear the persisted events-view mode so the next `navigateToEvents*`
- * sees the fresh-visit default (cards). Use in `beforeEach` of specs
- * that assert default-cards-view behaviour.
+ * sees the fresh-visit default (table). Use in `beforeEach` of specs
+ * that assert default-view behaviour.
  */
 export async function resetEventsViewMode(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -44,7 +44,7 @@ export async function resetEventsViewMode(page: Page): Promise<void> {
 
 /**
  * Clear the persisted draws-view mode + draw-card display mode so
- * draws-list specs see the fresh-visit defaults (grid view, no viz).
+ * draws-list specs see the fresh-visit defaults (table view, no viz).
  */
 export async function resetDrawsViewState(page: Page): Promise<void> {
   await page.evaluate(() => {

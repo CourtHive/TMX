@@ -151,11 +151,10 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     await page.goto('/#/tournaments');
     await page.waitForTimeout(2000);
 
-    // The tournaments listing defaults to a card-grid (memory:
-    // tournaments-redesign card-grid). Switch to table view so the
-    // `.tabulator-row` assertion below has something to find — the
-    // toggle's onChange early-returns when already in table mode so
-    // re-clicking is idempotent.
+    // The tournaments listing defaults to table view, but a prior spec in
+    // this browser context may have persisted cards mode. Re-clicking
+    // Table view is idempotent (onChange early-returns when already in
+    // table mode) so this is safe either way.
     const tableToggle = page.getByRole('button', { name: 'Table view' });
     await tableToggle.waitFor({ state: 'visible', timeout: 5_000 });
     if ((await tableToggle.getAttribute('aria-pressed')) !== 'true') {

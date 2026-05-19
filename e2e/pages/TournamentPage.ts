@@ -27,11 +27,10 @@ export class TournamentPage {
 
   /**
    * Navigate to the Events tab AND ensure the Tabulator table view is
-   * active. The events tab defaults to a cards grid (memory:
-   * tournaments-redesign); existing specs target `#eventsTable
-   * .tabulator-row` so they need table mode. The toggle's onChange
-   * early-returns when mode already matches, so re-clicking Table view
-   * is idempotent.
+   * active. The events tab now defaults to table view, but specs may
+   * have previously toggled to cards in this browser context — this
+   * helper is idempotent because the toggle's onChange early-returns
+   * when mode already matches.
    */
   async navigateToEvents() {
     await this.page.locator(S.NAV_EVENTS).click();

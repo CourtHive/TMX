@@ -10,9 +10,9 @@ const VIEW_MODE_KEY = 'tmx_venues_view_mode';
 export function readVenuesViewMode(): VenuesViewMode {
   try {
     const stored = globalThis.localStorage?.getItem(VIEW_MODE_KEY);
-    return stored === 'table' ? 'table' : 'grid';
+    return stored === 'grid' ? 'grid' : 'table';
   } catch {
-    return 'grid';
+    return 'table';
   }
 }
 

@@ -9,9 +9,9 @@ const VIEW_MODE_KEY = 'tmx_events_view_mode';
 export function readEventsViewMode(): EventsViewMode {
   try {
     const stored = globalThis.localStorage?.getItem(VIEW_MODE_KEY);
-    return stored === 'table' ? 'table' : 'grid';
+    return stored === 'grid' ? 'grid' : 'table';
   } catch {
-    return 'grid';
+    return 'table';
   }
 }
 
