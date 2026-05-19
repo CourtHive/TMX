@@ -1,6 +1,13 @@
 packages:
   - .
 
+# Disable pnpm v11's supply-chain minimumReleaseAge policy. Recent
+# CourtHive-owned packages (factory, provider-config, i18n) often fall
+# within the policy's freshness window but are overridden to local
+# `link:../` paths below — the lockfile entries are advisory, not
+# fetched. The policy false-positives on those and blocks install.
+minimumReleaseAge: 0
+
 allowBuilds:
   electron-winstaller: true
   esbuild: true
