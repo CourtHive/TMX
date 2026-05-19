@@ -3,7 +3,7 @@
  * Displays all tournament matches with search and popover-based filters for event, flight, team, status, and type.
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
-import { createCompetitivenessSummary } from 'components/tables/matchUpsTable/competitivenessSummary';
+import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { eventConstants, fixtures } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
@@ -84,10 +84,12 @@ export function renderMatchUpTab(): void {
 
   const optionsCenter = target.getElementsByClassName('options_center')[0] as HTMLElement | undefined;
   if (optionsCenter) {
-    const { element: summary, update: updateSummary } = createCompetitivenessSummary();
+    const { element: summary, update: updateBar } = buildCompetitivenessBar();
+    // Keep the flex sizing that the old summary used inside options_center.
+    summary.style.cssText += ';flex:1 1 auto;max-width:600px;';
     optionsCenter.appendChild(summary);
-    updateSummary(data);
-    table.on('dataFiltered', (_filters: any, rows: any[]) => updateSummary(rows));
+    updateBar(aggregateCompetitiveness(data));
+    table.on('dataFiltered', (_filters: any, rows: any[]) => updateBar(aggregateCompetitiveness(rows)));
   }
 }
 
