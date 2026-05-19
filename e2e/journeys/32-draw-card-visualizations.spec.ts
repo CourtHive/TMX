@@ -27,7 +27,11 @@ import { TournamentPage } from '../pages/TournamentPage';
 
 const DRAW_CARD = '.chc-dc-card';
 const VIZ_ZONE = '.chc-dc-viz';
-const COMPETITIVENESS_BAR = '.chc-cb';
+// The competitiveness viz now uses the donut variant from courthive-components
+// (`.chc-cd`) — the segmented bar (`.chc-cb`) primitive still exists and is
+// used elsewhere (matchUps page). Either is acceptable here, but the assertion
+// matches whichever the consumer is currently wired to.
+const COMPETITIVENESS_VIZ = '.chc-cd';
 const PALETTE_BUTTON = 'button[aria-label="Card display options"]';
 
 /** One event with two completed draws — so we land on the
@@ -110,9 +114,9 @@ test.describe('Journey 32 — Draw-card visualizations', () => {
     await expect(page.locator(VIZ_ZONE)).toHaveCount(0);
 
     await pickDisplayMode(page, 'competitiveness');
-    // Two cards × one bar each.
+    // Two cards × one viz each.
     await expect(page.locator(VIZ_ZONE)).toHaveCount(2);
-    await expect(page.locator(`${DRAW_CARD} ${COMPETITIVENESS_BAR}`)).toHaveCount(2);
+    await expect(page.locator(`${DRAW_CARD} ${COMPETITIVENESS_VIZ}`)).toHaveCount(2);
 
     // Preference persisted to localStorage as the global TD preference.
     const stored = await page.evaluate(() => localStorage.getItem('tmx_draws_card_display'));

@@ -18,7 +18,10 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
 
-  retries: process.env.CI ? 2 : 0,
+  // Match CI behaviour locally — the full-suite run takes ~5 min and the
+  // Vite dev server intermittently misbehaves under that load. Failing
+  // tests retry up to twice; the third attempt determines the result.
+  retries: 2,
   timeout: 60_000,
 
   // Reporter: default for local, HTML for CI
@@ -47,7 +50,13 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: process.env.TEST_PROD ? 'pnpm build && pnpm preview' : 'pnpm start',
+    // Bump Node heap for the Vite dev server — the default ~1.7GB caps out
+    // on long e2e runs (Vite's module graph + HMR state grow over hundreds
+    // of page navigations). Without this, mid-suite specs near the tail
+    // intermittently hit ERR_CONNECTION_REFUSED or slow renders.
+    command: process.env.TEST_PROD
+      ? 'pnpm build && pnpm preview'
+      : 'NODE_OPTIONS=--max-old-space-size=4096 pnpm start',
     url: process.env.TEST_PROD ? 'http://localhost:4173' : 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
