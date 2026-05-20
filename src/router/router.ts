@@ -4,6 +4,7 @@ import { ssoLoginWithToken } from 'services/authentication/authApi';
 import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
+import { renderPolicyCatalogPage } from 'pages/policies/renderPolicyCatalogPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
@@ -174,6 +175,7 @@ export function routeTMX() {
 
   router.on(`/${TEMPLATES}/:templateView`, (match) => renderTemplatesPage(match?.data ?? undefined));
   router.on(`/${TEMPLATES}`, () => renderTemplatesPage());
+  router.on(`/${POLICIES}/catalog`, renderPolicyCatalogPage);
   router.on(`/${POLICIES}`, renderPoliciesPage);
   router.on(`/${SETTINGS}`, renderSettingsPage);
   router.on('/admin', renderAdminPage);
