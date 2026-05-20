@@ -12,9 +12,9 @@
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { getCategoryModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { getCategoryModal } from 'courthive-components';
 import { t } from 'i18n';
 
 import { SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
