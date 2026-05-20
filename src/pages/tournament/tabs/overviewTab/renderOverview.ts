@@ -1,6 +1,7 @@
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
+import { openCategoriesEditorModal } from './categoriesEditorModal';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
@@ -152,14 +153,40 @@ export function renderOverview(): void {
 
   const statsContainer = document.createElement('div');
   statsContainer.className = 'dash-stats';
+
+  // Tournament Dates panel — full width above the 2-col stats grid so
+  // long ranges ("May 7, 2026 – May 23, 2026") aren't truncated by the
+  // narrow stat-card column.
   const datesCard = createStatCard(
     t('dashboard.dates'),
     `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`,
     'fa-calendar',
   );
   datesCard.style.cursor = 'pointer';
+  datesCard.style.cssText += 'grid-column: 1 / -1;';
   datesCard.addEventListener('click', () => openEditDatesModal({ onSave: () => renderOverview() }));
   statsContainer.appendChild(datesCard);
+
+  // Categories card — opens the categories editor. Takes the slot the
+  // dates card used to occupy in the 2-col grid.
+  const categories = tournamentEngine.getTournament()?.tournamentRecord?.tournamentCategories ?? [];
+  const categoriesValue =
+    categories.length === 0
+      ? t('dashboard.noneSet')
+      : categories
+          .slice(0, 3)
+          .map((c: any) => c.categoryName)
+          .filter(Boolean)
+          .join(', ') + (categories.length > 3 ? ` +${categories.length - 3}` : '');
+  const categoriesCard = createStatCard(
+    t('dashboard.categories', { count: categories.length }),
+    categoriesValue,
+    'fa-layer-group',
+  );
+  categoriesCard.style.cursor = 'pointer';
+  categoriesCard.addEventListener('click', () => openCategoriesEditorModal({ onSave: () => renderOverview() }));
+  statsContainer.appendChild(categoriesCard);
+
   const eventsCard = createDualStatCard([
     { label: t('dashboard.events'), value: data.eventCount, icon: 'fa-trophy' },
     { label: t('dashboard.draws'), value: data.drawDefinitionCount, icon: 'fa-sitemap' },

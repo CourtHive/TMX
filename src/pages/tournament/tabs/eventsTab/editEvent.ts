@@ -12,7 +12,7 @@ import { t } from 'i18n';
 import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, tools } from 'tods-competition-factory';
 
-import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT } from 'constants/mutationConstants';
+import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
 const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
@@ -328,51 +328,54 @@ export function editEvent({
     // Check if Custom category is selected
     if (ageCategoryCode === 'custom') {
       const setCategory = (categoryResult: any) => {
-        if (categoryResult?.ageCategoryCode) {
-          // Phase 3 & 4: Add custom category to tournament categories
-          const existing = tournamentRecord?.tournamentCategories || [];
+        if (!categoryResult?.ageCategoryCode) return;
 
-          // Check if category already exists
-          const isDuplicate = existing.some(
-            (cat: any) =>
-              cat.ageCategoryCode === categoryResult.ageCategoryCode ||
-              cat.categoryName === categoryResult.categoryName,
-          );
+        const finalize = () => {
+          context.drawer.attributes.content.ageCategoryCode.value = categoryResult.ageCategoryCode;
+          proceedWithSave(categoryResult);
+        };
 
-          if (!isDuplicate) {
-            // Add new category to tournament
-            const updatedCategories = [...existing, categoryResult];
-            const result = tournamentEngine.setTournamentCategories({ categories: updatedCategories });
+        const existing = tournamentRecord?.tournamentCategories || [];
+        const isDuplicate = existing.some(
+          (cat: any) =>
+            cat.ageCategoryCode === categoryResult.ageCategoryCode ||
+            cat.categoryName === categoryResult.categoryName,
+        );
 
-            if (result.success) {
-              // Phase 2: Add category to dropdown programmatically
-              if (formInputs?.ageCategoryCode) {
-                const cleanCode = cleanAgeCode(categoryResult.ageCategoryCode);
-                const label = cleanCode
-                  ? `${categoryResult.categoryName} (${cleanCode})`
-                  : categoryResult.categoryName;
-                const value = cleanCode || categoryResult.categoryName;
+        if (isDuplicate) {
+          finalize();
+          return;
+        }
 
-                // Add new option before "Custom"
-                const customIndex = formInputs.ageCategoryCode.options.length - 1;
-                const newOption = new Option(label, value);
-                formInputs.ageCategoryCode.options.add(newOption, customIndex);
-
-                // Select the new option
-                formInputs.ageCategoryCode.value = value;
-              }
-            } else {
+        // Persist the new tournament category via mutationRequest so the
+        // server learns about it before we proceed with the event save.
+        const updatedCategories = [...existing, categoryResult];
+        mutationRequest({
+          methods: [{ method: SET_TOURNAMENT_CATEGORIES, params: { categories: updatedCategories } }],
+          callback: (resp: any) => {
+            if (!resp?.success) {
               tmxToast({
                 message: t('pages.events.editEvent.categorySaveWarning'),
                 intent: 'is-warning',
               });
+              return;
             }
-          }
-
-          // Update the drawer attribute and proceed with save
-          context.drawer.attributes.content.ageCategoryCode.value = categoryResult.ageCategoryCode;
-          proceedWithSave(categoryResult);
-        }
+            // Add the new option to the dropdown so the user sees their
+            // category selected immediately.
+            if (formInputs?.ageCategoryCode) {
+              const cleanCode = cleanAgeCode(categoryResult.ageCategoryCode);
+              const label = cleanCode
+                ? `${categoryResult.categoryName} (${cleanCode})`
+                : categoryResult.categoryName;
+              const value = cleanCode || categoryResult.categoryName;
+              const customIndex = formInputs.ageCategoryCode.options.length - 1;
+              const newOption = new Option(label, value);
+              formInputs.ageCategoryCode.options.add(newOption, customIndex);
+              formInputs.ageCategoryCode.value = value;
+            }
+            finalize();
+          },
+        });
       };
 
       getCategoryModal({

@@ -920,6 +920,15 @@
       "namePlaceholder": "Tournament name",
       "nameError": "minimum of 5 characters"
     },
+    "editCategories": {
+      "title": "Tournament Categories",
+      "intro": "Add, edit, or remove categories defined for this tournament.",
+      "add": "+ Add category",
+      "empty": "No categories defined yet.",
+      "duplicate": "A category with that name or code already exists.",
+      "confirmDelete": "Delete \"{{name}}\"? This cannot be undone.",
+      "deleteBlocked": "Cannot delete \"{{name}}\" — used by {{count}} event(s): {{events}}. Remove or reassign those events first."
+    },
     "editDates": {
       "title": "Edit Dates",
       "startDateLabel": "Start Date",
@@ -1333,6 +1342,8 @@
 
   "dashboard": {
     "dates": "Dates",
+    "categories": "Categories ({{count}})",
+    "noneSet": "None",
     "events": "Events",
     "draws": "Draws",
     "players": "Players",
