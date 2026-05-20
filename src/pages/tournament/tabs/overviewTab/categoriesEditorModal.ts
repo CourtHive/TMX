@@ -242,7 +242,11 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
   };
 
   const content = (elem: HTMLElement) => {
-    elem.style.cssText = 'display: flex; flex-direction: column; gap: .75rem; min-width: 28rem; max-width: 38rem;';
+    // The chc-modal shell only pads its header/footer — the body wrapper
+    // we get is edge-to-edge. Pad it so the intro text, list, and Add
+    // button don't sit flush against the modal frame.
+    elem.style.cssText =
+      'display: flex; flex-direction: column; gap: .75rem; min-width: 28rem; max-width: 38rem; padding: 1rem;';
 
     const intro = document.createElement('div');
     intro.style.cssText = 'color: var(--tmx-text-secondary); font-size: .85rem;';
