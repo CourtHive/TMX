@@ -98,21 +98,34 @@ export function getProviderAssociations() {
 
 /**
  * Resolve the initial active provider for a multi-provider user. Precedence:
- *   1. tmx_impersonated_provider in localStorage (explicit prior pick)
+ *   1. tmx_impersonated_provider in localStorage with full identity fields
+ *      (impersonation handoff from /admin — super-admins and provisioner
+ *      admins may not have a direct user_providers row for the impersonated
+ *      provider, so we honor the persisted value without an association
+ *      lookup). For a multi-provider user picking their own provider the
+ *      persisted value still represents a valid pick.
  *   2. JWT `lastSelectedProviderId` (server-persisted last pick — survives
  *      cross-device / cache clears, populated by the PATCH endpoint)
  *   3. Legacy `users.provider_id` from the JWT (today's default for users
  *      with no explicit pick yet)
  *   4. First association alphabetically (last-resort default)
  *
- * Always validates the chosen providerId against the current associations
- * array — drops stale picks (e.g. association was revoked between sessions)
- * and falls through to the next precedence level.
+ * Tiers 2–4 validate against the current associations array — drops stale
+ * picks where the user's role was revoked between sessions. Tier 1 cannot
+ * validate that way (impersonation is by design out-of-band of the user's
+ * own associations) — server-side guards on each API call are the safety
+ * net there; a no-longer-authorized impersonation manifests as 403s.
  */
 export function resolveInitialProvider(): ProviderValue | undefined {
   const login = getLoginState();
   if (!login) return undefined;
   const associations = login.providerAssociations ?? [];
+
+  const persisted = readPersistedProvider();
+  if (persisted?.organisationId && persisted.organisationName && persisted.organisationAbbreviation) {
+    return persisted;
+  }
+
   if (associations.length === 0) return undefined;
 
   const lookup = (providerId: string | null | undefined): ProviderValue | undefined => {
@@ -127,7 +140,6 @@ export function resolveInitialProvider(): ProviderValue | undefined {
   };
 
   return (
-    lookup(readPersistedProvider()?.organisationId) ??     // 1
     lookup(login.lastSelectedProviderId) ??                // 2
     lookup(login.providerId) ??                            // 3
     (() => {                                                // 4
