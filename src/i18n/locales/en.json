@@ -922,12 +922,16 @@
     },
     "editCategories": {
       "title": "Tournament Categories",
-      "intro": "Add, edit, or remove categories defined for this tournament.",
+      "intro": "Add or remove categories defined for this tournament. Categories in use cannot be edited or removed — change them by replacing the events that reference them.",
       "add": "+ Add category",
       "empty": "No categories defined yet.",
       "duplicate": "A category with that name or code already exists.",
       "confirmDelete": "Delete \"{{name}}\"? This cannot be undone.",
-      "deleteBlocked": "Cannot delete \"{{name}}\" — used by {{count}} event(s): {{events}}. Remove or reassign those events first."
+      "deleteBlocked": "Cannot delete \"{{name}}\" — used by {{count}} event(s): {{events}}. Remove or reassign those events first.",
+      "deleteDisabledHint": "This category is used by one or more events. Remove or reassign those events first.",
+      "unused": "Unused",
+      "usageCount": "{{count}} event(s)",
+      "usageList": "{{name}} is used by: {{events}}"
     },
     "editDates": {
       "title": "Edit Dates",

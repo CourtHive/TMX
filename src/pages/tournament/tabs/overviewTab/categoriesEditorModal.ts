@@ -147,40 +147,41 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
 
     row.appendChild(meta);
 
-    const editBtn = document.createElement('button');
-    editBtn.type = 'button';
-    editBtn.className = 'button is-small';
-    editBtn.textContent = t('common.edit');
-    editBtn.addEventListener('click', () => editAt(index));
-    row.appendChild(editBtn);
+    const refs = findReferencingEvents(cat, getEvents());
+    const usagePill = buildUsagePill(cat, refs);
+    row.appendChild(usagePill);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'button is-small is-danger is-light';
     deleteBtn.textContent = t('common.delete');
-    deleteBtn.addEventListener('click', () => deleteAt(index));
+    deleteBtn.disabled = refs.length > 0;
+    if (refs.length === 0) {
+      deleteBtn.addEventListener('click', () => deleteAt(index));
+    } else {
+      deleteBtn.title = t('modals.editCategories.deleteDisabledHint');
+    }
     row.appendChild(deleteBtn);
 
     return row;
   };
 
-  const editAt = (index: number) => {
-    const categories = getCategories();
-    const current = categories[index];
-    if (!current) return;
-
-    getCategoryModal({
-      existingCategory: current as any,
-      editorConfig: {},
-      callback: (updated: any) => {
-        if (!updated) return;
-        const next = categories.map((c, i) => (i === index ? { ...current, ...updated } : c));
-        persistCategories(next, () => {
-          renderList();
-          onSave?.();
-        });
-      },
+  const buildUsagePill = (cat: TournamentCategory, refs: string[]): HTMLElement => {
+    const pill = document.createElement('span');
+    if (refs.length === 0) {
+      pill.style.cssText =
+        'font-size: .75rem; padding: 2px .5rem; border-radius: 999px; background: var(--tmx-bg-tertiary); color: var(--tmx-text-secondary); white-space: nowrap;';
+      pill.textContent = t('modals.editCategories.unused');
+      return pill;
+    }
+    pill.style.cssText =
+      'font-size: .75rem; padding: 2px .5rem; border-radius: 999px; background: var(--tmx-panel-blue-bg); color: var(--tmx-accent-blue); border: 1px solid var(--tmx-panel-blue-border); white-space: nowrap; cursor: help;';
+    pill.textContent = t('modals.editCategories.usageCount', { count: refs.length });
+    pill.title = t('modals.editCategories.usageList', {
+      name: cat.categoryName ?? '?',
+      events: refs.join(', '),
     });
+    return pill;
   };
 
   const deleteAt = (index: number) => {
@@ -188,6 +189,8 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
     const target = categories[index];
     if (!target) return;
 
+    // Guard already enforced by the disabled button + factory backstop,
+    // but re-check here in case state shifted between render and click.
     const refs = findReferencingEvents(target, getEvents());
     if (refs.length) {
       tmxToast({
@@ -246,13 +249,17 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
     intro.textContent = t('modals.editCategories.intro');
     elem.appendChild(intro);
 
+    // Scroll the list so 40+ categories don't push the modal off-screen.
+    // Cap at roughly half the viewport; the modal-shell handles overflow
+    // above this if needed.
     listContainer = document.createElement('div');
-    listContainer.style.cssText = 'display: flex; flex-direction: column; gap: .4rem;';
+    listContainer.style.cssText =
+      'display: flex; flex-direction: column; gap: .4rem; max-height: 50vh; overflow-y: auto; padding-right: .25rem;';
     elem.appendChild(listContainer);
     renderList();
 
     const addRow = document.createElement('div');
-    addRow.style.cssText = 'display: flex; justify-content: flex-end;';
+    addRow.style.cssText = 'display: flex; justify-content: flex-end; padding: .75rem 0 .25rem 0;';
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
     addBtn.className = 'button is-small is-info';
