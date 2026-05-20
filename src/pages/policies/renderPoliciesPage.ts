@@ -6,6 +6,7 @@ import { TMX_POLICIES, POLICIES } from 'constants/tmxConstants';
 import { createPolicyCatalog } from 'courthive-components';
 import type { PolicyCatalogControl } from 'courthive-components';
 import { getBuiltinPolicies, loadUserPolicies, saveUserPolicy } from './policyBridge';
+import './policyCatalog.css';
 
 let catalogControl: PolicyCatalogControl | null = null;
 
@@ -43,17 +44,16 @@ export async function renderPoliciesPage(): Promise<void> {
 
 function buildCatalogLink(): HTMLElement {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'margin: 0 0 .75rem 0;';
+  wrap.className = 'policy-catalog__entry';
 
-  const link = document.createElement('a');
-  link.href = `#/${POLICIES}/catalog`;
-  link.textContent = 'Browse public policy catalog →';
-  link.style.cssText = 'color: var(--tmx-link-color, #268bd2); text-decoration: none; font-size: .9rem;';
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'policy-catalog__entry-button';
+  button.textContent = 'Browse public catalog →';
+  button.addEventListener('click', () => {
     context.router?.navigate(`/${POLICIES}/catalog`);
   });
-  wrap.appendChild(link);
+  wrap.appendChild(button);
 
   return wrap;
 }
