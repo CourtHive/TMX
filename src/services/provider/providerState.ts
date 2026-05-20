@@ -62,7 +62,13 @@ export function setActiveProvider(provider: ProviderValue, options: SetActivePro
 }
 
 async function fetchEffectiveConfig(providerId: string): Promise<any | undefined> {
-  const response = await baseApi.get(`/provider/${providerId}/effective-config`);
+  // `silenceErrors` suppresses the global axios toast on 403 — the impersonation
+  // handoff path naturally produces a 403 when the impersonated provider is
+  // refreshed before the provisioner-inheritance fields propagate. The catch
+  // in the caller already handles the failure (keeps prior providerConfig),
+  // and a noisy toast on every impersonation switch is worse than the
+  // (already invisible) silent fall-through.
+  const response = await baseApi.get(`/provider/${providerId}/effective-config`, { silenceErrors: true } as any);
   return response?.data?.effective;
 }
 
