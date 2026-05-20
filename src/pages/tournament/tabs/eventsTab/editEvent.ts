@@ -18,6 +18,19 @@ import { RIGHT } from 'constants/tmxConstants';
 const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { ANY, FEMALE, MALE, MIXED } = genderConstants;
 const { DOUBLES, SINGLES, TEAM } = eventConstants;
+
+// Some tournaments have a stray "------------" ageCategoryCode persisted
+// from an old form-rendering bug (renderField treated value: '' as falsy
+// and the select fell back to the dashed label as its value). Strip them
+// at read time so we don't keep rendering the placeholder in dropdowns
+// and event detail. Root-cause fix landed in courthive-components.
+function cleanAgeCode(value: any): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^[-—–_]+$/.test(trimmed)) return undefined;
+  return trimmed;
+}
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { MAIN } = drawDefinitionConstants;
 
@@ -55,13 +68,15 @@ function buildCategoryOptionsList(
 
   if (tournamentCategories.length > 0) {
     tournamentCategories
-      .filter((cat: any) => isCategoryAllowed(cat.ageCategoryCode || cat.categoryName))
+      .filter((cat: any) => isCategoryAllowed(cleanAgeCode(cat.ageCategoryCode) || cat.categoryName))
       .forEach((cat: any) => {
-        const label = cat.ageCategoryCode ? `${cat.categoryName} (${cat.ageCategoryCode})` : cat.categoryName;
+        const cleanCode = cleanAgeCode(cat.ageCategoryCode);
+        const label = cleanCode ? `${cat.categoryName} (${cleanCode})` : cat.categoryName;
+        const value = cleanCode || cat.categoryName;
         options.push({
-          selected: selectedCode === (cat.ageCategoryCode || cat.categoryName),
+          selected: selectedCode === value,
           label,
-          value: cat.ageCategoryCode || cat.categoryName,
+          value,
         });
       });
   } else {
@@ -332,10 +347,11 @@ export function editEvent({
             if (result.success) {
               // Phase 2: Add category to dropdown programmatically
               if (formInputs?.ageCategoryCode) {
-                const label = categoryResult.ageCategoryCode
-                  ? `${categoryResult.categoryName} (${categoryResult.ageCategoryCode})`
+                const cleanCode = cleanAgeCode(categoryResult.ageCategoryCode);
+                const label = cleanCode
+                  ? `${categoryResult.categoryName} (${cleanCode})`
                   : categoryResult.categoryName;
-                const value = categoryResult.ageCategoryCode || categoryResult.categoryName;
+                const value = cleanCode || categoryResult.categoryName;
 
                 // Add new option before "Custom"
                 const customIndex = formInputs.ageCategoryCode.options.length - 1;

@@ -90,21 +90,24 @@
   transform: translateY(-1px);
 }
 
-.policy-catalog__card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
 .policy-catalog__card-name {
   font-weight: 600;
   color: var(--tmx-text-primary);
+  word-break: break-word;
+}
+
+.policy-catalog__card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
 }
 
 .policy-catalog__card-meta {
-  font-size: 0.8rem;
-  color: var(--tmx-text-secondary);
+  font-size: 0.75rem;
+  color: var(--tmx-text-muted);
+  white-space: nowrap;
 }
 
 .policy-catalog__card-desc {

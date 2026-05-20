@@ -135,20 +135,21 @@ function buildPolicyCard(policy: CatalogPolicy): HTMLElement {
   card.tabIndex = 0;
   card.setAttribute('role', 'button');
 
-  const top = document.createElement('div');
-  top.className = 'policy-catalog__card-top';
-
   const name = document.createElement('div');
   name.className = 'policy-catalog__card-name';
   name.textContent = policy.name;
-  top.appendChild(name);
+  card.appendChild(name);
 
-  const meta = document.createElement('div');
-  meta.className = 'policy-catalog__card-meta';
-  meta.textContent = `v${policy.version}`;
-  top.appendChild(meta);
+  const descText = (policy.definition as any)?.policyName;
+  if (descText) {
+    const desc = document.createElement('div');
+    desc.className = 'policy-catalog__card-desc';
+    desc.textContent = descText;
+    card.appendChild(desc);
+  }
 
-  card.appendChild(top);
+  const footer = document.createElement('div');
+  footer.className = 'policy-catalog__card-footer';
 
   const badges = document.createElement('div');
   badges.className = 'policy-catalog__badges';
@@ -156,14 +157,14 @@ function buildPolicyCard(policy: CatalogPolicy): HTMLElement {
   if (policy.providerId) {
     badges.appendChild(buildBadge(`provider: ${policy.providerId}`, 'provider'));
   }
-  card.appendChild(badges);
+  footer.appendChild(badges);
 
-  if ((policy.definition as any)?.policyName) {
-    const desc = document.createElement('div');
-    desc.className = 'policy-catalog__card-desc';
-    desc.textContent = (policy.definition as any).policyName;
-    card.appendChild(desc);
-  }
+  const meta = document.createElement('div');
+  meta.className = 'policy-catalog__card-meta';
+  meta.textContent = `v${policy.version}`;
+  footer.appendChild(meta);
+
+  card.appendChild(footer);
 
   const open = () => openDetailModal(policy);
   card.addEventListener('click', open);
@@ -429,7 +430,14 @@ function buildModalActions(policy: CatalogPolicy, backdrop: HTMLElement): HTMLEl
     context.router?.navigate(`/${POLICIES}`);
   });
 
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'button';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', () => backdrop.remove());
+
   wrap.appendChild(status);
+  wrap.appendChild(closeBtn);
   wrap.appendChild(openMyPoliciesBtn);
   wrap.appendChild(saveBtn);
 
