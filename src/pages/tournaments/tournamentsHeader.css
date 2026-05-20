@@ -3,12 +3,16 @@
  * plus a 3-column grid layout so the title stays left, chips stay centered,
  * and the view toggle stays right. */
 
-.tmx-tournaments-header {
+.tabHeader--banner.tmx-tournaments-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 0.75rem;
   border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
 }
 
 .tmx-tournaments-header__title {
