@@ -1,20 +1,30 @@
 /**
- * Provider switcher menu for super-admins.
+ * Provider switcher menu.
  *
- * Anchored to a navbar element. Offers:
- *  - Switch provider...  (opens the existing selectProviderModal)
- *  - Clear impersonation (only when impersonating)
+ * Two cohorts:
+ *   - Super-admin: full "any provider in the system" selector via the
+ *     existing selectProviderModal (the impersonation path; unchanged).
+ *   - Any user with N>1 user_providers associations: pick from the
+ *     providers they're associated with. Server persists the choice via
+ *     PATCH /auth/me/last-selected-provider (handled inside
+ *     setActiveProvider).
  *
  * Refreshes the tournaments table after a switch so the calendar reflects
  * the new context.provider.
  */
-import { setActiveProvider, clearActiveProvider, getActiveProvider } from 'services/provider/providerState';
+import {
+  setActiveProvider,
+  clearActiveProvider,
+  getActiveProvider,
+  getProviderAssociations,
+} from 'services/provider/providerState';
 import { selectProviderModal } from 'components/modals/selectProviderModal';
+import { getLoginState } from 'services/authentication/loginState';
 import { context } from 'services/context';
 import { tipster } from './tipster';
 import { t } from 'i18n';
 
-import { TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 import type { ProviderValue } from 'types/tmx';
 
@@ -30,24 +40,60 @@ function refreshAfterSwitch(): void {
 
 export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): void {
   const current = getActiveProvider();
-  const impersonating = !!current?.organisationId;
+  const isSuperAdmin = !!getLoginState()?.roles?.includes(SUPER_ADMIN);
+  const associations = getProviderAssociations();
+
+  // For users with multiple associations, render the actual list of
+  // providers they belong to. Currently-active one is marked with a check
+  // and is a no-op on click.
+  const associationItems = associations.map((assoc) => {
+    const isActive = current?.organisationId === assoc.providerId;
+    return {
+      text: isActive ? `${assoc.organisationName} ✓` : assoc.organisationName,
+      hide: false,
+      onClick: () => {
+        if (isActive) return;
+        setActiveProvider({
+          organisationId: assoc.providerId,
+          organisationName: assoc.organisationName,
+          organisationAbbreviation: assoc.organisationAbbreviation,
+        } as ProviderValue);
+        refreshAfterSwitch();
+      },
+    };
+  });
+
+  // Super-admin keeps the "any provider in the system" path on top so
+  // they can impersonate beyond their own associations.
+  const superAdminItems = isSuperAdmin
+    ? [
+        {
+          text: current?.organisationId
+            ? t('providerSwitcher.switchProvider')
+            : t('providerSwitcher.selectProvider'),
+          onClick: () => {
+            selectProviderModal({
+              callback: (provider: ProviderValue) => {
+                if (!provider?.organisationId) return;
+                setActiveProvider(provider);
+                refreshAfterSwitch();
+              },
+            });
+          },
+        },
+      ]
+    : [];
 
   const items = [
-    {
-      text: impersonating ? t('providerSwitcher.switchProvider') : t('providerSwitcher.selectProvider'),
-      onClick: () => {
-        selectProviderModal({
-          callback: (provider: ProviderValue) => {
-            if (!provider?.organisationId) return;
-            setActiveProvider(provider);
-            refreshAfterSwitch();
-          },
-        });
-      },
-    },
+    ...superAdminItems,
+    ...associationItems,
     {
       text: t('providerSwitcher.clearImpersonation'),
-      hide: !impersonating,
+      // Only super-admins get "Clear" — returning to "no impersonation"
+      // is only meaningful for them. Regular multi-provider users always
+      // need some active provider, so picking from their associations is
+      // the way to switch.
+      hide: !isSuperAdmin || !current?.organisationId,
       onClick: () => {
         clearActiveProvider();
         refreshAfterSwitch();

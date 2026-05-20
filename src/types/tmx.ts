@@ -29,6 +29,20 @@ export interface LoginState {
    * importing it would create a circular dependency through this types file.
    */
   activeProviderConfig?: any;
+  /**
+   * Multi-provider session context — populated server-side at login from the
+   * `user_providers` table. Drives the provider switcher for non-super-admin
+   * users with N>1 associations. See
+   * `Mentat/planning/MULTI_PROVIDER_SESSION_CONTEXT.md`.
+   */
+  providerAssociations?: Array<{
+    providerId: string;
+    providerRole: string;
+    organisationName: string;
+    organisationAbbreviation: string;
+  }>;
+  /** Caller's last explicitly-selected provider; null until they pick one. */
+  lastSelectedProviderId?: string | null;
   exp: number;
 }
 
