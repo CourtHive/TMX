@@ -103,9 +103,12 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   const viewSwitcher = document.createElement('div');
   viewSwitcher.style.cssText = 'display: flex; align-items: center; gap: 0;';
 
+  // Profile leads — planning a scheduling profile is the logical first step
+  // when an operator chooses to use one. Grid trails on the right because it
+  // remains the default and where the bulk of the work happens.
   const views: { key: Schedule2View; label: string; icon: string }[] = [
-    { key: 'grid', label: 'Grid', icon: 'fa-table-cells' },
     { key: 'profile', label: 'Profile', icon: 'fa-layer-group' },
+    { key: 'grid', label: 'Grid', icon: 'fa-table-cells' },
   ];
 
   for (const v of views) {
@@ -123,7 +126,7 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     });
 
     // Round left/right corners for segmented look
-    if (v.key === 'grid') btn.style.borderRadius = '6px 0 0 6px';
+    if (v.key === 'profile') btn.style.borderRadius = '6px 0 0 6px';
     else btn.style.borderRadius = '0 6px 6px 0';
 
     viewSwitcher.appendChild(btn);

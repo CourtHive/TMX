@@ -42,6 +42,10 @@ const GRID_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:grid';
 const PROFILE_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:profile';
 const ACTIVE_STRIP_VISIBILITY_KEY = 'schedule2:activeStrip';
 const SELECTED_DATE_KEY = 'schedule2:selectedDate';
+// Tournament-stamped view persistence: stays valid as long as the user is
+// inside the same tournament; flipping to a different tournament resets the
+// remembered choice back to the grid default.
+const SCHEDULE_VIEW_KEY = 'schedule2:scheduleView';
 
 function readBoolFlag(key: string, fallback: boolean): boolean {
   try {
@@ -101,6 +105,34 @@ function writePersistedDate(date: string): void {
   }
 }
 
+/**
+ * Read the user's last-chosen schedule view, but only honor it for the same
+ * tournament. Switching to a different tournament clears the stored entry so
+ * the next visit gets a fresh grid default.
+ */
+function readPersistedView(tournamentId: string): Schedule2View | null {
+  try {
+    const raw = localStorage.getItem(SCHEDULE_VIEW_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { tournamentId?: string; view?: Schedule2View };
+    if (parsed?.tournamentId === tournamentId && (parsed.view === 'profile' || parsed.view === 'grid')) {
+      return parsed.view;
+    }
+    localStorage.removeItem(SCHEDULE_VIEW_KEY);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedView(tournamentId: string, view: Schedule2View): void {
+  try {
+    localStorage.setItem(SCHEDULE_VIEW_KEY, JSON.stringify({ tournamentId, view }));
+  } catch {
+    // storage unavailable
+  }
+}
+
 // Shared layout selectors / class names — used by the per-view catalog
 // visibility appliers and the post-render initial-collapse pass.
 const LAYOUT_SEL = '.spl-layout, .sp-layout';
@@ -131,11 +163,19 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   }
 
   const scheduledDate = params.scheduledDate || resolveScheduleDate();
-  const view: Schedule2View = params.scheduleView === 'profile' ? 'profile' : 'grid';
+  // Resolve view in priority order:
+  //   1. URL param (`/schedule2/:date/profile|grid`) — explicit and wins
+  //   2. Tournament-stamped persistence — last choice within this tournament
+  //   3. Grid — default for first-time entry or after switching tournaments
+  const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId ?? '';
+  const explicitView: Schedule2View | null =
+    params.scheduleView === 'profile' || params.scheduleView === 'grid' ? params.scheduleView : null;
+  const view: Schedule2View = explicitView ?? readPersistedView(tournamentId) ?? 'grid';
 
   // Store selected date for other parts of TMX + persist for next visit
   context.displayed.selectedScheduleDate = scheduledDate;
   writePersistedDate(scheduledDate);
+  if (tournamentId) writePersistedView(tournamentId, view);
 
   const controlAnchor = document.getElementById(SCHEDULE2_CONTROL)!;
   const container = document.getElementById(SCHEDULE2_CONTAINER)!;
