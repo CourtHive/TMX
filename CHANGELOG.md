@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.0.0](https://github.com/CourtHive/TMX/compare/v4.1.0...v5.0.0) (2026-05-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **policies:** BUILTIN_POLICIES no longer includes the 5 federation ranking policies. Any TMX install that referenced them by built-in id (builtin-ranking-points-usta-junior, -tennis-europe, -lta, -tennis- australia, -tennis-canada) will see the id resolve to nothing in loadUserPolicies. Existing user-saved copies in IndexedDB are unaffected — they continue to load.
+
+### Features
+
+* **overview:** tournament categories editor + dates panel full-width ([5b0b401](https://github.com/CourtHive/TMX/commit/5b0b4013e47f9547fd6eb890b0dbdd7d1c87cada))
+* **policies:** public policy catalog browser ([064341e](https://github.com/CourtHive/TMX/commit/064341eabd9b13696207d637791f1abe8482181b))
+* **policies:** remove federation builtins from TMX policy catalog ([ef08419](https://github.com/CourtHive/TMX/commit/ef08419451f5c76c1a9876f329906b92e2acea36))
+* **provider:** multi-provider session switcher for N&gt;1 users (Phase 2 — TMX) ([0564400](https://github.com/CourtHive/TMX/commit/056440039663d1d14ab763197c06c9b74a17f124))
+* **schedule2:** collapsible scheduling results sections + readable badges ([4c5b085](https://github.com/CourtHive/TMX/commit/4c5b085f54f27ac73ce75a5eca08f869b57180b9))
+* **schedule2:** reorder view switcher + tournament-scoped persistence ([2c3cb88](https://github.com/CourtHive/TMX/commit/2c3cb88e76aa2fad9a2136149ab2112393f7c904))
+* **schedule2:** scheduleToast wrapper for bottom-center toasts above modal footer ([1ca42c6](https://github.com/CourtHive/TMX/commit/1ca42c6f46448da1efae6e25b29612a3bd6a6bbf))
+* **schedule2:** unify Scheduled-tab cards + hide cross-date catalog items ([cbe9858](https://github.com/CourtHive/TMX/commit/cbe98580ca4a563f3f35ed43ca3168da5cb6c6ec))
+
+
+### Bug Fixes
+
+* **categories-editor:** inset padding on modal content body ([63fcb16](https://github.com/CourtHive/TMX/commit/63fcb16c3bcb79528a5d53c3e403cfc1f99a522b))
+* **deps:** update dependency courthive-components to v1.7.1 ([2612a21](https://github.com/CourtHive/TMX/commit/2612a21141d80ae15ea371fc22f0f0171f6773e6))
+* **deps:** update dependency courthive-components to v1.8.0 ([fb1b800](https://github.com/CourtHive/TMX/commit/fb1b800f88dd3e2c5dc0b32b6e5b8485ebd1b95c))
+* **deps:** update dependency tods-competition-factory to v4.0.0 ([dc98c0a](https://github.com/CourtHive/TMX/commit/dc98c0a14196394df4e084e3a93c30d0f65574c7))
+* **deps:** update dependency tods-competition-factory to v4.1.0 ([af819c1](https://github.com/CourtHive/TMX/commit/af819c1839d4dee817add10362625b79cc1ce52e))
+* **provider:** honor impersonation handoff without association lookup ([98b6e5f](https://github.com/CourtHive/TMX/commit/98b6e5f1e883e9744a865e1b2094a67345f58891))
+* **provider:** silence effective-config 403 toast on impersonation ([c24f962](https://github.com/CourtHive/TMX/commit/c24f96292aa14675beac3756b57d8a50ef26d803))
+* **toaster:** apply px unit to offset values so non-zero offsets work ([dcd5f57](https://github.com/CourtHive/TMX/commit/dcd5f5717fa9af49e076d5e6e3543dc1a165248b))
+* **tournaments-header:** neutralize banner background on header bar ([08a21a3](https://github.com/CourtHive/TMX/commit/08a21a3b281f7880eef98d9eb37befd76238753d))
+
 ## [4.1.0](https://github.com/CourtHive/TMX/compare/v4.0.1...v4.1.0) (2026-05-19)
 
 
