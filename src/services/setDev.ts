@@ -61,10 +61,8 @@ function functionOrLog(s: string, results: any): void {
 export function setDev(): void {
   if ((globalThis as any)['dev']) {
     return;
-  } else {
-    console.log('%c dev initialized', 'color: yellow');
-    (globalThis as any).dev = {};
   }
+  (globalThis as any).dev = {};
 
   const help = () => console.log('set globalThis.socketURL for messaging');
   const modifyTournament = (methods: any[]) => {
