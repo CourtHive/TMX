@@ -25,6 +25,20 @@ import {
 const BLOCK_STYLE = 'margin-top: 10px;';
 const LIST_STYLE = 'list-style: none; padding: 0; margin: 6px 0 0 0; display: flex; flex-direction: column; gap: 2px;';
 
+/**
+ * Per-intent token palette. Each entry pairs a high-contrast text color
+ * (used for badge counts and the leading dot) with a tinted background and
+ * border for the count badge. `border` carries enough alpha to stay legible
+ * on both light and dark themes; `text` is the full-saturation hue so the
+ * count itself reads cleanly.
+ */
+const INTENT_TOKENS: Record<Intent, { text: string; bg: string; border: string; dot: string }> = {
+  success: { text: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.45)', dot: '#10b981' },
+  warning: { text: '#d97706', bg: 'rgba(245, 158, 11, 0.18)', border: 'rgba(245, 158, 11, 0.5)', dot: '#f59e0b' },
+  danger: { text: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.45)', dot: '#ef4444' },
+  neutral: { text: '#64748b', bg: 'rgba(148, 163, 184, 0.2)', border: 'rgba(148, 163, 184, 0.5)', dot: '#94a3b8' },
+};
+
 interface Lookups {
   matchUps: MatchUpLookup;
   participants: ParticipantLookup;
@@ -57,7 +71,7 @@ export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): 
   const dates = collectAllDates(result);
 
   const content = document.createElement('div');
-  content.style.cssText = 'display: flex; flex-direction: column; gap: 12px; min-width: 480px; max-height: 70vh; overflow-y: auto; padding: 4px;';
+  content.style.cssText = 'display: flex; flex-direction: column; gap: 12px; min-width: 480px; max-height: 60vh; overflow-y: auto; padding: 4px;';
 
   if (!dates.length) {
     content.appendChild(buildEmptyState());
@@ -225,13 +239,6 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
 // time slot) and render the participants that hit a cap, with which
 // counter they reached and at what value vs. its limit.
 function buildOverLimitBlock(ids: string[], details: OverLimitAttempt[], lookups: Lookups): HTMLElement {
-  const block = document.createElement('div');
-  block.style.cssText = BLOCK_STYLE;
-
-  const header = buildCategoryHeader('Over Limit', ids.length, 'warning');
-  block.appendChild(header);
-
-  // Group attempts by matchUpId so multiple attempted times collapse into one row.
   const byMatchUpId = new Map<string, OverLimitAttempt[]>();
   for (const d of details) {
     const list = byMatchUpId.get(d.matchUpId) ?? [];
@@ -246,39 +253,18 @@ function buildOverLimitBlock(ids: string[], details: OverLimitAttempt[], lookups
     const detailText = describeOverLimitAttempts(attempts, lookups.participants);
     list.appendChild(buildMatchUpRow(id, lookups.matchUps, detailText));
   }
-  block.appendChild(list);
-  return block;
+  return buildCollapsibleSection('Over Limit', ids.length, 'warning', list);
 }
 
 type Intent = 'success' | 'warning' | 'danger' | 'neutral';
 
-function intentColor(intent: Intent): string {
-  switch (intent) {
-    case 'success':
-      return 'var(--tmx-accent-green, #10b981)';
-    case 'warning':
-      return 'var(--tmx-accent-amber, #f59e0b)';
-    case 'danger':
-      return 'var(--tmx-accent-red, #ef4444)';
-    default:
-      return 'var(--tmx-text-secondary, #94a3b8)';
-  }
-}
-
 function buildCategoryBlock(label: string, ids: string[], lookup: MatchUpLookup, intent: Intent): HTMLElement {
-  const block = document.createElement('div');
-  block.style.cssText = BLOCK_STYLE;
-
-  const header = buildCategoryHeader(label, ids.length, intent);
-  block.appendChild(header);
-
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
   for (const id of ids) {
     list.appendChild(buildMatchUpRow(id, lookup));
   }
-  block.appendChild(list);
-  return block;
+  return buildCollapsibleSection(label, ids.length, intent, list);
 }
 
 // Deferred for recovery time: the participants whose existing bookings
@@ -288,13 +274,7 @@ function buildRecoveryDeferredBlock(
   deferred: { [matchUpId: string]: { scheduleTime: string; blockingParticipantIds?: string[]; notBeforeTime?: string }[] },
   lookups: Lookups,
 ): HTMLElement {
-  const block = document.createElement('div');
-  block.style.cssText = BLOCK_STYLE;
-
   const ids = Object.keys(deferred);
-  const header = buildCategoryHeader('Deferred — Recovery', ids.length, 'neutral');
-  block.appendChild(header);
-
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
   for (const id of ids) {
@@ -302,8 +282,7 @@ function buildRecoveryDeferredBlock(
     const detail = describeRecoveryDeferred(attempts, lookups.participants);
     list.appendChild(buildMatchUpRow(id, lookups.matchUps, detail));
   }
-  block.appendChild(list);
-  return block;
+  return buildCollapsibleSection('Deferred — Recovery', ids.length, 'neutral', list);
 }
 
 // Deferred for dependencies: surface the upstream matchUps still pending.
@@ -313,13 +292,7 @@ function buildDependencyDeferredBlock(
   deferred: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] },
   lookups: Lookups,
 ): HTMLElement {
-  const block = document.createElement('div');
-  block.style.cssText = BLOCK_STYLE;
-
   const ids = Object.keys(deferred);
-  const header = buildCategoryHeader('Deferred — Dependency', ids.length, 'neutral');
-  block.appendChild(header);
-
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
   for (const id of ids) {
@@ -327,17 +300,10 @@ function buildDependencyDeferredBlock(
     const detail = describeDependencyDeferred(attempts, lookups.matchUps);
     list.appendChild(buildMatchUpRow(id, lookups.matchUps, detail));
   }
-  block.appendChild(list);
-  return block;
+  return buildCollapsibleSection('Deferred — Dependency', ids.length, 'neutral', list);
 }
 
 function buildConflictsBlock(conflicts: any[], lookup: MatchUpLookup): HTMLElement {
-  const block = document.createElement('div');
-  block.style.cssText = BLOCK_STYLE;
-
-  const header = buildCategoryHeader('Conflicts', conflicts.length, 'danger');
-  block.appendChild(header);
-
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
   for (const conflict of conflicts) {
@@ -349,8 +315,7 @@ function buildConflictsBlock(conflicts: any[], lookup: MatchUpLookup): HTMLEleme
       list.appendChild(buildDetailOnlyRow(detail || 'Conflict'));
     }
   }
-  block.appendChild(list);
-  return block;
+  return buildCollapsibleSection('Conflicts', conflicts.length, 'danger', list);
 }
 
 function describeConflict(conflict: any): string {
@@ -361,25 +326,60 @@ function describeConflict(conflict: any): string {
   return [reason, time, participant].filter(Boolean).join(' ');
 }
 
-function buildCategoryHeader(label: string, count: number, intent: Intent): HTMLElement {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+/**
+ * Build a collapsible category section: clickable header + the supplied list
+ * element. Default state is expanded; clicking the header toggles visibility
+ * and rotates the chevron. Used by every category block so they all behave
+ * consistently inside each date.
+ */
+function buildCollapsibleSection(label: string, count: number, intent: Intent, list: HTMLElement): HTMLElement {
+  const block = document.createElement('div');
+  block.style.cssText = BLOCK_STYLE;
+
+  const tokens = INTENT_TOKENS[intent];
+
+  // Sections start collapsed so a long Scheduled run doesn't dominate the
+  // modal; operators can expand whichever category they want to inspect.
+  list.style.display = 'none';
+
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.setAttribute('aria-expanded', 'false');
+  header.style.cssText =
+    'display: flex; align-items: center; gap: 8px; width: 100%; padding: 4px 6px; margin: 0; background: transparent; border: 0; border-radius: 6px; cursor: pointer; text-align: left; color: inherit; font-family: inherit;';
+  header.addEventListener('mouseenter', () => (header.style.background = 'var(--sp-row-hover, rgba(148,163,184,0.10))'));
+  header.addEventListener('mouseleave', () => (header.style.background = 'transparent'));
+
+  const chevron = document.createElement('span');
+  chevron.textContent = '▼';
+  chevron.style.cssText =
+    'display: inline-block; width: 10px; font-size: 0.65rem; color: var(--sp-muted, var(--tmx-text-muted)); transition: transform 120ms ease; transform: rotate(-90deg);';
+  header.appendChild(chevron);
 
   const dot = document.createElement('span');
-  dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${intentColor(intent)};`;
-  wrap.appendChild(dot);
+  dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${tokens.dot}; flex-shrink: 0;`;
+  header.appendChild(dot);
 
   const title = document.createElement('strong');
   title.textContent = label;
-  title.style.cssText = 'font-size: 0.8rem; color: var(--tmx-text-primary);';
-  wrap.appendChild(title);
+  title.style.cssText = 'font-size: 0.8rem; color: var(--tmx-text-primary); flex: 1;';
+  header.appendChild(title);
 
   const badge = document.createElement('span');
   badge.textContent = String(count);
-  badge.style.cssText = `font-size: 0.7rem; padding: 1px 6px; border-radius: 999px; background: ${intentColor(intent)}; color: white;`;
-  wrap.appendChild(badge);
+  badge.style.cssText = `font-size: 0.7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: ${tokens.bg}; color: ${tokens.text}; border: 1px solid ${tokens.border};`;
+  header.appendChild(badge);
 
-  return wrap;
+  header.addEventListener('click', () => {
+    const collapsed = list.style.display === 'none';
+    list.style.display = collapsed ? '' : 'none';
+    chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
+    header.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+
+  block.appendChild(header);
+  block.appendChild(list);
+  return block;
 }
 
 function buildMatchUpRow(matchUpId: string, lookup: MatchUpLookup, detail?: string): HTMLElement {
