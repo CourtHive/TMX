@@ -51,10 +51,14 @@ const defaults: Partial<ToastOptions> = {
 
 const generateStyle = (position: string, offsetTop: number, offsetBottom: number, offsetLeft: number, offsetRight: number): string => {
   const parts = position.split('-');
-  const left = parts.includes(LEFT) && `left:${offsetLeft}`;
-  const right = parts.includes(RIGHT) && `right:${offsetRight}`;
-  const top = parts.includes('top') && `top:${offsetTop}`;
-  const bottom = parts.includes('bottom') && `bottom:${offsetBottom}`;
+  // CSS lengths require a unit unless the value is 0. Without `px` the
+  // declaration is rejected by the browser and the offset silently falls
+  // back to `auto`, which can place the toast anywhere — including offscreen.
+  const px = (n: number) => `${n}px`;
+  const left = parts.includes(LEFT) && `left:${px(offsetLeft)}`;
+  const right = parts.includes(RIGHT) && `right:${px(offsetRight)}`;
+  const top = parts.includes('top') && `top:${px(offsetTop)}`;
+  const bottom = parts.includes('bottom') && `bottom:${px(offsetBottom)}`;
   const alignItems =
     `align-items: ` + ((parts.includes('left') && 'flex-start') || (parts.includes('right') && 'flex-end') || CENTER);
   const textAlign =
