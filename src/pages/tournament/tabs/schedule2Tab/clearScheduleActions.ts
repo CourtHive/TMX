@@ -19,7 +19,7 @@ import { competitionEngine } from 'services/factory/engine';
 import { isCompletedStatus } from 'courthive-components';
 import { tipster } from 'components/popovers/tipster';
 import { confirmModal, closeModal } from 'components/modals/baseModal/baseModal';
-import { tmxToast } from 'services/notifications/tmxToast';
+import { scheduleToast } from './scheduleToast';
 import { hiddenCourtIds } from './visibilityState';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
@@ -86,7 +86,7 @@ function executeClear(matchUps: any[], onCleared?: () => void): void {
     methods: [{ method: BULK_SCHEDULE_MATCHUPS, params: { ...CLEAR_SCHEDULE, matchUpIds } }],
     callback: (result: any) => {
       if (result?.success) {
-        tmxToast({
+        scheduleToast({
           message: t('toasts.scheduleCleared', { count: matchUpIds.length, defaultValue: `Cleared ${matchUpIds.length} matchUps` }),
           intent: 'is-success',
         });
@@ -163,7 +163,7 @@ function openConfirm(scope: Scope, scheduledDate: string, params: OpenClearMenuP
   const buckets = buildBuckets(scheduledDate);
   const bucket = buckets[scope];
   if (!bucket.visible.length) {
-    tmxToast({ message: 'No matchUps to clear in this scope.', intent: 'is-info' });
+    scheduleToast({ message: 'No matchUps to clear in this scope.', intent: 'is-info' });
     return;
   }
 
@@ -214,7 +214,7 @@ export function openClearScheduleMenu(params: OpenClearMenuParams): void {
   ];
 
   if (!options.filter((o) => !o.disabled).length) {
-    tmxToast({ message: 'Nothing scheduled on visible courts.', intent: 'is-info' });
+    scheduleToast({ message: 'Nothing scheduled on visible courts.', intent: 'is-info' });
     return;
   }
 

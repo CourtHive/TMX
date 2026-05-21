@@ -24,7 +24,7 @@ import { competitionEngine } from 'services/factory/engine';
 import { TemporalEngine, temporal } from 'tods-competition-factory';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tmxToast } from 'services/notifications/tmxToast';
+import { scheduleToast } from './scheduleToast';
 import { openApplyTimesModal } from './applyTimesModal';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { openApplyGridModal } from './applyGridModal';
@@ -453,7 +453,7 @@ function buildProfileHeaderActions(
       methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: null } }],
       engine: COMPETITION_ENGINE,
       callback: () => {
-        tmxToast({ message: 'Scheduling profile cleared', intent: INTENT_WARNING });
+        scheduleToast({ message: 'Scheduling profile cleared', intent: INTENT_WARNING });
         statusEl.textContent = 'Profile cleared.';
       },
     });
@@ -478,7 +478,7 @@ function buildProfileHeaderActions(
   makeIcon('fa-floppy-disk', 'Save Profile', 'Save Profile', 'var(--tmx-color-primary)', () => {
     if (!activeControl) return;
     saveProfile(activeControl.getProfile(), () => {
-      tmxToast({ message: 'Scheduling profile saved', intent: INTENT_SUCCESS });
+      scheduleToast({ message: 'Scheduling profile saved', intent: INTENT_SUCCESS });
       statusEl.textContent = 'Profile saved.';
     });
   });
@@ -593,7 +593,7 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
   // No-op when the Day Plan is empty: nothing to schedule.
   if (!hasAnyPlannedRounds(profile)) {
-    tmxToast({
+    scheduleToast({
       message: 'No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.',
       intent: INTENT_WARNING,
     });
@@ -602,7 +602,7 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
   // Check for errors
   if (state.issueIndex.counts.ERROR > 0) {
-    tmxToast({
+    scheduleToast({
       message: `Cannot apply schedule: ${state.issueIndex.counts.ERROR} error(s) in profile. Fix errors first.`,
       intent: INTENT_DANGER,
     });
@@ -645,7 +645,7 @@ function runScheduleWithPolicy(
 
         if (result?.error || eqResult?.error) {
           const err = result?.error || eqResult?.error;
-          tmxToast({
+          scheduleToast({
             message: `Scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
             intent: INTENT_DANGER,
           });
@@ -670,7 +670,7 @@ function runScheduleWithPolicy(
         const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
         const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
 
-        tmxToast({
+        scheduleToast({
           message,
           intent: totalOverLimit > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
@@ -707,7 +707,7 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
   // No-op when the Day Plan is empty: nothing to place on the grid.
   if (!hasAnyPlannedRounds(profile)) {
-    tmxToast({
+    scheduleToast({
       message: 'No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.',
       intent: INTENT_WARNING,
     });
@@ -715,7 +715,7 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
   }
 
   if (state.issueIndex.counts.ERROR > 0) {
-    tmxToast({
+    scheduleToast({
       message: `Cannot apply grid: ${state.issueIndex.counts.ERROR} error(s) in profile. Fix errors first.`,
       intent: INTENT_DANGER,
     });
@@ -759,7 +759,7 @@ function runGridWithPolicy(
 
         if (result?.error || eqResult?.error) {
           const err = result?.error || eqResult?.error;
-          tmxToast({
+          scheduleToast({
             message: `Grid scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
             intent: INTENT_DANGER,
           });
@@ -791,7 +791,7 @@ function runGridWithPolicy(
         if (totalOverLimit > 0) segments.push(`${totalOverLimit} over daily limit`);
         const message = segments.join(' — ') + '.';
 
-        tmxToast({
+        scheduleToast({
           message,
           intent: totalNotScheduled > 0 || totalOverLimit > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
