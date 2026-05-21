@@ -25,7 +25,7 @@ import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2Ce
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renameCourt } from 'components/modals/renameCourt';
-import { tmxToast } from 'services/notifications/tmxToast';
+import { scheduleToast } from './scheduleToast';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
@@ -42,6 +42,7 @@ import {
   matchUpLabel,
   isCompletedStatus,
   buildActiveStripPanel,
+  buildMatchUpCard,
 } from 'courthive-components';
 import type {
   SchedulePageConfig,
@@ -306,8 +307,10 @@ export function renderGridView(
       executeMethods(methods, refresh);
     },
 
-    onMatchUpSelected: (m) => {
-      if (m) console.log('[schedule2] selected', m.matchUpId);
+    onMatchUpSelected: () => {
+      // Selection is a UI-only concern in the schedule page right now —
+      // no global state update needed. Keep the hook so the catalog can
+      // surface selection later (e.g. via an inspector panel).
     },
   };
 
@@ -483,72 +486,13 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     }
 
     for (const m of scheduled) {
-      const hasTime = !!m.schedule?.scheduledTime;
-      const card = document.createElement('div');
-      card.style.cssText = [
-        'padding: 6px 8px',
-        'margin-bottom: 4px',
-        'border-radius: 8px',
-        FONT_SIZE_11,
-        'background: var(--sp-card-bg, var(--tmx-bg-secondary))',
-        `border: 1px ${hasTime ? 'solid' : 'dashed'} var(--sp-border, var(--tmx-border-primary))`,
-        `opacity: ${hasTime ? '1' : '0.7'}`,
-        'cursor: grab',
-        DISPLAY_FLEX,
-        'flex-direction: column',
-        'gap: 2px',
-      ].join('; ');
-
-      const titleEl = document.createElement('div');
-      titleEl.style.cssText = 'font-weight: 700; font-size: 0.6875rem;';
-      titleEl.textContent = `${m.eventName || ''} ${m.roundName || ''}`.trim();
-
-      const sidesEl = document.createElement('div');
-      sidesEl.style.cssText = 'font-size: 0.625rem; color: var(--sp-text, inherit);';
-      sidesEl.textContent = (m.sides || [])
-        .map((s: any) => s.participant?.participantName ?? s.participantName ?? '?')
-        .join(' vs ');
-
-      const metaEl = document.createElement('div');
-      metaEl.style.cssText = 'font-size: 0.625rem; color: var(--sp-muted, var(--tmx-muted));';
-      metaEl.textContent = hasTime ? m.schedule.scheduledTime : t('schedule.noTimeSet');
-      if (!hasTime) {
-        metaEl.style.fontStyle = 'italic';
-        metaEl.style.color = 'var(--tmx-accent-orange, #f59e0b)';
-      }
-
-      card.appendChild(titleEl);
-      card.appendChild(sidesEl);
-      card.appendChild(metaEl);
-
-      // Make draggable — uses CATALOG_MATCHUP type so the grid's onMatchUpDrop assigns a court
-      card.draggable = true;
-      card.addEventListener('dragstart', (e) => {
-        e.dataTransfer!.setData(
-          'application/json',
-          JSON.stringify({
-            type: 'CATALOG_MATCHUP',
-            matchUp: {
-              matchUpId: m.matchUpId,
-              drawId: m.drawId,
-              eventId: m.eventId,
-              eventName: m.eventName,
-              roundName: m.roundName,
-              matchUpType: m.matchUpType,
-              sides: (m.sides || []).map((s: any) => ({
-                participantName: s.participant?.participantName ?? s.participantName,
-                participantId: s.participantId ?? s.participant?.participantId,
-              })),
-            },
-          }),
-        );
-        e.dataTransfer!.effectAllowed = 'move';
-        card.style.opacity = '0.4';
-      });
-      card.addEventListener('dragend', () => {
-        card.style.opacity = '';
-      });
-
+      // isScheduled is forced to false so buildMatchUpCard attaches its dragstart
+      // listener — these sidebar cards must be promotable onto a court. The
+      // prominent time header (via the option) is what visually marks them as
+      // already having a scheduledTime.
+      const item = scheduledMatchUpToCatalogItem(m);
+      const card = buildMatchUpCard(item, {}, { prominentTime: true });
+      if (!item.scheduledTime) card.classList.add('no-time');
       scheduledPanel.appendChild(card);
     }
   }
@@ -779,7 +723,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
       methods,
       engine: COMPETITION_ENGINE,
       callback: (result: any) => {
-        if (!result.success) console.log('[schedule2] mutation error', result);
+        if (!result.success) console.error('[schedule2] mutation error', result);
         onRefresh();
       },
     });
@@ -791,7 +735,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
   const result = competitionEngine.executionQueue(directives, true);
   if (result?.error) {
     console.error('[schedule2] local execution error', result);
-    tmxToast({ message: 'Schedule change failed locally', intent: 'is-danger' });
+    scheduleToast({ message: 'Schedule change failed locally', intent: 'is-danger' });
     return;
   }
 
@@ -814,10 +758,10 @@ async function savePending(): Promise<void> {
     engine: COMPETITION_ENGINE,
     callback: (result: any) => {
       if (result?.success || !result?.error) {
-        tmxToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: 'is-success' });
+        scheduleToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: 'is-success' });
       } else {
         console.error('[schedule2] bulk save error', result);
-        tmxToast({ message: 'Failed to save scheduling changes to server', intent: 'is-danger' });
+        scheduleToast({ message: 'Failed to save scheduling changes to server', intent: 'is-danger' });
       }
       updateActionBar();
     },
@@ -847,7 +791,7 @@ async function discardPending(): Promise<void> {
   }
 
   pendingMethods = [];
-  tmxToast({ message: 'Scheduling changes discarded', intent: 'is-warning' });
+  scheduleToast({ message: 'Scheduling changes discarded', intent: 'is-warning' });
   updateActionBar();
 
   // Re-render the grid view to reflect restored state
@@ -1676,6 +1620,38 @@ function handleActiveStripDrop(
   executeMethods(methods, refresh);
 }
 
+/**
+ * Map a raw matchUp (from competitionEngine.allTournamentMatchUps) into the
+ * CatalogMatchUpItem shape expected by buildMatchUpCard. Used by the Scheduled
+ * sidebar panel so it can render the same card component as the Unscheduled
+ * catalog. `isScheduled` is forced to false so dragstart wires up — the
+ * prominent-time option on buildMatchUpCard handles the visual differentiation.
+ */
+function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
+  return {
+    matchUpId: m.matchUpId,
+    eventId: m.eventId ?? '',
+    eventName: m.eventName ?? '',
+    drawId: m.drawId ?? '',
+    drawName: m.drawName,
+    structureId: m.structureId ?? '',
+    roundNumber: m.roundNumber ?? 0,
+    roundName: m.roundName,
+    matchUpFormat: m.matchUpFormat,
+    matchUpType: m.matchUpType,
+    matchUpStatus: m.matchUpStatus,
+    gender: m.gender,
+    sides: (m.sides || []).map((s: any) => ({
+      participantName: s.participant?.participantName ?? s.participantName,
+      participantId: s.participantId ?? s.participant?.participantId,
+      seedNumber: s.seedValue ?? s.seedNumber,
+    })),
+    isScheduled: false,
+    scheduledTime: m.schedule?.scheduledTime,
+    scheduledCourtName: m.schedule?.courtName,
+  };
+}
+
 function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   const { matchUps } = competitionEngine.allTournamentMatchUps({
     inContext: true,
@@ -1683,13 +1659,24 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   });
 
   return (matchUps || [])
-    .filter((m: any) => m.matchUpStatus !== BYE)
+    .filter((m: any) => {
+      if (m.matchUpStatus === BYE) return false;
+      // A matchUp that is already scheduled on a DIFFERENT date does not belong
+      // in this date's catalog — its time/court chips reference that other
+      // day, and lumping it into "Unscheduled" here is misleading. To move it
+      // to the current date the operator navigates to its date and reassigns.
+      const scheduledDate = m.schedule?.scheduledDate;
+      if (scheduledDate && scheduledDate !== selectedDate) return false;
+      return true;
+    })
     .map((m: any) => {
+      // After the filter above, any `scheduledDate` we see is the selected
+      // date, so onSelectedDate is implicit — collapse the previous two-flag
+      // logic into a single isScheduled check.
       const hasDate = !!m.schedule?.scheduledDate;
       const hasCourtAssignment = !!(m.schedule?.courtId && hasDate);
       const hasTimeAssignment = !!(m.schedule?.scheduledTime && hasDate);
       const isScheduled = hasCourtAssignment || hasTimeAssignment || hasDate;
-      const onSelectedDate = m.schedule?.scheduledDate === selectedDate;
 
       return {
         matchUpId: m.matchUpId,
@@ -1709,7 +1696,7 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
           participantId: s.participantId ?? s.participant?.participantId,
           seedNumber: s.seedValue ?? s.seedNumber,
         })),
-        isScheduled: isScheduled && onSelectedDate,
+        isScheduled,
         scheduledTime: isScheduled ? m.schedule?.scheduledTime : undefined,
         scheduledCourtName: isScheduled ? m.schedule?.courtName : undefined,
       } satisfies CatalogMatchUpItem;
