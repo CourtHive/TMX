@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/CourtHive/TMX/compare/v5.0.0...v5.0.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency courthive-components to v1.8.0 ([41f524d](https://github.com/CourtHive/TMX/commit/41f524d51aaff63c6f5d7d503ed4e8a998a0396c))
+
 ## [5.0.0](https://github.com/CourtHive/TMX/compare/v4.1.0...v5.0.0) (2026-05-21)
 
 
