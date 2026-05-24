@@ -66,11 +66,11 @@ export function getUnifiedColumns({
 
   return applyColumnVisibility([
     {
-      cellClick: (_: Event, cell: any) => {
-        const rowData = cell.getRow().getData();
-        if (rowData._isSeparator || rowData.drawPosition) return;
-        cell.getRow().toggleSelect();
-      },
+      // No cellClick here: this table uses `selectableRows: true`, so a row-level
+      // click listener already toggles selection for clicks anywhere in the row
+      // (including this cell). The checkbox formatter handles direct checkbox
+      // clicks (it stopPropagations). Adding cellClick: toggleSelect on top would
+      // double-toggle (net-zero) on clicks in the cell area outside the checkbox.
       titleFormatter: 'rowSelection',
       formatter: 'rowSelection',
       headerSort: false,

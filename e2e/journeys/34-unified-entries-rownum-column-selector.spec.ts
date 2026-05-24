@@ -129,4 +129,33 @@ test.describe('Journey 34 — row-number column + column-selector menu', () => {
     expect(visible.segment).toBe(true); // locked → stays visible
     expect(visible.status).toBe(false); // not locked → honors saved hidden state
   });
+
+  test('34.4 — selection cell single-toggles (no redundant cellClick)', async ({ page }) => {
+    await navigateToEntries(page);
+
+    const selectedCount = () =>
+      page.evaluate(() => (dev as any).tournamentContext?.tables?.['unifiedEntries']?.getSelectedData().length ?? -1);
+
+    // Structural guard: the rowSelection column must NOT carry a cellClick — with
+    // selectableRows:true the row-level listener already toggles selection, so a
+    // cellClick:toggleSelect would double-toggle (net-zero) on cell-area clicks.
+    const hasCellClick = await page.evaluate(() => {
+      const table = (dev as any).tournamentContext?.tables?.['unifiedEntries'];
+      const col = table?.getColumns().find((c: any) => c.getDefinition().formatter === 'rowSelection');
+      return typeof col?.getDefinition().cellClick === 'function';
+    });
+    expect(hasCellClick).toBe(false);
+
+    // Behavioral: clicking the selection cell selects exactly one row, and again deselects.
+    expect(await selectedCount()).toBe(0);
+    const firstRow = page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first();
+    await firstRow.locator('.tabulator-cell').first().click();
+    expect(await selectedCount()).toBe(1);
+    await firstRow.locator('.tabulator-cell').first().click();
+    expect(await selectedCount()).toBe(0);
+
+    // Clicking the row body (Grouping cell) also selects exactly one row.
+    await firstRow.locator('.tabulator-cell').nth(2).click();
+    expect(await selectedCount()).toBe(1);
+  });
 });
