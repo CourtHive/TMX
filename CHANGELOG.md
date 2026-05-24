@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.1.0](https://github.com/CourtHive/TMX/compare/v5.0.1...v5.1.0) (2026-05-24)
+
+
+### Features
+
+* **auth:** provider-admin from scoped role + provisioner, not global admin ([#1074](https://github.com/CourtHive/TMX/issues/1074)) ([978da22](https://github.com/CourtHive/TMX/commit/978da226cc7cfe936dcb9ea33916be9889f2c90b))
+* **entries:** destroy pairs + row-number/column-selector; fix row-select crash ([616135d](https://github.com/CourtHive/TMX/commit/616135d2c71245940346a0fedbc142db1d9d5beb))
+* **entries:** status chip for special acceptances + cap doubles name width ([9e4ed90](https://github.com/CourtHive/TMX/commit/9e4ed90f39ce12df543f2e8bc2224014b99d4123))
+
+
+### Bug Fixes
+
+* **auth:** handle forced first-login password change in TMX ([4568a1b](https://github.com/CourtHive/TMX/commit/4568a1bcee71cf0cf30c7dd889107a7030a0ed21))
+* **deps:** update dependency courthive-components to v1.8.1 ([6db376e](https://github.com/CourtHive/TMX/commit/6db376e8f44783cd61cb49267a163a1facd8362d))
+* **deps:** update dependency tods-competition-factory to v4.1.1 ([155f7a8](https://github.com/CourtHive/TMX/commit/155f7a8f448c88ed35c8f2734a3bc030734f1d43))
+* **entries:** remove redundant rowSelection cellClick that double-toggled selection ([8848ca3](https://github.com/CourtHive/TMX/commit/8848ca3640213d8e7914103418e0ec432f177305))
+
 ## [5.0.1](https://github.com/CourtHive/TMX/compare/v5.0.0...v5.0.1) (2026-05-22)
 
 
