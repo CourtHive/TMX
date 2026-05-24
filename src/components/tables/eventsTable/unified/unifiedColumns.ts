@@ -6,6 +6,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { formatParticipant } from '../../common/formatters/participantFormatter';
 import { flightsFormatter } from '../../common/formatters/flightsFormatter';
 import { teamsFormatter } from '../../common/formatters/teamsFormatter';
+import { applyColumnVisibility } from '../../common/columnIsVisible';
 import { createGroupedSorter, SEGMENT_LABELS } from './segmentSorter';
 import { numericEditor } from '../../common/editors/numericEditor';
 import { getRatingColumns } from '../../common/getRatingColumns';
@@ -13,6 +14,7 @@ import { cellBorder } from '../../common/formatters/cellBorder';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
+import { headerMenu } from '../../common/headerMenu';
 import type { SortState } from './segmentSorter';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -62,7 +64,7 @@ export function getUnifiedColumns({
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
 
-  return [
+  return applyColumnVisibility([
     {
       cellClick: (_: Event, cell: any) => {
         const rowData = cell.getRow().getData();
@@ -77,8 +79,20 @@ export function getUnifiedColumns({
       width: 5,
     },
     {
+      // Row number + column-selector menu (matches participants / matchUps tables).
+      // The last numbered row gives the entry count at a glance.
+      headerMenu: headerMenu({}),
+      formatter: 'rownum',
+      headerSort: false,
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      responsive: false,
+      width: 65,
+    },
+    {
       title: 'Grouping',
       field: 'segment',
+      lockVisible: true,
       formatter: segmentFormatter,
       hozAlign: CENTER,
       headerHozAlign: CENTER,
@@ -108,6 +122,7 @@ export function getUnifiedColumns({
       sorter: (a: any, b: any) =>
         (a?.participantName ?? '').localeCompare(b?.participantName ?? '', undefined, { numeric: true }),
       field: 'participant',
+      lockVisible: true,
       responsive: false,
       resizable: false,
       minWidth: 200,
@@ -199,5 +214,5 @@ export function getUnifiedColumns({
       sorter: createGroupedSorter(sortState),
       visible: false,
     },
-  ];
+  ]);
 }

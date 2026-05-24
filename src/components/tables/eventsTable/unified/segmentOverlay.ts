@@ -4,7 +4,7 @@
  * Handles doubles pairing mode when selection is entirely within UNGROUPED.
  * Provides segment-scoped seeding controls.
  */
-import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants, participantConstants } from 'tods-competition-factory';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
 import { cancelManualSeeding } from '../seeding/canceManuallSeeding';
@@ -26,6 +26,7 @@ import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING: QUAL_STAGE } = drawDefinitionConstants;
 const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
+const { PAIR } = participantConstants;
 
 const ACCEPTED_RANK = 0;
 const QUALIFYING_RANK = 1;
@@ -175,12 +176,14 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     });
   }
 
-  // Destroy pairs — doubles, alternates only
+  // Destroy pairs — doubles; any selection of unplaced PAIR entries (accepted /
+  // qualifying / alternate). Returns both individuals to the UNGROUPED segment.
   if (isDoubles) {
     items.push((table: any) => {
-      const segments = getSelectedSegments(table);
-      if (segments.size !== 1 || ![...segments].includes(ALTERNATE_RANK)) return { location: OVERLAY, hide: true };
-      return destroySelected(eventId, drawId)(table);
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      const destroyable = selected.filter((r: any) => r.participant?.participantType === PAIR && !r.drawPosition);
+      if (!selected.length || destroyable.length !== selected.length) return { location: OVERLAY, hide: true };
+      return destroySelected(eventId, onRefresh, drawId)(table);
     });
   }
 

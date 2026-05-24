@@ -286,7 +286,14 @@ export function createUnifiedEntriesPanel({
     // Allow selection of placed participants so they can be added to sibling
     // draws within the same event (e.g. Main → Backdraw). Action handlers
     // filter for placement when an action would be invalid for placed entries.
-    selectableRowsCheck: (row: any) => !row.getData()._isSeparator,
+    //
+    // Reject separators, and reject any row whose backing element has been
+    // wiped (getElement() === false). After a mutation refresh (replaceData /
+    // deleteRow), a deleted or recycled Tabulator row can linger in the DOM
+    // with a stale click listener; selecting it crashes _selectRow at
+    // `row.getElement().classList.add`. This is the same gate Tabulator's
+    // toggleRow consults, so failing it here prevents that crash entirely.
+    selectableRowsCheck: (row: any) => !!row.getElement() && !row.getData()._isSeparator,
     columns,
     responsiveLayout: 'collapse',
     index: 'participantId',

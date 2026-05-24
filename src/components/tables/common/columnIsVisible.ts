@@ -38,10 +38,15 @@ export const columnVisibility = (field, defaultVisible: boolean) =>
  * the columns rendered in the headerMenu dropdown).  The column's own `visible`
  * value is treated as the default; any value previously saved in
  * `context.columns` overrides it.
+ *
+ * Columns marked `lockVisible` are always shown: they are excluded from the
+ * headerMenu and their visibility is never overridden by saved state (which
+ * also shields them from field-name collisions across tables — `context.columns`
+ * is a single global map keyed by field name).
  */
 export function applyColumnVisibility(columns: any[]): any[] {
   for (const col of columns) {
-    if (!col.title || !col.field) continue;
+    if (!col.title || !col.field || col.lockVisible) continue;
     if (col.field in context.columns) {
       col.visible = context.columns[col.field];
     }

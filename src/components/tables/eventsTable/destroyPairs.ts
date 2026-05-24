@@ -1,74 +1,58 @@
 /**
- * Destroy pair entries action.
- * Removes selected pair participants and returns individuals to ungrouped status.
+ * Destroy pair entries action (unified entries table).
+ * Removes the selected PAIR participants from the event and returns their
+ * individuals to UNGROUPED status. The factory `destroyPairEntries` mutation
+ * does the entry rewiring; the UI just re-reads via the unified refresh.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { toggleOverlay } from 'courthive-components';
-import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
-import { getParent } from 'services/dom/parentAndChild';
-import { context } from 'services/context';
+import { participantConstants } from 'tods-competition-factory';
+import { tmxToast } from 'services/notifications/tmxToast';
 
 import { DESTROY_PAIR_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
-import { tmxToast } from 'services/notifications/tmxToast';
 
-const { UNGROUPED } = entryStatusConstants;
-const { DOUBLES } = eventConstants;
+const { PAIR } = participantConstants;
 
-export const destroySelected = (eventId: string, drawId?: string) => (table: any): any => ({
-  onClick: () => destroyPairs(table, eventId, drawId),
-  label: 'Destroy pairs',
-  intent: 'is-danger',
-  location: OVERLAY,
-});
+export const destroySelected =
+  (eventId: string, onRefresh: () => void, drawId?: string) =>
+  (table: any): any => ({
+    onClick: () => destroyPairs(table, eventId, onRefresh, drawId),
+    label: 'Destroy pairs',
+    intent: 'is-danger',
+    location: OVERLAY,
+  });
 
-function hasNoEvents(p: any) {
-  return !p.events?.length;
+function isDestroyablePair(row: any) {
+  // A pair can be destroyed (its individuals returned to UNGROUPED) only when it
+  // is not placed in a draw. Individuals placed in a draw keep a drawPosition.
+  return row.participant?.participantType === PAIR && !row.drawPosition;
 }
 
 function pickParticipantId({ participantId }: any) {
   return participantId;
 }
 
-function pickIndividualIds({ participant }: any) {
-  return participant?.individualParticipantIds;
-}
+function destroyPairs(table: any, eventId: string, onRefresh: () => void, drawId?: string) {
+  const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+  const participantIds = selected.filter(isDestroyablePair).map(pickParticipantId);
 
-function toUngroupedEntry(participant: any) {
-  return (mapEntry as any)({
-    entry: { participantId: participant.participantId, entryStatus: UNGROUPED },
-    eventType: DOUBLES,
-    participant,
-  });
-}
+  if (!participantIds.length) {
+    table.deselectRow();
+    tmxToast({ message: 'No destroyable pairs selected', intent: 'is-warning' });
+    return;
+  }
 
-function applyDestroyPairsSuccess(table: any, selected: any[], participantIds: string[]) {
-  table.deleteRow(participantIds);
-  const tableClass = getParent(table.element, 'tableClass');
-  const controlBar = tableClass?.parent?.getElementsByClassName('controlBar')?.[0];
-  if (controlBar) setTimeout(() => (toggleOverlay as any)({ table, target: controlBar })(), 100);
-  const individualParticipantIds = selected.flatMap(pickIndividualIds);
-  const { participants } = tournamentEngine.getParticipants({
-    participantFilters: { participantIds: individualParticipantIds },
-  });
-  context.tables[UNGROUPED].updateOrAddData(participants.map(toUngroupedEntry));
-}
-
-function destroyPairs(table: any, eventId: string, drawId?: string) {
-  const selected = table.getSelectedData();
-  const participantIds = selected.filter(hasNoEvents).map(pickParticipantId);
   const params = { removeGroupParticipant: true, participantIds, eventId, drawId };
   mutationRequest({
     methods: [{ method: DESTROY_PAIR_ENTRIES, params }],
     callback: (result: any) => {
+      table.deselectRow();
       if (!result?.error) {
-        applyDestroyPairsSuccess(table, selected, participantIds);
+        onRefresh();
         return;
       }
-      table.deselectRow();
-      tmxToast({ message: result.error[0]?.message ?? 'Error destroying pair', intent: 'is-danger' });
+      const message = result.error[0]?.message ?? result.error?.message ?? 'Error destroying pair';
+      tmxToast({ message, intent: 'is-danger' });
     },
   });
 }

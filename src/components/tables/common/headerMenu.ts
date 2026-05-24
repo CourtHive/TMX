@@ -28,7 +28,8 @@ export const headerMenu = (displayTitles) => (_, column) => {
 
   for (const column of columns) {
     const def = column.getDefinition();
-    if (def.title) {
+    // `lockVisible` columns are always shown and excluded from the toggle menu.
+    if (def.title && !def.lockVisible) {
       const visible = column.isVisible();
 
       const icon = document.createElement('i');
