@@ -3,6 +3,7 @@
  * Authenticates user credentials and updates login state on success.
  */
 import { logIn, logOut } from 'services/authentication/loginState';
+import { firstLoginPasswordModal } from './firstLoginPassword';
 import { renderForm, validators } from 'courthive-components';
 import { systemLogin } from 'services/authentication/authApi';
 import { openModal } from './baseModal/baseModal';
@@ -55,7 +56,16 @@ export function loginModal(callback?: () => void): void {
     const password = inputs.password.value;
     const response = (res: any) => {
       if (!res) logOut();
-      if (res?.status === 200) logIn({ data: res.data, callback });
+      if (res?.status !== 200) return;
+      // First-login branch: server signals an admin-assigned password that
+      // must be changed before a full session is issued. Admin-created users
+      // (mustChangePassword=true) receive { mustChangePassword, limitedToken }
+      // instead of { token } — route them to set their own password.
+      if (res.data?.mustChangePassword && res.data?.limitedToken) {
+        firstLoginPasswordModal({ limitedToken: res.data.limitedToken, callback });
+        return;
+      }
+      logIn({ data: res.data, callback });
     };
     systemLogin(email, password).then(response, (err: any) => console.log({ err }));
   };
