@@ -58,15 +58,30 @@ export async function resetDrawsViewState(page: Page): Promise<void> {
 }
 
 /**
- * Force the draws-list view into Tabulator/table mode so legacy specs that
- * target `.tabulator-row` selectors keep working. The draws-list defaults to
- * the card grid (memory: draw-cards rollout) — specs that pre-date that
- * change need to opt into the older default.
+ * Force the draws-list view into Tabulator/table mode so specs that target
+ * `.tabulator-row` selectors keep working. As of f2a85a90 the draws-list
+ * defaults to table mode, so this matches the current default — but pinning it
+ * explicitly keeps such specs robust against future default changes.
  */
 export async function ensureDrawsTableMode(page: Page): Promise<void> {
   await page.evaluate(() => {
     try {
       localStorage.setItem('tmx_draws_view_mode', 'table');
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+/**
+ * Force the draws-list view into card-grid mode. The draws-list defaults to
+ * table mode (f2a85a90), so card-grid specs (e.g. draw-card visualizations)
+ * must opt in explicitly rather than relying on the default.
+ */
+export async function ensureDrawsGridMode(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('tmx_draws_view_mode', 'grid');
     } catch {
       /* ignore */
     }

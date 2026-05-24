@@ -16,6 +16,7 @@
  */
 import { test, expect } from '@playwright/test';
 import {
+  ensureDrawsGridMode,
   initDevBridge,
   resetDrawsViewState,
   resetEventsViewMode,
@@ -100,7 +101,11 @@ test.describe('Journey 32 — Draw-card visualizations', () => {
     await initDevBridge(page);
     await resetState(page);
     await resetEventsViewMode(page);
+    // Clear any saved card-display mode, then opt into the card grid — the
+    // draws-list now defaults to table view (f2a85a90), so these card-viz
+    // specs must select grid mode explicitly.
     await resetDrawsViewState(page);
+    await ensureDrawsGridMode(page);
   });
 
   test('competitiveness mode renders a segmented bar in every card', async ({ page }) => {
