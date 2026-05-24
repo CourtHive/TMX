@@ -158,4 +158,39 @@ test.describe('Journey 34 — row-number column + column-selector menu', () => {
     await firstRow.locator('.tabulator-cell').nth(2).click();
     expect(await selectedCount()).toBe(1);
   });
+
+  test('34.5 — Status column shows a chip only for special acceptances', async ({ page }) => {
+    await navigateToEntries(page);
+
+    // Promote two of the accepted entries to special acceptance statuses.
+    await page.evaluate(() => {
+      const tournament = dev.getTournament();
+      const event = tournament.events?.[0];
+      const accepted = (event?.entries || []).filter((e: any) => e.entryStatus === 'DIRECT_ACCEPTANCE');
+      accepted[0].entryStatus = 'WILDCARD';
+      accepted[1].entryStatus = 'SPECIAL_EXEMPT';
+      dev.factory.tournamentEngine.setState(tournament);
+    });
+    await reloadEntries(page);
+
+    // Status chips appear ONLY for the two special acceptances (scoped to the status column).
+    const statusChips = page.locator(`${S.ENTRIES_VIEW} .tabulator-cell[tabulator-field="status"] .tag`);
+    const texts = (await statusChips.allTextContents()).map((t) => t.trim()).sort();
+    expect(texts).toEqual(['SE', 'WC']);
+
+    // The plain direct-acceptance rows render no status chip (info lives in Grouping).
+    const statusCellsWithChip = await statusChips.count();
+    const totalStatusCells = await page.locator(`${S.ENTRIES_VIEW} .tabulator-cell[tabulator-field="status"]`).count();
+    expect(statusCellsWithChip).toBe(2);
+    expect(totalStatusCells).toBeGreaterThan(2); // most cells are blank
+  });
 });
+
+/** Re-enter the Entries tab to force a re-render from the engine. */
+async function reloadEntries(page: any): Promise<void> {
+  await page.locator('#eventTabsBar').getByText('Draws').click();
+  await page.waitForTimeout(300);
+  await page.locator('#eventTabsBar').getByText('Entries').click();
+  await page.waitForSelector(S.ENTRIES_VIEW, { state: 'visible', timeout: 10_000 });
+  await page.locator(`${S.ENTRIES_VIEW} .tabulator-row`).first().waitFor({ state: 'visible', timeout: 5_000 });
+}

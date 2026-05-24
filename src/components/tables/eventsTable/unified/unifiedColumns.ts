@@ -12,6 +12,7 @@ import { numericEditor } from '../../common/editors/numericEditor';
 import { getRatingColumns } from '../../common/getRatingColumns';
 import { cellBorder } from '../../common/formatters/cellBorder';
 import { navigateToEvent } from '../../common/navigateToEvent';
+import { entryStatusConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { headerMenu } from '../../common/headerMenu';
@@ -20,7 +21,20 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // Constants
-import { CENTER, LEFT, PARTICIPANTS, entryStatusMapping } from 'constants/tmxConstants';
+import { CENTER, LEFT, PARTICIPANTS } from 'constants/tmxConstants';
+
+const { WILDCARD, SPECIAL_EXEMPT, JUNIOR_EXEMPT, ORGANISER_ACCEPTANCE } = entryStatusConstants;
+
+// The Grouping column already conveys the segment (Accepted / Qualifying /
+// Alternates / Ungrouped / Withdrawn). The Status column therefore only needs to
+// surface the *special* acceptance types that Grouping collapses into "Accepted";
+// plain direct acceptances (and alternate/ungrouped/withdrawn) render blank.
+const SPECIAL_STATUS_LABELS: Record<string, string> = {
+  [WILDCARD]: 'WC',
+  [SPECIAL_EXEMPT]: 'SE',
+  [JUNIOR_EXEMPT]: 'JE',
+  [ORGANISER_ACCEPTANCE]: 'OA',
+};
 
 const SEGMENT_COLORS: Record<number, { bg: string; text: string }> = {
   0: { bg: 'var(--chc-success, hsl(141, 53%, 53%))', text: '#fff' },
@@ -43,8 +57,15 @@ function segmentFormatter(cell: any) {
 
 function statusFormatter(cell: any) {
   const data = cell.getRow().getData();
-  const status = (entryStatusMapping as any)[data.entryStatus] || data.entryStatus || '';
-  return status;
+  if (data._isSeparator) return '';
+  const label = SPECIAL_STATUS_LABELS[data.entryStatus];
+  if (!label) return ''; // conveyed by the Grouping chip (or a plain direct acceptance)
+  const el = document.createElement('span');
+  el.className = 'tag';
+  el.style.cssText = 'background:hsl(262, 52%, 56%);color:#fff;font-size:0.7rem;padding:2px 6px;border-radius:4px';
+  el.textContent = label;
+  el.title = data.entryStatus;
+  return el;
 }
 
 type UnifiedColumnsParams = {
@@ -207,6 +228,8 @@ export function getUnifiedColumns({
       sorter: 'string',
       title: t('tables.entries.status'),
       field: 'status',
+      hozAlign: CENTER,
+      headerHozAlign: CENTER,
       maxWidth: 80,
     },
     {

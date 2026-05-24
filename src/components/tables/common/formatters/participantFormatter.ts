@@ -48,7 +48,15 @@ export const formatParticipant = (onClick, config?: { participantDetail?: string
       const div = document.createElement('div');
       div.className = 'flexrow flexjustifystart';
       participant.individualParticipants?.forEach((individual, i) => {
-        div.appendChild(rendered(individual));
+        const individualEl = rendered(individual);
+        // Cap each individual to half the cell so long doubles names don't wrap
+        // or balloon the column (which made it look jagged). Mirrors the fixed
+        // name width used in the participants table.
+        individualEl.style.maxWidth = 'calc(50% - 0.5em)';
+        individualEl.style.overflow = 'hidden';
+        individualEl.style.whiteSpace = 'nowrap';
+        individualEl.style.textOverflow = 'ellipsis';
+        div.appendChild(individualEl);
         if (!i) {
           const spacer = document.createElement('span');
           spacer.style.width = '1em';
