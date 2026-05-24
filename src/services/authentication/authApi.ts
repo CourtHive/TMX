@@ -48,3 +48,7 @@ export async function resetPassword(email, password, code) {
 export async function ssoLoginWithToken(token: string) {
   return baseApi.post('/auth/sso/login-with-token', { token });
 }
+
+export async function completeFirstLogin(limitedToken: string, newPassword: string) {
+  return baseApi.post('/auth/complete-first-login', { limitedToken, newPassword });
+}

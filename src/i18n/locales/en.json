@@ -888,6 +888,17 @@
       "passwordPlaceholder": "minimum 8 characters",
       "loginButton": "Login"
     },
+    "firstLogin": {
+      "title": "Set your password",
+      "intro": "Your account was created with a temporary password. Choose a new password to finish signing in.",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "minimum 8 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "re-enter new password",
+      "setPassword": "Set password",
+      "failed": "Could not set your password. Please try again.",
+      "tokenExpired": "This sign-in session expired. Please log in again."
+    },
     "settings": {
       "title": "Settings",
       "activeRating": "Active rating",
