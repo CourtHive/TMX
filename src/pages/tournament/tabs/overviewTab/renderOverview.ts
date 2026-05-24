@@ -1,4 +1,4 @@
-import { getLoginState } from 'services/authentication/loginState';
+import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { openCategoriesEditorModal } from './categoriesEditorModal';
@@ -25,13 +25,11 @@ import {
 
 // constants
 import {
-  ADMIN,
   EVENTS_TAB,
   FORMAT_WIZARD_LAUNCHER,
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
-  SUPER_ADMIN,
   TOURNAMENT,
   TOURNAMENT_OVERVIEW,
 } from 'constants/tmxConstants';
@@ -278,9 +276,7 @@ export function renderOverview(): void {
   statsContainer.appendChild(publishingCard);
   leftColumn.appendChild(statsContainer);
 
-  const state = getLoginState();
-  const isAdmin =
-    state?.roles?.includes(SUPER_ADMIN) || (state?.roles?.includes(ADMIN) && state?.provider?.organisationId);
+  const isAdmin = isActiveProviderAdmin();
 
   // Format Wizard launcher — NOT admin-gated. Visible whenever the
   // wizard's visibility conditions are met (no events, or

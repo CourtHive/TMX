@@ -43,6 +43,17 @@ export interface LoginState {
   }>;
   /** Caller's last explicitly-selected provider; null until they pick one. */
   lastSelectedProviderId?: string | null;
+  /**
+   * Providers managed by the user's provisioner(s), populated server-side at
+   * login for PROVISIONER-role users. Drives the provider switcher and grants
+   * provider-admin UI when one of these is the active provider. Server authz
+   * already honors these via `provisionerProviderIds` (checkTournamentAccess).
+   */
+  provisionerProviders?: Array<{
+    providerId: string;
+    organisationName: string;
+    organisationAbbreviation: string;
+  }>;
   exp: number;
 }
 
@@ -61,6 +72,8 @@ export interface UserContext {
   providerRoles: Record<string, string>;
   /** Convenience: Object.keys(providerRoles). */
   providerIds: string[];
+  /** Provider IDs inherited via the user's provisioner(s); admin-equivalent. */
+  provisionerProviderIds?: string[];
 }
 
 // ---------------------------------------------------------------------------

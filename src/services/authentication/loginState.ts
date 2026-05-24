@@ -1,6 +1,7 @@
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
+import { isActiveProviderAdmin } from './isProviderAdmin';
 import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
@@ -22,7 +23,7 @@ import { t } from 'i18n';
 import type { LoginState } from 'types/tmx';
 
 // constants
-import { SUPER_ADMIN, ADMIN, TMX_TOURNAMENTS, NONE } from 'constants/tmxConstants';
+import { SUPER_ADMIN, TMX_TOURNAMENTS, NONE } from 'constants/tmxConstants';
 
 export function styleLogin(valid: LoginState | undefined | false): void {
   const el = document.getElementById('login');
@@ -144,7 +145,7 @@ export function initLoginToggle(id: string): void {
         },
         {
           text: t('loginMenu.admin'),
-          hide: !(superAdmin || (loggedIn?.roles?.includes(ADMIN) && context?.provider)),
+          hide: !isActiveProviderAdmin(),
           onClick: () => context.router?.navigate('/admin'),
         },
         {

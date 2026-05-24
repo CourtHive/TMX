@@ -17,6 +17,7 @@ import {
   clearActiveProvider,
   getActiveProvider,
   getProviderAssociations,
+  getProvisionerProviders,
 } from 'services/provider/providerState';
 import { selectProviderModal } from 'components/modals/selectProviderModal';
 import { getLoginState } from 'services/authentication/loginState';
@@ -63,6 +64,32 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
     };
   });
 
+  // Provisioner-managed providers. These have no user_providers row, so the
+  // server would reject persisting them as last-selected — set locally only
+  // (persistServer: false). Deduped against direct associations.
+  const associationIds = new Set(associations.map((assoc) => assoc.providerId));
+  const provisionerItems = getProvisionerProviders()
+    .filter((prov) => !associationIds.has(prov.providerId))
+    .map((prov) => {
+      const isActive = current?.organisationId === prov.providerId;
+      return {
+        text: isActive ? `${prov.organisationName} ✓` : prov.organisationName,
+        hide: false,
+        onClick: () => {
+          if (isActive) return;
+          setActiveProvider(
+            {
+              organisationId: prov.providerId,
+              organisationName: prov.organisationName,
+              organisationAbbreviation: prov.organisationAbbreviation,
+            } as ProviderValue,
+            { persistServer: false },
+          );
+          refreshAfterSwitch();
+        },
+      };
+    });
+
   // Super-admin keeps the "any provider in the system" path on top so
   // they can impersonate beyond their own associations.
   const superAdminItems = isSuperAdmin
@@ -87,6 +114,7 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
   const items = [
     ...superAdminItems,
     ...associationItems,
+    ...provisionerItems,
     {
       text: t('providerSwitcher.clearImpersonation'),
       // Only super-admins get "Clear" — returning to "no impersonation"
