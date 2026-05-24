@@ -28,14 +28,14 @@ export function firstLoginPasswordModal({
   callback?: () => void;
 }): void {
   let inputs: any;
+  let modalHandle: any;
 
   const enableSubmit = () => {
     const newPassword = inputs?.newPassword?.value ?? '';
     const confirm = inputs?.confirmPassword?.value ?? '';
-    const button = document.getElementById('firstLoginSubmit') as HTMLButtonElement | null;
-    if (button) {
-      button.disabled = newPassword.length < MIN_PASSWORD_LENGTH || newPassword !== confirm;
-    }
+    modalHandle?.setButtonState('firstLoginSubmit', {
+      disabled: newPassword.length < MIN_PASSWORD_LENGTH || newPassword !== confirm,
+    });
   };
 
   const relationships = [
@@ -98,7 +98,7 @@ export function firstLoginPasswordModal({
     );
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.firstLogin.title'),
     content,
     buttons: [

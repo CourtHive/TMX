@@ -17,6 +17,7 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
   }));
 
   let inputs: any;
+  let modalHandle: any;
   const onClick = () => {
     const drawIds = eventData.drawsData.filter(({ drawId }: any) => inputs[drawId]?.checked).map(({ drawId }: any) => drawId);
     setTimeout(() => deleteFlights({ eventData, drawIds }), 200);
@@ -24,8 +25,7 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
 
   const checkChecked = () => {
     const checkedFlights = eventData.drawsData.filter(({ drawId }: any) => inputs[drawId]?.checked).length;
-    const deleteButton = document.getElementById('deleteSelected');
-    if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !checkedFlights;
+    modalHandle?.setButtonState('deleteSelected', { disabled: !checkedFlights });
   };
 
   const relationships = eventData.drawsData.map(({ drawId }: any) => ({
@@ -34,7 +34,7 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
   }));
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: `Delete flights`,
     content,
     buttons: [

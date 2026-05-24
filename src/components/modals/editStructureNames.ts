@@ -30,6 +30,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   }));
 
   let inputs: any;
+  let modalHandle: any;
   const onClick = () => {
     const structureDetails = structures
       .map(
@@ -54,16 +55,15 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   const checkValid = () => {
     const nameValues = structures.map(({ structureId }: any) => inputs[structureId]?.value).filter(Boolean);
     const validValues = nameValues.every(validators.nameValidator(4));
-    const renameButton = document.getElementById('renameStructures');
     const valid = nameValues.length && validValues;
-    if (renameButton) (renameButton as HTMLButtonElement).disabled = !valid;
+    modalHandle?.setButtonState('renameStructures', { disabled: !valid });
   };
   const relationships = structures.map(({ structureId }: any) => ({
     control: structureId,
     onInput: checkValid,
   }));
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
-  openModal({
+  modalHandle = openModal({
     title: t('modals.editStructureNames.title'),
     content,
     buttons: [

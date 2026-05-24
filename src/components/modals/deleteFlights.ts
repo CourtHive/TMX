@@ -29,6 +29,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   const modalTitle = drawName ? `Delete ${drawName}` : 'Delete flights';
 
   let inputs: any;
+  let modalHandle: any;
   const deleteAction = () => {
     const auditData = devMode ? undefined : { auditReason: inputs['drawDeletionReason'].value };
     const methods = drawIds.map((drawId) => ({
@@ -60,8 +61,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['drawDeletionReason'].value;
     const isValid = validators.wordValidator(5)(value);
-    const deleteButton = document.getElementById('deleteDraw');
-    if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
+    modalHandle?.setButtonState('deleteDraw', { disabled: !isValid });
   };
   const relationships = [
     {
@@ -71,7 +71,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   ];
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, items, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: modalTitle,
     content,
     buttons: [

@@ -47,12 +47,12 @@ export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: Emba
   const { date, time } = embargoToLocalParts(currentEmbargo);
 
   let inputs: any;
+  let modalHandle: any;
 
   const enableSubmit = () => {
     const dateValid = validators.dateValidator(inputs?.embargoDate?.value);
     const timeValid = !!inputs?.embargoTime?.value;
-    const saveButton = document.getElementById('saveEmbargo');
-    if (saveButton) (saveButton as HTMLButtonElement).disabled = !(dateValid && timeValid);
+    modalHandle?.setButtonState('saveEmbargo', { disabled: !(dateValid && timeValid) });
   };
 
   const items = [
@@ -123,5 +123,5 @@ export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: Emba
     onClick: onSave,
   });
 
-  openModal({ title: title || t('publishing.setEmbargo'), content, buttons });
+  modalHandle = openModal({ title: title || t('publishing.setEmbargo'), content, buttons });
 }

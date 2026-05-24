@@ -24,6 +24,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   let inputs: any,
     imageLoaded = false,
     selectedSport: CourtSport | undefined;
+  let modalHandle: any;
 
   const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
   const imageResource = tournamentRecord?.onlineResources?.find(
@@ -45,9 +46,8 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   image.style.width = '100%';
 
   const enableSubmit = (enable?) => {
-    const submitButton: any = document.getElementById('createButton');
-    if (!submitButton) return;
-    submitButton.disabled = enable ? false : !imageLoaded && !selectedSport && inputs?.tournamentImage?.value;
+    const disabled = enable ? false : !!(!imageLoaded && !selectedSport && inputs?.tournamentImage?.value);
+    modalHandle?.setButtonState('createButton', { disabled });
   };
 
   const clearImage = () => {
@@ -194,7 +194,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
     });
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.tournamentImage.title'),
     content,
     config: {

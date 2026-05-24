@@ -32,6 +32,7 @@ export function tournamentActions(): void {
   const admin = state?.roles?.includes(ADMIN);
 
   let inputs: any;
+  let modalHandle: any;
   const takeAction = () => {
     if (inputs.action.value === 'upload' && inputs.replace.checked) {
       const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
@@ -115,8 +116,7 @@ export function tournamentActions(): void {
     {
       control: 'replace',
       onChange: ({ e }: any) => {
-        const button = document.getElementById('go') as HTMLButtonElement;
-        if (button) button.disabled = !e.target.checked;
+        modalHandle?.setButtonState('go', { disabled: !e.target.checked });
       },
     },
     {
@@ -125,8 +125,7 @@ export function tournamentActions(): void {
         const replaceTick = document.getElementById('replace');
         const field = findAncestor(replaceTick, 'field');
         if (field) field.style.display = e.target.value === 'upload' ? 'block' : 'none';
-        const button = document.getElementById('go') as HTMLButtonElement;
-        if (button) button.disabled = inputs.action.value === 'upload';
+        modalHandle?.setButtonState('go', { disabled: inputs.action.value === 'upload' });
       },
     },
   ];
@@ -167,7 +166,7 @@ export function tournamentActions(): void {
       relationships,
     ));
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.tournamentActions.title'),
     content,
     buttons: [

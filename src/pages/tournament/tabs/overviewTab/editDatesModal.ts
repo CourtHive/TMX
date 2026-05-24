@@ -16,6 +16,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
   const existingActiveDates = (tournamentInfo?.activeDates || []).join(',');
 
   let inputs: any;
+  let modalHandle: any;
 
   const enableSubmit = ({ inputs }: any) => {
     const newStartDate = inputs['startDate'].value;
@@ -39,8 +40,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
     if (newStartDate) inputs.activeDates.datepicker?.setOptions({ minDate: newStartDate });
     if (newEndDate) inputs.activeDates.datepicker?.setOptions({ maxDate: newEndDate });
 
-    const saveButton = document.getElementById('saveDatesEdits');
-    if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;
+    modalHandle?.setButtonState('saveDatesEdits', { disabled: !valid });
   };
 
   const toggleActiveDates = ({ inputs }: any) => {
@@ -116,7 +116,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
 
   const valid = validators.dateValidator(startDate) && validators.dateValidator(endDate);
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.editDates.title'),
     content,
     buttons: [

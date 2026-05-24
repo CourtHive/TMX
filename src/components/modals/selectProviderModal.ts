@@ -18,6 +18,8 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
   }));
   const names = new Set(providers.map(({ value }: any) => value.organisationName));
 
+  let modalHandle: any;
+
   const selectProvider = () => {
     const provider = providers.find(({ value }: any) => value.organisationId === values.providerId)?.value;
     if (provider && isFunction(callback)) callback(provider);
@@ -26,15 +28,13 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
   const onInput = (el: Event) => {
     const value = (el.target as HTMLInputElement).value;
     const enable = value === '' || names.has(value);
-    const selectButton = document.getElementById('selectButton') as HTMLButtonElement;
-    selectButton.disabled = !enable;
+    modalHandle?.setButtonState('selectButton', { disabled: !enable });
     values.providerId = enable ? value : '';
   };
 
   const typeAheadCallback = (providerId: string) => {
-    const selectButton = document.getElementById('selectButton') as HTMLButtonElement;
     values.providerId = providerId;
-    selectButton.disabled = !providerId;
+    modalHandle?.setButtonState('selectButton', { disabled: !providerId });
   };
 
   const content = (elem: HTMLElement) => {
@@ -49,7 +49,7 @@ export async function selectProviderModal({ callback }: { callback?: (provider: 
       },
     ]);
   };
-  openModal({
+  modalHandle = openModal({
     title: t('modals.selectProvider.title'),
     content,
     buttons: [

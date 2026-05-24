@@ -34,12 +34,6 @@ function highlightRow(row: HTMLElement) {
   row.querySelectorAll('span').forEach((s) => (s.style.color = '#fff'));
 }
 
-function enableAdvanceButton(btn: HTMLButtonElement | null) {
-  if (!btn) return;
-  btn.disabled = false;
-  btn.style.opacity = '1';
-}
-
 function formatRatio(value: number | undefined): string {
   if (value == null || !Number.isFinite(value)) return '-';
   return (value * 100).toFixed(1) + '%';
@@ -133,6 +127,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
   `;
 
   let selectedIndex: number | null = null;
+  let modalHandle: any;
 
   const advanceSelected = () => {
     if (selectedIndex == null) {
@@ -180,7 +175,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
       : []),
   ];
 
-  openModal({
+  modalHandle = openModal({
     title: `Lucky Draw — Round ${roundNumber}`,
     content,
     buttons,
@@ -190,7 +185,6 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
   // Wire up row selection on losers
   if (canAdvance) {
     setTimeout(() => {
-      const advanceBtn = document.getElementById('lucky-advance-btn') as HTMLButtonElement;
       const rows = document.querySelectorAll('.lucky-loser-row');
 
       const onRowClick = (row: Element) => {
@@ -199,7 +193,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
         selectedIndex = idx;
         clearRowSelection(rows);
         highlightRow(row as HTMLElement);
-        enableAdvanceButton(advanceBtn);
+        modalHandle?.setButtonState('lucky-advance-btn', { disabled: false });
       };
       rows.forEach((row) => row.addEventListener('click', () => onRowClick(row)));
     }, 0);

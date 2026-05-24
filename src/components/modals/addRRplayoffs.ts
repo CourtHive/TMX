@@ -73,6 +73,7 @@ export function addRRplayoffs({
   const options = ([playoffStructureName, playoffDrawType, groupSizeSelector] as any[]).concat(fields);
 
   let inputs: any;
+  let modalHandle: any;
 
   const onClick = () => {
     const checkedRanges = playoffFinishingPositionRanges.filter(
@@ -135,8 +136,7 @@ export function addRRplayoffs({
     );
     const checkCount = checkStatus.filter(Boolean).length;
 
-    const addButton = document.getElementById('addStructure') as HTMLButtonElement;
-    if (addButton) addButton.disabled = checkCount === 0;
+    modalHandle?.setButtonState('addStructure', { disabled: checkCount === 0 });
   };
 
   const drawTypeChange = ({ e, fields }: any) => {
@@ -159,7 +159,7 @@ export function addRRplayoffs({
     ] as any);
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.addRRplayoffs.title'),
     content,
     buttons: [

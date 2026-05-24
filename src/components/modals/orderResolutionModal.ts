@@ -71,6 +71,7 @@ export function orderResolutionModal({
   }));
 
   let inputs: any;
+  let modalHandle: any;
 
   const getParticipantName = (participant: any) => {
     const individualParticipantIds = participant.individualParticipantIds || [];
@@ -89,10 +90,7 @@ export function orderResolutionModal({
     const allAssigned = selectedValues.length === participantCount;
     const noDuplicates = uniqueValues.size === selectedValues.length;
 
-    const submitButton = document.getElementById('submitOrder');
-    if (submitButton) {
-      (submitButton as HTMLButtonElement).disabled = !(allAssigned && noDuplicates);
-    }
+    modalHandle?.setButtonState('submitOrder', { disabled: !(allAssigned && noDuplicates) });
   };
 
   const handleOrderChange = (changedParticipantId: string) => {
@@ -169,7 +167,7 @@ export function orderResolutionModal({
 
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.orderResolution.title'),
     content,
     buttons: [

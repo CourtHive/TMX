@@ -28,6 +28,7 @@ export function inviteModal(callback, providers = [], selectedProviderId?: strin
     value: key,
   }));
   let inputs;
+  let modalHandle: any;
 
   const values = { providerId: selectedProviderId || '' };
   const selectedProviderLabel = selectedProviderId
@@ -39,8 +40,7 @@ export function inviteModal(callback, providers = [], selectedProviderId?: strin
   const enableSubmit = ({ inputs }) => {
     const value = inputs['email'].value;
     const isValid = validators.emailValidator(value);
-    const inviteButton: any = document.getElementById('inviteUser');
-    if (inviteButton) inviteButton.disabled = !isValid;
+    modalHandle?.setButtonState('inviteUser', { disabled: !isValid });
   };
 
   const relationships = [
@@ -197,7 +197,7 @@ export function inviteModal(callback, providers = [], selectedProviderId?: strin
     });
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.inviteUser.title'),
     content,
     buttons: [

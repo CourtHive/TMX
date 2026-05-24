@@ -13,12 +13,12 @@ import { t } from 'i18n';
 export function fetchTournamentDetailsModal({ table }: { table: any }): void {
   const tournamentIds = table.getData().map((t: any) => t.tournamentId);
   let inputs: any;
+  let modalHandle: any;
 
   const enableFetch = ({ inputs }: any) => {
     const identifier = inputs['identifier'].value;
     const isValid = identifier.length > 10;
-    const fetchButton = document.getElementById('fetchButton');
-    if (fetchButton) (fetchButton as HTMLButtonElement).disabled = !isValid;
+    modalHandle?.setButtonState('fetchButton', { disabled: !isValid });
   };
 
   const relationships = [
@@ -69,7 +69,7 @@ export function fetchTournamentDetailsModal({ table }: { table: any }): void {
     fetchTournamentDetails({ identifier }).then(showResult, notFound);
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.fetchTournament.title'),
     content,
     buttons: [

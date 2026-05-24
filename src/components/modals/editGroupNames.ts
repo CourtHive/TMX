@@ -39,6 +39,7 @@ export function editGroupNames({
   }));
 
   let inputs: any;
+  let modalHandle: any;
   const onClick = () => {
     const structureDetails = Object.values(groups)
       .map(
@@ -65,16 +66,15 @@ export function editGroupNames({
       .map(({ structureId }: any) => inputs[structureId]?.value)
       .filter(Boolean);
     const validValues = nameValues.every(validators.nameValidator(4));
-    const renameButton = document.getElementById('renameGroups');
     const valid = nameValues.length && validValues;
-    if (renameButton) (renameButton as HTMLButtonElement).disabled = !valid;
+    modalHandle?.setButtonState('renameGroups', { disabled: !valid });
   };
   const relationships = Object.values(groups).map(({ structureId }: any) => ({
     control: structureId,
     onInput: checkValid,
   }));
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
-  openModal({
+  modalHandle = openModal({
     title: t('modals.editGroupNames.title'),
     content,
     buttons: [

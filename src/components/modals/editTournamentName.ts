@@ -14,11 +14,11 @@ export function openEditTournamentNameModal(): void {
   const tournamentName = tournamentInfo?.tournamentName || '';
 
   let inputs: any;
+  let modalHandle: any;
 
   const enableSubmit = () => {
     const valid = validators.nameValidator(5)(inputs['tournamentName'].value);
-    const saveButton = document.getElementById('saveTournamentName');
-    if (saveButton) (saveButton as HTMLButtonElement).disabled = !valid;
+    modalHandle?.setButtonState('saveTournamentName', { disabled: !valid });
   };
 
   const items = [
@@ -53,7 +53,7 @@ export function openEditTournamentNameModal(): void {
 
   const valid = validators.nameValidator(5)(tournamentName);
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.editTournamentName.title'),
     content,
     buttons: [

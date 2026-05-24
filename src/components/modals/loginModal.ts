@@ -11,12 +11,12 @@ import { t } from 'i18n';
 
 export function loginModal(callback?: () => void): void {
   let inputs: any;
+  let modalHandle: any;
 
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['email'].value;
     const isValid = validators.emailValidator(value);
-    const inviteButton = document.getElementById('loginButton');
-    if (inviteButton) (inviteButton as HTMLButtonElement).disabled = !isValid;
+    modalHandle?.setButtonState('loginButton', { disabled: !isValid });
   };
 
   const relationships = [
@@ -70,7 +70,7 @@ export function loginModal(callback?: () => void): void {
     systemLogin(email, password).then(response, (err: any) => console.log({ err }));
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.login.title'),
     content,
     buttons: [

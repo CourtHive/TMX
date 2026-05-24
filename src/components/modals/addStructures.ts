@@ -100,6 +100,7 @@ export function addStructures({
   const options = [nameBase, ...(pagePlayoffField ? [pagePlayoffField] : []), ...fields];
 
   let inputs: any;
+  let modalHandle: any;
 
   const onClick = () => {
     const isPagePlayoff = inputs[PAGE_PLAYOFF_FIELD]?.checked;
@@ -180,8 +181,7 @@ export function addStructures({
     const checkedRanges = result.playoffRoundsRanges.filter(
       (range: any) => inputs[range.finishingPositionRange]?.checked,
     );
-    const addButton = document.getElementById('addStructure');
-    if (addButton) (addButton as HTMLButtonElement).disabled = !pagePlayoffChecked && !checkedRanges.length;
+    modalHandle?.setButtonState('addStructure', { disabled: !pagePlayoffChecked && !checkedRanges.length });
   };
 
   const onPagePlayoffChange = () => {
@@ -206,7 +206,7 @@ export function addStructures({
   ];
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.addStructures.title'),
     content,
     buttons: [

@@ -34,6 +34,8 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
 
   const participants = getParticipantsMap();
 
+  let modalHandle: any;
+
   const statusLabel = getStatusLabel(draftState.status);
   const outstandingWarning =
     summary.preferencesOutstanding > 0
@@ -121,11 +123,7 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
     `;
 
     // Enable resolve button
-    const resolveBtn = document.getElementById('draft-resolve-btn') as HTMLButtonElement;
-    if (resolveBtn) {
-      resolveBtn.disabled = false;
-      resolveBtn.style.opacity = '1';
-    }
+    modalHandle?.setButtonState('draft-resolve-btn', { disabled: false });
   };
 
   const resolveDraft = () => {
@@ -142,7 +140,7 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
     });
   };
 
-  openModal({
+  modalHandle = openModal({
     title: 'Resolve Draft',
     content,
     buttons: [

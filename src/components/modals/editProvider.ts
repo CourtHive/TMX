@@ -15,6 +15,7 @@ export function editProviderModal(params) {
       resource.name === 'providerImage' && resource.resourceType === 'URL' && resource.resourceSubType === 'IMAGE',
   );
   let inputs, imageLoaded;
+  let modalHandle: any;
   const values = provider || {};
 
   const clearImage = () => {
@@ -44,8 +45,7 @@ export function editProviderModal(params) {
       validators.nameValidator(10)(inputs.providerName.value) &&
       validators.nameValidator(3)(inputs.providerAbbr.value) &&
       (!inputs.providerId.value.length || validators.nameValidator(36)(inputs.providerId.value));
-    const createButton: any = document.getElementById('createButton');
-    if (createButton) createButton.disabled = !isValid;
+    modalHandle?.setButtonState('createButton', { disabled: !isValid });
   };
 
   const relationships = [
@@ -138,7 +138,7 @@ export function editProviderModal(params) {
     }
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.editProvider.title'),
     content,
     buttons: [

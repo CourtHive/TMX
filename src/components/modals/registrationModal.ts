@@ -7,24 +7,18 @@ import { t } from 'i18n';
 
 export function registrationModal(params) {
   let inputs;
+  let modalHandle: any;
 
   const passwordMatch = (value) => value === inputs.password.value;
 
   const enableSubmit = ({ inputs }) => {
-    const registerButton = document.getElementById('registerButton');
-    if (registerButton) {
-      const isValid =
-        passwordMatch(inputs['passwordConfirm'].value) &&
-        validators.passwordValidator(inputs['password'].value) &&
-        validators.nameValidator(2)(inputs['givenName'].value) &&
-        validators.nameValidator(2)(inputs['lastName'].value);
+    const isValid =
+      passwordMatch(inputs['passwordConfirm'].value) &&
+      validators.passwordValidator(inputs['password'].value) &&
+      validators.nameValidator(2)(inputs['givenName'].value) &&
+      validators.nameValidator(2)(inputs['lastName'].value);
 
-      if (isValid) {
-        registerButton.removeAttribute('disabled');
-      } else {
-        registerButton.setAttribute('disabled', '');
-      }
-    }
+    modalHandle?.setButtonState('registerButton', { disabled: !isValid });
   };
 
   const relationships = [
@@ -97,7 +91,7 @@ export function registrationModal(params) {
     systemRegister(firstName, lastName, password, code).then(response, handleError);
   };
 
-  openModal({
+  modalHandle = openModal({
     title: t('modals.registration.title'),
     content,
     buttons: [

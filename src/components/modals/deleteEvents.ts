@@ -26,6 +26,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   const modalTitle = eventIds.length > 1 ? t('modals.deleteEvents.titleOther') : t('modals.deleteEvents.titleOne');
 
   let inputs: any;
+  let modalHandle: any;
   const deleteAction = () => {
     const auditData = { auditReason: inputs['eventDeletionReason'].value };
     mutationRequest({ methods: [{ method: DELETE_EVENTS, params: { eventIds, auditData } }], callback });
@@ -61,8 +62,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['eventDeletionReason'].value;
     const isValid = validators.wordValidator(5)(value);
-    const deleteButton = document.getElementById('deleteEvent');
-    if (deleteButton) (deleteButton as HTMLButtonElement).disabled = !isValid;
+    modalHandle?.setButtonState('deleteEvent', { disabled: !isValid });
   };
   const relationships = [
     {
@@ -72,7 +72,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   ];
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, items, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: modalTitle,
     content,
     buttons: [

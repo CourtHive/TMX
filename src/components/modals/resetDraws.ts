@@ -21,6 +21,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   const modalTitle = drawName ? `Reset ${drawName}` : 'Reset draws';
 
   let inputs: any;
+  let modalHandle: any;
   const resetAction = () => {
     const auditData = devMode ? undefined : { auditReason: inputs['drawResetReason'].value };
     const removeAssignments = inputs['removeAssignments']?.checked ?? false;
@@ -63,8 +64,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   const enableSubmit = ({ inputs }: any) => {
     const value = inputs['drawResetReason'].value;
     const isValid = validators.wordValidator(5)(value);
-    const resetButton = document.getElementById('resetDraw');
-    if (resetButton) (resetButton as HTMLButtonElement).disabled = !isValid;
+    modalHandle?.setButtonState('resetDraw', { disabled: !isValid });
   };
   const relationships = [
     {
@@ -74,7 +74,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   ];
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, items, relationships));
 
-  openModal({
+  modalHandle = openModal({
     title: modalTitle,
     content,
     buttons: [
