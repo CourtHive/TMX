@@ -41,6 +41,11 @@ export const SYNC_INDICATOR = 'syncIndicator';
 
 export const SUPER_ADMIN = 'superadmin';
 export const ADMIN = 'admin';
+// Provider-scoped role (from user_providers.provider_role, present in the JWT's
+// providerAssociations). Distinct from the deprecated global `admin` role above.
+export const PROVIDER_ADMIN = 'PROVIDER_ADMIN';
+// Global role: the user represents a provisioner (Phase 2A).
+export const PROVISIONER = 'provisioner';
 
 export const COMPETITION_ENGINE = 'competitionEngine';
 export const TOURNAMENT_ENGINE = 'tournamentEngine';

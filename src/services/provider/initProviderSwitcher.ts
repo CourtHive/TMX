@@ -20,6 +20,7 @@ import {
   readPersistedProvider,
   getActiveProvider,
   getProviderAssociations,
+  getProvisionerProviders,
   resolveInitialProvider,
 } from './providerState';
 import { openProviderSwitcher } from 'components/popovers/providerSwitcher';
@@ -38,11 +39,18 @@ function hasMultipleAssociations(): boolean {
   return getProviderAssociations().length > 1;
 }
 
+function hasProvisionerProviders(): boolean {
+  // Provisioners need the affordance even for a single managed provider —
+  // they have no user_providers association, so the switcher is how they
+  // enter a managed provider's context (and gain provider-admin UI).
+  return getProvisionerProviders().length > 0;
+}
+
 function shouldOpenSwitcher(): boolean {
-  // Super-admins always; everyone else only when they have more than one
-  // association to switch among. Single-provider users get a read-only
-  // badge.
-  return isSuperAdmin() || hasMultipleAssociations();
+  // Super-admins always; everyone else when they have more than one
+  // association to switch among, or any provisioner-managed provider to
+  // enter. Single-provider users get a read-only badge.
+  return isSuperAdmin() || hasMultipleAssociations() || hasProvisionerProviders();
 }
 
 function onTournamentsRoute(): boolean {

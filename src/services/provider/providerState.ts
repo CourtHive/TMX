@@ -102,6 +102,11 @@ export function getProviderAssociations() {
   return getLoginState()?.providerAssociations ?? [];
 }
 
+/** Providers managed by the user's provisioner(s); admin-equivalent in TMX. */
+export function getProvisionerProviders() {
+  return getLoginState()?.provisionerProviders ?? [];
+}
+
 /**
  * Resolve the initial active provider for a multi-provider user. Precedence:
  *   1. tmx_impersonated_provider in localStorage with full identity fields

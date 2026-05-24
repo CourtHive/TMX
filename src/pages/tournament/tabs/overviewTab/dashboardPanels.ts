@@ -6,6 +6,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { getLoginState } from 'services/authentication/loginState';
 import { printFactSheet } from 'components/modals/printFactSheet';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -26,7 +27,7 @@ import { t } from 'i18n';
 
 // constants
 import { ADD_TOURNAMENT_TIMEITEM, SET_TOURNAMENT_NOTES } from 'constants/mutationConstants';
-import { ADMIN, FORMAT_WIZARD_ACTION_BUTTON, SUPER_ADMIN, TOURNAMENT } from 'constants/tmxConstants';
+import { FORMAT_WIZARD_ACTION_BUTTON, TOURNAMENT } from 'constants/tmxConstants';
 
 const ICON_BTN_STYLE =
   'background:var(--tmx-bg-primary); border:1px solid var(--tmx-border-primary); border-radius:4px; padding:4px 8px; cursor:pointer; font-size:14px; color:var(--tmx-text-primary);';
@@ -426,8 +427,7 @@ export function createActionsPanel(): HTMLElement {
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
   const state = getLoginState();
-  const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-  const admin = superAdmin || state?.roles?.includes(ADMIN);
+  const admin = isActiveProviderAdmin();
   const activeProvider = context.provider || state?.provider;
 
   if (tournamentRecord && admin) {
