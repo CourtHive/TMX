@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.2.1](https://github.com/CourtHive/TMX/compare/v5.2.0...v5.2.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @babel/plugin-transform-private-property-in-object to v7.29.7 ([c003c71](https://github.com/CourtHive/TMX/commit/c003c71dcccfd40a29f0d032c230929e48446bf5))
+* **deps:** update dependency courthive-components to v1.10.0 ([16935c9](https://github.com/CourtHive/TMX/commit/16935c9c10b5dd39f07597ab6ca17d1a1def702c))
+* **deps:** update dependency tods-competition-factory to v4.2.0 ([21fece0](https://github.com/CourtHive/TMX/commit/21fece0cc5cbdeb8a7e0c8f2ce747d65d9c6c6d0))
+
 ## [5.2.0](https://github.com/CourtHive/TMX/compare/v5.1.0...v5.2.0) (2026-05-25)
 
 
