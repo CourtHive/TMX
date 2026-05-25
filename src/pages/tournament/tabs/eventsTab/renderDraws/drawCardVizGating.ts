@@ -15,6 +15,13 @@ import type { DrawCardDisplayMode } from './drawCardDisplayMode';
 export const HARD_CAP = 15;
 export const SUNBURST_CAP = 6;
 
+const SUNBURST_COMPETITIVE: DrawCardDisplayMode = 'sunburst-competitive';
+
+/** Both burst variants (progression + competitive) share gating + rendering. */
+export function isSunburstMode(mode: DrawCardDisplayMode): boolean {
+  return mode === 'sunburst' || mode === SUNBURST_COMPETITIVE;
+}
+
 export interface VizDataAvailability {
   hasRatings: boolean;
   hasCompetitiveness: boolean;
@@ -46,13 +53,13 @@ export function resolveDisplayMode({
   if (drawCount > HARD_CAP) {
     return { mode: 'none', requested, gated: true, reason: 'over-cap' };
   }
-  if (requested === 'sunburst' && drawCount >= SUNBURST_CAP) {
+  if (isSunburstMode(requested) && drawCount >= SUNBURST_CAP) {
     return { mode: 'none', requested, gated: true, reason: 'sunburst-too-many' };
   }
   if (requested === 'histogram' && !availability.hasRatings) {
     return { mode: 'none', requested, gated: true, reason: 'no-ratings' };
   }
-  if (requested === 'competitiveness' && !availability.hasCompetitiveness) {
+  if ((requested === 'competitiveness' || requested === SUNBURST_COMPETITIVE) && !availability.hasCompetitiveness) {
     return { mode: 'none', requested, gated: true, reason: 'no-competitiveness' };
   }
   return { mode: requested, requested, gated: false };
@@ -87,16 +94,24 @@ export function buildDisplayModeOptions({
       reason: !availability.hasCompetitiveness ? 'no completed matches' : undefined,
     },
   ];
-  // Sunburst only available when the draw count is below the SUNBURST_CAP.
+  // Burst variants only available when the draw count is below the SUNBURST_CAP.
   if (drawCount < SUNBURST_CAP) {
-    options.push({ value: 'sunburst', label: 'Sunburst' });
+    options.push(
+      { value: 'sunburst', label: 'Burst (progression)' },
+      {
+        value: SUNBURST_COMPETITIVE,
+        label: 'Burst (competitive)',
+        disabled: !availability.hasCompetitiveness,
+        reason: !availability.hasCompetitiveness ? 'no completed matches' : undefined,
+      },
+    );
   }
   return options;
 }
 
 export function gateReasonLabel(reason: GateReason): string {
   if (reason === 'over-cap') return `Visualizations hidden — too many draws (cap: ${HARD_CAP}).`;
-  if (reason === 'sunburst-too-many') return `Sunburst hidden — only available when fewer than ${SUNBURST_CAP} draws.`;
+  if (reason === 'sunburst-too-many') return `Burst hidden — only available when fewer than ${SUNBURST_CAP} draws.`;
   if (reason === 'no-ratings') return 'No ratings data — histogram hidden.';
   if (reason === 'no-competitiveness') return 'No completed matches — competitiveness hidden.';
   return '';

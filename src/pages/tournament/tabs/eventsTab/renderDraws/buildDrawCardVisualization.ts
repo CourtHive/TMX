@@ -118,7 +118,7 @@ function buildHistogramForDraw(
   return wrap;
 }
 
-function buildSunburstForDraw(enrichedStructure: any, expanded: boolean): HTMLElement | null {
+function buildSunburstForDraw(enrichedStructure: any, expanded: boolean, competitive: boolean): HTMLElement | null {
   // `enrichedStructure` is the `getEventData().drawsData[i].structures[j]`
   // shape that has `roundMatchUps` — NOT the raw `drawDefinition.structures[0]`.
   if (!enrichedStructure?.roundMatchUps) return null;
@@ -126,7 +126,14 @@ function buildSunburstForDraw(enrichedStructure: any, expanded: boolean): HTMLEl
   const container = document.createElement('div');
   container.style.cssText = `width:${size}px; height:${size}px; max-width:100%;`;
   const data = fromFactoryDrawData(enrichedStructure);
-  burstChart({ width: size, height: size, eventHandlers: {} }).render(container, data, '');
+  // competitive → color winner rings by matchUp competitiveness (computed by the
+  // adapter from score.sets); progression → default seed/entry coloring.
+  burstChart({
+    width: size,
+    height: size,
+    colorMode: competitive ? 'competitiveness' : 'default',
+    eventHandlers: {},
+  }).render(container, data, '');
   return container;
 }
 
@@ -168,6 +175,7 @@ export function buildDrawCardVisualization({
   if (!drawDefinition?.structures?.length) return null;
   if (mode === 'competitiveness') return buildCompetitivenessForMatchUps(competitiveMatchUps ?? []);
   if (mode === 'histogram') return buildHistogramForDraw(participantsById, drawParticipantIds, ratingScaleName);
-  if (mode === 'sunburst') return buildSunburstForDraw(enrichedStructure, expanded);
+  if (mode === 'sunburst') return buildSunburstForDraw(enrichedStructure, expanded, false);
+  if (mode === 'sunburst-competitive') return buildSunburstForDraw(enrichedStructure, expanded, true);
   return null;
 }
