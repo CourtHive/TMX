@@ -161,7 +161,7 @@ export function routeTMX() {
       try {
         const res = await ssoLoginWithToken(token);
         if (res?.status === 200 && res.data?.accessToken) {
-          logIn({ data: { token: res.data.accessToken } });
+          logIn({ data: { token: res.data.accessToken, refreshToken: res.data.refreshToken } });
         } else {
           logOut();
         }

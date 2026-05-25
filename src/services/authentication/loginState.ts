@@ -6,8 +6,10 @@ import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { validateToken } from 'services/authentication/validateToken';
-import { getToken, removeToken, setToken } from './tokenManagement';
+import { getToken, removeToken, setToken, getRefreshToken, setRefreshToken, removeRefreshToken } from './tokenManagement';
 import { disconnectSocket } from 'services/messaging/socketIo';
+import { refreshAccessToken } from 'services/apis/baseApi';
+import { revokeRefreshToken } from './authApi';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { loginModal } from 'components/modals/loginModal';
@@ -50,7 +52,12 @@ export function getLoginState(): LoginState | undefined {
 }
 
 export function logOut(): void {
+  // Best-effort server-side revocation of the refresh token so a leaked copy
+  // can't be replayed after logout. Fire-and-forget; never blocks local logout.
+  const refreshToken = getRefreshToken();
+  if (refreshToken) revokeRefreshToken(refreshToken).catch(() => undefined);
   removeToken();
+  removeRefreshToken();
   clearUserContext();
   checkDevState();
   disconnectSocket();
@@ -66,11 +73,18 @@ export function logOut(): void {
   styleLogin(false);
 }
 
-export function logIn({ data, callback }: { data: { token: string }; callback?: () => void }): void {
+export function logIn({
+  data,
+  callback,
+}: {
+  data: { token: string; refreshToken?: string };
+  callback?: () => void;
+}): void {
   const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
   if (valid) {
     setToken(data.token);
+    if (data.refreshToken) setRefreshToken(data.refreshToken);
     clearUserContext();
     // Fire-and-forget: fetch the multi-provider user context from the server.
     // The context will be available by the time the user interacts with the
@@ -92,6 +106,45 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
       reRenderActiveTab();
     }
   }
+}
+
+// Coalesce concurrent boot-time refresh attempts (getLoginState can be called
+// many times during routing) so the refresh token rotates only once.
+let silentRefreshInFlight: Promise<boolean> | null = null;
+
+/**
+ * Exchange the stored refresh token for a fresh access token and re-apply the
+ * session WITHOUT navigating or tearing down the socket. Used on boot (and any
+ * point a still-valid refresh token outlives an expired access token) so a
+ * returning user stays logged in instead of being bounced to a login screen.
+ * On failure, logs out cleanly.
+ */
+export function attemptSilentRefresh(): Promise<boolean> {
+  if (!silentRefreshInFlight) {
+    silentRefreshInFlight = doSilentRefresh().finally(() => {
+      silentRefreshInFlight = null;
+    });
+  }
+  return silentRefreshInFlight;
+}
+
+async function doSilentRefresh(): Promise<boolean> {
+  const newToken = await refreshAccessToken();
+  if (!newToken) {
+    logOut();
+    return false;
+  }
+  const valid = validateToken(newToken);
+  if (!valid) {
+    logOut();
+    return false;
+  }
+  clearUserContext();
+  fetchUserContext();
+  if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
+  styleLogin(valid);
+  initProviderSwitcher();
+  return true;
 }
 
 function reRenderActiveTab(): void {
