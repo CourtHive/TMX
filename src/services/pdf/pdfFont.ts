@@ -6,9 +6,10 @@
  * module-level `setDefaultFont`, so EVERY print type picks it up without any
  * per-call wiring.
  *
- * Fonts (TrueType) are hosted by competition-factory-server at `/fonts`. We fetch
- * the chosen font once, base64-encode it, and cache it in IndexedDB (Dexie
- * `pdfFonts` table) so subsequent prints are instant and work offline.
+ * Fonts (TrueType) are served as static files by NGINX at `/fonts/` (sourced from
+ * Mentat/static/fonts), NOT through CFS — static blobs stay off the mutation
+ * server. We fetch the chosen font once, base64-encode it, and cache it in
+ * IndexedDB (Dexie `pdfFonts` table) so subsequent prints are instant and work offline.
  *
  * See Mentat/planning/PDF_CE_FONT_SUPPORT.md (WS-3).
  */
@@ -44,8 +45,9 @@ export interface PdfFontCatalogEntry {
 
 const CENTRAL_EUROPEAN = ['en', 'cs', 'sk', 'pl', 'hu', 'hr', 'sl', 'ro', 'de', 'fr', 'es', 'it', 'tr'];
 
-// Stable fallback catalog matching what CFS seeds, so the feature works before
-// (or without) a successful `/fonts` fetch — the file URLs are stable.
+// Stable fallback catalog matching the NGINX-served /fonts/ bundle, so the
+// feature works before (or without) a successful catalog fetch — the file URLs
+// are stable static paths served directly by NGINX (not CFS).
 const DEFAULT_CATALOG: PdfFontCatalogEntry[] = [
   { id: BUILTIN_FONT_ID, label: 'Helvetica (built-in)', languages: ['en'], builtin: true },
   {
@@ -53,14 +55,14 @@ const DEFAULT_CATALOG: PdfFontCatalogEntry[] = [
     label: 'DejaVu Sans',
     languages: CENTRAL_EUROPEAN,
     builtin: false,
-    files: { normal: '/fonts/files/DejaVuSans.ttf', bold: '/fonts/files/DejaVuSans-Bold.ttf' },
+    files: { normal: '/fonts/DejaVuSans.ttf', bold: '/fonts/DejaVuSans-Bold.ttf' },
   },
   {
     id: 'liberation-sans',
     label: 'Liberation Sans',
     languages: CENTRAL_EUROPEAN,
     builtin: false,
-    files: { normal: '/fonts/files/LiberationSans-Regular.ttf', bold: '/fonts/files/LiberationSans-Bold.ttf' },
+    files: { normal: '/fonts/LiberationSans-Regular.ttf', bold: '/fonts/LiberationSans-Bold.ttf' },
   },
 ];
 
@@ -82,10 +84,10 @@ export function getCachedFontCatalog(): PdfFontCatalogEntry[] {
   return DEFAULT_CATALOG;
 }
 
-/** Refresh the catalog from CFS `/fonts`; falls back to the cached/default list. */
+/** Refresh the catalog from the NGINX-served `/fonts/catalog.json`; falls back to the cached/default list. */
 export async function fetchFontCatalog(): Promise<PdfFontCatalogEntry[]> {
   try {
-    const { data } = await baseApi.get('/fonts', { silenceErrors: true } as any);
+    const { data } = await baseApi.get('/fonts/catalog.json', { silenceErrors: true } as any);
     const fonts = data?.fonts as PdfFontCatalogEntry[] | undefined;
     if (fonts?.length) {
       catalogCache = fonts;

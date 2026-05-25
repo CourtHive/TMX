@@ -68,6 +68,6 @@ describe('pdfFont catalog', () => {
   it('marks the CE fonts as non-builtin with file URLs', () => {
     const dejavu = getCachedFontCatalog().find((f) => f.id === DEJAVU);
     expect(dejavu?.builtin).toBe(false);
-    expect(dejavu?.files?.normal).toContain('/fonts/files/');
+    expect(dejavu?.files?.normal).toBe('/fonts/DejaVuSans.ttf');
   });
 });
