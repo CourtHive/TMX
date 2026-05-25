@@ -61,3 +61,13 @@ export async function completeFirstLogin(limitedToken: string, newPassword: stri
 export async function revokeRefreshToken(refreshToken: string) {
   return baseApi.post('/auth/logout', { refreshToken }, { silenceErrors: true });
 }
+
+/** Request a passwordless magic login link. Enumeration-defensive server-side. */
+export async function requestMagicLink(email: string) {
+  return baseApi.post('/auth/magic/request', { email });
+}
+
+/** Exchange a single-use magic-link code for an access + refresh session. */
+export async function consumeMagicLink(code: string) {
+  return baseApi.post('/auth/magic/consume', { code }, { silenceErrors: true });
+}
