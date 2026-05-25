@@ -1,6 +1,7 @@
 import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
-import { persistConfigToStorage, loadSettings } from 'services/settings/settingsStorage';
+import { persistConfigToStorage, loadSettings, saveSettings } from 'services/settings/settingsStorage';
+import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
 import { tournamentEngine } from 'services/factory/engine';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
@@ -346,6 +347,35 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
     },
   ]);
   fontPanel.appendChild(fontSizeForm);
+
+  // PDF font — embedded in generated PDFs for Latin-2 / Central-European names
+  const currentPdfFont = loadSettings()?.pdfFont ?? PROVIDER_DEFAULT_FONT;
+  const pdfFontForm = document.createElement('div');
+  pdfFontForm.style.marginTop = '8px';
+  renderForm(pdfFontForm, [
+    {
+      options: [
+        {
+          value: PROVIDER_DEFAULT_FONT,
+          label: t('modals.settings.useProviderDefault', { defaultValue: 'Use provider default' }),
+          selected: currentPdfFont === PROVIDER_DEFAULT_FONT,
+        },
+        ...getCachedFontCatalog().map((font) => ({
+          value: font.id,
+          label: font.label,
+          selected: font.id === currentPdfFont,
+        })),
+      ],
+      onChange: (e: Event) => {
+        const select = e.target as HTMLSelectElement;
+        saveSettings({ pdfFont: select.value });
+        void ensurePdfFontReady();
+      },
+      field: 'pdfFont',
+      id: 'pdfFont',
+    },
+  ]);
+  fontPanel.appendChild(pdfFontForm);
 
   grid.appendChild(fontPanel);
 

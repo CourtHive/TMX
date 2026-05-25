@@ -28,6 +28,10 @@ export class TMXDatabase {
         this.dex.version(5).stores({ tournaments, providers, idioms, policies, topologies, tieFormats });
         const compositions = namedSource;
         this.dex.version(6).stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions });
+        const pdfFonts = '&fontId, cachedAt';
+        this.dex
+          .version(7)
+          .stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions, pdfFonts });
         resolve();
       } catch (err) {
         reject(err);

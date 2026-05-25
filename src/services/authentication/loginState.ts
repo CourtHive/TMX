@@ -12,6 +12,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { loginModal } from 'components/modals/loginModal';
 import { providerConfig } from 'config/providerConfig';
+import { ensurePdfFontReady } from 'services/pdf/pdfFont';
 import { getLoginColor } from 'functions/getLoginColor';
 import { tipster } from 'components/popovers/tipster';
 import { checkDevState } from './checkDevState';
@@ -77,6 +78,8 @@ export function logIn({ data, callback }: { data: { token: string }; callback?: 
     // tournaments table or any provider-scoped UI element.
     fetchUserContext();
     if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
+    // Re-resolve the PDF font now that the provider's defaultPdfFont is known.
+    void ensurePdfFontReady();
     tmxToast({ intent: 'is-success', message: t('toasts.loggedIn') });
     disconnectSocket();
     if (!tournamentInState) tournamentEngine.reset();
