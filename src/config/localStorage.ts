@@ -4,3 +4,7 @@ export function getJwtTokenStorageKey(): string {
 
   return TOKEN_NAME;
 }
+
+export function getRefreshTokenStorageKey(): string {
+  return 'tmxRefreshToken';
+}

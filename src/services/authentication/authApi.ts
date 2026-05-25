@@ -52,3 +52,12 @@ export async function ssoLoginWithToken(token: string) {
 export async function completeFirstLogin(limitedToken: string, newPassword: string) {
   return baseApi.post('/auth/complete-first-login', { limitedToken, newPassword });
 }
+
+/**
+ * Server-side revocation of a refresh token on logout. Idempotent and best-effort
+ * — failures are silenced so logout always completes locally. The access-token
+ * refresh itself lives in baseApi (refreshAccessToken) to avoid an import cycle.
+ */
+export async function revokeRefreshToken(refreshToken: string) {
+  return baseApi.post('/auth/logout', { refreshToken }, { silenceErrors: true });
+}
