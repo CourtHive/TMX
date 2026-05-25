@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.2.0](https://github.com/CourtHive/TMX/compare/v5.1.0...v5.2.0) (2026-05-25)
+
+
+### Features
+
+* **auth:** silent access-token refresh via rotating refresh token ([77cb9ad](https://github.com/CourtHive/TMX/commit/77cb9adf600d67a37323a685f10747a2aa3e6541))
+* **pdf:** user/provider-selectable PDF font with Latin-2 support ([#1082](https://github.com/CourtHive/TMX/issues/1082)) ([8464352](https://github.com/CourtHive/TMX/commit/84643526c6cc2067876c70ab913b34ff468843ec))
+
 ## [5.1.0](https://github.com/CourtHive/TMX/compare/v5.0.1...v5.1.0) (2026-05-24)
 
 
