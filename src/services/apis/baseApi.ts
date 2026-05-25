@@ -28,6 +28,7 @@ const AUTH_ENDPOINTS = [
   '/auth/logout',
   '/auth/complete-first-login',
   '/auth/sso/login-with-token',
+  '/auth/magic/',
 ];
 const isAuthEndpoint = (url?: string): boolean => !!url && AUTH_ENDPOINTS.some((p) => url.includes(p));
 

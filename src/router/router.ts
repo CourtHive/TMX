@@ -1,6 +1,8 @@
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
 import { registrationModal } from 'components/modals/registrationModal';
-import { ssoLoginWithToken } from 'services/authentication/authApi';
+import { ssoLoginWithToken, consumeMagicLink } from 'services/authentication/authApi';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
@@ -169,6 +171,28 @@ export function routeTMX() {
         logOut();
       }
     } else {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+    }
+  });
+
+  // Magic-link login: the email lands the user on `#/magic/:code`. The code is
+  // single-use and consumed server-side for an access + refresh session.
+  router.on('/magic/:code', async (match) => {
+    const code = match?.data?.code;
+    if (!code) {
+      router.navigate(`/${TMX_TOURNAMENTS}`);
+      return;
+    }
+    try {
+      const res = await consumeMagicLink(code);
+      if (res?.status === 200 && res.data?.token) {
+        logIn({ data: res.data });
+      } else {
+        tmxToast({ intent: 'is-danger', message: t('toasts.magicLinkInvalid') });
+        router.navigate(`/${TMX_TOURNAMENTS}`);
+      }
+    } catch {
+      tmxToast({ intent: 'is-danger', message: t('toasts.magicLinkInvalid') });
       router.navigate(`/${TMX_TOURNAMENTS}`);
     }
   });

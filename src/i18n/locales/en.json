@@ -886,7 +886,8 @@
       "emailPlaceholder": "valid@email.com",
       "passwordLabel": "Password",
       "passwordPlaceholder": "minimum 8 characters",
-      "loginButton": "Login"
+      "loginButton": "Login",
+      "magicLinkButton": "Email me a login link"
     },
     "firstLogin": {
       "title": "Set your password",
@@ -1484,6 +1485,8 @@
   "toasts": {
     "copiedToClipboard": "Copied to clipboard",
     "loggedIn": "Log in successful",
+    "magicLinkSent": "If an account exists for that email, a login link is on its way.",
+    "magicLinkInvalid": "That login link is invalid or has expired. Please request a new one.",
     "userRemoved": "User removed",
     "tournamentNotFound": "Tournament not found",
     "connectionError": "Connection error",
