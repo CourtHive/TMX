@@ -111,7 +111,7 @@
     "yargs": "18.0.0"
   },
   "dependencies": {
-    "@babel/plugin-transform-private-property-in-object": "7.28.6",
+    "@babel/plugin-transform-private-property-in-object": "7.29.7",
     "@eslint/js": "^10.0.1",
     "@tiptap/core": "^3.22.2",
     "@tiptap/extension-color": "^3.22.2",
