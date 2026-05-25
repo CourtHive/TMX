@@ -125,7 +125,7 @@
     "axios": "1.16.1",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
-    "courthive-components": "1.8.1",
+    "courthive-components": "1.9.0",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.20",
     "dexie": "4.4.2",
