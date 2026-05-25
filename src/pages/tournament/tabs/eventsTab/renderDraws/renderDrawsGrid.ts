@@ -28,6 +28,7 @@ import {
   VizDataAvailability,
   gateReasonLabel,
   resolveDisplayMode,
+  isSunburstMode,
 } from './drawCardVizGating';
 
 import './drawsGrid.css';
@@ -228,7 +229,7 @@ export function renderDrawsGrid({
 
   const grid = document.createElement('div');
   grid.className = GRID_CLASS;
-  if (resolved.mode === 'sunburst') grid.classList.add(GRID_EXPANDED_CLASS);
+  if (isSunburstMode(resolved.mode)) grid.classList.add(GRID_EXPANDED_CLASS);
   wrap.appendChild(grid);
 
   const resolvedEvent = resolveEventData(eventId);
@@ -238,7 +239,7 @@ export function renderDrawsGrid({
   // Sunburst needs the enriched structures (with `roundMatchUps`) from
   // getEventData — drawDefinition.structures alone doesn't carry that field.
   const enrichedDrawsData =
-    resolved.mode === 'sunburst'
+    isSunburstMode(resolved.mode)
       ? (tournamentEngine as any).getEventData({ eventId })?.eventData?.drawsData ?? []
       : [];
 
@@ -271,7 +272,7 @@ export function renderDrawsGrid({
       const dd = resolvedEvent?.drawDefinitions.find((d: any) => d.drawId === row.drawId);
       if (dd) {
         const enrichedStructure =
-          resolved.mode === 'sunburst'
+          isSunburstMode(resolved.mode)
             ? enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures?.[0]
             : undefined;
         const competitiveMatchUps =
@@ -284,7 +285,7 @@ export function renderDrawsGrid({
         visualization = buildDrawCardVisualization({
           mode: resolved.mode,
           drawDefinition: dd,
-          expanded: resolved.mode === 'sunburst',
+          expanded: isSunburstMode(resolved.mode),
           ratingScaleName,
           participantsById,
           drawParticipantIds,

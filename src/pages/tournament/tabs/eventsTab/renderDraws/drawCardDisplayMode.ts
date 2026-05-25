@@ -4,15 +4,23 @@
  * tournament-director-preference design.
  */
 
-export type DrawCardDisplayMode = 'none' | 'histogram' | 'competitiveness' | 'sunburst';
+export type DrawCardDisplayMode = 'none' | 'histogram' | 'competitiveness' | 'sunburst' | 'sunburst-competitive';
 
 const KEY = 'tmx_draws_card_display';
+
+const VALID_MODES: ReadonlySet<string> = new Set([
+  'none',
+  'histogram',
+  'competitiveness',
+  'sunburst',
+  'sunburst-competitive',
+]);
 
 export function readDrawCardDisplayMode(): DrawCardDisplayMode {
   try {
     const stored = globalThis.localStorage?.getItem(KEY);
-    if (stored === 'histogram' || stored === 'competitiveness' || stored === 'sunburst' || stored === 'none') {
-      return stored;
+    if (stored && VALID_MODES.has(stored)) {
+      return stored as DrawCardDisplayMode;
     }
     return 'none';
   } catch {

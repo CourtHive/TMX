@@ -231,6 +231,31 @@ function writeSunburstView(view: SunburstView): void {
   }
 }
 
+// Burst coloring: 'progression' = seed/entry coloring; 'competitive' = winner
+// rings colored by matchUp competitiveness. Per-user preference, only relevant
+// while the burst (not donut) view is shown.
+type BurstColor = 'progression' | 'competitive';
+
+const BURST_COLOR_KEY = 'tmx:overview:burstColor';
+const BURST_COLOR_DEFAULT: BurstColor = 'progression';
+
+function readBurstColor(): BurstColor {
+  try {
+    const stored = localStorage.getItem(BURST_COLOR_KEY);
+    return stored === 'progression' || stored === 'competitive' ? stored : BURST_COLOR_DEFAULT;
+  } catch {
+    return BURST_COLOR_DEFAULT;
+  }
+}
+
+function writeBurstColor(color: BurstColor): void {
+  try {
+    localStorage.setItem(BURST_COLOR_KEY, color);
+  } catch {
+    // storage unavailable
+  }
+}
+
 const ALL_STRUCTURES = 'all';
 
 export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
@@ -238,6 +263,10 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   panel.className = 'dash-panel dash-panel-green';
 
   let view: SunburstView = readSunburstView();
+  let burstColor: BurstColor = readBurstColor();
+  let burstInstance: { setColorMode: (m: 'default' | 'competitiveness') => void } | undefined;
+  const burstColorOption = (): 'default' | 'competitiveness' =>
+    burstColor === 'competitive' ? 'competitiveness' : 'default';
 
   // Header row: structure dropdown + view toggle
   const header = document.createElement('div');
@@ -274,6 +303,23 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     toggleBtn.style.display = visible ? '' : 'none';
   };
 
+  // Burst color toggle (progression ↔ competitive) — only shown in burst view.
+  const colorToggleBtn = document.createElement('button');
+  colorToggleBtn.style.cssText = ICON_BTN_STYLE;
+  const setColorToggleAppearance = () => {
+    const competitive = burstColor === 'competitive';
+    colorToggleBtn.innerHTML = `<i class="fa ${competitive ? 'fa-fire' : 'fa-seedling'}"></i>`;
+    colorToggleBtn.title = competitive
+      ? t('dashboard.burstColorCompetitive', { defaultValue: 'Coloring: competitiveness — click for progression' })
+      : t('dashboard.burstColorProgression', { defaultValue: 'Coloring: progression — click for competitiveness' });
+  };
+  setColorToggleAppearance();
+  header.appendChild(colorToggleBtn);
+
+  const setColorToggleVisibility = (visible: boolean) => {
+    colorToggleBtn.style.display = visible ? '' : 'none';
+  };
+
   panel.appendChild(header);
 
   const chartDiv = document.createElement('div');
@@ -305,7 +351,11 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
         });
       },
     };
-    burstChart({ width: 500, height: 500, eventHandlers }).render(chartDiv, fromFactoryDrawData(drawData), title);
+    burstInstance = burstChart({ width: 500, height: 500, colorMode: burstColorOption(), eventHandlers }).render(
+      chartDiv,
+      fromFactoryDrawData(drawData),
+      title,
+    );
   };
 
   const renderDonut = (info: StructureInfo | null) => {
@@ -324,6 +374,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   const renderStructure = (value: string) => {
     if (value === ALL_STRUCTURES) {
       setToggleVisibility(false);
+      setColorToggleVisibility(false);
       renderDonut(null);
       return;
     }
@@ -331,8 +382,10 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     if (!info) return;
     setToggleVisibility(true);
     if (view === 'donut') {
+      setColorToggleVisibility(false);
       renderDonut(info);
     } else {
+      setColorToggleVisibility(true);
       renderBurst(info);
     }
   };
@@ -342,6 +395,14 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
     writeSunburstView(view);
     setToggleAppearance();
     renderStructure(select.value);
+  });
+
+  colorToggleBtn.addEventListener('click', () => {
+    burstColor = burstColor === 'competitive' ? 'progression' : 'competitive';
+    writeBurstColor(burstColor);
+    setColorToggleAppearance();
+    // Instant recolor without rebuilding the chart.
+    burstInstance?.setColorMode(burstColorOption());
   });
 
   select.addEventListener('change', () => renderStructure(select.value));
