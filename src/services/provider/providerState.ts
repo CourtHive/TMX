@@ -11,6 +11,7 @@
  * Mentat/planning/MULTI_PROVIDER_SESSION_CONTEXT.md.
  */
 import { providerConfig } from 'config/providerConfig';
+import { ensurePdfFontReady } from 'services/pdf/pdfFont';
 import { getLoginState } from 'services/authentication/loginState';
 import { baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
@@ -53,6 +54,8 @@ export function setActiveProvider(provider: ProviderValue, options: SetActivePro
     fetchEffectiveConfig(provider.organisationId).then(
       (effective) => {
         if (effective) providerConfig.set(effective);
+        // Re-resolve the PDF font for the newly impersonated provider's default.
+        void ensurePdfFontReady();
       },
       () => {
         /* fetch failure — keep prior providerConfig (better than wiping) */

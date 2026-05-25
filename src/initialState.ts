@@ -9,6 +9,7 @@ import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
+import { initPdfFont } from 'services/pdf/pdfFont';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
@@ -140,6 +141,11 @@ export function setupTMX(): void {
   initLoginToggle('burger');
   initThemeToggle('themeToggle');
   initProviderSwitcher();
+
+  // Warm the PDF font catalog + apply the resolved font (user → provider →
+  // helvetica) so all generated PDFs embed it. Re-applied after login in
+  // loginState once the provider config (defaultPdfFont) is known.
+  void initPdfFont();
   if (!(Array.prototype as any).toSorted) {
     (Array.prototype as any).toSorted = function (compareFn?: (a: any, b: any) => number) {
       return this.slice().sort(compareFn);

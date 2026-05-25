@@ -62,6 +62,13 @@ export type TMXSettings = {
   fontFamily?: string;
   fontSize?: string;
   /**
+   * Selected PDF font: a CFS font-catalog id (e.g. 'dejavu-sans',
+   * 'liberation-sans', 'helvetica'), or the sentinel '__provider_default__'
+   * (or unset) to follow the provider's defaultPdfFont. Resolved by
+   * services/pdf/pdfFont.ts; embedded in generated PDFs for Latin-2 coverage.
+   */
+  pdfFont?: string;
+  /**
    * @deprecated — promoted to standard features. Retained in the type only so
    * existing localStorage values deserialize cleanly; ignored on hydrate.
    */
