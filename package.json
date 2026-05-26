@@ -127,7 +127,7 @@
     "classnames": "2.5.1",
     "courthive-components": "1.10.0",
     "d3-selection": "3.0.0",
-    "dayjs": "1.11.20",
+    "dayjs": "1.11.21",
     "dexie": "4.4.2",
     "esri-leaflet": "3.0.19",
     "focus-trap": "8.2.1",
