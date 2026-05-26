@@ -17,7 +17,6 @@ ignoredBuiltDependencies:
   - cypress
   - electron
   - electron-winstaller
-  - esbuild
 
 overrides:
   '@courthive/provider-config': link:../provider-config
