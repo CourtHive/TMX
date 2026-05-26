@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.1](https://github.com/CourtHive/TMX/compare/v6.0.0...v6.0.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @courthive/provider-config to ^0.3.0 ([80d0015](https://github.com/CourtHive/TMX/commit/80d0015728b475d24fa857df7a74db50d91d6ac1))
+* **deps:** update dependency dayjs to v1.11.21 ([d8f3746](https://github.com/CourtHive/TMX/commit/d8f37466ee3942024b17b81c9f95227d096053a2))
+
 ## [6.0.0](https://github.com/CourtHive/TMX/compare/v5.2.1...v6.0.0) (2026-05-25)
 
 
