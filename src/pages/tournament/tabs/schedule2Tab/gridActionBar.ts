@@ -1,10 +1,10 @@
 /**
  * Grid Action Bar — slim bottom strip beneath the court grid that hosts
- * three controls previously mounted in the schedule2 page header:
+ * footer controls:
  *
- *   - Issues button (warning triangle + count badge with a tippy popover)
- *   - Bulk mode toggle
- *   - Clear schedule menu trigger
+ *   - Left:    Issues button (warning triangle + count badge with a tippy popover)
+ *   - Center:  Min cell-width stepper (controls the grid's min court column width)
+ *   - Right:   Bulk mode toggle, Clear schedule menu trigger
  *
  * Matches the visual of the profile view's action bar so both views read
  * as a unified "panel + bottom strip" pair.
@@ -12,6 +12,12 @@
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
 import { ScheduleIssue } from 'courthive-components';
+import {
+  MIN_COURT_WIDTH_FLOOR,
+  MIN_COURT_WIDTH_CEILING,
+  MIN_COURT_WIDTH_STEP,
+} from 'services/schedulePreferences/userMinCourtWidth';
+import { buildStepper } from './stepperControl';
 
 const PULSE = 'spl-cell--issue-pulse';
 const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
@@ -22,12 +28,14 @@ const BORDER_RADIUS_6 = 'border-radius: 6px';
 export interface GridActionBarParams {
   issues: ScheduleIssue[];
   bulkMode: boolean;
+  minCourtWidth: number;
+  onMinCourtWidthChange: (width: number) => void;
   onBulkModeChange: (enabled: boolean) => void;
   onClearSchedule?: (target: HTMLElement) => void;
 }
 
 export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
-  const { issues, bulkMode, onBulkModeChange, onClearSchedule } = params;
+  const { issues, bulkMode, minCourtWidth, onMinCourtWidthChange, onBulkModeChange, onClearSchedule } = params;
 
   const bar = document.createElement('div');
   bar.style.cssText =
@@ -38,10 +46,19 @@ export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
     bar.appendChild(buildIssuesButton(issues));
   }
 
-  // Spacer pushes the right cluster to the end of the row
-  const spacer = document.createElement('div');
-  spacer.style.cssText = 'flex: 1;';
-  bar.appendChild(spacer);
+  // Leading spacer pushes the centered stepper away from the issues cluster.
+  // A matching trailing spacer (below) leaves the stepper visually centered
+  // while the right cluster stays flush right.
+  const leadingSpacer = document.createElement('div');
+  leadingSpacer.style.cssText = 'flex: 1;';
+  bar.appendChild(leadingSpacer);
+
+  // Center: min cell-width stepper
+  bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
+
+  const trailingSpacer = document.createElement('div');
+  trailingSpacer.style.cssText = 'flex: 1;';
+  bar.appendChild(trailingSpacer);
 
   // Right cluster
   if (providerConfig.isAllowed('canUseBulkScheduling')) {
@@ -52,6 +69,21 @@ export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
   }
 
   return bar;
+}
+
+// ── Min cell width ──
+
+function buildMinCourtWidthStepper(initial: number, onChange: (width: number) => void): HTMLElement {
+  return buildStepper({
+    label: 'Min Width',
+    initial,
+    min: MIN_COURT_WIDTH_FLOOR,
+    max: MIN_COURT_WIDTH_CEILING,
+    step: MIN_COURT_WIDTH_STEP,
+    suffix: 'px',
+    title: 'Minimum court column width — cells grow wider when there is room',
+    onChange,
+  });
 }
 
 // ── Issues ──

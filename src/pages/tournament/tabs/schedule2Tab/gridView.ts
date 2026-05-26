@@ -33,6 +33,7 @@ import { context } from 'services/context';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
+import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridActionBar } from './gridActionBar';
 import {
   createSchedulePage,
@@ -86,8 +87,9 @@ const DISPLAY_FLEX = 'display: flex';
 
 // Grid layout constants — shared with the active strip so its leading spacer
 // matches the row-number column and its court cells align with grid columns.
+// The minimum court column width is a user preference (readUserMinCourtWidth)
+// adjustable from the footer stepper, NOT a constant.
 const GRID_TIME_COL_WIDTH_PX = 50;
-const GRID_MIN_COURT_WIDTH_PX = 110;
 const STRIP_CELL_HEIGHT_PX = 80;
 
 let activeControl: SchedulePageControl | null = null;
@@ -329,18 +331,22 @@ export function renderGridView(
 
   activeControl = createSchedulePage(config, panelArea);
 
-  // Action bar — only render when there's something to show. The provider
+  // Action bar — always rendered; it owns the min-width stepper even when
+  // there are no issues / no bulk toggle / no clear menu. The provider
   // permission check inside buildGridActionBar decides whether the bulk
   // toggle appears.
-  if (options?.onBulkModeChange || options?.onClearSchedule || issues.length > 0) {
-    const actionBar = buildGridActionBar({
-      issues,
-      bulkMode: options?.bulkMode ?? false,
-      onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
-      onClearSchedule: options?.onClearSchedule,
-    });
-    panelWrapper.appendChild(actionBar);
-  }
+  const actionBar = buildGridActionBar({
+    issues,
+    bulkMode: options?.bulkMode ?? false,
+    minCourtWidth: readUserMinCourtWidth(),
+    onMinCourtWidthChange: (width) => {
+      writeUserMinCourtWidth(width);
+      refresh();
+    },
+    onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
+    onClearSchedule: options?.onClearSchedule,
+  });
+  panelWrapper.appendChild(actionBar);
 
   // Wire the strip's visibility toggle through the schedule page store, and
   // push the initial data snapshot now that the activeControl exists. We also
@@ -1274,7 +1280,6 @@ function buildGridHeaders(params: {
 }
 
 function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): InteractiveGrid {
-  const MIN_COURT_WIDTH = GRID_MIN_COURT_WIDTH_PX;
   const TIME_COL_WIDTH = GRID_TIME_COL_WIDTH_PX;
   const MIN_PLACEHOLDER_ROWS = 8;
 
@@ -1298,6 +1303,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     // density once anyone has nudged the Rows stepper in the header.
     const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
     const minCourtGridRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
+    const MIN_COURT_WIDTH = readUserMinCourtWidth();
     const scheduleResult = competitionEngine.competitionScheduleMatchUps({
       matchUpFilters: { scheduledDate: date },
       courtCompletedMatchUps: true,
@@ -1528,8 +1534,9 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const emptyCalc = MINIMUM_SCHEDULE_COLUMNS - courtCount;
   const emptyCount = emptyCalc <= 0 ? 1 : emptyCalc;
   const totalColumns = courtCount + emptyCount;
-  const gridTemplateColumns = `${GRID_TIME_COL_WIDTH_PX}px repeat(${totalColumns}, minmax(${GRID_MIN_COURT_WIDTH_PX}px, 1fr))`;
-  const minWidth = `${GRID_TIME_COL_WIDTH_PX + totalColumns * GRID_MIN_COURT_WIDTH_PX}px`;
+  const minCourtWidthPx = readUserMinCourtWidth();
+  const gridTemplateColumns = `${GRID_TIME_COL_WIDTH_PX}px repeat(${totalColumns}, minmax(${minCourtWidthPx}px, 1fr))`;
+  const minWidth = `${GRID_TIME_COL_WIDTH_PX + totalColumns * minCourtWidthPx}px`;
 
   return { grid: { columns }, courts, gridTemplateColumns, minWidth };
 }
