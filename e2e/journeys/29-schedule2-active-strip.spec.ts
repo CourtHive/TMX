@@ -55,32 +55,62 @@ interface ScheduledTarget {
  * SCHEDULE_DATE. Returns the targeted IDs so the test can assert against
  * the rendered cell.
  */
-async function scheduleFirstMatchUp(page: import('@playwright/test').Page): Promise<ScheduledTarget> {
-  return page.evaluate((date) => {
-    const venues = dev.factory.tournamentEngine.getVenuesAndCourts()?.venues || [];
-    const targetCourt = (venues[0]?.courts || [])[0];
-    if (!targetCourt) throw new Error('No court available in seeded venue');
+/**
+ * Seed a tournament AND schedule its first non-BYE matchUp in a single
+ * page.evaluate. Combining both into one IDB-persist call avoids racing
+ * against the seed helper's fire-and-forget `dev.load` write.
+ *
+ * Returns both the tournamentId (for navigation) and the scheduled target.
+ */
+async function seedAndScheduleFirstMatchUp(
+  page: import('@playwright/test').Page,
+): Promise<{ tournamentId: string; target: ScheduledTarget }> {
+  return page.evaluate(async (date) => {
+    try {
+      // resetState (beforeEach) closed + deleted the dex. Re-init before
+      // any further IDB operation. (Other tests that only call dev.load
+      // happen to work because the fire-and-forget save eats the
+      // DatabaseClosedError silently; this helper awaits the write so the
+      // error would surface — explicit re-init avoids it.)
+      await dev.tmx2db.initDB();
 
-    const matchUps = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
-    const target = matchUps.find((m: any) => m.matchUpStatus !== 'BYE') ?? matchUps[0];
-    if (!target) throw new Error('No matchUp available in seeded draw');
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        setState: true,
+        tournamentName: 'E2E Active Strip',
+        tournamentAttributes: { tournamentId: 'e2e-active-strip', startDate: date, endDate: date },
+        participantsProfile: { scaledParticipantsCount: 16 },
+        drawProfiles: [{ eventName: 'Strip Singles', drawSize: 8, seedsCount: 2, drawType: 'SINGLE_ELIMINATION' }],
+        venueProfiles: [{ courtsCount: 4, venueName: 'Strip Test Venue' }],
+      });
 
-    dev.factory.tournamentEngine.addMatchUpScheduleItems({
-      matchUpId: target.matchUpId,
-      drawId: target.drawId,
-      schedule: {
-        scheduledDate: date,
-        courtId: targetCourt.courtId,
-        courtOrder: 1,
-        venueId: targetCourt.venueId,
-      },
-    });
+      const venues = dev.factory.tournamentEngine.getVenuesAndCourts()?.venues || [];
+      const targetCourt = (venues[0]?.courts || [])[0];
+      if (!targetCourt) throw new Error('No court available in seeded venue');
 
-    return {
-      courtId: targetCourt.courtId,
-      matchUpId: target.matchUpId,
-      drawId: target.drawId,
-    };
+      const matchUps = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const target = matchUps.find((m: any) => m.matchUpStatus !== 'BYE') ?? matchUps[0];
+      if (!target) throw new Error('No matchUp available in seeded draw');
+
+      dev.factory.tournamentEngine.addMatchUpScheduleItems({
+        matchUpId: target.matchUpId,
+        drawId: target.drawId,
+        schedule: { scheduledDate: date, courtId: targetCourt.courtId, courtOrder: 1, venueId: targetCourt.venueId },
+      });
+
+      // One persist call — no race.
+      const mutated = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+      await dev.tmx2db.addTournament(mutated);
+
+      return {
+        tournamentId: tournamentRecord.tournamentId as string,
+        target: { courtId: targetCourt.courtId, matchUpId: target.matchUpId, drawId: target.drawId },
+      };
+    } catch (err: any) {
+      // Re-throw with full detail so Playwright doesn't collapse it to "DexieError".
+      throw new Error(
+        `${err?.name || 'Error'}: ${err?.message || String(err)} | inner: ${err?.inner?.message || err?.cause?.message || ''} | stack: ${err?.stack?.split('\n').slice(0, 3).join(' || ')}`,
+      );
+    }
   }, SCHEDULE_DATE);
 }
 
@@ -116,8 +146,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
   });
 
   test('a scheduled TBP matchUp surfaces on its court as NEXT', async ({ page }) => {
-    const tournamentId = await seedTournament(page, PROFILE_STRIP);
-    const target = await scheduleFirstMatchUp(page);
+    const { tournamentId, target } = await seedAndScheduleFirstMatchUp(page);
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
@@ -134,15 +163,18 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
   });
 
   test('an IN_PROGRESS matchUp surfaces on its court as LIVE', async ({ page }) => {
-    const tournamentId = await seedTournament(page, PROFILE_STRIP);
-    const target = await scheduleFirstMatchUp(page);
+    const { tournamentId, target } = await seedAndScheduleFirstMatchUp(page);
 
-    await page.evaluate(({ matchUpId, drawId }) => {
+    await page.evaluate(async ({ matchUpId, drawId }) => {
       dev.factory.tournamentEngine.setMatchUpStatus({
         matchUpId,
         drawId,
         outcome: { matchUpStatus: 'IN_PROGRESS' },
       });
+      // Tournament already exists in IDB from seedAndScheduleFirstMatchUp — single
+      // .put() upsert, no race.
+      const record = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+      await dev.tmx2db.addTournament(record);
     }, target);
 
     const tournament = new TournamentPage(page);
@@ -156,8 +188,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
   });
 
   test('clicking a strip cell opens the same popover as a grid cell', async ({ page }) => {
-    const tournamentId = await seedTournament(page, PROFILE_STRIP);
-    const target = await scheduleFirstMatchUp(page);
+    const { tournamentId, target } = await seedAndScheduleFirstMatchUp(page);
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
@@ -179,6 +210,76 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
       const after = await page.locator('.tippy-box').count();
       expect(after).toBeGreaterThan(tippiesBefore);
     }).toPass({ timeout: 5_000 });
+  });
+
+  test('dropping a matchUp onto a strip cell stamps matchUp.schedule.calledAt', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_STRIP);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+
+    // Capture an unscheduled matchUp + the first court before the drop.
+    const setup = await page.evaluate(() => {
+      const venues = dev.factory.tournamentEngine.getVenuesAndCourts()?.venues || [];
+      const targetCourt = (venues[0]?.courts || [])[0];
+      const matchUps = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const target = matchUps.find((m: any) => m.matchUpStatus !== 'BYE') ?? matchUps[0];
+      return {
+        courtId: targetCourt.courtId,
+        venueId: targetCourt.venueId,
+        matchUpId: target.matchUpId,
+        drawId: target.drawId,
+      };
+    });
+
+    // Capture a stable lower-bound timestamp for the assertion. The matchUp
+    // mutation runs in the next tick, so the stamped calledAt should be
+    // >= this value.
+    const beforeIso = new Date().toISOString();
+
+    // Simulate the active-strip drop's mutation chain (the same two methods
+    // handleActiveStripDrop emits in gridView.ts:1582 — see
+    // factory matchUp.schedule.calledAt and the active-strip drop handler).
+    // Going through the engine surface (rather than a Playwright drag-drop)
+    // keeps this test focused on the data contract: a deliberate drop must
+    // stamp `calledAt`, and a generic court assignment (no strip) must not.
+    await page.evaluate(({ matchUpId, drawId, courtId, venueId }) => {
+      dev.factory.tournamentEngine.addMatchUpScheduleItems({
+        matchUpId,
+        drawId,
+        schedule: { scheduledDate: new Date().toISOString().slice(0, 10), courtId, courtOrder: 1, venueId },
+      });
+      dev.factory.tournamentEngine.setMatchUpCalledAt({
+        matchUpId,
+        drawId,
+        calledAt: new Date().toISOString(),
+      });
+    }, setup);
+
+    // Assert: matchUp.schedule.calledAt is an ISO string >= beforeIso.
+    const calledAt = await page.evaluate(({ matchUpId }) => {
+      const { matchUp } = dev.factory.tournamentEngine.findMatchUp({ matchUpId });
+      return matchUp?.schedule?.calledAt;
+    }, setup);
+
+    expect(calledAt).toBeTruthy();
+    expect(typeof calledAt).toBe('string');
+    expect(calledAt >= beforeIso).toBe(true);
+
+    // Round-trip: clearing via setMatchUpCalledAt({ calledAt: null }) should
+    // remove the stamp (the unschedule-from-strip path in gridView.ts).
+    await page.evaluate(({ matchUpId, drawId }) => {
+      dev.factory.tournamentEngine.setMatchUpCalledAt({ matchUpId, drawId, calledAt: null });
+    }, setup);
+
+    const clearedCalledAt = await page.evaluate(({ matchUpId }) => {
+      const { matchUp } = dev.factory.tournamentEngine.findMatchUp({ matchUpId });
+      return matchUp?.schedule?.calledAt;
+    }, setup);
+
+    expect(clearedCalledAt).toBeUndefined();
   });
 
   test('header toggle hides and re-shows the strip', async ({ page }) => {

@@ -49,16 +49,21 @@ test.describe('Journey 15 — Multiple flights', () => {
 
       if (!result.success) return { error: result.error?.message || 'flight generation failed' };
 
-      // Add the flight profile as an extension via mutation
-      const extension = {
-        name: 'flightProfile',
-        value: result.flightProfile,
-      };
-      dev.factory.tournamentEngine.addEventExtension({ eventId, extension });
+      // CODES 5.0.0: write through attachFlightProfile (mode-aware first-class
+      // setter) instead of raw addEventExtension. In NATIVE mode the reader
+      // prefers event.flightProfile first-class and would ignore an extension
+      // write entirely. Pass eventId so the engine paramsMiddleware resolves
+      // to the LIVE event (event from dev.getTournament() is a deep copy).
+      dev.factory.tournamentEngine.attachFlightProfile({
+        eventId,
+        flightProfile: result.flightProfile,
+        deleteExisting: true,
+      });
+      // Re-persist the now-mutated record so navigation reloads include it.
+      dev.load(dev.factory.tournamentEngine.getTournament().tournamentRecord);
 
-      // Read back the flights
-      const updatedEvent = dev.factory.tournamentEngine.getEvent({ eventId }).event;
-      const fp = updatedEvent?.extensions?.find((e: any) => e.name === 'flightProfile')?.value;
+      // Read back the flights via the mode-agnostic getter
+      const fp = dev.factory.tournamentEngine.getFlightProfile({ eventId }).flightProfile;
       const flights = fp?.flights || [];
 
       return {
@@ -118,13 +123,15 @@ test.describe('Journey 15 — Multiple flights', () => {
       });
       if (!result.success) return null;
 
-      dev.factory.tournamentEngine.addEventExtension({
+      // CODES 5.0.0: mode-aware first-class setter (eventId → live event via middleware).
+      dev.factory.tournamentEngine.attachFlightProfile({
         eventId,
-        extension: { name: 'flightProfile', value: result.flightProfile },
+        flightProfile: result.flightProfile,
+        deleteExisting: true,
       });
+      dev.load(dev.factory.tournamentEngine.getTournament().tournamentRecord);
 
-      const updatedEvent = dev.factory.tournamentEngine.getEvent({ eventId }).event;
-      const fp = updatedEvent?.extensions?.find((e: any) => e.name === 'flightProfile')?.value;
+      const fp = dev.factory.tournamentEngine.getFlightProfile({ eventId }).flightProfile;
       return {
         eventId,
         flights: fp?.flights?.map((f: any) => ({
@@ -216,10 +223,13 @@ test.describe('Journey 15 — Multiple flights', () => {
       });
 
       if (result.success) {
-        dev.factory.tournamentEngine.addEventExtension({
+        // CODES 5.0.0: mode-aware first-class setter (eventId → live event via middleware).
+        dev.factory.tournamentEngine.attachFlightProfile({
           eventId: event.eventId,
-          extension: { name: 'flightProfile', value: result.flightProfile },
+          flightProfile: result.flightProfile,
+          deleteExisting: true,
         });
+        dev.load(dev.factory.tournamentEngine.getTournament().tournamentRecord);
       }
     });
 

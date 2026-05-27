@@ -47,7 +47,10 @@ async function loginViaModal(page: Page, email: string, password: string): Promi
   await page.getByText('Log in').click();
   await page.locator('input[placeholder*="email"]').fill(email);
   await page.locator('input[placeholder*="8 characters"]').fill(password);
-  await page.getByRole('button', { name: 'Login' }).click();
+  // Use the modal's submit-button id rather than a generic role-locator: the
+  // top-nav user widget also surfaces a "Login" affordance, so a plain
+  // getByRole('button', { name: 'Login' }) is ambiguous and times out.
+  await page.locator('#loginButton').click();
   // Sign-in + provider resolution are async; give the app a beat to settle
   // (matches journey 28). Subsequent assertions poll, so this is a floor.
   await page.waitForTimeout(1500);
