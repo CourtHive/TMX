@@ -117,7 +117,7 @@ export function commitParticipantImport({
     fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean),
   );
 
-  const existingParticipants = tournamentEngine.getParticipants().participants ?? [];
+  const existingParticipants = tournamentEngine.q.participants() ?? [];
   const existingIds = new Set<string>(existingParticipants.map(({ participantId }: any) => participantId));
 
   const warnings: ImportRowWarning[] = [];

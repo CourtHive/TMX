@@ -25,7 +25,7 @@ const ROLE_OPTIONS = [
 
 export function mockParticipants({ callback }: { callback?: () => void }): void {
   // Get tournament end date for birthdate generation
-  const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo || {};
+  const tournamentInfo = tournamentEngine.q.tournamentInfo() || {};
   const consideredDate = tournamentInfo.endDate || tournamentInfo.startDate;
 
   // Open the modal from courthive-components

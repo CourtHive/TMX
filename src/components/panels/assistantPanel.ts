@@ -208,7 +208,7 @@ export function openAssistantPanel(): void {
 
     setInputState(true);
 
-    const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+    const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
     const { assistantUrl } = serverConfig.get();
     const token = getToken();
 

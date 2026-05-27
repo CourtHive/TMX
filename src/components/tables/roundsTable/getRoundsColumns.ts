@@ -26,7 +26,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
     const data = row.getData();
     const { courtName, scheduledDate } = data;
     if (courtName && scheduledDate) {
-      const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+      const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`;
       context.router?.navigate(route);
     }

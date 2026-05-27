@@ -53,7 +53,7 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
   selectorEl.style.display = '';
   selectorEl.innerHTML = '';
 
-  const events = tournamentEngine.getEvents()?.events || [];
+  const events = tournamentEngine.q.events() || [];
   if (!events.length) return;
 
   const manyEvents = events.length > 6;

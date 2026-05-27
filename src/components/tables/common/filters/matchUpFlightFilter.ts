@@ -25,7 +25,7 @@ export function getMatchUpFlightFilter(table: any): {
   // Restore saved filter
   if (filterValue) table.addFilter(flightFilter);
 
-  const events = tournamentEngine.getEvents().events || [];
+  const events = tournamentEngine.q.events() || [];
   const allLabel = t('pages.matchUps.allFlights');
   const allOption = {
     label: `<span style='font-weight: bold'>${allLabel}</span>`,

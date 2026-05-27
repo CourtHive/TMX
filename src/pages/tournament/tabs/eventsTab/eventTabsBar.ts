@@ -98,7 +98,7 @@ export function renderEventTabsBar({
     rightWrapper.appendChild(rightContent);
   }
 
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   if (event) {
     const editBtn = document.createElement('button');
     editBtn.textContent = t('pages.events.editEventAction', 'Edit Event');

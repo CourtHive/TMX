@@ -10,7 +10,7 @@ import { context } from 'services/context';
 import { EVENT_CONTROL } from 'constants/tmxConstants';
 
 export function eventControlBar({ eventId, drawId, structureId, updateDisplay }: { eventId: string; drawId: string; structureId?: string; updateDisplay?: (args: any) => void }): void {
-  const eventData = tournamentEngine.getEventData({ eventId }).eventData;
+  const eventData = tournamentEngine.q.eventData({ eventId });
   const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
   const structures = drawData?.structures || [];
   structureId = structureId || structures?.[0]?.structureId;

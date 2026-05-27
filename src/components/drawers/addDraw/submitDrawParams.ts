@@ -408,7 +408,7 @@ function handleQualifyingStructure(params: {
     ];
 
     // Add qualifying entries to the draw so automatedPositioning can find them
-    const event = tournamentEngine.getEvent({ eventId }).event;
+    const event = tournamentEngine.q.event({ eventId });
     const qualifyingParticipantIds = (event?.entries ?? [])
       .filter((e: any) => e.entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(e.entryStatus))
       .map((e: any) => e.participantId);
@@ -585,7 +585,7 @@ export function submitDrawParams({
   const matchUpFormat = providedMatchUpFormat || inputs[MATCHUP_FORMAT]?.value;
   const selectedSeedingPolicy = inputs[SEEDING_POLICY]?.value;
 
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const structureName = inputs[STRUCTURE_NAME]?.value;

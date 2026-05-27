@@ -13,7 +13,7 @@ export const mapDrawDefinition =
   ({ drawDefinition, scaleValues }: { drawDefinition: any; scaleValues?: any }): any => {
     const { drawId, drawName, drawType, entries, matchUpFormat, tieFormat, structures, flightNumber } = drawDefinition;
 
-    const publishState = tournamentEngine.getPublishState({ drawId }).publishState;
+    const publishState = tournamentEngine.q.publishState({ drawId });
     const published = publishState?.status?.published;
     const drawDetail = publishState?.status?.drawDetails?.[drawId]?.publishingDetail;
     const embargoActive = publishingGovernor.isEmbargoed(drawDetail);

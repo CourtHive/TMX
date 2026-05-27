@@ -197,7 +197,7 @@ export function getParticipantColumns({
     {
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
       formatter: teamsFormatter(() => {
-        const tournamentId = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+        const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
         if (tournamentId) context.router?.navigate(`/tournament/${tournamentId}/${PARTICIPANTS}/TEAM`);
       }),
       title: t('tables.participants.teams'),

@@ -21,7 +21,7 @@ export function mapEvent({
   const { drawDefinitions = [], eventName, entries, eventId } = event;
 
   const ungeneratedFlights: any = [];
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   flightProfile?.flights?.forEach((flight: any) => {
     const drawDefinition = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
     if (drawDefinition) {
@@ -62,7 +62,7 @@ export function mapEvent({
       }),
     );
   } else {
-    const matchUps = tournamentEngine.allEventMatchUps({ inContext: true, eventId }).matchUps;
+    const matchUps = tournamentEngine.q.eventMatchUps({ inContext: true, eventId });
     matchUpsCount = matchUps?.length || 0;
     scheduledMatchUpsCount =
       matchUps?.filter(({ winningSide, schedule }: any) => !winningSide && schedule?.scheduledTime)?.length || 0;

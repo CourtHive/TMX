@@ -5,9 +5,12 @@ import { tournamentEngine } from 'services/factory/engine';
 import { ALL_EVENTS } from 'constants/tmxConstants';
 
 export function getEventOptions(): { eventOptions: any[] } {
-  const events = tournamentEngine.getEvents().events ?? [];
+  const events = tournamentEngine.q.events() ?? [];
 
-  const eventOptions = events
+  // Mixed-shape menu items (event options + a divider + an "all events" entry)
+  // — explicit `any[]` so the map result stays loose enough for the trailing
+  // `.concat` that adds a divider and a styled label.
+  const eventOptions: any[] = events
     .map((event: any) => {
       return {
         onClick: () => {
@@ -26,7 +29,7 @@ export function getEventOptions(): { eventOptions: any[] } {
     .concat([
       { divider: true },
       { label: `<div style='font-weight: bold'>${ALL_EVENTS}</div>`, onClick: displayAllEvents, close: true },
-    ]);
+    ] as any[]);
 
   return { eventOptions };
 }

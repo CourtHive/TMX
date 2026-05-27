@@ -11,7 +11,7 @@ import { ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 const { SINGLES } = matchUpTypes;
 
 export function addFlights({ eventId, callback }) {
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
 
   const generateFlightProfile = (values: any) => {
     const scaleAttributes = {

@@ -25,7 +25,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
   };
 
   const createSchedulingEngine = () => {
-    const tournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
+    const tournamentRecord = tournamentEngine.q.tournament();
     if (!tournamentRecord) return undefined;
     const engine = new TemporalEngine();
     engine.init(tournamentRecord);

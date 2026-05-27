@@ -24,7 +24,7 @@ const onCancelManualSeedingClick = (
 ) => {
   hideSaveSeeding(e, table);
   const entryStage = removeSeeding({ table });
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   const entries = event.entries?.filter(
     (entry: any) => entry.entryStage === entryStage && entry.entryStatus === DIRECT_ACCEPTANCE,
   );

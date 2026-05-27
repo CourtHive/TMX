@@ -46,7 +46,7 @@ export function getMatchUpColumns({
     const data = row.getData();
     const { courtName, scheduledDate } = data;
     if (courtName && scheduledDate) {
-      const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+      const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
       const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`;
       context.router?.navigate(route);
       highlightTab(SCHEDULE2_TAB);
@@ -319,7 +319,7 @@ export function getMatchUpColumns({
       // local zone when no zone is stored. Re-opening the matchUps
       // view after editing the tournament's timezone rebuilds columns,
       // so the formatter closes over the fresh value.
-      const localTimeZone = tournamentEngine.getTournament()?.tournamentRecord?.localTimeZone;
+      const localTimeZone = tournamentEngine.q.tournament()?.localTimeZone;
       return {
         title: t('tables.matchUps.updatedAt'),
         field: 'updatedAt',

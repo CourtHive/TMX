@@ -13,7 +13,7 @@ export function acceptedEntriesCount({
   event: any;
   stage?: string;
 }): number {
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
   const matchesStage = ({ entryStage = MAIN, entryStatus }: any) =>
     acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`);

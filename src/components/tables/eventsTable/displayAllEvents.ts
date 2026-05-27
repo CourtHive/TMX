@@ -4,7 +4,7 @@ import { context } from 'services/context';
 import { TOURNAMENT, EVENTS_TAB } from 'constants/tmxConstants';
 
 export function displayAllEvents(): void {
-  const tournamentId = tournamentEngine.getTournament().tournamentRecord.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament().tournamentId;
   const eventsRoute = `/${TOURNAMENT}/${tournamentId}/${EVENTS_TAB}`;
   context.router?.navigate(eventsRoute);
 }

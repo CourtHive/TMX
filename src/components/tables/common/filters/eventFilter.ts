@@ -27,7 +27,7 @@ export function getEventFilter(
 
   // Restore saved filter
   if (filterValue) table.addFilter(eventFilter);
-  const events = tournamentEngine.getEvents().events || [];
+  const events = tournamentEngine.q.events() || [];
   const allEventsLabel = t('pages.participants.allEvents');
   const noEventsLabel = t('pages.participants.noEvents');
   const allEvents = {

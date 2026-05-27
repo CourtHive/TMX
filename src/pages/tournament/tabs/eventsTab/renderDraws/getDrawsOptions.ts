@@ -12,9 +12,9 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const eventId = eventData?.eventInfo?.eventId;
 
   // Count total draw items including ungenerated flights
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   const drawDefs = event?.drawDefinitions || [];
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const ungeneratedCount = flightProfile?.flights?.filter(
     (f: any) => !drawDefs.find((dd: any) => dd.drawId === f.drawId),
   )?.length || 0;

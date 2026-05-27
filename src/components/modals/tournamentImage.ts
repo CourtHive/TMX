@@ -26,7 +26,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
     selectedSport: CourtSport | undefined;
   let modalHandle: any;
 
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const imageResource = tournamentRecord?.onlineResources?.find(
     ({ name }: any) => name === 'tournamentImage',
   );

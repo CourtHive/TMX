@@ -37,7 +37,7 @@ export function renderInlineTopology({
   drawsView.style.display = '';
 
   // Hydrate topology from draw definition
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
   const drawDefinition = event?.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
   const initialState = drawDefinition ? hydrateTopology(drawDefinition) : undefined;
 
@@ -58,7 +58,7 @@ export function renderInlineTopology({
   }
 
   // Swap event control bar to topology mode
-  const eventData = tournamentEngine.getEventData({ eventId }).eventData;
+  const eventData = tournamentEngine.q.eventData({ eventId });
   const items = getTopologyControlItems({ structureId, eventData, eventId, drawId });
   const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
   controlBar({ target: eventControlElement, items });

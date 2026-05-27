@@ -664,19 +664,22 @@ export function hasUnsavedGridChanges(): boolean {
   return bulkMode && pendingMethods.length > 0;
 }
 
-/** Set bulk mode on/off. Returns the new state. */
+/** Number of unsaved bulk scheduling changes — for caller-side confirm copy. */
+export function getUnsavedGridChangeCount(): number {
+  return bulkMode ? pendingMethods.length : 0;
+}
+
+/**
+ * Flip bulk mode on/off. Idempotent. When turning OFF with pending changes
+ * the queue is discarded — the caller is responsible for any "are you sure"
+ * confirmation prompt before invoking this (we never open a native browser
+ * dialog from inside a pure state mutation). Returns the new state.
+ */
 export function setGridBulkMode(enabled: boolean): boolean {
   if (bulkMode === enabled) return bulkMode;
-
-  // If turning off bulk mode with pending changes, warn
   if (!enabled && pendingMethods.length > 0) {
-    const confirmed = globalThis.confirm(
-      `You have ${pendingMethods.length} unsaved scheduling change(s). Switching to immediate mode will discard them. Continue?`,
-    );
-    if (!confirmed) return bulkMode;
     discardPending();
   }
-
   bulkMode = enabled;
   return bulkMode;
 }

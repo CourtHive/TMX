@@ -4,7 +4,7 @@ import { debugConfig } from 'config/debugConfig';
 import { tmx2db } from './tmx2db';
 
 export async function saveTournamentRecord(params?: { tournamentRecord?: any }): Promise<void> {
-  const tournamentRecord = params?.tournamentRecord ?? tournamentEngine.getTournament()?.tournamentRecord;
+  const tournamentRecord = params?.tournamentRecord ?? tournamentEngine.q.tournament();
   if (!tournamentRecord) return;
 
   // Provider-owned tournaments are only saved locally if "Save local copies" is enabled

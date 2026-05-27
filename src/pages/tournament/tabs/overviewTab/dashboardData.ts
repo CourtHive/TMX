@@ -61,14 +61,14 @@ export function getDashboardData(): DashboardData {
     tournamentInfo?.eventInfo?.reduce((count: number, event: any) => count + (event.drawDefinitionCount || 0), 0) || 0;
 
   // Compute publishing statistics
-  const publishState = tournamentEngine.getPublishState()?.publishState;
+  const publishState = tournamentEngine.q.publishState();
   const tournamentPubState = publishState?.tournament;
 
   let publishedDraws = 0;
   let totalDraws = 0;
   let activeEmbargoes = 0;
 
-  const events = tournamentEngine.getEvents()?.events || [];
+  const events = tournamentEngine.q.events() || [];
   for (const event of events) {
     const eventPubState = publishingGovernor.getPublishState({ event })?.publishState;
     const drawDetails = eventPubState?.status?.drawDetails;
@@ -100,7 +100,7 @@ export function getDashboardData(): DashboardData {
   };
 
   // Factory only returns imageUrl for URL resources; check for court SVG separately
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const courtSvgResource = tournamentRecord?.onlineResources?.find(
     (r: any) => r.name === 'tournamentImage' && r.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE,
   );

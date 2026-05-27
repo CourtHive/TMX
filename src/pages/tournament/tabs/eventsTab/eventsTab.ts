@@ -67,7 +67,7 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
 
   // Resolve structureId from draw data when not provided; default to Grid view for round robin draws
   if (drawId) {
-    const eventData = tournamentEngine.getEventData({ eventId })?.eventData;
+    const eventData = tournamentEngine.q.eventData({ eventId });
     const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
     if (!structureId) structureId = drawData?.structures?.[0]?.structureId;
     if (!roundsView) {
@@ -136,10 +136,10 @@ function renderDrawTab(
 }
 
 function renderDrawsListOrPlaceholder(eventId: string, renderDraw: boolean | undefined): void {
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   const drawDefs = event?.drawDefinitions || [];
 
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const ungeneratedCount =
     flightProfile?.flights?.filter((f: any) => !drawDefs.some((dd: any) => dd.drawId === f.drawId))?.length || 0;
   const totalDrawItems = drawDefs.length + ungeneratedCount;

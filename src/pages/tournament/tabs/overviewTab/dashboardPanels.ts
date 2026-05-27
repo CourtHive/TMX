@@ -113,7 +113,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
   editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
   editBtn.title = t('dashboard.editNotes');
   editBtn.addEventListener('click', () => {
-    const notes = tournamentEngine.getTournamentInfo()?.tournamentInfo?.notes || '';
+    const notes = tournamentEngine.q.tournamentInfo()?.notes || '';
     openNotesEditor({
       notes,
       onSave: (html) => {
@@ -327,7 +327,7 @@ export function createSunburstPanel(structures: StructureInfo[]): HTMLElement {
   panel.appendChild(chartDiv);
 
   const renderBurst = (info: StructureInfo) => {
-    const eventData = tournamentEngine.getEventData({ eventId: info.eventId })?.eventData;
+    const eventData = tournamentEngine.q.eventData({ eventId: info.eventId });
     const drawData = eventData?.drawsData
       ?.find((d: any) => d.drawId === info.drawId)
       ?.structures?.find((s: any) => s.structureId === info.structureId);
@@ -422,7 +422,7 @@ function changeOnlineState({
   state: any;
   offline: boolean;
 }): void {
-  const itemValue = { ...tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem?.itemValue };
+  const itemValue = { ...tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue };
   if (offline) {
     itemValue.offline = { email: state.email };
   } else {
@@ -460,7 +460,7 @@ export function shouldShowFormatWizard(): boolean {
 }
 
 function navigateToFormatWizard(): void {
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   if (!tournamentId) return;
   context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/format-wizard`);
 }
@@ -483,7 +483,7 @@ export function createActionsPanel(): HTMLElement {
   btnContainer.className = 'dash-action-buttons';
   panel.appendChild(btnContainer);
 
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const offline = tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
@@ -519,7 +519,7 @@ export function createActionsPanel(): HTMLElement {
   if (providerId) {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.uploadTournament'), 'fa-upload', () => {
-        const record = tournamentEngine.getTournament().tournamentRecord;
+        const record = tournamentEngine.q.tournament();
         openModal({
           title: t('modals.tournamentActions.uploadTournament'),
           content: t('modals.tournamentActions.uploadWarning'),
@@ -542,7 +542,7 @@ export function createActionsPanel(): HTMLElement {
   if (tournamentRecord && !providerId && activeProvider) {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.claimTournament'), 'fa-hand-paper', () => {
-        const record = tournamentEngine.getTournament().tournamentRecord;
+        const record = tournamentEngine.q.tournament();
         if (!record.parentOrganisation) {
           record.parentOrganisation = activeProvider;
           tournamentEngine.setState(record);
@@ -589,7 +589,7 @@ export function createActionsPanel(): HTMLElement {
           offline: false,
           postMutation: (result: any) => {
             if (result?.success) {
-              const updated = tournamentEngine.getTournament().tournamentRecord;
+              const updated = tournamentEngine.q.tournament();
               sendTournament({ tournamentRecord: updated }).then(
                 () => {
                   tmx2db.deleteTournament(updated.tournamentId);

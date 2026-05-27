@@ -61,7 +61,7 @@ export function addDraw({
   eventId,
   drawId,
 }: AddDrawParams): void {
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
   // Phase D: resolve the flag tuple into a single DrawFormMode at the
@@ -210,7 +210,7 @@ function generateFromTopologyTemplate({
   drawOptions.eventId = eventId;
   if (drawId) drawOptions.drawId = drawId;
 
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
   const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;

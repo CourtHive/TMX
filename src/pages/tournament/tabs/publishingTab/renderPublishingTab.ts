@@ -253,7 +253,7 @@ export function isAnythingPublished(): boolean {
 }
 
 function renderQRPanel(grid: HTMLElement): void {
-  const tournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const tournamentId = tournamentRecord?.tournamentId;
   const tournamentName = tournamentRecord?.tournamentName || 'tournament';
 

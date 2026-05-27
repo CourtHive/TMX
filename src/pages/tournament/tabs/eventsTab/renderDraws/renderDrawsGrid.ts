@@ -48,12 +48,12 @@ function clearAnchor(anchor: HTMLElement): void {
 function entryCountFor(drawDefinition: any): number {
   const entries = drawDefinition?.entries ?? [];
   const filtered = entries.filter(({ entryStatus }: any) => entryStatus !== WITHDRAWN);
-  const assigned = tournamentEngine.getAssignedParticipantIds({ drawDefinition }).assignedParticipantIds?.filter(Boolean);
+  const assigned = tournamentEngine.q.assignedParticipantIds({ drawDefinition })?.filter(Boolean);
   return assigned?.length || filtered.length || 0;
 }
 
 function publishFlagsFor(drawId: string): { published?: boolean; embargoActive?: boolean } {
-  const publishState = tournamentEngine.getPublishState({ drawId }).publishState;
+  const publishState = tournamentEngine.q.publishState({ drawId });
   const drawDetail = publishState?.status?.drawDetails?.[drawId]?.publishingDetail;
   return {
     published: publishState?.status?.published,
@@ -68,10 +68,10 @@ interface ResolvedEvent {
 }
 
 function resolveEventData(eventId: string): ResolvedEvent | null {
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   if (!event) return null;
   const { drawDefinitions = [] } = event;
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const flights: any[] = flightProfile?.flights ?? [];
   for (const flight of flights) {
     const dd = drawDefinitions.find((d: any) => d.drawId === flight.drawId);

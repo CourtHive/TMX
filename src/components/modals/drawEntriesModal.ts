@@ -29,7 +29,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
     console.error('Event not found', { eventId });
     return;
   }
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const drawInfo = drawDef || flightProfile?.flights?.find((flight: any) => flight.drawId === drawId);
 
   if (!drawInfo) {

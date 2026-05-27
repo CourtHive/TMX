@@ -215,7 +215,7 @@ export function editTournament({
       const result = tournamentEngine.newTournamentRecord({ tournamentName, activeDates, startDate, endDate });
       if (result.success) {
         const state = getLoginState();
-        const newTournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
+        const newTournamentRecord = tournamentEngine.q.tournament();
         // New tournament: apply the selected TZ immediately (local
         // mutation, pre-provider-sync).
         if (localTimeZone) {

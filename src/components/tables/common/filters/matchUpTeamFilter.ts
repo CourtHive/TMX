@@ -21,7 +21,7 @@ export function getMatchUpTeamFilter(
   let filterValue: string | undefined = context.matchUpFilters.teamId;
 
   const teamParticipants =
-    tournamentEngine.getParticipants({ participantFilters: { participantTypes: [TEAM] } }).participants || [];
+    tournamentEngine.q.participants({ participantFilters: { participantTypes: [TEAM] } }) || [];
   const teamMap = Object.assign(
     {},
     ...teamParticipants.map((p: any) => ({ [p.participantId]: p.individualParticipantIds })),

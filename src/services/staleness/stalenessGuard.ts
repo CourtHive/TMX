@@ -172,7 +172,7 @@ async function checkAndShowOverlay(tournamentId: string): Promise<void> {
       return;
     }
 
-    const localRecord = tournamentEngine.getTournament()?.tournamentRecord;
+    const localRecord = tournamentEngine.q.tournament();
     const serverUpdated = serverRecord.updatedAt ? new Date(serverRecord.updatedAt).getTime() : 0;
     const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
 

@@ -106,8 +106,8 @@ export function editEvent({
   participants,
   callback,
 }: { table?: any; event?: any; participants?: any[]; callback?: (result: any) => void } = {}): void {
-  const eventsCount = tournamentEngine.getEvents().events?.length || 0;
-  const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo || {};
+  const eventsCount = tournamentEngine.q.events()?.length || 0;
+  const tournamentInfo = tournamentEngine.q.tournamentInfo() || {};
   const values: any = {
     eventName: event?.eventName || `Event ${eventsCount + 1}`,
     startDate: event?.startDate ?? tournamentInfo.startDate,
@@ -181,7 +181,7 @@ export function editEvent({
   }
 
   // Get tournament categories for dropdown
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const tournamentCategories = tournamentRecord?.tournamentCategories || [];
 
   // Build category options from tournament categories

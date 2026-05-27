@@ -12,6 +12,7 @@ import type { PrintCompositionConfig as PrintComposition } from 'courthive-compo
 import { providerConfig } from 'config/providerConfig';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
 import { openModal } from './baseModal/baseModal';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 
 interface PrintScheduleOptions {
@@ -102,7 +103,7 @@ export function printSchedule(options: PrintScheduleOptions): void {
 
     if (!result.success || !result.doc) {
       console.error('executePrint failed:', result.error);
-      alert(t('modals.printSchedule.generateError'));
+      tmxToast({ message: t('modals.printSchedule.generateError'), intent: 'is-danger' });
       return null;
     }
     return { doc: result.doc, filename: result.filename ?? `Schedule_${scheduledDate}.pdf` };

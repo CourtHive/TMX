@@ -529,7 +529,7 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
 
   // --- Delete Tournament panel (red, full width) — tournament-specific ---
   if (!options?.excludeTournament) {
-    const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+    const tournamentRecord = tournamentEngine.q.tournament();
     const provider = tournamentRecord?.parentOrganisation;
     const providerId = provider?.organisationId;
     const state = getLoginState();

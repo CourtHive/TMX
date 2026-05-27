@@ -30,7 +30,7 @@ export const toggleDrawPublishState = (eventRow) => (_, cell) => {
     if (result?.success) {
       cell.getRow().update({ published: !row.published });
       const eventId = eventRow.getData().eventId;
-      const publishState = tournamentEngine.getPublishState({ eventId }).publishState;
+      const publishState = tournamentEngine.q.publishState({ eventId });
       const published = publishState?.status?.published;
       eventRow.update({ published });
     } else {

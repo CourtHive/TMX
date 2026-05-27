@@ -21,7 +21,7 @@ const TABLE_ID = 'publishingEventsTable';
 const TRN_EMBARGO = 'publishing.embargo';
 
 function getRowPublicUrl(data: any): string | undefined {
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   if (!tournamentId) return undefined;
   if (data.type === 'draw' && data.drawId) {
     return getPublicDrawUrl({ tournamentId, eventId: data.eventId, drawId: data.drawId });
@@ -66,7 +66,7 @@ function nameFormatter(cell: any): string {
 
 function publicUrlFormatter(cell: any): string {
   const data = cell.getRow().getData();
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   if (!tournamentId) return '';
 
   let url: string | undefined;
