@@ -70,12 +70,12 @@ export function setDev(): void {
       tmxToast({ message: t('toasts.missingMethodsArray'), intent: 'is-danger' });
       return;
     }
-    const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+    const tournamentId = factory.tournamentEngine.q.tournament()?.tournamentId;
     if (tournamentId) {
       const callback = (result: any) => {
         if (result?.success) {
           tmxToast({ message: t('common.success'), intent: 'is-success' });
-          const tournamentRecord = factory.tournamentEngine.getTournament().tournamentRecord;
+          const tournamentRecord = factory.tournamentEngine.q.tournament();
           loadTournament({ tournamentRecord, config: { selectedTab: TOURNAMENT } });
         } else {
           tmxToast({ message: result?.error?.message ?? t('common.error'), intent: 'is-danger' });
@@ -110,7 +110,7 @@ export function setDev(): void {
           result?.data?.providers.find((p: any) => p.value.organisationName.toLowerCase().includes(name.toLowerCase())),
         ),
       ),
-    getTournament: () => factory.tournamentEngine.getTournament()?.tournamentRecord,
+    getTournament: () => factory.tournamentEngine.q.tournament(),
     getContext: factory.globalState.getDevContext,
     tournamentEngine: factory.tournamentEngine,
     context: factory.globalState.setDevContext,
@@ -133,7 +133,7 @@ export function setDev(): void {
 
   addDev({
     mutationRequest: (params: any) => {
-      const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+      const tournamentId = factory.tournamentEngine.q.tournament()?.tournamentId;
       if (!tournamentId) {
         tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
         return;
@@ -146,7 +146,7 @@ export function setDev(): void {
   addDev({ providerConfig });
   addDev({
     openFormatWizard: () => {
-      const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+      const tournamentId = factory.tournamentEngine.q.tournament()?.tournamentId;
       if (!tournamentId) {
         console.warn('[dev.openFormatWizard] no tournament loaded');
         return;
@@ -155,7 +155,7 @@ export function setDev(): void {
     },
     // Backward-compat alias for the previous modal-era API.
     openFormatWizardModal: () => {
-      const tournamentId = factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+      const tournamentId = factory.tournamentEngine.q.tournament()?.tournamentId;
       if (!tournamentId) {
         console.warn('[dev.openFormatWizardModal] no tournament loaded');
         return;

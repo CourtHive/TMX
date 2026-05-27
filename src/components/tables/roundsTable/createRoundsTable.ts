@@ -42,7 +42,7 @@ export async function createRoundsTable({
   const getMatchUps = () => {
     const participantsProfile = { withISO2: true, withScaleValues: true };
     const contextProfile = { withCompetitiveness: true };
-    const eventData = tournamentEngine.getEventData({ eventId, contextProfile, participantsProfile }).eventData;
+    const eventData = tournamentEngine.q.eventData({ eventId, contextProfile, participantsProfile });
     const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
     isRoundRobin = structure?.structureType === CONTAINER;

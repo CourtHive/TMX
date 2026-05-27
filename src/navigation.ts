@@ -79,7 +79,7 @@ function navigateToRoute(id: string): void {
   const element = document.getElementById(id);
   if (element) element.style.color = ACCENT_BLUE;
 
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;
   context.router?.navigate(route);
 }

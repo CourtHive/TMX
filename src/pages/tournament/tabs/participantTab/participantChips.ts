@@ -16,7 +16,7 @@ const chipDefs = [
 ];
 
 export function participantChips(view: string): any[] {
-  const tournamentId = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
 
   return chipDefs.map(({ value, icon, labelKey }) => ({
     label: `<i class="${icon}"></i>`,

@@ -15,7 +15,7 @@ function findBracket(structure: any, drawPosition: number) {
 
 function filterTiedAssignments(positionAssignments: any[], order: any) {
   return positionAssignments
-    ?.filter((pa) => tournamentEngine.getTally({ positionAssignment: pa })?.tally?.groupOrder === order)
+    ?.filter((pa) => tournamentEngine.q.tally({ positionAssignment: pa })?.groupOrder === order)
     .map((pa) => ({ drawPosition: pa.drawPosition, participantId: pa.participantId }));
 }
 

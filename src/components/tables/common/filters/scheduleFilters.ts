@@ -62,7 +62,7 @@ export function getScheduleEventFilter(
   table: any,
   onChange?: () => void,
 ): { eventOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  const events = tournamentEngine.getEvents().events || [];
+  const events = tournamentEngine.q.events() || [];
   const { options, ...rest } = createScheduleFilter(
     table,
     {
@@ -79,7 +79,7 @@ export function getScheduleEventTypeFilter(
   table: any,
   onChange?: () => void,
 ): { eventTypeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  const events = tournamentEngine.getEvents().events || [];
+  const events = tournamentEngine.q.events() || [];
   const eventTypes: string[] = tools.unique(events.map((e: any) => e.eventType)).filter(Boolean);
   const { options, ...rest } = createScheduleFilter(
     table,
@@ -97,7 +97,7 @@ export function getScheduleGenderFilter(
   table: any,
   onChange?: () => void,
 ): { genderOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  const events = tournamentEngine.getEvents().events || [];
+  const events = tournamentEngine.q.events() || [];
   const genders: string[] = tools.unique(events.map((e: any) => e.gender)).filter(Boolean);
   const { options, ...rest } = createScheduleFilter(
     table,

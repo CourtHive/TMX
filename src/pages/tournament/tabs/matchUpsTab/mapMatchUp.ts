@@ -26,7 +26,7 @@ export const mapMatchUp = (matchUp: any): any => {
 
   const { scheduledDate, scheduledTime, courtName, startTime, endTime, official: officialId } = schedule || {};
   const official = officialId
-    ? tournamentEngine.getParticipants({ participantFilters: { participantIds: [officialId] } })?.participants?.[0]
+    ? tournamentEngine.q.participants({ participantFilters: { participantIds: [officialId] } })?.[0]
         ?.participantName || officialId
     : undefined;
 

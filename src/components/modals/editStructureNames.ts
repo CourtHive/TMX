@@ -14,7 +14,7 @@ import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
 export function editStructureNames({ drawId, callback }: { drawId: string; callback?: () => void }): void {
-  const structures = tournamentEngine.getEvent({ drawId })?.drawDefinition?.structures;
+  const structures = tournamentEngine.q.drawDefinition({ drawId })?.structures;
   if (!structures?.length) return;
 
   const options = structures.map(({ structureName, structureId }: any, index: number) => ({

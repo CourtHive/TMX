@@ -15,7 +15,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
   const eventDetail = (e: any, cell: any) => {
     e.stopPropagation();
     const eventId = cell.getRow().getData().eventId;
-    const event = tournamentEngine.getEvent({ eventId }).event;
+    const event = tournamentEngine.q.event({ eventId });
     const drawDefs = event?.drawDefinitions || [];
     if (drawDefs.length === 1) {
       navigateToEvent({ eventId, drawId: drawDefs[0].drawId, renderDraw: true });

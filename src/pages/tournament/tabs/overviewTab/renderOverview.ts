@@ -35,7 +35,7 @@ import {
 } from 'constants/tmxConstants';
 
 function navigateToTab(tab: string): void {
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${tab}`);
 }
 
@@ -167,7 +167,7 @@ export function renderOverview(): void {
 
   // Categories card — opens the categories editor. Takes the slot the
   // dates card used to occupy in the 2-col grid.
-  const categories = tournamentEngine.getTournament()?.tournamentRecord?.tournamentCategories ?? [];
+  const categories = tournamentEngine.q.tournament()?.tournamentCategories ?? [];
   const categoriesValue =
     categories.length === 0
       ? t('dashboard.noneSet')
@@ -282,7 +282,7 @@ export function renderOverview(): void {
   // wizard's visibility conditions are met (no events, or
   // participants without entries). This is the entry point for demo
   // mode where there's no logged-in user.
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   if (tournamentId && shouldShowFormatWizard()) {
     leftColumn.appendChild(createFormatWizardLauncher(tournamentId));
   }

@@ -23,7 +23,7 @@ import { ADD_TOURNAMENT_TIMEITEM } from 'constants/mutationConstants';
 import { ADMIN } from 'constants/tmxConstants';
 
 export function tournamentActions(): void {
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const offline = tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
@@ -35,7 +35,7 @@ export function tournamentActions(): void {
   let modalHandle: any;
   const takeAction = () => {
     if (inputs.action.value === 'upload' && inputs.replace.checked) {
-      const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+      const tournamentRecord = tournamentEngine.q.tournament();
       return tmxToast({
         action: {
           onClick: () => sendTournament({ tournamentRecord }).then(success, failure),
@@ -47,7 +47,7 @@ export function tournamentActions(): void {
     }
 
     if (inputs.action.value === 'claim' && state?.provider) {
-      const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+      const tournamentRecord = tournamentEngine.q.tournament();
       if (!tournamentRecord.parentOrganisation) {
         tournamentRecord.parentOrganisation = state.provider;
         tournamentEngine.setState(tournamentRecord);
@@ -95,7 +95,7 @@ export function tournamentActions(): void {
             changeOnlineState({ state, offline: true });
           };
 
-          const updatedTournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+          const updatedTournamentRecord = tournamentEngine.q.tournament();
           sendTournament({ tournamentRecord: updatedTournamentRecord }).then(successOnline, failureOnline);
         }
       };
@@ -192,7 +192,7 @@ function changeOnlineState({
   state: any;
   offline: boolean;
 }): void {
-  const itemValue = { ...tournamentEngine.getTournamentTimeItem({ itemType: 'TMX' })?.timeItem?.itemValue };
+  const itemValue = { ...tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue };
   if (offline) {
     itemValue.offline = { email: state.email };
   } else {

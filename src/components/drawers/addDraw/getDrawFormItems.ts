@@ -77,7 +77,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   const existingTournamentPolicy = tournamentRecord?.policyDefinitions?.[POLICY_TYPE_SEEDING];
   const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
 
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const allowedFormats = providerConfig.getAllowedList('allowedMatchUpFormats');

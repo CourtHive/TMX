@@ -30,7 +30,7 @@ type NavigateToEventParams = {
 };
 
 export function navigateToEvent({ eventId, drawId, structureId, renderDraw, renderPoints, participantId, matchUpId, view }: NavigateToEventParams = {}): void {
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
 
   // No eventId — navigate to events list
   if (!eventId) {
@@ -40,7 +40,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
     return;
   }
 
-  const event = tournamentEngine.getEvent({ eventId, drawId }).event;
+  const event = tournamentEngine.q.event({ eventId, drawId });
   const singleDraw = event?.drawDefinitions?.length === 1 && event.drawDefinitions[0];
 
   if (participantId && singleDraw) {
@@ -50,7 +50,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
 
   if (matchUpId) {
     drawId = event.drawDefinitions.find(({ drawId }: any) => {
-      const matchUps = tournamentEngine.allDrawMatchUps({ drawId, inContext: false }).matchUps;
+      const matchUps = tournamentEngine.q.drawMatchUps({ drawId, inContext: false });
       return matchUps.find((matchUp: any) => matchUp.matchUpId === matchUpId);
     })?.drawId;
     renderDraw = !!drawId;

@@ -44,7 +44,7 @@ export function renderTopologyPage({
   showTopology();
 
   // Hydrate from existing draw if drawId provided
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
   const drawDefinition = event?.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
   let initialState = drawDefinition ? hydrateTopology(drawDefinition) : undefined;
 
@@ -118,7 +118,7 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
   drawOptions.eventId = eventId;
   if (drawId) drawOptions.drawId = drawId;
 
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
   const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
@@ -237,7 +237,7 @@ export function navigateToTopology({
   templateName?: string;
 }): void {
   pendingTemplateName = templateName || null;
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   let route = `/${TOURNAMENT}/${tournamentId}/topology/${eventId}`;
   if (drawId) route += `/${drawId}`;
   if (readOnly) route += '/view';

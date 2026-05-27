@@ -16,14 +16,14 @@ import { t } from 'i18n';
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, UTR, WTN } from 'constants/tmxConstants';
 
 export function renderDrawsTable({ eventId, target }: { eventId: string; target: HTMLElement }): any {
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
   const { drawDefinitions = [] } = event;
 
   // Collect ungenerated flights from flight profile extension
   const ungeneratedFlights: any[] = [];
-  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
+  const flightProfile = tournamentEngine.q.flightProfile({ event });
   flightProfile?.flights?.forEach((flight: any) => {
     const hasDrawDef = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
     if (hasDrawDef) {

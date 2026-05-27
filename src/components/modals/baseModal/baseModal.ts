@@ -28,10 +28,20 @@ export function informModal({ message, title, okAction }) {
   return cModal.open({ title, content: message, buttons });
 }
 
-export function confirmModal({ title, query, okAction, cancelAction, okIntent }) {
+type ConfirmModalOptions = {
+  title?: string;
+  query: any;
+  okAction: () => void | Promise<void>;
+  cancelAction?: () => void;
+  okIntent?: string;
+};
+
+export function confirmModal({ title, query, okAction, cancelAction, okIntent }: ConfirmModalOptions) {
+  // cModal handles dismissal automatically when close: true, so we leave
+  // onClick undefined unless the caller wants a side-effect on cancel.
   const buttons = [
     {
-      onClick: cancelAction || cModal.close,
+      onClick: cancelAction,
       label: 'Cancel',
       intent: NONE,
       close: true,

@@ -58,7 +58,7 @@ function resolvePositionLinkParticipants(positionLink: any, structure: any, draw
   const positionAssignments = sourceStructure?.positionAssignments || [];
   for (const pa of positionAssignments) {
     if (!pa.participantId) continue;
-    const tally = tournamentEngine.getTally({ positionAssignment: pa })?.tally;
+    const tally = tournamentEngine.q.tally({ positionAssignment: pa });
     const groupOrder = tally?.groupOrder || tally?.rankOrder;
     if (!targetFinishingPositions.length || (groupOrder && targetFinishingPositions.includes(groupOrder))) {
       ids.push(pa.participantId);
@@ -194,7 +194,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
                 entryStage: VOLUNTARY_CONSOLATION,
                 participantIds: newEntryIds,
                 ignoreStageSpace: true,
-                eventId: tournamentEngine.getEvent({ drawId })?.event?.eventId,
+                eventId: tournamentEngine.q.event({ drawId })?.eventId,
                 drawId,
               },
             },

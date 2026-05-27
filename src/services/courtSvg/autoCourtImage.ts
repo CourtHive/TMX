@@ -30,7 +30,7 @@ export function getAutoCourtImageMethod(
 ): { method: string; params: any } | undefined {
   if (hasTournamentImage()) return undefined;
 
-  const event = tournamentEngine.getEvent({ eventId })?.event;
+  const event = tournamentEngine.q.event({ eventId });
   // Try event-level sport first, then fall back to the draw's matchUpFormat
   const sport = resolveCourtSport(event) ?? sportFromMatchUpFormat(matchUpFormat);
   if (!sport) return undefined;

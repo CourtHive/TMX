@@ -557,7 +557,7 @@ function buildEventPickerSelect(state: State, colIdx: number, refresh: () => voi
 }
 
 function loadTournamentEvents(): TournamentEventOption[] {
-  const events = tournamentEngine.getEvents()?.events ?? [];
+  const events = tournamentEngine.q.events() ?? [];
   return events.map((event: any) => ({
     eventId: event.eventId,
     eventName: event.eventName ?? event.eventId,

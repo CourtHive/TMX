@@ -19,7 +19,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   if (!eventIds?.length) return;
 
   const devMode = isDev();
-  const totalEvents = tournamentEngine.getEvents()?.events?.length ?? eventIds.length;
+  const totalEvents = tournamentEngine.q.events()?.length ?? eventIds.length;
   const deletingAll = eventIds.length === totalEvents;
   const isBulk = eventIds.length >= 5 || deletingAll;
 

@@ -18,7 +18,7 @@ export function enterMatchUpScore(params: {
 }): void {
   const { matchUpId, callback } = params;
   const participantsProfile = { withScaleValues: true };
-  const matchUp = params.matchUp ?? tournamentEngine.findMatchUp({ participantsProfile, matchUpId }).matchUp;
+  const matchUp = params.matchUp ?? tournamentEngine.q.matchUp({ participantsProfile, matchUpId });
 
   // Subscribe to relay for live score updates from other trackers
   subscribeToMatchUp(matchUpId, (data: any) => {

@@ -197,7 +197,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       const matchUp = getMatchUp(props);
       if (props?.pointerEvent && matchUp?.schedule?.venueId) {
         const venueId = matchUp.schedule.venueId;
-        const address = tournamentEngine.findVenue({ venueId })?.venue?.addresses?.[0];
+        const address = tournamentEngine.q.venue({ venueId })?.addresses?.[0];
         const { latitude, longitude } = address || {};
 
         if (!latitude || !longitude) return;

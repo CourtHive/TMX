@@ -9,7 +9,7 @@ export const handleSideClick =
       if (result.success) {
         const row = cell.getRow();
         const { drawId, matchUpId } = matchUp;
-        const updatedMatchUp = tournamentEngine.findMatchUp({ drawId, matchUpId }).matchUp;
+        const updatedMatchUp = tournamentEngine.q.matchUp({ drawId, matchUpId });
         const collectionId = row.getData().matchUp.collectionId;
         const collectionMatchUps = updatedMatchUp.tieMatchUps.filter((m: any) => m.collectionId === collectionId);
         const data = collectionMatchUps.map((collectionMatchUp: any) =>

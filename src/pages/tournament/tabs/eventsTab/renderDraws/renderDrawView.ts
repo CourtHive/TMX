@@ -196,7 +196,7 @@ export function renderDrawView({
     return;
   }
 
-  const events = tournamentEngine.getEvents().events;
+  const events = tournamentEngine.q.events();
   if (!events?.length) return;
   let isAdHoc: boolean;
 
@@ -540,7 +540,7 @@ function applyConsolidationReadyHighlighting(
   luckyStatus: any,
 ) {
   // Check if the current structure is a target of any LOSER links from the lucky draw
-  const drawDefinition = tournamentEngine.getEvent({ drawId })?.drawDefinition;
+  const drawDefinition = tournamentEngine.q.drawDefinition({ drawId });
   if (!drawDefinition?.links?.length) return;
 
   for (const round of luckyStatus.rounds || []) {

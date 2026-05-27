@@ -102,7 +102,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
   }
 
   const onCardClick = (vId: string) => {
-    const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+    const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
     if (!tournamentId) return;
     context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${VENUE}/${vId}`);
   };
@@ -220,7 +220,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     else showRows();
     refreshHeader(readVenueCardData().length);
     renderControls();
-    const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+    const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
     if (tournamentId) {
       const route = availabilityVisible
         ? `/${TOURNAMENT}/${tournamentId}/${VENUES_TAB}/${AVAILABILITY}`

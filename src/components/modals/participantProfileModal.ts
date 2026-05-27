@@ -184,7 +184,7 @@ function buildEventChips(participant: any): HTMLElement | undefined {
   const participantEvents = participant.events || [];
   if (!participantEvents.length) return undefined;
 
-  const allEvents = tournamentEngine.getEvents()?.events || [];
+  const allEvents = tournamentEngine.q.events() || [];
   const eventMap: Record<string, any> = {};
   for (const e of allEvents) eventMap[e.eventId] = e;
 
@@ -245,7 +245,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
 
   const personId = participant.person?.personId;
   const participantEventIds = (participant.events ?? []).map((e: any) => e.eventId);
-  const allEvents = tournamentEngine.getEvents()?.events || [];
+  const allEvents = tournamentEngine.q.events() || [];
 
   const availablePolicies = getAvailablePolicies();
   let selectedPolicyId = availablePolicies[0]?.id;

@@ -46,7 +46,7 @@ function buildBackButton(): HTMLElement {
   btn.className = 'tmx-venue-detail__back';
   btn.innerHTML = `<i class="fa fa-arrow-left" aria-hidden="true"></i> ${t('pages.venues.title')}`;
   btn.addEventListener('click', () => {
-    const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+    const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
     if (tournamentId) context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${VENUES_TAB}`);
   });
   return btn;

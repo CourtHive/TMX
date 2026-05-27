@@ -15,7 +15,7 @@ import { ATTACH_POLICIES } from 'constants/mutationConstants';
 import { NONE, RIGHT } from 'constants/tmxConstants';
 
 export function editAvoidances({ eventId }: { eventId: string }): void {
-  const event = tournamentEngine.getEvent({ eventId }).event;
+  const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
   const { items } = getAvoidanceFormItems({ event });

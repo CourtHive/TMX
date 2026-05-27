@@ -83,7 +83,7 @@ export function getEventControlItems({
   // RIGHT side icon buttons (order: complete all, display, inline scoring, scoring, topology, then assign participants)
 
   // Complete all matchUps (local mode only — no provider)
-  const hasProvider = !!tournamentEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
+  const hasProvider = !!tournamentEngine.q.tournament()?.parentOrganisation?.organisationId;
   if (!hasProvider) {
     items.push({
       onClick: () => completeMatchUps({ drawId, structureId }),
@@ -171,8 +171,8 @@ export function getEventControlItems({
   }
 
   // Draft status button when a draft is active (mode-agnostic via getDraftState)
-  const drawDefinition = drawId ? tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition : undefined;
-  const draftState = drawDefinition ? tournamentEngine.getDraftState({ drawDefinition })?.draftState : undefined;
+  const drawDefinition = drawId ? tournamentEngine.q.drawDefinition({ drawId }) : undefined;
+  const draftState = drawDefinition ? tournamentEngine.q.draftState({ drawDefinition }) : undefined;
 
   if (draftState) {
     const draftComplete = draftState.status === 'COMPLETE';

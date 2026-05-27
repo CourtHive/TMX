@@ -68,7 +68,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   const eligibleParticipants = eligible?.eligibleParticipants || [];
 
   // Also include participants already entered in VOLUNTARY_CONSOLATION stage
-  const drawEntries = tournamentEngine.getEvent({ drawId })?.drawDefinition?.entries || [];
+  const drawEntries = tournamentEngine.q.drawDefinition({ drawId })?.entries || [];
   const vcEnteredIds = drawEntries
     .filter((e: any) => e.entryStage === VOLUNTARY_CONSOLATION)
     .map((e: any) => e.participantId);
@@ -109,7 +109,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   const vcEntryMap = new Map<string, string>(); // participantId → entryStatus
   const refreshVcEntryMap = () => {
     vcEntryMap.clear();
-    const entries = tournamentEngine.getEvent({ drawId })?.drawDefinition?.entries || [];
+    const entries = tournamentEngine.q.drawDefinition({ drawId })?.entries || [];
     for (const entry of entries) {
       if (entry.entryStage === VOLUNTARY_CONSOLATION) {
         vcEntryMap.set(entry.participantId, entry.entryStatus);
@@ -149,7 +149,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   });
 
   // ── State ──
-  let matchUpFormat = tournamentEngine.getEvent({ drawId })?.drawDefinition?.matchUpFormat || '';
+  let matchUpFormat = tournamentEngine.q.drawDefinition({ drawId })?.matchUpFormat || '';
   let drawType = SINGLE_ELIMINATION;
   let selectedRating = availableRatings[0] || '';
   let groupSize = 4;
@@ -356,7 +356,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
     const acceptedCount = getAcceptedCount();
     if (acceptedCount < 2) return;
 
-    const ddEntries = tournamentEngine.getEvent({ drawId })?.drawDefinition?.entries || [];
+    const ddEntries = tournamentEngine.q.drawDefinition({ drawId })?.entries || [];
     const vcEntries = ddEntries.filter((e: any) => e.entryStage === VOLUNTARY_CONSOLATION);
     console.log('onGenerate', {
       acceptedCount,

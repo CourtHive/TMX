@@ -148,7 +148,7 @@ export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
 }
 
 function getScheduleData({ scheduledDate }: { scheduledDate?: string }) {
-  const tournamentName = tournamentEngine.getTournamentInfo()?.tournamentInfo?.tournamentName ?? '';
+  const tournamentName = tournamentEngine.q.tournamentInfo()?.tournamentName ?? '';
   const { venues } = tournamentEngine.getVenuesAndCourts();
   const { matchUps } = tournamentEngine.allTournamentMatchUps({
     matchUpFilters: { scheduledDate },

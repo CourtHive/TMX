@@ -13,7 +13,7 @@ import { t } from 'i18n';
 const { tieFormats: builtinTieFormats } = fixtures;
 
 export async function generateTeams({ callback }: { callback?: () => void }): Promise<void> {
-  const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo || {};
+  const tournamentInfo = tournamentEngine.q.tournamentInfo() || {};
   const consideredDate = tournamentInfo.endDate || tournamentInfo.startDate;
 
   // Build tieFormat options from builtins + user-saved

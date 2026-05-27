@@ -13,12 +13,13 @@
  */
 import { competitionEngine } from 'services/factory/engine';
 import { getScheduleDateRange, resolveScheduleDate } from '../scheduleUtils';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { context } from 'services/context';
 
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { buildSchedule2Header } from './schedule2Header';
 import { buildGridHeaderActions } from './gridHeaderActions';
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, getUnsavedGridChangeCount, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
 import {
@@ -225,14 +226,16 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     endDate,
     scheduleDates: buildScheduleDates(scheduledDate),
     onDateChange: (date: string) => {
-      if (!confirmUnsavedChanges()) return;
-      const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
-      context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${date}/${state?.currentView || 'grid'}`);
+      guardUnsavedAndProceed(() => {
+        const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
+        context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${date}/${state?.currentView || 'grid'}`);
+      });
     },
     onViewChange: (newView: Schedule2View) => {
-      if (!confirmUnsavedChanges()) return;
-      const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
-      context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
+      guardUnsavedAndProceed(() => {
+        const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
+        context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
+      });
     },
   });
   controlAnchor.appendChild(header);
@@ -270,11 +273,27 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       activeStripVisible,
       bulkMode: getGridBulkMode(),
       onBulkModeChange: (enabled: boolean) => {
-        const result = setGridBulkMode(enabled);
-        if (result !== enabled) {
-          controlAnchor.innerHTML = '';
-          renderSchedule2Tab(params);
+        // Turning off bulk mode with pending changes needs an explicit
+        // "discard?" confirmation. Themed cModal — never native dialog.
+        if (!enabled && hasUnsavedGridChanges()) {
+          const count = getUnsavedGridChangeCount();
+          confirmModal({
+            title: 'Discard unsaved changes?',
+            query: `You have ${count} unsaved scheduling change(s). Switching to immediate mode will discard them. Continue?`,
+            okIntent: 'is-warning',
+            okAction: () => {
+              setGridBulkMode(enabled);
+              // Toggle now matches state; no re-render needed.
+            },
+            cancelAction: () => {
+              // Bounce the toggle visual back to its previous state.
+              controlAnchor.innerHTML = '';
+              renderSchedule2Tab(params);
+            },
+          });
+          return;
         }
+        setGridBulkMode(enabled);
       },
       onClearSchedule: (target) =>
         openClearScheduleMenu({
@@ -303,10 +322,24 @@ function destroyCurrentView(): void {
   if (state.currentView === 'profile') destroyProfileView();
 }
 
-/** Check for unsaved changes; return true if safe to proceed, false to block. */
-function confirmUnsavedChanges(): boolean {
-  if (!hasUnsavedGridChanges()) return true;
-  return window.confirm('You have unsaved scheduling changes. Discard and continue?');
+/**
+ * Run `proceed` once the user has acknowledged any unsaved bulk scheduling
+ * changes. When the grid is clean we fire synchronously (preserves the
+ * common navigation path); when dirty we open a themed cModal — the proceed
+ * callback runs on the Ok button, and Cancel / click-outside leaves the
+ * grid untouched. NEVER reach for window.confirm here.
+ */
+function guardUnsavedAndProceed(proceed: () => void): void {
+  if (!hasUnsavedGridChanges()) {
+    proceed();
+    return;
+  }
+  confirmModal({
+    title: 'Discard unsaved changes?',
+    query: 'You have unsaved scheduling changes. Discard and continue?',
+    okIntent: 'is-warning',
+    okAction: () => proceed(),
+  });
 }
 
 /** Exported for use by router guards or other navigation checks. */

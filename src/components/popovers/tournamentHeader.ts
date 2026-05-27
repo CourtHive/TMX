@@ -4,7 +4,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
 export function tournamentHeader(): void {
-  const tournamentInfo = tournamentEngine.getTournamentInfo().tournamentInfo;
+  const tournamentInfo = tournamentEngine.q.tournamentInfo();
   const offline = tournamentInfo?.timeItemValues?.TMX?.offline;
   if (offline) {
     const dnav = document.getElementById('dnav');

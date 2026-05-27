@@ -136,7 +136,7 @@ function createEmbargoButton(
 
 export function renderTournamentControls(grid: HTMLElement): void {
   const data = getTournamentPublishData();
-  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   const publicUrl = tournamentId ? getPublicTournamentUrl(tournamentId) : undefined;
   const anythingPublished = isAnythingPublished();
 

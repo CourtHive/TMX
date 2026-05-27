@@ -82,7 +82,7 @@ export function logIn({
   callback?: () => void;
 }): void {
   const valid = validateToken(data.token);
-  const tournamentInState = tournamentEngine.getTournament().tournamentRecord?.tournamentId;
+  const tournamentInState = tournamentEngine.q.tournament()?.tournamentId;
   if (valid) {
     setToken(data.token);
     if (data.refreshToken) setRefreshToken(data.refreshToken);

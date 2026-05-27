@@ -11,7 +11,7 @@ const PUB_ROUND_KEY = 'publishing.round';
 function getTournamentDateRange(startDate: string, endDate: string): string[] {
   if (!startDate || !endDate) return [];
   const fullRange = tools.generateDateRange(startDate, endDate);
-  const activeDates = tournamentEngine.getTournament()?.tournamentRecord?.activeDates;
+  const activeDates = tournamentEngine.q.tournament()?.activeDates;
   if (activeDates?.length) {
     const activeSet = new Set(activeDates);
     return fullRange.filter((d: string) => activeSet.has(d));
@@ -64,7 +64,7 @@ export type TournamentPublishData = {
 };
 
 export function getTournamentPublishData(): TournamentPublishData {
-  const publishState = tournamentEngine.getPublishState()?.publishState;
+  const publishState = tournamentEngine.q.publishState();
   const tournamentPubState = publishState?.tournament;
   const { startDate, endDate } = tournamentEngine.getCompetitionDateRange();
 
@@ -94,7 +94,7 @@ export function resolvePublishState(published: boolean, embargo?: string): 'live
 }
 
 export function getPublishingTableData(): PublishingRowData[] {
-  const events = tournamentEngine.getEvents()?.events || [];
+  const events = tournamentEngine.q.events() || [];
   const rows: PublishingRowData[] = [];
 
   for (const event of events) {
@@ -194,7 +194,7 @@ export function getPublishingTableData(): PublishingRowData[] {
 
 export function getActiveEmbargoes(): EmbargoEntry[] {
   const embargoes: EmbargoEntry[] = [];
-  const publishState = tournamentEngine.getPublishState()?.publishState;
+  const publishState = tournamentEngine.q.publishState();
   const tournamentPubState = publishState?.tournament;
 
   if (tournamentPubState?.orderOfPlay?.embargo) {
@@ -207,7 +207,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
     embargoes.push({ type: 'participants', label: t('publishing.participants'), embargo, embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.participants) });
   }
 
-  const events = tournamentEngine.getEvents()?.events || [];
+  const events = tournamentEngine.q.events() || [];
   for (const event of events) {
     const eventPubState = publishingGovernor.getPublishState({ event })?.publishState;
     const drawDetails = eventPubState?.status?.drawDetails || {};

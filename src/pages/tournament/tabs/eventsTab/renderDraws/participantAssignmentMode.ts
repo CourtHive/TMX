@@ -36,7 +36,7 @@ export function enterParticipantAssignmentMode({
   assignmentMode = true;
 
   // Get tournament record
-  const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
 
   // Initialize base state manager from courthive-components
   const baseStateManager = new DrawStateManager({
@@ -218,7 +218,7 @@ function renderAssignmentView({
   if (!stateManager) return;
 
   const matchUps = stateManager.getMatchUps();
-  const eventData = tournamentEngine.getEventData({ eventId })?.eventData;
+  const eventData = tournamentEngine.q.eventData({ eventId });
   const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
 
   const display = drawData?.display || eventData?.eventInfo?.display || {};
@@ -226,7 +226,7 @@ function renderAssignmentView({
   const composition = resolveCompositionByName(compositionName) || compositions.National;
 
   // Show QUALIFIER option only when the current structure receives qualifiers from another structure
-  const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
+  const drawDefinition = tournamentEngine.q.drawDefinition({ drawId });
   const hasQualifying = drawDefinition?.links?.some((link: any) => link.target?.structureId === structureId);
 
   // Configure for inline assignment with persist mode

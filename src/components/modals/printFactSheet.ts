@@ -9,7 +9,7 @@ import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 
 export function printFactSheet(): void {
-  const tournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   if (!tournamentRecord) return;
 
   const tournamentName = tournamentRecord.tournamentName || 'Tournament';
