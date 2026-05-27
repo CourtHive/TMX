@@ -78,12 +78,17 @@ const CLEAR_SCHEDULE: any = {
   removePriorValues: true,
 };
 
-function executeClear(matchUps: any[], onCleared?: () => void): void {
+function executeClear(matchUps: any[], includeCompleted: boolean, onCleared?: () => void): void {
   const matchUpIds = matchUps.map((m) => m.matchUpId);
   if (!matchUpIds.length) return;
 
+  // bulkScheduleMatchUps silently skips COMPLETED matchUps unless scheduleCompletedMatchUps is true,
+  // which leaves their schedule assignment intact even on an explicit "clear" request.
+  const params: any = { ...CLEAR_SCHEDULE, matchUpIds };
+  if (includeCompleted) params.scheduleCompletedMatchUps = true;
+
   mutationRequest({
-    methods: [{ method: BULK_SCHEDULE_MATCHUPS, params: { ...CLEAR_SCHEDULE, matchUpIds } }],
+    methods: [{ method: BULK_SCHEDULE_MATCHUPS, params }],
     callback: (result: any) => {
       if (result?.success) {
         scheduleToast({
@@ -181,7 +186,7 @@ function openConfirm(scope: Scope, scheduledDate: string, params: OpenClearMenuP
     title,
     query: buildConfirmContent(bucket, summary, reopen),
     okIntent,
-    okAction: () => executeClear(bucket.visible, params.onCleared),
+    okAction: () => executeClear(bucket.visible, scope !== 'day-pending', params.onCleared),
     cancelAction: undefined,
   });
 }
