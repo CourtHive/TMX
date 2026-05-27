@@ -64,6 +64,7 @@ export const RENAME_STRUCTURES = 'renameStructures';
 export const RESET_DRAW_DEFINITION = 'resetDrawDefinition';
 export const RESET_MATCHUP_LINEUPS = 'resetMatchUpLinesUps';
 export const RESET_SCORECARD = 'resetScorecard';
+export const SET_MATCHUP_CALLED_AT = 'setMatchUpCalledAt';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
 export const SET_DRAW_POSITION_PREFERENCES = 'setDrawPositionPreferences';
