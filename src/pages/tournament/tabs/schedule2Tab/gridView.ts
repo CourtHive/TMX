@@ -58,7 +58,7 @@ import type {
 
 // constants
 import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
-import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
+import { ADD_MATCHUP_SCHEDULE_ITEMS, SET_MATCHUP_CALLED_AT } from 'constants/mutationConstants';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { renderSchedule2Tab } from './schedule2Tab';
@@ -303,6 +303,11 @@ export function renderGridView(
             schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
             removePriorValues: true,
           },
+        },
+        // Explicit unschedule — clear any prior active-strip "called" stamp.
+        {
+          method: SET_MATCHUP_CALLED_AT,
+          params: { matchUpId, drawId: item?.drawId ?? '', calledAt: null },
         },
       ];
 
@@ -599,6 +604,11 @@ function unscheduleFromCourt(matchUpId: string, drawId: string, refresh: () => v
       {
         method: ADD_MATCHUP_SCHEDULE_ITEMS,
         params: { matchUpId, drawId, schedule, removePriorValues: true },
+      },
+      // Explicit unschedule — clear any prior active-strip "called" stamp.
+      {
+        method: SET_MATCHUP_CALLED_AT,
+        params: { matchUpId, drawId, calledAt: null },
       },
     ],
     refresh,
@@ -1621,6 +1631,18 @@ function handleActiveStripDrop(
         venueId: court.venueId,
       },
       removePriorValues: true,
+    },
+  });
+
+  // Stamp the "called to court" timestamp — the active-strip drop is the
+  // deliberate signal that this matchUp is imminent. Distinct from regular
+  // grid drops (which leave calledAt untouched as historical record).
+  methods.push({
+    method: SET_MATCHUP_CALLED_AT,
+    params: {
+      matchUpId: payload.matchUp.matchUpId,
+      drawId: payload.matchUp.drawId ?? '',
+      calledAt: new Date().toISOString(),
     },
   });
 
