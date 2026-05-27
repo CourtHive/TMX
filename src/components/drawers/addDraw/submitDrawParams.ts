@@ -585,9 +585,7 @@ export function submitDrawParams({
   const matchUpFormat = providedMatchUpFormat || inputs[MATCHUP_FORMAT]?.value;
   const selectedSeedingPolicy = inputs[SEEDING_POLICY]?.value;
 
-  const flightProfile = event?.extensions?.find(
-    (ext: any) => ext.name === factoryConstants.extensionConstants.FLIGHT_PROFILE,
-  )?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const structureName = inputs[STRUCTURE_NAME]?.value;

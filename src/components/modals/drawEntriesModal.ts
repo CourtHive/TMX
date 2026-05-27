@@ -7,7 +7,6 @@ import { cancelManualSeeding } from 'components/tables/eventsTable/seeding/cance
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { getDrawEntriesColumns } from './drawEntriesColumns/getDrawEntriesColumns';
 import { tournamentEngine } from 'services/factory/engine';
-import { extensionConstants } from 'tods-competition-factory';
 import { saveSeeding } from 'components/tables/eventsTable/seeding/saveSeeding';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -30,7 +29,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
     console.error('Event not found', { eventId });
     return;
   }
-  const flightProfile = event?.extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const drawInfo = drawDef || flightProfile?.flights?.find((flight: any) => flight.drawId === drawId);
 
   if (!drawInfo) {

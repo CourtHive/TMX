@@ -11,7 +11,6 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
-import { extensionConstants } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 import { CENTER, DRAW_NAME, DRAW_TYPE, LEFT, UTR, WTN } from 'constants/tmxConstants';
@@ -20,11 +19,11 @@ export function renderDrawsTable({ eventId, target }: { eventId: string; target:
   const event = tournamentEngine.getEvent({ eventId })?.event;
   if (!event) return;
 
-  const { drawDefinitions = [], extensions } = event;
+  const { drawDefinitions = [] } = event;
 
   // Collect ungenerated flights from flight profile extension
   const ungeneratedFlights: any[] = [];
-  const flightProfile = extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   flightProfile?.flights?.forEach((flight: any) => {
     const hasDrawDef = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
     if (hasDrawDef) {

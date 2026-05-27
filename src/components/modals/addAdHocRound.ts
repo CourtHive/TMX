@@ -58,7 +58,7 @@ function resolvePositionLinkParticipants(positionLink: any, structure: any, draw
   const positionAssignments = sourceStructure?.positionAssignments || [];
   for (const pa of positionAssignments) {
     if (!pa.participantId) continue;
-    const tally = pa.extensions?.find((e: any) => e.name === 'tally')?.value;
+    const tally = tournamentEngine.getTally({ positionAssignment: pa })?.tally;
     const groupOrder = tally?.groupOrder || tally?.rankOrder;
     if (!targetFinishingPositions.length || (groupOrder && targetFinishingPositions.includes(groupOrder))) {
       ids.push(pa.participantId);
