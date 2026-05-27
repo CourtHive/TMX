@@ -18,7 +18,7 @@ import { buildDrawCard, DrawCardData, mapDrawDefinitionToCardData } from 'courth
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { extensionConstants, publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
+import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
 
 import { buildDrawCardVisualization } from './buildDrawCardVisualization';
 import { DrawCardDisplayMode } from './drawCardDisplayMode';
@@ -39,7 +39,6 @@ const GRID_EXPANDED_CLASS = 'tmx-draws-grid--expanded';
 const EMPTY_CLASS = 'tmx-draws-empty';
 const NOTICE_CLASS = 'tmx-draws-notice';
 
-const { FLIGHT_PROFILE } = extensionConstants;
 const { WITHDRAWN } = entryStatusConstants;
 
 function clearAnchor(anchor: HTMLElement): void {
@@ -71,8 +70,8 @@ interface ResolvedEvent {
 function resolveEventData(eventId: string): ResolvedEvent | null {
   const event = tournamentEngine.getEvent({ eventId })?.event;
   if (!event) return null;
-  const { drawDefinitions = [], extensions } = event;
-  const flightProfile = extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const { drawDefinitions = [] } = event;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const flights: any[] = flightProfile?.flights ?? [];
   for (const flight of flights) {
     const dd = drawDefinitions.find((d: any) => d.drawId === flight.drawId);

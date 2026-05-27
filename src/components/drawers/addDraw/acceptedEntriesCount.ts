@@ -1,7 +1,7 @@
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
+import { tournamentEngine } from 'services/factory/engine';
 import { factoryConstants } from 'tods-competition-factory';
 
-const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
 const { MAIN } = factoryConstants.drawDefinitionConstants;
 
 export function acceptedEntriesCount({
@@ -13,7 +13,7 @@ export function acceptedEntriesCount({
   event: any;
   stage?: string;
 }): number {
-  const flightProfile = event?.extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
   const matchesStage = ({ entryStage = MAIN, entryStatus }: any) =>
     acceptedEntryStatuses(stage).includes(`${entryStage}.${entryStatus}`);

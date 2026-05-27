@@ -5,7 +5,6 @@
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
-import { extensionConstants } from 'tods-competition-factory';
 
 export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const deleteFlights = () => selectAndDeleteEventFlights({ eventData });
@@ -15,7 +14,7 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   // Count total draw items including ungenerated flights
   const event = tournamentEngine.getEvent({ eventId })?.event;
   const drawDefs = event?.drawDefinitions || [];
-  const flightProfile = event?.extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const ungeneratedCount = flightProfile?.flights?.filter(
     (f: any) => !drawDefs.find((dd: any) => dd.drawId === f.drawId),
   )?.length || 0;

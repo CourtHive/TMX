@@ -46,9 +46,9 @@ export function getActionOptions({
   const structure = drawData?.structures?.find((structure: any) => structure?.structureId === structureId);
   const eventId = eventData?.eventInfo?.eventId;
 
-  // Check for active draft
+  // Check for active draft (mode-agnostic across LEGACY/NATIVE schemaWriteMode)
   const drawDefinition = tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition;
-  const hasDraft = drawDefinition?.extensions?.some((ext: any) => ext.name === 'draftState');
+  const hasDraft = !!tournamentEngine.getDraftState({ drawDefinition })?.draftState;
 
   // Get scoring policy to check if participant assignment should be blocked
   const scoringPolicy = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });

@@ -170,12 +170,12 @@ export function getEventControlItems({
     });
   }
 
-  // Draft status button when a draft is active
+  // Draft status button when a draft is active (mode-agnostic via getDraftState)
   const drawDefinition = drawId ? tournamentEngine.findDrawDefinition({ drawId })?.drawDefinition : undefined;
-  const draftExt = drawDefinition?.extensions?.find((ext: any) => ext.name === 'draftState');
+  const draftState = drawDefinition ? tournamentEngine.getDraftState({ drawDefinition })?.draftState : undefined;
 
-  if (draftExt) {
-    const draftComplete = draftExt.value?.status === 'COMPLETE';
+  if (draftState) {
+    const draftComplete = draftState.status === 'COMPLETE';
     items.push({
       onClick: () =>
         openConfigureDraft({ drawId, eventId, callback: () => renderDrawView({ eventId, drawId, structureId }) }),
@@ -188,7 +188,7 @@ export function getEventControlItems({
   // "Assign participants" button when there are unassigned positions
   const isAssignableStage =
     (structure?.stage === MAIN && structure?.stageSequence === 1) || structure?.stage === QUALIFYING;
-  if (isAssignableStage && !isTeam && !draftExt) {
+  if (isAssignableStage && !isTeam && !draftState) {
     const unassignedCount =
       structure.positionAssignments?.filter((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier).length ?? 0;
     if (unassignedCount > 0) {

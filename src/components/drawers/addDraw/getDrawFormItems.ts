@@ -46,7 +46,6 @@ import {
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION } = drawDefinitionConstants;
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
-const { FLIGHT_PROFILE } = factoryConstants.extensionConstants;
 const { SINGLES } = factoryConstants.eventConstants;
 const { TEAM } = eventConstants;
 
@@ -78,7 +77,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   const existingTournamentPolicy = tournamentRecord?.policyDefinitions?.[POLICY_TYPE_SEEDING];
   const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
 
-  const flightProfile = event?.extensions?.find((ext: any) => ext.name === FLIGHT_PROFILE)?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
 
   const allowedFormats = providerConfig.getAllowedList('allowedMatchUpFormats');

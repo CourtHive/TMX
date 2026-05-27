@@ -34,7 +34,7 @@ import { eventsView } from './eventsView';
 
 // constants
 import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import {
   DRAWS_HEADER,
@@ -139,9 +139,7 @@ function renderDrawsListOrPlaceholder(eventId: string, renderDraw: boolean | und
   const event = tournamentEngine.getEvent({ eventId })?.event;
   const drawDefs = event?.drawDefinitions || [];
 
-  const flightProfile = event?.extensions?.find(
-    (ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE,
-  )?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   const ungeneratedCount =
     flightProfile?.flights?.filter((f: any) => !drawDefs.some((dd: any) => dd.drawId === f.drawId))?.length || 0;
   const totalDrawItems = drawDefs.length + ungeneratedCount;

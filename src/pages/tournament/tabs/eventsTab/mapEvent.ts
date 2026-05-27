@@ -5,7 +5,7 @@
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { mapDrawDefinition } from './mapDrawDefinition';
 import { tournamentEngine } from 'services/factory/engine';
-import { publishingGovernor, drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
+import { publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 
 const { MAIN } = drawDefinitionConstants;
 
@@ -18,10 +18,10 @@ export function mapEvent({
   scaleValues?: any;
   event: any;
 }): any {
-  const { drawDefinitions = [], eventName, entries, eventId, extensions } = event;
+  const { drawDefinitions = [], eventName, entries, eventId } = event;
 
   const ungeneratedFlights: any = [];
-  const flightProfile = extensions?.find((ext: any) => ext.name === extensionConstants.FLIGHT_PROFILE)?.value;
+  const flightProfile = tournamentEngine.getFlightProfile({ event })?.flightProfile;
   flightProfile?.flights?.forEach((flight: any) => {
     const drawDefinition = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
     if (drawDefinition) {
