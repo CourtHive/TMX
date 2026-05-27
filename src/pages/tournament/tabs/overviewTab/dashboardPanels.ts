@@ -547,7 +547,10 @@ export function createActionsPanel(): HTMLElement {
           record.parentOrganisation = activeProvider;
           tournamentEngine.setState(record);
           sendTournament({ tournamentRecord: record }).then(
-            () => {
+            (result: any) => {
+              // baseApi resolves to `undefined` on non-2xx; skip the local
+              // delete when the server didn't accept the claim.
+              if (!result?.success) return;
               tmx2db.deleteTournament(record.tournamentId);
               tmxToast({ message: t('modals.tournamentActions.tournamentClaimed'), intent: 'is-info' });
               renderOverview();
@@ -591,7 +594,14 @@ export function createActionsPanel(): HTMLElement {
             if (result?.success) {
               const updated = tournamentEngine.q.tournament();
               sendTournament({ tournamentRecord: updated }).then(
-                () => {
+                (result: any) => {
+                  // Skip local destruction when the server rejected the
+                  // upload — baseApi resolves to `undefined` on non-2xx and
+                  // would otherwise wipe the only remaining offline copy.
+                  if (!result?.success) {
+                    changeOnlineState({ state, offline: true });
+                    return;
+                  }
                   tmx2db.deleteTournament(updated.tournamentId);
                   const dnav = document.getElementById('dnav');
                   if (dnav) dnav.style.backgroundColor = '';

@@ -1,5 +1,6 @@
 import { getJwtTokenStorageKey, getRefreshTokenStorageKey } from 'config/localStorage';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 import axios from 'axios';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
@@ -103,8 +104,21 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       if (error.response?.status === 401) removeAuthorization();
       if (!silenceErrors) {
-        const message = error.response.data.message || error.response.data.error || error.response.data;
-        tmxToast({ message, intent: 'is-danger' });
+        const data = error.response.data ?? {};
+        const message = data.message || data.error || data;
+        const validationErrors: string[] | undefined = Array.isArray(data.validationErrors)
+          ? data.validationErrors
+          : undefined;
+        if (validationErrors?.length) {
+          tmxToast({
+            message,
+            intent: 'is-danger',
+            duration: 6000,
+            action: { text: t('common.details'), onClick: () => showValidationDetailsModal(validationErrors) },
+          });
+        } else {
+          tmxToast({ message, intent: 'is-danger' });
+        }
       }
     }
     // Preserve the pre-existing contract: rejected requests resolve to
@@ -112,6 +126,23 @@ axiosInstance.interceptors.response.use(
     return undefined;
   },
 );
+
+// Dynamic import: baseModal pulls in `courthive-components` which touches
+// the DOM at module load time; a static import would break vitest's
+// non-jsdom default. The Vite "INEFFECTIVE_DYNAMIC_IMPORT" warning here is
+// expected — chunk-splitting isn't the goal, test-environment isolation is.
+async function showValidationDetailsModal(errors: string[]): Promise<void> {
+  const { informModal } = await import('components/modals/baseModal/baseModal');
+  const list = document.createElement('ul');
+  list.style.margin = '0';
+  list.style.paddingLeft = '1.25rem';
+  for (const e of errors) {
+    const li = document.createElement('li');
+    li.textContent = e;
+    list.appendChild(li);
+  }
+  informModal({ title: t('common.validationDetails'), message: list, okAction: () => undefined });
+}
 
 const addAuthorization = () => {
   const token = localStorage.getItem(JWT_TOKEN_STORAGE_NAME);

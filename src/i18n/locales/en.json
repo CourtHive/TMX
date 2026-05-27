@@ -855,7 +855,9 @@
     "error": "Error",
     "success": "Success",
     "required": "Required",
-    "send": "Send"
+    "send": "Send",
+    "details": "Details",
+    "validationDetails": "Validation details"
   },
 
   "modals": {

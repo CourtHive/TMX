@@ -51,7 +51,11 @@ export function tournamentActions(): void {
       if (!tournamentRecord.parentOrganisation) {
         tournamentRecord.parentOrganisation = state.provider;
         tournamentEngine.setState(tournamentRecord);
-        const successClaim = () => {
+        const successClaim = (result: any) => {
+          // baseApi resolves to `undefined` on non-2xx (the danger toast is
+          // already shown by the interceptor) — skip the local cleanup when
+          // the server did NOT actually accept the claim.
+          if (!result?.success) return;
           tmx2db.deleteTournament(tournamentRecord.tournamentId);
           context.router?.navigate(`/tournament/${tournamentRecord.tournamentId}/detail`);
           tmxToast({
@@ -84,7 +88,12 @@ export function tournamentActions(): void {
     if (inputs.action.value === 'goOnline' && state?.provider) {
       const postMutation = (result: any) => {
         if (result?.success) {
-          const successOnline = () => {
+          const successOnline = (result: any) => {
+            // Guard against deleting the local copy when the server
+            // rejected the upload (baseApi resolves to `undefined` on
+            // non-2xx). Without this, a server-side validation 400 would
+            // destroy the only remaining copy of an offline tournament.
+            if (!result?.success) return;
             tmx2db.deleteTournament(tournamentRecord.tournamentId);
             const dnav = document.getElementById('dnav');
             if (dnav) dnav.style.backgroundColor = '';
