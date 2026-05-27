@@ -2,7 +2,7 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapVenue } from 'pages/tournament/tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
-import { TemporalEngine } from 'tods-competition-factory';
+import { AvailabilityEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { venueRowFormatter } from './venueRowFormatter';
@@ -27,7 +27,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
   const createSchedulingEngine = () => {
     const tournamentRecord = tournamentEngine.q.tournament();
     if (!tournamentRecord) return undefined;
-    const engine = new TemporalEngine();
+    const engine = new AvailabilityEngine();
     engine.init(tournamentRecord);
     return engine;
   };

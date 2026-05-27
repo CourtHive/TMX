@@ -15,7 +15,7 @@ const {
 }));
 
 vi.mock('tods-competition-factory', () => {
-  class MockTemporalEngine {
+  class MockAvailabilityEngine {
     init = temporalInit;
     getTournamentDays = temporalGetDays;
     getCourtAvailability = temporalGetCourtAvailability;
@@ -23,7 +23,7 @@ vi.mock('tods-competition-factory', () => {
   return {
     tournamentEngine: { getTournament: (...args: any[]) => getTournamentMock(...args) },
     competitionEngine: { getVenuesAndCourts: (...args: any[]) => getVenuesAndCourtsMock(...args) },
-    TemporalEngine: MockTemporalEngine,
+    AvailabilityEngine: MockAvailabilityEngine,
   };
 });
 

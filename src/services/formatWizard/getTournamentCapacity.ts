@@ -1,5 +1,5 @@
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
-import { TemporalEngine } from 'tods-competition-factory';
+import { AvailabilityEngine } from 'tods-competition-factory';
 
 export interface TournamentCapacity {
   courtCount: number; // raw sum of courts across venues
@@ -27,7 +27,7 @@ function flattenCourts(venues: any[]): Array<{ tournamentId?: string; venueId?: 
 }
 
 // Computes a per-day average of "available" courts using the
-// TemporalEngine. A court is available on a day when its resolved
+// AvailabilityEngine. A court is available on a day when its resolved
 // availability window has startTime < endTime.
 function computeEffectiveCourtCount(
   tournamentRecord: any,
@@ -36,7 +36,7 @@ function computeEffectiveCourtCount(
 ): number | undefined {
   if (days.length === 0 || courts.length === 0) return undefined;
 
-  const engine = new TemporalEngine();
+  const engine = new AvailabilityEngine();
   engine.init(tournamentRecord);
 
   let totalAvailable = 0;
@@ -89,7 +89,7 @@ export function getTournamentCapacity(): TournamentCapacity {
 
 function safeGetTournamentDays(tournamentRecord: any): string[] {
   try {
-    const engine = new TemporalEngine();
+    const engine = new AvailabilityEngine();
     engine.init(tournamentRecord);
     return engine.getTournamentDays();
   } catch {

@@ -21,7 +21,7 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 import { competitionEngine } from 'services/factory/engine';
-import { TemporalEngine, temporal } from 'tods-competition-factory';
+import { AvailabilityEngine, availability } from 'tods-competition-factory';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { scheduleToast } from './scheduleToast';
@@ -33,7 +33,7 @@ import { context } from 'services/context';
 
 import { COMPETITION_ENGINE, SCHEDULE2_TAB } from 'constants/tmxConstants';
 
-const { calculateCapacityStats } = temporal;
+const { calculateCapacityStats } = availability;
 
 const INTENT_SUCCESS = 'is-success';
 const INTENT_WARNING = 'is-warning';
@@ -196,16 +196,16 @@ function buildProfileSetup(): ProfileSetup | null {
 // ============================================================================
 
 function buildTemporalAdapter(schedulableDates: string[]): TemporalAdapter {
-  // Initialize TemporalEngine from the current tournament record
-  let engine: TemporalEngine | null = null;
+  // Initialize AvailabilityEngine from the current tournament record
+  let engine: AvailabilityEngine | null = null;
   try {
     const stateResult = competitionEngine.getState();
     const records = stateResult?.tournamentRecords;
     if (records) {
-      // Use the first tournament record for temporal engine
+      // Use the first tournament record for availability engine
       const record = Object.values(records)[0];
       if (record) {
-        engine = new TemporalEngine();
+        engine = new AvailabilityEngine();
         engine.init(record as any, {
           dayStartTime: '06:00',
           dayEndTime: '22:00',

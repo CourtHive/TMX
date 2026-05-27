@@ -1,4 +1,4 @@
-import type { TemporalEngine } from 'tods-competition-factory';
+import type { AvailabilityEngine } from 'tods-competition-factory';
 
 function findResourceIdentifier(resources: any[] | undefined, name: string): string | undefined {
   if (!Array.isArray(resources)) return undefined;
@@ -6,7 +6,7 @@ function findResourceIdentifier(resources: any[] | undefined, name: string): str
   return resource?.identifier;
 }
 
-export function mapVenue(venue: any, engine?: TemporalEngine): any {
+export function mapVenue(venue: any, engine?: AvailabilityEngine): any {
   const { venueName, venueAbbreviation, addresses, venueId, courts, onlineResources } = venue;
 
   const mappedCourts = courts?.map((court: any) => {
