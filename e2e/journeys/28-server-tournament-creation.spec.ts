@@ -84,7 +84,10 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     // Fill email (placeholder: valid@email.com)
     await page.locator('input[placeholder*="email"]').fill(E2E_EMAIL);
     await page.locator('input[placeholder*="8 characters"]').fill(E2E_PASSWORD);
-    await page.getByRole('button', { name: 'Login' }).click();
+    // The login modal's submit button has id `loginButton` — use that
+    // directly. The top-nav user widget also surfaces a "Login" affordance,
+    // so a plain getByRole('button', { name: 'Login' }) is ambiguous.
+    await page.locator('#loginButton').click();
 
     // Wait for login to complete
     await page.waitForTimeout(1500);
