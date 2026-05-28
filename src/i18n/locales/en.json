@@ -861,6 +861,19 @@
   },
 
   "modals": {
+    "contactEmail": {
+      "title": "Recovery email",
+      "label": "Recovery email",
+      "statusNotSet": "No recovery email set. Add one so you can recover access if you lose your password.",
+      "statusPending": "Pending verification — check {{email}} and click the link.",
+      "statusVerified": "Verified: {{email}}",
+      "save": "Save",
+      "resend": "Resend verification",
+      "savedPending": "Verification email sent to {{email}}.",
+      "resent": "Verification email sent.",
+      "alreadyVerified": "Recovery email is already verified.",
+      "failed": "Could not update recovery email. Please try again."
+    },
     "deleteEvents": {
       "titleOne": "Delete Event",
       "titleOther": "Delete Events",

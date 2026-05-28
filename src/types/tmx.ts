@@ -74,6 +74,10 @@ export interface UserContext {
   providerIds: string[];
   /** Provider IDs inherited via the user's provisioner(s); admin-equivalent. */
   provisionerProviderIds?: string[];
+  /** Verified recovery mailbox — separate from the login `email` identifier. */
+  contactEmail?: string | null;
+  /** ISO timestamp at which `contactEmail` was verified, or null when pending. */
+  emailVerifiedAt?: string | null;
 }
 
 // ---------------------------------------------------------------------------
