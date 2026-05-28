@@ -19,24 +19,5 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-
-      # pnpm-workspace.yaml overrides win over package.json pins, and the
-      # GitHub runner has no sibling clones at ../factory etc., so any
-      # `link:` override would produce a dangling symlink. Lint tolerates
-      # dangling symlinks today, but check-types / test / build would not
-      # — strip the link: lines defensively so this stays green if those
-      # steps are added later.
-      - name: 'Strip link: overrides for CI'
-        run: |
-          node -e "
-          const fs = require('fs');
-          if (fs.existsSync('pnpm-workspace.yaml')) {
-            const before = fs.readFileSync('pnpm-workspace.yaml', 'utf8');
-            const after = before.split('\n').filter(line => !/:\s*link:\S+\s*\$/.test(line)).join('\n');
-            if (after !== before) fs.writeFileSync('pnpm-workspace.yaml', after);
-          }
-          "
-          rm -f pnpm-lock.yaml
-
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
