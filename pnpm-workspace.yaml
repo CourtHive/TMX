@@ -8,15 +8,18 @@ packages:
 # fetched. The policy false-positives on those and blocks install.
 minimumReleaseAge: 0
 
+# pnpm v11 requires every transitive package with a lifecycle script
+# to be explicitly approved (true) or denied (false) here. Packages
+# left out trigger ERR_PNPM_IGNORED_BUILDS on fresh installs.
+# `--frozen-lockfile` skips this gate, which is why the previous
+# config (`allowBuilds:` with only positive entries, plus a
+# non-recognized `ignoredBuiltDependencies:` array) appeared to work.
 allowBuilds:
-  electron-winstaller: true
-  esbuild: true
-
-ignoredBuiltDependencies:
-  - core-js
-  - cypress
-  - electron
-  - electron-winstaller
+  esbuild: true             # downloads platform-specific binary
+  electron-winstaller: true # Windows installer build
+  core-js: false            # polyfills — funding banner only, skip
+  cypress: false            # large browser binary; e2e via Playwright instead
+  electron: false           # ~250MB binary; only needed for desktop mode
 
 overrides:
   '@courthive/provider-config': link:../provider-config
