@@ -21,7 +21,7 @@ interface PrintCourtCardParams {
  * Print a court card for a single court.
  */
 export function printCourtCard({ courtId, scheduledDate }: PrintCourtCardParams): void {
-  const { matchUps, venues, tournamentName } = getScheduleData({ scheduledDate });
+  const { matchUps = [], venues, tournamentName } = getScheduleData({ scheduledDate });
 
   const courtMatchUps = matchUps.filter(
     (mu: any) => mu.schedule?.courtId === courtId || mu.schedule?.venueCourtId === courtId,
@@ -48,7 +48,7 @@ export function printMatchUpCourtCard({
   matchUpId: string;
   scheduledDate?: string;
 }): void {
-  const { matchUps, venues, tournamentName } = getScheduleData({ scheduledDate });
+  const { matchUps = [], venues, tournamentName } = getScheduleData({ scheduledDate });
   const matchUp = matchUps.find((m: any) => m.matchUpId === matchUpId);
   if (!matchUp) {
     tmxToast({ message: 'MatchUp not found', intent: IS_WARNING });
@@ -72,7 +72,7 @@ export function printMatchUpCourtCard({
  * (anything that would render as TBD).
  */
 export function printCourtMatchUpCards({ courtId, scheduledDate }: PrintCourtCardParams): void {
-  const { matchUps, venues, tournamentName } = getScheduleData({ scheduledDate });
+  const { matchUps = [], venues, tournamentName } = getScheduleData({ scheduledDate });
 
   const sideHasParticipant = (s: any) => !!(s?.participantId || s?.participant?.participantId);
   const bothSidesAssigned = (mu: any) => {
@@ -109,7 +109,7 @@ export function printCourtMatchUpCards({ courtId, scheduledDate }: PrintCourtCar
  * Print court cards for all courts with scheduled matchUps.
  */
 export function printAllCourtCards({ scheduledDate }: { scheduledDate?: string }): void {
-  const { matchUps, venues, tournamentName } = getScheduleData({ scheduledDate });
+  const { matchUps = [], venues, tournamentName } = getScheduleData({ scheduledDate });
 
   const cards = extractCourtCardData({ matchUps, venues, scheduledDate });
   if (!cards.length) {
@@ -131,7 +131,7 @@ export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
 }): void {
   const { venues, tournamentName } = getScheduleData({});
 
-  const { matchUps } = tournamentEngine.allTournamentMatchUps({
+  const { matchUps = [] } = tournamentEngine.allTournamentMatchUps({
     matchUpFilters: { drawIds: [drawId], structureIds: [structureId], roundNumbers: [roundNumber] },
   });
 
@@ -150,7 +150,7 @@ export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
 function getScheduleData({ scheduledDate }: { scheduledDate?: string }) {
   const tournamentName = tournamentEngine.q.tournamentInfo()?.tournamentName ?? '';
   const { venues } = tournamentEngine.getVenuesAndCourts();
-  const { matchUps } = tournamentEngine.allTournamentMatchUps({
+  const { matchUps = [] } = tournamentEngine.allTournamentMatchUps({
     matchUpFilters: { scheduledDate },
   });
 

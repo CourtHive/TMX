@@ -66,7 +66,7 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
       [...bandedParticipants.low].sort(scaleSort),
     )) || [];
 
-  const scaledEntries = sortedBy.slice(0, Math.min(ratedParticipants, seedsCount));
+  const scaledEntries = sortedBy.slice(0, Math.min(ratedParticipants, seedsCount ?? 0));
 
   const scaleName = group === QUALIFYING ? `${eventId}${QUALIFYING}` : eventId;
   const scaleAttributes = {
@@ -100,7 +100,7 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
     }
   };
 
-  setParticipantScaleItems({ scaleItemsWithParticipantIds, scaleBasis: RATING, eventId, callback });
+  setParticipantScaleItems({ scaleItemsWithParticipantIds: scaleItemsWithParticipantIds ?? [], scaleBasis: RATING, eventId, callback });
 }
 
 export function generateSeedingScaleItems(): any {

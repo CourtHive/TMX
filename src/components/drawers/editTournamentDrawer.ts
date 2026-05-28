@@ -221,7 +221,7 @@ export function editTournament({
         if (localTimeZone) {
           tournamentEngine.setTournamentLocalTimeZone({ localTimeZone });
         }
-        if (state?.providerId) {
+        if (state?.providerId && newTournamentRecord) {
           const addProvider = (result: any) => {
             const provider = result.data?.provider;
             newTournamentRecord.parentOrganisation = provider;

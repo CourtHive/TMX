@@ -48,7 +48,7 @@ export function tournamentActions(): void {
 
     if (inputs.action.value === 'claim' && state?.provider) {
       const tournamentRecord = tournamentEngine.q.tournament();
-      if (!tournamentRecord.parentOrganisation) {
+      if (tournamentRecord && !tournamentRecord.parentOrganisation) {
         tournamentRecord.parentOrganisation = state.provider;
         tournamentEngine.setState(tournamentRecord);
         const successClaim = (result: any) => {
@@ -93,7 +93,7 @@ export function tournamentActions(): void {
             // rejected the upload (baseApi resolves to `undefined` on
             // non-2xx). Without this, a server-side validation 400 would
             // destroy the only remaining copy of an offline tournament.
-            if (!result?.success) return;
+            if (!result?.success || !tournamentRecord) return;
             tmx2db.deleteTournament(tournamentRecord.tournamentId);
             const dnav = document.getElementById('dnav');
             if (dnav) dnav.style.backgroundColor = '';

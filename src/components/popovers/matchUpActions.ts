@@ -231,7 +231,7 @@ export function matchUpActions({
         li.style.backgroundColor = 'var(--tmx-accent-blue, #3273dc)';
         li.style.color = '#fff';
       }
-      li.textContent = official.participantName;
+      li.textContent = official.participantName ?? null;
       li.onmouseenter = () => {
         if (official.participantId !== currentOfficialId) li.style.backgroundColor = 'var(--chc-hover-bg, #f0f0f0)';
       };

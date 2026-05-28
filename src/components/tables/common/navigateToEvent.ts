@@ -49,7 +49,7 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
   }
 
   if (matchUpId) {
-    drawId = event.drawDefinitions.find(({ drawId }: any) => {
+    drawId = (event?.drawDefinitions ?? []).find(({ drawId }: any) => {
       const matchUps = tournamentEngine.q.drawMatchUps({ drawId, inContext: false });
       return matchUps.find((matchUp: any) => matchUp.matchUpId === matchUpId);
     })?.drawId;

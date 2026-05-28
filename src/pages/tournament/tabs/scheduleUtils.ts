@@ -29,7 +29,7 @@ export function resolveScheduleDate(): string {
   const dates = getScheduleDateRange();
   if (!dates.length) {
     const { startDate } = competitionEngine.getCompetitionDateRange();
-    return startDate;
+    return startDate ?? '';
   }
 
   const today = tools.dateTime.formatDate(new Date());

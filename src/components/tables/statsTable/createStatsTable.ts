@@ -56,7 +56,7 @@ export async function createStatsTable({
     const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
-    if (!participantMap) participantMap = getParticipantMap(participants);
+    if (!participantMap) participantMap = getParticipantMap(participants ?? []);
     const matchUps = structure?.roundMatchUps ? Object.values(structure.roundMatchUps).flat() : [];
     matchUps.forEach(({ sides, structureName, structureId }: any) => {
       groupNames[structureId] = structureName;

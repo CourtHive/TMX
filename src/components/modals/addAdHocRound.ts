@@ -77,6 +77,7 @@ type AddAdHocRoundParams = {
 
 export function addAdHocRound({ drawId, structure, structureId, callback }: AddAdHocRoundParams = {}): void {
   structureId = structureId || structure?.structureId;
+  if (!structureId) return;
   let update: any, inputs: any;
 
   const matchUps =

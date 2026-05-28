@@ -11,7 +11,7 @@ export const handleSideClick =
         const { drawId, matchUpId } = matchUp;
         const updatedMatchUp = tournamentEngine.q.matchUp({ drawId, matchUpId });
         const collectionId = row.getData().matchUp.collectionId;
-        const collectionMatchUps = updatedMatchUp.tieMatchUps.filter((m: any) => m.collectionId === collectionId);
+        const collectionMatchUps = (updatedMatchUp?.tieMatchUps ?? []).filter((m: any) => m.collectionId === collectionId);
         const data = collectionMatchUps.map((collectionMatchUp: any) =>
           mapMatchUp({ ...collectionMatchUp, dualMatchUp: matchUp }),
         );

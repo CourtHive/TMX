@@ -190,7 +190,7 @@ export function getActionOptions({
         matchUpId,
         drawId,
       }).matchUp;
-      const resultsPresent = currentMatchUp.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
+      const resultsPresent = currentMatchUp?.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
       if (resultsPresent) {
         tmxToast({
           message: t('pages.events.actionOptions.cannotRemoveScores'),

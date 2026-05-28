@@ -36,7 +36,7 @@ export function participantMatchUpActions(e: Event, cell: any, callback?: (resul
 
   const { matchUpId, drawId } = data;
   const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
-  const { validActions } = tournamentEngine.matchUpActions({
+  const { validActions = [] } = tournamentEngine.matchUpActions({
     matchUpId,
     drawId,
     sideNumber,

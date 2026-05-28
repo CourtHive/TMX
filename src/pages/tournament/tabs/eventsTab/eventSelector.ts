@@ -86,7 +86,7 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
     if (selectedEvent) {
       const chip = document.createElement('button');
       chip.className = 'event-selector-chip';
-      chip.textContent = selectedEvent.eventName;
+      chip.textContent = selectedEvent.eventName ?? null;
       chip.style.cssText = chipStyles(true);
       wrapper.appendChild(chip);
     }
@@ -111,7 +111,7 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
       const isSelected = event.eventId === eventId;
       const chip = document.createElement('button');
       chip.className = 'event-selector-chip';
-      chip.textContent = event.eventName;
+      chip.textContent = event.eventName ?? null;
       chip.style.cssText = chipStyles(isSelected);
       if (!isSelected) {
         chip.onmouseenter = () => {

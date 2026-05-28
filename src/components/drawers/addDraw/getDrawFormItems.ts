@@ -109,7 +109,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
   ];
 
-  const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
+  const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size: number) => ({ label: size, value: size }));
   const playoffOptions = [
     { label: t('drawers.addDraw.groupWinners'), value: WINNERS },

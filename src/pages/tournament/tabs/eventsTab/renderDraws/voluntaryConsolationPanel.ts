@@ -111,8 +111,8 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
     vcEntryMap.clear();
     const entries = tournamentEngine.q.drawDefinition({ drawId })?.entries || [];
     for (const entry of entries) {
-      if (entry.entryStage === VOLUNTARY_CONSOLATION) {
-        vcEntryMap.set(entry.participantId, entry.entryStatus);
+      if (entry.entryStage === VOLUNTARY_CONSOLATION && entry.participantId) {
+        vcEntryMap.set(entry.participantId, entry.entryStatus ?? '');
       }
     }
   };
@@ -234,7 +234,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
 
   const getGroupSizeOptions = () => {
     const accepted = getAcceptedCount();
-    const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: accepted || 4, groupSizeLimit: 8 });
+    const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: accepted || 4, groupSizeLimit: 8 });
     return (validGroupSizes || [3, 4, 5, 6, 7, 8]).map((size) => ({
       label: `Groups of ${size}`,
       onClick: () => {
@@ -411,10 +411,13 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
           const acceptedIds = [...vcEntryMap.entries()]
             .filter(([, status]) => status === DIRECT_ACCEPTANCE)
             .map(([id]) => id);
-          generateFirstAdHocRound({
-            structureId: genResult.structures[0].structureId,
-            participantIds: acceptedIds,
-          });
+          const firstStructure = genResult.structures?.[0];
+          if (firstStructure) {
+            generateFirstAdHocRound({
+              structureId: firstStructure.structureId,
+              participantIds: acceptedIds,
+            });
+          }
         } else {
           toastStructureAdded();
           callback?.({ refresh: true });

@@ -60,7 +60,7 @@ export function addRRplayoffs({
     id: DRAW_TYPE,
   };
 
-  const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 4, groupSizeLimit: 8 });
+  const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: 4, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size) => ({ label: size, value: size }));
   const groupSizeSelector = {
     options: roundRobinOptions,

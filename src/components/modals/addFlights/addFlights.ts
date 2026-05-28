@@ -12,6 +12,7 @@ const { SINGLES } = matchUpTypes;
 
 export function addFlights({ eventId, callback }) {
   const event = tournamentEngine.q.event({ eventId });
+  if (!event) return;
 
   const generateFlightProfile = (values: any) => {
     const scaleAttributes = {

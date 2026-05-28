@@ -7,13 +7,13 @@ import { MODIFY_SIGN_IN_STATUS } from 'constants/mutationConstants';
 const { INDIVIDUAL, SIGNED_OUT } = participantConstants;
 
 export function signOutUnapproved(replaceTableData: () => void): void {
-  const signedInNoEvents = tournamentEngine
-    .getParticipants({
+  const signedInNoEvents = (
+    tournamentEngine.getParticipants({
       participantFilters: { participantTypes: [INDIVIDUAL] },
       withSignInStatus: true,
-      withEvents: true
-    })
-    .participants.filter((p: any) => p.signedIn && !p.events.length);
+      withEvents: true,
+    }).participants ?? []
+  ).filter((p: any) => p.signedIn && !p.events.length);
 
   const participantIds = signedInNoEvents.map((p: any) => p.participantId);
 

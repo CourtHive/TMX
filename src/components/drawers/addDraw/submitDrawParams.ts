@@ -695,7 +695,7 @@ export function submitDrawParams({
     structureOptions,
     matchUpFormat,
     structureName,
-    seedsCount,
+    seedsCount: seedsCount ?? 0,
     drawSize,
     drawType,
     drawName,

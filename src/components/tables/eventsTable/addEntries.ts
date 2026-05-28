@@ -178,13 +178,13 @@ export const addEntries =
       const enteredParticipantIds = new Set((entries || []).map(({ participantId }: any) => participantId));
       const participantType =
         (event.eventType === 'TEAM' && 'TEAM') || (event.eventType === 'DOUBLES' && 'PAIR') || 'INDIVIDUAL';
-      const participantsAvailable = tournamentEngine
-        .getParticipants({
+      const participantsAvailable = (
+        tournamentEngine.getParticipants({
           inContext: true,
           participantFilters: { participantTypes: [participantType] },
           withISO2: true,
-        })
-        .participants.filter((participant: any) => !enteredParticipantIds.has(participant.participantId));
+        }).participants ?? []
+      ).filter((participant: any) => !enteredParticipantIds.has(participant.participantId));
 
       const onSelection = ({ selected }: any) =>
         runAddEntriesSelection({ selected, group, eventId, eventType, table, onRefresh });

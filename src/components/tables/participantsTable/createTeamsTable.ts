@@ -30,7 +30,8 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
       withEvents: true,
       withISO2: true,
     });
-    ({ participants, derivedEventInfo } = result);
+    participants = result.participants ?? [];
+    derivedEventInfo = result.derivedEventInfo;
 
     return participants.map((p: any) => (mapTeamParticipant as any)(p, derivedEventInfo));
   };

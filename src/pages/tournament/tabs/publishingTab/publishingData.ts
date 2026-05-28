@@ -81,9 +81,9 @@ export function getTournamentPublishData(): TournamentPublishData {
     participantsEmbargoActive: publishingGovernor.isEmbargoed(tournamentPubState?.participants),
     participantsColumns: tournamentPubState?.participants?.columns,
     publishLanguage: tournamentPubState?.language,
-    tournamentDateRange: getTournamentDateRange(startDate, endDate),
-    startDate,
-    endDate,
+    tournamentDateRange: getTournamentDateRange(startDate ?? '', endDate ?? ''),
+    startDate: startDate ?? '',
+    endDate: endDate ?? '',
   };
 }
 
@@ -177,8 +177,8 @@ export function getPublishingTableData(): PublishingRowData[] {
     });
 
     rows.push({
-      id: event.eventId,
-      name: event.eventName,
+      id: event.eventId ?? '',
+      name: event.eventName ?? '',
       type: 'event',
       eventId: event.eventId,
       published: eventPublished,

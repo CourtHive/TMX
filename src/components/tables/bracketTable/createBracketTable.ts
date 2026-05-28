@@ -87,7 +87,7 @@ export async function createBracketTable({
     const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
-    if (!participantMap) participantMap = getParticipantMap(participants);
+    if (!participantMap) participantMap = getParticipantMap(participants ?? []);
 
     const participantResults = (structure?.participantResults ?? []).filter((pr: any) => {
       if (!participantFilter) return true;

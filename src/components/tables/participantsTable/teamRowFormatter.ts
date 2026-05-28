@@ -143,7 +143,7 @@ export const teamRowFormatter = (row: any): void => {
     };
 
     const existingParticipantIds = participant.individualParticipants?.map(xa('participantId')) || [];
-    const { participants } = tournamentEngine.getParticipants({
+    const { participants = [] } = tournamentEngine.getParticipants({
       participantFilters: { participantTypes: ['INDIVIDUAL'] },
       withISO2: true,
     });

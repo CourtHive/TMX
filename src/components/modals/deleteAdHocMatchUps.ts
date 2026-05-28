@@ -21,6 +21,7 @@ type DeleteAdHocMatchUpsParams = {
 
 export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureId, callback }: DeleteAdHocMatchUpsParams = {}): void {
   structureId = structureId || structure?.structureId;
+  if (!structureId) return;
 
   const matchUps =
     tournamentEngine.allDrawMatchUps({

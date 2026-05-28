@@ -1739,7 +1739,7 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
   const { tournamentInfo } = competitionEngine.getTournamentInfo();
   const activeDates = tournamentInfo?.activeDates;
-  const dates = activeDates?.length ? activeDates : dateRange(startDate, endDate);
+  const dates = activeDates?.length ? activeDates : dateRange(startDate ?? '', endDate ?? '');
 
   const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const dateCounts = new Map<string, number>();
