@@ -82,7 +82,7 @@ export function displayTournament({ config }: { config?: any } = {}): void {
   }
 }
 
-function renderTournament({ config }: { config: any }): void {
+export function renderTournament({ config }: { config: any }): void {
   showContent(TOURNAMENT);
   tournamentHeader();
   highlightTab(config.selectedTab);
