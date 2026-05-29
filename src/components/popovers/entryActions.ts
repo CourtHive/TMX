@@ -42,10 +42,9 @@ export const entryActions = (actions: string[], eventId: string, drawId?: string
 
   const destroyPairEntry = () => {
     const result = tournamentEngine.destroyPairEntry({
-      participantIds: [participant.participantId],
-      autoEntryPositions: true,
+      participantId: participant.participantId,
       eventId,
-      drawId
+      drawId,
     });
     console.log({ result });
   };

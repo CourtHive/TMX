@@ -35,7 +35,7 @@ export function participantMatchUpActions(e: Event, cell: any, callback?: (resul
   const isTeam = data.eventType === TEAM;
 
   const { matchUpId, drawId } = data;
-  const sideNumber = (def.field === 'side1' && 1) || (def.field === 'side2' && 2);
+  const sideNumber = def.field === 'side1' ? 1 : def.field === 'side2' ? 2 : undefined;
   const { validActions = [] } = tournamentEngine.matchUpActions({
     matchUpId,
     drawId,

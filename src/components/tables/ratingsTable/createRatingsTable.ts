@@ -104,7 +104,11 @@ function showMatchUpTipster(target: HTMLElement, drawId: string, matchUpId: stri
   if (composition.configuration && scalesMap[_activeScale]) {
     composition.configuration.scaleAttributes = scalesMap[_activeScale];
   }
-  const matchUpElement = renderMatchUp({ matchUp, composition, isLucky: true });
+  // courthive-components MatchUp narrows matchUpType to SINGLES|DOUBLES and
+  // declares structureId required; factory HydratedMatchUp is wider. Both
+  // properties are present at runtime when this code runs (singles ratings
+  // tooltip, hydrated matchUp). Cross-package type cast at the boundary.
+  const matchUpElement = renderMatchUp({ matchUp: matchUp as any, composition, isLucky: true });
   wrapper.appendChild(matchUpElement);
 
   activeTip = tippy(target, {
