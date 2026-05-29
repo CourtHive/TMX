@@ -46,7 +46,6 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
       onClick: () => {
         const participant = tournamentEngine.getParticipants({
           participantFilters: { participantIds: [participantId] },
-          inContext: false,
         }).participants?.[0];
         if (participant) {
           editGroupingParticipant({

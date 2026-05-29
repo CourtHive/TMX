@@ -59,7 +59,6 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
     const { validActions: actions } =
       (matchUp.drawId &&
         tournamentEngine.positionActions({
-          sideNumber: sideNumber || side?.sideNumber,
           structureId: matchUp?.structureId,
           matchUpId: matchUp?.matchUpId,
           drawId: matchUp?.drawId,

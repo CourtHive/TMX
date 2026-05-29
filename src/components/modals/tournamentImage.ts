@@ -34,7 +34,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   const currentCourtSport =
     imageResource?.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE ? imageResource?.identifier : undefined;
 
-  selectedSport = currentCourtSport;
+  selectedSport = currentCourtSport as CourtSport | undefined;
 
   const previewContainer = document.createElement('div');
   previewContainer.id = 'courtSvgPreview';

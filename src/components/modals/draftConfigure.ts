@@ -932,7 +932,7 @@ function refreshTierList({
   }
 
   // Update config lock state based on current preferences
-  updateConfigLockState(summary.preferencesSubmitted > 0);
+  updateConfigLockState((summary?.preferencesSubmitted ?? 0) > 0);
 
   // Re-wire click handlers
   rewireParticipantClicks(drawId, eventId, draftState, participants, callback);
@@ -1089,7 +1089,7 @@ function getParticipantsMap(): Map<string, string> {
   const { participants } = tournamentEngine.getParticipants();
   const map = new Map<string, string>();
   for (const p of participants || []) {
-    map.set(p.participantId, p.participantName);
+    if (p.participantId && p.participantName) map.set(p.participantId, p.participantName);
   }
   return map;
 }

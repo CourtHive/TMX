@@ -27,7 +27,7 @@ export function courtTargetButton(): { item: any; getSelectedCourtIds: () => str
   const allCourts: { courtId: string; courtName: string; venueName: string }[] = [];
   for (const venue of venues) {
     for (const court of venue.courts || []) {
-      allCourts.push({ courtId: court.courtId, courtName: court.courtName, venueName: venue.venueName });
+      allCourts.push({ courtId: court.courtId ?? '', courtName: court.courtName ?? '', venueName: venue.venueName ?? '' });
     }
   }
 

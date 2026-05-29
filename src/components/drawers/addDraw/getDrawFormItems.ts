@@ -72,9 +72,9 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   const drawType = SINGLE_ELIMINATION;
 
   // Check for existing seeding policy at event or tournament level
-  const tournamentRecord = tournamentEngine.getTournamentInfo()?.tournamentRecord;
+  const tournamentRecord = tournamentEngine.q.tournament();
   const existingEventPolicy = event?.policyDefinitions?.[POLICY_TYPE_SEEDING];
-  const existingTournamentPolicy = tournamentRecord?.policyDefinitions?.[POLICY_TYPE_SEEDING];
+  const existingTournamentPolicy = (tournamentRecord as any)?.policyDefinitions?.[POLICY_TYPE_SEEDING];
   const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
 
   const flightProfile = tournamentEngine.q.flightProfile({ event });
@@ -109,7 +109,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
   ];
 
-  const { validGroupSizes } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
+  const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size: number) => ({ label: size, value: size }));
   const playoffOptions = [
     { label: t('drawers.addDraw.groupWinners'), value: WINNERS },

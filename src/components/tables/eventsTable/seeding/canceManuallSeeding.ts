@@ -25,11 +25,12 @@ const onCancelManualSeedingClick = (
   hideSaveSeeding(e, table);
   const entryStage = removeSeeding({ table });
   const event = tournamentEngine.q.event({ eventId });
-  const entries = event.entries?.filter(
+  if (!event) return;
+  const entries = (event.entries ?? []).filter(
     (entry: any) => entry.entryStage === entryStage && entry.entryStatus === DIRECT_ACCEPTANCE,
   );
   const participantIds = entries.map(({ participantId }: any) => participantId);
-  const { participants } = tournamentEngine.getParticipants({
+  const { participants = [] } = tournamentEngine.getParticipants({
     participantFilters: { participantIds },
     withScaleValues: true,
   });
@@ -38,7 +39,7 @@ const onCancelManualSeedingClick = (
 
   const seededParticipants = participants
     .map((participant: any) => {
-      const seedNumber = getSeedNumber(participant, event.eventType, scaleName);
+      const seedNumber = getSeedNumber(participant, event.eventType ?? '', scaleName);
       if (seedNumber) return { participantId: participant.participantId, seedNumber };
       return undefined;
     })

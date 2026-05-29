@@ -52,7 +52,7 @@ export function getActionOptions({
 
   // Get scoring policy to check if participant assignment should be blocked
   const scoringPolicy = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });
-  const requireParticipants = scoringPolicy?.requireParticipantsForScoring;
+  const requireParticipants = scoringPolicy?.policy?.requireParticipantsForScoring;
 
   // Check if draw has any scores
   const hasScores = structure?.roundMatchUps
@@ -190,7 +190,7 @@ export function getActionOptions({
         matchUpId,
         drawId,
       }).matchUp;
-      const resultsPresent = currentMatchUp.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
+      const resultsPresent = currentMatchUp?.tieMatchUps?.some(tournamentEngine.checkScoreHasValue);
       if (resultsPresent) {
         tmxToast({
           message: t('pages.events.actionOptions.cannotRemoveScores'),

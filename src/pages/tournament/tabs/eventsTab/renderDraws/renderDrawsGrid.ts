@@ -75,7 +75,7 @@ function resolveEventData(eventId: string): ResolvedEvent | null {
   const flights: any[] = flightProfile?.flights ?? [];
   for (const flight of flights) {
     const dd = drawDefinitions.find((d: any) => d.drawId === flight.drawId);
-    if (dd) dd.flightNumber = flight.flightNumber;
+    if (dd) (dd as any).flightNumber = flight.flightNumber;
   }
   return { event, drawDefinitions, flights };
 }

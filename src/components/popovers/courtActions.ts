@@ -23,7 +23,7 @@ export const courtActions =
     const doneEditing = ({ success }: any) => {
       if (success) {
         // Fetch updated court from venues to ensure we have correct values
-        const { venues } = competitionEngine.getVenuesAndCourts();
+        const { venues = [] } = competitionEngine.getVenuesAndCourts();
         let updatedCourt: any = null;
 
         // Find the court in any venue

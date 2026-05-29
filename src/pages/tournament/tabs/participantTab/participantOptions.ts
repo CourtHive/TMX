@@ -18,7 +18,8 @@ export const participantOptions = (view: string): any[] =>
     ...option,
     onClick: () => {
       if (option.value !== view) {
-        const tournamentId = tournamentEngine.q.tournament().tournamentId;
+        const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
+        if (!tournamentId) return;
         const route = `/tournament/${tournamentId}/${PARTICIPANTS}/${option.value}`;
         context.router?.navigate(route);
       }

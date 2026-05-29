@@ -33,7 +33,7 @@ export function updateTieFormat({
   });
 
   const updateTieFormat = (modifiedTieFormat: any) => {
-    if (modifiedTieFormat) {
+    if (modifiedTieFormat && tieFormat) {
       modifiedTieFormat.collectionDefinitions?.forEach((def: any, i: number) => (def.collectionOrder = i + 1));
 
       const considerations = { collectionName: true, collectionOrder: true };

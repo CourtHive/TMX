@@ -17,7 +17,7 @@ export function downloadUTRmatches(): void {
   };
 
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
-  const { completedMatchUps } = tournamentEngine.tournamentMatchUps({
+  const { completedMatchUps = [] } = tournamentEngine.tournamentMatchUps({
     context: {
       tournamentSanctionBody: tournamentInfo.parentOrganisation?.organisationName,
       tournamentStartDate: dateFormatUTR(tournamentInfo.startDate),

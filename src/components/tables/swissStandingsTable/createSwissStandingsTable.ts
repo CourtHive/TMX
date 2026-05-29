@@ -30,14 +30,14 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
     structure = drawDefinition?.structures?.find((s: any) => s.structureId === structureId);
 
     const { participants } = tournamentEngine.getParticipants({
-      participantFilters: { participantIds: standingsResult.standings.map((s) => s.participantId) },
+      participantFilters: { participantIds: (standingsResult.standings ?? []).map((s) => s.participantId) },
     });
     const participantMap = (participants ?? []).reduce((map: Record<string, any>, p: any) => {
       map[p.participantId] = p;
       return map;
     }, {});
 
-    const rows = standingsResult.standings.map((standing) => {
+    const rows = (standingsResult.standings ?? []).map((standing) => {
       const participant = participantMap[standing.participantId];
       return {
         participant,

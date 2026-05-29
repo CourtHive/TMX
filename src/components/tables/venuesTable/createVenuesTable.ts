@@ -33,7 +33,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
   };
 
   const getTableData = () => {
-    const { venues } = competitionEngine.getVenuesAndCourts();
+    const { venues = [] } = competitionEngine.getVenuesAndCourts();
     const engine = createSchedulingEngine();
     const rows = venues.map((v: any) => mapVenue(v, engine));
     return { rows };

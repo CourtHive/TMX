@@ -31,7 +31,7 @@ export function generateDraw({
   const { scaleName: swissScaleName, ...genOptions } = restOptions;
   const result = tournamentEngine.generateDrawDefinition({ ...genOptions, ...adHocConfig, ignoreStageSpace: true });
 
-  if (result.success) {
+  if (result.success && result.drawDefinition) {
     const drawDefinition = result.drawDefinition;
     const drawId = drawDefinition.drawId;
     const methods: any[] = [

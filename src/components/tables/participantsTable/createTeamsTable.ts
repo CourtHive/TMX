@@ -24,13 +24,14 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
 
   const getTableData = () => {
     const result = tournamentEngine.getParticipants({
-      participantFilters: { participantTypes: [view || TEAM] },
+      participantFilters: { participantTypes: [(view || TEAM) as any] },
       withIndividualParticipants: true,
       withScaleValues: true,
       withEvents: true,
       withISO2: true,
     });
-    ({ participants, derivedEventInfo } = result);
+    participants = result.participants ?? [];
+    derivedEventInfo = result.derivedEventInfo;
 
     return participants.map((p: any) => (mapTeamParticipant as any)(p, derivedEventInfo));
   };

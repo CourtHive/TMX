@@ -87,7 +87,7 @@ export async function createBracketTable({
     const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
-    if (!participantMap) participantMap = getParticipantMap(participants);
+    if (!participantMap) participantMap = getParticipantMap(participants ?? []);
 
     const participantResults = (structure?.participantResults ?? []).filter((pr: any) => {
       if (!participantFilter) return true;
@@ -193,16 +193,12 @@ export async function createBracketTable({
     );
     if (!matchUp) return;
 
-    const side = matchUp.sides?.find((s: any) => s.drawPosition === drawPosition);
-    const sideNumber = side?.sideNumber;
-
     const { validActions: actions } =
       tournamentEngine.positionActions({
         structureId: childStructureId,
         matchUpId: matchUp.matchUpId,
         drawId,
         drawPosition,
-        sideNumber,
         policyDefinitions: {
           ...fixtures.policies.POLICY_POSITION_ACTIONS_UNRESTRICTED,
         },

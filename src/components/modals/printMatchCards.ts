@@ -24,7 +24,7 @@ export function printMatchCards({ matchUpIds, action = 'open' }: PrintMatchCards
   const tournamentInfoResult = tournamentEngine.getTournamentInfo();
   const tournament = tournamentInfoResult?.tournamentInfo;
 
-  const { matchUps } = tournamentEngine.allTournamentMatchUps();
+  const { matchUps = [] } = tournamentEngine.allTournamentMatchUps();
   const targetMatchUps = matchUps.filter((mu: any) => matchUpIds.includes(mu.matchUpId));
 
   if (!targetMatchUps.length) return;
@@ -77,7 +77,7 @@ export function printRoundMatchCards({
   roundNumber: number;
   action?: 'open' | 'download';
 }): void {
-  const { matchUps } = tournamentEngine.allTournamentMatchUps();
+  const { matchUps = [] } = tournamentEngine.allTournamentMatchUps();
   const roundMatchUps = matchUps.filter(
     (mu: any) => mu.drawId === drawId && mu.structureId === structureId && mu.roundNumber === roundNumber,
   );

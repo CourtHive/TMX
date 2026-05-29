@@ -27,6 +27,7 @@ export function addAdHocMatchUps({
   callback,
 }: AddAdHocMatchUpsParams = {}): void {
   structureId = structureId || structure?.structureId;
+  if (!structureId) return;
 
   const matchUps =
     tournamentEngine.allDrawMatchUps({

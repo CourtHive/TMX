@@ -122,10 +122,10 @@ export function editEvent({
     .map(({ participantId }: any) => participantId);
 
   const enteredParticipants = enteredParticipantIds
-    ? tournamentEngine.getParticipants({
+    ? (tournamentEngine.getParticipants({
         participantFilters: { participantIds: enteredParticipantIds },
         withIndividualParticipants: true,
-      }).participants
+      }).participants ?? [])
     : [];
 
   let eventTypeOptions: string[] | undefined;

@@ -543,7 +543,7 @@ export function createActionsPanel(): HTMLElement {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.claimTournament'), 'fa-hand-paper', () => {
         const record = tournamentEngine.q.tournament();
-        if (!record.parentOrganisation) {
+        if (record && !record.parentOrganisation) {
           record.parentOrganisation = activeProvider;
           tournamentEngine.setState(record);
           sendTournament({ tournamentRecord: record }).then(
@@ -593,6 +593,7 @@ export function createActionsPanel(): HTMLElement {
           postMutation: (result: any) => {
             if (result?.success) {
               const updated = tournamentEngine.q.tournament();
+              if (!updated) return;
               sendTournament({ tournamentRecord: updated }).then(
                 (result: any) => {
                   // Skip local destruction when the server rejected the

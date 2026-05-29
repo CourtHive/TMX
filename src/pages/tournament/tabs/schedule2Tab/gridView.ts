@@ -1739,7 +1739,7 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
   const { tournamentInfo } = competitionEngine.getTournamentInfo();
   const activeDates = tournamentInfo?.activeDates;
-  const dates = activeDates?.length ? activeDates : dateRange(startDate, endDate);
+  const dates = activeDates?.length ? activeDates : dateRange(startDate ?? '', endDate ?? '');
 
   const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const dateCounts = new Map<string, number>();
@@ -1773,7 +1773,7 @@ function applyHeaderRowIssueIndicators(
   if (!scheduledMatchUps.length) return;
 
   const result = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if (result.error) return;
+  if ('error' in result) return;
 
   const conflicts = { courtIssues: result.courtIssues || {}, rowIssues: result.rowIssues || {} };
 
@@ -1838,7 +1838,9 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
 
   if (!allCellData.length) return;
 
-  const { courtIssues, rowIssues } = competitionEngine.proConflicts({ matchUps: allCellData });
+  const conflictsResult = competitionEngine.proConflicts({ matchUps: allCellData });
+  if ('error' in conflictsResult) return;
+  const { courtIssues, rowIssues } = conflictsResult;
 
   // Build a map of matchUpId → issue details
   const matchUpIssueMap = new Map<string, any>();
@@ -1910,7 +1912,7 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   if (!scheduledMatchUps.length) return [];
 
   const conflictResult = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if (conflictResult.error) return [];
+  if ('error' in conflictResult) return [];
   const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
   const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ISSUE } = scheduleConstants;

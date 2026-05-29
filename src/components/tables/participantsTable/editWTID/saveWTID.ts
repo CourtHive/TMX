@@ -17,12 +17,12 @@ export function saveWTID(e, table) {
   table.showColumn('tennisId');
   table.redraw(true);
 
-  const participantMap = tournamentEngine.getParticipants().participantMap;
+  const participantMap = tournamentEngine.getParticipants().participantMap ?? {};
   const rows = table.getData();
   const methods = rows
     .map((row) => {
       const { tennisId, participantId } = row;
-      if (tennisId === participantMap[participantId].participant.person.tennisId) return undefined;
+      if (tennisId === participantMap[participantId]?.participant?.person?.tennisId) return undefined;
       return {
         params: { participant: { participantId, person: { tennisId } } },
         method: MODIFY_PARTICIPANT,

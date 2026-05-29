@@ -222,8 +222,8 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
-    startDate,
-    endDate,
+    startDate: startDate ?? '',
+    endDate: endDate ?? '',
     scheduleDates: buildScheduleDates(scheduledDate),
     onDateChange: (date: string) => {
       guardUnsavedAndProceed(() => {
