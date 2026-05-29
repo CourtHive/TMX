@@ -27,7 +27,7 @@ export function renderDrawsTable({ eventId, target }: { eventId: string; target:
   flightProfile?.flights?.forEach((flight: any) => {
     const hasDrawDef = drawDefinitions.find((dd: any) => dd.drawId === flight.drawId);
     if (hasDrawDef) {
-      (hasDrawDef as any).flightNumber = flight.flightNumber;
+      hasDrawDef.flightNumber = flight.flightNumber;
     } else {
       ungeneratedFlights.push({
         flightNumber: flight.flightNumber,
