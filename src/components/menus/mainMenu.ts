@@ -3,6 +3,7 @@
  * Provides server connection controls and authentication options.
  */
 import { getLoginState, logOut } from 'services/authentication/loginState';
+import { contactEmailModal } from 'components/modals/contactEmail';
 import { renderMenu } from 'courthive-components';
 import { loginModal } from 'components/modals/loginModal';
 
@@ -20,6 +21,7 @@ export const mainMenu = (elem: HTMLElement, close: () => void): void => {
         { hide: socketConnected, text: 'Connect', onClick: connectSocket },
         { hide: !socketConnected, text: 'Disconnect', onClick: disconnectSocket },
         { hide: loggedIn, text: 'Log in', onClick: loginModal },
+        { hide: !loggedIn, text: 'Recovery email', onClick: () => contactEmailModal() },
         { hide: !loggedIn, text: 'Log out', onClick: logOut },
       ],
     },
