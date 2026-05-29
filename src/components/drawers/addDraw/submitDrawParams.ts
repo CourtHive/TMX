@@ -389,7 +389,7 @@ function handleQualifyingStructure(params: {
     structureName,
     automated,
     drawSize,
-    drawType,
+    drawType: drawType as any,
     drawId,
   });
 

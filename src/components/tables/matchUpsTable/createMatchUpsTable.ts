@@ -93,9 +93,10 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
           matchUps,
         });
 
-        if (result?.accuracy?.percent) {
+        const accuracy = result && 'accuracy' in result ? result.accuracy : undefined;
+        if (accuracy?.percent) {
           element.style.display = '';
-          element.innerHTML = `${scaleName} ${result.accuracy.percent}%`;
+          element.innerHTML = `${scaleName} ${accuracy.percent}%`;
         } else {
           element.style.display = NONE;
         }

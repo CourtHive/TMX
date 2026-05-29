@@ -52,7 +52,7 @@ export function getActionOptions({
 
   // Get scoring policy to check if participant assignment should be blocked
   const scoringPolicy = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });
-  const requireParticipants = scoringPolicy?.requireParticipantsForScoring;
+  const requireParticipants = scoringPolicy?.policy?.requireParticipantsForScoring;
 
   // Check if draw has any scores
   const hasScores = structure?.roundMatchUps

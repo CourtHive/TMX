@@ -39,7 +39,7 @@ export function createTeamsFromAttribute({ callback }: { callback?: () => void }
 
     const config = valueKey[selection];
     const result = tournamentEngine.createTeamsFromParticipantAttributes({ ...config, addParticipants: false });
-    if (result.newParticipants) {
+    if ('newParticipants' in result && result.newParticipants) {
       const methods = [
         {
           params: { participants: result.newParticipants },

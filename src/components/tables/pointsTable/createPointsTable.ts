@@ -172,12 +172,12 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
     if (policy?.requiresLevel) {
       // Use factory to filter levels by draw/event context
       const { drawId } = getEventDrawId(eventId);
-      const { levels: applicableLevels } =
-        tournamentEngine.getApplicableAwardProfileLevels({
-          policyDefinitions: policy.policyData,
-          eventId,
-          drawId,
-        }) ?? {};
+      const levelsResult = tournamentEngine.getApplicableAwardProfileLevels({
+        policyDefinitions: policy.policyData,
+        eventId,
+        drawId,
+      });
+      const applicableLevels = levelsResult && 'levels' in levelsResult ? levelsResult.levels : undefined;
       const filteredLevels = applicableLevels?.length ? applicableLevels : policy.availableLevels;
 
       const levelOptions = filteredLevels.map((lvl) => ({

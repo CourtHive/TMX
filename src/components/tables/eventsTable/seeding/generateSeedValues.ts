@@ -25,7 +25,7 @@ interface GenerateSeedValuesParams {
 export function generateSeedValues({ event, group, table, field }: GenerateSeedValuesParams): void {
   const { eventId, eventType } = event;
   const { seedsCount, stageEntries } = tournamentEngine.getEntriesAndSeedsCount({
-    stage: group === QUALIFYING ? QUALIFYING : MAIN,
+    stage: (group === QUALIFYING ? QUALIFYING : MAIN) as any,
     policyDefinitions: POLICY_SEEDING,
     eventId,
   });

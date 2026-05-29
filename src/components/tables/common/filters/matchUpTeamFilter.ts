@@ -41,7 +41,8 @@ export function getMatchUpTeamFilter(
     context.matchUpFilters.teamId = teamParticipantId;
     if (teamParticipantId) {
       table.addFilter(teamFilter);
-      const { teamStats } = tournamentEngine.getParticipantStats({ teamParticipantId });
+      const statsResult = tournamentEngine.getParticipantStats({ teamParticipantId });
+      const teamStats = 'teamStats' in statsResult ? statsResult.teamStats : undefined;
       if (teamStats?.participantName) {
         statsPanel.style.display = '';
         const side1 = getSide({ participantName: teamStats.participantName, justify: 'end' });

@@ -267,7 +267,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
         level: selectedLevel,
         eventId,
       });
-      if (!res?.success) continue;
+      if ('error' in res || !res?.success) continue;
 
       const eventName = res.eventName;
       const awards = (res.eventAwards || []).filter(

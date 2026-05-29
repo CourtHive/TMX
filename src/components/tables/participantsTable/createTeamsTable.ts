@@ -24,7 +24,7 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
 
   const getTableData = () => {
     const result = tournamentEngine.getParticipants({
-      participantFilters: { participantTypes: [view || TEAM] },
+      participantFilters: { participantTypes: [(view || TEAM) as any] },
       withIndividualParticipants: true,
       withScaleValues: true,
       withEvents: true,

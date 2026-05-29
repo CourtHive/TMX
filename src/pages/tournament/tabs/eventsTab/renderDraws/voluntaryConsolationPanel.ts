@@ -767,7 +767,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
 function getEliminationRounds(drawId: string, eligibleIds: Set<string>): Map<string, string> {
   const result = new Map<string, string>();
   const { matchUps } = tournamentEngine.allDrawMatchUps({
-    contextFilters: { stages: [MAIN, PLAY_OFF, QUALIFYING] },
+    contextFilters: { stages: [MAIN, PLAY_OFF, QUALIFYING] as any[] },
     drawId,
   });
 

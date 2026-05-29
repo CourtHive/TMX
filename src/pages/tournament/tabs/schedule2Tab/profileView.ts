@@ -141,7 +141,7 @@ function buildProfileSetup(): ProfileSetup | null {
 
   // Extract round catalog
   const roundsResult = competitionEngine.getRounds();
-  const factoryRounds: any[] = roundsResult?.rounds || [];
+  const factoryRounds: any[] = (roundsResult && 'rounds' in roundsResult ? roundsResult.rounds : []) ?? [];
   if (!factoryRounds.length) return null;
 
   const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {

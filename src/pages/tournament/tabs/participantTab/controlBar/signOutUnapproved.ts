@@ -9,7 +9,7 @@ const { INDIVIDUAL, SIGNED_OUT } = participantConstants;
 export function signOutUnapproved(replaceTableData: () => void): void {
   const signedInNoEvents = (
     tournamentEngine.getParticipants({
-      participantFilters: { participantTypes: [INDIVIDUAL] },
+      participantFilters: { participantTypes: [INDIVIDUAL as any] },
       withSignInStatus: true,
       withEvents: true,
     }).participants ?? []
