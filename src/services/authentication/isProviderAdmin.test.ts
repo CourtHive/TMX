@@ -24,6 +24,8 @@ const providerAdminAt = (providerId: string) => ({
   organisationAbbreviation: providerId,
 });
 
+const provider = (organisationId: string) => ({ organisationId, organisationName: '', organisationAbbreviation: '' });
+
 beforeEach(() => {
   context.provider = undefined;
   mockedGetLoginState.mockReset();
@@ -41,7 +43,7 @@ describe('isActiveProviderAdmin', () => {
   });
 
   it('is true for a provisioner whose managed provider is active', () => {
-    context.provider = { organisationId: BOBOCA };
+    context.provider = provider(BOBOCA);
     mockedGetLoginState.mockReturnValue(
       login({
         roles: ['provisioner'],
@@ -52,7 +54,7 @@ describe('isActiveProviderAdmin', () => {
   });
 
   it('is false for a provisioner when the active provider is NOT one they manage', () => {
-    context.provider = { organisationId: ION };
+    context.provider = provider(ION);
     mockedGetLoginState.mockReturnValue(
       login({
         roles: ['provisioner'],
@@ -63,19 +65,19 @@ describe('isActiveProviderAdmin', () => {
   });
 
   it('is true for a PROVIDER_ADMIN at the active provider (no global admin role)', () => {
-    context.provider = { organisationId: BOBOCA };
+    context.provider = provider(BOBOCA);
     mockedGetLoginState.mockReturnValue(login({ roles: ['client'], providerAssociations: [providerAdminAt(BOBOCA)] }));
     expect(isActiveProviderAdmin()).toBe(true);
   });
 
   it('is false when PROVIDER_ADMIN is at a different provider than the active one', () => {
-    context.provider = { organisationId: ION };
+    context.provider = provider(ION);
     mockedGetLoginState.mockReturnValue(login({ roles: ['client'], providerAssociations: [providerAdminAt(BOBOCA)] }));
     expect(isActiveProviderAdmin()).toBe(false);
   });
 
   it('is false for a DIRECTOR at the active provider', () => {
-    context.provider = { organisationId: BOBOCA };
+    context.provider = provider(BOBOCA);
     mockedGetLoginState.mockReturnValue(
       login({
         roles: ['client'],
@@ -88,7 +90,7 @@ describe('isActiveProviderAdmin', () => {
   });
 
   it('honors the deprecated global admin role when a provider is active', () => {
-    context.provider = { organisationId: ION };
+    context.provider = provider(ION);
     mockedGetLoginState.mockReturnValue(login({ roles: ['client', 'admin'] }));
     expect(isActiveProviderAdmin()).toBe(true);
   });

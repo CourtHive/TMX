@@ -177,7 +177,7 @@ function checkPermissions({
   if (!isProvider && !isSuperAdmin) return tmxToast({ message: t('toasts.notAuthorized'), intent: 'is-danger' });
   if (!isProvider && isSuperAdmin && !impersonating) {
     const impersonateProvider = () => {
-      context.provider = { organisationId: targetProviderId };
+      context.provider = { organisationId: targetProviderId, organisationName: '', organisationAbbreviation: '' };
       return mutate(false);
     };
 

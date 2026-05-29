@@ -6,6 +6,7 @@
  * - Provider/User records: what the server APIs return
  * - API response wrappers: typed axios response shapes
  */
+import type { Organisation } from 'tods-competition-factory';
 
 // ---------------------------------------------------------------------------
 // Authentication / JWT
@@ -91,12 +92,15 @@ export interface OnlineResource {
   identifier: string;
 }
 
-/** The value object inside a provider record. Also used for `context.provider`. */
-export interface ProviderValue {
-  organisationId: string;
-  organisationName?: string;
-  organisationAbbreviation?: string;
-  onlineResources?: OnlineResource[];
+/**
+ * The value object inside a provider record. Also used for `context.provider`.
+ *
+ * Extends the canonical TODS `Organisation` (the same shape persisted as
+ * `tournamentRecord.parentOrganisation`) with TMX-only extension fields used
+ * by the external-facility-lookup integration in `addVenue.ts`. See
+ * `dev/documentation/external-facility-lookup.md`.
+ */
+export interface ProviderValue extends Organisation {
   facilityService?: string;
   facilityLookup?: string;
 }
