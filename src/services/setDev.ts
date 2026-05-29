@@ -7,7 +7,7 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
-import { loadTournament } from 'pages/tournament/tournamentDisplay';
+import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
@@ -193,11 +193,22 @@ function addDev(variable: Record<string, any>): void {
 }
 
 function load(json: any): void {
-  if (typeof json === 'object') {
-    const tournamentRecord = json.tournamentRecord || json;
-    const tournamentId = tournamentRecord?.tournamentId;
-    if (tournamentId) addAndDisplay(tournamentRecord);
+  if (typeof json !== 'object') return;
+  const tournamentRecord = json.tournamentRecord || json;
+  const tournamentId = tournamentRecord?.tournamentId;
+  if (!tournamentId) return;
+  // Always seed the engine so renderTournament() can resolve sides even when
+  // saveTournamentRecord short-circuits (parentOrganisation + saveLocal=false).
+  // Without this, navigation to the tournament finds an empty engine and
+  // re-fetches via tmx2db, which returns nothing — tabs render with no data.
+  factory.tournamentEngine.setState(tournamentRecord);
+  if (tournamentRecord.parentOrganisation?.organisationId && !serverConfig.get().saveLocal) {
+    console.log(
+      '%c[dev.load] session-only — not persisted to IndexedDB (parentOrganisation present + saveLocal off)',
+      'color: orange',
+    );
   }
+  addAndDisplay(tournamentRecord);
 }
 
 function generateMockTournament(params: any): void {
@@ -211,6 +222,11 @@ function generateMockTournament(params: any): void {
 
 function addAndDisplay(tournamentRecord: any): void {
   const tournamentId = tournamentRecord?.tournamentId;
-  const displayTournament = () => context.router?.navigate(`/${TOURNAMENT}/${tournamentId}`);
+  const displayTournament = () => {
+    // Render full tournament view (header + tabs + side effects) so a paste loaded
+    // via dev.load doesn't land on the engine-match short path that skips tournamentHeader().
+    renderTournament({ config: { tournamentId } });
+    context.router?.navigate(`/${TOURNAMENT}/${tournamentId}`);
+  };
   addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
 }

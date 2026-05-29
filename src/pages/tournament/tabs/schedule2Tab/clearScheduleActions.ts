@@ -26,7 +26,8 @@ import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-type Scope = 'day-pending' | 'day-all' | 'all';
+const SCOPE = { DAY_PENDING: 'day-pending', DAY_ALL: 'day-all', ALL: 'all' } as const;
+type Scope = (typeof SCOPE)[keyof typeof SCOPE];
 
 type OpenClearMenuParams = {
   target: HTMLElement;
@@ -67,9 +68,9 @@ function buildBuckets(scheduledDate: string): Record<Scope, Bucket> {
   };
 
   return {
-    'day-pending': split((m) => isOnDate(m) && isPending(m)),
-    'day-all': split(isOnDate),
-    all: split(() => true),
+    [SCOPE.DAY_PENDING]: split((m) => isOnDate(m) && isPending(m)),
+    [SCOPE.DAY_ALL]: split(isOnDate),
+    [SCOPE.ALL]: split(() => true),
   };
 }
 
@@ -144,17 +145,17 @@ function buildConfirmContent(bucket: Bucket, summary: string, onShowAllCourts: (
 function summaryFor(scope: Scope, bucket: Bucket, scheduledDate: string): { title: string; summary: string } {
   const n = bucket.visible.length;
   switch (scope) {
-    case 'day-pending':
+    case SCOPE.DAY_PENDING:
       return {
         title: 'Clear this day (keep completed)',
         summary: `Will clear ${n} pending matchUp${n === 1 ? '' : 's'} on ${scheduledDate}. Completed matchUps are preserved.`,
       };
-    case 'day-all':
+    case SCOPE.DAY_ALL:
       return {
         title: 'Clear this day (including completed)',
         summary: `Will clear ${n} matchUp${n === 1 ? '' : 's'} on ${scheduledDate} — including completed results.`,
       };
-    case 'all': {
+    case SCOPE.ALL: {
       const dates = new Set(bucket.visible.map((m) => m.schedule?.scheduledDate).filter(Boolean));
       return {
         title: 'Clear all schedule data',
@@ -173,7 +174,7 @@ function openConfirm(scope: Scope, scheduledDate: string, params: OpenClearMenuP
   }
 
   const { title, summary } = summaryFor(scope, bucket, scheduledDate);
-  const okIntent = scope === 'all' ? 'is-danger' : 'is-warning';
+  const okIntent = scope === SCOPE.ALL ? 'is-danger' : 'is-warning';
 
   const reopen = () => {
     closeModal();
@@ -186,7 +187,7 @@ function openConfirm(scope: Scope, scheduledDate: string, params: OpenClearMenuP
     title,
     query: buildConfirmContent(bucket, summary, reopen),
     okIntent,
-    okAction: () => executeClear(bucket.visible, scope !== 'day-pending', params.onCleared),
+    okAction: () => executeClear(bucket.visible, scope !== SCOPE.DAY_PENDING, params.onCleared),
     cancelAction: undefined,
   });
 }
@@ -202,19 +203,19 @@ export function openClearScheduleMenu(params: OpenClearMenuParams): void {
 
   const options = [
     {
-      disabled: !buckets['day-pending'].visible.length,
-      option: labelWithCount('Clear this day (keep completed)', buckets['day-pending'].visible.length),
-      onClick: () => openConfirm('day-pending', scheduledDate, params),
+      disabled: !buckets[SCOPE.DAY_PENDING].visible.length,
+      option: labelWithCount('Clear this day (keep completed)', buckets[SCOPE.DAY_PENDING].visible.length),
+      onClick: () => openConfirm(SCOPE.DAY_PENDING, scheduledDate, params),
     },
     {
-      disabled: !buckets['day-all'].visible.length,
-      option: labelWithCount('Clear this day (including completed)', buckets['day-all'].visible.length),
-      onClick: () => openConfirm('day-all', scheduledDate, params),
+      disabled: !buckets[SCOPE.DAY_ALL].visible.length,
+      option: labelWithCount('Clear this day (including completed)', buckets[SCOPE.DAY_ALL].visible.length),
+      onClick: () => openConfirm(SCOPE.DAY_ALL, scheduledDate, params),
     },
     {
-      disabled: !buckets.all.visible.length,
-      option: labelWithCount('Clear all schedule data', buckets.all.visible.length),
-      onClick: () => openConfirm('all', scheduledDate, params),
+      disabled: !buckets[SCOPE.ALL].visible.length,
+      option: labelWithCount('Clear all schedule data', buckets[SCOPE.ALL].visible.length),
+      onClick: () => openConfirm(SCOPE.ALL, scheduledDate, params),
     },
   ];
 
