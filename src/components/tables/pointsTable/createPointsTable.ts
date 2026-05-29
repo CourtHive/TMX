@@ -9,6 +9,7 @@ import { getAvailablePolicies, getLevelDisplayLabel, PolicyOption } from './poli
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
+import { unwrapOr } from 'tods-competition-factory';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { getPointsColumns } from './getPointsColumns';
 import { controlBar } from 'courthive-components';
@@ -172,12 +173,14 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
     if (policy?.requiresLevel) {
       // Use factory to filter levels by draw/event context
       const { drawId } = getEventDrawId(eventId);
-      const levelsResult = tournamentEngine.getApplicableAwardProfileLevels({
-        policyDefinitions: policy.policyData,
-        eventId,
-        drawId,
-      });
-      const applicableLevels = levelsResult && 'levels' in levelsResult ? levelsResult.levels : undefined;
+      const { levels: applicableLevels } = unwrapOr(
+        tournamentEngine.getApplicableAwardProfileLevels({
+          policyDefinitions: policy.policyData,
+          eventId,
+          drawId,
+        }),
+        { levels: undefined as number[] | undefined },
+      );
       const filteredLevels = applicableLevels?.length ? applicableLevels : policy.availableLevels;
 
       const levelOptions = filteredLevels.map((lvl) => ({

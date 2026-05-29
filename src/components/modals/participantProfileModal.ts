@@ -5,7 +5,7 @@
 import { getAvailablePolicies, getLevelDisplayLabel } from 'components/tables/pointsTable/policyUtils';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { tournamentEngine } from 'services/factory/engine';
-import { fixtures, factoryConstants } from 'tods-competition-factory';
+import { fixtures, factoryConstants, unwrapOr } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { controlBar, cModal } from 'courthive-components';
@@ -262,12 +262,18 @@ export function participantProfileModal({ participantId, participantIds, readOnl
 
     const rows: any[] = [];
     for (const eventId of participantEventIds) {
-      const res = tournamentEngine.getEventRankingPoints({
-        policyDefinitions: policy.policyData,
-        level: selectedLevel,
-        eventId,
-      });
-      if ('error' in res || !res?.success) continue;
+      // Per-event ranking lookup; participants not in the event surface a
+      // typed error — silently skip via unwrapOr(..., null) so the loop
+      // continues to the next event.
+      const res = unwrapOr(
+        tournamentEngine.getEventRankingPoints({
+          policyDefinitions: policy.policyData,
+          level: selectedLevel,
+          eventId,
+        }),
+        null,
+      );
+      if (!res?.success) continue;
 
       const eventName = res.eventName;
       const awards = (res.eventAwards || []).filter(

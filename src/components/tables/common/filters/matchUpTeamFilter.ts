@@ -3,7 +3,7 @@
  * Filters matchUps by team participant, with optional stats panel display.
  */
 import { tournamentEngine } from 'services/factory/engine';
-import { participantConstants } from 'tods-competition-factory';
+import { participantConstants, unwrapOr } from 'tods-competition-factory';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { context } from 'services/context';
@@ -41,8 +41,12 @@ export function getMatchUpTeamFilter(
     context.matchUpFilters.teamId = teamParticipantId;
     if (teamParticipantId) {
       table.addFilter(teamFilter);
-      const statsResult = tournamentEngine.getParticipantStats({ teamParticipantId });
-      const teamStats = 'teamStats' in statsResult ? statsResult.teamStats : undefined;
+      // Engine return is `ResultType | TeamStatsResults`; the optional-`error`
+      // ResultType prevents `Unwrap` from narrowing to the success arm
+      // automatically, so cast at the destructure.
+      const { teamStats } = unwrapOr(tournamentEngine.getParticipantStats({ teamParticipantId }), {}) as {
+        teamStats?: any;
+      };
       if (teamStats?.participantName) {
         statsPanel.style.display = '';
         const side1 = getSide({ participantName: teamStats.participantName, justify: 'end' });

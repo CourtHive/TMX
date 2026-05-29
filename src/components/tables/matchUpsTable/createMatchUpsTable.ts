@@ -3,7 +3,7 @@
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
 import { tournamentEngine } from 'services/factory/engine';
-import { fixtures, factoryConstants } from 'tods-competition-factory';
+import { fixtures, factoryConstants, unwrapOr } from 'tods-competition-factory';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -86,14 +86,15 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
         const rangeSpan = Math.abs(rangeB - rangeA);
         const zoneMargin = rangeSpan * 0.05;
 
-        const result = tournamentEngine.getPredictiveAccuracy({
-          valueAccessor: params.accessor,
-          scaleName,
-          zoneMargin,
-          matchUps,
-        });
-
-        const accuracy = result && 'accuracy' in result ? result.accuracy : undefined;
+        const { accuracy } = unwrapOr(
+          tournamentEngine.getPredictiveAccuracy({
+            valueAccessor: params.accessor,
+            scaleName,
+            zoneMargin,
+            matchUps,
+          }),
+          { accuracy: undefined as any },
+        );
         if (accuracy?.percent) {
           element.style.display = '';
           element.innerHTML = `${scaleName} ${accuracy.percent}%`;

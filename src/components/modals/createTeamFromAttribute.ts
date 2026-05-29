@@ -2,9 +2,11 @@
  * Create teams from participant attributes modal.
  * Groups participants by country or city and creates team participants via mutation.
  */
+import { FactoryError, unwrap } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 
@@ -43,15 +45,22 @@ export function createTeamsFromAttribute({ callback }: { callback?: () => void }
     if (!selection || selection === NO_SELECTION) return;
 
     const config = valueKey[selection];
-    const result = tournamentEngine.createTeamsFromParticipantAttributes({ ...config, addParticipants: false });
-    if ('newParticipants' in result && result.newParticipants) {
-      const methods = [
-        {
-          params: { participants: result.newParticipants },
-          method: ADD_PARTICIPANTS,
-        },
-      ];
+    try {
+      // The factory method returns one of two success shapes depending on
+      // `addParticipants`: `{participantsAdded}` or `{newParticipants}`.
+      // We pass `addParticipants: false`, so the second shape applies —
+      // narrow at the consumer boundary.
+      const { newParticipants } = unwrap(
+        tournamentEngine.createTeamsFromParticipantAttributes({ ...config, addParticipants: false }),
+      ) as { newParticipants?: any[] };
+      if (!newParticipants?.length) return;
+      const methods = [{ params: { participants: newParticipants }, method: ADD_PARTICIPANTS }];
       mutationRequest({ methods, callback });
+    } catch (e) {
+      tmxToast({
+        message: e instanceof FactoryError ? e.message : 'Failed to create teams',
+        intent: 'is-danger',
+      });
     }
   };
 

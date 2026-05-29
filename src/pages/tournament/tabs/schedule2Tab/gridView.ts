@@ -20,7 +20,7 @@
  *  - On Discard: factory state reloaded from IndexedDB
  */
 import { competitionEngine } from 'services/factory/engine';
-import { matchUpStatusConstants, factoryConstants, tools } from 'tods-competition-factory';
+import { matchUpStatusConstants, factoryConstants, tools, unwrapOr } from 'tods-competition-factory';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -1772,8 +1772,8 @@ function applyHeaderRowIssueIndicators(
   });
   if (!scheduledMatchUps.length) return;
 
-  const result = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if ('error' in result) return;
+  const result = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
+  if (!result) return;
 
   const conflicts = { courtIssues: result.courtIssues || {}, rowIssues: result.rowIssues || {} };
 
@@ -1838,9 +1838,10 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
 
   if (!allCellData.length) return;
 
-  const conflictsResult = competitionEngine.proConflicts({ matchUps: allCellData });
-  if ('error' in conflictsResult) return;
-  const { courtIssues, rowIssues } = conflictsResult;
+  const { courtIssues, rowIssues } = unwrapOr(competitionEngine.proConflicts({ matchUps: allCellData }), {
+    courtIssues: {},
+    rowIssues: {},
+  });
 
   // Build a map of matchUpId → issue details
   const matchUpIssueMap = new Map<string, any>();
@@ -1911,8 +1912,8 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   });
   if (!scheduledMatchUps.length) return [];
 
-  const conflictResult = competitionEngine.proConflicts({ matchUps: scheduledMatchUps });
-  if ('error' in conflictResult) return [];
+  const conflictResult = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
+  if (!conflictResult) return [];
   const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
   const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ISSUE } = scheduleConstants;

@@ -21,7 +21,7 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 import { competitionEngine } from 'services/factory/engine';
-import { AvailabilityEngine, availability } from 'tods-competition-factory';
+import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { scheduleToast } from './scheduleToast';
@@ -140,8 +140,9 @@ function buildProfileSetup(): ProfileSetup | null {
   }));
 
   // Extract round catalog
-  const roundsResult = competitionEngine.getRounds();
-  const factoryRounds: any[] = (roundsResult && 'rounds' in roundsResult ? roundsResult.rounds : []) ?? [];
+  const { rounds: factoryRounds = [] } = unwrapOr(competitionEngine.getRounds(), {
+    rounds: [] as any[],
+  });
   if (!factoryRounds.length) return null;
 
   const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {
