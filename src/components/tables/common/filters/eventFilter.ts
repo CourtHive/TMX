@@ -1,4 +1,5 @@
 import { tournamentEngine } from 'services/factory/engine';
+import type { Event } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -8,7 +9,7 @@ export function getEventFilter(
   table: any,
   onChange?: () => void,
 ): {
-  events: { eventId: string; eventName: string }[];
+  events: Event[];
   eventOptions: any[];
   isFiltered: () => boolean;
   activeIndex: () => number;
@@ -43,7 +44,7 @@ export function getEventFilter(
   const eventOptions = [allEvents, { ...noEvents, filterValue: '__NONE__' }, { divider: true }].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
-      label: event.eventName,
+      label: event.eventName ?? '',
       filterValue: event.eventId,
       close: true,
     })),

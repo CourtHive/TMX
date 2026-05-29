@@ -11,7 +11,7 @@ const PUB_ROUND_KEY = 'publishing.round';
 function getTournamentDateRange(startDate: string, endDate: string): string[] {
   if (!startDate || !endDate) return [];
   const fullRange = tools.generateDateRange(startDate, endDate);
-  const activeDates = tournamentEngine.q.tournament()?.activeDates;
+  const activeDates = tournamentEngine.q.tournament()?.activeDates as string[] | undefined;
   if (activeDates?.length) {
     const activeSet = new Set(activeDates);
     return fullRange.filter((d: string) => activeSet.has(d));
