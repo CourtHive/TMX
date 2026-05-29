@@ -104,10 +104,11 @@ function showMatchUpTipster(target: HTMLElement, drawId: string, matchUpId: stri
   if (composition.configuration && scalesMap[_activeScale]) {
     composition.configuration.scaleAttributes = scalesMap[_activeScale];
   }
-  // courthive-components MatchUp narrows matchUpType to SINGLES|DOUBLES and
-  // declares structureId required; factory HydratedMatchUp is wider. Both
-  // properties are present at runtime when this code runs (singles ratings
-  // tooltip, hydrated matchUp). Cross-package type cast at the boundary.
+  // Cross-package type cast: factory's `HydratedMatchUp` and
+  // courthive-components' `MatchUp` have a few residual shape disagreements
+  // beyond what's reconcilable in a single sweep (Person.sex MALE/FEMALE/OTHER
+  // vs MALE/FEMALE/MIXED). All accessed properties are present at runtime
+  // here. Flagged for a dedicated cc↔factory type reconciliation pass.
   const matchUpElement = renderMatchUp({ matchUp: matchUp as any, composition, isLucky: true });
   wrapper.appendChild(matchUpElement);
 
