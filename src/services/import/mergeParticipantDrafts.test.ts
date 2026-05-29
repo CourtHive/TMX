@@ -114,6 +114,40 @@ describe('mergeParticipantDrafts', () => {
     expect(merged.person.addresses[0].state).toBe(STATE_CA);
   });
 
+  it('preserves earlier teamAttributes fields when a later draft is partial', () => {
+    // Mirrors the addresses/contacts behavior — teamAttributes lives under
+    // biographicalInformation and the import pipeline writes a single-element
+    // array. A re-import that only set the team name must not erase the
+    // earlier-set jerseyNumber, and vice versa.
+    const drafts = [
+      baseDraft({
+        person: { biographicalInformation: { teamAttributes: [{ teamName: 'Altitude', jerseyNumber: '11' }] } },
+      }),
+      baseDraft({
+        person: { biographicalInformation: { teamAttributes: [{ teamName: 'Altitude' }] } },
+      }),
+    ];
+    const merged = mergeParticipantDrafts(drafts);
+    const attr = merged.person.biographicalInformation.teamAttributes[0];
+    expect(attr.teamName).toBe('Altitude');
+    expect(attr.jerseyNumber).toBe('11');
+  });
+
+  it('lets a later teamAttributes draft override the earlier teamName and jerseyNumber', () => {
+    const drafts = [
+      baseDraft({
+        person: { biographicalInformation: { teamAttributes: [{ teamName: 'Altitude', jerseyNumber: '11' }] } },
+      }),
+      baseDraft({
+        person: { biographicalInformation: { teamAttributes: [{ teamName: 'Freeze', jerseyNumber: '7' }] } },
+      }),
+    ];
+    const merged = mergeParticipantDrafts(drafts);
+    const attr = merged.person.biographicalInformation.teamAttributes[0];
+    expect(attr.teamName).toBe('Freeze');
+    expect(attr.jerseyNumber).toBe('7');
+  });
+
   it('reproduces the TYPTI Lincoln Bellamy scenario end-to-end', () => {
     // Six rows, all the same email; later rows are placeholder/incomplete.
     // The merged draft must show the most recent real city AND a state that was

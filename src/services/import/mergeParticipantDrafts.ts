@@ -24,7 +24,13 @@
  * tracks the merged name, not whichever draft happened to be processed first.
  */
 
-const SINGLE_ELEMENT_ARRAY_KEYS = new Set(['addresses', 'contacts']);
+// `teamAttributes` lives under `person.biographicalInformation` and the import
+// pipeline writes exactly one entry per row (the user-approved "one team
+// affiliation per imported person" shape). Treat it the same way as `addresses`
+// / `contacts`: merge field-wise into `[0]` so a later import that only
+// populated the team key cannot erase an earlier jersey number, and vice
+// versa.
+const SINGLE_ELEMENT_ARRAY_KEYS = new Set(['addresses', 'contacts', 'teamAttributes']);
 
 export function mergeParticipantDrafts(drafts: any[]): any {
   if (drafts.length === 0) return undefined;

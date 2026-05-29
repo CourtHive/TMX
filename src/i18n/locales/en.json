@@ -1007,6 +1007,8 @@
         "participantName": "Participant name",
         "representing": "Representing",
         "notes": "Notes",
+        "teamKey": "Team (group into team participants)",
+        "jerseyNumber": "Jersey number",
         "split": "Split…",
         "ignore": "Ignore"
       },
@@ -1251,7 +1253,8 @@
     "createTeam": {
       "title": "Create Team",
       "selectAttribute": "Select attribute",
-      "create": "Create"
+      "create": "Create",
+      "teamAffiliation": "Team affiliation"
     },
     "getLatLong": {
       "title": "Location",
@@ -1496,6 +1499,7 @@
     "offlineMustConnect": "Offline: must be connected to internet",
     "addedParticipants": "Added {{count}} participant(s)",
     "updatedParticipants": "Updated {{count}} existing participant(s)",
+    "addedTeamParticipants": "Generated {{count}} team participant(s) from the team column",
     "addedEventEntries": "Entered {{entries}} into {{events}} event(s)",
     "noNewParticipants": "No new participants found",
     "tmxClassicNotConverted": "TMX Classic file not converted",

@@ -13,12 +13,17 @@ import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 const valueKey: Record<string, any> = {
   country: { personAttribute: 'nationalityCode' },
   city: { accessor: 'person.addresses.city' },
+  // `teamAttribute` reads `person.biographicalInformation.teamAttributes[].teamName`.
+  // `getAccessorValue` walks arrays automatically when no index is given, so the
+  // accessor returns each entry's teamName — same shape the import wizard writes.
+  teamAffiliation: { accessor: 'person.biographicalInformation.teamAttributes.teamName' },
 };
 
 export function createTeamsFromAttribute({ callback }: { callback?: () => void } = {}): void {
   const options = [
     { label: t('cnt'), value: 'country' },
     { label: t('cty'), value: 'city' },
+    { label: t('modals.createTeam.teamAffiliation'), value: 'teamAffiliation' },
   ];
 
   const NO_SELECTION = '-';

@@ -50,6 +50,9 @@ export type TargetFieldKind =
   | 'participantName'
   | 'representing'
   | 'notes'
+  // Team affiliation (populates person.biographicalInformation.teamAttributes[0])
+  | 'teamKey'
+  | 'jerseyNumber'
   // Composite / utility
   | 'split'
   | 'ignore';
@@ -103,6 +106,11 @@ export const SYNONYM_RULES: SynonymRule[] = [
   // --- Participant ---
   { kind: 'representing', synonyms: ['representing', 'represents'] },
   { kind: 'notes', synonyms: ['notes', 'note', 'comments', 'comment'] },
+  // --- Team affiliation ---
+  // `teamKey` triggers a second-pass `createTeamsFromParticipantAttributes`
+  // call that groups individuals by the column's value into TEAM participants.
+  { kind: 'teamKey', synonyms: ['team', 'teamname', 'teamkey', 'club', 'school', 'roster'] },
+  { kind: 'jerseyNumber', synonyms: ['jersey', 'jerseynumber', 'jerseyno', '#', 'shirtnumber', 'bibnumber', '*jersey'] },
 ];
 
 /** Header → rating scale mapping. The auto-mapper turns matches into
@@ -137,6 +145,7 @@ export const TARGET_FIELD_GROUPS: Array<{ label: string; fields: TargetFieldKind
   { label: 'Rating', fields: ['rating'] },
   { label: 'Event entry', fields: ['eventEntry'] },
   { label: 'Participant', fields: ['participantName', 'representing', 'notes'] },
+  { label: 'Team affiliation', fields: ['teamKey', 'jerseyNumber'] },
   { label: 'Other', fields: ['split', 'ignore'] },
 ];
 

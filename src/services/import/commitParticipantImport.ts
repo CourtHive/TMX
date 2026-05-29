@@ -90,6 +90,10 @@ export type CommitImportResult = {
   warnings: ImportRowWarning[];
   mergeCount: number;
   eventEntries: EventEntryDispatch[];
+  /** Count of TEAM participants generated in the second-pass team-key flow.
+   *  Zero when no `teamKey` column was mapped, or when every group of
+   *  individuals already had a corresponding team participant. */
+  teamsAdded: number;
   raw?: any;
 };
 
@@ -137,7 +141,7 @@ export function commitParticipantImport({
   if (!participants.length && !updates.length && !eventEntries.length) {
     tmxToast({ message: t('toasts.noNewParticipants'), intent: 'is-primary' });
     if (isFunction(callback)) {
-      callback({ success: false, addedCount: 0, warnings, mergeCount, eventEntries: [] });
+      callback({ success: false, addedCount: 0, warnings, mergeCount, eventEntries: [], teamsAdded: 0 });
     }
     return;
   }
@@ -162,6 +166,8 @@ export function commitParticipantImport({
   }
   methods.push(...additionalMethods);
 
+  const teamKeyMapped = Object.values(mapping).some((field) => field?.kind === 'teamKey');
+
   mutationRequest({
     methods,
     callback: (result: any) => {
@@ -173,17 +179,73 @@ export function commitParticipantImport({
       } else {
         console.error('participant import failed', result);
       }
-      if (isFunction(callback)) {
-        const finalResult: CommitImportResult = {
-          success: !!result?.success,
-          addedCount,
-          warnings,
-          mergeCount,
-          eventEntries,
-          raw: result,
-        };
-        callback(finalResult);
+
+      // Second-pass: when the user mapped a column to `teamKey`, generate
+      // TEAM participants from the value of `teamAttributes.teamName`. Skip
+      // when the persons-mutation failed (no new individuals to group) or no
+      // teamKey column was mapped.
+      if (result?.success && teamKeyMapped) {
+        dispatchTeamGeneration({
+          onComplete: (teamResult) => finish(result, teamResult),
+        });
+        return;
       }
+
+      finish(result, undefined);
+    },
+  });
+
+  function finish(personResult: any, teamResult: any): void {
+    if (!isFunction(callback)) return;
+    const addedCount = personResult?.results?.[0]?.addedCount ?? participants.length;
+    const teamsAdded = teamResult?.teamsAdded ?? 0;
+    const finalResult: CommitImportResult = {
+      success: !!personResult?.success,
+      addedCount,
+      warnings,
+      mergeCount,
+      eventEntries,
+      teamsAdded,
+      raw: personResult,
+    };
+    callback(finalResult);
+  }
+}
+
+/**
+ * Triggers the factory's `createTeamsFromParticipantAttributes` against the
+ * `teamAttributes.teamName` accessor, then issues a follow-up `ADD_PARTICIPANTS`
+ * mutation for the newly computed TEAM participants. Runs once, after the
+ * individual persons have landed, so the factory has the full participant
+ * universe to group over (including any pre-existing individuals on the same
+ * team).
+ */
+function dispatchTeamGeneration({ onComplete }: { onComplete: (result: any) => void }): void {
+  // Engine return is a discriminated union covering the error / participantsAdded /
+  // newParticipants variants; we explicitly request `addParticipants: false` to land
+  // in the `newParticipants` branch but the union type widens to `any` here so we
+  // can read whichever fields are present without redundant narrowing.
+  const result: any = tournamentEngine.createTeamsFromParticipantAttributes({
+    accessor: 'person.biographicalInformation.teamAttributes.teamName',
+    addParticipants: false,
+  });
+  const newParticipants = result?.newParticipants;
+  if (!Array.isArray(newParticipants) || !newParticipants.length) {
+    onComplete({ teamsAdded: 0 });
+    return;
+  }
+  mutationRequest({
+    methods: [{ method: ADD_PARTICIPANTS, params: { participants: newParticipants } }],
+    callback: (teamResult: any) => {
+      if (teamResult?.success) {
+        tmxToast({
+          message: t('toasts.addedTeamParticipants', { count: newParticipants.length }),
+          intent: 'is-success',
+        });
+      } else {
+        console.error('team generation failed', teamResult);
+      }
+      onComplete({ teamsAdded: teamResult?.success ? newParticipants.length : 0 });
     },
   });
 }
@@ -402,6 +464,7 @@ function buildParticipantFromRow(
   applyIdentifiers(participant, collected);
   applyMisc(participant, collected, validNationalityCodes, rowIndex, warnings);
   applyRatings(participant, ratingItems);
+  applyTeamAffiliation(participant, collected);
 
   // ParticipantId source: when a column is mapped to `participantId`, hash that
   // column's value (so e.g. "Submission ID" or any unique-per-row column gives
@@ -582,6 +645,35 @@ function applyMisc(
       });
     }
   }
+}
+
+/**
+ * Writes the `teamKey` and `jerseyNumber` columns onto the person's first
+ * `biographicalInformation.teamAttributes` entry. The factory's `Person` type
+ * exposes `biographicalInformation.teamAttributes[]` as the canonical home
+ * for team-context-specific metadata (teamName, jerseyNumber, position,
+ * captain, …). At import time we always write the single-element array shape
+ * — `mergeParticipantDrafts` knows to merge field-wise into `[0]` on
+ * re-imports so an earlier jersey number isn't erased by a later import that
+ * only set the team key.
+ *
+ * The teamKey column doubles as the input to the second-pass
+ * `createTeamsFromParticipantAttributes` call dispatched in
+ * `commitParticipantImport`'s success callback — the factory's accessor
+ * walks `person.biographicalInformation.teamAttributes.teamName` and
+ * generates one TEAM participant per unique value.
+ */
+function applyTeamAffiliation(participant: any, collected: Partial<Record<TargetFieldKind, string>>): void {
+  const teamName = collected.teamKey?.trim();
+  const jerseyNumber = collected.jerseyNumber?.trim();
+  if (!teamName && !jerseyNumber) return;
+
+  if (!participant.person.biographicalInformation) participant.person.biographicalInformation = {};
+  const bio = participant.person.biographicalInformation;
+  if (!Array.isArray(bio.teamAttributes) || !bio.teamAttributes.length) bio.teamAttributes = [{}];
+  const attribute = bio.teamAttributes[0];
+  if (teamName) attribute.teamName = teamName;
+  if (jerseyNumber) attribute.jerseyNumber = jerseyNumber;
 }
 
 function applyRatings(participant: any, ratingItems: Array<{ scaleName: string; value: number }>): void {
