@@ -47,7 +47,6 @@ export type DashboardData = {
 export function getDashboardData(): DashboardData {
   const tournamentInfo = tournamentEngine.getTournamentInfo({
     withStructureDetails: true,
-    withPublishState: true,
     withMatchUpStats: true,
   }).tournamentInfo;
 

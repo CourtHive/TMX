@@ -387,7 +387,6 @@ function handleQualifyingStructure(params: {
     structureOptions,
     matchUpFormat,
     structureName,
-    automated,
     drawSize,
     drawType: drawType as any,
     drawId,

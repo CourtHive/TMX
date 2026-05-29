@@ -120,7 +120,6 @@ export function getStructureOptions({
           const purgeAndCreate = () => {
             const genResult = tournamentEngine.generateVoluntaryConsolation({
               structureName: 'Consolation',
-              attachConsolation: false,
               drawId,
             });
             if (genResult.error || !genResult.structures?.length) {

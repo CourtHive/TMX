@@ -180,7 +180,6 @@ export const addEntries =
         (event.eventType === 'TEAM' && 'TEAM') || (event.eventType === 'DOUBLES' && 'PAIR') || 'INDIVIDUAL';
       const participantsAvailable = (
         tournamentEngine.getParticipants({
-          inContext: true,
           participantFilters: { participantTypes: [participantType] },
           withISO2: true,
         }).participants ?? []

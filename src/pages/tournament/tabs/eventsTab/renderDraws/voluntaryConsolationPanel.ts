@@ -370,7 +370,6 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
     const genResult = tournamentEngine.generateVoluntaryConsolation({
       structureName: structure.structureName,
       matchUpFormat: matchUpFormat || undefined,
-      attachConsolation: false,
       automated,
       structureOptions,
       drawType,
