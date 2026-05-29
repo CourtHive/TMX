@@ -50,6 +50,8 @@ export type TargetFieldKind =
   | 'participantName'
   | 'representing'
   | 'notes'
+  // Per-row participant role (COMPETITOR by default; supports COACH, MEDICAL/PHYSIO, CAPTAIN, …)
+  | 'participantRole'
   // Team affiliation (populates person.biographicalInformation.teamAttributes[0])
   | 'teamKey'
   | 'jerseyNumber'
@@ -106,6 +108,7 @@ export const SYNONYM_RULES: SynonymRule[] = [
   // --- Participant ---
   { kind: 'representing', synonyms: ['representing', 'represents'] },
   { kind: 'notes', synonyms: ['notes', 'note', 'comments', 'comment'] },
+  { kind: 'participantRole', synonyms: ['role', 'participantrole', 'staffrole', 'rosterrole'] },
   // --- Team affiliation ---
   // `teamKey` triggers a second-pass `createTeamsFromParticipantAttributes`
   // call that groups individuals by the column's value into TEAM participants.
@@ -144,7 +147,7 @@ export const TARGET_FIELD_GROUPS: Array<{ label: string; fields: TargetFieldKind
   { label: 'Contact', fields: ['email', 'phone', 'mobilePhone'] },
   { label: 'Rating', fields: ['rating'] },
   { label: 'Event entry', fields: ['eventEntry'] },
-  { label: 'Participant', fields: ['participantName', 'representing', 'notes'] },
+  { label: 'Participant', fields: ['participantName', 'representing', 'notes', 'participantRole'] },
   { label: 'Team affiliation', fields: ['teamKey', 'jerseyNumber'] },
   { label: 'Other', fields: ['split', 'ignore'] },
 ];

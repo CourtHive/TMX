@@ -1020,6 +1020,7 @@
         "participantName": "Participant name",
         "representing": "Representing",
         "notes": "Notes",
+        "participantRole": "Role (player, coach, physio, …)",
         "teamKey": "Team (group into team participants)",
         "jerseyNumber": "Jersey number",
         "split": "Split…",
