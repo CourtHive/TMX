@@ -180,6 +180,37 @@ function buildRatingsSection(participant: any): HTMLElement | undefined {
   return section;
 }
 
+/**
+ * Renders team-affiliation + jersey-number chips below the ratings row.
+ * Both pieces live on `person.biographicalInformation.teamAttributes[0]`
+ * (the import wizard writes them there). Section is omitted entirely
+ * when neither field has a value so individual participants who aren't
+ * team-affiliated see no change.
+ */
+function buildTeamAffiliationSection(participant: any): HTMLElement | undefined {
+  const teamAttribute = participant.person?.biographicalInformation?.teamAttributes?.[0];
+  const teamName = teamAttribute?.teamName;
+  const jerseyNumber = teamAttribute?.jerseyNumber;
+  if (!teamName && !jerseyNumber) return undefined;
+
+  const section = document.createElement('div');
+  section.style.cssText = 'display: flex; gap: 0.75em; flex-wrap: wrap; margin-bottom: 1em;';
+
+  // Team affiliation accent: orange. Sits distinct from ratings (green),
+  // rankings (blue), and events (purple) so the four chip families are
+  // glance-distinguishable.
+  const teamAccent = 'var(--tmx-accent-orange, #ff9f00)';
+
+  if (teamName) {
+    section.appendChild(createChip(teamName, 'TEAM', teamAccent));
+  }
+  if (jerseyNumber != null && jerseyNumber !== '') {
+    section.appendChild(createChip(`#${jerseyNumber}`, 'JERSEY', teamAccent));
+  }
+
+  return section;
+}
+
 function buildEventChips(participant: any): HTMLElement | undefined {
   const participantEvents = participant.events || [];
   if (!participantEvents.length) return undefined;
@@ -300,6 +331,11 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   // Ratings & rankings chips
   const ratingsSection = buildRatingsSection(participant);
   if (ratingsSection) content.appendChild(ratingsSection);
+
+  // Team affiliation + jersey number chips (only for individuals carrying
+  // a teamAttributes[0] entry — set by the import wizard).
+  const teamAffiliationSection = buildTeamAffiliationSection(participant);
+  if (teamAffiliationSection) content.appendChild(teamAffiliationSection);
 
   // Event entry chips
   const eventChips = buildEventChips(participant);
