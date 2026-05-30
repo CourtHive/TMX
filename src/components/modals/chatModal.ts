@@ -216,7 +216,12 @@ export function openChatModal(): void {
 
   // Input row
   const inputRow = document.createElement('div');
-  inputRow.style.cssText = 'display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--chc-border-primary, #ddd);';
+  // `align-items: stretch` makes the send button match the input's height
+  // exactly — the `.button.is-small` and `.input.is-small` rules compute
+  // slightly different intrinsic heights (different padding stacks), so
+  // without stretch the button reads as floating above the input baseline.
+  inputRow.style.cssText =
+    'display: flex; align-items: stretch; gap: 6px; padding: 8px; border-top: 1px solid var(--chc-border-primary, #ddd);';
 
   input = document.createElement('input');
   input.type = 'text';
