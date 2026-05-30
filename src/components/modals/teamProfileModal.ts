@@ -17,7 +17,7 @@
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
 import { factoryConstants } from 'tods-competition-factory';
-import { cModal } from 'courthive-components';
+import { buildTeamCard, cModal } from 'courthive-components';
 import { t } from 'i18n';
 
 const { participantRoles, participantConstants } = factoryConstants;
@@ -146,47 +146,24 @@ function splitMembership(team: any): SplitMembership {
 
 // ---- Header card -----------------------------------------------------------
 
+/**
+ * Renders the modal header via the `buildTeamCard` primitive from
+ * courthive-components. Count segments are pre-formatted here (with
+ * locale-aware pluralization via `i18next`) so the primitive can stay
+ * locale-agnostic.
+ */
 function buildHeaderCard(team: any, split: SplitMembership): HTMLElement {
-  const card = document.createElement('div');
-  card.style.cssText = `
-    padding: 1em 1.25em;
-    border: 1px solid var(--tmx-border-secondary, #555);
-    border-radius: 6px;
-    background: var(--tmx-bg-secondary, #2c2c2c);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-  `;
+  const countSegments: string[] = [];
+  countSegments.push(formatCount(split.roster.length, 'players'));
+  if (split.coaches.length) countSegments.push(formatCount(split.coaches.length, 'coaches'));
+  if (split.staff.length) countSegments.push(formatCount(split.staff.length, 'staff'));
 
-  const titleRow = document.createElement('div');
-  titleRow.style.cssText = 'display: flex; align-items: baseline; gap: 0.75em; flex-wrap: wrap;';
-
-  const name = document.createElement('span');
-  name.style.cssText = 'font-size: 1.25em; font-weight: 600; color: var(--tmx-text-primary, #eee);';
-  name.textContent = team.participantName || t('modals.teamProfile.title');
-  titleRow.appendChild(name);
-
-  if (team.participantOtherName) {
-    const nickname = document.createElement('span');
-    nickname.style.cssText = 'font-size: 0.95em; opacity: 0.7; font-style: italic;';
-    nickname.textContent = `"${team.participantOtherName}"`;
-    titleRow.appendChild(nickname);
-  }
-
-  card.appendChild(titleRow);
-
-  const counts = document.createElement('div');
-  counts.style.cssText = 'display: flex; gap: 1em; font-size: 0.9em; opacity: 0.85; flex-wrap: wrap;';
-
-  const summarySegments: string[] = [];
-  summarySegments.push(formatCount(split.roster.length, 'players'));
-  if (split.coaches.length) summarySegments.push(formatCount(split.coaches.length, 'coaches'));
-  if (split.staff.length) summarySegments.push(formatCount(split.staff.length, 'staff'));
-
-  counts.textContent = summarySegments.join(' · ');
-  card.appendChild(counts);
-
-  return card;
+  return buildTeamCard({
+    teamId: team.participantId,
+    teamName: team.participantName || t('modals.teamProfile.title'),
+    nickname: team.participantOtherName || undefined,
+    countSegments,
+  });
 }
 
 function formatCount(count: number, kind: string): string {
