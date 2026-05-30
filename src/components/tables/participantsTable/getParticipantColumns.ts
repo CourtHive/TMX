@@ -142,12 +142,14 @@ export function getParticipantColumns({
       // populates this on every imported person regardless of role. Visible
       // when any row has a value so the column appears in Staff view (where
       // it's essential) and Competitors view (where it shows the imported
-      // team affiliation pre-team-generation).
+      // team affiliation pre-team-generation). Sortable but no header sort
+      // icon — matches the visual treatment used by the existing `teams`
+      // column on the same table (see `headerSortElement` exclude list in
+      // `createParticipantsTable.ts`).
       title: t('tables.participants.teamAffiliation'),
       field: 'teamAffiliation',
       visible: teamAffiliationPresent,
       headerSort: true,
-      headerFilter: 'input',
       minWidth: 140,
     },
     {

@@ -130,6 +130,12 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
         'signedIn',
         'events',
         'teams',
+        // Suppress sort icons on the Jersey # and Team affiliation columns —
+        // same treatment as the existing `teams` column. Sort still works,
+        // the headers just stay quiet visually so the table reads more like
+        // a roster than a spreadsheet.
+        'jerseyNumber',
+        'teamAffiliation',
         ...ratingFields,
         'cityState',
         'tennisId',
