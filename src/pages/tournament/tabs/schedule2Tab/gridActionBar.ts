@@ -41,24 +41,21 @@ export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
   bar.style.cssText =
     'display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
 
-  // Left cluster: issues warning (only when there's something to surface)
+  // Left cluster: issues warning (only when there's something to surface),
+  // then the min-cell-width stepper immediately to its right. Both stay
+  // flush-left so the action bar reads consistently regardless of whether
+  // issues are present — the stepper doesn't shift across the bar based on
+  // issue presence.
   if (issues.length > 0) {
     bar.appendChild(buildIssuesButton(issues));
   }
-
-  // Leading spacer pushes the centered stepper away from the issues cluster.
-  // A matching trailing spacer (below) leaves the stepper visually centered
-  // while the right cluster stays flush right.
-  const leadingSpacer = document.createElement('div');
-  leadingSpacer.style.cssText = 'flex: 1;';
-  bar.appendChild(leadingSpacer);
-
-  // Center: min cell-width stepper
   bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
 
-  const trailingSpacer = document.createElement('div');
-  trailingSpacer.style.cssText = 'flex: 1;';
-  bar.appendChild(trailingSpacer);
+  // Spacer pushes the right cluster (bulk-mode toggle + clear button) flush
+  // right while the left cluster stays anchored at the start of the bar.
+  const spacer = document.createElement('div');
+  spacer.style.cssText = 'flex: 1;';
+  bar.appendChild(spacer);
 
   // Right cluster
   if (providerConfig.isAllowed('canUseBulkScheduling')) {
