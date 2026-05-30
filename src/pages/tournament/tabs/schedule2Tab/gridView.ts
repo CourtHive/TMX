@@ -451,16 +451,25 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
         ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;'
         : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
     ].join('; ');
+  // Both Unscheduled and Scheduled tabs carry an inline (n) count badge —
+  // populated on initial render and refreshed whenever the store ticks. The
+  // badges give operators an at-a-glance hint of how much work remains on
+  // each side without switching tabs. Translucent-white background reads
+  // legibly against both the active (blue) and inactive (gray) tab fills.
+  const badgeCss =
+    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
+
   unschedTab.textContent = t('schedule.unscheduled');
-  // Build the Scheduled tab with an inline (n) count badge — populated on
-  // initial render and refreshed whenever the store ticks. The badge gives
-  // operators an at-a-glance hint that timed-but-unplaced matchUps exist
-  // after running the scheduler.
+  unschedTab.appendChild(document.createTextNode(' '));
+  const unschedBadge = document.createElement('span');
+  unschedBadge.style.cssText = badgeCss;
+  unschedBadge.textContent = '0';
+  unschedTab.appendChild(unschedBadge);
+
   schedTab.textContent = t('schedule.scheduled');
   schedTab.appendChild(document.createTextNode(' '));
   const schedBadge = document.createElement('span');
-  schedBadge.style.cssText =
-    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
+  schedBadge.style.cssText = badgeCss;
   schedBadge.textContent = '0';
   schedTab.appendChild(schedBadge);
 
@@ -539,8 +548,15 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   }
 
   function updateBadge(): void {
-    const count = getScheduledNotPlacedOnCourt().length;
-    schedBadge.textContent = String(count);
+    schedBadge.textContent = String(getScheduledNotPlacedOnCourt().length);
+    // Unscheduled badge reflects the unfiltered eligible-for-unscheduled
+    // count for the current date — same source the catalog widget meta
+    // shows ("X unscheduled"), so the badge cannot drift from what the
+    // catalog itself displays. Computed from `buildCatalog(currentDate)`
+    // to share the same date / completed / BYE filtering with the catalog
+    // body so the two stay aligned.
+    const unscheduledCount = buildCatalog(currentDate).filter((item) => !item.isScheduled).length;
+    unschedBadge.textContent = String(unscheduledCount);
   }
 
   function updateScheduledPanel(): void {
