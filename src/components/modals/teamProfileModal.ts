@@ -16,32 +16,18 @@
  */
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
-import { factoryConstants } from 'tods-competition-factory';
 import { buildTeamCard, cModal } from 'courthive-components';
+import { jerseySorter, splitMembership, type Member, type SplitMembership } from './teamProfileLogic';
 import { t } from 'i18n';
-
-const { participantRoles, participantConstants } = factoryConstants;
-const { COMPETITOR, COACH } = participantRoles;
-const { INDIVIDUAL } = participantConstants;
-
-// Members are typed loosely: the factory returns rich `HydratedParticipant`
-// shapes that vary across query options (withScaleValues, withISO2, …) and
-// the modal only reads a small handful of fields. Matching the existing
-// `participantProfileModal.ts` convention of `any` here keeps the modal
-// resilient to factory type-shape drift without changing what's displayed.
-type Member = any;
-
-type SplitMembership = {
-  roster: Member[];
-  coaches: Member[];
-  staff: Member[];
-};
 
 export function teamProfileModal({ participantId }: { participantId: string }): void {
   const team = fetchTeam(participantId);
   if (!team) return;
 
-  const { roster, coaches, staff } = splitMembership(team);
+  // splitMembership is now a pure function — pass the live participant set
+  // in as a parameter so the helper itself stays test-friendly.
+  const allParticipants = tournamentEngine.q.participants() ?? [];
+  const { roster, coaches, staff } = splitMembership(team, allParticipants);
 
   const content = document.createElement('div');
   content.style.cssText = 'display: flex; flex-direction: column; gap: 1em;';
@@ -89,59 +75,6 @@ function fetchTeam(participantId: string): any | undefined {
     withISO2: true,
   });
   return result?.participants?.[0];
-}
-
-/**
- * Splits the team's membership into three buckets:
- *
- * - **Roster** — the union of `team.individualParticipants` (the
- *   authoritative roster the factory walks for draws / scoring) and any
- *   individual whose `teamAttributes[0].teamName` matches the team name AND
- *   has role COMPETITOR / no role. Union not strict equality so a roster
- *   entry with an empty `teamAttributes` (manual lineup, pre-import) still
- *   appears, and a freshly-imported COMPETITOR not yet attached to the team
- *   participant (race between the two ADD_PARTICIPANTS mutations) shows up
- *   immediately.
- * - **Coaches** — individuals matched on `teamAttributes.teamName` with
- *   `participantRole === COACH`. Never appear in `individualParticipantIds`
- *   because `createTeamsFromParticipantAttributes` filters them out.
- * - **Staff** — anything else with a matching `teamAttributes.teamName`
- *   (MEDICAL / CAPTAIN / OFFICIAL / VOLUNTEER / …). Each row carries its
- *   role for badge rendering.
- */
-function splitMembership(team: any): SplitMembership {
-  const teamName: string | undefined = team?.participantName;
-  const teamRoster: Member[] = Array.isArray(team?.individualParticipants) ? team.individualParticipants : [];
-  const rosterIds = new Set(teamRoster.map((m: Member) => m.participantId));
-
-  const associated = teamName
-    ? (tournamentEngine.q.participants() ?? []).filter((p: any) => {
-        if (p.participantType !== INDIVIDUAL) return false;
-        const recordedTeam = p.person?.biographicalInformation?.teamAttributes?.[0]?.teamName;
-        return recordedTeam === teamName;
-      })
-    : [];
-
-  const coaches: Member[] = [];
-  const staff: Member[] = [];
-  const rosterExtras: Member[] = [];
-
-  for (const p of associated) {
-    const role = p.participantRole;
-    if (!role || role === COMPETITOR) {
-      if (!rosterIds.has(p.participantId)) rosterExtras.push(p);
-    } else if (role === COACH) {
-      coaches.push(p);
-    } else {
-      staff.push(p);
-    }
-  }
-
-  return {
-    roster: [...teamRoster, ...rosterExtras],
-    coaches,
-    staff,
-  };
 }
 
 // ---- Header card -----------------------------------------------------------
@@ -254,21 +187,6 @@ function staffColumns(): any[] {
     { title: t('modals.teamProfile.columns.name'), field: 'participantName', headerSort: true, minWidth: 180 },
     { title: t('modals.teamProfile.columns.contact'), field: 'contact', headerSort: false, minWidth: 200 },
   ];
-}
-
-function jerseySorter(a: any, b: any): number {
-  const na = parseJersey(a);
-  const nb = parseJersey(b);
-  if (na == null && nb == null) return 0;
-  if (na == null) return 1;
-  if (nb == null) return -1;
-  return na - nb;
-}
-
-function parseJersey(value: any): number | null {
-  if (value == null || value === '') return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
 }
 
 function formatSexBadge(sex?: string): string {
