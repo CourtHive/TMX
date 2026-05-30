@@ -6,6 +6,7 @@ import { editGroupingParticipant } from 'pages/tournament/tabs/participantTab/ed
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
+import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
@@ -42,7 +43,12 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
     },
     {
       hide: !isTeam,
-      text: "<i class='fas fa-users'></i> Edit team",
+      text: "<i class='fas fa-address-card'></i> Team profile",
+      onClick: () => teamProfileModal({ participantId }),
+    },
+    {
+      hide: !isTeam,
+      text: "<i class='fas fa-users'></i> Rename team",
       onClick: () => {
         const participant = tournamentEngine.getParticipants({
           participantFilters: { participantIds: [participantId] },
@@ -51,7 +57,7 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
           editGroupingParticipant({
             participant,
             refresh: replaceTableData,
-            title: 'Edit team',
+            title: 'Rename team',
           });
         }
       },

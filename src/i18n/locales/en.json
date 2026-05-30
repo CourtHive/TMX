@@ -1270,6 +1270,27 @@
       "create": "Create",
       "teamAffiliation": "Team affiliation"
     },
+    "teamProfile": {
+      "title": "Team profile",
+      "roster": "Roster",
+      "coaches": "Coaches",
+      "staff": "Staff",
+      "empty": "No members on this team yet.",
+      "columns": {
+        "name": "Name",
+        "sex": "Sex",
+        "role": "Role",
+        "contact": "Contact"
+      },
+      "counts": {
+        "players_one": "{{count}} player",
+        "players_other": "{{count}} players",
+        "coaches_one": "{{count}} coach",
+        "coaches_other": "{{count}} coaches",
+        "staff_one": "{{count}} staff",
+        "staff_other": "{{count}} staff"
+      }
+    },
     "getLatLong": {
       "title": "Location",
       "enterMapUrl": "Enter map URL",

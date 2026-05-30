@@ -5,6 +5,7 @@
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
+import { teamProfileModal } from '../../modals/teamProfileModal';
 import { participantConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
@@ -13,7 +14,7 @@ import { headerMenu } from '../common/headerMenu';
 import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-const { GROUP } = participantConstants;
+const { GROUP, TEAM } = participantConstants;
 
 export function getGroupingsColumns({ view, replaceTableData }: { view?: string; replaceTableData: () => void }): any[] {
   const openCloseToggle = (e: Event, cell: any) => {
@@ -54,7 +55,20 @@ export function getGroupingsColumns({ view, replaceTableData }: { view?: string;
       width: 65,
     },
     {
-      cellClick: (e: Event, cell: any) => openCloseToggle(e, cell),
+      cellClick: (e: Event, cell: any) => {
+        // In the TEAM view, clicking the team name opens the read-only profile
+        // modal (roster + coaches + staff). Rename is reached via the row's
+        // popover actions. GROUP rows keep the existing collapse-toggle
+        // behaviour since groups have no profile surface today.
+        if (view === TEAM) {
+          const { participantId } = cell.getRow().getData();
+          if (participantId) {
+            teamProfileModal({ participantId });
+            return;
+          }
+        }
+        openCloseToggle(e, cell);
+      },
       field: 'participantName',
       title: t('tables.groupings.name'),
       minWidth: 200,
