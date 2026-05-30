@@ -83,6 +83,9 @@ export const providerConfig = {
   },
 } as const;
 
+const PROVIDER_THEME_LINK_ID = 'tmx-provider-theme';
+const PROVIDER_TOKEN_ATTR = 'data-tmx-provider-tokens';
+
 function applyBranding(branding?: ProviderBranding): void {
   if (typeof document === 'undefined') return;
 
@@ -92,7 +95,54 @@ function applyBranding(branding?: ProviderBranding): void {
   if (branding?.accentColor) {
     document.documentElement.style.setProperty('--tmx-accent-blue', branding.accentColor);
   }
+  applyThemeTokens(branding?.themeTokens);
+  applyProviderStylesheet(branding?.stylesheetUrl);
   updateNavbarBranding(branding);
+}
+
+// Track which custom properties this layer applied so provider switches
+// remove the prior set cleanly, leaving the bundled CSS defaults in place.
+function applyThemeTokens(tokens?: Record<string, string>): void {
+  const root = document.documentElement;
+
+  const priorList = root.getAttribute(PROVIDER_TOKEN_ATTR);
+  if (priorList) {
+    for (const prior of priorList.split(' ')) {
+      if (prior) root.style.removeProperty(prior);
+    }
+    root.removeAttribute(PROVIDER_TOKEN_ATTR);
+  }
+
+  if (!tokens) return;
+
+  const applied: string[] = [];
+  for (const [token, value] of Object.entries(tokens)) {
+    root.style.setProperty(token, value);
+    applied.push(token);
+  }
+  if (applied.length > 0) {
+    root.setAttribute(PROVIDER_TOKEN_ATTR, applied.join(' '));
+  }
+}
+
+function applyProviderStylesheet(url?: string): void {
+  const existing = document.getElementById(PROVIDER_THEME_LINK_ID) as HTMLLinkElement | null;
+
+  if (!url) {
+    if (existing) existing.remove();
+    return;
+  }
+
+  if (existing) {
+    if (existing.getAttribute('href') !== url) existing.setAttribute('href', url);
+    return;
+  }
+
+  const link = document.createElement('link');
+  link.id = PROVIDER_THEME_LINK_ID;
+  link.rel = 'stylesheet';
+  link.href = url;
+  document.head.appendChild(link);
 }
 
 function updateNavbarBranding(branding?: ProviderBranding): void {

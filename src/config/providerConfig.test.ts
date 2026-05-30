@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import { providerConfig } from './providerConfig';
 
 const BEST_OF_3 = 'SET3-S:6/TB7';
+const PROVIDER_THEME_CSS_URL = 'https://provider.example.com/theme.css';
 
 describe('providerConfig', () => {
   beforeEach(() => {
@@ -238,6 +239,45 @@ describe('providerConfig', () => {
       expect(defaults?.defaultEventType).toBe('SINGLES');
       expect(defaults?.defaultDrawType).toBe('SINGLE_ELIMINATION');
       expect(defaults?.defaultGender).toBe('MALE');
+    });
+  });
+
+  describe('themeTokens + stylesheetUrl shape', () => {
+    // DOM side-effects (custom-property writes on documentElement, <link>
+    // injection / removal) are validated end-to-end via Playwright. These
+    // tests assert the in-memory store contract only.
+    it('stores themeTokens in branding', () => {
+      providerConfig.set({
+        branding: { themeTokens: { '--tmx-accent-blue': '#1a5276', '--tmx-bg-primary': '#f4f6f8' } },
+      });
+      expect(providerConfig.get().branding?.themeTokens).toEqual({
+        '--tmx-accent-blue': '#1a5276',
+        '--tmx-bg-primary': '#f4f6f8',
+      });
+    });
+
+    it('replaces themeTokens on subsequent set (per-call replacement, not deep merge)', () => {
+      providerConfig.set({
+        branding: { themeTokens: { '--tmx-accent-blue': '#1a5276', '--tmx-bg-primary': '#f4f6f8' } },
+      });
+      providerConfig.set({ branding: { themeTokens: { '--tmx-accent-blue': '#900' } } });
+      expect(providerConfig.get().branding?.themeTokens).toEqual({ '--tmx-accent-blue': '#900' });
+    });
+
+    it('stores stylesheetUrl on branding', () => {
+      providerConfig.set({ branding: { stylesheetUrl: PROVIDER_THEME_CSS_URL } });
+      expect(providerConfig.get().branding?.stylesheetUrl).toBe(PROVIDER_THEME_CSS_URL);
+    });
+
+    it('clears themeTokens and stylesheetUrl on reset', () => {
+      providerConfig.set({
+        branding: {
+          themeTokens: { '--tmx-accent-blue': '#1a5276' },
+          stylesheetUrl: PROVIDER_THEME_CSS_URL,
+        },
+      });
+      providerConfig.reset();
+      expect(providerConfig.get().branding).toBeUndefined();
     });
   });
 
