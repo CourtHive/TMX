@@ -814,6 +814,16 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     const scheduled = getScheduledNotPlacedOnCourt();
     const items = scheduled.map((m) => scheduledMatchUpToCatalogItem(m));
 
+    // Round-emphasis base per event — computed off the FULL items list
+    // (pre-filter) so the offset assigned to a card stays stable as the
+    // operator types in the search box. Mirror of the catalog widget's
+    // behaviour on the Unscheduled side.
+    const baseRoundByEvent = new Map<string, number>();
+    for (const item of items) {
+      const cur = baseRoundByEvent.get(item.eventId);
+      if (cur === undefined || item.roundNumber < cur) baseRoundByEvent.set(item.eventId, item.roundNumber);
+    }
+
     // Same filter + group pipeline the unscheduled catalog runs. `behavior:
     // 'hide'` would normally drop items where `isScheduled === true`, but
     // `scheduledMatchUpToCatalogItem` already forces `isScheduled: false`
@@ -880,7 +890,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
         // dragstart listener — these sidebar cards must be promotable onto a
         // court. The prominent time header (via the option) is what visually
         // marks them as already having a scheduledTime.
-        const card = buildMatchUpCard(item, {}, { prominentTime: true });
+        // Round-offset is computed against the pre-filter `items` set so the
+        // visual priority stays stable while the operator searches.
+        const base = baseRoundByEvent.get(item.eventId);
+        const roundOffset = base !== undefined ? Math.max(0, item.roundNumber - base) : undefined;
+        const card = buildMatchUpCard(item, {}, { prominentTime: true, roundOffset });
         if (!item.scheduledTime) card.classList.add('no-time');
         gb.appendChild(card);
       }
@@ -2053,6 +2067,7 @@ function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
     drawId: m.drawId ?? '',
     drawName: m.drawName,
     structureId: m.structureId ?? '',
+    stage: m.stage,
     roundNumber: m.roundNumber ?? 0,
     roundName: m.roundName,
     matchUpFormat: m.matchUpFormat,
@@ -2103,6 +2118,7 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
         drawId: m.drawId ?? '',
         drawName: m.drawName,
         structureId: m.structureId ?? '',
+        stage: m.stage,
         roundNumber: m.roundNumber ?? 0,
         roundName: m.roundName,
         matchUpFormat: m.matchUpFormat,
