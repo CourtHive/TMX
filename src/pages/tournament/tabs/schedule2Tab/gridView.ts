@@ -536,10 +536,10 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   controlBar.appendChild(unschedTab);
   controlBar.appendChild(schedTab);
 
-  // Scheduled matchUp list container — vertical stack of a toolbar (search +
-  // group-by + filter) on top and a scrollable groups/cards list below. The
-  // widget set mirrors the unscheduled catalog so the two panels feel
-  // interchangeable to operators.
+  // Scheduled matchUp list container — same DOM layout as the unscheduled
+  // catalog widget (header with title + filter icon, toolbar with search +
+  // group-by select, body with grouped cards) so the two panels read as
+  // sibling surfaces rather than two different designs.
   const scheduledPanel = document.createElement('div');
   scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; flex-direction: column;';
 
@@ -549,7 +549,35 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   let scheduledFilterTip: Instance | undefined;
   const scheduledCollapsedGroups = new Set<string>();
 
-  // Toolbar — search + group-by + filter button on a single row.
+  // Header (title row with filter icon on the right, then a meta row below).
+  // Mirrors the unscheduled catalog's `sp-panel-header > spl-catalog-title-row`
+  // structure so the visual treatment matches without redeclaring styles.
+  const scheduledHeader = document.createElement('div');
+  scheduledHeader.className = 'sp-panel-header';
+  const scheduledTitleRow = document.createElement('div');
+  scheduledTitleRow.className = 'spl-catalog-title-row';
+  const scheduledTitle = document.createElement('div');
+  scheduledTitle.className = 'sp-panel-title';
+  scheduledTitle.textContent = t('schedule.scheduledTitle');
+
+  const scheduledFilterBtn = document.createElement('button');
+  scheduledFilterBtn.className = 'spl-catalog-filter-btn';
+  scheduledFilterBtn.title = t('schedule.filterMatchUps');
+  scheduledFilterBtn.innerHTML =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
+
+  scheduledTitleRow.appendChild(scheduledTitle);
+  scheduledTitleRow.appendChild(scheduledFilterBtn);
+
+  const scheduledMeta = document.createElement('div');
+  scheduledMeta.className = 'sp-panel-meta';
+
+  scheduledHeader.appendChild(scheduledTitleRow);
+  scheduledHeader.appendChild(scheduledMeta);
+  scheduledPanel.appendChild(scheduledHeader);
+
+  // Toolbar — search + group-by select (no filter button; filter lives in the
+  // header row above, matching the unscheduled catalog).
   const scheduledToolbar = document.createElement('div');
   scheduledToolbar.className = 'sp-catalog-toolbar';
 
@@ -596,15 +624,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     updateScheduledPanel();
   });
 
-  const scheduledFilterBtn = document.createElement('button');
-  scheduledFilterBtn.className = 'spl-catalog-filter-btn';
-  scheduledFilterBtn.title = t('schedule.filterMatchUps');
-  scheduledFilterBtn.innerHTML =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>';
-
   scheduledToolbar.appendChild(scheduledSearchWrap);
   scheduledToolbar.appendChild(scheduledGroupSelect);
-  scheduledToolbar.appendChild(scheduledFilterBtn);
   scheduledPanel.appendChild(scheduledToolbar);
 
   // Cards container — re-populated each `updateScheduledPanel` call.
@@ -799,6 +820,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // (so the card stays draggable), so behavior is a no-op here — explicit
     // 'dim' avoids the hide branch entirely.
     const filtered = filterMatchUpCatalog(items, scheduledSearchQuery, 'dim', scheduledFilters);
+
+    // Match the unscheduled catalog meta line ("{N} unscheduled") on the
+    // Scheduled side so the panel header carries the same shape and the
+    // count reflects the active search + filter.
+    scheduledMeta.textContent = t('schedule.scheduledCount', { count: filtered.length });
 
     if (!scheduled.length) {
       const hint = document.createElement('div');
