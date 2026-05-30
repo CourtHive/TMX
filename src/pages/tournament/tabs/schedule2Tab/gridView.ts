@@ -42,6 +42,7 @@ import {
   DEFAULT_SCHEDULE_CELL_CONFIG,
   matchUpLabel,
   filterMatchUpCatalog,
+  computeBaseRoundByEvent,
   groupMatchUpCatalog,
   isCompletedStatus,
   buildActiveStripPanel,
@@ -816,13 +817,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
 
     // Round-emphasis base per event — computed off the FULL items list
     // (pre-filter) so the offset assigned to a card stays stable as the
-    // operator types in the search box. Mirror of the catalog widget's
-    // behaviour on the Unscheduled side.
-    const baseRoundByEvent = new Map<string, number>();
-    for (const item of items) {
-      const cur = baseRoundByEvent.get(item.eventId);
-      if (cur === undefined || item.roundNumber < cur) baseRoundByEvent.set(item.eventId, item.roundNumber);
-    }
+    // operator types in the search box. Shares the canonical
+    // `computeBaseRoundByEvent` helper with the courthive-components
+    // catalog widget on the Unscheduled side; before extraction TMX and
+    // courthive-components each had their own inlined copy.
+    const baseRoundByEvent = computeBaseRoundByEvent(items);
 
     // Same filter + group pipeline the unscheduled catalog runs. `behavior:
     // 'hide'` would normally drop items where `isScheduled === true`, but
