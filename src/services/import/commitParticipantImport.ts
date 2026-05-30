@@ -33,6 +33,7 @@
 import { tournamentEngine } from 'services/factory/engine';
 import { fixtures, tools } from 'tods-competition-factory';
 import { mergeParticipantDrafts } from './mergeParticipantDrafts';
+import { resolveParticipantRole } from './resolveParticipantRole';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { parseRatingCell } from './parseRatingCell';
@@ -678,77 +679,11 @@ function applyTeamAffiliation(participant: any, collected: Partial<Record<Target
 }
 
 /**
- * Canonical participant roles supported by the factory. The set is small enough
- * that hard-coding is fine — we deliberately do not import the constant from
- * tods-competition-factory so the wizard stays decoupled from minor releases.
- * Sourced from `factory/src/constants/participantRoles.ts`.
- */
-const VALID_PARTICIPANT_ROLES = new Set([
-  'ADMINISTRATION',
-  'CAPTAIN',
-  'COACH',
-  'COMPETITOR',
-  'DIRECTOR',
-  'HOSPITALITY',
-  'MEDIA',
-  'MEDICAL',
-  'OFFICIAL',
-  'OTHER',
-  'PHYSIO',
-  'SECURITY',
-  'STRINGER',
-  'SUPERVISOR',
-  'TRAINER',
-  'TRANSPORT',
-  'VOLUNTEER',
-]);
-
-/**
- * Natural-language → factory-role aliases. The right-hand side is the canonical
- * factory constant; the left-hand side is the lowercased, alpha-only input that
- * users plausibly write in a "Role" column. Anything that hits an exact factory
- * role after normalization bypasses this table entirely.
- */
-const PARTICIPANT_ROLE_ALIASES: Record<string, string> = {
-  // Player synonyms
-  player: 'COMPETITOR',
-  athlete: 'COMPETITOR',
-  comp: 'COMPETITOR',
-  // Coach synonyms
-  coach: 'COACH',
-  asstcoach: 'COACH',
-  assistantcoach: 'COACH',
-  headcoach: 'COACH',
-  // Physio synonyms — distinct from MEDICAL (which stays for doctors / on-call
-  // medical staff) per the factory role split landed alongside the import
-  // wizard work.
-  physio: 'PHYSIO',
-  physiotherapist: 'PHYSIO',
-  physicaltherapist: 'PHYSIO',
-  pt: 'PHYSIO',
-  // Trainer synonyms — strength-and-conditioning / athletic trainer.
-  trainer: 'TRAINER',
-  athletictrainer: 'TRAINER',
-  at: 'TRAINER',
-  strengthcoach: 'TRAINER',
-  // Doctor / general medical staff
-  doctor: 'MEDICAL',
-  doc: 'MEDICAL',
-  md: 'MEDICAL',
-  medical: 'MEDICAL',
-  med: 'MEDICAL',
-  paramedic: 'MEDICAL',
-  // Captain
-  captain: 'CAPTAIN',
-  capt: 'CAPTAIN',
-};
-
-/**
- * Resolves a freeform Role cell to a factory `participantRole`. Match priority:
- * (1) exact factory role (case-insensitive, e.g. "COACH", "competitor") and
- * (2) lowercase + alpha-only alias map (e.g. "Assistant Coach" → "COACH",
- * "Physio" → "MEDICAL"). Unrecognized values fall through to the default
- * COMPETITOR with a warning so the rest of the row still imports.
+ * Writes `participant.participantRole` from the row's Role cell when present.
+ * Role resolution is pure and lives in `resolveParticipantRole.ts`; this
+ * helper just decides what to do with an unrecognised value (warn, and leave
+ * the role unset so the per-row default of `COMPETITOR` set by
+ * `buildParticipantFromRow` carries through).
  */
 function applyParticipantRole(
   participant: any,
@@ -759,16 +694,9 @@ function applyParticipantRole(
   const raw = collected.participantRole?.trim();
   if (!raw) return;
 
-  const upper = raw.toUpperCase();
-  if (VALID_PARTICIPANT_ROLES.has(upper)) {
-    participant.participantRole = upper;
-    return;
-  }
-
-  const normalized = raw.toLowerCase().replace(/[^a-z]/g, '');
-  const aliased = PARTICIPANT_ROLE_ALIASES[normalized];
-  if (aliased) {
-    participant.participantRole = aliased;
+  const { role, matched } = resolveParticipantRole(raw);
+  if (matched) {
+    participant.participantRole = role;
     return;
   }
 
