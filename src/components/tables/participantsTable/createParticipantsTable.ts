@@ -41,9 +41,11 @@ const STAFF_ROLES: string[] = [
   participantRoles.MEDIA,
   participantRoles.MEDICAL,
   participantRoles.OTHER,
+  participantRoles.PHYSIO,
   participantRoles.SECURITY,
   participantRoles.STRINGER,
   participantRoles.SUPERVISOR,
+  participantRoles.TRAINER,
   participantRoles.TRANSPORT,
   participantRoles.VOLUNTEER,
 ];

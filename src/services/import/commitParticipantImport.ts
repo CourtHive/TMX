@@ -694,9 +694,11 @@ const VALID_PARTICIPANT_ROLES = new Set([
   'MEDICAL',
   'OFFICIAL',
   'OTHER',
+  'PHYSIO',
   'SECURITY',
   'STRINGER',
   'SUPERVISOR',
+  'TRAINER',
   'TRANSPORT',
   'VOLUNTEER',
 ]);
@@ -717,13 +719,25 @@ const PARTICIPANT_ROLE_ALIASES: Record<string, string> = {
   asstcoach: 'COACH',
   assistantcoach: 'COACH',
   headcoach: 'COACH',
-  // Medical / physio synonyms
-  physio: 'MEDICAL',
-  physiotherapist: 'MEDICAL',
-  trainer: 'MEDICAL',
-  athletictrainer: 'MEDICAL',
+  // Physio synonyms — distinct from MEDICAL (which stays for doctors / on-call
+  // medical staff) per the factory role split landed alongside the import
+  // wizard work.
+  physio: 'PHYSIO',
+  physiotherapist: 'PHYSIO',
+  physicaltherapist: 'PHYSIO',
+  pt: 'PHYSIO',
+  // Trainer synonyms — strength-and-conditioning / athletic trainer.
+  trainer: 'TRAINER',
+  athletictrainer: 'TRAINER',
+  at: 'TRAINER',
+  strengthcoach: 'TRAINER',
+  // Doctor / general medical staff
   doctor: 'MEDICAL',
+  doc: 'MEDICAL',
+  md: 'MEDICAL',
+  medical: 'MEDICAL',
   med: 'MEDICAL',
+  paramedic: 'MEDICAL',
   // Captain
   captain: 'CAPTAIN',
   capt: 'CAPTAIN',
