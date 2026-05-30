@@ -19,12 +19,34 @@ import { t } from 'i18n';
 import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 
 // constants
-import { TOURNAMENT_PARTICIPANTS } from 'constants/tmxConstants';
+import { TOURNAMENT_PARTICIPANTS, STAFF } from 'constants/tmxConstants';
 
 const { ratingsParameters } = fixtures;
 
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
 const { OFFICIAL, COMPETITOR } = participantRoles;
+
+// Every factory `participantRole` that is neither COMPETITOR nor OFFICIAL
+// rolls up into the Staff view. Hard-coding the list (vs. dynamically
+// computing `Object.values(participantRoles).filter(r => r !== COMPETITOR
+// && r !== OFFICIAL)`) keeps it visible at the call site and stable across
+// minor factory bumps that introduce new role enums we may want to triage
+// explicitly before surfacing.
+const STAFF_ROLES: string[] = [
+  participantRoles.ADMINISTRATION,
+  participantRoles.CAPTAIN,
+  participantRoles.COACH,
+  participantRoles.DIRECTOR,
+  participantRoles.HOSPITALITY,
+  participantRoles.MEDIA,
+  participantRoles.MEDICAL,
+  participantRoles.OTHER,
+  participantRoles.SECURITY,
+  participantRoles.STRINGER,
+  participantRoles.SUPERVISOR,
+  participantRoles.TRANSPORT,
+  participantRoles.VOLUNTEER,
+];
 
 export function createParticipantsTable({ view }: { view?: string } = {}): {
   table: any;
@@ -39,7 +61,10 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
   let teamParticipants: any[] = [];
   let ready: boolean;
 
-  const participantFilters = { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
+  const participantFilters = (() => {
+    if (view === STAFF) return { participantRoles: STAFF_ROLES };
+    return { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
+  })();
 
   const getTableData = () => {
     const result = tournamentEngine.getParticipants({
@@ -118,7 +143,12 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
       data,
     });
 
-    const headerLabel = view === OFFICIAL ? t('pages.participants.officials') : t('pages.participants.title');
+    const headerLabel =
+      view === OFFICIAL
+        ? t('pages.participants.officials')
+        : view === STAFF
+          ? t('pages.participants.staff')
+          : t('pages.participants.title');
 
     // Reshape the section's .tabHeader from a plain text label into a
     // flex row: [Participants (n)] on the left, [scale selector + sparkline]

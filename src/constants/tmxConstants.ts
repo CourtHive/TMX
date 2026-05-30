@@ -70,6 +70,10 @@ export const VIEW = 'view';
 export const TOURNAMENT_EVENTS = 'tournamentEvents';
 export const TOURNAMENT_OVERVIEW = 'overview';
 export const PARTICIPANTS = 'participants';
+// View slug for the fifth participants chip — rolls up every non-COMPETITOR,
+// non-OFFICIAL `participantRole` (COACH / MEDICAL / CAPTAIN / ADMINISTRATION /
+// HOSPITALITY / …) into a single roster. TMX-only — not a factory constant.
+export const STAFF = 'STAFF';
 export const SCHEDULE2_TAB = 'schedule2';
 export const MATCHUPS_TAB = 'matchUps';
 export const EVENTS_TAB = 'events';

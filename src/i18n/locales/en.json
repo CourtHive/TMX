@@ -1652,6 +1652,8 @@
       "club": "Club",
       "events": "Events",
       "teams": "Teams",
+      "role": "Role",
+      "teamAffiliation": "Team affiliation",
       "cityState": "City/State",
       "nickname": "Nickname"
     },
@@ -1888,6 +1890,7 @@
       "title": "Participants",
       "individuals": "Individuals",
       "officials": "Officials",
+      "staff": "Staff",
       "groups": "Groups",
       "teams": "Teams",
       "allEvents": "All events",

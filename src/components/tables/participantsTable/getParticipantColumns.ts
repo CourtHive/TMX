@@ -27,6 +27,26 @@ import { context } from 'services/context';
 
 const { FEMALE, MALE } = genderConstants;
 
+/** Numeric-aware sort for the Jersey # column. Empty / non-numeric strings
+ *  sink to the bottom so the column reads top-to-bottom by jersey number. */
+function jerseySorter(a: any, b: any): number {
+  const na = a == null || a === '' ? Number.POSITIVE_INFINITY : Number(a);
+  const nb = b == null || b === '' ? Number.POSITIVE_INFINITY : Number(b);
+  const ax = Number.isFinite(na) ? na : Number.POSITIVE_INFINITY;
+  const bx = Number.isFinite(nb) ? nb : Number.POSITIVE_INFINITY;
+  if (ax === bx) return 0;
+  return ax - bx;
+}
+
+/** Inline role badge — matches the visual treatment used by
+ *  `teamProfileModal.ts`'s Staff section so the same role rendering carries
+ *  across the modal and this table. */
+function roleBadgeFormatter(cell: any): string {
+  const role = cell.getValue();
+  if (!role) return '';
+  return `<span style="display:inline-block; padding:0.15em 0.55em; border-radius:3px; font-size:0.8em; background:var(--tmx-accent-blue, #3273dc)22; border:1px solid var(--tmx-accent-blue, #3273dc)55; color:var(--tmx-text-primary, #eee);">${role}</span>`;
+}
+
 export function getParticipantColumns({
   data,
   replaceTableData,
@@ -36,6 +56,9 @@ export function getParticipantColumns({
 }): any[] {
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
+  const jerseyNumberPresent = data.some((p) => p.jerseyNumber);
+  const teamAffiliationPresent = data.some((p) => p.teamAffiliation);
+  const rolePresent = data.some((p) => p.participantRole);
   const ratingColumns = getRatingColumns(data, 'participant');
 
   return applyColumnVisibility([
@@ -85,6 +108,47 @@ export function getParticipantColumns({
       minWidth: 200,
       widthGrow: 2,
       title: t('tables.participants.name'),
+    },
+    {
+      // Jersey number lives on `person.biographicalInformation.teamAttributes[0]
+      // .jerseyNumber`. Surfaced for Competitors view (and any other view) when
+      // any row has one — auto-hides for sports / tournaments that don't track
+      // them. Pre-sorts top-to-bottom so the roster reads in jersey order.
+      title: '#',
+      field: 'jerseyNumber',
+      visible: jerseyNumberPresent,
+      sorter: jerseySorter,
+      headerSort: true,
+      hozAlign: CENTER,
+      width: 60,
+      formatter: (cell: any) => {
+        const v = cell.getValue();
+        return v == null || v === '' ? '' : `<strong>${v}</strong>`;
+      },
+    },
+    {
+      // Per-row `participantRole` badge. Critical for the Staff view where
+      // every row is a different non-COMPETITOR role; hidden by default
+      // elsewhere because Competitors are all COMPETITOR by definition.
+      title: t('tables.participants.role'),
+      field: 'participantRole',
+      visible: rolePresent,
+      formatter: roleBadgeFormatter,
+      headerSort: true,
+      width: 130,
+    },
+    {
+      // Team affiliation from `teamAttributes[0].teamName` — the import wizard
+      // populates this on every imported person regardless of role. Visible
+      // when any row has a value so the column appears in Staff view (where
+      // it's essential) and Competitors view (where it shows the imported
+      // team affiliation pre-team-generation).
+      title: t('tables.participants.teamAffiliation'),
+      field: 'teamAffiliation',
+      visible: teamAffiliationPresent,
+      headerSort: true,
+      headerFilter: 'input',
+      minWidth: 140,
     },
     {
       editor: idEditor({ field: 'tennisId' }),

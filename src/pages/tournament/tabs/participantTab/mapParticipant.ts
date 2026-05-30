@@ -12,10 +12,19 @@ const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
 
 export const mapParticipant = (participant: any, derivedEventInfo: any): any => {
-  const { participantId, participantName, participantType, person } = participant;
+  const { participantId, participantName, participantType, participantRole, person } = participant;
   const { standardFamilyName, standardGivenName } = person || {};
   const address = participant.person?.addresses?.[0];
   const cityState = address?.city && address?.state ? `${address.city}, ${address.state}` : undefined;
+
+  // Team affiliation + jersey number live on the first entry of
+  // `biographicalInformation.teamAttributes[]` — the field the import wizard
+  // populates for every imported person regardless of role. Surfaced here so
+  // the Competitors view can show a jersey-# column and the Staff view can
+  // show a Team-affiliation column.
+  const teamAttribute = participant.person?.biographicalInformation?.teamAttributes?.[0];
+  const jerseyNumber = teamAttribute?.jerseyNumber;
+  const teamAffiliation = teamAttribute?.teamName;
 
   const ratings: Record<string, any> = {};
   for (const item of participant.ratings?.[SINGLES] || []) {
@@ -49,6 +58,9 @@ export const mapParticipant = (participant: any, derivedEventInfo: any): any => 
     teams: participant.teams,
     participantName,
     participantType,
+    participantRole,
+    teamAffiliation,
+    jerseyNumber,
     participantId,
     participant,
     cityState,
