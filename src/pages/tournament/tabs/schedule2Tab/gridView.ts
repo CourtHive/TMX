@@ -436,7 +436,9 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
 
   const unschedTab = document.createElement('button');
+  unschedTab.dataset.sidebarTab = 'unscheduled';
   const schedTab = document.createElement('button');
+  schedTab.dataset.sidebarTab = 'scheduled';
   const tabStyle = (active: boolean) =>
     [
       FONT_SIZE_11,
@@ -479,6 +481,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // group-by select, body with grouped cards) so the two panels read as
   // sibling surfaces rather than two different designs.
   const scheduledPanel = document.createElement('div');
+  scheduledPanel.dataset.sidebarPanel = 'scheduled';
   scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; flex-direction: column;';
 
   let scheduledSearchQuery = readScheduledSearch();
