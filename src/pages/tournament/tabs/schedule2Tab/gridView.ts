@@ -118,84 +118,21 @@ let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
 let catalogStateUnsubscribe: (() => void) | null = null;
-// Persisted across grid-view rebuilds (e.g. on date change) so switching
-// dates doesn't snap the user back to the Unscheduled tab.
-const SIDEBAR_TAB_KEY = 'schedule2:sidebar-tab';
-type SidebarTab = 'unscheduled' | 'scheduled';
-function readSidebarTab(): SidebarTab {
-  try {
-    return localStorage.getItem(SIDEBAR_TAB_KEY) === 'scheduled' ? 'scheduled' : 'unscheduled';
-  } catch {
-    return 'unscheduled';
-  }
-}
-function writeSidebarTab(tab: SidebarTab): void {
-  try {
-    localStorage.setItem(SIDEBAR_TAB_KEY, tab);
-  } catch {
-    // storage unavailable
-  }
-}
-
-// Search query for the Scheduled panel persists across tab swaps + page
-// reloads via localStorage, mirroring how the Unscheduled catalog's
-// `catalogSearchQuery` is captured into `context.scheduleCatalogState`. The
-// query applies the same `matchUpSearchKey` substring match the
-// courthive-components catalog uses on its Unscheduled side, so the two
-// panels behave consistently from the user's perspective.
-const SCHEDULED_SEARCH_KEY = 'schedule2:scheduled-search';
-function readScheduledSearch(): string {
-  try {
-    return localStorage.getItem(SCHEDULED_SEARCH_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-function writeScheduledSearch(value: string): void {
-  try {
-    if (value) localStorage.setItem(SCHEDULED_SEARCH_KEY, value);
-    else localStorage.removeItem(SCHEDULED_SEARCH_KEY);
-  } catch {
-    // storage unavailable
-  }
-}
-
-const SCHEDULED_GROUPBY_KEY = 'schedule2:scheduled-groupby';
-const VALID_GROUPBY: MatchUpCatalogGroupBy[] = ['event', 'draw', 'round', 'structure'];
-function readScheduledGroupBy(): MatchUpCatalogGroupBy {
-  try {
-    const v = localStorage.getItem(SCHEDULED_GROUPBY_KEY);
-    return VALID_GROUPBY.includes(v as MatchUpCatalogGroupBy) ? (v as MatchUpCatalogGroupBy) : 'event';
-  } catch {
-    return 'event';
-  }
-}
-function writeScheduledGroupBy(value: MatchUpCatalogGroupBy): void {
-  try {
-    localStorage.setItem(SCHEDULED_GROUPBY_KEY, value);
-  } catch {
-    // storage unavailable
-  }
-}
-
-const SCHEDULED_FILTERS_KEY = 'schedule2:scheduled-filters';
-function readScheduledFilters(): CatalogFilters {
-  try {
-    const raw = localStorage.getItem(SCHEDULED_FILTERS_KEY);
-    return raw ? (JSON.parse(raw) as CatalogFilters) : {};
-  } catch {
-    return {};
-  }
-}
-function writeScheduledFilters(value: CatalogFilters): void {
-  try {
-    const isEmpty = !value.eventType && !value.eventName && !value.drawName && !value.gender && !value.roundName;
-    if (isEmpty) localStorage.removeItem(SCHEDULED_FILTERS_KEY);
-    else localStorage.setItem(SCHEDULED_FILTERS_KEY, JSON.stringify(value));
-  } catch {
-    // storage unavailable
-  }
-}
+// Persisted view state (sidebar tab + scheduled-panel search / groupBy /
+// filters) lives in `gridViewStorage.ts` — extracted so the localStorage
+// round-trips + default / malformed paths can be unit-tested without
+// spinning up this entire module.
+import {
+  readSidebarTab,
+  writeSidebarTab,
+  readScheduledSearch,
+  writeScheduledSearch,
+  readScheduledGroupBy,
+  writeScheduledGroupBy,
+  readScheduledFilters,
+  writeScheduledFilters,
+  type SidebarTab,
+} from './gridViewStorage';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
  *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
