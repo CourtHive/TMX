@@ -41,7 +41,8 @@ import {
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
   matchUpLabel,
-  matchUpSearchKey,
+  filterMatchUpCatalog,
+  groupMatchUpCatalog,
   isCompletedStatus,
   buildActiveStripPanel,
   buildMatchUpCard,
@@ -51,6 +52,8 @@ import type {
   SchedulePageConfig,
   SchedulePageControl,
   CatalogMatchUpItem,
+  CatalogFilters,
+  MatchUpCatalogGroupBy,
   ScheduleDate,
   ScheduleIssue,
   ScheduleIssueSeverity,
@@ -77,6 +80,12 @@ const { BYE } = matchUpStatusConstants;
  * from the same value.
  */
 export const DEFAULT_MIN_COURT_GRID_ROWS = 10;
+
+// Class applied to a filter <select> and its preceding label inside the
+// scheduled-panel filter popover when the select carries a non-empty value.
+// Mirrors `FILTERING_CLASS` inside the unscheduled `matchUpCatalog` widget
+// so the visual highlight is consistent across the two panels.
+const FILTER_HIGHLIGHT_CLASS = 'is-filtering';
 
 const DATA_COURT_ID = 'data-court-id';
 const DATA_VENUE_ID = 'data-venue-id';
@@ -148,6 +157,57 @@ function writeScheduledSearch(value: string): void {
   } catch {
     // storage unavailable
   }
+}
+
+const SCHEDULED_GROUPBY_KEY = 'schedule2:scheduled-groupby';
+const VALID_GROUPBY: MatchUpCatalogGroupBy[] = ['event', 'draw', 'round', 'structure'];
+function readScheduledGroupBy(): MatchUpCatalogGroupBy {
+  try {
+    const v = localStorage.getItem(SCHEDULED_GROUPBY_KEY);
+    return VALID_GROUPBY.includes(v as MatchUpCatalogGroupBy) ? (v as MatchUpCatalogGroupBy) : 'event';
+  } catch {
+    return 'event';
+  }
+}
+function writeScheduledGroupBy(value: MatchUpCatalogGroupBy): void {
+  try {
+    localStorage.setItem(SCHEDULED_GROUPBY_KEY, value);
+  } catch {
+    // storage unavailable
+  }
+}
+
+const SCHEDULED_FILTERS_KEY = 'schedule2:scheduled-filters';
+function readScheduledFilters(): CatalogFilters {
+  try {
+    const raw = localStorage.getItem(SCHEDULED_FILTERS_KEY);
+    return raw ? (JSON.parse(raw) as CatalogFilters) : {};
+  } catch {
+    return {};
+  }
+}
+function writeScheduledFilters(value: CatalogFilters): void {
+  try {
+    const isEmpty = !value.eventType && !value.eventName && !value.drawName && !value.gender && !value.roundName;
+    if (isEmpty) localStorage.removeItem(SCHEDULED_FILTERS_KEY);
+    else localStorage.setItem(SCHEDULED_FILTERS_KEY, JSON.stringify(value));
+  } catch {
+    // storage unavailable
+  }
+}
+
+/** Distinct, sorted, locale-aware values of an accessor across catalog items.
+ *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
+function uniqueCatalogValues(
+  items: CatalogMatchUpItem[],
+  fn: (item: CatalogMatchUpItem) => string | undefined,
+): string[] {
+  const set = new Set<string>();
+  for (const item of items) {
+    const v = fn(item);
+    if (v) set.add(v);
+  }
+  return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 // Latest schedule snapshot used by the strip — also consulted by the strip's
 // click handler so popovers open against the same row data the cell renders.
@@ -476,17 +536,22 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   controlBar.appendChild(unschedTab);
   controlBar.appendChild(schedTab);
 
-  // Scheduled matchUp list container — vertical stack of a search bar on top
-  // and a scrollable cards list below.
+  // Scheduled matchUp list container — vertical stack of a toolbar (search +
+  // group-by + filter) on top and a scrollable groups/cards list below. The
+  // widget set mirrors the unscheduled catalog so the two panels feel
+  // interchangeable to operators.
   const scheduledPanel = document.createElement('div');
   scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; flex-direction: column;';
 
-  // Search toolbar (mirror of the unscheduled catalog's search field). Sits at
-  // the top of the panel so the cards list scrolls underneath it.
-  const scheduledSearchBar = document.createElement('div');
-  scheduledSearchBar.style.cssText = 'padding: 8px; flex-shrink: 0;';
-
   let scheduledSearchQuery = readScheduledSearch();
+  let scheduledGroupBy: MatchUpCatalogGroupBy = readScheduledGroupBy();
+  let scheduledFilters: CatalogFilters = readScheduledFilters();
+  let scheduledFilterTip: Instance | undefined;
+  const scheduledCollapsedGroups = new Set<string>();
+
+  // Toolbar — search + group-by + filter button on a single row.
+  const scheduledToolbar = document.createElement('div');
+  scheduledToolbar.className = 'sp-catalog-toolbar';
 
   const scheduledSearchInput = document.createElement('input');
   scheduledSearchInput.type = 'text';
@@ -507,13 +572,177 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     updateScheduledPanel();
   });
 
-  scheduledSearchBar.appendChild(scheduledSearchWrap);
-  scheduledPanel.appendChild(scheduledSearchBar);
+  const scheduledGroupSelect = document.createElement('select');
+  scheduledGroupSelect.className = 'sp-select';
+  for (const [val, label] of [
+    ['event', t('schedule.groupBy.event')],
+    ['draw', t('schedule.groupBy.draw')],
+    ['round', t('schedule.groupBy.round')],
+    ['structure', t('schedule.groupBy.structure')],
+  ] as const) {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    if (val === scheduledGroupBy) opt.selected = true;
+    scheduledGroupSelect.appendChild(opt);
+  }
+  scheduledGroupSelect.addEventListener('change', () => {
+    scheduledGroupBy = scheduledGroupSelect.value as MatchUpCatalogGroupBy;
+    writeScheduledGroupBy(scheduledGroupBy);
+    // Group identity changes when the grouping mode changes; clear the
+    // collapsed-groups set so the new grouping doesn't start half-collapsed
+    // based on stale keys from the previous mode.
+    scheduledCollapsedGroups.clear();
+    updateScheduledPanel();
+  });
+
+  const scheduledFilterBtn = document.createElement('button');
+  scheduledFilterBtn.className = 'spl-catalog-filter-btn';
+  scheduledFilterBtn.title = t('schedule.filterMatchUps');
+  scheduledFilterBtn.innerHTML =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>';
+
+  scheduledToolbar.appendChild(scheduledSearchWrap);
+  scheduledToolbar.appendChild(scheduledGroupSelect);
+  scheduledToolbar.appendChild(scheduledFilterBtn);
+  scheduledPanel.appendChild(scheduledToolbar);
 
   // Cards container — re-populated each `updateScheduledPanel` call.
   const scheduledCardsContainer = document.createElement('div');
-  scheduledCardsContainer.style.cssText = 'flex: 1; min-height: 0; overflow: auto; padding: 0 8px 8px 8px;';
+  scheduledCardsContainer.className = 'sp-catalog';
+  scheduledCardsContainer.style.cssText = 'flex: 1; min-height: 0;';
   scheduledPanel.appendChild(scheduledCardsContainer);
+
+  function isAnyScheduledFilterActive(): boolean {
+    return !!(
+      scheduledFilters.eventType ||
+      scheduledFilters.eventName ||
+      scheduledFilters.drawName ||
+      scheduledFilters.gender ||
+      scheduledFilters.roundName
+    );
+  }
+
+  function updateScheduledFilterBadge(): void {
+    scheduledFilterBtn.classList.toggle('active', isAnyScheduledFilterActive());
+  }
+  updateScheduledFilterBadge();
+
+  function destroyScheduledFilterTip(): void {
+    if (scheduledFilterTip) {
+      scheduledFilterTip.destroy();
+      scheduledFilterTip = undefined;
+    }
+  }
+
+  function buildScheduledFilterPopover(): HTMLElement {
+    // Build option lists from the unfiltered catalog source for the current
+    // date so the popover always offers every available value — filtering
+    // by one dimension shouldn't shrink the choices on the others.
+    const items = getScheduledNotPlacedOnCourt().map((m) => scheduledMatchUpToCatalogItem(m));
+
+    const container = document.createElement('div');
+    container.className = 'spl-filter-popover';
+
+    const popoverHeader = document.createElement('div');
+    popoverHeader.className = 'spl-filter-header';
+
+    const clearAll = document.createElement('button');
+    clearAll.className = 'spl-filter-clear-btn';
+    clearAll.textContent = t('schedule.filterClearAll');
+    clearAll.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      scheduledFilters = {};
+      writeScheduledFilters(scheduledFilters);
+      updateScheduledFilterBadge();
+      for (const sel of container.querySelectorAll<HTMLSelectElement>('select')) {
+        sel.value = '';
+        sel.classList.remove(FILTER_HIGHLIGHT_CLASS);
+        const lbl = sel.previousElementSibling;
+        if (lbl?.classList.contains('spl-filter-label')) lbl.classList.remove(FILTER_HIGHLIGHT_CLASS);
+      }
+      updateScheduledPanel();
+    });
+    popoverHeader.appendChild(clearAll);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'spl-filter-close-btn';
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      destroyScheduledFilterTip();
+    });
+    popoverHeader.appendChild(closeBtn);
+
+    container.appendChild(popoverHeader);
+
+    const sections: Array<{ labelKey: string; key: keyof CatalogFilters; values: string[] }> = [
+      { labelKey: 'schedule.filterAllEventTypes', key: 'eventType', values: uniqueCatalogValues(items, (m) => m.matchUpType) },
+      { labelKey: 'schedule.filterAllEvents', key: 'eventName', values: uniqueCatalogValues(items, (m) => m.eventName) },
+      { labelKey: 'schedule.filterAllFlights', key: 'drawName', values: uniqueCatalogValues(items, (m) => m.drawName) },
+      { labelKey: 'schedule.filterAllGenders', key: 'gender', values: uniqueCatalogValues(items, (m) => m.gender) },
+      { labelKey: 'schedule.filterAllRounds', key: 'roundName', values: uniqueCatalogValues(items, (m) => m.roundName) },
+    ];
+
+    for (const section of sections) {
+      if (section.values.length < 2) continue;
+
+      const label = document.createElement('label');
+      label.className = 'spl-filter-label';
+      label.textContent = t(section.labelKey);
+      container.appendChild(label);
+
+      const select = document.createElement('select');
+      select.className = 'spl-filter-select';
+
+      const allOpt = document.createElement('option');
+      allOpt.value = '';
+      allOpt.textContent = t(section.labelKey);
+      select.appendChild(allOpt);
+
+      for (const val of section.values) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        select.appendChild(opt);
+      }
+
+      select.value = scheduledFilters[section.key] ?? '';
+
+      const syncHighlight = () => {
+        const filtering = select.value !== '';
+        select.classList.toggle(FILTER_HIGHLIGHT_CLASS, filtering);
+        label.classList.toggle(FILTER_HIGHLIGHT_CLASS, filtering);
+      };
+      syncHighlight();
+
+      select.addEventListener('change', () => {
+        scheduledFilters = { ...scheduledFilters, [section.key]: select.value || undefined };
+        writeScheduledFilters(scheduledFilters);
+        updateScheduledFilterBadge();
+        syncHighlight();
+        updateScheduledPanel();
+      });
+
+      container.appendChild(select);
+    }
+
+    return container;
+  }
+
+  scheduledFilterBtn.addEventListener('click', () => {
+    destroyScheduledFilterTip();
+    scheduledFilterTip = tippy(scheduledFilterBtn, {
+      content: buildScheduledFilterPopover(),
+      placement: 'bottom-start',
+      interactive: true,
+      trigger: 'manual',
+      appendTo: () => scheduledPanel,
+      onClickOutside: () => destroyScheduledFilterTip(),
+      theme: '',
+    });
+    scheduledFilterTip.show();
+  });
 
   // The component's existing catalog content (everything after the control bar)
   const catalogContent = Array.from(sidebar.children);
@@ -562,13 +791,14 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   function updateScheduledPanel(): void {
     scheduledCardsContainer.innerHTML = '';
     const scheduled = getScheduledNotPlacedOnCourt();
+    const items = scheduled.map((m) => scheduledMatchUpToCatalogItem(m));
 
-    // Filter by search query — matches event name / draw name / round name /
-    // participant names via the same `matchUpSearchKey` the unscheduled
-    // catalog uses, so the two panels behave the same way under search.
-    const q = scheduledSearchQuery.trim().toLowerCase();
-    const items = scheduled.map((m) => ({ m, item: scheduledMatchUpToCatalogItem(m) }));
-    const filtered = q ? items.filter(({ item }) => matchUpSearchKey(item).includes(q)) : items;
+    // Same filter + group pipeline the unscheduled catalog runs. `behavior:
+    // 'hide'` would normally drop items where `isScheduled === true`, but
+    // `scheduledMatchUpToCatalogItem` already forces `isScheduled: false`
+    // (so the card stays draggable), so behavior is a no-op here — explicit
+    // 'dim' avoids the hide branch entirely.
+    const filtered = filterMatchUpCatalog(items, scheduledSearchQuery, 'dim', scheduledFilters);
 
     if (!scheduled.length) {
       const hint = document.createElement('div');
@@ -588,14 +818,50 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       return;
     }
 
-    for (const { item } of filtered) {
-      // isScheduled is forced to false so buildMatchUpCard attaches its dragstart
-      // listener — these sidebar cards must be promotable onto a court. The
-      // prominent time header (via the option) is what visually marks them as
-      // already having a scheduledTime.
-      const card = buildMatchUpCard(item, {}, { prominentTime: true });
-      if (!item.scheduledTime) card.classList.add('no-time');
-      scheduledCardsContainer.appendChild(card);
+    const groups = groupMatchUpCatalog(filtered, scheduledGroupBy);
+
+    for (const [gk, groupItems] of groups) {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'sp-group';
+
+      const isCollapsed = scheduledCollapsedGroups.has(gk);
+
+      const gh = document.createElement('div');
+      gh.className = 'sp-group-header';
+
+      const chevron = document.createElement('span');
+      chevron.className = 'sp-group-chevron';
+      chevron.textContent = isCollapsed ? '▶' : '▼';
+
+      const ghLabel = document.createElement('span');
+      ghLabel.textContent = `${gk} (${groupItems.length})`;
+
+      gh.appendChild(chevron);
+      gh.appendChild(ghLabel);
+
+      gh.addEventListener('click', () => {
+        if (scheduledCollapsedGroups.has(gk)) scheduledCollapsedGroups.delete(gk);
+        else scheduledCollapsedGroups.add(gk);
+        updateScheduledPanel();
+      });
+
+      const gb = document.createElement('div');
+      gb.className = 'sp-group-body';
+      if (isCollapsed) gb.style.display = 'none';
+
+      for (const item of groupItems) {
+        // isScheduled is forced to false so buildMatchUpCard attaches its
+        // dragstart listener — these sidebar cards must be promotable onto a
+        // court. The prominent time header (via the option) is what visually
+        // marks them as already having a scheduledTime.
+        const card = buildMatchUpCard(item, {}, { prominentTime: true });
+        if (!item.scheduledTime) card.classList.add('no-time');
+        gb.appendChild(card);
+      }
+
+      groupEl.appendChild(gh);
+      groupEl.appendChild(gb);
+      scheduledCardsContainer.appendChild(groupEl);
     }
   }
 
