@@ -144,6 +144,132 @@ export const PROFILE_WITH_VENUES: MockProfile = {
   venueProfiles: [{ courtsCount: 8, venueName: 'Center Court Complex' }],
 };
 
+/**
+ * Seed a TEAM tournament AND attach non-COMPETITOR participants (coach /
+ * medical / physio / captain …) to each team in a single page.evaluate.
+ *
+ * Why a dedicated helper: `mocksEngine` only emits COMPETITORs when it
+ * assembles a TEAM event — `buildTeamParticipants` filters by
+ * `participantRole === COMPETITOR` by design. Coaches and staff have to be
+ * added in a second step that:
+ *
+ *   1. creates INDIVIDUAL participants with the staff role + a
+ *      `person.biographicalInformation.teamAttributes[0].teamName` that
+ *      matches the team's `participantName`
+ *   2. persists the mutated record to IDB (single .put() so we don't race
+ *      the seed helper's fire-and-forget `dev.load` write — same gotcha
+ *      seedAndScheduleFirstMatchUp dodges in Journey 29)
+ *
+ * `splitMembership` (the function teamProfileModal consumes) re-routes
+ * these extras into the Coaches / Staff buckets by walking
+ * `q.participants()` and matching `teamAttributes[0].teamName`.
+ *
+ * Returns: tournamentId, the two seeded team names, and the team participant
+ * ids so the journey can target a specific team in assertions.
+ */
+export interface StaffMember {
+  /** Factory `participantRole` constant — COACH / MEDICAL / PHYSIO /
+   *  TRAINER / CAPTAIN / …. Goes straight through to `splitMembership`'s
+   *  bucket-routing. */
+  role: string;
+  /** participantName for the added INDIVIDUAL participant. */
+  name: string;
+  /** The team this staff member belongs to. MUST match a team's
+   *  `participantName` exactly — `splitMembership` matches via
+   *  `teamAttributes[0].teamName === team.participantName`. */
+  teamName: string;
+}
+
+export async function seedTeamTournamentWithStaff(
+  page: Page,
+  opts: {
+    teamNames?: [string, string];
+    playersPerTeam?: number;
+    staff: StaffMember[];
+  },
+): Promise<{ tournamentId: string; teamNames: [string, string]; teamIds: Record<string, string> }> {
+  const teamNames = opts.teamNames ?? ['The Authentics', 'Cauldron'];
+  const playersPerTeam = opts.playersPerTeam ?? 6;
+
+  return page.evaluate(
+    async ({ teamNames, playersPerTeam, staff }) => {
+      try {
+        await dev.tmx2db.initDB();
+
+        const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          setState: true,
+          tournamentName: 'E2E Team Profile',
+          tournamentAttributes: { tournamentId: 'e2e-team-profile' },
+          participantsProfile: { participantsCount: 0 },
+          drawProfiles: [
+            {
+              eventType: 'TEAM',
+              drawType: 'SINGLE_ELIMINATION',
+              drawSize: 2,
+              teamNames,
+              teamGenders: {
+                MALE: Math.ceil(playersPerTeam / 2),
+                FEMALE: Math.floor(playersPerTeam / 2),
+              },
+              tieFormat: {
+                tieFormatName: 'INTENNSE',
+                winCriteria: { aggregateValue: true },
+                collectionDefinitions: [
+                  {
+                    collectionId: 'cd-ms',
+                    collectionName: "Men's Singles",
+                    matchUpType: 'SINGLES',
+                    matchUpCount: 1,
+                    scoreValue: 1,
+                    gender: 'MALE',
+                  },
+                ],
+              },
+            },
+          ],
+        });
+
+        const teamIds: Record<string, string> = {};
+        const teams = (tournamentRecord.participants ?? []).filter((p: any) => p.participantType === 'TEAM');
+        for (const team of teams) {
+          if (team.participantName) teamIds[team.participantName] = team.participantId;
+        }
+
+        if (staff.length) {
+          const staffParticipants = staff.map((m) => ({
+            participantId: `staff-${m.teamName.toLowerCase().replace(/\W+/g, '-')}-${m.role.toLowerCase()}-${m.name.toLowerCase().replace(/\W+/g, '-')}`,
+            participantName: m.name,
+            participantType: 'INDIVIDUAL',
+            participantRole: m.role,
+            person: {
+              standardGivenName: m.name.split(' ')[0],
+              standardFamilyName: m.name.split(' ').slice(1).join(' ') || 'Staff',
+              biographicalInformation: {
+                teamAttributes: [{ teamName: m.teamName }],
+              },
+            },
+          }));
+          dev.factory.tournamentEngine.addParticipants({ participants: staffParticipants });
+        }
+
+        const mutated = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+        await dev.tmx2db.addTournament(mutated);
+
+        return {
+          tournamentId: tournamentRecord.tournamentId as string,
+          teamNames: teamNames as [string, string],
+          teamIds,
+        };
+      } catch (err: any) {
+        throw new Error(
+          `${err?.name || 'Error'}: ${err?.message || String(err)} | inner: ${err?.inner?.message || err?.cause?.message || ''} | stack: ${err?.stack?.split('\n').slice(0, 3).join(' || ')}`,
+        );
+      }
+    },
+    { teamNames, playersPerTeam, staff: opts.staff },
+  );
+}
+
 /** Round robin tournament for tally/standings testing */
 export const PROFILE_ROUND_ROBIN: MockProfile = {
   tournamentName: 'E2E Round Robin',

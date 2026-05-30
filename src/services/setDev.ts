@@ -4,6 +4,7 @@
  */
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
+import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
@@ -140,6 +141,10 @@ export function setDev(): void {
       }
       return mutationRequest(params);
     },
+  });
+
+  addDev({
+    openTeamProfile: (participantId: string) => teamProfileModal({ participantId }),
   });
 
   addDev({ completeMatchUps, forceStalenessOverlay });
