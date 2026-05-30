@@ -816,6 +816,8 @@
     "maintenance": "Maintenance",
     "unscheduled": "Unscheduled",
     "noScheduledMatchUps": "No scheduled matchUps",
+    "noScheduledMatchUpsMatch": "No scheduled matchUps match the search",
+    "searchScheduledMatchUps": "Search scheduled matchUps...",
     "noTimeSet": "No time set",
     "showAll": "Show all",
     "hideEmpty": "Hide empty",

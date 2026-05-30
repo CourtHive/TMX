@@ -41,9 +41,11 @@ import {
   mapMatchUpToCellData,
   DEFAULT_SCHEDULE_CELL_CONFIG,
   matchUpLabel,
+  matchUpSearchKey,
   isCompletedStatus,
   buildActiveStripPanel,
   buildMatchUpCard,
+  wrapSearchWithClear,
 } from 'courthive-components';
 import type {
   SchedulePageConfig,
@@ -120,6 +122,29 @@ function readSidebarTab(): SidebarTab {
 function writeSidebarTab(tab: SidebarTab): void {
   try {
     localStorage.setItem(SIDEBAR_TAB_KEY, tab);
+  } catch {
+    // storage unavailable
+  }
+}
+
+// Search query for the Scheduled panel persists across tab swaps + page
+// reloads via localStorage, mirroring how the Unscheduled catalog's
+// `catalogSearchQuery` is captured into `context.scheduleCatalogState`. The
+// query applies the same `matchUpSearchKey` substring match the
+// courthive-components catalog uses on its Unscheduled side, so the two
+// panels behave consistently from the user's perspective.
+const SCHEDULED_SEARCH_KEY = 'schedule2:scheduled-search';
+function readScheduledSearch(): string {
+  try {
+    return localStorage.getItem(SCHEDULED_SEARCH_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+function writeScheduledSearch(value: string): void {
+  try {
+    if (value) localStorage.setItem(SCHEDULED_SEARCH_KEY, value);
+    else localStorage.removeItem(SCHEDULED_SEARCH_KEY);
   } catch {
     // storage unavailable
   }
@@ -442,9 +467,44 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   controlBar.appendChild(unschedTab);
   controlBar.appendChild(schedTab);
 
-  // Scheduled matchUp list container
+  // Scheduled matchUp list container — vertical stack of a search bar on top
+  // and a scrollable cards list below.
   const scheduledPanel = document.createElement('div');
-  scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; overflow: auto; padding: 8px;';
+  scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; flex-direction: column;';
+
+  // Search toolbar (mirror of the unscheduled catalog's search field). Sits at
+  // the top of the panel so the cards list scrolls underneath it.
+  const scheduledSearchBar = document.createElement('div');
+  scheduledSearchBar.style.cssText = 'padding: 8px; flex-shrink: 0;';
+
+  let scheduledSearchQuery = readScheduledSearch();
+
+  const scheduledSearchInput = document.createElement('input');
+  scheduledSearchInput.type = 'text';
+  scheduledSearchInput.className = 'sp-input';
+  scheduledSearchInput.placeholder = t('schedule.searchScheduledMatchUps');
+  scheduledSearchInput.value = scheduledSearchQuery;
+  scheduledSearchInput.addEventListener('input', () => {
+    scheduledSearchQuery = scheduledSearchInput.value;
+    writeScheduledSearch(scheduledSearchQuery);
+    updateScheduledPanel();
+  });
+
+  const scheduledSearchWrap = wrapSearchWithClear(scheduledSearchInput, () => {
+    scheduledSearchInput.value = '';
+    scheduledSearchQuery = '';
+    writeScheduledSearch('');
+    scheduledSearchInput.focus();
+    updateScheduledPanel();
+  });
+
+  scheduledSearchBar.appendChild(scheduledSearchWrap);
+  scheduledPanel.appendChild(scheduledSearchBar);
+
+  // Cards container — re-populated each `updateScheduledPanel` call.
+  const scheduledCardsContainer = document.createElement('div');
+  scheduledCardsContainer.style.cssText = 'flex: 1; min-height: 0; overflow: auto; padding: 0 8px 8px 8px;';
+  scheduledPanel.appendChild(scheduledCardsContainer);
 
   // The component's existing catalog content (everything after the control bar)
   const catalogContent = Array.from(sidebar.children);
@@ -484,27 +544,42 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   }
 
   function updateScheduledPanel(): void {
-    scheduledPanel.innerHTML = '';
+    scheduledCardsContainer.innerHTML = '';
     const scheduled = getScheduledNotPlacedOnCourt();
+
+    // Filter by search query — matches event name / draw name / round name /
+    // participant names via the same `matchUpSearchKey` the unscheduled
+    // catalog uses, so the two panels behave the same way under search.
+    const q = scheduledSearchQuery.trim().toLowerCase();
+    const items = scheduled.map((m) => ({ m, item: scheduledMatchUpToCatalogItem(m) }));
+    const filtered = q ? items.filter(({ item }) => matchUpSearchKey(item).includes(q)) : items;
 
     if (!scheduled.length) {
       const hint = document.createElement('div');
       hint.style.cssText =
         'font-size: 0.6875rem; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
       hint.textContent = t('schedule.noScheduledMatchUps');
-      scheduledPanel.appendChild(hint);
+      scheduledCardsContainer.appendChild(hint);
       return;
     }
 
-    for (const m of scheduled) {
+    if (!filtered.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText =
+        'font-size: 0.6875rem; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
+      hint.textContent = t('schedule.noScheduledMatchUpsMatch');
+      scheduledCardsContainer.appendChild(hint);
+      return;
+    }
+
+    for (const { item } of filtered) {
       // isScheduled is forced to false so buildMatchUpCard attaches its dragstart
       // listener — these sidebar cards must be promotable onto a court. The
       // prominent time header (via the option) is what visually marks them as
       // already having a scheduledTime.
-      const item = scheduledMatchUpToCatalogItem(m);
       const card = buildMatchUpCard(item, {}, { prominentTime: true });
       if (!item.scheduledTime) card.classList.add('no-time');
-      scheduledPanel.appendChild(card);
+      scheduledCardsContainer.appendChild(card);
     }
   }
 
@@ -519,7 +594,10 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       for (const el of catalogContent) (el as HTMLElement).style.display = '';
     } else {
       for (const el of catalogContent) (el as HTMLElement).style.display = 'none';
-      scheduledPanel.style.display = '';
+      // Explicit `flex` rather than `''` so the panel's flex-direction:column
+      // takes effect (default `block` would stack the search bar above the
+      // cards container without honoring the flex layout).
+      scheduledPanel.style.display = 'flex';
       updateScheduledPanel();
     }
   }
