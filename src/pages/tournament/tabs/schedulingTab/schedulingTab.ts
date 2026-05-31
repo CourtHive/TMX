@@ -296,11 +296,19 @@ function renderAvailabilityMode(container: HTMLElement): void {
   // immediate mode it dispatches via mutationRequest (today's behavior); in
   // bulk mode it queues alongside Profile/Grid pending methods and lights up
   // the workspace's sticky save/discard bar.
-  availabilityInstance = renderAvailabilityGrid(gridHost, {
+  //
+  // The painter's own toolbar Save button only renders when an onSave config
+  // callback is provided — without it the user has no commit affordance and
+  // any painted block evaporates on mode switch. The callback delegates back
+  // to instance.save(), which calls saveGridState → onMutationMethods (above).
+  let instance: AvailabilityGridInstance | null = null;
+  instance = renderAvailabilityGrid(gridHost, {
     onMutationMethods: (methods) => {
       executeMethods({ mode: 'availability', methods });
     },
+    onSave: () => instance?.save(),
   });
+  availabilityInstance = instance;
 
   // Availability is mostly configuration; live data refresh isn't required.
   context.refreshActiveTable = undefined;
