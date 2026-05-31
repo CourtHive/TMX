@@ -18,9 +18,52 @@ import { env } from 'settings/env';
 import { decideActiveScaleSwitch } from './decideActiveScaleSwitch';
 import { markRatingPromptDismissed, wasRatingPromptDismissed } from './ratingPromptStorage';
 
+interface ModalButton {
+  label: string;
+  intent: string;
+  close: boolean;
+  onClick: () => void;
+}
+
 function applyScale(toScale: string): void {
   setActiveScale(toScale);
   persistConfigToStorage();
+}
+
+function chip(label: string, variant: 'available' | 'inactive'): string {
+  const base = 'font-size: 1em; font-weight: 600; padding: 5px 12px; border-radius: 6px;';
+  const themed =
+    variant === 'available'
+      ? 'background: var(--tmx-panel-blue-bg, #e7f1fa); color: var(--tmx-panel-blue-text, #2c5d8a);'
+      : 'background: var(--tmx-bg-secondary, #f4f4f5); color: var(--tmx-text-primary, inherit); opacity: 0.75;';
+  return `<span style="${base} ${themed}">${label}</span>`;
+}
+
+function renderPromptContent(available: string[], current: string): string {
+  const availableChips = available.map((s) => chip(s.toUpperCase(), 'available')).join('');
+  const sectionLabel =
+    'font-size: 0.72em; font-weight: 600; letter-spacing: 0.6px; ' +
+    'text-transform: uppercase; color: var(--tmx-text-secondary, #666); margin-bottom: 6px;';
+  return `
+    <div style="font-size: 0.92em; padding: 4px 2px;">
+      <div style="margin-bottom: 16px;">
+        <div style="${sectionLabel}">This tournament uses</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">${availableChips}</div>
+      </div>
+      <div>
+        <div style="${sectionLabel}">Your active rating</div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          ${chip(current.toUpperCase(), 'inactive')}
+          <span style="font-size: 0.82em; color: var(--tmx-panel-amber-text, #946200);">not in this tournament</span>
+        </div>
+      </div>
+      <div style="
+        margin-top: 16px; padding-top: 10px;
+        border-top: 1px solid var(--tmx-border-secondary, #eee);
+        font-size: 0.78em; color: var(--tmx-text-secondary, #666);
+      ">We'll only ask once for this tournament.</div>
+    </div>
+  `;
 }
 
 export function runActiveScaleAutoSwitch(): void {
@@ -50,38 +93,28 @@ export function runActiveScaleAutoSwitch(): void {
   }
 
   // action === 'prompt'
-  const buttons = decision.availableScales
-    .map((scale) => ({
-      label: `Use ${scale.toUpperCase()}`,
-      intent: 'is-info',
-      close: true,
-      onClick: () => applyScale(scale),
-    }))
-    .concat([
-      {
-        label: `Keep ${decision.fromScale.toUpperCase()}`,
-        intent: 'is-light' as any,
+  const buttons: ModalButton[] = [
+    ...decision.availableScales.map(
+      (scale): ModalButton => ({
+        label: `Use ${scale.toUpperCase()}`,
+        intent: 'is-info',
         close: true,
-        onClick: () => {
-          // No scale change — user stays on a rating not present in this tournament.
-        },
-      } as any,
-    ]);
-
-  const presentList = decision.availableScales.map((s) => s.toUpperCase()).join(', ');
-  const content = `
-    <div style="font-size: 0.95em; line-height: 1.5;">
-      <p>This tournament's participants carry <strong>${presentList}</strong> ratings.</p>
-      <p>Your active rating is <strong>${decision.fromScale.toUpperCase()}</strong>, which isn't present here.</p>
-      <p style="margin-top: 8px; color: var(--tmx-text-secondary, #666); font-size: 0.9em;">
-        We'll only ask once for this tournament.
-      </p>
-    </div>
-  `;
+        onClick: () => applyScale(scale),
+      }),
+    ),
+    {
+      label: `Keep ${decision.fromScale.toUpperCase()}`,
+      intent: 'is-light',
+      close: true,
+      onClick: () => {
+        // No scale change — user keeps a rating not present in this tournament.
+      },
+    },
+  ];
 
   openModal({
     title: 'Switch active rating?',
-    content,
+    content: renderPromptContent(decision.availableScales, decision.fromScale),
     buttons,
     onClose: () => {
       // Whether the user picked a scale or dismissed, treat it as answered.
