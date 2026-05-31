@@ -22,6 +22,7 @@
 import { competitionEngine } from 'services/factory/engine';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { context } from 'services/context';
+import { t } from 'i18n';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { buildSchedulingHeader } from './schedulingHeader';
 import { buildGridHeaderActions } from '../schedule2Tab/gridHeaderActions';
@@ -307,8 +308,20 @@ function renderAvailabilityMode(container: HTMLElement): void {
   // to instance.save(), which calls saveGridState → onMutationMethods (above).
   let instance: AvailabilityGridInstance | null = null;
   instance = renderAvailabilityGrid(gridHost, {
-    onMutationMethods: (methods) => {
-      executeMethods({ mode: 'availability', methods });
+    // Same i18n key venuesTab uses; the en.json value drives both surfaces
+    // so we stay one-source-of-truth for the button text.
+    labels: { saveToTournament: t('pages.venues.saveToTournament') },
+    onMutationMethods: (methods, resetOnSuccess) => {
+      executeMethods({
+        mode: 'availability',
+        methods,
+        onResult: (result) => {
+          // Only mark the painter clean when the server actually accepted
+          // the save. Failure (e.g. ERR_SCHEDULE_CONFLICT) keeps the dirty
+          // state so the user can adjust + retry without losing the paint.
+          if (result.success) resetOnSuccess();
+        },
+      });
     },
     onSave: () => instance?.save(),
     // Propagate the painter's dirty state to the workspace queue so the

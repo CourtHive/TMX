@@ -30,8 +30,16 @@ export interface RenderAvailabilityGridOptions {
    * decides between immediate and bulk-queued dispatch). Absent it, the
    * painter retains its standalone `/venues/availability` behavior of
    * firing `mutationRequest` synchronously with a success toast on ack.
+   *
+   * The optional second argument is a `resetOnSuccess` callback the caller
+   * invokes ONLY after the server-side commit ack succeeds. This prevents
+   * the painter from prematurely clearing its dirty state for a save that
+   * gets rolled back server-side (e.g. ERR_SCHEDULE_CONFLICT).
    */
-  onMutationMethods?: (methods: { method: string; params: any }[]) => void;
+  onMutationMethods?: (
+    methods: { method: string; params: any }[],
+    resetOnSuccess: () => void,
+  ) => void;
   /**
    * Fires when the painter's internal dirty state changes. The workspace
    * uses this hook to surface "painter has unsaved paint" in its sticky
@@ -139,7 +147,10 @@ function buildCourtAvailabilityMethod(
 
 function saveGridState(
   grid: AvailabilityGrid,
-  onMutationMethods?: (methods: { method: string; params: any }[]) => void,
+  onMutationMethods?: (
+    methods: { method: string; params: any }[],
+    resetOnSuccess: () => void,
+  ) => void,
 ): void {
   const engine = grid.getEngine();
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -178,10 +189,12 @@ function saveGridState(
   if (!methods.length) return;
 
   if (onMutationMethods) {
-    // Workspace path: hand the methods to queueService and reset dirty state
-    // immediately. Toast + actual dispatch are queue-owned.
-    onMutationMethods(methods);
-    grid.resetDirtyState();
+    // Workspace path: hand methods to queueService along with a
+    // `resetOnSuccess` callback that the caller invokes only after the
+    // server-side commit acks. Premature reset on failure would silently
+    // mark the grid clean even though nothing persisted (the bug behind
+    // the rolled-back ERR_SCHEDULE_CONFLICT case).
+    onMutationMethods(methods, () => grid.resetDirtyState());
     return;
   }
 

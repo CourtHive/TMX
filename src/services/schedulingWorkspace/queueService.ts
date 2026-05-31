@@ -74,19 +74,50 @@ export function setBulkMode(enabled: boolean): boolean {
   return bulkMode;
 }
 
+interface ExecuteResult {
+  success: boolean;
+  error?: any;
+  info?: string;
+}
+
 interface ExecuteOptions {
   mode: SchedulingMode;
   methods: any[];
   onRefresh?: () => void;
+  /**
+   * Fires when the dispatched mutation resolves (immediate mode) or after
+   * the local apply completes (bulk mode). Callers that need to gate
+   * follow-up state on success (e.g. the painter resetting its dirty flag
+   * only when the server accepted) wire this hook.
+   */
+  onResult?: (result: ExecuteResult) => void;
 }
 
-export function executeMethods({ mode, methods, onRefresh }: ExecuteOptions): void {
+/**
+ * Resolve a user-facing error message from a mutationRequest failure.
+ * Prefers server-provided `info` (which is usually the most actionable),
+ * falls back to error.message, then a generic message.
+ */
+function describeFailure(result: any): string {
+  if (result?.info) return result.info;
+  if (result?.error?.message) return result.error.message;
+  return 'Failed to save changes';
+}
+
+export function executeMethods({ mode, methods, onRefresh, onResult }: ExecuteOptions): void {
   if (!bulkMode) {
     mutationRequest({
       methods,
       engine: COMPETITION_ENGINE,
       callback: (result: any) => {
-        if (!result?.success) console.error('[scheduling] mutation error', result);
+        if (result?.success) {
+          tmxToast({ message: 'Saved', intent: 'is-success' });
+          onResult?.({ success: true });
+        } else {
+          console.error('[scheduling] mutation error', result);
+          tmxToast({ message: describeFailure(result), intent: 'is-danger' });
+          onResult?.({ success: false, error: result?.error, info: result?.info });
+        }
         onRefresh?.();
       },
     });
@@ -98,11 +129,13 @@ export function executeMethods({ mode, methods, onRefresh }: ExecuteOptions): vo
   if (result?.error) {
     console.error('[scheduling] local execution error', result);
     tmxToast({ message: 'Schedule change failed locally', intent: 'is-danger' });
+    onResult?.({ success: false, error: result.error });
     return;
   }
 
   pendingBatches.push({ mode, methods });
   onRefresh?.();
+  onResult?.({ success: true });
   notify();
 }
 
