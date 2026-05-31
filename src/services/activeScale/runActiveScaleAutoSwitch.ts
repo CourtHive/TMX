@@ -77,7 +77,7 @@ export function runActiveScaleAutoSwitch(): void {
   const decision = decideActiveScaleSwitch({
     activeScale: env.activeScale,
     availableScaleNames: available,
-    alreadyAsked: wasRatingPromptDismissed(tournamentId),
+    alreadyAsked: wasRatingPromptDismissed(tournamentId, available),
   });
 
   if (decision.action === 'no-op') return;
@@ -117,12 +117,13 @@ export function runActiveScaleAutoSwitch(): void {
     content: renderPromptContent(decision.availableScales, decision.fromScale),
     buttons,
     onClose: () => {
-      // Whether the user picked a scale or dismissed, treat it as answered.
-      markRatingPromptDismissed(tournamentId);
+      // Whether the user picked a scale or dismissed, treat it as answered
+      // for this specific available-scale set.
+      markRatingPromptDismissed(tournamentId, decision.availableScales);
     },
   });
 
   // Mark immediately too, so a rapid second loadTournament call during the
   // same session doesn't re-open the modal before the first one closes.
-  markRatingPromptDismissed(tournamentId);
+  markRatingPromptDismissed(tournamentId, decision.availableScales);
 }
