@@ -54,6 +54,7 @@ export const MODIFY_VENUE = 'modifyVenue';
 export const ADD_PRACTICE_REGISTRATION = 'addPracticeRegistration';
 export const REMOVE_PRACTICE_REGISTRATION = 'removePracticeRegistration';
 export const UPDATE_PRACTICE_REGISTRATION = 'updatePracticeRegistration';
+export const SET_PRACTICE_DEFAULT_CAPACITY = 'setPracticeDefaultCapacity';
 export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';
 export const PUBLISH_EVENT = 'publishEvent';
 export const REMOVE_INDIVIDUAL_PARTICIPANT_IDS = 'removeIndividualParticipantIds';

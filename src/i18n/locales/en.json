@@ -999,6 +999,15 @@
       "providerLabel": "Provider",
       "placeholder": "Type provider name"
     },
+    "practiceCapacity": {
+      "title": "Practice court capacity",
+      "help": "Default capacity for PRACTICE bookings that don't set their own. Individual bookings can override this.",
+      "unlimited": "Unlimited",
+      "capped": "Cap simultaneous registrations:",
+      "saved": "Practice capacity updated.",
+      "invalidNumber": "Enter a whole number.",
+      "mustBeNonNegative": "Capacity cannot be negative."
+    },
     "practiceRegistrations": {
       "title": "Manage practice registrations",
       "bookingNotFound": "This practice booking is no longer available.",
@@ -1453,7 +1462,10 @@
     "noEliminationStructures": "No elimination structures",
     "viewCompetitiveness": "View competitiveness",
     "viewBracket": "View bracket",
-    "allStructures": "All structures"
+    "allStructures": "All structures",
+    "practiceCapacity": "Practice capacity",
+    "practiceUnlimited": "Unlimited",
+    "practiceClosed": "Closed"
   },
 
   "drawers": {

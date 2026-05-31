@@ -2,6 +2,8 @@ import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { openCategoriesEditorModal } from './categoriesEditorModal';
+import { openPracticeCapacityModal } from './practiceCapacityModal';
+import { resolveCurrentPracticeDefaultCapacity } from './practiceCapacityModal.logic';
 import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
@@ -184,6 +186,22 @@ export function renderOverview(): void {
   categoriesCard.style.cursor = 'pointer';
   categoriesCard.addEventListener('click', () => openCategoriesEditorModal({ onSave: () => renderOverview() }));
   statsContainer.appendChild(categoriesCard);
+
+  // Practice default-capacity card — small admin affordance for the
+  // tournament-wide PRACTICE booking capacity default. Doesn't reorganise
+  // the grid; lives between categories and events as another clickable
+  // stat card. Value reads as "Unlimited" when null/absent, "Closed" for 0.
+  const currentCapacity = resolveCurrentPracticeDefaultCapacity();
+  const capacityValue =
+    currentCapacity === null
+      ? t('dashboard.practiceUnlimited')
+      : currentCapacity === 0
+        ? t('dashboard.practiceClosed')
+        : String(currentCapacity);
+  const practiceCapacityCard = createStatCard(t('dashboard.practiceCapacity'), capacityValue, 'fa-people-roof');
+  practiceCapacityCard.style.cursor = 'pointer';
+  practiceCapacityCard.addEventListener('click', () => openPracticeCapacityModal({ onSave: () => renderOverview() }));
+  statsContainer.appendChild(practiceCapacityCard);
 
   const eventsCard = createDualStatCard([
     { label: t('dashboard.events'), value: data.eventCount, icon: 'fa-trophy' },
