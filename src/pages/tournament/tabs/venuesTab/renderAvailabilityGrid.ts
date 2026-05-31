@@ -4,6 +4,7 @@
  * that maps engine state back to dateAvailability per court.
  */
 import { createAvailabilityGrid, AvailabilityGrid, type AvailabilityGridLabels } from 'courthive-components';
+import { openManagePracticeRegistrationsModal } from 'components/modals/managePracticeRegistrationsModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -72,6 +73,19 @@ export function renderAvailabilityGrid(
       onSetDefaultAvailability: options?.onSetDefaultAvailability,
       onSave: options?.onSave,
       onDirtyChange: options?.onDirtyChange,
+      // Bridge the block popover's PRACTICE-only "Manage Registrations"
+      // menu item into the TMX modal that owns the registration UI.
+      // bookingId is derived deterministically from the engine block
+      // descriptor — the factory's findPracticeBooking falls back to the
+      // same `${courtId}-${date}-${startTime}` shape when the booking
+      // lacks an explicit bookingId.
+      onManageRegistrations: ({ courtId, date, startTime }) => {
+        openManagePracticeRegistrationsModal({
+          courtId,
+          date,
+          bookingId: `${courtId}-${date}-${startTime}`,
+        });
+      },
     },
     container,
   );
