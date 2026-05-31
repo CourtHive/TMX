@@ -19,6 +19,11 @@ export type AvailabilityGridInstance = {
 };
 
 export interface RenderAvailabilityGridOptions {
+  /** ISO yyyy-mm-dd. When supplied, the painter opens with this date focused
+   *  instead of defaulting to the tournament's first active day. The workspace
+   *  passes the date the operator is currently viewing in Grid/Profile so
+   *  switching between modes stays on the same day. */
+  initialDay?: string;
   labels?: AvailabilityGridLabels;
   language?: string;
   onSetDefaultAvailability?: () => void;
@@ -61,6 +66,7 @@ export function renderAvailabilityGrid(
       showToolbar: true,
       showVenueTree: true,
       showCapacity: true,
+      initialDay: options?.initialDay,
       labels: options?.labels,
       language: options?.language,
       onSetDefaultAvailability: options?.onSetDefaultAvailability,

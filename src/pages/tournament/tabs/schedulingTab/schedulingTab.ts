@@ -153,7 +153,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
   } else {
-    renderAvailabilityMode(containerEl);
+    renderAvailabilityMode(containerEl, resolvedDate);
   }
 
   // Subscribe to the workspace queue so the action bar reflects bulk-queue
@@ -285,7 +285,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
   container.appendChild(buildActionBarMount());
 }
 
-function renderAvailabilityMode(container: HTMLElement): void {
+function renderAvailabilityMode(container: HTMLElement, scheduledDate: string): void {
   currentMode = 'availability';
 
   // The painter mounts directly into a dedicated DIV inside the workspace
@@ -309,6 +309,12 @@ function renderAvailabilityMode(container: HTMLElement): void {
   // to instance.save(), which calls saveGridState → onMutationMethods (above).
   let instance: AvailabilityGridInstance | null = null;
   instance = renderAvailabilityGrid(gridHost, {
+    // Open the painter on the same date the operator was viewing in Grid /
+    // Profile mode so paint, schedule, and warnings all share one date
+    // context. Without this the painter defaults to the tournament's first
+    // active day, which silently puts blocks on a different day than the
+    // strip the operator is testing against.
+    initialDay: scheduledDate,
     // Same i18n key venuesTab uses; the en.json value drives both surfaces
     // so we stay one-source-of-truth for the button text.
     labels: { saveToTournament: t('pages.venues.saveToTournament') },
