@@ -74,7 +74,7 @@ const i18nKeys: Record<string, string> = {
   's2-route': 'sch2',
   'v-route': 'ven',
   'r-route': 'rpt',
-  'rg-route': 'reg',
+  'rg-route': 'regs',
   'b-route': 'pub',
   'c-route': 'set',
 };
