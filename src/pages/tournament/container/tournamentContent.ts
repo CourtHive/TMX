@@ -45,6 +45,9 @@ import {
   REPORTS_TAB,
   REPORTS_CONTROL,
   TOURNAMENT_REPORTS,
+  REGISTRATIONS_TAB,
+  REGISTRATIONS_CONTROL,
+  TOURNAMENT_REGISTRATIONS,
 } from 'constants/tmxConstants';
 
 const refMap: Record<string, string> = {
@@ -56,6 +59,7 @@ const refMap: Record<string, string> = {
   [VENUES_TAB]: 'v-tab',
   [PUBLISHING_TAB]: 'b-tab',
   [REPORTS_TAB]: 'r-tab',
+  [REGISTRATIONS_TAB]: 'rg-tab',
   [SETTINGS_TAB]: 'c-tab',
 };
 
@@ -135,12 +139,22 @@ export function tournamentContent(): void {
         </div>
         `;
 
+  const registrationsTab = `
+        <div class='tab_section registrations_tab'>
+            <div class='section' style='min-height: auto;'>
+              <div id='${REGISTRATIONS_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_REGISTRATIONS}' class='tableClass flexcol flexcenter'></div>
+            </div>
+        </div>
+        `;
+
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's2-tab': schedule2Tab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
     'r-tab': reportsTab,
+    'rg-tab': registrationsTab,
     'b-tab': publishingTab,
     'c-tab': settingsTab,
   };
@@ -205,6 +219,8 @@ export function removeTournamentContent(): void {
     TOURNAMENT_PUBLISHING,
     REPORTS_CONTROL,
     TOURNAMENT_REPORTS,
+    REGISTRATIONS_CONTROL,
+    TOURNAMENT_REGISTRATIONS,
   ];
 
   ids.forEach((key) => {

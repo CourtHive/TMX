@@ -84,6 +84,11 @@ export const REPORTS_TAB = 'reports';
 export const REPORTS_CONTROL = 'reportsControl';
 export const TOURNAMENT_REPORTS = 'tournamentReports';
 
+// HiveID Phase 2-B — applicant acceptance flow.
+export const REGISTRATIONS_TAB = 'registrations';
+export const REGISTRATIONS_CONTROL = 'registrationsControl';
+export const TOURNAMENT_REGISTRATIONS = 'tournamentRegistrations';
+
 export const SETTINGS_CONTROL = 'settingsControl';
 export const TOURNAMENT_SETTINGS = 'tournamentSettings';
 
