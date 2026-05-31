@@ -78,6 +78,19 @@ export function renderProfileView(
 
   const headerActions = buildProfileHeaderActions(setup, statusEl, options);
 
+  // Row #3(a) — always-visible capacity meter. Shows demand vs capacity for
+  // the selected date with a color cue; clicking it jumps to Availability
+  // mode for that date so the TD can extend hours without leaving Profile
+  // when the meter is yellow / red. Refreshes every time the user reshapes
+  // the profile draft.
+  const capacityBadge = buildCapacityBadge({
+    scheduledDate: scheduledDate ?? '',
+    availabilityAdapter: setup.config.availabilityAdapter,
+    demandAdapter: setup.config.demandAdapter,
+    tournamentId: setup.tournamentId,
+  });
+  headerActions.leading.push(capacityBadge.element);
+
   const config: SchedulingProfileConfig = {
     ...setup.config,
     selectedDate: scheduledDate,
@@ -87,6 +100,7 @@ export function renderProfileView(
     onProfileChanged: (profile) => {
       // Persist profile to factory as a tournament extension
       saveProfile(profile);
+      capacityBadge.refresh(profile);
     },
     onFixAction: (action) => {
       // Row #1 of the scheduling workspace tracker: when an issue exposes a
@@ -104,6 +118,10 @@ export function renderProfileView(
   };
 
   activeControl = createSchedulingProfile(config, wrapper);
+
+  // Initial badge refresh with the loaded profile draft so the meter shows
+  // real numbers before the user touches anything.
+  capacityBadge.refresh(existingProfile ?? []);
 
   // After the panel mounts, observe its header width and reveal button labels
   // when there's room. Icon-only below the threshold; labels appear once the
@@ -388,6 +406,8 @@ interface ProfileHeaderActions {
   labels: HTMLSpanElement[];
 }
 
+const ACCENT_GREEN = 'var(--tmx-accent-green, #10b981)';
+
 const BTN_BASE = [
   'font-size: 0.75rem',
   'padding: 4px 8px',
@@ -477,7 +497,7 @@ function buildProfileHeaderActions(
     'fa-clock',
     'Apply Times',
     'Apply Times — assign scheduled times using the Garman algorithm',
-    'var(--tmx-accent-green, #10b981)',
+    ACCENT_GREEN,
     () => applySchedule(setup, statusEl),
   );
 
@@ -485,7 +505,7 @@ function buildProfileHeaderActions(
     'fa-table-cells',
     'Apply Grid',
     'Apply Grid — assign court grid positions without times (pro scheduling)',
-    'var(--tmx-accent-green, #10b981)',
+    ACCENT_GREEN,
     () => applyGrid(setup, statusEl),
   );
 
@@ -834,5 +854,72 @@ function renderEmpty(target: HTMLElement, message: string): void {
   placeholder.appendChild(desc);
 
   target.appendChild(placeholder);
+}
+
+// ============================================================================
+// Row #3(a) — Capacity Meter
+// ============================================================================
+
+interface CapacityBadgeOptions {
+  scheduledDate: string;
+  availabilityAdapter?: AvailabilityAdapter;
+  demandAdapter?: DemandAdapter;
+  tournamentId: string;
+}
+
+interface CapacityBadgeHandle {
+  element: HTMLButtonElement;
+  refresh: (profile: SchedulingProfile) => void;
+}
+
+/**
+ * Build the always-visible capacity meter that sits in the Day Plan title's
+ * leading slot. Renders demand vs available hours for the selected date with
+ * a status dot (green / yellow / red). Clicking jumps to the workspace's
+ * Availability mode for that date so the TD can extend court hours without
+ * leaving Profile. Row #3(a) of the scheduling workspace tracker.
+ */
+function buildCapacityBadge(opts: CapacityBadgeOptions): CapacityBadgeHandle {
+  const { scheduledDate, availabilityAdapter, demandAdapter, tournamentId } = opts;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.title = 'Click to adjust court availability for this date';
+  btn.style.cssText =
+    BTN_BASE +
+    '; gap: 6px; padding: 4px 10px; background: var(--tmx-bg-primary); color: var(--tmx-color-primary); font-weight: 600; white-space: nowrap;';
+
+  const dot = document.createElement('span');
+  dot.style.cssText = 'width: 8px; height: 8px; border-radius: 50%; background: var(--tmx-text-muted, #888); flex-shrink: 0;';
+  const text = document.createElement('span');
+  text.textContent = '— / —';
+  btn.appendChild(dot);
+  btn.appendChild(text);
+
+  btn.addEventListener('click', () => {
+    if (!tournamentId) return;
+    context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}/availability`);
+  });
+
+  function refresh(profile: SchedulingProfile): void {
+    if (!availabilityAdapter?.getDayCapacityMinutes || !demandAdapter?.estimateDayDemandMinutes) {
+      text.textContent = 'availability';
+      dot.style.background = 'var(--tmx-text-muted, #888)';
+      return;
+    }
+    const capMin = availabilityAdapter.getDayCapacityMinutes(scheduledDate);
+    const demMin = demandAdapter.estimateDayDemandMinutes(scheduledDate, profile);
+    const capH = Math.round((capMin / 60) * 10) / 10;
+    const demH = Math.round((demMin / 60) * 10) / 10;
+    text.textContent = `${demH}h / ${capH}h`;
+
+    let color = ACCENT_GREEN;
+    if (capMin <= 0) color = 'var(--tmx-text-muted, #888)';
+    else if (demMin > capMin) color = 'var(--tmx-accent-red, #ef4444)';
+    else if (demMin > capMin * 0.85) color = 'var(--tmx-accent-orange, #f59e0b)';
+    dot.style.background = color;
+  }
+
+  return { element: btn, refresh };
 }
 
