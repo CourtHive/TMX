@@ -876,7 +876,8 @@
     "required": "Required",
     "send": "Send",
     "details": "Details",
-    "validationDetails": "Validation details"
+    "validationDetails": "Validation details",
+    "remove": "Remove"
   },
 
   "modals": {
@@ -997,6 +998,24 @@
       "title": "Select provider",
       "providerLabel": "Provider",
       "placeholder": "Type provider name"
+    },
+    "practiceRegistrations": {
+      "title": "Manage practice registrations",
+      "bookingNotFound": "This practice booking is no longer available.",
+      "currentRegistrations": "Current registrations",
+      "noneYet": "No registrations yet.",
+      "addRegistrant": "Add registrant",
+      "participantLabel": "Participant",
+      "participantPlaceholder": "Type participant name",
+      "startTime": "Start",
+      "endTime": "End",
+      "add": "Add",
+      "added": "Registration added.",
+      "removed": "Registration removed.",
+      "pickParticipant": "Pick a participant from the list.",
+      "pickTimes": "Set both start and end times.",
+      "invalidWindow": "Start time must be before end time.",
+      "conflictWarning": "Registration added — participant has another commitment during this window."
     },
     "dropzone": {
       "title": "Import tournament records"
