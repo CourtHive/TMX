@@ -109,7 +109,10 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   const containerEl = document.getElementById(SCHEDULING_CONTAINER);
   if (!controlEl || !containerEl) return;
 
-  const resolvedDate = params.scheduledDate || resolveScheduleDate();
+  // 'today' is a sentinel used by the /venues/availability redirect when the
+  // engine isn't reachable from the router callback — resolve it here.
+  const isExplicitDate = params.scheduledDate && params.scheduledDate !== 'today';
+  const resolvedDate = isExplicitDate ? params.scheduledDate! : resolveScheduleDate();
   const resolvedMode: SchedulingMode = isValidMode(params.mode) ? params.mode : DEFAULT_MODE;
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange() ?? { startDate: '', endDate: '' };
   const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId ?? '';

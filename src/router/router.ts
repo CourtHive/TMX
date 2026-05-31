@@ -125,24 +125,33 @@ export function routeTMX() {
   router.on(`/${TOURNAMENT}/:tournamentId/${PARTICIPANTS}/:participantView`, (match) => {
     displayRoute({ selectedTab: PARTICIPANTS, data: match?.data });
   });
-  // Bookmarked `/schedule/:date` URLs from before the schedule2 cutover
-  // redirect to the new tab.
+  // Legacy bookmarks from before the workspace cutover. All scheduling URLs
+  // now live under `/scheduling/:date/:mode` — `/schedule/:date` and
+  // `/schedule2/:date(/:view)?` redirect; `/venues/availability` does too.
   router.on(`/${TOURNAMENT}/:tournamentId/schedule/:scheduledDate`, (match) => {
     const tournamentId = match?.data?.tournamentId;
     const scheduledDate = match?.data?.scheduledDate;
     if (tournamentId && scheduledDate) {
-      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`);
+      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}`);
     }
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}/:scheduledDate/:scheduleView`, (match) => {
-    displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });
+    const tournamentId = match?.data?.tournamentId;
+    const scheduledDate = match?.data?.scheduledDate;
+    const scheduleView = match?.data?.scheduleView;
+    if (tournamentId && scheduledDate) {
+      const mode = scheduleView === 'profile' ? 'profile' : 'grid';
+      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}/${mode}`);
+    }
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}/:scheduledDate`, (match) => {
-    displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });
+    const tournamentId = match?.data?.tournamentId;
+    const scheduledDate = match?.data?.scheduledDate;
+    if (tournamentId && scheduledDate) {
+      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}`);
+    }
   });
-  // New unified scheduling workspace (Option C — in flight). Old /schedule2/* and
-  // /venues/availability routes still work; 301 redirects land after the three modes
-  // are fully wired through the workspace queue.
+  // Unified scheduling workspace (Option C). Replaces /schedule2 and /venues/availability.
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULING_TAB}/:scheduledDate/:schedulingMode`, (match) => {
     displayRoute({ selectedTab: SCHEDULING_TAB, data: match?.data });
   });
@@ -153,6 +162,15 @@ export function routeTMX() {
     displayRoute({ selectedTab: SCHEDULING_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${VENUES_TAB}/:venueView`, (match) => {
+    // /venues/availability redirects into the scheduling workspace.
+    const tournamentId = match?.data?.tournamentId;
+    const venueView = match?.data?.venueView;
+    if (venueView === 'availability' && tournamentId) {
+      // 'today' sentinel — schedulingTab resolves it to the first valid
+      // schedule date so the router stays engine-decoupled.
+      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/today/availability`);
+      return;
+    }
     displayRoute({ selectedTab: VENUES_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${VENUE}/:venueId`, (match) => {
