@@ -1,9 +1,9 @@
 /**
- * Render and manage the temporal grid for court availability visualization.
- * Creates a TemporalGrid from the tournament record and provides save logic
+ * Render and manage the availability grid for court availability visualization.
+ * Creates a AvailabilityGrid from the tournament record and provides save logic
  * that maps engine state back to dateAvailability per court.
  */
-import { createTemporalGrid, TemporalGrid, type TemporalGridLabels } from 'courthive-components';
+import { createAvailabilityGrid, AvailabilityGrid, type AvailabilityGridLabels } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -12,26 +12,26 @@ import { t } from 'i18n';
 // constants
 import { MODIFY_COURT_AVAILABILITY, MODIFY_VENUE } from 'constants/mutationConstants';
 
-export type TemporalGridInstance = {
-  grid: TemporalGrid;
+export type AvailabilityGridInstance = {
+  grid: AvailabilityGrid;
   save: () => void;
   destroy: () => void;
 };
 
-export interface RenderTemporalGridOptions {
-  labels?: TemporalGridLabels;
+export interface RenderAvailabilityGridOptions {
+  labels?: AvailabilityGridLabels;
   language?: string;
   onSetDefaultAvailability?: () => void;
   onSave?: () => void;
 }
 
-export function renderTemporalGrid(
+export function renderAvailabilityGrid(
   container: HTMLElement,
-  options?: RenderTemporalGridOptions,
-): TemporalGridInstance {
+  options?: RenderAvailabilityGridOptions,
+): AvailabilityGridInstance {
   const { tournamentRecord } = tournamentEngine.getTournament();
 
-  const grid = createTemporalGrid(
+  const grid = createAvailabilityGrid(
     {
       tournamentRecord,
       showToolbar: true,
@@ -120,7 +120,7 @@ function buildCourtAvailabilityMethod(
   return undefined;
 }
 
-function saveGridState(grid: TemporalGrid): void {
+function saveGridState(grid: AvailabilityGrid): void {
   const engine = grid.getEngine();
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (!tournamentRecord) return;

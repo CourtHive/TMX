@@ -3,22 +3,22 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 const {
   getTournamentMock,
   getVenuesAndCourtsMock,
-  temporalInit,
-  temporalGetDays,
-  temporalGetCourtAvailability,
+  availabilityInit,
+  availabilityGetDays,
+  availabilityGetCourtAvailability,
 } = vi.hoisted(() => ({
   getTournamentMock: vi.fn(),
   getVenuesAndCourtsMock: vi.fn(),
-  temporalInit: vi.fn(),
-  temporalGetDays: vi.fn(),
-  temporalGetCourtAvailability: vi.fn(),
+  availabilityInit: vi.fn(),
+  availabilityGetDays: vi.fn(),
+  availabilityGetCourtAvailability: vi.fn(),
 }));
 
 vi.mock('tods-competition-factory', () => {
   class MockAvailabilityEngine {
-    init = temporalInit;
-    getTournamentDays = temporalGetDays;
-    getCourtAvailability = temporalGetCourtAvailability;
+    init = availabilityInit;
+    getTournamentDays = availabilityGetDays;
+    getCourtAvailability = availabilityGetCourtAvailability;
   }
   return {
     tournamentEngine: { getTournament: (...args: any[]) => getTournamentMock(...args) },
@@ -35,9 +35,9 @@ import { getTournamentCapacity } from './getTournamentCapacity';
 beforeEach(() => {
   getTournamentMock.mockReset();
   getVenuesAndCourtsMock.mockReset();
-  temporalInit.mockReset();
-  temporalGetDays.mockReset();
-  temporalGetCourtAvailability.mockReset();
+  availabilityInit.mockReset();
+  availabilityGetDays.mockReset();
+  availabilityGetCourtAvailability.mockReset();
 });
 
 describe('getTournamentCapacity', () => {
@@ -46,10 +46,10 @@ describe('getTournamentCapacity', () => {
     const cap = getTournamentCapacity();
     expect(cap.courtCount).toEqual(0);
     expect(cap.hasVenues).toBe(false);
-    expect(cap.hasTemporalInfo).toBe(false);
+    expect(cap.hasCapacityInfo).toBe(false);
   });
 
-  it('counts courts across venues without temporal info when dates are missing', () => {
+  it('counts courts across venues without capacity info when dates are missing', () => {
     getTournamentMock.mockReturnValue({ tournamentRecord: { tournamentId: 't1' } });
     getVenuesAndCourtsMock.mockReturnValue({
       venues: [
@@ -60,20 +60,20 @@ describe('getTournamentCapacity', () => {
     const cap = getTournamentCapacity();
     expect(cap.courtCount).toEqual(3);
     expect(cap.hasVenues).toBe(true);
-    expect(cap.hasTemporalInfo).toBe(false);
+    expect(cap.hasCapacityInfo).toBe(false);
     expect(cap.effectiveCourtCount).toBeUndefined();
   });
 
-  it('computes an effective per-day average when temporal info is available', () => {
+  it('computes an effective per-day average when capacity info is available', () => {
     getTournamentMock.mockReturnValue({
       tournamentRecord: { tournamentId: 't1', startDate: DAY_1, endDate: DAY_2 },
     });
     getVenuesAndCourtsMock.mockReturnValue({
       venues: [{ venueId: 'v1', tournamentId: 't1', courts: [{ courtId: 'c1' }, { courtId: 'c2' }] }],
     });
-    temporalGetDays.mockReturnValue([DAY_1, DAY_2]);
+    availabilityGetDays.mockReturnValue([DAY_1, DAY_2]);
     // Day 1: both courts available; Day 2: only c1 available
-    temporalGetCourtAvailability.mockImplementation((courtRef: any, day: string) => {
+    availabilityGetCourtAvailability.mockImplementation((courtRef: any, day: string) => {
       if (day === DAY_1) return { startTime: '09:00', endTime: '17:00' };
       if (day === DAY_2 && courtRef.courtId === 'c1') return { startTime: '09:00', endTime: '17:00' };
       return { startTime: '09:00', endTime: '09:00' };
@@ -81,7 +81,7 @@ describe('getTournamentCapacity', () => {
     const cap = getTournamentCapacity();
     expect(cap.courtCount).toEqual(2);
     expect(cap.effectiveCourtCount).toEqual(1.5); // (2 + 1) / 2
-    expect(cap.hasTemporalInfo).toBe(true);
+    expect(cap.hasCapacityInfo).toBe(true);
     expect(cap.dayCount).toEqual(2);
   });
 

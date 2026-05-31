@@ -31,8 +31,11 @@ import {
   SCHEDULE2_TAB,
   SCHEDULE2_CONTAINER,
   SCHEDULE2_CONTROL,
+  SCHEDULING_TAB,
+  SCHEDULING_CONTAINER,
+  SCHEDULING_CONTROL,
   VENUES_TAB,
-  TEMPORAL_GRID_CONTAINER,
+  AVAILABILITY_GRID_CONTAINER,
   TOURNAMENT_VENUES,
   NONE,
   SUCCESS,
@@ -56,6 +59,7 @@ const refMap: Record<string, string> = {
   [EVENTS_TAB]: 'e-tab',
   [MATCHUPS_TAB]: 'm-tab',
   [SCHEDULE2_TAB]: 's2-tab',
+  [SCHEDULING_TAB]: 'sw-tab',
   [VENUES_TAB]: 'v-tab',
   [PUBLISHING_TAB]: 'b-tab',
   [REPORTS_TAB]: 'r-tab',
@@ -90,13 +94,22 @@ export function tournamentContent(): void {
         </div>
         `;
 
+  const schedulingTab = `
+        <div class='tab_section scheduling_tab'>
+            <div class='section block' style='min-height: auto;'>
+              <div id='${SCHEDULING_CONTROL}' class='controlBar flexcol flexcenter'></div>
+              <div id='${SCHEDULING_CONTAINER}' style='width: 100%; height: calc(100vh - 140px);'></div>
+            </div>
+        </div>
+        `;
+
   const venuesTab = `
         <div class='tab_section venues_tab'>
             <div class='section'>
               <div class='tabHeader foreground'></div>
               <div id='${VENUES_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_VENUES}' class='tableClass flexcol flexcenter'></div>
-              <div id='${TEMPORAL_GRID_CONTAINER}' style='display: none; width: 100%; height: 75vh; overflow: hidden;'></div>
+              <div id='${AVAILABILITY_GRID_CONTAINER}' style='display: none; width: 100%; height: 75vh; overflow: hidden;'></div>
             </div>
         </div>
         `;
@@ -151,6 +164,7 @@ export function tournamentContent(): void {
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's2-tab': schedule2Tab,
+    'sw-tab': schedulingTab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
     'r-tab': reportsTab,
@@ -215,7 +229,7 @@ export function removeTournamentContent(): void {
     SCHEDULE2_CONTAINER,
     TOURNAMENT_TEAMS,
     TOURNAMENT_VENUES,
-    TEMPORAL_GRID_CONTAINER,
+    AVAILABILITY_GRID_CONTAINER,
     TOURNAMENT_PUBLISHING,
     REPORTS_CONTROL,
     TOURNAMENT_REPORTS,
