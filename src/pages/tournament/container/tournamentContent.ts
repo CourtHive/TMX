@@ -32,7 +32,7 @@ import {
   SCHEDULE2_CONTAINER,
   SCHEDULE2_CONTROL,
   VENUES_TAB,
-  TEMPORAL_GRID_CONTAINER,
+  AVAILABILITY_GRID_CONTAINER,
   TOURNAMENT_VENUES,
   NONE,
   SUCCESS,
@@ -92,7 +92,7 @@ export function tournamentContent(): void {
               <div class='tabHeader foreground'></div>
               <div id='${VENUES_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_VENUES}' class='tableClass flexcol flexcenter'></div>
-              <div id='${TEMPORAL_GRID_CONTAINER}' style='display: none; width: 100%; height: 75vh; overflow: hidden;'></div>
+              <div id='${AVAILABILITY_GRID_CONTAINER}' style='display: none; width: 100%; height: 75vh; overflow: hidden;'></div>
             </div>
         </div>
         `;
@@ -201,7 +201,7 @@ export function removeTournamentContent(): void {
     SCHEDULE2_CONTAINER,
     TOURNAMENT_TEAMS,
     TOURNAMENT_VENUES,
-    TEMPORAL_GRID_CONTAINER,
+    AVAILABILITY_GRID_CONTAINER,
     TOURNAMENT_PUBLISHING,
     REPORTS_CONTROL,
     TOURNAMENT_REPORTS,

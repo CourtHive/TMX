@@ -7,11 +7,11 @@
  *
  * Routes:
  *   /tournament/:id/venues                  — list view (cards or table per localStorage)
- *   /tournament/:id/venues/availability     — temporal grid (URL-driven)
+ *   /tournament/:id/venues/availability     — availability grid (URL-driven)
  *   /tournament/:id/venue/:venueId          — single-venue detail (banner + court cards)
  */
 
-import { renderTemporalGrid, TemporalGridInstance } from './renderTemporalGrid';
+import { renderAvailabilityGrid, AvailabilityGridInstance } from './renderAvailabilityGrid';
 import { readVenuesViewMode, VenuesViewMode, writeVenuesViewMode } from './venuesViewMode';
 import { createVenuesTable } from 'components/tables/venuesTable/createVenuesTable';
 import { renderVenuesGrid, readVenueCardData } from './createVenuesGrid';
@@ -26,7 +26,7 @@ import { context } from 'services/context';
 import { t, i18next } from 'i18n';
 
 import {
-  TEMPORAL_GRID_CONTAINER,
+  AVAILABILITY_GRID_CONTAINER,
   TOURNAMENT,
   TOURNAMENT_VENUES,
   VENUE,
@@ -45,7 +45,7 @@ interface RenderVenueTabParams {
 export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}): void {
   const controlAnchor = document.getElementById(VENUES_CONTROL) || undefined;
   const venuesAnchor = document.getElementById(TOURNAMENT_VENUES);
-  const gridContainerEl = document.getElementById(TEMPORAL_GRID_CONTAINER);
+  const gridContainerEl = document.getElementById(AVAILABILITY_GRID_CONTAINER);
 
   if (gridContainerEl) {
     gridContainerEl.innerHTML = '';
@@ -76,7 +76,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
   // ─── List view (cards or table) ─────────────────────────────────────────
   let mode: VenuesViewMode = readVenuesViewMode();
   let table: any;
-  let gridInstance: TemporalGridInstance | undefined;
+  let gridInstance: AvailabilityGridInstance | undefined;
   let availabilityVisible = venueView === AVAILABILITY;
 
   function buildToggle(): HTMLElement {
@@ -195,7 +195,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     if (gridContainerEl) {
       gridContainerEl.style.display = '';
       if (!gridInstance) {
-        gridInstance = renderTemporalGrid(gridContainerEl, {
+        gridInstance = renderAvailabilityGrid(gridContainerEl, {
           labels: gridLabels,
           language: i18next.language,
           onSetDefaultAvailability,

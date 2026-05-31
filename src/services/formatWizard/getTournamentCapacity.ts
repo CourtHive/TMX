@@ -5,14 +5,14 @@ export interface TournamentCapacity {
   courtCount: number; // raw sum of courts across venues
   effectiveCourtCount?: number; // per-day average of courts with non-empty availability windows
   hasVenues: boolean;
-  hasTemporalInfo: boolean; // tournament has start/end dates AND ≥1 court
+  hasCapacityInfo: boolean; // tournament has start/end dates AND ≥1 court
   dayCount: number;
 }
 
 const EMPTY: TournamentCapacity = {
   courtCount: 0,
   hasVenues: false,
-  hasTemporalInfo: false,
+  hasCapacityInfo: false,
   dayCount: 0,
 };
 
@@ -60,7 +60,7 @@ function computeEffectiveCourtCount(
 
 // Reads the live tournament record and reports the current court
 // capacity. The wizard's stale-state cues compare the TD's saved
-// `courts` constraint against this number; the temporally-aware
+// `courts` constraint against this number; the availability-aware
 // `effectiveCourtCount` is preferred over the raw `courtCount`
 // when both are available.
 export function getTournamentCapacity(): TournamentCapacity {
@@ -82,7 +82,7 @@ export function getTournamentCapacity(): TournamentCapacity {
     courtCount: courts.length,
     effectiveCourtCount,
     hasVenues: courts.length > 0,
-    hasTemporalInfo: hasDates && courts.length > 0,
+    hasCapacityInfo: hasDates && courts.length > 0,
     dayCount: days.length,
   };
 }

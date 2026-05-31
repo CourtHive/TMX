@@ -16,7 +16,7 @@ import {
   type CatalogRoundItem,
   type VenueInfo,
   type SchedulingProfile,
-  type TemporalAdapter,
+  type AvailabilityAdapter,
   type DemandAdapter,
   type DependencyAdapter,
 } from 'courthive-components';
@@ -173,7 +173,7 @@ function buildProfileSetup(): ProfileSetup | null {
   const schedulableDates = getScheduleDateRange();
 
   // Build adapters
-  const temporalAdapter = buildTemporalAdapter(schedulableDates);
+  const availabilityAdapter = buildAvailabilityAdapter(schedulableDates);
   const demandAdapter = buildDemandAdapter(roundCatalog);
   const dependencyAdapter = buildDependencyAdapter(tournamentId);
 
@@ -184,7 +184,7 @@ function buildProfileSetup(): ProfileSetup | null {
     hideLeft: true,
     catalogSide: 'left',
     venueOrder: venues.map((v) => v.venueId),
-    temporalAdapter,
+    availabilityAdapter,
     demandAdapter,
     dependencyAdapter,
   };
@@ -196,7 +196,7 @@ function buildProfileSetup(): ProfileSetup | null {
 // Adapters
 // ============================================================================
 
-function buildTemporalAdapter(schedulableDates: string[]): TemporalAdapter {
+function buildAvailabilityAdapter(schedulableDates: string[]): AvailabilityAdapter {
   // Initialize AvailabilityEngine from the current tournament record
   let engine: AvailabilityEngine | null = null;
   try {
@@ -215,7 +215,7 @@ function buildTemporalAdapter(schedulableDates: string[]): TemporalAdapter {
       }
     }
   } catch {
-    // Temporal engine init may fail if no courts configured
+    // AvailabilityEngine init may fail if no courts configured
   }
 
   return {

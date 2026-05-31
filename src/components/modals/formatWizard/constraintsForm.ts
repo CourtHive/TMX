@@ -256,7 +256,7 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
     } else if (saved < lastCapacity.courtCount) {
       lines.push(t('formatWizard.cues.savedLessThanAvailable', { saved, available: lastCapacity.courtCount }));
     }
-    if (lastCapacity.hasTemporalInfo && typeof lastCapacity.effectiveCourtCount === 'number') {
+    if (lastCapacity.hasCapacityInfo && typeof lastCapacity.effectiveCourtCount === 'number') {
       const rounded = Math.round(lastCapacity.effectiveCourtCount * 10) / 10;
       if (Math.abs(lastCapacity.effectiveCourtCount - lastCapacity.courtCount) > 0.05) {
         lines.push(
