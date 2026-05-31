@@ -13,35 +13,20 @@ import { printSchedule } from 'components/modals/printSchedule';
 import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
 import { buildStepper } from './stepperControl';
-
-const ARIA_PRESSED = 'aria-pressed';
+import {
+  buildToggleIconButton,
+  TOGGLE_BG_UNPRESSED,
+  TOGGLE_BTN_BASE_STYLE,
+} from 'components/buttons/toggleIconButton';
 
 const MIN_ROWS_FLOOR = 1;
 const MIN_ROWS_CEILING = 200;
 
 // Shared style fragments — extracted because Sonar flags 3-way literal
-// duplication across BTN_BASE_STYLE, the Rows stepper, and the search slot.
+// duplication across the print button, the Rows stepper, and the search slot.
 const BORDER_RADIUS_6 = 'border-radius: 6px';
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
 const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
-
-const BTN_BASE_STYLE = [
-  'font-size: 0.75rem',
-  'padding: 4px 8px',
-  BORDER_RADIUS_6,
-  BORDER_PRIMARY,
-  COLOR_PRIMARY,
-  'cursor: pointer',
-  'display: inline-flex',
-  'align-items: center',
-  'gap: 4px',
-  'transition: background 0.15s, opacity 0.15s, color 0.15s',
-].join('; ');
-
-// Tinted accent fill when pressed (icon-density-agnostic — both fa-table-columns
-// and fa-grip-lines read as "on" the same way, regardless of stroke weight).
-const BG_PRESSED = 'rgba(59, 130, 246, 0.18)';
-const BG_UNPRESSED = 'transparent';
 
 export interface GridHeaderActionsParams {
   selectedDate: string;
@@ -79,7 +64,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     onSearch,
   } = params;
 
-  const catalogBtn = buildToggleButton({
+  const catalogBtn = buildToggleIconButton({
     icon: 'fa-table-columns',
     pressed: catalogVisible,
     titleOn: 'Hide catalog',
@@ -87,7 +72,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     onChange: onToggleCatalog,
   });
 
-  const stripBtn = buildToggleButton({
+  const stripBtn = buildToggleIconButton({
     icon: 'fa-grip-lines',
     pressed: activeStripVisible,
     titleOn: 'Hide active courts strip',
@@ -99,8 +84,8 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
 
   const printBtn = document.createElement('button');
   printBtn.style.cssText =
-    BTN_BASE_STYLE +
-    `; background: ${BG_UNPRESSED}` +
+    TOGGLE_BTN_BASE_STYLE +
+    `; background: ${TOGGLE_BG_UNPRESSED}` +
     (bulkMode ? '; opacity: 0.45; cursor: not-allowed' : '; color: var(--tmx-accent-blue, #3b82f6)');
   printBtn.innerHTML = '<i class="fa-solid fa-print" style="font-size: 0.75rem;"></i>';
   printBtn.title = bulkMode ? 'Exit bulk mode to print the saved schedule' : 'Print schedule';
@@ -182,32 +167,3 @@ function buildMinRowsStepper(initial: number, onChange: (rows: number) => void):
   });
 }
 
-interface ToggleButtonParams {
-  icon: string;
-  pressed: boolean;
-  titleOn: string;
-  titleOff: string;
-  onChange: (pressed: boolean) => void;
-}
-
-function buildToggleButton(params: ToggleButtonParams): HTMLButtonElement {
-  const { icon, pressed: initial, titleOn, titleOff, onChange } = params;
-  const btn = document.createElement('button');
-  btn.style.cssText = BTN_BASE_STYLE;
-  btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 0.75rem;"></i>`;
-  applyState(btn, initial, titleOn, titleOff);
-  btn.addEventListener('click', () => {
-    const wasPressed = btn.getAttribute(ARIA_PRESSED) === 'true';
-    const next = !wasPressed;
-    applyState(btn, next, titleOn, titleOff);
-    onChange(next);
-  });
-  return btn;
-}
-
-function applyState(btn: HTMLButtonElement, pressed: boolean, titleOn: string, titleOff: string): void {
-  btn.setAttribute(ARIA_PRESSED, pressed ? 'true' : 'false');
-  btn.style.background = pressed ? BG_PRESSED : BG_UNPRESSED;
-  btn.style.opacity = pressed ? '1' : '0.45';
-  btn.title = pressed ? titleOn : titleOff;
-}
