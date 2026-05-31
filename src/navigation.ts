@@ -22,6 +22,7 @@ import {
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
+  REGISTRATIONS_TAB,
   REPORTS_TAB,
   SCHEDULE2_TAB,
   TOURNAMENT,
@@ -29,6 +30,8 @@ import {
   VENUES_TAB,
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
+import { canManageRegistrations } from 'pages/tournament/tabs/registrationsTab/canManageRegistrations';
+import { getLoginState } from 'services/authentication/loginState';
 
 const ACCENT_BLUE = 'var(--tmx-accent-blue)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';
@@ -44,6 +47,7 @@ const routeMap: Record<string, string> = {
   's2-route': SCHEDULE2_TAB,
   'v-route': VENUES_TAB,
   'r-route': REPORTS_TAB,
+  'rg-route': REGISTRATIONS_TAB,
   'b-route': PUBLISHING_TAB,
   'c-route': SETTINGS_TAB,
 };
@@ -56,6 +60,7 @@ const tips: Record<string, string> = {
   's2-route': 'Schedule',
   'v-route': 'Venues',
   'r-route': 'Reports',
+  'rg-route': 'Registrations',
   'b-route': 'Publishing',
   'c-route': 'Settings',
 };
@@ -69,9 +74,15 @@ const i18nKeys: Record<string, string> = {
   's2-route': 'sch2',
   'v-route': 'ven',
   'r-route': 'rpt',
+  'rg-route': 'reg',
   'b-route': 'pub',
   'c-route': 'set',
 };
+
+// rg-route is conditionally visible: hidden unless the loaded tournament
+// has a published registrationProfile AND the caller has provider-admin
+// authority over the tournament's provider. See Phase 2-B.1.
+const CONDITIONAL_ROUTE_IDS = new Set(['rg-route']);
 
 function navigateToRoute(id: string): void {
   clearSyncIndicator();
@@ -95,9 +106,15 @@ function setupMobileNav(selectedTab: string | undefined): void {
   // Set toggle label to translated current page name
   toggle.textContent = t(i18nKeys[currentId]);
 
-  // Build dropdown items — route-based nav items
+  // Build dropdown items — route-based nav items. Conditional routes
+  // (e.g. `rg-route` for Registrations) only appear in the dropdown
+  // when their desktop counterpart is currently visible.
   menu.innerHTML = '';
-  const ids = Object.keys(routeMap);
+  const ids = Object.keys(routeMap).filter((id) => {
+    if (!CONDITIONAL_ROUTE_IDS.has(id)) return true;
+    const el = document.getElementById(id);
+    return !!el && el.style.display !== 'none';
+  });
   ids.forEach((id) => {
     const item = document.createElement('button');
     item.className = 'mobile-nav-item';
@@ -136,6 +153,21 @@ function setupMobileNav(selectedTab: string | undefined): void {
       toggle.setAttribute(ARIA_EXPANDED, 'false');
     }
   });
+}
+
+/**
+ * Toggle the Registrations nav icon based on the currently loaded
+ * tournament + caller. Re-evaluated whenever a tournament render
+ * settles (via highlightTab below) so navigating between tournaments
+ * shows/hides the icon as their published-registration state changes.
+ */
+export function applyRegistrationsTabVisibility(): void {
+  const el = document.getElementById('rg-route');
+  if (!el) return;
+  const tournamentRecord = tournamentEngine.q.tournament();
+  const loginState = getLoginState();
+  const allowed = canManageRegistrations({ tournamentRecord, loginState });
+  el.style.display = allowed ? '' : 'none';
 }
 
 export function tmxNavigation(): void {
@@ -289,6 +321,11 @@ function setupAssistantIndicator(): void {
 }
 
 export function highlightTab(selectedTab: string): void {
+  // Re-evaluate conditional icons on every tab-render — a tournament's
+  // registrationProfile changes over its lifecycle (publish → close)
+  // and a director's role at a provider can change between renders.
+  applyRegistrationsTabVisibility();
+
   document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
 
   const ids = Object.keys(routeMap);
