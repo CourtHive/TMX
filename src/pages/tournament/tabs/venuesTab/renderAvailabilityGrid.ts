@@ -23,6 +23,15 @@ export interface RenderAvailabilityGridOptions {
   language?: string;
   onSetDefaultAvailability?: () => void;
   onSave?: () => void;
+  /**
+   * When provided, the painter routes its computed mutation methods through
+   * this callback INSTEAD of dispatching directly via `mutationRequest`. The
+   * workspace uses this hook to feed `queueService.executeMethods` (which
+   * decides between immediate and bulk-queued dispatch). Absent it, the
+   * painter retains its standalone `/venues/availability` behavior of
+   * firing `mutationRequest` synchronously with a success toast on ack.
+   */
+  onMutationMethods?: (methods: { method: string; params: any }[]) => void;
 }
 
 export function renderAvailabilityGrid(
@@ -47,7 +56,7 @@ export function renderAvailabilityGrid(
 
   return {
     grid,
-    save: () => saveGridState(grid),
+    save: () => saveGridState(grid, options?.onMutationMethods),
     destroy: () => grid.destroy(),
   };
 }
@@ -120,7 +129,10 @@ function buildCourtAvailabilityMethod(
   return undefined;
 }
 
-function saveGridState(grid: AvailabilityGrid): void {
+function saveGridState(
+  grid: AvailabilityGrid,
+  onMutationMethods?: (methods: { method: string; params: any }[]) => void,
+): void {
   const engine = grid.getEngine();
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (!tournamentRecord) return;
@@ -157,6 +169,15 @@ function saveGridState(grid: AvailabilityGrid): void {
 
   if (!methods.length) return;
 
+  if (onMutationMethods) {
+    // Workspace path: hand the methods to queueService and reset dirty state
+    // immediately. Toast + actual dispatch are queue-owned.
+    onMutationMethods(methods);
+    grid.resetDirtyState();
+    return;
+  }
+
+  // Standalone /venues/availability path: direct mutationRequest with toast.
   mutationRequest({
     methods,
     callback: (result: any) => {

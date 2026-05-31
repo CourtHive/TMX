@@ -41,6 +41,10 @@ import {
 import { renderProfileView, destroyProfileView } from '../schedule2Tab/profileView';
 import { openClearScheduleMenu } from '../schedule2Tab/clearScheduleActions';
 import {
+  renderAvailabilityGrid,
+  type AvailabilityGridInstance,
+} from '../venuesTab/renderAvailabilityGrid';
+import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
@@ -50,6 +54,7 @@ import {
   getPendingCount,
   savePending,
   discardPending,
+  executeMethods,
 } from 'services/schedulingWorkspace/queueService';
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -75,6 +80,7 @@ const ACTIVE_STRIP_VISIBILITY_KEY = 'schedule2:activeStrip';
 
 let queueUnsubscribe: (() => void) | null = null;
 let currentMode: SchedulingMode | null = null;
+let availabilityInstance: AvailabilityGridInstance | null = null;
 
 function readBoolFlag(key: string, fallback: boolean): boolean {
   try {
@@ -141,7 +147,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
   } else {
-    renderAvailabilityPlaceholder(containerEl, resolvedDate);
+    renderAvailabilityMode(containerEl);
   }
 
   // Subscribe to the workspace queue so the action bar reflects bulk-queue
@@ -162,6 +168,10 @@ export function destroySchedulingTab(): void {
 function destroyCurrentMode(): void {
   if (currentMode === 'grid') destroyGridView();
   else if (currentMode === 'profile') destroyProfileView();
+  else if (currentMode === 'availability' && availabilityInstance) {
+    availabilityInstance.destroy();
+    availabilityInstance = null;
+  }
   currentMode = null;
 }
 
@@ -266,31 +276,28 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
   container.appendChild(buildActionBarMount());
 }
 
-function renderAvailabilityPlaceholder(container: HTMLElement, scheduledDate: string): void {
-  currentMode = null;
+function renderAvailabilityMode(container: HTMLElement): void {
+  currentMode = 'availability';
 
-  const stub = document.createElement('div');
-  stub.style.cssText = 'padding: 24px; min-height: 60vh;';
-
-  const heading = document.createElement('h2');
-  heading.textContent = 'Availability mode';
-  heading.style.cssText = 'margin: 0 0 8px;';
-  stub.appendChild(heading);
-
-  const sub = document.createElement('div');
-  sub.style.cssText = 'color: var(--tmx-muted, #666); margin-bottom: 16px;';
-  sub.textContent = `Date: ${scheduledDate}`;
-  stub.appendChild(sub);
-
-  const note = document.createElement('div');
-  note.style.cssText =
-    'padding: 12px; background: var(--tmx-bg-secondary, #f4f4f4); border-radius: 4px; color: var(--tmx-muted, #666); font-size: 0.9rem;';
-  note.innerHTML =
-    'This is a placeholder. The availability painter migration into the workspace queue is in flight — see <code>Mentat/planning/SCHEDULE2_AVAILABILITY_INTEGRATION.md</code>. Use <code>/venues/availability</code> for live painting until then.';
-  stub.appendChild(note);
-
-  container.appendChild(stub);
+  // The painter mounts directly into a dedicated DIV inside the workspace
+  // container so the workspace-level action bar can sit alongside it.
+  const gridHost = document.createElement('div');
+  gridHost.style.cssText = 'width: 100%; height: calc(100vh - 200px); overflow: hidden;';
+  container.appendChild(gridHost);
   container.appendChild(buildActionBarMount());
+
+  // Live availability writes route through queueService.executeMethods. In
+  // immediate mode it dispatches via mutationRequest (today's behavior); in
+  // bulk mode it queues alongside Profile/Grid pending methods and lights up
+  // the workspace's sticky save/discard bar.
+  availabilityInstance = renderAvailabilityGrid(gridHost, {
+    onMutationMethods: (methods) => {
+      executeMethods({ mode: 'availability', methods });
+    },
+  });
+
+  // Availability is mostly configuration; live data refresh isn't required.
+  context.refreshActiveTable = undefined;
 }
 
 // ── Unsaved-changes guard (mirrors schedule2Tab) ──
