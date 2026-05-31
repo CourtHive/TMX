@@ -1871,7 +1871,10 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
   }
   if (!blocks.length) return {};
 
-  const now = new Date();
+  // Use the strip's date as the time anchor so painted blocks on a non-today
+  // date (e.g. tournament startDate) still surface as active when the
+  // operator is working at the matching time-of-day.
+  const now = effectiveNowOnStripDate(date);
   const courtBlocks: Record<string, ActiveStripCourtBlock> = {};
 
   for (const block of blocks) {
@@ -2022,16 +2025,24 @@ function handleActiveStripDrop(
   const court = courtsData.find((c) => c.courtId === target.courtId);
   if (!court) return;
 
-  // Row #2.7 — if the next availability block on this court would interrupt
-  // the matchUp before its average duration completes, surface a confirm
-  // modal so the TD makes the call deliberately. Skip when no block info or
-  // no format timing is available; the original drop behavior stands in
-  // those cases.
+  // Row #2.7 — when an availability block on this court would either be
+  // active right now OR start before the matchUp's average duration
+  // completes, surface a confirm modal so the TD makes the call
+  // deliberately. Skip when no block info or no format timing is
+  // available; the original drop behavior stands in those cases.
   const blockCheck = checkBlockInterruption(payload.matchUp, target.courtId);
   if (blockCheck) {
+    const title =
+      blockCheck.kind === 'active'
+        ? `Court currently has ${blockCheck.blockType}`
+        : 'Court will be unavailable before this matchUp completes';
+    const query =
+      blockCheck.kind === 'active'
+        ? `${blockCheck.blockType} runs until ${blockCheck.edgeLabel} on this court — only ${blockCheck.availableMinutes} min until the court is free. Expected play time is ~${blockCheck.averageMinutes} min. Schedule anyway?`
+        : `${blockCheck.blockType} starts at ${blockCheck.edgeLabel} on this court. Expected play time is ~${blockCheck.averageMinutes} min, leaving only ${blockCheck.availableMinutes} min before the block. Schedule anyway?`;
     confirmModal({
-      title: 'Court will be unavailable before this matchUp completes',
-      query: `${blockCheck.blockType} starts at ${blockCheck.blockStartLabel} on this court. Expected play time is ~${blockCheck.averageMinutes} min, leaving only ${blockCheck.availableMinutes} min before the block. Schedule anyway?`,
+      title,
+      query,
       okIntent: 'is-warning',
       okAction: () => commitActiveStripDrop(payload, target, court, refresh),
     });
@@ -2092,28 +2103,73 @@ function commitActiveStripDrop(
   executeMethods(methods, refresh);
 }
 
+/**
+ * Project today's real-time HH:MM onto the strip's date. Lets the live-strip
+ * warnings work when the user is viewing a non-today date (e.g. tournament
+ * startDate from yesterday) so painted blocks still surface as active /
+ * upcoming relative to the time-of-day the operator is working at.
+ *
+ * When the strip date IS today, returns the real clock as-is.
+ */
+function effectiveNowOnStripDate(stripDate: string): Date {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  if (today === stripDate) return now;
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return new Date(`${stripDate}T${hh}:${mm}:${ss}`);
+}
+
+/**
+ * Resolve the effective matchUpFormat for a matchUp. The catalog payload
+ * often lacks a matchUpFormat (inherited from the drawDefinition); fall back
+ * to that draw's format so downstream timing lookups work.
+ */
+function resolveMatchUpFormat(matchUp: any): string | undefined {
+  if (matchUp?.matchUpFormat) return matchUp.matchUpFormat;
+  const drawId = matchUp?.drawId;
+  if (!drawId) return undefined;
+  const { tournamentRecord } = tournamentEngine.getTournament() || {};
+  if (!tournamentRecord) return undefined;
+  for (const event of tournamentRecord.events || []) {
+    for (const draw of event.drawDefinitions || []) {
+      if (draw.drawId === drawId) return draw.matchUpFormat;
+    }
+  }
+  return undefined;
+}
+
 interface BlockInterruptionWarning {
+  /** 'active' when the block is in effect right now; 'upcoming' when it starts later. */
+  kind: 'active' | 'upcoming';
   blockType: string;
-  blockStartLabel: string;
+  /** For 'upcoming': start time. For 'active': end time. */
+  edgeLabel: string;
   averageMinutes: number;
+  /** Minutes between "now" and the block edge that matters (start for upcoming, end for active). */
   availableMinutes: number;
 }
 
 /**
- * Returns warning details when scheduling the given matchUp on a court
- * starting "now" would not complete before the next availability block on
- * that court begins. Returns undefined when no conflict — caller proceeds
- * directly to the drop commit.
+ * Returns warning details when scheduling the given matchUp on a court at
+ * "now" would conflict with an availability block — either an active block
+ * the matchUp would overlap, or an upcoming block that would interrupt the
+ * matchUp before its average duration completes. Returns undefined when no
+ * conflict — caller proceeds directly to the drop commit.
  */
 function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptionWarning | undefined {
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
   if (!tournamentRecord) return undefined;
 
+  const matchUpFormat = resolveMatchUpFormat(matchUp);
+  if (!matchUpFormat) return undefined;
+
   // Average minutes for this matchUp format under the active scheduling timing.
   let timing: any;
   try {
     timing = competitionEngine.getMatchUpFormatTiming?.({
-      matchUpFormat: matchUp.matchUpFormat,
+      matchUpFormat,
       eventType: matchUp.matchUpType,
     });
   } catch {
@@ -2138,7 +2194,28 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   }
   if (!blocks.length) return undefined;
 
-  const now = new Date();
+  const now = effectiveNowOnStripDate(currentDate);
+
+  // First: is a non-SCHEDULED block currently active on this court?
+  for (const block of blocks) {
+    if (block?.type === 'SCHEDULED') continue;
+    if (!block.start || !block.end || block.court?.courtId !== courtId) continue;
+    const start = new Date(block.start);
+    const end = new Date(block.end);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+    if (now >= start && now < end) {
+      const minutesUntilEnd = Math.max(0, Math.floor((end.getTime() - now.getTime()) / 60000));
+      return {
+        kind: 'active',
+        blockType: String(block.type),
+        edgeLabel: formatHM(end),
+        averageMinutes,
+        availableMinutes: minutesUntilEnd,
+      };
+    }
+  }
+
+  // Otherwise: does an upcoming block start before this matchUp could complete?
   let nextBlock: any | undefined;
   for (const block of blocks) {
     if (block?.type === 'SCHEDULED') continue;
@@ -2152,13 +2229,10 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   const availableMinutes = Math.floor((new Date(nextBlock.start).getTime() - now.getTime()) / 60000);
   if (availableMinutes >= averageMinutes) return undefined;
 
-  const blockStart = new Date(nextBlock.start);
-  const hh = String(blockStart.getHours()).padStart(2, '0');
-  const mm = String(blockStart.getMinutes()).padStart(2, '0');
-
   return {
+    kind: 'upcoming',
     blockType: String(nextBlock.type),
-    blockStartLabel: `${hh}:${mm}`,
+    edgeLabel: formatHM(new Date(nextBlock.start)),
     averageMinutes,
     availableMinutes: Math.max(availableMinutes, 0),
   };
