@@ -76,6 +76,7 @@ import {
   subscribeQueue,
   resetQueue,
   isBulkMode,
+  setAvailabilityDirty,
 } from './queueService';
 
 const TOURNAMENT_ID = 'T-test';
@@ -253,5 +254,72 @@ describe('queueService — failure-mode invariants from the planning doc', () =>
 
     expect(findTournamentMock).not.toHaveBeenCalled();
     expect(getPendingCount()).toBe(0);
+  });
+});
+
+describe('queueService — painter dirty state alignment', () => {
+  it('painter dirty makes hasUnsavedChanges true outside bulk mode', () => {
+    expect(isBulkMode()).toBe(false);
+    expect(hasUnsavedChanges()).toBe(false);
+
+    setAvailabilityDirty(true, vi.fn());
+    expect(hasUnsavedChanges()).toBe(true);
+    expect(getPendingCount()).toBe(1);
+
+    setAvailabilityDirty(false, null);
+    expect(hasUnsavedChanges()).toBe(false);
+    expect(getPendingCount()).toBe(0);
+  });
+
+  it('savePending invokes the registered painter save callback', async () => {
+    const painterSave = vi.fn();
+    setAvailabilityDirty(true, painterSave);
+
+    await savePending();
+
+    expect(painterSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('savePending invokes painter save AND flushes bulk batches in one tick', async () => {
+    const painterSave = vi.fn();
+    setBulkMode(true);
+    executeMethods({ mode: 'grid', methods: [{ method: 'a', params: {} }] });
+    setAvailabilityDirty(true, painterSave);
+
+    await savePending();
+
+    expect(painterSave).toHaveBeenCalledTimes(1);
+    expect(mutationRequestMock).toHaveBeenCalledTimes(1); // the bulk flush
+  });
+
+  it('painter dirty contributes 1 to getPendingCount alongside batches', () => {
+    setBulkMode(true);
+    executeMethods({ mode: 'grid', methods: [{ method: 'a', params: {} }] });
+    executeMethods({ mode: 'grid', methods: [{ method: 'b', params: {} }] });
+    expect(getPendingCount()).toBe(2);
+
+    setAvailabilityDirty(true, vi.fn());
+    expect(getPendingCount()).toBe(3);
+  });
+
+  it('subscribers are notified on dirty state transitions', () => {
+    const listener = vi.fn();
+    const unsub = subscribeQueue(listener);
+
+    setAvailabilityDirty(true, vi.fn());
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    setAvailabilityDirty(false, null);
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    unsub();
+  });
+
+  it('resetQueue clears painter dirty state', () => {
+    setAvailabilityDirty(true, vi.fn());
+    expect(hasUnsavedChanges()).toBe(true);
+
+    resetQueue();
+    expect(hasUnsavedChanges()).toBe(false);
   });
 });

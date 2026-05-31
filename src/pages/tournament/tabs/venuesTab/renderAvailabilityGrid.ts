@@ -32,6 +32,13 @@ export interface RenderAvailabilityGridOptions {
    * firing `mutationRequest` synchronously with a success toast on ack.
    */
   onMutationMethods?: (methods: { method: string; params: any }[]) => void;
+  /**
+   * Fires when the painter's internal dirty state changes. The workspace
+   * uses this hook to surface "painter has unsaved paint" in its sticky
+   * action bar — aligning the painter's edit state with the bulk queue's
+   * pending-batches count so the user has one consistent unsaved indicator.
+   */
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export function renderAvailabilityGrid(
@@ -50,6 +57,7 @@ export function renderAvailabilityGrid(
       language: options?.language,
       onSetDefaultAvailability: options?.onSetDefaultAvailability,
       onSave: options?.onSave,
+      onDirtyChange: options?.onDirtyChange,
     },
     container,
   );

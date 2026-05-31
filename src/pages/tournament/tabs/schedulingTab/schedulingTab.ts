@@ -55,6 +55,7 @@ import {
   savePending,
   discardPending,
   executeMethods,
+  setAvailabilityDirty,
 } from 'services/schedulingWorkspace/queueService';
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -174,6 +175,9 @@ function destroyCurrentMode(): void {
   else if (currentMode === 'availability' && availabilityInstance) {
     availabilityInstance.destroy();
     availabilityInstance = null;
+    // Unregister painter dirty state so the workspace bar doesn't keep
+    // showing "painter has unsaved paint" after we've torn the grid down.
+    setAvailabilityDirty(false, null);
   }
   currentMode = null;
 }
@@ -307,6 +311,13 @@ function renderAvailabilityMode(container: HTMLElement): void {
       executeMethods({ mode: 'availability', methods });
     },
     onSave: () => instance?.save(),
+    // Propagate the painter's dirty state to the workspace queue so the
+    // sticky save/discard bar surfaces 'painter has unsaved paint' the same
+    // way it surfaces bulk pending batches. Workspace Save → painter.save();
+    // mode switch with painter dirty → confirm modal via hasUnsavedChanges().
+    onDirtyChange: (dirty) => {
+      setAvailabilityDirty(dirty, dirty ? () => instance?.save() : null);
+    },
   });
   availabilityInstance = instance;
 

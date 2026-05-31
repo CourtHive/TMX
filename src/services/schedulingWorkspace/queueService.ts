@@ -17,6 +17,13 @@ type Listener = () => void;
 
 let bulkMode = false;
 let pendingBatches: QueuedBatch[] = [];
+// Painter dirty state lives outside the bulk-batches queue because the
+// AvailabilityGrid component holds its in-progress edits internally — they
+// don't materialize as method arrays until the painter's save runs. The
+// workspace surfaces this via the same hasUnsavedChanges() / save / discard
+// affordances as the bulk queue so the user has one consistent indicator.
+let availabilityDirty = false;
+let availabilitySave: (() => void) | null = null;
 const listeners = new Set<Listener>();
 
 function notify(): void {
@@ -35,11 +42,26 @@ export function isBulkMode(): boolean {
 }
 
 export function getPendingCount(): number {
-  return pendingBatches.length;
+  return pendingBatches.length + (availabilityDirty ? 1 : 0);
 }
 
 export function hasUnsavedChanges(): boolean {
+  if (availabilityDirty) return true;
   return bulkMode && pendingBatches.length > 0;
+}
+
+/**
+ * Register the painter's dirty state with the workspace queue. When `dirty`
+ * is true, the workspace's hasUnsavedChanges() / sticky save bar reflects it.
+ * The `save` callback is invoked by savePending() when the workspace Save
+ * button is clicked; it should commit the painter's in-progress edits.
+ *
+ * Pass `dirty=false, save=null` to unregister (called on mode destroy).
+ */
+export function setAvailabilityDirty(dirty: boolean, save: (() => void) | null): void {
+  availabilityDirty = dirty;
+  availabilitySave = save;
+  notify();
 }
 
 export function setBulkMode(enabled: boolean): boolean {
@@ -85,6 +107,13 @@ export function executeMethods({ mode, methods, onRefresh }: ExecuteOptions): vo
 }
 
 export async function savePending(): Promise<void> {
+  // Painter save fires first so its mutations land before any bulk batches.
+  // The painter's save dispatches via mutationRequest itself (through the
+  // onMutationMethods callback wiring), so we don't need to merge methods.
+  if (availabilityDirty && availabilitySave) {
+    availabilitySave();
+  }
+
   if (!pendingBatches.length) return;
 
   const allMethods = pendingBatches.flatMap((batch) => batch.methods);
@@ -135,5 +164,7 @@ export async function discardPending(): Promise<void> {
 export function resetQueue(): void {
   bulkMode = false;
   pendingBatches = [];
+  availabilityDirty = false;
+  availabilitySave = null;
   notify();
 }
