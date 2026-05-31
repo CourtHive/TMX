@@ -42,19 +42,35 @@ export function isBulkMode(): boolean {
 }
 
 export function getPendingCount(): number {
-  return pendingBatches.length + (availabilityDirty ? 1 : 0);
+  return pendingBatches.length;
 }
 
+/**
+ * Bulk pending-batches state. Drives the workspace's sticky action bar
+ * visibility — painter dirty does NOT count here because the painter has
+ * its own toolbar Save button. Showing the workspace bar for painter-only
+ * dirty state created two Save buttons that did the same thing.
+ */
 export function hasUnsavedChanges(): boolean {
-  if (availabilityDirty) return true;
   return bulkMode && pendingBatches.length > 0;
 }
 
 /**
- * Register the painter's dirty state with the workspace queue. When `dirty`
- * is true, the workspace's hasUnsavedChanges() / sticky save bar reflects it.
- * The `save` callback is invoked by savePending() when the workspace Save
- * button is clicked; it should commit the painter's in-progress edits.
+ * Painter dirty state, separately accessible for mode-switch guards. The
+ * confirm modal that fires before a mode switch checks this alongside
+ * hasUnsavedChanges() so a painted-but-unsaved block still prompts a
+ * "discard and continue?" confirmation even though the workspace bar
+ * isn't showing.
+ */
+export function isAvailabilityDirty(): boolean {
+  return availabilityDirty;
+}
+
+/**
+ * Register the painter's dirty state. Used by mode-switch guards (so a
+ * painted-but-unsaved block prompts the existing confirm modal) and by
+ * savePending() (so the workspace Save flushes painter edits alongside
+ * any bulk batches when both are present).
  *
  * Pass `dirty=false, save=null` to unregister (called on mode destroy).
  */

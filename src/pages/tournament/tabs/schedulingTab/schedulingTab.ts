@@ -57,6 +57,7 @@ import {
   discardPending,
   executeMethods,
   setAvailabilityDirty,
+  isAvailabilityDirty,
 } from 'services/schedulingWorkspace/queueService';
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -341,7 +342,14 @@ function renderAvailabilityMode(container: HTMLElement): void {
 // ── Unsaved-changes guard (mirrors schedule2Tab) ──
 
 function guardUnsavedAndProceed(proceed: () => void): void {
-  if (!hasUnsavedGridChanges() && !hasUnsavedChanges()) {
+  // Three independent unsaved-state sources need to gate mode switches:
+  //   - schedule2 grid bulk-mode pending (drops queued but not committed)
+  //   - workspace queue bulk batches (from any mode)
+  //   - availability painter dirty state (block painted but not saved)
+  // The painter case doesn't show in the workspace bar (it has its own
+  // toolbar Save) — but we still need to confirm before switching modes
+  // because mode destroy tears the painter down and the paint vanishes.
+  if (!hasUnsavedGridChanges() && !hasUnsavedChanges() && !isAvailabilityDirty()) {
     proceed();
     return;
   }
