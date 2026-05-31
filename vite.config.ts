@@ -50,6 +50,19 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
         onwarn(warning, defaultHandler) {
           // Suppress CommonJS-in-ESM warning from hotkeys-js (bug in 4.0.2)
           if (warning.code === 'COMMONJS_VARIABLE_IN_ESM') return;
+          // The dynamic imports of `baseModal/baseModal.ts` and
+          // `services/authentication/loginState.ts` are intentional —
+          // baseModal defers `courthive-components` DOM-at-load-time
+          // initialisation for vitest's non-DOM default; loginState
+          // breaks the static cycle `loginState → authApi → baseApi`.
+          // Both are documented inline at their import sites. Other
+          // consumers import them statically so code-splitting won't
+          // actually move them to a separate chunk; suppress only
+          // these specific known cases so new occurrences still surface.
+          if (warning.code === 'INEFFECTIVE_DYNAMIC_IMPORT') {
+            const msg = warning.message ?? '';
+            if (msg.includes('baseModal/baseModal.ts') || msg.includes('loginState.ts')) return;
+          }
           defaultHandler(warning);
         },
       },
