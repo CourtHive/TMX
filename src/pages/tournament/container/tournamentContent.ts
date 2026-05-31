@@ -31,6 +31,9 @@ import {
   SCHEDULE2_TAB,
   SCHEDULE2_CONTAINER,
   SCHEDULE2_CONTROL,
+  SCHEDULING_TAB,
+  SCHEDULING_CONTAINER,
+  SCHEDULING_CONTROL,
   VENUES_TAB,
   AVAILABILITY_GRID_CONTAINER,
   TOURNAMENT_VENUES,
@@ -53,6 +56,7 @@ const refMap: Record<string, string> = {
   [EVENTS_TAB]: 'e-tab',
   [MATCHUPS_TAB]: 'm-tab',
   [SCHEDULE2_TAB]: 's2-tab',
+  [SCHEDULING_TAB]: 'sw-tab',
   [VENUES_TAB]: 'v-tab',
   [PUBLISHING_TAB]: 'b-tab',
   [REPORTS_TAB]: 'r-tab',
@@ -82,6 +86,15 @@ export function tournamentContent(): void {
             <div class='section block' style='min-height: auto;'>
               <div id='${SCHEDULE2_CONTROL}' class='controlBar flexcol flexcenter'></div>
               <div id='${SCHEDULE2_CONTAINER}' style='width: 100%; height: calc(100vh - 140px);'></div>
+            </div>
+        </div>
+        `;
+
+  const schedulingTab = `
+        <div class='tab_section scheduling_tab'>
+            <div class='section block' style='min-height: auto;'>
+              <div id='${SCHEDULING_CONTROL}' class='controlBar flexcol flexcenter'></div>
+              <div id='${SCHEDULING_CONTAINER}' style='width: 100%; height: calc(100vh - 140px);'></div>
             </div>
         </div>
         `;
@@ -138,6 +151,7 @@ export function tournamentContent(): void {
   const tabs: Record<string, string> = {
     'p-tab': participantsTab,
     's2-tab': schedule2Tab,
+    'sw-tab': schedulingTab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
     'r-tab': reportsTab,

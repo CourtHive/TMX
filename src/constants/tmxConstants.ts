@@ -75,6 +75,9 @@ export const PARTICIPANTS = 'participants';
 // HOSPITALITY / …) into a single roster. TMX-only — not a factory constant.
 export const STAFF = 'STAFF';
 export const SCHEDULE2_TAB = 'schedule2';
+export const SCHEDULING_TAB = 'scheduling';
+export const SCHEDULING_CONTAINER = 'schedulingContainer';
+export const SCHEDULING_CONTROL = 'schedulingControl';
 export const MATCHUPS_TAB = 'matchUps';
 export const EVENTS_TAB = 'events';
 export const VENUES_TAB = 'venues';

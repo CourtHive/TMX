@@ -32,6 +32,7 @@ import {
   TOURNAMENT,
   EVENTS_TAB,
   SCHEDULE2_TAB,
+  SCHEDULING_TAB,
   VENUES_TAB,
   VENUE,
   TEMPLATES,
@@ -138,6 +139,18 @@ export function routeTMX() {
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}/:scheduledDate`, (match) => {
     displayRoute({ selectedTab: SCHEDULE2_TAB, data: match?.data });
+  });
+  // New unified scheduling workspace (Option C — in flight). Old /schedule2/* and
+  // /venues/availability routes still work; 301 redirects land after the three modes
+  // are fully wired through the workspace queue.
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULING_TAB}/:scheduledDate/:schedulingMode`, (match) => {
+    displayRoute({ selectedTab: SCHEDULING_TAB, data: match?.data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULING_TAB}/:scheduledDate`, (match) => {
+    displayRoute({ selectedTab: SCHEDULING_TAB, data: match?.data });
+  });
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULING_TAB}`, (match) => {
+    displayRoute({ selectedTab: SCHEDULING_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${VENUES_TAB}/:venueView`, (match) => {
     displayRoute({ selectedTab: VENUES_TAB, data: match?.data });
