@@ -284,8 +284,11 @@ function renderAvailabilityMode(container: HTMLElement): void {
 
   // The painter mounts directly into a dedicated DIV inside the workspace
   // container so the workspace-level action bar can sit alongside it.
+  // Horizontal padding mirrors the breathing room the capacity bar gets in
+  // the schedule2 grid/profile views (which inherit it from createSchedulePage's
+  // own layout chrome — the AvailabilityGrid component renders edge-to-edge).
   const gridHost = document.createElement('div');
-  gridHost.style.cssText = 'width: 100%; height: calc(100vh - 200px); overflow: hidden;';
+  gridHost.style.cssText = 'width: 100%; height: calc(100vh - 200px); overflow: hidden; padding: 0 16px; box-sizing: border-box;';
   container.appendChild(gridHost);
   container.appendChild(buildActionBarMount());
 

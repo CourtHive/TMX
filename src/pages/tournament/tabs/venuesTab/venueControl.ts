@@ -35,6 +35,11 @@ export function venueControl({
     mutationRequest({ methods, callback });
   };
 
+  // [View Availability] removed: availability is now part of the unified
+  // /scheduling/ workspace; /venues/availability 301-redirects there. The
+  // onToggleGrid callback is retained for now but unused; the venuesTab
+  // availability-toggle code path is dead code awaiting cleanup.
+  void onToggleGrid;
   const items = [
     {
       onClick: deleteVenues,
@@ -51,13 +56,6 @@ export function venueControl({
       id: 'addVenue',
       intent: 'none',
       hide: !providerConfig.isAllowed('canCreateVenues'),
-    },
-    {
-      label: t('pages.venues.viewAvailability'),
-      onClick: onToggleGrid,
-      location: RIGHT,
-      id: 'viewAvailability',
-      intent: 'is-info',
     },
   ];
 
