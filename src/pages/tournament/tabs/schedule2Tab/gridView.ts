@@ -22,6 +22,7 @@
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { matchUpStatusConstants, factoryConstants, tools, unwrapOr, AvailabilityEngine } from 'tods-competition-factory';
+import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -1876,6 +1877,11 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
   // operator is working at the matching time-of-day.
   const now = effectiveNowOnStripDate(date);
   const courtBlocks: Record<string, ActiveStripCourtBlock> = {};
+  const activeRegsByCourtId = getActiveRegistrationNamesByCourtId({
+    tournamentRecord,
+    date,
+    currentHM: formatHM(now),
+  });
 
   for (const block of blocks) {
     if (block?.type === 'SCHEDULED') continue;
@@ -1889,10 +1895,13 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
     const courtId = block.court.courtId;
     if (courtBlocks[courtId]) continue;
 
+    const registrantNames = block.type === 'PRACTICE' ? activeRegsByCourtId[courtId] : undefined;
+    const detail = registrantNames?.length ? registrantNames.join(', ') : block.reason || undefined;
+
     courtBlocks[courtId] = {
       type: block.type,
       label: `${block.type} ${formatHM(start)}–${formatHM(end)}`,
-      detail: block.reason || undefined,
+      detail,
     };
   }
 
