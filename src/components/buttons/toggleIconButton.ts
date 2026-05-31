@@ -30,18 +30,39 @@ export const TOGGLE_BTN_BASE_STYLE = [
   'transition: background 0.15s, opacity 0.15s, color 0.15s',
 ].join('; ');
 
+/** Circular variant — same height as a Bulma is-toggle tab pill so the
+ *  toggle can sit beside a tab group without breaking the visual rhythm. */
+export const TOGGLE_BTN_CIRCLE_STYLE = [
+  'font-size: 0.75rem',
+  'width: 32px',
+  'height: 32px',
+  'padding: 0',
+  'border-radius: 50%',
+  BORDER_PRIMARY,
+  COLOR_PRIMARY,
+  'cursor: pointer',
+  'display: inline-flex',
+  'align-items: center',
+  'justify-content: center',
+  'transition: background 0.15s, opacity 0.15s, color 0.15s',
+].join('; ');
+
 export interface ToggleIconButtonParams {
   icon: string;
   pressed: boolean;
   titleOn: string;
   titleOff: string;
   onChange: (pressed: boolean) => void;
+  /** `'pill'` (default) matches the schedule2 catalog toggle. `'circle'`
+   *  matches the height of a Bulma `is-toggle` tab pill — use this when
+   *  the toggle lives beside a (Cards | Table)-style tab group. */
+  shape?: 'pill' | 'circle';
 }
 
 export function buildToggleIconButton(params: ToggleIconButtonParams): HTMLButtonElement {
-  const { icon, pressed: initial, titleOn, titleOff, onChange } = params;
+  const { icon, pressed: initial, titleOn, titleOff, onChange, shape = 'pill' } = params;
   const btn = document.createElement('button');
-  btn.style.cssText = TOGGLE_BTN_BASE_STYLE;
+  btn.style.cssText = shape === 'circle' ? TOGGLE_BTN_CIRCLE_STYLE : TOGGLE_BTN_BASE_STYLE;
   btn.innerHTML = `<i class="fa-solid ${icon}" style="font-size: 0.75rem;"></i>`;
   applyToggleState(btn, initial, titleOn, titleOff);
   btn.addEventListener('click', () => {

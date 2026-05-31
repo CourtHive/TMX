@@ -189,6 +189,7 @@ export function drawControlBar({
       if (leftSlot) {
         const toggle = buildToggleIconButton({
           icon: 'fa-table-columns',
+          shape: 'circle',
           pressed: isMinimapPreferenceVisible(),
           titleOn: 'Hide draw minimap',
           titleOff: 'Show draw minimap',
@@ -199,6 +200,7 @@ export function drawControlBar({
           },
         });
         toggle.id = 'drawMinimapToggle';
+        toggle.style.marginRight = '6px';
         leftSlot.prepend(toggle);
       }
     }
