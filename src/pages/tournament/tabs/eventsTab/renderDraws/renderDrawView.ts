@@ -2,7 +2,14 @@
  * Draw view renderer with structure visualization.
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
-import { compositions, controlBar, renderContainer, renderInlineMatchUp, renderStructure } from 'courthive-components';
+import {
+  buildStructureMinimap,
+  compositions,
+  controlBar,
+  renderContainer,
+  renderInlineMatchUp,
+  renderStructure,
+} from 'courthive-components';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
@@ -22,6 +29,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
 import { applyCrowdsourcedBadges } from './applyCrowdsourcedBadges';
+import { shouldShowDrawMinimap, wireDrawMinimap } from './applyDrawMinimap';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
@@ -377,10 +385,31 @@ export function renderDrawView({
         );
       }
 
-      const content = renderContainer({
+      const containerEl = renderContainer({
         content: structureContent,
         theme: composition.theme,
       });
+
+      const roundCount = Object.keys(roundMatchUps || {}).length;
+      const showMinimap = shouldShowDrawMinimap({
+        drawType: drawData?.drawType,
+        initialRoundNumber,
+        participantFilter,
+        isAdHoc,
+        roundCount,
+      });
+
+      let content: HTMLElement = containerEl;
+      if (showMinimap) {
+        const minimap = buildStructureMinimap({ matchUps: displayMatchUps as any });
+        if (minimap) {
+          const frame = document.createElement('div');
+          frame.className = 'chc-draw-frame';
+          frame.appendChild(minimap);
+          frame.appendChild(containerEl);
+          content = frame;
+        }
+      }
 
       applyMorphdomUpdate(drawsView, content, displayMatchUps as any[], inlineManager);
 
@@ -392,6 +421,9 @@ export function renderDrawView({
         applyCrowdsourcedBadges(liveNode);
         if (drawData?.drawType === SWISS && stage !== QUALIFYING) {
           applySwissScoreGroupShading(liveNode, drawId);
+        }
+        if (liveNode.classList.contains('chc-draw-frame')) {
+          wireDrawMinimap(liveNode);
         }
       }
     }
