@@ -31,7 +31,7 @@ import { openApplyGridModal } from './applyGridModal';
 import { hiddenCourtIds } from './visibilityState';
 import { context } from 'services/context';
 
-import { COMPETITION_ENGINE, SCHEDULE2_TAB } from 'constants/tmxConstants';
+import { COMPETITION_ENGINE, SCHEDULE2_TAB, SCHEDULING_TAB } from 'constants/tmxConstants';
 
 const { calculateCapacityStats } = availability;
 
@@ -87,6 +87,19 @@ export function renderProfileView(
     onProfileChanged: (profile) => {
       // Persist profile to factory as a tournament extension
       saveProfile(profile);
+    },
+    onFixAction: (action) => {
+      // Row #1 of the scheduling workspace tracker: when an issue exposes a
+      // 'Tune availability' button (DATE_UNAVAILABLE / DAY_OVERLOAD), jump the
+      // workspace into Availability mode pre-focused on the date.
+      if (action.kind === 'OPEN_AVAILABILITY_GRID' && action.date) {
+        const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId;
+        if (tournamentId) {
+          context.router?.navigate(
+            `/tournament/${tournamentId}/${SCHEDULING_TAB}/${action.date}/availability`,
+          );
+        }
+      }
     },
   };
 

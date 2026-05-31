@@ -19,8 +19,8 @@
  *  - On Save: all queued methods sent as single mutationRequest
  *  - On Discard: factory state reloaded from IndexedDB
  */
-import { competitionEngine } from 'services/factory/engine';
-import { matchUpStatusConstants, factoryConstants, tools, unwrapOr } from 'tods-competition-factory';
+import { competitionEngine, tournamentEngine } from 'services/factory/engine';
+import { matchUpStatusConstants, factoryConstants, tools, unwrapOr, AvailabilityEngine } from 'tods-competition-factory';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -60,6 +60,7 @@ import type {
   ScheduleIssueSeverity,
   ActiveStripPanel,
   ActiveStripPanelData,
+  ActiveStripCourtBlock,
 } from 'courthive-components';
 
 // constants
@@ -117,6 +118,7 @@ let visibilityTip: Instance | null = null;
 let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
+let activeStripBlockTicker: ReturnType<typeof setInterval> | null = null;
 let catalogStateUnsubscribe: (() => void) | null = null;
 // Persisted view state (sidebar tab + scheduled-panel search / groupBy /
 // filters) lives in `gridViewStorage.ts` — extracted so the localStorage
@@ -405,6 +407,15 @@ export function renderGridView(
   activeStrip.update(initialState);
   syncStripOffset(initialState.activeStripVisible);
   activeStrip.setData(buildActiveStripData(currentDate));
+
+  // Periodic refresh of just the courtBlocks portion so availability blocks
+  // (PRACTICE / MAINTENANCE / etc.) appear and disappear with the clock.
+  // 30s cadence trades a small re-render cost for ~30s worst-case lag.
+  if (activeStripBlockTicker) clearInterval(activeStripBlockTicker);
+  activeStripBlockTicker = setInterval(() => {
+    if (!activeStrip) return;
+    activeStrip.setData(buildActiveStripData(currentDate));
+  }, 30000);
 
   // Strip cell clicks open the same popover as grid-cell clicks. Delegated
   // listener so it survives the strip's render() rebuilds.
@@ -974,6 +985,10 @@ export function destroyGridView(): void {
   if (catalogStateUnsubscribe) {
     catalogStateUnsubscribe();
     catalogStateUnsubscribe = null;
+  }
+  if (activeStripBlockTicker) {
+    clearInterval(activeStripBlockTicker);
+    activeStripBlockTicker = null;
   }
   activeStrip = null;
   latestStripSnapshot = null;
@@ -1828,6 +1843,64 @@ function extractParticipantIds(matchUp: any): string[] {
   return ids;
 }
 
+/**
+ * Build a courtId → ActiveStripCourtBlock map describing which availability
+ * blocks are active on each court right now. Used by the live strip to
+ * surface PRACTICE / MAINTENANCE / RESERVED time windows that aren't
+ * matchUps. Excludes SCHEDULED blocks since those are already shown as
+ * cells in the grid.
+ */
+function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtBlock> {
+  const { tournamentRecord } = tournamentEngine.getTournament() || {};
+  if (!tournamentRecord) return {};
+
+  let engine: any;
+  try {
+    engine = new AvailabilityEngine();
+    engine.init(tournamentRecord);
+  } catch {
+    return {};
+  }
+
+  let blocks: any[];
+  try {
+    blocks = engine.getDayBlocks(date) || [];
+  } catch {
+    return {};
+  }
+  if (!blocks.length) return {};
+
+  const now = new Date();
+  const courtBlocks: Record<string, ActiveStripCourtBlock> = {};
+
+  for (const block of blocks) {
+    if (block?.type === 'SCHEDULED') continue;
+    if (!block.start || !block.end || !block.court?.courtId) continue;
+
+    const start = new Date(block.start);
+    const end = new Date(block.end);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+    if (now < start || now >= end) continue;
+
+    const courtId = block.court.courtId;
+    if (courtBlocks[courtId]) continue;
+
+    courtBlocks[courtId] = {
+      type: block.type,
+      label: `${block.type} ${formatHM(start)}–${formatHM(end)}`,
+      detail: block.reason || undefined,
+    };
+  }
+
+  return courtBlocks;
+}
+
+function formatHM(d: Date): string {
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 /** Translate the factory schedule snapshot into the active-strip pure-logic shape. */
 function buildActiveStripData(date: string): ActiveStripPanelData {
   const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
@@ -1890,7 +1963,9 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const gridTemplateColumns = `${GRID_TIME_COL_WIDTH_PX}px repeat(${totalColumns}, minmax(${minCourtWidthPx}px, 1fr))`;
   const minWidth = `${GRID_TIME_COL_WIDTH_PX + totalColumns * minCourtWidthPx}px`;
 
-  return { grid: { columns }, courts, gridTemplateColumns, minWidth };
+  const courtBlocks = buildCurrentCourtBlocks(date);
+
+  return { grid: { columns }, courts, courtBlocks, gridTemplateColumns, minWidth };
 }
 
 /**
