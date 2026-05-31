@@ -20,6 +20,7 @@
  *  - On Discard: factory state reloaded from IndexedDB
  */
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { matchUpStatusConstants, factoryConstants, tools, unwrapOr, AvailabilityEngine } from 'tods-competition-factory';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
@@ -2021,6 +2022,31 @@ function handleActiveStripDrop(
   const court = courtsData.find((c) => c.courtId === target.courtId);
   if (!court) return;
 
+  // Row #2.7 — if the next availability block on this court would interrupt
+  // the matchUp before its average duration completes, surface a confirm
+  // modal so the TD makes the call deliberately. Skip when no block info or
+  // no format timing is available; the original drop behavior stands in
+  // those cases.
+  const blockCheck = checkBlockInterruption(payload.matchUp, target.courtId);
+  if (blockCheck) {
+    confirmModal({
+      title: 'Court will be unavailable before this matchUp completes',
+      query: `${blockCheck.blockType} starts at ${blockCheck.blockStartLabel} on this court. Expected play time is ~${blockCheck.averageMinutes} min, leaving only ${blockCheck.availableMinutes} min before the block. Schedule anyway?`,
+      okIntent: 'is-warning',
+      okAction: () => commitActiveStripDrop(payload, target, court, refresh),
+    });
+    return;
+  }
+
+  commitActiveStripDrop(payload, target, court, refresh);
+}
+
+function commitActiveStripDrop(
+  payload: { type: 'CATALOG_MATCHUP' | 'GRID_MATCHUP'; matchUp: any },
+  target: { courtId: string; rowIndex: number },
+  court: any,
+  refresh: () => void,
+): void {
   const courtOrder = target.rowIndex + 1;
   const methods: any[] = [];
 
@@ -2064,6 +2090,78 @@ function handleActiveStripDrop(
   });
 
   executeMethods(methods, refresh);
+}
+
+interface BlockInterruptionWarning {
+  blockType: string;
+  blockStartLabel: string;
+  averageMinutes: number;
+  availableMinutes: number;
+}
+
+/**
+ * Returns warning details when scheduling the given matchUp on a court
+ * starting "now" would not complete before the next availability block on
+ * that court begins. Returns undefined when no conflict — caller proceeds
+ * directly to the drop commit.
+ */
+function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptionWarning | undefined {
+  const { tournamentRecord } = tournamentEngine.getTournament() || {};
+  if (!tournamentRecord) return undefined;
+
+  // Average minutes for this matchUp format under the active scheduling timing.
+  let timing: any;
+  try {
+    timing = competitionEngine.getMatchUpFormatTiming?.({
+      matchUpFormat: matchUp.matchUpFormat,
+      eventType: matchUp.matchUpType,
+    });
+  } catch {
+    return undefined;
+  }
+  const averageMinutes = Number(timing?.averageMinutes);
+  if (!averageMinutes || !Number.isFinite(averageMinutes) || averageMinutes <= 0) return undefined;
+
+  let engine: any;
+  try {
+    engine = new AvailabilityEngine();
+    engine.init(tournamentRecord);
+  } catch {
+    return undefined;
+  }
+
+  let blocks: any[];
+  try {
+    blocks = engine.getDayBlocks(currentDate) || [];
+  } catch {
+    return undefined;
+  }
+  if (!blocks.length) return undefined;
+
+  const now = new Date();
+  let nextBlock: any | undefined;
+  for (const block of blocks) {
+    if (block?.type === 'SCHEDULED') continue;
+    if (!block.start || block.court?.courtId !== courtId) continue;
+    const start = new Date(block.start);
+    if (Number.isNaN(start.getTime()) || start <= now) continue;
+    if (!nextBlock || start < new Date(nextBlock.start)) nextBlock = block;
+  }
+  if (!nextBlock) return undefined;
+
+  const availableMinutes = Math.floor((new Date(nextBlock.start).getTime() - now.getTime()) / 60000);
+  if (availableMinutes >= averageMinutes) return undefined;
+
+  const blockStart = new Date(nextBlock.start);
+  const hh = String(blockStart.getHours()).padStart(2, '0');
+  const mm = String(blockStart.getMinutes()).padStart(2, '0');
+
+  return {
+    blockType: String(nextBlock.type),
+    blockStartLabel: `${hh}:${mm}`,
+    averageMinutes,
+    availableMinutes: Math.max(availableMinutes, 0),
+  };
 }
 
 /**
