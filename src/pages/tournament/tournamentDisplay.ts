@@ -21,6 +21,7 @@ import { showContent } from 'services/transitions/screenSlaver';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'services/factory/engine';
 import { factoryConstants } from 'tods-competition-factory';
+import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderTopologyPage } from './topologyPage';
@@ -212,6 +213,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
     if (tournamentRecord) {
       tournamentEngine.setState(tournamentRecord);
+      runActiveScaleAutoSwitch();
       renderTournament({ config });
     } else {
       notFound();
@@ -222,6 +224,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     const tryLocal = () => {
       if (tournamentRecord) {
         tournamentEngine.setState(tournamentRecord);
+        runActiveScaleAutoSwitch();
         renderTournament({ config });
       } else {
         notFound();
@@ -235,6 +238,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     }
   } else {
     tournamentEngine.setState(tournamentRecord);
+    runActiveScaleAutoSwitch();
     renderTournament({ config });
   }
 }
