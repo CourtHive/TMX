@@ -10,6 +10,10 @@ import { getAdHocRoundOptions } from '../options/adHocRoundOptions';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getRoundTabs } from '../options/getRoundTabs';
 import { controlBar } from 'courthive-components';
+import { isMinimapEligible, isMinimapPreferenceVisible } from './applyDrawMinimap';
+import { buildToggleIconButton } from 'components/buttons/toggleIconButton';
+import { persistConfigToStorage } from 'services/settings/settingsStorage';
+import { preferencesConfig } from 'config/preferencesConfig';
 
 // constants
 import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
@@ -27,6 +31,7 @@ export function drawControlBar({
   structure,
   callback,
   drawId,
+  participantFilter,
 }: {
   onInitialRoundChange?: (roundNumber: number) => void;
   initialRoundNumber?: number;
@@ -36,6 +41,7 @@ export function drawControlBar({
   existingView?: string;
   structure: any;
   drawId: string;
+  participantFilter?: string;
 }): void {
   const drawControl = document.getElementById(DRAW_CONTROL);
   const { sourceStructuresComplete, hasDrawFeedProfile } = structure ?? {};
@@ -163,5 +169,38 @@ export function drawControlBar({
 
   if (drawControlItems.length && drawControl) {
     controlInputs = controlBar({ target: drawControl, items: drawControlItems });
+  }
+
+  // Bracket minimap toggle — inserted into the LEFT slot so it sits to the
+  // left of the (Cards | Table) tab group. Only shown when the bracket is
+  // structurally eligible; flipping it persists the preference and forces a
+  // redraw so the gate re-evaluates with the new visibility.
+  if (drawControl) {
+    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+    const eligible = isMinimapEligible({
+      drawType: drawDefinition?.drawType,
+      initialRoundNumber: initialRoundNumber ?? 1,
+      participantFilter,
+      isAdHoc,
+      roundCount: roundNumbers?.length ?? 0,
+    });
+    if (eligible) {
+      const leftSlot = drawControl.querySelector('.options_left') as HTMLElement | null;
+      if (leftSlot) {
+        const toggle = buildToggleIconButton({
+          icon: 'fa-table-columns',
+          pressed: isMinimapPreferenceVisible(),
+          titleOn: 'Hide draw minimap',
+          titleOff: 'Show draw minimap',
+          onChange: (visible) => {
+            preferencesConfig.set({ drawMinimapVisible: visible });
+            persistConfigToStorage();
+            callback?.({ refresh: true });
+          },
+        });
+        toggle.id = 'drawMinimapToggle';
+        leftSlot.prepend(toggle);
+      }
+    }
   }
 }

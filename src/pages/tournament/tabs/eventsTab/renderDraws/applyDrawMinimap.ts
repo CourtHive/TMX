@@ -7,29 +7,46 @@
  * the draw frame.
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { deviceConfig } from 'config/deviceConfig';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 
-export function shouldShowDrawMinimap({
-  drawType,
-  initialRoundNumber,
-  participantFilter,
-  isAdHoc,
-  roundCount,
-}: {
+interface MinimapEligibilityParams {
   drawType?: string;
   initialRoundNumber: number;
   participantFilter?: string;
   isAdHoc?: boolean;
   roundCount: number;
-}): boolean {
+}
+
+/**
+ * Whether the draw is *structurally* eligible for the minimap — bracket
+ * size, device class, filter state. Does NOT consult the user's
+ * show/hide preference; use this to decide whether to *offer* the toggle.
+ */
+export function isMinimapEligible({
+  drawType,
+  initialRoundNumber,
+  participantFilter,
+  isAdHoc,
+  roundCount,
+}: MinimapEligibilityParams): boolean {
   if (deviceConfig.get().isMobile) return false;
   if (participantFilter) return false;
   if (isAdHoc) return false;
   if (initialRoundNumber !== 1) return false;
   if (roundCount < 5) return false;
   return drawType === SINGLE_ELIMINATION;
+}
+
+export function isMinimapPreferenceVisible(): boolean {
+  return preferencesConfig.get().drawMinimapVisible !== false;
+}
+
+/** Eligible AND the user hasn't hidden it via the toggle. */
+export function shouldShowDrawMinimap(params: MinimapEligibilityParams): boolean {
+  return isMinimapEligible(params) && isMinimapPreferenceVisible();
 }
 
 export function wireDrawMinimap(frame: HTMLElement): void {

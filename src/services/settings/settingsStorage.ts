@@ -84,6 +84,8 @@ export type TMXSettings = {
    * existing localStorage blobs deserialize cleanly.
    */
   unifiedEntriesTable?: boolean;
+  /** Whether the bracket minimap navigator appears on large SE draws. */
+  drawMinimapVisible?: boolean;
 };
 
 /**
@@ -144,6 +146,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.activeScale) prefsPatch.activeScale = settings.activeScale;
   if (settings.scoringApproach) prefsPatch.scoringApproach = settings.scoringApproach;
   if (settings.smartComplements !== undefined) prefsPatch.smartComplements = settings.smartComplements;
+  if (settings.drawMinimapVisible !== undefined) prefsPatch.drawMinimapVisible = settings.drawMinimapVisible;
   if (Object.keys(prefsPatch).length) {
     preferencesConfig.set(prefsPatch);
   }
@@ -177,6 +180,7 @@ export function persistConfigToStorage(
     activeScale: prefs.activeScale as TMXSettings['activeScale'],
     scoringApproach: prefs.scoringApproach,
     smartComplements: prefs.smartComplements,
+    drawMinimapVisible: prefs.drawMinimapVisible,
     saveLocal: server.saveLocal,
     assistant: flags.assistant,
     formatWizard: flags.formatWizard,

@@ -472,6 +472,7 @@ export function renderDrawView({
     structure,
     callback,
     drawId,
+    participantFilter,
   });
   const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
   const updateControlBar = (refresh?: boolean) => {
