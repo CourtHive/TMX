@@ -1,9 +1,15 @@
 /**
- * Scheduling workspace — Option C unified surface (in flight).
+ * Scheduling workspace — Option C unified surface.
  *
  * Replaces the two previously-separate tabs (`/schedule2` and
  * `/venues/availability`) with a single workspace that switches between
- * three modes sharing a workspace-level bulk pending-methods queue.
+ * three modes.
+ *
+ * Profile and Grid modes reuse the exact same view-rendering machinery as
+ * `/schedule2` (renderGridView, renderProfileView, buildGridHeaderActions,
+ * openClearScheduleMenu) so their layout + behavior is identical until the
+ * /schedule2 route is retired. Availability mode is still a placeholder
+ * pending its own migration in a follow-up commit.
  *
  * Routes:
  *   /tournament/:id/scheduling                                    → default mode for today's date
@@ -11,36 +17,42 @@
  *   /tournament/:id/scheduling/:date/availability
  *   /tournament/:id/scheduling/:date/profile
  *   /tournament/:id/scheduling/:date/grid
- *
- * Header (rendered into SCHEDULING_CONTROL) mirrors schedule2's `.sch2-header`
- * shape so the control bar visual is identical, with one extra segmented
- * option (Availability) on the line.
- *
- * Modes today are placeholders that defer to the existing implementations
- * via simple re-rendering. The mode-internals migration (sharing the
- * workspace queue, sharing chrome) follows in the next commit.
  */
 
-import { context } from 'services/context';
 import { competitionEngine } from 'services/factory/engine';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { context } from 'services/context';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { buildSchedulingHeader } from './schedulingHeader';
+import { buildGridHeaderActions } from '../schedule2Tab/gridHeaderActions';
+import {
+  renderGridView,
+  destroyGridView,
+  hasUnsavedGridChanges,
+  setGridBulkMode,
+  getGridBulkMode,
+  getUnsavedGridChangeCount,
+  searchGridCells,
+  buildScheduleDates,
+  refreshGridView,
+  setGridActiveStripVisible,
+  DEFAULT_MIN_COURT_GRID_ROWS,
+} from '../schedule2Tab/gridView';
+import { renderProfileView, destroyProfileView } from '../schedule2Tab/profileView';
+import { openClearScheduleMenu } from '../schedule2Tab/clearScheduleActions';
+import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
 import {
   subscribeQueue,
   hasUnsavedChanges,
   getPendingCount,
   savePending,
   discardPending,
-  isBulkMode,
-  setBulkMode,
 } from 'services/schedulingWorkspace/queueService';
 
-import {
-  SCHEDULING_CONTAINER,
-  SCHEDULING_CONTROL,
-  SCHEDULING_TAB,
-  TOURNAMENT,
-} from 'constants/tmxConstants';
+import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export type SchedulingMode = 'availability' | 'profile' | 'grid';
 
@@ -52,40 +64,90 @@ interface RenderSchedulingTabParams {
 const VALID_MODES: SchedulingMode[] = ['availability', 'profile', 'grid'];
 const DEFAULT_MODE: SchedulingMode = 'grid';
 
+// Share the same localStorage keys as /schedule2 so a user's catalog +
+// active-strip preferences carry across the two routes. When /schedule2 is
+// retired, these keys can stay — they're scoped to the user, not the route.
+const LAYOUT_SEL = '.spl-layout';
+const COLLAPSED_CLASS = 'spl-sidebar-collapsed';
+const GRID_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:grid';
+const PROFILE_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:profile';
+const ACTIVE_STRIP_VISIBILITY_KEY = 'schedule2:activeStrip';
+
+let queueUnsubscribe: (() => void) | null = null;
+let currentMode: SchedulingMode | null = null;
+
+function readBoolFlag(key: string, fallback: boolean): boolean {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored === null) return fallback;
+    return stored !== 'false';
+  } catch {
+    return fallback;
+  }
+}
+
+function writeBoolFlag(key: string, value: boolean): void {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    // storage unavailable
+  }
+}
+
 function isValidMode(value: string | undefined): value is SchedulingMode {
   return !!value && (VALID_MODES as string[]).includes(value);
 }
 
-let queueUnsubscribe: (() => void) | null = null;
-
-export function renderSchedulingTab({ scheduledDate, mode }: RenderSchedulingTabParams = {}): void {
+export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): void {
   const controlEl = document.getElementById(SCHEDULING_CONTROL);
   const containerEl = document.getElementById(SCHEDULING_CONTAINER);
   if (!controlEl || !containerEl) return;
 
-  const resolvedDate = scheduledDate || resolveScheduleDate();
-  const resolvedMode: SchedulingMode = isValidMode(mode) ? mode : DEFAULT_MODE;
+  const resolvedDate = params.scheduledDate || resolveScheduleDate();
+  const resolvedMode: SchedulingMode = isValidMode(params.mode) ? params.mode : DEFAULT_MODE;
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange() ?? { startDate: '', endDate: '' };
+  const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId ?? '';
 
+  // Persist selected date for cross-route continuity with /schedule2.
+  context.displayed.selectedScheduleDate = resolvedDate;
+
+  // Build the header into SCHEDULING_CONTROL (mirrors schedule2's pattern).
   controlEl.innerHTML = '';
+  destroyCurrentMode();
   containerEl.innerHTML = '';
-  containerEl.style.display = '';
 
   const header = buildSchedulingHeader({
     selectedDate: resolvedDate,
     activeMode: resolvedMode,
     startDate: startDate ?? '',
     endDate: endDate ?? '',
-    onDateChange: (date: string) => navigateTo(date, resolvedMode),
-    onModeChange: (newMode: SchedulingMode) => navigateTo(resolvedDate, newMode),
+    scheduleDates: buildScheduleDates(resolvedDate),
+    onDateChange: (date: string) => {
+      guardUnsavedAndProceed(() => {
+        context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${date}/${resolvedMode}`);
+      });
+    },
+    onModeChange: (newMode: SchedulingMode) => {
+      guardUnsavedAndProceed(() => {
+        context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${resolvedDate}/${newMode}`);
+      });
+    },
   });
   controlEl.appendChild(header);
 
-  containerEl.appendChild(buildModeStub(resolvedMode, resolvedDate));
-  containerEl.appendChild(buildBulkToggleRow());
-  containerEl.appendChild(buildActionBarMount());
+  // Render the active mode into the workspace container.
+  if (resolvedMode === 'profile') {
+    renderProfileMode(containerEl, resolvedDate);
+  } else if (resolvedMode === 'grid') {
+    renderGridMode(containerEl, resolvedDate, params);
+  } else {
+    renderAvailabilityPlaceholder(containerEl, resolvedDate);
+  }
 
-  // Subscribe so the action bar reflects bulk-queue changes from any mode.
+  // Subscribe to the workspace queue so the action bar reflects bulk-queue
+  // changes. (For Profile/Grid that still use schedule2's internal queue, the
+  // workspace bar stays inert; only the Availability mode currently writes
+  // through queueService.)
   queueUnsubscribe?.();
   queueUnsubscribe = subscribeQueue(refreshActionBar);
   refreshActionBar();
@@ -94,59 +156,159 @@ export function renderSchedulingTab({ scheduledDate, mode }: RenderSchedulingTab
 export function destroySchedulingTab(): void {
   queueUnsubscribe?.();
   queueUnsubscribe = null;
+  destroyCurrentMode();
 }
 
-function navigateTo(date: string, mode: SchedulingMode): void {
-  const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId;
-  if (!tournamentId) return;
-  context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${date}/${mode}`);
+function destroyCurrentMode(): void {
+  if (currentMode === 'grid') destroyGridView();
+  else if (currentMode === 'profile') destroyProfileView();
+  currentMode = null;
 }
 
-function labelForMode(mode: SchedulingMode): string {
-  if (mode === 'availability') return 'Availability';
-  if (mode === 'profile') return 'Profile';
-  return 'Grid';
+// ── Mode renderers ──
+
+function renderProfileMode(container: HTMLElement, scheduledDate: string): void {
+  currentMode = 'profile';
+  const profileCatalogVisible = readBoolFlag(PROFILE_CATALOG_VISIBILITY_KEY, true);
+
+  renderProfileView(container, scheduledDate, {
+    catalogVisible: profileCatalogVisible,
+    onToggleCatalog: (next: boolean) => {
+      writeBoolFlag(PROFILE_CATALOG_VISIBILITY_KEY, next);
+      const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+      if (layout) layout.classList.toggle(COLLAPSED_CLASS, !next);
+    },
+  });
+
+  // Profile view is configuration, not live data.
+  context.refreshActiveTable = undefined;
+
+  if (!profileCatalogVisible) {
+    const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+    if (layout) layout.classList.add(COLLAPSED_CLASS);
+  }
+
+  container.appendChild(buildActionBarMount());
 }
 
-function buildModeStub(mode: SchedulingMode, date: string): HTMLElement {
+function renderGridMode(container: HTMLElement, scheduledDate: string, params: RenderSchedulingTabParams): void {
+  currentMode = 'grid';
+  const gridCatalogVisible = readBoolFlag(GRID_CATALOG_VISIBILITY_KEY, true);
+  const activeStripVisible = readBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, true);
+  const controlAnchor = document.getElementById(SCHEDULING_CONTROL);
+
+  const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
+  const effectiveMinRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
+
+  const gridActions = buildGridHeaderActions({
+    selectedDate: scheduledDate,
+    bulkMode: getGridBulkMode(),
+    catalogVisible: gridCatalogVisible,
+    activeStripVisible,
+    minRows: effectiveMinRows,
+    onToggleCatalog: (next: boolean) => {
+      writeBoolFlag(GRID_CATALOG_VISIBILITY_KEY, next);
+      const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+      if (layout) layout.classList.toggle(COLLAPSED_CLASS, !next);
+    },
+    onToggleActiveStrip: (next: boolean) => {
+      writeBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, next);
+      setGridActiveStripVisible(next);
+    },
+    onMinRowsChange: (rows: number) => {
+      writeScheduleDisplayConfig({ minCourtGridRows: rows });
+      refreshGridView();
+    },
+    onSearch: (text: string) => searchGridCells(text),
+  });
+
+  renderGridView(container, scheduledDate, {
+    headerActions: gridActions.trailing,
+    titleLeadingActions: gridActions.leading,
+    titleSlot: gridActions.titleSlot,
+    activeStripVisible,
+    bulkMode: getGridBulkMode(),
+    onBulkModeChange: (enabled: boolean) => {
+      if (!enabled && hasUnsavedGridChanges()) {
+        const count = getUnsavedGridChangeCount();
+        confirmModal({
+          title: 'Discard unsaved changes?',
+          query: `You have ${count} unsaved scheduling change(s). Switching to immediate mode will discard them. Continue?`,
+          okIntent: 'is-warning',
+          okAction: () => {
+            setGridBulkMode(enabled);
+          },
+          cancelAction: () => {
+            if (controlAnchor) controlAnchor.innerHTML = '';
+            renderSchedulingTab(params);
+          },
+        });
+        return;
+      }
+      setGridBulkMode(enabled);
+    },
+    onClearSchedule: (target: any) =>
+      openClearScheduleMenu({
+        target,
+        scheduledDate,
+        onCleared: () => refreshGridView(),
+      }),
+  });
+
+  // Wire remote-mutation refresh so cells update when other clients schedule matchUps.
+  context.refreshActiveTable = refreshGridView;
+
+  if (!gridCatalogVisible) {
+    const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
+    if (layout) layout.classList.add(COLLAPSED_CLASS);
+  }
+
+  container.appendChild(buildActionBarMount());
+}
+
+function renderAvailabilityPlaceholder(container: HTMLElement, scheduledDate: string): void {
+  currentMode = null;
+
   const stub = document.createElement('div');
   stub.style.cssText = 'padding: 24px; min-height: 60vh;';
 
   const heading = document.createElement('h2');
-  heading.textContent = `${labelForMode(mode)} mode`;
+  heading.textContent = 'Availability mode';
   heading.style.cssText = 'margin: 0 0 8px;';
   stub.appendChild(heading);
 
   const sub = document.createElement('div');
-  sub.style.cssText = 'color: var(--tmx-text-muted, var(--tmx-muted, #666)); margin-bottom: 16px;';
-  sub.textContent = `Date: ${date}`;
+  sub.style.cssText = 'color: var(--tmx-muted, #666); margin-bottom: 16px;';
+  sub.textContent = `Date: ${scheduledDate}`;
   stub.appendChild(sub);
 
   const note = document.createElement('div');
   note.style.cssText =
-    'padding: 12px; background: var(--tmx-surface, var(--tmx-bg-secondary, #f4f4f4)); border-radius: 4px; color: var(--tmx-text-muted, var(--tmx-muted, #666)); font-size: 0.9rem;';
-  note.innerHTML = `This is a placeholder. Mode integration with the workspace queue is in flight — see <code>Mentat/planning/SCHEDULE2_AVAILABILITY_INTEGRATION.md</code>. Use the existing routes (<code>/schedule2/${date}</code>, <code>/venues/availability</code>) for live work until then.`;
+    'padding: 12px; background: var(--tmx-bg-secondary, #f4f4f4); border-radius: 4px; color: var(--tmx-muted, #666); font-size: 0.9rem;';
+  note.innerHTML =
+    'This is a placeholder. The availability painter migration into the workspace queue is in flight — see <code>Mentat/planning/SCHEDULE2_AVAILABILITY_INTEGRATION.md</code>. Use <code>/venues/availability</code> for live painting until then.';
   stub.appendChild(note);
 
-  return stub;
+  container.appendChild(stub);
+  container.appendChild(buildActionBarMount());
 }
 
-function buildBulkToggleRow(): HTMLElement {
-  const row = document.createElement('div');
-  row.style.cssText = 'padding: 0 24px 16px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--tmx-text-muted, var(--tmx-muted, #666));';
-  const label = document.createElement('label');
-  label.style.cssText = 'display: inline-flex; align-items: center; gap: 6px; cursor: pointer;';
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.checked = isBulkMode();
-  checkbox.addEventListener('change', () => {
-    setBulkMode(checkbox.checked);
+// ── Unsaved-changes guard (mirrors schedule2Tab) ──
+
+function guardUnsavedAndProceed(proceed: () => void): void {
+  if (!hasUnsavedGridChanges() && !hasUnsavedChanges()) {
+    proceed();
+    return;
+  }
+  confirmModal({
+    title: 'Discard unsaved changes?',
+    query: 'You have unsaved scheduling changes. Discard and continue?',
+    okIntent: 'is-warning',
+    okAction: () => proceed(),
   });
-  label.appendChild(checkbox);
-  label.appendChild(document.createTextNode('Bulk mode (workspace-level queue)'));
-  row.appendChild(label);
-  return row;
 }
+
+// ── Workspace queue action bar ──
 
 let actionBarRef: HTMLElement | null = null;
 
