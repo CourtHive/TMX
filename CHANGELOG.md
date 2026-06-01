@@ -1,5 +1,101 @@
 # Changelog
 
+## [7.0.0](https://github.com/CourtHive/TMX/compare/v6.0.1...v7.0.0) (2026-06-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** consume courthive-components v3.0.0 + factory 5.0.0; rename Temporal* → Availability*
+* import AvailabilityEngine from factory 5.0.0
+
+### Features
+
+* **active-rating:** auto-switch or prompt when loaded tournament lacks active rating ([1477741](https://github.com/CourtHive/TMX/commit/1477741d9fbbc58cab9096367e36c5f277fed9f6))
+* **active-rating:** nicer prompt layout — card-style chips for available + inactive ratings ([f0ad0e6](https://github.com/CourtHive/TMX/commit/f0ad0e6b40befb1532c2c3380aa7ae0986321db2))
+* **active-rating:** re-prompt when the tournament's rating set changes ([ad6acd8](https://github.com/CourtHive/TMX/commit/ad6acd8ad9216c515d9bed0292bc58b4e7f389fc))
+* **api:** handle /factory/save 400 + validationErrors with details modal ([3167c6a](https://github.com/CourtHive/TMX/commit/3167c6ad70b14fa5dc84dbdc4268d51b66ae4f13))
+* **api:** handle /factory/save 400 + validationErrors with details modal ([33b5ca6](https://github.com/CourtHive/TMX/commit/33b5ca6bc2c60929b107e3d82e7769dbc0137c3f))
+* **auth:** self-service recovery email modal in main menu ([#1104](https://github.com/CourtHive/TMX/issues/1104)) ([d18383c](https://github.com/CourtHive/TMX/commit/d18383c18ef051f48d38bbdfe15101d4a106050a))
+* **config:** apply provider themeTokens + stylesheetUrl in applyBranding ([7b8bb63](https://github.com/CourtHive/TMX/commit/7b8bb637887d15161a587f8e3cf855adba21a500))
+* **deps:** consume courthive-components v3.0.0 + factory 5.0.0; rename Temporal* → Availability* ([2ed5617](https://github.com/CourtHive/TMX/commit/2ed5617f067f461a2324ad9419f1a01a39d7ade9))
+* **draws:** circle variant for the minimap toggle ([c6cc631](https://github.com/CourtHive/TMX/commit/c6cc631fbc48004a905c8d0d95745d1854367e41))
+* **draws:** persistable show/hide toggle for the bracket minimap ([727e3b3](https://github.com/CourtHive/TMX/commit/727e3b3d4b5652b4fa5a0c3ef25958e8aaf889ba))
+* **draws:** viewport-fit minimap height, 8-segment threshold for ≥128 draws, true-circle toggle ([74ae34c](https://github.com/CourtHive/TMX/commit/74ae34c641031cbef805860cc1632aeeb9d29e9f))
+* **draws:** wire bracket minimap navigator into the draw view ([3337198](https://github.com/CourtHive/TMX/commit/333719895f18587befc0d2d9d3659bc6ce5da27e))
+* **import:** map a column to participantRole (COMPETITOR, COACH, MEDICAL, …) ([712fae4](https://github.com/CourtHive/TMX/commit/712fae4ac5298c4833152d7d59f3fc848c382e4d))
+* **import:** team affiliation + jersey number mapping in participant wizard ([043d639](https://github.com/CourtHive/TMX/commit/043d63926bef79438b72cc1d138397e93261d57d))
+* **matchups:** gender-tinted Type chips + future/past coloring for date and time columns ([d42d6c8](https://github.com/CourtHive/TMX/commit/d42d6c8e82e27cef10be7bbfa5aa66d0d2e259a1))
+* **participantProfile:** team affiliation + jersey number chips ([76f9660](https://github.com/CourtHive/TMX/commit/76f9660c563ab0953317af8a43fc5645b262482d))
+* **participants:** add Staff view + jersey # + team affiliation columns ([6b717ab](https://github.com/CourtHive/TMX/commit/6b717ab4aa30beb949117f0702b51b3d9857a3ee))
+* **participants:** team profile modal — roster + coaches + staff view ([9907cd4](https://github.com/CourtHive/TMX/commit/9907cd426b72834d74865c5891bac3fd7420b82e))
+* **participants:** wire PHYSIO + TRAINER roles into wizard + Staff view ([b214249](https://github.com/CourtHive/TMX/commit/b214249e300eafe0ca50dcfbce45d7daf83fc162))
+* **practice:** manage-practice-registrations modal ([f5b93b3](https://github.com/CourtHive/TMX/commit/f5b93b35e173b3f1d3426f75c097e533315616d5))
+* **practice:** open manage-registrations modal from availability-grid popover ([354b8b5](https://github.com/CourtHive/TMX/commit/354b8b549bad647d6b82cc5bcd04624b19722d39))
+* **practice:** tournament-wide default capacity setting on overview ([1bc60bd](https://github.com/CourtHive/TMX/commit/1bc60bd3edbf3ecf47e2ce4e277ed8d9a354794b))
+* **registrations:** director-side registrations tab (hiveid phase 2-B) ([1ab6041](https://github.com/CourtHive/TMX/commit/1ab6041de81929139d75e2fd97c5132ac767dd4b))
+* **registrations:** nav icon + visibility gates (hiveid phase 2-B.1) ([56b264c](https://github.com/CourtHive/TMX/commit/56b264c1942b3b0c40ddc2fda2bd1b53357f81dc))
+* **schedule2:** footer min cell-width stepper ([946bb1e](https://github.com/CourtHive/TMX/commit/946bb1e8bae03b4236cf33887c4c6bf4f3c12445))
+* **schedule2:** scheduled-panel parity with unscheduled catalog ([eb51a32](https://github.com/CourtHive/TMX/commit/eb51a324b252d8031b655e246011ffbc0bcf3117))
+* **schedule2:** search field on the Scheduled catalog panel ([8e34573](https://github.com/CourtHive/TMX/commit/8e34573f58f9612f7fbc448ae19805bde978171a))
+* **schedule2:** surface practice registrant names on active strip ([e4fb35c](https://github.com/CourtHive/TMX/commit/e4fb35c78969f0b8ce0e8f050f089d279cd116b9))
+* **schedule2:** surface stage + round-offset on catalog cards ([649b5e8](https://github.com/CourtHive/TMX/commit/649b5e81730c943c683eb3ca5ba4d23a14fcb775))
+* **schedule2:** symmetrical (n) badge on the Unscheduled tab ([92cb181](https://github.com/CourtHive/TMX/commit/92cb181def154afc982cd4b61bff48f6dff7e0ee))
+* **scheduling:** /scheduling/:date?/:mode? workspace shell + queue service ([be14d63](https://github.com/CourtHive/TMX/commit/be14d6385b12744f85b62549f97281cf7cd4a8b6))
+* **scheduling:** 301 redirects from /schedule2/* and /venues/availability ([250f46b](https://github.com/CourtHive/TMX/commit/250f46b4df83e7462256d4fa6eddd3fd25120c8a))
+* **scheduling:** align painter dirty state with workspace queue ([eb80586](https://github.com/CourtHive/TMX/commit/eb80586c434ab9db33769d93f8173855f15eee24))
+* **scheduling:** match schedule2 control-bar shape with 3-segment switcher ([1b417e8](https://github.com/CourtHive/TMX/commit/1b417e8bafa828d40bc0a74456a7f60e4ce0d602))
+* **scheduling:** row [#2](https://github.com/CourtHive/TMX/issues/2).7 — confirm modal when drop won't complete before block ([6aac5c4](https://github.com/CourtHive/TMX/commit/6aac5c4223252ca6a3d5d49f24cd68c64c3e9b05))
+* **scheduling:** row [#3](https://github.com/CourtHive/TMX/issues/3)(a) — always-visible capacity meter in profile ([46440ca](https://github.com/CourtHive/TMX/commit/46440ca7054329d89171dc039cbf387d712beaf3))
+* **scheduling:** wire AvailabilityGrid into workspace via queueService ([005ff31](https://github.com/CourtHive/TMX/commit/005ff314a50e87ad9412aef4476546218aa7b488))
+* **scheduling:** wire renderProfileView + renderGridView into workspace ([323eb5e](https://github.com/CourtHive/TMX/commit/323eb5e0d24585154aeba2587c8dba0008e784cb))
+* **scheduling:** wire row [#1](https://github.com/CourtHive/TMX/issues/1) + row [#2](https://github.com/CourtHive/TMX/issues/2) (workspace integration debut) ([5ac94c5](https://github.com/CourtHive/TMX/commit/5ac94c5cf7fd2e5d1663746fc48740db051ea8c6))
+* **scheduling:** workspace queue tests + UX polish ([85a997d](https://github.com/CourtHive/TMX/commit/85a997d7531704cd0a24afe98a6a9db42ed87487))
+* stamp matchUp.schedule.calledAt on active-strip drop ([905f993](https://github.com/CourtHive/TMX/commit/905f993c49b4657e1e1d90f6da92d56ef1e119be))
+* stamp matchUp.schedule.calledAt on active-strip drop ([a55d793](https://github.com/CourtHive/TMX/commit/a55d7933a3ba48379912351bf752fb5c9c36da23))
+* **venues:** default Court Name Base to "Court" in the Add venue drawer ([d2026e5](https://github.com/CourtHive/TMX/commit/d2026e52582115b2bb1a6be86e135bea6c4ece67))
+
+
+### Bug Fixes
+
+* **chatModal:** align send button to match input height ([3daa6e2](https://github.com/CourtHive/TMX/commit/3daa6e23f5004d1445f34fcfe3cfeb6c48dab0a0))
+* **deps:** update dependency @courthive/provider-config to ^0.4.0 ([c76a797](https://github.com/CourtHive/TMX/commit/c76a797703cdbabcedad78b3f1eba49e549bb87c))
+* **deps:** update dependency @courthive/provider-config to ^0.4.0 ([c447a5a](https://github.com/CourtHive/TMX/commit/c447a5a5a3a3dc8924b6c4c52e16a3b612226f61))
+* **deps:** update dependency courthive-components to v1.10.1 ([9fff352](https://github.com/CourtHive/TMX/commit/9fff352fc4162a2693534e8d89fff14ce82a9df4))
+* **deps:** update dependency dexie to v4.4.3 ([a896181](https://github.com/CourtHive/TMX/commit/a89618106d9d52cadb7b329e94c6741ba357d89e))
+* **deps:** update dependency pdf-factory to v0.8.2 ([0bbb774](https://github.com/CourtHive/TMX/commit/0bbb77489294d90540a7af9a05a5fc31e2f29d99))
+* **deps:** update dependency pdf-factory to v0.8.2 ([0bf463c](https://github.com/CourtHive/TMX/commit/0bf463cdfd3df76f66b472d622000f2c85006b43))
+* **dev:** seed engine + render full view in dev.load so parentOrganisation tournaments are usable ([f274dbb](https://github.com/CourtHive/TMX/commit/f274dbbd5163d9d39ed93de924fd5328544acd5b))
+* **e2e/40-minimap:** use named-import S so selectors resolve ([680151b](https://github.com/CourtHive/TMX/commit/680151be593abe9803ce0cabad9aa87e4fe494e1))
+* **i18n:** use 'regs' for Registrations tab so it doesn't collide with 'reg' ([ad8d6e8](https://github.com/CourtHive/TMX/commit/ad8d6e8585708a2d4d5801a35a41f579b7fc2b27))
+* **participants:** drop header filter + sort icons on jersey/affiliation ([0d6590e](https://github.com/CourtHive/TMX/commit/0d6590edeb0aaef76f89b9c803aaa013a40c2826))
+* **schedule2:** left-align Min Width stepper next to the issues button ([b73eb24](https://github.com/CourtHive/TMX/commit/b73eb2452d584662e691f07891e3315e2c739a1b))
+* **schedule2:** pass scheduleCompletedMatchUps when clearing includes completed ([2b29d0d](https://github.com/CourtHive/TMX/commit/2b29d0d93db5aacf45e5fd584b8c3f532b463e2a))
+* **schedule2:** refresh grid in place after Add venue from the grid placeholder ([52dee2b](https://github.com/CourtHive/TMX/commit/52dee2bf9636f7b09d5a2cac655b78525524301b))
+* **schedule2:** scheduled-panel adopts unscheduled-catalog header layout ([260948d](https://github.com/CourtHive/TMX/commit/260948d5e793354c2e3402a559964ee3d7e20770))
+* **scheduling:** live-strip warnings work when strip date != today ([33cd489](https://github.com/CourtHive/TMX/commit/33cd489f49c588793ee2cd112f8142a6bf531cc1))
+* **scheduling:** one Save button, not two — split painter dirty from workspace bar ([8bffd72](https://github.com/CourtHive/TMX/commit/8bffd727102e5c5ff08a64cf7adf5732743c7965))
+* **scheduling:** painter inherits workspace's selected date as initialDay ([3630550](https://github.com/CourtHive/TMX/commit/3630550631ca515e3f71fa291b3486bf9d2d554b))
+* **scheduling:** surface availability save errors + correct dirty-reset timing ([9143fe2](https://github.com/CourtHive/TMX/commit/9143fe2a93735fa276b54431cf0c9c55659207c9))
+* **scheduling:** wire onSave on workspace availability painter ([0b7520f](https://github.com/CourtHive/TMX/commit/0b7520f08e3c53632c32101fd0d1eeba45b7baa9))
+* **types:** delete dead keys passed to engine methods that never read them ([4fc3397](https://github.com/CourtHive/TMX/commit/4fc3397e8e85357391c301cfc5ee8db47fe81a66))
+* **types:** drop `as any` casts now that DrawDefinition declares flightNumber ([f296fb3](https://github.com/CourtHive/TMX/commit/f296fb3fa026898041e7f356b88b8e45e92ac474))
+* **types:** final TMX type-error cleanups (category G) ([75d19f2](https://github.com/CourtHive/TMX/commit/75d19f2446e2f9684f5ccc8e5061a761d7c00782))
+* **types:** narrow result envelopes + cast enum unions (categories A+B) ([baf5364](https://github.com/CourtHive/TMX/commit/baf5364a5445ebf8f0dba8e31d750157258e0095))
+* **types:** null-safety sweep across TMX consumers of typed engine surface ([f990c74](https://github.com/CourtHive/TMX/commit/f990c74e8e98446ad08c15496f5546360caf5765))
+* **types:** providerValue extends factory Organisation ([0dbcb09](https://github.com/CourtHive/TMX/commit/0dbcb09021cd012584312f10ea918fe5d0f30a19))
+* **types:** refresh cross-package cast comment in createRatingsTable ([8abccaa](https://github.com/CourtHive/TMX/commit/8abccaa2189fb5c23aa506cc2834e4a82c3052be))
+* **types:** widen eventFilter return + narrow activeDates union (category F) ([14ed13f](https://github.com/CourtHive/TMX/commit/14ed13ff32d576789dc44dd58982b2e07a60a147))
+
+
+### Documentation
+
+* **scheduling:** readme capturing the 7 workspace queue invariants ([2988bb5](https://github.com/CourtHive/TMX/commit/2988bb57edab460f708359fd872995b737d5463b))
+
+
+### Refactor
+
+* import AvailabilityEngine from factory 5.0.0 ([7061413](https://github.com/CourtHive/TMX/commit/70614130ff5e2ae980f79b760032a829fe629250))
+
 ## [6.0.1](https://github.com/CourtHive/TMX/compare/v6.0.0...v6.0.1) (2026-05-26)
 
 
