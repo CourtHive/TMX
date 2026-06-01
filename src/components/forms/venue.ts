@@ -44,7 +44,7 @@ export function venueForm({
       onChange,
     },
     {
-      value: values.courtNameBase || '',
+      value: values.courtNameBase || 'Court',
       label: t('pages.venues.addVenue.courtNameBase'),
       placeholder: t('pages.venues.addVenue.courtNameBasePlaceholder'),
       field: 'courtNameBase',
