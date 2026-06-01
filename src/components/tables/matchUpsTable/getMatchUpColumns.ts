@@ -211,7 +211,7 @@ export function getMatchUpColumns({
       titleFormatter,
       title: t('tables.matchUps.type'),
       hozAlign: CENTER,
-      width: 90,
+      width: 110,
     },
     {
       field: 'roundName',
