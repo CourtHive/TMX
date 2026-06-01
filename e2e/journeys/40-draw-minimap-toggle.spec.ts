@@ -10,11 +10,11 @@
  *     navigate within the same browser context still respects the user's
  *     hidden state until they re-enable it).
  */
-import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
-import * as S from '../helpers/selectors';
+import { test, expect } from '@playwright/test';
+import { S } from '../helpers/selectors';
 
 const SE_64_PROFILE: MockProfile = {
   tournamentName: 'E2E Minimap',
