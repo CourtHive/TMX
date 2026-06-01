@@ -467,6 +467,10 @@ function computeAttachQualifying(
       [QUALIFYING_FIRST]: { visible: false, disabled: true },
       [QUALIFIERS_COUNT]: { visible: true, disabled: false, value: qualifiersCount },
       [QUALIFYING_POSITIONS]: { visible: false, disabled: true },
+      // Seeding policy is not configurable in the attach flow — the
+      // qualifying structure inherits the existing draw's policy.
+      // Mirrors NEW_QUALIFYING / GENERATE_QUALIFYING.
+      [SEEDING_POLICY]: { visible: false, disabled: true },
       // Automated creation is disabled in the attach flow (mirrors current behavior).
       [AUTOMATED]: { visible: true, disabled: true },
     },

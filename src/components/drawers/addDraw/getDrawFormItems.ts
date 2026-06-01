@@ -318,6 +318,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     },
     {
       options: seedingPolicyOptions,
+      visible: fs[SEEDING_POLICY]?.visible ?? true,
       field: SEEDING_POLICY,
       label: t('drawers.addDraw.seedingPolicy'),
       value: '',
