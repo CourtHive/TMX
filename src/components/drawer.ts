@@ -32,6 +32,12 @@ export const drawer = (): any => {
   const setOnClose = (onClose: () => boolean | void) => (closeFx = onClose);
 
   const close = () => {
+    // Bail out when the drawer isn't open. Without this guard, every click
+    // outside the drawer (via the document clickHandler) schedules a 350ms
+    // setTimeout that removes `is-active`. If `open()` runs inside that
+    // window the stale timeout fires AFTER the drawer is rendered and tears
+    // down `is-active` mid-slide-in, leaving `is-visible` but `display:none`.
+    if (!drawerIsOpen) return;
     isFunction(closeFx) && closeFx && closeFx() && (closeFx = undefined);
     const target = document.getElementById(drawerId);
     if (!target) return;

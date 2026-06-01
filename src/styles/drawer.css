@@ -62,7 +62,7 @@
   width: 100%;
   max-width: 500px;
   z-index: 9999;
-  overflow: auto;
+  overflow: hidden;
 
   transition: transform 0.3s;
   will-change: transform;
@@ -74,8 +74,6 @@
   -webkit-transform: translate3d(103%, 0, 0);
   transform: translate3d(103%, 0, 0); /* extra 3% because of box-shadow */
 
-  -webkit-overflow-scrolling: touch; /* enables momentum scrolling in iOS overflow elements */
-
   /* Optional */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
@@ -84,8 +82,9 @@
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
-  height: 100%;
-  flex-grow: 1;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+  flex: 1 1 auto;
+  min-height: 0; /* allow flex child to shrink below intrinsic content size */
   /* Optional */
   padding: 1.5rem;
 }
