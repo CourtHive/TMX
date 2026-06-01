@@ -39,12 +39,22 @@ export class TMXDatabase {
     });
   };
 
-  resetDB = (callback?: () => void): void => {
+  resetDB = (callback?: () => void): Promise<void> => {
     this.dex.close();
-    Dexie.delete('TMX').then(callback, (err: any) => {
-      console.error('[IndexedDB] Failed to reset database:', err);
-      tmxToast({ message: 'Failed to reset database', intent: 'is-danger' });
-    });
+    return Dexie.delete('TMX').then(
+      () => {
+        // Re-init so subsequent writes don't hit a closed/deleted Dexie
+        // instance. Without this the next `addTournament` throws
+        // DatabaseClosedError, which (in `localSave`) prevents
+        // `mutationRequest`'s `completion()` from firing — UI callbacks
+        // that depend on the post-mutation result then never run.
+        return this.initDB().then(callback);
+      },
+      (err: any) => {
+        console.error('[IndexedDB] Failed to reset database:', err);
+        tmxToast({ message: 'Failed to reset database', intent: 'is-danger' });
+      },
+    );
   };
 
   findAll = (table: string): Promise<any[]> => {

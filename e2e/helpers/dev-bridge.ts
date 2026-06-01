@@ -24,7 +24,12 @@ export async function initDevBridge(page: Page): Promise<void> {
  * Reset the TMX database and clear state for a clean test run.
  */
 export async function resetState(page: Page): Promise<void> {
-  await page.evaluate(() => dev.tmx2db.resetDB());
+  // resetDB now reopens the Dexie database after delete; awaiting the
+  // returned promise (instead of fire-and-forget) ensures the next
+  // mutation/save doesn't race against a closed Dexie instance.
+  await page.evaluate(async () => {
+    await dev.tmx2db.resetDB();
+  });
 }
 
 /**
