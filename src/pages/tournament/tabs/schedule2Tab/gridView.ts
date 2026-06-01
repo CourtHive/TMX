@@ -70,7 +70,6 @@ import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConst
 import { ADD_MATCHUP_SCHEDULE_ITEMS, SET_MATCHUP_CALLED_AT } from 'constants/mutationConstants';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
-import { renderSchedule2Tab } from './schedule2Tab';
 
 const { scheduleConstants } = factoryConstants;
 
@@ -1659,7 +1658,12 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
   const handleAddVenue = () => {
     addVenue((result: any) => {
       if (result?.success) {
-        renderSchedule2Tab({ scheduledDate: currentDate });
+        // Refresh in place via the grid's own rebuild path (matches every
+        // other mutation in this file). The heavyweight renderSchedule2Tab
+        // tore down the entire tab and short-circuited back to a router
+        // navigate when currentDate happened to be empty, so the new
+        // venue's column would silently fail to appear.
+        callbacks.onRefresh();
       }
     }, COMPETITION_ENGINE);
   };
