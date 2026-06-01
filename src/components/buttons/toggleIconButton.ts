@@ -30,12 +30,15 @@ export const TOGGLE_BTN_BASE_STYLE = [
   'transition: background 0.15s, opacity 0.15s, color 0.15s',
 ].join('; ');
 
-/** Circular variant — same height as a Bulma is-toggle tab pill so the
- *  toggle can sit beside a tab group without breaking the visual rhythm. */
+/** Circular variant — matches the height of its tallest flex sibling (a Bulma
+ *  is-toggle tab pill in practice) via `align-self: stretch`. The width is
+ *  mirrored to that computed height by `buildToggleIconButton` after mount
+ *  via ResizeObserver, since `aspect-ratio: 1` on an inline-flex item with
+ *  intrinsic icon content didn't reliably derive width from the stretched
+ *  height across browsers. */
 export const TOGGLE_BTN_CIRCLE_STYLE = [
   'font-size: 0.75rem',
-  'width: 32px',
-  'height: 32px',
+  'align-self: stretch',
   'padding: 0',
   'border-radius: 50%',
   BORDER_PRIMARY,
@@ -71,6 +74,16 @@ export function buildToggleIconButton(params: ToggleIconButtonParams): HTMLButto
     applyToggleState(btn, next, titleOn, titleOff);
     onChange(next);
   });
+  if (shape === 'circle') {
+    // Mirror the stretched height onto width so the toggle stays circular
+    // regardless of the sibling tab pill's rendered size. Setting width
+    // doesn't change height, so ResizeObserver settles after one pass.
+    const syncDiameter = () => {
+      const h = btn.offsetHeight;
+      if (h && btn.style.width !== `${h}px`) btn.style.width = `${h}px`;
+    };
+    new ResizeObserver(syncDiameter).observe(btn);
+  }
   return btn;
 }
 

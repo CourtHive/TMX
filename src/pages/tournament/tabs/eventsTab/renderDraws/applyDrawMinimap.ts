@@ -8,6 +8,7 @@
  */
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { DRAWS_VIEW } from 'constants/tmxConstants';
 import { deviceConfig } from 'config/deviceConfig';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
@@ -47,6 +48,16 @@ export function isMinimapPreferenceVisible(): boolean {
 /** Eligible AND the user hasn't hidden it via the toggle. */
 export function shouldShowDrawMinimap(params: MinimapEligibilityParams): boolean {
   return isMinimapEligible(params) && isMinimapPreferenceVisible();
+}
+
+/**
+ * 4 segments works until each segment outgrows a screenful of bracket;
+ * on a 128 draw (round-1 = 64 matches) a quarter spans 16 matches which
+ * renders taller than a typical viewport, defeating the navigator. Bump
+ * to 8 segments once round-1 hits 64+ so each stays ≈ one screen tall.
+ */
+export function pickMinimapQuarterCount(round1Count: number): number {
+  return round1Count >= 64 ? 8 : 4;
 }
 
 export function wireDrawMinimap(frame: HTMLElement): void {
@@ -90,4 +101,33 @@ export function wireDrawMinimap(frame: HTMLElement): void {
     const top = fraction * container.scrollHeight - container.clientHeight / 2;
     container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   });
+
+  // Keep the minimap's rendered height equal to "top of #drawsView to bottom
+  // of the visible viewport". We size it explicitly in pixels rather than
+  // letting CSS calc with `100vh` because `100vh` doesn't account for the
+  // horizontal scrollbar that #drawsView paints at its bottom edge — that
+  // scrollbar steals a few px from window.innerHeight, and the resulting
+  // mismatch was hiding the bottom of the minimap. window.innerHeight is the
+  // post-scrollbar visible height, so subtracting drawsView's clamped top
+  // from it gives a pixel-exact "to bottom of viewport" height. rAF-throttled
+  // capture-phase scroll listener picks up any ancestor scroll container.
+  // The handler early-returns once the minimap leaves the DOM, so a leaked
+  // listener after navigation degrades to a no-op rather than erroring.
+  let offsetPending = false;
+  const updateOffset = () => {
+    offsetPending = false;
+    if (!minimap.isConnected) return;
+    const dv = document.getElementById(DRAWS_VIEW);
+    if (!dv) return;
+    const top = Math.max(0, dv.getBoundingClientRect().top);
+    minimap.style.height = `${Math.max(0, window.innerHeight - top)}px`;
+  };
+  const scheduleOffsetUpdate = () => {
+    if (offsetPending) return;
+    offsetPending = true;
+    requestAnimationFrame(updateOffset);
+  };
+  window.addEventListener('scroll', scheduleOffsetUpdate, { passive: true, capture: true });
+  window.addEventListener('resize', scheduleOffsetUpdate);
+  requestAnimationFrame(updateOffset);
 }

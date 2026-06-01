@@ -29,7 +29,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
 import { isAssignmentMode } from './participantAssignmentMode';
 import { applyCrowdsourcedBadges } from './applyCrowdsourcedBadges';
-import { shouldShowDrawMinimap, wireDrawMinimap } from './applyDrawMinimap';
+import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
@@ -401,7 +401,9 @@ export function renderDrawView({
 
       let content: HTMLElement = containerEl;
       if (showMinimap) {
-        const minimap = buildStructureMinimap({ matchUps: displayMatchUps as any });
+        const round1Count = roundMatchUps?.[initialRoundNumber ?? 1]?.length ?? 0;
+        const quarterCount = pickMinimapQuarterCount(round1Count);
+        const minimap = buildStructureMinimap({ matchUps: displayMatchUps as any, quarterCount });
         if (minimap) {
           const frame = document.createElement('div');
           frame.className = 'chc-draw-frame';
