@@ -90,7 +90,10 @@ test.describe('Journey 18 — Add entries to draws + post-draw flow', () => {
 
     // The overlay should show "Add to draw" option
     // (only visible when accepted segment selected + draw not generated)
-    const addToDrawBtn = page.getByText('Add to draw');
+    // exact:true so the locator matches the actual button, not the
+    // tournament title "E2E Add To Draw" (the test's mock-profile name
+    // happens to substring-match the button label).
+    const addToDrawBtn = page.getByText('Add to draw', { exact: true });
     const isVisible = await addToDrawBtn.first()
       .waitFor({ state: 'visible', timeout: 5_000 })
       .then(() => true)
@@ -118,7 +121,10 @@ test.describe('Journey 18 — Add entries to draws + post-draw flow', () => {
     await firstRow.click();
 
     // Click "Add to draw"
-    const addToDrawBtn = page.getByText('Add to draw');
+    // exact:true so the locator matches the actual button, not the
+    // tournament title "E2E Add To Draw" (the test's mock-profile name
+    // happens to substring-match the button label).
+    const addToDrawBtn = page.getByText('Add to draw', { exact: true });
     const isVisible = await addToDrawBtn.first()
       .waitFor({ state: 'visible', timeout: 5_000 })
       .then(() => true)
@@ -295,7 +301,10 @@ test.describe('Journey 18 — Add entries to draws + post-draw flow', () => {
     await page.waitForTimeout(500);
 
     // "Add to draw" should NOT be visible (draw already generated)
-    const addToDrawBtn = page.getByText('Add to draw');
+    // exact:true so the locator matches the actual button, not the
+    // tournament title "E2E Add To Draw" (the test's mock-profile name
+    // happens to substring-match the button label).
+    const addToDrawBtn = page.getByText('Add to draw', { exact: true });
     const isVisible = await addToDrawBtn.first().isVisible().catch(() => false);
     expect(isVisible).toBe(false);
   });
@@ -345,7 +354,10 @@ test.describe('Journey 18 — Add entries to draws + post-draw flow', () => {
     await page.waitForTimeout(300);
 
     // Check if "Add to draw" appears with multiple draw options
-    const addToDrawBtn = page.getByText('Add to draw');
+    // exact:true so the locator matches the actual button, not the
+    // tournament title "E2E Add To Draw" (the test's mock-profile name
+    // happens to substring-match the button label).
+    const addToDrawBtn = page.getByText('Add to draw', { exact: true });
     const isVisible = await addToDrawBtn.first()
       .waitFor({ state: 'visible', timeout: 5_000 })
       .then(() => true)
