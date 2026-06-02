@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.1.2](https://github.com/CourtHive/TMX/compare/v7.1.1...v7.1.2) (2026-06-02)
+
+
+### Bug Fixes
+
+* **add-draw:** hide draft creation option for drawmatic and swiss ([e3a957d](https://github.com/CourtHive/TMX/commit/e3a957d2690b7a7b79053559b757fe69f6155ad3))
+* **auth:** log refresh-token failure paths in performRefresh ([ebc1847](https://github.com/CourtHive/TMX/commit/ebc1847ec360e6e49efe0e5fe6515166fb8dd4cc))
+
 ## [7.1.1](https://github.com/CourtHive/TMX/compare/v7.1.0...v7.1.1) (2026-06-02)
 
 
