@@ -1,5 +1,25 @@
 # Changelog
 
+## [7.1.0](https://github.com/CourtHive/TMX/compare/v7.0.0...v7.1.0) (2026-06-02)
+
+
+### Features
+
+* **addDraw:** round-profile editor + custom lucky-draw flow ([f5c0837](https://github.com/CourtHive/TMX/commit/f5c0837e2c6c759dd88bb6d96becd0c0a5a3facd))
+
+
+### Bug Fixes
+
+* **addDraw:** hide SEEDING_POLICY in ATTACH_QUALIFYING (finish Polish 1) ([10304a0](https://github.com/CourtHive/TMX/commit/10304a0931db2714188f10ebd303682dccad1c59))
+* **drawer:** pin footer + bail close() when not open ([4a40f7a](https://github.com/CourtHive/TMX/commit/4a40f7a41cb2f9c869d810b8653318606fb27997))
+* **storage:** re-init Dexie after resetDB so subsequent writes survive ([0c2ddb6](https://github.com/CourtHive/TMX/commit/0c2ddb67b4ddbbb20d3b55d322f0465f88f39b34))
+
+
+### Documentation
+
+* **readme:** switch getting-started block from npm to pnpm ([fbecbd2](https://github.com/CourtHive/TMX/commit/fbecbd24f4b410d5453bd3cb015672e05844d512))
+* **tmx:** refresh stale sub-readmes for pdf service and freescore ([2fee1d1](https://github.com/CourtHive/TMX/commit/2fee1d105c0f0af2d9bab7383cdf522661ac3ce5))
+
 ## [7.0.0](https://github.com/CourtHive/TMX/compare/v6.0.1...v7.0.0) (2026-06-01)
 
 
