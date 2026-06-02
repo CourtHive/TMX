@@ -335,11 +335,10 @@ When extending the parser:
 2. Maintain backward compatibility
 3. Update documentation
 4. Use factory constants (don't define new ones locally)
-5. Run all tests: `npm test -- freeScore`
-6. Check linting: `npx eslint src/tools/freeScore/freeScore.ts`
+5. Run all tests: `pnpm test --run freeScore`
+6. Check linting: `pnpm exec eslint src/tools/freeScore/freeScore.ts`
 
 ---
 
 **Status**: Production-ready ✅  
-**Version**: TMX 3.0.60+  
-**Last Updated**: 2026-01-04
+**Available since**: TMX 3.0.60
