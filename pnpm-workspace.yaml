@@ -1,12 +1,21 @@
 packages:
   - .
 
-# Disable pnpm v11's supply-chain minimumReleaseAge policy. Recent
-# CourtHive-owned packages (factory, provider-config, i18n) often fall
-# within the policy's freshness window but are overridden to local
-# `link:../` paths below — the lockfile entries are advisory, not
-# fetched. The policy false-positives on those and blocks install.
-minimumReleaseAge: 0
+# Keep pnpm v11's supply-chain minimumReleaseAge policy active for
+# third-party packages (1440 minutes = 1 day floor), but exempt every
+# CourtHive package we publish ourselves so cross-repo release cascades
+# don't get blocked by their own freshness. CourtHive packages are also
+# `link:../` overridden below — the lockfile entries are advisory, not
+# fetched — but the exempt-list makes the install pass even when a fresh
+# install reads the lockfile without honoring the link override.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - 'tods-competition-factory'
+  - 'courthive-*'
+  - '@courthive/*'
+  - 'pdf-factory'
+  - 'scoring-visualizations'
+  - 'tabulator-scorecards'
 
 # pnpm v11 requires every transitive package with a lifecycle script
 # to be explicitly approved (true) or denied (false) here. Packages
