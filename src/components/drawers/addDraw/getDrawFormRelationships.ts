@@ -32,6 +32,7 @@ import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
   BEST_FINISHERS,
+  DRAFT,
   DRAW_MATIC,
   DRAW_NAME,
   DRAW_SIZE,
@@ -228,6 +229,19 @@ export function getDrawFormRelationships({
     fields[AUTOMATED].style.display = drawType === SWISS ? NONE : '';
     fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
     fields[QUALIFIERS_COUNT].style.display = isAdHocType && !isSwiss ? NONE : '';
+
+    // DRAFT positioning doesn't apply to DrawMatic or Swiss — both generate
+    // pairings algorithmically per round rather than from a pre-positioned
+    // bracket. Hide the option and snap any pre-existing DRAFT selection
+    // back to AUTOMATED so submit doesn't go down the draft path.
+    const automatedInput = inputs[AUTOMATED];
+    if (automatedInput?.options) {
+      const hideDraft = isDrawMatic || isSwiss;
+      for (const option of automatedInput.options) {
+        if (option.value === DRAFT) option.hidden = hideDraft;
+      }
+      if (hideDraft && automatedInput.value === DRAFT) automatedInput.value = AUTOMATED;
+    }
   };
 
   const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
