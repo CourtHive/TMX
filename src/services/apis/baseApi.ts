@@ -40,7 +40,14 @@ let refreshPromise: Promise<string | null> | null = null;
 
 async function performRefresh(): Promise<string | null> {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_NAME);
-  if (!refreshToken) return null;
+  if (!refreshToken) {
+    // Diagnostic: surface the "no RT stored" path so we can tell a true
+    // refresh-rejection from a client that never persisted one in the
+    // first place. Plain console.warn — the next thing that happens is
+    // logOut(), so a toast would just race the redirect.
+    console.warn('[baseApi] performRefresh: no refresh token in localStorage — will log out');
+    return null;
+  }
   try {
     const { data } = await axiosInstance.post('/auth/refresh', { refreshToken }, { silenceErrors: true } as any);
     if (data?.token) {
@@ -50,8 +57,11 @@ async function performRefresh(): Promise<string | null> {
       addAuthorization();
       return data.token;
     }
-  } catch {
-    /* fall through → null (caller handles logout) */
+    console.warn('[baseApi] performRefresh: server returned no token (data shape):', Object.keys(data ?? {}));
+  } catch (err: any) {
+    const status = err?.response?.status;
+    const message = err?.response?.data?.message || err?.message || 'unknown';
+    console.warn(`[baseApi] performRefresh: server rejected refresh status=${status} message=${message}`);
   }
   return null;
 }
