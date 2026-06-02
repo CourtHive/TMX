@@ -87,6 +87,18 @@ export function logIn({
     setToken(data.token);
     if (data.refreshToken) setRefreshToken(data.refreshToken);
     clearUserContext();
+    // Wipe any prior session's impersonated-provider context so the new
+    // user doesn't inherit it. Without this, a super-admin's impersonation
+    // pick (e.g. rooby@courthive.com viewing TYPTI Global) survives in
+    // localStorage and resolveInitialProvider() honors it as Step 1 for the
+    // *next* user to log in on the same browser — they'd then see the
+    // impersonated provider's calendar instead of their own. logOut()
+    // already clears this; logIn must too because users often arrive
+    // here from a tab close / browser reopen without an intervening
+    // explicit logout. (2026-06-02: charles@intennse.com saw a TYPTI
+    // tournament because of this.) The provider switcher below repopulates
+    // from the new user's associations.
+    clearActiveProvider();
     // Fire-and-forget: fetch the multi-provider user context from the server.
     // The context will be available by the time the user interacts with the
     // tournaments table or any provider-scoped UI element.

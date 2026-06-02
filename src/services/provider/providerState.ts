@@ -16,9 +16,9 @@ import { getLoginState } from 'services/authentication/loginState';
 import { baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
 
-import type { ProviderValue } from 'types/tmx';
+import type { LoginState, ProviderValue } from 'types/tmx';
 
-import { TMX_TOURNAMENTS } from 'constants/tmxConstants';
+import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
 export const IMPERSONATED_PROVIDER_KEY = 'tmx_impersonated_provider';
 
@@ -137,7 +137,29 @@ export function resolveInitialProvider(): ProviderValue | undefined {
 
   const persisted = readPersistedProvider();
   if (persisted?.organisationId && persisted.organisationName && persisted.organisationAbbreviation) {
-    return persisted;
+    // Validate against the *current* login before honoring. Defense in
+    // depth: logIn() clears the persisted value on every active sign-in,
+    // but a cross-tab session or any code path that establishes a session
+    // without going through logIn() (e.g. silent refresh on a freshly
+    // opened tab where the previous user's localStorage survived) could
+    // still leak a stale impersonation. Accept only when the current user
+    // could legitimately have picked this provider themselves:
+    //   - super-admin (can impersonate any provider),
+    //   - provisioner-admin for the persisted provider (out-of-band
+    //     impersonation is a provisioner privilege; same exemption applies
+    //     here as in admin-side flows), or
+    //   - has a direct user_providers association with it.
+    // Anything else is a stale-handoff leak; drop the value (clearing
+    // localStorage so subsequent loads don't keep tripping) and fall
+    // through to the JWT-driven precedence chain below.
+    if (canUsePersistedProvider(login, persisted.organisationId, associations)) {
+      return persisted;
+    }
+    try {
+      globalThis.localStorage?.removeItem(IMPERSONATED_PROVIDER_KEY);
+    } catch {
+      /* non-fatal */
+    }
   }
 
   if (associations.length === 0) return undefined;
@@ -167,6 +189,22 @@ export function resolveInitialProvider(): ProviderValue | undefined {
       } as ProviderValue;
     })()
   );
+}
+
+/**
+ * Is the persisted provider value still legitimate for the current login?
+ * See the call site in `resolveInitialProvider` for the rationale — this
+ * is the validation that prevents a stale super-admin impersonation
+ * handoff from leaking into a subsequent user's session.
+ */
+function canUsePersistedProvider(
+  login: LoginState,
+  providerId: string,
+  associations: Array<{ providerId: string }>,
+): boolean {
+  if (login.roles?.includes(SUPER_ADMIN)) return true;
+  if (login.provisionerProviders?.some((p) => p.providerId === providerId)) return true;
+  return associations.some((a) => a.providerId === providerId);
 }
 
 async function patchLastSelectedProvider(providerId: string | null): Promise<void> {
