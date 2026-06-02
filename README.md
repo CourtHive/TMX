@@ -23,14 +23,14 @@ Try TMX in your browser - import players from Google Sheets or TODS tournament f
 ## Getting Started
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (pnpm only — npm is blocked by `packageManager`)
+pnpm install
 
 # Development server
-npm run dev
+pnpm start
 
 # Build for production
-npm run build
+pnpm build
 ```
 
 ## Technology Stack
