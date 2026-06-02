@@ -227,7 +227,22 @@ function updateProviderBranding(): void {
   }
 
   if (stopBtn) {
-    if (provider?.organisationAbbreviation) {
+    // The "stop impersonating" X is meant for super-admins (or provisioner
+    // admins) who are viewing a provider they have no direct association
+    // with — clicking it drops them back to the unscoped TMX view. For a
+    // user operating in one of their *own* associated providers it makes
+    // no sense: charles@intennse.com (single INTENNSE association) is not
+    // impersonating anyone by being in INTENNSE; clicking the X just
+    // wipes their provider context and leaves them unable to fetch their
+    // tournaments (no provider scope = denied at the server). Same goes
+    // for a multi-provider user (e.g. clubx@ionsport.com) actively
+    // switching between ION and BOBOCA — both are theirs, neither is
+    // impersonation, and the switcher is the right control there.
+    //
+    // Hide unless the active provider is genuinely out-of-band: not in
+    // the user's direct associations. (Super-admins typically have no
+    // associations at all, so any active provider qualifies.)
+    if (provider?.organisationAbbreviation && isImpersonating(provider.organisationId)) {
       stopBtn.style.display = '';
       stopBtn.onclick = () => {
         clearActiveProvider();
@@ -238,4 +253,18 @@ function updateProviderBranding(): void {
       stopBtn.onclick = null;
     }
   }
+}
+
+/**
+ * True when the active provider is one the current user doesn't directly
+ * belong to — i.e. they reached it via super-admin impersonation or
+ * provisioner-managed access. False (no X displayed) for the common case
+ * of a user operating in one of their own associations.
+ */
+function isImpersonating(activeProviderId?: string): boolean {
+  if (!activeProviderId) return false;
+  const login = getLoginState();
+  if (!login) return false;
+  const associations = login.providerAssociations ?? [];
+  return !associations.some((a) => a.providerId === activeProviderId);
 }
