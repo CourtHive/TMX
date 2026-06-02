@@ -2,6 +2,13 @@
  * Panel for lucky draw round management.
  * Shows advancing winners (scrollable, informational) and eligible losers
  * (scrollable, row-selectable) with margin ratios for TD decision-making.
+ *
+ * Supports both single-LL (default LUCKY_DRAW ceil-halving cascade) and
+ * multi-LL (LUCKY_DRAW with an explicit roundProfile whose transitions
+ * demand more than one LL). The required count comes from
+ * `round.requiredLuckyLoserCount`; for N=1 the UX is identical to the
+ * single-select original. For N>1 the user selects exactly N losers and
+ * the modal submits `participantIds: string[]`.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
@@ -21,12 +28,10 @@ function clearSpans(row: Element) {
   row.querySelectorAll('span').forEach((s) => (s.style.color = ''));
 }
 
-function clearRowSelection(rows: NodeListOf<Element>) {
-  rows.forEach((r) => {
-    (r as HTMLElement).style.backgroundColor = '';
-    (r as HTMLElement).style.color = '';
-    clearSpans(r);
-  });
+function clearRow(row: HTMLElement) {
+  row.style.backgroundColor = '';
+  row.style.color = '';
+  clearSpans(row);
 }
 
 function highlightRow(row: HTMLElement) {
@@ -52,9 +57,11 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
 
   const winners = round.advancingWinners || [];
   const losers = round.eligibleLosers || [];
-  const canAdvance = round.needsLuckySelection && losers.length > 0;
+  // LUCKY_DRAW with an explicit roundProfile may require >1 LL per transition;
+  // the default ceil-halving cascade falls back to 1.
+  const requiredCount = Math.max(1, round.requiredLuckyLoserCount ?? 1);
+  const canAdvance = round.needsLuckySelection && losers.length >= requiredCount;
 
-  // Winners list (read-only scrollable box, first ~5 visible)
   const winnersHtml = winners.length
     ? winners
         .map(
@@ -67,7 +74,6 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
         .join('')
     : '<div style="color: var(--tmx-text-muted, #999); padding: 8px;">No winners yet</div>';
 
-  // Losers list (selectable rows)
   const losersHtml = losers.length
     ? losers
         .map((l: any, i: number) => {
@@ -90,27 +96,31 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
     : '<div style="color: var(--tmx-text-muted, #999); padding: 8px;">No completed matchUps with losers yet.</div>';
 
   const consolidationLinks = round.consolidationLinks || [];
-  const discardedCount = losers.length - 1; // all losers except the one selected
+
+  const selectionPrompt =
+    requiredCount === 1
+      ? 'Select a loser to advance.'
+      : `Select ${requiredCount} losers to advance.`;
 
   const statusText = round.isComplete
     ? round.needsLuckySelection
-      ? 'Round complete. Select a loser to advance.'
+      ? `Round complete. ${selectionPrompt}`
       : 'Round complete.'
     : `${round.completedCount} of ${round.matchUpsCount} matchUps complete.`;
 
-  const consolidationInfo =
-    canAdvance && consolidationLinks.length && discardedCount > 0
-      ? `<div style="color: var(--tmx-panel-green-border, #48c774); font-size: 12px; margin-top: 6px; font-style: italic;">
-          ${discardedCount} remaining loser${discardedCount > 1 ? 's' : ''} will be placed in the linked consolation structure.
-        </div>`
-      : '';
+  const counterId = 'lucky-loser-counter';
+  const counterHtml = canAdvance
+    ? `<div id="${counterId}" style="color: var(--tmx-text-secondary, #666); font-size: 12px; margin-top: 4px;">
+         Selected: <strong>0</strong> / ${requiredCount}
+       </div>`
+    : '';
 
   const winnersMaxHeight = Math.min(winners.length, 5) * 34 + 4;
 
   const content = `
     <div style="color: var(--tmx-text-secondary, #666); font-size: 13px; margin-bottom: 12px;">
       ${statusText}
-      ${consolidationInfo}
+      <div id="lucky-loser-consolidation-info" style="color: var(--tmx-panel-green-border, #48c774); font-size: 12px; margin-top: 6px; font-style: italic;"></div>
     </div>
     <div style="margin-bottom: 12px;">
       <div style="font-weight: 600; color: var(--tmx-text-secondary, #666); margin-bottom: 4px;">Advancing Winners (${winners.length})</div>
@@ -123,26 +133,32 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
       <div id="lucky-losers-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px;">
         ${losersHtml}
       </div>
+      ${counterHtml}
     </div>
   `;
 
-  let selectedIndex: number | null = null;
+  const selectedIndices = new Set<number>();
   let modalHandle: any;
 
   const advanceSelected = () => {
-    if (selectedIndex == null) {
-      tmxToast({ message: 'Select a loser to advance', intent: 'is-warning' });
+    if (selectedIndices.size !== requiredCount) {
+      tmxToast({
+        message: `Select exactly ${requiredCount} loser${requiredCount === 1 ? '' : 's'} to advance`,
+        intent: 'is-warning',
+      });
       return;
     }
 
-    const loser = losers[selectedIndex];
-    if (!loser) return;
+    // Preserve margin-rank order when submitting (eligibleLosers is sorted by
+    // narrowest margin first; selectedIndices reflects display order).
+    const selectedLosers = [...selectedIndices].sort((a, b) => a - b).map((i) => losers[i]);
+    const participantIds = selectedLosers.map((l: any) => l.participantId);
 
     mutationRequest({
       methods: [
         {
           method: LUCKY_DRAW_ADVANCEMENT,
-          params: { participantId: loser.participantId, roundNumber, structureId, drawId },
+          params: { participantIds, roundNumber, structureId, drawId },
         },
       ],
       callback: (mutationResult: any) => {
@@ -150,8 +166,9 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
         if (mutationResult?.error) {
           tmxToast({ message: mutationResult.error.message ?? 'Advancement failed', intent: 'is-danger' });
         } else {
+          const names = selectedLosers.map((l: any) => l.participantName ?? 'Participant').join(', ');
           tmxToast({
-            message: `${loser.participantName ?? 'Participant'} advanced to Round ${roundNumber + 1}`,
+            message: `${names} advanced to Round ${roundNumber + 1}`,
             intent: 'is-success',
           });
           callback({ refresh: true });
@@ -166,7 +183,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
       ? [
           {
             id: 'lucky-advance-btn',
-            label: 'Advance Selected',
+            label: requiredCount === 1 ? 'Advance Selected' : `Advance ${requiredCount} Selected`,
             intent: 'is-info',
             disabled: true,
             onClick: advanceSelected,
@@ -182,20 +199,63 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
     config: { padding: '.5', maxWidth: 650 },
   });
 
-  // Wire up row selection on losers
   if (canAdvance) {
     setTimeout(() => {
-      const rows = document.querySelectorAll('.lucky-loser-row');
+      const rows = document.querySelectorAll<HTMLElement>('.lucky-loser-row');
+      const counter = document.getElementById(counterId);
+      const consolidationInfo = document.getElementById('lucky-loser-consolidation-info');
 
-      const onRowClick = (row: Element) => {
-        const idx = Number.parseInt((row as HTMLElement).dataset.index || '');
-        if (Number.isNaN(idx)) return;
-        selectedIndex = idx;
-        clearRowSelection(rows);
-        highlightRow(row as HTMLElement);
-        modalHandle?.setButtonState('lucky-advance-btn', { disabled: false });
+      const updateUI = () => {
+        rows.forEach((row) => {
+          const idx = Number.parseInt(row.dataset.index || '');
+          if (selectedIndices.has(idx)) highlightRow(row);
+          else clearRow(row);
+        });
+
+        if (counter) {
+          counter.innerHTML = `Selected: <strong>${selectedIndices.size}</strong> / ${requiredCount}`;
+        }
+
+        const discardedCount = losers.length - selectedIndices.size;
+        if (consolidationInfo) {
+          if (selectedIndices.size === requiredCount && consolidationLinks.length && discardedCount > 0) {
+            consolidationInfo.textContent = `${discardedCount} remaining loser${discardedCount > 1 ? 's' : ''} will be placed in the linked consolation structure.`;
+          } else {
+            consolidationInfo.textContent = '';
+          }
+        }
+
+        modalHandle?.setButtonState('lucky-advance-btn', {
+          disabled: selectedIndices.size !== requiredCount,
+        });
       };
-      rows.forEach((row) => row.addEventListener('click', () => onRowClick(row)));
+
+      rows.forEach((row) => {
+        row.addEventListener('click', () => {
+          const idx = Number.parseInt(row.dataset.index || '');
+          if (Number.isNaN(idx)) return;
+
+          if (selectedIndices.has(idx)) {
+            selectedIndices.delete(idx);
+          } else if (selectedIndices.size < requiredCount) {
+            selectedIndices.add(idx);
+          } else if (requiredCount === 1) {
+            // Single-LL mode: clicking a different row replaces selection.
+            selectedIndices.clear();
+            selectedIndices.add(idx);
+          } else {
+            // Multi-LL at cap: ignore further additions (user must deselect first).
+            tmxToast({
+              message: `Already at ${requiredCount} selected — deselect one to choose another`,
+              intent: 'is-warning',
+            });
+            return;
+          }
+          updateUI();
+        });
+      });
+
+      updateUI();
     }, 0);
   }
 }

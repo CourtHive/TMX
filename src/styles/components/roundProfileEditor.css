@@ -1,0 +1,111 @@
+.rpe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  border: 1px solid var(--tmx-border-secondary);
+  border-radius: 4px;
+  background-color: var(--tmx-bg-tertiary);
+  color: var(--tmx-text-primary);
+}
+
+.rpe__label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tmx-text-secondary);
+}
+
+.rpe__label-sub {
+  font-weight: 400;
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+
+.rpe__strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  row-gap: 0.5rem;
+}
+
+.rpe__cell {
+  width: 3.5rem;
+  padding: 0.25rem 0.4rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--tmx-border-secondary);
+  border-radius: 3px;
+  background-color: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+}
+
+.rpe__cell:focus {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: -1px;
+}
+
+.rpe__cell--locked {
+  opacity: 0.6;
+  background-color: var(--tmx-bg-secondary);
+  cursor: not-allowed;
+}
+
+.rpe__arrow {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  min-width: 2.4rem;
+  color: var(--tmx-text-secondary);
+}
+
+.rpe__ll {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 0.15rem;
+  padding: 0 0.3rem;
+  border-radius: 8px;
+  background-color: var(--tmx-accent-blue);
+  color: var(--tmx-text-on-accent, white);
+  white-space: nowrap;
+}
+
+/* Dark mode: --tmx-accent-blue is lightened (#5b9bd5) for surface
+   contrast, which then leaves the chip's white text at ~2.7:1 against
+   that background — well under WCAG AA. Use a saturated deep blue so
+   the chip stays in the same color family but reads cleanly (≈5:1). */
+[data-theme='dark'] .rpe__ll {
+  background-color: #1e6fc4;
+}
+
+.rpe__error {
+  color: var(--tmx-status-error, #c0392b);
+  font-size: 0.8rem;
+  min-height: 1em;
+}
+
+.rpe__reset {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--tmx-border-secondary);
+  border-radius: 3px;
+  background-color: var(--tmx-bg-secondary);
+  color: var(--tmx-text-secondary);
+  cursor: pointer;
+}
+
+.rpe__reset:hover {
+  border-color: var(--tmx-border-focus);
+  color: var(--tmx-text-primary);
+}
+
+.rpe--disabled .rpe__strip {
+  color: var(--tmx-text-secondary);
+  font-style: italic;
+}

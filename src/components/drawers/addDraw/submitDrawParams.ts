@@ -6,6 +6,7 @@ import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieForma
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { validators } from 'courthive-components';
+import type { RoundProfileEditorController } from './roundProfileEditor';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
@@ -559,6 +560,7 @@ export function submitDrawParams({
   inputs,
   drawId,
   event,
+  roundProfileEditor,
 }: {
   drawName?: string;
   matchUpFormat?: string;
@@ -569,6 +571,7 @@ export function submitDrawParams({
   inputs: any;
   drawId?: string;
   event: any;
+  roundProfileEditor?: RoundProfileEditorController;
 }): void {
   const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked && !drawId && !structureId;
   const rawDrawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
@@ -598,7 +601,8 @@ export function submitDrawParams({
   const drawSizeInteger = tools.isConvertableInteger(drawSizeValue) && Number.parseInt(drawSizeValue);
   const effectiveIsQualifying = isQualifying || isQualifyingFirst;
   const drawSize =
-    ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC, SWISS].includes(drawType) && drawSizeInteger) ||
+    ([ADAPTIVE, LUCKY_DRAW, FEED_IN, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, AD_HOC, SWISS].includes(drawType) &&
+      drawSizeInteger) ||
     (effectiveIsQualifying && drawSizeInteger) ||
     tools.nextPowerOf2(drawSizeInteger);
   const qualifyingEntries = event.entries.filter(
@@ -640,6 +644,15 @@ export function submitDrawParams({
     drawId,
     isDraft,
   };
+
+  // LUCKY_DRAW: thread the explicit per-round matchUp-count profile from the
+  // editor into the factory when valid. If the editor returns null (e.g., odd
+  // drawSize, where the editor is disabled), omit the param and let the factory
+  // fall back to its default ceil-halving cascade.
+  if (drawType === LUCKY_DRAW) {
+    const roundProfile = roundProfileEditor?.getProfile();
+    if (roundProfile) drawOptions.roundProfile = roundProfile;
+  }
 
   const structureOptions = getStructureOptions(drawType, inputs);
   if (structureOptions === undefined && drawType === ROUND_ROBIN_WITH_PLAYOFF) return;

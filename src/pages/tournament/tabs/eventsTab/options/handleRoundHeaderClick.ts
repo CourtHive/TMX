@@ -50,8 +50,11 @@ export function handleRoundHeaderClick(props: any): void {
     const round = luckyStatus.rounds?.find((r: any) => r.roundNumber === roundNumber);
 
     if (round?.isPreFeedRound) {
+      const llCount = Math.max(1, round.requiredLuckyLoserCount ?? 1);
       const label = round.needsLuckySelection
-        ? 'Select lucky loser...'
+        ? llCount === 1
+          ? 'Select lucky loser...'
+          : `Select ${llCount} lucky losers...`
         : round.isComplete
           ? 'Lucky round details...'
           : `Lucky round (${round.completedCount}/${round.matchUpsCount})...`;

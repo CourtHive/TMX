@@ -17,6 +17,7 @@ import '../src/styles/components/buttons.css';
 import '../src/styles/components/tags.css';
 import '../src/styles/components/forms.css';
 import '../src/styles/components/layout.css';
+import '../src/styles/components/roundProfileEditor.css';
 import '../src/styles/theme.css';
 
 import '../src/styles/tournamentContainer.css';

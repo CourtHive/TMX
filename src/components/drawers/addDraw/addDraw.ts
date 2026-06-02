@@ -16,9 +16,13 @@ import { getTopologyTemplates } from './topologyTemplates';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
+import { mountRoundProfileEditor, RoundProfileEditorController } from './roundProfileEditor';
 import { generateDraw } from './generateDraw';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
+
+const { LUCKY_DRAW } = drawDefinitionConstants;
 import {
   getMatchUpFormatModal,
   renderButtons,
@@ -32,6 +36,7 @@ import { ATTACH_CONSOLATION_STRUCTURES, ATTACH_PLAYOFF_STRUCTURES } from 'consta
 import {
   CUSTOM,
   DRAW_NAME,
+  DRAW_SIZE,
   DRAW_TYPE,
   NONE,
   QUALIFYING_FIRST,
@@ -77,9 +82,43 @@ export function addDraw({
   });
 
   let inputs: any;
+  let roundProfileEditor: RoundProfileEditorController | undefined;
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, items, relationships);
     attachDrawTypeHelp(inputs);
+
+    // LUCKY_DRAW: bespoke chained-input round-profile editor mounted after the
+    // form. Visible whenever LUCKY_DRAW is selected; if the user touches the
+    // strip the explicit roundProfile is sent to the factory, otherwise the
+    // submit just lets the factory derive the default ceil-halving cascade.
+    const initialDrawSize = Number.parseInt(inputs[DRAW_SIZE]?.value) || 0;
+    roundProfileEditor = mountRoundProfileEditor(elem, { drawSize: initialDrawSize });
+    roundProfileEditor.setVisible(false);
+
+    const drawTypeInput = inputs[DRAW_TYPE] as HTMLSelectElement | undefined;
+    const drawSizeInput = inputs[DRAW_SIZE] as HTMLInputElement | undefined;
+
+    const syncEditorDrawSize = () => {
+      const size = Number.parseInt(drawSizeInput?.value || '0') || 0;
+      roundProfileEditor?.setDrawSize(size);
+    };
+    const syncEditorVisibility = () => {
+      const selectedDrawType =
+        drawTypeInput?.options?.[drawTypeInput.selectedIndex]?.getAttribute('value') ||
+        drawTypeInput?.value;
+      const isLucky = selectedDrawType === LUCKY_DRAW;
+      // drawType change triggers a drawSize coercion in getDrawFormRelationships
+      // (raw entry count for LUCKY_DRAW vs nextPowerOf2 for elimination types).
+      // Re-read drawSize before showing the editor so the freshly-coerced value
+      // populates the strip — otherwise the editor stays on the pre-change size.
+      if (isLucky) syncEditorDrawSize();
+      roundProfileEditor?.setVisible(isLucky);
+    };
+
+    drawTypeInput?.addEventListener('change', syncEditorVisibility);
+    drawSizeInput?.addEventListener('input', syncEditorDrawSize);
+    drawSizeInput?.addEventListener('change', syncEditorDrawSize);
+    syncEditorVisibility();
   };
 
   const isValid = () => {
@@ -115,6 +154,7 @@ export function addDraw({
             drawId,
             drawName,
             isQualifying,
+            roundProfileEditor,
           });
         }
       };
@@ -138,6 +178,7 @@ export function addDraw({
         drawId,
         drawName,
         isQualifying,
+        roundProfileEditor,
       });
     }
   };
