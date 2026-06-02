@@ -156,6 +156,11 @@ function rosterColumns(): any[] {
       field: 'jerseyNumber',
       width: 70,
       hozAlign: 'center',
+      headerHozAlign: 'center',
+      // tmx-no-sort-arrow hides the up/down indicator (the column is narrow
+      // and the indicator pushes the '#' off-center). Sort still works on
+      // header click — only the visual marker is suppressed.
+      headerCssClass: 'tmx-no-sort-arrow',
       headerSort: true,
       sorter: jerseySorter,
       formatter: (cell: any) => {
