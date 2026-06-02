@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.1.1](https://github.com/CourtHive/TMX/compare/v7.1.0...v7.1.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* **provider:** hide stop-impersonating X for users in their own provider ([8998abb](https://github.com/CourtHive/TMX/commit/8998abb032b28adbdd0c125ed33a91fdbede253d))
+* **provider:** wipe impersonated-provider on login + validate persisted value ([ddab0f0](https://github.com/CourtHive/TMX/commit/ddab0f08c4a829ef32177cd7daafc21c3c0e96d1))
+
 ## [7.1.0](https://github.com/CourtHive/TMX/compare/v7.0.0...v7.1.0) (2026-06-02)
 
 
