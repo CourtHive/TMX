@@ -441,7 +441,21 @@ export function createUnifiedEntriesPanel({
         hide: !!drawId,
       },
       {
-        onClick: () => addDraw({ eventId, callback: drawAdded }),
+        onClick: () => {
+          // Read selection at click time so user expectations match: whatever
+          // is highlighted in the table when the user presses "Add draw"
+          // becomes the new draw's entries (cross-stage allowed). Empty
+          // selection preserves the legacy behavior — fall back to
+          // entry-status-filtered event entries.
+          const selectedParticipantIds = (table?.getSelectedData() ?? [])
+            .filter((r: any) => !r._isSeparator && r.participantId)
+            .map((r: any) => r.participantId);
+          addDraw({
+            eventId,
+            callback: drawAdded,
+            ...(selectedParticipantIds.length ? { selectedParticipantIds } : {}),
+          });
+        },
         intent: 'is-primary',
         label: 'Add draw',
         location: RIGHT,

@@ -54,6 +54,11 @@ type AddDrawParams = {
   structureId?: string;
   eventId: string;
   drawId?: string;
+  /** When supplied, the new draw's `drawEntries` are derived from these
+   *  participantIds (cross-stage allowed) instead of falling back to
+   *  `event.entries` filtered by `DIRECT_ENTRY_STATUSES`. Passed through
+   *  from the unified entries panel when rows are selected at click time. */
+  selectedParticipantIds?: string[];
 };
 
 export function addDraw({
@@ -65,6 +70,7 @@ export function addDraw({
   drawName,
   eventId,
   drawId,
+  selectedParticipantIds,
 }: AddDrawParams): void {
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
@@ -155,6 +161,7 @@ export function addDraw({
             drawName,
             isQualifying,
             roundProfileEditor,
+            selectedParticipantIds,
           });
         }
       };
@@ -179,6 +186,7 @@ export function addDraw({
         drawName,
         isQualifying,
         roundProfileEditor,
+        selectedParticipantIds,
       });
     }
   };

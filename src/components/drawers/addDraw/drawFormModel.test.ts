@@ -238,6 +238,82 @@ describe('drawFormModel — GENERATE_QUALIFYING', () => {
     expect(view.derivedValues.qualifyingOnly).toBe(false);
     expect(view.fieldStates[STRUCTURE_NAME]?.visible).toBe(true);
   });
+
+  it('pre-fills qualifiersCount from the existing main structure qualifier slots', () => {
+    const event = makeEvent({ mainCount: 16, qualifyingCount: 48 });
+    const draw = {
+      drawId: 'D1',
+      structures: [
+        {
+          stage: 'MAIN',
+          stageSequence: 1,
+          structureId: 'main-1',
+          positionAssignments: Array.from({ length: 32 }, (_, i) => ({
+            drawPosition: i + 1,
+            ...(i < 16 ? { qualifier: true } : { participantId: `m${i}` }),
+          })),
+        },
+      ],
+      links: [],
+    };
+    const mode: DrawFormMode = { kind: 'GENERATE_QUALIFYING', event, draw };
+    const view = drawFormModel(mode, EMPTY_INPUTS);
+
+    expect(view.derivedValues.qualifiersCount).toBe(16);
+    expect(view.fieldStates[QUALIFIERS_COUNT]?.value).toBe(16);
+    expect(view.fieldStates[QUALIFIERS_COUNT]?.visible).toBe(true);
+    // drawSize derived from qualifying entries count (48 — non-power-of-2
+    // because SINGLE_ELIMINATION is power-of-2, so coerce to 64).
+    expect(view.derivedValues.drawSize).toBe(64);
+  });
+
+  it('falls back to existing-link qualifyingPositions when main has no qualifier slots tagged', () => {
+    const event = makeEvent({ qualifyingCount: 8 });
+    const draw = {
+      drawId: 'D1',
+      structures: [
+        {
+          stage: 'MAIN',
+          stageSequence: 1,
+          structureId: 'main-1',
+          positionAssignments: Array.from({ length: 16 }, (_, i) => ({ drawPosition: i + 1 })),
+        },
+      ],
+      links: [
+        {
+          target: { structureId: 'main-1' },
+          source: { structureId: 'qualif-1', roundNumber: 0, qualifyingPositions: 4 },
+        },
+      ],
+    };
+    const mode: DrawFormMode = { kind: 'GENERATE_QUALIFYING', event, draw };
+    const view = drawFormModel(mode, EMPTY_INPUTS);
+
+    expect(view.derivedValues.qualifiersCount).toBe(4);
+  });
+
+  it('honors a user-typed qualifiersCount override', () => {
+    const event = makeEvent({ qualifyingCount: 24 });
+    const draw = {
+      drawId: 'D1',
+      structures: [
+        {
+          stage: 'MAIN',
+          stageSequence: 1,
+          structureId: 'main-1',
+          positionAssignments: Array.from({ length: 32 }, (_, i) => ({
+            drawPosition: i + 1,
+            ...(i < 8 ? { qualifier: true } : {}),
+          })),
+        },
+      ],
+      links: [],
+    };
+    const mode: DrawFormMode = { kind: 'GENERATE_QUALIFYING', event, draw };
+    const view = drawFormModel(mode, { [QUALIFIERS_COUNT]: 12 });
+
+    expect(view.derivedValues.qualifiersCount).toBe(12);
+  });
 });
 
 /* ─── ATTACH_QUALIFYING ─────────────────────────────────────────────── */

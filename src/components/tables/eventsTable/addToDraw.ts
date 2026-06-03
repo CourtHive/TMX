@@ -5,6 +5,11 @@
  * "Available" excludes draws that every selected participant is already in,
  * and on click, participants already in the target draw are filtered out
  * (with a toast describing partial/no-op outcomes).
+ *
+ * `stage` defaults to MAIN. Callers pass QUALIFYING when the selected
+ * participants are qualifying-stage event entries; we mirror that on the
+ * draw entries so the factory's positioning step picks them up for the
+ * correct stage.
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -19,7 +24,7 @@ const { MAIN } = drawDefinitionConstants;
 const isInDraw = (row: any, drawId: string): boolean =>
   (row.flights || []).some((f: any) => f.drawId === drawId);
 
-const addTo = (table: any, event: any, drawId: string): void => {
+const addTo = (table: any, event: any, drawId: string, entryStage: string): void => {
   const eventId = event.eventId;
   const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
   const eligible = selected.filter((p: any) => !isInDraw(p, drawId));
@@ -42,7 +47,7 @@ const addTo = (table: any, event: any, drawId: string): void => {
       params: {
         entryStatus: DIRECT_ACCEPTANCE,
         ignoreStageSpace: true,
-        entryStage: MAIN,
+        entryStage,
         participantIds,
         eventId,
         drawId,
@@ -73,7 +78,7 @@ const addTo = (table: any, event: any, drawId: string): void => {
   mutationRequest({ methods, callback: postMutation });
 };
 
-export const addToDraw = (event: any, drawId?: string) => (table: any): any => {
+export const addToDraw = (event: any, drawId?: string, entryStage: string = MAIN) => (table: any): any => {
   const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
   const allDraws = (event.drawDefinitions || []).filter(Boolean);
 
@@ -85,7 +90,7 @@ export const addToDraw = (event: any, drawId?: string) => (table: any): any => {
     : allDraws;
 
   const options = availableDraws.map(({ drawName, drawId: ddId }: any) => ({
-    onClick: () => addTo(table, event, ddId),
+    onClick: () => addTo(table, event, ddId, entryStage),
     stateChange: true,
     label: drawName,
     value: ddId,

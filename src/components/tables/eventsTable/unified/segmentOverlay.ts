@@ -21,7 +21,7 @@ import { pairFromUnified } from './pairFromUnified';
 import { addToDraw } from '../addToDraw';
 
 // Constants
-import { REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
+import { REMOVE_DRAW_ENTRIES, REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING: QUAL_STAGE } = drawDefinitionConstants;
@@ -167,12 +167,55 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
 
   items.push(changeStatusHandler);
 
-  // Add to draw — only for accepted segment
-  if (!drawCreated) {
+  // Add to draw — available whenever draws exist on the event and the user is
+  // on the all-entries view (drawId undefined). The previous `!drawCreated`
+  // gate hid this even on the all-entries view once any draw existed; that
+  // made it impossible to add event-only entries to an existing draw without
+  // dropping back to factory calls. The inner addToDraw helper still hides
+  // itself when drawId is set or no draws qualify.
+  items.push((table: any) => {
+    const segments = getSelectedSegments(table);
+    if (segments.size !== 1) return { location: OVERLAY, hide: true };
+    const seg = [...segments][0];
+    if (seg !== ACCEPTED_RANK && seg !== QUALIFYING_RANK) return { location: OVERLAY, hide: true };
+    return addToDraw(event, drawId, seg === QUALIFYING_RANK ? QUAL_STAGE : MAIN)(table);
+  });
+
+  // Remove from draw — available when drawId is set (viewing a specific draw)
+  // and selected participants have no draw position assignment. The factory
+  // returns EXISTING_PARTICIPANT_DRAW_POSITION_ASSIGNMENT for placed
+  // participants; gate the option here too so the button doesn't appear
+  // when nothing is removable.
+  if (drawId) {
     items.push((table: any) => {
-      const segments = getSelectedSegments(table);
-      if (segments.size !== 1 || ![...segments].includes(ACCEPTED_RANK)) return { location: OVERLAY, hide: true };
-      return addToDraw(event, drawId)(table);
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      if (!selected.length) return { location: OVERLAY, hide: true };
+      const removable = selected.filter((r: any) => !r.drawPosition);
+      if (!removable.length) return { location: OVERLAY, hide: true };
+
+      return {
+        onClick: () => {
+          const participantIds = removable.map(({ participantId }: any) => participantId);
+          const methods = [
+            { method: REMOVE_DRAW_ENTRIES, params: { eventId, drawId, participantIds } },
+          ];
+          const postMutation = (result: any) => {
+            if (result?.success) {
+              table.deselectRow();
+              onRefresh();
+              return;
+            }
+            tmxToast({
+              message: result?.error?.message ?? 'Error removing from draw',
+              intent: 'is-danger',
+            });
+          };
+          mutationRequest({ methods, callback: postMutation });
+        },
+        label: 'Remove from draw',
+        intent: 'is-warning',
+        location: OVERLAY,
+      };
     });
   }
 

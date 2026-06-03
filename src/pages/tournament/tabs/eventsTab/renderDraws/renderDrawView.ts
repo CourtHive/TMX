@@ -33,6 +33,7 @@ import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from 
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
+import { maybeRenderGenerateQualifyingBanner } from './generateQualifyingBanner';
 import { generateMain } from './generateMain';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
@@ -428,6 +429,21 @@ export function renderDrawView({
           wireDrawMinimap(liveNode);
         }
       }
+
+      // Recovery banner: main has reserved qualifier slots but no
+      // QUALIFYING structure exists. The helper internally short-circuits
+      // when the conditions don't hold; safe to call from every bracket
+      // render and rely on it to clear any stale banner on re-renders.
+      const { drawDefinition: liveDrawDefinition } = tournamentEngine.getEvent({ drawId }) ?? {};
+      maybeRenderGenerateQualifyingBanner({
+        container: drawsView,
+        drawDefinition: liveDrawDefinition,
+        stage,
+        drawId,
+        eventId,
+        drawName: drawData?.drawName,
+        callback,
+      });
     }
   };
 

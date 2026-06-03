@@ -431,14 +431,58 @@ function computePopulateMain(
 function computeGenerateQualifying(
   mode: Extract<DrawFormMode, { kind: 'GENERATE_QUALIFYING' }>,
   inputs: DrawFormInputs,
-  options: DrawFormModelOptions,
+  _options: DrawFormModelOptions,
 ): DrawFormView {
-  // GENERATE_QUALIFYING and NEW_QUALIFYING produce the same form view today —
-  // both build a fresh qualifying structure from the qualifying entries. The
-  // distinction lives in the post-commit flow (GENERATE_QUALIFYING attaches
-  // to an existing main draw via `mode.draw`), which the model itself does
-  // not need to express. Delegate so the rules stay in one place.
-  return computeNewQualifying({ kind: 'NEW_QUALIFYING', event: mode.event }, inputs, options);
+  // Same view as NEW_QUALIFYING with two pre-fills derived from the existing
+  // main draw: qualifiersCount from reserved qualifier positions, and drawSize
+  // from the qualifying entries count (raw for non-power-of-2 types, coerced
+  // for elimination types). Without these, the user submits with the legacy
+  // defaults (0 / qualifying-entries.length) which silently produces a
+  // qualifying structure that doesn't actually feed the main.
+  const drawType = pickDrawType(inputs, QUALIFYING_DRAW_TYPES, SINGLE_ELIMINATION);
+  const qualifyingEntries = filterEntriesForStage(mode.event, 'QUALIFYING');
+  const inferredQualifiersCount = inferReservedQualifierCount(mode.draw);
+  const qualifiersCount = readNumericInput(inputs[QUALIFIERS_COUNT], inferredQualifiersCount);
+  const rawDrawSize = qualifyingEntries.length || 0;
+  const drawSize = readNumericInput(inputs[DRAW_SIZE], coerceDrawSize(rawDrawSize, drawType));
+
+  return {
+    fieldStates: {
+      ...newDrawCommonFieldStates(drawType),
+      [DRAW_NAME]: { visible: false, disabled: true },
+      [STRUCTURE_NAME]: { visible: true, disabled: false, value: 'Qualifying' },
+      [QUALIFYING_FIRST]: { visible: false, disabled: true },
+      [QUALIFIERS_COUNT]: { visible: true, disabled: false, value: qualifiersCount },
+      [QUALIFYING_POSITIONS]: { visible: false, disabled: true },
+      [SEEDING_POLICY]: { visible: false, disabled: true },
+    },
+    derivedValues: {
+      drawSize,
+      qualifiersCount,
+      drawEntries: qualifyingEntries,
+      qualifyingOnly: false,
+    },
+    validationErrors: validateDrawSize(drawSize, qualifyingEntries.length, 0),
+    allowedDrawTypes: QUALIFYING_DRAW_TYPES,
+    availableSeedingPolicies: [],
+    tieFormatRequired: false,
+  };
+}
+
+/** Count `positionAssignments.qualifier === true` on the draw's MAIN structure.
+ *  This is the source of truth for "how many qualifying slots are reserved";
+ *  prefer it over the qualifying link's `source.qualifyingPositions` metadata
+ *  because the link may be missing or dangling when the placeholder has been
+ *  removed (the recovery-banner scenario). */
+function inferReservedQualifierCount(draw: any): number {
+  const mainStructure = draw?.structures?.find((s: any) => s?.stage === 'MAIN' && s?.stageSequence === 1);
+  const positionAssignments = mainStructure?.positionAssignments ?? [];
+  const fromPositions = positionAssignments.filter((p: any) => p?.qualifier === true).length;
+  if (fromPositions > 0) return fromPositions;
+  // Fall back to the existing placeholder-link inference when the main has
+  // no qualifier-marked positions (legacy draws where the link metadata
+  // carried the count but the positions were never tagged).
+  return inferExistingQualifiersCount(draw);
 }
 
 function computeAttachQualifying(

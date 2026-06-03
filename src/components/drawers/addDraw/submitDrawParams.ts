@@ -550,6 +550,42 @@ function handleDrawGeneration(params: {
   }
 }
 
+/** Resolve which entries become the new draw's `drawEntries`.
+ *  Priority:
+ *   1. Caller's explicit `selectedParticipantIds` (from a unified-table selection).
+ *   2. Qualifying-stage event entries when the form is in a qualifying flow.
+ *   3. The flight's MAIN drawEntries, if any.
+ *   4. Event-level MAIN entries as the final fallback. */
+function resolveDrawEntries({
+  event,
+  flight,
+  effectiveIsQualifying,
+  qualifyingEntries,
+  selectedParticipantIds,
+}: {
+  event: any;
+  flight: any;
+  effectiveIsQualifying: boolean;
+  qualifyingEntries: any[];
+  selectedParticipantIds?: string[];
+}): any[] {
+  if (selectedParticipantIds?.length) {
+    const selectedSet = new Set<string>(selectedParticipantIds);
+    const selectionEntries = event.entries.filter((e: any) => selectedSet.has(e.participantId));
+    if (selectionEntries.length) return selectionEntries;
+  }
+  if (effectiveIsQualifying && qualifyingEntries.length) return qualifyingEntries;
+  const flightMainEntries = (flight?.drawEntries || []).filter(
+    ({ entryStage, entryStatus }: any) =>
+      (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+  );
+  if (flightMainEntries.length) return flightMainEntries;
+  return event.entries.filter(
+    ({ entryStage, entryStatus }: any) =>
+      (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+  );
+}
+
 export function submitDrawParams({
   drawName: existingDrawName,
   matchUpFormat: providedMatchUpFormat,
@@ -561,6 +597,7 @@ export function submitDrawParams({
   drawId,
   event,
   roundProfileEditor,
+  selectedParticipantIds,
 }: {
   drawName?: string;
   matchUpFormat?: string;
@@ -572,6 +609,7 @@ export function submitDrawParams({
   drawId?: string;
   event: any;
   roundProfileEditor?: RoundProfileEditorController;
+  selectedParticipantIds?: string[];
 }): void {
   const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked && !drawId && !structureId;
   const rawDrawType = inputs[DRAW_TYPE].options[inputs[DRAW_TYPE].selectedIndex].getAttribute('value');
@@ -608,29 +646,28 @@ export function submitDrawParams({
   const qualifyingEntries = event.entries.filter(
     ({ entryStage, entryStatus }: any) => entryStage === QUALIFYING && DIRECT_ENTRY_STATUSES.includes(entryStatus),
   );
-  const mainEntriesFromEvent = event.entries.filter(
-    ({ entryStage, entryStatus }: any) =>
-      (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
+  const drawEntries = resolveDrawEntries({
+    event,
+    flight,
+    effectiveIsQualifying,
+    qualifyingEntries,
+    selectedParticipantIds,
+  });
+
+  // Only entries that will actually contend for the new draw's stage count
+  // against drawSize. Cross-stage entries ride along on drawDefinition.entries
+  // (see generateNewDrawDefinition.addEntries) and don't occupy structure
+  // positions, so they must not feed `automated`, `requiredPositions`, or
+  // the validation toast below.
+  const stageEntries = drawEntries.filter((e: any) =>
+    effectiveIsQualifying ? e.entryStage === QUALIFYING : !e.entryStage || e.entryStage === MAIN,
   );
-  // flight.drawEntries may only contain one stage (e.g. qualifying-first creates
-  // a flight with QUALIFYING entries only); fall through to event MAIN entries
-  // when the flight has no main entries.
-  const flightMainEntries = (flight?.drawEntries || []).filter(
-    ({ entryStage, entryStatus }: any) =>
-      (!entryStage || entryStage === MAIN) && DIRECT_ENTRY_STATUSES.includes(entryStatus),
-  );
-  const drawEntries =
-    effectiveIsQualifying && qualifyingEntries.length
-      ? qualifyingEntries
-      : flightMainEntries.length
-        ? flightMainEntries
-        : mainEntriesFromEvent;
 
   const creationValue = inputs[AUTOMATED].value;
   const isDraft = creationValue === DRAFT;
   const isLucky = drawType === LUCKY_DRAW;
   const automated =
-    drawSize < drawEntries.length
+    drawSize < stageEntries.length
       ? false
       : isDraft
         ? { seedsOnly: true }
@@ -662,7 +699,7 @@ export function submitDrawParams({
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);
 
   const seedsCount = tournamentEngine.getSeedsCount({
-    participantsCount: drawEntries?.length,
+    participantsCount: stageEntries.length,
     policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
     drawSizeProgression: true,
   })?.seedsCount;
@@ -688,10 +725,10 @@ export function submitDrawParams({
     return;
   }
 
-  const requiredPositions = drawEntries.length + qualifiersCount;
+  const requiredPositions = stageEntries.length + qualifiersCount;
   if (!effectiveIsQualifying && !isPopulateMain && qualifiersCount && drawSize < requiredPositions) {
     tmxToast({
-      message: `Draw size (${drawSize}) must be at least ${requiredPositions} (${drawEntries.length} entries + ${qualifiersCount} qualifiers)`,
+      message: `Draw size (${drawSize}) must be at least ${requiredPositions} (${stageEntries.length} entries + ${qualifiersCount} qualifiers)`,
       intent: IS_WARNING,
       pauseOnHover: true,
     });
