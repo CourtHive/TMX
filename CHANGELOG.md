@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.2.0](https://github.com/CourtHive/TMX/compare/v7.1.2...v7.2.0) (2026-06-03)
+
+
+### Features
+
+* **add-draw:** qualifying recovery banner + selection-aware draw entries ([03032ef](https://github.com/CourtHive/TMX/commit/03032efdb7ff42fcc663d91c11ab44a01969d713))
+
+
+### Bug Fixes
+
+* **deps:** update dependency tods-competition-factory to v5.2.2 ([dac2ee5](https://github.com/CourtHive/TMX/commit/dac2ee5a03ccbcfc4a050a91cf80765a138ddcb5))
+
 ## [7.1.2](https://github.com/CourtHive/TMX/compare/v7.1.1...v7.1.2) (2026-06-02)
 
 
