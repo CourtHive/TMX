@@ -17,6 +17,14 @@ minimumReleaseAgeExclude:
   - 'scoring-visualizations'
   - 'tabulator-scorecards'
 
+# pnpm v11 runs a deps-status check before every `pnpm <script>` invocation.
+# That fires the husky commit-msg hook (`pnpm run commitlint`) into pnpm,
+# which then aborts the commit if the lockfile is briefly out of sync with
+# the manifest — exactly the state a `git commit` of a dep bump produces
+# between the staging step and the lockfile-sync step. Suppress it.
+# (Same setting already in courthive-public/factory pnpm-workspace.yaml.)
+verifyDepsBeforeRun: false
+
 # pnpm v11 requires every transitive package with a lifecycle script
 # to be explicitly approved (true) or denied (false) here. Packages
 # left out trigger ERR_PNPM_IGNORED_BUILDS on fresh installs.
