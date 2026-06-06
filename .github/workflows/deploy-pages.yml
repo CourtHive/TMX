@@ -1,0 +1,83 @@
+name: deploy-pages
+
+# Builds TMX and publishes the artifact to the `docs/` folder of the `docs`
+# branch — which is where this repo's GitHub Pages site is served from
+# (Settings → Pages: source = `docs` branch, `/docs` path).
+#
+# Fires when release-please publishes a GitHub release, so Pages tracks
+# released versions only — transient main commits do not deploy. The
+# manual `workflow_dispatch` trigger is the escape hatch for republishing
+# without cutting a new release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write # push to the docs branch
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Mirrors ci.yml / release-please.yml — sibling `link:` overrides have no
+      # checkout on the runner, so strip them defensively.
+      - name: 'Strip link: overrides for CI'
+        run: |
+          node -e "
+          const fs = require('fs');
+          if (fs.existsSync('pnpm-workspace.yaml')) {
+            const before = fs.readFileSync('pnpm-workspace.yaml', 'utf8');
+            const after = before.split('\n').filter(line => !/:\s*link:\S+\s*\$/.test(line)).join('\n');
+            if (after !== before) fs.writeFileSync('pnpm-workspace.yaml', after);
+          }
+          "
+          rm -f pnpm-lock.yaml
+
+      - run: pnpm install
+      - run: pnpm build
+
+      - name: Publish dist/ to docs branch
+        env:
+          REF: ${{ github.event.release.tag_name || github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Snapshot the build before switching branches. `dist/` is gitignored
+          # on both main and docs so it would survive `git checkout docs`, but
+          # staging outside the repo is robust to any future tracking change.
+          rm -rf /tmp/tmx-pages
+          mkdir -p /tmp/tmx-pages
+          cp -r dist/. /tmp/tmx-pages/
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin docs
+          git checkout docs
+
+          rm -rf docs
+          mkdir docs
+          cp -r /tmp/tmx-pages/. docs/
+
+          git add docs
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "docs: update to $REF"
+          git push origin docs
