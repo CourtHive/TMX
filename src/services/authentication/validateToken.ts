@@ -1,4 +1,3 @@
-import { checkDevState } from './checkDevState';
 import { getRefreshToken, removeToken } from './tokenManagement';
 import { setDev } from 'services/setDev';
 import { jwtDecode } from 'jwt-decode';
@@ -8,7 +7,6 @@ import type { LoginState } from 'types/tmx';
 
 export function validateToken(token: string | null | undefined): LoginState | undefined {
   if (!token || token === 'undefined') {
-    checkDevState();
     return undefined;
   }
 

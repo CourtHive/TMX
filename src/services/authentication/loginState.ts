@@ -17,7 +17,6 @@ import { providerConfig } from 'config/providerConfig';
 import { ensurePdfFontReady } from 'services/pdf/pdfFont';
 import { getLoginColor } from 'functions/getLoginColor';
 import { tipster } from 'components/popovers/tipster';
-import { checkDevState } from './checkDevState';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -60,7 +59,6 @@ export function logOut(): void {
   removeToken();
   removeRefreshToken();
   clearUserContext();
-  checkDevState();
   disconnectSocket();
   tournamentEngine.reset();
   clearActiveProvider();
