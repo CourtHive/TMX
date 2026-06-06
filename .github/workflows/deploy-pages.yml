@@ -67,8 +67,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          # `Strip link: overrides for CI` left pnpm-lock.yaml deleted and
+          # pnpm-workspace.yaml modified — both are tracked on `main`, and a
+          # plain `git checkout docs` refuses to overwrite those working-tree
+          # changes. We already used the stripped state for install + build,
+          # so discard it with -f. The docs branch only tracks .gitignore and
+          # docs/, so nothing else of value is at risk.
           git fetch origin docs
-          git checkout docs
+          git checkout -f docs
 
           rm -rf docs
           mkdir docs
