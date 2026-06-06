@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.2.1](https://github.com/CourtHive/TMX/compare/v7.2.0...v7.2.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* **deps:** update dependency axios to v1.17.0 ([6069949](https://github.com/CourtHive/TMX/commit/6069949f701adacae3de6c96fdc5069289ea8a3d))
+* **deps:** update dependency tods-competition-factory to v5.2.4 ([#1121](https://github.com/CourtHive/TMX/issues/1121)) ([790d169](https://github.com/CourtHive/TMX/commit/790d16949d32d5c8e94880ebd3f8d97be089afa1))
+
 ## [7.2.0](https://github.com/CourtHive/TMX/compare/v7.1.2...v7.2.0) (2026-06-03)
 
 
