@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.3.0](https://github.com/CourtHive/TMX/compare/v7.2.1...v7.3.0) (2026-06-07)
+
+
+### Features
+
+* **dev:** keep dev tools active in the anonymous-user state on prod ([#1127](https://github.com/CourtHive/TMX/issues/1127)) ([95a1571](https://github.com/CourtHive/TMX/commit/95a1571162787b65733de5493acae86778872039))
+
+
+### Bug Fixes
+
+* **ci:** force-checkout docs branch in deploy-pages ([#1125](https://github.com/CourtHive/TMX/issues/1125)) ([fc255d4](https://github.com/CourtHive/TMX/commit/fc255d4ee45b3fa7c9642f40f9635bed168858a5))
+* **deps:** update dependency @courthive/provider-config to ^0.5.0 ([aa3fa09](https://github.com/CourtHive/TMX/commit/aa3fa091aa483a3e07d97d2ececbd6ff4ce09572))
+
 ## [7.2.1](https://github.com/CourtHive/TMX/compare/v7.2.0...v7.2.1) (2026-06-06)
 
 
