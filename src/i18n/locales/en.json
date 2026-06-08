@@ -1484,6 +1484,8 @@
       "timeZoneInvalid": "Not a recognised IANA time zone",
       "tierSystemLabel": "Tier system",
       "tierSystemPlaceholder": "e.g. ITF_JUNIOR, ATP, PPA",
+      "tierSystemNone": "—",
+      "tierSystemUnknown": "(unknown: {{system}})",
       "tierValueLabel": "Tier value",
       "tierValuePlaceholder": "e.g. J500, Masters 1000, Gold",
       "tierNumericRankLabel": "Tier rank (optional)",

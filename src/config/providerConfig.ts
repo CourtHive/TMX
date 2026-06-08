@@ -75,10 +75,12 @@ export const providerConfig = {
       | 'allowedCreationMethods'
       | 'allowedScoringApproaches'
       | 'allowedMatchUpFormats'
-      | 'allowedCategories',
+      | 'allowedCategories'
+      | 'allowedTierSystems',
   ): any[] => {
     if (key === 'allowedMatchUpFormats') return current.policies?.allowedMatchUpFormats ?? [];
     if (key === 'allowedCategories') return current.policies?.allowedCategories ?? [];
+    if (key === 'allowedTierSystems') return current.policies?.allowedTierSystems ?? [];
     return (current.permissions?.[key as keyof ProviderPermissions] as any[]) ?? [];
   },
 } as const;

@@ -10,10 +10,13 @@ import { getProvider, sendTournament } from 'services/apis/servicesApi';
 import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
+import { providerConfig } from 'config/providerConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { getParent } from 'services/dom/parentAndChild';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
+
+import type { AllowedTierSystem } from '@courthive/provider-config';
 
 import {
   SET_TOURNAMENT_DATES,
@@ -100,15 +103,18 @@ export function editTournament({
       },
     },
     // Tournament tier — the federation-specific competitive prestige
-    // classification. Free-form because every governing body (ITF, ATP,
-    // PPA, BWF, PSA) names its tiers differently; the factory's ranking
-    // policy maps (system, value) → numeric level for points lookup.
-    {
-      value: values.tierSystem,
-      placeholder: t('drawers.editTournament.tierSystemPlaceholder'),
-      label: t('drawers.editTournament.tierSystemLabel'),
-      field: 'tierSystem',
-    },
+    // classification. When the provider config declares
+    // `allowedTierSystems`, render the system as a constrained select to
+    // prevent typos that silently miss the ranking policy's tierToLevel
+    // map. Absent / empty → today's free-form text input. Backward-compat:
+    // a pre-existing tier whose system isn't in the configured list shows
+    // up as a disabled "(unknown: X)" option so we never drop one silently.
+    //
+    // Per-system value constraint (`values?: string[]`) is reserved for a
+    // follow-up — reactively swapping the value field's options when the
+    // operator changes systems mid-edit requires extra form plumbing we
+    // don't yet share with the rest of the drawer.
+    buildTierSystemField(values.tierSystem, t),
     {
       value: values.tierValue,
       placeholder: t('drawers.editTournament.tierValuePlaceholder'),
@@ -306,6 +312,54 @@ export function editTournament({
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   const title = tournamentRecord ? t('drawers.editTournament.titleEdit') : t('drawers.editTournament.titleNew');
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
+}
+
+/**
+ * Build the tierSystem field config. When the provider's
+ * `allowedTierSystems` is non-empty, render as a constrained select with
+ * a leading blank option ("no system") plus a fallback disabled option
+ * for any pre-existing tier whose system isn't in the configured list —
+ * the operator can pick a configured system to migrate or leave the
+ * fallback untouched, but we never silently strip an unknown system.
+ *
+ * When `allowedTierSystems` is empty / absent, fall back to today's
+ * free-form text input.
+ */
+function buildTierSystemField(currentSystem: string, tFn: typeof t): any {
+  const allowed = providerConfig.getAllowedList('allowedTierSystems') as AllowedTierSystem[];
+  if (!allowed.length) {
+    return {
+      value: currentSystem,
+      placeholder: tFn('drawers.editTournament.tierSystemPlaceholder'),
+      label: tFn('drawers.editTournament.tierSystemLabel'),
+      field: 'tierSystem',
+    };
+  }
+
+  const knownSystems = new Set(allowed.map((entry) => entry.system));
+  const isUnknown = !!currentSystem && !knownSystems.has(currentSystem);
+  const options: any[] = [
+    { value: '', label: tFn('drawers.editTournament.tierSystemNone'), selected: !currentSystem },
+    ...allowed.map((entry) => ({
+      value: entry.system,
+      label: entry.displayName ?? entry.system,
+      selected: entry.system === currentSystem,
+    })),
+  ];
+  if (isUnknown) {
+    options.push({
+      value: currentSystem,
+      label: tFn('drawers.editTournament.tierSystemUnknown', { system: currentSystem }),
+      selected: true,
+      disabled: true,
+    });
+  }
+  return {
+    value: currentSystem,
+    label: tFn('drawers.editTournament.tierSystemLabel'),
+    field: 'tierSystem',
+    options,
+  };
 }
 
 // Structural equality for tournamentTier so we don't emit a setter mutation
