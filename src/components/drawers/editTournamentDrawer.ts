@@ -19,6 +19,7 @@ import {
   SET_TOURNAMENT_DATES,
   SET_TOURNAMENT_LOCAL_TIME_ZONE,
   SET_TOURNAMENT_NAME,
+  SET_TOURNAMENT_TIER,
 } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
@@ -31,12 +32,16 @@ export function editTournament({
   tournamentRecord?: any;
   onCreated?: () => void;
 }): void {
+  const existingTier = tournamentRecord?.tournamentTier;
   const values = {
     activeDates: (tournamentRecord?.activeDates || []).join(','),
     tournamentName: tournamentRecord?.tournamentName || '',
     startDate: tournamentRecord?.startDate || '',
     endDate: tournamentRecord?.endDate || '',
     localTimeZone: tournamentRecord?.localTimeZone || '',
+    tierSystem: existingTier?.system || '',
+    tierValue: existingTier?.value || '',
+    tierNumericRank: existingTier?.numericRank != null ? String(existingTier.numericRank) : '',
   };
   const supportedTimeZones = getSupportedTimeZones();
 
@@ -93,6 +98,28 @@ export function editTournament({
         list: supportedTimeZones,
         currentValue: values.localTimeZone,
       },
+    },
+    // Tournament tier — the federation-specific competitive prestige
+    // classification. Free-form because every governing body (ITF, ATP,
+    // PPA, BWF, PSA) names its tiers differently; the factory's ranking
+    // policy maps (system, value) → numeric level for points lookup.
+    {
+      value: values.tierSystem,
+      placeholder: t('drawers.editTournament.tierSystemPlaceholder'),
+      label: t('drawers.editTournament.tierSystemLabel'),
+      field: 'tierSystem',
+    },
+    {
+      value: values.tierValue,
+      placeholder: t('drawers.editTournament.tierValuePlaceholder'),
+      label: t('drawers.editTournament.tierValueLabel'),
+      field: 'tierValue',
+    },
+    {
+      value: values.tierNumericRank,
+      placeholder: t('drawers.editTournament.tierNumericRankPlaceholder'),
+      label: t('drawers.editTournament.tierNumericRankLabel'),
+      field: 'tierNumericRank',
     },
   ];
 
@@ -181,6 +208,23 @@ export function editTournament({
     const rawTz = (inputs.localTimeZone?.value ?? '').trim();
     const localTimeZone = rawTz === '' || isValidTimeZone(rawTz) ? rawTz : values.localTimeZone;
 
+    const tierSystem = (inputs.tierSystem?.value ?? '').trim();
+    const tierValue = (inputs.tierValue?.value ?? '').trim();
+    const tierNumericRankRaw = (inputs.tierNumericRank?.value ?? '').trim();
+    const tierNumericRank = tierNumericRankRaw && !Number.isNaN(Number(tierNumericRankRaw))
+      ? Number(tierNumericRankRaw)
+      : undefined;
+
+    // Build the next tier object (or null to clear). Both system and value
+    // are required by the factory setter — partial input is treated as a
+    // "clear" rather than an error, matching the timeZone pattern.
+    const nextTier =
+      tierSystem && tierValue
+        ? { system: tierSystem, value: tierValue, ...(tierNumericRank !== undefined ? { numericRank: tierNumericRank } : {}) }
+        : null;
+    const previousTier = tournamentRecord?.tournamentTier ?? null;
+    const tierChanged = !tierEquals(nextTier, previousTier);
+
     if (tournamentRecord) {
       const updatedTournamentRecord = {
         ...tournamentRecord,
@@ -193,6 +237,7 @@ export function editTournament({
         ...(localTimeZone !== (tournamentRecord.localTimeZone ?? '')
           ? { localTimeZone: localTimeZone || undefined }
           : {}),
+        ...(tierChanged ? { tournamentTier: nextTier ?? undefined } : {}),
       };
       const postMutation = (result: any) => {
         if (result.success) {
@@ -210,6 +255,9 @@ export function editTournament({
       if (localTimeZone !== (tournamentRecord.localTimeZone ?? '')) {
         methods.push({ method: SET_TOURNAMENT_LOCAL_TIME_ZONE, params: { localTimeZone } as any });
       }
+      if (tierChanged) {
+        methods.push({ method: SET_TOURNAMENT_TIER, params: { tournamentTier: nextTier } as any });
+      }
       mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
     } else {
       const result = tournamentEngine.newTournamentRecord({ tournamentName, activeDates, startDate, endDate });
@@ -220,6 +268,9 @@ export function editTournament({
         // mutation, pre-provider-sync).
         if (localTimeZone) {
           tournamentEngine.setTournamentLocalTimeZone({ localTimeZone });
+        }
+        if (nextTier) {
+          tournamentEngine.setTournamentTier({ tournamentTier: nextTier });
         }
         if (state?.providerId && newTournamentRecord) {
           const addProvider = (result: any) => {
@@ -255,6 +306,16 @@ export function editTournament({
   const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
   const title = tournamentRecord ? t('drawers.editTournament.titleEdit') : t('drawers.editTournament.titleNew');
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
+}
+
+// Structural equality for tournamentTier so we don't emit a setter mutation
+// when the operator opens/closes the drawer without changing anything.
+// Stable field order (system, value, numericRank) lets us avoid JSON.stringify
+// quirks across runtimes.
+function tierEquals(a: any, b: any): boolean {
+  if (a === b) return true;
+  if (!a || !b) return !a && !b;
+  return a.system === b.system && a.value === b.value && (a.numericRank ?? null) === (b.numericRank ?? null);
 }
 
 function completeTournamentAdd({

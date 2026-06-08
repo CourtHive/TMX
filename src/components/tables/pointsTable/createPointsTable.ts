@@ -47,6 +47,27 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
 
   const getSelectedPolicy = (): PolicyOption | undefined => availablePolicies.find((p) => p.id === selectedPolicyId);
 
+  // Resolve a numeric ranking level from the tournament's tier classification
+  // via the policy's `tierToLevel` mapping. Mirrors the factory's auto-resolve
+  // path in getEventRankingPoints so the level picker pre-fills to the
+  // federation-appropriate value when the operator has set a tier (e.g.
+  // ITF_JUNIOR / J500 → 4).
+  const resolveLevelFromTier = (policy: PolicyOption | undefined): number | undefined => {
+    if (!policy?.policyData) return undefined;
+    const tier = tournamentEngine.q.tournament()?.tournamentTier;
+    if (!tier?.system || !tier?.value) return undefined;
+    const policyKey = Object.keys(policy.policyData)[0];
+    const tierToLevel = policy.policyData[policyKey]?.tierToLevel;
+    const mapped = tierToLevel?.[tier.system]?.[tier.value];
+    return typeof mapped === 'number' ? mapped : undefined;
+  };
+
+  // Initial auto-select. If the user later picks a level manually it sticks
+  // (the policy click handler is the only place that resets to undefined,
+  // and it also re-applies this resolve so a tier-having tournament still
+  // gets a sensible default after a policy switch).
+  selectedLevel = resolveLevelFromTier(getSelectedPolicy());
+
   // Build a participantId → participant lookup for enriching awards
   const buildParticipantMap = () => {
     const { participants = [] } =
@@ -147,7 +168,7 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
       active: p.id === selectedPolicyId,
       onClick: () => {
         selectedPolicyId = p.id;
-        selectedLevel = undefined;
+        selectedLevel = resolveLevelFromTier(p);
         render();
         renderPolicyControls();
       },

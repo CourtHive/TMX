@@ -1481,7 +1481,15 @@
       "activeDates": "Active Dates",
       "timeZoneLabel": "Time zone",
       "timeZonePlaceholder": "e.g. America/New_York",
-      "timeZoneInvalid": "Not a recognised IANA time zone"
+      "timeZoneInvalid": "Not a recognised IANA time zone",
+      "tierSystemLabel": "Tier system",
+      "tierSystemPlaceholder": "e.g. ITF_JUNIOR, ATP, PPA",
+      "tierValueLabel": "Tier value",
+      "tierValuePlaceholder": "e.g. J500, Masters 1000, Gold",
+      "tierNumericRankLabel": "Tier rank (optional)",
+      "tierNumericRankPlaceholder": "Lower = higher tier",
+      "tierSystemMissing": "Tier value entered without a system",
+      "tierValueMissing": "Tier system entered without a value"
     },
     "addDraw": {
       "missingName": "Missing Draw name",
