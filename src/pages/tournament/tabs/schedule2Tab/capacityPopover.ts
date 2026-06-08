@@ -81,9 +81,15 @@ export function openCapacityPopover(opts: CapacityPopoverOpts): void {
   }
 
   const rows = collectCourtRows(tournamentRecord, engine, scheduledDate);
-  const content = buildPopoverContent(rows, scheduledDate, onJumpToPainter, onApplied, tournamentRecord);
+  // Forward declare the tippy instance so the popover content can request
+  // its own close — used by the "Open availability painter" footer link,
+  // which must dismiss before navigating away or the popover would linger
+  // on the next route.
+  let tip: TippyInstance | null = null;
+  const requestClose = () => tip?.hide();
+  const content = buildPopoverContent(rows, scheduledDate, onJumpToPainter, onApplied, tournamentRecord, requestClose);
 
-  const tip: TippyInstance = tippy(anchor, {
+  tip = tippy(anchor, {
     content,
     trigger: 'manual',
     interactive: true,
@@ -140,6 +146,7 @@ function buildPopoverContent(
   onJumpToPainter: () => void,
   onApplied: (() => void) | undefined,
   tournamentRecord: any,
+  requestClose: () => void,
 ): HTMLElement {
   const root = document.createElement('div');
   root.style.cssText = [
@@ -190,6 +197,9 @@ function buildPopoverContent(
     'font-size: 0.75rem; background: transparent; color: var(--tmx-fill-accent, #2563eb); border: none; padding: 4px 0; cursor: pointer; text-decoration: underline;';
   jump.textContent = 'Open availability painter →';
   jump.addEventListener('click', () => {
+    // Dismiss before navigating; tippy popovers don't auto-hide on route
+    // change and would linger over the painter mode otherwise.
+    requestClose();
     onJumpToPainter();
   });
 
