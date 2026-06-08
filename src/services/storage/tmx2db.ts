@@ -77,6 +77,16 @@ export class TMXDatabase {
     return this.dex['tournaments'].where('tournamentId').equals(tournamentId).delete().then(() => undefined);
   };
 
+  // Selective clear used on logout and login transitions: keep demo /
+  // scratchpad tournaments (no parentOrganisation) so a logged-out user
+  // can persist a sandbox draw without losing it on the next login.
+  // Provider-bound tournaments are wiped so user A's cached records can't
+  // surface to user B on a shared browser via the local-DB fallback.
+  // See Mentat/planning/USER_TOURNAMENT_ACCESS_MODEL.md PR 11.
+  deleteProviderBoundTournaments = (): Promise<number> => {
+    return this.dex['tournaments'].filter(isProviderBoundTournament).delete();
+  };
+
   deleteProvider = (key: string): Promise<any> => {
     return this.dex['providers'].where('providerId').equals(key).delete();
   };
@@ -147,3 +157,9 @@ export class TMXDatabase {
 }
 
 export const tmx2db = new TMXDatabase();
+
+// Predicate for the logout / login-as-different-user IDB clear. Exported
+// for unit-test access without standing up a fake-indexeddb harness.
+export function isProviderBoundTournament(tournamentRecord: any): boolean {
+  return Boolean(tournamentRecord?.parentOrganisation?.organisationId);
+}
