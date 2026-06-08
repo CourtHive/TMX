@@ -1910,7 +1910,11 @@
         "eventNameRequired": "Event name must be at least 5 characters",
         "any": "Any",
         "custom": "Custom",
-        "categorySaveWarning": "Category saved to event but not added to tournament categories"
+        "categorySaveWarning": "Category saved to event but not added to tournament categories",
+        "competitionFormatLabel": "Sport rules",
+        "competitionFormatNone": "None",
+        "competitionFormatTennis": "Tennis (standard)",
+        "competitionFormatIntennse": "INTENNSE (standard)"
       },
       "editFormat": {
         "noChanges": "No changes",

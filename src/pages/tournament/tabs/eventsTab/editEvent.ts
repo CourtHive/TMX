@@ -10,7 +10,7 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, tools } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, fixtures, tools } from 'tods-competition-factory';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -33,6 +33,25 @@ function cleanAgeCode(value: any): string | undefined {
 }
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { MAIN } = drawDefinitionConstants;
+const { competitionFormats } = fixtures;
+
+// Keys mirror the fixture names shipped from tods-competition-factory.
+// Add new entries here when a new preset ships; the dropdown is data-driven.
+const COMPETITION_FORMAT_KEYS = ['TENNIS_STANDARD', 'INTENNSE_STANDARD'] as const;
+type CompetitionFormatKey = (typeof COMPETITION_FORMAT_KEYS)[number] | '';
+
+// Auto-suggest based on the event's existing matchUpFormat. The INTENNSE
+// scoring code uses an `XA` segment marker (e.g. SET7XA-S:T10P) that no other
+// shipped preset emits — when we see it on an event without a competitionFormat
+// already attached, default the dropdown to INTENNSE_STANDARD so the operator
+// only has to confirm.
+function suggestCompetitionFormatKey(event: any): CompetitionFormatKey {
+  const existingName = event?.competitionFormat?.competitionFormatName as CompetitionFormatKey | undefined;
+  if (existingName && COMPETITION_FORMAT_KEYS.includes(existingName as any)) return existingName;
+  const matchUpFormat = event?.matchUpFormat;
+  if (typeof matchUpFormat === 'string' && matchUpFormat.includes('XA')) return 'INTENNSE_STANDARD';
+  return '';
+}
 
 const DEFAULT_AGE_CATEGORIES = [
   { code: 'U10', label: '10 and Under' },
@@ -115,6 +134,7 @@ export function editEvent({
     ageCategoryCode: event?.category?.ageCategoryCode,
     eventType: event?.eventType || SINGLES,
     gender: event?.gender || ANY,
+    competitionFormatKey: suggestCompetitionFormatKey(event),
   };
 
   const enteredParticipantIds = event?.entries
@@ -293,6 +313,29 @@ export function editEvent({
           onChange: valueChange,
         },
         {
+          value: values.competitionFormatKey,
+          field: 'competitionFormatKey',
+          label: t('pages.events.editEvent.competitionFormatLabel'),
+          options: [
+            {
+              selected: !values.competitionFormatKey,
+              label: t('pages.events.editEvent.competitionFormatNone'),
+              value: '',
+            },
+            {
+              selected: values.competitionFormatKey === 'TENNIS_STANDARD',
+              label: t('pages.events.editEvent.competitionFormatTennis'),
+              value: 'TENNIS_STANDARD',
+            },
+            {
+              selected: values.competitionFormatKey === 'INTENNSE_STANDARD',
+              label: t('pages.events.editEvent.competitionFormatIntennse'),
+              value: 'INTENNSE_STANDARD',
+            },
+          ],
+          onChange: valueChange,
+        },
+        {
           value: event?.startDate ?? tournamentInfo.startDate,
           placeholder: 'YYYY-MM-DD',
           label: t('start'),
@@ -407,6 +450,20 @@ export function editEvent({
       eventUpdates.category = { ...event?.category, ageCategoryCode };
     }
 
+    // Only forward competitionFormat when the user actually changed it.
+    // Sending the same value unnecessarily would still work, but the diff
+    // log gets noisy and the server has to round-trip a deep copy on
+    // every event save.
+    const formCompetitionFormatKey = (
+      context.drawer.attributes.content.competitionFormatKey?.value || ''
+    ) as CompetitionFormatKey;
+    const existingCompetitionFormatKey = (event?.competitionFormat?.competitionFormatName ?? '') as CompetitionFormatKey;
+    if (formCompetitionFormatKey !== existingCompetitionFormatKey) {
+      eventUpdates.competitionFormat = formCompetitionFormatKey
+        ? (competitionFormats as any)[formCompetitionFormatKey]
+        : null;
+    }
+
     const postMutation = (result: any) => {
       table?.deselectRow();
       if (result.success) {
@@ -426,9 +483,21 @@ export function editEvent({
       const eventCategory =
         category || (ageCategoryCode && ageCategoryCode !== 'custom' ? { ageCategoryCode } : undefined);
       const eventId = tools.UUID();
+      const newEventPayload: any = {
+        category: eventCategory,
+        eventId,
+        eventName,
+        eventType,
+        gender,
+        startDate,
+        endDate,
+      };
+      if (formCompetitionFormatKey) {
+        newEventPayload.competitionFormat = (competitionFormats as any)[formCompetitionFormatKey];
+      }
       const methods = [
         {
-          params: { event: { category: eventCategory, eventId, eventName, eventType, gender, startDate, endDate } },
+          params: { event: newEventPayload },
           method: ADD_EVENT,
         },
       ];
