@@ -28,6 +28,7 @@ import { scheduleToast } from './scheduleToast';
 import { openApplyTimesModal } from './applyTimesModal';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { openApplyGridModal } from './applyGridModal';
+import { openCapacityPopover } from './capacityPopover';
 import { hiddenCourtIds } from './visibilityState';
 import { context } from 'services/context';
 
@@ -884,7 +885,7 @@ function buildCapacityBadge(opts: CapacityBadgeOptions): CapacityBadgeHandle {
 
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.title = 'Click to adjust court availability for this date';
+  btn.title = 'Adjust court hours for this date';
   btn.style.cssText =
     BTN_BASE +
     '; gap: 6px; padding: 4px 10px; background: var(--tmx-bg-primary); color: var(--tmx-color-primary); font-weight: 600; white-space: nowrap;';
@@ -896,9 +897,18 @@ function buildCapacityBadge(opts: CapacityBadgeOptions): CapacityBadgeHandle {
   btn.appendChild(dot);
   btn.appendChild(text);
 
+  // Row 3(b) — open the inline per-court popover instead of jumping to the
+  // full painter. The popover footer still offers a "Open availability
+  // painter" link for the bulk-paint case (paint blocks across many dates).
   btn.addEventListener('click', () => {
-    if (!tournamentId) return;
-    context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}/availability`);
+    if (!tournamentId || !scheduledDate) return;
+    openCapacityPopover({
+      anchor: btn,
+      scheduledDate,
+      onJumpToPainter: () => {
+        context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}/availability`);
+      },
+    });
   });
 
   function refresh(profile: SchedulingProfile): void {
