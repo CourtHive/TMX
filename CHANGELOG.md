@@ -1,5 +1,33 @@
 # Changelog
 
+## [7.4.0](https://github.com/CourtHive/TMX/compare/v7.3.0...v7.4.0) (2026-06-08)
+
+
+### Features
+
+* **auth:** selectively wipe provider-bound tournaments from IndexedDB on auth transitions ([ba5842d](https://github.com/CourtHive/TMX/commit/ba5842d3917cd24e1c8a915057317795a6d12c00))
+* **events:** attach competitionFormat to events from the editor ([633ca16](https://github.com/CourtHive/TMX/commit/633ca1689fbd292f31eb9fd27d5bc9a6b298601d))
+* **schedule2:** inline per-court capacity popover with extend-hours sliders ([3ac8f0c](https://github.com/CourtHive/TMX/commit/3ac8f0c98a8d52cdd900cf0e1432e80f7f685f82))
+* **tournament:** edit tier classification + auto-resolve ranking level from tier ([960f6bf](https://github.com/CourtHive/TMX/commit/960f6bf051c271788df2be90e59ff10212193652))
+* **tournament:** provider-config-driven tier system selector with unknown-fallback ([37c13cc](https://github.com/CourtHive/TMX/commit/37c13ccf32a530c8446c53722750da77140ac9dc))
+* **tournaments:** show tier classification in the table view + searchable ([ff9b0c7](https://github.com/CourtHive/TMX/commit/ff9b0c73ab949f55ca7de23792c4114f6ca583b0))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @courthive/provider-config to ^0.6.0 ([#1135](https://github.com/CourtHive/TMX/issues/1135)) ([19e6a95](https://github.com/CourtHive/TMX/commit/19e6a959ab04bde8bfeebf0d3ccb870af91dc5c5))
+* **deps:** update dependency courthive-components to v3.2.0 ([#1136](https://github.com/CourtHive/TMX/issues/1136)) ([1f938bc](https://github.com/CourtHive/TMX/commit/1f938bca0db21bac2b0b880f4676df595259a597))
+* **deps:** update dependency pdf-factory to v0.8.5 ([54a79b8](https://github.com/CourtHive/TMX/commit/54a79b8b20b7d931125e5197006de8812a37e092))
+* **deps:** update tods-competition-factory to 5.3.0 ([4dd91e3](https://github.com/CourtHive/TMX/commit/4dd91e30603a1728030bb453fb4dc101046e2928))
+* **deps:** update tods-competition-factory to 5.4.0 ([c95fe47](https://github.com/CourtHive/TMX/commit/c95fe47aa043414dc7f748208a1ee89fb9ec2535))
+* **schedule2:** close capacity popover when jumping to availability painter ([2990a83](https://github.com/CourtHive/TMX/commit/2990a8329b97b3cfe28b172678a1b1b2a1ce2f44))
+* **schedule2:** sort date dropdown chronologically and use highest-severity for row labels ([6ea2598](https://github.com/CourtHive/TMX/commit/6ea259832d64d749e8ddfaa4b2cc6ff88275c38b))
+
+
+### Documentation
+
+* **scheduling:** pin workspace save-model invariants with regression test ([7c2471c](https://github.com/CourtHive/TMX/commit/7c2471c2369ea981cc60cddefe0ccdf10c571b7a))
+
 ## [7.3.0](https://github.com/CourtHive/TMX/compare/v7.2.1...v7.3.0) (2026-06-07)
 
 
