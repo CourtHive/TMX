@@ -1,3 +1,36 @@
+/**
+ * Scheduling workspace save model — load-bearing invariants.
+ *
+ * The workspace at `/tournament/:id/scheduling/...` shares ONE save model
+ * across all three modes (Availability, Profile, Grid). The pre-mortem in
+ * `Mentat/planning/SCHEDULE2_AVAILABILITY_INTEGRATION.md` flagged the dual
+ * save-model race as the load-bearing risk; this module is its resolution.
+ *
+ * Invariants other code MUST NOT break:
+ *
+ *  1. The standalone `/venues/availability` painter (outside the workspace)
+ *     continues dispatching `mutationRequest` directly. It does NOT
+ *     participate in this queue. The split is by route, not by component.
+ *
+ *  2. Availability mutations originating from the workspace painter route
+ *     through `executeMethods({ mode: 'availability', ... })` via the
+ *     painter's `onMutationMethods` hook — never `mutationRequest`
+ *     directly. Bypassing the hook reintroduces the discard clobber race
+ *     that Phase 0 closed.
+ *
+ *  3. `discardPending` must never silently dispatch queued methods. The IDB
+ *     reload is the only path back to a clean state. If you ever feel the
+ *     urge to "rescue" a batch on discard, you are violating the invariant.
+ *
+ *  4. Painter dirty state (`isAvailabilityDirty()`) is tracked separately
+ *     from the bulk queue (`hasUnsavedChanges()`) because the painter
+ *     buffers paint internally until its toolbar Save runs. Mode-switch
+ *     guards and the workspace's sticky action bar consume both signals —
+ *     do not collapse them.
+ *
+ * Regression coverage in `queueService.test.ts`. If you change this model,
+ * update those tests in the same PR.
+ */
 import { competitionEngine } from 'services/factory/engine';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';

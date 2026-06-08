@@ -256,6 +256,33 @@ describe('queueService — failure-mode invariants from the planning doc', () =>
     expect(findTournamentMock).not.toHaveBeenCalled();
     expect(getPendingCount()).toBe(0);
   });
+
+  // The "discardPending clobber race" the planning doc names: workspace
+  // availability mutations and bulk grid/profile mutations live in the same
+  // pendingBatches queue. Discard MUST revert engine state by reloading from
+  // IDB and MUST NOT silently flush the availability methods to the server.
+  // Before Phase 0 unified the save model, availability lived outside the
+  // queue, so discard would leave painter blocks half-applied (local engine
+  // reverted, server unchanged) — a latent data-loss path.
+  it('discardPending after a workspace availability mutation reverts state without firing mutationRequest', async () => {
+    const availabilityMethods = [
+      { method: 'modifyCourtAvailability', params: { courtId: 'C1', dateAvailability: [{ date: '2026-06-08' }] } },
+    ];
+    executeMethods({ mode: 'grid', methods: [{ method: 'addMatchUpScheduledTime', params: { matchUpId: 'M1' } }] });
+    executeMethods({ mode: 'availability', methods: availabilityMethods });
+    expect(getPendingCount()).toBe(2);
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+
+    await discardPending();
+
+    expect(findTournamentMock).toHaveBeenCalledWith(TOURNAMENT_ID);
+    expect(setStateMock).toHaveBeenCalledWith(SAMPLE_RECORD);
+    expect(getPendingCount()).toBe(0);
+    // Critical: no server-side flush of the availability methods (or any
+    // queued method) on discard. Silent dispatch here would persist a
+    // mutation the user just asked to drop.
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('queueService — painter dirty state', () => {
