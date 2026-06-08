@@ -82,6 +82,30 @@ function feeFormatter(cell: any): string {
   return data?.feeFormatted ?? '';
 }
 
+function tierFormatter(cell: any): string {
+  const tier = cell.getRow().getData().tier;
+  if (!tier?.value) return '';
+  // Plain value — operators within a provider already know their system.
+  // The header tooltip carries the system name for cross-provider clarity.
+  return `<span class="tmx-tournaments-tier-pill" title="${tier.system}">${tier.value}</span>`;
+}
+
+// Sort: lower numericRank = more prestigious (matches federation conventions
+// — Grand Slam = 1, Masters 1000 = 2, etc.). Tournaments without a
+// numericRank fall back to a lex sort by value below those that have one;
+// tournaments without a tier sort last.
+function sortByTier(_a: any, _b: any, aRow: any, bRow: any): number {
+  const a = aRow.getData().tier;
+  const b = bRow.getData().tier;
+  if (!a && !b) return 0;
+  if (!a) return 1;
+  if (!b) return -1;
+  const ar = typeof a.numericRank === 'number' ? a.numericRank : Number.POSITIVE_INFINITY;
+  const br = typeof b.numericRank === 'number' ? b.numericRank : Number.POSITIVE_INFINITY;
+  if (ar !== br) return ar - br;
+  return String(a.value).localeCompare(String(b.value), undefined, { numeric: true });
+}
+
 function sortByStartDate(_a: any, _b: any, aRow: any, bRow: any): number {
   const at = new Date(aRow.getData().tournament.startDate || 0).getTime();
   const bt = new Date(bRow.getData().tournament.startDate || 0).getTime();
@@ -141,6 +165,21 @@ export function getTournamentColumns(): any[] {
       sorter: sortByStartDate,
       minWidth: 160,
       widthGrow: 1
+    },
+    {
+      title: 'Tier',
+      field: 'tier',
+      formatter: tierFormatter,
+      sorter: sortByTier,
+      headerSort: true,
+      hozAlign: 'center',
+      width: 110,
+      // Default hidden — most providers don't use TierClassification yet, so
+      // an empty column would just be header noise. The columns menu lets
+      // operators with tier-using tournaments toggle it on; once on, the
+      // global field-keyed visibility map (tmx_columns) keeps it on across
+      // tables — see memory `project_tmx_column_visibility_global_map`.
+      visible: false
     },
     {
       title: 'Players',

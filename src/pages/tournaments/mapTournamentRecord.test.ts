@@ -97,4 +97,45 @@ describe('mapTournamentRecord', () => {
     const record = { tournamentId: 't1', startDate: '2025-01-01', endDate: '2025-01-02' };
     expect(mapTournamentRecord(record).searchText).toBe('Error');
   });
+
+  describe('tournamentTier', () => {
+    it('extracts a well-formed tier onto the row', () => {
+      const record = {
+        ...baseTournament,
+        tournamentTier: { system: 'ITF_JUNIOR', value: 'J500', numericRank: 4 },
+      };
+      const row = mapTournamentRecord(record);
+      expect(row.tier).toEqual({ system: 'ITF_JUNIOR', value: 'J500', numericRank: 4 });
+    });
+
+    it('omits numericRank when not present', () => {
+      const record = { ...baseTournament, tournamentTier: { system: 'PPA', value: 'Gold' } };
+      const row = mapTournamentRecord(record);
+      expect(row.tier).toEqual({ system: 'PPA', value: 'Gold' });
+      expect(row.tier?.numericRank).toBeUndefined();
+    });
+
+    it('drops malformed tiers', () => {
+      const cases = [
+        { ...baseTournament, tournamentTier: { system: 'ATP' } },
+        { ...baseTournament, tournamentTier: { value: 'J500' } },
+        { ...baseTournament, tournamentTier: 'J500' },
+        { ...baseTournament, tournamentTier: null },
+      ];
+      for (const input of cases) {
+        expect(mapTournamentRecord(input as any).tier).toBeUndefined();
+      }
+    });
+
+    it('includes tier value in searchText so the filter box matches it', () => {
+      // Operator typing "J500" in the search box should surface this row
+      // even though "J500" appears nowhere in tournament name or location.
+      const record = {
+        ...baseTournament,
+        tournamentTier: { system: 'ITF_JUNIOR', value: 'J500' },
+      };
+      const row = mapTournamentRecord(record);
+      expect(row.searchText).toContain('j500');
+    });
+  });
 });
