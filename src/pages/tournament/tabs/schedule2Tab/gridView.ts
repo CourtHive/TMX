@@ -2340,7 +2340,7 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
   const { tournamentInfo } = competitionEngine.getTournamentInfo();
   const activeDates = tournamentInfo?.activeDates;
-  const dates = activeDates?.length ? activeDates : dateRange(startDate ?? '', endDate ?? '');
+  const dates = (activeDates?.length ? [...activeDates].sort() : dateRange(startDate ?? '', endDate ?? ''));
 
   const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const dateCounts = new Map<string, number>();
@@ -2380,6 +2380,16 @@ function applyHeaderRowIssueIndicators(
 
   const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING } = scheduleConstants;
 
+  // Issues from proConflicts are pushed in event-iteration order, not severity order.
+  // Pick the highest severity so a red error always wins over a yellow warning.
+  const severityRank = (issue: string): number => {
+    if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 2;
+    if (issue === SCHEDULE_WARNING) return 1;
+    return 0;
+  };
+  const topSeverity = (issues: any[]): string =>
+    issues.reduce((top, cur) => (severityRank(cur.issue) > severityRank(top.issue) ? cur : top)).issue;
+
   const severityColor = (issue: string): string => {
     if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'var(--sp-err, #f43f5e)';
     if (issue === SCHEDULE_WARNING) return 'var(--sp-warn, #f59e0b)';
@@ -2406,8 +2416,7 @@ function applyHeaderRowIssueIndicators(
     if (!courtId) continue;
     const issues = conflicts.courtIssues[courtId];
     if (!issues?.length) continue;
-    // Use the highest severity issue
-    const topIssue = issues[0].issue;
+    const topIssue = topSeverity(issues);
     courtHeaders[ci].style.borderBottom = `3px solid ${severityColor(topIssue)}`;
     courtHeaders[ci].style.background = severityBgOpaque(topIssue);
   }
@@ -2417,7 +2426,7 @@ function applyHeaderRowIssueIndicators(
   for (const [rowIdx, issues] of Object.entries(rowIssueEntries)) {
     const ri = Number.parseInt(rowIdx);
     if (Number.isNaN(ri) || ri >= rowLabels.length || !(issues as any[])?.length) continue;
-    const topIssue = (issues as any[])[0].issue;
+    const topIssue = topSeverity(issues as any[]);
     rowLabels[ri].style.borderRight = `3px solid ${severityColor(topIssue)}`;
     rowLabels[ri].style.background = severityBgOpaque(topIssue);
   }
