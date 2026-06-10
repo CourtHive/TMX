@@ -1,8 +1,8 @@
+import { downloadJSON, downloadText } from 'services/export/download';
 import { tournamentEngine } from 'services/factory/engine';
+import { resolveAuditBaseUrl } from './resolveAuditBaseUrl';
 import { createReportsTable } from './createReportsTable';
 import { exportReportPDF } from './exportReportPDF';
-import { downloadJSON } from 'services/export/download';
-import { downloadText } from 'services/export/download';
 import { controlBar } from 'courthive-components';
 import { env } from 'settings/env';
 import axios from 'axios';
@@ -31,6 +31,7 @@ export function renderReportsTab(): void {
   const reportOptions = reports.map((r: any) => ({
     label: r.name,
     value: r.reportId,
+    close: true,
     onClick: () => selectReport(r),
   }));
 
@@ -91,7 +92,7 @@ async function fetchServerReport(reportId: string): Promise<void> {
   const tournamentId = tournamentRecord?.tournamentId;
   if (!tournamentId) return;
 
-  const baseUrl = env.auditWorkerUrl || `${globalThis.location?.origin?.replace(/:\d+$/, '')}:8385`;
+  const baseUrl = resolveAuditBaseUrl(globalThis.location?.origin ?? '', env.auditWorkerUrl);
   const reportType = reportId;
 
   const reportContainer = document.getElementById(TOURNAMENT_REPORTS);
