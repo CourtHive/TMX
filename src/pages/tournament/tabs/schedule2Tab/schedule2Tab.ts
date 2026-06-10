@@ -322,6 +322,16 @@ function destroyCurrentView(): void {
   if (state.currentView === 'profile') destroyProfileView();
 }
 
+// Public tear-down for tab navigation. Mirrors destroySchedulingTab in
+// schedulingTab.ts. Without this, the activeStripBlockTicker (30s setInterval)
+// in gridView.ts plus the store subscribers keep firing after the user
+// navigates to a different tab — visible as ongoing competitionScheduleMatchUps
+// devContext logs from a tab the user is no longer on.
+export function destroySchedule2Tab(): void {
+  destroyCurrentView();
+  state = null;
+}
+
 /**
  * Run `proceed` once the user has acknowledged any unsaved bulk scheduling
  * changes. When the grid is clean we fire synchronously (preserves the

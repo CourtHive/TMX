@@ -7,8 +7,8 @@ import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/r
 import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
-import { renderSchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
-import { renderSchedulingTab } from 'pages/tournament/tabs/schedulingTab/schedulingTab';
+import { renderSchedule2Tab, destroySchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
+import { renderSchedulingTab, destroySchedulingTab } from 'pages/tournament/tabs/schedulingTab/schedulingTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
@@ -136,11 +136,25 @@ function pruneCompletedCrowdsourcedFromEngine(): void {
   }
 }
 
+// Tracks the last rendered tab so routeTo() can tear down its long-lived
+// subscriptions / intervals when the user navigates away. Without this,
+// schedule2Tab and schedulingTab leak their 30s activeStripBlockTicker plus
+// store subscribers and keep firing competitionScheduleMatchUps from a tab
+// the user is no longer viewing.
+let activeRenderedTab: string | null = null;
+
+function destroyActiveTab(): void {
+  if (activeRenderedTab === SCHEDULE2_TAB) destroySchedule2Tab();
+  else if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
+  activeRenderedTab = null;
+}
+
 export function routeTo(config: any): void {
   const { selectedTab = TOURNAMENT_OVERVIEW } = config;
 
   // Topology page is standalone — does not use tournament tab system
   if (selectedTab === 'topology') {
+    destroyActiveTab();
     highlightTab(selectedTab);
     renderTopologyPage({
       eventId: config.eventId,
@@ -153,6 +167,7 @@ export function routeTo(config: any): void {
   // Format Wizard is also standalone — full-page tournament-context
   // surface with no navbar icon. Launched from overview.
   if (selectedTab === 'format-wizard') {
+    destroyActiveTab();
     renderFormatWizardPage();
     return;
   }
@@ -162,6 +177,10 @@ export function routeTo(config: any): void {
   highlightTab(selectedTab);
 
   if (displayTab(selectedTab)) {
+    // Tear down the previous tab's subscriptions before mounting the new one.
+    // Same-tab re-renders are a no-op: each tab's renderer guards itself.
+    if (activeRenderedTab && activeRenderedTab !== selectedTab) destroyActiveTab();
+
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
     if (selectedTab === SCHEDULE2_TAB)
       renderSchedule2Tab({ scheduledDate: config.scheduledDate, scheduleView: config.scheduleView });
@@ -175,6 +194,8 @@ export function routeTo(config: any): void {
     if (selectedTab === REGISTRATIONS_TAB) void renderRegistrationsTab();
     if (selectedTab === PUBLISHING_TAB) renderPublishingTab();
     if (selectedTab === SETTINGS_TAB) renderSettingsTab();
+
+    activeRenderedTab = selectedTab;
   }
 }
 
