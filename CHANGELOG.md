@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.4.1](https://github.com/CourtHive/TMX/compare/v7.4.0...v7.4.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* **reports:** route audit-worker via same-origin /audit, close dropdown on selection ([218b2ca](https://github.com/CourtHive/TMX/commit/218b2cabd2c942dbfd4d50a81db1b016c6a4936b))
+* **routing:** tear down schedule tabs when navigating away ([dac0315](https://github.com/CourtHive/TMX/commit/dac03154276161e6b90c5320450cfc3198439b9a))
+
 ## [7.4.0](https://github.com/CourtHive/TMX/compare/v7.3.0...v7.4.0) (2026-06-08)
 
 

@@ -3,7 +3,7 @@
   "packageManager": "pnpm@11.5.2",
   "license": "MIT",
   "private": true,
-  "version": "7.4.0",
+  "version": "7.4.1",
   "type": "module",
   "engines": {
     "node": ">=22",
