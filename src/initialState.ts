@@ -45,7 +45,11 @@ import dpLocaleAr from 'vanillajs-datepicker/locales/ar';
 import dpLocaleZhCN from 'vanillajs-datepicker/locales/zh-CN';
 Object.assign(Datepicker.locales, dpLocaleFr, dpLocaleEs, dpLocaleDe, dpLocalePtBR, dpLocaleAr, dpLocaleZhCN);
 
-import 'timepicker-ui/main.css';
+// `main.css` is structure-only — no `[data-theme=*]` selectors — so `ui.theme`
+// values silently no-op. `index.css` bundles every theme (basic, dark, crane,
+// blueprint, blueprint-dark, etc.) and is what the package's `style` field
+// also points at.
+import 'timepicker-ui/index.css';
 
 import 'animate.css/animate.min.css';
 import 'pikaday/css/pikaday.css';

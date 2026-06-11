@@ -37,17 +37,11 @@ export const timepickerConfig = {
 /**
  * Resolve the effective theme for a timepicker instance.
  *
- * Precedence: dev override -> mode-appropriate blueprint default.
- *
- * `blueprint` / `blueprint-dark` were added in timepicker-ui 4.4.0; the
- * fallback is held as a `string` and cast through the library's `theme`
- * type so this compiles against any 4.x `.d.ts` still in node_modules
- * (the runtime value is valid as soon as 4.4.0 is installed).
+ * Precedence: dev override -> mode-appropriate blueprint default
+ * (`blueprint` in light mode, `blueprint-dark` in dark mode).
  */
 export function resolveTimepickerTheme(): TimepickerTheme {
   const override = timepickerConfig.get().theme;
   if (override) return override;
-  const dark = document.documentElement.dataset.theme === 'dark';
-  const fallback: string = dark ? 'blueprint-dark' : 'blueprint';
-  return fallback as TimepickerTheme;
+  return document.documentElement.dataset.theme === 'dark' ? 'blueprint-dark' : 'blueprint';
 }
