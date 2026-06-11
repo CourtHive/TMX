@@ -143,7 +143,7 @@
     "rxjs": "7.8.2",
     "socket.io-client": "4.8.3",
     "tabulator-tables": "6.4.0",
-    "timepicker-ui": "4.3.0",
+    "timepicker-ui": "4.4.0",
     "tippy.js": "6.3.7",
     "tods-competition-factory": "5.4.0",
     "@courthive/provider-config": "^0.6.0",
