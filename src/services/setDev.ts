@@ -9,6 +9,7 @@ import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
 import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
+import { buildFromSources } from '../dev/cfsToTournamentRecord.mjs';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
@@ -129,7 +130,7 @@ export function setDev(): void {
   });
 
   addDev({ connectSocket, disconnectSocket, emitTmx });
-  addDev({ tmx2db, load, exportTournamentRecord });
+  addDev({ tmx2db, load, build, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 
   addDev({
@@ -214,6 +215,41 @@ function load(json: any): void {
     );
   }
   addAndDisplay(tournamentRecord);
+}
+
+// Reverse-engineer a tournamentRecord from CFS public-API responses pasted
+// into the console, then hand off to the same `load` path. Sources can be
+// any combination of `getEventData`, `competitionScheduleMatchUps`, and
+// `getParticipants` responses — kind is auto-detected. `{ data: { ... } }`
+// envelopes (network-tab copies) are peeled automatically.
+//
+//   const t = { ... };  // getEventData response
+//   const b = { ... };  // competitionScheduleMatchUps response
+//   const x = { ... };  // getParticipants response
+//   dev.build([t, b, x]);
+function build(sources: any): any {
+  if (!Array.isArray(sources)) {
+    console.error('[dev.build] expected an array of sources (e.g. dev.build([a, b, c])); got', typeof sources);
+    return undefined;
+  }
+  if (sources.length === 0) {
+    console.warn('[dev.build] no sources passed');
+    return undefined;
+  }
+  const { record, classification, unknownCount } = buildFromSources(sources);
+  console.log(
+    `[dev.build] classified ${classification.length} source(s):`,
+    classification.map((c: any) => `${c.index}:${c.kind}`).join(', '),
+  );
+  if (unknownCount > 0) {
+    console.warn(`[dev.build] could not classify ${unknownCount} source(s) — they were skipped`);
+  }
+  if (!record?.tournamentId) {
+    console.error('[dev.build] built record has no tournamentId — returning it without loading; inspect to diagnose');
+    return record;
+  }
+  load(record);
+  return record;
 }
 
 function generateMockTournament(params: any): void {
