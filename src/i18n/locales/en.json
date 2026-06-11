@@ -470,6 +470,16 @@
     "abbreviation": "Abbreviation"
   },
 
+  "timepicker": {
+    "am": "AM",
+    "pm": "PM",
+    "selectTime": "Select time",
+    "enterTime": "Enter time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "clear": "Clear"
+  },
+
   "tournament": {
     "organizer_email": "Organizer Email",
     "organizer_phone": "Organizer Phone",

@@ -6,10 +6,11 @@
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { timepickerConfig } from 'config/timepickerConfig';
 import { Datepicker } from 'vanillajs-datepicker';
 import { tools } from 'tods-competition-factory';
 import { TimepickerUI } from 'timepicker-ui';
-import { i18next } from 'i18n';
+import { i18next, t } from 'i18n';
 
 // constants
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
@@ -97,10 +98,22 @@ export function scheduleRound(params: ScheduleRoundParams): void {
 
     // defer timepicker-ui init so DOM is ready
     requestAnimationFrame(() => {
-      const isDark = document.documentElement.dataset.theme === 'dark';
+      const override = timepickerConfig.get().theme;
+      const theme = override ?? (document.documentElement.dataset.theme === 'dark' ? 'dark' : undefined);
       const tpu = new TimepickerUI(timeWrapper, {
         clock: { type: '12h', autoSwitchToMinutes: true },
-        ...(isDark && { ui: { theme: 'dark' as const } }),
+        ...(theme && { ui: { theme } }),
+        labels: {
+          am: t('timepicker.am'),
+          pm: t('timepicker.pm'),
+          ok: t('common.ok'),
+          cancel: t('common.cancel'),
+          time: t('timepicker.selectTime'),
+          mobileTime: t('timepicker.enterTime'),
+          mobileHour: t('timepicker.hour'),
+          mobileMinute: t('timepicker.minute'),
+          clear: t('timepicker.clear'),
+        },
         callbacks: {
           onConfirm: () => {
             selectedTime = timeInput.value;

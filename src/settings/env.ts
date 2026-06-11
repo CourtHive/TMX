@@ -20,6 +20,7 @@
 import { locationConfig, leafletConfig } from 'config/locationConfig';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { scoringBoardConfig } from 'config/scoringConfig';
+import { timepickerConfig } from 'config/timepickerConfig';
 import { scheduleConfig } from 'config/scheduleConfig';
 import { featureFlags } from 'config/featureFlags';
 import { displayConfig } from 'config/displayConfig';
@@ -198,6 +199,14 @@ export const env: any = {
   },
   set averages(v: boolean) {
     debugConfig.set({ averages: v });
+  },
+
+  // Timepicker UI — delegates to timepickerConfig
+  get timepickerTheme() {
+    return timepickerConfig.get().theme;
+  },
+  set timepickerTheme(v: ReturnType<typeof timepickerConfig.get>['theme']) {
+    timepickerConfig.set({ theme: v });
   },
 
   // Metadata — not delegated (session-only)

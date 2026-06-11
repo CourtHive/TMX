@@ -2,11 +2,29 @@
  * Time picker modal with 12-hour clock format.
  * Uses timepicker-ui library with accept callback and time format conversion.
  */
+import { timepickerConfig } from 'config/timepickerConfig';
 import { isFunction } from 'functions/typeOf';
 import { TimepickerUI } from 'timepicker-ui';
+import { t } from 'i18n';
 
-function getTimepickerTheme(): { theme: 'dark' } | undefined {
-  return document.documentElement.dataset.theme === 'dark' ? { theme: 'dark' } : undefined;
+function resolveTheme(): ReturnType<typeof timepickerConfig.get>['theme'] {
+  const override = timepickerConfig.get().theme;
+  if (override) return override;
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : undefined;
+}
+
+function timepickerLabels() {
+  return {
+    am: t('timepicker.am'),
+    pm: t('timepicker.pm'),
+    ok: t('common.ok'),
+    cancel: t('common.cancel'),
+    time: t('timepicker.selectTime'),
+    mobileTime: t('timepicker.enterTime'),
+    mobileHour: t('timepicker.hour'),
+    mobileMinute: t('timepicker.minute'),
+    clear: t('timepicker.clear'),
+  };
 }
 
 type TimePickerParams = {
@@ -18,10 +36,11 @@ type TimePickerParams = {
 export function timePicker({ time, options, callback }: TimePickerParams = {}): void {
   const timeValue = document.getElementById('timevalue') as HTMLInputElement;
   timeValue.value = regularTime(time);
+  const theme = resolveTheme();
   const tpu = new TimepickerUI(document.getElementById('timepicker')!, {
-    clock: { type: '12h' },
-    ui: getTimepickerTheme(),
-    behavior: { autoSwitchToMinutes: true },
+    clock: { type: '12h', autoSwitchToMinutes: true },
+    ...(theme && { ui: { theme } }),
+    labels: timepickerLabels(),
     callbacks: {
       onConfirm: () => {
         const value = timeValue.value;
