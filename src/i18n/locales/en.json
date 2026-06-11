@@ -1946,6 +1946,7 @@
         "editScoring": "Edit {{name}} scoring",
         "removeStructure": "Remove structure",
         "printDraw": "Print draw",
+        "recalculateStats": "Recalculate stats",
         "deleteDraw": "Delete draw",
         "resetDraw": "Reset draw",
         "cannotRemoveScores": "Cannot remove when scores are present",

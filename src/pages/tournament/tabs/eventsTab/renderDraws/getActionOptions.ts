@@ -20,11 +20,16 @@ import { renderDrawView } from './renderDrawView';
 import { t } from 'i18n';
 
 // constants
-import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
+import {
+  RESET_MATCHUP_LINEUPS,
+  RESET_SCORECARD,
+  SET_POSITION_ASSIGNMENTS,
+  UPDATE_PARTICIPANT_RESULTS,
+} from 'constants/mutationConstants';
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 
 const { POLICY_TYPE_SCORING } = policyConstants;
-const { MAIN } = drawDefinitionConstants;
+const { CONTAINER, MAIN } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
 
 interface ActionOptionsParams {
@@ -168,6 +173,28 @@ export function getActionOptions({
     {
       onClick: () => printDraw({ drawId, eventId, structureId }),
       label: t('pages.events.actionOptions.printDraw'),
+      close: true,
+    },
+    {
+      // Round-robin / ad-hoc tally escape hatch — for draws reconstructed
+      // from already-completed matchUps (or with manually-edited scores)
+      // where modifyMatchUpScore's auto-tally never fired and the stats
+      // view would otherwise show empty rows.
+      hide: !(structure?.structureType === CONTAINER || tournamentEngine.isAdHoc({ structure })),
+      onClick: () => {
+        mutationRequest({
+          methods: [{ method: UPDATE_PARTICIPANT_RESULTS, params: { drawId, structureId } }],
+          callback: (result: any) => {
+            if (!result?.success) return;
+            tmxToast({
+              message: t('pages.events.actionOptions.recalculateStats'),
+              intent: 'is-success',
+            });
+            renderDrawView({ eventId, drawId, structureId });
+          },
+        });
+      },
+      label: t('pages.events.actionOptions.recalculateStats'),
       close: true,
     },
     {
