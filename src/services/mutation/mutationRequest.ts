@@ -4,7 +4,7 @@
  */
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
-import { getUserContext } from 'services/authentication/getUserContext';
+import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
@@ -122,7 +122,9 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
     return;
   }
   if (providerIds.length && !offline && state) {
-    checkPermissions({ state, providerIds, mutate });
+    checkPermissions({ state, providerIds, mutate }).catch((err) =>
+      console.error('[mutationRequest] checkPermissions failed', err),
+    );
     return;
   }
   await mutate(true);
@@ -147,7 +149,7 @@ function queryDateRange({
   });
 }
 
-function checkPermissions({
+async function checkPermissions({
   state,
   providerIds,
   mutate,
@@ -155,7 +157,7 @@ function checkPermissions({
   state: any;
   providerIds: string[];
   mutate: (saveLocal?: boolean) => Promise<void>;
-}): void {
+}): Promise<void> {
   if (!state) {
     context.provider = undefined;
     styleLogin(false);
@@ -165,12 +167,19 @@ function checkPermissions({
   const targetProviderId = providerIds[0];
 
   // Use the multi-provider userContext if available (preferred source —
-  // reflects current user_providers state without JWT staleness), falling
-  // back to the legacy JWT fields for backwards compatibility.
-  const userContext = getUserContext();
+  // reflects current user_providers state without JWT staleness). Lazy
+  // fetch on the mutation path closes the race that produced "Not
+  // authorized" toasts for users with NULL users.provider_id whose
+  // userContext cache hadn't yet populated. Falling back to JWT fields
+  // covers older sessions where /auth/me is unreachable.
+  const userContext = (await ensureUserContext()) ?? getUserContext();
   const isProvider = userContext
     ? userContext.providerIds.includes(targetProviderId)
-    : !!(state?.providerIds?.includes(targetProviderId) || state?.provider?.organisationId === targetProviderId);
+    : !!(
+        state?.providerIds?.includes(targetProviderId) ||
+        state?.providerAssociations?.some((a: any) => a.providerId === targetProviderId) ||
+        state?.provider?.organisationId === targetProviderId
+      );
   const isSuperAdmin = userContext ? userContext.isSuperAdmin : state?.roles?.includes(SUPER_ADMIN);
   const impersonating = context.provider?.organisationId === targetProviderId;
 
