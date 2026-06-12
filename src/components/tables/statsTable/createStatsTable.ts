@@ -42,8 +42,6 @@ export async function createStatsTable({
       return map;
     }, {});
 
-  const groupNames: Record<string, string> = {};
-
   const getParticipantResults = () => {
     const { participants, eventData } = tournamentEngine.getEventData({
       participantFilters: { eventIds: [eventId], positionedParticipants: true },
@@ -57,9 +55,11 @@ export async function createStatsTable({
     structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
 
     if (!participantMap) participantMap = getParticipantMap(participants ?? []);
+    // Tag each participant with its group structureName so the groupName
+    // column can render it. (Used to feed Tabulator's groupBy header too,
+    // but the group is now a sortable column instead of a header band.)
     const matchUps = structure?.roundMatchUps ? Object.values(structure.roundMatchUps).flat() : [];
-    matchUps.forEach(({ sides, structureName, structureId }: any) => {
-      groupNames[structureId] = structureName;
+    matchUps.forEach(({ sides, structureName }: any) => {
       sides?.forEach((side: any) => {
         if (side.participantId && participantMap[side.participantId]) {
           participantMap[side.participantId].groupName = structureName;
@@ -97,7 +97,10 @@ export async function createStatsTable({
     destroyTable({ anchorId: DRAWS_VIEW });
     const element = document.getElementById(DRAWS_VIEW);
 
-    const groupBy = Object.values(groupNames).length > 1 ? ['groupName'] : undefined;
+    // Group is a column now (not a Tabulator groupBy header) so users can
+    // sort all participants together by any stat. Default-sort by groupName
+    // so the initial view mirrors the per-group reading order people are
+    // used to.
     table = new Tabulator(element, {
       headerSortElement: headerSortElement([
         'averageVariation',
@@ -111,18 +114,18 @@ export async function createStatsTable({
         'pointsPct',
         'gamesPct',
         'setsPct',
+        'groupName',
         'result',
         'order',
       ]),
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-      groupHeader: [(value: string) => value],
       placeholder: 'No participants',
       responsiveLayout: 'collapse',
       layout: 'fitColumns',
       reactiveData: true,
       index: 'matchUpId',
-      groupBy,
+      initialSort: [{ column: 'groupName', dir: 'asc' }],
       columns,
       data,
     });

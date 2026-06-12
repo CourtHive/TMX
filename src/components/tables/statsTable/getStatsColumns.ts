@@ -41,6 +41,17 @@ export function getStatsColumns(): any[] {
       title: t('tables.stats.name'),
     },
     {
+      // Surface the participant's group as a real column rather than the
+      // Tabulator groupBy header — that lets the user sort all participants
+      // across groups by any stat and still see which group they came from.
+      field: 'groupName',
+      title: t('tables.stats.group'),
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      headerWordWrap: true,
+      width: 110,
+    },
+    {
       headerHozAlign: CENTER,
       headerWordWrap: true,
       title: t('tables.stats.matchWinLoss'),
@@ -133,11 +144,6 @@ export function getStatsColumns(): any[] {
       title: t('tables.stats.psNum'),
       hozAlign: CENTER,
       maxWidth: 80,
-    },
-    {
-      field: 'groupName',
-      visible: false,
-      title: t('tables.stats.group'),
     },
   ];
 }

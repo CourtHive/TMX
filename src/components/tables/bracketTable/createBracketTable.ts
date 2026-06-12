@@ -145,7 +145,20 @@ export async function createBracketTable({
       return participant?.participantName?.toLowerCase().includes(participantFilter.toLowerCase());
     });
 
-    return getBracketData({ structure, participantMap, participantResults, drawId });
+    let groups = getBracketData({ structure, participantMap, participantResults, drawId });
+
+    // Search behavior: when a filter is set, hide entire group bracket
+    // tables that don't contain a matching participant (instead of just
+    // greying out the stats column inside every group, which produced
+    // the "screen-flash, nothing-changes" experience the user saw).
+    if (participantFilter) {
+      const needle = participantFilter.toLowerCase();
+      groups = groups.filter((g: any) =>
+        g.participants.some((p: any) => p.participantName?.toLowerCase().includes(needle)),
+      );
+    }
+
+    return groups;
   };
 
   // Re-fetch data and update specific rows in place by drawPosition
