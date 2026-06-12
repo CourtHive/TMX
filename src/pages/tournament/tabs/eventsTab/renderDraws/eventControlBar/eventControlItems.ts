@@ -32,6 +32,7 @@ export function getEventControlItems({
   drawData,
   eventId,
   drawId,
+  roundsView,
 }: {
   updateParticipantFilter: (value: string) => void;
   structureId: string;
@@ -39,6 +40,7 @@ export function getEventControlItems({
   drawData?: any;
   eventId: string;
   drawId: string;
+  roundsView?: string;
 }): any[] {
   const drawsOptions = eventData?.eventInfo ? getDrawsOptions({ eventData }) : [];
 
@@ -202,7 +204,7 @@ export function getEventControlItems({
   }
 
   // [Actions ▼] dropdown — draw-specific actions (furthest right)
-  const actionOptions = getActionOptions({ structureId, eventData, drawData, drawId });
+  const actionOptions = getActionOptions({ structureId, eventData, drawData, drawId, roundsView });
   const visibleActions = actionOptions.filter((opt: any) => !opt.hide);
   if (visibleActions.length > 0) {
     items.push({

@@ -522,6 +522,7 @@ export function renderDrawView({
       matchUps,
       eventId,
       drawId,
+      roundsView,
     });
 
     controlBar({ target: eventControlElement, items });

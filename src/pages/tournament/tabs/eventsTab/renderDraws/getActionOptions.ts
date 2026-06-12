@@ -38,6 +38,7 @@ interface ActionOptionsParams {
   eventData: any;
   drawData: any;
   drawId: string;
+  roundsView?: string;
 }
 
 export function getActionOptions({
@@ -46,6 +47,7 @@ export function getActionOptions({
   eventData,
   drawData,
   drawId,
+  roundsView,
 }: ActionOptionsParams): any[] {
   const hasQualifying = drawData?.structures?.find((structure: any) => structure?.stage === QUALIFYING);
   const structure = drawData?.structures?.find((structure: any) => structure?.structureId === structureId);
@@ -190,7 +192,10 @@ export function getActionOptions({
               message: t('pages.events.actionOptions.recalculateStats'),
               intent: 'is-success',
             });
-            renderDrawView({ eventId, drawId, structureId });
+            // Preserve the current sub-view (roundsView) on refresh — without
+            // it renderDrawView falls back to the default (cards), yanking
+            // the user off whichever pill tab they were on.
+            renderDrawView({ eventId, drawId, structureId, roundsView });
           },
         });
       },
