@@ -158,7 +158,7 @@ export function getBracketColumns({
       title: t('tables.bracket.winLoss'),
       field: 'result',
       hozAlign: CENTER,
-      width: 60,
+      width: 75,
       headerSort: false,
     },
     {
@@ -168,7 +168,7 @@ export function getBracketColumns({
       title: t('tables.bracket.winPct'),
       field: 'matchUpsPct',
       hozAlign: CENTER,
-      width: 60,
+      width: 75,
       headerSort: false,
     },
     {
@@ -178,7 +178,7 @@ export function getBracketColumns({
       title: t('tables.bracket.setPct'),
       field: 'setsPct',
       hozAlign: CENTER,
-      width: 60,
+      width: 75,
       headerSort: false,
     },
     {
@@ -189,7 +189,7 @@ export function getBracketColumns({
       title: t('tables.bracket.pos'),
       field: 'order',
       hozAlign: CENTER,
-      width: 60,
+      width: 75,
       headerSort: false,
     },
   );

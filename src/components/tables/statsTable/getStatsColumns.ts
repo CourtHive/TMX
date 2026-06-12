@@ -51,12 +51,19 @@ export function getStatsColumns(): any[] {
       headerWordWrap: true,
       width: 110,
     },
+    // Stat columns — no `maxWidth` so the user can drag them wider when the
+    // wrapped header ("Points Win%" -> "Points" / "Win%") would otherwise be
+    // clipped, plus a `minWidth` that fits the widest header word with a
+    // little breathing room. `widthGrow: 0` keeps `fitColumns` from
+    // distributing leftover table width onto these (extra width belongs to
+    // the participantName column instead, which already has widthGrow: 2).
     {
       headerHozAlign: CENTER,
       headerWordWrap: true,
       title: t('tables.stats.matchWinLoss'),
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
       field: 'result',
     },
     {
@@ -66,7 +73,8 @@ export function getStatsColumns(): any[] {
       field: 'matchUpsPct',
       title: t('tables.stats.matchWinPct'),
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       headerHozAlign: CENTER,
@@ -74,7 +82,8 @@ export function getStatsColumns(): any[] {
       field: 'setsResult',
       title: t('tables.stats.setsWinLoss'),
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       formatter: percentFormatter,
@@ -83,7 +92,8 @@ export function getStatsColumns(): any[] {
       title: t('tables.stats.setWinPct'),
       hozAlign: CENTER,
       field: 'setsPct',
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       headerHozAlign: CENTER,
@@ -91,7 +101,8 @@ export function getStatsColumns(): any[] {
       field: 'gamesResult',
       title: t('tables.stats.gamesWinLoss'),
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       formatter: percentFormatter,
@@ -100,7 +111,8 @@ export function getStatsColumns(): any[] {
       title: t('tables.stats.gameWinPct'),
       hozAlign: CENTER,
       field: 'gamesPct',
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       headerHozAlign: CENTER,
@@ -108,7 +120,8 @@ export function getStatsColumns(): any[] {
       field: 'pointsResult',
       title: t('tables.stats.pointsWinLoss'),
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       formatter: percentFormatter,
@@ -117,7 +130,8 @@ export function getStatsColumns(): any[] {
       title: t('tables.stats.pointsWinPct'),
       field: 'pointsPct',
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 80,
+      widthGrow: 0,
     },
     {
       formatter: percentFormatter,
@@ -125,7 +139,8 @@ export function getStatsColumns(): any[] {
       headerHozAlign: CENTER,
       sorter: percentSorter,
       hozAlign: CENTER,
-      maxWidth: 70,
+      minWidth: 60,
+      widthGrow: 0,
       title: t('tables.stats.rv'),
     },
     {
@@ -134,7 +149,8 @@ export function getStatsColumns(): any[] {
       headerHozAlign: CENTER,
       sorter: percentSorter,
       hozAlign: CENTER,
-      maxWidth: 70,
+      minWidth: 60,
+      widthGrow: 0,
       title: t('tables.stats.ps'),
     },
     {
@@ -143,7 +159,19 @@ export function getStatsColumns(): any[] {
       sorter: orderSorter,
       title: t('tables.stats.psNum'),
       hozAlign: CENTER,
-      maxWidth: 80,
+      minWidth: 70,
+      widthGrow: 0,
+    },
+    {
+      // Group position (1st, 2nd, … within each group) — `order` is the
+      // resolved groupOrder, falling back to provisionalOrder.
+      field: 'order',
+      title: t('tables.bracket.pos'),
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      sorter: orderSorter,
+      minWidth: 50,
+      widthGrow: 0,
     },
   ];
 }
