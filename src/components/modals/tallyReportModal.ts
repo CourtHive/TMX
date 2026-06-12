@@ -107,8 +107,12 @@ export function showTallyReportModal({ groupMatchUps, groupName, eventId, drawId
     // Render final order
     if (order?.length) {
       const orderSection = document.createElement('div');
+      // Horizontal padding here (the section has no background of its own,
+      // unlike the step blocks above) so the rows visually align with the
+      // step-block content instead of sitting flush against the section's
+      // left edge.
       orderSection.style.cssText =
-        'margin-top: 12px; padding-top: 8px; border-top: 2px solid var(--tmx-border-primary, #ccc);';
+        'margin-top: 12px; padding: 8px 8px 0; border-top: 2px solid var(--tmx-border-primary, #ccc);';
 
       const orderTitle = document.createElement('div');
       orderTitle.style.cssText = 'font-weight: 600; margin-bottom: 6px;';
