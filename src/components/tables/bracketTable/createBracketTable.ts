@@ -284,10 +284,16 @@ export async function createBracketTable({
     const groupsById = leafStructuresByGroupId(tournamentEngine.q.drawDefinition({ drawId }));
 
     for (const group of groups) {
-      // Wrap each group's header + table in a container for the accent bar
+      // Wrap each group's header + table in a container for the accent bar.
+      // flex-column + align-items:flex-start stacks the title and the
+      // (now display:inline-block, courtesy of fitDataTable) Tabulator
+      // vertically while letting each child stay at its own natural width
+      // — without this they sit side-by-side and the title "falls" next
+      // to the table.
       const groupContainer = document.createElement('div');
       applyRRGroupClasses(groupContainer, groupsById, allMatchUps, group.groupId);
-      groupContainer.style.cssText = 'border-radius:4px; margin-bottom:4px; padding:2px;';
+      groupContainer.style.cssText =
+        'border-radius:4px; margin-bottom:4px; padding:2px; display:flex; flex-direction:column; align-items:flex-start;';
       element.appendChild(groupContainer);
 
       if (groups.length > 1) {
