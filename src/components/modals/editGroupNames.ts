@@ -12,6 +12,17 @@ import { t } from 'i18n';
 import { RENAME_STRUCTURES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
+const EDIT_GROUP_NAMES_STYLE_ID = 'tmx-edit-group-names-style';
+function ensureEditGroupNamesStyles(): void {
+  if (document.getElementById(EDIT_GROUP_NAMES_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = EDIT_GROUP_NAMES_STYLE_ID;
+  style.textContent = `
+    .tmx-edit-group-names .flexrow { align-items: center; }
+  `;
+  document.head.appendChild(style);
+}
+
 export function editGroupNames({
   drawId,
   structure,
@@ -31,7 +42,7 @@ export function editGroupNames({
     text: `${structureName}:`,
     fieldPair: {
       error: t('modals.editGroupNames.minChars'),
-      validator: validators.nameValidator(4),
+      validator: validators.nameValidator(3),
       placeholder: structureName,
       field: structureId,
       id: structureId,
@@ -65,7 +76,7 @@ export function editGroupNames({
     const nameValues = Object.values(groups)
       .map(({ structureId }: any) => inputs[structureId]?.value)
       .filter(Boolean);
-    const validValues = nameValues.every(validators.nameValidator(4));
+    const validValues = nameValues.every(validators.nameValidator(3));
     const valid = nameValues.length && validValues;
     modalHandle?.setButtonState('renameGroups', { disabled: !valid });
   };
@@ -73,7 +84,16 @@ export function editGroupNames({
     control: structureId,
     onInput: checkValid,
   }));
-  const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
+  const content = (elem: HTMLElement) => {
+    // Vertically center each row's label (`.flexaligncenter`, 2.5em tall)
+    // with the input (whose `.control` block includes an empty `.help`
+    // paragraph that pushes the input upward). The global `.flexrow`
+    // utility intentionally has no `align-items` rule, so do it scoped
+    // here instead of changing the shared class.
+    elem.classList.add('tmx-edit-group-names');
+    ensureEditGroupNamesStyles();
+    inputs = renderForm(elem, options, relationships);
+  };
   modalHandle = openModal({
     title: t('modals.editGroupNames.title'),
     content,

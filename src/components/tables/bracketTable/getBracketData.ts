@@ -1,3 +1,5 @@
+import { tournamentEngine } from 'services/factory/engine';
+
 type GroupParticipant = {
   drawPosition: number;
   participantName: string;
@@ -187,8 +189,21 @@ export function getBracketData({ structure, participantMap, participantResults, 
     });
   }
 
-  // Sort groups by name
-  groups.sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { numeric: true }));
+  // Sort groups by their position in the drawDefinition tree, NOT by name.
+  // Renaming a group ("Group 1" -> "Redish") shouldn't reorder it; the user
+  // expects the original group slot to stay put. The raw drawDefinition's
+  // CONTAINER.structures[] preserves insertion order — index by structureId
+  // and use that as the sort key.
+  const drawDefinition = tournamentEngine.q.drawDefinition({ drawId });
+  const groupOrder: Record<string, number> = {};
+  let groupIndex = 0;
+  for (const s of drawDefinition?.structures ?? []) {
+    const leaves = s?.structures?.length ? s.structures : [s];
+    for (const g of leaves) {
+      if (g?.structureId) groupOrder[g.structureId] = groupIndex++;
+    }
+  }
+  groups.sort((a, b) => (groupOrder[a.groupId] ?? 0) - (groupOrder[b.groupId] ?? 0));
 
   return groups;
 }

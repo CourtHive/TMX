@@ -1274,7 +1274,7 @@
     },
     "editGroupNames": {
       "title": "Edit group names",
-      "minChars": "minimum 4 characters",
+      "minChars": "minimum 3 characters",
       "groupsRenamed": "Groups renamed"
     },
     "addFlights": {
