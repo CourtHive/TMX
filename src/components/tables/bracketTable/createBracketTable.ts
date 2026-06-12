@@ -28,15 +28,30 @@ function isGroupComplete(structureMatchUps: any[], groupId: string): boolean {
   return groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
 }
 
+/** Walk the raw drawDefinition's structure tree (CONTAINER -> ITEM groups,
+ *  or a flat list of ITEM structures) and return the leaf group structures
+ *  keyed by structureId. Used to read each group's positionAssignments —
+ *  the projected structure from `getEventData()` is flat and drops the
+ *  child structures, so resolving from `getEventData` returns nothing for
+ *  the CONTAINER case (which is exactly the round-robin shape we care about
+ *  here, and was producing false-amber bars in the Grid view). */
+function leafStructuresByGroupId(drawDefinition: any): Record<string, any> {
+  const leaves = (drawDefinition?.structures ?? []).flatMap((s: any) =>
+    s?.structures?.length ? s.structures : [s],
+  );
+  const byId: Record<string, any> = {};
+  for (const g of leaves) {
+    if (g?.structureId) byId[g.structureId] = g;
+  }
+  return byId;
+}
+
 /** True when at least one positionAssignment in the group carries a saved tally
  *  (first-class `tally` field per the CODES schema, or the legacy `tally`
  *  extension). Used to distinguish "complete" from "complete-but-stale" — the
  *  state created when matchUps were imported with scores already populated
  *  and the auto-tally save path never fired. */
-function hasGroupTally(structure: any, groupId: string): boolean {
-  const groupStructure =
-    structure?.structures?.find((s: any) => s?.structureId === groupId) ??
-    (structure?.structureId === groupId ? structure : undefined);
+function hasGroupTally(groupStructure: any): boolean {
   const assignments = groupStructure?.positionAssignments ?? [];
   return assignments.some(
     (a: any) => a?.tally !== undefined || (a?.extensions ?? []).some((ext: any) => ext?.name === 'tally'),
@@ -45,9 +60,14 @@ function hasGroupTally(structure: any, groupId: string): boolean {
 
 /** Toggle both `rr-group-complete` and `rr-group-stale` on a container based
  *  on the matchUp completion + tally state for the given group. */
-function applyRRGroupClasses(container: HTMLElement, structure: any, structureMatchUps: any[], groupId: string): void {
+function applyRRGroupClasses(
+  container: HTMLElement,
+  groupsById: Record<string, any>,
+  structureMatchUps: any[],
+  groupId: string,
+): void {
   const complete = isGroupComplete(structureMatchUps, groupId);
-  const stale = complete && !hasGroupTally(structure, groupId);
+  const stale = complete && !hasGroupTally(groupsById[groupId]);
   container.classList.toggle('rr-group-stale', stale);
   container.classList.toggle('rr-group-complete', complete && !stale);
 }
@@ -164,11 +184,16 @@ export async function createBracketTable({
     }
   };
 
-  // Re-evaluate completion / stale accent for a specific group
+  // Re-evaluate completion / stale accent for a specific group. Resolves
+  // the raw group structure (with positionAssignments + tally) on every
+  // call so post-mutation state shows up — the `structure` closure from
+  // getEventData is a flat projection without child structures, so a
+  // tally check against it always reports stale for CONTAINERs.
   const refreshGroupHighlight = (groupId: string) => {
     const container = containersByGroup[groupId];
     if (!container) return;
-    applyRRGroupClasses(container, structure, getStructureMatchUps(structure), groupId);
+    const drawDefinition = tournamentEngine.q.drawDefinition({ drawId });
+    applyRRGroupClasses(container, leafStructuresByGroupId(drawDefinition), getStructureMatchUps(structure), groupId);
   };
 
   // After scoring, update all rows in the affected group (stats change for everyone)
@@ -249,11 +274,14 @@ export async function createBracketTable({
     tables = [];
 
     const allMatchUps = getStructureMatchUps(structure);
+    // Read group structures (and their positionAssignments + tally) off
+    // the raw drawDefinition — getEventData's projection drops these.
+    const groupsById = leafStructuresByGroupId(tournamentEngine.q.drawDefinition({ drawId }));
 
     for (const group of groups) {
       // Wrap each group's header + table in a container for the accent bar
       const groupContainer = document.createElement('div');
-      applyRRGroupClasses(groupContainer, structure, allMatchUps, group.groupId);
+      applyRRGroupClasses(groupContainer, groupsById, allMatchUps, group.groupId);
       groupContainer.style.cssText = 'border-radius:4px; margin-bottom:4px; padding:2px;';
       element.appendChild(groupContainer);
 
