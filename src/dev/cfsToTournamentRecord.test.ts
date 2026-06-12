@@ -17,6 +17,10 @@ import {
   buildFromSources,
 } from './cfsToTournamentRecord.mjs';
 
+// `classifySource`'s string union — extracted so the literal isn't repeated
+// across assertions (SonarJS S1192).
+const EVENT_DATA = 'event-data';
+
 // ----------------------------------------------------------------- helpers
 type AnyObj = Record<string, any>;
 
@@ -101,7 +105,7 @@ function collectPositionAssignments(record: AnyObj, eventId: string): Array<{ dr
 
 describe('classifySource', () => {
   it('recognizes the CFS public-API wrapper keys', () => {
-    expect(classifySource({ tournamentPublicEventData: { eventData: {} } }).kind).toBe('event-data');
+    expect(classifySource({ tournamentPublicEventData: { eventData: {} } }).kind).toBe(EVENT_DATA);
     expect(classifySource({ tournamentMatchUps: { dateMatchUps: [] } }).kind).toBe('matchups');
     expect(classifySource({ tournamentParticipants: { participants: [] } }).kind).toBe('participants');
   });
@@ -112,7 +116,7 @@ describe('classifySource', () => {
 
   it('peels nested { data: { data: ... } } envelopes', () => {
     const wrapped = { data: { data: { data: { tournamentPublicEventData: { eventData: {} } } } } };
-    expect(classifySource(wrapped).kind).toBe('event-data');
+    expect(classifySource(wrapped).kind).toBe(EVENT_DATA);
   });
 
   it('does NOT peel an object that has `data` alongside other keys', () => {
@@ -125,7 +129,7 @@ describe('classifySource', () => {
     const { tournamentRecord } = generateRoundRobin();
     tournamentEngine.setState(tournamentRecord);
     const raw = tournamentEngine.getEventData({ eventId: tournamentRecord.events[0].eventId });
-    expect(classifySource(raw).kind).toBe('event-data');
+    expect(classifySource(raw).kind).toBe(EVENT_DATA);
   });
 
   it('classifies the raw factory `competitionScheduleMatchUps` shape', () => {
@@ -452,7 +456,7 @@ describe('buildFromSources', () => {
       { foo: 'bar' },
     ]);
 
-    expect(classification.map((c) => c.kind)).toEqual(['event-data', 'matchups', 'unknown', 'unknown']);
+    expect(classification.map((c) => c.kind)).toEqual([EVENT_DATA, 'matchups', 'unknown', 'unknown']);
     expect(unknownCount).toBe(2);
   });
 
