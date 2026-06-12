@@ -17,8 +17,14 @@ function ensureEditGroupNamesStyles(): void {
   if (document.getElementById(EDIT_GROUP_NAMES_STYLE_ID)) return;
   const style = document.createElement('style');
   style.id = EDIT_GROUP_NAMES_STYLE_ID;
+  // `renderField` appends an empty `<p class="help">` below each input so a
+  // validation message has a slot to land in. While empty it adds vertical
+  // weight to the `.field` block, which pushes the input above the label
+  // baseline when the row is centered. Hiding the help while empty + bottom-
+  // aligning the row lands the input's baseline next to the label text.
   style.textContent = `
-    .tmx-edit-group-names .flexrow { align-items: center; }
+    .tmx-edit-group-names .flexrow { align-items: flex-end; }
+    .tmx-edit-group-names .help:empty { display: none; }
   `;
   document.head.appendChild(style);
 }
