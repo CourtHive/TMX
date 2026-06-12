@@ -847,12 +847,17 @@ html {
   background-color: rgba(72, 199, 116, 0.3);
 }
 
-/* Round Robin: highlight completed groups ready for playoff placement */
+/* Round Robin: subtle left-edge accent on completed groups. Bar sits
+ * inside the bracket grid (no full-width wash) and uses the theme-aware
+ * --tmx-status-* vars so dark mode picks up the right hue automatically.
+ * `rr-group-stale` flags completed groups whose tally hasn't been saved
+ * yet (the state the "Recalculate stats" action menu item resolves).
+ * Both states are mutually exclusive — toggled by the rendering code. */
 .rr-group-complete {
-  background-color: rgba(72, 199, 116, 0.18);
+  border-left: 3px solid var(--tmx-status-success);
 }
-[data-theme='dark'] .rr-group-complete {
-  background-color: rgba(72, 199, 116, 0.2);
+.rr-group-stale {
+  border-left: 3px solid var(--tmx-status-warning);
 }
 
 /* Consolidation: highlight target rounds awaiting lucky loser decision */

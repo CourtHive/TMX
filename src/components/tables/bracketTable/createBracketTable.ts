@@ -28,6 +28,30 @@ function isGroupComplete(structureMatchUps: any[], groupId: string): boolean {
   return groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
 }
 
+/** True when at least one positionAssignment in the group carries a saved tally
+ *  (first-class `tally` field per the CODES schema, or the legacy `tally`
+ *  extension). Used to distinguish "complete" from "complete-but-stale" — the
+ *  state created when matchUps were imported with scores already populated
+ *  and the auto-tally save path never fired. */
+function hasGroupTally(structure: any, groupId: string): boolean {
+  const groupStructure =
+    structure?.structures?.find((s: any) => s?.structureId === groupId) ??
+    (structure?.structureId === groupId ? structure : undefined);
+  const assignments = groupStructure?.positionAssignments ?? [];
+  return assignments.some(
+    (a: any) => a?.tally !== undefined || (a?.extensions ?? []).some((ext: any) => ext?.name === 'tally'),
+  );
+}
+
+/** Toggle both `rr-group-complete` and `rr-group-stale` on a container based
+ *  on the matchUp completion + tally state for the given group. */
+function applyRRGroupClasses(container: HTMLElement, structure: any, structureMatchUps: any[], groupId: string): void {
+  const complete = isGroupComplete(structureMatchUps, groupId);
+  const stale = complete && !hasGroupTally(structure, groupId);
+  container.classList.toggle('rr-group-stale', stale);
+  container.classList.toggle('rr-group-complete', complete && !stale);
+}
+
 const BRACKET_STYLE_ID = 'bracket-table-style';
 function ensureBracketStyles() {
   if (document.getElementById(BRACKET_STYLE_ID)) return;
@@ -140,11 +164,11 @@ export async function createBracketTable({
     }
   };
 
-  // Re-evaluate green completion highlighting for a specific group
+  // Re-evaluate completion / stale accent for a specific group
   const refreshGroupHighlight = (groupId: string) => {
     const container = containersByGroup[groupId];
     if (!container) return;
-    container.classList.toggle('rr-group-complete', isGroupComplete(getStructureMatchUps(structure), groupId));
+    applyRRGroupClasses(container, structure, getStructureMatchUps(structure), groupId);
   };
 
   // After scoring, update all rows in the affected group (stats change for everyone)
@@ -224,16 +248,12 @@ export async function createBracketTable({
     const groups = getData();
     tables = [];
 
-    // Build set of completed group IDs for green highlighting
     const allMatchUps = getStructureMatchUps(structure);
-    const completedGroupIds = new Set(groups.filter((g) => isGroupComplete(allMatchUps, g.groupId)).map((g) => g.groupId));
 
     for (const group of groups) {
-      // Wrap each group's header + table in a container for highlighting
+      // Wrap each group's header + table in a container for the accent bar
       const groupContainer = document.createElement('div');
-      if (completedGroupIds.has(group.groupId)) {
-        groupContainer.classList.add('rr-group-complete');
-      }
+      applyRRGroupClasses(groupContainer, structure, allMatchUps, group.groupId);
       groupContainer.style.cssText = 'border-radius:4px; margin-bottom:4px; padding:2px;';
       element.appendChild(groupContainer);
 
