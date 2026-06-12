@@ -84,6 +84,14 @@ function ensureBracketStyles() {
     .bracket-table .tabulator-col {
       border-right: 1px solid var(--tmx-tab-border);
     }
+    /* Stop the header's bottom border from running the full screen
+     * width. layout:'fitData' sizes the columns internally but the
+     * .tabulator root still stretches to 100% of its parent, so the
+     * border sits at the parent edge, not the rightmost column. */
+    .bracket-table .tabulator {
+      width: fit-content;
+      max-width: 100%;
+    }
   `;
   document.head.appendChild(style);
 }
