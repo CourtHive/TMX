@@ -5,6 +5,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { scoreGovernor, fixtures } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { showTallyReportModal } from 'components/modals/tallyReportModal';
+import { editGroupNames } from 'components/modals/editGroupNames';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { getBracketColumns, attachHeaderTooltip } from './getBracketColumns';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
@@ -296,24 +297,46 @@ export async function createBracketTable({
         'border-radius:4px; margin-bottom:4px; padding:2px; display:flex; flex-direction:column; align-items:flex-start;';
       element.appendChild(groupContainer);
 
+      // stackWrapper sizes to its widest child — the Tabulator (inline-block
+      // via fitDataTable). The header row then takes width:100% of that, so
+      // the report icon sits flush against the rightmost column instead of
+      // a few px past the group title.
+      const stackWrapper = document.createElement('div');
+      stackWrapper.style.cssText = 'display:inline-block;';
+      groupContainer.appendChild(stackWrapper);
+
       if (groups.length > 1) {
-        const header = document.createElement('div');
-        header.style.cssText = 'font-weight:bold;font-size:1.1em;padding:8px 4px 4px; cursor:pointer; display:inline-block;';
-        header.textContent = group.groupName;
-        header.title = 'Click to view tiebreak report';
-        header.onclick = () => {
+        const headerRow = document.createElement('div');
+        headerRow.style.cssText =
+          'display:flex; align-items:center; justify-content:space-between; padding:8px 4px 4px; width:100%; box-sizing:border-box;';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.style.cssText = 'font-weight:bold; font-size:1.1em; cursor:pointer;';
+        nameSpan.textContent = group.groupName;
+        nameSpan.title = 'Click to rename groups';
+        nameSpan.onclick = () => editGroupNames({ drawId, structure, callback: () => replaceTableData() });
+        headerRow.appendChild(nameSpan);
+
+        const reportIcon = document.createElement('i');
+        reportIcon.className = 'fa-solid fa-clipboard-list';
+        reportIcon.style.cssText =
+          'cursor:pointer; color:var(--tmx-text-secondary, #777); padding:2px 6px; font-size:1em;';
+        reportIcon.title = 'View tiebreak report';
+        reportIcon.onclick = () => {
           const groupMatchUps = getStructureMatchUps(structure).filter((mu: any) => mu.structureId === group.groupId);
           if (groupMatchUps.length) {
             showTallyReportModal({ groupMatchUps, groupName: group.groupName, eventId, drawId });
           }
         };
-        groupContainer.appendChild(header);
+        headerRow.appendChild(reportIcon);
+
+        stackWrapper.appendChild(headerRow);
       }
 
       ensureBracketStyles();
       const tableDiv = document.createElement('div');
       tableDiv.classList.add('bracket-table');
-      groupContainer.appendChild(tableDiv);
+      stackWrapper.appendChild(tableDiv);
 
       const columns = getBracketColumns({
         participants: group.participants,

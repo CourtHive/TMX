@@ -81,7 +81,11 @@ export function showTallyReportModal({ groupMatchUps, groupName, eventId, drawId
   const getName = (pid: string) => participantNames[pid] || pid;
 
   const content = (container: HTMLElement) => {
-    container.style.cssText = 'font-size: 13px; line-height: 1.6; max-height: 60vh; overflow-y: auto;';
+    // Pad the scroll area so the step blocks and the Final Order rows don't
+    // butt against the modal frame (the step block has its own background +
+    // padding so it looks OK without; Final Order is plain text).
+    container.style.cssText =
+      'font-size: 13px; line-height: 1.6; max-height: 60vh; overflow-y: auto; padding: 0.5em 0.75em;';
 
     if (!report?.length && !order?.length) {
       const note = document.createElement('div');
