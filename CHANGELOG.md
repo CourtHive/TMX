@@ -1,5 +1,44 @@
 # Changelog
 
+## [7.5.0](https://github.com/CourtHive/TMX/compare/v7.4.1...v7.5.0) (2026-06-12)
+
+
+### Features
+
+* **bracketTable:** discoverable tiebreak-report icon + restore group rename ([6ffeea0](https://github.com/CourtHive/TMX/commit/6ffeea04fa9360b8e074c07107cf3d99e8045ce7))
+* **bracketTable:** nudge group title off the accent + add pencil affordance ([10e1f13](https://github.com/CourtHive/TMX/commit/10e1f13efa6269136f53e3095ecd058a14ae0ddf))
+* **dev:** reverse-engineer tournamentRecord from CFS public-API responses ([f6f8890](https://github.com/CourtHive/TMX/commit/f6f88907a0ad7d83770cbf053b3980b986da957e))
+* **eventsTab:** recalculate-stats menu item for round-robin / ad-hoc draws ([3d47b12](https://github.com/CourtHive/TMX/commit/3d47b1287f81bbf04869328e0e39a18d5801c0a3))
+* **roundRobin:** grid search drops non-matching groups; stats flattens groups into a column ([c35312b](https://github.com/CourtHive/TMX/commit/c35312b7950b6a11b67310d2cdf2524bd2014488))
+* **roundRobin:** left-edge accent for completed groups + stale-tally state ([5bb80c6](https://github.com/CourtHive/TMX/commit/5bb80c6033e086c6a879df298fdc4bb123ef45b7))
+* **timepicker:** default to blueprint themes per dark-mode state ([c697e0b](https://github.com/CourtHive/TMX/commit/c697e0b8a4c9829090f0d2222821f164e7afff78))
+* **timepicker:** expose dev theme override, wire i18n labels ([97483a5](https://github.com/CourtHive/TMX/commit/97483a511de62b39ea27b94732870a1ce3a73798))
+* **tournament:** nudge operator to set activeDates on sparse schedules ([8f9942d](https://github.com/CourtHive/TMX/commit/8f9942de7f473f7845d0dea6f8b5ffccfda1830c))
+
+
+### Bug Fixes
+
+* **bracketTable:** constrain Tabulator width to fit-content ([259fffb](https://github.com/CourtHive/TMX/commit/259fffb4d85fc6654eb7ca11d4672ee883915dfb))
+* **bracketTable:** resolve group tally off raw drawDefinition, not getEventData projection ([df296e7](https://github.com/CourtHive/TMX/commit/df296e7145fa41ac098b4ad0780c49e8bf408a4b))
+* **bracketTable:** stack group title above table after fitDataTable switch ([be643e7](https://github.com/CourtHive/TMX/commit/be643e7c98b7fcc6e8b95e7d2f0b5e64a6aa3add))
+* **bracketTable:** switch to fitDataTable so header border hugs columns ([5f9e618](https://github.com/CourtHive/TMX/commit/5f9e618104b61999f69d25b1798d8aeef5aa0e83))
+* **bracketTable:** uniform column widths so every group renders the same width ([4f7029f](https://github.com/CourtHive/TMX/commit/4f7029f575883c78c38788ca4819eca9aa6929f0))
+* **deps:** update dependency courthive-components to v3.3.0 ([88eb66f](https://github.com/CourtHive/TMX/commit/88eb66f96a2be6021797f4ff686875ad8bb55c7c))
+* **deps:** update dependency timepicker-ui to v4.4.0 ([6aeec2e](https://github.com/CourtHive/TMX/commit/6aeec2efb64ad9ca007ba462054697cd602bb0fb))
+* **dev:** populate drawDefinition.entries on rebuilt CFS records ([d1a5734](https://github.com/CourtHive/TMX/commit/d1a573472b55efe697892e225ed386703f02d895))
+* **editGroupNames:** hide empty help + flex-end so input bottom aligns with label ([7ae7559](https://github.com/CourtHive/TMX/commit/7ae75592ff734ef17c19fcae7a739bd8d47d39a1))
+* **eventsTab:** preserve current pill-tab view across action-menu refreshes ([1ff9eaf](https://github.com/CourtHive/TMX/commit/1ff9eaf42f1cd4ef9d123ae9cce8fe8a20e01711))
+* **eventsTab:** route recalculate-stats refresh through URL, surface failures ([73de1cd](https://github.com/CourtHive/TMX/commit/73de1cd49e2fce9d5691098f69b65fc86f88af2e))
+* **eventsTab:** tighten gap under #eventControl ([96f0fc6](https://github.com/CourtHive/TMX/commit/96f0fc63382e666e4b86b42d3383843322561ceb))
+* **lint:** extract repeated 'event-data' literal in cfsToTournamentRecord test ([a0869ec](https://github.com/CourtHive/TMX/commit/a0869ecd58b0396d6650aa88516c5d20fd38720b))
+* **mutation:** await userContext on mutation path, extend isProvider fallback chain ([f4f292a](https://github.com/CourtHive/TMX/commit/f4f292aad92bc32087982bc9601cf78d8e029dc8))
+* **overview:** repaint dashboard after successful tournament claim / go-online ([a1b716d](https://github.com/CourtHive/TMX/commit/a1b716d410fb0127a97013f7d848f4994ad0261a))
+* **roundRobin:** edit-group-names polish + preserve group order on rename ([b008eaf](https://github.com/CourtHive/TMX/commit/b008eaf5c48d1f093bfabbb30f76560da758be3a))
+* **statsTable+bracketTable:** unclip stat headers, surface group position ([7dd1ce6](https://github.com/CourtHive/TMX/commit/7dd1ce699167b00d355e013d70aa0d39c0ecaeca))
+* **statsTable:** horizontal scroll on narrow viewports ([aa4443a](https://github.com/CourtHive/TMX/commit/aa4443ad221663490b453018995f9ff87a73256f))
+* **tallyReport:** horizontal padding on Final Order so rows align with step blocks ([2885279](https://github.com/CourtHive/TMX/commit/2885279523135a33de87f2ee7d5ee3de1a9366db))
+* **timepicker:** import index.css so theme rules actually ship ([d53fcaf](https://github.com/CourtHive/TMX/commit/d53fcaf1cc29c5e5c07c558bb8079b2150efd083))
+
 ## [7.4.1](https://github.com/CourtHive/TMX/compare/v7.4.0...v7.4.1) (2026-06-10)
 
 
