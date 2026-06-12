@@ -196,6 +196,13 @@ body {
 #eventControl .options_right {
   flex-grow: 1;
 }
+/* Tighten the gap between the Actions row and the pill-tab nav below — the
+ * shared `.buttonBar` rule pads `0.5em` all sides and the wrapper #EVENT_INFO
+ * used to add another 0.5rem margin-bottom. Drop the bottom padding so
+ * `#drawControl` sits flush with the Actions row. */
+#eventControl .buttonBar {
+  padding-bottom: 0;
+}
 .options_overlay {
   flex-grow: 1;
   -webkit-flex-direction: row;

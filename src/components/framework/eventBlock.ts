@@ -55,7 +55,7 @@ export function eventBlock(): HTMLDivElement {
 
       <!-- Zone 3: Tab Content (hidden until event selected) -->
       <div id=${EVENT_TAB_CONTENT} style="display: none; width: 100%;">
-        <div id=${EVENT_INFO} style='display: none; width: 100%; margin-bottom: 0.5rem;'>
+        <div id=${EVENT_INFO} style='display: none; width: 100%;'>
           <div id=${DRAWS_HEADER} class="tabHeader foreground tabHeader--flex" style='display: none; padding: .5em; padding-bottom: 0;'></div>
           <div id=${EVENT_CONTROL} class="controlBar" style='min-height: 3em; border-radius: 6px;'></div>
         </div>
