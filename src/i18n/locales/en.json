@@ -1599,6 +1599,8 @@
     "magicLinkInvalid": "That login link is invalid or has expired. Please request a new one.",
     "userRemoved": "User removed",
     "tournamentNotFound": "Tournament not found",
+    "activeDatesPrompt": "Set active dates so the public schedule shows only the days you play.",
+    "activeDatesPromptAction": "Set active dates",
     "connectionError": "Connection error",
     "noConnection": "No connection",
     "offlineMustConnect": "Offline: must be connected to internet",

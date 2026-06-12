@@ -16,6 +16,7 @@ import { clearChat } from 'services/chat/chatService';
 import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
+import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { getLoginState } from 'services/authentication/loginState';
 import { showContent } from 'services/transitions/screenSlaver';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
@@ -92,6 +93,15 @@ export function renderTournament({ config }: { config: any }): void {
   tournamentHeader();
   highlightTab(config.selectedTab);
   routeTo(config);
+
+  // Suggest setting activeDates when the operator is mid-tournament,
+  // matchUps are scheduled, and most days are empty. The helper is
+  // idempotent per tournamentId for the page lifetime, so calling it
+  // from every renderTournament (including tab navigations) is safe.
+  const { tournamentRecord } = tournamentEngine.getTournament();
+  if (tournamentRecord?.tournamentId === config.tournamentId) {
+    maybeNudgeActiveDates({ tournamentRecord });
+  }
 
   // Join the tournament room so we receive mutation broadcasts from other clients
   if (config.tournamentId && getLoginState()) {
