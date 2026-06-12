@@ -21,8 +21,39 @@ import {
 // across assertions (SonarJS S1192).
 const EVENT_DATA = 'event-data';
 
+// Shared fixture date used by the back-to-back generators below: the
+// end of one mini-tournament is the start of the next. Pulled to a
+// constant so SonarJS S1192 doesn't fire over the three repeats.
+const FIXTURE_DATE = '2026-06-12';
+
 // ----------------------------------------------------------------- helpers
 type AnyObj = Record<string, any>;
+
+// Walk every structure (including nested `structures`) and return a
+// matchUpId → matchUp map. Two of the schedule round-trip tests need
+// the rebuilt record indexed this way to compare sides hydration
+// against the schedule "truth"; extracting it kills the SonarJS
+// no-identical-functions warning (S4144) without changing test logic.
+function collectRebuiltMatchUps(rebuilt: AnyObj): Map<string, AnyObj> {
+  const byId = new Map<string, AnyObj>();
+  const walk = (structs: AnyObj[] | undefined) => {
+    for (const s of structs ?? []) {
+      for (const m of s.matchUps ?? []) byId.set(m.matchUpId, m);
+      walk(s.structures);
+    }
+  };
+  for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
+  return byId;
+}
+
+// Normalize a matchUp's `sides` to a sorted ["drawPosition:participantId", …]
+// list so two matchUps can be compared regardless of side ordering.
+function sidePairs(sides: AnyObj[]): string[] {
+  return (sides ?? [])
+    .filter((s) => s.participantId)
+    .map((s) => `${s.drawPosition}:${s.participantId}`)
+    .sort((a, b) => a.localeCompare(b));
+}
 
 interface CfsShapes {
   eventDataResponses: AnyObj[]; // one per event, raw factory `getEventData` output
@@ -48,7 +79,7 @@ function generateRoundRobin(opts: AnyObj = {}) {
     drawProfiles: [{ drawSize: 8, drawType: 'ROUND_ROBIN' }],
     venueProfiles: [{ courtsCount: 2 }],
     startDate: '2026-06-11',
-    endDate: '2026-06-12',
+    endDate: FIXTURE_DATE,
     ...opts,
   });
 }
@@ -61,7 +92,7 @@ function generateMultiEvent() {
     ],
     venueProfiles: [{ courtsCount: 2, venueName: 'Center' }],
     startDate: '2026-06-11',
-    endDate: '2026-06-12',
+    endDate: FIXTURE_DATE,
   });
 }
 
@@ -69,7 +100,7 @@ function generateDoubles(opts: AnyObj = {}) {
   return mocksEngine.generateTournamentRecord({
     drawProfiles: [{ drawSize: 4, drawType: 'ROUND_ROBIN', eventType: 'DOUBLES' }],
     venueProfiles: [{ courtsCount: 1 }],
-    startDate: '2026-06-12',
+    startDate: FIXTURE_DATE,
     endDate: '2026-06-13',
     ...opts,
   });
@@ -322,26 +353,13 @@ describe('round-trip from mocksEngine', () => {
     const truth = new Map<string, AnyObj>();
     for (const m of scheduleResponse.dateMatchUps ?? []) truth.set(m.matchUpId, m);
 
-    const rebuiltById = new Map<string, AnyObj>();
-    const walk = (structs: AnyObj[] | undefined) => {
-      for (const s of structs ?? []) {
-        for (const m of s.matchUps ?? []) rebuiltById.set(m.matchUpId, m);
-        walk(s.structures);
-      }
-    };
-    for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
-
-    const pairs = (sides: AnyObj[]) =>
-      (sides ?? [])
-        .filter((s) => s.participantId)
-        .map((s) => `${s.drawPosition}:${s.participantId}`)
-        .sort((a, b) => a.localeCompare(b));
+    const rebuiltById = collectRebuiltMatchUps(rebuilt);
 
     let compared = 0;
     for (const [id, truthMatchUp] of truth) {
       const reb = rebuiltById.get(id);
       expect(reb, `matchUp ${id} missing from rebuilt`).toBeDefined();
-      expect(pairs(reb!.sides)).toEqual(pairs(truthMatchUp.sides));
+      expect(sidePairs(reb!.sides)).toEqual(sidePairs(truthMatchUp.sides));
       compared += 1;
     }
     expect(compared).toBeGreaterThan(0);
@@ -506,26 +524,13 @@ describe('round-trip from mocksEngine — doubles', () => {
     const truth = new Map<string, AnyObj>();
     for (const m of scheduleResponse.dateMatchUps ?? []) truth.set(m.matchUpId, m);
 
-    const rebuiltById = new Map<string, AnyObj>();
-    const walk = (structs: AnyObj[] | undefined) => {
-      for (const s of structs ?? []) {
-        for (const m of s.matchUps ?? []) rebuiltById.set(m.matchUpId, m);
-        walk(s.structures);
-      }
-    };
-    for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
-
-    const pairs = (sides: AnyObj[]) =>
-      (sides ?? [])
-        .filter((s) => s.participantId)
-        .map((s) => `${s.drawPosition}:${s.participantId}`)
-        .sort((a, b) => a.localeCompare(b));
+    const rebuiltById = collectRebuiltMatchUps(rebuilt);
 
     expect(truth.size).toBeGreaterThan(0);
     for (const [id, truthMatchUp] of truth) {
       const reb = rebuiltById.get(id);
       expect(reb).toBeDefined();
-      expect(pairs(reb!.sides)).toEqual(pairs(truthMatchUp.sides));
+      expect(sidePairs(reb!.sides)).toEqual(sidePairs(truthMatchUp.sides));
     }
   });
 
