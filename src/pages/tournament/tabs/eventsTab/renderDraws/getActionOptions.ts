@@ -6,6 +6,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
@@ -187,15 +188,22 @@ export function getActionOptions({
         mutationRequest({
           methods: [{ method: UPDATE_PARTICIPANT_RESULTS, params: { drawId, structureId } }],
           callback: (result: any) => {
-            if (!result?.success) return;
+            if (!result?.success) {
+              tmxToast({
+                message: result?.error?.message || 'Recalculate stats failed — is the server up to date?',
+                intent: 'is-danger',
+              });
+              return;
+            }
             tmxToast({
               message: t('pages.events.actionOptions.recalculateStats'),
               intent: 'is-success',
             });
-            // Preserve the current sub-view (roundsView) on refresh — without
-            // it renderDrawView falls back to the default (cards), yanking
-            // the user off whichever pill tab they were on.
-            renderDrawView({ eventId, drawId, structureId, roundsView });
+            // Route through the URL so the router rebuilds both the pill nav
+            // and the content panel together. Calling renderDrawView directly
+            // leaves the two in inconsistent states (pill shows Grid, content
+            // falls back to Cards, then the pill nav implodes on next click).
+            navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view: roundsView });
           },
         });
       },
