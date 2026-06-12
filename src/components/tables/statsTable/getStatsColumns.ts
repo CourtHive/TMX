@@ -20,24 +20,14 @@ export function getStatsColumns(): any[] {
       width: 65,
     },
     {
-      formatter: 'responsiveCollapse',
-      hozAlign: CENTER,
-      responsive: false,
-      headerSort: false,
-      resizable: false,
-      width: 50,
-    },
-    {
       formatter: formatParticipant(({ event, cell, ...params }: any) =>
         console.log('cell clicked', { event, cell, undefined, params }),
       ),
       sorter: participantSorter,
       field: 'participantName',
-      responsive: false,
       resizable: false,
       maxWidth: 400,
       minWidth: 200,
-      widthGrow: 2,
       title: t('tables.stats.name'),
     },
     {

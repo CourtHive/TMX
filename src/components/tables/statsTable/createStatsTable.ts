@@ -101,6 +101,14 @@ export async function createStatsTable({
     // sort all participants together by any stat. Default-sort by groupName
     // so the initial view mirrors the per-group reading order people are
     // used to.
+    //
+    // `fitDataStretch` sizes each column to its content and stretches the
+    // last column to fill the table holder when there's extra width — and
+    // crucially, when the column row is wider than the viewport (typical
+    // on mobile), the tableholder scrolls horizontally instead of squeezing
+    // every column to fit. The previous `fitColumns` + `responsiveLayout:
+    // 'collapse'` pair forced everything into the viewport and folded the
+    // rest into a +/- toggle row, which the other RR sub-views don't do.
     table = new Tabulator(element, {
       headerSortElement: headerSortElement([
         'averageVariation',
@@ -118,11 +126,9 @@ export async function createStatsTable({
         'result',
         'order',
       ]),
-      responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: 'No participants',
-      responsiveLayout: 'collapse',
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       reactiveData: true,
       index: 'matchUpId',
       initialSort: [{ column: 'groupName', dir: 'asc' }],
