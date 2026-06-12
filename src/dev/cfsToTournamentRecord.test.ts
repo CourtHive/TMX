@@ -65,6 +65,28 @@ function generateMultiEvent() {
   });
 }
 
+function generateDoubles(opts: AnyObj = {}) {
+  return mocksEngine.generateTournamentRecord({
+    drawProfiles: [{ drawSize: 4, drawType: 'ROUND_ROBIN', eventType: 'DOUBLES' }],
+    venueProfiles: [{ courtsCount: 1 }],
+    startDate: '2026-06-12',
+    endDate: '2026-06-13',
+    ...opts,
+  });
+}
+
+function participantsByType(participants: AnyObj[] | undefined) {
+  const out: Record<string, AnyObj[]> = {};
+  for (const p of participants ?? []) {
+    (out[p.participantType] ??= []).push(p);
+  }
+  return out;
+}
+
+function idSet(participants: AnyObj[] | undefined, type: string) {
+  return new Set((participants ?? []).filter((p) => p.participantType === type).map((p) => p.participantId));
+}
+
 // Recursively collect every matchUpId in a record, regardless of nesting.
 function collectMatchUpIds(record: AnyObj): string[] {
   const ids: string[] = [];
@@ -366,6 +388,186 @@ describe('round-trip from mocksEngine', () => {
       const rIds = collectMatchUpIds({ events: [(rebuilt.events ?? []).find((e: AnyObj) => e.eventId === eventId)] });
       expect(rIds).toEqual(oIds);
     }
+  });
+});
+
+// ============================================== round-trip — doubles event
+// PAIRs are entered (positions, entries, sides reference PAIR participantIds);
+// the underlying INDIVIDUALs live in the top-level participants list and are
+// linked via PAIR.individualParticipantIds.
+
+describe('round-trip from mocksEngine — doubles', () => {
+  it('preserves both PAIR and INDIVIDUAL participants by count and id', () => {
+    const { tournamentRecord } = generateDoubles();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    const oPairs = idSet(tournamentRecord.participants, 'PAIR');
+    const rPairs = idSet(rebuilt.participants, 'PAIR');
+    const oIndis = idSet(tournamentRecord.participants, 'INDIVIDUAL');
+    const rIndis = idSet(rebuilt.participants, 'INDIVIDUAL');
+
+    expect(oPairs.size).toBeGreaterThan(0);
+    expect(oIndis.size).toBe(oPairs.size * 2); // sanity: each pair has 2 individuals
+    expect(rPairs).toEqual(oPairs);
+    expect(rIndis).toEqual(oIndis);
+  });
+
+  it('preserves PAIR.individualParticipantIds — every link resolves to a rebuilt INDIVIDUAL', () => {
+    const { tournamentRecord } = generateDoubles();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    const { PAIR: rebuiltPairs = [] } = participantsByType(rebuilt.participants);
+    const rebuiltIndividualIds = idSet(rebuilt.participants, 'INDIVIDUAL');
+
+    expect(rebuiltPairs.length).toBeGreaterThan(0);
+    for (const pair of rebuiltPairs) {
+      expect(pair.individualParticipantIds?.length).toBe(2);
+      for (const indId of pair.individualParticipantIds) {
+        expect(rebuiltIndividualIds.has(indId), `PAIR ${pair.participantId} links to missing INDIVIDUAL ${indId}`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps eventType=DOUBLES and matchUpType=DOUBLES throughout', () => {
+    const { tournamentRecord } = generateDoubles();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    expect(rebuilt.events?.[0]?.eventType).toBe('DOUBLES');
+    const matchUps: AnyObj[] = [];
+    const walk = (structs: AnyObj[] | undefined) => {
+      for (const s of structs ?? []) { matchUps.push(...(s.matchUps ?? [])); walk(s.structures); }
+    };
+    for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
+    expect(matchUps.length).toBeGreaterThan(0);
+    for (const m of matchUps) expect(m.matchUpType).toBe('DOUBLES');
+  });
+
+  it('positionAssignments and entries reference PAIR ids — never raw INDIVIDUAL ids', () => {
+    const { tournamentRecord } = generateDoubles();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    const pairIds = idSet(rebuilt.participants, 'PAIR');
+    const indiIds = idSet(rebuilt.participants, 'INDIVIDUAL');
+
+    const event = rebuilt.events?.[0];
+    expect(event).toBeDefined();
+    for (const entry of event!.entries ?? []) {
+      expect(pairIds.has(entry.participantId), `entry ${entry.participantId} is not a PAIR`).toBe(true);
+      expect(indiIds.has(entry.participantId)).toBe(false);
+    }
+    const positions: AnyObj[] = [];
+    const walk = (structs: AnyObj[] | undefined) => {
+      for (const s of structs ?? []) {
+        positions.push(...(s.positionAssignments ?? []));
+        walk(s.structures);
+      }
+    };
+    for (const dd of event!.drawDefinitions ?? []) walk(dd.structures);
+    for (const pa of positions) {
+      if (!pa.participantId) continue;
+      expect(pairIds.has(pa.participantId), `positionAssignment ${pa.participantId} is not a PAIR`).toBe(true);
+    }
+  });
+
+  it('hydrated sides match the schedule response (PAIR ids per drawPosition)', () => {
+    const { tournamentRecord } = generateDoubles();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    const truth = new Map<string, AnyObj>();
+    for (const m of scheduleResponse.dateMatchUps ?? []) truth.set(m.matchUpId, m);
+
+    const rebuiltById = new Map<string, AnyObj>();
+    const walk = (structs: AnyObj[] | undefined) => {
+      for (const s of structs ?? []) {
+        for (const m of s.matchUps ?? []) rebuiltById.set(m.matchUpId, m);
+        walk(s.structures);
+      }
+    };
+    for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
+
+    const pairs = (sides: AnyObj[]) =>
+      (sides ?? [])
+        .filter((s) => s.participantId)
+        .map((s) => `${s.drawPosition}:${s.participantId}`)
+        .sort((a, b) => a.localeCompare(b));
+
+    expect(truth.size).toBeGreaterThan(0);
+    for (const [id, truthMatchUp] of truth) {
+      const reb = rebuiltById.get(id);
+      expect(reb).toBeDefined();
+      expect(pairs(reb!.sides)).toEqual(pairs(truthMatchUp.sides));
+    }
+  });
+
+  it('rebuilt PAIR records have the canonical TODS shape (no side-context pollution)', () => {
+    const { tournamentRecord } = generateDoubles();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    const polluting = ['entryStatus', 'entryStage', 'individualParticipants', 'groupParticipantIds', 'teamParticipantIds', 'pairParticipantIds', 'groups', 'teams'];
+    for (const p of rebuilt.participants ?? []) {
+      for (const k of polluting) {
+        expect(p, `${p.participantType} ${p.participantId} retained ${k}`).not.toHaveProperty(k);
+      }
+    }
+  });
+
+  it('matchups-only mode recovers the PAIRs AND their underlying INDIVIDUALs from side.participant.individualParticipants', () => {
+    // This was a real gap before — matchups-only used to recover only the
+    // PAIR (via side.participantId + side.participant) and silently dropped
+    // every INDIVIDUAL. mergeParticipants now also harvests
+    // side.participant.individualParticipants so doubles graceful degradation
+    // matches singles.
+    const { tournamentRecord } = generateDoubles();
+    tournamentEngine.setState(tournamentRecord);
+    const scheduleResponse = tournamentEngine.competitionScheduleMatchUps();
+
+    const rebuilt = buildTournamentRecord({
+      matchUpDocs: extractMatchUps(scheduleResponse),
+    });
+
+    const originalPairs = idSet(tournamentRecord.participants, 'PAIR');
+    const originalIndis = idSet(tournamentRecord.participants, 'INDIVIDUAL');
+    const rebuiltPairs = idSet(rebuilt.participants, 'PAIR');
+    const rebuiltIndis = idSet(rebuilt.participants, 'INDIVIDUAL');
+
+    expect(rebuiltPairs).toEqual(originalPairs);
+    expect(rebuiltIndis).toEqual(originalIndis);
   });
 });
 

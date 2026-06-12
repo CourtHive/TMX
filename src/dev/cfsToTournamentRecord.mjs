@@ -179,8 +179,20 @@ function cleanMatchUp(m) {
   return c;
 }
 
+// Context fields the factory hydrates onto participants (and onto side
+// participants / nested individualParticipants) but that do NOT belong on a
+// canonical TODS participant record. Stripped on clean so every source —
+// getParticipants, getEventData.participants, side fallbacks — converges on
+// the same shape.
+const PARTICIPANT_CONTEXT_KEYS = [
+  'entryStatus', 'entryStage', 'individualParticipants',
+  'groupParticipantIds', 'teamParticipantIds', 'pairParticipantIds',
+  'groups', 'teams',
+];
+
 function cleanParticipant(p) {
   const c = stripMongo(p);
+  for (const k of PARTICIPANT_CONTEXT_KEYS) delete c[k];
   if (
     c.participantType === 'INDIVIDUAL' &&
     Array.isArray(c.individualParticipantIds) &&
@@ -323,11 +335,18 @@ function mergeParticipants({ participantDocs, eventDataDocs, matchUps }) {
   };
   for (const doc of participantDocs) for (const p of doc) add(p);
   for (const ed of eventDataDocs) for (const p of ed.participants ?? []) add(p);
-  // Sides from schedule matchUps carry full participant data — use as fallback
+  // Sides from schedule matchUps carry full participant data — use as fallback.
+  // For doubles, side.participant is a PAIR with its underlying INDIVIDUALs
+  // nested under `individualParticipants`; harvest both so matchups-only mode
+  // doesn't silently drop the players. cleanParticipant strips the side
+  // context fields uniformly so all sources converge on the same shape.
   for (const m of matchUps) {
     for (const s of m.sides ?? []) {
-      if (s.participantId && s.participant?.participantName) {
-        add({ ...s.participant, participantId: s.participantId });
+      const participant = s.participant;
+      if (!s.participantId || !participant?.participantName) continue;
+      add({ ...participant, participantId: s.participantId });
+      for (const individual of participant.individualParticipants ?? []) {
+        add(individual);
       }
     }
   }
