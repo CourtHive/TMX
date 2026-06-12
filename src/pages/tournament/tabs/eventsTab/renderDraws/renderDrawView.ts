@@ -420,7 +420,6 @@ export function renderDrawView({
       const liveNode = drawsView?.firstChild as HTMLElement;
       if (liveNode) {
         applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
-        applyRRGroupCompletionHighlighting(liveNode, displayMatchUps as any[], drawId);
         applyCrowdsourcedBadges(liveNode);
         if (drawData?.drawType === SWISS && stage !== QUALIFYING) {
           applySwissScoreGroupShading(liveNode, drawId);
@@ -612,41 +611,3 @@ function applyConsolidationReadyHighlighting(
   }
 }
 
-function applyRRGroupCompletionHighlighting(content: HTMLElement, matchUps: any[], drawId: string) {
-  if (!matchUps.some((m: any) => m.isRoundRobin)) return;
-
-  // Group matchUps by structureId (each RR group is a child structure)
-  const groups: Record<string, any[]> = {};
-  for (const m of matchUps) {
-    if (!m.structureId) continue;
-    groups[m.structureId] ??= [];
-    groups[m.structureId].push(m);
-  }
-
-  // Look up the drawDefinition once so we can read each group's positionAssignments
-  // and tell a saved-tally "complete" group apart from a "stale" one (completed
-  // but the tally save-path never fired — typical of imported / reconstructed
-  // draws). The "Recalculate stats" action menu item resolves the stale state.
-  const { drawDefinition } = drawId ? tournamentEngine.getEvent({ drawId }) : ({} as any);
-  const allGroupStructures: any[] = (drawDefinition?.structures ?? []).flatMap((s: any) =>
-    s?.structures?.length ? s.structures : [s],
-  );
-  const hasTallyByGroupId: Record<string, boolean> = {};
-  for (const g of allGroupStructures) {
-    if (!g?.structureId) continue;
-    hasTallyByGroupId[g.structureId] = (g.positionAssignments ?? []).some(
-      (a: any) => a?.tally !== undefined || (a?.extensions ?? []).some((ext: any) => ext?.name === 'tally'),
-    );
-  }
-
-  for (const [groupId, groupMatchUps] of Object.entries(groups)) {
-    const allComplete = groupMatchUps.every((m: any) => m.winningSide);
-    if (!allComplete) continue;
-
-    const stale = !hasTallyByGroupId[groupId];
-    const target = stale ? 'rr-group-stale' : 'rr-group-complete';
-    content.querySelectorAll(`.chc-rr-group[data-group-id="${groupId}"]`).forEach((el) => {
-      (el as HTMLElement).classList.add(target);
-    });
-  }
-}
