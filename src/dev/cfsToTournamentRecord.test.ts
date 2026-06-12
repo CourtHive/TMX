@@ -365,6 +365,36 @@ describe('round-trip from mocksEngine', () => {
     expect(compared).toBeGreaterThan(0);
   });
 
+  it('populates drawDefinition.entries on every rebuilt draw', () => {
+    // The factory's getParticipants query reads drawDefinition.entries when
+    // resolving per-draw participants; a missing array used to crash with
+    // "Cannot read properties of undefined (reading 'filter')". Each draw
+    // must carry entries derived from its own positionAssignments.
+    const { tournamentRecord } = generateRoundRobin();
+    const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
+
+    const rebuilt = buildTournamentRecord({
+      eventDataDocs: eventDataResponses.map(extractEventData),
+      matchUpDocs: extractMatchUps(scheduleResponse),
+      participantDocs: [extractParticipants(participantsResponse)],
+    });
+
+    const draws: AnyObj[] = [];
+    for (const e of rebuilt.events ?? []) draws.push(...(e.drawDefinitions ?? []));
+    expect(draws.length).toBeGreaterThan(0);
+    for (const dd of draws) {
+      expect(Array.isArray(dd.entries)).toBe(true);
+      expect(dd.entries.length).toBeGreaterThan(0);
+      const positionIds = new Set(collectPositionAssignments(rebuilt, rebuilt.events![0].eventId).map((p) => p.participantId));
+      for (const entry of dd.entries) {
+        expect(typeof entry.participantId).toBe('string');
+        expect(entry.entryStage).toBeTruthy();
+        expect(entry.entryStatus).toBeTruthy();
+        expect(positionIds.has(entry.participantId)).toBe(true);
+      }
+    }
+  });
+
   it('preserves positionAssignments on each event', () => {
     const { tournamentRecord } = generateRoundRobin();
     const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);

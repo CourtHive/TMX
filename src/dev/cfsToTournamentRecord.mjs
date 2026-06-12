@@ -454,6 +454,7 @@ function makeDrawShell(draw, matchUpFormat, structures) {
     drawName: draw.drawName,
     drawType: draw.drawType,
     matchUpFormat,
+    entries: [],
     structures,
   };
 }
@@ -472,6 +473,7 @@ function buildDrawDefinitionFromMatchUps(drawId, matchUps) {
     drawName: sample.drawName,
     drawType: sample.drawType,
     matchUpFormat,
+    entries: [],
   };
 
   if (containerStructureId && containerStructureId !== sample.structureId) {
@@ -529,6 +531,9 @@ function buildEvents({ eventDataDocs, matchUps }) {
   ingestDrawsDataIntoEvents(events, eventDataDocs);
   if (matchUps.length > 0) ingestMatchUpsIntoEvents(events, matchUps);
   for (const event of events.values()) {
+    for (const drawDef of event.drawDefinitions) {
+      deriveDrawEntries(drawDef);
+    }
     deriveEventEntries(event);
   }
   return [...events.values()];
@@ -606,29 +611,42 @@ function ensureEvent(events, eventId, drawMap) {
 
 const DEFAULT_ENTRY_INFO = { entryStage: 'MAIN', entryStatus: 'DIRECT_ACCEPTANCE' };
 
-function deriveEventEntries(event) {
-  const entryInfo = collectEntryInfoFromSides(event);
-  const positions = collectPositionAssignmentsForEvent(event);
+// Populate drawDef.entries from this draw's positionAssignments, using side
+// participants as the source for entryStage/entryStatus. Required so the
+// factory's getParticipants query can resolve per-draw entries without
+// crashing on missing arrays.
+function deriveDrawEntries(drawDef) {
+  const entryInfo = collectEntryInfoFromDrawSides(drawDef);
+  const positions = selectPositionsForDraw(drawDef);
   const seen = new Set();
   for (const pa of positions) {
     if (!pa.participantId || seen.has(pa.participantId)) continue;
     seen.add(pa.participantId);
     const info = entryInfo.get(pa.participantId) ?? DEFAULT_ENTRY_INFO;
-    event.entries.push({ participantId: pa.participantId, ...info });
+    drawDef.entries.push({ participantId: pa.participantId, ...info });
   }
 }
 
-function collectEntryInfoFromSides(event) {
-  const entryInfo = new Map();
+function deriveEventEntries(event) {
+  const seen = new Set();
   for (const dd of event.drawDefinitions) {
-    walkStructures(dd.structures, (s) => {
-      for (const m of s.matchUps ?? []) {
-        for (const side of m.sides ?? []) {
-          recordEntryInfo(entryInfo, side);
-        }
-      }
-    });
+    for (const entry of dd.entries ?? []) {
+      if (!entry.participantId || seen.has(entry.participantId)) continue;
+      seen.add(entry.participantId);
+      event.entries.push({ ...entry });
+    }
   }
+}
+
+function collectEntryInfoFromDrawSides(drawDef) {
+  const entryInfo = new Map();
+  walkStructures(drawDef.structures, (s) => {
+    for (const m of s.matchUps ?? []) {
+      for (const side of m.sides ?? []) {
+        recordEntryInfo(entryInfo, side);
+      }
+    }
+  });
   return entryInfo;
 }
 
@@ -639,14 +657,6 @@ function recordEntryInfo(entryInfo, side) {
     entryStage:  side.participant.entryStage  ?? 'MAIN',
     entryStatus: side.participant.entryStatus ?? 'DIRECT_ACCEPTANCE',
   });
-}
-
-function collectPositionAssignmentsForEvent(event) {
-  const result = [];
-  for (const dd of event.drawDefinitions) {
-    result.push(...selectPositionsForDraw(dd));
-  }
-  return result;
 }
 
 // Prefer the CONTAINER's positionAssignments when present (they're the
