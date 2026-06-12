@@ -128,9 +128,11 @@ export function getBracketColumns({
       cellClick: participantClick,
       headerSort: false,
       hozAlign: LEFT,
-      minWidth: 150,
-      maxWidth: 220,
-      widthGrow: 2,
+      // Fixed width (rather than min/max + widthGrow) so every group's
+      // table renders at the same column-row width — `fitDataTable` would
+      // otherwise size each group to its own widest name and produce a
+      // jagged stack of tables.
+      width: 180,
     },
   ];
 
@@ -144,13 +146,11 @@ export function getBracketColumns({
       headerHozAlign: CENTER,
       hozAlign: CENTER,
       headerSort: false,
-      maxWidth: 150,
-      minWidth: 100,
-      widthGrow: 1,
+      width: 130,
     });
   }
 
-  // Stats suffix columns
+  // Stats suffix columns — fixed widths for the same reason as above.
   columns.push(
     {
       headerHozAlign: CENTER,
@@ -158,7 +158,7 @@ export function getBracketColumns({
       title: t('tables.bracket.winLoss'),
       field: 'result',
       hozAlign: CENTER,
-      maxWidth: 70,
+      width: 60,
       headerSort: false,
     },
     {
@@ -168,7 +168,7 @@ export function getBracketColumns({
       title: t('tables.bracket.winPct'),
       field: 'matchUpsPct',
       hozAlign: CENTER,
-      maxWidth: 70,
+      width: 60,
       headerSort: false,
     },
     {
@@ -178,7 +178,7 @@ export function getBracketColumns({
       title: t('tables.bracket.setPct'),
       field: 'setsPct',
       hozAlign: CENTER,
-      maxWidth: 70,
+      width: 60,
       headerSort: false,
     },
     {
@@ -189,7 +189,7 @@ export function getBracketColumns({
       title: t('tables.bracket.pos'),
       field: 'order',
       hozAlign: CENTER,
-      maxWidth: 70,
+      width: 60,
       headerSort: false,
     },
   );
