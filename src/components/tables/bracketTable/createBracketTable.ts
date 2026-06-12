@@ -307,15 +307,33 @@ export async function createBracketTable({
 
       if (groups.length > 1) {
         const headerRow = document.createElement('div');
+        // Left padding gives the title text some breathing room from the
+        // green accent bar; right padding stays tight against the table edge.
         headerRow.style.cssText =
-          'display:flex; align-items:center; justify-content:space-between; padding:8px 4px 4px; width:100%; box-sizing:border-box;';
+          'display:flex; align-items:center; justify-content:space-between; padding:8px 4px 4px 10px; width:100%; box-sizing:border-box;';
+
+        const openRename = () => editGroupNames({ drawId, structure, callback: () => replaceTableData() });
 
         const nameSpan = document.createElement('span');
         nameSpan.style.cssText = 'font-weight:bold; font-size:1.1em; cursor:pointer;';
         nameSpan.textContent = group.groupName;
         nameSpan.title = 'Click to rename groups';
-        nameSpan.onclick = () => editGroupNames({ drawId, structure, callback: () => replaceTableData() });
+        nameSpan.onclick = openRename;
         headerRow.appendChild(nameSpan);
+
+        // Right-aligned action cluster: pencil for rename (so the click
+        // affordance on the title is discoverable), then the tiebreak-report
+        // icon. Tight gap so both read as one action group.
+        const iconGroup = document.createElement('div');
+        iconGroup.style.cssText = 'display:flex; align-items:center; gap:4px;';
+
+        const editIcon = document.createElement('i');
+        editIcon.className = 'fa-solid fa-pen-to-square';
+        editIcon.style.cssText =
+          'cursor:pointer; color:var(--tmx-text-secondary, #777); padding:2px 6px; font-size:1em;';
+        editIcon.title = 'Rename groups';
+        editIcon.onclick = openRename;
+        iconGroup.appendChild(editIcon);
 
         const reportIcon = document.createElement('i');
         reportIcon.className = 'fa-solid fa-clipboard-list';
@@ -328,8 +346,9 @@ export async function createBracketTable({
             showTallyReportModal({ groupMatchUps, groupName: group.groupName, eventId, drawId });
           }
         };
-        headerRow.appendChild(reportIcon);
+        iconGroup.appendChild(reportIcon);
 
+        headerRow.appendChild(iconGroup);
         stackWrapper.appendChild(headerRow);
       }
 
