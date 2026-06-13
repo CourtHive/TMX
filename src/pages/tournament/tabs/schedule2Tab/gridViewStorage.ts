@@ -27,7 +27,7 @@ const SCHEDULED_SEARCH_KEY = 'schedule2:scheduled-search';
 const SCHEDULED_GROUPBY_KEY = 'schedule2:scheduled-groupby';
 const SCHEDULED_FILTERS_KEY = 'schedule2:scheduled-filters';
 
-const VALID_GROUPBY: MatchUpCatalogGroupBy[] = ['event', 'draw', 'round', 'structure'];
+const VALID_GROUPBY: MatchUpCatalogGroupBy[] = ['event', 'draw', 'round', 'structure', 'time'];
 
 // ── Sidebar tab ──
 

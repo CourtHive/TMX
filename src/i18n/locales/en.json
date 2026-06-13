@@ -840,6 +840,7 @@
     "filterAllGenders": "All Genders",
     "filterAllRounds": "All Rounds",
     "groupBy": {
+      "time": "By Time",
       "event": "By Event",
       "draw": "By Draw",
       "round": "By Round",

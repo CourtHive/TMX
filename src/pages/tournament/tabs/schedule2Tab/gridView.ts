@@ -556,6 +556,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   const scheduledGroupSelect = document.createElement('select');
   scheduledGroupSelect.className = 'sp-select';
   for (const [val, label] of [
+    ['time', t('schedule.groupBy.time')],
     ['event', t('schedule.groupBy.event')],
     ['draw', t('schedule.groupBy.draw')],
     ['round', t('schedule.groupBy.round')],
@@ -2266,6 +2267,7 @@ function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
     drawId: m.drawId ?? '',
     drawName: m.drawName,
     structureId: m.structureId ?? '',
+    structureName: m.structureName,
     stage: m.stage,
     roundNumber: m.roundNumber ?? 0,
     roundName: m.roundName,
@@ -2317,6 +2319,7 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
         drawId: m.drawId ?? '',
         drawName: m.drawName,
         structureId: m.structureId ?? '',
+        structureName: m.structureName,
         stage: m.stage,
         roundNumber: m.roundNumber ?? 0,
         roundName: m.roundName,
