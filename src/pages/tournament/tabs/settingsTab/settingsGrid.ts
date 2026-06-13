@@ -560,17 +560,46 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
         };
         const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
 
+        const showServerError = (body: any) => {
+          const messageKey =
+            body?.errorCode === 'ERR_TOURNAMENT_NOT_ENDED' ? 'toasts.tournamentNotEnded' :
+            body?.errorCode === 'ERR_DELETE_FORBIDDEN'     ? 'toasts.deleteForbidden'     :
+            undefined;
+          tmxToast({
+            message: messageKey ? t(messageKey) : body?.error || t('toasts.cannotDeleteTournament'),
+            intent: 'is-danger',
+            pauseOnHover: true,
+            duration: 6000,
+          });
+        };
+
         tmxToast({
           action: {
-            onClick: () => {
-              if (activeProvider && provId && canDeleteOnServer) {
-                removeTournament({ providerId: provId, tournamentId }).then(localDelete, (err) => {
-                  console.error('[deleteTournament] server error:', err);
-                  localDelete();
-                });
-              } else {
-                localDelete();
+            onClick: async () => {
+              if (!(activeProvider && provId && canDeleteOnServer)) {
+                await localDelete();
+                return;
               }
+              let response: any;
+              try {
+                response = await removeTournament({ providerId: provId, tournamentId });
+              } catch (err) {
+                // Network/transport failure: keep local copy intact so the
+                // user can retry once connectivity returns.
+                console.error('[deleteTournament] server error:', err);
+                tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
+                return;
+              }
+              // baseApi resolves to `undefined` on non-2xx (interceptor); the
+              // server returns 200 with { error, errorCode } when the delete
+              // is rejected. Either way, do NOT run localDelete — the user
+              // needs the local copy to fix endDate or retry.
+              const body = response?.data;
+              if (!response || body?.error) {
+                showServerError(body);
+                return;
+              }
+              await localDelete();
             },
             text: t('common.confirm'),
           },

@@ -68,5 +68,7 @@ export async function sendTournament({ tournamentRecord }: { tournamentRecord: a
 }
 
 export async function removeTournament({ providerId, tournamentId }: { providerId: string; tournamentId: string }) {
-  return await baseApi.post('/factory/remove', { providerId, tournamentId });
+  // silenceErrors: callers inspect response.data.error themselves so they can
+  // map errorCode to a localized message and decide whether to run localDelete.
+  return await baseApi.post('/factory/remove', { providerId, tournamentId }, { silenceErrors: true });
 }
