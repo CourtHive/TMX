@@ -82,7 +82,8 @@ export function refreshAccessToken(): Promise<string | null> {
 axiosInstance.interceptors.response.use(
   (response) => {
     if (response.data?.error && !(response.config as any)?.silenceErrors) {
-      tmxToast({ message: response.data.error?.message, intent: 'is-danger' });
+      const { error } = response.data;
+      tmxToast({ message: typeof error === 'string' ? error : error?.message, intent: 'is-danger' });
     }
     return response;
   },
