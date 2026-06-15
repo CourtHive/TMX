@@ -1,5 +1,15 @@
 # Changelog
 
+## [8.0.1](https://github.com/CourtHive/TMX/compare/v8.0.0...v8.0.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **deps:** revert axios to 1.17.0 (1.18.0 within pnpm minimumReleaseAge) ([262fc1e](https://github.com/CourtHive/TMX/commit/262fc1e921ba4f3257e55e926fa8d6de82966575))
+* **deps:** revert vitest to 4.1.8 (4.1.9 within pnpm minimumReleaseAge) ([7540732](https://github.com/CourtHive/TMX/commit/7540732d6c73112ed6e7a86d93338fe16edf9de3))
+* **deps:** update dependency axios to v1.18.0 ([9b5b1f3](https://github.com/CourtHive/TMX/commit/9b5b1f3cc774756bacea06fd6fbc96418b091262))
+* **e2e:** unflake format-wizard, draw-card viz, team-profile journeys ([4fd798c](https://github.com/CourtHive/TMX/commit/4fd798cb3f0d30b9d0e269ca9baef0ef8f3ab531))
+
 ## [8.0.0](https://github.com/CourtHive/TMX/compare/v7.5.0...v8.0.0) (2026-06-14)
 
 
