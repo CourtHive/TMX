@@ -198,7 +198,7 @@ function addDev(variable: Record<string, any>): void {
   }
 }
 
-function load(json: any): void {
+function load(json: any): Promise<void> | void {
   if (typeof json !== 'object') return;
   const tournamentRecord = json.tournamentRecord || json;
   const tournamentId = tournamentRecord?.tournamentId;
@@ -214,7 +214,11 @@ function load(json: any): void {
       'color: orange',
     );
   }
-  addAndDisplay(tournamentRecord);
+  // Return the promise so callers (e.g. e2e seedTournament) can await the
+  // deferred renderTournament + router.navigate callback before issuing
+  // their own navigation — otherwise the late-firing callback races with
+  // the test's next page.goto and snaps the page back to the overview.
+  return addAndDisplay(tournamentRecord);
 }
 
 // Reverse-engineer a tournamentRecord from CFS public-API responses pasted
@@ -261,7 +265,7 @@ function generateMockTournament(params: any): void {
   }
 }
 
-function addAndDisplay(tournamentRecord: any): void {
+function addAndDisplay(tournamentRecord: any): Promise<void> {
   const tournamentId = tournamentRecord?.tournamentId;
   const displayTournament = () => {
     // Render full tournament view (header + tabs + side effects) so a paste loaded
@@ -269,5 +273,5 @@ function addAndDisplay(tournamentRecord: any): void {
     renderTournament({ config: { tournamentId } });
     context.router?.navigate(`/${TOURNAMENT}/${tournamentId}`);
   };
-  addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
+  return addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
 }

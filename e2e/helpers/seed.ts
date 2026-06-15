@@ -42,12 +42,18 @@ export interface MockProfile {
  * Returns the tournamentId of the generated tournament.
  */
 export async function seedTournament(page: Page, profile: MockProfile): Promise<string> {
-  return page.evaluate((p: MockProfile) => {
+  return page.evaluate(async (p: MockProfile) => {
     const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
       setState: true,
       ...p,
     });
-    dev.load(tournamentRecord);
+    // Await the full dev.load lifecycle (IDB persist + the deferred
+    // renderTournament/router.navigate callback). Without the await, the
+    // deferred callback fires after the test has already issued its own
+    // page.goto, snapping the page back to the overview mid-flow and
+    // making subsequent locators (#formatWizardCourts, .chc-dc-card)
+    // flake as "not visible" — they exist in detached DOM trees.
+    await dev.load(tournamentRecord);
     return tournamentRecord.tournamentId as string;
   }, profile);
 }

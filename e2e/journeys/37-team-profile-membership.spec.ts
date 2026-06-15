@@ -90,9 +90,11 @@ test.describe('Journey 37 — Team profile membership split', () => {
     const dialog = page.locator('.chc-modal-dialog');
     await expect(dialog.getByText('Roster (6)')).toBeVisible();
     // Sections only render when their bucket is non-empty — Coaches / Staff
-    // headings must be absent entirely (not just "(0)").
-    await expect(dialog.getByText(/^Coaches/)).toHaveCount(0);
-    await expect(dialog.getByText(/^Staff/)).toHaveCount(0);
+    // headings must be absent entirely (not just "(0)"). Anchor on the
+    // trailing " (" so the regex doesn't false-match roster member names
+    // like "Stafford ..." that mocksEngine pulls from its name pool.
+    await expect(dialog.getByText(/^Coaches \(/)).toHaveCount(0);
+    await expect(dialog.getByText(/^Staff \(/)).toHaveCount(0);
   });
 
   test('does not leak staff across teams — Cauldron sees only its own coach', async ({ page }) => {
@@ -118,8 +120,10 @@ test.describe('Journey 37 — Team profile membership split', () => {
     const dialog = page.locator('.chc-modal-dialog');
     await expect(dialog.getByText('Roster (6)')).toBeVisible();
     await expect(dialog.getByText('Coaches (1)')).toBeVisible();
-    // Cauldron has no medical — Staff section must not render.
-    await expect(dialog.getByText(/^Staff/)).toHaveCount(0);
+    // Cauldron has no medical — Staff section must not render. Anchor on
+    // " (" so a roster member named "Stafford ..." (mocksEngine name pool)
+    // doesn't false-trigger the regex.
+    await expect(dialog.getByText(/^Staff \(/)).toHaveCount(0);
     // And the Authentics-only names must not appear in Cauldron's dialog.
     await expect(dialog.getByText('Doc Strange')).toHaveCount(0);
     await expect(dialog.getByText('Coach One')).toHaveCount(0);
