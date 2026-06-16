@@ -148,7 +148,7 @@ test.describe('Journey 17 — Unified entries: Add participants to event', () =>
     expect(entry).toBeDefined();
 
     // Verify mutation params
-    const params = entry.methods[0].params;
+    const params: any = entry.methods[0].params;
     expect(params.entryStage).toBe('MAIN');
     expect(params.entryStatus).toBe('DIRECT_ACCEPTANCE');
     expect(params.participantIds).toBeDefined();

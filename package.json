@@ -13,7 +13,9 @@
   "scripts": {
     "build": "rimraf dist && tsc && vite build",
     "build:dev": "rimraf dist && tsc && vite build --mode development",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit && tsc --noEmit --project e2e/tsconfig.json",
+    "check-types:src": "tsc --noEmit",
+    "check-types:e2e": "tsc --noEmit --project e2e/tsconfig.json",
     "commit": "git-cz",
     "commitlint": "commitlint --edit",
     "config": "node config.mjs",

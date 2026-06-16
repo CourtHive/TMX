@@ -60,7 +60,7 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
     expect(dd.drawName).toBe('Championship Draw');
 
     collector.detach();
@@ -77,7 +77,7 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
     // matchUpFormat should be the default or the selected format
     expect(dd.matchUpFormat || dd.structures?.[0]?.matchUpFormat).toBeDefined();
 
@@ -142,7 +142,7 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
 
     // SE draw should have exactly 1 MAIN structure
     const mainStructure = dd.structures?.find((s: any) => s.stage === 'MAIN');
@@ -162,7 +162,7 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
 
     expect(dd.drawType).toBe('ROUND_ROBIN');
     const mainStructure = dd.structures?.find((s: any) => s.stage === 'MAIN');
@@ -281,7 +281,7 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
     const mainStructure = dd.structures?.find((s: any) => s.stage === 'MAIN');
     const byes = mainStructure?.positionAssignments?.filter((p: any) => p.bye) || [];
 
@@ -302,7 +302,7 @@ test.describe('Journey 13 — Deep mutation and post-generation verification', (
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
     expect(dd.drawType).toBe('AD_HOC');
 
     // AD_HOC draws don't use position assignments

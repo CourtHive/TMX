@@ -330,7 +330,8 @@ test.describe('Journey 11 — Remaining coverage gaps', () => {
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    expect(entry.methods[0].params.drawDefinition.drawType).toBe('FEED_IN_CHAMPIONSHIP');
+    const params: any = entry.methods[0].params;
+    expect(params.drawDefinition.drawType).toBe('FEED_IN_CHAMPIONSHIP');
 
     collector.detach();
   });
@@ -346,7 +347,8 @@ test.describe('Journey 11 — Remaining coverage gaps', () => {
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
     // DRAW_MATIC generates as AD_HOC in the factory
-    const dt = entry.methods[0].params.drawDefinition.drawType;
+    const params: any = entry.methods[0].params;
+    const dt = params.drawDefinition.drawType;
     expect(dt === 'AD_HOC' || dt === 'DRAW_MATIC').toBe(true);
 
     collector.detach();

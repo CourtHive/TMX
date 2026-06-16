@@ -28,7 +28,7 @@ import { TournamentPage } from '../pages/TournamentPage';
 const TOURNAMENT_ID_NO_EVENTS = 'e2e-format-wizard-no-events';
 const TOURNAMENT_ID_WITH_DRAW = 'e2e-format-wizard-with-draw';
 
-async function seedRatedNoEvents(page) {
+async function seedRatedNoEvents(page: any) {
   await seedTournament(page, {
     tournamentName: 'Format Wizard E2E (no events)',
     tournamentAttributes: { tournamentId: TOURNAMENT_ID_NO_EVENTS },
@@ -39,7 +39,7 @@ async function seedRatedNoEvents(page) {
   });
 }
 
-async function seedRatedWithDraw(page) {
+async function seedRatedWithDraw(page: any) {
   await seedTournament(page, {
     tournamentName: 'Format Wizard E2E (with draw)',
     tournamentAttributes: { tournamentId: TOURNAMENT_ID_WITH_DRAW },

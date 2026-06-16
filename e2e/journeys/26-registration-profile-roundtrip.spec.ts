@@ -7,12 +7,12 @@ import { TournamentPage } from '../pages/TournamentPage';
 const MODAL = '.chc-modal-dialog';
 
 /** Helper: locate an input/select/textarea by its label text within a container */
-function fieldByLabel(page, container, label: string) {
+function fieldByLabel(page: any, container: any, label: string) {
   return container.locator(`label:has-text("${label}")`).locator('..').locator('input, select, textarea');
 }
 
 /** Click the [+ Add] button inside a section, wait for the inline form to appear */
-async function clickAddInSection(page, sectionKey: string) {
+async function clickAddInSection(page: any, sectionKey: string) {
   const section = page.locator(MODAL).locator(`[data-section="${sectionKey}"]`);
   await section.locator('button:has-text("Add")').click();
   // Wait for inline form panel to appear
@@ -21,9 +21,9 @@ async function clickAddInSection(page, sectionKey: string) {
 }
 
 /** Fill a field in the inline form by label */
-async function fillInlineField(section, label: string, value: string) {
+async function fillInlineField(section: any, label: string, value: string) {
   const field = section.locator(`label:has-text("${label}")`).locator('..').locator('input, select, textarea');
-  const tagName = await field.evaluate((el) => el.tagName.toLowerCase());
+  const tagName = await field.evaluate((el: any) => el.tagName.toLowerCase());
   if (tagName === 'select') {
     await field.selectOption(value);
   } else {
@@ -32,7 +32,7 @@ async function fillInlineField(section, label: string, value: string) {
 }
 
 /** Click Save in the inline form */
-async function saveInlineForm(section) {
+async function saveInlineForm(section: any) {
   await section.locator('button:has-text("Save")').click();
 }
 

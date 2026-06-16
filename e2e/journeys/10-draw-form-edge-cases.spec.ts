@@ -170,7 +170,7 @@ test.describe('Journey 10 — Draw form edge cases', () => {
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
     expect(dd.drawType).toBe('SINGLE_ELIMINATION');
     // The drawDefinition should have structures for a 16-draw
     expect(dd.structures).toBeDefined();
@@ -188,7 +188,7 @@ test.describe('Journey 10 — Draw form edge cases', () => {
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const dd = entry.methods[0].params.drawDefinition;
+    const dd: any = entry.methods[0].params.drawDefinition;
     expect(dd.drawType).toBe('ROUND_ROBIN');
 
     collector.detach();

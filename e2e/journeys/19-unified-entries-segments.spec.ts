@@ -234,7 +234,7 @@ test.describe('Journey 19 — Segments display, sorting, and moving', () => {
 
     const entry = await collector.waitForMethod('modifyEntriesStatus', 10_000).catch(() => null);
     if (entry) {
-      const params = entry.methods[0].params;
+      const params: any = entry.methods[0].params;
       expect(params.participantIds).toBeDefined();
       expect(params.participantIds.length).toBe(1);
       expect(params.eventId).toBeDefined();

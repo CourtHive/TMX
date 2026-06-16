@@ -149,8 +149,9 @@ test.describe('Journey 24 — Search Enter-to-select and rapid pairing', () => {
 
     // Should emit the pairing mutation
     const entry = await collector.waitForMethod('addEventEntryPairs', 10_000);
-    expect(entry.methods[0].params.participantIdPairs).toBeDefined();
-    expect(entry.methods[0].params.participantIdPairs[0]).toHaveLength(2);
+    const params: any = entry.methods[0].params;
+    expect(params.participantIdPairs).toBeDefined();
+    expect(params.participantIdPairs[0]).toHaveLength(2);
 
     // Search should be cleared
     expect(await searchInput.inputValue()).toBe('');
@@ -222,8 +223,9 @@ test.describe('Journey 24 — Search Enter-to-select and rapid pairing', () => {
 
     // Should emit the pairing mutation
     const entry = await collector.waitForMethod('addEventEntryPairs', 10_000);
-    expect(entry.methods[0].params.participantIdPairs).toBeDefined();
-    expect(entry.methods[0].params.participantIdPairs[0]).toHaveLength(2);
+    const params: any = entry.methods[0].params;
+    expect(params.participantIdPairs).toBeDefined();
+    expect(params.participantIdPairs[0]).toHaveLength(2);
 
     collector.detach();
   });

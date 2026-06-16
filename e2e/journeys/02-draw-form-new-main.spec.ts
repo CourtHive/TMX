@@ -419,7 +419,7 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    const params = entry.methods[0].params;
+    const params: any = entry.methods[0].params;
     // drawDefinition is nested inside params (generateDraw.ts:38)
     expect(params.drawDefinition).toBeDefined();
     expect(params.drawDefinition.drawType).toBe('SINGLE_ELIMINATION');
@@ -437,7 +437,8 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.clickGenerate();
 
     const entry = await collector.waitForMethod('addDrawDefinition', 10_000);
-    expect(entry.methods[0].params.drawDefinition.drawType).toBe('ROUND_ROBIN');
+    const params: any = entry.methods[0].params;
+    expect(params.drawDefinition.drawType).toBe('ROUND_ROBIN');
 
     collector.detach();
   });
