@@ -308,11 +308,19 @@ export function renderOverview(): void {
   pubHeader.style.cssText += 'flex:1;';
   publishingCard.insertBefore(pubHeader, publishingCard.firstChild);
 
+  // Fetch participants once with scale values — the scalings histogram
+  // needs the rating-value enriched array, and the wizard-visibility
+  // check only reads `.length`, so the same call serves both. The plain
+  // (non-withScaleValues) call that lived inside shouldShowFormatWizard
+  // was a second pass over the same underlying data.
+  const participantsWithScales =
+    tournamentEngine.getParticipants({ withScaleValues: true })?.participants ?? [];
+
   // Scalings histogram — full-width panel above the publishing card.
   // Gated on participant count to avoid pulling + binning thousands of
   // rating values on the dashboard render path. Hidden silently when
   // no participants carry numeric scale values.
-  appendScalingsPanel(statsContainer);
+  appendScalingsPanel(statsContainer, participantsWithScales);
 
   statsContainer.appendChild(publishingCard);
   leftColumn.appendChild(statsContainer);
@@ -324,7 +332,7 @@ export function renderOverview(): void {
   // participants without entries). This is the entry point for demo
   // mode where there's no logged-in user.
   const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
-  if (tournamentId && shouldShowFormatWizard()) {
+  if (tournamentId && shouldShowFormatWizard(participantsWithScales)) {
     leftColumn.appendChild(createFormatWizardLauncher(tournamentId));
   }
 
@@ -385,8 +393,7 @@ function createFormatWizardLauncher(tournamentId: string): HTMLElement {
  * grid. No-op when the tournament has too many participants for an
  * instant render or when no participant carries a numeric scale value.
  */
-function appendScalingsPanel(statsContainer: HTMLElement): void {
-  const { participants } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+function appendScalingsPanel(statsContainer: HTMLElement, participants: any[]): void {
   if (!Array.isArray(participants) || participants.length === 0) return;
   if (participants.length > MAX_PARTICIPANTS_FOR_OVERVIEW) return;
 

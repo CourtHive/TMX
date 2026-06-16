@@ -481,12 +481,18 @@ function createActionButton(label: string, icon: string, onClick: () => void, id
 // the launch button when there are no events at all, or when
 // participants exist but no event has been populated with entries
 // yet.
-export function shouldShowFormatWizard(): boolean {
+/**
+ * @param participants optional pre-fetched participants list to skip the
+ *   internal `getParticipants` call. The overview render uses this to share
+ *   one `getParticipants({ withScaleValues: true })` call between the
+ *   scalings panel and the wizard-visibility check.
+ */
+export function shouldShowFormatWizard(participants?: any[]): boolean {
   if (!featureFlags.get().formatWizard) return false;
   const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
   if (events.length === 0) return true;
-  const participants: any[] = (tournamentEngine.getParticipants?.({}) as any)?.participants ?? [];
-  if (participants.length === 0) return false;
+  const list = participants ?? (tournamentEngine.getParticipants?.({}) as any)?.participants ?? [];
+  if (list.length === 0) return false;
   const totalEntries = events.reduce((sum, e) => sum + ((e?.entries as any[])?.length ?? 0), 0);
   return totalEntries === 0;
 }
