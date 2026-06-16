@@ -38,15 +38,39 @@ function buildHTML(mode: Mode): string {
   `;
 }
 
+/**
+ * Sync `is-active` + `aria-pressed` on the toggle's buttons to `next`. The
+ * toggle has to update its own DOM rather than wait for the parent to
+ * re-render, because some consumers (the global tournaments page) build the
+ * header once and only re-render the body — the highlight gets stuck on the
+ * initial mode unless we sync here.
+ */
+function syncActiveState(root: HTMLElement | null, next: Mode): void {
+  if (!root) return;
+  const buttons = root.querySelectorAll<HTMLElement>('[data-mode]');
+  buttons.forEach((btn) => {
+    const active = btn.dataset.mode === next;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function resolveModeFromClick(target: EventTarget | null): Mode | null {
+  const btn = (target as HTMLElement | null)?.closest('[data-mode]') as HTMLElement | null;
+  if (!btn) return null;
+  const next = btn.dataset.mode;
+  return next === 'grid' || next === 'table' ? next : null;
+}
+
 export function viewToggleItem({ id, mode, onChange, location = CENTER }: ViewToggleItemParams): any {
   return {
     id,
     text: buildHTML(mode),
     onClick: (e: any) => {
-      const btn = (e?.target as HTMLElement | null)?.closest('[data-mode]') as HTMLElement | null;
-      if (!btn) return;
-      const next = btn.dataset.mode as Mode;
-      if (next === 'grid' || next === 'table') onChange(next);
+      const next = resolveModeFromClick(e?.target);
+      if (!next) return;
+      syncActiveState((e?.target as HTMLElement | null)?.closest('.tmx-view-toggle') as HTMLElement | null, next);
+      onChange(next);
     },
     location
   };
@@ -57,10 +81,10 @@ export function buildViewToggleElement({ mode, onChange }: ViewToggleCommon): HT
   wrap.innerHTML = buildHTML(mode).trim();
   const toggle = wrap.firstElementChild as HTMLElement;
   toggle.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement | null)?.closest('[data-mode]') as HTMLElement | null;
-    if (!btn) return;
-    const next = btn.dataset.mode as Mode;
-    if (next === 'grid' || next === 'table') onChange(next);
+    const next = resolveModeFromClick(e.target);
+    if (!next) return;
+    syncActiveState(toggle, next);
+    onChange(next);
   });
   return toggle;
 }
