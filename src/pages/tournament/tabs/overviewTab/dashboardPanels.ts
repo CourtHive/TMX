@@ -139,6 +139,9 @@ export function createStatCard(
   value: string | number,
   icon?: string,
   rightLabel?: string,
+  /** Render `rightLabel` in a muted/italic style — used for "Set …" prompts
+   *  where the slot holds a call-to-action rather than a set value. */
+  rightLabelPlaceholder?: boolean,
 ): HTMLElement {
   const card = document.createElement('div');
   card.className = 'dash-panel dash-panel-blue';
@@ -171,7 +174,10 @@ export function createStatCard(
 
   if (rightLabel) {
     const rightSpan = document.createElement('span');
-    rightSpan.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; opacity:0.85;';
+    const baseRightStyle = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;';
+    rightSpan.style.cssText = rightLabelPlaceholder
+      ? `${baseRightStyle} opacity:0.65; font-style:italic;`
+      : `${baseRightStyle} opacity:0.85;`;
     rightSpan.textContent = rightLabel;
     labelEl.appendChild(rightSpan);
   }

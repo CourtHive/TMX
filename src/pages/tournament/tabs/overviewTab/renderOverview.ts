@@ -5,6 +5,7 @@ import { openCategoriesEditorModal } from './categoriesEditorModal';
 import { openPracticeCapacityModal } from './practiceCapacityModal';
 import { resolveCurrentPracticeDefaultCapacity } from './practiceCapacityModal.logic';
 import { openEditDatesModal } from './editDatesModal';
+import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -159,14 +160,30 @@ export function renderOverview(): void {
   // narrow stat-card column. The tournament's local timezone — when set
   // — is surfaced right-justified on the label row so TDs can see (and
   // edit, via the click-through modal) the zone that drives every "Live"
-  // / "Completed" / scheduled-time calculation downstream.
+  // / "Completed" / scheduled-time calculation downstream. When it's NOT
+  // set, surface a muted "Set time zone" prompt — and if the browser can
+  // tell us where the TD is, include the detected zone so the modal can
+  // pre-fill it as a one-click confirmation.
   const tournamentRecord = tournamentEngine.q.tournament();
   const localTimeZone = tournamentRecord?.localTimeZone;
+  const detectedTimeZone = localTimeZone ? null : getDetectedTimeZone();
+  let datesRightLabel: string | undefined;
+  let datesRightIsPlaceholder = false;
+  if (localTimeZone) {
+    datesRightLabel = localTimeZone;
+  } else if (detectedTimeZone) {
+    datesRightLabel = t('dashboard.setTimeZoneDetected', { zone: detectedTimeZone });
+    datesRightIsPlaceholder = true;
+  } else {
+    datesRightLabel = t('dashboard.setTimeZone');
+    datesRightIsPlaceholder = true;
+  }
   const datesCard = createStatCard(
     t('dashboard.dates'),
     `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`,
     'fa-calendar',
-    localTimeZone,
+    datesRightLabel,
+    datesRightIsPlaceholder,
   );
   datesCard.style.cursor = 'pointer';
   datesCard.style.cssText += 'grid-column: 1 / -1;';

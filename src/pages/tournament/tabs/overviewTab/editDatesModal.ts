@@ -3,6 +3,7 @@ import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTi
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
+import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
 import { getParent } from 'services/dom/parentAndChild';
 import { t, i18next } from 'i18n';
 
@@ -16,6 +17,11 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
   const endDate = tournamentInfo?.endDate || '';
   const existingActiveDates = (tournamentInfo?.activeDates || []).join(',');
   const existingTimeZone = tournamentEngine.q.tournament()?.localTimeZone || '';
+  // Pre-fill the picker with the browser-detected zone when nothing is set,
+  // so the TD can simply hit Save to confirm. The hint span (appended after
+  // the form renders) makes it explicit that the value is a suggestion,
+  // not an existing setting.
+  const detectedTimeZone = existingTimeZone ? '' : getDetectedTimeZone() ?? '';
   const supportedTimeZones = getSupportedTimeZones();
 
   let inputs: any;
@@ -98,7 +104,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       field: 'localTimeZone',
       typeAhead: {
         list: supportedTimeZones,
-        currentValue: existingTimeZone,
+        currentValue: existingTimeZone || detectedTimeZone,
       },
     },
   ];
@@ -113,6 +119,22 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, items, relationships);
     inputs.activeDates?.datepicker?.update();
+    // When the TZ field was pre-filled from browser detection (not from a
+    // saved value), surface a small hint right below the field so the TD
+    // knows the value is a suggestion they can accept or override. Without
+    // this they could mistake the pre-fill for an existing setting and
+    // unknowingly commit it on save.
+    if (detectedTimeZone && !existingTimeZone) {
+      const fieldParent = getParent(inputs.localTimeZone, 'field') as any;
+      const fieldEl: HTMLElement | undefined = fieldParent?.parent;
+      if (fieldEl) {
+        const hint = document.createElement('div');
+        hint.style.cssText =
+          'font-size: 0.8rem; color: var(--tmx-text-secondary, #888); margin-top: 2px; font-style: italic;';
+        hint.textContent = t('modals.editDates.timeZoneDetectedHint', { zone: detectedTimeZone });
+        fieldEl.appendChild(hint);
+      }
+    }
   };
 
   const onClick = () => {

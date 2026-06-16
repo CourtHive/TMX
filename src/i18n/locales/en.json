@@ -994,7 +994,8 @@
     "editDates": {
       "title": "Edit Dates",
       "startDateLabel": "Start Date",
-      "endDateLabel": "End Date"
+      "endDateLabel": "End Date",
+      "timeZoneDetectedHint": "Detected from your browser ({{zone}}). Confirm, change, or clear."
     },
     "invalidParticipants": {
       "title": "Invalid Participants"
@@ -1456,6 +1457,8 @@
 
   "dashboard": {
     "dates": "Dates",
+    "setTimeZone": "Set time zone",
+    "setTimeZoneDetected": "Set time zone (detected: {{zone}})",
     "categories": "Categories ({{count}})",
     "noneSet": "None",
     "events": "Events",
