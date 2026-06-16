@@ -162,7 +162,10 @@ export function createStatCard(
   }
 
   const leftSpan = document.createElement('span');
-  leftSpan.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;';
+  // flex-shrink:0 so the left label (e.g. "[] Dates") never gets crushed
+  // when the right slot carries a longer label like a detected timezone.
+  leftSpan.style.cssText =
+    'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex-shrink:0;';
   if (icon) {
     const iconEl = document.createElement('i');
     iconEl.className = `fa ${icon}`;

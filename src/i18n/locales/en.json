@@ -1458,7 +1458,7 @@
   "dashboard": {
     "dates": "Dates",
     "setTimeZone": "Set time zone",
-    "setTimeZoneDetected": "Set time zone (detected: {{zone}})",
+    "setTimeZoneDetected": "(detected: {{zone}})",
     "categories": "Categories ({{count}})",
     "noneSet": "None",
     "events": "Events",
