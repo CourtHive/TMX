@@ -4,9 +4,8 @@
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
 import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
-import { tournamentEngine } from 'services/factory/engine';
-import { eventConstants, fixtures } from 'tods-competition-factory';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
+import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
 import { getMatchUpStatusFilter } from 'components/tables/common/filters/matchUpStatusFilter';
 import { getMatchUpEventFilter } from 'components/tables/common/filters/matchUpEventFilter';
@@ -22,9 +21,6 @@ import { t } from 'i18n';
 
 // constants
 import { LEFT, MATCHUPS_CONTROL, NONE, OVERLAY, RIGHT, TEAM_STATS } from 'constants/tmxConstants';
-
-const { ratingsParameters } = fixtures;
-const { SINGLES: SINGLES_EVENT } = eventConstants;
 
 export function renderMatchUpTab(): void {
   const { data, table, replaceTableData } = createMatchUpsTable();
@@ -96,17 +92,7 @@ export function renderMatchUpTab(): void {
 const intentColors = ['is-danger', 'is-info', 'is-success', 'is-warning', 'is-link', 'is-primary'];
 
 function getPredictiveAccuracyItems(replaceTableData: () => void): any[] {
-  // Discover which ratings are present in tournament participants
-  const { participants: allParticipants = [] } =
-    tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
-  const presentRatings = new Set<string>();
-  for (const p of allParticipants) {
-    for (const item of p.ratings?.[SINGLES_EVENT] || []) {
-      if (ratingsParameters[item.scaleName]) {
-        presentRatings.add(item.scaleName);
-      }
-    }
-  }
+  const presentRatings = getPresentRatings();
 
   let colorIndex = 0;
   return Array.from(presentRatings).map((scaleName) => ({

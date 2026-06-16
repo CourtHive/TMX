@@ -3,7 +3,7 @@
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
 import { tournamentEngine } from 'services/factory/engine';
-import { fixtures, factoryConstants, unwrapOr } from 'tods-competition-factory';
+import { fixtures, unwrapOr } from 'tods-competition-factory';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -12,6 +12,7 @@ import { findAncestor } from 'services/dom/parentAndChild';
 import { startCrowdPoller, type CrowdPoller } from 'services/crowd/crowdPoller';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { getMatchUpColumns } from './getMatchUpColumns';
+import { getPresentRatings } from './getPresentRatings';
 import { displayConfig } from 'config/displayConfig';
 import { hotKeyScoring } from './hotKeyScoring';
 import { t } from 'i18n';
@@ -20,7 +21,6 @@ import { t } from 'i18n';
 import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
 const { ratingsParameters } = fixtures;
-const { SINGLES } = factoryConstants.eventConstants;
 
 export function createMatchUpsTable(): { table: any; data: any[]; replaceTableData: () => void } {
   let table: any;
@@ -64,14 +64,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
       const matchUps = rows.map((row) => row.getData().matchUp);
       headerElement && (headerElement.innerHTML = `${t('pages.matchUps.title')} (${matchUps.length})`);
 
-      // Discover which ratings are present in tournament participants
-      const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
-      const presentRatings = new Set<string>();
-      for (const p of allParticipants) {
-        for (const item of p.ratings?.[SINGLES] || []) {
-          presentRatings.add(item.scaleName);
-        }
-      }
+      const presentRatings = getPresentRatings();
 
       // Calculate predictive accuracy for each present rating type
       for (const scaleName of presentRatings) {

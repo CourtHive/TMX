@@ -3,7 +3,7 @@
  * Filters matchUps by team participant, with optional stats panel display.
  */
 import { tournamentEngine } from 'services/factory/engine';
-import { participantConstants, unwrapOr } from 'tods-competition-factory';
+import { participantConstants, eventConstants, unwrapOr } from 'tods-competition-factory';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { context } from 'services/context';
@@ -13,12 +13,27 @@ import { t } from 'i18n';
 import { NONE } from 'constants/tmxConstants';
 
 const { TEAM } = participantConstants;
+const { TEAM_EVENT } = eventConstants;
+
+const EMPTY_FILTER = {
+  teamOptions: [] as any[],
+  hasOptions: false,
+  isFiltered: () => false,
+  activeIndex: () => 0,
+};
 
 export function getMatchUpTeamFilter(
   table: any,
   statsPanel: HTMLElement,
 ): { teamOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined = context.matchUpFilters.teamId;
+
+  // Short-circuit when the tournament has no TEAM events. The filter
+  // is a no-op in that state and the participants query just to
+  // confirm "no teams" is pure waste. `q.events()` is the same cheap
+  // accessor the event/flight filters already use a few lines up.
+  const events = tournamentEngine.q.events() || [];
+  if (!events.some((e: any) => e.eventType === TEAM_EVENT)) return EMPTY_FILTER;
 
   const teamParticipants =
     tournamentEngine.q.participants({ participantFilters: { participantTypes: [TEAM] } }) || [];
