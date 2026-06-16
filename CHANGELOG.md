@@ -1,5 +1,30 @@
 # Changelog
 
+## [8.1.0](https://github.com/CourtHive/TMX/compare/v8.0.1...v8.1.0) (2026-06-16)
+
+
+### Features
+
+* **overview:** nudge TDs to set a tournament time zone via browser-detected suggestion ([799c8b6](https://github.com/CourtHive/TMX/commit/799c8b6725105d44b66574400d1d0dea8b81d908))
+* **overview:** surface tournament timeZone on Dates panel + edit via the Edit Dates modal ([894a430](https://github.com/CourtHive/TMX/commit/894a43028200a3740f071edf3946cdb5494aeb0a))
+
+
+### Bug Fixes
+
+* **overview:** shorten tz nudge to '(detected: …)' so the Dates label survives narrow widths ([4ca0006](https://github.com/CourtHive/TMX/commit/4ca00061963be1d401305e09d9171c02cc22b706))
+* **schedule2:** expose completed-orphan matchUps + exclude BYEs from date counts ([85b184b](https://github.com/CourtHive/TMX/commit/85b184b579a1ffdc532fb1b9641c101c6d2c1d3b))
+* **view-toggle:** sync is-active highlight on click instead of waiting for re-render ([430b7b1](https://github.com/CourtHive/TMX/commit/430b7b1ccb90a162ff6e7855432782bd7b0133f2))
+
+
+### Performance
+
+* **events:** cut events-page initial render from 8 matchUp calls to 4 ([0825dcf](https://github.com/CourtHive/TMX/commit/0825dcf508b84b9113b3d910a8e922d873d7923b))
+* **matchups:** collapse duplicate q.events() calls across filter trio ([05d4868](https://github.com/CourtHive/TMX/commit/05d4868cc5d82cae956e16835ce9bcea4d84d934))
+* **matchups:** dedupe getParticipants calls on initial render ([5484e82](https://github.com/CourtHive/TMX/commit/5484e82fb51eaa686ba249ff1e9efbce8add134f))
+* **overview:** collapse duplicate getEvents call on dashboard render ([8e499c7](https://github.com/CourtHive/TMX/commit/8e499c7285d93c5dd40bf0bea069bc2e4899dc12))
+* **overview:** collapse duplicate getParticipants calls on dashboard render ([4d532ea](https://github.com/CourtHive/TMX/commit/4d532eafc40c8d924245ce3dffc355f40fe0024d))
+* **schedule2:** memoize factory calls to one per state change ([8d5b3ee](https://github.com/CourtHive/TMX/commit/8d5b3ee18134ee4535681771482d8c31ac4f3c0d))
+
 ## [8.0.1](https://github.com/CourtHive/TMX/compare/v8.0.0...v8.0.1) (2026-06-15)
 
 
