@@ -839,6 +839,7 @@
     "filterAllFlights": "All Flights",
     "filterAllGenders": "All Genders",
     "filterAllRounds": "All Rounds",
+    "showCompleted": "Show completed",
     "groupBy": {
       "time": "By Time",
       "event": "By Event",

@@ -702,6 +702,24 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       container.appendChild(select);
     }
 
+    // "Show completed" toggle — always rendered so the popover has at
+    // least one functional control. Without it, dates where every orphan
+    // is completed (e.g. the morning after a finished day whose courts
+    // were cleared) produced an empty Clear All / × husk. Writes to the
+    // shared store flag so this and the Unscheduled-side toggle stay in
+    // lockstep — one mental model, one switch.
+    const toggleRow = document.createElement('label');
+    toggleRow.className = 'spl-filter-toggle';
+    const showCompletedCheckbox = document.createElement('input');
+    showCompletedCheckbox.type = 'checkbox';
+    showCompletedCheckbox.checked = activeControl?.getStore().getState().showCompleted ?? false;
+    showCompletedCheckbox.addEventListener('change', () => {
+      activeControl?.getStore().setShowCompleted(showCompletedCheckbox.checked);
+    });
+    toggleRow.appendChild(showCompletedCheckbox);
+    toggleRow.appendChild(document.createTextNode(` ${t('schedule.showCompleted')}`));
+    container.appendChild(toggleRow);
+
     return container;
   }
 
@@ -733,11 +751,15 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // scheduledTime ascending (no-time entries fall to the bottom) so that
   // the list reflects the play order produced by the scheduler, with a
   // stable tie-break on matchUpId.
-  function getScheduledNotPlacedOnCourt(): any[] {
+  // Orphans = scheduled-for-this-date, no court assigned, not BYE. Completion
+  // status is NOT filtered here — callers decide based on the operator's
+  // "Show completed" toggle. Splitting the call this way lets `updateBadge`
+  // compute both the visible count (respects toggle) and the absolute count
+  // (drives funnel visibility) from one factory call.
+  function listScheduledOrphans(): any[] {
     const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true, nextMatchUps: true });
     const filtered = (matchUps || []).filter((m: any) => {
       if (m.matchUpStatus === BYE) return false;
-      if (isCompletedStatus(m.matchUpStatus)) return false;
       if (m.schedule?.scheduledDate !== currentDate) return false;
       if (m.schedule?.courtId) return false; // already on a court — don't show
       return true; // date match is sufficient — time is optional
@@ -751,8 +773,28 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     return filtered;
   }
 
+  function getScheduledNotPlacedOnCourt(): any[] {
+    // Honors the shared "Show completed" store flag so a completed matchUp
+    // whose court was cleared (manual unschedule or upstream sync wiping
+    // courtId while preserving scheduledDate/scheduledTime) has a surface
+    // to be re-assigned from — without the toggle, it had nowhere to live.
+    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
+    const all = listScheduledOrphans();
+    return showCompleted ? all : all.filter((m: any) => !isCompletedStatus(m.matchUpStatus));
+  }
+
   function updateBadge(): void {
-    schedBadge.textContent = String(getScheduledNotPlacedOnCourt().length);
+    // Single factory pass; split into visible-count (respects the toggle)
+    // and absolute-count (gates funnel visibility). The funnel is hidden
+    // when there's nothing for the popover to act on even with the toggle
+    // on — otherwise opening it surfaces an empty Clear All / × husk.
+    const orphans = listScheduledOrphans();
+    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
+    const visibleCount = showCompleted
+      ? orphans.length
+      : orphans.filter((m: any) => !isCompletedStatus(m.matchUpStatus)).length;
+    schedBadge.textContent = String(visibleCount);
+    scheduledFilterBtn.style.display = orphans.length === 0 ? 'none' : '';
     // Unscheduled badge reflects the unfiltered eligible-for-unscheduled
     // count for the current date — same source the catalog widget meta
     // shows ("X unscheduled"), so the badge cannot drift from what the
@@ -781,7 +823,12 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // `scheduledMatchUpToCatalogItem` already forces `isScheduled: false`
     // (so the card stays draggable), so behavior is a no-op here — explicit
     // 'dim' avoids the hide branch entirely.
-    const filtered = filterMatchUpCatalog(items, scheduledSearchQuery, 'dim', scheduledFilters);
+    // showCompleted MUST be threaded through: `getScheduledNotPlacedOnCourt`
+    // honors it (so completed orphans reach this step), but
+    // `filterMatchUpCatalog` re-applies `isCompletedStatus` internally and
+    // would drop them again if we left the default `false`.
+    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
+    const filtered = filterMatchUpCatalog(items, scheduledSearchQuery, 'dim', scheduledFilters, showCompleted);
 
     // Match the unscheduled catalog meta line ("{N} unscheduled") on the
     // Scheduled side so the panel header carries the same shape and the
@@ -2348,6 +2395,7 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
   const dateCounts = new Map<string, number>();
   for (const m of matchUps || []) {
+    if (m.matchUpStatus === BYE) continue;
     const d = m.schedule?.scheduledDate;
     if (d) dateCounts.set(d, (dateCounts.get(d) || 0) + 1);
   }
