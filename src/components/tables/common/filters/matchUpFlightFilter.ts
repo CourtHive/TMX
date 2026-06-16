@@ -6,7 +6,10 @@ import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-export function getMatchUpFlightFilter(table: any): {
+export function getMatchUpFlightFilter(
+  table: any,
+  preFetchedEvents?: any[],
+): {
   flightOptions: any[];
   hasOptions: boolean;
   isFiltered: () => boolean;
@@ -25,7 +28,9 @@ export function getMatchUpFlightFilter(table: any): {
   // Restore saved filter
   if (filterValue) table.addFilter(flightFilter);
 
-  const events = tournamentEngine.q.events() || [];
+  // Caller can hand in a pre-fetched events list to share one q.events()
+  // call across the event/flight/team filters on the matchUps tab.
+  const events = preFetchedEvents ?? tournamentEngine.q.events() ?? [];
   const allLabel = t('pages.matchUps.allFlights');
   const allOption = {
     label: `<span style='font-weight: bold'>${allLabel}</span>`,

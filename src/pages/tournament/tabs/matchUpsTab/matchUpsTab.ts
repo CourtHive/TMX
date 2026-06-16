@@ -4,6 +4,7 @@
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
 import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
@@ -30,9 +31,14 @@ export function renderMatchUpTab(): void {
 
   const setSearchFilter = createSearchFilter(table, { persistKey: 'search' });
 
-  const { eventOptions, hasOptions: hasEventOptions, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getMatchUpEventFilter(table);
-  const { flightOptions, hasOptions: hasFlightOptions, isFiltered: isFlightFiltered, activeIndex: flightActiveIndex } = getMatchUpFlightFilter(table);
-  const { teamOptions, hasOptions: hasTeamOptions, isFiltered: isTeamFiltered, activeIndex: teamActiveIndex } = getMatchUpTeamFilter(table, statsPanel);
+  // Fetch events once and share across the event/flight/team filters
+  // below. Each filter previously ran its own q.events() call, costing
+  // three calls per matchUps-tab render where one suffices.
+  const events = tournamentEngine.q.events() ?? [];
+
+  const { eventOptions, hasOptions: hasEventOptions, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getMatchUpEventFilter(table, events);
+  const { flightOptions, hasOptions: hasFlightOptions, isFiltered: isFlightFiltered, activeIndex: flightActiveIndex } = getMatchUpFlightFilter(table, events);
+  const { teamOptions, hasOptions: hasTeamOptions, isFiltered: isTeamFiltered, activeIndex: teamActiveIndex } = getMatchUpTeamFilter(table, statsPanel, events);
   const { statusOptions, isFiltered: isStatusFiltered, activeIndex: statusActiveIndex } = getMatchUpStatusFilter(table);
   const { typeOptions, hasOptions: hasTypeOptions, isFiltered: isTypeFiltered, activeIndex: typeActiveIndex } = getMatchUpTypeFilter(table, data);
   const { dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex } = getMatchUpDateFilter(table);

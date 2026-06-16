@@ -25,14 +25,16 @@ const EMPTY_FILTER = {
 export function getMatchUpTeamFilter(
   table: any,
   statsPanel: HTMLElement,
+  preFetchedEvents?: any[],
 ): { teamOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined = context.matchUpFilters.teamId;
 
   // Short-circuit when the tournament has no TEAM events. The filter
   // is a no-op in that state and the participants query just to
-  // confirm "no teams" is pure waste. `q.events()` is the same cheap
-  // accessor the event/flight filters already use a few lines up.
-  const events = tournamentEngine.q.events() || [];
+  // confirm "no teams" is pure waste. Caller can hand in a pre-fetched
+  // events list to share one q.events() call across the event/flight/team
+  // filters on the matchUps tab.
+  const events = preFetchedEvents ?? tournamentEngine.q.events() ?? [];
   if (!events.some((e: any) => e.eventType === TEAM_EVENT)) return EMPTY_FILTER;
 
   const teamParticipants =
