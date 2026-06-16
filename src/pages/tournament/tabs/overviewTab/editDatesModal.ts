@@ -1,4 +1,5 @@
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
@@ -6,7 +7,7 @@ import { getParent } from 'services/dom/parentAndChild';
 import { t, i18next } from 'i18n';
 
 // constants
-import { SET_TOURNAMENT_DATES } from 'constants/mutationConstants';
+import { SET_TOURNAMENT_DATES, SET_TOURNAMENT_LOCAL_TIME_ZONE } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
 export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
@@ -14,6 +15,8 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
   const startDate = tournamentInfo?.startDate || '';
   const endDate = tournamentInfo?.endDate || '';
   const existingActiveDates = (tournamentInfo?.activeDates || []).join(',');
+  const existingTimeZone = tournamentEngine.q.tournament()?.localTimeZone || '';
+  const supportedTimeZones = getSupportedTimeZones();
 
   let inputs: any;
   let modalHandle: any;
@@ -84,6 +87,20 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       date: true,
       language: i18next.language,
     },
+    // Time zone picker — IANA zone backing every "Live"/"Completed"
+    // boundary, scheduled-time render, and audit timestamp on the
+    // tournament. Same typeAhead pattern used in the New Tournament
+    // drawer. Empty value === "clear" so TDs can unset back to the
+    // host-local fallback.
+    {
+      label: t('drawers.editTournament.timeZoneLabel'),
+      placeholder: t('drawers.editTournament.timeZonePlaceholder'),
+      field: 'localTimeZone',
+      typeAhead: {
+        list: supportedTimeZones,
+        currentValue: existingTimeZone,
+      },
+    },
   ];
 
   const relationships = [
@@ -102,9 +119,21 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
     const newStartDate = inputs['startDate'].value;
     const newEndDate = inputs['endDate'].value;
     const activeDates = inputs['activeDates'].value?.split(',').filter(Boolean);
-    const methods = [
+    // Trim + validate the timezone. Empty string === clear; invalid input
+    // (e.g. partial typeahead match) falls back to the existing value so
+    // the user doesn't accidentally clobber a good zone with garbage.
+    const rawTz = (inputs.localTimeZone?.value ?? '').trim();
+    const localTimeZone = rawTz === '' || isValidTimeZone(rawTz) ? rawTz : existingTimeZone;
+
+    const methods: { method: string; params: any }[] = [
       { method: SET_TOURNAMENT_DATES, params: { startDate: newStartDate, endDate: newEndDate, activeDates } },
     ];
+    // Only emit the TZ mutation when the value actually changed — keeps
+    // the server audit trail clean and matches the drawer's behavior.
+    if (localTimeZone !== existingTimeZone) {
+      methods.push({ method: SET_TOURNAMENT_LOCAL_TIME_ZONE, params: { localTimeZone } });
+    }
+
     const postMutation = (result: any) => {
       if (result?.success) {
         closeModal();

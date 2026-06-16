@@ -134,7 +134,12 @@ const LABEL_STYLE =
   'font-size:0.85rem; color:var(--tmx-text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
 const CARD_BASE_STYLE = 'padding:12px 16px; min-width:0; overflow:hidden;';
 
-export function createStatCard(label: string, value: string | number, icon?: string): HTMLElement {
+export function createStatCard(
+  label: string,
+  value: string | number,
+  icon?: string,
+  rightLabel?: string,
+): HTMLElement {
   const card = document.createElement('div');
   card.className = 'dash-panel dash-panel-blue';
   card.style.cssText = CARD_BASE_STYLE;
@@ -146,13 +151,31 @@ export function createStatCard(label: string, value: string | number, icon?: str
 
   const labelEl = document.createElement('div');
   labelEl.style.cssText = LABEL_STYLE;
+  if (rightLabel) {
+    // Two-column layout for the bottom row: icon+label on the left, a
+    // secondary annotation right-justified. Used for the Dates panel to
+    // surface the tournament's local timezone alongside the "Dates" label.
+    labelEl.style.cssText += ' display:flex; align-items:baseline; justify-content:space-between; gap:8px;';
+  }
+
+  const leftSpan = document.createElement('span');
+  leftSpan.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;';
   if (icon) {
     const iconEl = document.createElement('i');
     iconEl.className = `fa ${icon}`;
     iconEl.style.marginRight = '4px';
-    labelEl.appendChild(iconEl);
+    leftSpan.appendChild(iconEl);
   }
-  labelEl.appendChild(document.createTextNode(label));
+  leftSpan.appendChild(document.createTextNode(label));
+  labelEl.appendChild(leftSpan);
+
+  if (rightLabel) {
+    const rightSpan = document.createElement('span');
+    rightSpan.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; opacity:0.85;';
+    rightSpan.textContent = rightLabel;
+    labelEl.appendChild(rightSpan);
+  }
+
   card.appendChild(labelEl);
 
   return card;

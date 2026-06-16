@@ -156,11 +156,17 @@ export function renderOverview(): void {
 
   // Tournament Dates panel — full width above the 2-col stats grid so
   // long ranges ("May 7, 2026 – May 23, 2026") aren't truncated by the
-  // narrow stat-card column.
+  // narrow stat-card column. The tournament's local timezone — when set
+  // — is surfaced right-justified on the label row so TDs can see (and
+  // edit, via the click-through modal) the zone that drives every "Live"
+  // / "Completed" / scheduled-time calculation downstream.
+  const tournamentRecord = tournamentEngine.q.tournament();
+  const localTimeZone = tournamentRecord?.localTimeZone;
   const datesCard = createStatCard(
     t('dashboard.dates'),
     `${formatDate(data.startDate)} – ${formatDate(data.endDate)}`,
     'fa-calendar',
+    localTimeZone,
   );
   datesCard.style.cursor = 'pointer';
   datesCard.style.cssText += 'grid-column: 1 / -1;';
