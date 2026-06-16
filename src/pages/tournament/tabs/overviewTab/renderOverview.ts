@@ -332,7 +332,7 @@ export function renderOverview(): void {
   // participants without entries). This is the entry point for demo
   // mode where there's no logged-in user.
   const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
-  if (tournamentId && shouldShowFormatWizard(participantsWithScales)) {
+  if (tournamentId && shouldShowFormatWizard(participantsWithScales, data.events)) {
     leftColumn.appendChild(createFormatWizardLauncher(tournamentId));
   }
 

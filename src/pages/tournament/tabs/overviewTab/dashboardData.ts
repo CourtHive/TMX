@@ -42,6 +42,12 @@ export type DashboardData = {
   matchUpStats: MatchUpStats;
   publishingStats: PublishingStats;
   structures: StructureInfo[];
+  /**
+   * The raw events list pulled for the publishing-stats walk above.
+   * Surfaced so renderOverview can hand it to other helpers
+   * (e.g. shouldShowFormatWizard) without a second `q.events()` call.
+   */
+  events: any[];
 };
 
 export function getDashboardData(): DashboardData {
@@ -118,6 +124,7 @@ export function getDashboardData(): DashboardData {
     drawDefinitionCount,
     publishingStats,
     structures,
+    events,
   };
 
   return info;

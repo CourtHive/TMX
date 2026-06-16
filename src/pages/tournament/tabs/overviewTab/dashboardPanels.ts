@@ -483,17 +483,19 @@ function createActionButton(label: string, icon: string, onClick: () => void, id
 // yet.
 /**
  * @param participants optional pre-fetched participants list to skip the
- *   internal `getParticipants` call. The overview render uses this to share
- *   one `getParticipants({ withScaleValues: true })` call between the
- *   scalings panel and the wizard-visibility check.
+ *   internal `getParticipants` call.
+ * @param events optional pre-fetched events list to skip the internal
+ *   `getEvents` call. The overview render shares both with the dashboard
+ *   data + scalings panel paths so a single render only fans out one
+ *   getParticipants and zero extra getEvents calls for this check.
  */
-export function shouldShowFormatWizard(participants?: any[]): boolean {
+export function shouldShowFormatWizard(participants?: any[], events?: any[]): boolean {
   if (!featureFlags.get().formatWizard) return false;
-  const events: any[] = (tournamentEngine.getEvents?.() as any)?.events ?? [];
-  if (events.length === 0) return true;
+  const eventList = events ?? (tournamentEngine.getEvents?.() as any)?.events ?? [];
+  if (eventList.length === 0) return true;
   const list = participants ?? (tournamentEngine.getParticipants?.({}) as any)?.participants ?? [];
   if (list.length === 0) return false;
-  const totalEntries = events.reduce((sum, e) => sum + ((e?.entries as any[])?.length ?? 0), 0);
+  const totalEntries = eventList.reduce((sum: number, e: any) => sum + ((e?.entries as any[])?.length ?? 0), 0);
   return totalEntries === 0;
 }
 
