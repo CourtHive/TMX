@@ -62,7 +62,11 @@ export function mapEvent({
       }),
     );
   } else {
-    const matchUps = tournamentEngine.q.eventMatchUps({ inContext: true, eventId });
+    // `inContext: false` — every column read below uses raw matchUp fields
+    // (length, winningSide, schedule.scheduledTime). `inContext: true` was a
+    // pre-5.0.0 leftover that hauled the full participant/draw/event blob
+    // along for no reader. Dropping it shrinks the result substantially.
+    const matchUps = tournamentEngine.q.eventMatchUps({ inContext: false, eventId });
     matchUpsCount = matchUps?.length || 0;
     scheduledMatchUpsCount =
       matchUps?.filter(({ winningSide, schedule }: any) => !winningSide && schedule?.scheduledTime)?.length || 0;

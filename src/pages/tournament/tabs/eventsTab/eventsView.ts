@@ -7,7 +7,8 @@
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
-import { renderEventsGrid, readEventCardData } from './createEventsGrid';
+import { renderEventsGrid } from './createEventsGrid';
+import { tournamentEngine } from 'services/factory/engine';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { readEventsViewMode, writeEventsViewMode } from './eventsViewMode';
 import { deleteEvents } from 'components/modals/deleteEvents';
@@ -141,7 +142,11 @@ export function eventsView(): void {
   }
 
   // Prime the header before async work so the title is always visible.
+  // Read events.length directly — readEventCardData() also returned this
+  // count but it ran the full event→card mapping (incl. allEventMatchUps
+  // per event) just to take `.length`. The cards render path below recomputes
+  // the same count anyway, so this prime call only needs a cheap event count.
   if (!anchor) return;
-  refreshHeader(readEventCardData().length);
+  refreshHeader(tournamentEngine.q.tournament()?.events?.length ?? 0);
   renderForMode();
 }
