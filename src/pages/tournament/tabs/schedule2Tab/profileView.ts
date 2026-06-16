@@ -31,6 +31,7 @@ import { openApplyGridModal } from './applyGridModal';
 import { openCapacityPopover } from './capacityPopover';
 import { hiddenCourtIds } from './visibilityState';
 import { context } from 'services/context';
+import { getCachedCompetitionDateRange, getCachedTournamentInfo, invalidateMatchUpCaches } from './schedule2DataCache';
 
 import { COMPETITION_ENGINE, SCHEDULE2_TAB, SCHEDULING_TAB } from 'constants/tmxConstants';
 
@@ -108,7 +109,7 @@ export function renderProfileView(
       // 'Tune availability' button (DATE_UNAVAILABLE / DAY_OVERLOAD), jump the
       // workspace into Availability mode pre-focused on the date.
       if (action.kind === 'OPEN_AVAILABILITY_GRID' && action.date) {
-        const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId;
+        const tournamentId = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
         if (tournamentId) {
           context.router?.navigate(
             `/tournament/${tournamentId}/${SCHEDULING_TAB}/${action.date}/availability`,
@@ -155,11 +156,11 @@ interface ProfileSetup {
 }
 
 function buildProfileSetup(): ProfileSetup | null {
-  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
+  const { startDate, endDate } = getCachedCompetitionDateRange();
   if (!startDate || !endDate) return null;
 
   // Get tournament info
-  const tournamentInfo = competitionEngine.getTournamentInfo();
+  const tournamentInfo = getCachedTournamentInfo();
   const tournamentId = tournamentInfo?.tournamentInfo?.tournamentId || '';
 
   // Extract venues
@@ -390,7 +391,10 @@ function saveProfile(profile: SchedulingProfile, callback?: () => void): void {
   mutationRequest({
     methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: factoryProfile } }],
     engine: COMPETITION_ENGINE,
-    callback: () => callback?.(),
+    callback: () => {
+      invalidateMatchUpCaches();
+      callback?.();
+    },
   });
 }
 
@@ -488,6 +492,7 @@ function buildProfileHeaderActions(
       methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile: null } }],
       engine: COMPETITION_ENGINE,
       callback: () => {
+        invalidateMatchUpCaches();
         scheduleToast({ message: 'Scheduling profile cleared', intent: INTENT_WARNING });
         statusEl.textContent = 'Profile cleared.';
       },
@@ -589,7 +594,7 @@ function buildApplyScopePill(): HTMLElement | null {
   ].join('; ');
   pill.innerHTML = `<i class="fa-solid fa-eye" style="font-size: 0.6875rem;"></i><span>Apply scope: ${visible} of ${total} courts</span>`;
   pill.addEventListener('click', () => {
-    const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
+    const tournamentId = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
     const date = (context as any).displayed?.selectedScheduleDate;
     if (!tournamentId) return;
     const path = date
@@ -674,6 +679,7 @@ function runScheduleWithPolicy(
       methods,
       engine: COMPETITION_ENGINE,
       callback: (eqResult: any) => {
+        invalidateMatchUpCaches();
         // executionQueue wraps multiple results; the scheduling result is last.
         const results = eqResult?.results;
         const result = Array.isArray(results) ? results[results.length - 1] : eqResult;
@@ -789,6 +795,7 @@ function runGridWithPolicy(
       methods,
       engine: COMPETITION_ENGINE,
       callback: (eqResult: any) => {
+        invalidateMatchUpCaches();
         const results = eqResult?.results;
         const result = Array.isArray(results) ? results[results.length - 1] : eqResult;
 

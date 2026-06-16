@@ -23,6 +23,12 @@ import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
 import {
+  syncTournamentContext,
+  invalidateAllScheduleCaches,
+  getCachedCompetitionDateRange,
+  getCachedTournamentInfo,
+} from './schedule2DataCache';
+import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
@@ -143,9 +149,15 @@ let state: Schedule2State | null = null;
 let gridCatalogVisible: boolean | undefined;
 let profileCatalogVisible: boolean | undefined;
 let activeStripVisible: boolean | undefined;
-
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
-  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
+  // Tournament-context check FIRST — must precede any cached read so a
+  // cross-tournament navigation drops the prior cache before we serve
+  // anyone stale data. getTournamentInfo here bypasses the cache by
+  // design (it's the discriminator that decides whether to invalidate).
+  const liveTournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId ?? '';
+  syncTournamentContext(liveTournamentId);
+
+  const { startDate, endDate } = getCachedCompetitionDateRange();
 
   gridCatalogVisible ??= readGridCatalogVisible();
   profileCatalogVisible ??= readProfileCatalogVisible();
@@ -158,8 +170,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     const persistedDate = readPersistedDate();
     const validDates = getScheduleDateRange();
     const scheduledDate = persistedDate && validDates.includes(persistedDate) ? persistedDate : resolveScheduleDate();
-    const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
-    context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`);
+    context.router?.navigate(`/tournament/${liveTournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`);
     return;
   }
 
@@ -168,7 +179,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   //   1. URL param (`/schedule2/:date/profile|grid`) — explicit and wins
   //   2. Tournament-stamped persistence — last choice within this tournament
   //   3. Grid — default for first-time entry or after switching tournaments
-  const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId ?? '';
+  const tournamentId = liveTournamentId;
   const explicitView: Schedule2View | null =
     params.scheduleView === 'profile' || params.scheduleView === 'grid' ? params.scheduleView : null;
   const view: Schedule2View = explicitView ?? readPersistedView(tournamentId) ?? 'grid';
@@ -227,14 +238,14 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     scheduleDates: buildScheduleDates(scheduledDate),
     onDateChange: (date: string) => {
       guardUnsavedAndProceed(() => {
-        const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
-        context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${date}/${state?.currentView || 'grid'}`);
+        const tid = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
+        context.router?.navigate(`/tournament/${tid}/${SCHEDULE2_TAB}/${date}/${state?.currentView || 'grid'}`);
       });
     },
     onViewChange: (newView: Schedule2View) => {
       guardUnsavedAndProceed(() => {
-        const tournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId;
-        context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
+        const tid = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
+        context.router?.navigate(`/tournament/${tid}/${SCHEDULE2_TAB}/${scheduledDate}/${newView}`);
       });
     },
   });
@@ -330,6 +341,10 @@ function destroyCurrentView(): void {
 export function destroySchedule2Tab(): void {
   destroyCurrentView();
   state = null;
+  // Tab is leaving the screen — drop every cached factory result so the
+  // next mount of schedule2 (which may target a different tournament or
+  // arrive after external mutations) starts from a clean slate.
+  invalidateAllScheduleCaches();
 }
 
 /**

@@ -38,6 +38,13 @@ import { readScheduleDisplayConfig } from 'services/schedulePreferences/schedule
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridActionBar } from './gridActionBar';
 import {
+  invalidateMatchUpCaches,
+  getCachedScheduleMatchUps,
+  getCachedCompetitionDateRange,
+  getCachedTournamentInfo,
+  getCachedAllMatchUps,
+} from './schedule2DataCache';
+import {
   createSchedulePage,
   buildScheduleGridCell,
   mapMatchUpToCellData,
@@ -757,7 +764,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // compute both the visible count (respects toggle) and the absolute count
   // (drives funnel visibility) from one factory call.
   function listScheduledOrphans(): any[] {
-    const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true, nextMatchUps: true });
+    const { matchUps } = getCachedAllMatchUps();
     const filtered = (matchUps || []).filter((m: any) => {
       if (m.matchUpStatus === BYE) return false;
       if (m.schedule?.scheduledDate !== currentDate) return false;
@@ -984,7 +991,7 @@ function unscheduleFromCourt(matchUpId: string, drawId: string, refresh: () => v
   // Inspect the live matchUp to decide whether to preserve the scheduled
   // time. With a time → keep it (stays on the Scheduled tab). Without a
   // time → clear the date too (drops onto the Unscheduled tab).
-  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const { matchUps } = getCachedAllMatchUps();
   const matchUp = (matchUps || []).find((m: any) => m.matchUpId === matchUpId);
   const hasTime = !!matchUp?.schedule?.scheduledTime;
 
@@ -1146,6 +1153,10 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
       engine: COMPETITION_ENGINE,
       callback: (result: any) => {
         if (!result.success) console.error('[schedule2] mutation error', result);
+        // Factory state just changed — drop matchUp caches so the refresh
+        // re-fetches against the new truth. dateRange/tournamentInfo are
+        // page-scoped and survive mutations.
+        invalidateMatchUpCaches();
         onRefresh();
       },
     });
@@ -1163,6 +1174,10 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
 
   // Queue methods for batch server send
   pendingMethods.push(methods);
+  // Bulk mode runs the mutation locally, so the cached matchUp data is
+  // already stale relative to the engine — invalidate before the refresh
+  // pulls fresh data.
+  invalidateMatchUpCaches();
   onRefresh();
   updateActionBar();
 }
@@ -1200,13 +1215,16 @@ async function discardPending(): Promise<void> {
     return;
   }
 
-  const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId;
+  const tournamentId = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
   if (!tournamentId) return;
 
   try {
     const record = await tmx2db.findTournament(tournamentId);
     if (record) {
       competitionEngine.setState(record);
+      // setState rewrote the engine's tournament store underneath the
+      // cache — drop matchUp caches so the re-render reads fresh data.
+      invalidateMatchUpCaches();
     }
   } catch (err) {
     console.error('[schedule2] failed to reload from IndexedDB', err);
@@ -1706,6 +1724,10 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
   const handleAddVenue = () => {
     addVenue((result: any) => {
       if (result?.success) {
+        // addVenue bypasses our executeMethods invalidation hook — the
+        // new court column would never appear on refresh without an
+        // explicit cache drop here (Journey 41 caught this).
+        invalidateMatchUpCaches();
         // Refresh in place via the grid's own rebuild path (matches every
         // other mutation in this file). The heavyweight renderSchedule2Tab
         // tore down the entire tab and short-circuited back to a router
@@ -1725,12 +1747,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
     const minCourtGridRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
     const MIN_COURT_WIDTH = readUserMinCourtWidth();
-    const scheduleResult = competitionEngine.competitionScheduleMatchUps({
-      matchUpFilters: { scheduledDate: date },
-      courtCompletedMatchUps: true,
-      withCourtGridRows: true,
-      minCourtGridRows,
-    });
+    const scheduleResult = getCachedScheduleMatchUps(date, { minCourtGridRows });
 
     const rows: any[] = scheduleResult.rows || [];
     const allCourtsData: any[] = scheduleResult.courtsData || [];
@@ -1969,10 +1986,7 @@ function formatHM(d: Date): string {
 /** Translate the factory schedule snapshot into the active-strip pure-logic shape. */
 function buildActiveStripData(date: string): ActiveStripPanelData {
   const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
-  const result = competitionEngine.competitionScheduleMatchUps({
-    matchUpFilters: { scheduledDate: date },
-    courtCompletedMatchUps: true,
-    withCourtGridRows: true,
+  const result = getCachedScheduleMatchUps(date, {
     minCourtGridRows: extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS,
   });
 
@@ -2077,9 +2091,7 @@ function handleActiveStripDrop(
   refresh: () => void,
 ): void {
   const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
-  const result = competitionEngine.competitionScheduleMatchUps({
-    matchUpFilters: { scheduledDate: currentDate },
-    withCourtGridRows: true,
+  const result = getCachedScheduleMatchUps(currentDate, {
     minCourtGridRows: extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS,
   });
   const courtsData: any[] = result.courtsData ?? [];
@@ -2334,10 +2346,7 @@ function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
 }
 
 function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
-  const { matchUps } = competitionEngine.allTournamentMatchUps({
-    inContext: true,
-    nextMatchUps: true,
-  });
+  const { matchUps } = getCachedAllMatchUps();
 
   return (matchUps || [])
     .filter((m: any) => {
@@ -2387,12 +2396,12 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
 }
 
 export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
-  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const { tournamentInfo } = competitionEngine.getTournamentInfo();
+  const { startDate, endDate } = getCachedCompetitionDateRange();
+  const { tournamentInfo } = getCachedTournamentInfo();
   const activeDates = tournamentInfo?.activeDates;
   const dates = (activeDates?.length ? [...activeDates].sort() : dateRange(startDate ?? '', endDate ?? ''));
 
-  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const { matchUps } = getCachedAllMatchUps();
   const dateCounts = new Map<string, number>();
   for (const m of matchUps || []) {
     if (m.matchUpStatus === BYE) continue;
@@ -2418,7 +2427,7 @@ function applyHeaderRowIssueIndicators(
   selectedDate: string,
 ): void {
   // Use allTournamentMatchUps for conflict detection (grid cell data lacks fields proConflicts needs)
-  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const { matchUps } = getCachedAllMatchUps();
   const scheduledMatchUps = (matchUps || []).filter((m: any) => {
     return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
   });
@@ -2567,7 +2576,7 @@ function buildIssueEntry(
 export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
   // lack fields that proConflicts needs to detect certain conflict types.
-  const { matchUps } = competitionEngine.allTournamentMatchUps({ inContext: true });
+  const { matchUps } = getCachedAllMatchUps();
   const scheduledMatchUps = (matchUps || []).filter((m: any) => {
     return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
   });
