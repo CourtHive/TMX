@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.1.1](https://github.com/CourtHive/TMX/compare/v8.1.0...v8.1.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependency axios to v1.18.0 ([6c1718e](https://github.com/CourtHive/TMX/commit/6c1718ecda6eaaf1866db343a494f3e0eacff733))
+
 ## [8.1.0](https://github.com/CourtHive/TMX/compare/v8.0.1...v8.1.0) (2026-06-16)
 
 
