@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.1.2](https://github.com/CourtHive/TMX/compare/v8.1.1...v8.1.2) (2026-06-20)
+
+
+### Bug Fixes
+
+* **schedule2:** refresh grid scores via central mutation-applied observer ([8815e41](https://github.com/CourtHive/TMX/commit/8815e41d49775397bc861bd8dd10317a9468e099))
+
 ## [8.1.1](https://github.com/CourtHive/TMX/compare/v8.1.0...v8.1.1) (2026-06-19)
 
 
