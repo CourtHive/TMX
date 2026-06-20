@@ -9,6 +9,7 @@
  *   → shows sync indicator in navbar if no table could be refreshed
  */
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { onTournamentMutation } from 'services/messaging/socketIo';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as factory from 'tods-competition-factory';
@@ -88,6 +89,13 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
     tmxToast({ message: 'Remote update failed — please reload', intent: 'is-warning' });
     return;
   }
+
+  // A remote mutation just changed local engine state — drop page-level
+  // factory-read caches (e.g. the schedule2 matchUp cache) BEFORE the
+  // in-place refresh below, otherwise refreshActiveTable() re-reads the stale
+  // cache and the remote change (e.g. another director's score) never paints.
+  // Same central notification the local mutationRequest path fires.
+  notifyMutationApplied();
 
   // Persist to IndexedDB
   await saveTournamentRecord();

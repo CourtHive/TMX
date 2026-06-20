@@ -18,6 +18,7 @@ vi.mock('services/factory/engine', () => ({
   tournamentEngine: {},
 }));
 
+import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import {
   getCachedAllMatchUps,
   getCachedScheduleMatchUps,
@@ -142,6 +143,40 @@ describe('schedule2DataCache', () => {
       expect(getCompetitionDateRangeMock).toHaveBeenCalledTimes(2);
       expect(getTournamentInfoMock).toHaveBeenCalledTimes(2);
       expect(competitionScheduleMatchUpsMock).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('mutation-applied subscription', () => {
+    // The cache subscribes to the central mutation-applied notification at
+    // module load. This is what makes score entry from the scoring modal —
+    // which calls mutationRequest directly, NOT the schedule's executeMethods —
+    // drop the stale matchUp cache so the grid re-render shows the new score.
+    it('refetches matchUp caches after a mutation is applied', () => {
+      getCachedAllMatchUps();
+      getCachedScheduleMatchUps(DATE_A, { minCourtGridRows: 10 });
+      expect(allTournamentMatchUpsMock).toHaveBeenCalledTimes(1);
+      expect(competitionScheduleMatchUpsMock).toHaveBeenCalledTimes(1);
+
+      notifyMutationApplied();
+
+      getCachedAllMatchUps();
+      getCachedScheduleMatchUps(DATE_A, { minCourtGridRows: 10 });
+      expect(allTournamentMatchUpsMock).toHaveBeenCalledTimes(2);
+      expect(competitionScheduleMatchUpsMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('leaves page-scoped caches intact after a mutation is applied', () => {
+      getCachedCompetitionDateRange();
+      getCachedTournamentInfo();
+
+      notifyMutationApplied();
+
+      getCachedCompetitionDateRange();
+      getCachedTournamentInfo();
+      // Date range + tournamentInfo do not change in response to matchUp
+      // mutations — they survive, matching invalidateMatchUpCaches semantics.
+      expect(getCompetitionDateRangeMock).toHaveBeenCalledTimes(1);
+      expect(getTournamentInfoMock).toHaveBeenCalledTimes(1);
     });
   });
 

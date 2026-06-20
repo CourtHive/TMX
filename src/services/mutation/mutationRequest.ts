@@ -6,6 +6,7 @@ import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
@@ -207,7 +208,15 @@ async function checkPermissions({
 function engineExecution({ factoryEngine, methods }: { factoryEngine: any; methods: any[] }): any {
   if (debugConfig.get().log?.verbose) console.log('%c executing locally', 'color: lightgreen');
   const directives = factory.tools.makeDeepCopy(methods);
-  return factoryEngine.executionQueue(directives, true) || {};
+  const result = factoryEngine.executionQueue(directives, true) || {};
+  // Single choke point every mutationRequest passes through. Any successful
+  // local mutation makes page-level factory-read caches (e.g. the schedule2
+  // matchUp cache) stale — notify central observers so they invalidate
+  // before any callback re-reads. Without this, score entry from the scoring
+  // modal (which calls mutationRequest directly, not the schedule's
+  // executeMethods) left the grid showing pre-score data after modal close.
+  if (!result.error) notifyMutationApplied();
+  return result;
 }
 
 async function localSave(saveLocal: boolean): Promise<void> {

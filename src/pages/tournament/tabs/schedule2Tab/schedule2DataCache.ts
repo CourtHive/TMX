@@ -1,3 +1,4 @@
+import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { competitionEngine } from 'services/factory/engine';
 
 /**
@@ -96,6 +97,16 @@ export function invalidateAllScheduleCaches(): void {
   competitionDateRangeCache = null;
   tournamentInfoCache = null;
 }
+
+// Self-maintaining freshness: any mutation routed through mutationRequest
+// (the central client mutation path) drops the matchUp caches so the next
+// schedule read pulls fresh truth. This is what makes score entry from the
+// scoring modal — which calls mutationRequest directly rather than the
+// schedule's executeMethods — reflect immediately on the grid. Tournament
+// metadata caches are intentionally left intact (see invalidateMatchUpCaches).
+// A module-scoped subscription is fine: when schedule2 isn't mounted the
+// caches are already empty, so the clear is a cheap no-op.
+onMutationApplied(invalidateMatchUpCaches);
 
 /**
  * Track tournament identity so the cache survives intra-tournament
