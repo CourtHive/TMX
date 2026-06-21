@@ -270,4 +270,175 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
     expect(result.effectOnOccupied).toBe('none');
     expect(result.blockedOnFree).toBe(false);
   });
+
+  test('swapping across courts trades courtId + courtOrder; each keeps its time', async ({ page }) => {
+    // A → court0/order2/10:00, B → court1/order1/08:00
+    const seed = await seedScheduled(page, [
+      { court: 0, courtOrder: 2, scheduledTime: '10:00' },
+      { court: 1, courtOrder: 1, scheduledTime: '08:00' },
+    ]);
+    const [a, b] = seed.matchUpIds;
+    const [court0, court1] = seed.courtIds;
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await page.waitForSelector(`[data-court-id="${court0}"][data-court-order="2"][data-matchup-id="${a}"]`);
+    await page.waitForSelector(`[data-court-id="${court1}"][data-court-order="1"][data-matchup-id="${b}"]`);
+
+    // Drag A (court0/order2) onto B (court1/order1).
+    await dispatchDnD(
+      page,
+      `[data-court-id="${court0}"][data-court-order="2"]`,
+      `[data-court-id="${court1}"][data-court-order="1"]`,
+    );
+
+    // A takes court1/order1 keeping 10:00; B takes court0/order2 keeping 08:00.
+    await expect
+      .poll(async () => readSchedule(page, a), { timeout: 8_000 })
+      .toMatchObject({ courtId: court1, courtOrder: 1, scheduledTime: '10:00' });
+    await expect
+      .poll(async () => readSchedule(page, b), { timeout: 8_000 })
+      .toMatchObject({ courtId: court0, courtOrder: 2, scheduledTime: '08:00' });
+  });
+
+  test('swapping a timed matchUp with a timeless one preserves each time state', async ({ page }) => {
+    // A → court0/order1 (no time), B → court0/order2/09:00
+    const seed = await seedScheduled(page, [
+      { court: 0, courtOrder: 1 },
+      { court: 0, courtOrder: 2, scheduledTime: '09:00' },
+    ]);
+    const [a, b] = seed.matchUpIds;
+    const court = seed.courtIds[0];
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await page.waitForSelector(`[data-court-id="${court}"][data-court-order="2"][data-matchup-id="${b}"]`);
+
+    // Drag B (order2/09:00) onto A (order1/timeless).
+    await dispatchDnD(
+      page,
+      `[data-court-id="${court}"][data-court-order="2"]`,
+      `[data-court-id="${court}"][data-court-order="1"]`,
+    );
+
+    // B keeps 09:00 at order1; A stays timeless at order2.
+    await expect
+      .poll(async () => readSchedule(page, b), { timeout: 8_000 })
+      .toMatchObject({ courtId: court, courtOrder: 1, scheduledTime: '09:00' });
+    await expect.poll(async () => (await readSchedule(page, a))?.courtOrder, { timeout: 8_000 }).toBe(2);
+    expect((await readSchedule(page, a)).scheduledTime).toBeFalsy();
+  });
+
+  test('dropping a matchUp on its own cell is a no-op (no unschedule)', async ({ page }) => {
+    const seed = await seedScheduled(page, [{ court: 0, courtOrder: 1, scheduledTime: '08:00' }]);
+    const a = seed.matchUpIds[0];
+    const court = seed.courtIds[0];
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    const cell = `[data-court-id="${court}"][data-court-order="1"][data-matchup-id="${a}"]`;
+    await page.waitForSelector(cell);
+
+    await dispatchDnD(page, cell, cell);
+
+    // Allow any erroneous mutation to apply, then assert nothing changed and it
+    // is still scheduled (the no-op return must not unschedule it).
+    await page.waitForTimeout(300);
+    expect(await readSchedule(page, a)).toMatchObject({ courtId: court, courtOrder: 1, scheduledTime: '08:00' });
+  });
+
+  test('a catalog matchUp is exempt from the Now-strip guard and affordance', async ({ page }) => {
+    // X occupies court1's Now slot; the dragged matchUp Y stays unscheduled (catalog).
+    const seed = await seedScheduled(page, [{ court: 1, courtOrder: 1 }]);
+    const x = seed.matchUpIds[0];
+    const court1 = seed.courtIds[1];
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await expect(page.locator(`${STRIP_CELL}[data-court-id="${court1}"]`)).toHaveClass(/state-next/);
+
+    // Pick an unscheduled playable matchUp to act as the catalog drag source.
+    const y = await page.evaluate((scheduledId) => {
+      const playable = (dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || []).filter(
+        (m: any) =>
+          m.matchUpStatus !== 'BYE' &&
+          !m.schedule?.courtId &&
+          m.matchUpId !== scheduledId &&
+          (m.sides || []).filter((s: any) => s.participantId || s.participant?.participantId).length === 2,
+      );
+      const mu = playable[0];
+      return { matchUpId: mu.matchUpId, drawId: mu.drawId };
+    }, x);
+
+    // Simulate a CATALOG drag (no GRID marker) over + onto the occupied Now cell.
+    const occupiedSel = `${STRIP_CELL}[data-court-id="${court1}"]`;
+    const blockedDuringDragover = await page.evaluate(
+      ({ sel, mu }) => {
+        const cell = document.querySelector(sel) as HTMLElement;
+        const dt = new DataTransfer();
+        dt.setData(
+          'application/json',
+          JSON.stringify({
+            type: 'CATALOG_MATCHUP',
+            matchUp: { matchUpId: mu.matchUpId, drawId: mu.drawId, sides: [] },
+          }),
+        );
+        cell.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+        const blocked = cell.classList.contains('tmx-strip-drop-blocked');
+        cell.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+        return blocked;
+      },
+      { sel: occupiedSel, mu: y },
+    );
+
+    // The affordance does not block a catalog drag, no rejection toast fires, and
+    // the catalog matchUp schedules onto the court.
+    expect(blockedDuringDragover).toBe(false);
+    await expect(page.getByText("That court's Now slot is occupied")).toHaveCount(0);
+    await expect.poll(async () => (await readSchedule(page, y.matchUpId))?.courtId, { timeout: 8_000 }).toBe(court1);
+  });
+
+  test('the Now-strip block affordance clears on dragleave', async ({ page }) => {
+    const seed = await seedScheduled(page, [
+      { court: 1, courtOrder: 1 },
+      { court: 0, courtOrder: 1 },
+    ]);
+    const [, y] = seed.matchUpIds;
+    const [court0, court1] = seed.courtIds;
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToSchedule2();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await expect(page.locator(`${STRIP_CELL}[data-court-id="${court1}"]`)).toHaveClass(/state-next/);
+
+    const gridY = `[data-court-id="${court0}"][data-court-order="1"][data-matchup-id="${y}"]`;
+    await page.waitForSelector(gridY);
+
+    const states = await page.evaluate(
+      ({ src, occupiedSel }) => {
+        const source = document.querySelector(src);
+        const cell = document.querySelector(occupiedSel) as HTMLElement;
+        const dt = new DataTransfer();
+        source!.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt }));
+        cell.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+        const afterOver = cell.classList.contains('tmx-strip-drop-blocked');
+        cell.dispatchEvent(new DragEvent('dragleave', { bubbles: true, cancelable: true, dataTransfer: dt }));
+        const afterLeave = cell.classList.contains('tmx-strip-drop-blocked');
+        return { afterOver, afterLeave };
+      },
+      { src: gridY, occupiedSel: `${STRIP_CELL}[data-court-id="${court1}"]` },
+    );
+
+    expect(states.afterOver).toBe(true);
+    expect(states.afterLeave).toBe(false);
+  });
 });

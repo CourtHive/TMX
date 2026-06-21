@@ -148,6 +148,18 @@ describe('buildGridDropMethods', () => {
     expect(methods[2].params.matchUpId).toBe('dragged');
     expect(methods[2].params.schedule.courtId).toBe('courtT');
   });
+
+  it('swaps with no times on either side — both assignments get empty scheduledTime', () => {
+    const methods = buildGridDropMethods({
+      payload: gridPayload({ source: { courtId: 'courtS', venueId: 'venueA', courtOrder: 5 } }), // no time
+      target: { courtId: 'courtT', venueId: 'venueA', courtOrder: 1 }, // no time
+      occupant: { matchUpId: 'occupant', drawId: 'drawO' },
+      scheduledDate: DATE,
+    });
+    expect(methods).toHaveLength(4);
+    expect(methods[2].params.schedule.scheduledTime).toBe(''); // dragged
+    expect(methods[3].params.schedule.scheduledTime).toBe(''); // displaced occupant
+  });
 });
 
 describe('shouldRejectStripDrop', () => {

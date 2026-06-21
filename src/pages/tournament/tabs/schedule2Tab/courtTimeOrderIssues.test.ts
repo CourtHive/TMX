@@ -88,4 +88,28 @@ describe('detectCourtTimeOrderIssues', () => {
     expect(issues).toHaveLength(1);
     expect(issues[0].matchUpId).toBe('b');
   });
+
+  it('reports each consecutive decrease in a chain of inversions', () => {
+    const issues = detectCourtTimeOrderIssues([
+      mu('a', 'c1', 1, '12:00'),
+      mu('b', 'c1', 2, '11:00'), // < a
+      mu('c', 'c1', 3, '10:00'), // < b
+    ]);
+    expect(issues).toHaveLength(2);
+    expect(issues.map((i) => [i.matchUpId, i.earlierMatchUpId])).toEqual([
+      ['b', 'a'],
+      ['c', 'b'],
+    ]);
+  });
+
+  it('does not re-flag after a recovery to a later time', () => {
+    // 10:00, 09:00 (inversion), 09:30 (> 09:00 — fine again)
+    const issues = detectCourtTimeOrderIssues([
+      mu('a', 'c1', 1, '10:00'),
+      mu('b', 'c1', 2, '09:00'),
+      mu('c', 'c1', 3, '09:30'),
+    ]);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ matchUpId: 'b', earlierMatchUpId: 'a' });
+  });
 });
