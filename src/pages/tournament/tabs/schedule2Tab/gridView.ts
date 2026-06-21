@@ -44,7 +44,7 @@ import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
-import { buildGridActionBar } from './gridActionBar';
+import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import {
   invalidateMatchUpCaches,
   getCachedScheduleMatchUps,
@@ -198,6 +198,10 @@ export function renderGridView(
   actionBarContainer = container;
   destroyVisibilityTip();
 
+  // Holds the action bar's live updater so refresh() can re-render the issues
+  // cluster in place after a schedule change. Assigned once the bar is built.
+  let gridActionBar: GridActionBar | null = null;
+
   // Late-binding refresh: grid cells reference this via closure, but grid is built
   // before activeControl exists. The wrapper defers to the real refresh once ready.
   function refresh(): void {
@@ -205,7 +209,11 @@ export function renderGridView(
     grid.rebuild(currentDate);
     activeControl.setMatchUpCatalog(buildCatalog(currentDate));
     activeControl.setScheduleDates(buildScheduleDates(currentDate));
-    activeControl.setIssues(buildIssues(currentDate));
+    const freshIssues = buildIssues(currentDate);
+    activeControl.setIssues(freshIssues);
+    // Surface new/cleared conflicts (e.g. a drag that puts court times out of
+    // order) in the action bar's issues button without rebuilding the bar.
+    gridActionBar?.setIssues(freshIssues);
     activeStrip?.setData(buildActiveStripData(currentDate));
   }
   currentRefresh = refresh;
@@ -371,7 +379,8 @@ export function renderGridView(
     onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
     onClearSchedule: options?.onClearSchedule,
   });
-  panelWrapper.appendChild(actionBar);
+  gridActionBar = actionBar;
+  panelWrapper.appendChild(actionBar.element);
 
   // Wire the strip's visibility toggle through the schedule page store, and
   // push the initial data snapshot now that the activeControl exists. We also

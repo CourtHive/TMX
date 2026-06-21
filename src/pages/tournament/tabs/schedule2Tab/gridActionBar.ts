@@ -34,7 +34,17 @@ export interface GridActionBarParams {
   onClearSchedule?: (target: HTMLElement) => void;
 }
 
-export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
+export interface GridActionBar {
+  element: HTMLElement;
+  /**
+   * Re-render just the issues cluster (warning button + count + popover) in
+   * place. Lets a refresh after a schedule change (e.g. a drag) surface new
+   * conflicts live without rebuilding the stepper / bulk-mode / clear controls.
+   */
+  setIssues: (issues: ScheduleIssue[]) => void;
+}
+
+export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   const { issues, bulkMode, minCourtWidth, onMinCourtWidthChange, onBulkModeChange, onClearSchedule } = params;
 
   const bar = document.createElement('div');
@@ -46,9 +56,20 @@ export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
   // flush-left so the action bar reads consistently regardless of whether
   // issues are present — the stepper doesn't shift across the bar based on
   // issue presence.
-  if (issues.length > 0) {
-    bar.appendChild(buildIssuesButton(issues));
-  }
+  //
+  // The issues warning lives in a `display: contents` slot so it can be
+  // re-rendered in place (setIssues) without touching the stepper/bulk/clear
+  // controls. `display: contents` means an empty slot generates no box and no
+  // flex gap, so the stepper does not shift when there are no issues.
+  const issuesSlot = document.createElement('div');
+  issuesSlot.style.display = 'contents';
+  const setIssues = (next: ScheduleIssue[]): void => {
+    issuesSlot.replaceChildren();
+    if (next.length > 0) issuesSlot.appendChild(buildIssuesButton(next));
+  };
+  bar.appendChild(issuesSlot);
+  setIssues(issues);
+
   bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
 
   // Spacer pushes the right cluster (bulk-mode toggle + clear button) flush
@@ -65,7 +86,7 @@ export function buildGridActionBar(params: GridActionBarParams): HTMLElement {
     bar.appendChild(buildClearButton(bulkMode, onClearSchedule));
   }
 
-  return bar;
+  return { element: bar, setIssues };
 }
 
 // ── Min cell width ──
@@ -263,7 +284,9 @@ function buildClearButton(bulkMode: boolean, onClearSchedule: (target: HTMLEleme
     BORDER_RADIUS_6,
     BORDER_PRIMARY,
     BG_PRIMARY,
-    bulkMode ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;' : `${COLOR_PRIMARY}; cursor: pointer;`,
+    bulkMode
+      ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;'
+      : `${COLOR_PRIMARY}; cursor: pointer;`,
     'display: inline-flex',
     'align-items: center',
     'gap: 6px',
