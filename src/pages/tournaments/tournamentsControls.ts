@@ -12,6 +12,7 @@
 import { fetchTournamentDetailsModal } from 'components/modals/fetchTournamentDetails';
 import { importTournaments } from '../../services/storage/importTournaments';
 import { loadTournamentById } from 'components/modals/loadTournamentById';
+import { openChatMonitorModal } from 'components/modals/chatMonitorModal';
 import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { buildTournamentsHeader } from './buildTournamentsHeader';
@@ -134,6 +135,7 @@ function buildAdminActions(reloadAll: () => void, tableShim: any): any[] {
     admin && { label: 'Import tournament', onClick: () => importTournaments({ table: tableShim }) },
     fetch && { label: 'Fetch tournament', onClick: () => fetchTournamentDetailsModal({ table: tableShim }) },
     admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table: tableShim }) },
+    admin && { label: 'Chat monitor', onClick: () => openChatMonitorModal() },
     admin && { label: 'Welcome', onClick: () => showWelcomeRedirect(reloadAll), close: true }
   ].filter(Boolean);
 }

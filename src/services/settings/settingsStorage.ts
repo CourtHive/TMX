@@ -74,11 +74,6 @@ export type TMXSettings = {
    */
   googleSheetsImport?: boolean;
   /**
-   * @deprecated — promoted to standard features. Retained in the type only so
-   * existing localStorage values deserialize cleanly; ignored on hydrate.
-   */
-  enableChat?: boolean;
-  /**
    * @deprecated — unified entries table is now the only entries table.
    * Stored values are ignored on hydrate. Retained in the type only so
    * existing localStorage blobs deserialize cleanly.

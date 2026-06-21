@@ -38,7 +38,9 @@ describe('settingsStorage — hydrateConfigFromStorage', () => {
   it('ignores deprecated googleSheetsImport and enableChat values', () => {
     // These flags were promoted to standard — stored values should be
     // ignored (they no longer exist on FeatureFlags).
-    saveSettings({ googleSheetsImport: true, enableChat: true });
+    // enableChat is no longer a TMXSettings field (chat is governed by
+    // provider config); cast so the legacy blob still type-checks here.
+    saveSettings({ googleSheetsImport: true, enableChat: true } as any);
     hydrateConfigFromStorage();
     const flags = featureFlags.get() as unknown as Record<string, unknown>;
     expect(flags.googleSheetsImport).toBeUndefined();

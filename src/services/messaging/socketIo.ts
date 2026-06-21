@@ -2,7 +2,21 @@
  * Socket.IO client for real-time communication.
  * Handles WebSocket connections, message emission, and acknowledgements.
  */
-import { setChatSendFn, receiveMessage, setOnlineCount } from 'services/chat/chatService';
+import {
+  setChatSendFn,
+  setChatGapFn,
+  receiveMessage,
+  receiveAccepted,
+  receiveRejected,
+  receiveHistory,
+  setOnlineCount,
+} from 'services/chat/chatService';
+import {
+  setAdminMonitorFns,
+  receiveAdminChatFeed,
+  receiveAdminChatHistory,
+  rejoinChatMonitorIfActive,
+} from 'services/chat/adminChatService';
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { getLoginState } from 'services/authentication/loginState';
@@ -99,10 +113,21 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('tournamentMutation', handleTournamentMutation);
     oi.socket.on('chatMessage', receiveMessage);
+    oi.socket.on('chatAccepted', receiveAccepted);
+    oi.socket.on('chatRejected', receiveRejected);
+    oi.socket.on('chatHistory', receiveHistory);
     oi.socket.on('roomPresence', setOnlineCount);
+    oi.socket.on('adminChatFeed', receiveAdminChatFeed);
+    oi.socket.on('adminChatHistory', receiveAdminChatHistory);
     oi.socket.on('connect', () => connectionEvent(callback));
 
     setChatSendFn((data: any) => socketEmit('chatMessage', data));
+    setChatGapFn((data: any) => socketEmit('chatSince', data));
+    setAdminMonitorFns({
+      join: () => socketEmit('joinChatMonitor', {}),
+      leave: () => socketEmit('leaveChatMonitor', {}),
+      reply: (data: any) => socketEmit('adminChatReply', data),
+    });
     oi.socket.on('disconnect', (reason: string) => {
       slog('[socket] disconnected — reason:', reason);
       disconnectedSinceLastNav = true;
@@ -211,6 +236,9 @@ function connectionEvent(callback?: () => void): void {
     slog('[socket] re-joining tournament room after reconnect:', currentTournamentRoom);
     oi.socket.emit(JOIN_TOURNAMENT, { tournamentId: currentTournamentRoom });
   }
+
+  // Re-join the super-admin chat monitor room after reconnect if it was open.
+  rejoinChatMonitorIfActive();
 
   void checkFactoryVersion();
 

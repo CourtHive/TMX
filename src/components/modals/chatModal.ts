@@ -98,7 +98,16 @@ export function openChatModal(): void {
       const meta = document.createElement('div');
       meta.style.cssText = 'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-top: 2px; padding: 0 4px;';
       const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      meta.textContent = msg.isOwn ? time : `${msg.userName} \u00b7 ${time}`;
+      // Delivery state on own messages: \u23f1 sending, \u2713 accepted, \u26a0 failed.
+      const deliveryMark =
+        msg.isOwn && msg.deliveryState === 'sending'
+          ? ' \u00b7 \u23f1'
+          : msg.isOwn && msg.deliveryState === 'failed'
+            ? ' \u00b7 \u26a0'
+            : msg.isOwn && msg.deliveryState === 'accepted'
+              ? ' \u00b7 \u2713'
+              : '';
+      meta.textContent = msg.isOwn ? `${time}${deliveryMark}` : `${msg.userName} \u00b7 ${time}`;
 
       row.appendChild(bubble);
       row.appendChild(meta);

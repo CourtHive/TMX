@@ -50,6 +50,7 @@ const DEFAULT_PERMISSIONS: Required<ProviderPermissions> = {
   canModifyTournamentDetails: true,
   canModifyPolicies: true,
   canAccessProviderAdmin: false,
+  canUseChat: true,
 };
 
 let current: ProviderConfigData = {};

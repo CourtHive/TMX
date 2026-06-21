@@ -9,6 +9,7 @@ import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { tournamentEngine } from 'services/factory/engine';
 import { openChatModal } from 'components/modals/chatModal';
+import { providerConfig } from 'config/providerConfig';
 import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
@@ -137,7 +138,8 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Panel toggles — assistant and chat (non-route items)
   if (featureFlags.get().assistant) addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
-  addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
+  // Chat is on by default; a provider may disable it via provider config.
+  if (providerConfig.isAllowed('canUseChat')) addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
 
   // Toggle dropdown on click
   toggle.onclick = () => {
@@ -281,8 +283,14 @@ function setupChatIndicator(): void {
   const badgeEl = document.getElementById('chatBadge');
   if (!chatEl) return;
 
-  // Chat is always available inside a tournament; the indicator lives
-  // in the tournament nav so its container controls context visibility.
+  // Chat is on by default but a provider may disable it via provider config.
+  if (!providerConfig.isAllowed('canUseChat')) {
+    chatEl.style.display = 'none';
+    return;
+  }
+
+  // The indicator lives in the tournament nav so its container controls
+  // context visibility.
   chatEl.style.display = 'inline-flex';
 
   const updateVisibility = () => {
