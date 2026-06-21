@@ -21,8 +21,16 @@
  */
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { matchUpStatusConstants, factoryConstants, tools, unwrapOr, AvailabilityEngine } from 'tods-competition-factory';
+import {
+  matchUpStatusConstants,
+  factoryConstants,
+  tools,
+  unwrapOr,
+  AvailabilityEngine,
+} from 'tods-competition-factory';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
+import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -102,6 +110,17 @@ const DATA_VENUE_ID = 'data-venue-id';
 const DATA_COURT_ORDER = 'data-court-order';
 const DATA_MATCHUP_ID = 'data-matchup-id';
 const DATA_DRAW_ID = 'data-draw-id';
+const DATA_SCHEDULED_TIME = 'data-scheduled-time';
+const INTENT_WARNING = 'is-warning';
+// Custom drag MIME marker — present only on grid-sourced drags. The payload
+// itself is unreadable mid-drag (browsers block getData during dragover), but
+// dataTransfer.types is readable, so this marker lets the Now-strip affordance
+// tell a grid drag from a catalog drag while hovering.
+const GRID_DRAG_MARKER = 'application/x-tmx-grid-matchup';
+const STRIP_CELL_CLASS = 'spl-active-strip-cell';
+const STRIP_FREE_CLASS = 'state-free';
+const DROP_OVER_CLASS = 'drop-over';
+const STRIP_DROP_BLOCKED_CLASS = 'tmx-strip-drop-blocked';
 const POSITION_STICKY = 'position: sticky';
 const FONT_SIZE_11 = 'font-size: 0.6875rem';
 const DISPLAY_FLEX = 'display: flex';
@@ -201,8 +220,8 @@ export function renderGridView(
   // ── Active Strip: one-row court summary above the grid ──
   activeStrip = buildActiveStripPanel(
     {
-      onMatchUpDrop: (payload, target) => {
-        handleActiveStripDrop(payload, target, refresh);
+      onMatchUpDrop: (payload, target, event) => {
+        handleActiveStripDrop(payload, target, refresh, event);
       },
     },
     {
@@ -216,6 +235,7 @@ export function renderGridView(
       },
     },
   );
+  attachStripDropAffordance(activeStrip.element);
 
   // Wrap strip + grid in a single scroll container so they pan horizontally as
   // one. The grid root's own overflow:auto is overridden — only the wrapper
@@ -271,55 +291,22 @@ export function renderGridView(
 
       if (!courtId || !venueId || !courtOrder) return;
 
-      const methods: any[] = [];
-
-      // If the target cell already has a matchUp, unschedule it first (swap)
       const existingMatchUpId = target?.getAttribute(DATA_MATCHUP_ID);
       const existingDrawId = target?.getAttribute(DATA_DRAW_ID);
-      if (existingMatchUpId) {
-        methods.push({
-          method: ADD_MATCHUP_SCHEDULE_ITEMS,
-          params: {
-            matchUpId: existingMatchUpId,
-            drawId: existingDrawId ?? '',
-            schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
-            removePriorValues: true,
-          },
-        });
-      }
 
-      // If dragged from another grid cell, unschedule from source
-      if (payload.type === 'GRID_MATCHUP') {
-        const matchUp = payload.matchUp as any;
-        methods.push({
-          method: ADD_MATCHUP_SCHEDULE_ITEMS,
-          params: {
-            matchUpId: matchUp.matchUpId,
-            drawId: matchUp.drawId ?? '',
-            schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
-            removePriorValues: true,
-          },
-        });
-      }
-
-      // Schedule the dropped matchUp onto the target cell
-      const matchUp = payload.matchUp as any;
-      methods.push({
-        method: ADD_MATCHUP_SCHEDULE_ITEMS,
-        params: {
-          matchUpId: matchUp.matchUpId,
-          drawId: matchUp.drawId ?? '',
-          schedule: {
-            courtOrder: Number.parseInt(courtOrder, 10),
-            scheduledDate: currentDate,
-            courtId,
-            venueId,
-          },
-          removePriorValues: true,
+      const methods = buildGridDropMethods({
+        payload: payload as unknown as GridDropPayload,
+        target: {
+          courtId,
+          venueId,
+          courtOrder: Number.parseInt(courtOrder, 10),
+          scheduledTime: target?.getAttribute(DATA_SCHEDULED_TIME) ?? undefined,
         },
+        occupant: existingMatchUpId ? { matchUpId: existingMatchUpId, drawId: existingDrawId ?? undefined } : null,
+        scheduledDate: currentDate,
       });
 
-      executeMethods(methods, refresh);
+      if (methods.length) executeMethods(methods, refresh);
     },
 
     onMatchUpRemove: (matchUpId) => {
@@ -659,11 +646,23 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     container.appendChild(popoverHeader);
 
     const sections: Array<{ labelKey: string; key: keyof CatalogFilters; values: string[] }> = [
-      { labelKey: 'schedule.filterAllEventTypes', key: 'eventType', values: uniqueCatalogValues(items, (m) => m.matchUpType) },
-      { labelKey: 'schedule.filterAllEvents', key: 'eventName', values: uniqueCatalogValues(items, (m) => m.eventName) },
+      {
+        labelKey: 'schedule.filterAllEventTypes',
+        key: 'eventType',
+        values: uniqueCatalogValues(items, (m) => m.matchUpType),
+      },
+      {
+        labelKey: 'schedule.filterAllEvents',
+        key: 'eventName',
+        values: uniqueCatalogValues(items, (m) => m.eventName),
+      },
       { labelKey: 'schedule.filterAllFlights', key: 'drawName', values: uniqueCatalogValues(items, (m) => m.drawName) },
       { labelKey: 'schedule.filterAllGenders', key: 'gender', values: uniqueCatalogValues(items, (m) => m.gender) },
-      { labelKey: 'schedule.filterAllRounds', key: 'roundName', values: uniqueCatalogValues(items, (m) => m.roundName) },
+      {
+        labelKey: 'schedule.filterAllRounds',
+        key: 'roundName',
+        values: uniqueCatalogValues(items, (m) => m.roundName),
+      },
     ];
 
     for (const section of sections) {
@@ -1231,7 +1230,7 @@ async function discardPending(): Promise<void> {
   }
 
   pendingMethods = [];
-  scheduleToast({ message: 'Scheduling changes discarded', intent: 'is-warning' });
+  scheduleToast({ message: 'Scheduling changes discarded', intent: INTENT_WARNING });
   updateActionBar();
 
   // Re-render the grid view to reflect restored state
@@ -1357,6 +1356,11 @@ function buildRowCourtCells(params: {
     const drawId = cellContent.getAttribute(DATA_DRAW_ID);
     if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
     if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
+    // The occupant's own scheduledTime — read by the swap path so the two
+    // matchUps trade times along with court/order (a true positional swap).
+    if (matchUpId && cellData?.schedule?.scheduledTime) {
+      cell.setAttribute(DATA_SCHEDULED_TIME, cellData.schedule.scheduledTime);
+    }
 
     cell.appendChild(cellContent);
 
@@ -1436,8 +1440,21 @@ function attachCellDragSource(cell: HTMLElement, cellData: any): void {
             participantId: s.participantId ?? s.participant?.participantId,
           })),
         },
+        // The dragged matchUp's origin slot. When it's dropped onto an occupied
+        // grid cell, the occupant is relocated here — a true swap. Without this
+        // the displaced matchUp would have nowhere to go and fall off the grid.
+        source: {
+          courtId: cellData.schedule?.courtId,
+          venueId: cellData.schedule?.venueId,
+          courtOrder: cellData.schedule?.courtOrder,
+          scheduledTime: cellData.schedule?.scheduledTime,
+          scheduledDate: cellData.schedule?.scheduledDate,
+        },
       }),
     );
+    // Marker so the Now-strip dragover affordance can detect a grid-sourced
+    // drag without reading the (drag-protected) payload mid-drag.
+    e.dataTransfer!.setData(GRID_DRAG_MARKER, '1');
     e.dataTransfer!.effectAllowed = 'move';
     cell.style.opacity = '0.4';
   });
@@ -1602,7 +1619,18 @@ function buildGridHeaders(params: {
   onVisibilityChanged?: () => void;
   scheduledDate?: string;
 }): HTMLElement[] {
-  const { grid, stickyHeader, courtsData, courtCount, emptyCount, handleAddVenue, allCourtsData, matchUpCounts, onVisibilityChanged, scheduledDate } = params;
+  const {
+    grid,
+    stickyHeader,
+    courtsData,
+    courtCount,
+    emptyCount,
+    handleAddVenue,
+    allCourtsData,
+    matchUpCounts,
+    onVisibilityChanged,
+    scheduledDate,
+  } = params;
   const corner = document.createElement('div');
   corner.style.cssText =
     stickyHeader +
@@ -1865,7 +1893,16 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       rowLabels.push(rowCell);
       grid.appendChild(rowCell);
 
-      buildRowCourtCells({ grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle: EMPTY_CELL, allRows: rows, callbacks });
+      buildRowCourtCells({
+        grid,
+        row,
+        ri,
+        visibleCourts,
+        courtPrefix,
+        emptyCellStyle: EMPTY_CELL,
+        allRows: rows,
+        callbacks,
+      });
 
       // Placeholder cells for empty columns
       for (let ei = 0; ei < emptyCount; ei++) {
@@ -2085,11 +2122,84 @@ function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh:
 }
 
 /** Drop handler for the active strip — uses the resolved (courtId, rowIndex). */
+/**
+ * Pre-drop affordance for the Now strip. While a GRID matchUp is dragged over a
+ * court whose Now slot is already occupied, show the OS "not-allowed" cursor
+ * (dropEffect = 'none') and a danger outline, and suppress the component's
+ * valid-target highlight — so the rejection enforced by handleActiveStripDrop
+ * is visible before the drop. Catalog drags and free cells are unaffected.
+ *
+ * Delegated on the strip root (not per-cell) so it survives the strip's
+ * re-renders, which rebuild the cell DOM on every setData.
+ */
+function attachStripDropAffordance(stripEl: HTMLElement): void {
+  const findCell = (node: EventTarget | null): HTMLElement | null => {
+    let el = node as HTMLElement | null;
+    while (el && el !== stripEl && !el.classList?.contains(STRIP_CELL_CLASS)) {
+      el = el.parentElement;
+    }
+    return el?.classList?.contains(STRIP_CELL_CLASS) ? el : null;
+  };
+  const clearBlocked = (cell: HTMLElement): void => {
+    cell.classList.remove(STRIP_DROP_BLOCKED_CLASS);
+    cell.style.outline = '';
+    cell.style.outlineOffset = '';
+  };
+
+  stripEl.addEventListener('dragover', (e) => {
+    const cell = findCell(e.target);
+    if (!cell) return;
+    const isGridDrag = !!e.dataTransfer?.types?.includes(GRID_DRAG_MARKER);
+    const occupied = !cell.classList.contains(STRIP_FREE_CLASS);
+    if (isGridDrag && occupied) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
+      cell.classList.remove(DROP_OVER_CLASS); // kill the component's valid-target highlight
+      cell.classList.add(STRIP_DROP_BLOCKED_CLASS);
+      cell.style.outline = '2px solid var(--sp-danger, #ef4444)';
+      cell.style.outlineOffset = '-2px';
+    } else {
+      clearBlocked(cell);
+    }
+  });
+  stripEl.addEventListener('dragleave', (e) => {
+    const cell = findCell(e.target);
+    if (cell) clearBlocked(cell);
+  });
+  stripEl.addEventListener('drop', (e) => {
+    const cell = findCell(e.target);
+    if (cell) clearBlocked(cell);
+  });
+}
+
 function handleActiveStripDrop(
   payload: { type: 'CATALOG_MATCHUP' | 'GRID_MATCHUP'; matchUp: any },
   target: { courtId: string; rowIndex: number },
   refresh: () => void,
+  event?: DragEvent,
 ): void {
+  // A matchUp dragged FROM the grid may only land on an EMPTY Now-strip cell.
+  // If the court's Now slot already shows a live/next matchUp, reject the drop —
+  // the strip is what's imminent and shouldn't be displaced by a grid drag.
+  // Catalog drags are unaffected; re-dropping the same matchUp is a no-op.
+  if (payload.type === 'GRID_MATCHUP' && event) {
+    let cellEl = event.target as HTMLElement | null;
+    while (cellEl && !cellEl.classList?.contains(STRIP_CELL_CLASS)) {
+      cellEl = cellEl.parentElement;
+    }
+    if (cellEl) {
+      const reject = shouldRejectStripDrop({
+        payloadType: payload.type,
+        draggedMatchUpId: payload.matchUp.matchUpId,
+        cellOccupied: !cellEl.classList.contains(STRIP_FREE_CLASS),
+        occupantMatchUpId: cellEl.querySelector(`[${DATA_MATCHUP_ID}]`)?.getAttribute(DATA_MATCHUP_ID),
+      });
+      if (reject) {
+        scheduleToast({ message: "That court's Now slot is occupied", intent: INTENT_WARNING });
+        return;
+      }
+    }
+  }
+
   const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
   const result = getCachedScheduleMatchUps(currentDate, {
     minCourtGridRows: extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS,
@@ -2116,7 +2226,7 @@ function handleActiveStripDrop(
     confirmModal({
       title,
       query,
-      okIntent: 'is-warning',
+      okIntent: INTENT_WARNING,
       okAction: () => commitActiveStripDrop(payload, target, court, refresh),
     });
     return;
@@ -2399,7 +2509,7 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { startDate, endDate } = getCachedCompetitionDateRange();
   const { tournamentInfo } = getCachedTournamentInfo();
   const activeDates = tournamentInfo?.activeDates;
-  const dates = (activeDates?.length ? [...activeDates].sort() : dateRange(startDate ?? '', endDate ?? ''));
+  const dates = activeDates?.length ? [...activeDates].sort() : dateRange(startDate ?? '', endDate ?? '');
 
   const { matchUps } = getCachedAllMatchUps();
   const dateCounts = new Map<string, number>();
@@ -2631,6 +2741,29 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
       const rowPrefix = `Row ${Number.parseInt(rowIdx) + 1}: `;
       issues.push(buildIssueEntry(ri, mapSeverity, matchUpLabel, selectedDate, rowPrefix));
     }
+  }
+
+  // TMX-only court time/order check. With "time travels with the matchUp", a
+  // drag can leave a court's times out of order (a later courtOrder at an
+  // equal/earlier time). proConflicts only flags same-court/same-ORDER double
+  // booking and ignores scheduledTime, so we surface inversions here as a soft
+  // WARN. Engine-side coverage is tracked in Mentat/TASKS.md.
+  for (const tio of detectCourtTimeOrderIssues(scheduledMatchUps)) {
+    const key = dedupKey(tio.matchUpId, [tio.earlierMatchUpId]);
+    if (seenPairs.has(key)) continue;
+    seenPairs.add(key);
+    const participants = matchUpLabel(tio.matchUpId);
+    const earlier = matchUpLabel(tio.earlierMatchUpId);
+    issues.push({
+      severity: 'WARN',
+      issueType: CONFLICT_COURT_TIME_ORDER,
+      message: `Times out of order on court: ${participants} (${tio.scheduledTime}) is ordered after ${earlier} (${tio.earlierScheduledTime})`,
+      participants,
+      conflictParticipants: [earlier],
+      conflictMatchUpIds: [tio.matchUpId, tio.earlierMatchUpId],
+      matchUpId: tio.matchUpId,
+      date: selectedDate,
+    });
   }
 
   return issues;
