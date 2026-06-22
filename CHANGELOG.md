@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.2.0](https://github.com/CourtHive/TMX/compare/v8.1.2...v8.2.0) (2026-06-22)
+
+
+### Features
+
+* **chat:** persisted chat history, gap-fill, provider gating, and admin monitor ([47e4475](https://github.com/CourtHive/TMX/commit/47e44753692c375e1af1702317506e67d47aeb36))
+* **schedule2:** live-refresh action bar issues after schedule changes ([ee9949c](https://github.com/CourtHive/TMX/commit/ee9949cd86f3d16f0b9f65f39232a998e418184a))
+* **schedule2:** preserve scheduledTime on grid drag, restore swap, add Now-strip guard ([c6f22ed](https://github.com/CourtHive/TMX/commit/c6f22ed48a3a16e79adf38d7c5fed35f20adcf28))
+
+
+### Bug Fixes
+
+* **deps:** require @courthive/provider-config 0.7.0 for chat permission ([bdb40d2](https://github.com/CourtHive/TMX/commit/bdb40d2b189592d5c987c484fc7b4841b86ac1ad))
+* **deps:** update babel monorepo to v8 ([#1154](https://github.com/CourtHive/TMX/issues/1154)) ([7d5e2f8](https://github.com/CourtHive/TMX/commit/7d5e2f8abd88c9178abf375c67a6aed16a873425))
+* **deps:** update dependency dexie to v4.4.4 ([2903b54](https://github.com/CourtHive/TMX/commit/2903b54d3730dae61e4f320b40a2eb5224fa4ab4))
+* **deps:** update dependency tabulator-tables to v6.5.1 ([8998a40](https://github.com/CourtHive/TMX/commit/8998a40ec0614f388749ee6724f43a3abb44ece2))
+
 ## [8.1.2](https://github.com/CourtHive/TMX/compare/v8.1.1...v8.1.2) (2026-06-20)
 
 
