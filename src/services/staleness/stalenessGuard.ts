@@ -11,9 +11,10 @@
  *    before any further mutations can be submitted.
  */
 import { hadDisconnect, clearDisconnectFlag, joinTournamentRoom, onSocketReconnect } from 'services/messaging/socketIo';
+import { requestTournament, requestTournamentUpdatedAt } from 'services/apis/servicesApi';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { markStaleNeedsRefresh } from 'services/messaging/remoteMutations';
 import { getLoginState } from 'services/authentication/loginState';
-import { requestTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'services/factory/engine';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
@@ -111,14 +112,45 @@ export function resetActivityTimer(): void {
   }, timeoutMs);
 }
 
-/** Check now whether local data is behind the server, showing the overlay if so.
- * Safe to call any time — no-ops when logged out, with no tournament loaded, or
- * when a check/overlay is already in flight. Used by the reconnect hook and the
- * periodic poll. */
+/** Check now whether local data is behind the server. Uses the lightweight
+ * `updatedAt` probe (never pulls the full record) and, if behind, surfaces the
+ * existing refresh icon — clicking it pulls the fresh record on demand. Safe to
+ * call any time; no-ops when logged out, with no tournament loaded, or when a
+ * check is already in flight. Used by the reconnect hook and the periodic poll. */
 export function triggerStalenessCheck(): void {
   if (!getLoginState()) return;
   const { tournamentRecord } = tournamentEngine.getTournament();
-  if (tournamentRecord?.tournamentId) checkAndShowOverlay(tournamentRecord.tournamentId);
+  if (tournamentRecord?.tournamentId) void probeStaleness(tournamentRecord.tournamentId);
+}
+
+/** Lightweight staleness probe — fetches only the server `updatedAt` and, when
+ * the server is ahead, flags the sync indicator stale (no full-record pull). */
+async function probeStaleness(tournamentId: string): Promise<void> {
+  if (checking || overlayVisible) return;
+  checking = true;
+
+  const debug = isDebugMode();
+  try {
+    const result: any = await requestTournamentUpdatedAt({ tournamentId, silent: true });
+    const serverUpdatedAt = result?.data?.updatedAt;
+    if (!serverUpdatedAt) return;
+
+    const localRecord = tournamentEngine.q.tournament();
+    const serverUpdated = new Date(serverUpdatedAt).getTime();
+    const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
+
+    if (debug) console.log('[staleness] probe server=%s local=%s', serverUpdatedAt, localRecord?.updatedAt);
+
+    if (serverUpdated > localUpdated) {
+      markStaleNeedsRefresh(tournamentId);
+    } else if (hadDisconnect()) {
+      clearDisconnectFlag();
+    }
+  } catch (err) {
+    console.warn('[staleness] probe failed:', err);
+  } finally {
+    checking = false;
+  }
 }
 
 /** Periodic poll — only checks while the tab is visible (avoids background

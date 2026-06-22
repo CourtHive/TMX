@@ -11,6 +11,13 @@ export async function requestTournament({ tournamentId, silent }: { tournamentId
   return await baseApi.post('/factory/fetch', { tournamentId }, silent ? { silenceErrors: true } : undefined);
 }
 
+/** Lightweight staleness probe — returns only `{ tournamentId, updatedAt }`,
+ * never the full tournament record. Used to cheaply detect whether the local
+ * copy has fallen behind the server. */
+export async function requestTournamentUpdatedAt({ tournamentId, silent }: { tournamentId: string; silent?: boolean }) {
+  return await baseApi.post('/factory/updated-at', { tournamentId }, silent ? { silenceErrors: true } : undefined);
+}
+
 export async function addProvider({ provider }: { provider: any }) {
   return await baseApi.post('/provider/add', provider);
 }
