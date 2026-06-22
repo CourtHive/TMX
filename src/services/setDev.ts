@@ -7,7 +7,7 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
-import { forceStalenessOverlay } from 'services/staleness/stalenessGuard';
+import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
 import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
 import { buildFromSources } from '../dev/cfsToTournamentRecord.mjs';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
@@ -148,7 +148,7 @@ export function setDev(): void {
     openTeamProfile: (participantId: string) => teamProfileModal({ participantId }),
   });
 
-  addDev({ completeMatchUps, forceStalenessOverlay });
+  addDev({ completeMatchUps, forceStaleness, isStale, triggerStalenessCheck });
   addDev({ providerConfig });
   addDev({
     openFormatWizard: () => {

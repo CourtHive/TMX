@@ -1,26 +1,25 @@
 /**
- * Staleness guard — detects when local tournament data may be out of sync
- * with the server after the device sleeps or the tab goes to background.
+ * Staleness guard — detects when local tournament data may be behind the server
+ * (device sleep, tab background, socket drop, or a silent broadcast gap) and
+ * surfaces the sync/refresh icon so the director can pull the fresh record on
+ * demand.
  *
- * Mechanism:
- * 1. An inactivity timer (default 5 min) resets on any mutation or navigation.
- * 2. When the page becomes visible again (Page Visibility API), if the timer
- *    has expired OR a socket disconnect was detected, a lightweight server
- *    check compares `updatedAt` timestamps.
- * 3. If the server is ahead, a blocking overlay forces the TD to refresh
- *    before any further mutations can be submitted.
+ * Detection is always a lightweight `updatedAt` probe — it never pulls the full
+ * record. Triggers:
+ *   1. An inactivity timer (default 5 min) that resets on any mutation/navigation.
+ *   2. Page becomes visible again, if the timer expired or a disconnect occurred.
+ *   3. Socket reconnect.
+ *   4. A periodic poll while the tab is visible.
+ * When the server is ahead, the sync icon is flagged stale; clicking it pulls
+ * the full record. While stale, `isStale()` is true and mutations are blocked
+ * (see mutationRequest) so a director can't act on stale data.
  */
-import { hadDisconnect, clearDisconnectFlag, joinTournamentRoom, onSocketReconnect } from 'services/messaging/socketIo';
-import { requestTournament, requestTournamentUpdatedAt } from 'services/apis/servicesApi';
-import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { markStaleNeedsRefresh } from 'services/messaging/remoteMutations';
+import { markStaleNeedsRefresh, isSyncStale } from 'services/messaging/remoteMutations';
+import { hadDisconnect, clearDisconnectFlag, onSocketReconnect } from 'services/messaging/socketIo';
+import { requestTournamentUpdatedAt } from 'services/apis/servicesApi';
 import { getLoginState } from 'services/authentication/loginState';
 import { tournamentEngine } from 'services/factory/engine';
 import { debugConfig } from 'config/debugConfig';
-import { context } from 'services/context';
-
-// constants
-import { SYNC_INDICATOR } from 'constants/tmxConstants';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
@@ -56,15 +55,15 @@ let inactivityTimer: ReturnType<typeof setTimeout> | undefined;
 let countdownInterval: ReturnType<typeof setInterval> | undefined;
 let pollInterval: ReturnType<typeof setInterval> | undefined;
 let timerExpired = false;
-let overlayVisible = false;
 let checking = false;
 let initialized = false;
 
 // ── Public API ──
 
-/** Returns true when the stale-data overlay is showing — mutations must be blocked. */
+/** Returns true when the local copy is known to be behind the server — the sync
+ * icon is in stale mode and mutations must be blocked until the user refreshes. */
 export function isStale(): boolean {
-  return overlayVisible;
+  return isSyncStale();
 }
 
 /** Reset the inactivity timer. No-op in local-only mode (not logged in),
@@ -105,18 +104,16 @@ export function resetActivityTimer(): void {
       if (debug) console.log('[staleness] no longer logged in — skipping check');
       return;
     }
-    const { tournamentRecord } = tournamentEngine.getTournament();
-    if (tournamentRecord?.tournamentId) {
-      checkAndShowOverlay(tournamentRecord.tournamentId);
-    }
+    triggerStalenessCheck();
   }, timeoutMs);
 }
 
 /** Check now whether local data is behind the server. Uses the lightweight
  * `updatedAt` probe (never pulls the full record) and, if behind, surfaces the
- * existing refresh icon — clicking it pulls the fresh record on demand. Safe to
- * call any time; no-ops when logged out, with no tournament loaded, or when a
- * check is already in flight. Used by the reconnect hook and the periodic poll. */
+ * refresh icon — clicking it pulls the fresh record on demand. Safe to call any
+ * time; no-ops when logged out, with no tournament loaded, or when a check is
+ * already in flight. Used by the inactivity timer, visibility handler, reconnect
+ * hook, and periodic poll. */
 export function triggerStalenessCheck(): void {
   if (!getLoginState()) return;
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -126,7 +123,7 @@ export function triggerStalenessCheck(): void {
 /** Lightweight staleness probe — fetches only the server `updatedAt` and, when
  * the server is ahead, flags the sync indicator stale (no full-record pull). */
 async function probeStaleness(tournamentId: string): Promise<void> {
-  if (checking || overlayVisible) return;
+  if (checking || isSyncStale()) return;
   checking = true;
 
   const debug = isDebugMode();
@@ -185,7 +182,6 @@ export function destroyStalenessGuard(): void {
   if (countdownInterval) clearInterval(countdownInterval);
   if (pollInterval) clearInterval(pollInterval);
   document.removeEventListener('visibilitychange', onVisibilityChange);
-  dismissOverlay();
   initialized = false;
 }
 
@@ -209,160 +205,18 @@ function onVisibilityChange(): void {
     return;
   }
 
-  // Must be logged in and have a tournament loaded
-  if (!getLoginState()) {
-    if (debug) console.log('[staleness] not logged in — skipping check');
-    return;
-  }
-  const { tournamentRecord } = tournamentEngine.getTournament();
-  if (!tournamentRecord?.tournamentId) {
-    if (debug) console.log('[staleness] no tournament loaded — skipping check');
-    return;
-  }
-
-  if (debug) console.log('[staleness] checking server for:', tournamentRecord.tournamentId);
-  checkAndShowOverlay(tournamentRecord.tournamentId);
-}
-
-// ── Core check logic ──
-
-async function checkAndShowOverlay(tournamentId: string): Promise<void> {
-  if (checking || overlayVisible) return;
-  checking = true;
-
-  const debug = isDebugMode();
-
-  try {
-    // Background staleness check — must be silent. A "Missing tournamentRecord"
-    // server response here is normal (e.g. local-only tournaments) and
-    // shouldn't surface as a user-visible toast.
-    const result = await requestTournament({ tournamentId, silent: true });
-    const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
-
-    if (!serverRecord) {
-      if (debug) console.log('[staleness] server returned no record — skipping');
-      return;
-    }
-
-    const localRecord = tournamentEngine.q.tournament();
-    const serverUpdated = serverRecord.updatedAt ? new Date(serverRecord.updatedAt).getTime() : 0;
-    const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
-
-    if (debug)
-      console.log(
-        '[staleness] server=%s local=%s stale=%s',
-        serverRecord.updatedAt,
-        localRecord?.updatedAt,
-        serverUpdated > localUpdated,
-      );
-
-    if (serverUpdated > localUpdated) {
-      showOverlay(tournamentId, serverRecord);
-    } else {
-      if (debug) console.log('[staleness] data is current — no overlay needed');
-      if (hadDisconnect()) clearDisconnectFlag();
-    }
-  } catch (err) {
-    console.warn('[staleness] check failed:', err);
-  } finally {
-    checking = false;
-  }
+  if (debug) console.log('[staleness] page visible with staleness signal — probing');
+  triggerStalenessCheck();
 }
 
 /**
- * Force the staleness overlay for testing.
- * Call from console: dev.forceStalenessOverlay()
+ * Force the stale indicator for testing. Call from console: dev.forceStaleness()
  */
-export function forceStalenessOverlay(): void {
+export function forceStaleness(): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (!tournamentRecord?.tournamentId) {
     console.warn('[staleness] no tournament loaded');
     return;
   }
-  showOverlay(tournamentRecord.tournamentId, tournamentRecord);
-}
-
-// ── Overlay ──
-
-function showOverlay(tournamentId: string, serverRecord: any): void {
-  overlayVisible = true;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'staleness-overlay';
-  overlay.style.cssText = [
-    'position: fixed',
-    'inset: 0',
-    'z-index: 99999',
-    'display: flex',
-    'flex-direction: column',
-    'align-items: center',
-    'justify-content: center',
-    'background: rgba(0, 0, 0, 0.6)',
-    'backdrop-filter: blur(2px)',
-  ].join('; ');
-
-  const card = document.createElement('div');
-  card.style.cssText = [
-    'background: var(--chc-bg-primary, #fff)',
-    'color: var(--chc-text-primary, #333)',
-    'border-radius: 12px',
-    'padding: 2rem 2.5rem',
-    'max-width: 400px',
-    'text-align: center',
-    'box-shadow: 0 8px 32px rgba(0,0,0,0.3)',
-  ].join('; ');
-
-  const icon = document.createElement('div');
-  icon.innerHTML =
-    '<i class="fa-solid fa-rotate" style="font-size: 2rem; color: var(--tmx-accent-blue, #3273dc);"></i>';
-  icon.style.marginBottom = '1rem';
-
-  const title = document.createElement('h3');
-  title.textContent = 'Tournament data has changed';
-  title.style.cssText = 'margin: 0 0 0.5rem; font-size: 1.1rem;';
-
-  const message = document.createElement('p');
-  message.textContent = 'Changes were made while this session was inactive. Please refresh to continue.';
-  message.style.cssText = 'margin: 0 0 1.5rem; font-size: 0.9rem; color: var(--chc-text-secondary, #666);';
-
-  const button = document.createElement('button');
-  button.className = 'button is-primary';
-  button.textContent = 'Refresh';
-  button.style.cssText = 'min-width: 140px;';
-  button.onclick = () => applyRefresh(tournamentId, serverRecord);
-
-  card.appendChild(icon);
-  card.appendChild(title);
-  card.appendChild(message);
-  card.appendChild(button);
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-}
-
-function applyRefresh(tournamentId: string, serverRecord: any): void {
-  tournamentEngine.setState(serverRecord);
-  saveTournamentRecord();
-
-  // Re-join the tournament room in case the socket reconnected
-  joinTournamentRoom(tournamentId);
-  if (hadDisconnect()) clearDisconnectFlag();
-
-  // Refresh the active table if one exists
-  if (context.refreshActiveTable) {
-    context.refreshActiveTable();
-  } else {
-    const el = document.getElementById(SYNC_INDICATOR);
-    if (el) {
-      el.style.display = '';
-      el.classList.add('sync-indicator--active');
-    }
-  }
-
-  dismissOverlay();
-}
-
-function dismissOverlay(): void {
-  overlayVisible = false;
-  const el = document.getElementById('staleness-overlay');
-  if (el) el.remove();
+  markStaleNeedsRefresh(tournamentRecord.tournamentId);
 }

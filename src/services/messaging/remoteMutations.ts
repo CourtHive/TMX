@@ -54,6 +54,13 @@ export function markStaleNeedsRefresh(tournamentId: string): void {
   showSyncIndicator();
 }
 
+/** True when the local copy is known to be behind the server (icon in stale
+ * mode). Mutations are blocked while this is true so a director can't act on
+ * stale data — they must click the refresh icon first. */
+export function isSyncStale(): boolean {
+  return !!staleRefreshTournamentId;
+}
+
 /** Pull the latest tournament record from the server and apply it locally. Only
  * invoked on an explicit sync-icon click, so the full record is fetched on
  * demand — never on a background poll. */
