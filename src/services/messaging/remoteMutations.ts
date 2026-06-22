@@ -8,9 +8,10 @@
  *   → refreshes active table data in-place (preserving sort/scroll)
  *   → shows sync indicator in navbar if no table could be refreshed
  */
+import { onTournamentMutation, joinTournamentRoom } from 'services/messaging/socketIo';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
-import { onTournamentMutation } from 'services/messaging/socketIo';
+import { requestTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as factory from 'tods-competition-factory';
 import { debugConfig } from 'config/debugConfig';
@@ -21,6 +22,11 @@ import { SYNC_INDICATOR, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 import type { RemoteMutationPayload } from 'types/services';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
+
+/** When set, the sync indicator is in "stale" mode: the local copy is behind the
+ * server (detected by the staleness probe) and a click must pull the full record
+ * from the server, not just re-render the active table from local state. */
+let staleRefreshTournamentId: string | undefined;
 
 /**
  * Initialize the remote mutation listener.
@@ -33,10 +39,39 @@ export function initRemoteMutationHandler(): void {
 
 /** Hide the sync indicator (called on navigation). */
 export function clearSyncIndicator(): void {
+  staleRefreshTournamentId = undefined;
   const el = document.getElementById(SYNC_INDICATOR);
   if (el) {
     el.style.display = 'none';
     el.classList.remove('sync-indicator--active');
+  }
+}
+
+/** Surface the sync indicator in "stale" mode — the staleness probe found the
+ * server ahead of the local copy. Clicking the icon pulls the fresh record. */
+export function markStaleNeedsRefresh(tournamentId: string): void {
+  staleRefreshTournamentId = tournamentId;
+  showSyncIndicator();
+}
+
+/** Pull the latest tournament record from the server and apply it locally. Only
+ * invoked on an explicit sync-icon click, so the full record is fetched on
+ * demand — never on a background poll. */
+async function refreshTournamentFromServer(tournamentId: string): Promise<void> {
+  try {
+    const result: any = await requestTournament({ tournamentId });
+    const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
+    if (!serverRecord) return;
+
+    const factoryEngine: any = factory[TOURNAMENT_ENGINE];
+    factoryEngine.setState(serverRecord);
+    notifyMutationApplied();
+    await saveTournamentRecord();
+    joinTournamentRoom(tournamentId);
+
+    if (context.refreshActiveTable) context.refreshActiveTable();
+  } catch (err) {
+    console.warn('[syncIndicator] stale refresh failed:', err);
   }
 }
 
@@ -51,8 +86,12 @@ function showSyncIndicator(): void {
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
     el.addEventListener('click', () => {
+      const staleId = staleRefreshTournamentId;
       clearSyncIndicator();
-      if (context.refreshActiveTable) {
+      if (staleId) {
+        slog('[syncIndicator] clicked — pulling fresh record (stale)');
+        void refreshTournamentFromServer(staleId);
+      } else if (context.refreshActiveTable) {
         slog('[syncIndicator] clicked — refreshing active table');
         context.refreshActiveTable();
       }

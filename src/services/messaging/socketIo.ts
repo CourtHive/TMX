@@ -61,6 +61,17 @@ const oi: any = {
 /** True after a disconnect event until cleared by `clearDisconnectFlag()`. */
 let disconnectedSinceLastNav = false;
 
+/** Listeners invoked after the socket reconnects (not on the first connect).
+ * Used by the staleness guard to check whether mutations were missed during the
+ * offline window. Registered via `onSocketReconnect`. */
+const reconnectListeners: Array<() => void> = [];
+
+/** Register a callback to run after the socket reconnects following a drop.
+ * Does not fire on the initial connection. */
+export function onSocketReconnect(listener: () => void): void {
+  reconnectListeners.push(listener);
+}
+
 const ackRequests: Record<string, (ack: ServerAck) => void> = {};
 const ackTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 const socketQueue: any[] = [];
@@ -225,6 +236,9 @@ function socketEmit(msg: string, data: any): void {
 
 function connectionEvent(callback?: () => void): void {
   slog('[socket] connected — id:', oi.socket?.id);
+  // Capture before anything clears the flag: true only when this `connect` is a
+  // reconnect after a prior drop (the first connect leaves the flag false).
+  const reconnected = disconnectedSinceLastNav;
   emitTmx({ data: { type: 'timestamp' } });
   while (socketQueue.length) {
     const message = socketQueue.pop();
@@ -241,6 +255,18 @@ function connectionEvent(callback?: () => void): void {
   rejoinChatMonitorIfActive();
 
   void checkFactoryVersion();
+
+  // After a reconnect, notify listeners (staleness guard) so the client can
+  // detect mutations broadcast while it was offline (Socket.IO has no replay).
+  if (reconnected) {
+    for (const listener of reconnectListeners) {
+      try {
+        listener();
+      } catch (err) {
+        slog('[socket] reconnect listener error:', err);
+      }
+    }
+  }
 
   if (isFunction(callback)) callback();
 }

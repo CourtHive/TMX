@@ -10,10 +10,11 @@
  * 3. If the server is ahead, a blocking overlay forces the TD to refresh
  *    before any further mutations can be submitted.
  */
-import { hadDisconnect, clearDisconnectFlag, joinTournamentRoom } from 'services/messaging/socketIo';
+import { hadDisconnect, clearDisconnectFlag, joinTournamentRoom, onSocketReconnect } from 'services/messaging/socketIo';
+import { requestTournament, requestTournamentUpdatedAt } from 'services/apis/servicesApi';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { markStaleNeedsRefresh } from 'services/messaging/remoteMutations';
 import { getLoginState } from 'services/authentication/loginState';
-import { requestTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'services/factory/engine';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
@@ -28,9 +29,21 @@ const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...a
 
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 
+// Periodic "am I behind the server?" poll. Runs only while the tab is visible
+// and logged in — a safety net for mutations missed during a silent socket drop
+// where no `disconnect`/`visibilitychange` event fired. Override from console:
+// dev.stalenessPollInterval = 20 (seconds); 0 disables polling.
+const DEFAULT_POLL_MS = 45 * 1000;
+
 function getTimeoutMs(): number {
   const override = (globalThis as any).dev?.stalenessTimeout;
   return typeof override === 'number' && override > 0 ? override * 1000 : DEFAULT_TIMEOUT_MS;
+}
+
+function getPollMs(): number {
+  const override = (globalThis as any).dev?.stalenessPollInterval;
+  if (override === 0) return 0;
+  return typeof override === 'number' && override > 0 ? override * 1000 : DEFAULT_POLL_MS;
 }
 
 function isDebugMode(): boolean {
@@ -41,6 +54,7 @@ function isDebugMode(): boolean {
 
 let inactivityTimer: ReturnType<typeof setTimeout> | undefined;
 let countdownInterval: ReturnType<typeof setInterval> | undefined;
+let pollInterval: ReturnType<typeof setInterval> | undefined;
 let timerExpired = false;
 let overlayVisible = false;
 let checking = false;
@@ -98,13 +112,70 @@ export function resetActivityTimer(): void {
   }, timeoutMs);
 }
 
+/** Check now whether local data is behind the server. Uses the lightweight
+ * `updatedAt` probe (never pulls the full record) and, if behind, surfaces the
+ * existing refresh icon — clicking it pulls the fresh record on demand. Safe to
+ * call any time; no-ops when logged out, with no tournament loaded, or when a
+ * check is already in flight. Used by the reconnect hook and the periodic poll. */
+export function triggerStalenessCheck(): void {
+  if (!getLoginState()) return;
+  const { tournamentRecord } = tournamentEngine.getTournament();
+  if (tournamentRecord?.tournamentId) void probeStaleness(tournamentRecord.tournamentId);
+}
+
+/** Lightweight staleness probe — fetches only the server `updatedAt` and, when
+ * the server is ahead, flags the sync indicator stale (no full-record pull). */
+async function probeStaleness(tournamentId: string): Promise<void> {
+  if (checking || overlayVisible) return;
+  checking = true;
+
+  const debug = isDebugMode();
+  try {
+    const result: any = await requestTournamentUpdatedAt({ tournamentId, silent: true });
+    const serverUpdatedAt = result?.data?.updatedAt;
+    if (!serverUpdatedAt) return;
+
+    const localRecord = tournamentEngine.q.tournament();
+    const serverUpdated = new Date(serverUpdatedAt).getTime();
+    const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
+
+    if (debug) console.log('[staleness] probe server=%s local=%s', serverUpdatedAt, localRecord?.updatedAt);
+
+    if (serverUpdated > localUpdated) {
+      markStaleNeedsRefresh(tournamentId);
+    } else if (hadDisconnect()) {
+      clearDisconnectFlag();
+    }
+  } catch (err) {
+    console.warn('[staleness] probe failed:', err);
+  } finally {
+    checking = false;
+  }
+}
+
+/** Periodic poll — only checks while the tab is visible (avoids background
+ * round-trips). The reconnect hook covers detected drops; this catches silent
+ * ones where no disconnect event fired. */
+function startPolling(): void {
+  if (pollInterval) clearInterval(pollInterval);
+  const pollMs = getPollMs();
+  if (!pollMs) return;
+  pollInterval = setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    triggerStalenessCheck();
+  }, pollMs);
+}
+
 /** Initialize the guard. Call once at startup. */
 export function initStalenessGuard(): void {
   if (initialized) return;
   initialized = true;
 
   document.addEventListener('visibilitychange', onVisibilityChange);
+  // On reconnect, immediately check for mutations missed while offline.
+  onSocketReconnect(triggerStalenessCheck);
   resetActivityTimer();
+  startPolling();
   slog('[staleness] guard initialized');
 }
 
@@ -112,6 +183,7 @@ export function initStalenessGuard(): void {
 export function destroyStalenessGuard(): void {
   if (inactivityTimer) clearTimeout(inactivityTimer);
   if (countdownInterval) clearInterval(countdownInterval);
+  if (pollInterval) clearInterval(pollInterval);
   document.removeEventListener('visibilitychange', onVisibilityChange);
   dismissOverlay();
   initialized = false;
