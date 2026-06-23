@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.3.0](https://github.com/CourtHive/TMX/compare/v8.2.0...v8.3.0) (2026-06-23)
+
+
+### Features
+
+* **staleness:** probe-based reconnect + poll, notify via refresh icon ([#1162](https://github.com/CourtHive/TMX/issues/1162)) ([ccac27c](https://github.com/CourtHive/TMX/commit/ccac27c9f45e7aad97581235ed13ef21b6ff80fa))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 3.4.4 ([0ec6048](https://github.com/CourtHive/TMX/commit/0ec6048f4dc32d439bfa0008f60e6255abee3505))
+* **deps:** update tods-competition-factory to 5.7.0 ([aed150d](https://github.com/CourtHive/TMX/commit/aed150de033e04d1d0442e31e905b7ad6d96eeaa))
+
 ## [8.2.0](https://github.com/CourtHive/TMX/compare/v8.1.2...v8.2.0) (2026-06-22)
 
 
