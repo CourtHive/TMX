@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.4.0](https://github.com/CourtHive/TMX/compare/v8.3.0...v8.4.0) (2026-06-24)
+
+
+### Features
+
+* **schedule:** guard schedule mutations against remotely-deleted draws ([f04bb78](https://github.com/CourtHive/TMX/commit/f04bb78c0f69afc1c3cf9eacec770ea455d8da13))
+* **scheduling:** mirror stale-draw guard into the scheduling workspace ([b135105](https://github.com/CourtHive/TMX/commit/b1351058a4d612b5b1cc6e15998ad184ec5fde5c))
+* **scheduling:** surface a banner when the viewed draw is deleted remotely ([43de775](https://github.com/CourtHive/TMX/commit/43de7754ac408d1ae98e92f5df1c5e99d75a0a7b))
+
 ## [8.3.0](https://github.com/CourtHive/TMX/compare/v8.2.0...v8.3.0) (2026-06-23)
 
 
