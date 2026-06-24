@@ -144,39 +144,6 @@ export function buildGridDropMethods(params: BuildGridDropMethodsParams): Schedu
   return methods;
 }
 
-/**
- * True when any method in a single drop's batch references a `drawId` absent
- * from `existingDrawIds` — i.e. a draw deleted (e.g. by another client) since
- * the matchUp was rendered. A method with no drawId, or an empty-string drawId
- * (which an unschedule/clearSchedule carries), is never "missing": it cannot
- * trigger a server-side "Missing drawDefinition".
- */
-export function batchReferencesMissingDraw(methods: ScheduleMethod[], existingDrawIds: Set<string>): boolean {
-  return methods.some((m) => {
-    const drawId = m?.params?.drawId;
-    return !!drawId && !existingDrawIds.has(drawId);
-  });
-}
-
-/**
- * Partition queued bulk batches (each the method array produced by one drop)
- * into those safe to submit and those referencing a now-deleted draw.
- * Partitioning is by WHOLE batch so a swap's interdependent clear/assign
- * methods are never half-applied.
- */
-export function partitionBatchesByDrawExistence(
-  batches: ScheduleMethod[][],
-  existingDrawIds: Set<string>,
-): { valid: ScheduleMethod[][]; stale: ScheduleMethod[][] } {
-  const valid: ScheduleMethod[][] = [];
-  const stale: ScheduleMethod[][] = [];
-  for (const batch of batches) {
-    if (batchReferencesMissingDraw(batch, existingDrawIds)) stale.push(batch);
-    else valid.push(batch);
-  }
-  return { valid, stale };
-}
-
 export interface StripDropRejectionParams {
   payloadType: DragPayloadType;
   draggedMatchUpId: string;

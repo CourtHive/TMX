@@ -1,18 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
-import {
-  buildGridDropMethods,
-  shouldRejectStripDrop,
-  batchReferencesMissingDraw,
-  partitionBatchesByDrawExistence,
-  type GridDropPayload,
-} from './gridDropMethods';
-
-const scheduleMethod = (matchUpId: string, drawId: string) => ({
-  method: ADD_MATCHUP_SCHEDULE_ITEMS,
-  params: { matchUpId, drawId, schedule: {}, removePriorValues: true },
-});
+import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 
 const DATE = '2026-06-21';
 const target = { courtId: 'courtT', venueId: 'venueA', courtOrder: 1, scheduledTime: '09:00' };
@@ -211,58 +200,5 @@ describe('shouldRejectStripDrop', () => {
         occupantMatchUpId: 'someoneElse',
       }),
     ).toBe(false);
-  });
-});
-
-describe('batchReferencesMissingDraw', () => {
-  const existing = new Set(['drawA', 'drawB']);
-
-  it('is false when every method references an existing draw', () => {
-    const batch = [scheduleMethod('m1', 'drawA'), scheduleMethod('m2', 'drawB')];
-    expect(batchReferencesMissingDraw(batch, existing)).toBe(false);
-  });
-
-  it('is true when any method references a draw absent from the set', () => {
-    const batch = [scheduleMethod('m1', 'drawA'), scheduleMethod('m2', 'deletedDraw')];
-    expect(batchReferencesMissingDraw(batch, existing)).toBe(true);
-  });
-
-  it('treats an empty-string drawId (an unschedule clear) as never missing', () => {
-    const batch = [{ method: ADD_MATCHUP_SCHEDULE_ITEMS, params: { matchUpId: 'm1', drawId: '', schedule: {} } }];
-    expect(batchReferencesMissingDraw(batch as any, existing)).toBe(false);
-  });
-
-  it('treats a method with no drawId as never missing', () => {
-    const batch = [{ method: 'publishOrderOfPlay', params: {} }];
-    expect(batchReferencesMissingDraw(batch as any, existing)).toBe(false);
-  });
-});
-
-describe('partitionBatchesByDrawExistence', () => {
-  const existing = new Set(['drawA', 'drawB']);
-
-  it('partitions by WHOLE batch so interdependent swap methods stay atomic', () => {
-    // A swap batch references two draws; one was deleted → the entire batch is stale.
-    const swapBatch = [scheduleMethod('occupant', 'drawA'), scheduleMethod('dragged', 'deletedDraw')];
-    const cleanBatch = [scheduleMethod('m3', 'drawB')];
-
-    const { valid, stale } = partitionBatchesByDrawExistence([cleanBatch, swapBatch], existing);
-
-    expect(valid).toEqual([cleanBatch]);
-    expect(stale).toEqual([swapBatch]);
-  });
-
-  it('returns all batches as valid when no draw is missing', () => {
-    const batches = [[scheduleMethod('m1', 'drawA')], [scheduleMethod('m2', 'drawB')]];
-    const { valid, stale } = partitionBatchesByDrawExistence(batches, existing);
-    expect(valid).toHaveLength(2);
-    expect(stale).toHaveLength(0);
-  });
-
-  it('returns all batches as stale when every batch references a deleted draw', () => {
-    const batches = [[scheduleMethod('m1', 'goneA')], [scheduleMethod('m2', 'goneB')]];
-    const { valid, stale } = partitionBatchesByDrawExistence(batches, existing);
-    expect(valid).toHaveLength(0);
-    expect(stale).toHaveLength(2);
   });
 });

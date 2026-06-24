@@ -26,6 +26,7 @@ const {
   executionQueueMock,
   setStateMock,
   getTournamentInfoMock,
+  getStateMock,
   findTournamentMock,
   tmxToastMock,
 } = vi.hoisted(() => ({
@@ -33,6 +34,7 @@ const {
   executionQueueMock: vi.fn(),
   setStateMock: vi.fn(),
   getTournamentInfoMock: vi.fn(),
+  getStateMock: vi.fn(),
   findTournamentMock: vi.fn(),
   tmxToastMock: vi.fn(),
 }));
@@ -46,7 +48,12 @@ vi.mock('services/factory/engine', () => ({
     executionQueue: executionQueueMock,
     setState: setStateMock,
     getTournamentInfo: getTournamentInfoMock,
+    getState: getStateMock,
   },
+}));
+
+vi.mock('i18n', () => ({
+  t: (_key: string, opts?: any) => opts?.defaultValue ?? _key,
 }));
 
 vi.mock('services/storage/tmx2db', () => ({
@@ -88,6 +95,9 @@ beforeEach(() => {
   executionQueueMock.mockReset().mockReturnValue({});
   setStateMock.mockReset();
   getTournamentInfoMock.mockReset().mockReturnValue({ tournamentInfo: { tournamentId: TOURNAMENT_ID } });
+  // Default: no draws loaded. Existing tests use drawId-less methods, so the
+  // stale-draw guard is inert; the guard suite below overrides this per-test.
+  getStateMock.mockReset().mockReturnValue({ tournamentRecords: {} });
   findTournamentMock.mockReset().mockResolvedValue(SAMPLE_RECORD);
   tmxToastMock.mockReset();
   resetQueue();
@@ -282,6 +292,62 @@ describe('queueService — failure-mode invariants from the planning doc', () =>
     // queued method) on discard. Silent dispatch here would persist a
     // mutation the user just asked to drop.
     expect(mutationRequestMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('queueService — stale draw guard (remotely-deleted draw)', () => {
+  const staleMethod = (matchUpId: string, drawId: string) => ({
+    method: 'addMatchUpScheduleItems',
+    params: { matchUpId, drawId, schedule: {}, removePriorValues: true },
+  });
+
+  beforeEach(() => {
+    // One live draw exists; 'goneDraw' has been deleted (e.g. by another client).
+    getStateMock.mockReturnValue({
+      tournamentRecords: { T1: { events: [{ drawDefinitions: [{ drawId: 'liveDraw' }] }] } },
+    });
+  });
+
+  it('immediate mode: skips dispatch and warns when a method references a deleted draw', () => {
+    const onRefresh = vi.fn();
+    const onResult = vi.fn();
+    executeMethods({ mode: 'grid', methods: [staleMethod('M1', 'goneDraw')], onRefresh, onResult });
+
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(onResult).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+  });
+
+  it('immediate mode: dispatches normally when the draw still exists', () => {
+    executeMethods({ mode: 'grid', methods: [staleMethod('M1', 'liveDraw')] });
+    expect(mutationRequestMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('bulk savePending: drops stale batches, sends only valid ones, and warns', async () => {
+    setBulkMode(true);
+    executeMethods({ mode: 'grid', methods: [staleMethod('M1', 'liveDraw')] });
+    executeMethods({ mode: 'grid', methods: [staleMethod('M2', 'goneDraw')] });
+    expect(getPendingCount()).toBe(2);
+
+    await savePending();
+
+    expect(mutationRequestMock).toHaveBeenCalledTimes(1);
+    const sent = mutationRequestMock.mock.calls[0][0].methods;
+    expect(sent).toHaveLength(1);
+    expect(sent[0].params.matchUpId).toBe('M1');
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(getPendingCount()).toBe(0);
+  });
+
+  it('bulk savePending: sends nothing when every queued batch references a deleted draw', async () => {
+    setBulkMode(true);
+    executeMethods({ mode: 'grid', methods: [staleMethod('M2', 'goneDraw')] });
+
+    await savePending();
+
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
   });
 });
 

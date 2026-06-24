@@ -31,11 +31,13 @@
  * Regression coverage in `queueService.test.ts`. If you change this model,
  * update those tests in the same PR.
  */
-import { competitionEngine } from 'services/factory/engine';
+import { getExistingDrawIds, batchReferencesMissingDraw } from 'services/scheduling/drawExistenceGuard';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { competitionEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tmx2db } from 'services/storage/tmx2db';
 import { tools } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
@@ -155,6 +157,20 @@ function describeFailure(result: any): string {
 
 export function executeMethods({ mode, methods, onRefresh, onResult }: ExecuteOptions): void {
   if (!bulkMode) {
+    // A draw may have been deleted by another client between render and this
+    // dispatch. Sending a schedule method for a now-missing draw errors
+    // server-side ("Missing drawDefinition"); detect it and refresh instead.
+    if (batchReferencesMissingDraw(methods, getExistingDrawIds())) {
+      tmxToast({
+        message: t('schedule.drawRemovedRefreshing', {
+          defaultValue: "That match's draw was just removed by another change — refreshing",
+        }),
+        intent: 'is-warning',
+      });
+      onResult?.({ success: false, error: 'MISSING_DRAW_DEFINITION' });
+      onRefresh?.();
+      return;
+    }
     mutationRequest({
       methods,
       engine: COMPETITION_ENGINE,
@@ -198,10 +214,36 @@ export async function savePending(): Promise<void> {
 
   if (!pendingBatches.length) return;
 
-  const allMethods = pendingBatches.flatMap((batch) => batch.methods);
-  const count = pendingBatches.length;
+  // Guard at submission: a draw may have been deleted by another client since
+  // these batches were queued. Submitting a schedule method for a missing draw
+  // errors server-side with an opaque "Missing drawDefinition"; instead drop
+  // those whole batches (keeping a batch's methods atomic), send only the valid
+  // ones, and tell the user which changes could not be saved and why.
+  const existingDrawIds = getExistingDrawIds();
+  const validBatches: QueuedBatch[] = [];
+  let staleCount = 0;
+  for (const batch of pendingBatches) {
+    if (batchReferencesMissingDraw(batch.methods, existingDrawIds)) staleCount++;
+    else validBatches.push(batch);
+  }
   pendingBatches = [];
   notify();
+
+  if (staleCount) {
+    tmxToast({
+      message: t('schedule.staleDrawSaveSkipped', {
+        n: staleCount,
+        defaultValue:
+          '{{n}} scheduling change(s) could not be saved — their draw was deleted by another user. Any remaining changes were saved.',
+      }),
+      intent: 'is-warning',
+    });
+  }
+
+  if (!validBatches.length) return;
+
+  const allMethods = validBatches.flatMap((batch) => batch.methods);
+  const count = validBatches.length;
 
   mutationRequest({
     methods: allMethods,

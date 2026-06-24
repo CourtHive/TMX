@@ -29,13 +29,12 @@ import {
   AvailabilityEngine,
 } from 'tods-competition-factory';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
+import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import {
-  buildGridDropMethods,
-  shouldRejectStripDrop,
+  getExistingDrawIds,
   batchReferencesMissingDraw,
   partitionBatchesByDrawExistence,
-  type GridDropPayload,
-} from './gridDropMethods';
+} from 'services/scheduling/drawExistenceGuard';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
@@ -1157,26 +1156,6 @@ export function searchGridCells(text: string): void {
 // ============================================================================
 // Bulk Mode — Execute / Save / Discard
 // ============================================================================
-
-/**
- * Build the set of drawIds present across all loaded tournament records.
- * Used to guard schedule mutations against a draw deleted by another client:
- * sending addMatchUpScheduleItems for a missing draw errors server-side with
- * "Missing drawDefinition". drawIds are globally unique, so a flat set across
- * every loaded record is safe for multi-tournament competition scheduling.
- */
-function getExistingDrawIds(): Set<string> {
-  const drawIds = new Set<string>();
-  const records = competitionEngine.getState()?.tournamentRecords ?? {};
-  for (const tournamentRecord of Object.values(records) as any[]) {
-    for (const event of tournamentRecord?.events ?? []) {
-      for (const draw of event?.drawDefinitions ?? []) {
-        if (draw?.drawId) drawIds.add(draw.drawId);
-      }
-    }
-  }
-  return drawIds;
-}
 
 let staleDrawBanner: HTMLElement | null = null;
 
