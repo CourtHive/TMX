@@ -43,6 +43,8 @@ import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
 export type SchedulingMode = 'grid' | 'profile' | 'availability';
 
+const INTENT_WARNING = 'is-warning';
+
 interface QueuedBatch {
   mode: SchedulingMode;
   methods: any[];
@@ -165,7 +167,7 @@ export function executeMethods({ mode, methods, onRefresh, onResult }: ExecuteOp
         message: t('schedule.drawRemovedRefreshing', {
           defaultValue: "That match's draw was just removed by another change — refreshing",
         }),
-        intent: 'is-warning',
+        intent: INTENT_WARNING,
       });
       onResult?.({ success: false, error: 'MISSING_DRAW_DEFINITION' });
       onRefresh?.();
@@ -236,7 +238,7 @@ export async function savePending(): Promise<void> {
         defaultValue:
           '{{n}} scheduling change(s) could not be saved — their draw was deleted by another user. Any remaining changes were saved.',
       }),
-      intent: 'is-warning',
+      intent: INTENT_WARNING,
     });
   }
 
@@ -281,7 +283,7 @@ export async function discardPending(): Promise<void> {
   }
 
   pendingBatches = [];
-  tmxToast({ message: 'Scheduling changes discarded', intent: 'is-warning' });
+  tmxToast({ message: 'Scheduling changes discarded', intent: INTENT_WARNING });
   notify();
 }
 

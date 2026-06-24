@@ -88,6 +88,7 @@ import {
 } from './queueService';
 
 const TOURNAMENT_ID = 'T-test';
+const INTENT_WARNING = 'is-warning';
 const SAMPLE_RECORD = { tournamentId: TOURNAMENT_ID, venues: [] };
 
 beforeEach(() => {
@@ -186,7 +187,7 @@ describe('queueService — bulk mode', () => {
     expect(setStateMock).toHaveBeenCalledWith(SAMPLE_RECORD);
     expect(getPendingCount()).toBe(0);
     expect(hasUnsavedChanges()).toBe(false);
-    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: INTENT_WARNING }));
   });
 
   it('discardPending does NOT touch state when there is nothing pending', async () => {
@@ -314,7 +315,7 @@ describe('queueService — stale draw guard (remotely-deleted draw)', () => {
     executeMethods({ mode: 'grid', methods: [staleMethod('M1', 'goneDraw')], onRefresh, onResult });
 
     expect(mutationRequestMock).not.toHaveBeenCalled();
-    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: INTENT_WARNING }));
     expect(onRefresh).toHaveBeenCalledTimes(1);
     expect(onResult).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
   });
@@ -336,7 +337,7 @@ describe('queueService — stale draw guard (remotely-deleted draw)', () => {
     const sent = mutationRequestMock.mock.calls[0][0].methods;
     expect(sent).toHaveLength(1);
     expect(sent[0].params.matchUpId).toBe('M1');
-    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: INTENT_WARNING }));
     expect(getPendingCount()).toBe(0);
   });
 
@@ -347,7 +348,7 @@ describe('queueService — stale draw guard (remotely-deleted draw)', () => {
     await savePending();
 
     expect(mutationRequestMock).not.toHaveBeenCalled();
-    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(tmxToastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: INTENT_WARNING }));
   });
 });
 
