@@ -29,11 +29,18 @@ import {
   AvailabilityEngine,
 } from 'tods-competition-factory';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
-import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import {
+  buildGridDropMethods,
+  shouldRejectStripDrop,
+  batchReferencesMissingDraw,
+  partitionBatchesByDrawExistence,
+  type GridDropPayload,
+} from './gridDropMethods';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { renameCourt } from 'components/modals/renameCourt';
 import { scheduleToast } from './scheduleToast';
 import { scheduleConfig } from 'config/scheduleConfig';
@@ -196,6 +203,7 @@ export function renderGridView(
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
   actionBarContainer = container;
+  clearStaleDrawBanner();
   destroyVisibilityTip();
 
   // Holds the action bar's live updater so refresh() can re-render the issues
@@ -1061,6 +1069,7 @@ export function destroyGridView(): void {
     activeControl = null;
   }
   removeActionBar();
+  clearStaleDrawBanner();
   pendingMethods = [];
   actionBarContainer = null;
   gridRootElement = null;
@@ -1150,12 +1159,81 @@ export function searchGridCells(text: string): void {
 // ============================================================================
 
 /**
+ * Build the set of drawIds present across all loaded tournament records.
+ * Used to guard schedule mutations against a draw deleted by another client:
+ * sending addMatchUpScheduleItems for a missing draw errors server-side with
+ * "Missing drawDefinition". drawIds are globally unique, so a flat set across
+ * every loaded record is safe for multi-tournament competition scheduling.
+ */
+function getExistingDrawIds(): Set<string> {
+  const drawIds = new Set<string>();
+  const records = competitionEngine.getState()?.tournamentRecords ?? {};
+  for (const tournamentRecord of Object.values(records) as any[]) {
+    for (const event of tournamentRecord?.events ?? []) {
+      for (const draw of event?.drawDefinitions ?? []) {
+        if (draw?.drawId) drawIds.add(draw.drawId);
+      }
+    }
+  }
+  return drawIds;
+}
+
+let staleDrawBanner: HTMLElement | null = null;
+
+/** Remove the "draw deleted" explanatory banner if present. */
+function clearStaleDrawBanner(): void {
+  if (staleDrawBanner) {
+    staleDrawBanner.remove();
+    staleDrawBanner = null;
+  }
+}
+
+/**
+ * Show a persistent inline banner explaining that some queued scheduling
+ * changes could not be saved because their draw was deleted by another user.
+ * Persistent (not a toast) so the director can read the reason after the fact;
+ * cleared on the next grid render or on manual dismiss.
+ */
+function showStaleDrawBanner(droppedCount: number): void {
+  if (!actionBarContainer) return;
+  clearStaleDrawBanner();
+
+  const banner = buildInlineNotice({
+    intent: 'warning',
+    message: t('schedule.staleDrawSaveSkipped', {
+      n: droppedCount,
+      defaultValue:
+        '{{n}} scheduling change(s) could not be saved — their draw was deleted by another user. Any remaining changes were saved.',
+    }),
+    onDismiss: () => clearStaleDrawBanner(),
+  });
+
+  actionBarContainer.insertBefore(banner, actionBarContainer.firstChild);
+  staleDrawBanner = banner;
+}
+
+/**
  * Execute mutation methods — immediate or bulk.
  * In immediate mode: sends via mutationRequest (server + local).
  * In bulk mode: runs locally on competitionEngine, queues for batch send.
  */
 function executeMethods(methods: any[], onRefresh: () => void): void {
   if (!bulkMode) {
+    // A draw may have been deleted by another client between render and this
+    // drop. Sending a schedule method for a now-missing draw errors
+    // server-side ("Missing drawDefinition"); detect it here and refresh
+    // instead — the refresh re-derives the grid so the orphaned matchUp drops.
+    if (batchReferencesMissingDraw(methods, getExistingDrawIds())) {
+      scheduleToast({
+        message: t('schedule.drawRemovedRefreshing', {
+          defaultValue: "That match's draw was just removed by another change — refreshing",
+        }),
+        intent: INTENT_WARNING,
+      });
+      invalidateMatchUpCaches();
+      onRefresh();
+      return;
+    }
     mutationRequest({
       methods,
       engine: COMPETITION_ENGINE,
@@ -1194,9 +1272,27 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
 async function savePending(): Promise<void> {
   if (!pendingMethods.length) return;
 
-  // Flatten all queued method arrays into one batch
-  const allMethods = pendingMethods.flat();
+  // Guard at submission: a draw may have been deleted by another client since
+  // these changes were queued. Submitting a schedule method for a missing draw
+  // errors server-side with an opaque "Missing drawDefinition"; instead drop
+  // those whole batches (keeping a swap's interdependent methods atomic), send
+  // only the valid ones, and tell the user which changes could not be saved
+  // and why. The remote-deletion broadcast already pruned the orphaned
+  // matchUps from local state, so no extra re-render is needed here.
+  const { valid, stale } = partitionBatchesByDrawExistence(pendingMethods, getExistingDrawIds());
   pendingMethods = [];
+
+  if (stale.length) {
+    showStaleDrawBanner(stale.length);
+    invalidateMatchUpCaches();
+  }
+
+  const allMethods = valid.flat();
+  if (!allMethods.length) {
+    // Everything queued referenced a deleted draw — nothing to send.
+    updateActionBar();
+    return;
+  }
 
   mutationRequest({
     methods: allMethods,
