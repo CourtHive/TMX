@@ -40,6 +40,8 @@ const INTENT_ICON: Record<InlineNoticeIntent, string> = {
 export function buildInlineNotice(opts: {
   message: string;
   intent?: InlineNoticeIntent;
+  /** When provided, an outlined action button is rendered before the dismiss. */
+  action?: { label: string; onClick: () => void };
   /** When provided, a dismiss (×) control is rendered that invokes this. */
   onDismiss?: () => void;
 }): HTMLElement {
@@ -70,6 +72,23 @@ export function buildInlineNotice(opts: {
   message.style.flex = '1';
   message.textContent = opts.message;
   banner.appendChild(message);
+
+  if (opts.action) {
+    const actionBtn = document.createElement('button');
+    actionBtn.textContent = opts.action.label;
+    actionBtn.style.cssText = [
+      'background: transparent',
+      `border: 1px solid ${tokens.accent}`,
+      `color: ${tokens.accent}`,
+      'border-radius: 4px',
+      'padding: 3px 10px',
+      'font-size: 0.8rem',
+      'cursor: pointer',
+      'white-space: nowrap',
+    ].join('; ');
+    actionBtn.addEventListener('click', () => opts.action?.onClick());
+    banner.appendChild(actionBtn);
+  }
 
   if (opts.onDismiss) {
     const dismiss = document.createElement('button');

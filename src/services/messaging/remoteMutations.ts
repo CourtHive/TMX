@@ -9,16 +9,20 @@
  *   → shows sync indicator in navbar if no table could be refreshed
  */
 import { onTournamentMutation, joinTournamentRoom } from 'services/messaging/socketIo';
+import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { requestTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as factory from 'tods-competition-factory';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 // constants and types
-import { SYNC_INDICATOR, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
+import { SYNC_INDICATOR, TOURNAMENT_ENGINE, DRAWS_VIEW } from 'constants/tmxConstants';
 import type { RemoteMutationPayload } from 'types/services';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
@@ -40,11 +44,57 @@ export function initRemoteMutationHandler(): void {
 /** Hide the sync indicator (called on navigation). */
 export function clearSyncIndicator(): void {
   staleRefreshTournamentId = undefined;
+  clearActiveDrawDeletedBanner();
   const el = document.getElementById(SYNC_INDICATOR);
   if (el) {
     el.style.display = 'none';
     el.classList.remove('sync-indicator--active');
   }
+}
+
+/** Parse the actively-viewed draw route from the URL hash, if any. */
+function getActiveDrawRoute(): { eventId: string; drawId: string } | null {
+  const m = window.location.hash.match(/\/event\/([^/?]+)\/draw\/([^/?]+)/);
+  return m ? { eventId: m[1], drawId: m[2] } : null;
+}
+
+let activeDrawDeletedBanner: HTMLElement | null = null;
+
+function clearActiveDrawDeletedBanner(): void {
+  if (activeDrawDeletedBanner) {
+    activeDrawDeletedBanner.remove();
+    activeDrawDeletedBanner = null;
+  }
+}
+
+/**
+ * Phase 2 (draws-only): when a remote mutation deletes the draw the user is
+ * currently viewing, the draw view's data is gone. Rather than yank them away
+ * mid-action, show a persistent inline banner explaining it with a "Return to
+ * event" action. The banner clears on the next navigation (clearSyncIndicator).
+ */
+function reactToActiveDrawDeletion(methods: any[]): void {
+  const deletedDrawIds = extractDeletedDrawIds(methods);
+  if (!deletedDrawIds.length) return;
+
+  const active = getActiveDrawRoute();
+  if (!active || !deletedDrawIds.includes(active.drawId)) return;
+
+  const drawsView = document.getElementById(DRAWS_VIEW);
+  if (!drawsView) return;
+
+  clearActiveDrawDeletedBanner();
+  const banner = buildInlineNotice({
+    intent: 'warning',
+    message: t('draw.deletedByAnother', { defaultValue: 'The draw you were viewing was removed by another user.' }),
+    action: {
+      label: t('common.returnToEvent', { defaultValue: 'Return to event' }),
+      onClick: () => navigateToEvent({ eventId: active.eventId }),
+    },
+    onDismiss: () => clearActiveDrawDeletedBanner(),
+  });
+  activeDrawDeletedBanner = banner;
+  drawsView.insertBefore(banner, drawsView.firstChild);
 }
 
 /** Surface the sync indicator in "stale" mode — the staleness probe found the
@@ -158,4 +208,8 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
 
   // Emit a local event so the active view can optionally react
   context.ee.emit('remoteMutation', { methods, tournamentIds });
+
+  // If a draw the user is currently viewing was just deleted remotely, surface
+  // an inline banner with a path back to the event (draws-only, Phase 2).
+  reactToActiveDrawDeletion(methods);
 }

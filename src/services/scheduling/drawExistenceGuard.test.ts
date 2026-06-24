@@ -11,6 +11,7 @@ import {
   getExistingDrawIds,
   batchReferencesMissingDraw,
   partitionBatchesByDrawExistence,
+  extractDeletedDrawIds,
 } from './drawExistenceGuard';
 
 const scheduleMethod = (matchUpId: string, drawId: string) => ({
@@ -65,6 +66,36 @@ describe('batchReferencesMissingDraw', () => {
   it('treats a method with no drawId as never missing', () => {
     const batch = [{ method: 'publishOrderOfPlay', params: {} }];
     expect(batchReferencesMissingDraw(batch, existing)).toBe(false);
+  });
+});
+
+describe('extractDeletedDrawIds', () => {
+  it('collects drawIds from deleteDrawDefinitions (drawIds array)', () => {
+    const methods = [{ method: 'deleteDrawDefinitions', params: { drawIds: ['d1', 'd2'], eventId: 'e1' } }];
+    expect(extractDeletedDrawIds(methods)).toEqual(['d1', 'd2']);
+  });
+
+  it('collects the drawId from deleteFlightAndFlightDraw (singular)', () => {
+    expect(extractDeletedDrawIds([{ method: 'deleteFlightAndFlightDraw', params: { drawId: 'd9' } }])).toEqual(['d9']);
+  });
+
+  it('reads the method name from methodName as well as method', () => {
+    expect(extractDeletedDrawIds([{ methodName: 'deleteFlightAndFlightDraw', params: { drawId: 'dX' } }])).toEqual([
+      'dX',
+    ]);
+  });
+
+  it('ignores non-deletion methods', () => {
+    const methods = [
+      { method: 'addMatchUpScheduleItems', params: { drawId: 'd1' } },
+      { method: 'publishOrderOfPlay' },
+    ];
+    expect(extractDeletedDrawIds(methods)).toEqual([]);
+  });
+
+  it('tolerates empty / nullish input', () => {
+    expect(extractDeletedDrawIds([])).toEqual([]);
+    expect(extractDeletedDrawIds(undefined as any)).toEqual([]);
   });
 });
 

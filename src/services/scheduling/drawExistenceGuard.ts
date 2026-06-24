@@ -10,7 +10,27 @@
  * as input so they stay engine-free and unit-testable; getExistingDrawIds is
  * the single engine-backed source for that set.
  */
+import { DELETE_DRAW_DEFINITIONS, DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 import { competitionEngine } from 'services/factory/engine';
+
+const DRAW_DELETION_METHODS = new Set<string>([DELETE_DRAW_DEFINITIONS, DELETE_FLIGHT_AND_DRAW]);
+
+/**
+ * Collect the drawIds removed by a batch of mutation methods. Handles both
+ * deleteDrawDefinitions (params.drawIds: string[]) and deleteFlightAndFlightDraw
+ * (params.drawId: string). The method name is read from `method` or
+ * `methodName` since remote broadcasts may carry either.
+ */
+export function extractDeletedDrawIds(methods: any[]): string[] {
+  const ids: string[] = [];
+  for (const m of methods ?? []) {
+    const name = m?.method ?? m?.methodName;
+    if (!DRAW_DELETION_METHODS.has(name)) continue;
+    if (Array.isArray(m?.params?.drawIds)) ids.push(...m.params.drawIds);
+    if (m?.params?.drawId) ids.push(m.params.drawId);
+  }
+  return ids;
+}
 
 /**
  * Build the set of drawIds present across all loaded tournament records.
