@@ -130,8 +130,8 @@ importers:
         specifier: 4.8.3
         version: 4.8.3
       tabulator-tables:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.5.2
+        version: 6.5.2
       timepicker-ui:
         specifier: 4.4.0
         version: 4.4.0
@@ -2838,6 +2838,7 @@ packages:
   git-raw-commits@5.0.1:
     resolution: {integrity: sha512-Y+csSm2GD/PCSh6Isd/WiMjNAydu0VBiG9J7EdQsNA5P9uXvLayqjmTsNlK5Gs9IhblFZqOU0yid5Il5JPoLiQ==}
     engines: {node: '>=18'}
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   glob-parent@6.0.2:
@@ -4194,8 +4195,8 @@ packages:
   tabbable@6.4.0:
     resolution: {integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==}
 
-  tabulator-tables@6.5.1:
-    resolution: {integrity: sha512-hTbw97QbUmh33d/87xdPFQUdm+1W2+l0WQuafYvqw95tEjC4o0sMLMd/Ie7KJ5u7/QlfpM03ZCqjw3TuEiPrdw==}
+  tabulator-tables@6.5.2:
+    resolution: {integrity: sha512-cRL3xsaaf5RzND8KPbn4C9Ce5tzyiQUE01E/10zN50MjdRKl/Gl5nXkzLN6cvEyRfWHCPuqBF92y50CBw20WYA==}
 
   tar@7.5.16:
     resolution: {integrity: sha512-56adEpPMouktRlBLXiaYFFzZ/3+JXa8P9n7WbR+ibIjtviN55mEaOkiysCnPnWm+7kkui1Dn8J9l+g6zV8731w==}
@@ -8830,7 +8831,7 @@ snapshots:
 
   tabbable@6.4.0: {}
 
-  tabulator-tables@6.5.1: {}
+  tabulator-tables@6.5.2: {}
 
   tar@7.5.16:
     dependencies:
