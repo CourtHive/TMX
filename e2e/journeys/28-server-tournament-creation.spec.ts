@@ -13,9 +13,58 @@ const SERVER = 'http://localhost:8383';
  *   1. The tournament is saved on the server
  *   2. The tournament can be opened in TMX after creation
  */
+/**
+ * Remove a tournament created against the real server, regardless of test
+ * outcome. Two hazards this handles that the old inline cleanup did not:
+ *   1. It runs from a guaranteed `afterEach`, so a mid-test failure can't skip it.
+ *   2. `/factory/remove` refuses to delete a tournament before its endDate
+ *      (ERR_TOURNAMENT_NOT_ENDED, returned with HTTP 200 + removed:0). The
+ *      created tournament has a future endDate, so we first move its dates to the
+ *      past via executionQueue, THEN remove — and warn if it still wasn't removed
+ *      so the failure is visible instead of silently leaking orphans.
+ */
+async function cleanupServerTournament(request: any, token: string, tournamentName: string): Promise<void> {
+  try {
+    const calendarResult = await request.post(`${SERVER}/provider/calendar`, { data: { providerAbbr: 'TMX' } });
+    if (!calendarResult.ok()) return;
+    const calendar = await calendarResult.json();
+    const entries = calendar?.calendar?.tournaments ?? calendar?.calendar ?? [];
+    const entry = entries.find((e: any) => (e.tournament?.tournamentName ?? e.tournamentName) === tournamentName);
+    const tournamentId = entry?.tournamentId;
+    if (!tournamentId) return; // never created (failed before save) or already removed
+
+    // Move dates to the past so the not-ended delete guard allows removal.
+    await request.post(`${SERVER}/factory`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        tournamentId,
+        methods: [
+          {
+            method: 'setTournamentDates',
+            params: { startDate: '2020-01-01', endDate: '2020-01-02', activeDates: ['2020-01-01', '2020-01-02'] },
+          },
+        ],
+      },
+    });
+
+    const removeResult = await request.post(`${SERVER}/factory/remove`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { tournamentId },
+    });
+    const removeBody = await removeResult.json().catch(() => ({}));
+    if (!removeBody?.removed) {
+      console.warn(`Journey 28 cleanup: tournament ${tournamentId} was not removed:`, removeBody);
+    }
+  } catch (err) {
+    // Cleanup must never fail the run; surface it for visibility.
+    console.warn('Journey 28 cleanup failed:', err);
+  }
+}
+
 test.describe('Journey 28 — Authenticated server tournament creation', () => {
   let authToken: string;
   let cfsReachable = false;
+  let createdTournamentName: string | undefined;
 
   test.beforeAll(async ({ request }) => {
     // Probe CFS first — this is the only e2e spec that needs the server up.
@@ -70,9 +119,19 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     authToken = (await login.json()).token;
   });
 
+  // Guaranteed teardown — runs even if the test throws mid-way, so a created
+  // tournament is never orphaned on the server (see cleanupServerTournament).
+  test.afterEach(async ({ request }) => {
+    if (!cfsReachable || !createdTournamentName) return;
+    await cleanupServerTournament(request, authToken, createdTournamentName);
+    createdTournamentName = undefined;
+  });
+
   test('create tournament via UI, verify on server, open it', async ({ page, request }) => {
     test.skip(!cfsReachable, `CFS not reachable at ${SERVER}`);
     const tournamentName = `E2E Server ${Date.now()}`;
+    // Record immediately so afterEach can clean up even if a later step fails.
+    createdTournamentName = tournamentName;
 
     await page.goto('/');
     await waitForAppReady(page);
@@ -179,10 +238,6 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     // Verify the tournament overview loaded — the tournament name appears in the navbar
     await expect(page.locator('#dnav')).toContainText(tournamentName, { timeout: 10000 });
 
-    // ── Cleanup ──
-    await request.post(`${SERVER}/factory/remove`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-      data: { tournamentId },
-    });
+    // Cleanup runs in afterEach (guaranteed even on failure) — see cleanupServerTournament.
   });
 });
