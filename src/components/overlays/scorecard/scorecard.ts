@@ -6,12 +6,12 @@
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
-import { tournamentEngine } from 'services/factory/engine';
-import { extensionConstants } from 'tods-competition-factory';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
 

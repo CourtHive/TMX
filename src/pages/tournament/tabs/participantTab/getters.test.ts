@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getClub, getSchool, getCity, getEvents, getCountry } from './getters';
+import { describe, expect, it } from 'vitest';
 
 describe('getClub', () => {
   it('returns club name from participant groups', () => {

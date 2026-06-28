@@ -2,9 +2,9 @@
  * Tally Report Modal — Shows how round robin tiebreak rules were applied
  * to determine finishing positions within a group.
  */
+import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { policyConstants } from 'tods-competition-factory';
-import { openModal } from 'components/modals/baseModal/baseModal';
 import { t } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';

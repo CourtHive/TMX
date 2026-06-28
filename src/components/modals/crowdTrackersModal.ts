@@ -11,6 +11,7 @@
  * modal stays open so the TD can retry.
  */
 
+import { openModal } from 'components/modals/baseModal/baseModal';
 import {
   cancelSession as apiCancelSession,
   demoteSession as apiDemoteSession,
@@ -23,7 +24,6 @@ import {
   buildStatusMessage,
   decidePrimaryButtonLabel,
 } from 'components/modals/crowdTrackersModalLogic';
-import { openModal } from 'components/modals/baseModal/baseModal';
 
 interface CrowdTrackersModalOptions {
   matchUpId: string;

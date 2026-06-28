@@ -3,9 +3,9 @@
  * Floating panel for AI-powered tournament help.
  * Communicates with tmx-assistant service via REST + SSE.
  */
+import { getToken } from 'services/authentication/tokenManagement';
 import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
-import { getToken } from 'services/authentication/tokenManagement';
 
 const PANEL_ID = 'assistantPanel';
 const MAX_HISTORY = 50;

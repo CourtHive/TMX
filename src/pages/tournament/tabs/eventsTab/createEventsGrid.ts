@@ -8,6 +8,8 @@
  * mapping cost matches at scale.
  */
 
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { tournamentEngine } from 'services/factory/engine';
 import {
   buildEventCard,
   EVENT_CARD_LIGHT_MODE_THRESHOLD,
@@ -15,8 +17,6 @@ import {
   mapEventToCardData,
   resolveCourtSport
 } from 'courthive-components';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { tournamentEngine } from 'services/factory/engine';
 
 import './eventsGrid.css';
 

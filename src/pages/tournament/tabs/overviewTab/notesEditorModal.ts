@@ -4,9 +4,9 @@
 // owns the TMX modal + the "Insert Contacts" affordance; the toolbar / editor
 // body / Tiptap lifecycle now live in courthive-components.
 
-import { createNotesEditor } from 'courthive-components';
-import { buildContactCardHtml } from './contactCardInsert';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { buildContactCardHtml } from './contactCardInsert';
+import { createNotesEditor } from 'courthive-components';
 import { t } from 'i18n';
 
 export function openNotesEditor({ notes, onSave }: { notes?: string; onSave: (html: string) => void }): void {

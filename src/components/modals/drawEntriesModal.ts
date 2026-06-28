@@ -6,12 +6,12 @@ import { drawEntriesSeedingSelector } from './drawEntriesColumns/seeding/drawEnt
 import { cancelManualSeeding } from 'components/tables/eventsTable/seeding/canceManuallSeeding';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { getDrawEntriesColumns } from './drawEntriesColumns/getDrawEntriesColumns';
-import { tournamentEngine } from 'services/factory/engine';
 import { saveSeeding } from 'components/tables/eventsTable/seeding/saveSeeding';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { isFunction } from 'functions/typeOf';
+import { tournamentEngine } from 'services/factory/engine';
 import { cModal, controlBar } from 'courthive-components';
+import { isFunction } from 'functions/typeOf';
 
 import { LEFT } from 'constants/tmxConstants';
 

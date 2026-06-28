@@ -3,20 +3,20 @@
  * Displays individual participant details, ratings, and event assignments.
  * Rating columns and averages are determined dynamically from participant data.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { participantConstants, participantRoles, tools, fixtures } from 'tods-competition-factory';
+import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
-import { getRatingColumns } from '../common/getRatingColumns';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { getParticipantColumns } from './getParticipantColumns';
+import { getRatingColumns } from '../common/getRatingColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { tournamentEngine } from 'services/factory/engine';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { displayConfig } from 'config/displayConfig';
 import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
-import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 
 // constants
 import { TOURNAMENT_PARTICIPANTS, STAFF } from 'constants/tmxConstants';

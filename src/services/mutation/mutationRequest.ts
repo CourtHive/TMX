@@ -2,9 +2,9 @@
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
  */
+import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
-import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -14,8 +14,8 @@ import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { t } from 'i18n';
 import dayjs from 'dayjs';
+import { t } from 'i18n';
 
 // types
 import type { MutationMethod, ExecutionResult } from 'types/services';

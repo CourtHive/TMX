@@ -15,10 +15,10 @@
  */
 
 import { buildDrawCard, DrawCardData, mapDrawDefinitionToCardData } from 'courthive-components';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { tournamentEngine } from 'services/factory/engine';
-import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { buildDrawCardVisualization } from './buildDrawCardVisualization';
 import { DrawCardDisplayMode } from './drawCardDisplayMode';

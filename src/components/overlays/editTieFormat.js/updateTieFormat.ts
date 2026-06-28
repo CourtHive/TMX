@@ -2,10 +2,10 @@
  * Update tie format with modifications.
  * Compares and persists changes to tournament tie format configuration.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { queryGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { queryGovernor } from 'tods-competition-factory';
 import { editTieFormat } from './editTieFormat';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';

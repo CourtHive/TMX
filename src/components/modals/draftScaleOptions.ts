@@ -134,11 +134,11 @@ export function previewTierSort(
 
   for (const id of participantIds) {
     const raw = scaleValues.get(id);
-    const num = raw != null ? Number.parseFloat(raw) : NaN;
-    if (!Number.isNaN(num)) {
-      withValue.push({ id, num });
-    } else {
+    const num = raw == null ? NaN : Number.parseFloat(raw);
+    if (Number.isNaN(num)) {
       withoutValue.push(id);
+    } else {
+      withValue.push({ id, num });
     }
   }
 

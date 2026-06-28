@@ -19,11 +19,11 @@
  */
 import { locationConfig, leafletConfig } from 'config/locationConfig';
 import { preferencesConfig } from 'config/preferencesConfig';
-import { scoringBoardConfig } from 'config/scoringConfig';
 import { timepickerConfig } from 'config/timepickerConfig';
+import { scoringBoardConfig } from 'config/scoringConfig';
 import { scheduleConfig } from 'config/scheduleConfig';
-import { featureFlags } from 'config/featureFlags';
 import { displayConfig } from 'config/displayConfig';
+import { featureFlags } from 'config/featureFlags';
 import { serverConfig } from 'config/serverConfig';
 import { deviceConfig } from 'config/deviceConfig';
 import { debugConfig } from 'config/debugConfig';

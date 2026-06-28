@@ -5,8 +5,8 @@
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
-import { resolveTimepickerTheme } from 'config/timepickerConfig';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { resolveTimepickerTheme } from 'config/timepickerConfig';
 import { Datepicker } from 'vanillajs-datepicker';
 import { tools } from 'tods-competition-factory';
 import { TimepickerUI } from 'timepicker-ui';

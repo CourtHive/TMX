@@ -12,12 +12,12 @@
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
 import { ScheduleIssue } from 'courthive-components';
+import { buildStepper } from './stepperControl';
 import {
   MIN_COURT_WIDTH_FLOOR,
   MIN_COURT_WIDTH_CEILING,
   MIN_COURT_WIDTH_STEP,
 } from 'services/schedulePreferences/userMinCourtWidth';
-import { buildStepper } from './stepperControl';
 
 const PULSE = 'spl-cell--issue-pulse';
 const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';

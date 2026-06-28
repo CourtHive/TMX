@@ -9,11 +9,27 @@
  * the view toggle can drive re-renders without owning render state.
  */
 
+import { renderTournamentsGrid, renderTournamentsSkeleton } from 'pages/tournaments/createTournamentsGrid';
+import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/mockTournaments';
+import { mapTournamentRecord, TournamentRow } from 'pages/tournaments/mapTournamentRecord';
+import { calendarControls } from 'pages/tournaments/tournamentsControls';
+import { editTournament } from 'components/drawers/editTournamentDrawer';
+import { getUserContext } from 'services/authentication/getUserContext';
+import { getCalendar, getMyCalendars } from 'services/apis/servicesApi';
+import { getLoginState } from 'services/authentication/loginState';
+import { renderWelcomeView } from 'pages/tournaments/welcomeView';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTipster } from 'components/popovers/tipster';
+import { destroyTable } from 'pages/tournament/destroyTable';
+import { getTournamentColumns } from './getTournamentColumn';
+import { listPicker } from 'components/modals/listPicker';
+import { displayConfig } from 'config/displayConfig';
+import { tmx2db } from 'services/storage/tmx2db';
+import { context } from 'services/context';
 import {
   filterTournaments,
   sortTournaments
 } from 'pages/tournaments/tournamentsFilter';
-import { renderTournamentsGrid, renderTournamentsSkeleton } from 'pages/tournaments/createTournamentsGrid';
 import {
   initialTournamentsViewState,
   persistViewMode,
@@ -22,22 +38,6 @@ import {
   TournamentsViewMode,
   TournamentsViewState
 } from 'pages/tournaments/tournamentsViewState';
-import { mapTournamentRecord, TournamentRow } from 'pages/tournaments/mapTournamentRecord';
-import { calendarControls } from 'pages/tournaments/tournamentsControls';
-import { getUserContext } from 'services/authentication/getUserContext';
-import { getCalendar, getMyCalendars } from 'services/apis/servicesApi';
-import { renderWelcomeView } from 'pages/tournaments/welcomeView';
-import { editTournament } from 'components/drawers/editTournamentDrawer';
-import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/mockTournaments';
-import { getLoginState } from 'services/authentication/loginState';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTipster } from 'components/popovers/tipster';
-import { destroyTable } from 'pages/tournament/destroyTable';
-import { listPicker } from 'components/modals/listPicker';
-import { getTournamentColumns } from './getTournamentColumn';
-import { tmx2db } from 'services/storage/tmx2db';
-import { displayConfig } from 'config/displayConfig';
-import { context } from 'services/context';
 
 // constants
 import { TOURNAMENTS_CONTROL, TOURNAMENTS_TABLE } from 'constants/tmxConstants';

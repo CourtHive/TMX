@@ -3,10 +3,10 @@
  * Handles inline participant assignment for draws with no scores.
  * Uses DrawStateManager from courthive-components with TMX mutation layer.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { controlBar, renderStructure, renderContainer, compositions, DrawStateManager } from 'courthive-components';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderDrawView } from './renderDrawView';
 
 import { DRAWS_VIEW, EVENT_CONTROL } from 'constants/tmxConstants';

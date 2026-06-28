@@ -5,16 +5,16 @@
  */
 import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
 import { saveTopologyTemplate, getTopologyTemplates } from 'components/drawers/addDraw/topologyTemplates';
-import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
-import { tournamentEngine } from 'services/factory/engine';
-import { entryStatusConstants } from 'tods-competition-factory';
-import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
+import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { generateDraw } from 'components/drawers/addDraw/generateDraw';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { removeAllChildNodes } from 'services/dom/transformers';
 import { showTopology } from 'services/transitions/screenSlaver';
+import { entryStatusConstants } from 'tods-competition-factory';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 

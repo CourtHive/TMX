@@ -2,10 +2,10 @@
  * Map event data with matchUps, draws, and entries.
  * Supports light mode to skip resource-intensive calculations for large event counts.
  */
-import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
-import { mapDrawDefinition } from './mapDrawDefinition';
-import { tournamentEngine } from 'services/factory/engine';
 import { publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
+import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
+import { tournamentEngine } from 'services/factory/engine';
+import { mapDrawDefinition } from './mapDrawDefinition';
 
 const { MAIN } = drawDefinitionConstants;
 

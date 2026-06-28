@@ -1,5 +1,5 @@
-import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { hideSaveSeeding } from './hideSaveSeeding';
 import { removeSeeding } from './removeSeeding';
 

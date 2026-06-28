@@ -14,10 +14,10 @@
  * the existing `editGroupingParticipant` rename form and the per-person
  * `editPlayer` page; both remain reachable via the popover.
  */
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { tournamentEngine } from 'services/factory/engine';
-import { buildTeamCard, cModal } from 'courthive-components';
 import { jerseySorter, splitMembership, type Member, type SplitMembership } from './teamProfileLogic';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { buildTeamCard, cModal } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
 
 export function teamProfileModal({ participantId }: { participantId: string }): void {

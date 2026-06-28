@@ -22,8 +22,8 @@
 import { DedupeKey, commitParticipantImport } from 'services/import/commitParticipantImport';
 import { mergeParticipantDrafts } from 'services/import/mergeParticipantDrafts';
 import { normalizeHeader } from 'services/import/participantFieldModel';
-import { autoMapColumns } from 'services/import/autoMapColumns';
 import { parseRatingCell } from 'services/import/parseRatingCell';
+import { autoMapColumns } from 'services/import/autoMapColumns';
 import { tournamentEngine } from 'services/factory/engine';
 import { openModal } from './baseModal/baseModal';
 import { hashCode } from 'functions/hashCode';
@@ -32,13 +32,13 @@ import { t } from 'i18n';
 import 'styles/importParticipants.css';
 
 // constants and types
+import type { ColumnMapping } from 'services/import/autoMapColumns';
 import {
   RATING_SYNONYMS,
   TARGET_FIELD_GROUPS,
   TargetField,
   TargetFieldKind,
 } from 'services/import/participantFieldModel';
-import type { ColumnMapping } from 'services/import/autoMapColumns';
 
 const PREVIEW_ROW_LIMIT = 3;
 const SAMPLE_VALUE_MAX_LEN = 60;
@@ -667,15 +667,15 @@ function buildPreview(state: State): HTMLElement {
   list.className = 'ipv-preview-list';
 
   const previewParticipants = buildPreviewParticipants(state);
-  if (!previewParticipants.length) {
+  if (previewParticipants.length) {
+    for (const p of previewParticipants) {
+      list.appendChild(buildPreviewItem(p));
+    }
+  } else {
     const empty = document.createElement('div');
     empty.className = 'ipv-preview-empty';
     empty.textContent = t('modals.importParticipants.previewEmpty');
     list.appendChild(empty);
-  } else {
-    for (const p of previewParticipants) {
-      list.appendChild(buildPreviewItem(p));
-    }
   }
 
   wrap.appendChild(list);

@@ -2,12 +2,12 @@
  * Participant matchUp actions popover menu.
  * Handles participant assignment, replacement, substitution, penalties, and removal.
  */
+import { eventConstants, positionActionConstants, matchUpActionConstants, tools, policyConstants } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
-import { tournamentEngine } from 'services/factory/engine';
-import { eventConstants, positionActionConstants, matchUpActionConstants, tools, policyConstants } from 'tods-competition-factory';
 
 // constants
 import { BOTTOM } from 'constants/tmxConstants';

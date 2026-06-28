@@ -3,16 +3,16 @@
  * Accepts map URLs from multiple providers and allows interactive marker placement.
  */
 import { parseOpenStreetMap } from 'functions/parsing/parseOpenStreetMap';
+import { locationConfig, leafletConfig } from 'config/locationConfig';
 import { parseGoogleLink } from 'functions/parsing/parseGoogleLink';
 import { parseBingCoords } from 'functions/parsing/parseBingCoords';
 import { parseHereWeGo } from 'functions/parsing/parseHereWeGo';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
-import { t } from 'i18n';
 import { idObj } from 'services/dom/idObj';
-import { locationConfig, leafletConfig } from 'config/locationConfig';
 import * as L from 'leaflet';
+import { t } from 'i18n';
 
 function getNavigator() {
   try {

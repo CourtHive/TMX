@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { formatUpdatedAt, makeUpdatedAtFormatter, updatedAtFormatter } from './updatedAtFormatter';
+import { describe, expect, it } from 'vitest';
 
 /**
  * The test suite runs with TZ=UTC (see TMX `package.json` scripts), so

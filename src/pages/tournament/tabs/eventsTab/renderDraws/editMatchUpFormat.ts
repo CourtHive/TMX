@@ -3,8 +3,8 @@
  * Prompts for format selection and updates via mutation if changed.
  */
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
-import { getMatchUpFormatModal } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getMatchUpFormatModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';

@@ -2,12 +2,12 @@
  * Inline topology rendering within the draw view area.
  * Replaces the draw and draw control bar with a read-only topology view.
  */
-import { TopologyBuilderControl, controlBar } from 'courthive-components';
-import { tournamentEngine } from 'services/factory/engine';
 import { hydrateTopology } from 'pages/tournament/tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { TopologyBuilderControl, controlBar } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { getTopologyControlItems } from './eventControlItems';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { DRAW_CONTROL, DRAWS_VIEW, EVENT_CONTROL } from 'constants/tmxConstants';
 

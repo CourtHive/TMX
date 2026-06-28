@@ -85,13 +85,13 @@ export function buildDisplayModeOptions({
       value: 'histogram',
       label: 'Ratings histogram',
       disabled: !availability.hasRatings,
-      reason: !availability.hasRatings ? 'no ratings' : undefined,
+      reason: availability.hasRatings ? undefined : 'no ratings',
     },
     {
       value: 'competitiveness',
       label: 'Competitiveness',
       disabled: !availability.hasCompetitiveness,
-      reason: !availability.hasCompetitiveness ? 'no completed matches' : undefined,
+      reason: availability.hasCompetitiveness ? undefined : 'no completed matches',
     },
   ];
   // Burst variants only available when the draw count is below the SUNBURST_CAP.
@@ -102,7 +102,7 @@ export function buildDisplayModeOptions({
         value: SUNBURST_COMPETITIVE,
         label: 'Burst (competitive)',
         disabled: !availability.hasCompetitiveness,
-        reason: !availability.hasCompetitiveness ? 'no completed matches' : undefined,
+        reason: availability.hasCompetitiveness ? undefined : 'no completed matches',
       },
     );
   }

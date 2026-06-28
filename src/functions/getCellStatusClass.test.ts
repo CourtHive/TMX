@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getCellStatusClass } from './getCellStatusClass';
+import { describe, expect, it } from 'vitest';
 
 const constants = {
   ABANDONED: 'ABANDONED',

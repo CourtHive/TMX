@@ -5,12 +5,12 @@
  * Sources available locales from the CFS manifest when reachable; falls back
  * to whatever's bundled in i18next. See Mentat/planning/I18N_DELIVERY.md.
  */
-import { ensureLocaleCurrent, fetchManifest, i18next, t } from 'i18n';
-import { renderForm } from 'courthive-components';
-import { fixtures } from 'tods-competition-factory';
-import { openModal } from './baseModal/baseModal';
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
+import { ensureLocaleCurrent, fetchManifest, i18next, t } from 'i18n';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { fixtures } from 'tods-competition-factory';
+import { renderForm } from 'courthive-components';
+import { openModal } from './baseModal/baseModal';
 
 // IOC country code to BCP47 language tag mapping
 const iocToLang: Record<string, string> = {

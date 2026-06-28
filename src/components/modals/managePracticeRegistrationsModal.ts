@@ -8,6 +8,11 @@
  * mutation never rejects on them (per the Phase 1 warn-and-allow posture).
  */
 
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { openModal, closeModal } from './baseModal/baseModal';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { renderForm } from 'courthive-components';
+import { t } from 'i18n';
 import {
   resolveBookingForModal,
   formatBookingHeader,
@@ -15,11 +20,6 @@ import {
   filterParticipantsForRegistration,
   type BookingResolution,
 } from './managePracticeRegistrationsModal.logic';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { openModal, closeModal } from './baseModal/baseModal';
-import { renderForm } from 'courthive-components';
-import { t } from 'i18n';
 
 import { ADD_PRACTICE_REGISTRATION, REMOVE_PRACTICE_REGISTRATION } from 'constants/mutationConstants';
 

@@ -1,19 +1,19 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/eventControlBar';
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
-import { tournamentEngine } from 'services/factory/engine';
-import { scoreGovernor, fixtures } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
-import { showTallyReportModal } from 'components/modals/tallyReportModal';
-import { editGroupNames } from 'components/modals/editGroupNames';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { getBracketColumns, attachHeaderTooltip } from './getBracketColumns';
+import { showTallyReportModal } from 'components/modals/tallyReportModal';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { scoreGovernor, fixtures } from 'tods-competition-factory';
+import { editGroupNames } from 'components/modals/editGroupNames';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { getBracketData } from './getBracketData';
+import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
+import { getBracketData } from './getBracketData';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_BRACKET } from 'constants/tmxConstants';

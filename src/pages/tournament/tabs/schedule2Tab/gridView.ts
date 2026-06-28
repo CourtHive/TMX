@@ -19,8 +19,39 @@
  *  - On Save: all queued methods sent as single mutationRequest
  *  - On Discard: factory state reloaded from IndexedDB
  */
+import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
+import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
+import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
+import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
+import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
+import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
+import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { buildInlineNotice } from 'components/notices/inlineNotice';
+import { renameCourt } from 'components/modals/renameCourt';
+import { scheduleConfig } from 'config/scheduleConfig';
+import { tipster } from 'components/popovers/tipster';
+import { tmx2db } from 'services/storage/tmx2db';
+import { scheduleToast } from './scheduleToast';
+import tippy, { type Instance } from 'tippy.js';
+import { context } from 'services/context';
+import { t } from 'i18n';
+import type {
+  SchedulePageConfig,
+  SchedulePageControl,
+  CatalogMatchUpItem,
+  CatalogFilters,
+  MatchUpCatalogGroupBy,
+  ScheduleDate,
+  ScheduleIssue,
+  ScheduleIssueSeverity,
+  ActiveStripPanel,
+  ActiveStripPanelData,
+  ActiveStripCourtBlock,
+} from 'courthive-components';
 import {
   matchUpStatusConstants,
   factoryConstants,
@@ -28,29 +59,11 @@ import {
   unwrapOr,
   AvailabilityEngine,
 } from 'tods-competition-factory';
-import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
-import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import {
   getExistingDrawIds,
   batchReferencesMissingDraw,
   partitionBatchesByDrawExistence,
 } from 'services/scheduling/drawExistenceGuard';
-import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
-import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
-import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { buildInlineNotice } from 'components/notices/inlineNotice';
-import { renameCourt } from 'components/modals/renameCourt';
-import { scheduleToast } from './scheduleToast';
-import { scheduleConfig } from 'config/scheduleConfig';
-import { tipster } from 'components/popovers/tipster';
-import { tmx2db } from 'services/storage/tmx2db';
-import { context } from 'services/context';
-import tippy, { type Instance } from 'tippy.js';
-import { t } from 'i18n';
-import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
-import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
-import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import {
   invalidateMatchUpCaches,
   getCachedScheduleMatchUps,
@@ -72,25 +85,12 @@ import {
   buildMatchUpCard,
   wrapSearchWithClear,
 } from 'courthive-components';
-import type {
-  SchedulePageConfig,
-  SchedulePageControl,
-  CatalogMatchUpItem,
-  CatalogFilters,
-  MatchUpCatalogGroupBy,
-  ScheduleDate,
-  ScheduleIssue,
-  ScheduleIssueSeverity,
-  ActiveStripPanel,
-  ActiveStripPanelData,
-  ActiveStripCourtBlock,
-} from 'courthive-components';
 
 // constants
-import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 import { ADD_MATCHUP_SCHEDULE_ITEMS, SET_MATCHUP_CALLED_AT } from 'constants/mutationConstants';
-import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
+import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
+import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 
 const { scheduleConstants } = factoryConstants;
 
@@ -914,7 +914,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
         // Round-offset is computed against the pre-filter `items` set so the
         // visual priority stays stable while the operator searches.
         const base = baseRoundByEvent.get(item.eventId);
-        const roundOffset = base !== undefined ? Math.max(0, item.roundNumber - base) : undefined;
+        const roundOffset = base === undefined ? undefined : Math.max(0, item.roundNumber - base);
         const card = buildMatchUpCard(item, {}, { prominentTime: true, roundOffset });
         if (!item.scheduledTime) card.classList.add('no-time');
         gb.appendChild(card);

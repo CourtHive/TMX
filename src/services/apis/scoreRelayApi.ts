@@ -22,7 +22,7 @@ const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
 function resolveInitialBaseURL(): string {
   const fromVite = (import.meta as any)?.env?.VITE_SCORE_RELAY_URL;
   if (typeof fromVite === 'string' && fromVite.trim()) return fromVite.trim().replace(/\/+$/, '');
-  const fromProcess = typeof process !== 'undefined' ? process.env?.SCORE_RELAY_URL : undefined;
+  const fromProcess = typeof process === 'undefined' ? undefined : process.env?.SCORE_RELAY_URL;
   if (typeof fromProcess === 'string' && fromProcess.trim()) return fromProcess.trim().replace(/\/+$/, '');
   return '';
 }

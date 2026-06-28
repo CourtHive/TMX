@@ -15,6 +15,9 @@
  * have no user_providers rows (they can be associated with zero providers
  * and still impersonate anything in the system).
  */
+import { openProviderSwitcher } from 'components/popovers/providerSwitcher';
+import { getLoginState } from 'services/authentication/loginState';
+import { context } from 'services/context';
 import {
   setActiveProvider,
   readPersistedProvider,
@@ -23,9 +26,6 @@ import {
   getProvisionerProviders,
   resolveInitialProvider,
 } from './providerState';
-import { openProviderSwitcher } from 'components/popovers/providerSwitcher';
-import { getLoginState } from 'services/authentication/loginState';
-import { context } from 'services/context';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 

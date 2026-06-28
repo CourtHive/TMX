@@ -1,7 +1,7 @@
-import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
-import { controlBar } from 'courthive-components';
+import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { closeModal, openModal } from './baseModal/baseModal';
+import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 
 import { LEFT } from 'constants/tmxConstants';

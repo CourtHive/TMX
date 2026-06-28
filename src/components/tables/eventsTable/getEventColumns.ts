@@ -2,8 +2,8 @@
  * Column definitions for events table.
  * Defines columns for event display including name, type, counts, and actions.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { tournamentEngine } from 'services/factory/engine';
 import { headerMenu } from '../common/headerMenu';
 
 import { CENTER, LEFT } from 'constants/tmxConstants';

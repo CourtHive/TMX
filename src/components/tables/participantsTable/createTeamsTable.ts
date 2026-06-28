@@ -4,13 +4,13 @@
  */
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapTeamParticipant } from 'pages/tournament/tabs/participantTab/mapTeamParticipant';
-import { tournamentEngine } from 'services/factory/engine';
-import { participantConstants } from 'tods-competition-factory';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { participantConstants } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { getGroupingsColumns } from './getGroupingsColumns';
+import { tournamentEngine } from 'services/factory/engine';
 import { findAncestor } from 'services/dom/parentAndChild';
 import { teamRowFormatter } from './teamRowFormatter';
 import { displayConfig } from 'config/displayConfig';

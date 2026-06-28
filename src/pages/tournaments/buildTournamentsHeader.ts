@@ -8,9 +8,9 @@
  * shadow) for cross-page visual consistency.
  */
 
+import { TournamentsView } from 'components/tables/tournamentsTable/createTournamentsTable';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { TournamentsStatusFilter } from './tournamentsViewState';
-import { TournamentsView } from 'components/tables/tournamentsTable/createTournamentsTable';
 
 import './tournamentsHeader.css';
 

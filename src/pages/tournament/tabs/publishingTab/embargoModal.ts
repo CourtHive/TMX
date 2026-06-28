@@ -4,11 +4,11 @@
  * and attachTimePicker for time — consistent with patterns used elsewhere in TMX.
  * Local date/time is converted to GMT for storage.
  */
-import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { attachTimePicker } from 'pages/tournament/tabs/venuesTab/venueTimeHelpers';
-import { Datepicker } from 'vanillajs-datepicker';
-import { toDisplayTime } from 'components/forms/venue';
+import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { renderForm, validators } from 'courthive-components';
+import { toDisplayTime } from 'components/forms/venue';
+import { Datepicker } from 'vanillajs-datepicker';
 import { tools } from 'tods-competition-factory';
 import { t, i18next } from 'i18n';
 

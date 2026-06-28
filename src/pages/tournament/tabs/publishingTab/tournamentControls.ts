@@ -2,18 +2,18 @@
  * Tournament-level publishing controls: Participants + Order of Play.
  * Includes publish toggles, embargo buttons (open modal), and per-date OOP selection.
  */
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { getTournamentPublishData, getPublishingTableData } from './publishingData';
 import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { barButton, renderForm } from 'courthive-components';
-import { openEmbargoModal } from './embargoModal';
-import { providerConfig } from 'config/providerConfig';
-import { tournamentEngine } from 'services/factory/engine';
+import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { eventConstants, fixtures } from 'tods-competition-factory';
-import { t } from 'i18n';
+import { barButton, renderForm } from 'courthive-components';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
+import { providerConfig } from 'config/providerConfig';
+import { openEmbargoModal } from './embargoModal';
 import dayjs from 'dayjs';
+import { t } from 'i18n';
 
 import {
   PUBLISH_ORDER_OF_PLAY,
@@ -305,16 +305,16 @@ function buildOopDateChips(data: any): HTMLElement {
         ? effectiveDates.filter((d) => d !== date)
         : [...effectiveDates, date];
 
-      if (!newDates.length) {
-        mutationRequest({
-          methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
-          callback: () => renderPublishingTab(),
-        });
-      } else {
+      if (newDates.length) {
         mutationRequest({
           methods: [
             { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
           ],
+          callback: () => renderPublishingTab(),
+        });
+      } else {
+        mutationRequest({
+          methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
           callback: () => renderPublishingTab(),
         });
       }
@@ -359,12 +359,12 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
   let columnInputs: any;
 
   const partToggle = createToggle(data.participantsPublished, (checked) => {
-    if (!checked) {
-      mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
-    } else {
+    if (checked) {
       const selectedValues: string[] = columnInputs?.columns?.selectedValues || [];
       const columns = extractColumnsFromSelection(selectedValues);
       mutationRequest({ methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }], callback: () => renderPublishingTab() });
+    } else {
+      mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
     }
   });
   partRow.appendChild(partToggle);

@@ -2,12 +2,12 @@
  * Generate full mock teams with individual members.
  * Optionally uses a tieFormat to determine team size.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { fixtures } from 'tods-competition-factory';
-import { getGenerateTeamsModal } from 'courthive-components';
+import { loadUserTieFormats } from 'pages/templates/tieFormatBridge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
-import { loadUserTieFormats } from 'pages/templates/tieFormatBridge';
+import { getGenerateTeamsModal } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 const { tieFormats: builtinTieFormats } = fixtures;

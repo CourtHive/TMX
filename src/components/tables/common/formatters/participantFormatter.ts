@@ -1,7 +1,7 @@
 import { genderConstants, participantConstants } from 'tods-competition-factory';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { renderParticipant } from 'courthive-components';
 import { isFunction, isObject } from 'functions/typeOf';
-import { preferencesConfig } from 'config/preferencesConfig';
 import { scalesMap } from 'config/scalesConfig';
 
 const { MALE, FEMALE } = genderConstants;

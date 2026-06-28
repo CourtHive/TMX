@@ -3,6 +3,8 @@ import { buildDistributionPanel } from './distributionPanel';
 import { t } from 'i18n';
 
 // constants and types
+import { RunFormatWizardResult } from 'services/formatWizard';
+import { RankedPlan } from 'tods-competition-factory';
 import {
   FORMAT_WIZARD_CONSIDERATION,
   FORMAT_WIZARD_EMPTY,
@@ -11,8 +13,6 @@ import {
   FORMAT_WIZARD_PLAN_LIST,
   FORMAT_WIZARD_RIGHT_PANE,
 } from 'constants/tmxConstants';
-import { RankedPlan } from 'tods-competition-factory';
-import { RunFormatWizardResult } from 'services/formatWizard';
 
 export interface SetDataOptions {
   targetMatchesPerPlayer?: number;

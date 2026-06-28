@@ -1,11 +1,11 @@
+import { resolveCurrentPracticeDefaultCapacity } from './practiceCapacityModal.logic';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
-import { removeAllChildNodes } from 'services/dom/transformers';
-import { tournamentEngine } from 'services/factory/engine';
 import { openCategoriesEditorModal } from './categoriesEditorModal';
 import { openPracticeCapacityModal } from './practiceCapacityModal';
-import { resolveCurrentPracticeDefaultCapacity } from './practiceCapacityModal.logic';
-import { openEditDatesModal } from './editDatesModal';
 import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { tournamentEngine } from 'services/factory/engine';
+import { openEditDatesModal } from './editDatesModal';
 import { getDashboardData } from './dashboardData';
 import { context } from 'services/context';
 import { t } from 'i18n';

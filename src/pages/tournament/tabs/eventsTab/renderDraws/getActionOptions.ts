@@ -2,32 +2,32 @@
  * Action options for draw structures.
  * Provides menu options for editing, removing, and resetting draw structures.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openResolveDraft } from 'components/modals/draftResolve';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { deleteFlights } from 'components/modals/deleteFlights';
-import { resetDraws } from 'components/modals/resetDraws';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { resetDraws } from 'components/modals/resetDraws';
 import { printDraw } from 'components/modals/printDraw';
 import { removeStructure } from './removeStructure';
 import { renderDrawView } from './renderDrawView';
 import { t } from 'i18n';
 
 // constants
+import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 import {
   RESET_MATCHUP_LINEUPS,
   RESET_SCORECARD,
   SET_POSITION_ASSIGNMENTS,
   UPDATE_PARTICIPANT_RESULTS,
 } from 'constants/mutationConstants';
-import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 
 const { POLICY_TYPE_SCORING } = policyConstants;
 const { CONTAINER, MAIN } = drawDefinitionConstants;

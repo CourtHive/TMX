@@ -2,23 +2,23 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { entryStatusConstants } from 'tods-competition-factory';
+import { mountRoundProfileEditor, RoundProfileEditorController } from './roundProfileEditor';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { informModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { resolveDrawFormMode } from './drawFormModel';
+import { drawDefinitionConstants } from 'tods-competition-factory';
+import { entryStatusConstants } from 'tods-competition-factory';
 import { getDrawTypeInfoKey } from './drawTypeDescriptions';
+import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { resolveDrawFormMode } from './drawFormModel';
 import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
-import { mountRoundProfileEditor, RoundProfileEditorController } from './roundProfileEditor';
 import { generateDraw } from './generateDraw';
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

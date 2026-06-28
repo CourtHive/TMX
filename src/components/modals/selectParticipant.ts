@@ -2,11 +2,11 @@
  * Select participant modal with search and filtering.
  * Supports single/multiple selection, alternates, qualifiers, swapping, and lucky losers.
  */
-import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
+import { createSelectionTable } from 'components/tables/selection/createSelectionTable';
 import { positionActionConstants } from 'tods-competition-factory';
-import { controlBar } from 'courthive-components';
 import { closeModal, openModal } from './baseModal/baseModal';
+import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

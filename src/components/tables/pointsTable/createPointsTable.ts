@@ -7,15 +7,15 @@
  */
 import { getAvailablePolicies, getLevelDisplayLabel, PolicyOption } from './policyUtils';
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { tournamentEngine } from 'services/factory/engine';
-import { unwrapOr } from 'tods-competition-factory';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { getPointsColumns } from './getPointsColumns';
-import { controlBar } from 'courthive-components';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { context } from 'services/context';
+import { tournamentEngine } from 'services/factory/engine';
+import { getPointsColumns } from './getPointsColumns';
 import { displayConfig } from 'config/displayConfig';
+import { unwrapOr } from 'tods-competition-factory';
+import { controlBar } from 'courthive-components';
+import { context } from 'services/context';
 
 import { POINTS_VIEW, RIGHT } from 'constants/tmxConstants';
 

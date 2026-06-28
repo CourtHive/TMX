@@ -20,8 +20,8 @@ vi.stubGlobal('localStorage', {
   },
 });
 
-import { providerConfig } from 'config/providerConfig';
 import { getSelectedFontId, getCachedFontCatalog, PROVIDER_DEFAULT_FONT } from './pdfFont';
+import { providerConfig } from 'config/providerConfig';
 
 const SETTINGS_KEY = 'tmx_settings';
 const DEJAVU = 'dejavu-sans';

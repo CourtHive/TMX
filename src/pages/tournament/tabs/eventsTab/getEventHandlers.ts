@@ -2,18 +2,18 @@
  * Event handlers for draw view interactions.
  * Handles clicks on participants, scores, schedules, venues, and round headers.
  */
-import { tournamentEngine } from 'services/factory/engine';
+import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick';
 import { fixtures, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
-import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick';
 import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { InlineScoringManager } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
 
-import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 import { matchUpActions } from 'components/popovers/matchUpActions';
+import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 import { getTargetAttribute } from 'services/dom/parentAndChild';
 import { tipster } from 'components/popovers/tipster';
 

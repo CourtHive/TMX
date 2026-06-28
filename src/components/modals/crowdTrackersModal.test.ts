@@ -4,8 +4,8 @@
  * happy-dom is explicitly NOT proposed per feedback_one_dom_test_layer_per_ecosystem.md.
  */
 
-import { describe, expect, it } from 'vitest';
 import type { CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { describe, expect, it } from 'vitest';
 import {
   buildSecondaryLine,
   buildStatusMessage,

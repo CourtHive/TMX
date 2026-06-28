@@ -2,15 +2,15 @@
  * Create matchUps table with scoring and predictive accuracy.
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { fixtures, unwrapOr } from 'tods-competition-factory';
-import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
-import { headerSortElement } from '../common/sorters/headerSortElement';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { destroyTable } from 'pages/tournament/destroyTable';
-import { findAncestor } from 'services/dom/parentAndChild';
 import { startCrowdPoller, type CrowdPoller } from 'services/crowd/crowdPoller';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
+import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
+import { headerSortElement } from '../common/sorters/headerSortElement';
+import { fixtures, unwrapOr } from 'tods-competition-factory';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { destroyTable } from 'pages/tournament/destroyTable';
+import { tournamentEngine } from 'services/factory/engine';
+import { findAncestor } from 'services/dom/parentAndChild';
 import { getMatchUpColumns } from './getMatchUpColumns';
 import { getPresentRatings } from './getPresentRatings';
 import { displayConfig } from 'config/displayConfig';

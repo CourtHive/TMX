@@ -1,5 +1,5 @@
-import { tournamentEngine } from 'services/factory/engine';
 import { participantRoles } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 const { COMPETITOR } = participantRoles;
 

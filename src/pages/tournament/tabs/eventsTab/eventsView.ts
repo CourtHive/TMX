@@ -6,16 +6,16 @@
 
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
-import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
-import { renderEventsGrid } from './createEventsGrid';
-import { tournamentEngine } from 'services/factory/engine';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { readEventsViewMode, writeEventsViewMode } from './eventsViewMode';
-import { deleteEvents } from 'components/modals/deleteEvents';
-import { controlBar } from 'courthive-components';
-import { providerConfig } from 'config/providerConfig';
-import { destroyTable } from 'pages/tournament/destroyTable';
 import { setTabHeader } from 'components/tables/common/setTabHeader';
+import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
+import { deleteEvents } from 'components/modals/deleteEvents';
+import { destroyTable } from 'pages/tournament/destroyTable';
+import { tournamentEngine } from 'services/factory/engine';
+import { providerConfig } from 'config/providerConfig';
+import { renderEventsGrid } from './createEventsGrid';
+import { controlBar } from 'courthive-components';
 import { editEvent } from './editEvent';
 import { t } from 'i18n';
 

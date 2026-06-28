@@ -2,13 +2,13 @@
  * Draw form relationships and field interactions.
  * Manages form field dependencies and dynamic updates for draw creation.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants, tools } from 'tods-competition-factory';
 import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { renderOptions, validators } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { drawFormModel } from './drawFormModel';

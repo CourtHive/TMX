@@ -2,10 +2,10 @@
  * Display key actions menu for provider keys.
  * Allows entry of new keys or selection from stored provider keys.
  */
-import { renderMenu } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { stringSort } from 'functions/sorting/sorting';
 import { emitTmx } from 'services/messaging/socketIo';
+import { renderMenu } from 'courthive-components';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { t } from 'i18n';

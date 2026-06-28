@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { mapTournament } from './mapTournament';
+import { describe, expect, it } from 'vitest';
 
 const START = '2025-01-01';
 const END = '2025-01-02';

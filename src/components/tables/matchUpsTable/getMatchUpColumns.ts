@@ -4,29 +4,29 @@
  */
 import { scheduleDateFormatter, scheduleTimeFormatter } from '../common/formatters/scheduleStatusFormatter';
 import { matchUpTypeChipFormatter } from '../common/formatters/matchUpTypeChipFormatter';
-import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
+import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { makeUpdatedAtFormatter } from '../common/formatters/updatedAtFormatter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
-import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
+import { participantSorter } from '../common/sorters/participantSorter';
+import { matchUpThreeDotsFormatter } from './matchUpThreeDotsFormatter';
 import { eventFormatter } from '../common/formatters/eventsFormatter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { titleFormatter } from '../common/formatters/titleFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
-import { tournamentEngine } from 'services/factory/engine';
-import { tools } from 'tods-competition-factory';
 import { applyColumnVisibility } from '../common/columnIsVisible';
 import { handleScoreClick } from './handleMatchUpScoreClick';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
-import { matchUpThreeDotsFormatter } from './matchUpThreeDotsFormatter';
+import { tournamentEngine } from 'services/factory/engine';
 import { setMatchUpSchedule } from './setMatchUpSchedule';
 import { datePicker } from 'components/modals/datePicker';
 import { timePicker } from 'components/modals/timePicker';
 import { headerMenu } from '../common/headerMenu';
+import { tools } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 

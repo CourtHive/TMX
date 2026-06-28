@@ -18,8 +18,8 @@
  * components` directly — the in-place mutation pattern is intended
  * there (matches existing TMX behavior).
  */
-import { compositions } from 'courthive-components';
 import { getUserCompositionsSync } from 'pages/templates/compositionBridge';
+import { compositions } from 'courthive-components';
 
 export function resolveCompositionByName(name: string | undefined): any | undefined {
   if (!name) return undefined;

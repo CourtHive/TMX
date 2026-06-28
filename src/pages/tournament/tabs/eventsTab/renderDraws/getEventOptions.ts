@@ -15,11 +15,11 @@ export function getEventOptions(): { eventOptions: any[] } {
       return {
         onClick: () => {
           const result = tournamentEngine.getEventData({ eventId: event.eventId });
-          if (!result?.eventData?.drawsData?.length) {
-            navigateToEvent({ eventId: event.eventId });
-          } else {
+          if (result?.eventData?.drawsData?.length) {
             const drawId = result.eventData.drawsData?.[0]?.drawId;
             navigateToEvent({ eventId: result.eventData.eventInfo.eventId, drawId, renderDraw: true });
+          } else {
+            navigateToEvent({ eventId: event.eventId });
           }
         },
         label: event.eventName,

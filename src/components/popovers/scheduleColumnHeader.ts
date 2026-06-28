@@ -1,6 +1,6 @@
 import { renameCourt } from 'components/modals/renameCourt';
-import { tipster } from 'components/popovers/tipster';
 import { scheduleConfig } from 'config/scheduleConfig';
+import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
 
 export function setScheduleColumnHeader(e: any, column: any, courtInfo: any): void {

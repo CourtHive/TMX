@@ -1,6 +1,6 @@
-import { tournamentEngine } from 'services/factory/engine';
-import { extensionConstants } from 'tods-competition-factory';
 import { mockParticipants } from 'components/modals/mockParticipants';
+import { extensionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 

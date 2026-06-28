@@ -3,12 +3,12 @@
  * TD interface for managing draft tiers, preferences count, and entering
  * preferences on behalf of participants.
  */
+import { getTournamentScaleOptions, getParticipantScaleValues, ScaleOption } from './draftScaleOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { fixtures } from 'tods-competition-factory';
-import { getTournamentScaleOptions, getParticipantScaleValues, ScaleOption } from './draftScaleOptions';
 
 const { ratingsParameters } = fixtures;
 
@@ -86,7 +86,7 @@ function buildConfigBarHtml(params: {
       Tier 1:
       <select id="draft-sort-direction" style="${selectStyle}"${disabledAttr}>
         <option value="asc" ${currentAscending ? 'selected' : ''}>Lowest first</option>
-        <option value="desc" ${!currentAscending ? 'selected' : ''}>Highest first</option>
+        <option value="desc" ${currentAscending ? '' : 'selected'}>Highest first</option>
       </select>
     </label>
     <span id="draft-no-scales-msg" style="display: ${noScaleDisplay}; font-size: 12px; color: #e65100; font-style: italic;">No ${noScaleLabel} in tournament</span>

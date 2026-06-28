@@ -5,8 +5,8 @@
 
 import tippy, { Instance } from 'tippy.js';
 
-import type { DrawCardDisplayMode } from './drawCardDisplayMode';
 import { buildDisplayModeOptions, VizDataAvailability } from './drawCardVizGating';
+import type { DrawCardDisplayMode } from './drawCardDisplayMode';
 
 let tip: Instance | undefined;
 

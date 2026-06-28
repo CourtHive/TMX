@@ -3,6 +3,11 @@
  * venues tab anchor. Triggered by `/tournament/:id/venue/:venueId` route.
  */
 
+import { tournamentEngine } from 'services/factory/engine';
+import { context } from 'services/context';
+import { editCourt } from './editCourt';
+import { editVenue } from './editVenue';
+import { t } from 'i18n';
 import {
   buildCourtCard,
   buildVenueCard,
@@ -10,11 +15,6 @@ import {
   mapVenueToCardData,
   resolveCourtSport
 } from 'courthive-components';
-import { tournamentEngine } from 'services/factory/engine';
-import { editCourt } from './editCourt';
-import { editVenue } from './editVenue';
-import { context } from 'services/context';
-import { t } from 'i18n';
 
 import { TOURNAMENT, VENUES_TAB } from 'constants/tmxConstants';
 import './venueDetail.css';

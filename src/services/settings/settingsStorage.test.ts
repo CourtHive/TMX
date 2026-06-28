@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { hydrateConfigFromStorage, saveSettings, clearSettings } from './settingsStorage';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { featureFlags } from 'config/featureFlags';
 
 // Vitest runs in Node by default — localStorage isn't defined. Stub a simple

@@ -2,6 +2,19 @@
  * Socket.IO client for real-time communication.
  * Handles WebSocket connections, message emission, and acknowledgements.
  */
+import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
+import { showOSNotification } from 'services/notifications/osNotification';
+import { getLoginState } from 'services/authentication/loginState';
+import { getToken } from 'services/authentication/tokenManagement';
+import { processDirective } from 'services/processDirective';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tools, version } from 'tods-competition-factory';
+import { isFunction, isObject } from 'functions/typeOf';
+import { version as tmxVersion } from 'config/version';
+import { serverConfig } from 'config/serverConfig';
+import { debugConfig } from 'config/debugConfig';
+import { io } from 'socket.io-client';
+import { t } from 'i18n';
 import {
   setChatSendFn,
   setChatGapFn,
@@ -17,19 +30,6 @@ import {
   receiveAdminChatHistory,
   rejoinChatMonitorIfActive,
 } from 'services/chat/adminChatService';
-import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
-import { showOSNotification } from 'services/notifications/osNotification';
-import { getLoginState } from 'services/authentication/loginState';
-import { getToken } from 'services/authentication/tokenManagement';
-import { processDirective } from 'services/processDirective';
-import { tools, version } from 'tods-competition-factory';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { isFunction, isObject } from 'functions/typeOf';
-import { version as tmxVersion } from 'config/version';
-import { serverConfig } from 'config/serverConfig';
-import { debugConfig } from 'config/debugConfig';
-import { io } from 'socket.io-client';
-import { t } from 'i18n';
 
 // types
 import type { ServerAck } from 'types/services';

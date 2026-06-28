@@ -5,8 +5,8 @@
  * Re-runs on each fresh socket connection so a server upgrade mid-session
  * is caught after the next reconnect.
  */
-import { tmxToast } from 'services/notifications/tmxToast';
 import { version as factoryVersion } from 'tods-competition-factory';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 

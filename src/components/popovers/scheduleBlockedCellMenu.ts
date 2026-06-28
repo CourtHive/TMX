@@ -4,8 +4,8 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
-import { context } from 'services/context';
 import { RIGHT } from 'constants/tmxConstants';
+import { context } from 'services/context';
 
 export function scheduleBlockedCellMenu({
   e,

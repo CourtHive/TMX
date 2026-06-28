@@ -9,20 +9,20 @@
  * Tabulator-shaped shim that invokes a full reload after writes land in IDB.
  */
 
+import { TournamentsView } from 'components/tables/tournamentsTable/createTournamentsTable';
 import { fetchTournamentDetailsModal } from 'components/modals/fetchTournamentDetails';
+import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { importTournaments } from '../../services/storage/importTournaments';
 import { loadTournamentById } from 'components/modals/loadTournamentById';
 import { openChatMonitorModal } from 'components/modals/chatMonitorModal';
-import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
+import { getLoginState } from 'services/authentication/loginState';
 import { buildTournamentsHeader } from './buildTournamentsHeader';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
-import { getLoginState } from 'services/authentication/loginState';
+import { TournamentsSortField } from './tournamentsViewState';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { listPicker } from 'components/modals/listPicker';
 import { controlBar } from 'courthive-components';
-import { TournamentsSortField } from './tournamentsViewState';
-import { TournamentsView } from 'components/tables/tournamentsTable/createTournamentsTable';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

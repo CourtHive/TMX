@@ -10,13 +10,13 @@ import { addFlights } from 'components/modals/addFlights/addFlights';
 import { eventTabDeleteDraws } from '../common/eventTabDeleteDraws';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'courthive-components';
 import { destroyTipster } from 'components/popovers/tipster';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
-import { tournamentEngine } from 'services/factory/engine';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getDrawsColumns } from './getDrawsColumns';
+import { controlBar } from 'courthive-components';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 

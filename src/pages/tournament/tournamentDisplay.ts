@@ -2,31 +2,31 @@
  * Main tournament display router and loader.
  * Handles tournament loading, navigation, and tab rendering.
  */
-import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
-import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/renderRegistrationsTab';
-import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
-import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
-import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
-import { renderSchedule2Tab, destroySchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
 import { renderSchedulingTab, destroySchedulingTab } from 'pages/tournament/tabs/schedulingTab/schedulingTab';
+import { renderSchedule2Tab, destroySchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
+import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/renderRegistrationsTab';
+import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
+import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
+import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
+import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
+import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
+import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { clearChat } from 'services/chat/chatService';
-import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
+import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
-import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { getLoginState } from 'services/authentication/loginState';
+import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { showContent } from 'services/transitions/screenSlaver';
-import { requestTournament, removeTournament } from 'services/apis/servicesApi';
-import { tournamentEngine } from 'services/factory/engine';
 import { factoryConstants } from 'tods-competition-factory';
-import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
+import { renderFormatWizardPage } from './formatWizardPage';
+import { tournamentEngine } from 'services/factory/engine';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { clearChat } from 'services/chat/chatService';
 import { renderTopologyPage } from './topologyPage';
-import { renderFormatWizardPage } from './formatWizardPage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
@@ -34,6 +34,7 @@ import { highlightTab } from 'navigation';
 import { t } from 'i18n';
 
 // constants
+import { connectRelay, disconnectRelay, onTournamentScore } from 'services/messaging/scoreRelay';
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 import {
   joinTournamentRoom,
@@ -41,7 +42,6 @@ import {
   hadDisconnect,
   clearDisconnectFlag,
 } from 'services/messaging/socketIo';
-import { connectRelay, disconnectRelay, onTournamentScore } from 'services/messaging/scoreRelay';
 import {
   loadCrowdsourcedScores,
   markMatchUpCrowdsourced,

@@ -1,23 +1,23 @@
 import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
-import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { persistConfigToStorage, loadSettings, saveSettings } from 'services/settings/settingsStorage';
 import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
-import { tournamentEngine } from 'services/factory/engine';
-import { fixtures, factoryConstants } from 'tods-competition-factory';
+import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
+import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
+import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
-import { renderForm } from 'courthive-components';
 import { removeTournament } from 'services/apis/servicesApi';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { setActiveScale } from 'settings/setActiveScale';
 import { featureFlags } from 'config/featureFlags';
-import { tmx2db } from 'services/storage/tmx2db';
 import { serverConfig } from 'config/serverConfig';
 import { deviceConfig } from 'config/deviceConfig';
+import { renderForm } from 'courthive-components';
+import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { platform } from 'platform';
-import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
 import { i18next, t } from 'i18n';
 import {
   applyFont,

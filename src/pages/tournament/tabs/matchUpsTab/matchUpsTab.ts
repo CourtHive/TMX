@@ -3,18 +3,18 @@
  * Displays all tournament matches with search and popover-based filters for event, flight, team, status, and type.
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
-import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
-import { tournamentEngine } from 'services/factory/engine';
-import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
-import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
 import { getMatchUpStatusFilter } from 'components/tables/common/filters/matchUpStatusFilter';
 import { getMatchUpEventFilter } from 'components/tables/common/filters/matchUpEventFilter';
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
+import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getMatchUpTeamFilter } from 'components/tables/common/filters/matchUpTeamFilter';
 import { getMatchUpTypeFilter } from 'components/tables/common/filters/matchUpTypeFilter';
 import { getMatchUpDateFilter } from 'components/tables/common/filters/matchUpDateFilter';
+import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
+import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
+import { tournamentEngine } from 'services/factory/engine';
 import { setActiveScale } from 'settings/setActiveScale';
 import { controlBar } from 'courthive-components';
 import { context } from 'services/context';

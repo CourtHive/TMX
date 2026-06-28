@@ -22,7 +22,7 @@ export const numericEditor =
     function onChange() {
       let result: any = editor.value;
       if (decimals) result = parseFloat(result).toFixed(2);
-      success(!isNaN(result) ? result : undefined);
+      success(isNaN(result) ? undefined : result);
     }
 
     editor.addEventListener('keydown', (e) => {

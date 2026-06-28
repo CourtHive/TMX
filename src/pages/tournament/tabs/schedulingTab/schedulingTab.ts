@@ -19,13 +19,15 @@
  *   /tournament/:id/scheduling/:date/grid
  */
 
-import { competitionEngine } from 'services/factory/engine';
+import { renderProfileView, destroyProfileView } from '../schedule2Tab/profileView';
+import { openClearScheduleMenu } from '../schedule2Tab/clearScheduleActions';
+import { buildGridHeaderActions } from '../schedule2Tab/gridHeaderActions';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { competitionEngine } from 'services/factory/engine';
+import { buildSchedulingHeader } from './schedulingHeader';
+import { resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import { resolveScheduleDate } from '../scheduleUtils';
-import { buildSchedulingHeader } from './schedulingHeader';
-import { buildGridHeaderActions } from '../schedule2Tab/gridHeaderActions';
 import {
   renderGridView,
   destroyGridView,
@@ -39,8 +41,6 @@ import {
   setGridActiveStripVisible,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../schedule2Tab/gridView';
-import { renderProfileView, destroyProfileView } from '../schedule2Tab/profileView';
-import { openClearScheduleMenu } from '../schedule2Tab/clearScheduleActions';
 import {
   renderAvailabilityGrid,
   type AvailabilityGridInstance,

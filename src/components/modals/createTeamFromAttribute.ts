@@ -2,11 +2,11 @@
  * Create teams from participant attributes modal.
  * Groups participants by country or city and creates team participants via mutation.
  */
-import { FactoryError, unwrap } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderForm } from 'courthive-components';
+import { FactoryError, unwrap } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 

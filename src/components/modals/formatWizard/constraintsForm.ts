@@ -1,6 +1,8 @@
 import { t } from 'i18n';
 
 // constants and types
+import { ConsolationAppetite, WizardConstraints } from 'tods-competition-factory';
+import { TournamentCapacity } from 'services/formatWizard';
 import {
   FORMAT_WIZARD_APPETITE,
   FORMAT_WIZARD_CAPACITY_CUE,
@@ -16,8 +18,6 @@ import {
   FORMAT_WIZARD_TARGET_CT,
   FORMAT_WIZARD_VC_TOGGLE,
 } from 'constants/tmxConstants';
-import { ConsolationAppetite, WizardConstraints } from 'tods-competition-factory';
-import { TournamentCapacity } from 'services/formatWizard';
 
 export interface ConstraintsFormState {
   scaleName: string;

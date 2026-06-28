@@ -1,5 +1,5 @@
-import i18next from 'i18next';
 import en from './locales/en.json';
+import i18next from 'i18next';
 
 // English is the only locale bundled with the build — it gives users an
 // instant first paint without a network round-trip. All other locales are

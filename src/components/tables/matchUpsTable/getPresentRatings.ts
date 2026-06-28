@@ -1,5 +1,5 @@
-import { tournamentEngine } from 'services/factory/engine';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;

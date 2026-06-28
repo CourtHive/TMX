@@ -8,8 +8,8 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { importTournaments } from 'services/storage/importTournaments';
 import { getLoginState } from 'services/authentication/loginState';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { platform } from 'platform';
 import { context } from 'services/context';
+import { platform } from 'platform';
 
 import { ADMIN, SUPER_ADMIN } from 'constants/tmxConstants';
 

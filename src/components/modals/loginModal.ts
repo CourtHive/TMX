@@ -2,8 +2,8 @@
  * Login modal with email and password validation.
  * Authenticates user credentials and updates login state on success.
  */
-import { logIn, logOut } from 'services/authentication/loginState';
 import { systemLogin, requestMagicLink } from 'services/authentication/authApi';
+import { logIn, logOut } from 'services/authentication/loginState';
 import { firstLoginPasswordModal } from './firstLoginPassword';
 import { renderForm, validators } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';

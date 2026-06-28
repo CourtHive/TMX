@@ -17,15 +17,15 @@
  * the deep-edit case (bulk paint across many dates / venues) — the popover
  * is the in-place quick fix, not the only editor.
  */
-import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { AvailabilityEngine } from 'tods-competition-factory';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 
-import { competitionEngine } from 'services/factory/engine';
 import { executeMethods } from 'services/schedulingWorkspace/queueService';
+import { competitionEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 
-import { updateCourtDateAvailability } from './capacityPopoverLogic';
 import { MODIFY_COURT_AVAILABILITY } from 'constants/mutationConstants';
+import { updateCourtDateAvailability } from './capacityPopoverLogic';
 
 interface CapacityPopoverOpts {
   anchor: HTMLElement;

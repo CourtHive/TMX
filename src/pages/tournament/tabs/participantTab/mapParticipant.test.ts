@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { mapParticipant } from './mapParticipant';
+import { describe, expect, it } from 'vitest';
 
 const makeParticipant = (overrides: any = {}) => ({
   participantId: 'p1',

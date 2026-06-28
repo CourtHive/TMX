@@ -3,8 +3,8 @@
  * Shows tipster menu with profile view, edit, and delete actions based on participant type.
  */
 import { editGroupingParticipant } from 'pages/tournament/tabs/participantTab/editGroupingParticipant';
-import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { tmxToast } from 'services/notifications/tmxToast';

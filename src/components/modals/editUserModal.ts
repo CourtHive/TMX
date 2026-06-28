@@ -1,7 +1,7 @@
+import { tmxToast } from 'services/notifications/tmxToast';
 import { modifyUser } from 'services/apis/servicesApi';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
-import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 

@@ -5,8 +5,6 @@
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
-import { tournamentEngine } from 'services/factory/engine';
-import { genderConstants } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
@@ -15,6 +13,8 @@ import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { applyColumnVisibility } from '../common/columnIsVisible';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { tournamentEngine } from 'services/factory/engine';
+import { genderConstants } from 'tods-competition-factory';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
 import { idEditor } from '../common/editors/idEditor';

@@ -3,10 +3,10 @@
  * Shows tipster menu with options to toggle round visibility (AD_HOC)
  * and set/clear round schedule embargo (all draw types).
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { publishingGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openEmbargoModal } from '../../publishingTab/embargoModal';
+import { publishingGovernor } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
 

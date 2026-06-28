@@ -2,15 +2,15 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
+import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, fixtures, tools } from 'tods-competition-factory';
 import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
 import { providerConfig } from 'config/providerConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, fixtures, tools } from 'tods-competition-factory';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';

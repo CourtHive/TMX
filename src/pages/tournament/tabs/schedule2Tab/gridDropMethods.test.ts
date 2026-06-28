@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
-import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
 const DATE = '2026-06-21';
 const target = { courtId: 'courtT', venueId: 'venueA', courtOrder: 1, scheduledTime: '09:00' };

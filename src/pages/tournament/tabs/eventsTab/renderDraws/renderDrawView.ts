@@ -2,6 +2,41 @@
  * Draw view renderer with structure visualization.
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
+import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
+import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
+import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
+import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
+import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
+import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
+import { renderSwissChart } from 'components/tables/swissChartView/renderSwissChart';
+import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
+import { maybeRenderGenerateQualifyingBanner } from './generateQualifyingBanner';
+import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
+import { getEventControlItems } from './eventControlBar/eventControlItems';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { renderScorecard } from 'components/overlays/scorecard/scorecard';
+import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
+import { applyCrowdsourcedBadges } from './applyCrowdsourcedBadges';
+import { renderSwissGenerateButton } from './generateSwissRound';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { eventManager } from 'services/dom/events/eventManager';
+import { isAssignmentMode } from './participantAssignmentMode';
+import { destroyTables } from 'pages/tournament/destroyTable';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { tournamentEngine } from 'services/factory/engine';
+import { generateAdHocRound } from './generateAdHocRound';
+import { generateQualifying } from './generateQualifying';
+import { cleanupDrawPanel } from '../cleanupDrawPanel';
+import { getEventHandlers } from '../getEventHandlers';
+import { displayConfig } from 'config/displayConfig';
+import { drawControlBar } from './drawControlBar';
+import { scalesMap } from 'config/scalesConfig';
+import { generateMain } from './generateMain';
+import { context } from 'services/context';
+import morphdom from 'morphdom';
 import {
   buildStructureMinimap,
   compositions,
@@ -10,41 +45,6 @@ import {
   renderInlineMatchUp,
   renderStructure,
 } from 'courthive-components';
-import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
-import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
-import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
-import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
-import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
-import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
-import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
-import { renderSwissChart } from 'components/tables/swissChartView/renderSwissChart';
-import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
-import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
-import { getEventControlItems } from './eventControlBar/eventControlItems';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { renderScorecard } from 'components/overlays/scorecard/scorecard';
-import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
-import { renderSwissGenerateButton } from './generateSwissRound';
-import { removeAllChildNodes } from 'services/dom/transformers';
-import { eventManager } from 'services/dom/events/eventManager';
-import { isAssignmentMode } from './participantAssignmentMode';
-import { applyCrowdsourcedBadges } from './applyCrowdsourcedBadges';
-import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
-import { destroyTables } from 'pages/tournament/destroyTable';
-import { generateAdHocRound } from './generateAdHocRound';
-import { generateQualifying } from './generateQualifying';
-import { maybeRenderGenerateQualifyingBanner } from './generateQualifyingBanner';
-import { generateMain } from './generateMain';
-import { preferencesConfig } from 'config/preferencesConfig';
-import { cleanupDrawPanel } from '../cleanupDrawPanel';
-import { getEventHandlers } from '../getEventHandlers';
-import { drawControlBar } from './drawControlBar';
-import { displayConfig } from 'config/displayConfig';
-import { scalesMap } from 'config/scalesConfig';
-import { context } from 'services/context';
-import morphdom from 'morphdom';
-import { tournamentEngine } from 'services/factory/engine';
-import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 
 import {
   EVENT_CONTROL,

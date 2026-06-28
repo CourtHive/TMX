@@ -8,16 +8,16 @@ import { drawDefinitionConstants, entryStatusConstants, participantConstants } f
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
 import { cancelManualSeeding } from '../seeding/canceManuallSeeding';
-import { generateSeedValues } from '../seeding/generateSeedValues';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { generateSeedValues } from '../seeding/generateSeedValues';
 import { modifyEntriesStatus } from '../modifyEntriesStatus';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { changeEntryStatus } from '../changeEntryStatus';
 import { clearSeeding } from '../seeding/removeSeeding';
 import { saveSeeding } from '../seeding/saveSeeding';
+import { pairFromUnified } from './pairFromUnified';
 import { destroySelected } from '../destroyPairs';
 import { addEntries } from '../addEntries';
-import { pairFromUnified } from './pairFromUnified';
 import { addToDraw } from '../addToDraw';
 
 // Constants

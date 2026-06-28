@@ -5,7 +5,6 @@
  * in the schedule2 CSS grid. Uses tippy.js directly with custom DOM for a modern
  * pill/icon layout rather than the legacy flat menu list.
  */
-import { competitionEngine } from 'services/factory/engine';
 import { matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -14,6 +13,7 @@ import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { activateScheduleCellTypeAhead } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { destroyTipster } from 'components/popovers/tipster';
+import { competitionEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';

@@ -78,9 +78,9 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
     ? losers
         .map((l: any, i: number) => {
           const ratios = [
-            l.pointRatio != null ? `pts: ${formatRatio(l.pointRatio)}` : '',
-            l.gameRatio != null ? `gm: ${formatRatio(l.gameRatio)}` : '',
-            l.setRatio != null ? `set: ${formatRatio(l.setRatio)}` : '',
+            l.pointRatio == null ? '' : `pts: ${formatRatio(l.pointRatio)}`,
+            l.gameRatio == null ? '' : `gm: ${formatRatio(l.gameRatio)}`,
+            l.setRatio == null ? '' : `set: ${formatRatio(l.setRatio)}`,
           ]
             .filter(Boolean)
             .join('  ');

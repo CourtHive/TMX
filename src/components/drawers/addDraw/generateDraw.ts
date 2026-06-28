@@ -4,9 +4,9 @@
  */
 import { getAutoCourtImageMethod } from 'services/courtSvg/autoCourtImage';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { preferencesConfig } from 'config/preferencesConfig';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 

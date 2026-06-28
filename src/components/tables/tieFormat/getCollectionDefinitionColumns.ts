@@ -5,6 +5,7 @@
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal } from 'courthive-components';
 
+import { t } from 'i18n';
 import {
   CENTER,
   COLLECTION_VALUE,
@@ -14,7 +15,6 @@ import {
   SCORE_VALUE,
   SET_VALUE
 } from 'constants/tmxConstants';
-import { t } from 'i18n';
 
 export function getCollectionDefinitionColumns(): any[] {
   const editMatchUpFormat = (_e: Event, cell: any) => {

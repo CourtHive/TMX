@@ -10,9 +10,9 @@
  * score-relay doesn't toast every 45 seconds.
  */
 
-import { getSessionsByTournamentId } from './scoreRelayClient';
 import { isScoreRelayConfigured } from 'services/apis/scoreRelayApi';
 import { setActiveCountsFromSnapshot } from './crowdActivityIndex';
+import { getSessionsByTournamentId } from './scoreRelayClient';
 
 export interface CrowdPollerOptions {
   tournamentId: string;

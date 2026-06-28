@@ -4,10 +4,10 @@
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
-import { context } from 'services/context';
 import { deviceConfig } from 'config/deviceConfig';
-import { t } from 'i18n';
+import { context } from 'services/context';
 import tippy from 'tippy.js';
+import { t } from 'i18n';
 
 import { BOTTOM, TMX_TOURNAMENTS, TEMPLATES, POLICIES, SETTINGS } from 'constants/tmxConstants';
 

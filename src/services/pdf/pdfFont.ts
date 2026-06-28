@@ -14,13 +14,13 @@
  * See Mentat/planning/PDF_CE_FONT_SUPPORT.md (WS-3).
  */
 
-import { setDefaultFont } from 'pdf-factory';
 import type { FontDefinition } from 'pdf-factory';
+import { setDefaultFont } from 'pdf-factory';
 
-import { baseApi } from 'services/apis/baseApi';
-import { tmx2db } from 'services/storage/tmx2db';
 import { loadSettings } from 'services/settings/settingsStorage';
 import { providerConfig } from 'config/providerConfig';
+import { tmx2db } from 'services/storage/tmx2db';
+import { baseApi } from 'services/apis/baseApi';
 
 // constants and types
 export const PROVIDER_DEFAULT_FONT = '__provider_default__';

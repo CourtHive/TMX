@@ -2,13 +2,13 @@
  * Draw form items configuration.
  * Generates form field definitions for draw creation with validation and options.
  */
+import { factoryConstants, drawDefinitionConstants, eventConstants, policyConstants, fixtures } from 'tods-competition-factory';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
+import { tournamentEngine } from 'services/factory/engine';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
-import { tournamentEngine } from 'services/factory/engine';
-import { factoryConstants, drawDefinitionConstants, eventConstants, policyConstants, fixtures } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {

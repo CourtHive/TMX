@@ -6,13 +6,20 @@
  * admin-gated — works in demo mode against the local-only
  * mutation path.
  */
+import { buildRightPane, RightPaneHandle } from 'components/modals/formatWizard/rightPane';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { showFormatWizard } from 'services/transitions/screenSlaver';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   buildConstraintsForm,
   ConstraintsFormHandle,
   ConstraintsFormState,
   EventOption,
 } from 'components/modals/formatWizard/constraintsForm';
-import { buildRightPane, RightPaneHandle } from 'components/modals/formatWizard/rightPane';
 import {
   applyFormatPlan,
   buildApplyMethods,
@@ -24,15 +31,9 @@ import {
   RunFormatWizardResult,
   writeWizardState,
 } from 'services/formatWizard';
-import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { removeAllChildNodes } from 'services/dom/transformers';
-import { showFormatWizard } from 'services/transitions/screenSlaver';
-import { tournamentEngine } from 'services/factory/engine';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { context } from 'services/context';
-import { t } from 'i18n';
 
 // constants and types
+import { RankedPlan } from 'tods-competition-factory';
 import {
   FORMAT_WIZARD_BACK,
   FORMAT_WIZARD_CONTENT,
@@ -40,7 +41,6 @@ import {
   TMX_FORMAT_WIZARD,
   TOURNAMENT,
 } from 'constants/tmxConstants';
-import { RankedPlan } from 'tods-competition-factory';
 
 const PERSIST_DEBOUNCE_MS = 500;
 const ALL_SCOPE = '_all';

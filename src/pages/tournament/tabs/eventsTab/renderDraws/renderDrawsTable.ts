@@ -4,8 +4,8 @@
  * Includes ungenerated flights which are clickable to generate draws.
  * Returns the Tabulator instance for control bar integration.
  */
-import { mapDrawDefinition } from 'pages/tournament/tabs/eventsTab/mapDrawDefinition';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
+import { mapDrawDefinition } from 'pages/tournament/tabs/eventsTab/mapDrawDefinition';
 import { drawEntriesClick } from 'components/tables/eventsTable/drawEntriesClick';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';

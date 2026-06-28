@@ -3,9 +3,9 @@ import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/draw
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine } from 'services/factory/engine';
-import { navigateToEvent } from '../common/navigateToEvent';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { navigateToEvent } from '../common/navigateToEvent';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderParticipant } from 'courthive-components';
 import { scalesMap } from 'config/scalesConfig';
 

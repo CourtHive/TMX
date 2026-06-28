@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('services/context', () => ({ context: { provider: undefined } }));
 vi.mock('services/authentication/loginState', () => ({ getLoginState: vi.fn() }));
 
-import { isActiveProviderAdmin } from './isProviderAdmin';
 import { getLoginState } from 'services/authentication/loginState';
+import { isActiveProviderAdmin } from './isProviderAdmin';
 import { context } from 'services/context';
 
 import type { LoginState } from 'types/tmx';

@@ -5,8 +5,8 @@
 //
 // Plus targeted unit tests for `classifySource`, the extractors, graceful
 // degradation (single-source builds), and the cleanup invariants.
-import { describe, expect, it } from 'vitest';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { describe, expect, it } from 'vitest';
 
 import {
   classifySource,

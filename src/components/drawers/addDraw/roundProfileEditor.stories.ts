@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/html-vite';
 import { mountRoundProfileEditor, type RoundProfileEditorController } from './roundProfileEditor';
+import type { Meta, StoryObj } from '@storybook/html-vite';
 
 type StoryArgs = {
   drawSize: number;

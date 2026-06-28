@@ -2,8 +2,8 @@ import { buildApplyMethods, structureKindToDrawSpec } from './buildApplyMethods'
 import { expect, it, describe } from 'vitest';
 
 // constants and types
-import { ADD_EVENT, ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { FlightStructure, RankedPlan, StructureKind } from 'tods-competition-factory';
+import { ADD_EVENT, ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 
 const TIER_1_LABEL = 'Tier 1 of 2';
 const TIER_2_LABEL = 'Tier 2 of 2';

@@ -5,9 +5,9 @@
  */
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { openModal } from './baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { openModal } from './baseModal/baseModal';
 
 import { RESOLVE_DRAFT_POSITIONS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';

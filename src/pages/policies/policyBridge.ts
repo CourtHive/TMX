@@ -1,8 +1,8 @@
 import { fixtures, policyConstants } from 'tods-competition-factory';
-import type { PolicyCatalogItem } from 'courthive-components';
 import { POLICY_SCHEDULING } from 'assets/policies/schedulingPolicy';
 import { POLICY_SCORING } from 'assets/policies/scoringPolicy';
 import { POLICY_SEEDING } from 'assets/policies/seedingPolicy';
+import type { PolicyCatalogItem } from 'courthive-components';
 import { tmx2db } from 'services/storage/tmx2db';
 
 const { POLICY_TYPE_SCHEDULING, POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING, POLICY_TYPE_RANKING_POINTS } =

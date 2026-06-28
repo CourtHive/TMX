@@ -4,8 +4,8 @@
  */
 import { getLoginState, logOut } from 'services/authentication/loginState';
 import { contactEmailModal } from 'components/modals/contactEmail';
-import { renderMenu } from 'courthive-components';
 import { loginModal } from 'components/modals/loginModal';
+import { renderMenu } from 'courthive-components';
 
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 

@@ -2,33 +2,33 @@
  * Application initialization and setup.
  * Sets up context, environment, event listeners, and routing.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { factoryConstants, globalState } from 'tods-competition-factory';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
-import { initPdfFont } from 'services/pdf/pdfFont';
+import { factoryConstants, globalState } from 'tods-competition-factory';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
+import { loadUserCompositions } from 'pages/templates/compositionBridge';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
 import { initLoginToggle } from 'services/authentication/loginState';
-import { loadUserCompositions } from 'pages/templates/compositionBridge';
+import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
 import { courthiveComponentsVersion } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
 import { registerMenuHandler } from 'platform/menuHandler';
 import { EventEmitter } from './services/EventEmitter';
+import { initPdfFont } from 'services/pdf/pdfFont';
 import { deviceConfig } from 'config/deviceConfig';
 import { debugConfig } from 'config/debugConfig';
 import { setWindow } from 'config/setWindow';
 import { tmxNavigation } from 'navigation';
 import { context } from 'services/context';
 import { drawer } from 'components/drawer';
+import { initConfig } from 'config/config';
 import { routeTMX } from 'router/router';
 import { setDev } from 'services/setDev';
-import { initConfig } from 'config/config';
 import { version } from 'config/version';
-import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
 
 import dragMatch from 'assets/icons/dragmatch.png';
 
@@ -36,13 +36,13 @@ import 'courthive-components/dist/courthive-components.css';
 import 'vanillajs-datepicker/css/datepicker.css';
 
 // Register datepicker locales for i18n support
-import { Datepicker } from 'vanillajs-datepicker';
+import dpLocalePtBR from 'vanillajs-datepicker/locales/pt-BR';
+import dpLocaleZhCN from 'vanillajs-datepicker/locales/zh-CN';
 import dpLocaleFr from 'vanillajs-datepicker/locales/fr';
 import dpLocaleEs from 'vanillajs-datepicker/locales/es';
 import dpLocaleDe from 'vanillajs-datepicker/locales/de';
-import dpLocalePtBR from 'vanillajs-datepicker/locales/pt-BR';
 import dpLocaleAr from 'vanillajs-datepicker/locales/ar';
-import dpLocaleZhCN from 'vanillajs-datepicker/locales/zh-CN';
+import { Datepicker } from 'vanillajs-datepicker';
 Object.assign(Datepicker.locales, dpLocaleFr, dpLocaleEs, dpLocaleDe, dpLocalePtBR, dpLocaleAr, dpLocaleZhCN);
 
 // `main.css` is structure-only — no `[data-theme=*]` selectors — so `ui.theme`
@@ -75,8 +75,8 @@ import 'styles/fa.min.css';
 import 'styles/icons.css';
 import 'styles/tmx.css';
 
-import { providerConfig } from 'config/providerConfig';
 import type { TMXSettings } from 'services/settings/settingsStorage';
+import { providerConfig } from 'config/providerConfig';
 
 /**
  * Boot-time language resolution per Mentat/planning/I18N_DELIVERY.md:
@@ -95,7 +95,7 @@ function resolveBootLanguage(savedSettings: TMXSettings | null): string | undefi
   const providerDefault = providerConfig.get().defaults?.defaultLanguage;
   if (providerDefault) return providerDefault;
   if (savedSettings?.language) return savedSettings.language;
-  const navLang = typeof navigator !== 'undefined' ? navigator.language : undefined;
+  const navLang = typeof navigator === 'undefined' ? undefined : navigator.language;
   if (navLang) return navLang;
   return undefined;
 }

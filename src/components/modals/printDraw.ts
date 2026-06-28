@@ -5,9 +5,9 @@
  * (via cModal.update) rather than opening a second modal, because cModal
  * is a singleton — opening a new one would destroy the parent.
  */
-import { renderForm } from 'courthive-components';
 import { generateDrawPDF } from 'services/pdf/generators/drawGenerator';
 import { tournamentEngine } from 'services/factory/engine';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 

@@ -3,10 +3,10 @@
  * Displays all active embargoes sorted by expiry with remove buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderPublishingTab } from './renderPublishingTab';
-import { getActiveEmbargoes } from './publishingData';
-import { tournamentEngine } from 'services/factory/engine';
 import { publishingGovernor } from 'tods-competition-factory';
+import { renderPublishingTab } from './renderPublishingTab';
+import { tournamentEngine } from 'services/factory/engine';
+import { getActiveEmbargoes } from './publishingData';
 import { t } from 'i18n';
 
 // constants

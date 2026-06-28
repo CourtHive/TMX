@@ -2,6 +2,7 @@
  * Event control bar items configuration.
  * Provides search, event/draw/structure navigation, and action options.
  */
+import { drawDefinitionConstants, eventConstants, extensionConstants } from 'tods-competition-factory';
 import { editDisplaySettings } from 'components/modals/displaySettings/editDisplaySettings';
 import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
 import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
@@ -9,15 +10,14 @@ import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { getStructureOptions } from '../getStructureOptions';
+import { tournamentEngine } from 'services/factory/engine';
 import { editMatchUpFormat } from '../editMatchUpFormat';
 import { getActionOptions } from '../getActionOptions';
 import { getDrawsOptions } from '../getDrawsOptions';
+import { displayConfig } from 'config/displayConfig';
 import { compositions } from 'courthive-components';
 import { renderDrawView } from '../renderDrawView';
-import { displayConfig } from 'config/displayConfig';
 import { t } from 'i18n';
-import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants, eventConstants, extensionConstants } from 'tods-competition-factory';
 
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { LEFT, RIGHT } from 'constants/tmxConstants';

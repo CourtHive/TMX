@@ -6,13 +6,13 @@
  * resolved from provider defaults + tournament overrides + modal-runtime
  * tweaks. See Mentat/planning/PRINT_DISPATCHER_SCHEDULE_BRANCH.md.
  */
-import { competitionEngine } from 'services/factory/engine';
-import { executePrint, resolveCompositionConfig } from 'pdf-factory';
 import type { PrintCompositionConfig as PrintComposition } from 'courthive-components';
-import { providerConfig } from 'config/providerConfig';
+import { executePrint, resolveCompositionConfig } from 'pdf-factory';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
-import { openModal } from './baseModal/baseModal';
+import { competitionEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { providerConfig } from 'config/providerConfig';
+import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 
 interface PrintScheduleOptions {

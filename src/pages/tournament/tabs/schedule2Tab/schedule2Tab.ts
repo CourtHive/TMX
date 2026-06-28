@@ -11,17 +11,17 @@
  *   /#/tournament/:id/schedule2/:date/grid      → Grid view
  *   /#/tournament/:id/schedule2/:date/profile   → Profile view
  */
-import { competitionEngine } from 'services/factory/engine';
 import { getScheduleDateRange, resolveScheduleDate } from '../scheduleUtils';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
-import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
-import { buildSchedule2Header } from './schedule2Header';
-import { buildGridHeaderActions } from './gridHeaderActions';
 import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, getUnsavedGridChangeCount, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
+import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
+import { buildGridHeaderActions } from './gridHeaderActions';
+import { buildSchedule2Header } from './schedule2Header';
 import {
   syncTournamentContext,
   invalidateAllScheduleCaches,

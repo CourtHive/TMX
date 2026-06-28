@@ -2,14 +2,14 @@
  * Add ad-hoc round modal with automated drawMatic or manual generation.
  * Creates new round with optional dynamic ratings and participant selection.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { positionActionConstants, entryStatusConstants, drawDefinitionConstants, fixtures, factoryConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
-import { renderForm } from 'courthive-components';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { tournamentEngine } from 'services/factory/engine';
 import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
-import { preferencesConfig } from 'config/preferencesConfig';
+import { renderForm } from 'courthive-components';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { pickThreeDotsClassName } from './matchUpThreeDotsFormatter';
+import { describe, expect, it } from 'vitest';
 
 const BASE = 'fa fa-ellipsis-vertical';
 const GLOW = `${BASE} three-dot-glow`;

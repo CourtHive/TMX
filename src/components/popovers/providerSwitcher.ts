@@ -12,6 +12,11 @@
  * Refreshes the tournaments table after a switch so the calendar reflects
  * the new context.provider.
  */
+import { selectProviderModal } from 'components/modals/selectProviderModal';
+import { getLoginState } from 'services/authentication/loginState';
+import { context } from 'services/context';
+import { tipster } from './tipster';
+import { t } from 'i18n';
 import {
   setActiveProvider,
   clearActiveProvider,
@@ -19,11 +24,6 @@ import {
   getProviderAssociations,
   getProvisionerProviders,
 } from 'services/provider/providerState';
-import { selectProviderModal } from 'components/modals/selectProviderModal';
-import { getLoginState } from 'services/authentication/loginState';
-import { context } from 'services/context';
-import { tipster } from './tipster';
-import { t } from 'i18n';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 

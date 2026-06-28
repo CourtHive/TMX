@@ -2,8 +2,8 @@
  * Column definitions for the event ranking points table.
  * Participant column uses renderParticipant for city/state and active rating display.
  */
-import { renderParticipant } from 'courthive-components';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { renderParticipant } from 'courthive-components';
 import { scalesMap } from 'config/scalesConfig';
 
 export function getPointsColumns(): any[] {

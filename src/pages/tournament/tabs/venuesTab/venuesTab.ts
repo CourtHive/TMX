@@ -14,13 +14,13 @@
 import { renderAvailabilityGrid, AvailabilityGridInstance } from './renderAvailabilityGrid';
 import { readVenuesViewMode, VenuesViewMode, writeVenuesViewMode } from './venuesViewMode';
 import { createVenuesTable } from 'components/tables/venuesTable/createVenuesTable';
-import { renderVenuesGrid, readVenueCardData } from './createVenuesGrid';
-import { showCourtAvailabilityModal } from 'courthive-components';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
+import { renderVenuesGrid, readVenueCardData } from './createVenuesGrid';
+import { setTabHeader } from 'components/tables/common/setTabHeader';
+import { showCourtAvailabilityModal } from 'courthive-components';
+import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderVenueDetail } from './renderVenueDetail';
-import { setTabHeader } from 'components/tables/common/setTabHeader';
-import { destroyTable } from 'pages/tournament/destroyTable';
 import { venueControl } from './venueControl';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';

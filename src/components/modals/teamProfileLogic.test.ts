@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { jerseySorter, parseJersey, splitMembership } from './teamProfileLogic';
+import { describe, expect, it } from 'vitest';
 
 // ── Fixture helpers ──
 

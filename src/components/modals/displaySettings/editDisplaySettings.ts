@@ -1,13 +1,13 @@
-import { tournamentEngine } from 'services/factory/engine';
-import { mocksEngine, queryGovernor, tools, extensionConstants } from 'tods-competition-factory';
-import { compositions, renderMatchUp, renderForm } from 'courthive-components';
-import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { getUserCompositionsSync, loadUserCompositions } from 'pages/templates/compositionBridge';
+import { mocksEngine, queryGovernor, tools, extensionConstants } from 'tods-competition-factory';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { compositions, renderMatchUp, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
-import { isFunction } from 'functions/typeOf';
+import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
+import { isFunction } from 'functions/typeOf';
 
 // constants
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';

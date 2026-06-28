@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { acceptedEntryStatuses } from './acceptedEntryStatuses';
+import { describe, expect, it } from 'vitest';
 
 describe('acceptedEntryStatuses', () => {
   it('returns 8 statuses matching factory STRUCTURE_SELECTED_STATUSES', () => {

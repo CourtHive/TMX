@@ -1,25 +1,25 @@
+import { ssoLoginWithToken, consumeMagicLink } from 'services/authentication/authApi';
+import { renderPolicyCatalogPage } from 'pages/policies/renderPolicyCatalogPage';
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
 import { registrationModal } from 'components/modals/registrationModal';
-import { ssoLoginWithToken, consumeMagicLink } from 'services/authentication/authApi';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { t } from 'i18n';
 import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
-import { renderPolicyCatalogPage } from 'pages/policies/renderPolicyCatalogPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
 import { displayTournament } from 'pages/tournament/tournamentDisplay';
+import { logIn, logOut } from 'services/authentication/loginState';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { logIn, logOut } from 'services/authentication/loginState';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { context } from 'services/context';
+import Navigo from 'navigo';
+import { t } from 'i18n';
 import {
   forceExitAssignmentMode,
   isAssignmentMode,
 } from 'pages/tournament/tabs/eventsTab/renderDraws/participantAssignmentMode';
-import { context } from 'services/context';
-import Navigo from 'navigo';
 
 import {
   DRAW,

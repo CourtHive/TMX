@@ -14,8 +14,8 @@
  * the full record. While stale, `isStale()` is true and mutations are blocked
  * (see mutationRequest) so a director can't act on stale data.
  */
-import { markStaleNeedsRefresh, isSyncStale } from 'services/messaging/remoteMutations';
 import { hadDisconnect, clearDisconnectFlag, onSocketReconnect } from 'services/messaging/socketIo';
+import { markStaleNeedsRefresh, isSyncStale } from 'services/messaging/remoteMutations';
 import { requestTournamentUpdatedAt } from 'services/apis/servicesApi';
 import { getLoginState } from 'services/authentication/loginState';
 import { tournamentEngine } from 'services/factory/engine';

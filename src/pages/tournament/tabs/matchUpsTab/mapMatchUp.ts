@@ -2,8 +2,8 @@
  * Map matchUp data for table display.
  * Transforms matchUp objects into table-ready format with participant details.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { eventConstants, factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { normalizeDiacritics } from 'normalize-text';
 
 const { TEAM } = eventConstants;

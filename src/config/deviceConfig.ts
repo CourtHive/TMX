@@ -16,7 +16,7 @@ export interface DeviceConfig {
 }
 
 function detect(): DeviceConfig {
-  const nav = typeof navigator !== 'undefined' ? navigator : undefined;
+  const nav = typeof navigator === 'undefined' ? undefined : navigator;
   const ua = nav?.userAgent ?? '';
 
   return {

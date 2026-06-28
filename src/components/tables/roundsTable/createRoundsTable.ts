@@ -5,17 +5,17 @@
 import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/eventControlBar';
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
-import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { roundGroupingHeader } from './roundGroupingHeader';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { tournamentEngine } from 'services/factory/engine';
 import { getRoundsColumns } from './getRoundsColumns';
-import { mapRound } from './mapRound';
 import { displayConfig } from 'config/displayConfig';
+import { mapRound } from './mapRound';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_TABLE } from 'constants/tmxConstants';

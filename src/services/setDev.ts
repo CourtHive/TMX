@@ -2,13 +2,13 @@
  * Development mode utilities and debugging tools.
  * Exposes factory methods and utilities on globalThis.dev for debugging.
  */
+import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
+import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
-import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
-import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
-import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
+import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { buildFromSources } from '../dev/cfsToTournamentRecord.mjs';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
@@ -17,13 +17,13 @@ import { getLoginState } from './authentication/loginState';
 import { providerConfig } from 'config/providerConfig';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
-import { tmx2db } from 'services/storage/tmx2db';
 import { serverConfig } from 'config/serverConfig';
+import { tmx2db } from 'services/storage/tmx2db';
 import { isObject } from 'functions/typeOf';
 import { context } from 'services/context';
 import { env } from 'settings/env';
-import { t } from 'i18n';
 import dayjs from 'dayjs';
+import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT } from 'constants/tmxConstants';

@@ -10,9 +10,9 @@
  * devices and browser-cache clears. See
  * Mentat/planning/MULTI_PROVIDER_SESSION_CONTEXT.md.
  */
-import { providerConfig } from 'config/providerConfig';
-import { ensurePdfFontReady } from 'services/pdf/pdfFont';
 import { getLoginState } from 'services/authentication/loginState';
+import { ensurePdfFontReady } from 'services/pdf/pdfFont';
+import { providerConfig } from 'config/providerConfig';
 import { baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
 

@@ -1,5 +1,5 @@
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildApplyMethods, DrawSpec, UnsupportedFlight } from './buildApplyMethods';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 
 // constants and types
 import { RankedPlan } from 'tods-competition-factory';

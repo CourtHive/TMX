@@ -2,11 +2,11 @@
  * Add participants to events with entry status configuration.
  * Filters out participants already in the event and prompts for entry status/stage.
  */
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { addToEvent } from 'components/modals/addToEvent';
-import { closeModal } from 'components/modals/baseModal/baseModal';
-import { isFunction } from 'functions/typeOf';
 import { invalidParticipantsModal } from 'components/modals/invalidParticipantsModal';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { closeModal } from 'components/modals/baseModal/baseModal';
+import { addToEvent } from 'components/modals/addToEvent';
+import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
 import { ADD_EVENT_ENTRIES } from 'constants/mutationConstants';

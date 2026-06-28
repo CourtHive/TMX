@@ -6,13 +6,13 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { formatParticipant } from '../../common/formatters/participantFormatter';
 import { flightsFormatter } from '../../common/formatters/flightsFormatter';
 import { teamsFormatter } from '../../common/formatters/teamsFormatter';
-import { applyColumnVisibility } from '../../common/columnIsVisible';
 import { createGroupedSorter, SEGMENT_LABELS } from './segmentSorter';
+import { applyColumnVisibility } from '../../common/columnIsVisible';
 import { numericEditor } from '../../common/editors/numericEditor';
 import { getRatingColumns } from '../../common/getRatingColumns';
 import { cellBorder } from '../../common/formatters/cellBorder';
-import { navigateToEvent } from '../../common/navigateToEvent';
 import { entryStatusConstants } from 'tods-competition-factory';
+import { navigateToEvent } from '../../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { headerMenu } from '../../common/headerMenu';

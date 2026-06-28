@@ -2,14 +2,14 @@
  * Get structure options menu for draw navigation.
  * Provides options to navigate structures, edit names, and add qualifying/playoffs/consolation.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { tools, drawDefinitionConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { tools, drawDefinitionConstants } from 'tods-competition-factory';
 import { editStructureNames } from 'components/modals/editStructureNames';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { editGroupNames } from 'components/modals/editGroupNames';
 import { addStructures } from 'components/modals/addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderDrawView } from './renderDrawView';
 
 // Constants

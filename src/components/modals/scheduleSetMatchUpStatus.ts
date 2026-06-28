@@ -1,5 +1,5 @@
-import { t } from 'i18n';
 import { listPicker } from './listPicker';
+import { t } from 'i18n';
 
 export function scheduleSetMatchUpStatus({ callback }: { callback?: (result: any) => void }): void {
   const options = [

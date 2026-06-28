@@ -3,14 +3,14 @@
  * Handles draw creation, qualifying structures, and tie format configuration.
  */
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
+import type { RoundProfileEditorController } from './roundProfileEditor';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
 import { validators } from 'courthive-components';
-import type { RoundProfileEditorController } from './roundProfileEditor';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
-import { tournamentEngine } from 'services/factory/engine';
 import {
   drawDefinitionConstants,
   entryStatusConstants,

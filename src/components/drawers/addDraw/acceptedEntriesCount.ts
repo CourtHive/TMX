@@ -1,6 +1,6 @@
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
-import { tournamentEngine } from 'services/factory/engine';
 import { factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 const { MAIN } = factoryConstants.drawDefinitionConstants;
 

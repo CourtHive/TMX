@@ -3,24 +3,24 @@
  * Standard view for event entries. The legacy 5-panel approach remains
  * available behind the `legacyEntriesTable` setting as a power-user fallback.
  */
+import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../../common/sorters/headerSortElement';
 import { addFlights } from 'components/modals/addFlights/addFlights';
 import { mapEntry } from 'pages/tournament/tabs/eventsTab/mapEntry';
-import { removeAllChildNodes } from 'services/dom/transformers';
 import { getOverlayItems, getRightItems } from './segmentOverlay';
+import { controlBar, dropDownButton } from 'courthive-components';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { tournamentEngine } from 'services/factory/engine';
 import { getUnifiedColumns } from './unifiedColumns';
 import { pairFromUnified } from './pairFromUnified';
-import { controlBar, dropDownButton } from 'courthive-components';
-import { isFunction } from 'functions/typeOf';
 import type { SortState } from './segmentSorter';
+import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 
 // constants
 import {

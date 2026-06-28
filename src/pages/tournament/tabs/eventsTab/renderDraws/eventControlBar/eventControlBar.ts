@@ -3,8 +3,8 @@
  * Renders control bar with search and actions for event draw views.
  */
 import { tournamentEngine } from 'services/factory/engine';
-import { controlBar } from 'courthive-components';
 import { getEventControlItems } from './eventControlItems';
+import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 
 import { EVENT_CONTROL } from 'constants/tmxConstants';

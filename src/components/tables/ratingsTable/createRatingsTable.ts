@@ -5,12 +5,12 @@
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { renderMatchUp, compositions } from 'courthive-components';
+import { scaleEngine, fixtures } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine } from 'services/factory/engine';
-import { scaleEngine, fixtures } from 'tods-competition-factory';
-import { renderMatchUp, compositions } from 'courthive-components';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
 import { scalesMap } from 'config/scalesConfig';
 import tippy, { type Instance } from 'tippy.js';
@@ -414,7 +414,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
 
   const ratingFormatter = (cell: any) => {
     const val = cell.getValue();
-    return val != null ? val.toFixed(2) : '-';
+    return val == null ? '-' : val.toFixed(2);
   };
 
   const columns: any[] = [

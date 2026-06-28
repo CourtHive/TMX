@@ -8,15 +8,15 @@
  * is already valid for the tournament.
  */
 import { collectAvailableScales } from 'components/charts/participantScalings';
+import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { setActiveScale } from 'settings/setActiveScale';
 import { env } from 'settings/env';
 
-import { decideActiveScaleSwitch } from './decideActiveScaleSwitch';
 import { markRatingPromptDismissed, wasRatingPromptDismissed } from './ratingPromptStorage';
+import { decideActiveScaleSwitch } from './decideActiveScaleSwitch';
 
 interface ModalButton {
   label: string;

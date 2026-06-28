@@ -3,8 +3,8 @@
  * Removes matchUps based on completion status (empty, unscored, completed).
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { renderForm } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
+import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { describeRecoveryDeferred, describeDependencyDeferred } from './scheduleResultsDescribe';
+import { describe, expect, it } from 'vitest';
 
 const SMITH_VS_JONES = 'Smith vs Jones';
 

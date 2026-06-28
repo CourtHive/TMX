@@ -2,13 +2,13 @@
  * Add Round Robin playoff structures modal.
  * Configures playoff groups with finishing positions, draw type, and group size options.
  */
-import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { renderForm } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { renderForm } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 

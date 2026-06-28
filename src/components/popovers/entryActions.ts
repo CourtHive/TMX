@@ -2,9 +2,9 @@
  * Entry actions popover for participant status changes.
  * Provides options to move entries between accepted, qualifying, alternates, or withdrawn status.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { modifyEntriesStatus } from '../tables/eventsTable/modifyEntriesStatus';
+import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { context } from 'services/context';
 

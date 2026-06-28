@@ -1,7 +1,7 @@
+import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapVenue } from 'pages/tournament/tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { AvailabilityEngine } from 'tods-competition-factory';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
@@ -46,7 +46,9 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
 
   const columns = getVenuesColumns(nestedTables);
 
-  if (!table) {
+  if (table) {
+    replaceTableData();
+  } else {
     destroyTable({ anchorId: TOURNAMENT_VENUES });
     const element = document.getElementById(TOURNAMENT_VENUES);
     const { rows: data } = getTableData();
@@ -78,8 +80,6 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
       const value = cell.getValue();
       console.log({ cell, row, value, def });
     });
-  } else {
-    replaceTableData();
   }
 
   return { table, replaceTableData };

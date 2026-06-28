@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getSupportedTimeZones, isValidTimeZone } from './getSupportedTimeZones';
+import { describe, expect, it } from 'vitest';
 
 describe('getSupportedTimeZones', () => {
   it('returns a non-empty, alphabetically-sorted array', () => {

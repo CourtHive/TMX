@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { scoreSorter } from './scoreSorter';
-import { participantSorter } from './participantSorter';
-import { percentSorter } from './percentSorter';
-import { orderSorter } from './orderSorter';
 import { competitiveProfileSorter } from './competitiveProfileSorter';
 import { getConfidenceBand, confidenceBands } from './ratingSorter';
+import { participantSorter } from './participantSorter';
+import { percentSorter } from './percentSorter';
+import { describe, expect, it } from 'vitest';
+import { scoreSorter } from './scoreSorter';
+import { orderSorter } from './orderSorter';
 
 describe('scoreSorter', () => {
   it('scored matchups sort before unscored', () => {

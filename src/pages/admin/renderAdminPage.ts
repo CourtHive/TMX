@@ -1,7 +1,7 @@
 import { ensureSettingsStyles } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderAdminGrid } from 'pages/tournament/tabs/settingsTab/adminGrid';
-import { removeAllChildNodes } from 'services/dom/transformers';
 import { showTMXadmin } from 'services/transitions/screenSlaver';
+import { removeAllChildNodes } from 'services/dom/transformers';
 import { TMX_ADMIN } from 'constants/tmxConstants';
 
 export function renderAdminPage(): void {

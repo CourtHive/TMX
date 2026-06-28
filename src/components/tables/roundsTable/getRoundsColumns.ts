@@ -2,16 +2,16 @@
  * Column definitions for rounds table.
  * Displays match schedule, participants, scores, and completion status.
  */
-import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
+import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { formatParticipant } from '../common/formatters/participantFormatter';
-import { participantSorter } from '../common/sorters/participantSorter';
 import { profileFormatter } from '../common/formatters/profileFormatter';
+import { participantSorter } from '../common/sorters/participantSorter';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { handleScoreClick } from './handleMatchUpScoreClick';
-import { tournamentEngine } from 'services/factory/engine';
 import { scoreSorter } from '../common/sorters/scoreSorter';
+import { tournamentEngine } from 'services/factory/engine';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 import { context } from 'services/context';

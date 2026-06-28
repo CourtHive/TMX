@@ -1,5 +1,5 @@
-import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 // Constants
 const { SWISS } = drawDefinitionConstants;

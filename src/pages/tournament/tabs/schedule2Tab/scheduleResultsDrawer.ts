@@ -11,8 +11,8 @@
  * draw so they can inspect or remediate.
  */
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import {
   describeOverLimitAttempts,
   describeRecoveryDeferred,

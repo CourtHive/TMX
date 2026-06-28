@@ -6,6 +6,7 @@
  * Flow: TD selects participants → OVERLAY sets entry status (Accepted/Alternate/Clear)
  * → chips appear in table → Generate when ≥2 accepted.
  */
+import { drawDefinitionConstants, entryStatusConstants, factoryConstants, fixtures, tools } from 'tods-competition-factory';
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal, controlBar } from 'courthive-components';
@@ -13,11 +14,10 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { logMutationError } from 'functions/logMutationError';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import { tournamentEngine } from 'services/factory/engine';
-import { drawDefinitionConstants, entryStatusConstants, factoryConstants, fixtures, tools } from 'tods-competition-factory';
 
 // constants
 import { DRAWS_VIEW, LEFT, OVERLAY, RIGHT } from 'constants/tmxConstants';

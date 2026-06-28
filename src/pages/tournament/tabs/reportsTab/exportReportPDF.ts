@@ -1,6 +1,6 @@
-import { generateReportPDF } from 'pdf-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { openPDF } from 'services/pdf/export/pdfExport';
+import { generateReportPDF } from 'pdf-factory';
 
 // ID fields that should not appear in printed PDFs — only names
 const HIDDEN_PDF_FIELDS = ['participantId', 'eventId', 'drawId', 'structureId'];

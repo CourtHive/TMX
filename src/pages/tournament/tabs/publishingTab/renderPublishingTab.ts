@@ -13,8 +13,8 @@ import { renderPublishingTable } from './publishingTable';
 import { renderEmbargoSummary } from './embargoSummary';
 import { renderQRimage, getQRuri } from 'services/qrFx';
 import { downloadURI } from 'services/export/download';
-import { context } from 'services/context';
 import { featureFlags } from 'config/featureFlags';
+import { context } from 'services/context';
 import { t } from 'i18n';
 
 import { TOURNAMENT_PUBLISHING } from 'constants/tmxConstants';

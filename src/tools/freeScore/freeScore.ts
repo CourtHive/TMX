@@ -574,9 +574,9 @@ function generateTimedSetSuggestions(
 function formatTimedSets(sets: ParsedSet[]): string {
   return sets
     .map((s) =>
-      s.side1TiebreakScore !== undefined
-        ? `${s.side1TiebreakScore}-${s.side2TiebreakScore}`
-        : `${s.side1Score}-${s.side2Score}`,
+      s.side1TiebreakScore === undefined
+        ? `${s.side1Score}-${s.side2Score}`
+        : `${s.side1TiebreakScore}-${s.side2TiebreakScore}`,
     )
     .join(' ');
 }

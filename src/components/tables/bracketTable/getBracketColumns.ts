@@ -1,8 +1,8 @@
+import { applyColumnVisibility, saveColumnVisibility } from '../common/columnIsVisible';
 import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { groupOrderAction } from '../statsTable/groupOrderAction';
 import { bracketScoreFormatter } from './bracketScoreFormatter';
-import { applyColumnVisibility, saveColumnVisibility } from '../common/columnIsVisible';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
 

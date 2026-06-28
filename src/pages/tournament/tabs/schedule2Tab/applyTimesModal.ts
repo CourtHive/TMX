@@ -127,19 +127,19 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
       'color: var(--tmx-color-primary)',
       'cursor: pointer',
     ].join('; ');
-    if (!choices.length) {
+    if (choices.length) {
+      appendChoiceGroup(select, 'Built-in', choices, 'builtin', selectedId);
+      appendChoiceGroup(select, 'Saved', choices, 'user', selectedId);
+      select.addEventListener('change', () => {
+        selectedId = select.value;
+      });
+    } else {
       const opt = document.createElement('option');
       opt.textContent = 'No scheduling policies available';
       opt.disabled = true;
       opt.selected = true;
       select.appendChild(opt);
       select.disabled = true;
-    } else {
-      appendChoiceGroup(select, 'Built-in', choices, 'builtin', selectedId);
-      appendChoiceGroup(select, 'Saved', choices, 'user', selectedId);
-      select.addEventListener('change', () => {
-        selectedId = select.value;
-      });
     }
     fieldRow.appendChild(fieldLabel);
     fieldRow.appendChild(select);

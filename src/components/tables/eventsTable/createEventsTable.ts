@@ -8,8 +8,8 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
-import { getEventColumns } from './getEventColumns';
 import { displayConfig } from 'config/displayConfig';
+import { getEventColumns } from './getEventColumns';
 
 // constants
 import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';

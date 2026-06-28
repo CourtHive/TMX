@@ -6,6 +6,7 @@
  * back to no-viz behaviour in that case.
  */
 
+import { computeRatingDistributionStats, fixtures } from 'tods-competition-factory';
 import {
   aggregateCompetitiveness,
   buildCompetitivenessDonut,
@@ -13,7 +14,6 @@ import {
   burstChart,
   fromFactoryDrawData,
 } from 'courthive-components';
-import { computeRatingDistributionStats, fixtures } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
 
@@ -44,7 +44,7 @@ function unwrapScaleValue(raw: any, accessor: string | undefined): any {
   // emits `{ wtnRating, confidence }` and similar; the first numeric field is
   // always the rating itself.
   const numeric = Object.values(raw).find((v) => typeof v === 'number');
-  return numeric !== undefined ? numeric : raw;
+  return numeric === undefined ? raw : numeric;
 }
 
 function extractRatingFromParticipant(participant: any, scaleKey: string, accessor: string | undefined): number | null {

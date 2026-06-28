@@ -7,16 +7,18 @@ import { openAssistantPanel, checkAssistantHealth } from 'components/panels/assi
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
-import { tournamentEngine } from 'services/factory/engine';
 import { openChatModal } from 'components/modals/chatModal';
+import { tournamentEngine } from 'services/factory/engine';
 import { providerConfig } from 'config/providerConfig';
 import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
-import { t } from 'i18n';
 import tippy from 'tippy.js';
+import { t } from 'i18n';
 
 // constants
+import { canManageRegistrations } from 'pages/tournament/tabs/registrationsTab/canManageRegistrations';
+import { getLoginState } from 'services/authentication/loginState';
 import {
   BOTTOM,
   EVENTS_TAB,
@@ -31,8 +33,6 @@ import {
   VENUES_TAB,
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
-import { canManageRegistrations } from 'pages/tournament/tabs/registrationsTab/canManageRegistrations';
-import { getLoginState } from 'services/authentication/loginState';
 
 const ACCENT_BLUE = 'var(--tmx-accent-blue)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';

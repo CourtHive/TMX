@@ -1,7 +1,7 @@
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { tournamentEngine } from 'services/factory/engine';
 import { destroyTable } from 'pages/tournament/destroyTable';
+import { tournamentEngine } from 'services/factory/engine';
 
 import { TOURNAMENT_REPORTS } from 'constants/tmxConstants';
 

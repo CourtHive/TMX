@@ -6,11 +6,11 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapParticipantResults } from './mapParticiapantResults';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
-import { tournamentEngine } from 'services/factory/engine';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { orderSorter } from '../common/sorters/orderSorter';
-import { getStatsColumns } from './getStatsColumns';
+import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
+import { getStatsColumns } from './getStatsColumns';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';

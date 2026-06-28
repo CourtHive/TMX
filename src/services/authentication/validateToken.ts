@@ -1,7 +1,7 @@
 import { getRefreshToken, removeToken } from './tokenManagement';
+import { attemptSilentRefresh, logOut } from './loginState';
 import { setDev } from 'services/setDev';
 import { jwtDecode } from 'jwt-decode';
-import { attemptSilentRefresh, logOut } from './loginState';
 
 import type { LoginState } from 'types/tmx';
 

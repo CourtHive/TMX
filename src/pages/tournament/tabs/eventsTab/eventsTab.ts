@@ -5,23 +5,23 @@
  * 3. Tab content (draw view, entries panels, points table, or add-draw placeholder)
  */
 import { createUnifiedEntriesPanel } from 'components/tables/eventsTable/unified/createUnifiedEntriesPanel';
+import { readDrawCardDisplayMode, writeDrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
+import { renderDrawsGrid, readEventDrawsAvailability } from './renderDraws/renderDrawsGrid';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createPointsTable } from 'components/tables/pointsTable/createPointsTable';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
+import { readDrawsViewMode, writeDrawsViewMode } from './renderDraws/drawsViewMode';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
+import { openDisplayOptionsPopover } from './renderDraws/displayOptionsPopover';
 import { renderEventTabsBar, renderNoDrawsPlaceholder } from './eventTabsBar';
+import type { DrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
+import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
-import { renderDrawsGrid, readEventDrawsAvailability } from './renderDraws/renderDrawsGrid';
-import { readDrawsViewMode, writeDrawsViewMode } from './renderDraws/drawsViewMode';
-import { readDrawCardDisplayMode, writeDrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
-import type { DrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
-import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
-import { openDisplayOptionsPopover } from './renderDraws/displayOptionsPopover';
-import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
@@ -33,8 +33,8 @@ import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
 // constants
-import { tournamentEngine } from 'services/factory/engine';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { controlBar } from 'courthive-components';
 import {
   DRAWS_HEADER,

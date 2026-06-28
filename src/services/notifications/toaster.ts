@@ -108,7 +108,7 @@ function createToast(options: ToastOptions): { element: HTMLElement } {
   }
 
   element.style.cssText = `display:inline-flex;width:auto;pointer-events:auto;white-space:pre-wrap;opacity:${options.opacity};${
-    !options.dismissible ? 'padding: 1.25rem, 1.5rem;' : ''
+    options.dismissible ? '' : 'padding: 1.25rem, 1.5rem;'
   }`;
 
   const classes = ['notification'];

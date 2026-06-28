@@ -96,7 +96,7 @@ function extractCellValue(cell: SheetCell | undefined): string {
   // Google's gviz returns dates as a serialized "Date(y,m,d)" literal — prefer
   // the formatted value when present so the cell shows the user's display form.
   if (isString(cell.v) && DATE_VALUE_PATTERN.test(cell.v)) {
-    return cell.f != null ? String(cell.f) : String(cell.v);
+    return cell.f == null ? String(cell.v) : String(cell.f);
   }
   return String(cell.v);
 }

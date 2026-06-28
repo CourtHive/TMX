@@ -11,6 +11,10 @@
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar } from 'courthive-components';
 
+import { filterEntriesByValue, type FilterValue } from './buildRegistrationStatusFilter';
+import { createRegistrationsTable } from './createRegistrationsTable';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { context } from 'services/context';
 import {
   type RegistrationEntry,
   type RegistrationStatus,
@@ -20,10 +24,6 @@ import {
   rejectRegistration,
   waitlistRegistration,
 } from 'services/apis/registrationsApi';
-import { createRegistrationsTable } from './createRegistrationsTable';
-import { filterEntriesByValue, type FilterValue } from './buildRegistrationStatusFilter';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { context } from 'services/context';
 
 import { LEFT, REGISTRATIONS_CONTROL, RIGHT, TOURNAMENT_REGISTRATIONS } from 'constants/tmxConstants';
 

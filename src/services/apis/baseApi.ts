@@ -1,7 +1,7 @@
 import { getJwtTokenStorageKey, getRefreshTokenStorageKey } from 'config/localStorage';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { t } from 'i18n';
 import axios from 'axios';
+import { t } from 'i18n';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
 const REFRESH_TOKEN_STORAGE_NAME = getRefreshTokenStorageKey();

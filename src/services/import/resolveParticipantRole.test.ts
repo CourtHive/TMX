@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { resolveParticipantRole } from './resolveParticipantRole';
+import { describe, expect, it } from 'vitest';
 
 describe('resolveParticipantRole', () => {
   it('returns the default with matched=false for empty / whitespace / nullish input', () => {

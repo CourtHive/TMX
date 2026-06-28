@@ -30,11 +30,11 @@
  * caller receives a `warnings` array describing what was skipped and why.
  */
 
-import { tournamentEngine } from 'services/factory/engine';
-import { fixtures, tools } from 'tods-competition-factory';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mergeParticipantDrafts } from './mergeParticipantDrafts';
 import { resolveParticipantRole } from './resolveParticipantRole';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'services/factory/engine';
+import { fixtures, tools } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { parseRatingCell } from './parseRatingCell';
 import { isFunction } from 'functions/typeOf';
@@ -42,8 +42,8 @@ import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';
 
 // constants and types
-import { TargetField, TargetFieldKind } from './participantFieldModel';
 import { ADD_EVENT_ENTRIES, ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { TargetField, TargetFieldKind } from './participantFieldModel';
 
 export type ImportRowWarning = {
   rowIndex: number;

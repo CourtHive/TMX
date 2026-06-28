@@ -14,13 +14,13 @@
  * When matchUps on hidden courts fall within scope, the confirmation surfaces
  * the count and offers "Show all courts" to clear visibility before proceeding.
  */
+import { confirmModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionEngine } from 'services/factory/engine';
 import { isCompletedStatus } from 'courthive-components';
 import { tipster } from 'components/popovers/tipster';
-import { confirmModal, closeModal } from 'components/modals/baseModal/baseModal';
-import { scheduleToast } from './scheduleToast';
 import { hiddenCourtIds } from './visibilityState';
+import { scheduleToast } from './scheduleToast';
 
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';

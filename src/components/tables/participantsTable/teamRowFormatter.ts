@@ -1,12 +1,12 @@
 import { removeFromTeam } from 'pages/tournament/tabs/participantTab/controlBar/removeFromTeam';
-import { tournamentEngine } from 'services/factory/engine';
-import { positionActionConstants, tools } from 'tods-competition-factory';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { positionActionConstants, tools } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { controlBar } from 'courthive-components';
 import { destroyTipster } from 'components/popovers/tipster';
+import { tournamentEngine } from 'services/factory/engine';
+import { controlBar } from 'courthive-components';
 
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { LEFT, NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';

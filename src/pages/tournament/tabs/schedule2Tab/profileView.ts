@@ -9,6 +9,18 @@
  * The "Apply Schedule" action runs scheduleProfileRounds() on the factory
  * engine which assigns concrete times to matchUps based on the profile.
  */
+import { getCachedCompetitionDateRange, getCachedTournamentInfo, invalidateMatchUpCaches } from './schedule2DataCache';
+import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
+import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { competitionEngine } from 'services/factory/engine';
+import { openApplyTimesModal } from './applyTimesModal';
+import { getScheduleDateRange } from '../scheduleUtils';
+import { openCapacityPopover } from './capacityPopover';
+import { openApplyGridModal } from './applyGridModal';
+import { hiddenCourtIds } from './visibilityState';
+import { scheduleToast } from './scheduleToast';
+import { context } from 'services/context';
 import {
   createSchedulingProfile,
   type SchedulingProfileConfig,
@@ -20,18 +32,6 @@ import {
   type DemandAdapter,
   type DependencyAdapter,
 } from 'courthive-components';
-import { competitionEngine } from 'services/factory/engine';
-import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
-import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { scheduleToast } from './scheduleToast';
-import { openApplyTimesModal } from './applyTimesModal';
-import { getScheduleDateRange } from '../scheduleUtils';
-import { openApplyGridModal } from './applyGridModal';
-import { openCapacityPopover } from './capacityPopover';
-import { hiddenCourtIds } from './visibilityState';
-import { context } from 'services/context';
-import { getCachedCompetitionDateRange, getCachedTournamentInfo, invalidateMatchUpCaches } from './schedule2DataCache';
 
 import { COMPETITION_ENGINE, SCHEDULE2_TAB, SCHEDULING_TAB } from 'constants/tmxConstants';
 
@@ -181,7 +181,7 @@ function buildProfileSetup(): ProfileSetup | null {
   const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {
     // Prefer structureName (e.g. "Main Draw", "Consolation"); fall back to drawName only if it's not a UUID
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r.drawName || '');
-    const drawName = r.structureName || (!isUUID ? r.drawName : '') || '';
+    const drawName = r.structureName || (isUUID ? '' : r.drawName) || '';
 
     // Build a human-readable round name from matchUps if factory gives raw format
     const rawRound = r.roundName || '';

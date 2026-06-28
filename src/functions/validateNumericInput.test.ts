@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { validateNumericInput } from './validateNumericInput';
+import { describe, expect, it } from 'vitest';
 
 describe('validateNumericInput', () => {
   describe('integer mode (decimals=false)', () => {

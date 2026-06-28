@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getLoginColor } from './getLoginColor';
+import { describe, expect, it } from 'vitest';
 
 describe('getLoginColor', () => {
   it('returns empty string when not valid', () => {

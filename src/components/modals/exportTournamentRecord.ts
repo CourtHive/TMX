@@ -7,8 +7,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { openModal } from './baseModal/baseModal';
-import { t } from 'i18n';
 import { UTR } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function exportTournamentRecord(): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
