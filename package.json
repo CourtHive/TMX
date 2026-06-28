@@ -136,7 +136,7 @@
     "pdf-factory": "0.8.6",
     "pikaday": "1.8.2",
     "qrious": "4.0.2",
-    "qs": "6.15.2",
+    "qs": "6.15.3",
     "rxjs": "7.8.2",
     "socket.io-client": "4.8.3",
     "tabulator-tables": "6.5.2",
