@@ -2,29 +2,31 @@
  * Tournament editor drawer component.
  * Allows creating new tournaments or editing existing tournament details.
  */
-import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
+import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
+import { submitTournamentDates } from 'services/mutation/submitTournamentDates';
+import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { renderButtons, renderForm, validators } from 'courthive-components';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getProvider, sendTournament } from 'services/apis/servicesApi';
-import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
-import { providerConfig } from 'config/providerConfig';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { getParent } from 'services/dom/parentAndChild';
+import { providerConfig } from 'config/providerConfig';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
 
 import type { AllowedTierSystem } from '@courthive/provider-config';
 
+import { RIGHT } from 'constants/tmxConstants';
 import {
   SET_TOURNAMENT_DATES,
   SET_TOURNAMENT_LOCAL_TIME_ZONE,
   SET_TOURNAMENT_NAME,
   SET_TOURNAMENT_TIER,
 } from 'constants/mutationConstants';
-import { RIGHT } from 'constants/tmxConstants';
 
 export function editTournament({
   tournamentRecord,
@@ -44,7 +46,7 @@ export function editTournament({
     localTimeZone: tournamentRecord?.localTimeZone || '',
     tierSystem: existingTier?.system || '',
     tierValue: existingTier?.value || '',
-    tierNumericRank: existingTier?.numericRank != null ? String(existingTier.numericRank) : '',
+    tierNumericRank: existingTier?.numericRank == null ? '' : String(existingTier.numericRank),
   };
   const supportedTimeZones = getSupportedTimeZones();
 
@@ -226,7 +228,7 @@ export function editTournament({
     // "clear" rather than an error, matching the timeZone pattern.
     const nextTier =
       tierSystem && tierValue
-        ? { system: tierSystem, value: tierValue, ...(tierNumericRank !== undefined ? { numericRank: tierNumericRank } : {}) }
+        ? { system: tierSystem, value: tierValue, ...(tierNumericRank === undefined ? {} : { numericRank: tierNumericRank }) }
         : null;
     const previousTier = tournamentRecord?.tournamentTier ?? null;
     const tierChanged = !tierEquals(nextTier, previousTier);
@@ -240,31 +242,40 @@ export function editTournament({
         endDate,
         // Only overwrite the record-copy when the zone actually changed,
         // so the post-mutation table update reflects the new state.
-        ...(localTimeZone !== (tournamentRecord.localTimeZone ?? '')
-          ? { localTimeZone: localTimeZone || undefined }
-          : {}),
+        ...(localTimeZone === (tournamentRecord.localTimeZone ?? '')
+          ? {}
+          : { localTimeZone: localTimeZone || undefined }),
         ...(tierChanged ? { tournamentTier: nextTier ?? undefined } : {}),
       };
       const postMutation = (result: any) => {
         if (result.success) {
           table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
-        } else {
-          console.log({ result });
+        } else if (result?.error) {
+          // e.g. matchUps scheduled outside the new tournament dates (message lists the
+          // offending dates) so the user can unschedule/reschedule first.
+          tmxToast({ intent: 'is-warning', message: result.error?.message ?? t('common.error') });
         }
       };
-      const methods = [
-        { method: SET_TOURNAMENT_DATES, params: { activeDates, startDate, endDate } },
-        { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
-      ];
-      // Only emit the TZ mutation when the value differs from what the
-      // record already had — keeps the server audit log clean.
-      if (localTimeZone !== (tournamentRecord.localTimeZone ?? '')) {
-        methods.push({ method: SET_TOURNAMENT_LOCAL_TIME_ZONE, params: { localTimeZone } as any });
-      }
-      if (tierChanged) {
-        methods.push({ method: SET_TOURNAMENT_TIER, params: { tournamentTier: nextTier } as any });
-      }
-      mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
+      const submit = (force?: boolean) => {
+        const methods = [
+          { method: SET_TOURNAMENT_DATES, params: { activeDates, startDate, endDate, ...(force ? { force: true } : {}) } },
+          { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
+        ];
+        // Only emit the TZ mutation when the value differs from what the
+        // record already had — keeps the server audit log clean.
+        if (localTimeZone !== (tournamentRecord.localTimeZone ?? '')) {
+          methods.push({ method: SET_TOURNAMENT_LOCAL_TIME_ZONE, params: { localTimeZone } as any });
+        }
+        if (tierChanged) {
+          methods.push({ method: SET_TOURNAMENT_TIER, params: { tournamentTier: nextTier } as any });
+        }
+        mutationRequest({ tournamentRecord: updatedTournamentRecord, methods, callback: postMutation });
+      };
+
+      // Pre-flight the date change locally (engine.explain, non-destructive); if
+      // matchUps fall outside the new dates the user gets [Continue & unschedule]
+      // (re-submits with force: true) instead of a doomed server round-trip.
+      submitTournamentDates({ params: { activeDates, startDate, endDate }, submit });
     } else {
       const result = tournamentEngine.newTournamentRecord({ tournamentName, activeDates, startDate, endDate });
       if (result.success) {

@@ -1,9 +1,11 @@
-import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
+import { submitTournamentDates } from 'services/mutation/submitTournamentDates';
+import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { renderForm, validators } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
-import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { getParent } from 'services/dom/parentAndChild';
 import { t, i18next } from 'i18n';
 
@@ -147,22 +149,35 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
     const rawTz = (inputs.localTimeZone?.value ?? '').trim();
     const localTimeZone = rawTz === '' || isValidTimeZone(rawTz) ? rawTz : existingTimeZone;
 
-    const methods: { method: string; params: any }[] = [
-      { method: SET_TOURNAMENT_DATES, params: { startDate: newStartDate, endDate: newEndDate, activeDates } },
-    ];
-    // Only emit the TZ mutation when the value actually changed — keeps
-    // the server audit trail clean and matches the drawer's behavior.
-    if (localTimeZone !== existingTimeZone) {
-      methods.push({ method: SET_TOURNAMENT_LOCAL_TIME_ZONE, params: { localTimeZone } });
-    }
+    const dateParams = { startDate: newStartDate, endDate: newEndDate, activeDates };
 
     const postMutation = (result: any) => {
       if (result?.success) {
         closeModal();
         onSave();
+      } else if (result?.error) {
+        // server-side rejection (the local dry-run already intercepts the
+        // out-of-range-scheduling case) — surface it, keep the modal open.
+        tmxToast({ intent: 'is-warning', message: result.error?.message ?? t('common.error') });
       }
     };
-    mutationRequest({ methods, callback: postMutation });
+
+    const submit = (force?: boolean) => {
+      const methods: { method: string; params: any }[] = [
+        { method: SET_TOURNAMENT_DATES, params: { ...dateParams, ...(force ? { force: true } : {}) } },
+      ];
+      // Only emit the TZ mutation when the value actually changed — keeps
+      // the server audit trail clean and matches the drawer's behavior.
+      if (localTimeZone !== existingTimeZone) {
+        methods.push({ method: SET_TOURNAMENT_LOCAL_TIME_ZONE, params: { localTimeZone } });
+      }
+      mutationRequest({ methods, callback: postMutation });
+    };
+
+    // Dry-run locally first: if matchUps fall outside the new dates the user is
+    // offered [Continue & unschedule] (which re-submits with force: true) rather
+    // than hitting the server with a call we already know would be rejected.
+    submitTournamentDates({ params: dateParams, submit });
   };
 
   const valid = validators.dateValidator(startDate) && validators.dateValidator(endDate);

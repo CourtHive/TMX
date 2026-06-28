@@ -878,6 +878,7 @@
     "close": "Close",
     "submit": "Submit",
     "edit": "Edit",
+    "continueAndUnschedule": "Continue & unschedule",
     "cannotBeUndone": "This action cannot be undone!",
     "yes": "Yes",
     "no": "No",
