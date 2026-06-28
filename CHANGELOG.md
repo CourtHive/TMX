@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.4.1](https://github.com/CourtHive/TMX/compare/v8.4.0...v8.4.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* **deps:** update dependency axios to v1.18.1 ([43e7a62](https://github.com/CourtHive/TMX/commit/43e7a6258e0fc9dbaf234b3356d54284f78efbe0))
+* **deps:** update dependency focus-trap to v8.2.2 ([77ff0a8](https://github.com/CourtHive/TMX/commit/77ff0a8fcac52086c0fca7f09cfa74109f84f3a5))
+* **deps:** update dependency tabulator-tables to v6.5.2 ([6661355](https://github.com/CourtHive/TMX/commit/66613559b432585fd60881fac7d78a81e85e6c8b))
+
 ## [8.4.0](https://github.com/CourtHive/TMX/compare/v8.3.0...v8.4.0) (2026-06-24)
 
 
