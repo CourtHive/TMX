@@ -25,7 +25,7 @@ import { isScoreRelayConfigured, scoreRelayApi } from 'services/apis/scoreRelayA
 export interface CrowdScorerAttribution {
   personId: string | null;
   displayName: string;
-  audience: 'admin' | 'hiveid';
+  audience: 'admin' | 'hiveid' | 'provider';
   /** Email-verified (hiveid `email_verified` claim). Only verified scorers are nominatable. */
   verified: boolean;
 }
