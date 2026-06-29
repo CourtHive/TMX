@@ -55,6 +55,14 @@ describe('classifyScorer', () => {
     expect(classifyScorer({ participants: [other], personId: 'person-1' }).classification).toBe('crowd');
   });
 
+  it('returns null participantId/name when the matched participant lacks them', () => {
+    const bare = { participantRole: 'COMPETITOR', person: { personOtherIds: [{ organisationId: CANONICAL, personId: 'person-9' }] } };
+    const result = classifyScorer({ participants: [bare], personId: 'person-9' });
+    expect(result.classification).toBe('participant');
+    expect(result.participantId).toBeNull();
+    expect(result.participantName).toBeNull();
+  });
+
   it('tolerates participants without a person / personOtherIds and an empty list', () => {
     expect(classifyScorer({ participants: undefined, personId: 'person-1' }).classification).toBe('crowd');
     expect(

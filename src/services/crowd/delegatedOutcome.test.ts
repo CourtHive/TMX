@@ -135,6 +135,10 @@ describe('findDelegatedReconciliationIssues', () => {
   it('ignores matchUps without a delegatedOutcome', () => {
     expect(findDelegatedReconciliationIssues({ matchUps: [{ matchUpId: 'mu-5', winningSide: 1 }], participants })).toHaveLength(0);
   });
+
+  it('tolerates absent matchUps/participants', () => {
+    expect(findDelegatedReconciliationIssues({} as any)).toEqual([]);
+  });
 });
 
 describe('matchUpDelegationIssue', () => {

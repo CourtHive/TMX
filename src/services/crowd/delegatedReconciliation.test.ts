@@ -29,6 +29,17 @@ describe('delegatedReconciliation index', () => {
     expect(isMatchUpAwaitingReconciliation(undefined)).toBe(false);
   });
 
+  it('skips matchUps without a matchUpId and tolerates undefined participants', () => {
+    refreshReconciliationIndex(
+      [
+        { winningSide: 1, delegatedOutcome: { scorer: { personId: PERSON_CROWD } } }, // no matchUpId → skipped
+        { matchUpId: 'mu-ok', winningSide: 1, delegatedOutcome: { scorer: { personId: PERSON_CROWD } } },
+      ],
+      undefined as any,
+    );
+    expect(isMatchUpAwaitingReconciliation('mu-ok')).toBe(true);
+  });
+
   it('clears entries on refresh', () => {
     refreshReconciliationIndex(
       [{ matchUpId: 'mu-crowd', winningSide: 1, delegatedOutcome: { scorer: { personId: PERSON_CROWD } } }],
