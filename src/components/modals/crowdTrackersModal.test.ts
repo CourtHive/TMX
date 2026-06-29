@@ -10,6 +10,8 @@ import {
   buildSecondaryLine,
   buildStatusMessage,
   decidePrimaryButtonLabel,
+  resolveSessionScorer,
+  scorerBadgeLabel,
 } from './crowdTrackersModalLogic';
 
 function makeSession(overrides: Partial<CrowdScoringSession> = {}): CrowdScoringSession {
@@ -51,6 +53,59 @@ describe('crowdTrackersModalLogic — decidePrimaryButtonLabel', () => {
 
   it('shows Promote for untrusted sessions', () => {
     expect(decidePrimaryButtonLabel(makeSession({ trusted: false }))).toBe('Promote');
+  });
+});
+
+const CANONICAL = 'CANONICAL_PERSON';
+
+function official(personId: string, name = 'Olive Official') {
+  return {
+    participantId: 'p-off',
+    participantName: name,
+    participantRole: 'OFFICIAL',
+    person: { personOtherIds: [{ organisationId: CANONICAL, personId }] },
+  };
+}
+
+describe('crowdTrackersModalLogic — resolveSessionScorer', () => {
+  it('classifies an official-participant scorer as official and nominatable', () => {
+    const session = makeSession({ crowdScoredBy: { personId: 'person-1', displayName: 'O', audience: 'hiveid', verified: false } });
+    const info = resolveSessionScorer(session, [official('person-1')]);
+    expect(info.classification).toBe('official');
+    expect(info.participantName).toBe('Olive Official');
+    expect(info.nominatable).toBe(true);
+  });
+
+  it('classifies an anonymous session as not nominatable', () => {
+    const info = resolveSessionScorer(makeSession({ crowdScoredBy: undefined }), []);
+    expect(info.classification).toBe('anonymous');
+    expect(info.nominatable).toBe(false);
+    expect(info.reason).toMatch(/sign-in/i);
+  });
+
+  it('blocks an unverified crowd scorer from nomination', () => {
+    const session = makeSession({ crowdScoredBy: { personId: 'person-x', displayName: 'X', audience: 'hiveid', verified: false } });
+    const info = resolveSessionScorer(session, [official('person-1')]);
+    expect(info.classification).toBe('crowd');
+    expect(info.nominatable).toBe(false);
+    expect(info.reason).toMatch(/not verified/i);
+  });
+
+  it('allows a verified crowd scorer to be nominated', () => {
+    const session = makeSession({ crowdScoredBy: { personId: 'person-x', displayName: 'X', audience: 'hiveid', verified: true } });
+    const info = resolveSessionScorer(session, [official('person-1')]);
+    expect(info.classification).toBe('crowd');
+    expect(info.verified).toBe(true);
+    expect(info.nominatable).toBe(true);
+  });
+});
+
+describe('crowdTrackersModalLogic — scorerBadgeLabel', () => {
+  it('maps classifications to badge text', () => {
+    expect(scorerBadgeLabel('official')).toBe('OFFICIAL');
+    expect(scorerBadgeLabel('participant')).toBe('PARTICIPANT');
+    expect(scorerBadgeLabel('crowd')).toBe('CROWD');
+    expect(scorerBadgeLabel('anonymous')).toBe('ANON');
   });
 });
 

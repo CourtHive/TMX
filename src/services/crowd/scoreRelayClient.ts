@@ -16,6 +16,20 @@
 
 import { isScoreRelayConfigured, scoreRelayApi } from 'services/apis/scoreRelayApi';
 
+/**
+ * HiveID-or-admin attribution carried by the relay (score-relay migration
+ * 002). `personId` is the canonical Person id of whoever submitted the points,
+ * when known — TMX classifies it against the loaded tournament participants
+ * (see `classifyScorer`). Undefined for anonymous / legacy sessions.
+ */
+export interface CrowdScorerAttribution {
+  personId: string | null;
+  displayName: string;
+  audience: 'admin' | 'hiveid';
+  /** Email-verified (hiveid `email_verified` claim). Only verified scorers are nominatable. */
+  verified: boolean;
+}
+
 export interface CrowdScoringSession {
   sessionId: string;
   matchUpId: string;
@@ -32,6 +46,7 @@ export interface CrowdScoringSession {
   version: number;
   createdAt: string;
   updatedAt: string;
+  crowdScoredBy?: CrowdScorerAttribution;
 }
 
 interface SessionListResponse {

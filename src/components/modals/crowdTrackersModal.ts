@@ -23,19 +23,28 @@ import {
   buildSecondaryLine,
   buildStatusMessage,
   decidePrimaryButtonLabel,
+  resolveSessionScorer,
+  scorerBadgeLabel,
 } from 'components/modals/crowdTrackersModalLogic';
+import { tournamentEngine } from 'tods-competition-factory';
 
 interface CrowdTrackersModalOptions {
   matchUpId: string;
   matchUpLabel?: string;
   /** Test hook — defaults to the live REST client. */
   loader?: (matchUpId: string) => Promise<CrowdScoringSession[]>;
+  /** Test hook — defaults to the loaded tournament's participants. */
+  participantsLoader?: () => any[];
   /** Test hooks — default to the live REST client. */
   actions?: {
     promote?: (sessionId: string) => Promise<unknown>;
     demote?: (sessionId: string) => Promise<unknown>;
     cancel?: (sessionId: string) => Promise<unknown>;
   };
+}
+
+function loadTournamentParticipants(): any[] {
+  return tournamentEngine.getParticipants?.({ withIndividualParticipants: true })?.participants ?? [];
 }
 
 const ROW_STYLE =
@@ -49,6 +58,7 @@ const BTN_STYLE =
 
 export function openCrowdTrackersModal(opts: CrowdTrackersModalOptions): void {
   const loader = opts.loader ?? ((matchUpId: string) => getSessionsByMatchUpId({ matchUpId, activeOnly: true }));
+  const participantsLoader = opts.participantsLoader ?? loadTournamentParticipants;
   const promote = opts.actions?.promote ?? apiPromoteSession;
   const demote = opts.actions?.demote ?? apiDemoteSession;
   const cancel = opts.actions?.cancel ?? apiCancelSession;
@@ -73,7 +83,8 @@ export function openCrowdTrackersModal(opts: CrowdTrackersModalOptions): void {
         // toast handled by axios interceptor
         return;
       }
-      renderList(list, status, sessions, { promote, demote, cancel, refresh });
+      const participants = participantsLoader();
+      renderList(list, status, sessions, participants, { promote, demote, cancel, refresh });
     };
 
     void refresh();
@@ -95,32 +106,45 @@ export function renderList(
   list: HTMLElement,
   status: HTMLElement,
   sessions: CrowdScoringSession[],
+  participants: any[],
   actions: RowActions,
 ): void {
   list.innerHTML = '';
   status.textContent = buildStatusMessage(sessions.length);
   if (sessions.length === 0) return;
-  for (const session of sessions) list.appendChild(renderRow(session, actions));
+  for (const session of sessions) list.appendChild(renderRow(session, participants, actions));
 }
 
-function renderRow(session: CrowdScoringSession, actions: RowActions): HTMLElement {
+function makeBadge(text: string, bg: string): HTMLSpanElement {
+  const badge = document.createElement('span');
+  badge.style.cssText = `margin-left:6px; padding:1px 5px; border-radius:3px; background:${bg}; color:#fff; font-size:0.7rem;`;
+  badge.textContent = text;
+  return badge;
+}
+
+const CLASSIFICATION_BG: Record<string, string> = {
+  official: 'var(--tmx-accent-blue, #2d6cdf)',
+  participant: 'var(--tmx-accent-blue, #2d6cdf)',
+  crowd: 'var(--tmx-text-secondary, #666)',
+  anonymous: 'var(--tmx-text-secondary, #999)',
+};
+
+function renderRow(session: CrowdScoringSession, participants: any[], actions: RowActions): HTMLElement {
   const row = document.createElement('div');
   row.style.cssText = ROW_STYLE;
   row.dataset.sessionId = session.sessionId;
+
+  const scorer = resolveSessionScorer(session, participants);
 
   const meta = document.createElement('div');
   meta.style.cssText = ROW_META_STYLE;
 
   const primary = document.createElement('div');
   primary.style.cssText = ROW_PRIMARY_STYLE;
-  primary.textContent = session.userId;
-  if (session.trusted) {
-    const badge = document.createElement('span');
-    badge.style.cssText =
-      'margin-left:6px; padding:1px 5px; border-radius:3px; background:var(--tmx-status-success, #2bb673); color:#fff; font-size:0.7rem;';
-    badge.textContent = 'TRUSTED';
-    primary.appendChild(badge);
-  }
+  primary.textContent = scorer.participantName || session.crowdScoredBy?.displayName || session.userId;
+  primary.appendChild(makeBadge(scorerBadgeLabel(scorer.classification), CLASSIFICATION_BG[scorer.classification]));
+  if (scorer.verified) primary.appendChild(makeBadge('VERIFIED', 'var(--tmx-status-success, #2bb673)'));
+  if (session.trusted) primary.appendChild(makeBadge('NOMINATED', 'var(--tmx-status-success, #2bb673)'));
   meta.appendChild(primary);
 
   const secondary = document.createElement('div');
@@ -135,11 +159,18 @@ function renderRow(session: CrowdScoringSession, actions: RowActions): HTMLEleme
 
   const primaryLabel = decidePrimaryButtonLabel(session);
   const primaryAction = primaryLabel === 'Demote' ? actions.demote : actions.promote;
+  // "Promote" is the nominate action — gate it on nomination eligibility.
+  // "Demote" (un-nominate) is always allowed so a TD can reverse a mistake.
+  const nominateBlocked = primaryLabel === 'Promote' && !scorer.nominatable;
   buttons.appendChild(
-    makeButton(primaryLabel, async () => {
-      await primaryAction(session.sessionId).catch(() => undefined);
-      await actions.refresh();
-    }),
+    makeButton(
+      primaryLabel,
+      async () => {
+        await primaryAction(session.sessionId).catch(() => undefined);
+        await actions.refresh();
+      },
+      { disabled: nominateBlocked, title: nominateBlocked ? scorer.reason : undefined },
+    ),
   );
 
   buttons.appendChild(
@@ -153,12 +184,23 @@ function renderRow(session: CrowdScoringSession, actions: RowActions): HTMLEleme
   return row;
 }
 
-function makeButton(label: string, onClick: () => void | Promise<void>): HTMLButtonElement {
+function makeButton(
+  label: string,
+  onClick: () => void | Promise<void>,
+  opts: { disabled?: boolean; title?: string } = {},
+): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.style.cssText = BTN_STYLE;
   btn.textContent = label;
-  btn.addEventListener('click', () => void onClick());
+  if (opts.title) btn.title = opts.title;
+  if (opts.disabled) {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+  } else {
+    btn.addEventListener('click', () => void onClick());
+  }
   return btn;
 }
 
