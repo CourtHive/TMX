@@ -2,8 +2,10 @@
  * MatchUp actions popover menu.
  * Provides options for start/end time, official selection, and schedule clearing.
  */
+import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
+import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -292,6 +294,7 @@ export function matchUpActions({
   const hideTimeOptions = noParticipants || isTerminal;
 
   const crowdTrackerCount = matchUp?.matchUpId ? getActiveSessionCount(matchUp.matchUpId) : 0;
+  const hasDelegatedOutcome = !!readDelegatedOutcome(matchUp);
 
   const items = [
     {
@@ -333,6 +336,16 @@ export function matchUpActions({
         }),
       text: `View crowd trackers (${crowdTrackerCount})`,
       hide: crowdTrackerCount === 0,
+    },
+    {
+      onClick: () => openSetDelegatedOutcome({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),
+      text: 'Set delegated outcome',
+      hide: crowdTrackerCount === 0,
+    },
+    {
+      onClick: () => confirmDelegatedOutcome({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId, matchUp }),
+      text: 'Confirm delegated outcome',
+      hide: !hasDelegatedOutcome,
     },
   ];
 
