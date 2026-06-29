@@ -2,6 +2,7 @@
  * Create matchUps table with scoring and predictive accuracy.
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
+import { refreshReconciliationIndex } from 'services/crowd/delegatedReconciliation';
 import { startCrowdPoller, type CrowdPoller } from 'services/crowd/crowdPoller';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
@@ -34,6 +35,11 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
         contextProfile: { withCompetitiveness: true },
       }).matchUps || []
     ).filter(({ matchUpStatus }: any) => matchUpStatus !== 'BYE');
+
+    // Recompute which completed matchUps carry an unconfirmed delegated outcome
+    // from a non-participant scorekeeper (feeds the reconciliation badge).
+    const participants = tournamentEngine.getParticipants?.({ withIndividualParticipants: true })?.participants ?? [];
+    refreshReconciliationIndex(matchUps, participants);
 
     return matchUps.map(mapMatchUp as any);
   };

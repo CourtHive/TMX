@@ -1,3 +1,4 @@
+import { isMatchUpAwaitingReconciliation } from 'services/crowd/delegatedReconciliation';
 import { isMatchUpCrowdsourced } from 'services/messaging/crowdsourcedScores';
 
 export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
@@ -27,6 +28,17 @@ export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
     badge.textContent = '●';
     badge.style.cssText =
       'color: var(--tmx-accent-green, #10b981); margin-right: 4px; font-size: 0.7rem; vertical-align: middle;';
+    content.prepend(badge);
+  }
+
+  if (isMatchUpAwaitingReconciliation(data.matchUp?.matchUpId)) {
+    const badge = document.createElement('span');
+    badge.className = 'delegated-reconciliation-badge';
+    badge.title = 'Unconfirmed delegated score — confirm to make it official';
+    badge.setAttribute('aria-label', 'Unconfirmed delegated score awaiting confirmation');
+    badge.textContent = '⚠';
+    badge.style.cssText =
+      'color: var(--tmx-status-warning, #f59e0b); margin-right: 4px; font-size: 0.7rem; vertical-align: middle;';
     content.prepend(badge);
   }
 
