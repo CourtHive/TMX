@@ -193,12 +193,14 @@ export function renderDrawView({
   structureId,
   roundsView,
   redraw,
+  initialRoundNumber: initialRoundNumberParam,
 }: {
   eventId: string;
   drawId: string;
   structureId?: string;
   roundsView?: string;
   redraw?: boolean;
+  initialRoundNumber?: number;
 }): void {
   // Early return if in assignment mode (handled by participantAssignmentMode)
   if (isAssignmentMode()) {
@@ -213,7 +215,7 @@ export function renderDrawView({
   eventManager.register('tmx-tm', 'mouseout', removeTeamHighlight);
 
   let participantFilter: string | undefined;
-  let initialRoundNumber = 1;
+  let initialRoundNumber = initialRoundNumberParam ?? 1;
   let roundMatchUps: any;
   let structures: any[] = [];
   let eventData: any;
@@ -264,9 +266,10 @@ export function renderDrawView({
       cleanupDrawPanel();
       navigateToEvent({ eventId, drawId, structureId, renderDraw: true, view });
     } else if (refresh || participantFilter) {
-      // Structural changes (e.g. lucky draw advancement) or active filter: full re-render
+      // Structural changes (e.g. lucky draw advancement) or active filter: full re-render.
+      // Preserve the selected round so a refresh (e.g. minimap toggle) doesn't reset to R1.
       cleanupDrawPanel();
-      renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView });
+      renderDrawView({ eventId, drawId, structureId, redraw: true, roundsView, initialRoundNumber });
     } else {
       // Lightweight update: refresh data and morphdom-patch the draw in place
       updateView();
