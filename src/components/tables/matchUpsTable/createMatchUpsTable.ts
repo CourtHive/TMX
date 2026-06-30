@@ -110,7 +110,11 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
   // Start a tournament-level poll into the crowdActivityIndex so the three-dot
   // icon can glow and the "View crowd trackers (N)" menu item knows whether
   // to render. Stop on tableDestroyed so a tab switch doesn't leak the timer.
-  const tournamentId = tournamentEngine.getState?.()?.tournamentRecord?.tournamentId;
+  // getState() exposes the active id at the top level (`tournamentId`); there is
+  // no singular `tournamentRecord` key (records live under `tournamentRecords`),
+  // so the old `getState().tournamentRecord.tournamentId` was always undefined
+  // and the crowd poller never started.
+  const tournamentId = tournamentEngine.getState?.()?.tournamentId;
   let crowdPoller: CrowdPoller | undefined;
   let unsubscribeCrowd: (() => void) | undefined;
   if (tournamentId) {
