@@ -18,6 +18,7 @@ import { datePicker } from 'components/modals/datePicker';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
+import { t } from 'i18n';
 
 // constants
 import { ADD_MATCHUP_OFFICIAL, DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
@@ -334,17 +335,17 @@ export function matchUpActions({
           matchUpId: matchUp.matchUpId,
           matchUpLabel: matchUp?.roundName ? `${matchUp.roundName}` : undefined,
         }),
-      text: `View crowd trackers (${crowdTrackerCount})`,
+      text: t('crowd.viewTrackers', { count: crowdTrackerCount }),
       hide: crowdTrackerCount === 0,
     },
     {
       onClick: () => openSetDelegatedOutcome({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),
-      text: 'Set delegated outcome',
+      text: t('crowd.setDelegatedOutcome'),
       hide: crowdTrackerCount === 0,
     },
     {
       onClick: () => confirmDelegatedOutcome({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId, matchUp }),
-      text: 'Confirm delegated outcome',
+      text: t('crowd.confirmDelegatedOutcome'),
       hide: !hasDelegatedOutcome,
     },
   ];

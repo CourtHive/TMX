@@ -27,6 +27,7 @@ import {
   scorerBadgeLabel,
 } from 'components/modals/crowdTrackersModalLogic';
 import { tournamentEngine } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 interface CrowdTrackersModalOptions {
   matchUpId: string;
@@ -68,7 +69,7 @@ export function openCrowdTrackersModal(opts: CrowdTrackersModalOptions): void {
 
     const status = document.createElement('div');
     status.style.cssText = 'padding:6px 0; font-size:0.85rem; color:var(--tmx-text-secondary, #666);';
-    status.textContent = 'Loading…';
+    status.textContent = t('crowd.loading');
     root.appendChild(status);
 
     const list = document.createElement('div');
@@ -90,8 +91,8 @@ export function openCrowdTrackersModal(opts: CrowdTrackersModalOptions): void {
     void refresh();
   };
 
-  const title = opts.matchUpLabel ? `Crowd trackers — ${opts.matchUpLabel}` : 'Crowd trackers';
-  const buttons = [{ label: 'Close', close: true, intent: 'is-light' }];
+  const title = opts.matchUpLabel ? t('crowd.trackersFor', { label: opts.matchUpLabel }) : t('crowd.trackers');
+  const buttons = [{ label: t('crowd.close'), close: true, intent: 'is-light' }];
   openModal({ title, content, buttons });
 }
 
@@ -143,8 +144,8 @@ function renderRow(session: CrowdScoringSession, participants: any[], actions: R
   primary.style.cssText = ROW_PRIMARY_STYLE;
   primary.textContent = scorer.participantName || session.crowdScoredBy?.displayName || session.userId;
   primary.appendChild(makeBadge(scorerBadgeLabel(scorer.classification), CLASSIFICATION_BG[scorer.classification]));
-  if (scorer.verified) primary.appendChild(makeBadge('VERIFIED', 'var(--tmx-status-success, #2bb673)'));
-  if (session.trusted) primary.appendChild(makeBadge('NOMINATED', 'var(--tmx-status-success, #2bb673)'));
+  if (scorer.verified) primary.appendChild(makeBadge(t('crowd.badge.verified'), 'var(--tmx-status-success, #2bb673)'));
+  if (session.trusted) primary.appendChild(makeBadge(t('crowd.badge.nominated'), 'var(--tmx-status-success, #2bb673)'));
   meta.appendChild(primary);
 
   const secondary = document.createElement('div');
@@ -164,7 +165,7 @@ function renderRow(session: CrowdScoringSession, participants: any[], actions: R
   const nominateBlocked = primaryLabel === 'Promote' && !scorer.nominatable;
   buttons.appendChild(
     makeButton(
-      primaryLabel,
+      t(primaryLabel === 'Demote' ? 'crowd.demote' : 'crowd.promote'),
       async () => {
         await primaryAction(session.sessionId).catch(() => undefined);
         await actions.refresh();
@@ -174,7 +175,7 @@ function renderRow(session: CrowdScoringSession, participants: any[], actions: R
   );
 
   buttons.appendChild(
-    makeButton('Cancel', async () => {
+    makeButton(t('crowd.cancel'), async () => {
       await actions.cancel(session.sessionId).catch(() => undefined);
       await actions.refresh();
     }),

@@ -20,6 +20,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { scoringModal } from 'components/modals/scoringV2';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 
 import { SET_DELEGATED_OUTCOME } from 'constants/mutationConstants';
 
@@ -49,7 +50,7 @@ export async function openSetDelegatedOutcome(args: {
   const sessions = await getSessionsByMatchUpId({ matchUpId, activeOnly: true }).catch(() => []);
   const session = trustedSession(sessions);
   if (!session) {
-    tmxToast({ intent: 'is-warning', message: 'Nominate a verified scorer before setting a delegated outcome.' });
+    tmxToast({ intent: 'is-warning', message: t('crowd.toast.nominateFirst') });
     return;
   }
 
@@ -97,7 +98,7 @@ export function confirmDelegatedOutcome(args: {
   const { matchUpId, drawId, matchUp, callback } = args;
   const delegatedOutcome = readDelegatedOutcome(matchUp ?? tournamentEngine.q?.matchUp?.({ matchUpId }));
   if (!delegatedOutcome) {
-    tmxToast({ intent: 'is-warning', message: 'No delegated outcome to confirm on this match.' });
+    tmxToast({ intent: 'is-warning', message: t('crowd.toast.noOutcomeToConfirm') });
     return;
   }
   mutationRequest({ methods: buildConfirmMethods({ matchUpId, drawId, delegatedOutcome }), callback });

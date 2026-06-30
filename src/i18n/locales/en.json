@@ -1,4 +1,40 @@
 {
+  "crowd": {
+    "trackers": "Crowd trackers",
+    "trackersFor": "Crowd trackers — {{label}}",
+    "loading": "Loading…",
+    "close": "Close",
+    "cancel": "Cancel",
+    "promote": "Promote",
+    "demote": "Demote",
+    "noActiveTrackers": "No active crowd trackers",
+    "activeTrackers_one": "{{count}} active tracker",
+    "activeTrackers_other": "{{count}} active trackers",
+    "viewTrackers": "View crowd trackers ({{count}})",
+    "setDelegatedOutcome": "Set delegated outcome",
+    "confirmDelegatedOutcome": "Confirm delegated outcome",
+    "badge": {
+      "official": "OFFICIAL",
+      "participant": "PARTICIPANT",
+      "crowd": "CROWD",
+      "anon": "ANON",
+      "verified": "VERIFIED",
+      "nominated": "NOMINATED"
+    },
+    "reason": {
+      "signInRequired": "Sign-in required to be nominated",
+      "emailNotVerified": "Email not verified — cannot be nominated"
+    },
+    "toast": {
+      "nominateFirst": "Nominate a verified scorer before setting a delegated outcome.",
+      "noOutcomeToConfirm": "No delegated outcome to confirm on this match."
+    },
+    "tooltip": {
+      "liveTracker": "Score reported via live tracker",
+      "unconfirmed": "Unconfirmed delegated score — confirm to make it official",
+      "unconfirmedAria": "Unconfirmed delegated score awaiting confirmation"
+    }
+  },
   "open": "Open",
   "zoom": "Zoom",
   "cal": "Calendar",

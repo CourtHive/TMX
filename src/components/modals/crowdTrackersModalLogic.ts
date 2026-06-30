@@ -6,6 +6,7 @@
 
 import { classifyScorer, type ScorerClassification } from 'services/crowd/classifyScorer';
 import type { CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { t } from 'i18n';
 
 export interface SessionScorerInfo {
   classification: ScorerClassification;
@@ -36,10 +37,10 @@ export function resolveSessionScorer(session: CrowdScoringSession, participants:
   let reason: string | undefined;
   if (classification === 'anonymous') {
     nominatable = false;
-    reason = 'Sign-in required to be nominated';
+    reason = t('crowd.reason.signInRequired');
   } else if (classification === 'crowd' && !verified) {
     nominatable = false;
-    reason = 'Email not verified — cannot be nominated';
+    reason = t('crowd.reason.emailNotVerified');
   }
 
   return { classification, participantName, verified, nominatable, reason };
@@ -48,19 +49,19 @@ export function resolveSessionScorer(session: CrowdScoringSession, participants:
 export function scorerBadgeLabel(classification: ScorerClassification): string {
   switch (classification) {
     case 'official':
-      return 'OFFICIAL';
+      return t('crowd.badge.official');
     case 'participant':
-      return 'PARTICIPANT';
+      return t('crowd.badge.participant');
     case 'crowd':
-      return 'CROWD';
+      return t('crowd.badge.crowd');
     default:
-      return 'ANON';
+      return t('crowd.badge.anon');
   }
 }
 
 export function buildStatusMessage(count: number): string {
-  if (count === 0) return 'No active crowd trackers';
-  return `${count} active tracker${count === 1 ? '' : 's'}`;
+  if (count === 0) return t('crowd.noActiveTrackers');
+  return t('crowd.activeTrackers', { count });
 }
 
 export function decidePrimaryButtonLabel(session: CrowdScoringSession): 'Promote' | 'Demote' {
