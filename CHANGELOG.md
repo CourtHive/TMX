@@ -1,5 +1,21 @@
 # Changelog
 
+## [8.5.0](https://github.com/CourtHive/TMX/compare/v8.4.1...v8.5.0) (2026-06-30)
+
+
+### Features
+
+* **crowd:** accept provider audience in scorer attribution ([397b2d7](https://github.com/CourtHive/TMX/commit/397b2d71a4b92957800ff5666ffcfcd5b0b27f2e))
+* **crowd:** delegated-outcome set/confirm flow and reconciliation predicate ([b2c8e8f](https://github.com/CourtHive/TMX/commit/b2c8e8f6bc29fb2c28cefa602e4082e6d319c46e))
+* **crowd:** reconciliation badge for unconfirmed delegated outcomes ([046e2e0](https://github.com/CourtHive/TMX/commit/046e2e07267ea6f735d38495ab29d7cead6f95ae))
+* **crowd:** scorer classification and delegated-outcome core ([924fcec](https://github.com/CourtHive/TMX/commit/924fcec963e845b087d482fc5aad6a3e87f61aec))
+* **tournament-dates:** pre-flight date changes with [Continue & unschedule] ([05422aa](https://github.com/CourtHive/TMX/commit/05422aa51194c44c439db29b7b5a2e16ac079b09))
+
+
+### Bug Fixes
+
+* **e2e:** make journey 28 server-tournament cleanup reliable ([3f034a1](https://github.com/CourtHive/TMX/commit/3f034a12eef2f033397c3e6f18115609b3adcfe7))
+
 ## [8.4.1](https://github.com/CourtHive/TMX/compare/v8.4.0...v8.4.1) (2026-06-27)
 
 
