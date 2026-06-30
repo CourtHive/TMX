@@ -14,6 +14,7 @@ import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
 import { getLoginState } from './authentication/loginState';
+import { setScoreRelayURL } from './apis/scoreRelayApi';
 import { providerConfig } from 'config/providerConfig';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
@@ -182,6 +183,9 @@ export function setDev(): void {
       (globalThis as any).dev.setServer(url);
     },
     getServer: () => getBaseURL(),
+    // Point the score-relay REST client at a URL (enables the crowd poller +
+    // crowd-trackers modal). Used by e2e to drive a route-mocked relay.
+    setScoreRelayURL: (url: string) => setScoreRelayURL(url),
   });
 
   factory.globalState.setSubscriptions({ subscriptions });
