@@ -36,15 +36,32 @@ describe('auditTournament', () => {
       completeAllMatchUps: true,
       setState: true,
     });
-    const { audits, drawCount } = auditTournament();
+    const { audits, completeness, drawCount } = auditTournament();
     expect(drawCount).toEqual(1);
     expect(audits).toEqual([]);
+    // fully populated + played → nothing outstanding
+    expect(completeness).toEqual([]);
   });
 
   it('returns drawCount 0 when the loaded tournament has no generated draws', () => {
     mocksEngine.generateTournamentRecord({ participantsProfile: { participantsCount: 8 }, setState: true });
-    const { audits, drawCount } = auditTournament();
+    const { audits, completeness, drawCount } = auditTournament();
     expect(drawCount).toEqual(0);
     expect(audits).toEqual([]);
+    expect(completeness).toEqual([]);
+  });
+
+  it('reports a generated-but-unplayed draw as outstanding with no inconsistencies', () => {
+    mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawId: 'auditOutstanding', drawSize: 8, drawType: 'SINGLE_ELIMINATION' }],
+      setState: true,
+    });
+    const { audits, completeness } = auditTournament();
+    // an in-progress draw is not inconsistent, but it IS outstanding
+    expect(audits).toEqual([]);
+    expect(completeness.length).toEqual(1);
+    const group = completeness[0].groups[0];
+    expect(group.unassignedPositions).toEqual([]);
+    expect(group.unplayedMatchUps.length).toEqual(7);
   });
 });

@@ -15,6 +15,15 @@ export type Inconsistency = {
 export type StructureGroup = { structureId: string; label: string; issues: Inconsistency[] };
 export type DrawAudit = { drawId: string; drawName: string; eventName: string; groups: StructureGroup[] };
 
+export type UnplayedRef = { matchUpId: string; roundNumber?: number; roundPosition?: number };
+export type CompletenessGroup = {
+  structureId: string;
+  label: string;
+  unassignedPositions: number[];
+  unplayedMatchUps: UnplayedRef[];
+};
+export type DrawCompleteness = { drawId: string; drawName: string; eventName: string; groups: CompletenessGroup[] };
+
 // Walk a drawDefinition's structure tree (round-robin CONTAINERs nest their groups) and map
 // each structureId to a human label.
 export function collectStructureLabels(structures: any[], labels: Map<string, string>): void {
@@ -72,17 +81,39 @@ function auditDraw(drawId: string, drawName: string, eventName: string): DrawAud
   return { drawId, drawName, eventName, groups };
 }
 
-// enumerate every draw of the loaded tournament and audit each
-export function auditTournament(): { audits: DrawAudit[]; drawCount: number } {
+// "what's still missing" companion — the factory getStructureCompleteness result already carries
+// structureName/stage, so no extra label resolution is needed here.
+function completenessForDraw(drawId: string, drawName: string, eventName: string): DrawCompleteness | undefined {
+  const result: any = tournamentEngine.getStructureCompleteness({ drawId });
+  const structures: any[] = result?.completeness?.structures ?? [];
+  if (!structures.length) return undefined;
+
+  const groups: CompletenessGroup[] = structures.map((structure) => ({
+    structureId: structure.structureId,
+    label: structure.structureName || structure.stage || 'Structure',
+    unassignedPositions: structure.unassignedPositions ?? [],
+    unplayedMatchUps: structure.unplayedMatchUps ?? [],
+  }));
+  return { drawId, drawName, eventName, groups };
+}
+
+// enumerate every draw of the loaded tournament once, collecting both inconsistencies (what's
+// wrong in the decided state) and completeness (what's still outstanding before the draw is done)
+export function auditTournament(): { audits: DrawAudit[]; completeness: DrawCompleteness[]; drawCount: number } {
   const events = tournamentEngine.q.events() ?? [];
   const audits: DrawAudit[] = [];
+  const completeness: DrawCompleteness[] = [];
   let drawCount = 0;
   for (const event of events) {
     for (const drawDefinition of event.drawDefinitions ?? []) {
       drawCount += 1;
-      const audit = auditDraw(drawDefinition.drawId, drawDefinition.drawName ?? 'Draw', event.eventName ?? 'Event');
+      const eventName = event.eventName ?? 'Event';
+      const drawName = drawDefinition.drawName ?? 'Draw';
+      const audit = auditDraw(drawDefinition.drawId, drawName, eventName);
       if (audit) audits.push(audit);
+      const outstanding = completenessForDraw(drawDefinition.drawId, drawName, eventName);
+      if (outstanding) completeness.push(outstanding);
     }
   }
-  return { audits, drawCount };
+  return { audits, completeness, drawCount };
 }
