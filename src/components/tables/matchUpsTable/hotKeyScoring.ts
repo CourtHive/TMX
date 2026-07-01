@@ -1,7 +1,9 @@
 import { keyValueConstants, scoreGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import hotkeys from 'hotkeys-js';
+import { t } from 'i18n';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
@@ -121,6 +123,11 @@ function submitScore({ outcome, callback, matchUpId, drawId }: { outcome: any; c
     },
   ];
   const mutationCallback = (result: any) => {
+    // Surface a rejection (e.g. ERR_INCOMPATIBLE_MATCHUP_STATUS when downstream
+    // matchUps are active) instead of silently swallowing it — the passed
+    // callback only reacts to success, so without this the score just fails
+    // to update with no explanation.
+    if (result?.error) tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
     if (isFunction(callback)) callback({ ...result, outcome });
   };
   mutationRequest({ methods, callback: mutationCallback });
