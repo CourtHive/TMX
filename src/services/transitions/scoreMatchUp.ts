@@ -5,9 +5,11 @@
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { scoringModal } from 'components/modals/scoringV2';
 import { tournamentEngine } from 'services/factory/engine';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
@@ -55,7 +57,15 @@ export function enterMatchUpScore(params: {
       },
     ];
     const mutationCallback = (result: any) => {
-      closeModal();
+      if (result?.error) {
+        // Surface the rejection (e.g. ERR_INCOMPATIBLE_MATCHUP_STATUS when
+        // downstream matchUps are active) instead of silently swallowing it.
+        // Keep the modal open so the entered score isn't lost and the user
+        // can adjust or cancel.
+        tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
+      } else {
+        closeModal();
+      }
       isFunction(callback) && callback({ ...result, outcome });
     };
     mutationRequest({ methods, callback: mutationCallback });
