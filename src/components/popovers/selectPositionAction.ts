@@ -3,6 +3,7 @@
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -43,11 +44,12 @@ export function selectPositionAction({
     if (['SEED_VALUE'].includes(action.type)) assignSeed({ target, action, callback });
     if (['NICKNAME'].includes(action.type)) assignNickname({ target, action, callback });
     if (['VIEW_PLAYER_CARD'].includes(action.type)) viewPlayerCard({ action });
+    if (action.type === 'FOLLOW_TO_STRUCTURE') followToStructure({ action });
   };
   const options = actions
-    ?.filter(({ type }) => actionLabels[type])
+    ?.filter(({ type }) => actionLabels[type] || type === 'FOLLOW_TO_STRUCTURE')
     .map((action) => ({
-      option: actionLabels[action.type] || action.type,
+      option: action.type === 'FOLLOW_TO_STRUCTURE' ? action.label : actionLabels[action.type] || action.type,
       onClick: () => handleClick(action),
     }));
 
@@ -88,6 +90,14 @@ function viewPlayerCard({ action }: { action: any }) {
   const participantId = action.payload?.participantId;
   if (!participantId) return;
   participantProfileModal({ participantId, readOnly: true });
+}
+
+function followToStructure({ action }: { action: any }) {
+  const { eventId, drawId, structureId, matchUpId } = action.payload ?? {};
+  if (!drawId || !structureId) return;
+  // navigateToEvent stashes matchUpId as a pending focus, so the target
+  // structure renders and the participant's matchUp is scrolled-to + pulsed.
+  navigateToEvent({ eventId, drawId, structureId, matchUpId, renderDraw: true });
 }
 
 function assignParticipant({ action, callback }: { action: any; callback: () => void }) {

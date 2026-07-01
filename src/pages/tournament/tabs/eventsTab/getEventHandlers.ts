@@ -15,6 +15,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 import { getTargetAttribute } from 'services/dom/parentAndChild';
+import { getFollowActions } from './getFollowActions';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
@@ -70,8 +71,16 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       {};
 
     const participantId = side?.participantId || side?.participant?.participantId;
+    const followActions = getFollowActions({
+      currentStructureId: matchUp?.structureId,
+      eventId: eventData?.eventInfo?.eventId,
+      drawId: matchUp?.drawId,
+      participantId,
+      eventData,
+      matchUps,
+    });
     const augmentedActions = participantId
-      ? [...(actions || []), { type: 'VIEW_PLAYER_CARD', payload: { participantId } }]
+      ? [...(actions || []), ...followActions, { type: 'VIEW_PLAYER_CARD', payload: { participantId } }]
       : actions;
 
     selectPositionAction({ ...props, actions: augmentedActions, callback });
