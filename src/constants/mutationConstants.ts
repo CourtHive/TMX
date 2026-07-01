@@ -21,6 +21,7 @@ export const ATTACH_PLAYOFF_STRUCTURES = 'attachPlayoffStructures';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
 export const ADD_TOURNAMENT_TIMEITEM = 'addTournamentTimeItem';
 export const ADD_VENUE = 'addVenue';
+export const ABANDON_TOURNAMENT_MATCHUPS = 'abandonTournamentMatchUps';
 export const ASSIGN_TIE_MATCHUP_PARTICIPANT_ID = 'assignTieMatchUpParticipantId';
 export const ATTACH_FLIGHT_PROFILE = 'attachFlightProfile';
 export const ATTACH_QUALIFYING_STRUCTURE = 'attachQualifyingStructure';

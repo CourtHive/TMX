@@ -14,6 +14,7 @@ import { getMatchUpDateFilter } from 'components/tables/common/filters/matchUpDa
 import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
+import { getActionsItem } from 'pages/tournament/tabs/matchUpsTab/abandonMatchUpsAction';
 import { tournamentEngine } from 'services/factory/engine';
 import { setActiveScale } from 'settings/setActiveScale';
 import { controlBar } from 'courthive-components';
@@ -73,7 +74,9 @@ export function renderMatchUpTab(): void {
     filterButton,
     // Dynamically create predictive accuracy buttons for all rating types present in tournament
     ...getPredictiveAccuracyItems(replaceTableData),
-  ];
+    // End-of-tournament actions menu (only present on/past the last date)
+    getActionsItem(replaceTableData),
+  ].filter(Boolean);
 
   const target = document.getElementById(MATCHUPS_CONTROL)!;
   controlBar({ table, target, items });
