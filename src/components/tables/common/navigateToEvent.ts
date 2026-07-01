@@ -1,3 +1,4 @@
+import { setPendingMatchUpFocus } from 'services/dom/matchUpFocus';
 import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
@@ -49,10 +50,19 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
   }
 
   if (matchUpId) {
-    drawId = (event?.drawDefinitions ?? []).find(({ drawId }: any) => {
-      const matchUps = tournamentEngine.q.drawMatchUps({ drawId, inContext: false });
-      return matchUps.find((matchUp: any) => matchUp.matchUpId === matchUpId);
-    })?.drawId;
+    // Resolve the matchUp's draw AND structure so navigation lands on the
+    // correct structure (not the draw's default) — inContext hydration carries
+    // structureId. The matchUp itself is scrolled-to + highlighted after render
+    // via the pending focus stashed below.
+    for (const dd of event?.drawDefinitions ?? []) {
+      const matchUps = tournamentEngine.q.drawMatchUps({ drawId: dd.drawId, inContext: true });
+      const found = matchUps.find((matchUp: any) => matchUp.matchUpId === matchUpId);
+      if (found) {
+        drawId = dd.drawId;
+        if (!structureId) structureId = found.structureId;
+        break;
+      }
+    }
     renderDraw = !!drawId;
   }
 
@@ -76,6 +86,10 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
   } else if (drawId) {
     route += `/${DRAW_ENTRIES}/${drawId}`;
   }
+
+  // Stash the matchUp so renderDrawView can scroll-to + highlight it once the
+  // target structure has rendered (matchUpId isn't part of the route).
+  if (matchUpId && renderDraw && drawId) setPendingMatchUpFocus(matchUpId);
 
   context.router?.navigate(route);
   context.router?.resolve();

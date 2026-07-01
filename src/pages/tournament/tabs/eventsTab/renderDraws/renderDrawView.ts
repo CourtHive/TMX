@@ -16,6 +16,7 @@ import { createStatsTable } from 'components/tables/statsTable/createStatsTable'
 import { maybeRenderGenerateQualifyingBanner } from './generateQualifyingBanner';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
+import { peekPendingMatchUpFocus, consumePendingMatchUpFocus } from 'services/dom/matchUpFocus';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
@@ -260,6 +261,15 @@ export function renderDrawView({
   destroyTables();
   getData();
 
+  // A pending matchUp focus (set before a link/follow navigation) drives the
+  // initial round so the target matchUp is on-screen; it's highlighted after
+  // render. Only honour it when the caller didn't pin an explicit round.
+  const focusMatchUpId = peekPendingMatchUpFocus();
+  if (focusMatchUpId && initialRoundNumberParam == null) {
+    const focusMatchUp = matchUps.find((m: any) => m?.matchUpId === focusMatchUpId);
+    if (focusMatchUp?.roundNumber) initialRoundNumber = focusMatchUp.roundNumber;
+  }
+
   const callback = (params?: any) => {
     const { refresh, view } = params ?? {};
     if (view) {
@@ -430,6 +440,9 @@ export function renderDrawView({
         if (liveNode.classList.contains('chc-draw-frame')) {
           wireDrawMinimap(liveNode);
         }
+        // Consume any pending focus once its matchUp is in the DOM: scroll-to +
+        // pulse. No-op / left in place if not rendered (e.g. a non-columns view).
+        consumePendingMatchUpFocus();
       }
 
       // Recovery banner: main has reserved qualifier slots but no
