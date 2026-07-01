@@ -1,4 +1,6 @@
+import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { downloadJSON, downloadText } from 'services/export/download';
+import { openStructureAuditModal } from './structureAudit';
 import { resolveAuditBaseUrl } from './resolveAuditBaseUrl';
 import { tournamentEngine } from 'services/factory/engine';
 import { createReportsTable } from './createReportsTable';
@@ -12,6 +14,15 @@ import { LEFT, REPORTS_CONTROL, RIGHT, TOURNAMENT_REPORTS } from 'constants/tmxC
 let activeReport: any;
 let activeReportName = '';
 
+// admin/director-only structure-integrity audit launcher for the reports control bar
+const auditControlItem = () => ({
+  onClick: () => openStructureAuditModal(),
+  label: 'Audit',
+  intent: 'is-warning',
+  location: RIGHT,
+  id: 'structureAudit',
+});
+
 export function renderReportsTab(): void {
   const reportContainer = document.getElementById(TOURNAMENT_REPORTS);
   const controlTarget = document.getElementById(REPORTS_CONTROL);
@@ -22,8 +33,11 @@ export function renderReportsTab(): void {
 
   const result: any = tournamentEngine.getAvailableReports();
   const reports = (result?.availableReports ?? []).filter((r: any) => r.computableNow);
+  const canAudit = isActiveProviderAdmin();
 
   if (!reports.length) {
+    // admins/directors can still run the structure audit even when no data reports compute
+    if (canAudit) controlBar({ target: controlTarget, items: [auditControlItem()] });
     reportContainer.innerHTML = `<div style="padding: 2em; color: var(--tmx-text-secondary);">No reports available for this tournament.</div>`;
     return;
   }
@@ -65,6 +79,7 @@ export function renderReportsTab(): void {
       location: RIGHT,
       id: 'exportJSON',
     },
+    ...(canAudit ? [auditControlItem()] : []),
   ];
 
   controlBar({ target: controlTarget, items });
