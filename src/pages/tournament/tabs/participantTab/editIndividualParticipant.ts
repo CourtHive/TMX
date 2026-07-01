@@ -165,7 +165,7 @@ export function editIndividualParticipant({
         nationalityCode: inputs.nationalityCode.value,
         standardFamilyName: inputs.lastName.value,
         standardGivenName: inputs.firstName.value,
-        birthdate: inputs.birthday.value,
+        birthDate: inputs.birthday.value,
         sex: inputs.sex.value,
       };
       const participantOtherName = inputs.nickname?.value || undefined;

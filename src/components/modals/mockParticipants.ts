@@ -24,7 +24,7 @@ const ROLE_OPTIONS = [
 ];
 
 export function mockParticipants({ callback }: { callback?: () => void }): void {
-  // Get tournament end date for birthdate generation
+  // Get tournament end date for birthDate generation
   const tournamentInfo = tournamentEngine.q.tournamentInfo() || {};
   const consideredDate = tournamentInfo.endDate || tournamentInfo.startDate;
 
