@@ -24,6 +24,21 @@ export type CompletenessGroup = {
 };
 export type DrawCompleteness = { drawId: string; drawName: string; eventName: string; groups: CompletenessGroup[] };
 
+export type DepartingRound = { roundNumber: number; formats: string[] };
+export type FormatVarianceGroup = {
+  structureId: string;
+  label: string;
+  baselineFormat: string;
+  revertPattern: boolean;
+  departingRounds: DepartingRound[];
+};
+export type DrawFormatVariance = {
+  drawId: string;
+  drawName: string;
+  eventName: string;
+  groups: FormatVarianceGroup[];
+};
+
 // Walk a drawDefinition's structure tree (round-robin CONTAINERs nest their groups) and map
 // each structureId to a human label.
 export function collectStructureLabels(structures: any[], labels: Map<string, string>): void {
@@ -97,12 +112,39 @@ function completenessForDraw(drawId: string, drawName: string, eventName: string
   return { drawId, drawName, eventName, groups };
 }
 
-// enumerate every draw of the loaded tournament once, collecting both inconsistencies (what's
-// wrong in the decided state) and completeness (what's still outstanding before the draw is done)
-export function auditTournament(): { audits: DrawAudit[]; completeness: DrawCompleteness[]; drawCount: number } {
+// "how does the scoring format vary within a structure" — surfaces the revert pattern (a round
+// that departs from the structure's format then returns), the fingerprint of an in-tournament
+// format change such as a weather-shortened day. getMatchUpFormatVariance carries structureName/stage.
+function formatVarianceForDraw(drawId: string, drawName: string, eventName: string): DrawFormatVariance | undefined {
+  const result: any = tournamentEngine.getMatchUpFormatVariance({ drawId });
+  const structures: any[] = result?.variance?.structures ?? [];
+  if (!structures.length) return undefined;
+
+  const groups: FormatVarianceGroup[] = structures.map((structure) => ({
+    structureId: structure.structureId,
+    label: structure.structureName || structure.stage || 'Structure',
+    baselineFormat: structure.baselineFormat,
+    revertPattern: !!structure.revertPattern,
+    departingRounds: (structure.rounds ?? [])
+      .filter((round: any) => round.differsFromBaseline)
+      .map((round: any) => ({ roundNumber: round.roundNumber, formats: round.formats })),
+  }));
+  return { drawId, drawName, eventName, groups };
+}
+
+// enumerate every draw of the loaded tournament once, collecting inconsistencies (what's wrong in
+// the decided state), completeness (what's still outstanding), and matchUpFormat variance (where a
+// structure's scoring format changed across rounds)
+export function auditTournament(): {
+  audits: DrawAudit[];
+  completeness: DrawCompleteness[];
+  formatVariance: DrawFormatVariance[];
+  drawCount: number;
+} {
   const events = tournamentEngine.q.events() ?? [];
   const audits: DrawAudit[] = [];
   const completeness: DrawCompleteness[] = [];
+  const formatVariance: DrawFormatVariance[] = [];
   let drawCount = 0;
   for (const event of events) {
     for (const drawDefinition of event.drawDefinitions ?? []) {
@@ -113,7 +155,9 @@ export function auditTournament(): { audits: DrawAudit[]; completeness: DrawComp
       if (audit) audits.push(audit);
       const outstanding = completenessForDraw(drawDefinition.drawId, drawName, eventName);
       if (outstanding) completeness.push(outstanding);
+      const variance = formatVarianceForDraw(drawDefinition.drawId, drawName, eventName);
+      if (variance) formatVariance.push(variance);
     }
   }
-  return { audits, completeness, drawCount };
+  return { audits, completeness, formatVariance, drawCount };
 }

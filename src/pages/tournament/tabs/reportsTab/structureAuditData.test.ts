@@ -1,5 +1,5 @@
+import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { auditTournament, groupByStructure } from './structureAuditData';
-import { mocksEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 // structureAudit's DOM builders are exercised by Playwright; these node-safe tests cover the
@@ -63,5 +63,25 @@ describe('auditTournament', () => {
     const group = completeness[0].groups[0];
     expect(group.unassignedPositions).toEqual([]);
     expect(group.unplayedMatchUps.length).toEqual(7);
+  });
+
+  it('surfaces within-structure matchUpFormat variance with the revert pattern', () => {
+    const { tournamentRecord } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawId: 'auditFmt', drawSize: 16, drawType: 'SINGLE_ELIMINATION', matchUpFormat: 'SET3-S:6/TB7' }],
+      completeAllMatchUps: true,
+    });
+    // a storm shortened round 2 only; rounds 1/3/4 stay on the baseline → depart-then-return
+    const structure = tournamentRecord.events[0].drawDefinitions[0].structures[0];
+    structure.matchUps
+      .filter((m: any) => m.roundNumber === 2)
+      .forEach((m: any) => (m.matchUpFormat = 'SET1-S:6/TB7'));
+    tournamentEngine.setState(tournamentRecord);
+
+    const { formatVariance } = auditTournament();
+    expect(formatVariance.length).toEqual(1);
+    const group = formatVariance[0].groups[0];
+    expect(group.baselineFormat).toEqual('SET3-S:6/TB7');
+    expect(group.revertPattern).toEqual(true);
+    expect(group.departingRounds.some((r) => r.roundNumber === 2)).toEqual(true);
   });
 });
