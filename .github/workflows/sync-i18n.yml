@@ -92,8 +92,8 @@ jobs:
           branch: chore/sync-i18n-from-tmx
           delete-branch: true
           commit-message: |
-            chore(i18n): sync en.json from TMX
+            fix(i18n): sync en.json from TMX
 
             See PR body for the full list of added / updated keys.
-          title: 'chore(i18n): sync en.json from TMX'
+          title: 'fix(i18n): sync en.json from TMX'
           body-path: /tmp/pr-body.md
