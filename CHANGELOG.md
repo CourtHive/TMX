@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.6.0](https://github.com/CourtHive/TMX/compare/v8.5.0...v8.6.0) (2026-07-02)
+
+
+### Features
+
+* **draws:** follow player to structure and highlight linked matchups ([9491350](https://github.com/CourtHive/TMX/commit/9491350d005908c0ab4c403d993fb26296ef9259))
+* **matchups:** add end-of-tournament Actions menu to abandon remaining matches ([7e467f8](https://github.com/CourtHive/TMX/commit/7e467f8d11ddcf515fa7480b4ef54a325129f417))
+* **reports:** add "still outstanding" section to the structure audit panel ([4cb0c87](https://github.com/CourtHive/TMX/commit/4cb0c87b246eab43c910652e866ab021f179a701))
+* **reports:** add structure-integrity audit panel for admins ([4894a79](https://github.com/CourtHive/TMX/commit/4894a79bec24a639d3e7a5aa1daf0fe2d1f491ce))
+* **reports:** surface matchUpFormat variance in the structure audit panel ([3de5b8d](https://github.com/CourtHive/TMX/commit/3de5b8d1398e26cb8a3378b5f7a1801d90f1f237))
+
+
+### Bug Fixes
+
+* :pencil2: fix typos for attribute `birthDate` ([6182466](https://github.com/CourtHive/TMX/commit/61824668e17284fee9cfb333d260580d272cef0d))
+* **crowd:** start crowd-activity poller with correct tournament id lookup ([01bad97](https://github.com/CourtHive/TMX/commit/01bad977393aeef8b14b38c93c52e410bf905bf7))
+* **deps:** declare jspdf so CI check-types resolves the type import ([b2839e0](https://github.com/CourtHive/TMX/commit/b2839e0c8d4550e79245a0d23b651affc7b07681))
+* **deps:** update dependency @courthive/provider-config to ^0.8.0 ([384d889](https://github.com/CourtHive/TMX/commit/384d88994d97d5cdbe9a7cdd725a790caaa49e87))
+* **deps:** update pdf-factory to 0.8.7 ([96a02b0](https://github.com/CourtHive/TMX/commit/96a02b03b2c877910a2a6cfa820a098f3f814ebe))
+* **draws:** preserve selected round across draw-minimap toggle ([ad14531](https://github.com/CourtHive/TMX/commit/ad14531bdee508fd99249b49013ea87810f3d96d))
+* **scoring:** surface incompatible matchup-status errors as a toast ([0c20077](https://github.com/CourtHive/TMX/commit/0c20077bbb082201e0c23c55ae0d4386fb7d2bee))
+
 ## [8.5.0](https://github.com/CourtHive/TMX/compare/v8.4.1...v8.5.0) (2026-06-30)
 
 
