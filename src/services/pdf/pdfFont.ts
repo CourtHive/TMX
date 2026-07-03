@@ -6,12 +6,14 @@
  * module-level `setDefaultFont`, so EVERY print type picks it up without any
  * per-call wiring.
  *
- * Fonts (TrueType) are served as static files by NGINX at `/fonts/` (sourced from
- * Mentat/static/fonts), NOT through CFS — static blobs stay off the mutation
- * server. We fetch the chosen font once, base64-encode it, and cache it in
- * IndexedDB (Dexie `pdfFonts` table) so subsequent prints are instant and work offline.
- *
- * See Mentat/planning/PDF_CE_FONT_SUPPORT.md (WS-3).
+ * Fonts (TrueType) ship in TMX's own `public/fonts/` bundle (see the README there),
+ * so Vite serves them at `/fonts/` in dev and in the build with no server config —
+ * any checkout works standalone. We fetch from the web origin (`location.origin`),
+ * NEVER through the API client (`baseApi` → CFS): static blobs must stay off the
+ * mutation server, and a static GET should carry no auth header. The chosen font is
+ * fetched once, base64-encoded, and cached in IndexedDB (Dexie `pdfFonts` table) so
+ * subsequent prints are instant and work offline. In production a CDN/NGINX layer
+ * may front `/fonts/`; the bundled copies remain the self-contained fallback.
  */
 
 import type { FontDefinition } from 'pdf-factory';
@@ -20,13 +22,21 @@ import { setDefaultFont } from 'pdf-factory';
 import { loadSettings } from 'services/settings/settingsStorage';
 import { providerConfig } from 'config/providerConfig';
 import { tmx2db } from 'services/storage/tmx2db';
-import { baseApi } from 'services/apis/baseApi';
 
 // constants and types
 export const PROVIDER_DEFAULT_FONT = '__provider_default__';
 const BUILTIN_FONT_ID = 'helvetica';
 const CATALOG_STORAGE_KEY = 'tmx_pdf_font_catalog';
 const FONTS_TABLE = 'pdfFonts';
+
+// `/fonts/` is a static bundle served by NGINX from the web origin, deliberately
+// NOT through CFS (the mutation server must not carry asset traffic). Resolve
+// against `location.origin` — never `baseApi`, whose base URL points at the API
+// host (CFS) and which would also attach the Authorization header to a static GET.
+function staticAssetUrl(path: string): string {
+  const origin = globalThis.location?.origin ?? '';
+  return new URL(path, origin || undefined).toString();
+}
 
 export interface FontStyleUrls {
   normal: string;
@@ -45,9 +55,9 @@ export interface PdfFontCatalogEntry {
 
 const CENTRAL_EUROPEAN = ['en', 'cs', 'sk', 'pl', 'hu', 'hr', 'sl', 'ro', 'de', 'fr', 'es', 'it', 'tr'];
 
-// Stable fallback catalog matching the NGINX-served /fonts/ bundle, so the
-// feature works before (or without) a successful catalog fetch — the file URLs
-// are stable static paths served directly by NGINX (not CFS).
+// Stable fallback catalog matching the bundled public/fonts/ set, so the feature
+// works before (or without) a successful catalog fetch — the file URLs are stable
+// static paths served from the web origin (public/fonts/, never CFS).
 const DEFAULT_CATALOG: PdfFontCatalogEntry[] = [
   { id: BUILTIN_FONT_ID, label: 'Helvetica (built-in)', languages: ['en'], builtin: true },
   {
@@ -84,15 +94,18 @@ export function getCachedFontCatalog(): PdfFontCatalogEntry[] {
   return DEFAULT_CATALOG;
 }
 
-/** Refresh the catalog from the NGINX-served `/fonts/catalog.json`; falls back to the cached/default list. */
+/** Refresh the catalog from `/fonts/catalog.json` (web origin); falls back to the cached/default list. */
 export async function fetchFontCatalog(): Promise<PdfFontCatalogEntry[]> {
   try {
-    const { data } = await baseApi.get('/fonts/catalog.json', { silenceErrors: true } as any);
-    const fonts = data?.fonts as PdfFontCatalogEntry[] | undefined;
-    if (fonts?.length) {
-      catalogCache = fonts;
-      localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(fonts));
-      return fonts;
+    const response = await fetch(staticAssetUrl('/fonts/catalog.json'));
+    if (response.ok) {
+      const data = await response.json();
+      const fonts = data?.fonts as PdfFontCatalogEntry[] | undefined;
+      if (fonts?.length) {
+        catalogCache = fonts;
+        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(fonts));
+        return fonts;
+      }
     }
   } catch (err) {
     console.warn('[pdfFont] catalog fetch failed; using cached/default:', err);
@@ -119,8 +132,9 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 async function fetchFontBase64(url: string): Promise<string> {
-  const { data } = await baseApi.get(url, { responseType: 'arraybuffer', silenceErrors: true } as any);
-  return arrayBufferToBase64(data as ArrayBuffer);
+  const response = await fetch(staticAssetUrl(url));
+  if (!response.ok) throw new Error(`[pdfFont] font fetch ${response.status} for ${url}`);
+  return arrayBufferToBase64(await response.arrayBuffer());
 }
 
 function familyFromId(id: string): string {
