@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.7.0](https://github.com/CourtHive/TMX/compare/v8.6.0...v8.7.0) (2026-07-03)
+
+
+### Features
+
+* **mutation:** replay server-appended methods from the ack ([#1184](https://github.com/CourtHive/TMX/issues/1184)) ([917f341](https://github.com/CourtHive/TMX/commit/917f341c989bcebcc1a0f5832e096063f70783f7))
+
+
+### Bug Fixes
+
+* **pdf:** fetch fonts from web origin, bundle in public/fonts ([5928d97](https://github.com/CourtHive/TMX/commit/5928d975b734ee11e4995d1abf1ee526e0c784e3))
+
 ## [8.6.0](https://github.com/CourtHive/TMX/compare/v8.5.0...v8.6.0) (2026-07-02)
 
 
