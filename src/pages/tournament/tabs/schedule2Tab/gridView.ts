@@ -71,6 +71,7 @@ import {
   getCachedTournamentInfo,
   getCachedAllMatchUps,
 } from './schedule2DataCache';
+import { computeStripPromotions } from './activeStripPromotions';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -152,6 +153,11 @@ let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
 let activeStripBlockTicker: ReturnType<typeof setInterval> | null = null;
+// Per-court record of which matchUp currently occupies the "Now" strip cell.
+// Used to detect auto-promotion: when a court's Now occupant COMPLETES and the
+// next scheduled matchUp rises into the Now slot, we stamp `calledAt` on the
+// newcomer — mirroring the explicit drag-to-strip stamp in commitActiveStripDrop.
+let stripNowByCourt = new Map<string, string>();
 let catalogStateUnsubscribe: (() => void) | null = null;
 // Persisted view state (sidebar tab + scheduled-panel search / groupBy /
 // filters) lives in `gridViewStorage.ts` — extracted so the localStorage
@@ -221,7 +227,7 @@ export function renderGridView(
     // Surface new/cleared conflicts (e.g. a drag that puts court times out of
     // order) in the action bar's issues button without rebuilding the bar.
     gridActionBar?.setIssues(freshIssues);
-    activeStrip?.setData(buildActiveStripData(currentDate));
+    refreshActiveStrip(currentDate);
   }
   currentRefresh = refresh;
 
@@ -417,7 +423,10 @@ export function renderGridView(
   const initialState = activeControl.getStore().getState();
   activeStrip.update(initialState);
   syncStripOffset(initialState.activeStripVisible);
-  activeStrip.setData(buildActiveStripData(currentDate));
+  // Seed the Now-slot baseline for this mount; seeding never stamps (no prior
+  // occupant to promote from).
+  stripNowByCourt = new Map();
+  refreshActiveStrip(currentDate);
 
   // Periodic refresh of just the courtBlocks portion so availability blocks
   // (PRACTICE / MAINTENANCE / etc.) appear and disappear with the clock.
@@ -425,7 +434,7 @@ export function renderGridView(
   if (activeStripBlockTicker) clearInterval(activeStripBlockTicker);
   activeStripBlockTicker = setInterval(() => {
     if (!activeStrip) return;
-    activeStrip.setData(buildActiveStripData(currentDate));
+    refreshActiveStrip(currentDate);
   }, 30000);
 
   // Strip cell clicks open the same popover as grid-cell clicks. Delegated
@@ -1063,6 +1072,7 @@ export function destroyGridView(): void {
   }
   activeStrip = null;
   latestStripSnapshot = null;
+  stripNowByCourt = new Map();
   if (activeControl) {
     activeControl.destroy();
     activeControl = null;
@@ -1939,7 +1949,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const onVisibilityChanged = () => {
       destroyVisibilityTip();
       render(date);
-      activeStrip?.setData(buildActiveStripData(date));
+      refreshActiveStrip(date);
     };
     const courtHeaders = buildGridHeaders({
       grid,
@@ -2166,6 +2176,37 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const courtBlocks = buildCurrentCourtBlocks(date);
 
   return { grid: { columns }, courts, courtBlocks, gridTemplateColumns, minWidth };
+}
+
+/**
+ * Rebuild the active strip and, in the same pass, stamp `calledAt` on any
+ * matchUp that was just auto-promoted into a court's "Now" slot.
+ *
+ * The strip surfaces one cell per court (in-progress → next-pending → free).
+ * When the Now occupant finishes, the strip re-derives and the next scheduled
+ * matchUp rises into the Now slot — a purely visual promotion with no mutation.
+ * A deliberate drag-to-strip stamps `calledAt` (commitActiveStripDrop); an
+ * auto-promotion should read as the same "called to court" signal, so we stamp
+ * it here too. Any setData path (refresh, mount, block ticker, court-visibility
+ * change) flows through this so the tracking baseline stays current.
+ */
+function refreshActiveStrip(date: string): void {
+  const data = buildActiveStripData(date);
+  activeStrip?.setData(data);
+  stampAutoPromotedStripCalls(data.grid.columns);
+}
+
+function stampAutoPromotedStripCalls(columns: ActiveStripPanelData['grid']['columns']): void {
+  const { promotions, nextNowByCourt } = computeStripPromotions(stripNowByCourt, columns);
+  stripNowByCourt = nextNowByCourt;
+  if (!promotions.length || !currentRefresh) return;
+
+  const calledAt = new Date().toISOString();
+  const methods = promotions.map((promotion) => ({
+    method: SET_MATCHUP_CALLED_AT,
+    params: { matchUpId: promotion.matchUpId, drawId: promotion.drawId, calledAt },
+  }));
+  executeMethods(methods, currentRefresh);
 }
 
 /**
