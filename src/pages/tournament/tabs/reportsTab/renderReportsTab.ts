@@ -168,7 +168,10 @@ function localizeReportTimes(rows: Record<string, any>[]): void {
       // No trailing "Z" ⇒ parsed as local wall-clock, matching the venue plan.
       const planned = new Date(`${row.scheduledDate}T${row.scheduledTime}:00`);
       if (!Number.isNaN(planned.getTime())) {
-        row.varianceMinutes = Math.round((called.getTime() - planned.getTime()) / 60000);
+        // Compare at whole-minute resolution so the number agrees with the HH:mm
+        // shown: a call at 15:05:45 displays as 15:05, so 15:00 → 15:05 reads as
+        // 5, not 6 (which a seconds-aware round would give).
+        row.varianceMinutes = Math.floor(called.getTime() / 60000) - Math.floor(planned.getTime() / 60000);
       }
     }
   }
