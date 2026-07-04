@@ -14,6 +14,24 @@ import { LEFT, REPORTS_CONTROL, RIGHT, TOURNAMENT_REPORTS } from 'constants/tmxC
 let activeReport: any;
 let activeReportName = '';
 
+// Remembers the last report the user viewed so it re-opens across tab/tournament
+// navigation instead of always resetting to the first report.
+const SELECTED_REPORT_KEY = 'tmx_selectedReport';
+const getStoredReportId = (): string | null => {
+  try {
+    return localStorage.getItem(SELECTED_REPORT_KEY);
+  } catch {
+    return null;
+  }
+};
+const storeReportId = (reportId: string): void => {
+  try {
+    localStorage.setItem(SELECTED_REPORT_KEY, reportId);
+  } catch {
+    /* localStorage unavailable (private mode / quota) — selection just won't persist */
+  }
+};
+
 // admin/director-only structure-integrity audit launcher for the reports control bar
 const auditControlItem = () => ({
   onClick: () => openStructureAuditModal(),
@@ -42,6 +60,11 @@ export function renderReportsTab(): void {
     return;
   }
 
+  // Restore the previously selected report if it's still available; otherwise
+  // fall back to the first.
+  const storedReportId = getStoredReportId();
+  const initialReport = reports.find((r: any) => r.reportId === storedReportId) ?? reports[0];
+
   const reportOptions = reports.map((r: any) => ({
     label: r.name,
     value: r.reportId,
@@ -52,7 +75,7 @@ export function renderReportsTab(): void {
   const items = [
     {
       options: reportOptions,
-      label: reports[0].name,
+      label: initialReport.name,
       modifyLabel: true,
       intent: 'is-info',
       location: LEFT,
@@ -84,21 +107,55 @@ export function renderReportsTab(): void {
 
   controlBar({ target: controlTarget, items });
 
-  // Auto-select first report
-  selectReport(reports[0]);
+  // Open the restored (or first) report.
+  selectReport(initialReport);
 }
 
 async function selectReport(report: any): Promise<void> {
   const { reportId, name, source } = report;
   activeReportName = name;
+  storeReportId(reportId);
 
   if (source === 'server') {
     await fetchServerReport(reportId);
   } else {
     const result: any = tournamentEngine.generateReport({ reportId });
     if (result.error) return;
+    localizeReportTimes(result.rows);
     activeReport = { columns: result.columns, rows: result.rows };
     createReportsTable({ columns: result.columns, rows: result.rows });
+  }
+}
+
+/**
+ * Recompute any UTC timestamps a report carries (rows with a `calledAtIso`
+ * field, e.g. Call Timing Variance) into the operator's local wall-clock —
+ * which on-site is the venue timezone. Doing this in the browser uses the
+ * runtime's own tz (DST-correct) instead of a passed offset, so the displayed
+ * clock and variance always match what the director actually saw.
+ *
+ * `calledAt` becomes a bare HH:mm (date-prefixed only when the call landed on a
+ * different calendar day than the scheduled date); `varianceMinutes` is the
+ * signed difference between the actual call instant and the planned local time.
+ */
+function localizeReportTimes(rows: Record<string, any>[]): void {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  for (const row of rows ?? []) {
+    if (!row.calledAtIso) continue;
+    const called = new Date(row.calledAtIso);
+    if (Number.isNaN(called.getTime())) continue;
+
+    const localDate = `${called.getFullYear()}-${pad(called.getMonth() + 1)}-${pad(called.getDate())}`;
+    const localTime = `${pad(called.getHours())}:${pad(called.getMinutes())}`;
+    row.calledAt = localDate === row.scheduledDate ? localTime : `${localDate} ${localTime}`;
+
+    if (row.scheduledDate && row.scheduledTime) {
+      // No trailing "Z" ⇒ parsed as local wall-clock, matching the venue plan.
+      const planned = new Date(`${row.scheduledDate}T${row.scheduledTime}:00`);
+      if (!Number.isNaN(planned.getTime())) {
+        row.varianceMinutes = Math.round((called.getTime() - planned.getTime()) / 60000);
+      }
+    }
   }
 }
 
