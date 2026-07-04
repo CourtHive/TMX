@@ -4,24 +4,23 @@
  * Rankings are published by the separate `courthive-rankings` service and
  * viewed in the `courthive-public` app at `<origin>/pub/#/rankings/<ABBR>`.
  *
- * Existence is probed through the CFS rankings proxy (`/api/rankings/bundle`),
- * which today returns a single, non-provider-keyed bundle. We therefore treat
- * rankings as "existing" for a provider only when that bundle's abbreviation
- * matches the active provider AND it carries rankings — mirroring the liveness
- * check the public per-provider page performs. This naturally scopes the icon
- * to the one provider that currently has rankings and grows correctly once the
- * backend adds provider-scoped filtering.
+ * Existence is probed through the CFS rankings proxy's provider directory
+ * (`GET /api/rankings/providers` → `[{ abbreviation, name }]`): a provider
+ * "has rankings" when its abbreviation appears in that list. The whole list
+ * is fetched once and memoized, so probing any number of providers costs a
+ * single request per session.
  */
 import { platform } from 'platform';
 
-interface RankingsBundle {
-  provider?: { name?: string; abbreviation?: string };
-  rankings?: { men?: unknown; women?: unknown };
+interface RankingsProvider {
+  abbreviation?: string;
+  name?: string;
 }
 
-// Session-scoped memo keyed by provider abbreviation (upper-cased) so repeated
-// home-nav renders don't re-hit the proxy. Cleared on reload.
-const existenceCache = new Map<string, boolean>();
+// Session-scoped memo of the upper-cased abbreviations that have rankings.
+// Fetched once (a single in-flight promise coalesces concurrent probes) and
+// reused across home-nav renders; cleared on reload.
+let providerSetPromise: Promise<Set<string>> | undefined;
 
 function origin(): string {
   return platform.getDefaultServerUrl().replace(/\/$/, '');
@@ -31,25 +30,25 @@ export function getProviderRankingsUrl(abbreviation: string): string {
   return `${origin()}/pub/#/rankings/${encodeURIComponent(abbreviation.toUpperCase())}`;
 }
 
+function fetchProviderSet(): Promise<Set<string>> {
+  if (!providerSetPromise) {
+    providerSetPromise = (async () => {
+      try {
+        const res = await fetch(`${origin()}/api/rankings/providers`, { headers: { accept: 'application/json' } });
+        if (!res.ok) return new Set<string>();
+        const providers = (await res.json()) as RankingsProvider[];
+        if (!Array.isArray(providers)) return new Set<string>();
+        return new Set(providers.map((p) => p?.abbreviation?.toUpperCase()).filter((a): a is string => !!a));
+      } catch {
+        return new Set<string>();
+      }
+    })();
+  }
+  return providerSetPromise;
+}
+
 export async function providerHasRankings(abbreviation?: string): Promise<boolean> {
   if (!abbreviation) return false;
-  const key = abbreviation.toUpperCase();
-  const cached = existenceCache.get(key);
-  if (cached !== undefined) return cached;
-
-  let exists = false;
-  try {
-    const res = await fetch(`${origin()}/api/rankings/bundle`, { headers: { accept: 'application/json' } });
-    if (res.ok) {
-      const bundle = (await res.json()) as RankingsBundle;
-      const bundleAbbr = bundle?.provider?.abbreviation?.toUpperCase();
-      const hasRankings = !!(bundle?.rankings?.men && bundle?.rankings?.women);
-      exists = bundleAbbr === key && hasRankings;
-    }
-  } catch {
-    exists = false;
-  }
-
-  existenceCache.set(key, exists);
-  return exists;
+  const providers = await fetchProviderSet();
+  return providers.has(abbreviation.toUpperCase());
 }
