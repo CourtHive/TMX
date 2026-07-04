@@ -16,6 +16,7 @@ import type {
   ProviderConfigData,
   ProviderPermissions,
 } from '@courthive/provider-config';
+import { context } from 'services/context';
 
 export type { ProviderBranding, ProviderConfigData, ProviderPermissions };
 
@@ -159,13 +160,18 @@ function updateNavbarBranding(branding?: ProviderBranding): void {
     img.alt = branding.navbarLogoAlt ?? 'Logo';
     img.style.maxHeight = `${branding.navbarLogoHeight ?? 32}px`;
     img.style.objectFit = 'contain';
-    providerDiv.innerHTML = '';
-    providerDiv.appendChild(img);
-  } else {
-    const appName = branding?.appName ?? 'TMX';
-    const existing = providerDiv.querySelector('div');
-    if (existing) {
-      existing.textContent = appName;
-    }
+    providerDiv.replaceChildren(img);
+    return;
   }
+
+  // No custom logo: render a text label. Prefer the provider's branding
+  // appName, then the active provider's abbreviation, then 'TMX'. Always
+  // rebuild the inner node (replaceChildren) so a prior provider's logo <img>
+  // or stale text can't survive a switch to a provider that defines no
+  // navbar branding — the "still shows INTENNSE" bug.
+  const label = branding?.appName ?? context.provider?.organisationAbbreviation ?? 'TMX';
+  const div = document.createElement('div');
+  div.style.fontSize = '.6em';
+  div.textContent = label;
+  providerDiv.replaceChildren(div);
 }

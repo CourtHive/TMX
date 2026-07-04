@@ -53,7 +53,21 @@ export function setActiveProvider(provider: ProviderValue, options: SetActivePro
   if (provider?.organisationId) {
     fetchEffectiveConfig(provider.organisationId).then(
       (effective) => {
+        // Guard against a stale fetch resolving after the user switched
+        // providers again — applying it would repaint the wrong provider's
+        // branding/permissions.
+        if (context.provider?.organisationId !== provider.organisationId) return;
+        // Reset first so the new provider fully replaces the prior one:
+        // providerConfig.set() merges, and a provider that omits a branding
+        // slice would otherwise inherit the previous provider's branding
+        // (the "switch to BOBOCA still shows INTENNSE" bug). reset() also
+        // clears stale permissions from the provider we switched away from.
+        providerConfig.reset();
         if (effective) providerConfig.set(effective);
+        // reset()/set() repaint the navbar via applyBranding →
+        // updateNavbarBranding, which falls back to the active provider's
+        // abbreviation when the provider defines no navbar logo/appName — so a
+        // brandless provider still shows its own identity, not 'TMX'.
         // Re-resolve the PDF font for the newly impersonated provider's default.
         void ensurePdfFontReady();
       },
@@ -82,6 +96,11 @@ export function clearActiveProvider(): void {
   } catch {
     /* non-fatal */
   }
+  // Drop the impersonated provider's config from the singleton so its branding
+  // can't linger after stopping impersonation. The next getLoginState() re-
+  // applies the JWT user's own home config (context.provider is now cleared,
+  // so applyJwtProviderConfig no longer yields to an impersonation override).
+  providerConfig.reset();
   updateProviderBranding();
 }
 
