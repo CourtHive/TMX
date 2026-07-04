@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.9.0](https://github.com/CourtHive/TMX/compare/v8.8.0...v8.9.0) (2026-07-04)
+
+
+### Features
+
+* **reports:** call timing variance display, content-fit columns, persisted selection ([4ba9a01](https://github.com/CourtHive/TMX/commit/4ba9a01373d380c16e2d9d706c71d6b82f48712d))
+* **reports:** deep-link reports via /reports/:reportId URL ([b183ea4](https://github.com/CourtHive/TMX/commit/b183ea46869443f66b657c3dcab276da72cf0046))
+* **schedule:** glowing Call Timing Variance shortcut on the grid action bar ([0747664](https://github.com/CourtHive/TMX/commit/074766404aaa10df52a166724b2c1b9d1292863a))
+
+
+### Bug Fixes
+
+* **nav:** hide tournament chat when not logged in ([5ac2ca0](https://github.com/CourtHive/TMX/commit/5ac2ca09ef088f57fcb1e869a279e14aef50b763))
+* **provider:** keep navbar branding in sync on super-admin provider switch ([75aa229](https://github.com/CourtHive/TMX/commit/75aa2299e43fc761d147875ef486b5861b8339d3))
+* **reports:** floor call timing variance to whole minutes ([fba2cb2](https://github.com/CourtHive/TMX/commit/fba2cb2cbb142103749cd59fa673b7adfae8c901))
+* **schedule:** place timing shortcut right of the Min Width stepper ([2557e00](https://github.com/CourtHive/TMX/commit/2557e00ad67caf3c11d5aa99a5f345901ea45c07))
+* **schedule:** stamp calledAt when a matchUp auto-promotes into the Now strip ([5e6914a](https://github.com/CourtHive/TMX/commit/5e6914afa453b62de297fc32d5a7904870c1f3db))
+
 ## [8.8.0](https://github.com/CourtHive/TMX/compare/v8.7.0...v8.8.0) (2026-07-04)
 
 
