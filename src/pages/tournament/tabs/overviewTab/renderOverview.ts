@@ -213,11 +213,12 @@ export function renderOverview(): void {
   // Practice default-capacity card — small admin affordance for the
   // tournament-wide PRACTICE booking capacity default. Doesn't reorganise
   // the grid; lives between categories and events as another clickable
-  // stat card. Value reads as "Unlimited" when null/absent, "Closed" for 0.
+  // stat card. Value reads as "None allocated" when null/absent (no default
+  // has been set), "Closed" for 0.
   const currentCapacity = resolveCurrentPracticeDefaultCapacity();
   const capacityValue =
     currentCapacity === null
-      ? t('dashboard.practiceUnlimited')
+      ? t('dashboard.practiceNoneAllocated')
       : currentCapacity === 0
         ? t('dashboard.practiceClosed')
         : String(currentCapacity);
