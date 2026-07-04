@@ -320,7 +320,13 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const viewDraw = () => {
     const drawId = matchUp?.drawId || cellData.drawId;
     const eventId = matchUp?.eventId || cellData.eventId;
-    if (drawId && eventId) navigateToEvent({ eventId, drawId, renderDraw: true });
+    const structureId = matchUp?.structureId || cellData.structureId;
+    const focusMatchUpId = matchUp?.matchUpId || matchUpId || cellData.matchUpId;
+    // Pass matchUpId (+ structureId) so navigateToEvent stashes a pending focus
+    // and renderDrawView scrolls to and highlights the matchUp — mirroring the
+    // matchUps-page event-chip navigation.
+    if (drawId && eventId)
+      navigateToEvent({ eventId, drawId, structureId, matchUpId: focusMatchUpId, renderDraw: true });
   };
 
   const removeFromSchedule = () => {

@@ -54,3 +54,15 @@ export function scheduleTimeFormatter(cell: any): HTMLSpanElement | string {
   el.textContent = value;
   return el;
 }
+
+// `calledAt` is a full ISO timestamp (stamped when a matchUp is dropped on the
+// active strip), unlike scheduledTime's bare HH:MM — render it as local HH:MM.
+export function calledAtFormatter(cell: any): HTMLSpanElement | string {
+  const value = cell.getValue();
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const el = document.createElement('span');
+  el.textContent = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return el;
+}

@@ -2,7 +2,11 @@
  * Column definitions for matchUps table.
  * Displays match details, participants, scores, schedule, and completion status.
  */
-import { scheduleDateFormatter, scheduleTimeFormatter } from '../common/formatters/scheduleStatusFormatter';
+import {
+  scheduleDateFormatter,
+  scheduleTimeFormatter,
+  calledAtFormatter,
+} from '../common/formatters/scheduleStatusFormatter';
 import { matchUpTypeChipFormatter } from '../common/formatters/matchUpTypeChipFormatter';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
@@ -252,6 +256,13 @@ export function getMatchUpColumns({
       cellClick: matchUpEndTimeClick,
       field: 'endTime',
       title: t('tables.matchUps.endTime'),
+      visible: false,
+      width: 80,
+    },
+    {
+      formatter: calledAtFormatter,
+      field: 'calledAt',
+      title: t('tables.matchUps.calledAt'),
       visible: false,
       width: 80,
     },

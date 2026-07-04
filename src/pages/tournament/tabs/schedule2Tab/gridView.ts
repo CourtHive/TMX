@@ -2329,12 +2329,16 @@ function commitActiveStripDrop(
   const methods: any[] = [];
 
   if (payload.type === 'GRID_MATCHUP') {
+    // Clear the matchUp's prior grid placement (court/order/venue) before it
+    // lands on the strip — but intentionally PRESERVE scheduledTime. Calling a
+    // match to court doesn't erase its planned time; omitting scheduledTime here
+    // leaves the existing value untouched (removePriorValues acts per-attribute).
     methods.push({
       method: ADD_MATCHUP_SCHEDULE_ITEMS,
       params: {
         matchUpId: payload.matchUp.matchUpId,
         drawId: payload.matchUp.drawId ?? '',
-        schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
+        schedule: { scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
         removePriorValues: true,
       },
     });

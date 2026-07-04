@@ -24,10 +24,18 @@ export const mapMatchUp = (matchUp: any): any => {
     ...rest
   } = matchUp;
 
-  const { scheduledDate, scheduledTime, courtName, startTime, endTime, official: officialId } = schedule || {};
+  const {
+    scheduledDate,
+    scheduledTime,
+    courtName,
+    startTime,
+    endTime,
+    calledAt,
+    official: officialId,
+  } = schedule || {};
   const official = officialId
-    ? tournamentEngine.q.participants({ participantFilters: { participantIds: [officialId] } })?.[0]
-        ?.participantName || officialId
+    ? tournamentEngine.q.participants({ participantFilters: { participantIds: [officialId] } })?.[0]?.participantName ||
+      officialId
     : undefined;
 
   const getPotentialName = (participant: any) => participant.person?.standardFamilyName || participant.participantName;
@@ -97,6 +105,7 @@ export const mapMatchUp = (matchUp: any): any => {
     searchText,
     startTime,
     courtName,
+    calledAt,
     eventName,
     eventType,
     matchUpId,
