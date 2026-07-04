@@ -1,5 +1,21 @@
 # Changelog
 
+## [8.8.0](https://github.com/CourtHive/TMX/compare/v8.7.0...v8.8.0) (2026-07-04)
+
+
+### Features
+
+* **homenav:** provider console icon linking to AMS console ([#1191](https://github.com/CourtHive/TMX/issues/1191)) ([c540a8d](https://github.com/CourtHive/TMX/commit/c540a8d7af68b752afae993ab11b0601550a6309))
+* **homenav:** provider rankings icon linking to public viewer ([#1189](https://github.com/CourtHive/TMX/issues/1189)) ([1d18bff](https://github.com/CourtHive/TMX/commit/1d18bff260ae576036e2dc1a23d64d4a17742ee6))
+* **rankings:** gate rankings icon on the providers directory ([#1192](https://github.com/CourtHive/TMX/issues/1192)) ([34c3ae7](https://github.com/CourtHive/TMX/commit/34c3ae77441793c7803748298088c1d0ab2690de))
+* **schedule2:** preserve strip-drop time, focus view-draw matchUp, add hidden calledAt column ([dc95b13](https://github.com/CourtHive/TMX/commit/dc95b1318b4449f7150af154c351f8861838f8c5))
+
+
+### Bug Fixes
+
+* **overview:** show 'None allocated' for undefined practice capacity ([#1190](https://github.com/CourtHive/TMX/issues/1190)) ([10109e7](https://github.com/CourtHive/TMX/commit/10109e76a3e6a78dd9ff134537ceaafe80facf5f))
+* **participants:** sort event chips by gender then event type ([#1186](https://github.com/CourtHive/TMX/issues/1186)) ([2ab132d](https://github.com/CourtHive/TMX/commit/2ab132dc529e9f2f71e6a820551509980eb162f6))
+
 ## [8.7.0](https://github.com/CourtHive/TMX/compare/v8.6.0...v8.7.0) (2026-07-03)
 
 
