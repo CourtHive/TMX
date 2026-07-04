@@ -3,7 +3,10 @@
  * Manages tab navigation and highlighting for non-tournament pages.
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
+import { getProviderRankingsUrl, providerHasRankings } from 'services/rankings/providerRankings';
+import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
+import { getLoginState } from 'services/authentication/loginState';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
@@ -37,6 +40,82 @@ const homeI18nKeys: Record<string, string> = {
   'h-policies': 'pol',
   'h-settings': 'set',
 };
+
+// The rankings icon is NOT a homeRouteMap entry: it links out to the public
+// rankings viewer in a new tab rather than routing inside TMX. It is shown only
+// to provider admins (or super-admins impersonating) when the active provider
+// actually has published rankings.
+const RANKINGS_ICON = 'h-rankings';
+const RANKINGS_MOBILE_ITEM = 'mobile-nav-rankings';
+
+function activeProviderAbbr(): string | undefined {
+  const provider = context.provider ?? getLoginState()?.provider;
+  return provider?.organisationAbbreviation;
+}
+
+function sidebarTip(text: string): string {
+  const sideBar = document.querySelector('.side-bar');
+  return sideBar?.classList.contains('collapse') ? text : '';
+}
+
+function openRankings(abbreviation: string): void {
+  globalThis.open(getProviderRankingsUrl(abbreviation), '_blank', 'noopener');
+}
+
+function removeRankingsMobileItem(): void {
+  document.getElementById(RANKINGS_MOBILE_ITEM)?.remove();
+}
+
+function addRankingsMobileItem(abbreviation: string): void {
+  const menu = document.getElementById('mobileHomeNavMenu');
+  if (!menu || document.getElementById(RANKINGS_MOBILE_ITEM)) return;
+
+  const item = document.createElement('button');
+  item.id = RANKINGS_MOBILE_ITEM;
+  item.className = 'mobile-nav-item';
+  item.textContent = t('rnk');
+  item.onclick = () => {
+    menu.classList.remove(MENU_OPEN_CLASS);
+    document.getElementById('mobileHomeNavToggle')?.setAttribute(ARIA_EXPANDED, 'false');
+    openRankings(abbreviation);
+  };
+  menu.appendChild(item);
+}
+
+// Reveal the rankings icon (desktop + mobile) only when the active provider has
+// published rankings. Starts hidden every render and reveals asynchronously once
+// the existence probe resolves, so a provider switch never leaves a stale icon.
+function setupRankingsNav(): void {
+  const icon = document.getElementById(RANKINGS_ICON);
+  if (!icon) return;
+
+  icon.style.display = 'none';
+  removeRankingsMobileItem();
+
+  if (!isActiveProviderAdmin()) return;
+  const abbreviation = activeProviderAbbr();
+  if (!abbreviation) return;
+
+  providerHasRankings(abbreviation).then((exists) => {
+    if (!exists) return;
+    // Guard against a provider switch while the probe was in flight.
+    if (activeProviderAbbr()?.toUpperCase() !== abbreviation.toUpperCase()) return;
+
+    icon.style.display = '';
+    icon.onclick = () => openRankings(abbreviation);
+
+    if ((icon as any)._tippy) (icon as any)._tippy.destroy();
+    (tippy as any)(icon, {
+      dynContent: () => !deviceConfig.get().isMobile && sidebarTip(t('rnk')),
+      onShow: (options: any) => !!options.props.content,
+      plugins: [enhancedContentFunction],
+      placement: BOTTOM,
+      arrow: false,
+    });
+
+    addRankingsMobileItem(abbreviation);
+  });
+}
 
 function navigateHomeRoute(id: string): void {
   document.querySelectorAll('.home-nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
@@ -134,6 +213,7 @@ export function homeNavigation(currentRoute?: string): void {
   });
 
   setupMobileHomeNav(currentRoute);
+  setupRankingsNav();
 }
 
 export function highlightHomeTab(route: string): void {
