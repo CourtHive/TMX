@@ -59,6 +59,7 @@ export const TMX_ADMIN = 'tmxAdmin';
 export const TEMPLATES = 'templates';
 export const POLICIES = 'policies';
 export const SETTINGS = 'settings';
+export const RANKINGS = 'rankings';
 export const DRAW_ENTRIES = 'drawEntries';
 export const TOURNAMENT = 'tournament';
 export const STRUCTURE = 'structure';

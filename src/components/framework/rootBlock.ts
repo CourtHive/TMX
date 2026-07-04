@@ -245,6 +245,7 @@ function newBlock(): HTMLDivElement {
 
       <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
+      <i id='h-rankings' class="home-nav-icon fa-solid fa-ranking-star" style="display: none;"></i>
       <span id='assistantIndicatorHome' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
         <i class="home-nav-icon fa-solid fa-robot"></i>
       </span>
