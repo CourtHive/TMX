@@ -10,7 +10,30 @@ type ReportColumn = {
   title: string;
   type?: string;
   width?: number;
+  headerWordWrap?: boolean;
+  fitData?: boolean;
 };
+
+// Approximate a content-fit column width (px) from the longest of the header
+// title and the column's values. Header needs extra room for the sort arrow;
+// clamped so a single long value can't blow the layout out.
+function estimateColumnWidth(title: string, field: string, rows: Record<string, any>[]): number {
+  const CHAR = 7.6;
+  const CELL_PADDING = 26;
+  const SORT_ARROW = 20;
+  const MIN = 56;
+  const MAX = 320;
+  let dataChars = 0;
+  for (const row of rows) {
+    const value = row[field];
+    if (value == null) continue;
+    const len = String(value).length;
+    if (len > dataChars) dataChars = len;
+  }
+  const headerNeed = Math.ceil(title.length * CHAR) + CELL_PADDING + SORT_ARROW;
+  const dataNeed = Math.ceil(dataChars * CHAR) + CELL_PADDING;
+  return Math.min(MAX, Math.max(MIN, headerNeed, dataNeed));
+}
 
 // Row fields that carry IDs for CSV/JSON export but should not display in the table
 const HIDDEN_FIELDS = ['participantId', 'eventId', 'drawId', 'structureId'];
@@ -57,6 +80,23 @@ export function createReportsTable({
         };
       }
       const isNumber = col.type === 'number';
+      // Content-fit columns get a measured width and are pinned (widthGrow: 0)
+      // so they never stretch — spare table width flows to the flexible columns
+      // (e.g. the wide "MatchUp" column) instead.
+      if (col.fitData) {
+        return {
+          title: col.title,
+          field: col.key,
+          headerSort: true,
+          formatter: isNumber ? numberCellFormatter : undefined,
+          hozAlign: isNumber ? ('center' as const) : undefined,
+          headerHozAlign: isNumber ? ('center' as const) : undefined,
+          headerWordWrap: col.headerWordWrap || undefined,
+          // An explicit width overrides the measured estimate (still pinned).
+          width: col.width || estimateColumnWidth(col.title, col.key, rows),
+          widthGrow: 0,
+        };
+      }
       return {
         title: col.title,
         field: col.key,
@@ -64,7 +104,12 @@ export function createReportsTable({
         formatter: isNumber ? numberCellFormatter : undefined,
         hozAlign: isNumber ? ('center' as const) : undefined,
         headerHozAlign: isNumber ? ('center' as const) : undefined,
-        width: isNumber ? 125 : col.width || undefined,
+        // Numeric columns default to 125px but honor an explicit per-report
+        // width (e.g. a longer header like "Variance (min)"); text columns
+        // stay flexible unless the report pins a width.
+        width: isNumber ? col.width || 125 : col.width || undefined,
+        // Opt-in per column only — global header wrap misaligns other reports.
+        headerWordWrap: col.headerWordWrap || undefined,
       };
     });
 
