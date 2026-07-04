@@ -18,7 +18,10 @@ const ACCENT_BLUE = 'var(--tmx-accent-blue)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';
 const MENU_OPEN_CLASS = 'mobile-nav-menu--open';
 const ARIA_EXPANDED = 'aria-expanded';
-const NAV_ITEM_SELECTOR = '.mobile-nav-item';
+const MOBILE_ITEM_CLASS = 'mobile-nav-item';
+const NAV_ITEM_SELECTOR = `.${MOBILE_ITEM_CLASS}`;
+const MOBILE_TOGGLE_ID = 'mobileHomeNavToggle';
+const MOBILE_MENU_ID = 'mobileHomeNavMenu';
 
 const homeRouteMap: Record<string, string> = {
   'h-tournaments': TMX_TOURNAMENTS,
@@ -67,16 +70,16 @@ function removeRankingsMobileItem(): void {
 }
 
 function addRankingsMobileItem(abbreviation: string): void {
-  const menu = document.getElementById('mobileHomeNavMenu');
+  const menu = document.getElementById(MOBILE_MENU_ID);
   if (!menu || document.getElementById(RANKINGS_MOBILE_ITEM)) return;
 
   const item = document.createElement('button');
   item.id = RANKINGS_MOBILE_ITEM;
-  item.className = 'mobile-nav-item';
+  item.className = MOBILE_ITEM_CLASS;
   item.textContent = t('rnk');
   item.onclick = () => {
     menu.classList.remove(MENU_OPEN_CLASS);
-    document.getElementById('mobileHomeNavToggle')?.setAttribute(ARIA_EXPANDED, 'false');
+    document.getElementById(MOBILE_TOGGLE_ID)?.setAttribute(ARIA_EXPANDED, 'false');
     openRankings(abbreviation);
   };
   menu.appendChild(item);
@@ -117,6 +120,62 @@ function setupRankingsNav(): void {
   });
 }
 
+// The console icon links out to the AMS provider console at `<origin>/console/`
+// (same origin as TMX, shared JWT — the session carries over). Shown to provider
+// admins / super-admins-impersonating; no existence probe, so it's synchronous.
+const CONSOLE_ICON = 'h-console';
+const CONSOLE_MOBILE_ITEM = 'mobile-nav-console';
+
+function openConsole(): void {
+  globalThis.open(`${globalThis.location.origin}/console/`, '_blank', 'noopener');
+}
+
+function removeConsoleMobileItem(): void {
+  document.getElementById(CONSOLE_MOBILE_ITEM)?.remove();
+}
+
+function addConsoleMobileItem(): void {
+  const menu = document.getElementById(MOBILE_MENU_ID);
+  if (!menu || document.getElementById(CONSOLE_MOBILE_ITEM)) return;
+
+  const item = document.createElement('button');
+  item.id = CONSOLE_MOBILE_ITEM;
+  item.className = MOBILE_ITEM_CLASS;
+  item.textContent = t('cns');
+  item.onclick = () => {
+    menu.classList.remove(MENU_OPEN_CLASS);
+    document.getElementById(MOBILE_TOGGLE_ID)?.setAttribute(ARIA_EXPANDED, 'false');
+    openConsole();
+  };
+  menu.appendChild(item);
+}
+
+function setupConsoleNav(): void {
+  const icon = document.getElementById(CONSOLE_ICON);
+  if (!icon) return;
+
+  removeConsoleMobileItem();
+
+  if (!isActiveProviderAdmin()) {
+    icon.style.display = 'none';
+    return;
+  }
+
+  icon.style.display = '';
+  icon.onclick = () => openConsole();
+
+  if ((icon as any)._tippy) (icon as any)._tippy.destroy();
+  (tippy as any)(icon, {
+    dynContent: () => !deviceConfig.get().isMobile && sidebarTip(t('cns')),
+    onShow: (options: any) => !!options.props.content,
+    plugins: [enhancedContentFunction],
+    placement: BOTTOM,
+    arrow: false,
+  });
+
+  addConsoleMobileItem();
+}
+
 function navigateHomeRoute(id: string): void {
   document.querySelectorAll('.home-nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
   const element = document.getElementById(id);
@@ -127,8 +186,8 @@ function navigateHomeRoute(id: string): void {
 }
 
 function setupMobileHomeNav(currentRoute?: string): void {
-  const toggle = document.getElementById('mobileHomeNavToggle');
-  const menu = document.getElementById('mobileHomeNavMenu');
+  const toggle = document.getElementById(MOBILE_TOGGLE_ID);
+  const menu = document.getElementById(MOBILE_MENU_ID);
   if (!toggle || !menu) return;
 
   const currentId = Object.keys(homeRouteMap).find((id) => homeRouteMap[id] === currentRoute) || 'h-tournaments';
@@ -139,7 +198,7 @@ function setupMobileHomeNav(currentRoute?: string): void {
   const ids = Object.keys(homeRouteMap);
   ids.forEach((id) => {
     const item = document.createElement('button');
-    item.className = 'mobile-nav-item';
+    item.className = MOBILE_ITEM_CLASS;
     item.textContent = t(homeI18nKeys[id]);
     if (id === currentId) item.classList.add(ACTIVE_CLASS);
 
@@ -203,9 +262,9 @@ export function homeNavigation(currentRoute?: string): void {
     element.onclick = () => {
       navigateHomeRoute(id);
 
-      const toggle = document.getElementById('mobileHomeNavToggle');
+      const toggle = document.getElementById(MOBILE_TOGGLE_ID);
       if (toggle) toggle.textContent = t(homeI18nKeys[id]);
-      const menu = document.getElementById('mobileHomeNavMenu');
+      const menu = document.getElementById(MOBILE_MENU_ID);
       menu?.querySelectorAll(NAV_ITEM_SELECTOR).forEach((el, idx) => {
         el.classList.toggle(ACTIVE_CLASS, ids[idx] === id);
       });
@@ -214,6 +273,7 @@ export function homeNavigation(currentRoute?: string): void {
 
   setupMobileHomeNav(currentRoute);
   setupRankingsNav();
+  setupConsoleNav();
 }
 
 export function highlightHomeTab(route: string): void {
@@ -225,9 +285,9 @@ export function highlightHomeTab(route: string): void {
     if (element && homeRouteMap[id] === route) {
       element.style.color = ACCENT_BLUE;
 
-      const toggle = document.getElementById('mobileHomeNavToggle');
+      const toggle = document.getElementById(MOBILE_TOGGLE_ID);
       if (toggle) toggle.textContent = t(homeI18nKeys[id]);
-      const menu = document.getElementById('mobileHomeNavMenu');
+      const menu = document.getElementById(MOBILE_MENU_ID);
       menu?.querySelectorAll(NAV_ITEM_SELECTOR).forEach((el, idx) => {
         el.classList.toggle(ACTIVE_CLASS, ids[idx] === id);
       });
