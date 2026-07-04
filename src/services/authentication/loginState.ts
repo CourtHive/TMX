@@ -38,6 +38,26 @@ export function styleLogin(valid: LoginState | undefined | false): void {
   });
 }
 
+/**
+ * Apply the JWT-baked effective provider config, UNLESS the session is
+ * actively impersonating a *different* provider. Super-admin impersonation
+ * (setActiveProvider → GET /provider/:id/effective-config) applies the
+ * impersonated provider's effective config out-of-band. Because getLoginState()
+ * runs on many code paths (styleLogin, the provider switcher, isProviderAdmin,
+ * route renders), re-applying the token's home-provider config every time would
+ * clobber the impersonated branding/permissions and snap the navbar back to the
+ * JWT provider — the "reverts to INTENNSE" bug. Skip the apply while an
+ * out-of-band impersonation is in effect; clearActiveProvider() drops the
+ * override and re-applies this on the next call.
+ */
+function applyJwtProviderConfig(valid: LoginState): void {
+  const activeId = context.provider?.organisationId;
+  const impersonatingDifferent = !!activeId && activeId !== valid.providerId;
+  if (valid.activeProviderConfig && !impersonatingDifferent) {
+    providerConfig.set(valid.activeProviderConfig);
+  }
+}
+
 export function getLoginState(): LoginState | undefined {
   const token = getToken();
   const valid = validateToken(token);
@@ -46,8 +66,9 @@ export function getLoginState(): LoginState | undefined {
     // Apply effective provider config from the JWT on each load. Boot path
     // (existing valid token + page reload) reaches here without hitting
     // logIn(), so the apply must live here too. Default-permissive when
-    // the field is absent (older token / no provider).
-    if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
+    // the field is absent (older token / no provider). Yields to an active
+    // impersonation override — see applyJwtProviderConfig.
+    applyJwtProviderConfig(valid);
   }
   return valid;
 }
@@ -170,7 +191,8 @@ async function doSilentRefresh(): Promise<boolean> {
   }
   clearUserContext();
   fetchUserContext();
-  if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
+  // Yields to an active impersonation override — see applyJwtProviderConfig.
+  applyJwtProviderConfig(valid);
   styleLogin(valid);
   initProviderSwitcher();
   return true;
