@@ -200,7 +200,7 @@ export function routeTo(config: any): void {
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
     if (selectedTab === VENUES_TAB) renderVenueTab({ venueView: config.venueView, venueId: config.venueId });
-    if (selectedTab === REPORTS_TAB) renderReportsTab();
+    if (selectedTab === REPORTS_TAB) renderReportsTab({ reportId: config.reportId });
     if (selectedTab === REGISTRATIONS_TAB) void renderRegistrationsTab();
     if (selectedTab === PUBLISHING_TAB) renderPublishingTab();
     if (selectedTab === SETTINGS_TAB) renderSettingsTab();

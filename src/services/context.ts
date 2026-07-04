@@ -34,7 +34,7 @@ export const context: {
   };
   collectionTables?: any[];
   refreshActiveTable?: () => void;
-  router?: { navigate: (path: string) => void; resolve: () => void; current: any[] | null };
+  router?: { navigate: (path: string, options?: Record<string, any>) => void; resolve: () => void; current: any[] | null };
   provider?: ProviderValue;
   dragMatch?: any;
   dragMatchLight?: any;

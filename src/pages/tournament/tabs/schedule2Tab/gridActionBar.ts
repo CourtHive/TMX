@@ -20,6 +20,8 @@ import {
 } from 'services/schedulePreferences/userMinCourtWidth';
 
 const PULSE = 'spl-cell--issue-pulse';
+const DISPLAY_INLINE_FLEX = 'display: inline-flex';
+const ALIGN_ITEMS_CENTER = 'align-items: center';
 const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
 const BG_PRIMARY = 'background: var(--tmx-bg-primary)';
@@ -32,6 +34,10 @@ export interface GridActionBarParams {
   onMinCourtWidthChange: (width: number) => void;
   onBulkModeChange: (enabled: boolean) => void;
   onClearSchedule?: (target: HTMLElement) => void;
+  /** Whether any matchUp has been called to court (Call Timing Variance has data). */
+  timingAvailable?: boolean;
+  /** Open the Call Timing Variance report. When omitted, the shortcut never renders. */
+  onOpenTimingReport?: () => void;
 }
 
 export interface GridActionBar {
@@ -42,14 +48,32 @@ export interface GridActionBar {
    * conflicts live without rebuilding the stepper / bulk-mode / clear controls.
    */
   setIssues: (issues: ScheduleIssue[]) => void;
+  /**
+   * Show/hide the glowing Call Timing Variance shortcut as call data appears or
+   * clears (e.g. after a match is called to court). No-op without onOpenTimingReport.
+   */
+  setTimingAvailable: (available: boolean) => void;
 }
 
 export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   const { issues, bulkMode, minCourtWidth, onMinCourtWidthChange, onBulkModeChange, onClearSchedule } = params;
+  const { timingAvailable, onOpenTimingReport } = params;
 
   const bar = document.createElement('div');
   bar.style.cssText =
     'display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
+
+  // Call Timing Variance shortcut — anchored flush-left in a `display: contents`
+  // slot (like the issues slot) so it can glow in/out live as call data appears,
+  // without disturbing the stepper/bulk/clear controls.
+  const timingSlot = document.createElement('div');
+  timingSlot.style.display = 'contents';
+  const setTimingAvailable = (available: boolean): void => {
+    timingSlot.replaceChildren();
+    if (available && onOpenTimingReport) timingSlot.appendChild(buildTimingReportButton(onOpenTimingReport));
+  };
+  bar.appendChild(timingSlot);
+  setTimingAvailable(!!timingAvailable);
 
   // Left cluster: issues warning (only when there's something to surface),
   // then the min-cell-width stepper immediately to its right. Both stay
@@ -86,7 +110,47 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
     bar.appendChild(buildClearButton(bulkMode, onClearSchedule));
   }
 
-  return { element: bar, setIssues };
+  return { element: bar, setIssues, setTimingAvailable };
+}
+
+// ── Call Timing Variance shortcut ──
+
+const TIMING_GLOW_STYLE_ID = 'spl-timing-glow-style';
+
+// Inject the subtle-glow keyframes once (inline styles can't declare @keyframes).
+function ensureTimingGlowStyle(): void {
+  if (document.getElementById(TIMING_GLOW_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = TIMING_GLOW_STYLE_ID;
+  style.textContent =
+    '@keyframes spl-timing-glow{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}50%{box-shadow:0 0 9px 2px rgba(59,130,246,0.55)}}' +
+    '.spl-timing-report-btn{animation:spl-timing-glow 2.4s ease-in-out infinite}' +
+    '@media (prefers-reduced-motion: reduce){.spl-timing-report-btn{animation:none}}';
+  document.head.appendChild(style);
+}
+
+function buildTimingReportButton(onOpen: () => void): HTMLElement {
+  ensureTimingGlowStyle();
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'spl-timing-report-btn';
+  btn.style.cssText = [
+    'font-size: 0.875rem',
+    'padding: 4px 9px',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
+    BG_PRIMARY,
+    'cursor: pointer',
+    'color: var(--tmx-accent-blue, #3b82f6)',
+    DISPLAY_INLINE_FLEX,
+    ALIGN_ITEMS_CENTER,
+    'gap: 6px',
+  ].join('; ');
+  btn.title = 'Call timing variance available — view report';
+  btn.setAttribute('aria-label', 'View call timing variance report');
+  btn.innerHTML = '<i class="fa-solid fa-stopwatch"></i>';
+  btn.addEventListener('click', onOpen);
+  return btn;
 }
 
 // ── Min cell width ──
@@ -117,8 +181,8 @@ function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
     BG_PRIMARY,
     'cursor: pointer',
     'color: var(--tmx-accent-orange, #f59e0b)',
-    'display: inline-flex',
-    'align-items: center',
+    DISPLAY_INLINE_FLEX,
+    ALIGN_ITEMS_CENTER,
     'gap: 4px',
   ].join('; ');
   btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
@@ -287,8 +351,8 @@ function buildClearButton(bulkMode: boolean, onClearSchedule: (target: HTMLEleme
     bulkMode
       ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;'
       : `${COLOR_PRIMARY}; cursor: pointer;`,
-    'display: inline-flex',
-    'align-items: center',
+    DISPLAY_INLINE_FLEX,
+    ALIGN_ITEMS_CENTER,
     'gap: 6px',
   ].join('; ');
   btn.disabled = bulkMode;

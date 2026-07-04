@@ -138,8 +138,11 @@ function setupMobileNav(selectedTab: string | undefined): void {
 
   // Panel toggles — assistant and chat (non-route items)
   if (featureFlags.get().assistant) addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
-  // Chat is on by default; a provider may disable it via provider config.
-  if (providerConfig.isAllowed('canUseChat')) addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
+  // Chat is on by default; a provider may disable it via provider config. It
+  // also needs an authenticated session (server interaction), so hide it for a
+  // locally-loaded tournament with no login.
+  if (providerConfig.isAllowed('canUseChat') && getLoginState())
+    addMobilePanelItem(menu, toggle, 'Chat', () => openChatModal());
 
   // Toggle dropdown on click
   toggle.onclick = () => {
@@ -284,7 +287,9 @@ function setupChatIndicator(): void {
   if (!chatEl) return;
 
   // Chat is on by default but a provider may disable it via provider config.
-  if (!providerConfig.isAllowed('canUseChat')) {
+  // It also requires an authenticated session — chat is a server interaction,
+  // so a locally-loaded tournament with no login has nothing to talk to.
+  if (!providerConfig.isAllowed('canUseChat') || !getLoginState()) {
     chatEl.style.display = 'none';
     return;
   }
