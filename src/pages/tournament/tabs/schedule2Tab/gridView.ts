@@ -89,7 +89,7 @@ import {
 
 // constants
 import { ADD_MATCHUP_SCHEDULE_ITEMS, SET_MATCHUP_CALLED_AT } from 'constants/mutationConstants';
-import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS } from 'constants/tmxConstants';
+import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 
@@ -227,6 +227,7 @@ export function renderGridView(
     // Surface new/cleared conflicts (e.g. a drag that puts court times out of
     // order) in the action bar's issues button without rebuilding the bar.
     gridActionBar?.setIssues(freshIssues);
+    gridActionBar?.setTimingAvailable(hasCallTimingData());
     refreshActiveStrip(currentDate);
   }
   currentRefresh = refresh;
@@ -391,6 +392,8 @@ export function renderGridView(
     },
     onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
     onClearSchedule: options?.onClearSchedule,
+    timingAvailable: hasCallTimingData(),
+    onOpenTimingReport: openTimingVarianceReport,
   });
   gridActionBar = actionBar;
   panelWrapper.appendChild(actionBar.element);
@@ -1088,6 +1091,27 @@ export function destroyGridView(): void {
 /** Toggle visibility of the one-row active courts strip via the store flag. */
 export function setGridActiveStripVisible(visible: boolean): void {
   activeControl?.setActiveStripVisible(visible);
+}
+
+// Factory reportId for the Call Timing Variance report (see factory
+// reportConstants.CALL_TIMING_VARIANCE_REPORT).
+const CALL_TIMING_VARIANCE_REPORT = 'scheduling.callTimingVariance';
+
+/**
+ * Whether the Call Timing Variance report has anything to show: any matchUp
+ * that has both a planned scheduledTime and an actual calledAt. Reuses the
+ * page's already-cached matchUps — no extra factory call.
+ */
+function hasCallTimingData(): boolean {
+  const { matchUps } = getCachedAllMatchUps() || {};
+  return (matchUps || []).some((m: any) => m?.schedule?.calledAt && m?.schedule?.scheduledTime);
+}
+
+/** Deep-link straight to the Call Timing Variance report for this tournament. */
+function openTimingVarianceReport(): void {
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  if (!tournamentId) return;
+  context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${REPORTS_TAB}/${CALL_TIMING_VARIANCE_REPORT}`);
 }
 
 /** Refresh grid cells, catalog, dates, and issues from current factory state. */
