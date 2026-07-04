@@ -31,6 +31,7 @@ import {
   STRUCTURE,
   TOURNAMENT,
   EVENTS_TAB,
+  REPORTS_TAB,
   SCHEDULE2_TAB,
   SCHEDULING_TAB,
   VENUES_TAB,
@@ -175,6 +176,11 @@ export function routeTMX() {
   });
   router.on(`/${TOURNAMENT}/:tournamentId/${VENUE}/:venueId`, (match) => {
     displayRoute({ selectedTab: VENUES_TAB, data: match?.data });
+  });
+  // Deep link to a specific report (e.g. from the schedule page's timing-report
+  // shortcut). More specific than the generic tab route below, so it wins.
+  router.on(`/${TOURNAMENT}/:tournamentId/${REPORTS_TAB}/:reportId`, (match) => {
+    displayRoute({ selectedTab: REPORTS_TAB, data: match?.data });
   });
   router.on(`/${TOURNAMENT}/:tournamentId/:selectedTab`, (match) => {
     displayRoute({ data: match?.data });

@@ -6,10 +6,11 @@ import { tournamentEngine } from 'services/factory/engine';
 import { createReportsTable } from './createReportsTable';
 import { exportReportPDF } from './exportReportPDF';
 import { controlBar } from 'courthive-components';
+import { context } from 'services/context';
 import { env } from 'settings/env';
 import axios from 'axios';
 
-import { LEFT, REPORTS_CONTROL, RIGHT, TOURNAMENT_REPORTS } from 'constants/tmxConstants';
+import { LEFT, REPORTS_CONTROL, REPORTS_TAB, RIGHT, TOURNAMENT, TOURNAMENT_REPORTS } from 'constants/tmxConstants';
 
 let activeReport: any;
 let activeReportName = '';
@@ -32,6 +33,19 @@ const storeReportId = (reportId: string): void => {
   }
 };
 
+// Reflect the current report in the URL (…/reports/:reportId) so it can be
+// bookmarked and deep-linked. Replace (not push) and skip the route handler so
+// updating the address bar never re-renders the tab.
+const syncReportUrl = (reportId: string): void => {
+  const tournamentId = tournamentEngine.getTournament()?.tournamentRecord?.tournamentId;
+  if (!tournamentId) return;
+  context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${REPORTS_TAB}/${reportId}`, {
+    callHandler: false,
+    historyAPIMethodName: 'replaceState',
+    updateBrowserURL: true,
+  });
+};
+
 // admin/director-only structure-integrity audit launcher for the reports control bar
 const auditControlItem = () => ({
   onClick: () => openStructureAuditModal(),
@@ -41,7 +55,7 @@ const auditControlItem = () => ({
   id: 'structureAudit',
 });
 
-export function renderReportsTab(): void {
+export function renderReportsTab(options: { reportId?: string } = {}): void {
   const reportContainer = document.getElementById(TOURNAMENT_REPORTS);
   const controlTarget = document.getElementById(REPORTS_CONTROL);
   if (!reportContainer || !controlTarget) return;
@@ -60,10 +74,10 @@ export function renderReportsTab(): void {
     return;
   }
 
-  // Restore the previously selected report if it's still available; otherwise
-  // fall back to the first.
-  const storedReportId = getStoredReportId();
-  const initialReport = reports.find((r: any) => r.reportId === storedReportId) ?? reports[0];
+  // Initial selection priority: an explicit report id from the URL (deep link),
+  // then the last-viewed report from localStorage, then the first available.
+  const findById = (id?: string | null) => (id ? reports.find((r: any) => r.reportId === id) : undefined);
+  const initialReport = findById(options.reportId) ?? findById(getStoredReportId()) ?? reports[0];
 
   const reportOptions = reports.map((r: any) => ({
     label: r.name,
@@ -115,6 +129,7 @@ async function selectReport(report: any): Promise<void> {
   const { reportId, name, source } = report;
   activeReportName = name;
   storeReportId(reportId);
+  syncReportUrl(reportId);
 
   if (source === 'server') {
     await fetchServerReport(reportId);
