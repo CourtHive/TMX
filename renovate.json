@@ -1,21 +1,40 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "minimumReleaseAge": "3 days",
   "rebaseWhen": "behind-base-branch",
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,
-  "postUpdateOptions": ["pnpmDedupe"],
+  "postUpdateOptions": [
+    "pnpmDedupe"
+  ],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": [
+      "before 6am on monday"
+    ]
   },
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
-      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "groupName": "dev dependencies (non-major)",
-      "schedule": ["before 6am on monday"]
+      "schedule": [
+        "before 6am on monday"
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "tods-competition-factory"
+      ],
+      "enabled": false
     }
   ]
 }
