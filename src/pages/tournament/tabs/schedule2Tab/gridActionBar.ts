@@ -63,28 +63,12 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   bar.style.cssText =
     'display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--sp-line, var(--tmx-border-secondary)); background: var(--sp-panel-bg, var(--tmx-bg-primary)); flex-wrap: wrap;';
 
-  // Call Timing Variance shortcut — anchored flush-left in a `display: contents`
-  // slot (like the issues slot) so it can glow in/out live as call data appears,
-  // without disturbing the stepper/bulk/clear controls.
-  const timingSlot = document.createElement('div');
-  timingSlot.style.display = 'contents';
-  const setTimingAvailable = (available: boolean): void => {
-    timingSlot.replaceChildren();
-    if (available && onOpenTimingReport) timingSlot.appendChild(buildTimingReportButton(onOpenTimingReport));
-  };
-  bar.appendChild(timingSlot);
-  setTimingAvailable(!!timingAvailable);
-
-  // Left cluster: issues warning (only when there's something to surface),
-  // then the min-cell-width stepper immediately to its right. Both stay
-  // flush-left so the action bar reads consistently regardless of whether
-  // issues are present — the stepper doesn't shift across the bar based on
-  // issue presence.
-  //
-  // The issues warning lives in a `display: contents` slot so it can be
-  // re-rendered in place (setIssues) without touching the stepper/bulk/clear
-  // controls. `display: contents` means an empty slot generates no box and no
-  // flex gap, so the stepper does not shift when there are no issues.
+  // Left cluster order: issues warning, then the min-cell-width stepper, then
+  // the Call Timing Variance shortcut immediately to the stepper's right. Both
+  // the issues warning and the timing shortcut live in `display: contents` slots
+  // so they can be re-rendered in place (setIssues / setTimingAvailable) without
+  // touching the stepper — and an empty slot generates no box and no flex gap,
+  // so neighbouring controls don't shift when a slot is empty.
   const issuesSlot = document.createElement('div');
   issuesSlot.style.display = 'contents';
   const setIssues = (next: ScheduleIssue[]): void => {
@@ -95,6 +79,16 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   setIssues(issues);
 
   bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
+
+  // Call Timing Variance shortcut — just right of the Min Width stepper.
+  const timingSlot = document.createElement('div');
+  timingSlot.style.display = 'contents';
+  const setTimingAvailable = (available: boolean): void => {
+    timingSlot.replaceChildren();
+    if (available && onOpenTimingReport) timingSlot.appendChild(buildTimingReportButton(onOpenTimingReport));
+  };
+  bar.appendChild(timingSlot);
+  setTimingAvailable(!!timingAvailable);
 
   // Spacer pushes the right cluster (bulk-mode toggle + clear button) flush
   // right while the left cluster stays anchored at the start of the bar.
