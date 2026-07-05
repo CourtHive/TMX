@@ -12,6 +12,7 @@
  */
 import { getLoginState } from 'services/authentication/loginState';
 import { ensurePdfFontReady } from 'services/pdf/pdfFont';
+import { setupChatIndicator } from 'navigation';
 import { providerConfig } from 'config/providerConfig';
 import { baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
@@ -64,6 +65,10 @@ export function setActiveProvider(provider: ProviderValue, options: SetActivePro
         // clears stale permissions from the provider we switched away from.
         providerConfig.reset();
         if (effective) providerConfig.set(effective);
+        // canUseChat may differ for the impersonated provider — re-evaluate the
+        // chat indicator so a super-admin impersonating a chat-enabled provider
+        // sees it (and vice-versa).
+        setupChatIndicator();
         // reset()/set() repaint the navbar via applyBranding →
         // updateNavbarBranding, which falls back to the active provider's
         // abbreviation when the provider defines no navbar logo/appName — so a

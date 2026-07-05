@@ -281,7 +281,7 @@ function addMobilePanelItem(
   menu.appendChild(item);
 }
 
-function setupChatIndicator(): void {
+export function setupChatIndicator(): void {
   const chatEl = document.getElementById('chatIndicator');
   const badgeEl = document.getElementById('chatBadge');
   if (!chatEl) return;

@@ -2,6 +2,7 @@ import { getToken, removeToken, setToken, getRefreshToken, setRefreshToken, remo
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
+import { setupChatIndicator } from 'navigation';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
@@ -146,6 +147,9 @@ export function logIn({
     if (!tournamentInState) tournamentEngine.reset();
     styleLogin(valid);
     initProviderSwitcher();
+    // Reveal the chat indicator now that a server session exists (the nav may
+    // have first rendered logged-out / with an expired token).
+    setupChatIndicator();
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {
@@ -195,6 +199,10 @@ async function doSilentRefresh(): Promise<boolean> {
   applyJwtProviderConfig(valid);
   styleLogin(valid);
   initProviderSwitcher();
+  // Boot-time nav render ran while the access token was still expired (getLoginState
+  // returned undefined), so the chat indicator was hidden. Re-evaluate now that the
+  // refreshed token makes the session valid.
+  setupChatIndicator();
   return true;
 }
 
@@ -218,6 +226,8 @@ export function cancelImpersonation(): void {
   const valid = getLoginState();
   if (valid?.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
   else providerConfig.reset();
+  // The home provider's canUseChat may differ from the impersonated one — re-evaluate.
+  setupChatIndicator();
   context.router?.navigate(`/${TMX_TOURNAMENTS}/superadmin`);
 }
 
