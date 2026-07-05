@@ -1,3 +1,4 @@
+import { onTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { competitionEngine } from 'services/factory/engine';
 
@@ -19,8 +20,9 @@ import { competitionEngine } from 'services/factory/engine';
  *    mutation (anything routed through `executeMethods`), because matchUp
  *    state and court placement can change.
  *  - `competitionDateRange` and `tournamentInfo` — page-scoped. The schedule
- *    page itself never edits these; a full reset happens on return to the
- *    tournaments list (`invalidateAllScheduleCaches` in tournaments.ts).
+ *    page itself never edits these; the whole cache is dropped when the active
+ *    tournament switches (the `onTournamentContextChanged` subscription below)
+ *    and on schedule-tab teardown (`invalidateAllScheduleCaches`).
  *
  * Variance-tolerant caching: callers pass different param shapes
  * (`{inContext: true, nextMatchUps: true}` vs `{inContext: true}` alone;
@@ -33,7 +35,6 @@ let allMatchUpsCache: any = null;
 const scheduleMatchUpsByKey = new Map<string, any>();
 let competitionDateRangeCache: any = null;
 let tournamentInfoCache: any = null;
-let lastTournamentId: string | null = null;
 
 interface ScheduleMatchUpsParams {
   minCourtGridRows?: number;
@@ -107,20 +108,11 @@ export function invalidateAllScheduleCaches(): void {
 // caches are already empty, so the clear is a cheap no-op.
 onMutationApplied(invalidateMatchUpCaches);
 
-/**
- * Track tournament identity so the cache survives intra-tournament
- * navigations (date change, view switch) but resets cleanly on cross-
- * tournament transitions. Call before reading any cached value on a surface
- * that can switch tournaments in place.
- *
- * NOTE: no production caller since the `/schedule2` shell was retired — the
- * scheduling workspace resets its schedule caches via the tournaments-list
- * `invalidateAllScheduleCaches`. Retained (with test coverage) for reuse if an
- * in-place tournament switch is ever added to the workspace.
- */
-export function syncTournamentContext(tournamentId: string): void {
-  if (lastTournamentId !== tournamentId) {
-    invalidateAllScheduleCaches();
-    lastTournamentId = tournamentId;
-  }
-}
+// Self-healing across tournament switches: the loader fires
+// notifyTournamentContextChanged when the active tournament changes (only then,
+// not on intra-tournament navigation), so drop the whole cache — the previous
+// tournament's date range / tournamentInfo / matchUps must not leak into the
+// next. Mirrors the onMutationApplied subscription above; replaces the old
+// caller-driven syncTournamentContext, which every schedule surface had to
+// remember to call (and the workspace didn't).
+onTournamentContextChanged(invalidateAllScheduleCaches);

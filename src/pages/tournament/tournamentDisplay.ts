@@ -29,6 +29,7 @@ import { renderTopologyPage } from './topologyPage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
+import { notifyTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { highlightTab } from 'navigation';
 import { t } from 'i18n';
 
@@ -87,6 +88,12 @@ export function displayTournament({ config }: { config?: any } = {}): void {
 }
 
 export function renderTournament({ config }: { config: any }): void {
+  // Announce the tournament switch before anything renders so per-tournament
+  // caches (e.g. the schedule data cache) drop the previous tournament's
+  // entries first. renderTournament runs only on an actual load/switch — not
+  // on intra-tournament navigation — so this fires exactly once per switch.
+  if (config.tournamentId) notifyTournamentContextChanged(config.tournamentId);
+
   showContent(TOURNAMENT);
   tournamentHeader();
   highlightTab(config.selectedTab);

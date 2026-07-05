@@ -18,6 +18,7 @@ vi.mock('services/factory/engine', () => ({
   tournamentEngine: {},
 }));
 
+import { notifyTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import {
   getCachedAllMatchUps,
@@ -26,7 +27,6 @@ import {
   getCachedTournamentInfo,
   invalidateMatchUpCaches,
   invalidateAllScheduleCaches,
-  syncTournamentContext,
 } from './schedule2DataCache';
 
 const DATE_A = '2026-06-13';
@@ -117,32 +117,36 @@ describe('schedule2DataCache', () => {
     });
   });
 
-  describe('syncTournamentContext', () => {
-    it('is a no-op when the tournamentId is unchanged', () => {
-      syncTournamentContext('t1');
+  describe('tournament-context subscription', () => {
+    // The cache subscribes to onTournamentContextChanged at module load, so a
+    // tournament switch (announced by the loader via notifyTournamentContextChanged)
+    // drops the whole cache — the previous tournament's schedule must never
+    // leak into the next one.
+    it('flushes every cache when the active tournament changes', () => {
       getCachedAllMatchUps();
-      syncTournamentContext('t1');
-      getCachedAllMatchUps();
+      getCachedCompetitionDateRange();
+      getCachedTournamentInfo();
+      getCachedScheduleMatchUps(DATE_A, { minCourtGridRows: 10 });
       expect(allTournamentMatchUpsMock).toHaveBeenCalledTimes(1);
-    });
 
-    it('flushes every cache when the tournamentId changes', () => {
-      syncTournamentContext('t1');
+      notifyTournamentContextChanged('ctx-switch-a');
+
       getCachedAllMatchUps();
       getCachedCompetitionDateRange();
       getCachedTournamentInfo();
       getCachedScheduleMatchUps(DATE_A, { minCourtGridRows: 10 });
-
-      syncTournamentContext('t2');
-      getCachedAllMatchUps();
-      getCachedCompetitionDateRange();
-      getCachedTournamentInfo();
-      getCachedScheduleMatchUps(DATE_A, { minCourtGridRows: 10 });
-
       expect(allTournamentMatchUpsMock).toHaveBeenCalledTimes(2);
       expect(getCompetitionDateRangeMock).toHaveBeenCalledTimes(2);
       expect(getTournamentInfoMock).toHaveBeenCalledTimes(2);
       expect(competitionScheduleMatchUpsMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('is a no-op when the same tournament is re-announced', () => {
+      notifyTournamentContextChanged('ctx-stable');
+      getCachedAllMatchUps();
+      notifyTournamentContextChanged('ctx-stable');
+      getCachedAllMatchUps();
+      expect(allTournamentMatchUpsMock).toHaveBeenCalledTimes(1);
     });
   });
 
