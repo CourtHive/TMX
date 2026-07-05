@@ -250,7 +250,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       });
     },
   });
-  controlAnchor.appendChild(header);
+  controlAnchor.appendChild(header.element);
 
   // Render the active view
   if (view === 'profile') {
@@ -289,6 +289,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       titleLeadingActions: gridActions.leading,
       titleSlot: gridActions.titleSlot,
       activeStripVisible,
+      onScheduleDatesChange: (dates) => header.setScheduleDates(dates),
       bulkMode: getGridBulkMode(),
       onBulkModeChange: (enabled: boolean) => {
         // Turning off bulk mode with pending changes needs an explicit

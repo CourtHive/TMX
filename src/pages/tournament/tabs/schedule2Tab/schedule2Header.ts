@@ -33,7 +33,13 @@ interface Schedule2HeaderParams {
   onViewChange: (view: Schedule2View) => void;
 }
 
-export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement {
+export interface Schedule2Header {
+  element: HTMLElement;
+  /** Recompute the date button + dropdown badges from fresh per-date counts. */
+  setScheduleDates: (dates: ScheduleDate[]) => void;
+}
+
+export function buildSchedule2Header(params: Schedule2HeaderParams): Schedule2Header {
   const { selectedDate, activeView, startDate, endDate, scheduleDates, onDateChange, onViewChange } = params;
 
   const bar = document.createElement('div');
@@ -46,7 +52,6 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
 
   // Rich date dropdown button
   const dates = scheduleDates ?? fallbackDates(startDate, endDate, selectedDate);
-  const selectedDateInfo = dates.find((d) => d.date === selectedDate);
   const dateBtn = document.createElement('button');
   dateBtn.style.cssText = [
     FONT13,
@@ -61,19 +66,15 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
     ALIGN_CENTER,
     'gap: 6px',
   ].join('; ');
-  const matchUpCount = selectedDateInfo?.matchUpCount ?? 0;
-  dateBtn.innerHTML =
-    `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +
-    (matchUpCount > 0
-      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${matchUpCount}</span>`
-      : '') +
-    ' <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>';
+  dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(dates, selectedDate));
 
   let dateTippy: TippyInstance | undefined;
-  const datePopoverContent = buildDatePopover(dates, selectedDate, (date) => {
-    dateTippy?.hide();
-    onDateChange(date);
-  });
+  const buildPopover = (ds: ScheduleDate[]): HTMLElement =>
+    buildDatePopover(ds, selectedDate, (date) => {
+      dateTippy?.hide();
+      onDateChange(date);
+    });
+  let datePopoverContent = buildPopover(dates);
 
   left.appendChild(dateBtn);
 
@@ -135,7 +136,29 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): HTMLElement
   right.appendChild(viewSwitcher);
   bar.appendChild(right);
 
-  return bar;
+  const setScheduleDates = (next: ScheduleDate[]): void => {
+    dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(next, selectedDate));
+    datePopoverContent = buildPopover(next);
+    dateTippy?.setContent(datePopoverContent);
+  };
+
+  return { element: bar, setScheduleDates };
+}
+
+function countForDate(dates: ScheduleDate[], date: string): number {
+  return dates.find((d) => d.date === date)?.matchUpCount ?? 0;
+}
+
+function dateButtonHtml(selectedDate: string, count: number): string {
+  const badge =
+    count > 0
+      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${count}</span>`
+      : '';
+  return (
+    `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +
+    badge +
+    ' <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>'
+  );
 }
 
 // ── Date Popover ──
