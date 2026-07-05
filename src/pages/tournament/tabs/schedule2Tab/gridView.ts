@@ -58,6 +58,7 @@ import type {
 import {
   matchUpStatusConstants,
   factoryConstants,
+  scoreGovernor,
   tools,
   unwrapOr,
   AvailabilityEngine,
@@ -104,7 +105,7 @@ import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 
 const { scheduleConstants } = factoryConstants;
 
-const { BYE, IN_PROGRESS } = matchUpStatusConstants;
+const { BYE, IN_PROGRESS, TO_BE_PLAYED } = matchUpStatusConstants;
 
 /**
  * Fallback row count when a tournament hasn't yet had its scheduleDisplay
@@ -361,6 +362,10 @@ export function renderGridView(
           params: { matchUpId, drawId: item?.drawId ?? '', calledAt: null },
         },
       ];
+
+      // Un-start a called/started-but-unscored match: an off-court matchUp must
+      // not remain IN_PROGRESS (two live matches in one column is impossible).
+      methods.push(...buildUnstartOnRemoveMethods(matchUpId, item?.drawId ?? ''));
 
       executeMethods(methods, refresh);
     },
@@ -2642,6 +2647,34 @@ function buildStartOnDropMethods(matchUpId: string, drawId: string): any[] {
     {
       method: SET_MATCHUP_STATUS,
       params: { matchUpId, drawId, outcome: { matchUpStatus: IN_PROGRESS } },
+    },
+  ];
+}
+
+/**
+ * Inverse of buildStartOnDropMethods: when a matchUp is removed from the grid
+ * back to the catalog (unscheduled), a match that was called/started-on-drop
+ * but never actually scored must not stay IN_PROGRESS — an IN_PROGRESS matchUp
+ * off-court is a phantom that lets two matches in the same column both read as
+ * live, which is impossible on one court. Revert it to TO_BE_PLAYED and clear
+ * the start time. A match with any score entered keeps its status (it genuinely
+ * started); only the empty-score case is un-started. Reads authoritative
+ * status/score from the cache rather than the drag payload, which may be stale.
+ */
+function buildUnstartOnRemoveMethods(matchUpId: string, drawId: string): any[] {
+  const { matchUps } = getCachedAllMatchUps() || {};
+  const matchUp = (matchUps || []).find((m: any) => m.matchUpId === matchUpId);
+  if (!matchUp || matchUp.matchUpStatus !== IN_PROGRESS) return [];
+  if (matchUp.winningSide || scoreGovernor.checkScoreHasValue(matchUp)) return [];
+
+  return [
+    {
+      method: BULK_SCHEDULE_MATCHUPS,
+      params: { matchUpIds: [matchUpId], schedule: { startTime: '' }, removePriorValues: true },
+    },
+    {
+      method: SET_MATCHUP_STATUS,
+      params: { matchUpId, drawId, outcome: { matchUpStatus: TO_BE_PLAYED } },
     },
   ];
 }
