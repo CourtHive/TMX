@@ -212,7 +212,6 @@ export function renderGridView(
     bulkMode?: boolean;
     onBulkModeChange?: (enabled: boolean) => void;
     onClearSchedule?: (target: HTMLElement) => void;
-    onScheduleDatesChange?: (dates: ScheduleDate[]) => void;
   },
 ): void {
   syncVisibilityDate(scheduledDate);
@@ -231,10 +230,7 @@ export function renderGridView(
     if (!activeControl || !grid) return;
     grid.rebuild(currentDate);
     activeControl.setMatchUpCatalog(buildCatalog(currentDate));
-    const scheduleDates = buildScheduleDates(currentDate);
-    activeControl.setScheduleDates(scheduleDates);
-    // Keep the header's date button + dropdown badge counts in sync after a mutation.
-    options?.onScheduleDatesChange?.(scheduleDates);
+    activeControl.setScheduleDates(buildScheduleDates(currentDate));
     const freshIssues = buildIssues(currentDate);
     activeControl.setIssues(freshIssues);
     // Surface new/cleared conflicts (e.g. a drag that puts court times out of
