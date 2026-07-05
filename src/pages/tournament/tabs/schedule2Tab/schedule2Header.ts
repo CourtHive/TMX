@@ -6,11 +6,16 @@
  * Issues / Clear / Bulk-mode live in the grid view's bottom action bar
  * (see gridActionBar.ts).
  */
+import { onMutationApplied } from 'services/mutation/mutationObservers';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { ScheduleDate } from 'courthive-components';
 
 // Types
 import { Schedule2View } from './schedule2Tab';
+
+// Live subscription that keeps THIS header's date badges fresh. Held at module
+// level and replaced on each header build so only the current header updates.
+let headerDatesUnsub: (() => void) | null = null;
 
 const FONT13 = 'font-size: 0.8125rem';
 
@@ -29,6 +34,8 @@ interface Schedule2HeaderParams {
   startDate: string;
   endDate: string;
   scheduleDates?: ScheduleDate[];
+  /** Recompute the per-date counts on demand (after a mutation). */
+  recomputeDates?: () => ScheduleDate[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
 }
@@ -40,7 +47,8 @@ export interface Schedule2Header {
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): Schedule2Header {
-  const { selectedDate, activeView, startDate, endDate, scheduleDates, onDateChange, onViewChange } = params;
+  const { selectedDate, activeView, startDate, endDate, scheduleDates, recomputeDates, onDateChange, onViewChange } =
+    params;
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
@@ -141,6 +149,16 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): Schedule2He
     datePopoverContent = buildPopover(next);
     dateTippy?.setContent(datePopoverContent);
   };
+
+  // Keep this header's date badges live: recompute after every applied mutation
+  // (local + remote; fires after the matchUp caches invalidate). Subscribing here
+  // — where the header is actually built — guarantees it runs whenever a header
+  // exists, regardless of the caller's render path. Replace the prior header's
+  // subscription so only the mounted header updates.
+  if (recomputeDates) {
+    headerDatesUnsub?.();
+    headerDatesUnsub = onMutationApplied(() => setScheduleDates(recomputeDates()));
+  }
 
   return { element: bar, setScheduleDates };
 }

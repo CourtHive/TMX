@@ -10,10 +10,16 @@
  * Reuses the same style constants and ScheduleDate type as schedule2Header
  * so any future style change in the control bar can be centralized later.
  */
+import { onMutationApplied } from 'services/mutation/mutationObservers';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { ScheduleDate } from 'courthive-components';
 
 import type { SchedulingMode } from './schedulingTab';
+
+// Live subscription keeping the current header's date badges fresh after a
+// mutation. Held at module level and replaced per build so only the mounted
+// header updates.
+let schedulingHeaderDatesUnsub: (() => void) | null = null;
 
 const FONT13 = 'font-size: 0.8125rem';
 const BORDER_RADIUS_6 = 'border-radius: 6px';
@@ -30,6 +36,8 @@ interface SchedulingHeaderParams {
   startDate: string;
   endDate: string;
   scheduleDates?: ScheduleDate[];
+  /** Recompute the per-date counts on demand (after a mutation). */
+  recomputeDates?: () => ScheduleDate[];
   onDateChange: (date: string) => void;
   onModeChange: (mode: SchedulingMode) => void;
 }
@@ -48,7 +56,8 @@ const MODES: ModeOption[] = [
 ];
 
 export function buildSchedulingHeader(params: SchedulingHeaderParams): HTMLElement {
-  const { selectedDate, activeMode, startDate, endDate, scheduleDates, onDateChange, onModeChange } = params;
+  const { selectedDate, activeMode, startDate, endDate, scheduleDates, recomputeDates, onDateChange, onModeChange } =
+    params;
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
@@ -57,7 +66,6 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): HTMLEleme
   const left = document.createElement('div');
 
   const dates = scheduleDates ?? fallbackDates(startDate, endDate, selectedDate);
-  const selectedDateInfo = dates.find((d) => d.date === selectedDate);
   const dateBtn = document.createElement('button');
   dateBtn.style.cssText = [
     FONT13,
@@ -72,19 +80,38 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): HTMLEleme
     ALIGN_CENTER,
     'gap: 6px',
   ].join('; ');
-  const matchUpCount = selectedDateInfo?.matchUpCount ?? 0;
-  dateBtn.innerHTML =
-    `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +
-    (matchUpCount > 0
-      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${matchUpCount}</span>`
-      : '') +
-    ' <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>';
+
+  const countFor = (ds: ScheduleDate[]): number => ds.find((d) => d.date === selectedDate)?.matchUpCount ?? 0;
+  const renderDateBtn = (count: number): void => {
+    dateBtn.innerHTML =
+      `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +
+      (count > 0
+        ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${count}</span>`
+        : '') +
+      ' <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>';
+  };
+  renderDateBtn(countFor(dates));
 
   let dateTippy: TippyInstance | undefined;
-  const datePopoverContent = buildDatePopover(dates, selectedDate, (date) => {
-    dateTippy?.hide();
-    onDateChange(date);
-  });
+  const buildPopover = (ds: ScheduleDate[]): HTMLElement =>
+    buildDatePopover(ds, selectedDate, (date) => {
+      dateTippy?.hide();
+      onDateChange(date);
+    });
+  let datePopoverContent = buildPopover(dates);
+
+  // Keep the date badge live after mutations (schedule / unschedule move the
+  // per-date counts). Subscribe here — where the header is built — so it runs
+  // whenever a header exists; replace the prior header's subscription.
+  if (recomputeDates) {
+    schedulingHeaderDatesUnsub?.();
+    schedulingHeaderDatesUnsub = onMutationApplied(() => {
+      const next = recomputeDates();
+      renderDateBtn(countFor(next));
+      datePopoverContent = buildPopover(next);
+      dateTippy?.setContent(datePopoverContent);
+    });
+  }
 
   left.appendChild(dateBtn);
 

@@ -19,7 +19,6 @@ import { context } from 'services/context';
 import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, getUnsavedGridChangeCount, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, shiftCourtsDown, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { renderProfileView, destroyProfileView } from './profileView';
-import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { openClearScheduleMenu } from './clearScheduleActions';
 import { buildGridHeaderActions } from './gridHeaderActions';
 import { buildSchedule2Header } from './schedule2Header';
@@ -150,8 +149,6 @@ let state: Schedule2State | null = null;
 let gridCatalogVisible: boolean | undefined;
 let profileCatalogVisible: boolean | undefined;
 let activeStripVisible: boolean | undefined;
-// Unsubscribe for the header date-badge recompute (re-created each render).
-let headerDatesUnsub: (() => void) | null = null;
 export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleView?: string }): void {
   // Tournament-context check FIRST — must precede any cached read so a
   // cross-tournament navigation drops the prior cache before we serve
@@ -240,6 +237,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     startDate: startDate ?? '',
     endDate: endDate ?? '',
     scheduleDates: buildScheduleDates(scheduledDate),
+    recomputeDates: () => buildScheduleDates(scheduledDate),
     onDateChange: (date: string) => {
       guardUnsavedAndProceed(() => {
         const tid = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
@@ -254,13 +252,6 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
     },
   });
   controlAnchor.appendChild(header.element);
-
-  // Recompute the header date-badge counts after every applied mutation. The
-  // canonical staleness path (fires for local + remote mutations, after the
-  // matchUp caches are invalidated) — more reliable than threading through the
-  // grid refresh, which can update a header a re-render has already replaced.
-  headerDatesUnsub?.();
-  headerDatesUnsub = onMutationApplied(() => header.setScheduleDates(buildScheduleDates(scheduledDate)));
 
   // Render the active view
   if (view === 'profile') {

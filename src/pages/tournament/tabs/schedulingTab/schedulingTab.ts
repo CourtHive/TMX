@@ -135,6 +135,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
     startDate: startDate ?? '',
     endDate: endDate ?? '',
     scheduleDates: buildScheduleDates(resolvedDate),
+    recomputeDates: () => buildScheduleDates(resolvedDate),
     onDateChange: (date: string) => {
       guardUnsavedAndProceed(() => {
         context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${date}/${resolvedMode}`);
