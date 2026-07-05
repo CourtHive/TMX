@@ -22,7 +22,12 @@ import tippy, { type Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
 
 // constants
-import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
+import {
+  ADD_MATCHUP_SCHEDULE_ITEMS,
+  BULK_SCHEDULE_MATCHUPS,
+  SET_MATCHUP_CALLED_AT,
+  SET_MATCHUP_STATUS,
+} from 'constants/mutationConstants';
 import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
@@ -319,6 +324,15 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     );
   };
 
+  const callToCourt = () => {
+    const drawId = matchUp?.drawId || cellData.drawId;
+    if (!drawId) return;
+    executeMethods(
+      [{ method: SET_MATCHUP_CALLED_AT, params: { matchUpId, drawId, calledAt: new Date().toISOString() } }],
+      onRefresh,
+    );
+  };
+
   const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId || s?.participant?.participantId);
   const matchUpStatus = matchUp?.matchUpStatus || cellData?.matchUpStatus;
   const terminalStatuses = [
@@ -332,8 +346,12 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   ];
   const isTerminal = terminalStatuses.includes(matchUpStatus);
   const isInProgress = matchUpStatus === IN_PROGRESS;
+  const isCalled = !!(matchUp?.schedule?.calledAt || cellData?.schedule?.calledAt);
   const hideTimeActions = noParticipants || isTerminal;
   const hideStartMatch = hideTimeActions || isInProgress || matchUp?.winningSide;
+  // "Call to court" announces a match without starting it; hide once it's called,
+  // live, or decided.
+  const hideCallToCourt = hideTimeActions || isInProgress || isCalled || matchUp?.winningSide;
 
   const scoreMatchUp = () => enterMatchUpScore({ matchUp, matchUpId, callback: () => onRefresh() });
 
@@ -378,6 +396,14 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const timeRow = document.createElement('div');
   timeRow.style.cssText = PILL_ROW_CSS;
   timeRow.appendChild(makePill(t('schedule.setTime'), setMatchUpTime, { icon: 'fa-clock' }));
+  if (!hideCallToCourt)
+    timeRow.appendChild(
+      makePill(t('schedule.callToCourt'), callToCourt, {
+        icon: 'fa-bullhorn',
+        color: COLOR_ACCENT_ORANGE,
+        outline: true,
+      }),
+    );
   if (!hideStartMatch)
     timeRow.appendChild(
       makePill(t('schedule.startMatch'), startMatch, {
