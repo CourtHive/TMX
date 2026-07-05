@@ -160,8 +160,6 @@ export const QUALIFYING_PANEL = 'qualifyingPanel';
 export const UNGROUPED_PANEL = 'ungroupedPanel';
 export const WITHDRAWN_PANEL = 'withdrawaPanel';
 
-export const SCHEDULE2_CONTAINER = 'schedule2Container';
-export const SCHEDULE2_CONTROL = 'schedule2Control';
 export const TOURNAMENTS_CONTROL = 'tournamentsControl';
 export const PARTICIPANT_CONTROL = 'participantControl';
 export const MATCHUPS_CONTROL = 'matchUpsControl';

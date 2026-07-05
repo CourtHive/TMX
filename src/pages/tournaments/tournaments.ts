@@ -1,4 +1,4 @@
-import { invalidateAllScheduleCaches } from 'pages/tournament/tabs/schedule2Tab/schedule2DataCache';
+import { invalidateAllScheduleCaches } from 'pages/tournament/tabs/scheduleViews/schedule2DataCache';
 import { createTournamentsTable } from 'components/tables/tournamentsTable/createTournamentsTable';
 import { removeTournamentContent } from 'pages/tournament/container/tournamentContent';
 import { resetTournament } from 'services/transitions/resetTournament';

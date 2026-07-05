@@ -33,7 +33,7 @@ import {
   type DependencyAdapter,
 } from 'courthive-components';
 
-import { COMPETITION_ENGINE, SCHEDULE2_TAB, SCHEDULING_TAB } from 'constants/tmxConstants';
+import { COMPETITION_ENGINE, SCHEDULING_TAB } from 'constants/tmxConstants';
 
 const { calculateCapacityStats } = availability;
 
@@ -598,8 +598,8 @@ function buildApplyScopePill(): HTMLElement | null {
     const date = (context as any).displayed?.selectedScheduleDate;
     if (!tournamentId) return;
     const path = date
-      ? `/tournament/${tournamentId}/${SCHEDULE2_TAB}/${date}/grid`
-      : `/tournament/${tournamentId}/${SCHEDULE2_TAB}`;
+      ? `/tournament/${tournamentId}/${SCHEDULING_TAB}/${date}/grid`
+      : `/tournament/${tournamentId}/${SCHEDULING_TAB}`;
     context.router?.navigate(path);
   });
   return pill;

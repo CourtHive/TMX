@@ -2,7 +2,7 @@
  * Pressed/unpressed icon toggle button — used wherever a small FontAwesome
  * icon should switch a binary view state (catalog show/hide, minimap
  * show/hide, active-strip show/hide). Matches the styling in
- * `schedule2Tab/gridHeaderActions.ts`; lifted out so other call sites can
+ * `scheduleViews/gridHeaderActions.ts`; lifted out so other call sites can
  * reuse it without duplicating the styling tokens.
  */
 

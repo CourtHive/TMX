@@ -18,7 +18,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants
-import { CENTER, LEFT, RIGHT, SCHEDULE2_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { CENTER, LEFT, RIGHT, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export function getRoundsColumns({ data, replaceTableData }: { data: any[]; replaceTableData: () => void }): any[] {
   const matchUpScheduleClick = (_e: Event, cell: any) => {
@@ -27,7 +27,7 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
     const { courtName, scheduledDate } = data;
     if (courtName && scheduledDate) {
       const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
-      const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULE2_TAB}/${scheduledDate}`;
+      const route = `/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}`;
       context.router?.navigate(route);
     }
   };

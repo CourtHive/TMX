@@ -4,7 +4,7 @@
  * `minCourtGridRows` was removed in favour of an in-place stepper in the
  * court grid header that persists to the tournament's `scheduleDisplay`
  * extension. The hardcoded fallback for that path lives at
- * `schedule2Tab/gridView.ts:DEFAULT_MIN_COURT_GRID_ROWS`.
+ * `scheduleViews/gridView.ts:DEFAULT_MIN_COURT_GRID_ROWS`.
  */
 export interface ScheduleConfig {
   teams: boolean;
