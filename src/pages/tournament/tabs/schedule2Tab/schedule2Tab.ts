@@ -16,7 +16,7 @@ import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 
-import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, getUnsavedGridChangeCount, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
+import { renderGridView, destroyGridView, hasUnsavedGridChanges, setGridBulkMode, getGridBulkMode, getUnsavedGridChangeCount, searchGridCells, buildScheduleDates, refreshGridView, setGridActiveStripVisible, shiftCourtsDown, DEFAULT_MIN_COURT_GRID_ROWS } from './gridView';
 import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants/tmxConstants';
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
@@ -282,6 +282,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
         refreshGridView();
       },
       onSearch: (text) => searchGridCells(text),
+      onShiftCourts: shiftCourtsDown,
     });
     renderGridView(container, scheduledDate, {
       headerActions: gridActions.trailing,

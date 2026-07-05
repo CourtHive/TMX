@@ -24,6 +24,7 @@ import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } fro
 import { readScheduleDisplayConfig, writeScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { handleActiveStripNowClick, handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
+import { openShiftCourtsModal } from './schedule2CellActions';
 import type { Schedule2NowContext } from './schedule2CellActions';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
@@ -2271,6 +2272,8 @@ function buildNowRowContext(refresh: () => void): Schedule2NowContext {
       return {
         matchUpId: matchUp.matchUpId,
         drawId: matchUp.drawId,
+        courtId: cell.courtId,
+        roundNumber: matchUp.roundNumber,
         matchUpStatus: matchUp.matchUpStatus,
         winningSide: matchUp.winningSide,
         state: cell.state,
@@ -2280,7 +2283,82 @@ function buildNowRowContext(refresh: () => void): Schedule2NowContext {
       };
     });
 
-  return { cells, onRefresh: refresh, executeMethods };
+  return { cells, onRefresh: refresh, executeMethods, buildDateGrid };
+}
+
+/**
+ * Build a bare ActiveStripGrid for an arbitrary date across ALL courts (no
+ * visible-court filter — a rescheduled match may sit on a hidden court). Used by
+ * the "Now" reschedule to re-seat moved matchUps against the target date's
+ * existing schedule. Mirrors buildActiveStripData's column shape, minus the
+ * panel/renderCell concerns.
+ */
+function buildDateGrid(date: string): { columns: { courtId: string; cells: any[] }[] } {
+  const result = getCachedScheduleMatchUps(date, {
+    minCourtGridRows: readScheduleDisplayConfig().minCourtGridRows ?? DEFAULT_MIN_COURT_GRID_ROWS,
+  });
+  const rows: any[] = result.rows ?? [];
+  const courtsData: any[] = result.courtsData ?? [];
+  const courtPrefix: string = result.courtPrefix ?? 'C|';
+
+  const columns = courtsData.map((court: any, index: number) => ({
+    courtId: court.courtId,
+    cells: rows.map((row) => {
+      const cell = row?.[`${courtPrefix}${index}`];
+      if (!cell?.matchUpId) return null;
+      return {
+        matchUpId: cell.matchUpId,
+        drawId: cell.drawId,
+        roundNumber: cell.roundNumber,
+        matchUpStatus: cell.matchUpStatus,
+        winningSide: cell.winningSide,
+        participantIds: extractParticipantIds(cell),
+      };
+    }),
+  }));
+
+  return { columns };
+}
+
+/**
+ * Shift one or more courts' placed matchUps down by N grid rows on the current
+ * date — freeing the top N rows so a previous day's rain-delayed matches can be
+ * inserted ABOVE an already-placed day. Opens a court picker; on apply, bumps
+ * courtOrder by N for every placed matchUp on the selected courts (courtId is
+ * untouched, so each match keeps its court).
+ */
+export function shiftCourtsDown(): void {
+  const snapshot = latestStripSnapshot;
+  if (!snapshot) return;
+
+  const courts = snapshot.courtsData
+    .filter((c: any) => !hiddenCourtIds.has(c.courtId))
+    .map((c: any) => ({ courtId: c.courtId, label: c.courtName ?? c.courtId }));
+  if (!courts.length) return;
+
+  openShiftCourtsModal(courts, (courtIds, rows) => {
+    const selected = new Set(courtIds);
+    const courtPrefix = snapshot.courtPrefix;
+    const methods: any[] = [];
+    snapshot.courtsData.forEach((court: any, index: number) => {
+      if (!selected.has(court.courtId)) return;
+      snapshot.rows.forEach((row: any, ri: number) => {
+        const cell = row?.[`${courtPrefix}${index}`];
+        if (!cell?.matchUpId) return;
+        const currentOrder = cell.schedule?.courtOrder ?? ri + 1;
+        methods.push({
+          method: ADD_MATCHUP_SCHEDULE_ITEMS,
+          params: {
+            matchUpId: cell.matchUpId,
+            drawId: cell.drawId,
+            schedule: { courtOrder: currentOrder + rows },
+            removePriorValues: true,
+          },
+        });
+      });
+    });
+    if (methods.length && currentRefresh) executeMethods(methods, currentRefresh);
+  });
 }
 
 /**

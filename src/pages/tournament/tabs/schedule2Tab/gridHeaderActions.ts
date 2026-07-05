@@ -40,6 +40,8 @@ export interface GridHeaderActionsParams {
   onToggleStartOnDrop: (enabled: boolean) => void;
   onMinRowsChange: (rows: number) => void;
   onSearch: (text: string) => void;
+  /** Open the "shift courts down" picker (make room above already-placed matches). */
+  onShiftCourts?: () => void;
 }
 
 export interface GridHeaderActions {
@@ -66,6 +68,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     onToggleStartOnDrop,
     onMinRowsChange,
     onSearch,
+    onShiftCourts,
   } = params;
 
   const catalogBtn = buildToggleIconButton({
@@ -116,10 +119,18 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     printSchedule({ scheduledDate: selectedDate, courts: courtsData, rows });
   });
 
+  const shiftBtn = document.createElement('button');
+  shiftBtn.style.cssText =
+    TOGGLE_BTN_BASE_STYLE + `; background: ${TOGGLE_BG_UNPRESSED}; color: var(--tmx-accent-blue, #3b82f6)`;
+  shiftBtn.innerHTML = '<i class="fa-solid fa-down-long" style="font-size: 0.75rem;"></i>';
+  shiftBtn.title = 'Shift courts down (make room above to insert rain-delayed matches)';
+  shiftBtn.disabled = !onShiftCourts;
+  shiftBtn.addEventListener('click', () => onShiftCourts?.());
+
   return {
     leading: [catalogBtn],
     titleSlot: buildSearchSlot(onSearch),
-    trailing: [stripBtn, startOnDropBtn, rowsStepper, printBtn],
+    trailing: [stripBtn, startOnDropBtn, rowsStepper, shiftBtn, printBtn],
   };
 }
 

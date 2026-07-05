@@ -5,21 +5,21 @@
  * in the schedule2 CSS grid. Uses tippy.js directly with custom DOM for a modern
  * pill/icon layout rather than the legacy flat menu list.
  */
+import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { activateScheduleCellTypeAhead } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from 'components/modals/baseModal/baseModal';
 import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
-import { datePicker } from 'components/modals/datePicker';
+import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
-import { t } from 'i18n';
+import { i18next, t } from 'i18n';
 
 // constants
 import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
@@ -694,6 +694,10 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
 export interface NowStripCell {
   matchUpId: string;
   drawId?: string;
+  /** Current court — the re-seat target when rescheduling to another date. */
+  courtId?: string;
+  /** Draw round — orders same-draw matches when re-seating on the new date. */
+  roundNumber?: number;
   matchUpStatus?: string;
   winningSide?: number;
   /** ActiveStripCellState — occupied cells are 'in-progress', 'suspended', or 'next'. */
@@ -708,6 +712,12 @@ export interface Schedule2NowContext {
   cells: NowStripCell[];
   onRefresh: () => void;
   executeMethods: (methods: any[], onRefresh: () => void) => void;
+  /**
+   * Builds the ActiveStripGrid for an arbitrary date (all courts) so a
+   * reschedule can re-seat moved matchUps against the target date's schedule.
+   * Absent → reschedule falls back to a plain bulk set (court/row preserved).
+   */
+  buildDateGrid?: (date: string) => any;
 }
 
 function nowCellLabel(cell: NowStripCell): string {
@@ -723,8 +733,66 @@ function currentClockTime(): string {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
+/**
+ * Build the schedule mutations for a "Now" reschedule.
+ *
+ * Time-only (no date change), or no grid builder available → one bulk set that
+ * preserves each match's court + row. When a new date is chosen, each match is
+ * re-seated on its SAME court in the target date's grid via
+ * computeReschedulePlacements: placed matches get a recomputed courtOrder;
+ * matches with no legal row have their court cleared so they drop into the
+ * scheduled catalog for that day (keeping the new date/time).
+ */
+function buildRescheduleMethods(
+  moving: NowStripCell[],
+  schedule: { scheduledDate?: string; scheduledTime?: string },
+  buildDateGrid?: (date: string) => any,
+): any[] {
+  const { scheduledDate, scheduledTime } = schedule;
+  const baseSchedule: any = {};
+  if (scheduledDate) baseSchedule.scheduledDate = scheduledDate;
+  if (scheduledTime) baseSchedule.scheduledTime = scheduledTime;
+
+  if (!scheduledDate || !buildDateGrid) {
+    return [
+      {
+        method: BULK_SCHEDULE_MATCHUPS,
+        params: { matchUpIds: moving.map((m) => m.matchUpId), schedule: baseSchedule, removePriorValues: true },
+      },
+    ];
+  }
+
+  const targetGrid = buildDateGrid(scheduledDate);
+  const candidates = moving.map((m) => ({
+    matchUpId: m.matchUpId,
+    courtId: m.courtId,
+    drawId: m.drawId,
+    roundNumber: m.roundNumber,
+    participantIds: m.participantIds,
+  }));
+  const placementById = new Map(computeReschedulePlacements(targetGrid, candidates).map((p) => [p.matchUpId, p]));
+
+  return moving.map((m) => {
+    const placement = placementById.get(m.matchUpId);
+    const matchSchedule: any = { ...baseSchedule };
+    if (placement?.placed && placement.rowIndex !== undefined) {
+      matchSchedule.courtOrder = placement.rowIndex + 1; // keep court, recompute row
+    } else {
+      // No legal row on the target date → clear the court; the match keeps its
+      // new date/time and surfaces in the scheduled catalog for hand-placing.
+      matchSchedule.courtId = '';
+      matchSchedule.venueId = '';
+      matchSchedule.courtOrder = '';
+    }
+    return {
+      method: ADD_MATCHUP_SCHEDULE_ITEMS,
+      params: { matchUpId: m.matchUpId, drawId: m.drawId, schedule: matchSchedule, removePriorValues: true },
+    };
+  });
+}
+
 export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContext): void {
-  const { cells, onRefresh, executeMethods } = ctx;
+  const { cells, onRefresh, executeMethods, buildDateGrid } = ctx;
 
   // A match shown on the strip isn't necessarily flagged IN_PROGRESS — a TD may
   // drag a match to Now intending to start it and never press [Start match], so
@@ -772,15 +840,9 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
 
   const rescheduleAll = () => {
     openRescheduleNowModal(actionable, (matchUpIds, schedule) => {
-      executeMethods(
-        [
-          {
-            method: BULK_SCHEDULE_MATCHUPS,
-            params: { matchUpIds, schedule, removePriorValues: true },
-          },
-        ],
-        onRefresh,
-      );
+      const checked = new Set(matchUpIds);
+      const moving = actionable.filter((c) => checked.has(c.matchUpId));
+      executeMethods(buildRescheduleMethods(moving, schedule, buildDateGrid), onRefresh);
     });
   };
 
@@ -866,6 +928,34 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
 }
 
 /**
+ * Attach an inline vanillajs-datepicker to a live input, constrained to
+ * `futureDates` (tournament dates >= today). MUST run after the input is in the
+ * DOM — constructing against a detached node leaves the show-on-focus listeners
+ * unwired, so the field looks inert (clicking does nothing). Kept module-level
+ * so its `datesDisabled` closure doesn't deepen the modal builder's nesting.
+ */
+function attachRescheduleDatepicker(input: HTMLInputElement, futureDates: string[], onPick: (date: string) => void): void {
+  const activeDatesSet = futureDates.length ? new Set(futureDates) : undefined;
+  new Datepicker(input, { // NOSONAR — instance attaches to DOM element
+    format: 'yyyy-mm-dd',
+    language: i18next.language,
+    autohide: true,
+    todayHighlight: true,
+    ...(activeDatesSet && {
+      datesDisabled: (dpDate: Date) => {
+        const y = dpDate.getFullYear();
+        const m = String(dpDate.getMonth() + 1).padStart(2, '0');
+        const d = String(dpDate.getDate()).padStart(2, '0');
+        return !activeDatesSet.has(`${y}-${m}-${d}`);
+      },
+      minDate: futureDates[0],
+      maxDate: futureDates.at(-1),
+    }),
+  });
+  input.addEventListener('changeDate', () => onPick(input.value));
+}
+
+/**
  * Reschedule modal for the "Now" row: multi-select the strip matchUps and apply
  * a new scheduledDate and/or scheduledTime via BULK_SCHEDULE_MATCHUPS. All rows
  * checked by default; the caller commits only the checked ids. Either field may
@@ -880,41 +970,32 @@ function openRescheduleNowModal(
   const state: { scheduledDate: string; scheduledTime: string } = { scheduledDate: '', scheduledTime: '' };
   const checks: HTMLInputElement[] = [];
   const today = tools.dateTime.formatDate(new Date());
-  const futureDates = getScheduleDateRange().filter((d) => d >= today);
+  const scheduleDates = getScheduleDateRange();
+  // Prefer dates from today onward; fall back to the full tournament range so a
+  // past/mock event (all dates behind "today") still gets a usable date field
+  // rather than a dead disabled control.
+  const futureDates = scheduleDates.filter((d) => d >= today);
+  const pickerDates = futureDates.length ? futureDates : scheduleDates;
 
   const content = document.createElement('div');
   content.style.cssText = 'font-size: 0.8125rem; min-width: 320px;';
 
-  // Date selector row — constrained to tournament dates >= today.
-  const dateRow = document.createElement('div');
-  dateRow.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px;';
-  const dateLabel = document.createElement('span');
-  dateLabel.style.cssText = 'font-weight: 600;';
-  dateLabel.textContent = t('schedule.newDate');
-  const dateBtn = document.createElement('button');
-  dateBtn.className = 'button is-small';
-  dateBtn.textContent = t('schedule.chooseDate');
-  dateBtn.disabled = !futureDates.length;
-  dateBtn.addEventListener('click', () => {
-    datePicker({
-      date: state.scheduledDate || futureDates[0] || '',
-      activeDates: futureDates,
-      callback: ({ date }) => {
-        state.scheduledDate = date;
-        dateBtn.textContent = date || t('schedule.chooseDate');
-      },
-    });
-  });
-  dateRow.appendChild(dateLabel);
-  dateRow.appendChild(dateBtn);
-  content.appendChild(dateRow);
+  // Date + time selector row. The date uses an INLINE (non-modal) datepicker
+  // whose floating calendar overlays the reschedule modal — a nested baseModal
+  // datePicker would close the shared cModal backdrop and tear down the whole
+  // stack. The date is constrained to tournament dates >= today.
+  const pickerRow = document.createElement('div');
+  pickerRow.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px;';
 
-  // Time selector row
-  const timeRow = document.createElement('div');
-  timeRow.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px;';
-  const timeLabel = document.createElement('span');
-  timeLabel.style.cssText = 'font-weight: 600;';
-  timeLabel.textContent = t('schedule.newTime');
+  const dateInput = document.createElement('input');
+  dateInput.type = 'text';
+  dateInput.className = 'input is-small';
+  dateInput.style.maxWidth = '150px';
+  dateInput.placeholder = t('schedule.chooseDate');
+  dateInput.readOnly = true;
+  dateInput.disabled = !pickerDates.length;
+  pickerRow.appendChild(dateInput);
+
   const timeBtn = document.createElement('button');
   timeBtn.className = 'button is-small';
   timeBtn.textContent = t('schedule.chooseTime');
@@ -929,9 +1010,8 @@ function openRescheduleNowModal(
       },
     });
   });
-  timeRow.appendChild(timeLabel);
-  timeRow.appendChild(timeBtn);
-  content.appendChild(timeRow);
+  pickerRow.appendChild(timeBtn);
+  content.appendChild(pickerRow);
 
   // Divider
   const hr = document.createElement('hr');
@@ -989,6 +1069,114 @@ function openRescheduleNowModal(
     buttons: [
       { label: t('common.cancel'), intent: 'none', close: true },
       { label: t('schedule.reschedule'), intent: 'is-info', onClick: apply, close: false },
+    ],
+  });
+
+  // Wire the datepicker only once the modal (and its input) is live in the DOM
+  // — vanillajs-datepicker inserts its calendar next to the input, so the input
+  // must already have a parent, which it only does after openModal appends it.
+  if (pickerDates.length) {
+    requestAnimationFrame(() => {
+      attachRescheduleDatepicker(dateInput, pickerDates, (date) => {
+        state.scheduledDate = date;
+      });
+    });
+  }
+}
+
+// ============================================================================
+// Shift Courts Down (make room above already-placed matchUps)
+// ============================================================================
+
+/**
+ * Modal to shift one or more courts' placed matchUps down by N grid rows,
+ * freeing the top N rows so previous-day rain-delayed matches can be inserted
+ * ABOVE an already-placed day. Courts default to all-selected; the caller does
+ * the courtOrder += N mutation for the checked courts.
+ */
+export function openShiftCourtsModal(
+  courts: { courtId: string; label: string }[],
+  onApply: (courtIds: string[], rows: number) => void,
+): void {
+  const state = { rows: 1 };
+  const checks: HTMLInputElement[] = [];
+
+  const content = document.createElement('div');
+  content.style.cssText = 'font-size: 0.8125rem; min-width: 300px;';
+
+  // Rows-to-shift stepper
+  const rowsRow = document.createElement('div');
+  rowsRow.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px;';
+  const rowsLabel = document.createElement('span');
+  rowsLabel.style.cssText = 'font-weight: 600;';
+  rowsLabel.textContent = t('schedule.shiftRows');
+  const rowsInput = document.createElement('input');
+  rowsInput.type = 'number';
+  rowsInput.className = 'input is-small';
+  rowsInput.min = '1';
+  rowsInput.value = '1';
+  rowsInput.style.maxWidth = '70px';
+  rowsInput.addEventListener('change', () => {
+    const n = Number.parseInt(rowsInput.value, 10);
+    state.rows = Number.isNaN(n) || n < 1 ? 1 : n;
+    rowsInput.value = String(state.rows);
+  });
+  rowsRow.appendChild(rowsLabel);
+  rowsRow.appendChild(rowsInput);
+  content.appendChild(rowsRow);
+
+  const hr = document.createElement('hr');
+  hr.style.cssText = 'border: none; border-top: 1px solid var(--tmx-border-primary); margin: 8px 0;';
+  content.appendChild(hr);
+
+  // Select all / none
+  const selectRow = document.createElement('div');
+  selectRow.style.cssText = 'display: flex; gap: 12px; margin-bottom: 6px; font-size: 0.75rem;';
+  const setAll = (checked: boolean) => () => checks.forEach((c) => (c.checked = checked));
+  for (const [labelKey, checked] of [
+    ['schedule.selectAll', true],
+    ['schedule.selectNone', false],
+  ] as const) {
+    const link = document.createElement('a');
+    link.textContent = t(labelKey);
+    link.style.cursor = 'pointer';
+    link.addEventListener('click', setAll(checked));
+    selectRow.appendChild(link);
+  }
+  content.appendChild(selectRow);
+
+  // Court checklist (all courts checked by default)
+  const list = document.createElement('div');
+  list.style.cssText = 'max-height: 260px; overflow-y: auto;';
+  for (const court of courts) {
+    const rowEl = document.createElement('label');
+    rowEl.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = true;
+    check.dataset.courtId = court.courtId;
+    checks.push(check);
+    const text = document.createElement('span');
+    text.textContent = court.label;
+    rowEl.appendChild(check);
+    rowEl.appendChild(text);
+    list.appendChild(rowEl);
+  }
+  content.appendChild(list);
+
+  const apply = () => {
+    const courtIds = checks.filter((c) => c.checked).map((c) => c.dataset.courtId as string);
+    if (!courtIds.length || state.rows < 1) return;
+    onApply(courtIds, state.rows);
+    closeModal();
+  };
+
+  openModal({
+    title: t('schedule.shiftCourtsTitle'),
+    content,
+    buttons: [
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('schedule.shift'), intent: 'is-info', onClick: apply, close: false },
     ],
   });
 }
