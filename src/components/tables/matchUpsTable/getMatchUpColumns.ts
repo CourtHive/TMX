@@ -264,7 +264,7 @@ export function getMatchUpColumns({
       field: 'calledAt',
       title: t('tables.matchUps.calledAt'),
       visible: false,
-      width: 80,
+      width: 92,
     },
     {
       formatter: matchUpParticipantFormatter,
