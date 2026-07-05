@@ -84,6 +84,38 @@ describe('readScheduleDisplayConfig', () => {
     });
     expect(readScheduleDisplayConfig()).toEqual({});
   });
+
+  it('reads the start-on-drop booleans when present', () => {
+    getTournamentMock.mockReturnValue({
+      tournamentRecord: {
+        extensions: [
+          {
+            name: SCHEDULE_DISPLAY_EXTENSION_NAME,
+            value: { minCourtGridRows: 10, startOnDrop: true, startOnDropPrompted: true },
+          },
+        ],
+      },
+    });
+    expect(readScheduleDisplayConfig()).toEqual({
+      minCourtGridRows: 10,
+      startOnDrop: true,
+      startOnDropPrompted: true,
+    });
+  });
+
+  it('ignores non-boolean start-on-drop values', () => {
+    getTournamentMock.mockReturnValue({
+      tournamentRecord: {
+        extensions: [
+          {
+            name: SCHEDULE_DISPLAY_EXTENSION_NAME,
+            value: { startOnDrop: 'yes', startOnDropPrompted: 1 },
+          },
+        ],
+      },
+    });
+    expect(readScheduleDisplayConfig()).toEqual({});
+  });
 });
 
 describe('writeScheduleDisplayConfig', () => {

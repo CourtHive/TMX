@@ -227,7 +227,8 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   // Tournament-scoped minRows overrides the hardcoded default so all
   // directors on a tournament see the same grid density once anyone has
   // nudged the Rows stepper.
-  const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
+  const scheduleDisplayConfig = readScheduleDisplayConfig();
+  const extensionMinRows = scheduleDisplayConfig.minCourtGridRows;
   const effectiveMinRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
 
   const header = buildSchedule2Header({
@@ -268,9 +269,14 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       bulkMode: getGridBulkMode(),
       catalogVisible: gridCatalogVisible ?? true,
       activeStripVisible: activeStripVisible ?? true,
+      startOnDrop: scheduleDisplayConfig.startOnDrop ?? false,
       minRows: effectiveMinRows,
       onToggleCatalog: applyGridCatalogVisible,
       onToggleActiveStrip: applyActiveStripVisible,
+      onToggleStartOnDrop: (enabled: boolean) => {
+        // Toggling counts as answering the one-time prompt, so it won't fire later.
+        writeScheduleDisplayConfig({ startOnDrop: enabled, startOnDropPrompted: true });
+      },
       onMinRowsChange: (rows: number) => {
         writeScheduleDisplayConfig({ minCourtGridRows: rows });
         refreshGridView();

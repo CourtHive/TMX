@@ -8,13 +8,16 @@
 import { matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { activateScheduleCellTypeAhead } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { closeModal, openModal } from 'components/modals/baseModal/baseModal';
 import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
+import { datePicker } from 'components/modals/datePicker';
 import tippy, { type Instance } from 'tippy.js';
 import { t } from 'i18n';
 
@@ -23,11 +26,24 @@ import { ADD_MATCHUP_SCHEDULE_ITEMS, BULK_SCHEDULE_MATCHUPS, SET_MATCHUP_STATUS 
 import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
-const { IN_PROGRESS } = matchUpStatusConstants;
+const { IN_PROGRESS, SUSPENDED } = matchUpStatusConstants;
 
 const COLOR_ACCENT_BLUE = 'var(--tmx-accent-blue, #3b82f6)';
+const COLOR_ACCENT_ORANGE = 'var(--tmx-accent-orange, #ef4444)';
 const ICON_BAN = 'fa-ban';
 const TINT_DANGER = 'rgba(244, 63, 94, 0.15)';
+
+// MatchUp statuses that are terminal/decided — excluded from bulk time + status
+// actions (a completed or walked-over match can't be started, suspended, etc.).
+const TERMINAL_MATCHUP_STATUSES = new Set([
+  'BYE',
+  'WALKOVER',
+  'DOUBLE_WALKOVER',
+  'CANCELLED',
+  'ABANDONED',
+  'DOUBLE_DEFAULT',
+  'DEFAULTED',
+]);
 
 // Singleton tippy instance for cell menus
 let cellTip: Instance | undefined;
@@ -184,6 +200,10 @@ function makeSectionLabel(text: string): HTMLElement {
   el.style.cssText = SECTION_LABEL_CSS;
   el.textContent = text;
   return el;
+}
+
+function makeTimeSectionLabel(): HTMLElement {
+  return makeSectionLabel(t('schedule.time'));
 }
 
 function makeDivider(): HTMLElement {
@@ -354,7 +374,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   pop.style.cssText = POPOVER_CSS;
 
   // Section 1: Time
-  pop.appendChild(makeSectionLabel(t('schedule.time')));
+  pop.appendChild(makeTimeSectionLabel());
   const timeRow = document.createElement('div');
   timeRow.style.cssText = PILL_ROW_CSS;
   timeRow.appendChild(makePill(t('schedule.setTime'), setMatchUpTime, { icon: 'fa-clock' }));
@@ -404,7 +424,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   if (hasCourtId)
     actionsRow.appendChild(
       makeIconBtn(t('schedule.removeFromSchedule'), 'fa-calendar-xmark', removeFromSchedule, {
-        color: 'var(--tmx-accent-orange, #ef4444)',
+        color: COLOR_ACCENT_ORANGE,
       }),
     );
   const isFinished = !!matchUp?.winningSide || isTerminal;
@@ -562,16 +582,6 @@ export interface Schedule2RowContext {
 export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext): void {
   const { rowData, courtPrefix, courtsData, onRefresh, executeMethods } = ctx;
 
-  const terminalStatuses = new Set([
-    'BYE',
-    'WALKOVER',
-    'DOUBLE_WALKOVER',
-    'CANCELLED',
-    'ABANDONED',
-    'DOUBLE_DEFAULT',
-    'DEFAULTED',
-  ]);
-
   const rowMatchUps: any[] = [];
   for (let ci = 0; ci < courtsData.length; ci++) {
     const cellData = rowData[`${courtPrefix}${ci}`];
@@ -580,7 +590,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   if (!rowMatchUps.length) return;
 
   // Time mods, set time, and clear apply to anything not in a terminal status.
-  const applicableMatchUps = rowMatchUps.filter((m: any) => !terminalStatuses.has(m.matchUpStatus));
+  const applicableMatchUps = rowMatchUps.filter((m: any) => !TERMINAL_MATCHUP_STATUSES.has(m.matchUpStatus));
   // Shotgun start additionally requires ≥2 participants assigned, not already in progress, no winner.
   const startableMatchUps = applicableMatchUps.filter((m: any) => {
     const participantCount = m.sides?.filter((s: any) => s?.participantId || s?.participant?.participantId).length || 0;
@@ -642,7 +652,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   pop.style.cssText = POPOVER_CSS;
 
   // Section: Time
-  pop.appendChild(makeSectionLabel(t('schedule.time')));
+  pop.appendChild(makeTimeSectionLabel());
   const timeRow = document.createElement('div');
   timeRow.style.cssText = PILL_ROW_CSS;
   timeRow.appendChild(makePill(t('schedule.setMatchTimes'), setMatchTimes, { icon: 'fa-clock' }));
@@ -670,6 +680,317 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   pop.appendChild(annoRow);
 
   showPopover(e.target as HTMLElement, pop);
+}
+
+// ============================================================================
+// "Now" Row Popover (bulk actions across the active strip)
+// ============================================================================
+
+/**
+ * One occupied active-strip cell (LIVE, SUSP, or NEXT) for a visible court.
+ * Built by gridView from computeActiveStrip so this set == exactly what the
+ * strip shows.
+ */
+export interface NowStripCell {
+  matchUpId: string;
+  drawId?: string;
+  matchUpStatus?: string;
+  winningSide?: number;
+  /** ActiveStripCellState — occupied cells are 'in-progress', 'suspended', or 'next'. */
+  state: string;
+  participantIds: string[];
+  sides?: any[];
+  courtName: string;
+}
+
+export interface Schedule2NowContext {
+  /** Occupied strip cells, one per visible court. */
+  cells: NowStripCell[];
+  onRefresh: () => void;
+  executeMethods: (methods: any[], onRefresh: () => void) => void;
+}
+
+function nowCellLabel(cell: NowStripCell): string {
+  const names = (cell.sides ?? [])
+    .map((s: any) => s?.participant?.participantName || s?.participantName)
+    .filter(Boolean);
+  const versus = names.length ? names.join(' – ') : cell.matchUpId;
+  return cell.courtName ? `${cell.courtName} · ${versus}` : versus;
+}
+
+function currentClockTime(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
+
+export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContext): void {
+  const { cells, onRefresh, executeMethods } = ctx;
+
+  // A match shown on the strip isn't necessarily flagged IN_PROGRESS — a TD may
+  // drag a match to Now intending to start it and never press [Start match], so
+  // it still reads NEXT. Treat every occupied strip cell as fair game for the
+  // bulk actions; only terminal/decided matchUps are excluded.
+  const actionable = cells.filter((c) => !TERMINAL_MATCHUP_STATUSES.has(c.matchUpStatus ?? '') && !c.winningSide);
+
+  const startable = actionable.filter(
+    (c) => c.matchUpStatus !== IN_PROGRESS && c.matchUpStatus !== SUSPENDED && c.participantIds.length >= 2,
+  );
+  const suspendable = actionable.filter((c) => c.matchUpStatus !== SUSPENDED);
+  const resumable = actionable.filter((c) => c.matchUpStatus === SUSPENDED);
+
+  const setStatusFor = (list: NowStripCell[], matchUpStatus: string) => {
+    if (!list.length) return;
+    executeMethods(
+      list.map((c) => ({
+        method: SET_MATCHUP_STATUS,
+        params: { matchUpId: c.matchUpId, drawId: c.drawId, outcome: { matchUpStatus } },
+      })),
+      onRefresh,
+    );
+  };
+
+  const startAll = () => {
+    if (!startable.length) return;
+    const startTime = currentClockTime();
+    executeMethods(
+      [
+        {
+          method: BULK_SCHEDULE_MATCHUPS,
+          params: { matchUpIds: startable.map((c) => c.matchUpId), schedule: { startTime }, removePriorValues: true },
+        },
+        ...startable.map((c) => ({
+          method: SET_MATCHUP_STATUS,
+          params: { matchUpId: c.matchUpId, drawId: c.drawId, outcome: { matchUpStatus: IN_PROGRESS } },
+        })),
+      ],
+      onRefresh,
+    );
+  };
+
+  const suspendAll = () => setStatusFor(suspendable, SUSPENDED);
+  const resumeAll = () => setStatusFor(resumable, IN_PROGRESS);
+
+  const rescheduleAll = () => {
+    openRescheduleNowModal(actionable, (matchUpIds, schedule) => {
+      executeMethods(
+        [
+          {
+            method: BULK_SCHEDULE_MATCHUPS,
+            params: { matchUpIds, schedule, removePriorValues: true },
+          },
+        ],
+        onRefresh,
+      );
+    });
+  };
+
+  // Unschedule = clear court + time + date for every active strip matchUp. Uses
+  // ADD_MATCHUP_SCHEDULE_ITEMS per matchUp (mirrors the single-cell remove) so a
+  // rain-cancelled session can be fully cleared before rebuilding the schedule.
+  const unscheduleAll = () => {
+    if (!actionable.length) return;
+    executeMethods(
+      actionable.map((c) => ({
+        method: ADD_MATCHUP_SCHEDULE_ITEMS,
+        params: {
+          matchUpId: c.matchUpId,
+          drawId: c.drawId,
+          schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
+          removePriorValues: true,
+        },
+      })),
+      onRefresh,
+    );
+  };
+
+  // ── Build popover DOM ──
+  const pop = document.createElement('div');
+  pop.style.cssText = POPOVER_CSS;
+
+  if (!actionable.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size: 0.75rem; color: var(--tmx-muted); font-style: italic;';
+    empty.textContent = t('schedule.noActiveMatches');
+    pop.appendChild(empty);
+    showPopover(e.target as HTMLElement, pop);
+    return;
+  }
+
+  pop.appendChild(makeSectionLabel(t('schedule.status')));
+  const statusRow = document.createElement('div');
+  statusRow.style.cssText = PILL_ROW_CSS;
+  if (startable.length) {
+    statusRow.appendChild(
+      makePill(`${t('schedule.startAll')} (${startable.length})`, startAll, {
+        icon: 'fa-play',
+        color: COLOR_ACCENT_BLUE,
+      }),
+    );
+  }
+  if (suspendable.length) {
+    statusRow.appendChild(
+      makePill(`${t('schedule.suspendAll')} (${suspendable.length})`, suspendAll, {
+        icon: 'fa-pause',
+        color: COLOR_ACCENT_ORANGE,
+        outline: true,
+      }),
+    );
+  }
+  if (resumable.length) {
+    statusRow.appendChild(
+      makePill(`${t('schedule.resumeAll')} (${resumable.length})`, resumeAll, {
+        icon: 'fa-circle-play',
+        color: COLOR_ACCENT_BLUE,
+        outline: true,
+      }),
+    );
+  }
+  pop.appendChild(statusRow);
+
+  pop.appendChild(makeTimeSectionLabel());
+  const timeRow = document.createElement('div');
+  timeRow.style.cssText = PILL_ROW_CSS;
+  timeRow.appendChild(
+    makePill(`${t('schedule.rescheduleAll')} (${actionable.length})`, rescheduleAll, { icon: 'fa-clock' }),
+  );
+  timeRow.appendChild(
+    makePill(`${t('schedule.unscheduleAll')} (${actionable.length})`, unscheduleAll, {
+      icon: 'fa-calendar-xmark',
+      color: COLOR_ACCENT_ORANGE,
+      outline: true,
+    }),
+  );
+  pop.appendChild(timeRow);
+
+  showPopover(e.target as HTMLElement, pop);
+}
+
+/**
+ * Reschedule modal for the "Now" row: multi-select the strip matchUps and apply
+ * a new scheduledDate and/or scheduledTime via BULK_SCHEDULE_MATCHUPS. All rows
+ * checked by default; the caller commits only the checked ids. Either field may
+ * be set independently — a rain delay pushes date (and usually a fresh start
+ * time) forward; a same-day shift changes only the time. The date picker is
+ * constrained to tournament dates from today onward.
+ */
+function openRescheduleNowModal(
+  candidates: NowStripCell[],
+  onApply: (matchUpIds: string[], schedule: { scheduledDate?: string; scheduledTime?: string }) => void,
+): void {
+  const state: { scheduledDate: string; scheduledTime: string } = { scheduledDate: '', scheduledTime: '' };
+  const checks: HTMLInputElement[] = [];
+  const today = tools.dateTime.formatDate(new Date());
+  const futureDates = getScheduleDateRange().filter((d) => d >= today);
+
+  const content = document.createElement('div');
+  content.style.cssText = 'font-size: 0.8125rem; min-width: 320px;';
+
+  // Date selector row — constrained to tournament dates >= today.
+  const dateRow = document.createElement('div');
+  dateRow.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px;';
+  const dateLabel = document.createElement('span');
+  dateLabel.style.cssText = 'font-weight: 600;';
+  dateLabel.textContent = t('schedule.newDate');
+  const dateBtn = document.createElement('button');
+  dateBtn.className = 'button is-small';
+  dateBtn.textContent = t('schedule.chooseDate');
+  dateBtn.disabled = !futureDates.length;
+  dateBtn.addEventListener('click', () => {
+    datePicker({
+      date: state.scheduledDate || futureDates[0] || '',
+      activeDates: futureDates,
+      callback: ({ date }) => {
+        state.scheduledDate = date;
+        dateBtn.textContent = date || t('schedule.chooseDate');
+      },
+    });
+  });
+  dateRow.appendChild(dateLabel);
+  dateRow.appendChild(dateBtn);
+  content.appendChild(dateRow);
+
+  // Time selector row
+  const timeRow = document.createElement('div');
+  timeRow.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px;';
+  const timeLabel = document.createElement('span');
+  timeLabel.style.cssText = 'font-weight: 600;';
+  timeLabel.textContent = t('schedule.newTime');
+  const timeBtn = document.createElement('button');
+  timeBtn.className = 'button is-small';
+  timeBtn.textContent = t('schedule.chooseTime');
+  timeBtn.addEventListener('click', () => {
+    timePicker({
+      time: state.scheduledTime ? secondsToTimeString(timeStringToSeconds(state.scheduledTime)) : '8:00 AM',
+      callback: ({ time }: { time: string }) => {
+        const converted = tools.dateTime.convertTime(time, true) || '';
+        if (!converted) return;
+        state.scheduledTime = converted as string;
+        timeBtn.textContent = time;
+      },
+    });
+  });
+  timeRow.appendChild(timeLabel);
+  timeRow.appendChild(timeBtn);
+  content.appendChild(timeRow);
+
+  // Divider
+  const hr = document.createElement('hr');
+  hr.style.cssText = 'border: none; border-top: 1px solid var(--tmx-border-primary); margin: 8px 0;';
+  content.appendChild(hr);
+
+  // Select all / none
+  const selectRow = document.createElement('div');
+  selectRow.style.cssText = 'display: flex; gap: 12px; margin-bottom: 6px; font-size: 0.75rem;';
+  const setAll = (checked: boolean) => () => checks.forEach((c) => (c.checked = checked));
+  for (const [labelKey, checked] of [
+    ['schedule.selectAll', true],
+    ['schedule.selectNone', false],
+  ] as const) {
+    const link = document.createElement('a');
+    link.textContent = t(labelKey);
+    link.style.cursor = 'pointer';
+    link.addEventListener('click', setAll(checked));
+    selectRow.appendChild(link);
+  }
+  content.appendChild(selectRow);
+
+  // Candidate checklist
+  const list = document.createElement('div');
+  list.style.cssText = 'max-height: 260px; overflow-y: auto;';
+  for (const candidate of candidates) {
+    const rowEl = document.createElement('label');
+    rowEl.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = true;
+    check.dataset.matchUpId = candidate.matchUpId;
+    checks.push(check);
+    const text = document.createElement('span');
+    text.textContent = nowCellLabel(candidate);
+    rowEl.appendChild(check);
+    rowEl.appendChild(text);
+    list.appendChild(rowEl);
+  }
+  content.appendChild(list);
+
+  const apply = () => {
+    const matchUpIds = checks.filter((c) => c.checked).map((c) => c.dataset.matchUpId as string);
+    const schedule: { scheduledDate?: string; scheduledTime?: string } = {};
+    if (state.scheduledDate) schedule.scheduledDate = state.scheduledDate;
+    if (state.scheduledTime) schedule.scheduledTime = state.scheduledTime;
+    if (!matchUpIds.length || (!schedule.scheduledDate && !schedule.scheduledTime)) return;
+    onApply(matchUpIds, schedule);
+    closeModal();
+  };
+
+  openModal({
+    title: t('schedule.rescheduleNowTitle'),
+    content,
+    buttons: [
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('schedule.reschedule'), intent: 'is-info', onClick: apply, close: false },
+    ],
+  });
 }
 
 // ============================================================================
@@ -702,7 +1023,7 @@ function showBlockedCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   row.appendChild(
     makePill(`Unblock (${rowText}, ${bookingLabel})`, unblockCourt, {
       icon: 'fa-unlock',
-      color: 'var(--tmx-accent-orange, #ef4444)',
+      color: COLOR_ACCENT_ORANGE,
       outline: true,
     }),
   );

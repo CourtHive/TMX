@@ -21,9 +21,10 @@
  */
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
-import { readScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
+import { readScheduleDisplayConfig, writeScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
-import { handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
+import { handleActiveStripNowClick, handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
+import type { Schedule2NowContext } from './schedule2CellActions';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
@@ -51,6 +52,7 @@ import type {
   ActiveStripPanel,
   ActiveStripPanelData,
   ActiveStripCourtBlock,
+  ActiveStripCell,
 } from 'courthive-components';
 import {
   matchUpStatusConstants,
@@ -85,17 +87,23 @@ import {
   buildActiveStripPanel,
   buildMatchUpCard,
   wrapSearchWithClear,
+  computeActiveStrip,
 } from 'courthive-components';
 
 // constants
-import { ADD_MATCHUP_SCHEDULE_ITEMS, SET_MATCHUP_CALLED_AT } from 'constants/mutationConstants';
+import {
+  ADD_MATCHUP_SCHEDULE_ITEMS,
+  BULK_SCHEDULE_MATCHUPS,
+  SET_MATCHUP_CALLED_AT,
+  SET_MATCHUP_STATUS,
+} from 'constants/mutationConstants';
 import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 
 const { scheduleConstants } = factoryConstants;
 
-const { BYE } = matchUpStatusConstants;
+const { BYE, IN_PROGRESS } = matchUpStatusConstants;
 
 /**
  * Fallback row count when a tournament hasn't yet had its scheduleDisplay
@@ -191,6 +199,10 @@ function uniqueCatalogValues(
 // Latest schedule snapshot used by the strip — also consulted by the strip's
 // click handler so popovers open against the same row data the cell renders.
 let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] } | null = null;
+// Latest ActiveStripPanelData (visible-court filtered grid + labels). The "Now"
+// bulk popover reduces this via computeActiveStrip so it operates on exactly the
+// matchUps the strip displays — one per court, LIVE or NEXT.
+let latestStripData: ActiveStripPanelData | null = null;
 
 export function renderGridView(
   container: HTMLElement,
@@ -440,13 +452,20 @@ export function renderGridView(
     refreshActiveStrip(currentDate);
   }, 30000);
 
-  // Strip cell clicks open the same popover as grid-cell clicks. Delegated
-  // listener so it survives the strip's render() rebuilds.
+  // Strip cell clicks open the same popover as grid-cell clicks. The leading
+  // spacer ("Now") opens the bulk Now-row popover. Delegated listener so both
+  // survive the strip's render() rebuilds.
   activeStrip.element.addEventListener('click', (e) => {
+    const spacer = (e.target as HTMLElement | null)?.closest('.spl-active-strip-spacer');
+    if (spacer) {
+      handleActiveStripNowClick(e as MouseEvent, buildNowRowContext(refresh));
+      return;
+    }
     const target = (e.target as HTMLElement | null)?.closest('.spl-active-strip-cell') as HTMLElement | null;
     if (!target) return;
     handleStripCellClick(e as MouseEvent, target, refresh);
   });
+  makeSpacerInteractive(activeStrip.element);
 
   // ── Inject sidebar controls: collapse toggle + Unscheduled/Scheduled tabs ──
   injectSidebarControls(container, refresh);
@@ -2216,6 +2235,7 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
  */
 function refreshActiveStrip(date: string): void {
   const data = buildActiveStripData(date);
+  latestStripData = data;
   activeStrip?.setData(data);
   stampAutoPromotedStripCalls(data.grid.columns);
 }
@@ -2231,6 +2251,48 @@ function stampAutoPromotedStripCalls(columns: ActiveStripPanelData['grid']['colu
     params: { matchUpId: promotion.matchUpId, drawId: promotion.drawId, calledAt },
   }));
   executeMethods(methods, currentRefresh);
+}
+
+/**
+ * Build the context for the "Now" row bulk popover. Reduces the cached strip
+ * data via computeActiveStrip so the popover operates on exactly the matchUps
+ * the strip shows — one active cell per visible court (LIVE, SUSP, or NEXT). The grid
+ * is already visible-court filtered, so no hidden-court handling is needed here.
+ */
+function buildNowRowContext(refresh: () => void): Schedule2NowContext {
+  const grid = latestStripData?.grid ?? { columns: [] };
+  const courtLabels = new Map((latestStripData?.courts ?? []).map((c) => [c.courtId, c.label]));
+
+  const cells = computeActiveStrip(grid)
+    .filter((cell: ActiveStripCell) => cell.state !== 'free' && !!cell.matchUp)
+    .map((cell: ActiveStripCell) => {
+      const matchUp = cell.matchUp as NonNullable<ActiveStripCell['matchUp']>;
+      const payload = matchUp.payload as any;
+      return {
+        matchUpId: matchUp.matchUpId,
+        drawId: matchUp.drawId,
+        matchUpStatus: matchUp.matchUpStatus,
+        winningSide: matchUp.winningSide,
+        state: cell.state,
+        participantIds: matchUp.participantIds ?? [],
+        sides: payload?.sides,
+        courtName: courtLabels.get(cell.courtId) ?? cell.courtId,
+      };
+    });
+
+  return { cells, onRefresh: refresh, executeMethods };
+}
+
+/**
+ * Give the "Now" spacer a pointer affordance. The click itself is delegated on
+ * the strip root; this only styles the spacer so it reads as actionable. Runs
+ * on a delegated pointer basis so it survives the strip's render() rebuilds.
+ */
+function makeSpacerInteractive(stripEl: HTMLElement): void {
+  stripEl.addEventListener('pointerover', (e) => {
+    const spacer = (e.target as HTMLElement | null)?.closest('.spl-active-strip-spacer') as HTMLElement | null;
+    if (spacer) spacer.style.cursor = 'pointer';
+  });
 }
 
 /**
@@ -2436,7 +2498,64 @@ function commitActiveStripDrop(
     },
   });
 
+  // Start-on-drop: a TD dragging to Now often intends to START the match, not
+  // just call it. The start methods (startTime + IN_PROGRESS) are only produced
+  // when the match is actually startable — otherwise the drop is a pure call.
+  const startMethods = buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '');
+  const cfg = readScheduleDisplayConfig();
+  const prompted = cfg.startOnDropPrompted;
+
+  if (startMethods.length && prompted && cfg.startOnDrop) {
+    // Preference already opted-in — start atomically with the call to court.
+    methods.push(...startMethods);
+  }
+
   executeMethods(methods, refresh);
+
+  // First time a startable match lands on Now, ask once and remember the choice.
+  // The call to court has already committed above; only the start is deferred.
+  if (startMethods.length && !prompted) {
+    confirmModal({
+      title: t('schedule.startOnDropTitle'),
+      query: t('schedule.startOnDropPrompt'),
+      okIntent: 'is-info',
+      okAction: () => {
+        writeScheduleDisplayConfig({ startOnDrop: true, startOnDropPrompted: true });
+        executeMethods(startMethods, refresh);
+      },
+      cancelAction: () => writeScheduleDisplayConfig({ startOnDrop: false, startOnDropPrompted: true }),
+    });
+  }
+}
+
+/**
+ * Build the [startTime, IN_PROGRESS] mutation pair for a start-on-drop, or an
+ * empty array when the matchUp can't be started (already in progress, decided,
+ * or missing a second participant). Reads authoritative status/sides from the
+ * cached matchUps rather than the drag payload, which may be stale.
+ */
+function buildStartOnDropMethods(matchUpId: string, drawId: string): any[] {
+  const { matchUps } = getCachedAllMatchUps() || {};
+  const matchUp = (matchUps || []).find((m: any) => m.matchUpId === matchUpId);
+  if (!matchUp || matchUp.matchUpStatus === IN_PROGRESS || matchUp.winningSide) return [];
+
+  const assigned = (matchUp.sides || []).filter(
+    (s: any) => s?.participantId || s?.participant?.participantId,
+  ).length;
+  if (assigned < 2) return [];
+
+  const now = new Date();
+  const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  return [
+    {
+      method: BULK_SCHEDULE_MATCHUPS,
+      params: { matchUpIds: [matchUpId], schedule: { startTime }, removePriorValues: true },
+    },
+    {
+      method: SET_MATCHUP_STATUS,
+      params: { matchUpId, drawId, outcome: { matchUpStatus: IN_PROGRESS } },
+    },
+  ];
 }
 
 /**

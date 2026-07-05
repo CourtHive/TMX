@@ -18,6 +18,10 @@ export const SCHEDULE_DISPLAY_EXTENSION_NAME = 'scheduleDisplay';
 
 export interface ScheduleDisplayConfig {
   minCourtGridRows?: number;
+  /** When true, dropping a match onto the "Now" strip also starts it (IN_PROGRESS). */
+  startOnDrop?: boolean;
+  /** Set once the one-time start-on-drop prompt has been answered (either way). */
+  startOnDropPrompted?: boolean;
 }
 
 function readRawExtensionValue(): Record<string, any> | undefined {
@@ -38,6 +42,8 @@ export function readScheduleDisplayConfig(): ScheduleDisplayConfig {
   if (typeof rows === 'number' && Number.isFinite(rows) && rows > 0) {
     result.minCourtGridRows = Math.floor(rows);
   }
+  if (typeof raw.startOnDrop === 'boolean') result.startOnDrop = raw.startOnDrop;
+  if (typeof raw.startOnDropPrompted === 'boolean') result.startOnDropPrompted = raw.startOnDropPrompted;
   return result;
 }
 

@@ -33,9 +33,11 @@ export interface GridHeaderActionsParams {
   bulkMode: boolean;
   catalogVisible: boolean;
   activeStripVisible: boolean;
+  startOnDrop: boolean;
   minRows: number;
   onToggleCatalog: (visible: boolean) => void;
   onToggleActiveStrip: (visible: boolean) => void;
+  onToggleStartOnDrop: (enabled: boolean) => void;
   onMinRowsChange: (rows: number) => void;
   onSearch: (text: string) => void;
 }
@@ -57,9 +59,11 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     bulkMode,
     catalogVisible,
     activeStripVisible,
+    startOnDrop,
     minRows,
     onToggleCatalog,
     onToggleActiveStrip,
+    onToggleStartOnDrop,
     onMinRowsChange,
     onSearch,
   } = params;
@@ -78,6 +82,14 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     titleOn: 'Hide active courts strip',
     titleOff: 'Show active courts strip',
     onChange: onToggleActiveStrip,
+  });
+
+  const startOnDropBtn = buildToggleIconButton({
+    icon: 'fa-circle-play',
+    pressed: startOnDrop,
+    titleOn: 'Start on drop: ON — dropping a match onto Now starts it',
+    titleOff: 'Start on drop: OFF — dropping a match onto Now only calls it to court',
+    onChange: onToggleStartOnDrop,
   });
 
   const rowsStepper = buildMinRowsStepper(minRows, onMinRowsChange);
@@ -107,7 +119,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
   return {
     leading: [catalogBtn],
     titleSlot: buildSearchSlot(onSearch),
-    trailing: [stripBtn, rowsStepper, printBtn],
+    trailing: [stripBtn, startOnDropBtn, rowsStepper, printBtn],
   };
 }
 

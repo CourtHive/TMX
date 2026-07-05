@@ -216,7 +216,8 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
   const activeStripVisible = readBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, true);
   const controlAnchor = document.getElementById(SCHEDULING_CONTROL);
 
-  const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
+  const scheduleDisplayConfig = readScheduleDisplayConfig();
+  const extensionMinRows = scheduleDisplayConfig.minCourtGridRows;
   const effectiveMinRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
 
   const gridActions = buildGridHeaderActions({
@@ -224,6 +225,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
     bulkMode: getGridBulkMode(),
     catalogVisible: gridCatalogVisible,
     activeStripVisible,
+    startOnDrop: scheduleDisplayConfig.startOnDrop ?? false,
     minRows: effectiveMinRows,
     onToggleCatalog: (next: boolean) => {
       writeBoolFlag(GRID_CATALOG_VISIBILITY_KEY, next);
@@ -233,6 +235,9 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
     onToggleActiveStrip: (next: boolean) => {
       writeBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, next);
       setGridActiveStripVisible(next);
+    },
+    onToggleStartOnDrop: (enabled: boolean) => {
+      writeScheduleDisplayConfig({ startOnDrop: enabled, startOnDropPrompted: true });
     },
     onMinRowsChange: (rows: number) => {
       writeScheduleDisplayConfig({ minCourtGridRows: rows });

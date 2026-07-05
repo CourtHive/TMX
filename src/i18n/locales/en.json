@@ -40,7 +40,7 @@
   "cal": "Calendar",
   "tpl": "Templates",
   "pol": "Policies",
-  "rnk": "Rankings",
+  "rnk": "Rank",
   "cns": "Console",
   "addcourts": "Add Courts",
   "login": "Login",
@@ -87,7 +87,6 @@
   "cta": "Cat.",
   "team": "Team",
   "tmz": "Teams",
-  "rnk": "Rank",
   "rnkz": "Rankings",
   "rtg": "Rating",
   "rtz": "Ratings",
@@ -201,7 +200,6 @@
   "existing": "Existing",
   "success": "Success",
   "loading": "Loading",
-
   "set": "Settings",
   "version": "Version",
   "messages": "Messages",
@@ -211,10 +209,8 @@
   "documentation": "Documentation",
   "importexport": "Import / Export",
   "newversion": "New Version Available",
-
   "latitude": "Latitude",
   "longitude": "Longitude",
-
   "i18n": {
     "previousMonth": "Previous Month",
     "nextMonth": "Next Month",
@@ -257,7 +253,6 @@
     "weekdaysShort_5": "Fri",
     "weekdaysShort_6": "Sat"
   },
-
   "settings": {
     "help": "Help",
     "pagesize": "Page Size",
@@ -309,7 +304,6 @@
     "schedulecompleted": "Schedule Completed Matches",
     "courtidentifiers": "court identifiers"
   },
-
   "system": {
     "title": "System",
     "providers": "Providers",
@@ -344,13 +338,11 @@
     "searchProviders": "Search providers...",
     "lastAccess": "Last Access"
   },
-
   "round_names": {
     "F": "Final",
     "SF": "Semifinal",
     "QF": "Quarterfinal"
   },
-
   "search": {
     "filterplayers": "Filter Players",
     "players": "Search Players",
@@ -361,13 +353,11 @@
     "lastfirst": "LAST First",
     "firstlast": "First Last"
   },
-
   "formats": {
     "singles": "Singles",
     "doubles": "Doubles",
     "team": "Team"
   },
-
   "scoring_format": {
     "set": "Set",
     "sets": "Sets",
@@ -384,7 +374,6 @@
     "tbto": "TB to",
     "superto": "To"
   },
-
   "scoring": {
     "label": "Scoring",
     "retire": "Retire",
@@ -396,7 +385,6 @@
     "cancelled": "Cancelled",
     "abandoned": "Abandoned"
   },
-
   "draws": {
     "seedlimit": "Seed Limit",
     "blockthreshold": "Block Threshold",
@@ -474,7 +462,6 @@
     "unpublish": "Unpublish Draw",
     "unpublishall": "Unpublish All Events"
   },
-
   "print": {
     "publishpdf": "Publish PDF",
     "schedule": "Schedule",
@@ -488,7 +475,6 @@
     "matchesbycourt": "Matches by Court",
     "completedmatches": "Completed Matches"
   },
-
   "teams": {
     "code": "Code (3 letters)",
     "name": "Name",
@@ -507,7 +493,6 @@
     "ioc": "Country",
     "abbreviation": "Abbreviation"
   },
-
   "timepicker": {
     "am": "AM",
     "pm": "PM",
@@ -517,7 +502,6 @@
     "minute": "Minute",
     "clear": "Clear"
   },
-
   "tournament": {
     "organizer_email": "Organizer Email",
     "organizer_phone": "Organizer Phone",
@@ -527,7 +511,6 @@
     "logo": "Tournament Logo",
     "images": "Tournament Images"
   },
-
   "tournaments": {
     "type": "Type",
     "standard": "Standard",
@@ -565,7 +548,6 @@
     "replacelocal": "Replace Local Copy?",
     "unpublish": "Unpublish Tournament?"
   },
-
   "ddlb": {
     "singles": "Singles Tournament Rank:",
     "doubles": "Doubles Tournament Rank:",
@@ -573,7 +555,6 @@
     "draws": "Select Event:",
     "direction": "Select Draw:"
   },
-
   "phrases": {
     "remember_me": "Remember Me",
     "forgot_passwd": "Forgot Password",
@@ -691,7 +672,6 @@
     "enablepopups": "Please enable Pop-Ups for PDF printing",
     "nopersist": "Data Persistence not guaranteed"
   },
-
   "events": {
     "name": "Name",
     "newevent": "New Event",
@@ -720,7 +700,6 @@
     "toggle": "Toggle Publish State?",
     "modifyranking": "Modify Ranking"
   },
-
   "locations": {
     "newlocation": "New Location",
     "abbreviation": "Abbreviation",
@@ -729,7 +708,6 @@
     "courts": "Courts",
     "identifiers": "Court IDs"
   },
-
   "genders": {
     "any": "Any",
     "male": "Male",
@@ -738,14 +716,12 @@
     "female_abbr": "W",
     "mixed": "Mixed"
   },
-
   "surfaces": {
     "clay": "Clay",
     "hard": "Hard",
     "grass": "Grass",
     "carpet": "Carpet"
   },
-
   "actions": {
     "ok": "OK",
     "actions": "Actions",
@@ -777,13 +753,11 @@
     "add2localdb": "Add Players to Local Database",
     "signoutunapproved": "Sign Out players not approved for Events"
   },
-
   "requests": {
     "syncClubs": "Synchronize Clubs",
     "syncTournaments": "Synchronize Tournaments",
     "syncPlayers": "Synchronize players"
   },
-
   "signin": {
     "tournament_date": "Start Date",
     "organization": "Organization",
@@ -806,7 +780,6 @@
     "acceptrankings": "Accept Rankings",
     "reglink": "Set Link"
   },
-
   "schedule": {
     "column": "Column",
     "rows": "Schedule Rows",
@@ -888,9 +861,27 @@
     "noTimeSet": "No time set",
     "showAll": "Show all",
     "hideEmpty": "Hide empty",
-    "empty": "empty"
+    "empty": "empty",
+    "now": "Now",
+    "nowRowActions": "Now — bulk actions",
+    "status": "Status",
+    "suspendAll": "Suspend all",
+    "resumeAll": "Resume all",
+    "startAll": "Start all matches",
+    "rescheduleAll": "Reschedule all",
+    "unscheduleAll": "Unschedule all",
+    "rescheduleNowTitle": "Reschedule matches in progress",
+    "newDate": "New date",
+    "chooseDate": "Choose date",
+    "newTime": "New time",
+    "chooseTime": "Choose time",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "reschedule": "Reschedule",
+    "noActiveMatches": "No matches in progress",
+    "startOnDropTitle": "Start match on drop?",
+    "startOnDropPrompt": "You dropped a match onto the Now strip. Start matches automatically whenever they are dropped onto Now from now on? You can change this any time with the start-on-drop toggle in the schedule header."
   },
-
   "penalties": {
     "fail2signout": "Failed to Sign Out",
     "illegalcoaching": "Illegal Coaching",
@@ -904,9 +895,7 @@
     "latearrival": "Late Arrival",
     "unsporting": "Unsporting Behavior"
   },
-
   "datelocalization": "en-EN",
-
   "common": {
     "back": "Back",
     "cancel": "Cancel",
@@ -930,7 +919,6 @@
     "validationDetails": "Validation details",
     "remove": "Remove"
   },
-
   "modals": {
     "contactEmail": {
       "title": "Recovery email",
@@ -1491,10 +1479,9 @@
       "allDays": "All tournament days",
       "cancel": "Cancel",
       "apply": "Apply",
-      "venueWarning": "Venue hours are ${startTime}\u2013${endTime}. The venue will be widened to accommodate this change."
+      "venueWarning": "Venue hours are ${startTime}–${endTime}. The venue will be widened to accommodate this change."
     }
   },
-
   "dashboard": {
     "dates": "Dates",
     "setTimeZone": "Set time zone",
@@ -1522,7 +1509,6 @@
     "practiceNoneAllocated": "None allocated",
     "practiceClosed": "Closed"
   },
-
   "drawers": {
     "editTournament": {
       "titleEdit": "Edit tournament",
@@ -1636,7 +1622,6 @@
       }
     }
   },
-
   "toasts": {
     "copiedToClipboard": "Copied to clipboard",
     "loggedIn": "Log in successful",
@@ -1672,7 +1657,6 @@
     "tournamentNotEnded": "Cannot delete a tournament before its end date. Set the end date to a past date first, then delete.",
     "deleteForbidden": "You are not authorized to delete this tournament."
   },
-
   "loginMenu": {
     "authorization": "Authorization",
     "register": "Register",
@@ -1690,7 +1674,6 @@
     "admin": "Admin",
     "system": "System"
   },
-
   "providerSwitcher": {
     "title": "Provider",
     "titleImpersonating": "Impersonating {{name}}",
@@ -1698,7 +1681,6 @@
     "switchProvider": "Switch provider…",
     "clearImpersonation": "Stop impersonating"
   },
-
   "tables": {
     "unscheduled": {
       "event": "Event",
@@ -1849,7 +1831,6 @@
       "reason": "Reason"
     }
   },
-
   "pages": {
     "matchUps": {
       "title": "Matches",
@@ -2082,7 +2063,6 @@
       }
     }
   },
-
   "overlays": {
     "tieFormat": {
       "editScorecard": "Edit scorecard",
@@ -2090,7 +2070,6 @@
       "scorecardUpdated": "Scorecard updated"
     }
   },
-
   "publishing": {
     "tournamentPublishing": "Tournament Publishing",
     "participants": "Participants",
@@ -2137,7 +2116,6 @@
     "country": "Country",
     "cityState": "City / State"
   },
-
   "formatWizard": {
     "title": "Format Wizard",
     "launch": "Launch",
