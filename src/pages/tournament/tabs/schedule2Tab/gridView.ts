@@ -418,9 +418,15 @@ export function renderGridView(
   const syncStripOffset = (visible: boolean) => {
     gridWrapper.style.setProperty('--strip-offset', visible ? `${STRIP_CELL_HEIGHT_PX + 2}px` : '0px');
   };
+  // The "Now" strip is only meaningful today — force it hidden on any other date,
+  // regardless of the user's visibility preference.
+  const applyStripVisibility = (nextState: any) => {
+    const visible = !!nextState.activeStripVisible && scheduledDate === todayIso();
+    activeStrip?.update({ ...nextState, activeStripVisible: visible });
+    syncStripOffset(visible);
+  };
   activeStripUnsubscribe = activeControl.getStore().subscribe((nextState) => {
-    activeStrip?.update(nextState);
-    syncStripOffset(nextState.activeStripVisible);
+    applyStripVisibility(nextState);
   });
 
   // Capture catalog filter changes into context so they survive tab navigation
@@ -437,8 +443,7 @@ export function renderGridView(
     };
   });
   const initialState = activeControl.getStore().getState();
-  activeStrip.update(initialState);
-  syncStripOffset(initialState.activeStripVisible);
+  applyStripVisibility(initialState);
   // Seed the Now-slot baseline for this mount; seeding never stamps (no prior
   // occupant to promote from).
   stripNowByCourt = new Map();
@@ -2192,6 +2197,9 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
         roundNumber: cell.roundNumber,
         matchUpStatus: cell.matchUpStatus,
         winningSide: cell.winningSide,
+        // A pending matchUp only surfaces on the strip once it's been called to
+        // court; the strip's computeActiveStripCell keys off calledAt.
+        calledAt: cell.schedule?.calledAt,
         hasScore: !!(cell.score?.scoreStringSide1 || cell.score?.scoreStringSide2),
         participantIds: extractParticipantIds(cell),
         // Stash the raw factory cell so the panel's renderCell can build the
@@ -2234,11 +2242,18 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
  * it here too. Any setData path (refresh, mount, block ticker, court-visibility
  * change) flows through this so the tracking baseline stays current.
  */
+/** Local calendar date (YYYY-MM-DD) for "today" — the only day the Now strip is live. */
+function todayIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function refreshActiveStrip(date: string): void {
   const data = buildActiveStripData(date);
   latestStripData = data;
   activeStrip?.setData(data);
-  stampAutoPromotedStripCalls(data.grid.columns);
+  // "Now" only means something today: never auto-call/promote on another date.
+  if (date === todayIso()) stampAutoPromotedStripCalls(data.grid.columns);
 }
 
 function stampAutoPromotedStripCalls(columns: ActiveStripPanelData['grid']['columns']): void {
@@ -2579,7 +2594,11 @@ function commitActiveStripDrop(
   // Start-on-drop: a TD dragging to Now often intends to START the match, not
   // just call it. The start methods (startTime + IN_PROGRESS) are only produced
   // when the match is actually startable — otherwise the drop is a pure call.
-  const startMethods = buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '');
+  // Start-on-drop is only meaningful today — a drop on a past/future strip calls
+  // the match to court but never starts it.
+  const startMethods = currentDate === todayIso()
+    ? buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '')
+    : [];
   const cfg = readScheduleDisplayConfig();
   const prompted = cfg.startOnDropPrompted;
 
