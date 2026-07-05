@@ -13,7 +13,7 @@ import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { closeModal, openModal } from 'components/modals/baseModal/baseModal';
+import { closeModal, confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
@@ -877,18 +877,28 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
   // rain-cancelled session can be fully cleared before rebuilding the schedule.
   const unscheduleAll = () => {
     if (!actionable.length) return;
-    executeMethods(
-      actionable.map((c) => ({
-        method: ADD_MATCHUP_SCHEDULE_ITEMS,
-        params: {
-          matchUpId: c.matchUpId,
-          drawId: c.drawId,
-          schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
-          removePriorValues: true,
-        },
-      })),
-      onRefresh,
-    );
+    confirmModal({
+      title: t('schedule.unscheduleAllTitle'),
+      query: t('schedule.unscheduleAllConfirm', {
+        count: actionable.length,
+        defaultValue: 'Remove the date, time and court for {{count}} match(es)? They return to the unscheduled catalog; their results are untouched.',
+      }),
+      okIntent: 'is-warning',
+      okAction: () => {
+        executeMethods(
+          actionable.map((c) => ({
+            method: ADD_MATCHUP_SCHEDULE_ITEMS,
+            params: {
+              matchUpId: c.matchUpId,
+              drawId: c.drawId,
+              schedule: { scheduledTime: '', scheduledDate: '', courtOrder: '', venueId: '', courtId: '' },
+              removePriorValues: true,
+            },
+          })),
+          onRefresh,
+        );
+      },
+    });
   };
 
   // ── Build popover DOM ──
