@@ -40,3 +40,9 @@ jobs:
 
       - run: pnpm install
       - run: pnpm lint
+
+      # Deterministic AST attribute-typo / schema-divergence gate. Fails only on
+      # a PROP-class attribute name not in the triaged allow-list — i.e. a NEW
+      # silent typo (matchUp.rondPosition, etc.). Baseline triaged 2026-07-05.
+      - name: attr-audit
+        run: pnpm attr-audit --ci

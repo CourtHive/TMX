@@ -1,0 +1,41 @@
+{
+  "src": ["src"],
+  "exclude": ["/scratch/"],
+  "ignore": [
+    "onchange", "oninput", "setHours", "getHours", "setDate", "getDate",
+    "setColumns", "getColumns", "getItems", "getItem", "_events", "bound",
+    "minute", "weekday", "hour", "second", "month", "year", "day"
+  ],
+  "minCommon": 8,
+  "ratio": 5,
+  "maxSuspect": 3,
+  "allow": [
+    "matchupId",
+    "button",
+    "eventTypes",
+    "Score",
+    "preset",
+    "patch",
+    "contact",
+    "preference",
+    "irregularEndings",
+    "finishingPositionRanges",
+    "calendars",
+    "round1Count",
+    "matchUpFormats",
+    "scheduled",
+    "drawNames",
+    "drawTypes",
+    "stages",
+    "pause",
+    "positionAssignment",
+    "policyTypes",
+    "participantsCount",
+    "permission",
+    "classNames",
+    "filters",
+    "roundNumbers",
+    "languages",
+    "attribute"
+  ]
+}
