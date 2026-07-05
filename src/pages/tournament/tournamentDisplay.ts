@@ -3,7 +3,6 @@
  * Handles tournament loading, navigation, and tab rendering.
  */
 import { renderSchedulingTab, destroySchedulingTab } from 'pages/tournament/tabs/schedulingTab/schedulingTab';
-import { renderSchedule2Tab, destroySchedule2Tab } from 'pages/tournament/tabs/schedule2Tab/schedule2Tab';
 import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/renderRegistrationsTab';
 import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
@@ -52,7 +51,6 @@ import {
   MATCHUPS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
-  SCHEDULE2_TAB,
   SCHEDULING_TAB,
   SYNC_INDICATOR,
   TOURNAMENT,
@@ -148,14 +146,13 @@ function pruneCompletedCrowdsourcedFromEngine(): void {
 
 // Tracks the last rendered tab so routeTo() can tear down its long-lived
 // subscriptions / intervals when the user navigates away. Without this,
-// schedule2Tab and schedulingTab leak their 30s activeStripBlockTicker plus
-// store subscribers and keep firing competitionScheduleMatchUps from a tab
-// the user is no longer viewing.
+// schedulingTab leaks its 30s activeStripBlockTicker plus store subscribers
+// and keeps firing competitionScheduleMatchUps from a tab the user is no
+// longer viewing.
 let activeRenderedTab: string | null = null;
 
 function destroyActiveTab(): void {
-  if (activeRenderedTab === SCHEDULE2_TAB) destroySchedule2Tab();
-  else if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
+  if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
   activeRenderedTab = null;
 }
 
@@ -192,8 +189,6 @@ export function routeTo(config: any): void {
     if (activeRenderedTab && activeRenderedTab !== selectedTab) destroyActiveTab();
 
     if (selectedTab === PARTICIPANTS) formatParticipantTab({ participantView: config.participantView });
-    if (selectedTab === SCHEDULE2_TAB)
-      renderSchedule2Tab({ scheduledDate: config.scheduledDate, scheduleView: config.scheduleView });
     if (selectedTab === SCHEDULING_TAB)
       renderSchedulingTab({ scheduledDate: config.scheduledDate, mode: config.schedulingMode });
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();

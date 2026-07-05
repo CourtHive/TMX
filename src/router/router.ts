@@ -152,6 +152,16 @@ export function routeTMX() {
       router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}`);
     }
   });
+  // Bare `/schedule2` (no date) — the nav "Schedule" icon still targets this.
+  // Formerly the retired renderSchedule2Tab resolved a date and bounced here;
+  // now redirect straight to the workspace, which resolves its own date.
+  // Must precede the generic `:selectedTab` catch-all below so it matches first.
+  router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULE2_TAB}`, (match) => {
+    const tournamentId = match?.data?.tournamentId;
+    if (tournamentId) {
+      router.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}`);
+    }
+  });
   // Unified scheduling workspace (Option C). Replaces /schedule2 and /venues/availability.
   router.on(`/${TOURNAMENT}/:tournamentId/${SCHEDULING_TAB}/:scheduledDate/:schedulingMode`, (match) => {
     displayRoute({ selectedTab: SCHEDULING_TAB, data: match?.data });

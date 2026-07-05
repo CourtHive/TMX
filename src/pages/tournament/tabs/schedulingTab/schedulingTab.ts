@@ -46,6 +46,7 @@ import {
   renderAvailabilityGrid,
   type AvailabilityGridInstance,
 } from '../venuesTab/renderAvailabilityGrid';
+import { invalidateAllScheduleCaches } from '../schedule2Tab/schedule2DataCache';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
@@ -178,6 +179,11 @@ export function destroySchedulingTab(): void {
   queueUnsubscribe?.();
   queueUnsubscribe = null;
   destroyCurrentMode();
+  // Drop every cached factory result so the next mount (possibly a different
+  // tournament, or after external mutations that bypassed onMutationApplied)
+  // starts clean. The retired schedule2 shell did this in destroySchedule2Tab;
+  // the workspace previously inherited it only by bouncing through that shell.
+  invalidateAllScheduleCaches();
 }
 
 function destroyCurrentMode(): void {
@@ -429,3 +435,17 @@ function refreshActionBar(): void {
   });
   bar.appendChild(saveBtn);
 }
+
+// ── beforeunload guard ──
+// Warn before an accidental tab/window close discards unsaved scheduling work.
+// Relocated from the now-retired schedule2Tab shell (which only checked grid
+// bulk changes); here it covers all three of the workspace's unsaved signals —
+// the same predicate guardUnsavedAndProceed uses to gate date/mode switches.
+// Registered once at module load (this module is imported by tournamentDisplay).
+function onBeforeUnload(e: BeforeUnloadEvent): void {
+  if (hasUnsavedGridChanges() || hasUnsavedChanges() || isAvailabilityDirty()) {
+    e.preventDefault();
+  }
+}
+
+window.addEventListener('beforeunload', onBeforeUnload);

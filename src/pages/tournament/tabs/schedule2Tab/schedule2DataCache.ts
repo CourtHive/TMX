@@ -18,10 +18,9 @@ import { competitionEngine } from 'services/factory/engine';
  *  - `allMatchUps` and `scheduleMatchUps(date)` — invalidated on every
  *    mutation (anything routed through `executeMethods`), because matchUp
  *    state and court placement can change.
- *  - `competitionDateRange` and `tournamentInfo` — page-scoped (lifetime
- *    of the schedule2 mount). The schedule page itself never edits these,
- *    and edits elsewhere flow through a navigation that re-enters
- *    `renderSchedule2Tab` → `syncTournamentContext` → full invalidate.
+ *  - `competitionDateRange` and `tournamentInfo` — page-scoped. The schedule
+ *    page itself never edits these; a full reset happens on return to the
+ *    tournaments list (`invalidateAllScheduleCaches` in tournaments.ts).
  *
  * Variance-tolerant caching: callers pass different param shapes
  * (`{inContext: true, nextMatchUps: true}` vs `{inContext: true}` alone;
@@ -111,8 +110,13 @@ onMutationApplied(invalidateMatchUpCaches);
 /**
  * Track tournament identity so the cache survives intra-tournament
  * navigations (date change, view switch) but resets cleanly on cross-
- * tournament transitions. Call this at the top of `renderSchedule2Tab`
- * before reading any cached value.
+ * tournament transitions. Call before reading any cached value on a surface
+ * that can switch tournaments in place.
+ *
+ * NOTE: no production caller since the `/schedule2` shell was retired — the
+ * scheduling workspace resets its schedule caches via the tournaments-list
+ * `invalidateAllScheduleCaches`. Retained (with test coverage) for reuse if an
+ * in-place tournament switch is ever added to the workspace.
  */
 export function syncTournamentContext(tournamentId: string): void {
   if (lastTournamentId !== tournamentId) {
