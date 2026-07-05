@@ -39,6 +39,7 @@ import {
   buildScheduleDates,
   refreshGridView,
   setGridActiveStripVisible,
+  shiftCourtsDown,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../schedule2Tab/gridView';
 import {
@@ -244,6 +245,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
       refreshGridView();
     },
     onSearch: (text: string) => searchGridCells(text),
+    onShiftCourts: shiftCourtsDown,
   });
 
   renderGridView(container, scheduledDate, {
