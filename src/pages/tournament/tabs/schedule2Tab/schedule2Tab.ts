@@ -21,11 +21,10 @@ import { SCHEDULE2_CONTAINER, SCHEDULE2_CONTROL, SCHEDULE2_TAB } from 'constants
 import { renderProfileView, destroyProfileView } from './profileView';
 import { openClearScheduleMenu } from './clearScheduleActions';
 import { buildGridHeaderActions } from './gridHeaderActions';
-import { buildSchedule2Header } from './schedule2Header';
+import { buildSchedule2Header, Schedule2Header } from './schedule2Header';
 import {
   syncTournamentContext,
   invalidateAllScheduleCaches,
-  getCachedCompetitionDateRange,
   getCachedTournamentInfo,
 } from './schedule2DataCache';
 import {
@@ -146,6 +145,9 @@ const LAYOUT_SEL = '.spl-layout, .sp-layout';
 const COLLAPSED_CLASS = 'spl-sidebar-collapsed';
 
 let state: Schedule2State | null = null;
+// The mounted header, held so its date-selector subscription + tippy instance
+// are torn down before a rebuild and on tab teardown.
+let currentHeader: Schedule2Header | null = null;
 let gridCatalogVisible: boolean | undefined;
 let profileCatalogVisible: boolean | undefined;
 let activeStripVisible: boolean | undefined;
@@ -156,8 +158,6 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   // design (it's the discriminator that decides whether to invalidate).
   const liveTournamentId = competitionEngine.getTournamentInfo().tournamentInfo?.tournamentId ?? '';
   syncTournamentContext(liveTournamentId);
-
-  const { startDate, endDate } = getCachedCompetitionDateRange();
 
   gridCatalogVisible ??= readGridCatalogVisible();
   profileCatalogVisible ??= readProfileCatalogVisible();
@@ -192,7 +192,11 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   const controlAnchor = document.getElementById(SCHEDULE2_CONTROL)!;
   const container = document.getElementById(SCHEDULE2_CONTAINER)!;
 
-  // Clear previous content
+  // Clear previous content. Destroy the outgoing header first so its date
+  // selector unsubscribes from mutations + disposes its tippy instance before
+  // the DOM node is dropped.
+  currentHeader?.destroy();
+  currentHeader = null;
   controlAnchor.innerHTML = '';
   destroyCurrentView();
   container.innerHTML = '';
@@ -234,8 +238,6 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
   const header = buildSchedule2Header({
     selectedDate: scheduledDate,
     activeView: view,
-    startDate: startDate ?? '',
-    endDate: endDate ?? '',
     scheduleDates: buildScheduleDates(scheduledDate),
     recomputeDates: () => buildScheduleDates(scheduledDate),
     onDateChange: (date: string) => {
@@ -251,6 +253,7 @@ export function renderSchedule2Tab(params: { scheduledDate?: string; scheduleVie
       });
     },
   });
+  currentHeader = header;
   controlAnchor.appendChild(header.element);
 
   // Render the active view
@@ -347,6 +350,8 @@ function destroyCurrentView(): void {
 // navigates to a different tab — visible as ongoing competitionScheduleMatchUps
 // devContext logs from a tab the user is no longer on.
 export function destroySchedule2Tab(): void {
+  currentHeader?.destroy();
+  currentHeader = null;
   destroyCurrentView();
   state = null;
   // Tab is leaving the screen — drop every cached factory result so the

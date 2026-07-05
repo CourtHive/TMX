@@ -24,7 +24,7 @@ import { openClearScheduleMenu } from '../schedule2Tab/clearScheduleActions';
 import { buildGridHeaderActions } from '../schedule2Tab/gridHeaderActions';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { competitionEngine } from 'services/factory/engine';
-import { buildSchedulingHeader } from './schedulingHeader';
+import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -83,6 +83,9 @@ const PROFILE_CATALOG_VISIBILITY_KEY = 'schedule2:catalog:profile';
 const ACTIVE_STRIP_VISIBILITY_KEY = 'schedule2:activeStrip';
 
 let queueUnsubscribe: (() => void) | null = null;
+// The mounted header, held so its date-selector subscription + tippy instance
+// are torn down before a rebuild and on tab teardown.
+let currentHeader: SchedulingHeader | null = null;
 let currentMode: SchedulingMode | null = null;
 let availabilityInstance: AvailabilityGridInstance | null = null;
 
@@ -118,13 +121,16 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   const isExplicitDate = params.scheduledDate && params.scheduledDate !== 'today';
   const resolvedDate = isExplicitDate ? params.scheduledDate! : resolveScheduleDate();
   const resolvedMode: SchedulingMode = isValidMode(params.mode) ? params.mode : DEFAULT_MODE;
-  const { startDate, endDate } = competitionEngine.getCompetitionDateRange() ?? { startDate: '', endDate: '' };
   const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId ?? '';
 
   // Persist selected date for cross-route continuity with /schedule2.
   context.displayed.selectedScheduleDate = resolvedDate;
 
   // Build the header into SCHEDULING_CONTROL (mirrors schedule2's pattern).
+  // Destroy the outgoing header first so its date selector unsubscribes from
+  // mutations + disposes its tippy instance before the DOM node is dropped.
+  currentHeader?.destroy();
+  currentHeader = null;
   controlEl.innerHTML = '';
   destroyCurrentMode();
   containerEl.innerHTML = '';
@@ -132,8 +138,6 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   const header = buildSchedulingHeader({
     selectedDate: resolvedDate,
     activeMode: resolvedMode,
-    startDate: startDate ?? '',
-    endDate: endDate ?? '',
     scheduleDates: buildScheduleDates(resolvedDate),
     recomputeDates: () => buildScheduleDates(resolvedDate),
     onDateChange: (date: string) => {
@@ -147,7 +151,8 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
       });
     },
   });
-  controlEl.appendChild(header);
+  currentHeader = header;
+  controlEl.appendChild(header.element);
 
   // Render the active mode into the workspace container.
   if (resolvedMode === 'profile') {
@@ -168,6 +173,8 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
 }
 
 export function destroySchedulingTab(): void {
+  currentHeader?.destroy();
+  currentHeader = null;
   queueUnsubscribe?.();
   queueUnsubscribe = null;
   destroyCurrentMode();

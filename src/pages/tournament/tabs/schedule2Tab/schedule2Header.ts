@@ -1,26 +1,18 @@
 /**
- * Schedule 2 header bar — rich date dropdown + issues popover + view switcher.
+ * Schedule 2 header bar — date selector + view switcher.
  *
- * Persistent across view changes. The date selector is a button that opens a
- * tippy popover with date chips (matching courthive-components dateStrip style).
- * Issues / Clear / Bulk-mode live in the grid view's bottom action bar
- * (see gridActionBar.ts).
+ * The date selector (calendar button + match-count badge + tippy date-chip
+ * popover + its own onMutationApplied recompute subscription) is the shared
+ * `buildScheduleDateSelector` component. This header only owns its Profile|Grid
+ * view switcher; Issues / Clear / Bulk-mode live in the grid view's bottom
+ * action bar (see gridActionBar.ts).
  */
-import { onMutationApplied } from 'services/mutation/mutationObservers';
-import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { buildScheduleDateSelector } from 'components/schedule/scheduleDateSelector';
 import { ScheduleDate } from 'courthive-components';
 
 // Types
 import { Schedule2View } from './schedule2Tab';
 
-// Live subscription that keeps THIS header's date badges fresh. Held at module
-// level and replaced on each header build so only the current header updates.
-let headerDatesUnsub: (() => void) | null = null;
-
-const FONT13 = 'font-size: 0.8125rem';
-
-// Repeated CSS property literals (extracted to satisfy sonar duplicate-literal rule)
-const BORDER_RADIUS_6 = 'border-radius: 6px';
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
 const BG_PRIMARY = 'background: var(--tmx-bg-primary)';
 const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
@@ -31,84 +23,34 @@ const ALIGN_CENTER = 'align-items: center';
 interface Schedule2HeaderParams {
   selectedDate: string;
   activeView: Schedule2View;
-  startDate: string;
-  endDate: string;
-  scheduleDates?: ScheduleDate[];
+  scheduleDates: ScheduleDate[];
   /** Recompute the per-date counts on demand (after a mutation). */
-  recomputeDates?: () => ScheduleDate[];
+  recomputeDates: () => ScheduleDate[];
   onDateChange: (date: string) => void;
   onViewChange: (view: Schedule2View) => void;
 }
 
 export interface Schedule2Header {
   element: HTMLElement;
-  /** Recompute the date button + dropdown badges from fresh per-date counts. */
-  setScheduleDates: (dates: ScheduleDate[]) => void;
+  /** Tear down the date selector's subscription + tippy instance. */
+  destroy: () => void;
 }
 
 export function buildSchedule2Header(params: Schedule2HeaderParams): Schedule2Header {
-  const { selectedDate, activeView, startDate, endDate, scheduleDates, recomputeDates, onDateChange, onViewChange } =
-    params;
+  const { selectedDate, activeView, scheduleDates, recomputeDates, onDateChange, onViewChange } = params;
 
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
   // Layout lives in tmx.css under `.sch2-header` so a media query can
   // collapse the bar to two stacked rows on phone-sized viewports.
 
-  // ── Left: Date dropdown + issues icon ──
-  const left = document.createElement('div');
-
-  // Rich date dropdown button
-  const dates = scheduleDates ?? fallbackDates(startDate, endDate, selectedDate);
-  const dateBtn = document.createElement('button');
-  dateBtn.style.cssText = [
-    FONT13,
-    'font-weight: 600',
-    'padding: 5px 12px',
-    BORDER_RADIUS_6,
-    BORDER_PRIMARY,
-    BG_PRIMARY,
-    COLOR_PRIMARY,
-    CURSOR_POINTER,
-    DISPLAY_INLINE_FLEX,
-    ALIGN_CENTER,
-    'gap: 6px',
-  ].join('; ');
-  dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(dates, selectedDate));
-
-  let dateTippy: TippyInstance | undefined;
-  const buildPopover = (ds: ScheduleDate[]): HTMLElement =>
-    buildDatePopover(ds, selectedDate, (date) => {
-      dateTippy?.hide();
-      onDateChange(date);
-    });
-  let datePopoverContent = buildPopover(dates);
-
-  left.appendChild(dateBtn);
-
-  // Attach tippy after element is in the DOM
-  requestAnimationFrame(() => {
-    dateTippy = tippy(dateBtn, {
-      content: datePopoverContent,
-      trigger: 'click',
-      interactive: true,
-      placement: 'bottom-start',
-      theme: 'light-border',
-      appendTo: () => document.body,
-      onShown: () => {
-        const activeChip = datePopoverContent.querySelector(`[data-date="${selectedDate}"]`) as HTMLElement;
-        activeChip?.scrollIntoView({ block: 'nearest' });
-      },
-    });
-  });
-
-
-  bar.appendChild(left);
+  // ── Left: shared date selector ──
+  const selector = buildScheduleDateSelector({ selectedDate, dates: scheduleDates, recomputeDates, onDateChange });
+  bar.appendChild(selector.element);
 
   // ── Right: View switcher ──
   const right = document.createElement('div');
 
-  // View switcher (segmented control)
   const viewSwitcher = document.createElement('div');
   viewSwitcher.style.cssText = 'display: flex; align-items: center; gap: 0;';
 
@@ -144,105 +86,8 @@ export function buildSchedule2Header(params: Schedule2HeaderParams): Schedule2He
   right.appendChild(viewSwitcher);
   bar.appendChild(right);
 
-  const setScheduleDates = (next: ScheduleDate[]): void => {
-    dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(next, selectedDate));
-    datePopoverContent = buildPopover(next);
-    dateTippy?.setContent(datePopoverContent);
-  };
-
-  // Keep this header's date badges live: recompute after every applied mutation
-  // (local + remote; fires after the matchUp caches invalidate). Subscribing here
-  // — where the header is actually built — guarantees it runs whenever a header
-  // exists, regardless of the caller's render path. Replace the prior header's
-  // subscription so only the mounted header updates.
-  if (recomputeDates) {
-    headerDatesUnsub?.();
-    headerDatesUnsub = onMutationApplied(() => setScheduleDates(recomputeDates()));
-  }
-
-  return { element: bar, setScheduleDates };
+  return { element: bar, destroy: selector.destroy };
 }
-
-function countForDate(dates: ScheduleDate[], date: string): number {
-  return dates.find((d) => d.date === date)?.matchUpCount ?? 0;
-}
-
-function dateButtonHtml(selectedDate: string, count: number): string {
-  const badge =
-    count > 0
-      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${count}</span>`
-      : '';
-  return (
-    `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +
-    badge +
-    ' <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>'
-  );
-}
-
-// ── Date Popover ──
-
-function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect: (date: string) => void): HTMLElement {
-  const container = document.createElement('div');
-  container.style.cssText = 'padding: 8px; max-height: 320px; overflow-y: auto; min-width: 220px;';
-
-  for (const d of dates) {
-    const chip = document.createElement('div');
-    const isSelected = d.date === selectedDate;
-    chip.dataset.date = d.date;
-    chip.style.cssText = [
-      'display: flex',
-      'justify-content: space-between',
-      'align-items: center',
-      'padding: 8px 10px',
-      'border-radius: 8px',
-      'cursor: pointer',
-      'margin-bottom: 2px',
-      'transition: background 0.15s',
-      isSelected ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff;' : '',
-    ].join('; ');
-
-    chip.addEventListener('mouseenter', () => {
-      if (!isSelected) chip.style.background = 'var(--tmx-bg-secondary, rgba(128,128,128,0.08))';
-    });
-    chip.addEventListener('mouseleave', () => {
-      if (!isSelected) chip.style.background = '';
-    });
-
-    const leftSide = document.createElement('div');
-    const dateLabel = document.createElement('div');
-    dateLabel.style.cssText = 'font-weight: 700; font-size: 0.75rem;';
-    dateLabel.textContent = formatDateLabel(d.date);
-    const statusLabel = document.createElement('div');
-    statusLabel.style.cssText = `font-size: 0.6875rem; ${isSelected ? 'color: rgba(255,255,255,0.8);' : 'color: var(--tmx-muted);'}`;
-    statusLabel.textContent = d.isActive ? 'Active' : 'Inactive';
-    leftSide.appendChild(dateLabel);
-    leftSide.appendChild(statusLabel);
-
-    const badges = document.createElement('div');
-    badges.style.cssText = 'display: flex; gap: 4px; align-items: center;';
-
-    if (d.matchUpCount != null && d.matchUpCount > 0) {
-      const b = document.createElement('span');
-      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: rgba(127,127,127,0.25); color: currentColor;'}`;
-      b.textContent = `${d.matchUpCount}`;
-      badges.appendChild(b);
-    }
-    if (d.issueCount && d.issueCount > 0) {
-      const b = document.createElement('span');
-      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,200,100,0.4); color: #fff;' : 'background: rgba(245, 158, 11, 0.15); color: var(--tmx-accent-orange, #f59e0b);'}`;
-      b.textContent = `${d.issueCount} !`;
-      badges.appendChild(b);
-    }
-
-    chip.appendChild(leftSide);
-    chip.appendChild(badges);
-    chip.addEventListener('click', () => onSelect(d.date));
-    container.appendChild(chip);
-  }
-
-  return container;
-}
-
 
 // ── Helpers ──
 
@@ -252,27 +97,4 @@ function segmentBtnStyle(active: boolean): string {
     return base + 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;';
   }
   return base + `${BG_PRIMARY}; ${COLOR_PRIMARY};`;
-}
-
-function fallbackDates(start: string, end: string, selectedDate: string): ScheduleDate[] {
-  return dateRange(start, end).map((d) => ({ date: d, isActive: d === selectedDate }));
-}
-
-function dateRange(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const current = new Date(start + 'T00:00:00');
-  const last = new Date(end + 'T00:00:00');
-  while (current <= last) {
-    dates.push(current.toISOString().slice(0, 10));
-    current.setDate(current.getDate() + 1);
-  }
-  return dates;
-}
-
-function formatDateLabel(dateStr: string): string {
-  const d = new Date(dateStr + 'T12:00:00');
-  const day = d.toLocaleDateString('en-US', { weekday: 'short' });
-  const month = d.toLocaleDateString('en-US', { month: 'short' });
-  const date = d.getDate();
-  return `${day} ${month} ${date}`;
 }
