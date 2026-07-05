@@ -1,4 +1,5 @@
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
@@ -116,12 +117,31 @@ export function createReportsTable({
   const tableEl = document.getElementById(TOURNAMENT_REPORTS);
   if (!tableEl) return { table: undefined };
 
+  // Rows that carry the draw-location IDs (e.g. Call Timing Variance) navigate to
+  // the matchUp in its draw on click — mirroring the matchUps-table event column.
+  const navigable = (data: any) => !!(data?.eventId && data?.drawId);
+
   const table = new Tabulator(tableEl, {
     placeholder: 'No data',
     layout: 'fitColumns',
     columns: tabulatorColumns,
     data: rows,
     maxHeight: 'calc(100vh - 200px)',
+    rowFormatter: (row: any) => {
+      if (navigable(row.getData())) row.getElement().style.cursor = 'pointer';
+    },
+  });
+
+  table.on('rowClick', (_e: any, row: any) => {
+    const data = row.getData();
+    if (!navigable(data)) return;
+    navigateToEvent({
+      eventId: data.eventId,
+      drawId: data.drawId,
+      structureId: data.structureId,
+      matchUpId: data.matchUpId,
+      renderDraw: true,
+    });
   });
 
   return { table };
