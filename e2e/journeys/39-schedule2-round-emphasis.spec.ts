@@ -112,7 +112,7 @@ test.describe('Journey 39 — Schedule2 catalog round-emphasis', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     // Wait for the catalog to render at least one card.
     await page.locator(TITLE_SELECTOR).first().waitFor({ timeout: 10_000 });
@@ -134,7 +134,7 @@ test.describe('Journey 39 — Schedule2 catalog round-emphasis', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.locator(TITLE_SELECTOR).first().waitFor({ timeout: 10_000 });
 
     // Stamp `scheduledTime` (no courtId) on every R1 matchUp. The catalog
@@ -162,7 +162,7 @@ test.describe('Journey 39 — Schedule2 catalog round-emphasis', () => {
 
     // Re-navigate to force the catalog to rebuild from the mutated record.
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.locator(TITLE_SELECTOR).first().waitFor({ timeout: 10_000 });
 
     // All R1 are now placed (out of the unscheduled catalog). The lowest

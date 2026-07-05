@@ -240,7 +240,7 @@ test.describe('Journey 47 — Schedule2 completed-orphan visibility + BYE date c
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await openScheduledTab(page);
 
     // 4 orphans seeded, 2 completed → toggle off shows only the 2 non-completed.
@@ -267,7 +267,7 @@ test.describe('Journey 47 — Schedule2 completed-orphan visibility + BYE date c
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await openScheduledTab(page);
 
     // Funnel button must not be visible — there is nothing for the popover
@@ -284,7 +284,7 @@ test.describe('Journey 47 — Schedule2 completed-orphan visibility + BYE date c
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     // Open the date popover and read the chip badge for the seeded date.
     // Two matchUps carry the scheduledDate (one BYE + one real); the chip

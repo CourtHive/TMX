@@ -64,8 +64,8 @@ export class TournamentPage {
     await this.page.locator(S.NAV_SCHEDULE).click();
   }
 
-  async navigateToSchedule2() {
-    await this.page.locator(S.NAV_SCHEDULE2).click();
+  async navigateToScheduling() {
+    await this.page.locator(S.NAV_SCHEDULING).click();
   }
 
   async navigateToVenues() {

@@ -54,7 +54,7 @@ test.describe('Journey 41 — Schedule2 Add venue refresh', () => {
     const tournamentId = await seedTournament(page, PROFILE_NO_VENUES);
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     // Seed has no venues — the only emptyCount column hosts a real button
     // (not a span). Click it to open the addVenue drawer.

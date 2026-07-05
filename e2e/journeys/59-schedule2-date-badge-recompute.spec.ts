@@ -141,7 +141,7 @@ test.describe('Journey 59 — Schedule2 date badge recomputes on schedule / unsc
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     const badge = page.locator('button:has(i.fa-calendar-days) span').first();
     // One match is scheduled for today → chip reads 1.

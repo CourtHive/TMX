@@ -30,7 +30,9 @@ export const S = {
   NAV_EVENTS: id('e-route'),
   NAV_MATCHUPS: id('m-route'),
   NAV_SCHEDULE: id('s-route'),
-  NAV_SCHEDULE2: id('s2-route'),
+  // The "Schedule" nav icon keeps its historical DOM id 's2-route' but now
+  // routes to the unified /scheduling workspace (the /schedule2 shell is retired).
+  NAV_SCHEDULING: id('s2-route'),
   NAV_VENUES: id('v-route'),
   NAV_SETTINGS: id('c-route'),
 

@@ -131,7 +131,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // Both cells must be present before the drag.
@@ -168,7 +168,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await page.waitForSelector(`[data-court-id="${court0}"][data-court-order="2"][data-matchup-id="${b}"]`);
 
@@ -197,7 +197,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // court1's Now cell is occupied (NEXT), court2's is free.
@@ -231,7 +231,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await expect(page.locator(`${STRIP_CELL}[data-court-id="${court1}"]`)).toHaveClass(/state-next/);
 
@@ -282,7 +282,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await page.waitForSelector(`[data-court-id="${court0}"][data-court-order="2"][data-matchup-id="${a}"]`);
     await page.waitForSelector(`[data-court-id="${court1}"][data-court-order="1"][data-matchup-id="${b}"]`);
@@ -314,7 +314,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await page.waitForSelector(`[data-court-id="${court}"][data-court-order="2"][data-matchup-id="${b}"]`);
 
@@ -340,7 +340,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     const cell = `[data-court-id="${court}"][data-court-order="1"][data-matchup-id="${a}"]`;
     await page.waitForSelector(cell);
@@ -361,7 +361,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await expect(page.locator(`${STRIP_CELL}[data-court-id="${court1}"]`)).toHaveClass(/state-next/);
 
@@ -416,7 +416,7 @@ test.describe('Journey 49 — Schedule2 grid swap + Now-strip guard', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await expect(page.locator(`${STRIP_CELL}[data-court-id="${court1}"]`)).toHaveClass(/state-next/);
 

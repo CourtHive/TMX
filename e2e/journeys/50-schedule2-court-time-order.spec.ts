@@ -109,7 +109,7 @@ test.describe('Journey 50 — Schedule2 court time/order issue', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     const issuesBtn = page.locator(ISSUES_BUTTON);
@@ -127,7 +127,7 @@ test.describe('Journey 50 — Schedule2 court time/order issue', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // Two independent first-round matchUps at different courtOrders produce no
@@ -142,7 +142,7 @@ test.describe('Journey 50 — Schedule2 court time/order issue', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
     await expect(page.locator(ISSUES_BUTTON)).toHaveCount(0);
 

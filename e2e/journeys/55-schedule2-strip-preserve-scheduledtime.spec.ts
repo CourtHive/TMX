@@ -120,7 +120,7 @@ test.describe('Journey 55 — Now-strip drop preserves scheduledTime', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // The grid source cell (court0/order1) and a free Now cell (court1).
@@ -151,7 +151,7 @@ test.describe('Journey 55 — Now-strip drop preserves scheduledTime', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     const gridCell = `[data-court-id="${court0}"][data-court-order="1"][data-matchup-id="${mu}"]`;

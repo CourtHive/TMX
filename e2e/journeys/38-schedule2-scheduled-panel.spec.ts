@@ -132,7 +132,7 @@ test.describe('Journey 38 — Schedule2 Scheduled panel', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await openScheduledTab(page);
 
     await expect(page.locator(PANEL_META_SELECTOR)).toHaveText(/4 scheduled/);
@@ -149,7 +149,7 @@ test.describe('Journey 38 — Schedule2 Scheduled panel', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await openScheduledTab(page);
 
     await expect(page.locator(CARD_SELECTOR)).toHaveCount(4);
@@ -190,7 +190,7 @@ test.describe('Journey 38 — Schedule2 Scheduled panel', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await openScheduledTab(page);
 
     const groupSelect = page.locator(GROUP_SELECT_SELECTOR);
@@ -215,7 +215,7 @@ test.describe('Journey 38 — Schedule2 Scheduled panel', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await openScheduledTab(page);
 
     const groupSelect = page.locator(GROUP_SELECT_SELECTOR);
@@ -226,7 +226,7 @@ test.describe('Journey 38 — Schedule2 Scheduled panel', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     await page.locator(SCHEDULED_PANEL).waitFor({ state: 'visible', timeout: 10_000 });
     await expect(page.locator(GROUP_SELECT_SELECTOR)).toHaveValue('round');

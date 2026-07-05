@@ -73,7 +73,7 @@ test.describe('Journey 56 — Schedule2 "View draw" focus', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // Open the schedule grid cell popover, then click its "View draw" icon.

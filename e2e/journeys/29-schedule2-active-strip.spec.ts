@@ -129,7 +129,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     const tournamentId = await seedTournament(page, PROFILE_STRIP);
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
@@ -150,7 +150,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     const cell = page.locator(`${CELL_SELECTOR}[data-court-id="${target.courtId}"]`);
@@ -179,7 +179,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     const cell = page.locator(`${CELL_SELECTOR}[data-court-id="${target.courtId}"]`);
@@ -192,7 +192,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // Capture how many tippy popovers exist before the click — other UI on the
@@ -217,7 +217,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
 
     // Capture an unscheduled matchUp + the first court before the drop.
@@ -286,7 +286,7 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     const tournamentId = await seedTournament(page, PROFILE_STRIP);
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     const strip = page.locator(STRIP_SELECTOR);
     await expect(strip).toBeVisible();

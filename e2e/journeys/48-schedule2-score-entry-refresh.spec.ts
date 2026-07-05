@@ -160,7 +160,7 @@ test.describe('Journey 48 — Schedule2 score entry refreshes the grid cell', ()
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
-    await tournament.navigateToSchedule2();
+    await tournament.navigateToScheduling();
 
     // The matchUp's on-court cell renders, with no score yet.
     const cell = page.locator(`[data-matchup-id="${seed.matchUpId}"]`).first();
