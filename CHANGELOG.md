@@ -1,5 +1,35 @@
 # Changelog
 
+## [8.10.0](https://github.com/CourtHive/TMX/compare/v8.9.0...v8.10.0) (2026-07-06)
+
+
+### Features
+
+* **reports:** navigate to the matchUp in its draw on report row click ([25f0074](https://github.com/CourtHive/TMX/commit/25f00741d30ad413f3b180840e6697251b1bbac7))
+* **schedule:** add explicit Call to court cell action ([8adc6d6](https://github.com/CourtHive/TMX/commit/8adc6d6e4205b279f1a76e61bcf721a5fd7b6e2a))
+* **schedule:** confirm before Unschedule all on the Now strip ([3fd6e6f](https://github.com/CourtHive/TMX/commit/3fd6e6f5010e5c61400abff95e933bca1ef34bc7))
+* **schedule:** due-gated auto-call of the next match when a court frees up ([b9cab05](https://github.com/CourtHive/TMX/commit/b9cab05ae3e5a7b7bd081274dbb7c1ef1d119b61))
+* **schedule:** now-row bulk actions popover and start-on-drop ([d4fd7e1](https://github.com/CourtHive/TMX/commit/d4fd7e16f0550f1ea9ef827cfad155974c5c7eb7))
+* **schedule:** reschedule-modal datepicker, unschedule-all, shift-courts-down ([fe711cf](https://github.com/CourtHive/TMX/commit/fe711cfab7fe76ab839a9de66829bc1a20456366))
+* **scheduling:** resolve player conflicts from the schedule grid ([#1197](https://github.com/CourtHive/TMX/issues/1197)) ([63db913](https://github.com/CourtHive/TMX/commit/63db91397796a93aa4629ee7b582f8c54633b9f5))
+
+
+### Bug Fixes
+
+* **deps:** bump courthive-components to 3.6.0 ([1fa7d39](https://github.com/CourtHive/TMX/commit/1fa7d39f9bed1cee4152db8c0d81844cc8527b30))
+* **deps:** update @courthive/scoring-visualizations to ^0.2.8 ([969e671](https://github.com/CourtHive/TMX/commit/969e67166e9f2f79331381f13061bf6ae634c669))
+* **deps:** update tods-competition-factory to 6.2.0 ([f943ce1](https://github.com/CourtHive/TMX/commit/f943ce15379b28092b3832eba55b66aaad869498))
+* **deps:** update tods-competition-factory to 6.3.0 ([d357809](https://github.com/CourtHive/TMX/commit/d3578097666a028e8959a5320998f0c6b881b29e))
+* **nav:** re-evaluate chat indicator when the session settles ([139d926](https://github.com/CourtHive/TMX/commit/139d92638a49cdedae86925a3ff5aefbe7d9260b))
+* **schedule:** add auto-call module + gridView wiring omitted from prior commit ([5157eeb](https://github.com/CourtHive/TMX/commit/5157eebc384e9b1f9456a75fe501553966bf474e))
+* **schedule:** enable Shift courts down in the scheduling workspace ([cc3616f](https://github.com/CourtHive/TMX/commit/cc3616fc0f0b3afa32c8c2cd389719b946c79e6f))
+* **schedule:** now strip is today-only and surfaces only called/live matches ([30e589a](https://github.com/CourtHive/TMX/commit/30e589a7b36e3bcfccc23c3bf08a195ad204a06b))
+* **schedule:** recompute date badges via onMutationApplied ([b5b2d51](https://github.com/CourtHive/TMX/commit/b5b2d519c1dbbaa0c4a5c836b997ae68e07f2a5b))
+* **schedule:** recompute date-selector badges after mutations ([941543e](https://github.com/CourtHive/TMX/commit/941543e509bb0c34fbb015b02a477447411d8fc9))
+* **schedule:** recompute date-selector badges after mutations (both headers) ([7497983](https://github.com/CourtHive/TMX/commit/7497983683a4e1386a726dab467a132ab9ac7f04))
+* **schedule:** revert unscored in-progress matchup to to-be-played on unschedule ([6f86000](https://github.com/CourtHive/TMX/commit/6f860004673ee821efcbb2bf415f39ed15d66ed9))
+* track factory draft status rename to COMPLETED ([52c3c9d](https://github.com/CourtHive/TMX/commit/52c3c9d3dfeb888ebdec4dcd9f84585f76b14919))
+
 ## [8.9.0](https://github.com/CourtHive/TMX/compare/v8.8.0...v8.9.0) (2026-07-04)
 
 
