@@ -107,7 +107,7 @@
   },
   "dependencies": {
     "@courthive/provider-config": "^0.10.0",
-    "@courthive/scoring-visualizations": "^0.2.8",
+    "@courthive/scoring-visualizations": "^0.2.9",
     "@eslint/js": "^10.0.1",
     "@tiptap/core": "^3.22.2",
     "@tiptap/extension-color": "^3.22.2",
@@ -120,7 +120,7 @@
     "axios": "1.18.1",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
-    "courthive-components": "3.6.0",
+    "courthive-components": "3.7.0",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.21",
     "dexie": "4.4.4",
