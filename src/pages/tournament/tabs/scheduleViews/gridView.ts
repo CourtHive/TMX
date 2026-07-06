@@ -97,6 +97,7 @@ import {
   ADD_MATCHUP_SCHEDULE_ITEMS,
   BULK_SCHEDULE_MATCHUPS,
   SET_MATCHUP_CALLED_AT,
+  PRO_COLUMN_RESOLVE,
   SET_MATCHUP_STATUS,
 } from 'constants/mutationConstants';
 import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -2369,6 +2370,57 @@ export function shiftCourtsDown(): void {
       });
     });
     if (methods.length && currentRefresh) executeMethods(methods, currentRefresh);
+  });
+}
+
+/**
+ * Resolve player conflicts on the selected day by invoking the factory
+ * `proColumnResolve` mutation: it re-lays the grid vertically (courtOrder +
+ * inserted blank rows) so conflicting matchUps land on different rows, WITHOUT
+ * changing any match's court or scheduledTime. Confirm-first; whole grid.
+ *
+ * We count the currently-flagged participant / potential-participant conflicts
+ * client-side (same `proConflicts` the header/row indicators use) to decide
+ * whether there is anything to do. After the mutation, the grid refresh re-runs
+ * those indicators, so any conflict the resolver could NOT fix (e.g. a feeder
+ * scheduled at a later time than the match it feeds) stays visibly highlighted.
+ */
+export function resolveColumnConflicts(): void {
+  if (!currentRefresh || !currentDate) return;
+
+  const { matchUps } = getCachedAllMatchUps() || {};
+  const scheduledMatchUps = (matchUps || []).filter(
+    (m: any) => m.schedule?.courtId && m.schedule?.scheduledDate === currentDate,
+  );
+  if (!scheduledMatchUps.length) {
+    scheduleToast({ message: 'No scheduled matches to resolve on this day', intent: INTENT_WARNING });
+    return;
+  }
+
+  const conflictResult = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
+  const { CONFLICT_PARTICIPANTS, CONFLICT_POTENTIAL_PARTICIPANTS, SCHEDULE_CONFLICT } = scheduleConstants;
+  const participantConflicts = Object.values(conflictResult?.rowIssues || {})
+    .flat()
+    .filter(
+      (issue: any) =>
+        issue?.issue === SCHEDULE_CONFLICT &&
+        (issue.issueType === CONFLICT_PARTICIPANTS || issue.issueType === CONFLICT_POTENTIAL_PARTICIPANTS),
+    );
+  if (!participantConflicts.length) {
+    scheduleToast({ message: 'No player conflicts to resolve on this day', intent: 'is-success' });
+    return;
+  }
+
+  confirmModal({
+    title: 'Resolve player conflicts?',
+    query:
+      `Space matches down to clear player conflicts on ${currentDate}. ` +
+      'Courts and start times stay the same — only the row order changes. Continue?',
+    okIntent: 'is-warning',
+    okAction: () => {
+      const methods = [{ method: PRO_COLUMN_RESOLVE, params: { scheduledDate: currentDate, matchUps: scheduledMatchUps } }];
+      if (currentRefresh) executeMethods(methods, currentRefresh);
+    },
   });
 }
 
