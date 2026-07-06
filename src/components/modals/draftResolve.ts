@@ -27,7 +27,7 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
     return;
   }
 
-  if (draftState.status === 'COMPLETE') {
+  if (draftState.status === 'COMPLETED') {
     tmxToast({ message: 'Draft has already been resolved', intent: 'is-info' });
     return;
   }

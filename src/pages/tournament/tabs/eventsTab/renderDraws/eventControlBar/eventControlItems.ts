@@ -177,7 +177,7 @@ export function getEventControlItems({
   const draftState = drawDefinition ? tournamentEngine.q.draftState({ drawDefinition }) : undefined;
 
   if (draftState) {
-    const draftComplete = draftState.status === 'COMPLETE';
+    const draftComplete = draftState.status === 'COMPLETED';
     items.push({
       onClick: () =>
         openConfigureDraft({ drawId, eventId, callback: () => renderDrawView({ eventId, drawId, structureId }) }),

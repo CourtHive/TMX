@@ -108,7 +108,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
     return;
   }
 
-  if (draftState.status === 'COMPLETE') {
+  if (draftState.status === 'COMPLETED') {
     openTransparencyReport({ draftState, participants: getParticipantsMap() });
     return;
   }
