@@ -107,7 +107,7 @@
   },
   "dependencies": {
     "@courthive/provider-config": "^0.10.0",
-    "@courthive/scoring-visualizations": "^0.2.7",
+    "@courthive/scoring-visualizations": "^0.2.8",
     "@eslint/js": "^10.0.1",
     "@tiptap/core": "^3.22.2",
     "@tiptap/extension-color": "^3.22.2",
