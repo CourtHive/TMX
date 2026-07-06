@@ -42,6 +42,8 @@ export interface GridHeaderActionsParams {
   onSearch: (text: string) => void;
   /** Open the "shift courts down" picker (make room above already-placed matches). */
   onShiftCourts?: () => void;
+  /** Resolve player conflicts by spacing matches down (courts & times unchanged). */
+  onResolveConflicts?: () => void;
 }
 
 export interface GridHeaderActions {
@@ -69,6 +71,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
     onMinRowsChange,
     onSearch,
     onShiftCourts,
+    onResolveConflicts,
   } = params;
 
   const catalogBtn = buildToggleIconButton({
@@ -127,10 +130,25 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
   shiftBtn.disabled = !onShiftCourts;
   shiftBtn.addEventListener('click', () => onShiftCourts?.());
 
+  const resolveBtn = document.createElement('button');
+  resolveBtn.style.cssText =
+    TOGGLE_BTN_BASE_STYLE +
+    `; background: ${TOGGLE_BG_UNPRESSED}` +
+    (bulkMode ? '; opacity: 0.45; cursor: not-allowed' : '; color: var(--tmx-accent-blue, #3b82f6)');
+  resolveBtn.innerHTML = '<i class="fa-solid fa-arrows-down-to-line" style="font-size: 0.75rem;"></i>';
+  resolveBtn.title = bulkMode
+    ? 'Exit bulk mode to resolve conflicts'
+    : 'Resolve player conflicts (space matches down; courts & times unchanged)';
+  resolveBtn.disabled = bulkMode || !onResolveConflicts;
+  resolveBtn.addEventListener('click', () => {
+    if (bulkMode) return;
+    onResolveConflicts?.();
+  });
+
   return {
     leading: [catalogBtn],
     titleSlot: buildSearchSlot(onSearch),
-    trailing: [stripBtn, startOnDropBtn, rowsStepper, shiftBtn, printBtn],
+    trailing: [stripBtn, startOnDropBtn, rowsStepper, shiftBtn, resolveBtn, printBtn],
   };
 }
 

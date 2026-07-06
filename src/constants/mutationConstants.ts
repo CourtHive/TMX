@@ -58,6 +58,7 @@ export const UPDATE_PRACTICE_REGISTRATION = 'updatePracticeRegistration';
 export const UPDATE_PARTICIPANT_RESULTS = 'updateParticipantResults';
 export const SET_PRACTICE_DEFAULT_CAPACITY = 'setPracticeDefaultCapacity';
 export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';
+export const PRO_COLUMN_RESOLVE = 'proColumnResolve';
 export const PUBLISH_EVENT = 'publishEvent';
 export const REMOVE_INDIVIDUAL_PARTICIPANT_IDS = 'removeIndividualParticipantIds';
 export const REMOVE_ONLINE_RESOURCE = 'removeOnlineResource';

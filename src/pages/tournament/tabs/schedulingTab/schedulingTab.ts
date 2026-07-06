@@ -40,6 +40,7 @@ import {
   refreshGridView,
   setGridActiveStripVisible,
   shiftCourtsDown,
+  resolveColumnConflicts,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../scheduleViews/gridView';
 import {
@@ -260,6 +261,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
     },
     onSearch: (text: string) => searchGridCells(text),
     onShiftCourts: shiftCourtsDown,
+    onResolveConflicts: resolveColumnConflicts,
   });
 
   renderGridView(container, scheduledDate, {
