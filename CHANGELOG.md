@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.11.0](https://github.com/CourtHive/TMX/compare/v8.10.0...v8.11.0) (2026-07-06)
+
+
+### Features
+
+* add matchups today-view bar and competitiveness/status filter drivers ([d05a38d](https://github.com/CourtHive/TMX/commit/d05a38dde9c70133a625d37e451fc2231ff3ffbe))
+
 ## [8.10.0](https://github.com/CourtHive/TMX/compare/v8.9.0...v8.10.0) (2026-07-06)
 
 
