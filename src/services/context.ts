@@ -22,6 +22,7 @@ export const context: {
     drawId?: string;
     teamId?: string;
     status?: string;
+    profile?: string;
     type?: string;
     search?: string;
     scheduledDate?: string;

@@ -1,35 +1,31 @@
 /**
  * MatchUp status filter for filterPopoverButton.
- * Filters matchUps by status: to be played, ready to score, complete, retired, or irregular ending.
+ * Filters matchUps by status: to be played (incl. suspended), suspended,
+ * ready to score, complete, retired, or irregular ending.
+ *
+ * Also honours the Today-view bar's partition tokens (prefixed `today:`) so a
+ * single status filter backs both the popover and the bar. See
+ * matchUpStatusPredicates for the shared classification.
  */
+import { classifyTodayBucket, popoverStatusPredicate, TODAY_STATUS_PREFIX } from './matchUpStatusPredicates';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-export function getMatchUpStatusFilter(table: any): { statusOptions: any[]; isFiltered: () => boolean; activeIndex: () => number } {
+export function getMatchUpStatusFilter(table: any): {
+  statusOptions: any[];
+  isFiltered: () => boolean;
+  activeIndex: () => number;
+  setStatus: (status?: string) => void;
+  getStatus: () => string | undefined;
+} {
   let filterValue: string | undefined = context.matchUpFilters.status;
 
   const statusFilter = (rowData: any): boolean => {
-    const matchUpStatus = rowData.scoreDetail.matchUpStatus;
-    if (filterValue === 'toBePlayed') {
-      return matchUpStatus === 'TO_BE_PLAYED';
-    } else if (filterValue === 'readyToScore') {
-      return (
-        rowData.scoreDetail.readyToScore &&
-        !rowData.scoreDetail.score &&
-        !rowData.scoreDetail.winningSide &&
-        !['DOUBLE_WALKOVER', 'DOUBLE_DEFAULT', 'CANCELLED', 'ABANDONED'].includes(matchUpStatus)
-      );
-    } else if (filterValue === 'complete') {
-      return (
-        rowData.scoreDetail.winningSide ||
-        ['DOUBLE_WALKOVER', 'DOUBLE_DEFAULT', 'CANCELLED', 'ABANDONED'].includes(matchUpStatus)
-      );
-    } else if (filterValue === 'retired') {
-      return matchUpStatus === 'RETIRED';
-    } else if (filterValue === 'irregularEnding') {
-      return ['DEFAULTED', 'WALKOVER'].includes(matchUpStatus);
+    if (!filterValue) return true;
+    if (filterValue.startsWith(TODAY_STATUS_PREFIX)) {
+      return classifyTodayBucket(rowData) === filterValue.slice(TODAY_STATUS_PREFIX.length);
     }
-    return true;
+    return popoverStatusPredicate(rowData, filterValue);
   };
 
   // Restore saved filter
@@ -52,6 +48,7 @@ export function getMatchUpStatusFilter(table: any): { statusOptions: any[]; isFi
     allOption,
     { divider: true },
     { label: t('pages.matchUps.toBePlayed'), close: true, onClick: () => updateFilter('toBePlayed'), filterValue: 'toBePlayed' },
+    { label: t('pages.matchUps.suspended'), close: true, onClick: () => updateFilter('suspended'), filterValue: 'suspended' },
     { label: t('pages.matchUps.readyToScore'), close: true, onClick: () => updateFilter('readyToScore'), filterValue: 'readyToScore' },
     { label: t('pages.matchUps.complete'), close: true, onClick: () => updateFilter('complete'), filterValue: 'complete' },
     { label: t('pages.matchUps.retired'), close: true, onClick: () => updateFilter('retired'), filterValue: 'retired' },
@@ -65,5 +62,11 @@ export function getMatchUpStatusFilter(table: any): { statusOptions: any[]; isFi
     return idx >= 0 ? idx : 0;
   };
 
-  return { statusOptions, isFiltered: () => !!filterValue, activeIndex };
+  return {
+    statusOptions,
+    isFiltered: () => !!filterValue,
+    activeIndex,
+    setStatus: updateFilter,
+    getStatus: () => filterValue,
+  };
 }

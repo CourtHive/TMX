@@ -12,10 +12,10 @@ import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-const TODAY_TOKEN = 'today';
+export const TODAY_TOKEN = 'today';
 const NO_DATE_TOKEN = '__none__';
 
-function isoToday(): string {
+export function isoToday(): string {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -46,6 +46,8 @@ export function getMatchUpDateFilter(table: any): {
   hasOptions: boolean;
   isFiltered: () => boolean;
   activeIndex: () => number;
+  setDate: (value?: string) => void;
+  getDate: () => string | undefined;
 } {
   let filterValue: string | undefined = context.matchUpFilters.scheduledDate;
 
@@ -123,5 +125,7 @@ export function getMatchUpDateFilter(table: any): {
     hasOptions: true,
     isFiltered: () => !!filterValue,
     activeIndex,
+    setDate: updateFilter,
+    getDate: () => filterValue,
   };
 }

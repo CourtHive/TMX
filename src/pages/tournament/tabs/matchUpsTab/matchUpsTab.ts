@@ -3,6 +3,7 @@
  * Displays all tournament matches with search and popover-based filters for event, flight, team, status, and type.
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
+import { getMatchUpProfileFilter } from 'components/tables/common/filters/matchUpProfileFilter';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
 import { getMatchUpStatusFilter } from 'components/tables/common/filters/matchUpStatusFilter';
 import { getMatchUpEventFilter } from 'components/tables/common/filters/matchUpEventFilter';
@@ -11,10 +12,10 @@ import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatch
 import { getMatchUpTeamFilter } from 'components/tables/common/filters/matchUpTeamFilter';
 import { getMatchUpTypeFilter } from 'components/tables/common/filters/matchUpTypeFilter';
 import { getMatchUpDateFilter } from 'components/tables/common/filters/matchUpDateFilter';
-import { aggregateCompetitiveness, buildCompetitivenessBar } from 'courthive-components';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { getActionsItem } from 'pages/tournament/tabs/matchUpsTab/abandonMatchUpsAction';
+import { mountMatchUpBars } from 'pages/tournament/tabs/matchUpsTab/matchUpBars';
 import { tournamentEngine } from 'services/factory/engine';
 import { setActiveScale } from 'settings/setActiveScale';
 import { controlBar } from 'courthive-components';
@@ -40,15 +41,17 @@ export function renderMatchUpTab(): void {
   const { eventOptions, hasOptions: hasEventOptions, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getMatchUpEventFilter(table, events);
   const { flightOptions, hasOptions: hasFlightOptions, isFiltered: isFlightFiltered, activeIndex: flightActiveIndex } = getMatchUpFlightFilter(table, events);
   const { teamOptions, hasOptions: hasTeamOptions, isFiltered: isTeamFiltered, activeIndex: teamActiveIndex } = getMatchUpTeamFilter(table, statsPanel, events);
-  const { statusOptions, isFiltered: isStatusFiltered, activeIndex: statusActiveIndex } = getMatchUpStatusFilter(table);
+  const { statusOptions, isFiltered: isStatusFiltered, activeIndex: statusActiveIndex, setStatus, getStatus } = getMatchUpStatusFilter(table);
+  const { profileOptions, isFiltered: isProfileFiltered, activeIndex: profileActiveIndex, setProfile, getProfile } = getMatchUpProfileFilter(table);
   const { typeOptions, hasOptions: hasTypeOptions, isFiltered: isTypeFiltered, activeIndex: typeActiveIndex } = getMatchUpTypeFilter(table, data);
-  const { dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex } = getMatchUpDateFilter(table);
+  const { dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex, setDate, getDate } = getMatchUpDateFilter(table);
 
   const filterSections = [
     { label: t('pages.matchUps.allEvents'), options: hasEventOptions ? eventOptions : [], isFiltered: isEventFiltered, activeIndex: eventActiveIndex },
     { label: t('pages.matchUps.allFlights'), options: hasFlightOptions ? flightOptions : [], isFiltered: isFlightFiltered, activeIndex: flightActiveIndex },
     { label: t('pages.matchUps.allTeams'), options: hasTeamOptions ? teamOptions : [], isFiltered: isTeamFiltered, activeIndex: teamActiveIndex },
     { label: t('pages.matchUps.allStatuses'), options: statusOptions, isFiltered: isStatusFiltered, activeIndex: statusActiveIndex },
+    { label: t('pages.matchUps.allProfiles'), options: profileOptions, isFiltered: isProfileFiltered, activeIndex: profileActiveIndex },
     { label: t('pages.matchUps.allTypes'), options: hasTypeOptions ? typeOptions : [], isFiltered: isTypeFiltered, activeIndex: typeActiveIndex },
     { label: t('pages.matchUps.allDates'), options: dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex },
   ];
@@ -88,13 +91,16 @@ export function renderMatchUpTab(): void {
   updateBadge();
 
   const optionsCenter = target.getElementsByClassName('options_center')[0] as HTMLElement | undefined;
-  if (optionsCenter) {
-    const { element: summary, update: updateBar } = buildCompetitivenessBar();
-    // Keep the flex sizing that the old summary used inside options_center.
-    summary.style.cssText += ';flex:1 1 auto;max-width:600px;';
-    optionsCenter.appendChild(summary);
-    updateBar(aggregateCompetitiveness(data));
-    table.on('dataFiltered', (_filters: any, rows: any[]) => updateBar(aggregateCompetitiveness(rows)));
+  const optionsLeft = target.getElementsByClassName('options_left')[0] as HTMLElement | undefined;
+  if (optionsCenter && optionsLeft) {
+    mountMatchUpBars({
+      table,
+      optionsCenter,
+      optionsLeft,
+      updateBadge,
+      data,
+      filters: { setStatus, getStatus, setProfile, getProfile, setDate, getDate },
+    });
   }
 }
 
