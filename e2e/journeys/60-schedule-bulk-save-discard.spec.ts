@@ -55,8 +55,8 @@ async function seed(page: Page): Promise<Seed> {
     async ({ date }) => {
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-        setState: true,
         nonRandom: 1,
+        setState: true,
         tournamentName: 'E2E Bulk Save Discard',
         tournamentAttributes: { tournamentId: 'e2e-bulk-save-discard', startDate: date, endDate: date },
         participantsProfile: { scaledParticipantsCount: 16 },
@@ -105,9 +105,7 @@ async function openGridInBulkMode(page: Page, tournamentId: string): Promise<voi
   await page.locator(BULK_TOGGLE).check();
 }
 
-// SKIPPED pending Problem B: seeded schedule renders as "Scheduled 0" (see
-// Mentat/planning/E2E_SCHEDULING_SEED_DISPLAY_BUG.md). nonRandom + logic are ready; re-enable once B is fixed.
-test.describe.skip('Journey 60 — scheduling grid bulk save / discard', () => {
+test.describe('Journey 60 — scheduling grid bulk save / discard', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await waitForAppReady(page);

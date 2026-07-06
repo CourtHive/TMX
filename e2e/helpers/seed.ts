@@ -9,6 +9,13 @@ import type { Page } from '@playwright/test';
  * for the 11 pre-built profiles.
  */
 export interface MockProfile {
+  /**
+   * Deterministic-fixture seed. `seedTournament` defaults this to `1` so every
+   * journey gets identical mock data across runs (the ecosystem rule — see the
+   * e2e determinism note in Mentat coding-standards). Override only when a spec
+   * genuinely needs randomised layout.
+   */
+  nonRandom?: number;
   tournamentName?: string;
   tournamentAttributes?: { tournamentId?: string; [key: string]: unknown };
   participantsProfile?: { scaledParticipantsCount?: number; [key: string]: unknown };
@@ -44,6 +51,7 @@ export interface MockProfile {
 export async function seedTournament(page: Page, profile: MockProfile): Promise<string> {
   return page.evaluate(async (p: MockProfile) => {
     const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+      nonRandom: 1,
       setState: true,
       ...p,
     });
@@ -203,6 +211,7 @@ export async function seedTeamTournamentWithStaff(
         await dev.tmx2db.initDB();
 
         const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
           setState: true,
           tournamentName: 'E2E Team Profile',
           tournamentAttributes: { tournamentId: 'e2e-team-profile' },

@@ -46,6 +46,7 @@ async function seedOneScheduledOneCatalog(page: import('@playwright/test').Page)
         await dev.tmx2db.initDB();
 
         const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
           setState: true,
           tournamentName: 'E2E Date Badge Recompute',
           tournamentAttributes: {

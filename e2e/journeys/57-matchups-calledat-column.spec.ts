@@ -26,6 +26,7 @@ async function seedWithCalledAt(page: Page): Promise<{ tournamentId: string; mat
   return page.evaluate(async () => {
     await dev.tmx2db.initDB();
     const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+      nonRandom: 1,
       setState: true,
       tournamentName: 'E2E CalledAt Column',
       tournamentAttributes: { tournamentId: 'e2e-calledat-column' },

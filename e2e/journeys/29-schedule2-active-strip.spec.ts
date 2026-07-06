@@ -75,6 +75,7 @@ async function seedAndScheduleFirstMatchUp(
       await dev.tmx2db.initDB();
 
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
         setState: true,
         tournamentName: 'E2E Active Strip',
         tournamentAttributes: { tournamentId: 'e2e-active-strip', startDate: date, endDate: date },

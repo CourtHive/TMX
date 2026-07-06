@@ -28,8 +28,8 @@ async function seedScheduled(page: Page, tournamentId: string, scheduledCount: n
     async ({ date, tournamentId, scheduledCount }) => {
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-        setState: true,
         nonRandom: 1,
+        setState: true,
         tournamentName: `E2E Cache ${tournamentId}`,
         tournamentAttributes: { tournamentId, startDate: date, endDate: date },
         participantsProfile: { scaledParticipantsCount: 16 },
@@ -67,9 +67,7 @@ async function seedScheduled(page: Page, tournamentId: string, scheduledCount: n
   );
 }
 
-// SKIPPED pending Problem B: seeded schedule renders as "Scheduled 0" (see
-// Mentat/planning/E2E_SCHEDULING_SEED_DISPLAY_BUG.md). nonRandom + logic are ready; re-enable once B is fixed.
-test.describe.skip('Journey 64 — scheduling cross-tournament cache invalidation', () => {
+test.describe('Journey 64 — scheduling cross-tournament cache invalidation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await waitForAppReady(page);

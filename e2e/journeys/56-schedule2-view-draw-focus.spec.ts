@@ -26,6 +26,7 @@ async function seedScheduledMatchUp(page: Page): Promise<{ tournamentId: string;
   return page.evaluate(async (date) => {
     await dev.tmx2db.initDB();
     const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+      nonRandom: 1,
       setState: true,
       tournamentName: 'E2E View Draw Focus',
       tournamentAttributes: { tournamentId: 'e2e-view-draw-focus', startDate: date, endDate: date },
