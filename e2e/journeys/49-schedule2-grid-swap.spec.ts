@@ -65,6 +65,7 @@ async function seedScheduled(
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
         setState: true,
+        nonRandom: 1,
         tournamentName: 'E2E Grid Swap',
         tournamentAttributes: { tournamentId: 'e2e-grid-swap', startDate: date, endDate: date },
         participantsProfile: { scaledParticipantsCount: 16 },
