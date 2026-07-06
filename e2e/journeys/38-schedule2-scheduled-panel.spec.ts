@@ -63,6 +63,7 @@ async function seedScheduledMatchUps(
         await dev.tmx2db.initDB();
 
         const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
           setState: true,
           tournamentName: 'E2E Scheduled Panel',
           tournamentAttributes: {

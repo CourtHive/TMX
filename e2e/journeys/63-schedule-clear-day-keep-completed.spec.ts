@@ -29,8 +29,8 @@ async function seed(page: Page): Promise<Seed> {
     async ({ date }) => {
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-        setState: true,
         nonRandom: 1,
+        setState: true,
         tournamentName: 'E2E Clear Day',
         tournamentAttributes: { tournamentId: 'e2e-clear-day', startDate: date, endDate: date },
         participantsProfile: { scaledParticipantsCount: 16 },
@@ -84,9 +84,7 @@ async function scheduledDateOf(page: Page, matchUpId: string): Promise<string | 
   }, matchUpId);
 }
 
-// SKIPPED pending Problem B: seeded schedule renders as "Scheduled 0" (see
-// Mentat/planning/E2E_SCHEDULING_SEED_DISPLAY_BUG.md). nonRandom + logic are ready; re-enable once B is fixed.
-test.describe.skip('Journey 63 — clear this day (keep completed)', () => {
+test.describe('Journey 63 — clear this day (keep completed)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await waitForAppReady(page);

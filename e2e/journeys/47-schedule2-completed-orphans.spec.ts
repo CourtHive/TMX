@@ -65,6 +65,7 @@ async function seedOrphansWithCompletedMix(
         await dev.tmx2db.initDB();
 
         const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
           setState: true,
           tournamentName: 'E2E Completed Orphans',
           tournamentAttributes: {
@@ -138,6 +139,7 @@ async function seedNoOrphans(page: import('@playwright/test').Page): Promise<{ t
       try {
         await dev.tmx2db.initDB();
         const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
           setState: true,
           tournamentName: 'E2E No Orphans',
           tournamentAttributes: {
@@ -175,6 +177,7 @@ async function seedByeOnDate(page: import('@playwright/test').Page): Promise<{ t
       try {
         await dev.tmx2db.initDB();
         const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
           setState: true,
           tournamentName: 'E2E BYE Date Count',
           tournamentAttributes: {

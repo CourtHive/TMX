@@ -54,8 +54,8 @@ async function seedOneCourt(
     async ({ date, times }) => {
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-        setState: true,
         nonRandom: 1,
+        setState: true,
         tournamentName: 'E2E Time Order',
         tournamentAttributes: { tournamentId: 'e2e-time-order', startDate: date, endDate: date },
         participantsProfile: { scaledParticipantsCount: 16 },

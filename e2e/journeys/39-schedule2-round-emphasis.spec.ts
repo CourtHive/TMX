@@ -50,6 +50,7 @@ async function seedUnscheduledEvent(page: import('@playwright/test').Page): Prom
       await dev.tmx2db.initDB();
 
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
         setState: true,
         tournamentName: 'E2E Round Emphasis',
         tournamentAttributes: { tournamentId: 'e2e-round-emphasis', startDate: date, endDate: date },

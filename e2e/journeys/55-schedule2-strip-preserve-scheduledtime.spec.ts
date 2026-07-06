@@ -64,6 +64,7 @@ async function seedOnePlacement(
     async ({ date, scheduledTime }) => {
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
         setState: true,
         tournamentName: 'E2E Strip Preserve',
         tournamentAttributes: { tournamentId: 'e2e-strip-preserve', startDate: date, endDate: date },
