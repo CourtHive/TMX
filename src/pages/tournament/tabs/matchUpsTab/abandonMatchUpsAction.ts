@@ -8,6 +8,7 @@
  * is on or past its last date (endDate).
  */
 import { ABANDON_TOURNAMENT_MATCHUPS } from 'constants/mutationConstants';
+import { getRepublishRankingsOption } from 'pages/tournament/tabs/matchUpsTab/republishRankingsAction';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -78,19 +79,22 @@ function showAbandonModal(onDone?: () => void): void {
 // Returns the controlBar dropdown item for `options_right`, or null when the
 // tournament is not yet on/past its last date (caller filters nulls out).
 export function getActionsItem(replaceTableData: () => void): any | null {
-  if (!onOrPastLastDate()) return null;
-  return {
-    options: [
-      {
-        onClick: () => showAbandonModal(replaceTableData),
-        label: 'Abandon remaining matches',
-        intent: 'is-danger',
-        close: true,
-      },
-    ],
-    id: 'matchUpsActions',
-    location: RIGHT,
-    label: 'Actions',
-    align: RIGHT,
-  };
+  const options: any[] = [];
+
+  // Abandon remaining matches — only on/past the tournament's last date.
+  if (onOrPastLastDate()) {
+    options.push({
+      onClick: () => showAbandonModal(replaceTableData),
+      label: 'Abandon remaining matches',
+      intent: 'is-danger',
+      close: true,
+    });
+  }
+
+  // Republish rankings — admin-only (null when not an admin of the active provider).
+  const republish = getRepublishRankingsOption();
+  if (republish) options.push(republish);
+
+  if (!options.length) return null;
+  return { options, id: 'matchUpsActions', location: RIGHT, label: 'Actions', align: RIGHT };
 }
