@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.12.0](https://github.com/CourtHive/TMX/compare/v8.11.2...v8.12.0) (2026-07-07)
+
+
+### Features
+
+* add abandoned and cancelled matchUp status filters ([082bd24](https://github.com/CourtHive/TMX/commit/082bd244055d38fea0a44f6f2b36d27544aefbb2))
+* add admin republish-rankings action to matchUps tab ([8e6e30b](https://github.com/CourtHive/TMX/commit/8e6e30b497cf050ddb599c3e1a2021c3162d1005))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.5.0 ([70c0f89](https://github.com/CourtHive/TMX/commit/70c0f89a433ce96d812f2157ea99e66f0981e621))
+
 ## [8.11.2](https://github.com/CourtHive/TMX/compare/v8.11.1...v8.11.2) (2026-07-07)
 
 
