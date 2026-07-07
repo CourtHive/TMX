@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.11.1](https://github.com/CourtHive/TMX/compare/v8.11.0...v8.11.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.4.0 ([0497279](https://github.com/CourtHive/TMX/commit/049727909253d69e0dcc889eea0f6c42a2b89d61))
+
 ## [8.11.0](https://github.com/CourtHive/TMX/compare/v8.10.0...v8.11.0) (2026-07-06)
 
 
