@@ -55,7 +55,9 @@ export function renderMatchUpTab(): void {
     { label: t('pages.matchUps.allTypes'), options: hasTypeOptions ? typeOptions : [], isFiltered: isTypeFiltered, activeIndex: typeActiveIndex },
     { label: t('pages.matchUps.allDates'), options: dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex },
   ];
-  const { item: filterButton, updateBadge } = filterPopoverButton(filterSections);
+  // Assigned once the bars are mounted; "Clear All" reverts the bar to competitiveness.
+  let resetBarsToCompetitiveness: () => void = () => {};
+  const { item: filterButton, updateBadge } = filterPopoverButton(filterSections, () => resetBarsToCompetitiveness());
 
   const items = [
     {
@@ -93,7 +95,7 @@ export function renderMatchUpTab(): void {
   const optionsCenter = target.getElementsByClassName('options_center')[0] as HTMLElement | undefined;
   const optionsLeft = target.getElementsByClassName('options_left')[0] as HTMLElement | undefined;
   if (optionsCenter && optionsLeft) {
-    mountMatchUpBars({
+    const bars = mountMatchUpBars({
       table,
       optionsCenter,
       optionsLeft,
@@ -101,6 +103,7 @@ export function renderMatchUpTab(): void {
       data,
       filters: { setStatus, getStatus, setProfile, getProfile, setDate, getDate },
     });
+    resetBarsToCompetitiveness = bars.resetToCompetitiveness;
   }
 }
 

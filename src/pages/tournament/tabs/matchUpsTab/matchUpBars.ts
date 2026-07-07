@@ -40,7 +40,14 @@ type MountArgs = {
 
 const BAR_FLEX = ';flex:1 1 auto;max-width:600px;';
 
-export function mountMatchUpBars({ table, optionsCenter, optionsLeft, filters, updateBadge, data }: MountArgs): void {
+export function mountMatchUpBars({
+  table,
+  optionsCenter,
+  optionsLeft,
+  filters,
+  updateBadge,
+  data,
+}: MountArgs): { resetToCompetitiveness: () => void } {
   const todayIso = isoToday();
   let mode: 'competitiveness' | 'today' = 'competitiveness';
 
@@ -70,6 +77,15 @@ export function mountMatchUpBars({ table, optionsCenter, optionsLeft, filters, u
   // from `data` because getData('active') is empty mid-build (would flash off).
   // Today aggregates ALL rows scoped to today, reached only after build.
   const refresh = (filteredRows?: any[]): void => {
+    // Safety net: if Today view's auto-applied `date=today` scope is no longer in
+    // effect (a filter was cleared/changed), the Today premise is gone — fall back
+    // to competitiveness so the bar can't get stuck on Today with no active filter.
+    // The reliable trigger is the popover's Clear All (see resetToCompetitiveness);
+    // this covers cases where `dataFiltered` still fires.
+    if (mode === 'today' && filters.getDate() !== TODAY_TOKEN) {
+      mode = 'competitiveness';
+      syncToggleTitle();
+    }
     if (mode === 'competitiveness') paintCompetitiveness(filteredRows ?? table.getData('active'));
     else paintToday(table.getData());
   };
@@ -134,4 +150,16 @@ export function mountMatchUpBars({ table, optionsCenter, optionsLeft, filters, u
   // Seed the first paint from the source array — the table has not built its
   // rows yet, so getData('active') would return [] and hide the bar.
   paintCompetitiveness(data);
+
+  // Reliable revert hook for the filters popover's "Clear All": switch the bar
+  // back to competitiveness (the Today-scoped filters are cleared by Clear All
+  // itself). Repaints from the now-unfiltered rows.
+  const resetToCompetitiveness = (): void => {
+    if (mode === 'competitiveness') return;
+    mode = 'competitiveness';
+    syncToggleTitle();
+    refresh();
+  };
+
+  return { resetToCompetitiveness };
 }

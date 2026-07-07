@@ -23,6 +23,7 @@ function destroyTip() {
 
 export function filterPopoverButton(
   sections: FilterSection[],
+  onClearAll?: () => void,
 ): { item: any; updateBadge: () => void; clearAllFilters: () => void } {
   const visibleSections = sections.filter((s) => s.options.length > 0);
 
@@ -32,6 +33,7 @@ export function filterPopoverButton(
       if (resetOption?.onClick) resetOption.onClick();
     }
     updateBadge();
+    onClearAll?.();
   };
 
   const updateBadge = () => {
@@ -70,6 +72,7 @@ export function filterPopoverButton(
         row.classList.remove(IS_FILTERING);
       }
       updateBadge();
+      onClearAll?.();
     };
     header.appendChild(clearAll);
 
