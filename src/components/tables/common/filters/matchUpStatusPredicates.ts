@@ -61,6 +61,10 @@ export function popoverStatusPredicate(rowData: any, filterValue: string): boole
   if (filterValue === 'complete') return isComplete(rowData);
   if (filterValue === 'retired') return status === 'RETIRED';
   if (filterValue === 'irregularEnding') return status === 'DEFAULTED' || status === 'WALKOVER';
+  // ABANDONED / CANCELLED are non-directing (voided, no winner) — a distinct
+  // category from irregular endings, which produce a winner.
+  if (filterValue === 'abandoned') return status === 'ABANDONED';
+  if (filterValue === 'cancelled') return status === 'CANCELLED';
   return true;
 }
 

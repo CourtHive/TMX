@@ -60,6 +60,16 @@ describe('popoverStatusPredicate', () => {
     expect(popoverStatusPredicate(row({ matchUpStatus: 'TO_BE_PLAYED' }), 'suspended')).toBe(false);
   });
 
+  it('matches the dedicated abandoned / cancelled tokens (non-directing, not irregular endings)', () => {
+    expect(popoverStatusPredicate(row({ matchUpStatus: 'ABANDONED' }), 'abandoned')).toBe(true);
+    expect(popoverStatusPredicate(row({ matchUpStatus: 'CANCELLED' }), 'abandoned')).toBe(false);
+    expect(popoverStatusPredicate(row({ matchUpStatus: 'CANCELLED' }), 'cancelled')).toBe(true);
+    expect(popoverStatusPredicate(row({ matchUpStatus: 'ABANDONED' }), 'cancelled')).toBe(false);
+    // they are NOT irregular endings (which produce a winner)
+    expect(popoverStatusPredicate(row({ matchUpStatus: 'ABANDONED' }), 'irregularEnding')).toBe(false);
+    expect(popoverStatusPredicate(row({ matchUpStatus: 'CANCELLED' }), 'irregularEnding')).toBe(false);
+  });
+
   it('an unknown/absent filter value includes everything', () => {
     expect(popoverStatusPredicate(row(), '')).toBe(true);
   });

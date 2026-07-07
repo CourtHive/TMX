@@ -53,6 +53,8 @@ export function getMatchUpStatusFilter(table: any): {
     { label: t('pages.matchUps.complete'), close: true, onClick: () => updateFilter('complete'), filterValue: 'complete' },
     { label: t('pages.matchUps.retired'), close: true, onClick: () => updateFilter('retired'), filterValue: 'retired' },
     { label: t('pages.matchUps.irregularEnding'), close: true, onClick: () => updateFilter('irregularEnding'), filterValue: 'irregularEnding' },
+    { label: t('pages.matchUps.abandoned'), close: true, onClick: () => updateFilter('abandoned'), filterValue: 'abandoned' },
+    { label: t('pages.matchUps.cancelled'), close: true, onClick: () => updateFilter('cancelled'), filterValue: 'cancelled' },
   ];
 
   const selectableOptions = statusOptions.filter((opt: any) => !opt.divider);

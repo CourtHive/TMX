@@ -1856,6 +1856,8 @@
       "complete": "Complete",
       "retired": "Retired",
       "irregularEnding": "Irregular ending",
+      "abandoned": "Abandoned",
+      "cancelled": "Cancelled",
       "allProfiles": "All profiles",
       "competitive": "Competitive",
       "routine": "Routine",
