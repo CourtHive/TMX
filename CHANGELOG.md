@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.11.2](https://github.com/CourtHive/TMX/compare/v8.11.1...v8.11.2) (2026-07-07)
+
+
+### Bug Fixes
+
+* revert matchUps bar to competitiveness when filters are cleared ([afbd27e](https://github.com/CourtHive/TMX/commit/afbd27ed81917dbb458b674310ea53fb6b9bc687))
+
 ## [8.11.1](https://github.com/CourtHive/TMX/compare/v8.11.0...v8.11.1) (2026-07-07)
 
 
