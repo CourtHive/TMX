@@ -17,22 +17,26 @@ let currentTournamentId: string | undefined;
 let tournamentScoreHandler: ((data: any) => void) | null = null;
 const matchUpCallbacks = new Map<string, (data: any) => void>();
 
-function getRelayUrl(): string {
+function getRelayConfig(): { origin: string; path: string } {
   const serverUrl = serverConfig.get().socketPath || window.location.origin;
 
   try {
     const url = new URL(serverUrl);
     if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-      // Local dev: relay server runs on port 8384
+      // Local dev: relay server runs standalone on port 8384 at the default
+      // Socket.IO path.
       url.port = '8384';
-      return url.origin;
+      return { origin: url.origin, path: '/socket.io/' };
     }
   } catch {
-    // Not a valid URL — fall through to append /relay
+    // Not a valid URL — fall through to the nginx-proxied prod config
   }
 
-  // Production: nginx proxies /relay/ to the relay server
-  return `${serverUrl}/relay`;
+  // Production: nginx exposes the relay ONLY under /relay/ — the Socket.IO
+  // transport path must carry that prefix (the namespace stays /live). There
+  // is no /socket.io/ nginx block, so a default-path handshake lands on CFS
+  // instead and fails with "Invalid namespace". Mirrors epixodic's producer.
+  return { origin: serverUrl, path: '/relay/socket.io/' };
 }
 
 export function connectRelay(tournamentId: string): void {
@@ -41,11 +45,12 @@ export function connectRelay(tournamentId: string): void {
   disconnectRelay();
   currentTournamentId = tournamentId;
 
-  const relayUrl = getRelayUrl();
-  const url = `${relayUrl}/live`;
-  slog('[relay] connecting to', url);
+  const { origin, path } = getRelayConfig();
+  const url = `${origin}/live`;
+  slog('[relay] connecting to', url, 'path', path);
 
   relaySocket = io(url, {
+    path,
     transports: ['websocket'],
     forceNew: true,
   });

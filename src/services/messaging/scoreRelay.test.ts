@@ -5,7 +5,7 @@
  * without needing a live relay server. Uses vi.mock to intercept
  * socket.io-client and validate the correct events are emitted.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Capture event handlers registered by the module
 const handlers = new Map<string, Function>();
@@ -32,9 +32,16 @@ vi.mock('socket.io-client', () => ({
   }),
 }));
 
+// Mutable so individual tests can flip between dev (localhost) and prod hosts.
+// `get: () => mockServerConfig` returns the live object, so mutating
+// `mockServerConfig.socketPath` before a connect changes what the module reads.
+const { mockServerConfig } = vi.hoisted(() => ({
+  mockServerConfig: { socketPath: 'http://localhost:8383' },
+}));
+
 vi.mock('config/serverConfig', () => ({
   serverConfig: {
-    get: () => ({ socketPath: 'http://localhost:8383' }),
+    get: () => mockServerConfig,
   },
 }));
 
@@ -43,6 +50,8 @@ vi.mock('config/debugConfig', () => ({
     get: () => ({ socketLog: false }),
   },
 }));
+
+const DEV_SOCKET_PATH = 'http://localhost:8383';
 
 // Import after mocks are set up
 import {
@@ -73,6 +82,11 @@ describe('TMX scoreRelay client', () => {
     disconnectRelay();
   });
 
+  afterEach(() => {
+    // Restore the default dev host so host-specific tests don't leak.
+    mockServerConfig.socketPath = DEV_SOCKET_PATH;
+  });
+
   it('connects to /live namespace on the relay URL', async () => {
     const { io } = await import('socket.io-client');
 
@@ -91,6 +105,31 @@ describe('TMX scoreRelay client', () => {
     const calledUrl = (io as any).mock.calls[0]?.[0];
     expect(calledUrl).toContain('8384');
     expect(calledUrl).toContain('/live');
+  });
+
+  it('dev host: connects with the default /socket.io/ transport path', async () => {
+    const { io } = await import('socket.io-client');
+    mockServerConfig.socketPath = DEV_SOCKET_PATH;
+    connectRelay('tid-dev-path');
+
+    const [url, opts] = (io as any).mock.calls[0];
+    expect(url).toBe('http://localhost:8384/live');
+    expect(opts.path).toBe('/socket.io/');
+  });
+
+  it('prod host: connects to /live with the /relay/socket.io/ transport path', async () => {
+    // Regression: in prod nginx exposes the relay ONLY under /relay/. A
+    // default-path handshake (or a `${host}/relay/live` URL, which socket.io
+    // parses as the namespace `/relay/live` on the default path) lands on CFS
+    // and fails with "Invalid namespace" — no live scores reach TMX.
+    const { io } = await import('socket.io-client');
+    mockServerConfig.socketPath = 'https://courthive.net';
+    connectRelay('tid-prod-path');
+
+    const [url, opts] = (io as any).mock.calls[0];
+    expect(url).toBe('https://courthive.net/live');
+    expect(url).not.toContain('/relay/live');
+    expect(opts.path).toBe('/relay/socket.io/');
   });
 
   it('subscribes to tournament on connect', () => {
