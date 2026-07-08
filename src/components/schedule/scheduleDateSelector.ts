@@ -14,7 +14,7 @@
  * reliably (the header renders via a path that skipped it). Behaviour is
  * locked by Playwright journey 59.
  */
-import { countForDate, dateButtonHtml, formatDateLabel } from './scheduleDateSelectorLogic';
+import { countForDate, dateButtonHtml, formatDateLabel, isPublishedForDate } from './scheduleDateSelectorLogic';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { ScheduleDate } from 'courthive-components';
@@ -55,7 +55,11 @@ export function buildScheduleDateSelector(params: ScheduleDateSelectorParams): S
     'align-items: center',
     'gap: 6px',
   ].join('; ');
-  dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(dates, selectedDate));
+  dateBtn.innerHTML = dateButtonHtml(
+    selectedDate,
+    countForDate(dates, selectedDate),
+    isPublishedForDate(dates, selectedDate),
+  );
 
   let dateTippy: TippyInstance | undefined;
   let destroyed = false;
@@ -89,7 +93,7 @@ export function buildScheduleDateSelector(params: ScheduleDateSelectorParams): S
   });
 
   const applyDates = (next: ScheduleDate[]): void => {
-    dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(next, selectedDate));
+    dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(next, selectedDate), isPublishedForDate(next, selectedDate));
     datePopoverContent = buildPopover(next);
     dateTippy?.setContent(datePopoverContent);
   };
@@ -145,12 +149,22 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
     dateLabel.textContent = formatDateLabel(d.date);
     const statusLabel = document.createElement('div');
     statusLabel.style.cssText = `font-size: 0.6875rem; ${isSelected ? 'color: rgba(255,255,255,0.8);' : 'color: var(--tmx-muted);'}`;
-    statusLabel.textContent = d.isActive ? 'Active' : 'Inactive';
+    // Positive-only publish cue: append "· Published" when the date's order of
+    // play is published; never a negative for unpublished dates.
+    statusLabel.textContent = `${d.isActive ? 'Active' : 'Inactive'}${d.isPublished ? ' · Published' : ''}`;
     leftSide.appendChild(dateLabel);
     leftSide.appendChild(statusLabel);
 
     const badges = document.createElement('div');
     badges.style.cssText = 'display: flex; gap: 4px; align-items: center;';
+
+    if (d.isPublished) {
+      const dot = document.createElement('span');
+      dot.title = 'Order of play published';
+      dot.style.cssText =
+        'width: 7px; height: 7px; border-radius: 50%; background: var(--tmx-accent-green, #22c55e); flex: 0 0 auto;';
+      badges.appendChild(dot);
+    }
 
     if (d.matchUpCount != null && d.matchUpCount > 0) {
       const b = document.createElement('span');

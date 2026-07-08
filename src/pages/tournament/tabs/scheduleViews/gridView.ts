@@ -30,6 +30,12 @@ import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
+import {
+  getOrderOfPlayPublishState,
+  isOrderOfPlayDatePublished,
+  buildOrderOfPlayDateToggleMethods,
+} from 'services/publishing/orderOfPlayPublish';
+import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
@@ -130,6 +136,8 @@ const DATA_MATCHUP_ID = 'data-matchup-id';
 const DATA_DRAW_ID = 'data-draw-id';
 const DATA_SCHEDULED_TIME = 'data-scheduled-time';
 const INTENT_WARNING = 'is-warning';
+const INTENT_SUCCESS = 'is-success';
+const INTENT_DANGER = 'is-danger';
 // Custom drag MIME marker — present only on grid-sourced drags. The payload
 // itself is unreadable mid-drag (browsers block getData during dragover), but
 // dataTransfer.types is readable, so this marker lets the Now-strip affordance
@@ -409,8 +417,47 @@ export function renderGridView(
     onClearSchedule: options?.onClearSchedule,
     timingAvailable: hasCallTimingData(),
     onOpenTimingReport: openTimingVarianceReport,
+    datePublished: isOrderOfPlayDatePublished(currentDate, getOrderOfPlayPublishState()),
+    onTogglePublish: () => confirmTogglePublish(),
   });
   gridActionBar = actionBar;
+
+  // Confirm + apply publish/unpublish of the viewed date's order of play,
+  // reusing the same mutation path as the publishing tab. On success the footer
+  // pill updates in place; the date selector refreshes via its own
+  // onMutationApplied subscription.
+  function confirmTogglePublish(): void {
+    const publishState = getOrderOfPlayPublishState();
+    const fullRange = dateRange(
+      getCachedCompetitionDateRange().startDate ?? '',
+      getCachedCompetitionDateRange().endDate ?? '',
+    );
+    const { methods, willPublish } = buildOrderOfPlayDateToggleMethods(currentDate, fullRange, publishState);
+    const label = formatDateLabel(currentDate);
+    confirmModal({
+      title: willPublish ? 'Publish order of play' : 'Unpublish order of play',
+      query: willPublish
+        ? `Publish the order of play for ${label}? It will become visible to the public.`
+        : `Unpublish the order of play for ${label}? It will no longer be visible to the public.`,
+      okIntent: willPublish ? INTENT_SUCCESS : INTENT_WARNING,
+      okAction: () => {
+        mutationRequest({
+          methods,
+          callback: (result: any) => {
+            if (result?.error) {
+              scheduleToast({ message: 'Publish change failed', intent: INTENT_DANGER });
+              return;
+            }
+            actionBar.setDatePublished(willPublish);
+            scheduleToast({
+              message: willPublish ? `Order of play published for ${label}` : `Order of play unpublished for ${label}`,
+              intent: willPublish ? INTENT_SUCCESS : INTENT_WARNING,
+            });
+          },
+        });
+      },
+    });
+  }
   panelWrapper.appendChild(actionBar.element);
 
   // Wire the strip's visibility toggle through the schedule page store, and
@@ -802,6 +849,9 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   sidebar.insertBefore(controlBar, sidebar.firstChild);
   sidebar.appendChild(scheduledPanel);
 
+  // Default sidebar tab is resolved after the scheduled-orphan helpers are
+  // declared (see `resolveInitialTab` below), so we can land on "Scheduled"
+  // when the selected date already has scheduled-but-unplaced matchUps.
   let activeTab: SidebarTab = readSidebarTab();
 
   // Single source of truth for "scheduled but not placed" — used by both the
@@ -962,9 +1012,21 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     }
   }
 
-  function setTab(tab: SidebarTab): void {
+  // The default tab reflects the selected date's schedule state; the operator's
+  // last *explicit* tab choice (persisted) is only the fallback. Land on
+  // "Scheduled" when that date already has scheduled-but-unplaced matchUps — the
+  // same set that drives the tab's "(#)" badge — so the actionable list shows
+  // first. renderGridView re-runs on every date/mode change, so this is a
+  // per-mount view decision and is applied without persisting (see setTab).
+  function resolveInitialTab(): SidebarTab {
+    return getScheduledNotPlacedOnCourt().length > 0 ? 'scheduled' : readSidebarTab();
+  }
+
+  function setTab(tab: SidebarTab, options?: { persist?: boolean }): void {
     activeTab = tab;
-    writeSidebarTab(tab);
+    // Persist only explicit operator choices, not the auto-resolved default, so
+    // `readSidebarTab()` keeps meaning "the last tab the operator clicked".
+    if (options?.persist !== false) writeSidebarTab(tab);
     unschedTab.style.cssText = tabStyle(tab === 'unscheduled');
     schedTab.style.cssText = tabStyle(tab === 'scheduled');
 
@@ -992,9 +1054,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   attachUnscheduleDropTarget(schedTab, refresh);
   attachUnscheduleDropTarget(scheduledPanel, refresh);
 
-  // Apply the persisted tab (also restores Scheduled view + populates panel
-  // on a date change when the user was already on the Scheduled tab).
-  setTab(activeTab);
+  // Apply the resolved default tab (Scheduled when the selected date has
+  // scheduled-but-unplaced matchUps, else the operator's last explicit choice).
+  // Not persisted — this is a per-mount view decision, not a preference change.
+  activeTab = resolveInitialTab();
+  setTab(activeTab, { persist: false });
   updateBadge();
 
   // Hook into refresh to update scheduled panel when visible. The badge
@@ -1290,7 +1354,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
   const result = competitionEngine.executionQueue(directives, true);
   if (result?.error) {
     console.error('[schedule2] local execution error', result);
-    scheduleToast({ message: 'Schedule change failed locally', intent: 'is-danger' });
+    scheduleToast({ message: 'Schedule change failed locally', intent: INTENT_DANGER });
     return;
   }
 
@@ -1335,10 +1399,10 @@ async function savePending(): Promise<void> {
     engine: COMPETITION_ENGINE,
     callback: (result: any) => {
       if (result?.success || !result?.error) {
-        scheduleToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: 'is-success' });
+        scheduleToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: INTENT_SUCCESS });
       } else {
         console.error('[schedule2] bulk save error', result);
-        scheduleToast({ message: 'Failed to save scheduling changes to server', intent: 'is-danger' });
+        scheduleToast({ message: 'Failed to save scheduling changes to server', intent: INTENT_DANGER });
       }
       updateActionBar();
     },
@@ -2407,7 +2471,7 @@ export function resolveColumnConflicts(): void {
         (issue.issueType === CONFLICT_PARTICIPANTS || issue.issueType === CONFLICT_POTENTIAL_PARTICIPANTS),
     );
   if (!participantConflicts.length) {
-    scheduleToast({ message: 'No player conflicts to resolve on this day', intent: 'is-success' });
+    scheduleToast({ message: 'No player conflicts to resolve on this day', intent: INTENT_SUCCESS });
     return;
   }
 
@@ -2964,9 +3028,12 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
     if (d) dateCounts.set(d, (dateCounts.get(d) || 0) + 1);
   }
 
+  const publishState = getOrderOfPlayPublishState();
+
   return dates.map((date: string) => ({
     date,
     isActive: date === selectedDate,
+    isPublished: isOrderOfPlayDatePublished(date, publishState),
     matchUpCount: dateCounts.get(date) ?? 0,
   }));
 }
