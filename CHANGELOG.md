@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.13.0](https://github.com/CourtHive/TMX/compare/v8.12.0...v8.13.0) (2026-07-08)
+
+
+### Features
+
+* **crowd:** enable crowd surface by default, gate on provider config ([e0994c9](https://github.com/CourtHive/TMX/commit/e0994c92c3ae4ac0b1039fb42f608a32ad0157c4))
+* **scheduling:** publish cues, footer publish toggle, policy re-apply fix ([#1205](https://github.com/CourtHive/TMX/issues/1205)) ([770e233](https://github.com/CourtHive/TMX/commit/770e233f886e98cf08015b766e0f9e7c101a2d4e))
+
+
+### Bug Fixes
+
+* **relay:** connect /live via /relay/socket.io/ path in production ([287f1b9](https://github.com/CourtHive/TMX/commit/287f1b9698c32b79bc0c31fdbfa72f658c2d2970))
+
 ## [8.12.0](https://github.com/CourtHive/TMX/compare/v8.11.2...v8.12.0) (2026-07-07)
 
 
