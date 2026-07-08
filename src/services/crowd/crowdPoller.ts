@@ -10,7 +10,7 @@
  * score-relay doesn't toast every 45 seconds.
  */
 
-import { isScoreRelayConfigured } from 'services/apis/scoreRelayApi';
+import { isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
 import { setActiveCountsFromSnapshot } from './crowdActivityIndex';
 import { getSessionsByTournamentId } from './scoreRelayClient';
 
@@ -40,7 +40,7 @@ export function startCrowdPoller(options: CrowdPollerOptions): CrowdPoller {
   const clearTimer = options.clearTimer ?? clearInterval;
 
   async function runOnce(): Promise<number> {
-    if (!isScoreRelayConfigured()) return 0;
+    if (!isCrowdScoringEnabled()) return 0;
     try {
       const sessions = await getSessionsByTournamentId({
         tournamentId: options.tournamentId,

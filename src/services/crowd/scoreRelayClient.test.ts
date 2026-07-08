@@ -28,7 +28,7 @@ vi.mock('services/apis/scoreRelayApi', () => ({
     post: (...args: any[]) => mockPost(...args),
     delete: (...args: any[]) => mockDelete(...args),
   },
-  isScoreRelayConfigured: () => mockConfigured,
+  isCrowdScoringEnabled: () => mockConfigured,
 }));
 
 import {

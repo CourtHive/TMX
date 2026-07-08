@@ -20,7 +20,7 @@ let configuredFlag = true;
 const fetchSessions = vi.fn();
 
 vi.mock('services/apis/scoreRelayApi', () => ({
-  isScoreRelayConfigured: () => configuredFlag,
+  isCrowdScoringEnabled: () => configuredFlag,
   scoreRelayApi: { get: (...args: any[]) => fetchSessions(...args) },
 }));
 

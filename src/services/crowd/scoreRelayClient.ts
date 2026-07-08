@@ -14,7 +14,7 @@
  * fires on non-200 unless `{ silenceErrors: true }` is set.
  */
 
-import { isScoreRelayConfigured, scoreRelayApi } from 'services/apis/scoreRelayApi';
+import { isCrowdScoringEnabled, scoreRelayApi } from 'services/apis/scoreRelayApi';
 
 /**
  * HiveID-or-admin attribution carried by the relay (score-relay migration
@@ -71,12 +71,12 @@ export interface GetByMatchUpOptions {
 }
 
 function notConfigured<T>(empty: T): Promise<T> {
-  console.warn('[scoreRelayClient] score-relay not configured — call ignored');
+  console.warn('[scoreRelayClient] crowd scoring disabled or relay unavailable — call ignored');
   return Promise.resolve(empty);
 }
 
 export async function getSessionsByMatchUpId(opts: GetByMatchUpOptions): Promise<CrowdScoringSession[]> {
-  if (!isScoreRelayConfigured()) return notConfigured<CrowdScoringSession[]>([]);
+  if (!isCrowdScoringEnabled()) return notConfigured<CrowdScoringSession[]>([]);
   const params = new URLSearchParams({ matchUpId: opts.matchUpId });
   if (opts.activeOnly) params.set('activeOnly', 'true');
   const response = await scoreRelayApi.get(`/api/crowd-sessions?${params.toString()}`, {
@@ -87,7 +87,7 @@ export async function getSessionsByMatchUpId(opts: GetByMatchUpOptions): Promise
 }
 
 export async function getSessionsByTournamentId(opts: GetByTournamentOptions): Promise<CrowdScoringSession[]> {
-  if (!isScoreRelayConfigured()) return notConfigured<CrowdScoringSession[]>([]);
+  if (!isCrowdScoringEnabled()) return notConfigured<CrowdScoringSession[]>([]);
   const params = new URLSearchParams({ tournamentId: opts.tournamentId });
   if (opts.activeOnly) params.set('activeOnly', 'true');
   if (opts.trustedOnly) params.set('trustedOnly', 'true');
@@ -99,19 +99,19 @@ export async function getSessionsByTournamentId(opts: GetByTournamentOptions): P
 }
 
 export async function promoteSession(sessionId: string): Promise<CrowdScoringSession | undefined> {
-  if (!isScoreRelayConfigured()) return notConfigured<CrowdScoringSession | undefined>(undefined);
+  if (!isCrowdScoringEnabled()) return notConfigured<CrowdScoringSession | undefined>(undefined);
   const response = await scoreRelayApi.post(`/api/crowd-sessions/${encodeURIComponent(sessionId)}/promote`);
   return (response?.data as SessionResponse | undefined)?.session;
 }
 
 export async function demoteSession(sessionId: string): Promise<CrowdScoringSession | undefined> {
-  if (!isScoreRelayConfigured()) return notConfigured<CrowdScoringSession | undefined>(undefined);
+  if (!isCrowdScoringEnabled()) return notConfigured<CrowdScoringSession | undefined>(undefined);
   const response = await scoreRelayApi.post(`/api/crowd-sessions/${encodeURIComponent(sessionId)}/demote`);
   return (response?.data as SessionResponse | undefined)?.session;
 }
 
 export async function cancelSession(sessionId: string): Promise<CrowdScoringSession | undefined> {
-  if (!isScoreRelayConfigured()) return notConfigured<CrowdScoringSession | undefined>(undefined);
+  if (!isCrowdScoringEnabled()) return notConfigured<CrowdScoringSession | undefined>(undefined);
   const response = await scoreRelayApi.delete(`/api/crowd-sessions/${encodeURIComponent(sessionId)}`);
   return (response?.data as SessionResponse | undefined)?.session;
 }
