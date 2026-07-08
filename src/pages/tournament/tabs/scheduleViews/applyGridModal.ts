@@ -2,85 +2,47 @@
  * Apply Grid modal — pick a scheduling policy (or "No policy") before
  * running the pro scheduler.
  *
- * Mirrors `applyTimesModal` (used by the Garman flow). The pro scheduler
- * is policy-blind by default; selecting a scheduling policy here enables
- * per-participant daily-limit enforcement (`defaultDailyLimits` from the
- * policy) for that run only.
+ * Mirrors `applyTimesModal` (the Garman flow) and shares selection/identity/
+ * compare logic via `schedulingPolicyChoices.ts`. The pro scheduler is
+ * policy-blind by default; selecting a scheduling policy here enables
+ * per-participant daily-limit enforcement (`defaultDailyLimits`) for that run.
  *
- * Creating or editing scheduling policies lives on the `/policies` page
- * and persists through `policyBridge`.
+ * Unlike Apply Times, this modal defaults to "No policy" to preserve the
+ * intentional unconstrained grid behavior — the attached policy is offered as
+ * a first-class selectable entry, but the operator must opt into it.
+ *
+ * Creating or editing scheduling policies lives on the `/policies` page.
  */
-import { competitionEngine } from 'services/factory/engine';
-import { PolicyCatalogItem } from 'courthive-components';
-
-import { getBuiltinPolicies, loadUserPolicies } from 'pages/policies/policyBridge';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 
-const POLICY_TYPE_SCHEDULING = 'scheduling';
-const NO_POLICY_ID = '__no_policy__';
+import {
+  ATTACHED_POLICY_ID,
+  PolicyChoice,
+  appendChoiceGroup,
+  buildAttachedChoice,
+  getAttachedSchedulingPolicy,
+  loadSchedulingChoices,
+  resolveAttachedChoiceId,
+} from './schedulingPolicyChoices';
 
-export interface PolicyChoice {
-  id: string;
-  label: string;
-  /** attachPolicies({ policyDefinitions }) input shape: `{ scheduling: {...} }`. */
-  definition: Record<string, any>;
-  source: 'builtin' | 'user';
-}
+export type { PolicyChoice } from './schedulingPolicyChoices';
+
+const NO_POLICY_ID = '__no_policy__';
 
 export interface ApplyGridModalParams {
   onApply: (params: { selected: PolicyChoice | null; mustAttach: boolean }) => void;
   onCancel?: () => void;
 }
 
-function fingerprint(policy: Record<string, any> | undefined | null): string {
-  if (!policy) return '';
-  try {
-    return JSON.stringify(policy);
-  } catch {
-    return '';
-  }
-}
-
-function getAttachedSchedulingPolicy(): Record<string, any> | null {
-  try {
-    const result: any = competitionEngine.findPolicy?.({ policyType: POLICY_TYPE_SCHEDULING });
-    return result?.policy ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function toChoice(item: PolicyCatalogItem): PolicyChoice {
-  return {
-    id: item.id,
-    label: item.name,
-    definition: { [POLICY_TYPE_SCHEDULING]: item.policyData },
-    source: item.source === 'builtin' ? 'builtin' : 'user',
-  };
-}
-
 export async function openApplyGridModal(params: ApplyGridModalParams): Promise<void> {
-  const builtins = getBuiltinPolicies().filter((p) => p.policyType === POLICY_TYPE_SCHEDULING);
-  let userPolicies: PolicyCatalogItem[] = [];
-  try {
-    const all = await loadUserPolicies();
-    userPolicies = all.filter((p) => p.policyType === POLICY_TYPE_SCHEDULING);
-  } catch (err) {
-    console.error('loadUserPolicies failed', err);
-  }
-
-  const choices: PolicyChoice[] = [...builtins.map(toChoice), ...userPolicies.map(toChoice)];
+  const choices = await loadSchedulingChoices();
 
   const attached = getAttachedSchedulingPolicy();
-  const attachedFp = fingerprint(attached ?? undefined);
+  const matchingChoiceId = resolveAttachedChoiceId(attached, choices);
+  const matchedLabel = matchingChoiceId ? choices.find((c) => c.id === matchingChoiceId)?.label ?? null : null;
+  const attachedChoice = attached ? buildAttachedChoice(attached, matchedLabel) : null;
 
-  const matchingChoiceId = (() => {
-    if (!attachedFp) return null;
-    for (const c of choices) {
-      if (fingerprint(c.definition[POLICY_TYPE_SCHEDULING]) === attachedFp) return c.id;
-    }
-    return null;
-  })();
+  const allChoices: PolicyChoice[] = attachedChoice ? [attachedChoice, ...choices] : choices;
 
   // Default to "No policy" so the legacy unconstrained behavior is preserved
   // unless the operator explicitly opts into limits.
@@ -97,13 +59,11 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     intro.style.cssText = 'line-height: 1.45;';
     root.appendChild(intro);
 
-    if (attached) {
+    if (attachedChoice) {
       const summary = document.createElement('div');
       summary.style.cssText =
         'padding: 8px 12px; background: var(--tmx-bg-secondary, rgba(0,0,0,0.04)); border-radius: 6px; font-size: 0.75rem;';
-      const attachedLabel = matchingChoiceId
-        ? choices.find((c) => c.id === matchingChoiceId)?.label ?? 'Custom policy'
-        : 'Custom policy (not from this list)';
+      const attachedLabel = matchedLabel ?? 'Custom policy (not from this list)';
       summary.innerHTML = `<strong>Currently attached:</strong> ${attachedLabel}`;
       root.appendChild(summary);
     }
@@ -132,8 +92,9 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     noneOpt.selected = true;
     select.appendChild(noneOpt);
 
-    appendChoiceGroup(select, 'Built-in', choices, 'builtin', selectedId);
-    appendChoiceGroup(select, 'Saved', choices, 'user', selectedId);
+    appendChoiceGroup(select, 'Attached', allChoices, 'attached', selectedId);
+    appendChoiceGroup(select, 'Built-in', allChoices, 'builtin', selectedId);
+    appendChoiceGroup(select, 'Saved', allChoices, 'user', selectedId);
     select.addEventListener('change', () => {
       selectedId = select.value;
     });
@@ -162,38 +123,17 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
             params.onApply({ selected: null, mustAttach: false });
             return;
           }
-          const selected = choices.find((c) => c.id === selectedId);
+          const selected = allChoices.find((c) => c.id === selectedId);
           if (!selected) {
             closeModal();
             return;
           }
-          params.onApply({
-            selected,
-            mustAttach: selected.id !== matchingChoiceId,
-          });
+          // The "Attached" entry and the catalog choice that equals the
+          // attached policy both re-apply what's already there → no re-attach.
+          const mustAttach = selected.id !== ATTACHED_POLICY_ID && selected.id !== matchingChoiceId;
+          params.onApply({ selected, mustAttach });
         },
       },
     ],
   });
-}
-
-function appendChoiceGroup(
-  select: HTMLSelectElement,
-  label: string,
-  choices: PolicyChoice[],
-  source: 'builtin' | 'user',
-  selectedId: string,
-): void {
-  const filtered = choices.filter((c) => c.source === source);
-  if (!filtered.length) return;
-  const group = document.createElement('optgroup');
-  group.label = label;
-  for (const choice of filtered) {
-    const opt = document.createElement('option');
-    opt.value = choice.id;
-    opt.textContent = choice.label;
-    if (choice.id === selectedId) opt.selected = true;
-    group.appendChild(opt);
-  }
-  select.appendChild(group);
 }

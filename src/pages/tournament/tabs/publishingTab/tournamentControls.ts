@@ -4,6 +4,7 @@
  */
 import { getTournamentPublishData, getPublishingTableData } from './publishingData';
 import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
+import { buildOrderOfPlayDateToggleMethods } from 'services/publishing/orderOfPlayPublish';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { eventConstants, fixtures } from 'tods-competition-factory';
@@ -299,25 +300,12 @@ function buildOopDateChips(data: any): HTMLElement {
     chip.textContent = dayjs(date).format('ddd MMM D');
 
     chip.addEventListener('click', () => {
-      const isPublished = chip.classList.contains('active');
-      const effectiveDates = allDatesPublished ? [...data.tournamentDateRange] : [...publishedDates];
-      const newDates = isPublished
-        ? effectiveDates.filter((d) => d !== date)
-        : [...effectiveDates, date];
-
-      if (newDates.length) {
-        mutationRequest({
-          methods: [
-            { method: PUBLISH_ORDER_OF_PLAY, params: { scheduledDates: newDates, removePriorValues: true } },
-          ],
-          callback: () => renderPublishingTab(),
-        });
-      } else {
-        mutationRequest({
-          methods: [{ method: UNPUBLISH_ORDER_OF_PLAY }],
-          callback: () => renderPublishingTab(),
-        });
-      }
+      const { methods } = buildOrderOfPlayDateToggleMethods(date, data.tournamentDateRange, {
+        published: data.oopPublished,
+        allPublished: allDatesPublished,
+        publishedDates,
+      });
+      mutationRequest({ methods, callback: () => renderPublishingTab() });
     });
 
     dateGrid.appendChild(chip);

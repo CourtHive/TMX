@@ -671,7 +671,7 @@ function runScheduleWithPolicy(
 
     const methods: any[] = [];
     if (mustAttach) {
-      methods.push({ method: 'attachPolicies', params: { policyDefinitions } });
+      methods.push({ method: 'attachPolicies', params: { policyDefinitions, allowReplacement: true } });
     }
     methods.push({ method: 'scheduleProfileRounds', params });
 
@@ -787,7 +787,10 @@ function runGridWithPolicy(
 
     const methods: any[] = [];
     if (selectedPolicy && mustAttach) {
-      methods.push({ method: 'attachPolicies', params: { policyDefinitions: selectedPolicy.definition } });
+      methods.push({
+        method: 'attachPolicies',
+        params: { policyDefinitions: selectedPolicy.definition, allowReplacement: true },
+      });
     }
     methods.push({ method: 'scheduleProfileGrid', params });
 

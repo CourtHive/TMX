@@ -26,6 +26,7 @@ const COLOR_PRIMARY = 'color: var(--tmx-color-primary)';
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
 const BG_PRIMARY = 'background: var(--tmx-bg-primary)';
 const BORDER_RADIUS_6 = 'border-radius: 6px';
+const CURSOR_POINTER = 'cursor: pointer';
 
 export interface GridActionBarParams {
   issues: ScheduleIssue[];
@@ -38,6 +39,10 @@ export interface GridActionBarParams {
   timingAvailable?: boolean;
   /** Open the Call Timing Variance report. When omitted, the shortcut never renders. */
   onOpenTimingReport?: () => void;
+  /** Whether the currently-viewed date's order of play is published. */
+  datePublished?: boolean;
+  /** Toggle publication of the viewed date. When omitted, the publish pill never renders. */
+  onTogglePublish?: () => void;
 }
 
 export interface GridActionBar {
@@ -53,11 +58,16 @@ export interface GridActionBar {
    * clears (e.g. after a match is called to court). No-op without onOpenTimingReport.
    */
   setTimingAvailable: (available: boolean) => void;
+  /**
+   * Re-render the publish pill after a publish/unpublish toggle so the footer
+   * reflects the new state without rebuilding the bar. No-op without onTogglePublish.
+   */
+  setDatePublished: (published: boolean) => void;
 }
 
 export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   const { issues, bulkMode, minCourtWidth, onMinCourtWidthChange, onBulkModeChange, onClearSchedule } = params;
-  const { timingAvailable, onOpenTimingReport } = params;
+  const { timingAvailable, onOpenTimingReport, datePublished, onTogglePublish } = params;
 
   const bar = document.createElement('div');
   bar.style.cssText =
@@ -90,6 +100,20 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   bar.appendChild(timingSlot);
   setTimingAvailable(!!timingAvailable);
 
+  // Order-of-play publish pill — immediately right of the timing shortcut. Its
+  // own `display: contents` slot so setDatePublished can re-render it in place
+  // after a toggle without disturbing neighbouring controls.
+  const publishSlot = document.createElement('div');
+  publishSlot.style.display = 'contents';
+  let publishState = !!datePublished;
+  const setDatePublished = (published: boolean): void => {
+    publishState = published;
+    publishSlot.replaceChildren();
+    if (onTogglePublish) publishSlot.appendChild(buildPublishPill(published, onTogglePublish));
+  };
+  bar.appendChild(publishSlot);
+  setDatePublished(publishState);
+
   // Spacer pushes the right cluster (bulk-mode toggle + clear button) flush
   // right while the left cluster stays anchored at the start of the bar.
   const spacer = document.createElement('div');
@@ -104,7 +128,58 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
     bar.appendChild(buildClearButton(bulkMode, onClearSchedule));
   }
 
-  return { element: bar, setIssues, setTimingAvailable };
+  return { element: bar, setIssues, setTimingAvailable, setDatePublished };
+}
+
+// ── Order-of-play publish pill ──
+
+const PUBLISH_GLOW_STYLE_ID = 'spl-publish-glow-style';
+
+// Inject the green publish-glow keyframes once (inline styles can't declare @keyframes).
+function ensurePublishGlowStyle(): void {
+  if (document.getElementById(PUBLISH_GLOW_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = PUBLISH_GLOW_STYLE_ID;
+  style.textContent =
+    '@keyframes spl-publish-glow{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}50%{box-shadow:0 0 8px 2px rgba(34,197,94,0.55)}}' +
+    '.spl-publish-pill--on{animation:spl-publish-glow 2.6s ease-in-out infinite}' +
+    '@media (prefers-reduced-motion: reduce){.spl-publish-pill--on{animation:none}}';
+  document.head.appendChild(style);
+}
+
+/**
+ * Two-state pill for the viewed date's order-of-play publish status:
+ *   - published → green, softly glowing "Published" (click to unpublish)
+ *   - not       → muted grey "Not published" (click to publish)
+ * Click routes to the confirm dialog owned by the caller.
+ */
+function buildPublishPill(published: boolean, onToggle: () => void): HTMLElement {
+  ensurePublishGlowStyle();
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = published ? 'spl-publish-pill spl-publish-pill--on' : 'spl-publish-pill';
+  const accent = published ? 'var(--tmx-accent-green, #22c55e)' : 'var(--tmx-text-muted, #9ca3af)';
+  btn.style.cssText = [
+    'font-size: 0.75rem',
+    'font-weight: 600',
+    'padding: 4px 10px',
+    BORDER_RADIUS_6,
+    `border: 1px solid ${published ? accent : 'var(--tmx-border-primary)'}`,
+    BG_PRIMARY,
+    CURSOR_POINTER,
+    `color: ${accent}`,
+    DISPLAY_INLINE_FLEX,
+    ALIGN_ITEMS_CENTER,
+    'gap: 6px',
+  ].join('; ');
+  btn.title = published
+    ? 'Order of play for this date is published — click to unpublish'
+    : 'Order of play for this date is not published — click to publish';
+  btn.setAttribute('aria-label', btn.title);
+  const dot = published ? '<i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i>' : '<i class="fa-regular fa-circle" style="font-size: 0.5rem;"></i>';
+  btn.innerHTML = `${dot}<span>${published ? 'Published' : 'Not published'}</span>`;
+  btn.addEventListener('click', onToggle);
+  return btn;
 }
 
 // ── Call Timing Variance shortcut ──
@@ -134,7 +209,7 @@ function buildTimingReportButton(onOpen: () => void): HTMLElement {
     BORDER_RADIUS_6,
     BORDER_PRIMARY,
     BG_PRIMARY,
-    'cursor: pointer',
+    CURSOR_POINTER,
     'color: var(--tmx-accent-blue, #3b82f6)',
     DISPLAY_INLINE_FLEX,
     ALIGN_ITEMS_CENTER,
@@ -173,7 +248,7 @@ function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
     BORDER_RADIUS_6,
     BORDER_PRIMARY,
     BG_PRIMARY,
-    'cursor: pointer',
+    CURSOR_POINTER,
     'color: var(--tmx-accent-orange, #f59e0b)',
     DISPLAY_INLINE_FLEX,
     ALIGN_ITEMS_CENTER,
