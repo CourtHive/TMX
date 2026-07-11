@@ -6,6 +6,9 @@ import { NONE } from 'constants/tmxConstants';
 const SEEDING_BUTTON_CLASSES = ['saveSeeding', 'cancelManualSeeding'];
 
 export function enableManualSeeding(e: any, table: any): void {
+  // Clear any selection first — the controlBar shows selection overlay actions
+  // instead of the right-side items (Save/Cancel seeding) while rows are selected
+  table.deselectRow();
   setSeedingEnabled(table, true);
 
   const optionsRight = findAncestor(e.target, 'options_right');
