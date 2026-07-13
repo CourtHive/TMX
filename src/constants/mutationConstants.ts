@@ -95,3 +95,5 @@ export const UNPUBLISH_PARTICIPANTS = 'unPublishParticipants';
 export const PUBLISH_EVENT_SEEDING = 'publishEventSeeding';
 export const UNPUBLISH_EVENT_SEEDING = 'unPublishEventSeeding';
 export const UNPUBLISH_EVENT = 'unPublishEvent';
+export const LINK_TOURNAMENTS = 'linkTournaments';
+export const UNLINK_TOURNAMENT = 'unlinkTournament';

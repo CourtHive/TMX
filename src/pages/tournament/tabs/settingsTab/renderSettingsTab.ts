@@ -1,3 +1,4 @@
+import { buildLinkedTournamentsPanel } from './linkedTournaments';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderSettingsGrid } from './settingsGrid';
 
@@ -61,4 +62,5 @@ export function renderSettingsTab(): void {
   ensureSettingsStyles();
   removeAllChildNodes(settingsContent);
   void renderSettingsGrid(settingsContent);
+  settingsContent.appendChild(buildLinkedTournamentsPanel());
 }
