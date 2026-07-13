@@ -63,6 +63,7 @@ import {
   isAvailabilityDirty,
 } from 'services/schedulingWorkspace/queueService';
 
+import { mountSharedFacilityPanel } from 'pages/tournament/tabs/scheduleViews/sharedFacilityPanel';
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 export type SchedulingMode = 'availability' | 'profile' | 'grid';
@@ -304,6 +305,9 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
     const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
     if (layout) layout.classList.add(COLLAPSED_CLASS);
   }
+
+  // Read-only overlay of linked tournaments' claims on shared courts (no-op when unlinked).
+  mountSharedFacilityPanel(container, scheduledDate);
 
   container.appendChild(buildActionBarMount());
 }
