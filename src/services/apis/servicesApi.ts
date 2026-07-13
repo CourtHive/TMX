@@ -18,6 +18,21 @@ export async function requestTournamentUpdatedAt({ tournamentId, silent }: { tou
   return await baseApi.post('/factory/updated-at', { tournamentId }, silent ? { silenceErrors: true } : undefined);
 }
 
+/** Operational (unpublished) shared-facility schedule projection: slim ScheduleCell[] for the
+ * requested tournaments the caller is authorized to view, optionally filtered to venueIds. Used to
+ * overlay linked peers' court claims without loading their full records. */
+export async function fetchScheduleProjection({
+  tournamentIds,
+  venueIds,
+  silent,
+}: {
+  tournamentIds: string[];
+  venueIds?: string[];
+  silent?: boolean;
+}) {
+  return await baseApi.post('/factory/schedule-projection', { tournamentIds, venueIds }, silent ? { silenceErrors: true } : undefined);
+}
+
 export async function addProvider({ provider }: { provider: any }) {
   return await baseApi.post('/provider/add', provider);
 }
