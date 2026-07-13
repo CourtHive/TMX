@@ -27,6 +27,7 @@ import { TournamentPage } from '../pages/TournamentPage';
 
 const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
 const TITLE_SELECTOR = '.spl-matchup-card .sp-card-title, .spl-matchup-card [class^="spl-card-title"]';
+const UNSCHEDULED_TAB = 'button[data-sidebar-tab="unscheduled"]';
 const CURRENT_TITLE = '.spl-card-title--round-current';
 const NEXT_TITLE = '.spl-card-title--round-next';
 const LATER_TITLE = '.spl-card-title--round-later';
@@ -91,10 +92,14 @@ async function seedUnscheduledEvent(page: import('@playwright/test').Page): Prom
 async function bucketCardsByRound(
   page: import('@playwright/test').Page,
 ): Promise<{ current: number; next: number; later: number }> {
+  // Count only VISIBLE emphasis titles. Since #1205 the view can land on the
+  // Scheduled tab and populate that (hidden) panel with cards that carry the
+  // same round-* classes; `:visible` keeps the buckets scoped to the currently
+  // shown catalog (the Unscheduled side this spec asserts).
   const [current, next, later] = await Promise.all([
-    page.locator(CURRENT_TITLE).count(),
-    page.locator(NEXT_TITLE).count(),
-    page.locator(LATER_TITLE).count(),
+    page.locator(`${CURRENT_TITLE}:visible`).count(),
+    page.locator(`${NEXT_TITLE}:visible`).count(),
+    page.locator(`${LATER_TITLE}:visible`).count(),
   ]);
   return { current, next, later };
 }
@@ -164,6 +169,12 @@ test.describe('Journey 39 — Schedule2 catalog round-emphasis', () => {
     // Re-navigate to force the catalog to rebuild from the mutated record.
     await tournament.goto(tournamentId);
     await tournament.navigateToScheduling();
+
+    // Since #1205 the view lands on the Scheduled tab when there are matchUps
+    // scheduled-but-not-yet-on-a-court (so operators can drop them on courts).
+    // R1 here is time-scheduled with no courtId, so we land on Scheduled — this
+    // spec asserts the Unscheduled catalog's round-emphasis, so select that tab.
+    await page.locator(UNSCHEDULED_TAB).click();
     await page.locator(TITLE_SELECTOR).first().waitFor({ timeout: 10_000 });
 
     // All R1 are now placed (out of the unscheduled catalog). The lowest
