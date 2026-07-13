@@ -24,7 +24,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { getTournamentColumns } from './getTournamentColumn';
 import { listPicker } from 'components/modals/listPicker';
 import { displayConfig } from 'config/displayConfig';
-import { tmx2db } from 'services/storage/tmx2db';
+import { readLocalCalendarEntries } from 'services/storage/localCalendar';
 import { context } from 'services/context';
 import {
   filterTournaments,
@@ -221,8 +221,11 @@ function renderRows(anchor: HTMLElement, rows: TournamentRow[], onCreated: () =>
 }
 
 function fromLocalDb(anchor: HTMLElement, onCreated: () => void): Promise<TournamentsView> {
-  return tmx2db.findAllTournaments().then(
-    (data: any[]) => renderRows(anchor, data.map(mapTournamentRecord), onCreated),
+  // Read maintained lightweight calendar entries rather than loading every full
+  // tournament record. Same shape as the server calendar, so it flows through
+  // the shared fromCalendarTournaments mapper.
+  return readLocalCalendarEntries().then(
+    (entries: any[]) => fromCalendarTournaments(anchor, [{ tournaments: entries }], onCreated),
     () => renderRows(anchor, [], onCreated)
   );
 }
