@@ -8,6 +8,7 @@ import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderTournamentControls } from './tournamentControls';
+import { renderTimezoneWarning } from './timezoneWarning';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderPublishingTable } from './publishingTable';
 import { renderEmbargoSummary } from './embargoSummary';
@@ -33,6 +34,19 @@ function ensureStyles(): void {
       padding: 16px;
     }
     .pub-grid-full { grid-column: 1 / -1; }
+    .pub-tz-set-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--tmx-accent-orange, #f59e0b);
+      background: transparent;
+      color: var(--tmx-text-primary);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .pub-tz-set-btn:hover { background: var(--tmx-panel-yellow-bg, rgba(245,158,11,0.12)); }
     .pub-panel {
       border-radius: 8px;
       padding: 20px;
@@ -313,6 +327,7 @@ export function renderPublishingTab(): void {
   const grid = document.createElement('div');
   grid.className = canPublish ? 'pub-grid' : 'pub-grid pub-grid-disabled';
 
+  renderTimezoneWarning(grid);
   renderTournamentControls(grid);
   renderQRPanel(grid);
   renderEmbargoSummary(grid);
