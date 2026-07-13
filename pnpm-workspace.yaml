@@ -39,6 +39,7 @@ allowBuilds:
   electron: false           # ~250MB binary; only needed for desktop mode
 
 overrides:
+  typescript: 6.0.3 # block native TS7 (no classic JS API — crashes tsc/nest/sonarjs); pairs with renovate TS-major block
   '@courthive/provider-config': link:../provider-config
   '@courthive/scoring-visualizations': link:../scoringVisualizations
   '@xmldom/xmldom': ^0.9.0
