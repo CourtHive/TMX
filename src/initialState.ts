@@ -11,6 +11,7 @@ import { factoryConstants, globalState } from 'tods-competition-factory';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { loadUserCompositions } from 'pages/templates/compositionBridge';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
+import { initSessionGuard } from 'services/session/sessionGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
@@ -169,6 +170,7 @@ function tmxReady(): void {
   registerMenuHandler();
   initRemoteMutationHandler();
   initStalenessGuard();
+  initSessionGuard();
   initTmxVersionCheck();
   // Populate the user-composition cache so resolveCompositionByName() can
   // find custom compositions on the first draw render. Fire-and-forget;

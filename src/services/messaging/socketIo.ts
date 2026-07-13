@@ -4,6 +4,7 @@
  */
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { showOSNotification } from 'services/notifications/osNotification';
+import { handleSocketException } from 'services/session/sessionGuard';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
@@ -106,6 +107,15 @@ function handleTournamentMutation(data: any): void {
 
 export function connectSocket(callback?: () => void): void {
   const connectionOptions: any = {
+    // `auth` is a function so socket.io-client re-invokes it before every
+    // (re)connect, always presenting the *current* token. The server's
+    // SocketGuard prefers handshake.auth.token over the Authorization header
+    // precisely because the header is baked in at initial connect and goes
+    // stale on the first reconnect after a token refresh — which is what left
+    // an expired-then-refreshed /tmx session silently rejected on every
+    // executionQueue (the /hiveid socket clients got this fix on 2026-06-01;
+    // /tmx did not until now). extraHeaders is kept for the polling handshake.
+    auth: (cb: (data: { token?: string }) => void) => cb({ token: getToken() ?? undefined }),
     transportOptions: { polling: { extraHeaders: getAuthorization() } },
     'force new connection': true,
     reconnectionDelay: 1000,
@@ -146,7 +156,14 @@ export function connectSocket(callback?: () => void): void {
       showOSNotification({ title: 'TMX', body: 'Server connection lost' });
     });
     oi.socket.on('exception', (data: any) => {
-      console.warn('[socket] server exception:', data);
+      // The server's SocketGuard emits `exception` when it rejects a message —
+      // most commonly for an expired/absent/wrong-audience token. Route those
+      // to the session guard so the user gets a "log in again" banner and their
+      // edit is preserved, instead of the message silently dying and surfacing
+      // 10s later as a misleading "Server not responding". Non-auth exceptions
+      // still surface here rather than being swallowed (A2).
+      const handledAsAuth = handleSocketException(data);
+      if (!handledAsAuth) console.warn('[socket] server exception:', data);
     });
     oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
     oi.socket.on('connect_error', (data: any) => {
@@ -165,6 +182,22 @@ export function disconnectSocket(): void {
   slog('[socket] disconnectSocket called');
   oi?.socket?.disconnect();
   setTimeout(() => delete oi.socket, 1000);
+}
+
+/**
+ * Force a fresh handshake so the `auth` callback re-presents the current token.
+ * Used after a silent refresh / re-login to shed a socket that is still holding
+ * a stale (now-expired) token. Reconnecting fires `connectionEvent`, which — on
+ * a post-drop reconnect — runs the registered reconnect listeners (the session
+ * guard replays any preserved edits there).
+ */
+export function reconnectSocket(): void {
+  if (oi.socket) {
+    oi.socket.disconnect();
+    oi.socket.connect();
+  } else {
+    connectSocket();
+  }
 }
 
 /**

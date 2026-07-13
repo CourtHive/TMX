@@ -2,6 +2,7 @@ import { getToken, removeToken, setToken, getRefreshToken, setRefreshToken, remo
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
+import { notifySessionRecovered } from 'services/session/sessionGuard';
 import { setupChatIndicator } from 'navigation';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { clearUserContext, fetchUserContext } from './getUserContext';
@@ -150,6 +151,11 @@ export function logIn({
     // Reveal the chat indicator now that a server session exists (the nav may
     // have first rendered logged-out / with an expired token).
     setupChatIndicator();
+    // Clear any session-expiry banner and replay edits that were preserved
+    // while the session was lost. No-op on a first/fresh login (nothing
+    // pending, no banner) — the guard's own silent-refresh path covers the
+    // automatic case.
+    notifySessionRecovered();
     if (isFunction(callback)) {
       callback();
     } else if (!tournamentInState) {

@@ -780,6 +780,10 @@
     "acceptrankings": "Accept Rankings",
     "reglink": "Set Link"
   },
+  "session": {
+    "expiredMessage": "Your session has expired. Changes will not be saved until you log in again.",
+    "logInAgain": "Log in again"
+  },
   "schedule": {
     "column": "Column",
     "rows": "Schedule Rows",
