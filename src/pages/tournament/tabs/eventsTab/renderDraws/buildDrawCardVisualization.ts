@@ -121,7 +121,10 @@ function buildHistogramForDraw(
 function buildSunburstForDraw(enrichedStructure: any, expanded: boolean, competitive: boolean): HTMLElement | null {
   // `enrichedStructure` is the `getEventData().drawsData[i].structures[j]`
   // shape that has `roundMatchUps` — NOT the raw `drawDefinition.structures[0]`.
-  if (!enrichedStructure?.roundMatchUps) return null;
+  // A round-robin CONTAINER or an ungenerated MAIN carries `roundMatchUps: {}`
+  // (truthy but empty) — there's no bracket to draw, so skip the sunburst entirely
+  // (the card falls back to no-viz) rather than render an empty box.
+  if (!enrichedStructure?.roundMatchUps || !Object.keys(enrichedStructure.roundMatchUps).length) return null;
   const size = expanded ? SUNBURST_SIZE_EXPANDED : SUNBURST_SIZE;
   const container = document.createElement('div');
   container.style.cssText = `width:${size}px; height:${size}px; max-width:100%;`;

@@ -200,6 +200,53 @@ export interface RenderDrawsGridResult {
   resolved: ResolvedDisplayMode;
 }
 
+interface CardVizContext {
+  showViz: boolean;
+  resolved: any;
+  resolvedEvent: any;
+  enrichedDrawsData: any[];
+  competitiveByDraw: Map<string, any>;
+  ratingScaleName?: string;
+  participantsById: Map<string, any>;
+}
+
+/**
+ * Resolve one draw card's visualization element (or null). Wrapped in try/catch so a
+ * single card's viz failure can never crash the whole draws grid — falls back to no-viz.
+ */
+function resolveCardVisualization(row: any, ctx: CardVizContext): HTMLElement | null {
+  const { showViz, resolved, resolvedEvent, enrichedDrawsData, competitiveByDraw, ratingScaleName, participantsById } =
+    ctx;
+  if (!showViz || !row.generated) return null;
+  const dd = resolvedEvent?.drawDefinitions.find((d: any) => d.drawId === row.drawId);
+  if (!dd) return null;
+
+  const enrichedStructure = isSunburstMode(resolved.mode)
+    ? enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures?.[0]
+    : undefined;
+  const competitiveMatchUps = resolved.mode === 'competitiveness' ? competitiveByDraw.get(row.drawId) : undefined;
+  const drawParticipantIds =
+    resolved.mode === 'histogram'
+      ? tournamentEngine.getAssignedParticipantIds({ drawDefinition: dd }).assignedParticipantIds?.filter(Boolean)
+      : undefined;
+
+  try {
+    return buildDrawCardVisualization({
+      mode: resolved.mode,
+      drawDefinition: dd,
+      expanded: isSunburstMode(resolved.mode),
+      ratingScaleName,
+      participantsById,
+      drawParticipantIds,
+      enrichedStructure,
+      competitiveMatchUps,
+    });
+  } catch (err) {
+    console.warn(`draw-card visualization failed for draw ${row.drawId}`, err);
+    return null;
+  }
+}
+
 export function renderDrawsGrid({
   eventId,
   target,
@@ -266,33 +313,15 @@ export function renderDrawsGrid({
   }
 
   for (const row of rows) {
-    let visualization: HTMLElement | null = null;
-    if (showViz && row.generated) {
-      const dd = resolvedEvent?.drawDefinitions.find((d: any) => d.drawId === row.drawId);
-      if (dd) {
-        const enrichedStructure =
-          isSunburstMode(resolved.mode)
-            ? enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures?.[0]
-            : undefined;
-        const competitiveMatchUps =
-          resolved.mode === 'competitiveness' ? competitiveByDraw.get(row.drawId) : undefined;
-        const drawParticipantIds =
-          resolved.mode === 'histogram'
-            ? tournamentEngine.getAssignedParticipantIds({ drawDefinition: dd })
-                .assignedParticipantIds?.filter(Boolean)
-            : undefined;
-        visualization = buildDrawCardVisualization({
-          mode: resolved.mode,
-          drawDefinition: dd,
-          expanded: isSunburstMode(resolved.mode),
-          ratingScaleName,
-          participantsById,
-          drawParticipantIds,
-          enrichedStructure,
-          competitiveMatchUps,
-        });
-      }
-    }
+    const visualization = resolveCardVisualization(row, {
+      showViz,
+      resolved,
+      resolvedEvent,
+      enrichedDrawsData,
+      competitiveByDraw,
+      ratingScaleName,
+      participantsById,
+    });
     grid.appendChild(
       buildDrawCard(
         { ...row, visualization },
