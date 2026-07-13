@@ -80,6 +80,13 @@ function renderEmptyStructure(
   },
 ): void {
   const { drawData, structure, structures, drawId, eventId, callback } = params;
+  // Clear #drawsView before painting the empty-structure affordance. Every generator below
+  // (generateQualifying/generateMain/generateSwissRound/generateAdHocRound/voluntaryConsolationPanel)
+  // appends without clearing, and the only prior clear (line ~331) runs solely on `redraw` — so a
+  // non-redraw re-render of an empty structure stacked duplicate "Generate round"/"Generate ..." panels
+  // (observed: 3 stacked buttons on a draw whose structure was emptied by an allowReplacement wipe).
+  const emptyStructureView = document.getElementById(DRAWS_VIEW);
+  if (emptyStructureView) removeAllChildNodes(emptyStructureView);
   const isSwiss = drawData?.drawType === SWISS;
   const hasGeneratedQualifying = structures.some(
     (s: any) =>
