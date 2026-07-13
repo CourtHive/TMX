@@ -35,6 +35,16 @@
         "tods-competition-factory"
       ],
       "enabled": false
+    },
+    {
+      "description": "Block TypeScript major bumps. TS7 ships the native (Go) compiler, whose JS API shim lacks getParsedCommandLineOfConfigFile — nest/tsc-based build toolchains crash on it. Re-enable deliberately once the toolchain supports TS7.",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
     }
   ]
 }
