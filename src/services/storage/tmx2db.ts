@@ -91,6 +91,16 @@ export class TMXDatabase {
     return this.dex['providers'].where('providerId').equals(key).delete();
   };
 
+  // Empty every provider's local calendar. Paired with deleteProviderBoundTournaments
+  // on logout/login: the calendar entries are the lightweight mirror of
+  // provider-bound tournaments and must not leak across users on a shared browser.
+  // The surviving (demo) tournaments are re-derived lazily on the next list read.
+  clearAllProviderCalendars = (): Promise<number> => {
+    return this.dex['providers'].toCollection().modify((provider: any) => {
+      provider.calendar = [];
+    });
+  };
+
   deleteAllTournamentAttr = (attr: string): Promise<void> => {
     return this.dex['tournaments']
       .toCollection()
@@ -138,6 +148,19 @@ export class TMXDatabase {
   };
   addProvider = (provider: any): Promise<string | any> => {
     return this.modifyOrAddUnique('providers', 'providerId', provider.providerId, provider);
+  };
+
+  // Upsert a single lightweight calendar entry into a provider's local calendar
+  // (replace by tournamentId, else append). This is the local mirror of the
+  // server's addToOrUpdateCalendar side-effect: it lets the tournaments list
+  // render from calendar entries instead of loading every full record.
+  upsertCalendarEntry = async (providerId: string, entry: any): Promise<void> => {
+    const provider = await this.findProvider(providerId);
+    const calendar = Array.isArray(provider?.calendar) ? provider.calendar.slice() : [];
+    const index = calendar.findIndex((existing: any) => existing?.tournamentId === entry?.tournamentId);
+    if (index >= 0) calendar[index] = entry;
+    else calendar.push(entry);
+    await this.addProvider({ providerId, calendar });
   };
 
   modify = async (tbl: string, attr: string, val: any, fx: (params: any) => void, params: any): Promise<any> => {

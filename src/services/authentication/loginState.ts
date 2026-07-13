@@ -8,6 +8,7 @@ import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
 import { validateToken } from 'services/authentication/validateToken';
+import { resetLocalCalendar } from 'services/storage/localCalendar';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { refreshAccessToken } from 'services/apis/baseApi';
 import { tournamentEngine } from 'services/factory/engine';
@@ -92,9 +93,12 @@ export function logOut(): void {
   // fallback in createTournamentsTable. Demo/scratchpad tournaments (no
   // parentOrganisation) are preserved — per the explicit requirement in
   // Mentat/planning/USER_TOURNAMENT_ACCESS_MODEL.md PR 11.
-  void tmx2db.deleteProviderBoundTournaments().catch((err) => {
-    console.error('[auth] failed to clear provider-bound tournaments on logout', err);
-  });
+  void tmx2db
+    .deleteProviderBoundTournaments()
+    .then(() => resetLocalCalendar())
+    .catch((err) => {
+      console.error('[auth] failed to clear provider-bound tournaments on logout', err);
+    });
   // Stop the staleness timer so a leftover scheduled check can't fire after
   // logout and toast a "Missing tournamentRecord" error for a local-only
   // tournament that was never on the server.
@@ -133,9 +137,12 @@ export function logIn({
     // tab close / browser reopen without an intervening explicit logout, so
     // a previous user's provider-bound tournaments may still be in IDB.
     // Demo/scratchpad tournaments are preserved.
-    void tmx2db.deleteProviderBoundTournaments().catch((err) => {
-      console.error('[auth] failed to clear provider-bound tournaments on login', err);
-    });
+    void tmx2db
+      .deleteProviderBoundTournaments()
+      .then(() => resetLocalCalendar())
+      .catch((err) => {
+        console.error('[auth] failed to clear provider-bound tournaments on login', err);
+      });
     // Fire-and-forget: fetch the multi-provider user context from the server.
     // The context will be available by the time the user interacts with the
     // tournaments table or any provider-scoped UI element.

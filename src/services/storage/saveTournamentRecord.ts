@@ -1,3 +1,4 @@
+import { maintainLocalCalendarEntry } from './localCalendar';
 import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
@@ -16,4 +17,8 @@ export async function saveTournamentRecord(params?: { tournamentRecord?: any }):
 
   debugConfig.get().log?.verbose && console.log('%c localSave', 'color: yellow');
   await tmx2db.addTournament(tournamentRecord);
+  // Maintain the lightweight local calendar entry so the tournaments list renders
+  // from entries instead of loading every full record (mirror of the server's
+  // calendar side-effect). Kept in step with what is actually in IndexedDB.
+  await maintainLocalCalendarEntry(tournamentRecord);
 }
