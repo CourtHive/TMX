@@ -3,6 +3,7 @@
  * Handles tournament modifications with authentication and permission checks.
  */
 import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
+import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
@@ -291,6 +292,19 @@ async function makeMutation({
       setTimeout(() => {
         if (ackReceived) return;
         timedOut = true;
+        // Distinguish an auth failure from a genuine outage. A logged-out /
+        // expired session produces the same "no ack" symptom as a down server,
+        // but the fix is completely different: the user must log in again, and
+        // the tournament they're looking at (loaded from IndexedDB) is fine.
+        // Preserve the edit and replay it once the session is restored, rather
+        // than dropping it and blaming the server.
+        if (!isSessionValid()) {
+          reportSessionLost({
+            source: 'mutation-timeout',
+            retry: () => replayServerMutation({ methods, factoryEngine, tournamentIds, saveLocal }),
+          });
+          return completion({ error: { message: 'Session expired', code: 'SESSION_EXPIRED' } });
+        }
         tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
         completion({ error: { message: 'Server not responding' } });
       }, serverConfig.get().serverTimeout ?? 10000);
@@ -298,6 +312,42 @@ async function makeMutation({
   }
 
   if (strategy === LOCAL_FIRST) return completion(factoryResult);
+}
+
+/**
+ * Re-issue a server-first mutation that was preserved when the session expired.
+ * Self-contained: it re-emits the executionQueue and, on a successful ack,
+ * applies the methods locally and saves — WITHOUT re-invoking the original
+ * caller's completion/callback (that already resolved with SESSION_EXPIRED so
+ * the UI could move on). The session guard invokes this after the session is
+ * restored and the socket has reconnected with a fresh token, so the user's
+ * edit lands instead of being lost. Mirrors the ack-success branch of
+ * makeMutation minus the completion call.
+ */
+export function replayServerMutation({
+  methods,
+  factoryEngine,
+  tournamentIds,
+  saveLocal,
+}: {
+  methods: any[];
+  factoryEngine: any;
+  tournamentIds: string[];
+  saveLocal?: boolean;
+}): void {
+  const ackCallback = (ack: any) => {
+    const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
+    if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
+    const serverMethods = Array.isArray(ack?.appliedServerMethods) ? ack.appliedServerMethods : [];
+    const methodsToApply = serverMethods.length ? [...methods, ...serverMethods] : methods;
+    const result = engineExecution({ factoryEngine, methods: methodsToApply });
+    if (result.error) return;
+    void localSave(saveLocal || missingTournament);
+  };
+  emitTmx({
+    data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
+    ackCallback,
+  });
 }
 
 // Provider mutation gating lives at constants/mutationPermissions.ts
