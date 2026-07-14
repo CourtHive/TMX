@@ -224,21 +224,22 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
 
   const notFound = () => {
     const providerId = (context?.provider || state?.provider)?.organisationId;
-    const action = providerId
-      ? {
-          text: t('remove'),
-          onClick: () => {
-            removeTournament({ providerId, tournamentId: config.tournamentId }).then(goToTournaments, goToTournaments);
-          },
-        }
-      : undefined;
+    // The stale list item is a leftover local calendar entry whose record is gone.
+    // deleteTournament scrubs both the record and the calendar entry (all buckets), so the
+    // orphan disappears from the list — no server needed. If it IS a provider tournament and
+    // we're allowed, also remove it server-side (best-effort; ignored when logged out).
+    const removeOrphan = async () => {
+      await tmx2db.deleteTournament(config.tournamentId).catch(() => undefined);
+      if (providerId) await removeTournament({ providerId, tournamentId: config.tournamentId }).catch(() => undefined);
+      goToTournaments();
+    };
     tmxToast({
       message: t('toasts.tournamentNotFound'),
       onClose: goToTournaments,
       intent: 'is-warning',
       pauseOnHover: true,
       duration: 8000,
-      action,
+      action: { text: t('remove'), onClick: removeOrphan },
     });
   };
 

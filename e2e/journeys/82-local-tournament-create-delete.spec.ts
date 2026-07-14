@@ -110,12 +110,37 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
     expect(serverReqs, `local delete hit the server: ${serverReqs.join(', ')}`).toEqual([]);
   });
 
-  test('opening a missing/deleted tournament shows not-found instead of trapping the nav', async ({ page }) => {
-    // Navigate straight to a tournamentId that isn't in IndexedDB — simulates reopening a stale
-    // list/calendar entry whose record was deleted. The logged-out load path must redirect
-    // gracefully (notFound toast) instead of setState(undefined) + rendering an empty, record-less
-    // shell that traps every nav-bar tab and the back-to-list link.
-    await page.goto('/#/tournament/does-not-exist-e2e/events');
+  test('orphaned list entry: opening shows not-found, and [Remove] scrubs it locally', async ({ page }) => {
+    // Seed a LOCAL calendar entry whose record does NOT exist — a true orphan (the state the old
+    // delete bug left behind: record gone, calendar entry stuck, so it lingers in the list). The
+    // logged-out load path must redirect gracefully (notFound toast) instead of rendering an empty
+    // record-less shell that traps the nav — AND the toast's [Remove] must scrub the local entry
+    // (no server call) so it finally leaves the list.
+    const serverReqs: string[] = [];
+    page.on('request', (r) => {
+      if (SERVER_RE.test(r.url())) serverReqs.push(r.url());
+    });
+
+    const orphanId = await page.evaluate(async () => {
+      await dev.tmx2db.initDB();
+      const id = 'orphan-e2e-123';
+      await dev.tmx2db.upsertCalendarEntry('__local__', { tournamentId: id, tournamentName: 'Orphan' });
+      return id;
+    });
+
+    await page.goto(`/#/tournament/${orphanId}/events`);
     await expect(page.getByText('Tournament not found')).toBeVisible({ timeout: 12_000 });
+    serverReqs.length = 0; // isolate the [Remove] action
+
+    await page.getByRole('button', { name: /^remove$/i }).first().click();
+    await page.waitForTimeout(800);
+
+    const gone = await page.evaluate(async (id) => {
+      const provider = await dev.tmx2db.findProvider('__local__');
+      const calendar = Array.isArray(provider?.calendar) ? provider.calendar : [];
+      return !calendar.some((e: any) => e?.tournamentId === id);
+    }, orphanId);
+    expect(gone, 'orphan calendar entry must be scrubbed by [Remove]').toBe(true);
+    expect(serverReqs, `[Remove] hit the server for a local orphan: ${serverReqs.join(', ')}`).toEqual([]);
   });
 });
