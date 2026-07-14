@@ -31,6 +31,7 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { cleanupDrawPanel } from './cleanupDrawPanel';
 import { renderDrawPanel } from './renderDrawPanel';
+import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
@@ -118,12 +119,20 @@ function renderDrawTab(
   if (drawId) {
     const result = renderDrawPanel({ eventId, drawId });
     if (result.success) {
-      if (roundsView === ROUNDS_TABLE) {
-        (createRoundsTable as any)({ eventId, drawId, structureId, roundsView });
-      } else if (roundsView === ROUNDS_STATS) {
-        (createStatsTable as any)({ eventId, drawId, structureId, roundsView });
-      } else if (roundsView === ROUNDS_BRACKET) {
-        (createBracketTable as any)({ eventId, drawId, structureId, roundsView });
+      // The bracket / rounds / stats sub-views render via create*Table, which — unlike
+      // renderDrawView (else branch) — never register context.refreshActiveTable. Combined
+      // with the destroyTables() above (which nulls it), that left these views with NO
+      // refresher, so a remote (or local) score mutation had nothing to repaint them and fell
+      // back to the non-actionable sync indicator — round-robin brackets/group results never
+      // updated. Register a re-render so they refresh in place like elimination draws do.
+      const renderRoundsSubView = () => {
+        if (roundsView === ROUNDS_STATS) (createStatsTable as any)({ eventId, drawId, structureId, roundsView });
+        else if (roundsView === ROUNDS_TABLE) (createRoundsTable as any)({ eventId, drawId, structureId, roundsView });
+        else (createBracketTable as any)({ eventId, drawId, structureId, roundsView });
+      };
+      if (roundsView === ROUNDS_TABLE || roundsView === ROUNDS_STATS || roundsView === ROUNDS_BRACKET) {
+        renderRoundsSubView();
+        context.refreshActiveTable = renderRoundsSubView;
       } else {
         (renderDrawView as any)({ eventId, drawId, structureId, redraw: true, roundsView });
       }
