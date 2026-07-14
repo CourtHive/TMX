@@ -110,30 +110,51 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
     expect(serverReqs, `local delete hit the server: ${serverReqs.join(', ')}`).toEqual([]);
   });
 
-  test('orphaned list entry: opening shows not-found, and [Remove] scrubs it locally', async ({ page }) => {
-    // Seed a LOCAL calendar entry whose record does NOT exist — a true orphan (the state the old
-    // delete bug left behind: record gone, calendar entry stuck, so it lingers in the list). The
-    // logged-out load path must redirect gracefully (notFound toast) instead of rendering an empty
-    // record-less shell that traps the nav — AND the toast's [Remove] must scrub the local entry
-    // (no server call) so it finally leaves the list.
+  test('orphaned list entry: not-found, [Remove] scrubs it AND updates the list without a reload', async ({
+    page,
+  }) => {
+    // A true orphan: a correctly-shaped LOCAL calendar entry whose full record does NOT exist
+    // (the state the old delete bug left behind — record gone, calendar entry stuck, so it lingers
+    // in the list). Opening it must redirect gracefully (notFound toast) rather than render an
+    // empty record-less shell that traps the nav. The toast's [Remove] must then (a) scrub the
+    // local entry with NO server call, and (b) drop it from the RENDERED list without a manual
+    // reload. (b) is the regression: the toast's clickClose fired onClose→navigate synchronously
+    // on the [Remove] click, re-rendering the list BEFORE the async delete ran, so the deleted
+    // tournament kept showing until a refresh. See tournamentDisplay.notFound / removeOrphan.
     const serverReqs: string[] = [];
     page.on('request', (r) => {
       if (SERVER_RE.test(r.url())) serverReqs.push(r.url());
     });
 
-    const orphanId = await page.evaluate(async () => {
+    const orphanName = 'E2E Orphan';
+    const orphanId = await page.evaluate(async (name) => {
       await dev.tmx2db.initDB();
-      const id = 'orphan-e2e-123';
-      await dev.tmx2db.upsertCalendarEntry('__local__', { tournamentId: id, tournamentName: 'Orphan' });
-      return id;
-    });
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: name,
+      });
+      // Correctly-shaped calendar entry (so it renders in the list) but DO NOT add the record.
+      const entry = dev.factory.tournamentEngine.getTournamentCalendarEntry({ tournamentRecord });
+      await dev.tmx2db.upsertCalendarEntry('__local__', entry);
+      localStorage.setItem('tmx_local_calendar_migrated', '1');
+      return tournamentRecord.tournamentId as string;
+    }, orphanName);
 
-    await page.goto(`/#/tournament/${orphanId}/events`);
+    // Fresh boot reads the seeded calendar so the orphan renders in the list (mirrors a real
+    // lingering entry the user clicks on).
+    await page.goto('/#/tournaments');
+    await page.reload();
+    await expect(page.getByText(orphanName).first()).toBeVisible({ timeout: 12_000 });
+    serverReqs.length = 0; // isolate the open + [Remove] actions
+
+    // Open it → not-found toast (record is missing).
+    await page.getByText(orphanName).first().click();
     await expect(page.getByText('Tournament not found')).toBeVisible({ timeout: 12_000 });
-    serverReqs.length = 0; // isolate the [Remove] action
 
+    // [Remove] must scrub the entry AND update the list — without a manual reload.
     await page.getByRole('button', { name: /^remove$/i }).first().click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
 
     const gone = await page.evaluate(async (id) => {
       const provider = await dev.tmx2db.findProvider('__local__');
@@ -141,6 +162,10 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
       return !calendar.some((e: any) => e?.tournamentId === id);
     }, orphanId);
     expect(gone, 'orphan calendar entry must be scrubbed by [Remove]').toBe(true);
+
+    // The regression assertion: the deleted orphan must be gone from the RENDERED list with no reload.
+    await expect(page.getByText(orphanName)).toHaveCount(0);
+    expect(page.url()).toContain('/tournaments');
     expect(serverReqs, `[Remove] hit the server for a local orphan: ${serverReqs.join(', ')}`).toEqual([]);
   });
 });

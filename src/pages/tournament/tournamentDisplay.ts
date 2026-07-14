@@ -228,9 +228,19 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     // deleteTournament scrubs both the record and the calendar entry (all buckets), so the
     // orphan disappears from the list — no server needed. If it IS a provider tournament and
     // we're allowed, also remove it server-side (best-effort; ignored when logged out).
-    const removeOrphan = async () => {
+    const removeOrphan = async (event?: Event) => {
+      // The toast defaults to clickClose:true, so a click on THIS button bubbles to the toast
+      // div and fires `cleanUp(onClose)` → goToTournaments synchronously — navigating BEFORE the
+      // async delete below runs. The list then re-renders reading the un-scrubbed calendar (the
+      // deleted tournament still shows), and this method's own post-delete goToTournaments is a
+      // no-op because we're already on /tournaments. Stop propagation so this action owns the
+      // click: delete first, dismiss the toast, then navigate once with fresh data. Capture the
+      // toast element synchronously — event.currentTarget is nulled after the first await.
+      event?.stopPropagation?.();
+      const toastEl = (event?.currentTarget as HTMLElement | null)?.closest?.('.notification') ?? null;
       await tmx2db.deleteTournament(config.tournamentId).catch(() => undefined);
       if (providerId) await removeTournament({ providerId, tournamentId: config.tournamentId }).catch(() => undefined);
+      toastEl?.remove();
       goToTournaments();
     };
     tmxToast({
