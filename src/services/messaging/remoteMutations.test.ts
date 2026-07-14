@@ -35,6 +35,8 @@ vi.mock('services/messaging/socketIo', () => ({
   },
 }));
 
+vi.mock('services/transitions/activeScoringGuard', () => ({ notifyRemoteScoringCollision: vi.fn() }));
+
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({ socketLog: false }) } }));

@@ -9,6 +9,7 @@
  *   → shows sync indicator in navbar if no table could be refreshed
  */
 import { onTournamentMutation, joinTournamentRoom } from 'services/messaging/socketIo';
+import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
@@ -192,6 +193,15 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   // cache and the remote change (e.g. another director's score) never paints.
   // Same central notification the local mutationRequest path fires.
   notifyMutationApplied();
+
+  // If this broadcast scored the matchUp the director is currently entering a
+  // score for, warn them (with the colleague's just-applied score) so their save
+  // can't silently overwrite it — the engine now holds the remote result.
+  const affectedMatchUpIds = methods.flatMap((m: any) => {
+    const p = m?.params ?? {};
+    return [p.matchUpId, ...(Array.isArray(p.matchUpIds) ? p.matchUpIds : [])].filter(Boolean);
+  });
+  if (affectedMatchUpIds.length) notifyRemoteScoringCollision(affectedMatchUpIds);
 
   // Persist to IndexedDB
   await saveTournamentRecord();

@@ -2,6 +2,13 @@
  * Enter matchUp score with scoring modal.
  * Handles score submission, parsing, and mutation with callback propagation.
  */
+import {
+  setActiveScoring,
+  clearActiveScoring,
+  activeScoringWasChangedRemotely,
+  acknowledgeRemoteScoringChange,
+  currentScoreString,
+} from 'services/transitions/activeScoringGuard';
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
@@ -22,12 +29,20 @@ export function enterMatchUpScore(params: {
   const participantsProfile = { withScaleValues: true };
   const matchUp = params.matchUp ?? tournamentEngine.q.matchUp({ participantsProfile, matchUpId });
 
+  // Track the open matchUp so a remote score of it warns instead of being
+  // silently clobbered; inject the DOM pulse so the guard stays DOM-free.
+  setActiveScoring(matchUpId, () => updateScoringDialogPreview(undefined));
+
   // Subscribe to relay for live score updates from other trackers
   subscribeToMatchUp(matchUpId, (data: any) => {
     updateScoringDialogPreview(data);
   });
 
-  const onRelayCleanup = () => unsubscribeFromMatchUp(matchUpId);
+  const onRelayCleanup = () => {
+    unsubscribeFromMatchUp(matchUpId);
+    // Fires when the modal closes (save, cancel, or dismiss).
+    clearActiveScoring(matchUpId);
+  };
 
   const scoreSubmitted = (outcome: any) => {
     const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets } = outcome;
@@ -68,7 +83,34 @@ export function enterMatchUpScore(params: {
       }
       isFunction(callback) && callback({ ...result, outcome });
     };
-    mutationRequest({ methods, callback: mutationCallback });
+    const applyScore = () => mutationRequest({ methods, callback: mutationCallback });
+
+    // A remote mutation scored this matchUp while the modal was open. Do NOT
+    // silently overwrite the colleague's result — require an explicit confirm
+    // that shows their current score. Cancel leaves the modal open so the
+    // director can reconsider (or close without saving).
+    if (activeScoringWasChangedRemotely()) {
+      tmxToast({
+        message: t('toasts.overwriteRemoteScore', {
+          score: currentScoreString(matchUpId),
+          defaultValue: `Another user scored this match ({{score}}). Overwrite with your result?`,
+        }),
+        intent: 'is-danger',
+        pauseOnHover: true,
+        duration: 15000,
+        action: {
+          text: t('overwrite', { defaultValue: 'Overwrite' }),
+          onClick: (event?: Event) => {
+            event?.stopPropagation?.();
+            acknowledgeRemoteScoringChange();
+            applyScore();
+          },
+        },
+      });
+      return;
+    }
+
+    applyScore();
   };
 
   scoringModal({ matchUp, callback: scoreSubmitted, onRelayCleanup });
@@ -79,6 +121,7 @@ export function enterMatchUpScore(params: {
  * with live score data from the relay. Does NOT touch score inputs.
  */
 function updateScoringDialogPreview(_data: any): void {
+  if (typeof document === 'undefined') return;
   // The scoring approaches create a div (first child of .cModal-body content)
   // that contains the renderMatchUp preview. Find the score elements and pulse them.
   const modal = document.querySelector('.cModal');
