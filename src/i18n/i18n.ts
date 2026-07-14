@@ -14,5 +14,23 @@ i18next.init({
   },
 });
 
+// Reflect the active locale's writing direction (and language) on the document
+// root so RTL locales — currently Arabic — lay out right-to-left and assistive
+// tech announces the correct language. `i18next.dir(lng)` resolves 'ltr'|'rtl'
+// from i18next's built-in RTL language list, so no manifest round-trip is
+// needed. Wired once here on the `languageChanged` event so BOTH boot-time
+// selection (initialState.ts) and the language picker (selectIdiom.ts) are
+// covered by a single hook. Full RTL layout QA (CSS logical properties) is a
+// separate follow-up; this sets the direction the layout keys off.
+function applyDocumentDirection(lng: string): void {
+  if (typeof document === 'undefined') return; // node/test contexts have no DOM
+  const root = document.documentElement;
+  root.dir = i18next.dir(lng);
+  root.lang = lng;
+}
+
+applyDocumentDirection(i18next.language ?? 'en');
+i18next.on('languageChanged', applyDocumentDirection);
+
 export const t = i18next.t.bind(i18next);
 export default i18next;
