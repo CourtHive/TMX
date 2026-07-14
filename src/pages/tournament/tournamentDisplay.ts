@@ -270,6 +270,11 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
       requestTournament({ tournamentId: config.tournamentId, silent: true }).then(showResult, tryLocal);
     }
   } else {
+    // No provider context (logged out / local). If the record is missing — e.g. it was deleted
+    // but a stale list/calendar entry got reopened — redirect to the list instead of calling
+    // setState(undefined) and rendering an empty, record-less tournament view that traps the
+    // whole nav (every tab renders empty and back-to-list is dead).
+    if (!tournamentRecord) return notFound();
     tournamentEngine.setState(tournamentRecord);
     runActiveScaleAutoSwitch();
     renderTournament({ config });

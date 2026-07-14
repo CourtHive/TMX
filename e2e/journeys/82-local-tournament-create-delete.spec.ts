@@ -109,4 +109,13 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
     expect(state.calendarEntryGone, 'calendar entry must be gone — else it lingers in the list').toBe(true);
     expect(serverReqs, `local delete hit the server: ${serverReqs.join(', ')}`).toEqual([]);
   });
+
+  test('opening a missing/deleted tournament shows not-found instead of trapping the nav', async ({ page }) => {
+    // Navigate straight to a tournamentId that isn't in IndexedDB — simulates reopening a stale
+    // list/calendar entry whose record was deleted. The logged-out load path must redirect
+    // gracefully (notFound toast) instead of setState(undefined) + rendering an empty, record-less
+    // shell that traps every nav-bar tab and the back-to-list link.
+    await page.goto('/#/tournament/does-not-exist-e2e/events');
+    await expect(page.getByText('Tournament not found')).toBeVisible({ timeout: 12_000 });
+  });
 });
