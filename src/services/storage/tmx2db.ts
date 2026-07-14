@@ -73,8 +73,17 @@ export class TMXDatabase {
     return this.dex[tbl].where(attr).equals(val).toArray();
   };
 
-  deleteTournament = (tournamentId: string): Promise<void> => {
-    return this.dex['tournaments'].where('tournamentId').equals(tournamentId).delete().then(() => undefined);
+  deleteTournament = async (tournamentId: string): Promise<void> => {
+    await this.dex['tournaments'].where('tournamentId').equals(tournamentId).delete();
+    // Also drop the lightweight calendar mirror. Since the tournaments list renders from
+    // calendar entries (not full records), leaving the entry behind lets a deleted tournament
+    // linger in the list and be reopened into a record-less, broken view. Scrub it from every
+    // provider bucket (we don't know which one held it once the record is gone).
+    await this.dex['providers'].toCollection().modify((provider: any) => {
+      if (Array.isArray(provider?.calendar)) {
+        provider.calendar = provider.calendar.filter((entry: any) => entry?.tournamentId !== tournamentId);
+      }
+    });
   };
 
   // Selective clear used on logout and login transitions: keep demo /

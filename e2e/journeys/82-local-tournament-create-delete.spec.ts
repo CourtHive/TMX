@@ -63,7 +63,7 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
     expect(serverReqs, `local create hit the server: ${serverReqs.join(', ')}`).toEqual([]);
   });
 
-  test('delete a local tournament — removed from IndexedDB, no server call', async ({ page }) => {
+  test('delete a local tournament — removed from IndexedDB AND the calendar, no server call', async ({ page }) => {
     const serverReqs: string[] = [];
     page.on('request', (r) => {
       if (SERVER_RE.test(r.url())) serverReqs.push(r.url());
@@ -78,6 +78,12 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
         drawProfiles: [{ eventName: 'Singles', drawSize: 8, drawType: 'SINGLE_ELIMINATION' }],
       });
       await dev.tmx2db.addTournament(tournamentRecord);
+      // Seed the lightweight calendar entry too — the tournaments LIST renders from these,
+      // not from the full records, so this mirrors a real saved tournament that appears in
+      // the list. Deleting must remove BOTH; otherwise the tournament lingers in the list and
+      // reopening it loads a now-missing record (broken navigation, no delete option).
+      const entry = dev.factory.tournamentEngine.getTournamentCalendarEntry({ tournamentRecord });
+      if (entry?.tournamentId) await dev.tmx2db.upsertCalendarEntry('__local__', entry);
       return tournamentRecord.tournamentId as string;
     });
 
@@ -89,11 +95,18 @@ test.describe('Journey 82 — local tournament create + delete (logged out)', ()
     await page.getByRole('button', { name: /confirm/i }).first().click(); // tmxToast confirm action
     await page.waitForTimeout(1200);
 
-    const stillThere = await page.evaluate(async (id) => {
-      const all = await dev.tmx2db.findAllTournaments();
-      return all.some((t: any) => t.tournamentId === id);
+    const state = await page.evaluate(async (id) => {
+      const records = await dev.tmx2db.findAllTournaments();
+      const provider = await dev.tmx2db.findProvider('__local__');
+      const calendar = Array.isArray(provider?.calendar) ? provider.calendar : [];
+      return {
+        recordGone: !records.some((t: any) => t.tournamentId === id),
+        calendarEntryGone: !calendar.some((e: any) => e?.tournamentId === id),
+      };
     }, tournamentId);
-    expect(stillThere, 'deleted tournament should be gone from IndexedDB').toBe(false);
+
+    expect(state.recordGone, 'record should be gone from IndexedDB').toBe(true);
+    expect(state.calendarEntryGone, 'calendar entry must be gone — else it lingers in the list').toBe(true);
     expect(serverReqs, `local delete hit the server: ${serverReqs.join(', ')}`).toEqual([]);
   });
 });
