@@ -5,6 +5,7 @@
  */
 import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
+import { isSeedingEnabled } from '../seeding/seedingState';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../../common/sorters/headerSortElement';
 import { addFlights } from 'components/modals/addFlights/addFlights';
@@ -293,7 +294,12 @@ export function createUnifiedEntriesPanel({
     // with a stale click listener; selecting it crashes _selectRow at
     // `row.getElement().classList.add`. This is the same gate Tabulator's
     // toggleRow consults, so failing it here prevents that crash entirely.
-    selectableRowsCheck: (row: any) => !!row.getElement() && !row.getData()._isSeparator,
+    //
+    // Selection is also suspended during manual seeding: clicking a seed cell
+    // would otherwise also select the row, and the controlBar swaps to selection
+    // overlay actions — hiding the Save/Cancel seeding buttons.
+    selectableRowsCheck: (row: any) =>
+      !!row.getElement() && !row.getData()._isSeparator && !isSeedingEnabled(table),
     columns,
     responsiveLayout: 'collapse',
     index: 'participantId',

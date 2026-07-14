@@ -5,8 +5,12 @@ import { removeSeeding } from './removeSeeding';
 
 import { RIGHT } from 'constants/tmxConstants';
 
-const { DIRECT_ACCEPTANCE } = entryStatusConstants;
+const { STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { QUALIFYING } = drawDefinitionConstants;
+
+// Aligned with the factory's STRUCTURE_SELECTED_STATUSES so seed values are
+// restored for all accepted statuses (e.g. CONFIRMED), not only DIRECT_ACCEPTANCE
+const ACCEPTED_STATUSES = new Set(STRUCTURE_SELECTED_STATUSES);
 
 const getSeedNumber = (participant: any, eventType: string, scaleName: string) => {
   const seedings = participant?.seedings?.[eventType];
@@ -15,19 +19,13 @@ const getSeedNumber = (participant: any, eventType: string, scaleName: string) =
   return scaleItem?.scaleValue;
 };
 
-const onCancelManualSeedingClick = (
-  e: any,
-  table: any,
-  eventId: string,
-  DIRECT_ACCEPTANCE: string,
-  QUALIFYING: string,
-) => {
+const onCancelManualSeedingClick = (e: any, table: any, eventId: string) => {
   hideSaveSeeding(e, table);
   const entryStage = removeSeeding({ table });
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
   const entries = (event.entries ?? []).filter(
-    (entry: any) => entry.entryStage === entryStage && entry.entryStatus === DIRECT_ACCEPTANCE,
+    (entry: any) => entry.entryStage === entryStage && ACCEPTED_STATUSES.has(entry.entryStatus),
   );
   const participantIds = entries.map(({ participantId }: any) => participantId);
   const { participants = [] } = tournamentEngine.getParticipants({
@@ -63,7 +61,7 @@ export const cancelManualSeeding =
   (table: any): any => {
     const eventId = event?.eventId;
 
-    const onClick = (e: any) => onCancelManualSeedingClick(e, table, eventId, DIRECT_ACCEPTANCE, QUALIFYING);
+    const onClick = (e: any) => onCancelManualSeedingClick(e, table, eventId);
 
     return {
       class: 'cancelManualSeeding',

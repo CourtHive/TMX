@@ -6,10 +6,11 @@
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 
 const { QUALIFYING } = drawDefinitionConstants;
-const { DIRECT_ACCEPTANCE, ORGANISER_ACCEPTANCE, SPECIAL_EXEMPT, JUNIOR_EXEMPT, WILDCARD, ALTERNATE, UNGROUPED, WITHDRAWN } =
-  entryStatusConstants;
+const { STRUCTURE_SELECTED_STATUSES, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 
-const ACCEPTED_STATUSES = new Set([DIRECT_ACCEPTANCE, ORGANISER_ACCEPTANCE, SPECIAL_EXEMPT, JUNIOR_EXEMPT, WILDCARD]);
+// Aligned with the factory's STRUCTURE_SELECTED_STATUSES so statuses like
+// CONFIRMED, LUCKY_LOSER and QUALIFIER rank as accepted (and stay seedable)
+const ACCEPTED_STATUSES = new Set(STRUCTURE_SELECTED_STATUSES);
 
 export function segmentRank(entryStage: string, entryStatus: string): number {
   if (entryStage === QUALIFYING && ACCEPTED_STATUSES.has(entryStatus)) return 1;
