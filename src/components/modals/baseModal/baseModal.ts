@@ -19,7 +19,16 @@ type OpenModal = {
 export function openModal(params: OpenModal) {
   const { title, content, buttons, footer, onClose, config: customConfig } = params;
   const noPadding = !title && !buttons;
-  const config = customConfig || { padding: noPadding ? '' : '.5', maxWidth: 500 };
+  // `padding` drives the compact header/footer bars (.5em). The content area,
+  // though, needs more breathing room than that — 0.5em all round left body text
+  // cramped against the edges. cModal resolves `content.padding` before falling
+  // back to `padding`, so give the content its own 1em (cModal's own default)
+  // while keeping the tight header/footer.
+  const config = customConfig || {
+    padding: noPadding ? '' : '.5',
+    content: { padding: noPadding ? '' : '1' },
+    maxWidth: 500,
+  };
   return cModal.open({ title, content, footer, buttons, config, onClose });
 }
 
