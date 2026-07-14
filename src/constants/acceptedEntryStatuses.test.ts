@@ -1,4 +1,4 @@
-import { acceptedEntryStatuses } from './acceptedEntryStatuses';
+import { acceptedEntryStatuses, acceptedStatusSet } from './acceptedEntryStatuses';
 import { describe, expect, it } from 'vitest';
 
 describe('acceptedEntryStatuses', () => {
@@ -36,5 +36,29 @@ describe('acceptedEntryStatuses', () => {
 
   it('returns consistent count for any stage', () => {
     expect(acceptedEntryStatuses('CONSOLATION')).toHaveLength(8);
+  });
+});
+
+describe('acceptedStatusSet', () => {
+  it('is the shared set of the 8 unprefixed structure-selected statuses', () => {
+    expect(acceptedStatusSet.size).toBe(8);
+    for (const status of [
+      'CONFIRMED',
+      'DIRECT_ACCEPTANCE',
+      'JUNIOR_EXEMPT',
+      'LUCKY_LOSER',
+      'QUALIFIER',
+      'ORGANISER_ACCEPTANCE',
+      'SPECIAL_EXEMPT',
+      'WILDCARD',
+    ]) {
+      expect(acceptedStatusSet.has(status)).toBe(true);
+    }
+  });
+
+  it('excludes non-accepted statuses', () => {
+    expect(acceptedStatusSet.has('ALTERNATE')).toBe(false);
+    expect(acceptedStatusSet.has('WITHDRAWN')).toBe(false);
+    expect(acceptedStatusSet.has('REGISTERED')).toBe(false);
   });
 });
