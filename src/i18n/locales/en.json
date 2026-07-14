@@ -1350,6 +1350,11 @@
       "eventStage": "Event stage",
       "entryStatus": "Entry status"
     },
+    "editDrawNames": {
+      "title": "Rename draws",
+      "minChars": "minimum 2 characters",
+      "drawRenamed": "Draw renamed"
+    },
     "editStructureNames": {
       "title": "Edit structure names",
       "minChars": "minimum 4 characters",

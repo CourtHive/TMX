@@ -68,6 +68,7 @@ export const REMOVE_DELEGATED_OUTCOME = 'removeDelegatedOutcome';
 export const REMOVE_EVENT_ENTRIES = 'removeEventEntries';
 export const REMOVE_STAGE_ENTRIES = 'removeStageEntries';
 export const REMOVE_STRUCTURE = 'removeStructure';
+export const MODIFY_DRAW_NAME = 'modifyDrawName';
 export const RENAME_STRUCTURES = 'renameStructures';
 export const RESET_DRAW_DEFINITION = 'resetDrawDefinition';
 export const RESET_MATCHUP_LINEUPS = 'resetMatchUpLinesUps';

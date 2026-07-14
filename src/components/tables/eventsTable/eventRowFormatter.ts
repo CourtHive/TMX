@@ -8,6 +8,8 @@ import { headerSortElement } from '../common/sorters/headerSortElement';
 import { editEvent } from 'pages/tournament/tabs/eventsTab/editEvent';
 import { addFlights } from 'components/modals/addFlights/addFlights';
 import { eventTabDeleteDraws } from '../common/eventTabDeleteDraws';
+import { updateDrawNameRows } from 'components/tables/common/updateDrawNameRows';
+import { editDrawNames } from 'components/modals/editDrawNames';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
@@ -78,6 +80,19 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
     deleteFlights({ eventId, drawIds, callback });
   };
 
+  const renameSelectedDraws = () => {
+    const drawIds = drawsTable.getSelectedData().map(({ drawId }: any) => drawId);
+    if (!drawIds.length) return;
+    editDrawNames({
+      eventId,
+      drawIds,
+      callback: (renamed) => {
+        updateDrawNameRows(drawsTable, renamed);
+        drawsTable.deselectRow();
+      },
+    });
+  };
+
   const flightsAdded = (result: any) => {
     if (result.generated) {
       const drawInfo = result.result?.flightProfile?.flights?.map((flight: any) => ({
@@ -128,6 +143,13 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
       onClick: deleteSelectedDraws,
       label: 'Delete selected',
       intent: 'is-danger',
+      stateChange: true,
+      location: OVERLAY,
+    },
+    {
+      onClick: renameSelectedDraws,
+      label: 'Rename selected',
+      intent: 'is-info',
       stateChange: true,
       location: OVERLAY,
     },

@@ -2,6 +2,8 @@ import { editDisplaySettings } from 'components/modals/displaySettings/editDispl
 import { eventTabDeleteDraws } from 'components/tables/common/eventTabDeleteDraws';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { logMutationError } from 'functions/logMutationError';
+import { updateDrawNameRows } from 'components/tables/common/updateDrawNameRows';
+import { editDrawNames } from 'components/modals/editDrawNames';
 import { tipster } from 'components/popovers/tipster';
 
 // constants
@@ -29,6 +31,9 @@ export const drawActions = (eventRow) => (e, cell) => {
     deleteFlights({ eventId, drawIds: [drawId], callback });
   };
 
+  const refreshDrawNames = (renamed: { drawId: string; drawName: string }[]) =>
+    updateDrawNameRows(cell.getTable(), renamed);
+
   const items = [
     {
       onClick: () => editDisplaySettings({ drawId: data.drawId }),
@@ -39,8 +44,10 @@ export const drawActions = (eventRow) => (e, cell) => {
       text: 'Delete',
     },
     {
-      // onClick: () => editEvent({ event: data.event, callback: doneEditing }),
-      text: 'Edit',
+      // Renames every draw in the event (a full edit-draw drawer would require
+      // changing far more), so it matches the draws-list "Rename selected" modal.
+      onClick: () => editDrawNames({ eventId, callback: refreshDrawNames }),
+      text: 'Rename',
     },
   ];
 

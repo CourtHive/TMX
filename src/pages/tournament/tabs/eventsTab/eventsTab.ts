@@ -21,7 +21,9 @@ import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';
+import { updateDrawNameRows } from 'components/tables/common/updateDrawNameRows';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
+import { editDrawNames } from 'components/modals/editDrawNames';
 import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
@@ -245,6 +247,20 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
     deleteFlights({ eventId, drawIds, callback });
   };
 
+  const renameSelectedDraws = () => {
+    if (!drawsTable) return;
+    const drawIds = drawsTable.getSelectedData().map(({ drawId }: any) => drawId);
+    if (!drawIds.length) return;
+    editDrawNames({
+      eventId,
+      drawIds,
+      callback: (renamed) => {
+        updateDrawNameRows(drawsTable, renamed);
+        drawsTable?.deselectRow();
+      },
+    });
+  };
+
   function renderForMode(): void {
     contentEl!.innerHTML = '';
     drawsTable = undefined;
@@ -290,6 +306,14 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
           onClick: deleteSelectedDraws,
           label: 'Delete selected',
           intent: 'is-danger',
+          stateChange: true,
+          hide: mode === 'grid',
+          location: OVERLAY,
+        },
+        {
+          onClick: renameSelectedDraws,
+          label: 'Rename selected',
+          intent: 'is-info',
           stateChange: true,
           hide: mode === 'grid',
           location: OVERLAY,
