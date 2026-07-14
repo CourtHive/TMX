@@ -196,13 +196,20 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   // Persist to IndexedDB
   await saveTournamentRecord();
 
-  // Refresh the active table in-place (preserves sort and scroll)
-  if (context.refreshActiveTable) {
+  // Refresh the active view in-place — UNLESS a scoring modal is open. A
+  // destroy+rebuild refresher (e.g. the round-robin bracket) would replace the
+  // table instance the open modal's save callback closes over, and
+  // mutationRequest does not re-render on its own — so the director's own score
+  // could land in the engine without repainting until the next refresh. While
+  // they're actively scoring, defer: surface the sync indicator so they can pull
+  // the update after finishing. The engine already holds the applied change, so
+  // nothing is lost, and the entered score in the (body-level) modal is untouched.
+  const scoringModalOpen = typeof document !== 'undefined' && !!document.querySelector('.cModal');
+  if (context.refreshActiveTable && !scoringModalOpen) {
     slog('[remoteMutation] refreshing active table in-place');
     context.refreshActiveTable();
   } else {
-    // No table refresh available — show sync indicator so user can manually refresh
-    slog('[remoteMutation] no active table — showing sync indicator');
+    slog('[remoteMutation] deferring refresh — %s', scoringModalOpen ? 'scoring modal open' : 'no active table');
     showSyncIndicator();
   }
 

@@ -109,4 +109,27 @@ describe('remoteMutations — cache invalidation + refresh ordering', () => {
     expect(order).toEqual([]);
     expect(refreshActiveTableMock).not.toHaveBeenCalled();
   });
+
+  it('defers the in-place refresh while a scoring modal is open', async () => {
+    // A destroy+rebuild refresher (round-robin bracket) would invalidate the open
+    // modal's save callback, and mutationRequest does not re-render on its own — so
+    // while a scoring modal (.cModal) is open, handleRemoteMutation must apply the
+    // change to the engine but NOT re-render (it surfaces the sync indicator instead).
+    const originalDocument = (globalThis as any).document;
+    (globalThis as any).document = {
+      querySelector: (sel: string) => (sel === '.cModal' ? {} : null),
+      getElementById: () => null,
+    };
+    try {
+      await registeredListener!(remotePayload());
+
+      // Change is still applied + persisted (no data lost)...
+      expect(order).toContain('notify');
+      expect(saveTournamentRecordMock).toHaveBeenCalledTimes(1);
+      // ...but the active-view refresh is deferred so the open scorer isn't clobbered.
+      expect(refreshActiveTableMock).not.toHaveBeenCalled();
+    } finally {
+      (globalThis as any).document = originalDocument;
+    }
+  });
 });
