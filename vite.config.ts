@@ -70,6 +70,14 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
     base: BASE_URL,
     test: {
       exclude: ['e2e/**', 'node_modules/**'],
+      // Quiet the suite: many error-path tests deliberately trigger a caught
+      // error whose handler logs via console.error/warn (e.g. "[localCalendar]
+      // failed to maintain entry"). Those are asserted on behaviorally, so the
+      // console output is pure noise in an otherwise-passing run. onConsoleLog
+      // only controls whether Vitest ECHOES the log to the terminal — it does
+      // not stub console, so tests that vi.spyOn(console, …) still observe their
+      // calls. Set VITEST_VERBOSE=1 to see console output while debugging.
+      onConsoleLog: () => (process.env.VITEST_VERBOSE ? undefined : false),
     },
   });
 };
