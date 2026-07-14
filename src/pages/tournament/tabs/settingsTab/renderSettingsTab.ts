@@ -1,3 +1,4 @@
+import { getUserContext } from 'services/authentication/getUserContext';
 import { buildLinkedTournamentsPanel } from './linkedTournaments';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { renderSettingsGrid } from './settingsGrid';
@@ -62,5 +63,8 @@ export function renderSettingsTab(): void {
   ensureSettingsStyles();
   removeAllChildNodes(settingsContent);
   void renderSettingsGrid(settingsContent);
-  settingsContent.appendChild(buildLinkedTournamentsPanel());
+  // Linked tournaments is a provider-authenticated feature (fetches /provider/my-calendars).
+  // Only show it when logged in — otherwise the panel 401s and baseApi's interceptor logs the
+  // user out, which was breaking the settings tab for logged-out/local users.
+  if (getUserContext()) settingsContent.appendChild(buildLinkedTournamentsPanel());
 }

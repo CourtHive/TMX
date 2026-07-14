@@ -1,5 +1,6 @@
 import { getPeerLinkedIds, buildLinkGroup, resolveLinkedRows, availableToLink } from './linkedTournamentsHelpers';
 import { LINK_TOURNAMENTS, UNLINK_TOURNAMENT } from 'constants/mutationConstants';
+import { getUserContext } from 'services/authentication/getUserContext';
 import { requestTournament, getMyCalendars } from 'services/apis/servicesApi';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -25,6 +26,9 @@ function normalizeSibling(entry: any): SiblingTournament {
 }
 
 async function fetchSiblings(providerAbbr?: string): Promise<SiblingTournament[]> {
+  // /provider/my-calendars is authenticated; calling it while logged out 401s, and baseApi's
+  // interceptor treats a 401 as a full logout — which was breaking the settings tab entirely.
+  if (!getUserContext()) return [];
   try {
     const result: any = await getMyCalendars(providerAbbr ? { providerAbbr } : {});
     const calendars = result?.data?.calendars ?? [];
