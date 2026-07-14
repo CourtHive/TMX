@@ -106,7 +106,7 @@
     "yargs": "18.0.0"
   },
   "dependencies": {
-    "@courthive/provider-config": "0.11.0",
+    "@courthive/provider-config": "0.11.1",
     "@courthive/scoring-visualizations": "^0.2.9",
     "@eslint/js": "^10.0.1",
     "@tiptap/core": "^3.22.2",
@@ -120,7 +120,7 @@
     "axios": "1.18.1",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
-    "courthive-components": "3.8.0",
+    "courthive-components": "3.8.2",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.21",
     "dexie": "4.4.4",
@@ -136,7 +136,7 @@
     "morphdom": "2.7.8",
     "navigo": "8.11.1",
     "normalize-text": "2.6.0",
-    "pdf-factory": "0.8.9",
+    "pdf-factory": "0.8.11",
     "pikaday": "1.8.2",
     "qrious": "4.0.2",
     "qs": "6.15.3",
