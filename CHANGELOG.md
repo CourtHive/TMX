@@ -1,5 +1,37 @@
 # Changelog
 
+## [8.14.0](https://github.com/CourtHive/TMX/compare/v8.13.0...v8.14.0) (2026-07-15)
+
+
+### Features
+
+* **draws:** add draw renaming via Actions menu and Rename selected button ([ccc21a9](https://github.com/CourtHive/TMX/commit/ccc21a9210230dcda359108d1cfbfe6d60245327))
+* **i18n:** set document dir and lang from the active locale for rtl ([1f249ae](https://github.com/CourtHive/TMX/commit/1f249aee1d07121298881faab051a43d1a106444))
+* **publishing:** flag when tournament time zone is not set ([#1215](https://github.com/CourtHive/TMX/issues/1215)) ([4fd3f5c](https://github.com/CourtHive/TMX/commit/4fd3f5ce90ae30f4de9c59e84fa015546f336c1d))
+* **scoring:** warn + confirm before overwriting a remotely-scored matchUp ([38aa8e3](https://github.com/CourtHive/TMX/commit/38aa8e3bc1da4d9df412a38d7eec5e5743eca317))
+* **settings:** linked-tournaments panel (Phase 1 Piece A) ([#1218](https://github.com/CourtHive/TMX/issues/1218)) ([5b09972](https://github.com/CourtHive/TMX/commit/5b0997229606b49d7f7410db7d8e1b7184e0a5f0))
+
+
+### Bug Fixes
+
+* **deps:** bump courthive ecosystem packages to today's releases ([5f7fcfd](https://github.com/CourtHive/TMX/commit/5f7fcfd25ac8c5b5092f6606333adaffc91482a7))
+* **deps:** update tods-competition-factory to 6.6.0 ([5b392ae](https://github.com/CourtHive/TMX/commit/5b392ae902868755b9e9f85480fba38d64d6ff92))
+* **deps:** update tods-competition-factory to 6.7.0 ([b1aac86](https://github.com/CourtHive/TMX/commit/b1aac862acf4938149404668f6124d601f9cecdb))
+* **draws:** clear draws view before empty-structure render ([0525646](https://github.com/CourtHive/TMX/commit/0525646f6e4eb8980790a58e7e22d90ba3c5b08d))
+* **draws:** confirm before regenerating a draw with completed matches ([eef4784](https://github.com/CourtHive/TMX/commit/eef47845c153f063b33e9da83c625cc0ecff9f89))
+* **draws:** never let a draw-card visualization crash the draws grid ([b9066a3](https://github.com/CourtHive/TMX/commit/b9066a33047cc1d157362777d31e58c746905747))
+* **draws:** repaint round-robin brackets on remote/local score mutations ([a5d16d7](https://github.com/CourtHive/TMX/commit/a5d16d767dd970add9c97a359df6993a6735080b))
+* **entries:** manual seeding for CONFIRMED entries + keep seeding controls visible ([#1209](https://github.com/CourtHive/TMX/issues/1209)) ([edeb6fb](https://github.com/CourtHive/TMX/commit/edeb6fbfb04bbb4a86e0c589704a9df1e458be82))
+* **login:** wrap credentials in a real &lt;form&gt; so Enter and password managers log in ([#1217](https://github.com/CourtHive/TMX/issues/1217)) ([a2b68a4](https://github.com/CourtHive/TMX/commit/a2b68a4ec3841300d39b7d8275ed29d9dcbf54df))
+* **modal:** give openModal content area room instead of the cramped 0.5em ([9f0c4aa](https://github.com/CourtHive/TMX/commit/9f0c4aa0d17feb11c6de0c1d3a52795c8c2e32ed))
+* **session:** re-login banner instead of "server not responding" on expiry ([#1213](https://github.com/CourtHive/TMX/issues/1213)) ([960ecbb](https://github.com/CourtHive/TMX/commit/960ecbbb948621d2e8db4d9694ecdf53a13cc18a))
+* **settings:** don't call provider calendars when logged out ([4dd0ffb](https://github.com/CourtHive/TMX/commit/4dd0ffb904f1c9619c8d69b2114d472033b204ed))
+* **storage:** drop the calendar entry when deleting a tournament ([4ec1e5a](https://github.com/CourtHive/TMX/commit/4ec1e5a955599d4c64a70ba058c1738f60392de7))
+* **sync:** defer remote-mutation refresh while a scoring modal is open ([9e40ce9](https://github.com/CourtHive/TMX/commit/9e40ce95876bfe6efa700e1145cee07536107613))
+* **tournament:** give the not-found toast a [Remove] that scrubs the local orphan ([a24715f](https://github.com/CourtHive/TMX/commit/a24715f834db0080f1f523d3cb704a9796172f54))
+* **tournament:** make not-found [Remove] refresh the list without a reload ([8ca396b](https://github.com/CourtHive/TMX/commit/8ca396bd2a38511d34de14ac0acdefe59603fe69))
+* **tournament:** redirect to list when a tournament record is missing ([0a9cc3a](https://github.com/CourtHive/TMX/commit/0a9cc3a8ef89a8122589c6a242fd014d6036038b))
+
 ## [8.13.0](https://github.com/CourtHive/TMX/compare/v8.12.0...v8.13.0) (2026-07-08)
 
 
