@@ -4,6 +4,7 @@
  * Includes ungenerated flights which are clickable to generate draws.
  * Returns the Tabulator instance for control bar integration.
  */
+import { formatDrawTypeLabel } from 'pages/tournament/tabs/eventsTab/describeDrawType';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { mapDrawDefinition } from 'pages/tournament/tabs/eventsTab/mapDrawDefinition';
 import { drawEntriesClick } from 'components/tables/eventsTable/drawEntriesClick';
@@ -40,7 +41,9 @@ export function renderDrawsTable({ eventId, target }: { eventId: string; target:
   });
 
   const { scaleValues } = (tournamentEngine as any).getRatingsStats?.({ eventId }) || {};
-  const generatedData = drawDefinitions.map((dd: any) => mapDrawDefinition(eventId)({ drawDefinition: dd, scaleValues }));
+  const generatedData = drawDefinitions.map((dd: any) =>
+    mapDrawDefinition(eventId)({ drawDefinition: dd, scaleValues }),
+  );
   const data = [...generatedData, ...ungeneratedFlights];
 
   if (!data.length) return;
@@ -86,7 +89,14 @@ export function renderDrawsTable({ eventId, target }: { eventId: string; target:
       width: 55,
     },
     { title: t('tables.draws.drawName'), field: DRAW_NAME, cellClick: drawDetail },
-    { title: t('tables.draws.drawType'), field: DRAW_TYPE, cellClick: drawDetail },
+    {
+      title: t('tables.draws.drawType'),
+      field: DRAW_TYPE,
+      // Composite-aware label (e.g. "Single Elimination (Round Robin Qualifying)");
+      // falls back to a title-cased raw drawType for rows without a precomputed label.
+      formatter: (cell: any) => cell.getData()?.drawTypeLabel ?? formatDrawTypeLabel(cell.getValue()),
+      cellClick: drawDetail,
+    },
     { title: t('tables.draws.flight'), field: 'flightNumber', width: 70, headerSort: false, hozAlign: CENTER },
     {
       title: '<i class="fa-solid fa-user-group" />',

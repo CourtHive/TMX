@@ -4,6 +4,7 @@
  */
 import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
+import { describeDrawType } from './describeDrawType';
 
 // constants
 const { WITHDRAWN } = entryStatusConstants;
@@ -38,6 +39,9 @@ export const mapDrawDefinition =
       published,
       drawName,
       drawType,
+      // Composite-aware display label — `drawType` alone hides an RR qualifying
+      // under a SINGLE_ELIMINATION main (see describeDrawType).
+      drawTypeLabel: describeDrawType(drawDefinition),
       eventId,
       drawId,
     };
