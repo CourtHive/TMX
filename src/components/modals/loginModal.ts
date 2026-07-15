@@ -30,29 +30,13 @@ export function loginModal(callback?: () => void): void {
     },
   ];
 
-  // Render the email/password fields inside a real <form>. The modal's action
-  // buttons live in the footer, outside this form, so without it there is no
-  // form for a password manager (1Password, etc.) to recognise. 1Password's
-  // fill-and-submit then guesses a submit control and clicks the wrong footer
-  // button — e.g. requesting a magic link instead of logging in. A genuine
-  // <form> + submit button gives both native Enter and password-manager
-  // submission an unambiguous target that runs the password login.
-  const content = (elem: HTMLElement) => {
-    const form = document.createElement('form');
-    form.style.margin = '0';
-    // Route native submission (Enter, or a password manager's fill-and-submit)
-    // to the password-login path — never the magic-link path.
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const emailValid = validators.emailValidator(inputs.email.value);
-      if (!emailValid || !inputs.password.value) return;
-      closeModal();
-      submitCredentials();
-    });
-    elem.appendChild(form);
-
-    inputs = renderForm(
-      form,
+  // renderForm `form` mode wraps the fields in a real <form> with a hidden submit
+  // button, so password managers (1Password) and native Enter submit the password
+  // login — not the magic-link footer button. The visible actions stay in the
+  // modal footer; onSubmit runs the password login on a valid email + password.
+  const content = (elem: HTMLElement) =>
+    (inputs = renderForm(
+      elem,
       [
         {
           iconLeft: 'fa-regular fa-envelope',
@@ -73,20 +57,16 @@ export function loginModal(callback?: () => void): void {
         },
       ],
       relationships,
-    );
-
-    // A real submit button is what makes Enter submit the form and what
-    // password managers target. Kept visually hidden — the visible actions
-    // remain the modal footer buttons.
-    const submit = document.createElement('button');
-    submit.type = 'submit';
-    submit.tabIndex = -1;
-    submit.setAttribute('aria-hidden', 'true');
-    submit.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;border:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);';
-    form.appendChild(submit);
-
-    return inputs;
-  };
+      {
+        form: {
+          onSubmit: () => {
+            if (!validators.emailValidator(inputs.email.value) || !inputs.password.value) return;
+            closeModal();
+            submitCredentials();
+          },
+        },
+      },
+    ));
 
   const submitCredentials = () => {
     const email = inputs.email.value;

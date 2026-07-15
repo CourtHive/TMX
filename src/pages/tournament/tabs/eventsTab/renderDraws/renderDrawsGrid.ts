@@ -14,14 +14,18 @@
  * sunburst expands the grid to wider columns.
  */
 
-import { buildDrawCard, DrawCardData, mapDrawDefinitionToCardData } from 'courthive-components';
+import {
+  buildDrawCard,
+  DrawCardData,
+  mapDrawDefinitionToCardData,
+  pickProgressionStructure,
+} from 'courthive-components';
 import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
 
 import { buildDrawCardVisualization } from './buildDrawCardVisualization';
-import { pickProgressionStructure } from './progressionStructure';
 import { DrawCardDisplayMode } from './drawCardDisplayMode';
 import {
   GateReason,
