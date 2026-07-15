@@ -1,16 +1,12 @@
-import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { hideSaveSeeding } from './hideSaveSeeding';
 import { removeSeeding } from './removeSeeding';
 
+import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
 import { RIGHT } from 'constants/tmxConstants';
 
-const { STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { QUALIFYING } = drawDefinitionConstants;
-
-// Aligned with the factory's STRUCTURE_SELECTED_STATUSES so seed values are
-// restored for all accepted statuses (e.g. CONFIRMED), not only DIRECT_ACCEPTANCE
-const ACCEPTED_STATUSES = new Set(STRUCTURE_SELECTED_STATUSES);
 
 const getSeedNumber = (participant: any, eventType: string, scaleName: string) => {
   const seedings = participant?.seedings?.[eventType];
@@ -25,7 +21,7 @@ const onCancelManualSeedingClick = (e: any, table: any, eventId: string) => {
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
   const entries = (event.entries ?? []).filter(
-    (entry: any) => entry.entryStage === entryStage && ACCEPTED_STATUSES.has(entry.entryStatus),
+    (entry: any) => entry.entryStage === entryStage && acceptedStatusSet.has(entry.entryStatus),
   );
   const participantIds = entries.map(({ participantId }: any) => participantId);
   const { participants = [] } = tournamentEngine.getParticipants({

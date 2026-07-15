@@ -4,17 +4,14 @@
  * then by a user-selected secondary column within each segment.
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
 
 const { QUALIFYING } = drawDefinitionConstants;
-const { STRUCTURE_SELECTED_STATUSES, ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
-
-// Aligned with the factory's STRUCTURE_SELECTED_STATUSES so statuses like
-// CONFIRMED, LUCKY_LOSER and QUALIFIER rank as accepted (and stay seedable)
-const ACCEPTED_STATUSES = new Set(STRUCTURE_SELECTED_STATUSES);
+const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 
 export function segmentRank(entryStage: string, entryStatus: string): number {
-  if (entryStage === QUALIFYING && ACCEPTED_STATUSES.has(entryStatus)) return 1;
-  if (ACCEPTED_STATUSES.has(entryStatus)) return 0; // MAIN accepted
+  if (entryStage === QUALIFYING && acceptedStatusSet.has(entryStatus)) return 1;
+  if (acceptedStatusSet.has(entryStatus)) return 0; // MAIN accepted
   if (entryStatus === ALTERNATE) return 2;
   if (entryStatus === UNGROUPED) return 3;
   if (entryStatus === WITHDRAWN) return 4;
