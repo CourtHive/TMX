@@ -7,7 +7,7 @@
 import { drawDefinitionConstants, entryStatusConstants, participantConstants } from 'tods-competition-factory';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
-import { cancelManualSeeding } from '../seeding/canceManuallSeeding';
+import { cancelManualSeeding } from '../seeding/cancelManualSeeding';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { generateSeedValues } from '../seeding/generateSeedValues';
 import { modifyEntriesStatus } from '../modifyEntriesStatus';
