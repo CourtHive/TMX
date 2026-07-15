@@ -3,7 +3,7 @@
  * Shows table similar to Event Entries 'Accepted' panel with optional seeding functionality
  */
 import { drawEntriesSeedingSelector } from './drawEntriesColumns/seeding/drawEntriesSeedingSelector';
-import { cancelManualSeeding } from 'components/tables/eventsTable/seeding/canceManuallSeeding';
+import { cancelManualSeeding } from 'components/tables/eventsTable/seeding/cancelManualSeeding';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { getDrawEntriesColumns } from './drawEntriesColumns/getDrawEntriesColumns';
 import { saveSeeding } from 'components/tables/eventsTable/seeding/saveSeeding';
