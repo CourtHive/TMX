@@ -21,6 +21,7 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
 
 import { buildDrawCardVisualization } from './buildDrawCardVisualization';
+import { pickProgressionStructure } from './progressionStructure';
 import { DrawCardDisplayMode } from './drawCardDisplayMode';
 import {
   GateReason,
@@ -117,9 +118,7 @@ function computeAvailability(eventId: string): VizDataAvailability {
   // Competitiveness is only populated when matchUps are fetched with
   // contextProfile.withCompetitiveness — raw drawDefinitions don't carry it.
   const competitiveMatchUps = fetchCompetitiveMatchUps(eventId);
-  const hasCompetitiveness = competitiveMatchUps.some(
-    (m: any) => m?.competitiveProfile?.competitiveness,
-  );
+  const hasCompetitiveness = competitiveMatchUps.some((m: any) => m?.competitiveProfile?.competitiveness);
   return { hasRatings: !!ratingScale, hasCompetitiveness };
 }
 
@@ -166,10 +165,7 @@ export function readDrawCardData(eventId: string): DrawCardData[] {
   const { scaleValues } = (tournamentEngine as any).getRatingsStats?.({ eventId }) || {};
   const utrAvg = scaleValues?.ratingsStats?.UTR?.avg;
   const wtnAvg = scaleValues?.ratingsStats?.WTN?.avg;
-  return [
-    ...buildGeneratedRows(resolved, eventId, utrAvg, wtnAvg),
-    ...buildUngeneratedRows(resolved, eventId),
-  ];
+  return [...buildGeneratedRows(resolved, eventId, utrAvg, wtnAvg), ...buildUngeneratedRows(resolved, eventId)];
 }
 
 function openDrawCard(data: DrawCardData): void {
@@ -222,7 +218,7 @@ function resolveCardVisualization(row: any, ctx: CardVizContext): HTMLElement | 
   if (!dd) return null;
 
   const enrichedStructure = isSunburstMode(resolved.mode)
-    ? enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures?.[0]
+    ? pickProgressionStructure(enrichedDrawsData.find((d: any) => d.drawId === row.drawId)?.structures)
     : undefined;
   const competitiveMatchUps = resolved.mode === 'competitiveness' ? competitiveByDraw.get(row.drawId) : undefined;
   const drawParticipantIds =
@@ -284,10 +280,9 @@ export function renderDrawsGrid({
 
   // Sunburst needs the enriched structures (with `roundMatchUps`) from
   // getEventData — drawDefinition.structures alone doesn't carry that field.
-  const enrichedDrawsData =
-    isSunburstMode(resolved.mode)
-      ? (tournamentEngine as any).getEventData({ eventId })?.eventData?.drawsData ?? []
-      : [];
+  const enrichedDrawsData = isSunburstMode(resolved.mode)
+    ? ((tournamentEngine as any).getEventData({ eventId })?.eventData?.drawsData ?? [])
+    : [];
 
   // Competitiveness needs matchUps with `contextProfile.withCompetitiveness`;
   // fetch once and bucket by drawId.
@@ -323,11 +318,7 @@ export function renderDrawsGrid({
       participantsById,
     });
     grid.appendChild(
-      buildDrawCard(
-        { ...row, visualization },
-        { showVisualization: showViz },
-        { onClick: openDrawCard },
-      ),
+      buildDrawCard({ ...row, visualization }, { showVisualization: showViz }, { onClick: openDrawCard }),
     );
   }
 
