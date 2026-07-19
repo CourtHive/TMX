@@ -107,6 +107,8 @@ import {
   SET_MATCHUP_STATUS,
 } from 'constants/mutationConstants';
 import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { mergeReservedCellsIntoRows } from 'services/facilitySchedule/facilityScheduleHelpers';
+import { getReservedCellsForDate } from 'services/facilitySchedule/reservedCells';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 
@@ -1549,7 +1551,14 @@ function buildRowCourtCells(params: {
     const venueId = cellData?.schedule?.venueId ?? courtInfo?.venueId ?? '';
     const courtOrder = cellData?.schedule?.courtOrder ?? ri + 1;
 
-    const cellContent = buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
+    // Reserved cells (another facility-sharing tournament's occupancy) are opaque + read-only: build
+    // them directly (bypass the matchUp mapper) and carry no matchUpId, so no drag source is attached.
+    const cellContent = cellData?.isReserved
+      ? buildScheduleGridCell(
+          { matchUpId: '', isReserved: true, reservation: cellData.reservation, schedule: cellData.schedule },
+          DEFAULT_SCHEDULE_CELL_CONFIG,
+        )
+      : buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
 
     const cell = document.createElement('div');
     cell.style.cssText = 'min-height: 60px; font-size: 0.6875rem;';
@@ -1985,6 +1994,12 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const rows: any[] = scheduleResult.rows || [];
     const allCourtsData: any[] = scheduleResult.courtsData || [];
     const courtPrefix: string = scheduleResult.courtPrefix || 'C|';
+
+    // Overlay read-only reserved cells (other facility-sharing tournaments' court occupancy) into the
+    // empty slots of the owned grid. Data is a slim projection cached by reservedCells — no records
+    // are loaded. Runs before conflict annotation so a reserved slot participates in nothing else.
+    const primaryTournamentId = getCachedTournamentInfo()?.tournamentInfo?.tournamentId ?? '';
+    mergeReservedCellsIntoRows(rows, getReservedCellsForDate(date, primaryTournamentId), allCourtsData, courtPrefix);
 
     // Run proConflicts and annotate cell data with issue styling info
     if (allCourtsData.length) annotateConflicts(rows, allCourtsData, courtPrefix);

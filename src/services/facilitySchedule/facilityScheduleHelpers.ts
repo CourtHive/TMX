@@ -46,3 +46,41 @@ export function cellLabel(cell: any): string {
   const players = Array.isArray(cell?.labels) && cell.labels.length ? cell.labels.join(' v ') : '';
   return `${time}${round}${players}`.trim() || cell?.matchUpId || '';
 }
+
+/**
+ * Inject read-only reserved cells (other tournaments' court occupancy, from a schedule projection)
+ * into the grid's `rows` model IN PLACE. A reserved cell lands in the empty slot at its court column
+ * (`courtId` → index in `courtsData`, keyed `${courtPrefix}${index}`) and its `courtOrder` row
+ * (`rows[courtOrder - 1]`). Occupied slots (the viewer's own matchUp) are never overwritten — a
+ * SAME_COURT_ORDER clash keeps the owned matchUp and drops the reserved marker. Cells for courts not
+ * in this grid, or whose `courtOrder` exceeds the rendered rows, are skipped. Opaque by design: only
+ * the scheduled time is surfaced, never participants/round.
+ *
+ * `courtsData` must be the FULL (pre-visibility-filter) court list, since row keys use those indices.
+ */
+export function mergeReservedCellsIntoRows(
+  rows: any[],
+  reservedCells: any[],
+  courtsData: any[],
+  courtPrefix: string,
+): void {
+  if (!reservedCells?.length || !rows?.length) return;
+  const courtIndexById = new Map<string, number>();
+  for (let i = 0; i < courtsData.length; i++) courtIndexById.set(courtsData[i].courtId, i);
+
+  for (const cell of reservedCells) {
+    const courtIndex = courtIndexById.get(cell?.courtId);
+    if (courtIndex === undefined) continue;
+    const ri = (cell?.courtOrder ?? 0) - 1;
+    if (ri < 0 || ri >= rows.length || !rows[ri]) continue;
+    const key = `${courtPrefix}${courtIndex}`;
+    // Skip only a slot holding an OWNED matchUp — the grid pre-populates empty slots with placeholder
+    // cell objects (no matchUpId), which must be replaceable by a reserved marker.
+    if (rows[ri][key]?.matchUpId) continue;
+    rows[ri][key] = {
+      isReserved: true,
+      reservation: { scheduledTime: cell?.scheduledTime },
+      schedule: { courtId: cell.courtId, courtOrder: cell.courtOrder, venueId: cell?.venueId },
+    };
+  }
+}

@@ -23,7 +23,8 @@ import { renderProfileView, destroyProfileView } from '../scheduleViews/profileV
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { competitionEngine } from 'services/factory/engine';
+import { loadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
+import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { context } from 'services/context';
@@ -90,6 +91,21 @@ let queueUnsubscribe: (() => void) | null = null;
 let currentHeader: SchedulingHeader | null = null;
 let currentMode: SchedulingMode | null = null;
 let availabilityInstance: AvailabilityGridInstance | null = null;
+// Tournament id whose shared-facility reserved cells (other tournaments' court occupancy) are cached,
+// so we fetch them once per tab session rather than on every date change.
+let reservedLoadedFor: string | null = null;
+
+/**
+ * Fetch the loaded tournament's shared-facility reserved cells (a slim projection of other
+ * facility-sharing tournaments' court occupancy) and, once cached, refresh the grid so they render
+ * as read-only reserved cells. No records are loaded; best-effort — a no-op when there are none.
+ */
+async function loadReservedCellsForGrid(tournamentId: string): Promise<void> {
+  const primary = tournamentEngine.q.tournament();
+  if (primary?.tournamentId !== tournamentId) return; // tab changed underneath us
+  const count = await loadReservedCells(primary);
+  if (count > 0 && reservedLoadedFor === tournamentId) refreshGridView();
+}
 
 function readBoolFlag(key: string, fallback: boolean): boolean {
   try {
@@ -172,6 +188,14 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   queueUnsubscribe?.();
   queueUnsubscribe = subscribeQueue(refreshActionBar);
   refreshActionBar();
+
+  // Shared-facility overlay: in grid mode, fetch other tournaments' court occupancy once per tab
+  // session so it renders as read-only reserved cells. Gated on tournamentId so a date change within
+  // the tab doesn't re-fetch.
+  if (resolvedMode === 'grid' && tournamentId && reservedLoadedFor !== tournamentId) {
+    reservedLoadedFor = tournamentId;
+    void loadReservedCellsForGrid(tournamentId);
+  }
 }
 
 export function destroySchedulingTab(): void {
@@ -179,6 +203,10 @@ export function destroySchedulingTab(): void {
   currentHeader = null;
   queueUnsubscribe?.();
   queueUnsubscribe = null;
+  // Drop cached shared-facility reserved cells so the next mount (possibly a different tournament)
+  // starts clean.
+  clearReservedCells();
+  reservedLoadedFor = null;
   destroyCurrentMode();
   // Drop every cached factory result so the next mount (possibly a different
   // tournament, or after external mutations that bypassed onMutationApplied)
