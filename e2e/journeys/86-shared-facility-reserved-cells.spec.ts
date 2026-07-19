@@ -74,13 +74,14 @@ test.describe('Journey 86 — shared-facility reserved cells', () => {
           scheduleCells: [
             {
               tournamentId: PEER,
+              access: 'view', // coordination-view: a peer the viewer can't author → reserved
               matchUpId: 'peer-mu',
               courtId,
               venueId,
               courtOrder: 2,
               scheduledDate: DATE,
               scheduledTime: '14:00',
-              labels: ['Should Not Render'],
+              labels: ['Should Not Render'], // opaque cell kind must never surface participant labels
             },
           ],
         }),

@@ -1,7 +1,8 @@
 /**
- * reservedCells — fetch + cache of other facility-sharing tournaments' court occupancy (a slim
- * schedule projection). No tournamentRecords are loaded; a projection cell for another tournament is
- * a reserved slot from the viewer's perspective.
+ * reservedCells — coordination-view fetch + cache of other facility-sharing tournaments' court
+ * occupancy. The request sends the loaded (authored) tournament as the context; the server returns
+ * its linked peers' projections tagged access:'author'|'view'. Only `view` peers are reserved slots
+ * (a different director/provider); `author` peers render normally. No tournamentRecords are loaded.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,6 +20,7 @@ const primaryRecord = (peerIds: string[]) => ({
   linkedTournamentIds: [PRIMARY, ...peerIds],
   venues: [{ venueId: 'v1' }],
 });
+const viewCell = (over: any) => ({ tournamentId: 'peer', access: 'view', courtId: 'c1', ...over });
 const proj = (cells: any[]) => ({ data: { scheduleCells: cells } });
 
 beforeEach(() => {
@@ -28,11 +30,11 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks());
 
 describe('loadReservedCells', () => {
-  it('caches other-tournament cells and exposes them per date', async () => {
+  it('requests the coordination view for the context tournament and caches view cells per date', async () => {
     fetchScheduleProjectionMock.mockResolvedValue(
       proj([
-        { tournamentId: 'peer', courtId: 'c1', courtOrder: 2, scheduledDate: DATE, scheduledTime: '14:00' },
-        { tournamentId: 'peer', courtId: 'c1', courtOrder: 1, scheduledDate: DATE_2 },
+        viewCell({ courtOrder: 2, scheduledDate: DATE, scheduledTime: '14:00' }),
+        viewCell({ courtOrder: 1, scheduledDate: DATE_2 }),
       ]),
     );
 
@@ -40,7 +42,7 @@ describe('loadReservedCells', () => {
 
     expect(count).toBe(2);
     expect(fetchScheduleProjectionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ tournamentIds: ['peer'], venueIds: ['v1'] }),
+      expect.objectContaining({ tournamentId: PRIMARY, venueIds: ['v1'] }),
     );
     expect(getReservedCellsForDate(DATE, PRIMARY).map((c) => c.courtOrder)).toEqual([2]);
     expect(getReservedCellsForDate(DATE_2, PRIMARY)).toHaveLength(1);
@@ -48,18 +50,18 @@ describe('loadReservedCells', () => {
     expect(hasReservedCells(PRIMARY)).toBe(true);
   });
 
-  it('excludes the primary tournament’s own cells (only other tournaments are reserved)', async () => {
+  it('keeps only view-access cells — author peers render normally, not as reserved', async () => {
     fetchScheduleProjectionMock.mockResolvedValue(
       proj([
-        { tournamentId: PRIMARY, courtId: 'c1', courtOrder: 1, scheduledDate: DATE },
-        { tournamentId: 'peer', courtId: 'c1', courtOrder: 2, scheduledDate: DATE },
+        { tournamentId: 'own-linked', access: 'author', courtId: 'c1', courtOrder: 1, scheduledDate: DATE },
+        viewCell({ courtOrder: 2, scheduledDate: DATE }),
       ]),
     );
 
-    const count = await loadReservedCells(primaryRecord(['peer']));
+    const count = await loadReservedCells(primaryRecord(['peer', 'own-linked']));
 
     expect(count).toBe(1);
-    expect(getReservedCellsForDate(DATE, PRIMARY).map((c) => c.tournamentId)).toEqual(['peer']);
+    expect(getReservedCellsForDate(DATE, PRIMARY).map((c) => c.access)).toEqual(['view']);
   });
 
   it('does not fetch and caches an empty set when there are no linked peers', async () => {
@@ -79,18 +81,14 @@ describe('loadReservedCells', () => {
 
 describe('getReservedCellsForDate / clearReservedCells', () => {
   it('returns nothing for a different tournament than the one cached', async () => {
-    fetchScheduleProjectionMock.mockResolvedValue(
-      proj([{ tournamentId: 'peer', courtId: 'c1', courtOrder: 1, scheduledDate: DATE }]),
-    );
+    fetchScheduleProjectionMock.mockResolvedValue(proj([viewCell({ courtOrder: 1, scheduledDate: DATE })]));
     await loadReservedCells(primaryRecord(['peer']));
     expect(getReservedCellsForDate(DATE, 'other-tournament')).toEqual([]);
     expect(hasReservedCells('other-tournament')).toBe(false);
   });
 
   it('clearReservedCells empties the cache', async () => {
-    fetchScheduleProjectionMock.mockResolvedValue(
-      proj([{ tournamentId: 'peer', courtId: 'c1', courtOrder: 1, scheduledDate: DATE }]),
-    );
+    fetchScheduleProjectionMock.mockResolvedValue(proj([viewCell({ courtOrder: 1, scheduledDate: DATE })]));
     await loadReservedCells(primaryRecord(['peer']));
     clearReservedCells();
     expect(getReservedCellsForDate(DATE, PRIMARY)).toEqual([]);

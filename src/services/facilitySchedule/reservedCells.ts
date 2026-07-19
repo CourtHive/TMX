@@ -10,10 +10,10 @@ import { fetchScheduleProjection } from 'services/apis/servicesApi';
  * and caches those cells for the loaded tournament; `gridView` reads them per-date and injects them
  * into empty grid slots.
  *
- * NOTE: which cells are actually reserved (vs the viewer's own, which render normally) ultimately
- * depends on the server's per-tournament `access` flag (view vs author) — the CFS coordination-view
- * work. Until that lands, the projection only returns tournaments the viewer can already see, so this
- * surfaces nothing in production; it is exercised via a stubbed projection in e2e.
+ * The request is the coordination view: it sends the loaded (authored) tournament as the context, and
+ * the server returns projections of its server-verified linked peers tagged `access:'author'|'view'`.
+ * Only `view` peers (a different director/provider sharing the facility) are reserved cells — an
+ * `author` peer is the viewer's own linked tournament and renders normally, not as a reserved slot.
  */
 
 let cache: { tournamentId: string; cells: any[] } | null = null;
@@ -27,20 +27,20 @@ export async function loadReservedCells(primaryRecord: any): Promise<number> {
   const primaryId = primaryRecord?.tournamentId;
   if (!primaryId) return 0;
 
-  const peerIds = peerLinkedIds(primaryRecord);
-  if (!peerIds.length) {
+  // No linked peers → nothing to coordinate around; skip the server round-trip.
+  if (!peerLinkedIds(primaryRecord).length) {
     cache = { tournamentId: primaryId, cells: [] };
     return 0;
   }
 
   try {
     const result: any = await fetchScheduleProjection({
-      tournamentIds: peerIds,
+      tournamentId: primaryId, // coordination context — the server expands to this tournament's links
       venueIds: primaryVenueIds(primaryRecord),
       silent: true,
     });
-    // A projection cell for another tournament = a reserved slot from the viewer's perspective.
-    const cells = (result?.data?.scheduleCells ?? []).filter((cell: any) => cell?.tournamentId !== primaryId);
+    // Only `view` peers are reserved slots; `author` peers are the viewer's own and render normally.
+    const cells = (result?.data?.scheduleCells ?? []).filter((cell: any) => cell?.access === 'view');
     cache = { tournamentId: primaryId, cells };
     return cells.length;
   } catch {
