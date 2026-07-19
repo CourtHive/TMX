@@ -23,7 +23,8 @@ import { renderProfileView, destroyProfileView } from '../scheduleViews/profileV
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { loadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
+import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
+import { peerLinkedIds } from 'services/facilitySchedule/facilityScheduleHelpers';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { resolveScheduleDate } from '../scheduleUtils';
@@ -94,17 +95,56 @@ let availabilityInstance: AvailabilityGridInstance | null = null;
 // Tournament id whose shared-facility reserved cells (other tournaments' court occupancy) are cached,
 // so we fetch them once per tab session rather than on every date change.
 let reservedLoadedFor: string | null = null;
+// Live-refresh handles for the reserved-cell overlay. Peer reschedules are not broadcast to us (the
+// peer tournament isn't loaded), so we keep the projection reasonably fresh by polling + on focus.
+let reservedRefreshTimer: ReturnType<typeof setInterval> | null = null;
+let reservedFocusHandler: (() => void) | null = null;
+const RESERVED_REFRESH_MS = 60_000;
 
 /**
  * Fetch the loaded tournament's shared-facility reserved cells (a slim projection of other
  * facility-sharing tournaments' court occupancy) and, once cached, refresh the grid so they render
  * as read-only reserved cells. No records are loaded; best-effort — a no-op when there are none.
+ * When the tournament has linked peers, also starts a lightweight live refresh.
  */
 async function loadReservedCellsForGrid(tournamentId: string): Promise<void> {
   const primary = tournamentEngine.q.tournament();
   if (primary?.tournamentId !== tournamentId) return; // tab changed underneath us
   const count = await loadReservedCells(primary);
-  if (count > 0 && reservedLoadedFor === tournamentId) refreshGridView();
+  if (reservedLoadedFor !== tournamentId) return; // tab moved on during the fetch
+  if (count > 0) refreshGridView();
+  if (peerLinkedIds(primary).length) startReservedCellsLiveRefresh(tournamentId);
+}
+
+/**
+ * Keep reserved cells reasonably fresh without a server broadcast: re-fetch on a modest interval and
+ * whenever the tab regains focus, re-rendering the grid only when the projection actually changed.
+ */
+function startReservedCellsLiveRefresh(tournamentId: string): void {
+  stopReservedCellsLiveRefresh();
+  const tick = async () => {
+    const primary = tournamentEngine.q.tournament();
+    if (primary?.tournamentId !== tournamentId || reservedLoadedFor !== tournamentId) return;
+    if (await reloadReservedCells(primary)) refreshGridView();
+  };
+  reservedRefreshTimer = setInterval(() => void tick(), RESERVED_REFRESH_MS);
+  reservedFocusHandler = () => {
+    if (document.visibilityState === 'visible') void tick();
+  };
+  globalThis.addEventListener('focus', reservedFocusHandler);
+  document.addEventListener('visibilitychange', reservedFocusHandler);
+}
+
+function stopReservedCellsLiveRefresh(): void {
+  if (reservedRefreshTimer) {
+    clearInterval(reservedRefreshTimer);
+    reservedRefreshTimer = null;
+  }
+  if (reservedFocusHandler) {
+    globalThis.removeEventListener('focus', reservedFocusHandler);
+    document.removeEventListener('visibilitychange', reservedFocusHandler);
+    reservedFocusHandler = null;
+  }
 }
 
 function readBoolFlag(key: string, fallback: boolean): boolean {
@@ -203,8 +243,9 @@ export function destroySchedulingTab(): void {
   currentHeader = null;
   queueUnsubscribe?.();
   queueUnsubscribe = null;
-  // Drop cached shared-facility reserved cells so the next mount (possibly a different tournament)
-  // starts clean.
+  // Stop the reserved-cell live refresh + drop the cache so the next mount (possibly a different
+  // tournament) starts clean.
+  stopReservedCellsLiveRefresh();
   clearReservedCells();
   reservedLoadedFor = null;
   destroyCurrentMode();

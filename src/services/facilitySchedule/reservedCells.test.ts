@@ -10,7 +10,13 @@ const { fetchScheduleProjectionMock } = vi.hoisted(() => ({ fetchScheduleProject
 
 vi.mock('services/apis/servicesApi', () => ({ fetchScheduleProjection: fetchScheduleProjectionMock }));
 
-import { loadReservedCells, getReservedCellsForDate, hasReservedCells, clearReservedCells } from './reservedCells';
+import {
+  loadReservedCells,
+  reloadReservedCells,
+  getReservedCellsForDate,
+  hasReservedCells,
+  clearReservedCells,
+} from './reservedCells';
 
 const PRIMARY = 'primary';
 const DATE = '2026-07-20';
@@ -93,5 +99,21 @@ describe('getReservedCellsForDate / clearReservedCells', () => {
     clearReservedCells();
     expect(getReservedCellsForDate(DATE, PRIMARY)).toEqual([]);
     expect(hasReservedCells(PRIMARY)).toBe(false);
+  });
+});
+
+describe('reloadReservedCells (live-refresh change detection)', () => {
+  it('reports no change when the projection is identical', async () => {
+    fetchScheduleProjectionMock.mockResolvedValue(proj([viewCell({ courtOrder: 1, scheduledDate: DATE })]));
+    await loadReservedCells(primaryRecord(['peer']));
+    expect(await reloadReservedCells(primaryRecord(['peer']))).toBe(false);
+  });
+
+  it('reports a change when a peer reschedules (cells differ)', async () => {
+    fetchScheduleProjectionMock.mockResolvedValueOnce(proj([viewCell({ courtOrder: 1, scheduledDate: DATE })]));
+    await loadReservedCells(primaryRecord(['peer']));
+    fetchScheduleProjectionMock.mockResolvedValueOnce(proj([viewCell({ courtOrder: 3, scheduledDate: DATE })]));
+    expect(await reloadReservedCells(primaryRecord(['peer']))).toBe(true);
+    expect(getReservedCellsForDate(DATE, PRIMARY).map((c) => c.courtOrder)).toEqual([3]);
   });
 });

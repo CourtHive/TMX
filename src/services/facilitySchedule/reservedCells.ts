@@ -49,6 +49,18 @@ export async function loadReservedCells(primaryRecord: any): Promise<number> {
   }
 }
 
+/**
+ * Re-fetch reserved cells and report whether they changed since the cached set. Used by the grid's
+ * lightweight live refresh — a peer director's reschedule is NOT broadcast to this client (the peer
+ * isn't loaded), so we poll/refresh-on-focus and only re-render the grid when something actually
+ * moved.
+ */
+export async function reloadReservedCells(primaryRecord: any): Promise<boolean> {
+  const before = JSON.stringify(cache?.cells ?? []);
+  await loadReservedCells(primaryRecord);
+  return JSON.stringify(cache?.cells ?? []) !== before;
+}
+
 /** Reserved cells for a given date, scoped to the loaded tournament. Empty when none are cached. */
 export function getReservedCellsForDate(scheduledDate: string, primaryId: string): any[] {
   if (!cache || cache.tournamentId !== primaryId) return [];
