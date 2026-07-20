@@ -14,8 +14,8 @@
  * path). See Mentat `feedback_cfs_no_crowd_traffic`.
  */
 
-import { buildConfirmMethods, buildDelegatedOutcome, readDelegatedOutcome, snapshotToSets, type DelegatedOutcomeScorer } from 'services/crowd/delegatedOutcome';
-import { getSessionsByMatchUpId, type CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { buildAcceptMethods, buildConfirmMethods, buildDelegatedOutcome, readDelegatedOutcome, snapshotToSets, type DelegatedOutcomeScorer } from 'services/crowd/delegatedOutcome';
+import { getSessionsByMatchUpId, promoteSession, type CrowdScoringSession } from 'services/crowd/scoreRelayClient';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { scoringModal } from 'components/modals/scoringV2';
@@ -83,6 +83,36 @@ export async function openSetDelegatedOutcome(args: {
   };
 
   scoringModal({ matchUp: prefillMatchUp, callback: onSubmit });
+}
+
+/**
+ * One-click Accept for a trusted scorekeeper/official + verified crowd session
+ * (Phase D, behaviour b): promote the session so its live scores are the
+ * authoritative feed, and — if the match is complete — apply the scorer's final
+ * score as a delegated outcome promoted straight to the official score. For an
+ * in-progress session it only promotes; the final outcome is applied on a later
+ * Accept once the session completes.
+ */
+export async function acceptTrustedSession(args: {
+  session: CrowdScoringSession;
+  matchUpId: string;
+  drawId: string;
+  callback?: (result: any) => void;
+}): Promise<void> {
+  const { session, matchUpId, drawId, callback } = args;
+
+  // Authoritative live feed. Best-effort — a relay hiccup shouldn't block the
+  // record application below.
+  await promoteSession(session.sessionId).catch(() => undefined);
+
+  const methods = buildAcceptMethods({ session, matchUpId, drawId });
+  if (!methods.length) {
+    tmxToast({ intent: 'is-success', message: t('crowd.toast.acceptedLive') });
+    callback?.({ promoted: true });
+    return;
+  }
+
+  mutationRequest({ methods, callback });
 }
 
 /**

@@ -2,6 +2,8 @@
  * Participant actions popover with edit and delete options.
  * Shows tipster menu with profile view, edit, and delete actions based on participant type.
  */
+import { toggleParticipantScorekeeper } from 'services/crowd/nominateScorekeeperFlow';
+import { isApprovedScorekeeper } from 'services/crowd/classifyScorer';
 import { editGroupingParticipant } from 'pages/tournament/tabs/participantTab/editGroupingParticipant';
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
@@ -27,6 +29,11 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
 
   const isTeam = participantType === 'TEAM';
   const isIndividual = participantType === 'INDIVIDUAL';
+
+  const individualParticipant = isIndividual
+    ? tournamentEngine.getParticipants({ participantFilters: { participantIds: [participantId] } }).participants?.[0]
+    : undefined;
+  const isScorekeeper = individualParticipant ? isApprovedScorekeeper(individualParticipant) : false;
 
   const items = [
     {
@@ -60,6 +67,15 @@ export const participantActions = (replaceTableData: () => void) => (e: MouseEve
             title: 'Rename team',
           });
         }
+      },
+    },
+    {
+      hide: !isIndividual,
+      text: isScorekeeper
+        ? `<i class='fas fa-user-check'></i> ${t('crowd.removeScorekeeperApproval')}`
+        : `<i class='fas fa-user-check'></i> ${t('crowd.approveScorekeeper')}`,
+      onClick: () => {
+        if (individualParticipant) toggleParticipantScorekeeper({ participant: individualParticipant, callback: replaceTableData });
       },
     },
     {

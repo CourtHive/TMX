@@ -3,6 +3,7 @@
  * Provides options for start/end time, official selection, and schedule clearing.
  */
 import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
+import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
@@ -337,6 +338,16 @@ export function matchUpActions({
         }),
       text: t('crowd.viewTrackers', { count: crowdTrackerCount }),
       hide: crowdTrackerCount === 0,
+    },
+    {
+      onClick: () => openNominateScorekeeper({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),
+      text: t('crowd.nominateScorekeeper'),
+      hide: noParticipants,
+    },
+    {
+      onClick: () => removeScorekeeperNomination({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),
+      text: t('crowd.removeScorekeeper'),
+      hide: !matchUp?.schedule?.scorekeeper,
     },
     {
       onClick: () => openSetDelegatedOutcome({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),

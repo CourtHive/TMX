@@ -28,10 +28,14 @@ export interface SessionScorerInfo {
  * (trusted by being entered in the tournament) OR a verified crowd person.
  * Anonymous sessions and unverified crowd people are not nominatable.
  */
-export function resolveSessionScorer(session: CrowdScoringSession, participants: any[]): SessionScorerInfo {
+export function resolveSessionScorer(
+  session: CrowdScoringSession,
+  participants: any[],
+  matchUp?: any,
+): SessionScorerInfo {
   const personId = session.crowdScoredBy?.personId ?? null;
   const verified = session.crowdScoredBy?.verified === true;
-  const { classification, participantName } = classifyScorer({ participants, personId });
+  const { classification, participantName } = classifyScorer({ participants, personId, matchUp });
 
   let nominatable = true;
   let reason: string | undefined;
@@ -50,6 +54,8 @@ export function scorerBadgeLabel(classification: ScorerClassification): string {
   switch (classification) {
     case 'official':
       return t('crowd.badge.official');
+    case 'scorekeeper':
+      return t('crowd.badge.scorekeeper');
     case 'participant':
       return t('crowd.badge.participant');
     case 'crowd':

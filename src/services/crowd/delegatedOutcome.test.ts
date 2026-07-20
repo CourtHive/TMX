@@ -1,11 +1,14 @@
 import {
+  buildAcceptMethods,
   buildConfirmMethods,
   buildDelegatedOutcome,
   findDelegatedReconciliationIssues,
   matchUpDelegationIssue,
   readDelegatedOutcome,
+  sessionIsComplete,
   snapshotToSets,
 } from './delegatedOutcome';
+import { REMOVE_DELEGATED_OUTCOME, SET_DELEGATED_OUTCOME, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 import { describe, it, expect } from 'vitest';
 
 const CANONICAL = 'CANONICAL_PERSON';
@@ -153,5 +156,36 @@ describe('matchUpDelegationIssue', () => {
     const ok = { matchUpId: 'mu-2', winningSide: 1, delegatedOutcome: { scorer: { personId: PERSON_OFFICIAL } } };
     expect(matchUpDelegationIssue(ok, participants)).toBeUndefined();
     expect(matchUpDelegationIssue({ matchUpId: 'mu-3', winningSide: 1 }, participants)).toBeUndefined();
+  });
+});
+
+describe('sessionIsComplete + buildAcceptMethods', () => {
+  const session = (currentScore: any, personId = 'person-1') => ({
+    sessionId: 's-1',
+    currentScore,
+    crowdScoredBy: { personId, displayName: 'Sam Scorekeeper' },
+  });
+
+  it('sessionIsComplete detects winningSide or COMPLETED', () => {
+    expect(sessionIsComplete(session({ winningSide: 1 }))).toBe(true);
+    expect(sessionIsComplete(session({ matchUpStatus: 'COMPLETED' }))).toBe(true);
+    expect(sessionIsComplete(session({ sets: [{ side1Score: 3 }] }))).toBe(false);
+    expect(sessionIsComplete(undefined)).toBe(false);
+  });
+
+  it('returns [] for an in-progress session (Accept only promotes)', () => {
+    expect(buildAcceptMethods({ session: session({ sets: [{ side1Score: 3 }] }), matchUpId: 'm-1', drawId: 'd-1' })).toEqual([]);
+  });
+
+  it('builds set-delegated + confirm (setMatchUpStatus + remove) for a complete session', () => {
+    const s = session({ winningSide: 1, matchUpStatus: 'COMPLETED', sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }] });
+    const methods = buildAcceptMethods({ session: s, matchUpId: 'm-1', drawId: 'd-1' });
+    expect(methods.map((m: any) => m.method)).toEqual([SET_DELEGATED_OUTCOME, SET_MATCHUP_STATUS, REMOVE_DELEGATED_OUTCOME]);
+    const outcome = methods[0].params.outcome;
+    expect(outcome.winningSide).toBe(1);
+    expect(outcome.scorer.personId).toBe('person-1');
+    expect(outcome.score.sets[0].side1Score).toBe(6);
+    // confirm applies the same canonical outcome as the official score
+    expect(methods[1].params.outcome.winningSide).toBe(1);
   });
 });

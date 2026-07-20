@@ -16,7 +16,7 @@
 
 import { classifyScorer, type ScorerClassification } from './classifyScorer';
 
-import { REMOVE_DELEGATED_OUTCOME, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
+import { REMOVE_DELEGATED_OUTCOME, SET_DELEGATED_OUTCOME, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 export interface DelegatedOutcomeScorer {
   personId: string | null;
@@ -94,6 +94,34 @@ export function buildConfirmMethods(args: { matchUpId: string; drawId: string; d
       },
     },
     { method: REMOVE_DELEGATED_OUTCOME, params: { matchUpId, drawId } },
+  ];
+}
+
+/** Whether a crowd session's snapshot represents a completed match. */
+export function sessionIsComplete(session: any): boolean {
+  const score = session?.currentScore;
+  return score?.winningSide != null || score?.matchUpStatus === 'COMPLETED';
+}
+
+/**
+ * One-click Accept (Phase D) for a trusted (nominated/role scorekeeper or
+ * official) + verified session on a COMPLETED match: the methods that write the
+ * scorer's final score as a delegated outcome and immediately promote it to the
+ * official score. Returns [] when the session is not yet complete — Accept then
+ * only promotes the live feed (handled by the flow layer). Pure.
+ */
+export function buildAcceptMethods(args: { session: any; matchUpId: string; drawId: string }): any[] {
+  const { session, matchUpId, drawId } = args;
+  if (!sessionIsComplete(session)) return [];
+  const delegated = buildDelegatedOutcome({
+    score: { sets: snapshotToSets(session?.currentScore) },
+    matchUpStatus: session?.currentScore?.matchUpStatus,
+    winningSide: session?.currentScore?.winningSide,
+    scorer: { personId: session?.crowdScoredBy?.personId ?? null, displayName: session?.crowdScoredBy?.displayName },
+  });
+  return [
+    { method: SET_DELEGATED_OUTCOME, params: { matchUpId, drawId, outcome: delegated } },
+    ...buildConfirmMethods({ matchUpId, drawId, delegatedOutcome: delegated }),
   ];
 }
 

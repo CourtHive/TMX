@@ -7,10 +7,15 @@
     "cancel": "Cancel",
     "promote": "Promote",
     "demote": "Demote",
+    "accept": "Accept",
     "noActiveTrackers": "No active crowd trackers",
     "activeTrackers_one": "{{count}} active tracker",
     "activeTrackers_other": "{{count}} active trackers",
     "viewTrackers": "View crowd trackers ({{count}})",
+    "nominateScorekeeper": "Nominate scorekeeper",
+    "removeScorekeeper": "Remove nominated scorekeeper",
+    "approveScorekeeper": "Approve as scorekeeper",
+    "removeScorekeeperApproval": "Remove scorekeeper approval",
     "setDelegatedOutcome": "Set delegated outcome",
     "confirmDelegatedOutcome": "Confirm delegated outcome",
     "badge": {
@@ -19,7 +24,8 @@
       "crowd": "CROWD",
       "anon": "ANON",
       "verified": "VERIFIED",
-      "nominated": "NOMINATED"
+      "nominated": "NOMINATED",
+      "scorekeeper": "SCOREKEEPER"
     },
     "reason": {
       "signInRequired": "Sign-in required to be nominated",
@@ -27,7 +33,9 @@
     },
     "toast": {
       "nominateFirst": "Nominate a verified scorer before setting a delegated outcome.",
-      "noOutcomeToConfirm": "No delegated outcome to confirm on this match."
+      "noOutcomeToConfirm": "No delegated outcome to confirm on this match.",
+      "noScorekeeperCandidates": "No HiveID-linked participants to nominate as scorekeeper.",
+      "acceptedLive": "Accepted — their live scores are now authoritative for this match."
     },
     "tooltip": {
       "liveTracker": "Score reported via live tracker",

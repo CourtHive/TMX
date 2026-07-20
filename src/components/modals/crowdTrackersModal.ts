@@ -26,8 +26,17 @@ import {
   resolveSessionScorer,
   scorerBadgeLabel,
 } from 'components/modals/crowdTrackersModalLogic';
+import { acceptTrustedSession } from 'services/crowd/delegatedOutcomeFlow';
+import { isTrustedScorer } from 'services/crowd/classifyScorer';
 import { tournamentEngine } from 'tods-competition-factory';
 import { t } from 'i18n';
+
+/** matchUp context threaded to the rows so per-matchUp nomination + Accept work. */
+interface RowContext {
+  matchUpId: string;
+  drawId?: string;
+  matchUp?: any;
+}
 
 interface CrowdTrackersModalOptions {
   matchUpId: string;
@@ -85,7 +94,9 @@ export function openCrowdTrackersModal(opts: CrowdTrackersModalOptions): void {
         return;
       }
       const participants = participantsLoader();
-      renderList(list, status, sessions, participants, { promote, demote, cancel, refresh });
+      const matchUp = (tournamentEngine as any).q?.matchUp?.({ matchUpId: opts.matchUpId });
+      const ctx: RowContext = { matchUpId: opts.matchUpId, drawId: matchUp?.drawId, matchUp };
+      renderList(list, status, sessions, participants, { promote, demote, cancel, refresh }, ctx);
     };
 
     void refresh();
@@ -109,11 +120,12 @@ export function renderList(
   sessions: CrowdScoringSession[],
   participants: any[],
   actions: RowActions,
+  ctx?: RowContext,
 ): void {
   list.innerHTML = '';
   status.textContent = buildStatusMessage(sessions.length);
   if (sessions.length === 0) return;
-  for (const session of sessions) list.appendChild(renderRow(session, participants, actions));
+  for (const session of sessions) list.appendChild(renderRow(session, participants, actions, ctx));
 }
 
 function makeBadge(text: string, bg: string): HTMLSpanElement {
@@ -123,19 +135,22 @@ function makeBadge(text: string, bg: string): HTMLSpanElement {
   return badge;
 }
 
+const SUCCESS_GREEN = 'var(--tmx-status-success, #2bb673)';
+
 const CLASSIFICATION_BG: Record<string, string> = {
   official: 'var(--tmx-accent-blue, #2d6cdf)',
+  scorekeeper: SUCCESS_GREEN,
   participant: 'var(--tmx-accent-blue, #2d6cdf)',
   crowd: 'var(--tmx-text-secondary, #666)',
   anonymous: 'var(--tmx-text-secondary, #999)',
 };
 
-function renderRow(session: CrowdScoringSession, participants: any[], actions: RowActions): HTMLElement {
+function renderRow(session: CrowdScoringSession, participants: any[], actions: RowActions, ctx?: RowContext): HTMLElement {
   const row = document.createElement('div');
   row.style.cssText = ROW_STYLE;
   row.dataset.sessionId = session.sessionId;
 
-  const scorer = resolveSessionScorer(session, participants);
+  const scorer = resolveSessionScorer(session, participants, ctx?.matchUp);
 
   const meta = document.createElement('div');
   meta.style.cssText = ROW_META_STYLE;
@@ -144,8 +159,8 @@ function renderRow(session: CrowdScoringSession, participants: any[], actions: R
   primary.style.cssText = ROW_PRIMARY_STYLE;
   primary.textContent = scorer.participantName || session.crowdScoredBy?.displayName || session.userId;
   primary.appendChild(makeBadge(scorerBadgeLabel(scorer.classification), CLASSIFICATION_BG[scorer.classification]));
-  if (scorer.verified) primary.appendChild(makeBadge(t('crowd.badge.verified'), 'var(--tmx-status-success, #2bb673)'));
-  if (session.trusted) primary.appendChild(makeBadge(t('crowd.badge.nominated'), 'var(--tmx-status-success, #2bb673)'));
+  if (scorer.verified) primary.appendChild(makeBadge(t('crowd.badge.verified'), SUCCESS_GREEN));
+  if (session.trusted) primary.appendChild(makeBadge(t('crowd.badge.nominated'), SUCCESS_GREEN));
   meta.appendChild(primary);
 
   const secondary = document.createElement('div');
@@ -173,6 +188,19 @@ function renderRow(session: CrowdScoringSession, participants: any[], actions: R
       { disabled: nominateBlocked, title: nominateBlocked ? scorer.reason : undefined },
     ),
   );
+
+  // One-click Accept — only for a trusted (nominated/role scorekeeper or
+  // official) AND email-verified session (Phase D). Promotes to the authoritative
+  // live feed and, once the match is complete, applies the official outcome.
+  if (ctx?.matchUpId && ctx?.drawId && isTrustedScorer(scorer.classification) && scorer.verified) {
+    const { matchUpId, drawId } = ctx;
+    buttons.appendChild(
+      makeButton(t('crowd.accept'), async () => {
+        await acceptTrustedSession({ session, matchUpId, drawId });
+        await actions.refresh();
+      }),
+    );
+  }
 
   buttons.appendChild(
     makeButton(t('crowd.cancel'), async () => {
