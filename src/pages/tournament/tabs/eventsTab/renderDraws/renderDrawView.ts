@@ -496,24 +496,32 @@ export function renderDrawView({
     .map(Number)
     .sort((a, b) => a - b);
 
+  const renderDrawControlBar = () =>
+    drawControlBar({
+      onInitialRoundChange,
+      initialRoundNumber,
+      updateDisplay: update,
+      existingView: roundsView,
+      roundNumbers,
+      structure,
+      callback,
+      drawId,
+      participantFilter,
+    });
+
   const onInitialRoundChange = (roundNumber: number) => {
     initialRoundNumber = roundNumber;
     getData(); // fresh matchUps — renderRound mutates roundFactor in-place
     if (drawsView) removeAllChildNodes(drawsView);
     updateDrawDisplay();
+    // Rebuild the control bar so the minimap toggle icon and active round tab
+    // re-evaluate against the new round. controlBar clears + rebuilds #drawControl,
+    // so this is idempotent (no duplicate toggle). Without it, switching to R1
+    // in-view shows the minimap body but not its toggle (and stale state on R1→SF).
+    renderDrawControlBar();
   };
 
-  drawControlBar({
-    onInitialRoundChange,
-    initialRoundNumber,
-    updateDisplay: update,
-    existingView: roundsView,
-    roundNumbers,
-    structure,
-    callback,
-    drawId,
-    participantFilter,
-  });
+  renderDrawControlBar();
   const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
   const updateControlBar = (refresh?: boolean) => {
     if (refresh) getData();
