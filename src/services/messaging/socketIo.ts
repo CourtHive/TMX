@@ -89,6 +89,26 @@ export function onTournamentMutation(callback: ((data: any) => void) | null): vo
   mutationListener = callback;
 }
 
+let facilityScheduleListener: ((data: any) => void) | null = null;
+
+/** Register a callback for opaque `facilityScheduleChanged` events — a linked facility peer's schedule
+ * moved on the server. The event carries only `{ venueIds, changedAt }` (no tournament/matchUp detail);
+ * the consumer re-fetches its reserved-cell projection, which re-gates server-side. */
+export function onFacilityScheduleChanged(callback: ((data: any) => void) | null): void {
+  facilityScheduleListener = callback;
+}
+
+function handleFacilityScheduleChanged(data: any): void {
+  slog('[socket] received facilityScheduleChanged — venues:', data?.venueIds);
+  facilityScheduleListener?.(data);
+}
+
+/** e2e/dev only: deliver a synthetic `facilityScheduleChanged` to the registered listener, to exercise
+ * the client re-fetch path without a live linked-peer mutation on the server. */
+export function simulateFacilityScheduleChanged(data: any): void {
+  handleFacilityScheduleChanged(data);
+}
+
 function handleTournamentMutation(data: any): void {
   slog(
     '[socket] received tournamentMutation — methods:',
@@ -133,6 +153,7 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on(TMX_MESSAGE, tmxMessage);
     oi.socket.on(TMX_DIRECTIVE, processDirective);
     oi.socket.on('tournamentMutation', handleTournamentMutation);
+    oi.socket.on('facilityScheduleChanged', handleFacilityScheduleChanged);
     oi.socket.on('chatMessage', receiveMessage);
     oi.socket.on('chatAccepted', receiveAccepted);
     oi.socket.on('chatRejected', receiveRejected);
