@@ -79,8 +79,14 @@ export async function renderRegistrationsTab(): Promise<void> {
 
 async function refresh(tournamentId: string): Promise<void> {
   if (!state) return;
+  const provider = resolveProvider();
+  if (!provider) {
+    tmxToast({ message: 'Tournament has no provider — cannot load registrations.', intent: INTENT_DANGER });
+    return;
+  }
   try {
-    const entries = await getTournamentRegistrations({ tournamentId });
+    // Pending registrations are read DIRECTLY from the declarations service (off CFS).
+    const entries = await getTournamentRegistrations({ tournamentId, provider });
     state.allEntries = entries;
     applyFilter();
   } catch (err: any) {
@@ -153,14 +159,19 @@ async function runSingleAction(
 ): Promise<void> {
   try {
     if (action === 'accept') {
+      // Accept is the ONE CFS touch (addParticipants); reject/waitlist go to declarations.
       await acceptRegistration({ tournamentId, registrationId });
       tmxToast({ message: 'Applicant accepted into the tournament.', intent: INTENT_SUCCESS });
-    } else if (action === 'waitlist') {
-      await waitlistRegistration({ tournamentId, registrationId });
-      tmxToast({ message: 'Applicant moved to waitlist.', intent: INTENT_INFO });
     } else {
-      await rejectRegistration({ tournamentId, registrationId });
-      tmxToast({ message: 'Applicant rejected.', intent: INTENT_INFO });
+      const provider = resolveProvider();
+      if (!provider) throw new Error('Tournament has no provider');
+      if (action === 'waitlist') {
+        await waitlistRegistration({ provider, registrationId });
+        tmxToast({ message: 'Applicant moved to waitlist.', intent: INTENT_INFO });
+      } else {
+        await rejectRegistration({ provider, registrationId });
+        tmxToast({ message: 'Applicant rejected.', intent: INTENT_INFO });
+      }
     }
     await refresh(tournamentId);
   } catch (err: any) {
@@ -170,9 +181,11 @@ async function runSingleAction(
 
 async function runBulkAction(tournamentId: string, action: AdminAction): Promise<void> {
   if (!state?.selectedIds.length) return;
+  const provider = resolveProvider() ?? '';
   try {
     const { results } = await bulkRegistrationAction({
       tournamentId,
+      provider,
       action,
       registrationIds: state.selectedIds,
     });
@@ -210,4 +223,10 @@ function resolveTournamentId(): string | null {
   if (tournamentId) return tournamentId;
   const { tournamentRecord } = tournamentEngine.getTournament();
   return tournamentRecord?.tournamentId ?? null;
+}
+
+// The tournament's provider scopes the direct declarations reads/decisions.
+function resolveProvider(): string | null {
+  const { tournamentRecord } = tournamentEngine.getTournament();
+  return tournamentRecord?.parentOrganisation?.organisationId ?? null;
 }

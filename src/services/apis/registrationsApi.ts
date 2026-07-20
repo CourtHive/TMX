@@ -1,11 +1,12 @@
 /**
  * Director-side registration endpoints (HiveID Phase 2-B).
  *
- * Mirrors the CFS surface mounted at
- * `/admin/tournaments/:tournamentId/registrations`. baseApi handles the
- * admin JWT (tmxToken); these are admin-audience calls only — the
- * AuthGuard rejects pure HiveID tokens server-side.
+ * Pending registrations live OFF CFS: the list + reject/waitlist go DIRECTLY to
+ * the declarations service (see declarationsApi), scoped to the tournament's
+ * provider on the admin JWT. Only ACCEPT hits CFS — it runs `addParticipants`
+ * (the one tournamentRecord mutation) and stamps the decision back in declarations.
  */
+import { fetchTournamentRegistrations, decideRegistration } from './declarationsApi';
 import { baseApi } from './baseApi';
 
 export type RegistrationStatus = 'applied' | 'accepted' | 'seeded' | 'withdrawn' | 'waitlisted' | 'rejected';
@@ -43,12 +44,13 @@ function adminPath(tournamentId: string): string {
 
 export async function getTournamentRegistrations(params: {
   tournamentId: string;
+  provider: string;
   status?: RegistrationStatus;
 }): Promise<RegistrationEntry[]> {
   if (!params?.tournamentId) throw new Error('Missing tournamentId');
-  const query = params.status ? `?status=${encodeURIComponent(params.status)}` : '';
-  const { data } = await baseApi.get(`${adminPath(params.tournamentId)}${query}`);
-  return data ?? [];
+  if (!params?.provider) throw new Error('Missing provider');
+  const entries = await fetchTournamentRegistrations(params.provider, params.tournamentId);
+  return params.status ? entries.filter((e) => e.status === params.status) : entries;
 }
 
 export async function acceptRegistration(params: {
@@ -63,40 +65,50 @@ export async function acceptRegistration(params: {
   return data;
 }
 
-export async function waitlistRegistration(params: {
-  tournamentId: string;
+export function waitlistRegistration(params: {
+  provider: string;
   registrationId: string;
   statusReason?: string;
 }): Promise<RegistrationEntry> {
-  const { data } = await baseApi.post(
-    `${adminPath(params.tournamentId)}/${encodeURIComponent(params.registrationId)}/waitlist`,
-    { statusReason: params.statusReason },
-  );
-  return data;
+  return decideRegistration(params.provider, params.registrationId, 'WAITLISTED', params.statusReason);
 }
 
-export async function rejectRegistration(params: {
-  tournamentId: string;
+export function rejectRegistration(params: {
+  provider: string;
   registrationId: string;
   statusReason?: string;
 }): Promise<RegistrationEntry> {
-  const { data } = await baseApi.post(
-    `${adminPath(params.tournamentId)}/${encodeURIComponent(params.registrationId)}/reject`,
-    { statusReason: params.statusReason },
-  );
-  return data;
+  return decideRegistration(params.provider, params.registrationId, 'REJECTED', params.statusReason);
 }
 
+// Bulk is a client-side fan-out over the single-action calls: accept → CFS,
+// waitlist/reject → declarations. Each id resolves independently so one failure
+// doesn't abort the rest (mirrors the old server bulk contract).
 export async function bulkRegistrationAction(params: {
   tournamentId: string;
+  provider: string;
   action: 'accept' | 'waitlist' | 'reject';
   registrationIds: string[];
   statusReason?: string;
 }): Promise<BulkActionResult> {
-  const { data } = await baseApi.post(`${adminPath(params.tournamentId)}/bulk`, {
-    action: params.action,
-    registrationIds: params.registrationIds,
-    statusReason: params.statusReason,
-  });
-  return data;
+  const results = await Promise.all(
+    params.registrationIds.map(async (registrationId) => {
+      try {
+        if (params.action === 'accept') {
+          const { participantId } = await acceptRegistration({
+            tournamentId: params.tournamentId,
+            registrationId,
+            statusReason: params.statusReason,
+          });
+          return { registrationId, ok: true, participantId };
+        }
+        const toStatus = params.action === 'waitlist' ? 'WAITLISTED' : 'REJECTED';
+        await decideRegistration(params.provider, registrationId, toStatus, params.statusReason);
+        return { registrationId, ok: true };
+      } catch (err: any) {
+        return { registrationId, ok: false, error: err?.message ?? String(err) };
+      }
+    }),
+  );
+  return { results };
 }
