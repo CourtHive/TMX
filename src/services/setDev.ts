@@ -6,7 +6,7 @@ import { forceStaleness, isStale, triggerStalenessCheck } from 'services/stalene
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
-import { connectSocket, disconnectSocket, emitTmx } from './messaging/socketIo';
+import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { buildFromSources } from '../dev/cfsToTournamentRecord.mjs';
@@ -130,7 +130,7 @@ export function setDev(): void {
     subs,
   });
 
-  addDev({ connectSocket, disconnectSocket, emitTmx });
+  addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged });
   addDev({ tmx2db, load, build, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 

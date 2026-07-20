@@ -113,4 +113,53 @@ test.describe('Journey 86 — shared-facility reserved cells', () => {
     const wrapper = page.locator(`[data-court-id="${courtId}"][data-court-order="2"]`).first();
     expect(await wrapper.getAttribute('data-matchup-id')).toBeNull();
   });
+
+  test('a facilityScheduleChanged event touching the venue re-fetches and moves the reserved cell', async ({
+    page,
+  }) => {
+    const { courtId, venueId } = await seedPrimary(page);
+
+    // Mutable projection: the peer starts at court-order 2 (14:00), then reschedules to 3 (16:00).
+    let peerOrder = 2;
+    let peerTime = '14:00';
+    await page.route('**/factory/schedule-projection', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          scheduleCells: [
+            { tournamentId: PEER, access: 'view', courtId, venueId, courtOrder: peerOrder, scheduledDate: DATE, scheduledTime: peerTime },
+          ],
+        }),
+      });
+    });
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(ID);
+    await page.waitForFunction(
+      (id) => dev.factory.competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId === id,
+      ID,
+      { timeout: 15_000 },
+    );
+    await page.evaluate((hash) => (globalThis.location.hash = hash), `#/tournament/${ID}/scheduling/${DATE}/grid`);
+
+    // Initial reserved cell at court-order 2.
+    await page.waitForSelector(`[data-court-id="${courtId}"][data-court-order="2"] .spl-cell--reserved`, {
+      state: 'visible',
+      timeout: 15_000,
+    });
+
+    // The peer reschedules; the projection now returns the new slot.
+    peerOrder = 3;
+    peerTime = '16:00';
+
+    // Deliver a synthetic facilityScheduleChanged touching this venue → client re-fetches + re-renders.
+    await page.evaluate((v) => dev.simulateFacilityScheduleChanged({ venueIds: [v], changedAt: Date.now() }), venueId);
+
+    // The reserved cell moves to court-order 3 (new fetch applied) and clears from court-order 2.
+    const moved = page.locator(`[data-court-id="${courtId}"][data-court-order="3"] .spl-cell--reserved`);
+    await moved.waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(moved).toContainText('16:00');
+    await expect(page.locator(`[data-court-id="${courtId}"][data-court-order="2"] .spl-cell--reserved`)).toHaveCount(0);
+  });
 });

@@ -5,6 +5,8 @@ import {
   conflictsForDate,
   cellLabel,
   mergeReservedCellsIntoRows,
+  venueIdsIntersect,
+  facilityEventTouchesVenues,
 } from './facilityScheduleHelpers';
 import { describe, it, expect } from 'vitest';
 
@@ -120,5 +122,31 @@ describe('mergeReservedCellsIntoRows', () => {
     const rows: any[] = [{}];
     mergeReservedCellsIntoRows(rows, [], [{ courtId: 'c0' }], 'C|');
     expect(rows[0]).toEqual({});
+  });
+});
+
+describe('venueIdsIntersect', () => {
+  it('is true when the lists share a venue', () => {
+    expect(venueIdsIntersect(['v1', 'v2'], ['v2', 'v3'])).toBe(true);
+  });
+  it('is false when disjoint', () => {
+    expect(venueIdsIntersect(['v1'], ['v2'])).toBe(false);
+  });
+  it('is false when either side is empty', () => {
+    expect(venueIdsIntersect([], ['v1'])).toBe(false);
+    expect(venueIdsIntersect(['v1'], [])).toBe(false);
+  });
+});
+
+describe('facilityEventTouchesVenues (facilityScheduleChanged gate)', () => {
+  it('refreshes when the event venues intersect the tournament venues', () => {
+    expect(facilityEventTouchesVenues(['v2'], ['v1', 'v2'])).toBe(true);
+  });
+  it('skips when the event venues are disjoint from the tournament venues', () => {
+    expect(facilityEventTouchesVenues(['v9'], ['v1', 'v2'])).toBe(false);
+  });
+  it('treats an empty event scope as relevant (defensive re-fetch)', () => {
+    expect(facilityEventTouchesVenues([], ['v1'])).toBe(true);
+    expect(facilityEventTouchesVenues(undefined as any, ['v1'])).toBe(true);
   });
 });

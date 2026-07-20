@@ -1991,7 +1991,10 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const MIN_COURT_WIDTH = readUserMinCourtWidth();
     const scheduleResult = getCachedScheduleMatchUps(date, { minCourtGridRows });
 
-    const rows: any[] = scheduleResult.rows || [];
+    // Shallow-clone each row so the reserved-cell injection below never mutates the CACHED schedule
+    // rows. Without this, a prior render's reserved cell lingers in the cache and ghosts alongside the
+    // new one when the projection changes under live refresh (a peer reschedules to a different slot).
+    const rows: any[] = (scheduleResult.rows || []).map((row: any) => ({ ...row }));
     const allCourtsData: any[] = scheduleResult.courtsData || [];
     const courtPrefix: string = scheduleResult.courtPrefix || 'C|';
 

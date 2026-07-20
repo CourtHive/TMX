@@ -58,6 +58,24 @@ export function cellLabel(cell: any): string {
  *
  * `courtsData` must be the FULL (pre-visibility-filter) court list, since row keys use those indices.
  */
+/** True when the two venue-id lists share at least one venue. Empty either side → no intersection. */
+export function venueIdsIntersect(a: string[], b: string[]): boolean {
+  if (!a?.length || !b?.length) return false;
+  const set = new Set(a);
+  return b.some((id) => set.has(id));
+}
+
+/**
+ * Gate for an opaque `facilityScheduleChanged` event: does it concern a tournament owning these venues?
+ * An event with no venue scope is treated as relevant (defensive — the re-fetch re-gates server-side,
+ * so at worst we do one extra fetch; missing a real change would strand a reserved cell). Otherwise it
+ * must intersect the tournament's venues.
+ */
+export function facilityEventTouchesVenues(eventVenueIds: string[], ourVenueIds: string[]): boolean {
+  if (!eventVenueIds?.length) return true;
+  return venueIdsIntersect(eventVenueIds, ourVenueIds);
+}
+
 export function mergeReservedCellsIntoRows(
   rows: any[],
   reservedCells: any[],

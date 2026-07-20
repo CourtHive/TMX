@@ -23,8 +23,9 @@ import { renderProfileView, destroyProfileView } from '../scheduleViews/profileV
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { peerLinkedIds, primaryVenueIds, facilityEventTouchesVenues } from 'services/facilitySchedule/facilityScheduleHelpers';
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
-import { peerLinkedIds } from 'services/facilitySchedule/facilityScheduleHelpers';
+import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging/socketIo';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { resolveScheduleDate } from '../scheduleUtils';
@@ -95,17 +96,20 @@ let availabilityInstance: AvailabilityGridInstance | null = null;
 // Tournament id whose shared-facility reserved cells (other tournaments' court occupancy) are cached,
 // so we fetch them once per tab session rather than on every date change.
 let reservedLoadedFor: string | null = null;
-// Live-refresh handles for the reserved-cell overlay. Peer reschedules are not broadcast to us (the
-// peer tournament isn't loaded), so we keep the projection reasonably fresh by polling + on focus.
-let reservedRefreshTimer: ReturnType<typeof setInterval> | null = null;
+// Reserved cells are kept live by the server's `facilityScheduleChanged` broadcast (a linked peer
+// rescheduled — its record isn't loaded, so its mutations never reach us directly). Focus re-fetch +
+// a long safety poll + a reconnect re-fetch backstop missed events / offline gaps.
+let reservedSafetyTimer: ReturnType<typeof setInterval> | null = null;
 let reservedFocusHandler: (() => void) | null = null;
-const RESERVED_REFRESH_MS = 60_000;
+// Reconnect listeners can't be unregistered, so register exactly once (module-lifetime).
+let reservedReconnectRegistered = false;
+const RESERVED_SAFETY_POLL_MS = 300_000; // 5 min — backstop only; the broadcast is the live path.
 
 /**
  * Fetch the loaded tournament's shared-facility reserved cells (a slim projection of other
  * facility-sharing tournaments' court occupancy) and, once cached, refresh the grid so they render
  * as read-only reserved cells. No records are loaded; best-effort — a no-op when there are none.
- * When the tournament has linked peers, also starts a lightweight live refresh.
+ * When the tournament has linked peers, also starts the live refresh.
  */
 async function loadReservedCellsForGrid(tournamentId: string): Promise<void> {
   const primary = tournamentEngine.q.tournament();
@@ -113,32 +117,59 @@ async function loadReservedCellsForGrid(tournamentId: string): Promise<void> {
   const count = await loadReservedCells(primary);
   if (reservedLoadedFor !== tournamentId) return; // tab moved on during the fetch
   if (count > 0) refreshGridView();
-  if (peerLinkedIds(primary).length) startReservedCellsLiveRefresh(tournamentId);
+  if (peerLinkedIds(primary).length) startReservedCellsLiveRefresh();
+}
+
+/** Re-fetch reserved cells for the currently-mounted linked-peer grid; re-render only on change. */
+async function refreshReservedCellsIfChanged(): Promise<void> {
+  const tournamentId = reservedLoadedFor;
+  if (!tournamentId) return; // no linked-peer grid mounted
+  const primary = tournamentEngine.q.tournament();
+  if (primary?.tournamentId !== tournamentId) return; // tab moved on
+  if (await reloadReservedCells(primary)) refreshGridView();
 }
 
 /**
- * Keep reserved cells reasonably fresh without a server broadcast: re-fetch on a modest interval and
- * whenever the tab regains focus, re-rendering the grid only when the projection actually changed.
+ * A linked facility peer's schedule changed on the server (opaque broadcast). Re-fetch when the
+ * event's touched venues overlap the loaded tournament's venues. Empty venue scope is treated as
+ * relevant (defensive — the re-fetch re-gates server-side anyway).
  */
-function startReservedCellsLiveRefresh(tournamentId: string): void {
+function onFacilityScheduleChangedEvent(data: any): void {
+  const tournamentId = reservedLoadedFor;
+  if (!tournamentId) return;
+  const primary = tournamentEngine.q.tournament();
+  if (primary?.tournamentId !== tournamentId) return;
+  const eventVenueIds: string[] = Array.isArray(data?.venueIds) ? data.venueIds : [];
+  if (!facilityEventTouchesVenues(eventVenueIds, primaryVenueIds(primary))) return;
+  void refreshReservedCellsIfChanged();
+}
+
+/**
+ * Live refresh for the reserved-cell overlay. Primary trigger: the server's `facilityScheduleChanged`
+ * broadcast. Backstops (missed events / reconnect gaps, and the case where the broadcast flag is off
+ * server-side): refresh-on-focus, a long safety poll, and a re-fetch on socket reconnect.
+ */
+function startReservedCellsLiveRefresh(): void {
   stopReservedCellsLiveRefresh();
-  const tick = async () => {
-    const primary = tournamentEngine.q.tournament();
-    if (primary?.tournamentId !== tournamentId || reservedLoadedFor !== tournamentId) return;
-    if (await reloadReservedCells(primary)) refreshGridView();
-  };
-  reservedRefreshTimer = setInterval(() => void tick(), RESERVED_REFRESH_MS);
+  onFacilityScheduleChanged(onFacilityScheduleChangedEvent);
+  reservedSafetyTimer = setInterval(() => void refreshReservedCellsIfChanged(), RESERVED_SAFETY_POLL_MS);
   reservedFocusHandler = () => {
-    if (document.visibilityState === 'visible') void tick();
+    if (document.visibilityState === 'visible') void refreshReservedCellsIfChanged();
   };
   globalThis.addEventListener('focus', reservedFocusHandler);
   document.addEventListener('visibilitychange', reservedFocusHandler);
+  // Register once — the handler no-ops unless a linked-peer grid is mounted (guarded by reservedLoadedFor).
+  if (!reservedReconnectRegistered) {
+    onSocketReconnect(() => void refreshReservedCellsIfChanged());
+    reservedReconnectRegistered = true;
+  }
 }
 
 function stopReservedCellsLiveRefresh(): void {
-  if (reservedRefreshTimer) {
-    clearInterval(reservedRefreshTimer);
-    reservedRefreshTimer = null;
+  onFacilityScheduleChanged(null);
+  if (reservedSafetyTimer) {
+    clearInterval(reservedSafetyTimer);
+    reservedSafetyTimer = null;
   }
   if (reservedFocusHandler) {
     globalThis.removeEventListener('focus', reservedFocusHandler);
