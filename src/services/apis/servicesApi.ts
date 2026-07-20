@@ -22,15 +22,21 @@ export async function requestTournamentUpdatedAt({ tournamentId, silent }: { tou
  * requested tournaments the caller is authorized to view, optionally filtered to venueIds. Used to
  * overlay linked peers' court claims without loading their full records. */
 export async function fetchScheduleProjection({
+  tournamentId,
   tournamentIds,
   venueIds,
   silent,
 }: {
-  tournamentIds: string[];
+  tournamentId?: string;
+  tournamentIds?: string[];
   venueIds?: string[];
   silent?: boolean;
 }) {
-  return await baseApi.post('/factory/schedule-projection', { tournamentIds, venueIds }, silent ? { silenceErrors: true } : undefined);
+  return await baseApi.post(
+    '/factory/schedule-projection',
+    { tournamentId, tournamentIds, venueIds },
+    silent ? { silenceErrors: true } : undefined,
+  );
 }
 
 export async function addProvider({ provider }: { provider: any }) {

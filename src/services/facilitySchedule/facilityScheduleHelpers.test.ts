@@ -1,4 +1,11 @@
-import { peerLinkedIds, primaryVenueIds, peerOccupancyForDate, conflictsForDate, cellLabel } from './facilityScheduleHelpers';
+import {
+  peerLinkedIds,
+  primaryVenueIds,
+  peerOccupancyForDate,
+  conflictsForDate,
+  cellLabel,
+  mergeReservedCellsIntoRows,
+} from './facilityScheduleHelpers';
 import { describe, it, expect } from 'vitest';
 
 const DATE = '2025-01-01';
@@ -63,5 +70,55 @@ describe('facilityScheduleHelpers', () => {
   it('cellLabel composes time, round and players with fallbacks', () => {
     expect(cellLabel({ scheduledTime: '09:00', roundName: 'R16', labels: ['A', 'B'] })).toEqual('09:00 R16 A v B');
     expect(cellLabel({ labels: [] , matchUpId: 'm9' })).toEqual('m9');
+  });
+});
+
+describe('mergeReservedCellsIntoRows', () => {
+  const courtsData = [{ courtId: 'c0' }, { courtId: 'c1' }];
+
+  it('places a reserved cell in the empty slot at its court column + courtOrder row', () => {
+    const rows: any[] = [{ rowId: 'r0' }, { rowId: 'r1' }];
+    mergeReservedCellsIntoRows(
+      rows,
+      [{ courtId: 'c1', courtOrder: 2, venueId: 'v1', scheduledTime: '14:00' }],
+      courtsData,
+      'C|',
+    );
+    expect(rows[1]['C|1']).toMatchObject({
+      isReserved: true,
+      reservation: { scheduledTime: '14:00' },
+      schedule: { courtId: 'c1', courtOrder: 2, venueId: 'v1' },
+    });
+  });
+
+  it('never overwrites an owned matchUp (SAME_COURT_ORDER clash keeps the owned cell)', () => {
+    const rows: any[] = [{ 'C|0': { matchUpId: 'own' } }];
+    mergeReservedCellsIntoRows(rows, [{ courtId: 'c0', courtOrder: 1 }], [{ courtId: 'c0' }], 'C|');
+    expect(rows[0]['C|0']).toEqual({ matchUpId: 'own' });
+  });
+
+  it('replaces an empty placeholder slot (no matchUpId) — the grid pre-populates empty cells', () => {
+    const rows: any[] = [{ 'C|0': { matchUpId: '', schedule: {} } }];
+    mergeReservedCellsIntoRows(rows, [{ courtId: 'c0', courtOrder: 1, scheduledTime: '09:00' }], [{ courtId: 'c0' }], 'C|');
+    expect(rows[0]['C|0']).toMatchObject({ isReserved: true, reservation: { scheduledTime: '09:00' } });
+  });
+
+  it('skips a court not present in this grid', () => {
+    const rows: any[] = [{}];
+    mergeReservedCellsIntoRows(rows, [{ courtId: 'not-here', courtOrder: 1 }], [{ courtId: 'c0' }], 'C|');
+    expect(rows[0]).toEqual({});
+  });
+
+  it('skips a courtOrder beyond the rendered rows', () => {
+    const rows: any[] = [{}];
+    mergeReservedCellsIntoRows(rows, [{ courtId: 'c0', courtOrder: 5 }], [{ courtId: 'c0' }], 'C|');
+    expect(rows[0]).toEqual({});
+  });
+
+  it('is a no-op with empty rows or empty cells', () => {
+    expect(() => mergeReservedCellsIntoRows([], [{ courtId: 'c0', courtOrder: 1 }], [{ courtId: 'c0' }], 'C|')).not.toThrow();
+    const rows: any[] = [{}];
+    mergeReservedCellsIntoRows(rows, [], [{ courtId: 'c0' }], 'C|');
+    expect(rows[0]).toEqual({});
   });
 });
