@@ -18,6 +18,8 @@ export interface RegistrationEntry {
   personId: string | null;
   eventIds: string[];
   partnerUserId: string | null;
+  /** Links a doubles registration to its PARTNER_INVITE; both halves of a complete pair share it. */
+  partnerInviteId?: string | null;
   answers: Record<string, unknown>;
   status: RegistrationStatus;
   statusReason: string | null;

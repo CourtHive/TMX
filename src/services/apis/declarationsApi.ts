@@ -31,6 +31,7 @@ export interface RegistrationSnapshot {
   payload: {
     eventIds?: string[];
     applicant?: { givenName?: string; familyName?: string };
+    partnerInviteId?: string;
     answers?: Record<string, unknown>;
   };
   updatedAt: string;
@@ -64,6 +65,7 @@ export function mapSnapshotToEntry(snap: RegistrationSnapshot, tournamentId: str
     personId: snap.personId ?? null,
     eventIds: Array.isArray(snap.payload?.eventIds) ? snap.payload.eventIds : [],
     partnerUserId: null,
+    partnerInviteId: snap.payload?.partnerInviteId ?? null,
     answers: snap.payload?.answers ?? {},
     status: STATUS_MAP[snap.status] ?? 'applied',
     statusReason: null,

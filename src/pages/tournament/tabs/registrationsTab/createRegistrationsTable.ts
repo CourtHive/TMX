@@ -8,6 +8,7 @@
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 
 import type { RegistrationEntry } from 'services/apis/registrationsApi';
+import { collapseRegistrationPairs } from './collapseRegistrationPairs';
 import { TOURNAMENT_REGISTRATIONS } from 'constants/tmxConstants';
 
 interface CreateRegistrationsTableParams {
@@ -91,13 +92,32 @@ export function createRegistrationsTable(params: CreateRegistrationsTableParams)
 }
 
 function decorateRows(rows: RegistrationEntry[]): any[] {
-  return rows.map((r) => ({
-    ...r,
-    applicantName: deriveApplicantName(r),
-    eventCount: r.eventIds.length,
-    appliedAtShort: r.appliedAt ? r.appliedAt.slice(0, 10) : '',
-    partnerSummary: r.partnerUserId ? `partner: ${r.partnerUserId.slice(0, 8)}…` : '',
-  }));
+  // Collapse complete doubles pairs into one row (decision #3). A pair row keys on its
+  // first half's registrationId — accepting it folds the whole pair server-side (CFS
+  // accept-PAIR is idempotent + stamps both), so the existing accept action just works.
+  return collapseRegistrationPairs(rows).map((row) => {
+    if (row.kind === 'pair') {
+      const [a, b] = row.entries;
+      return {
+        ...a,
+        registrationId: a.registrationId,
+        registrationIds: row.registrationIds,
+        isPair: true,
+        applicantName: `${deriveApplicantName(a)} & ${deriveApplicantName(b)}`,
+        eventCount: a.eventIds.length,
+        appliedAtShort: a.appliedAt ? a.appliedAt.slice(0, 10) : '',
+        partnerSummary: 'doubles pair',
+      };
+    }
+    const r = row.entries[0];
+    return {
+      ...r,
+      applicantName: deriveApplicantName(r),
+      eventCount: r.eventIds.length,
+      appliedAtShort: r.appliedAt ? r.appliedAt.slice(0, 10) : '',
+      partnerSummary: r.partnerUserId ? `partner: ${r.partnerUserId.slice(0, 8)}…` : '',
+    };
+  });
 }
 
 function deriveApplicantName(r: RegistrationEntry): string {
