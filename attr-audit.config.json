@@ -36,6 +36,8 @@
     "filters",
     "roundNumbers",
     "languages",
-    "attribute"
+    "attribute",
+    "WITHDRAW",
+    "registrationIds"
   ]
 }
