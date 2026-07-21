@@ -81,9 +81,35 @@ export function rejectRegistration(params: {
   return decideRegistration(params.provider, params.registrationId, 'REJECTED', params.statusReason);
 }
 
-// Bulk is a client-side fan-out over the single-action calls: accept → CFS,
-// waitlist/reject → declarations. Each id resolves independently so one failure
-// doesn't abort the rest (mirrors the old server bulk contract).
+/**
+ * Bulk accept in a SINGLE CFS mutation. The server accepts all ids in one
+ * `executionQueue` (one tournament lock, one save) and folds complete doubles pairs
+ * in idempotently — far cheaper than N single accepts. Returns the same per-id result
+ * shape (`reason` mapped to `error`) so callers are unchanged.
+ */
+export async function bulkAcceptRegistrations(params: {
+  tournamentId: string;
+  registrationIds: string[];
+  statusReason?: string;
+}): Promise<BulkActionResult> {
+  const { data } = await baseApi.post(`${adminPath(params.tournamentId)}/accept-bulk`, {
+    registrationIds: params.registrationIds,
+    statusReason: params.statusReason,
+  });
+  const results = (data?.results ?? []).map((r: any) => ({
+    registrationId: r.registrationId,
+    ok: !!r.ok,
+    participantId: r.participantId,
+    error: r.reason,
+  }));
+  return { results };
+}
+
+/**
+ * Bulk action for the Registrations tab. **Accept** goes to CFS as ONE bulk mutation
+ * (`bulkAcceptRegistrations`). **Waitlist/reject** stay a client-side fan-out to the
+ * declarations service (no server bulk there — those never touch the tournamentRecord).
+ */
 export async function bulkRegistrationAction(params: {
   tournamentId: string;
   provider: string;
@@ -91,18 +117,18 @@ export async function bulkRegistrationAction(params: {
   registrationIds: string[];
   statusReason?: string;
 }): Promise<BulkActionResult> {
+  if (params.action === 'accept') {
+    return bulkAcceptRegistrations({
+      tournamentId: params.tournamentId,
+      registrationIds: params.registrationIds,
+      statusReason: params.statusReason,
+    });
+  }
+
+  const toStatus = params.action === 'waitlist' ? 'WAITLISTED' : 'REJECTED';
   const results = await Promise.all(
     params.registrationIds.map(async (registrationId) => {
       try {
-        if (params.action === 'accept') {
-          const { participantId } = await acceptRegistration({
-            tournamentId: params.tournamentId,
-            registrationId,
-            statusReason: params.statusReason,
-          });
-          return { registrationId, ok: true, participantId };
-        }
-        const toStatus = params.action === 'waitlist' ? 'WAITLISTED' : 'REJECTED';
         await decideRegistration(params.provider, registrationId, toStatus, params.statusReason);
         return { registrationId, ok: true };
       } catch (err: any) {
