@@ -1,5 +1,29 @@
 # Changelog
 
+## [8.15.0](https://github.com/CourtHive/TMX/compare/v8.14.0...v8.15.0) (2026-07-21)
+
+
+### Features
+
+* **crowd:** proactive scorekeeper nomination + one-click accept (Phase D) ([445299e](https://github.com/CourtHive/TMX/commit/445299ef0897245ef7b244827c8473bda7dface0))
+* **registrations:** bulk accept via single cfs accept-bulk endpoint ([4096ec5](https://github.com/CourtHive/TMX/commit/4096ec5ebabacb1711f49e7e409e5d66f34edeb5))
+* **registrations:** collapse complete doubles pairs into one row ([b211313](https://github.com/CourtHive/TMX/commit/b211313f04ff32d384e3c8414944edc08e47a350))
+* **registrations:** read pending list + reject/waitlist direct from declarations ([3c4d95c](https://github.com/CourtHive/TMX/commit/3c4d95c27de4e53a145aa5011137bc03921f5e0a))
+* **scheduling:** event-driven reserved-cell liveness via facilityScheduleChanged ([97290c0](https://github.com/CourtHive/TMX/commit/97290c0d461d7895c114a60432e8d3ca62865fe3))
+* **scheduling:** lightweight live refresh for shared-facility reserved cells ([3d8c3fc](https://github.com/CourtHive/TMX/commit/3d8c3fc9d94666bd9ab381097e1fdec8a5909026))
+* **scheduling:** render shared-facility reserved cells from the projection ([730dac9](https://github.com/CourtHive/TMX/commit/730dac9a12c6de3cf2ef0e8bc11e563d142c1519))
+* **scheduling:** reserved cells use the coordination-view projection ([e42d10e](https://github.com/CourtHive/TMX/commit/e42d10e8d733cf1a5d3b3421ecafa7856141bd69))
+* **scheduling:** shared-facility reserved cells (coordination view + live refresh) ([c882421](https://github.com/CourtHive/TMX/commit/c8824215c5f75892084ef95c721535d212b16016))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 3.11.0 ([b84a43a](https://github.com/CourtHive/TMX/commit/b84a43ade087e46db7978be8f258bdad3009e987))
+* **deps:** update tods-competition-factory to 6.10.0 ([2ab4ded](https://github.com/CourtHive/TMX/commit/2ab4ded145f8a3a17a34a0b4f0034d790c9b4bc7))
+* **deps:** update tods-competition-factory to 6.11.0 ([37d9adf](https://github.com/CourtHive/TMX/commit/37d9adfc44fc10f3e02952c31fb3174a13aee019))
+* **draws:** re-render control bar on in-view round change so minimap toggle appears ([46f1a64](https://github.com/CourtHive/TMX/commit/46f1a64b2dfd79285f5cca461a927105cddb3676))
+* **draws:** sunburst structure selection + composite draw-type label ([#1223](https://github.com/CourtHive/TMX/issues/1223)) ([7cbe7c2](https://github.com/CourtHive/TMX/commit/7cbe7c2fd36f4cbc6004ba6e2c39e5241ce12cbd))
+
 ## [8.14.0](https://github.com/CourtHive/TMX/compare/v8.13.0...v8.14.0) (2026-07-15)
 
 
