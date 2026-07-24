@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.15.1](https://github.com/CourtHive/TMX/compare/v8.15.0...v8.15.1) (2026-07-24)
+
+
+### Bug Fixes
+
+* **deps:** patch dompurify and fast-uri advisories ([ac53b48](https://github.com/CourtHive/TMX/commit/ac53b480c2ddc902d2990f73e3af0c9c6ac129d5))
+
 ## [8.15.0](https://github.com/CourtHive/TMX/compare/v8.14.0...v8.15.0) (2026-07-21)
 
 
