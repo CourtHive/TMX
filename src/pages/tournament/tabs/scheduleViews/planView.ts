@@ -10,6 +10,7 @@
 import {
   rebaseScheduleScenario,
   removeScheduleScenario,
+  updateScheduleScenario,
   listScheduleScenarios,
   applyScheduleScenario,
   addScheduleScenario,
@@ -96,6 +97,35 @@ function buildPlanChrome(args: {
     rerender();
   });
 
+  const activeName = scenarios.find((s: any) => s.scenarioId === scenarioId)?.scenarioName ?? '';
+  const renameBtn = styledButton('Rename');
+  renameBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.value = activeName;
+    input.setAttribute('aria-label', 'Plan name');
+    input.style.cssText =
+      'padding:4px 8px;border-radius:6px;border:1px solid var(--tmx-accent-blue,#2563eb);background:var(--tmx-bg-primary,#fff);color:var(--tmx-text-primary,#111);font-size:0.75rem;';
+    select.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const commit = async () => {
+      if (done) return;
+      done = true;
+      const name = input.value.trim();
+      if (name && name !== activeName) await updateScheduleScenario(tournamentId, scenarioId, { scenarioName: name });
+      rerender();
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') void commit();
+      else if (e.key === 'Escape') {
+        done = true;
+        rerender();
+      }
+    });
+    input.addEventListener('blur', () => void commit());
+  });
+
   const newBtn = styledButton('New');
   newBtn.addEventListener('click', () => void createPlan(tournamentId, rerender));
 
@@ -136,7 +166,7 @@ function buildPlanChrome(args: {
     });
   });
 
-  bar.append(badge, select, newBtn, deleteBtn);
+  bar.append(badge, select, renameBtn, newBtn, deleteBtn);
 
   // Drift indicator + rebase
   const status: any = getScenarioStatus(tournamentId, scenarioId);
@@ -190,6 +220,18 @@ export function renderPlanMode(container: HTMLElement, scheduledDate: string, to
     activeStripVisible: false,
   });
 
+  markCatalogInert(container);
+
   // Plan data is derived, not the live table — don't let remote-refresh repaint it as official.
   context.refreshActiveTable = rerender;
+}
+
+// The catalog is shown for reference in Plan mode but must not be an actionable
+// pool: a plan never removes matchUps from the catalog until it is made official.
+// Disable interaction (pointer-events) + mark it visually. Targets the catalog
+// panel via its stable title-row child (title-row → header → panel root).
+function markCatalogInert(container: HTMLElement): void {
+  const titleRow = container.querySelector('.spl-catalog-title-row');
+  const panel = titleRow?.parentElement?.parentElement as HTMLElement | null;
+  if (panel) panel.classList.add('tmx-plan-catalog-inert');
 }

@@ -198,4 +198,38 @@ test.describe('Journey 90 — schedule scenarios (Plan mode)', () => {
 
     await expect(page.getByText(/out of date/i)).toBeHidden();
   });
+
+  test('the catalog is shown but inert (reference only) in Plan mode', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_PLAN);
+    await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 1 });
+
+    await gotoPlanMode(page, tournamentId);
+    await expect(page.getByText(PLANNING_BADGE)).toBeVisible({ timeout: 10_000 });
+
+    const inert = page.locator('.tmx-plan-catalog-inert');
+    await expect(inert).toBeVisible();
+    await expect(inert).toHaveCSS('pointer-events', 'none');
+  });
+
+  test('renaming a plan updates its name', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_PLAN);
+    const { scenarioId } = await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 1 });
+
+    await gotoPlanMode(page, tournamentId);
+    await page.locator('button:has-text("Rename")').click();
+
+    const input = page.locator('input[aria-label="Plan name"]');
+    await input.fill('Sunshine plan');
+    await input.press('Enter');
+
+    await expect(async () => {
+      const name = await page.evaluate(
+        ({ tid, sid }) =>
+          dev.factory.competitionEngine.getScheduleScenario({ tournamentId: tid, scenarioId: sid }).scenario
+            .scenarioName,
+        { tid: tournamentId, sid: scenarioId },
+      );
+      expect(name).toBe('Sunshine plan');
+    }).toPass({ timeout: 10_000 });
+  });
 });

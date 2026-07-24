@@ -183,7 +183,13 @@ function ensurePlanModeStyles(): void {
   style.id = 'tmx-plan-mode-styles';
   style.textContent =
     '.tmx-planned-cell{box-shadow:inset 3px 0 0 var(--tmx-accent-blue,#2563eb);' +
-    'background:color-mix(in srgb, var(--tmx-accent-blue,#2563eb) 12%, transparent) !important;}';
+    'background:color-mix(in srgb, var(--tmx-accent-blue,#2563eb) 12%, transparent) !important;}' +
+    // Plan mode: the catalog stays visible for reference but is inert — the plan
+    // never pulls matchUps out of the catalog until it is made official.
+    '.tmx-plan-catalog-inert{pointer-events:none;opacity:0.55;filter:grayscale(0.3);position:relative;}' +
+    ".tmx-plan-catalog-inert::before{content:'Plan mode — reference only';position:sticky;top:0;left:0;right:0;" +
+    'display:block;z-index:5;font-size:0.625rem;font-weight:700;letter-spacing:0.03em;text-align:center;' +
+    'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}';
   document.head.appendChild(style);
 }
 
