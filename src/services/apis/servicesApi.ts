@@ -2,11 +2,6 @@ import { baseApi } from './baseApi';
 
 import type { ProvidersResponse, UsersResponse } from 'types/tmx';
 
-// TODO: URL and parameters should be defined in provider specific location.  Provider-services?
-export async function fetchTournamentDetails({ identifier }: { identifier: string }) {
-  return await baseApi.post('/service/tournamentdetails', { identifier });
-}
-
 export async function requestTournament({ tournamentId, silent }: { tournamentId: string; silent?: boolean }) {
   return await baseApi.post('/factory/fetch', { tournamentId }, silent ? { silenceErrors: true } : undefined);
 }

@@ -5,12 +5,11 @@
  *   Row 2 (controls): [ search ]                                  [ New ] [ Actions ] [ Sort ]
  *
  * Status filter, view-toggle, and search drive the {@link TournamentsView}
- * setters. Admin actions (import/fetch/load-by-id) operate on a
+ * setters. Admin actions (import/load-by-id) operate on a
  * Tabulator-shaped shim that invokes a full reload after writes land in IDB.
  */
 
 import { TournamentsView } from 'components/tables/tournamentsTable/createTournamentsTable';
-import { fetchTournamentDetailsModal } from 'components/modals/fetchTournamentDetails';
 import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from './mockTournaments';
 import { importTournaments } from '../../services/storage/importTournaments';
 import { loadTournamentById } from 'components/modals/loadTournamentById';
@@ -129,11 +128,9 @@ function showWelcomeRedirect(reloadAll: () => void): void {
 function buildAdminActions(reloadAll: () => void, tableShim: any): any[] {
   const state = getLoginState();
   const admin = state?.roles?.includes(SUPER_ADMIN);
-  const fetch = state?.services?.includes('tournamentProfile');
 
   return [
     admin && { label: 'Import tournament', onClick: () => importTournaments({ table: tableShim }) },
-    fetch && { label: 'Fetch tournament', onClick: () => fetchTournamentDetailsModal({ table: tableShim }) },
     admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table: tableShim }) },
     admin && { label: 'Chat monitor', onClick: () => openChatMonitorModal() },
     admin && { label: 'Welcome', onClick: () => showWelcomeRedirect(reloadAll), close: true }
