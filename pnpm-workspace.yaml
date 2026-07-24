@@ -48,7 +48,7 @@ overrides:
   'brace-expansion@>=4 <5.0.5': ^5.0.5
   courthive-components: link:../courthive-components
   dompurify: ^3.4.12 # GHSA (XSS); transitive via jspdf (^3.3.1). patched 3.4.12
-  fast-uri: ^3.1.4 # GHSA-v2hh-gcrm-f6hx (host confusion, high); transitive via ajv (^3.0.1). patched 3.1.4
+  fast-uri: ^4.0.0 # GHSA-v2hh-gcrm-f6hx (host confusion, high); transitive via ajv (^3.0.1). patched 3.1.4
   follow-redirects: ^1.16.0
   pdf-factory: link:../pdf-factory
   picomatch: ^4.0.4
