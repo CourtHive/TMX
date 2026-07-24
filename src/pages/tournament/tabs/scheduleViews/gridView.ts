@@ -21,7 +21,10 @@
  */
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
-import { readScheduleDisplayConfig, writeScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
+import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { handleActiveStripNowClick, handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { openShiftCourtsModal } from './schedule2CellActions';
@@ -37,6 +40,8 @@ import {
 } from 'services/publishing/orderOfPlayPublish';
 import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
+import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { renameCourt } from 'components/modals/renameCourt';
@@ -164,6 +169,45 @@ let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
 let bulkMode = false;
 let pendingMethods: any[][] = []; // Each entry is a methods array from one drop/remove
+// Plan mode: when set, the grid renders a scenario's projected schedule (via the
+// factory `getScenarioScheduleView` — a throwaway deep-copy overlay, so engine
+// state is NEVER mutated) and drops edit the scenario instead of the official
+// schedule. `plannedMatchUpIdSet` drives the planned-cell tint; refreshed on
+// every render by `getScheduleGridData`.
+let planContext: { scenarioId: string; tournamentId: string } | null = null;
+let plannedMatchUpIdSet = new Set<string>();
+
+function ensurePlanModeStyles(): void {
+  if (document.getElementById('tmx-plan-mode-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'tmx-plan-mode-styles';
+  style.textContent =
+    '.tmx-planned-cell{box-shadow:inset 3px 0 0 var(--tmx-accent-blue,#2563eb);' +
+    'background:color-mix(in srgb, var(--tmx-accent-blue,#2563eb) 12%, transparent) !important;}';
+  document.head.appendChild(style);
+}
+
+// Data source for the grid render: the cached official schedule normally, or the
+// scenario overlay in Plan mode (same `{ rows, courtsData, courtPrefix }` shape).
+function getScheduleGridData(date: string, opts: { minCourtGridRows?: number }): any {
+  if (!planContext) {
+    plannedMatchUpIdSet = new Set();
+    return getCachedScheduleMatchUps(date, opts);
+  }
+  const view = competitionEngine.getScenarioScheduleView({
+    tournamentId: planContext.tournamentId,
+    scenarioId: planContext.scenarioId,
+    matchUpFilters: { scheduledDate: date },
+    withCourtGridRows: true,
+    minCourtGridRows: opts.minCourtGridRows,
+  });
+  if (!view || view.error) {
+    plannedMatchUpIdSet = new Set();
+    return {};
+  }
+  plannedMatchUpIdSet = new Set(view.plannedMatchUpIds ?? []);
+  return view;
+}
 let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
@@ -224,10 +268,13 @@ export function renderGridView(
     bulkMode?: boolean;
     onBulkModeChange?: (enabled: boolean) => void;
     onClearSchedule?: (target: HTMLElement) => void;
+    planContext?: { scenarioId: string; tournamentId: string } | null;
   },
 ): void {
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
+  planContext = options?.planContext ?? null;
+  if (planContext) ensurePlanModeStyles();
   actionBarContainer = container;
   clearStaleDrawBanner();
   destroyVisibilityTip();
@@ -1320,6 +1367,23 @@ function showStaleDrawBanner(droppedCount: number): void {
  * In bulk mode: runs locally on competitionEngine, queues for batch send.
  */
 function executeMethods(methods: any[], onRefresh: () => void): void {
+  // Plan mode: a drop edits the SCENARIO, never the official schedule. Fold the
+  // drop's methods into the scenario's placements and persist via
+  // updateScheduleScenario (which touches scheduling.scenarios, not matchUps);
+  // the re-render re-projects the plan. Engine matchUp state is never mutated.
+  if (planContext) {
+    const { scenarioId, tournamentId } = planContext;
+    const current = listScheduleScenarios(tournamentId).find((s: any) => s.scenarioId === scenarioId);
+    const placements = foldMethodsIntoScenario(current?.placements ?? [], methods, tournamentId);
+    void updateScheduleScenario(tournamentId, scenarioId, { placements }).then((result: any) => {
+      if (result?.error) {
+        scheduleToast({ message: 'Plan update failed', intent: INTENT_DANGER });
+        return;
+      }
+      onRefresh();
+    });
+    return;
+  }
   if (!bulkMode) {
     // A draw may have been deleted by another client between render and this
     // drop. Sending a schedule method for a now-missing draw errors
@@ -1568,6 +1632,9 @@ function buildRowCourtCells(params: {
 
     const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
     const drawId = cellContent.getAttribute(DATA_DRAW_ID);
+    // Plan mode: tint cells the scenario relocates so "planned" reads distinctly
+    // from "official" placements sharing the grid.
+    if (matchUpId && plannedMatchUpIdSet.has(matchUpId)) cellContent.classList.add('tmx-planned-cell');
     if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
     if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
     // The occupant's own scheduledTime — read by the swap path so the two
@@ -1989,7 +2056,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
     const minCourtGridRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
     const MIN_COURT_WIDTH = readUserMinCourtWidth();
-    const scheduleResult = getCachedScheduleMatchUps(date, { minCourtGridRows });
+    const scheduleResult = getScheduleGridData(date, { minCourtGridRows });
 
     // Shallow-clone each row so the reserved-cell injection below never mutates the CACHED schedule
     // rows. Without this, a prior render's reserved cell lingers in the cache and ghosts alongside the
@@ -2500,7 +2567,9 @@ export function resolveColumnConflicts(): void {
       'Courts and start times stay the same — only the row order changes. Continue?',
     okIntent: 'is-warning',
     okAction: () => {
-      const methods = [{ method: PRO_COLUMN_RESOLVE, params: { scheduledDate: currentDate, matchUps: scheduledMatchUps } }];
+      const methods = [
+        { method: PRO_COLUMN_RESOLVE, params: { scheduledDate: currentDate, matchUps: scheduledMatchUps } },
+      ];
       if (currentRefresh) executeMethods(methods, currentRefresh);
     },
   });
@@ -2726,9 +2795,8 @@ function commitActiveStripDrop(
   // when the match is actually startable — otherwise the drop is a pure call.
   // Start-on-drop is only meaningful today — a drop on a past/future strip calls
   // the match to court but never starts it.
-  const startMethods = currentDate === todayIso()
-    ? buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '')
-    : [];
+  const startMethods =
+    currentDate === todayIso() ? buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '') : [];
   const cfg = readScheduleDisplayConfig();
   const prompted = cfg.startOnDropPrompted;
 
@@ -2766,9 +2834,7 @@ function buildStartOnDropMethods(matchUpId: string, drawId: string): any[] {
   const matchUp = (matchUps || []).find((m: any) => m.matchUpId === matchUpId);
   if (!matchUp || matchUp.matchUpStatus === IN_PROGRESS || matchUp.winningSide) return [];
 
-  const assigned = (matchUp.sides || []).filter(
-    (s: any) => s?.participantId || s?.participant?.participantId,
-  ).length;
+  const assigned = (matchUp.sides || []).filter((s: any) => s?.participantId || s?.participant?.participantId).length;
   if (assigned < 2) return [];
 
   const now = new Date();
