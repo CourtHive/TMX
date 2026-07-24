@@ -20,6 +20,7 @@ import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderGridView, destroyGridView } from './gridView';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 import { SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
@@ -45,9 +46,9 @@ function renderEmptyState(container: HTMLElement, tournamentId: string, rerender
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:2rem;text-align:center;color:var(--tmx-text-muted,#6b7280);';
   const msg = document.createElement('div');
-  msg.textContent = 'No alternate plans yet. Create one to stage a contingency schedule off the live grid.';
+  msg.textContent = t('schedule.plan.empty');
   msg.style.marginBottom = '1rem';
-  const create = styledButton('Create plan', 'accent');
+  const create = styledButton(t('schedule.plan.create'), 'accent');
   create.addEventListener('click', () => void createPlan(tournamentId, rerender));
   wrap.append(msg, create);
   container.appendChild(wrap);
@@ -55,10 +56,10 @@ function renderEmptyState(container: HTMLElement, tournamentId: string, rerender
 
 async function createPlan(tournamentId: string, rerender: () => void): Promise<void> {
   const count = listScheduleScenarios(tournamentId).length;
-  const scenarioName = `Plan ${count + 1}`;
+  const scenarioName = t('schedule.plan.defaultName', { n: count + 1 });
   const result = await addScheduleScenario(tournamentId, { scenarioName, placements: [] });
   if (result?.error) {
-    tmxToast({ message: 'Could not create plan', intent: 'is-danger' });
+    tmxToast({ message: t('schedule.plan.createFailed'), intent: 'is-danger' });
     return;
   }
   activePlanScenarioId = result?.scenarioId ?? result?.scenario?.scenarioId ?? null;
@@ -77,7 +78,7 @@ function buildPlanChrome(args: {
   bar.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
 
   const badge = document.createElement('span');
-  badge.textContent = 'PLANNING — not live';
+  badge.textContent = t('schedule.plan.badge');
   badge.style.cssText =
     'font-size:0.6875rem;font-weight:700;letter-spacing:0.04em;padding:3px 8px;border-radius:6px;' +
     'background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;';
@@ -98,11 +99,11 @@ function buildPlanChrome(args: {
   });
 
   const activeName = scenarios.find((s: any) => s.scenarioId === scenarioId)?.scenarioName ?? '';
-  const renameBtn = styledButton('Rename');
+  const renameBtn = styledButton(t('schedule.plan.rename'));
   renameBtn.addEventListener('click', () => {
     const input = document.createElement('input');
     input.value = activeName;
-    input.setAttribute('aria-label', 'Plan name');
+    input.setAttribute('aria-label', t('schedule.plan.nameLabel'));
     input.style.cssText =
       'padding:4px 8px;border-radius:6px;border:1px solid var(--tmx-accent-blue,#2563eb);background:var(--tmx-bg-primary,#fff);color:var(--tmx-text-primary,#111);font-size:0.75rem;';
     select.replaceWith(input);
@@ -126,14 +127,14 @@ function buildPlanChrome(args: {
     input.addEventListener('blur', () => void commit());
   });
 
-  const newBtn = styledButton('New');
+  const newBtn = styledButton(t('schedule.plan.new'));
   newBtn.addEventListener('click', () => void createPlan(tournamentId, rerender));
 
-  const deleteBtn = styledButton('Delete', 'danger');
+  const deleteBtn = styledButton(t('schedule.plan.delete'), 'danger');
   deleteBtn.addEventListener('click', () => {
     confirmModal({
-      title: 'Delete plan?',
-      query: 'This removes the alternate plan. The official schedule is unaffected.',
+      title: t('schedule.plan.deleteTitle'),
+      query: t('schedule.plan.deleteQuery'),
       okIntent: 'is-danger',
       okAction: async () => {
         await removeScheduleScenario(tournamentId, scenarioId);
@@ -143,24 +144,23 @@ function buildPlanChrome(args: {
     });
   });
 
-  const makeOfficial = styledButton('Make official', 'accent');
+  const makeOfficial = styledButton(t('schedule.plan.makeOfficial'), 'accent');
   makeOfficial.addEventListener('click', () => {
     const status: any = getScenarioStatus(tournamentId, scenarioId);
     const skipped = status?.completedMatchUpIds?.length ?? 0;
-    const drift = status?.outOfDate ? ' This plan is out of date.' : '';
+    const skipNote = skipped ? t('schedule.plan.commitSkip', { count: skipped }) : '';
+    const driftNote = status?.outOfDate ? t('schedule.plan.commitDrift') : '';
     confirmModal({
-      title: 'Make this the official schedule?',
-      query: `Commits the plan to the live schedule (uncompleted matchUps only).${
-        skipped ? ` ${skipped} completed match(es) will be skipped.` : ''
-      }${drift}`,
+      title: t('schedule.plan.commitTitle'),
+      query: `${t('schedule.plan.commitQuery')}${skipNote}${driftNote}`,
       okIntent: 'is-warning',
       okAction: async () => {
         const result: any = await applyScheduleScenario(tournamentId, scenarioId);
         if (result?.error) {
-          tmxToast({ message: 'Could not apply plan', intent: 'is-danger' });
+          tmxToast({ message: t('schedule.plan.applyFailed'), intent: 'is-danger' });
           return;
         }
-        tmxToast({ message: `Plan applied — ${result?.applied ?? 0} matches scheduled`, intent: 'is-success' });
+        tmxToast({ message: t('schedule.plan.applied', { count: result?.applied ?? 0 }), intent: 'is-success' });
         context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${scheduledDate}/grid`);
       },
     });
@@ -172,10 +172,10 @@ function buildPlanChrome(args: {
   const status: any = getScenarioStatus(tournamentId, scenarioId);
   if (status?.outOfDate) {
     const warn = document.createElement('span');
-    warn.textContent = '⚠ out of date';
-    warn.title = 'The official schedule changed since this plan was authored.';
+    warn.textContent = t('schedule.plan.outOfDate');
+    warn.title = t('schedule.plan.outOfDateTip');
     warn.style.cssText = 'font-size:0.75rem;color:var(--tmx-status-warning,#b45309);font-weight:600;';
-    const rebase = styledButton('Rebase');
+    const rebase = styledButton(t('schedule.plan.rebase'));
     rebase.addEventListener('click', async () => {
       await rebaseScheduleScenario(tournamentId, scenarioId);
       rerender();

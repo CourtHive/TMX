@@ -1383,7 +1383,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
     const placements = foldMethodsIntoScenario(current?.placements ?? [], methods, tournamentId);
     void updateScheduleScenario(tournamentId, scenarioId, { placements }).then((result: any) => {
       if (result?.error) {
-        scheduleToast({ message: 'Plan update failed', intent: INTENT_DANGER });
+        scheduleToast({ message: t('schedule.plan.updateFailed'), intent: INTENT_DANGER });
         return;
       }
       onRefresh();
