@@ -176,6 +176,9 @@ let pendingMethods: any[][] = []; // Each entry is a methods array from one drop
 // every render by `getScheduleGridData`.
 let planContext: { scenarioId: string; tournamentId: string } | null = null;
 let plannedMatchUpIdSet = new Set<string>();
+// matchUpIds the plan double-books (same court + courtOrder/time) — surfaced from
+// getScenarioScheduleView's mergeFacilitySchedule conflicts so a plan warns before commit.
+let plannedConflictMatchUpIdSet = new Set<string>();
 
 function ensurePlanModeStyles(): void {
   if (document.getElementById('tmx-plan-mode-styles')) return;
@@ -189,7 +192,14 @@ function ensurePlanModeStyles(): void {
     '.tmx-plan-catalog-inert{pointer-events:none;opacity:0.55;filter:grayscale(0.3);position:relative;}' +
     ".tmx-plan-catalog-inert::before{content:'Plan mode — reference only';position:sticky;top:0;left:0;right:0;" +
     'display:block;z-index:5;font-size:0.625rem;font-weight:700;letter-spacing:0.03em;text-align:center;' +
-    'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}';
+    'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}' +
+    // Completed matchUps can't be re-planned (a commit skips them) — render them
+    // visibly locked in Plan mode.
+    '.tmx-plan-locked-cell{opacity:0.6;filter:grayscale(0.4);position:relative;}' +
+    ".tmx-plan-locked-cell::after{content:'🔒';position:absolute;top:2px;right:3px;font-size:0.6rem;opacity:0.75;}" +
+    // Plan introduces a court double-booking — warn.
+    '.tmx-plan-conflict-cell{box-shadow:inset 0 0 0 2px var(--tmx-status-danger,#dc2626) !important;' +
+    'background:color-mix(in srgb, var(--tmx-status-danger,#dc2626) 10%, transparent) !important;}';
   document.head.appendChild(style);
 }
 
@@ -198,6 +208,7 @@ function ensurePlanModeStyles(): void {
 function getScheduleGridData(date: string, opts: { minCourtGridRows?: number }): any {
   if (!planContext) {
     plannedMatchUpIdSet = new Set();
+    plannedConflictMatchUpIdSet = new Set();
     return getCachedScheduleMatchUps(date, opts);
   }
   const view = competitionEngine.getScenarioScheduleView({
@@ -209,9 +220,17 @@ function getScheduleGridData(date: string, opts: { minCourtGridRows?: number }):
   });
   if (!view || view.error) {
     plannedMatchUpIdSet = new Set();
+    plannedConflictMatchUpIdSet = new Set();
     return {};
   }
   plannedMatchUpIdSet = new Set(view.plannedMatchUpIds ?? []);
+  // Double-booking conflicts come from the projection query (mergeFacilitySchedule),
+  // not the grid-shape view query.
+  const projection: any = competitionEngine.getScenarioScheduleProjection({
+    tournamentId: planContext.tournamentId,
+    scenarioId: planContext.scenarioId,
+  });
+  plannedConflictMatchUpIdSet = new Set((projection?.conflicts ?? []).flatMap((c: any) => c.matchUpIds ?? []));
   return view;
 }
 let actionBar: HTMLElement | null = null;
@@ -1641,6 +1660,16 @@ function buildRowCourtCells(params: {
     // Plan mode: tint cells the scenario relocates so "planned" reads distinctly
     // from "official" placements sharing the grid.
     if (matchUpId && plannedMatchUpIdSet.has(matchUpId)) cellContent.classList.add('tmx-planned-cell');
+    // Completed matchUps can't be re-planned — mark them locked in Plan mode.
+    if (planContext && matchUpId && (cellData?.winningSide || isCompletedStatus(cellData?.matchUpStatus))) {
+      cellContent.classList.add('tmx-plan-locked-cell');
+      cellContent.title = t('schedule.plan.completedLocked');
+    }
+    // Plan double-books this court slot — warn before commit.
+    if (planContext && matchUpId && plannedConflictMatchUpIdSet.has(matchUpId)) {
+      cellContent.classList.add('tmx-plan-conflict-cell');
+      cellContent.title = t('schedule.plan.conflictTip');
+    }
     if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
     if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
     // The occupant's own scheduledTime — read by the swap path so the two
