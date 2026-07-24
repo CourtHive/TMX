@@ -21,7 +21,10 @@
  */
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
-import { readScheduleDisplayConfig, writeScheduleDisplayConfig } from 'services/schedulePreferences/scheduleDisplayExtension';
+import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { handleActiveStripNowClick, handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
 import { openShiftCourtsModal } from './schedule2CellActions';
@@ -37,6 +40,8 @@ import {
 } from 'services/publishing/orderOfPlayPublish';
 import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
+import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { renameCourt } from 'components/modals/renameCourt';
@@ -164,6 +169,51 @@ let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
 let bulkMode = false;
 let pendingMethods: any[][] = []; // Each entry is a methods array from one drop/remove
+// Plan mode: when set, the grid renders a scenario's projected schedule (via the
+// factory `getScenarioScheduleView` — a throwaway deep-copy overlay, so engine
+// state is NEVER mutated) and drops edit the scenario instead of the official
+// schedule. `plannedMatchUpIdSet` drives the planned-cell tint; refreshed on
+// every render by `getScheduleGridData`.
+let planContext: { scenarioId: string; tournamentId: string } | null = null;
+let plannedMatchUpIdSet = new Set<string>();
+
+function ensurePlanModeStyles(): void {
+  if (document.getElementById('tmx-plan-mode-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'tmx-plan-mode-styles';
+  style.textContent =
+    '.tmx-planned-cell{box-shadow:inset 3px 0 0 var(--tmx-accent-blue,#2563eb);' +
+    'background:color-mix(in srgb, var(--tmx-accent-blue,#2563eb) 12%, transparent) !important;}' +
+    // Plan mode: the catalog stays visible for reference but is inert — the plan
+    // never pulls matchUps out of the catalog until it is made official.
+    '.tmx-plan-catalog-inert{pointer-events:none;opacity:0.55;filter:grayscale(0.3);position:relative;}' +
+    ".tmx-plan-catalog-inert::before{content:'Plan mode — reference only';position:sticky;top:0;left:0;right:0;" +
+    'display:block;z-index:5;font-size:0.625rem;font-weight:700;letter-spacing:0.03em;text-align:center;' +
+    'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}';
+  document.head.appendChild(style);
+}
+
+// Data source for the grid render: the cached official schedule normally, or the
+// scenario overlay in Plan mode (same `{ rows, courtsData, courtPrefix }` shape).
+function getScheduleGridData(date: string, opts: { minCourtGridRows?: number }): any {
+  if (!planContext) {
+    plannedMatchUpIdSet = new Set();
+    return getCachedScheduleMatchUps(date, opts);
+  }
+  const view = competitionEngine.getScenarioScheduleView({
+    tournamentId: planContext.tournamentId,
+    scenarioId: planContext.scenarioId,
+    matchUpFilters: { scheduledDate: date },
+    withCourtGridRows: true,
+    minCourtGridRows: opts.minCourtGridRows,
+  });
+  if (!view || view.error) {
+    plannedMatchUpIdSet = new Set();
+    return {};
+  }
+  plannedMatchUpIdSet = new Set(view.plannedMatchUpIds ?? []);
+  return view;
+}
 let actionBar: HTMLElement | null = null;
 let actionBarContainer: HTMLElement | null = null;
 let gridRootElement: HTMLElement | null = null;
@@ -224,10 +274,13 @@ export function renderGridView(
     bulkMode?: boolean;
     onBulkModeChange?: (enabled: boolean) => void;
     onClearSchedule?: (target: HTMLElement) => void;
+    planContext?: { scenarioId: string; tournamentId: string } | null;
   },
 ): void {
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
+  planContext = options?.planContext ?? null;
+  if (planContext) ensurePlanModeStyles();
   actionBarContainer = container;
   clearStaleDrawBanner();
   destroyVisibilityTip();
@@ -1320,6 +1373,23 @@ function showStaleDrawBanner(droppedCount: number): void {
  * In bulk mode: runs locally on competitionEngine, queues for batch send.
  */
 function executeMethods(methods: any[], onRefresh: () => void): void {
+  // Plan mode: a drop edits the SCENARIO, never the official schedule. Fold the
+  // drop's methods into the scenario's placements and persist via
+  // updateScheduleScenario (which touches scheduling.scenarios, not matchUps);
+  // the re-render re-projects the plan. Engine matchUp state is never mutated.
+  if (planContext) {
+    const { scenarioId, tournamentId } = planContext;
+    const current = listScheduleScenarios(tournamentId).find((s: any) => s.scenarioId === scenarioId);
+    const placements = foldMethodsIntoScenario(current?.placements ?? [], methods, tournamentId);
+    void updateScheduleScenario(tournamentId, scenarioId, { placements }).then((result: any) => {
+      if (result?.error) {
+        scheduleToast({ message: 'Plan update failed', intent: INTENT_DANGER });
+        return;
+      }
+      onRefresh();
+    });
+    return;
+  }
   if (!bulkMode) {
     // A draw may have been deleted by another client between render and this
     // drop. Sending a schedule method for a now-missing draw errors
@@ -1568,6 +1638,9 @@ function buildRowCourtCells(params: {
 
     const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
     const drawId = cellContent.getAttribute(DATA_DRAW_ID);
+    // Plan mode: tint cells the scenario relocates so "planned" reads distinctly
+    // from "official" placements sharing the grid.
+    if (matchUpId && plannedMatchUpIdSet.has(matchUpId)) cellContent.classList.add('tmx-planned-cell');
     if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
     if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
     // The occupant's own scheduledTime — read by the swap path so the two
@@ -1989,7 +2062,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const extensionMinRows = readScheduleDisplayConfig().minCourtGridRows;
     const minCourtGridRows = extensionMinRows ?? DEFAULT_MIN_COURT_GRID_ROWS;
     const MIN_COURT_WIDTH = readUserMinCourtWidth();
-    const scheduleResult = getCachedScheduleMatchUps(date, { minCourtGridRows });
+    const scheduleResult = getScheduleGridData(date, { minCourtGridRows });
 
     // Shallow-clone each row so the reserved-cell injection below never mutates the CACHED schedule
     // rows. Without this, a prior render's reserved cell lingers in the cache and ghosts alongside the
@@ -2500,7 +2573,9 @@ export function resolveColumnConflicts(): void {
       'Courts and start times stay the same — only the row order changes. Continue?',
     okIntent: 'is-warning',
     okAction: () => {
-      const methods = [{ method: PRO_COLUMN_RESOLVE, params: { scheduledDate: currentDate, matchUps: scheduledMatchUps } }];
+      const methods = [
+        { method: PRO_COLUMN_RESOLVE, params: { scheduledDate: currentDate, matchUps: scheduledMatchUps } },
+      ];
       if (currentRefresh) executeMethods(methods, currentRefresh);
     },
   });
@@ -2726,9 +2801,8 @@ function commitActiveStripDrop(
   // when the match is actually startable — otherwise the drop is a pure call.
   // Start-on-drop is only meaningful today — a drop on a past/future strip calls
   // the match to court but never starts it.
-  const startMethods = currentDate === todayIso()
-    ? buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '')
-    : [];
+  const startMethods =
+    currentDate === todayIso() ? buildStartOnDropMethods(payload.matchUp.matchUpId, payload.matchUp.drawId ?? '') : [];
   const cfg = readScheduleDisplayConfig();
   const prompted = cfg.startOnDropPrompted;
 
@@ -2766,9 +2840,7 @@ function buildStartOnDropMethods(matchUpId: string, drawId: string): any[] {
   const matchUp = (matchUps || []).find((m: any) => m.matchUpId === matchUpId);
   if (!matchUp || matchUp.matchUpStatus === IN_PROGRESS || matchUp.winningSide) return [];
 
-  const assigned = (matchUp.sides || []).filter(
-    (s: any) => s?.participantId || s?.participant?.participantId,
-  ).length;
+  const assigned = (matchUp.sides || []).filter((s: any) => s?.participantId || s?.participant?.participantId).length;
   if (assigned < 2) return [];
 
   const now = new Date();
@@ -2982,27 +3054,53 @@ function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
   };
 }
 
+// Active plan's placements keyed by matchUpId (empty outside Plan mode).
+function planPlacementMap(): { [matchUpId: string]: any } {
+  if (!planContext) return {};
+  const scenario = listScheduleScenarios(planContext.tournamentId).find(
+    (s: any) => s.scenarioId === planContext?.scenarioId,
+  );
+  const map: { [matchUpId: string]: any } = {};
+  for (const p of scenario?.placements ?? []) map[p.matchUpId] = p.schedule ?? {};
+  return map;
+}
+
+// A matchUp's schedule as the plan sees it: the scenario placement when present
+// (and the matchUp is uncompleted — the plan skips completed matchUps), else the
+// official schedule.
+function effectiveMatchUpSchedule(m: any, placements: { [matchUpId: string]: any }): any {
+  const override = placements[m.matchUpId];
+  if (!override) return m.schedule;
+  const completed = m.winningSide || isCompletedStatus(m.matchUpStatus);
+  return completed ? m.schedule : override;
+}
+
 function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   const { matchUps } = getCachedAllMatchUps();
+  // In Plan mode the catalog reflects the PROJECTED plan, not the official
+  // schedule: a match the plan schedules leaves the catalog; a match the plan
+  // unschedules returns to it. Overlay the active scenario's placements onto
+  // each matchUp's schedule. An empty map (grid mode) ⇒ official schedule.
+  const placements = planPlacementMap();
 
   return (matchUps || [])
     .filter((m: any) => {
       if (m.matchUpStatus === BYE) return false;
-      // A matchUp that is already scheduled on a DIFFERENT date does not belong
-      // in this date's catalog — its time/court chips reference that other
-      // day, and lumping it into "Unscheduled" here is misleading. To move it
-      // to the current date the operator navigates to its date and reassigns.
-      const scheduledDate = m.schedule?.scheduledDate;
+      // A matchUp scheduled on a DIFFERENT date does not belong in this date's
+      // catalog — its chips reference that other day. (Projected schedule in
+      // Plan mode.)
+      const scheduledDate = effectiveMatchUpSchedule(m, placements)?.scheduledDate;
       if (scheduledDate && scheduledDate !== selectedDate) return false;
       return true;
     })
     .map((m: any) => {
       // After the filter above, any `scheduledDate` we see is the selected
-      // date, so onSelectedDate is implicit — collapse the previous two-flag
-      // logic into a single isScheduled check.
-      const hasDate = !!m.schedule?.scheduledDate;
-      const hasCourtAssignment = !!(m.schedule?.courtId && hasDate);
-      const hasTimeAssignment = !!(m.schedule?.scheduledTime && hasDate);
+      // date, so onSelectedDate is implicit — collapse to a single isScheduled
+      // check. Uses the projected (plan-overlaid) schedule in Plan mode.
+      const schedule = effectiveMatchUpSchedule(m, placements);
+      const hasDate = !!schedule?.scheduledDate;
+      const hasCourtAssignment = !!(schedule?.courtId && hasDate);
+      const hasTimeAssignment = !!(schedule?.scheduledTime && hasDate);
       const isScheduled = hasCourtAssignment || hasTimeAssignment || hasDate;
 
       return {
@@ -3026,8 +3124,8 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
           seedNumber: s.seedValue ?? s.seedNumber,
         })),
         isScheduled,
-        scheduledTime: isScheduled ? m.schedule?.scheduledTime : undefined,
-        scheduledCourtName: isScheduled ? m.schedule?.courtName : undefined,
+        scheduledTime: isScheduled ? schedule?.scheduledTime : undefined,
+        scheduledCourtName: isScheduled ? schedule?.courtName : undefined,
       } satisfies CatalogMatchUpItem;
     });
 }

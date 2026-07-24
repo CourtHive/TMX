@@ -20,10 +20,15 @@
  */
 
 import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
+import { renderPlanMode } from '../scheduleViews/planView';
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { peerLinkedIds, primaryVenueIds, facilityEventTouchesVenues } from 'services/facilitySchedule/facilityScheduleHelpers';
+import {
+  peerLinkedIds,
+  primaryVenueIds,
+  facilityEventTouchesVenues,
+} from 'services/facilitySchedule/facilityScheduleHelpers';
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
 import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging/socketIo';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
@@ -46,10 +51,7 @@ import {
   resolveColumnConflicts,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../scheduleViews/gridView';
-import {
-  renderAvailabilityGrid,
-  type AvailabilityGridInstance,
-} from '../venuesTab/renderAvailabilityGrid';
+import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
 import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
 import {
   readScheduleDisplayConfig,
@@ -68,14 +70,14 @@ import {
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
-export type SchedulingMode = 'availability' | 'profile' | 'grid';
+export type SchedulingMode = 'availability' | 'profile' | 'grid' | 'plan';
 
 interface RenderSchedulingTabParams {
   scheduledDate?: string;
   mode?: SchedulingMode;
 }
 
-const VALID_MODES: SchedulingMode[] = ['availability', 'profile', 'grid'];
+const VALID_MODES: SchedulingMode[] = ['availability', 'profile', 'grid', 'plan'];
 const DEFAULT_MODE: SchedulingMode = 'grid';
 
 // Share the same localStorage keys as /schedule2 so a user's catalog +
@@ -248,6 +250,9 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
     renderProfileMode(containerEl, resolvedDate);
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
+  } else if (resolvedMode === 'plan') {
+    currentMode = 'plan';
+    renderPlanMode(containerEl, resolvedDate, tournamentId);
   } else {
     renderAvailabilityMode(containerEl, resolvedDate);
   }
@@ -288,7 +293,7 @@ export function destroySchedulingTab(): void {
 }
 
 function destroyCurrentMode(): void {
-  if (currentMode === 'grid') destroyGridView();
+  if (currentMode === 'grid' || currentMode === 'plan') destroyGridView();
   else if (currentMode === 'profile') destroyProfileView();
   else if (currentMode === 'availability' && availabilityInstance) {
     availabilityInstance.destroy();
@@ -417,7 +422,8 @@ function renderAvailabilityMode(container: HTMLElement, scheduledDate: string): 
   // the schedule2 grid/profile views (which inherit it from createSchedulePage's
   // own layout chrome — the AvailabilityGrid component renders edge-to-edge).
   const gridHost = document.createElement('div');
-  gridHost.style.cssText = 'width: 100%; height: calc(100vh - 200px); overflow: hidden; padding: 0 16px; box-sizing: border-box;';
+  gridHost.style.cssText =
+    'width: 100%; height: calc(100vh - 200px); overflow: hidden; padding: 0 16px; box-sizing: border-box;';
   container.appendChild(gridHost);
   container.appendChild(buildActionBarMount());
 
