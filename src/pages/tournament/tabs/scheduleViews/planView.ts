@@ -220,17 +220,18 @@ export function renderPlanMode(container: HTMLElement, scheduledDate: string, to
     activeStripVisible: false,
   });
 
-  markCatalogInert(container);
-
   // Plan data is derived, not the live table — don't let remote-refresh repaint it as official.
   context.refreshActiveTable = rerender;
 }
 
-// The catalog is shown for reference in Plan mode but must not be an actionable
-// pool: a plan never removes matchUps from the catalog until it is made official.
-// Disable interaction (pointer-events) + mark it visually. Targets the catalog
-// panel via its stable title-row child (title-row → header → panel root).
-function markCatalogInert(container: HTMLElement): void {
+/**
+ * Make the catalog inert (visible but non-interactive, "reference only") — the
+ * catalog's `buildCatalog` is plan-aware, so the default Plan mode leaves it
+ * interactive (drag both ways). Retained as reusable tooling for future
+ * plan-adjacent UI where a read-only catalog is wanted; targets the catalog
+ * panel via its stable title-row child (title-row → header → panel root).
+ */
+export function markCatalogInert(container: HTMLElement): void {
   const titleRow = container.querySelector('.spl-catalog-title-row');
   const panel = titleRow?.parentElement?.parentElement as HTMLElement | null;
   if (panel) panel.classList.add('tmx-plan-catalog-inert');

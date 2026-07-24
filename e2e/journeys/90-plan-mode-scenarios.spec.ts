@@ -199,16 +199,31 @@ test.describe('Journey 90 — schedule scenarios (Plan mode)', () => {
     await expect(page.getByText(/out of date/i)).toBeHidden();
   });
 
-  test('the catalog is shown but inert (reference only) in Plan mode', async ({ page }) => {
+  test('the catalog is interactive + plan-aware (a planned match leaves it)', async ({ page }) => {
     const tournamentId = await seedTournament(page, PROFILE_PLAN);
-    await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 1 });
+    const { matchUpIds } = await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 2 });
+    const plannedId = matchUpIds[0];
+    const unplannedId = await page.evaluate(
+      (planned) =>
+        dev.factory.competitionEngine
+          .allTournamentMatchUps({})
+          .matchUps.filter((m: any) => m.roundNumber === 1 && m.matchUpStatus !== 'BYE')
+          .map((m: any) => m.matchUpId)
+          .find((id: string) => !planned.includes(id)),
+      matchUpIds,
+    );
 
     await gotoPlanMode(page, tournamentId);
     await expect(page.getByText(PLANNING_BADGE)).toBeVisible({ timeout: 10_000 });
 
-    const inert = page.locator('.tmx-plan-catalog-inert');
-    await expect(inert).toBeVisible();
-    await expect(inert).toHaveCSS('pointer-events', 'none');
+    // Default plan flow: the catalog is interactive (NOT inert).
+    await expect(page.locator('.tmx-plan-catalog-inert')).toHaveCount(0);
+
+    // Plan-aware: a match the plan schedules is no longer an unscheduled catalog
+    // card; an unplanned first-round match still is.
+    const catalog = page.locator('.spl-catalog-title-row').locator('xpath=../..');
+    await expect(catalog.locator(`[data-matchup-id="${plannedId}"]`)).toHaveCount(0);
+    await expect(catalog.locator(`[data-matchup-id="${unplannedId}"]`)).toHaveCount(1);
   });
 
   test('renaming a plan updates its name', async ({ page }) => {

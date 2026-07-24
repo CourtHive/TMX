@@ -3054,27 +3054,53 @@ function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
   };
 }
 
+// Active plan's placements keyed by matchUpId (empty outside Plan mode).
+function planPlacementMap(): { [matchUpId: string]: any } {
+  if (!planContext) return {};
+  const scenario = listScheduleScenarios(planContext.tournamentId).find(
+    (s: any) => s.scenarioId === planContext?.scenarioId,
+  );
+  const map: { [matchUpId: string]: any } = {};
+  for (const p of scenario?.placements ?? []) map[p.matchUpId] = p.schedule ?? {};
+  return map;
+}
+
+// A matchUp's schedule as the plan sees it: the scenario placement when present
+// (and the matchUp is uncompleted — the plan skips completed matchUps), else the
+// official schedule.
+function effectiveMatchUpSchedule(m: any, placements: { [matchUpId: string]: any }): any {
+  const override = placements[m.matchUpId];
+  if (!override) return m.schedule;
+  const completed = m.winningSide || isCompletedStatus(m.matchUpStatus);
+  return completed ? m.schedule : override;
+}
+
 function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
   const { matchUps } = getCachedAllMatchUps();
+  // In Plan mode the catalog reflects the PROJECTED plan, not the official
+  // schedule: a match the plan schedules leaves the catalog; a match the plan
+  // unschedules returns to it. Overlay the active scenario's placements onto
+  // each matchUp's schedule. An empty map (grid mode) ⇒ official schedule.
+  const placements = planPlacementMap();
 
   return (matchUps || [])
     .filter((m: any) => {
       if (m.matchUpStatus === BYE) return false;
-      // A matchUp that is already scheduled on a DIFFERENT date does not belong
-      // in this date's catalog — its time/court chips reference that other
-      // day, and lumping it into "Unscheduled" here is misleading. To move it
-      // to the current date the operator navigates to its date and reassigns.
-      const scheduledDate = m.schedule?.scheduledDate;
+      // A matchUp scheduled on a DIFFERENT date does not belong in this date's
+      // catalog — its chips reference that other day. (Projected schedule in
+      // Plan mode.)
+      const scheduledDate = effectiveMatchUpSchedule(m, placements)?.scheduledDate;
       if (scheduledDate && scheduledDate !== selectedDate) return false;
       return true;
     })
     .map((m: any) => {
       // After the filter above, any `scheduledDate` we see is the selected
-      // date, so onSelectedDate is implicit — collapse the previous two-flag
-      // logic into a single isScheduled check.
-      const hasDate = !!m.schedule?.scheduledDate;
-      const hasCourtAssignment = !!(m.schedule?.courtId && hasDate);
-      const hasTimeAssignment = !!(m.schedule?.scheduledTime && hasDate);
+      // date, so onSelectedDate is implicit — collapse to a single isScheduled
+      // check. Uses the projected (plan-overlaid) schedule in Plan mode.
+      const schedule = effectiveMatchUpSchedule(m, placements);
+      const hasDate = !!schedule?.scheduledDate;
+      const hasCourtAssignment = !!(schedule?.courtId && hasDate);
+      const hasTimeAssignment = !!(schedule?.scheduledTime && hasDate);
       const isScheduled = hasCourtAssignment || hasTimeAssignment || hasDate;
 
       return {
@@ -3098,8 +3124,8 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
           seedNumber: s.seedValue ?? s.seedNumber,
         })),
         isScheduled,
-        scheduledTime: isScheduled ? m.schedule?.scheduledTime : undefined,
-        scheduledCourtName: isScheduled ? m.schedule?.courtName : undefined,
+        scheduledTime: isScheduled ? schedule?.scheduledTime : undefined,
+        scheduledCourtName: isScheduled ? schedule?.courtName : undefined,
       } satisfies CatalogMatchUpItem;
     });
 }
