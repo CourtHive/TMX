@@ -98,7 +98,25 @@ function buildPlanChrome(args: {
     rerender();
   });
 
-  const activeName = scenarios.find((s: any) => s.scenarioId === scenarioId)?.scenarioName ?? '';
+  const active = scenarios.find((s: any) => s.scenarioId === scenarioId);
+  const activeName = active?.scenarioName ?? '';
+  const placements: any[] = active?.placements ?? [];
+
+  // Render-time status drives both the summary chip and the drift indicator
+  // (one read instead of two).
+  const renderStatus: any = getScenarioStatus(tournamentId, scenarioId);
+  const completedSet = new Set<string>(renderStatus?.completedMatchUpIds ?? []);
+  let planned = 0;
+  let unscheduled = 0;
+  for (const p of placements) {
+    if (completedSet.has(p.matchUpId)) continue;
+    if (p.schedule?.scheduledDate) planned++;
+    else unscheduled++;
+  }
+  const summary = document.createElement('span');
+  summary.textContent = t('schedule.plan.summary', { planned, unscheduled, skipped: completedSet.size });
+  summary.style.cssText = 'font-size:0.75rem;color:var(--tmx-text-muted,#6b7280);white-space:nowrap;';
+
   const renameBtn = styledButton(t('schedule.plan.rename'));
   renameBtn.addEventListener('click', () => {
     const input = document.createElement('input');
@@ -129,6 +147,20 @@ function buildPlanChrome(args: {
 
   const newBtn = styledButton(t('schedule.plan.new'));
   newBtn.addEventListener('click', () => void createPlan(tournamentId, rerender));
+
+  const duplicateBtn = styledButton(t('schedule.plan.duplicate'));
+  duplicateBtn.addEventListener('click', async () => {
+    const result: any = await addScheduleScenario(tournamentId, {
+      scenarioName: t('schedule.plan.copyName', { name: activeName }),
+      placements: placements.map((p) => ({ ...p, schedule: { ...p.schedule } })),
+    });
+    if (result?.error) {
+      tmxToast({ message: t('schedule.plan.createFailed'), intent: 'is-danger' });
+      return;
+    }
+    activePlanScenarioId = result?.scenarioId ?? result?.scenario?.scenarioId ?? null;
+    rerender();
+  });
 
   const deleteBtn = styledButton(t('schedule.plan.delete'), 'danger');
   deleteBtn.addEventListener('click', () => {
@@ -166,11 +198,10 @@ function buildPlanChrome(args: {
     });
   });
 
-  bar.append(badge, select, renameBtn, newBtn, deleteBtn);
+  bar.append(badge, summary, select, renameBtn, duplicateBtn, newBtn, deleteBtn);
 
-  // Drift indicator + rebase
-  const status: any = getScenarioStatus(tournamentId, scenarioId);
-  if (status?.outOfDate) {
+  // Drift indicator + rebase (reuses the render-time status computed above).
+  if (renderStatus?.outOfDate) {
     const warn = document.createElement('span');
     warn.textContent = t('schedule.plan.outOfDate');
     warn.title = t('schedule.plan.outOfDateTip');

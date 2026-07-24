@@ -47,7 +47,13 @@ async function gotoPlanMode(page: Page, tournamentId: string): Promise<void> {
  */
 async function seedScenario(
   page: Page,
-  opts: { tournamentId: string; date: string; placementCount: number; driftFirst?: boolean },
+  opts: {
+    tournamentId: string;
+    date: string;
+    placementCount: number;
+    driftFirst?: boolean;
+    sameCourtSameTime?: boolean;
+  },
 ): Promise<{ scenarioId: string; matchUpIds: string[]; times: string[] }> {
   return page.evaluate(async (o) => {
     await dev.tmx2db.initDB();
@@ -63,7 +69,8 @@ async function seedScenario(
       matchUpId: m.matchUpId,
       schedule: {
         scheduledDate: o.date,
-        scheduledTime: times[i],
+        // same court + same time across placements ⇒ a double-booking conflict
+        scheduledTime: o.sameCourtSameTime ? '10:00' : times[i],
         courtId: court.courtId,
         courtOrder: i + 1,
         venueId: court.venueId,
@@ -246,5 +253,90 @@ test.describe('Journey 90 — schedule scenarios (Plan mode)', () => {
       );
       expect(name).toBe('Sunshine plan');
     }).toPass({ timeout: 10_000 });
+  });
+
+  test('Duplicate creates a copy of the plan', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_PLAN);
+    await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 2 });
+
+    await gotoPlanMode(page, tournamentId);
+    await expect(page.getByText(PLANNING_BADGE)).toBeVisible({ timeout: 10_000 });
+
+    await page.locator('button:has-text("Duplicate")').click();
+
+    await expect(async () => {
+      const names = await page.evaluate(
+        (tid) =>
+          dev.factory.competitionEngine
+            .getScheduleScenarios({ tournamentId: tid })
+            .scenarios.map((s: any) => s.scenarioName),
+        tournamentId,
+      );
+      expect(names.length).toBe(2);
+      expect(names.some((n: string) => n.includes('(copy)'))).toBe(true);
+    }).toPass({ timeout: 10_000 });
+  });
+
+  test('the plan summary chip shows counts', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_PLAN);
+    await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 2 });
+
+    await gotoPlanMode(page, tournamentId);
+    await expect(page.getByText(/2 planned/)).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('a plan double-booking surfaces as a grid conflict', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_PLAN);
+    await seedScenario(page, { tournamentId, date: SCHEDULE_DATE, placementCount: 2, sameCourtSameTime: true });
+
+    await gotoPlanMode(page, tournamentId);
+    await expect(page.getByText(PLANNING_BADGE)).toBeVisible({ timeout: 10_000 });
+
+    // Two matches on the same court + time ⇒ the plan double-books, surfaced as
+    // a conflict cell in the projected grid.
+    await expect(page.locator('.tmx-plan-conflict-cell').first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('a completed scheduled match renders locked in the plan grid', async ({ page }) => {
+    const tournamentId = await seedTournament(page, {
+      ...PROFILE_PLAN,
+      drawProfiles: [
+        {
+          eventName: 'Plan Singles',
+          drawSize: 8,
+          seedsCount: 2,
+          drawType: 'SINGLE_ELIMINATION',
+          outcomes: [{ roundNumber: 1, roundPosition: 1, scoreString: '6-1 6-2', winningSide: 1 }],
+        },
+      ],
+    });
+
+    // Officially schedule the completed match, add an (empty) plan so the grid renders.
+    await page.evaluate(
+      async ({ tid, date }) => {
+        await dev.tmx2db.initDB();
+        const eng = dev.factory.tournamentEngine;
+        const court = eng.getVenuesAndCourts().venues[0].courts[0];
+        const completed = eng.allTournamentMatchUps({}).matchUps.find((m: any) => m.winningSide);
+        eng.addMatchUpScheduleItems({
+          matchUpId: completed.matchUpId,
+          drawId: completed.drawId,
+          schedule: {
+            scheduledDate: date,
+            scheduledTime: '09:00',
+            courtId: court.courtId,
+            courtOrder: 1,
+            venueId: court.venueId,
+          },
+        });
+        eng.addScheduleScenario({ tournamentId: tid, scenario: { scenarioName: 'Plan', placements: [] } });
+        await dev.tmx2db.addTournament(eng.getTournament().tournamentRecord);
+      },
+      { tid: tournamentId, date: SCHEDULE_DATE },
+    );
+
+    await gotoPlanMode(page, tournamentId);
+    await expect(page.getByText(PLANNING_BADGE)).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.tmx-plan-locked-cell').first()).toBeVisible({ timeout: 10_000 });
   });
 });
