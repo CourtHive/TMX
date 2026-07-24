@@ -17,7 +17,7 @@ import {
 } from 'services/scheduleScenarios/scheduleScenariosService';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { renderGridView } from './gridView';
+import { renderGridView, destroyGridView } from './gridView';
 import { context } from 'services/context';
 
 import { SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -159,6 +159,12 @@ function buildPlanChrome(args: {
 
 export function renderPlanMode(container: HTMLElement, scheduledDate: string, tournamentId: string): void {
   const rerender = () => renderPlanMode(container, scheduledDate, tournamentId);
+
+  // Re-render fully rebuilds: tear down the previous grid (subscriptions, active
+  // strip) and clear the container so switcher/banner/grid never stack. Mirrors
+  // the tab's destroy-then-render cycle; idempotent on first mount.
+  destroyGridView();
+  container.innerHTML = '';
 
   const scenarios = listScheduleScenarios(tournamentId);
   if (!scenarios.find((s: any) => s.scenarioId === activePlanScenarioId)) {
