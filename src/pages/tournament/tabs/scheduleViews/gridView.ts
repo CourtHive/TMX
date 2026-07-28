@@ -86,6 +86,8 @@ import {
   getCachedTournamentInfo,
   getCachedAllMatchUps,
 } from './schedule2DataCache';
+import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
+import { getLoginState } from 'services/authentication/loginState';
 import { computeAutoCalls } from './autoCallDueMatches';
 import {
   createSchedulePage,
@@ -2437,6 +2439,12 @@ function refreshActiveStrip(date: string): void {
  */
 function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void {
   if (!currentRefresh) return;
+  // Auto-call is a running-desk action, not a viewer side effect: only users
+  // associated with this tournament's provider trigger it. A super-admin (or any
+  // cross-provider viewer) merely observing must not stamp calledAt. Deferred:
+  // a per-provider on/off toggle (default ON for provider staff) + calling roles.
+  const { tournamentRecord } = tournamentEngine.getTournament() || {};
+  if (!isTournamentProviderMember({ loginState: getLoginState(), tournamentRecord })) return;
   const now = new Date();
   const nowHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const calls = computeAutoCalls(columns as any, nowHHMM);

@@ -97,6 +97,16 @@ async function seedScheduled(
             ...(a.scheduledTime ? { scheduledTime: a.scheduledTime } : {}),
           },
         });
+        // Stamp calledAt so the match surfaces on the Now strip as NEXT (an
+        // "occupied" court). Previously this happened implicitly via mount-time
+        // auto-call; auto-call is now provider-member-gated (this journey runs
+        // unauthenticated), so the strip-occupancy precondition is made explicit
+        // here — it's the state under test, not the mechanism that produced it.
+        dev.factory.tournamentEngine.setMatchUpCalledAt({
+          matchUpId: mu.matchUpId,
+          drawId: mu.drawId,
+          calledAt: new Date().toISOString(),
+        });
         matchUpIds.push(mu.matchUpId);
       });
 
