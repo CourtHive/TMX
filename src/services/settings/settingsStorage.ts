@@ -19,6 +19,7 @@ export type TMXSettings = {
   smartComplements?: boolean;
   assistant?: boolean;
   formatWizard?: boolean;
+  schedulePlan?: boolean;
   /**
    * @deprecated — Reports tab has been promoted to production. The icon
    * is always visible; the flag is no longer read. Retained in the type
@@ -150,6 +151,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   const flagsPatch: Record<string, any> = {};
   if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
   if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
+  if (settings.schedulePlan !== undefined) flagsPatch.schedulePlan = settings.schedulePlan;
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -179,6 +181,7 @@ export function persistConfigToStorage(
     saveLocal: server.saveLocal,
     assistant: flags.assistant,
     formatWizard: flags.formatWizard,
+    schedulePlan: flags.schedulePlan,
     ...extras,
   });
 }

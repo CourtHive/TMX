@@ -10,6 +10,7 @@
  */
 import { buildScheduleDateSelector } from 'components/schedule/scheduleDateSelector';
 import { ScheduleDate } from 'courthive-components';
+import { featureFlags } from 'config/featureFlags';
 
 import type { SchedulingMode } from './schedulingTab';
 
@@ -67,7 +68,10 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
   const switcher = document.createElement('div');
   switcher.style.cssText = 'display: flex; align-items: center; gap: 0;';
 
-  MODES.forEach((mode, index) => {
+  // Plan mode is an in-flight beta — hide its segment unless the flag is on.
+  const modes = featureFlags.get().schedulePlan ? MODES : MODES.filter((mode) => mode.key !== 'plan');
+
+  modes.forEach((mode, index) => {
     const btn = document.createElement('button');
     btn.style.cssText = segmentBtnStyle(mode.key === activeMode);
     btn.title = mode.label;
@@ -82,7 +86,7 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
     });
 
     if (index === 0) btn.style.borderRadius = '6px 0 0 6px';
-    else if (index === MODES.length - 1) btn.style.borderRadius = '0 6px 6px 0';
+    else if (index === modes.length - 1) btn.style.borderRadius = '0 6px 6px 0';
     else btn.style.borderRadius = '0';
 
     switcher.appendChild(btn);
