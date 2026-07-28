@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, resetState, waitForAppReady, seedFeatureFlagInitScript } from '../helpers/dev-bridge';
 import { seedTournament } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 
@@ -112,6 +112,11 @@ async function seedScenario(
 
 test.describe('Journey 90 — schedule scenarios (Plan mode)', () => {
   test.beforeEach(async ({ page }) => {
+    // Plan mode is behind the schedulePlan beta flag — seed it into
+    // localStorage BEFORE the first navigation so hydrate enables it on boot
+    // and the 'Plan' switcher segment renders. Re-applied on every navigation
+    // by addInitScript, so it survives the localStorage.clear() below too.
+    await seedFeatureFlagInitScript(page, 'schedulePlan');
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);

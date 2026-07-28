@@ -34,6 +34,7 @@ import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { resolveScheduleDate } from '../scheduleUtils';
+import { featureFlags } from 'config/featureFlags';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import {
@@ -199,7 +200,11 @@ function writeBoolFlag(key: string, value: boolean): void {
 }
 
 function isValidMode(value: string | undefined): value is SchedulingMode {
-  return !!value && (VALID_MODES as string[]).includes(value);
+  if (!value || !(VALID_MODES as string[]).includes(value)) return false;
+  // Plan mode is an in-flight beta — a direct/bookmarked `.../plan` URL falls
+  // back to the default mode unless the flag is on (mirrors the hidden segment).
+  if (value === 'plan' && !featureFlags.get().schedulePlan) return false;
+  return true;
 }
 
 export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): void {

@@ -113,6 +113,7 @@ async function persistAll(
   featureFlags.set({
     assistant: displayInputs.assistant?.checked || false,
     formatWizard: displayInputs.formatWizard?.checked || false,
+    schedulePlan: displayInputs.schedulePlan?.checked || false,
   });
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
@@ -162,7 +163,10 @@ async function persistAll(
   }
 }
 
-export async function renderSettingsGrid(container: HTMLElement, options?: { excludeTournament?: boolean }): Promise<void> {
+export async function renderSettingsGrid(
+  container: HTMLElement,
+  options?: { excludeTournament?: boolean },
+): Promise<void> {
   const currentSettings = loadSettings();
 
   // These are populated after renderForm calls; persist closure captures the refs.
@@ -402,6 +406,14 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
       onChange: persist,
       checkbox: true,
     },
+    {
+      label: 'Schedule Plan',
+      checked: featureFlags.get().schedulePlan || false,
+      field: 'schedulePlan',
+      id: 'schedulePlan',
+      onChange: persist,
+      checkbox: true,
+    },
   ]);
 
   if (deviceConfig.get().isElectron) {
@@ -562,9 +574,11 @@ export async function renderSettingsGrid(container: HTMLElement, options?: { exc
 
         const showServerError = (body: any) => {
           const messageKey =
-            body?.errorCode === 'ERR_TOURNAMENT_NOT_ENDED' ? 'toasts.tournamentNotEnded' :
-            body?.errorCode === 'ERR_DELETE_FORBIDDEN'     ? 'toasts.deleteForbidden'     :
-            undefined;
+            body?.errorCode === 'ERR_TOURNAMENT_NOT_ENDED'
+              ? 'toasts.tournamentNotEnded'
+              : body?.errorCode === 'ERR_DELETE_FORBIDDEN'
+                ? 'toasts.deleteForbidden'
+                : undefined;
           tmxToast({
             message: messageKey ? t(messageKey) : body?.error || t('toasts.cannotDeleteTournament'),
             intent: 'is-danger',

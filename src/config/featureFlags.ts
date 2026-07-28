@@ -8,12 +8,14 @@
 export interface FeatureFlags {
   assistant: boolean;
   formatWizard: boolean;
+  schedulePlan: boolean;
   usePublishState: boolean;
 }
 
 const defaults: FeatureFlags = {
   assistant: false,
   formatWizard: false,
+  schedulePlan: false,
   usePublishState: false,
 };
 
